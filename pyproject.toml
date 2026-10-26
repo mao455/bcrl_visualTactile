@@ -46,6 +46,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+visuotactile = [
+    "diffusers==0.39.0",
+    "einops==0.8.2",
+    "h5py==3.16.0",
+]
 ros = [
     "rospkg",
 ]
@@ -60,4 +65,8 @@ include = [
     "isaacsimenvs*",
     "evaluation*",
     "deployment*",
+    "visuotactile*",
 ]
+
+[tool.setuptools.package-data]
+"visuotactile.models.vendor" = ["LICENSE", "PROVENANCE.md"]

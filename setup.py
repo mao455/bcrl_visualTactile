@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     python_requires=">=3.10",
     install_requires=INSTALL_REQUIRES,
-    packages=find_packages(include=["isaacsimenvs*", "evaluation*", "deployment*"]),
+    packages=find_packages(include=["isaacsimenvs*", "evaluation*", "deployment*", "visuotactile*"]),
     classifiers=["Natural Language :: English", "Programming Language :: Python :: 3.11"],
     zip_safe=False,
 )

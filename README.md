@@ -50,6 +50,23 @@ play2perfect/
 | Beam assembly — step 2 | `beam_assembly_step2` |
 | Screwing (furniture leg) | `screwing` |
 
+## Local visual–tactile research extension
+
+The independent `visuotactile/` package adds audited trajectory recording, nominal
+Diffusion BC and a non-controlling tactile correction probe. See
+[research_docs/README.md](research_docs/README.md) for verified results, limitations
+and commands. Read `AGENTS.md` before continuing this research. These local
+experiments do not establish assembly competence or learned tactile improvement.
+
+This repository is a research fork of the original
+[Play2Perfect](https://github.com/kushal2000/play2perfect) release. The original
+assets, environments, control semantics and RL code remain under the upstream MIT
+license. New visual–tactile research code is kept in `visuotactile/`, with its
+engineering record in `research_docs/`. Diffusion Policy modules copied under
+`visuotactile/models/vendor/` retain their MIT license and source commit in
+`LICENSE` and `PROVENANCE.md`. Checkpoints, trajectories, logs and local runtime
+artifacts are intentionally excluded from the public repository.
+
 ## Installation
 
 See [docs/isaacsim_installation.md](docs/isaacsim_installation.md) for the full Isaac Sim /
