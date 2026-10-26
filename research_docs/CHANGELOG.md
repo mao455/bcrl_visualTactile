@@ -61,3 +61,8 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 - comparison_final.json audits teacher03, nominal_shadow02 and nominal_shadow03 completely; all alignment/finite-number/boundary checks pass, including exact shadow-vs-nominal executed commands and previous-command/reset alignment. The three runs share the recorded comparison protocol and budget; success totals are respectively 5/6, 0/2 and 0/2.
 - pyproject.toml explicitly includes the upstream vendor LICENSE and PROVENANCE.md as package data; no wheel-distribution test is claimed. Added provenance fields to evaluate.py output. Corrected stale README/RUNBOOK status and preserved earlier changelog entries.
 - Copied the completed simulation/regression process logs into their output directories. verification_manifest.json records the baseline commit, source/document hashes and result checks. No ongoing research simulation or training job is intentionally left running. No commit was made.
+
+### 2026-10-27 — 首次公开同步
+
+- Verified the staged public tree, local-only `user.name/user.email`, fork/upstream remotes and final test result, then created commit `159599f0575d8f61fbf21b615e2b02d0fd4168ee` (`Add visual tactile imitation research system`).
+- Pushed only to `origin/main` at https://github.com/mao455/bcrl_visualTactile . `upstream` remains the original Play2Perfect remote. The follow-up documentation status update is intentionally tracked in the next local commit.

@@ -75,4 +75,4 @@ rg -n -i --hidden --glob '!.git/**' --glob '!outputs/**' --glob '!pretrained_*' 
 
 ## 当前首次公开发布状态
 
-截至 2026-10-27，remote 已安全配置但本轮尚未推送。待用户确认文件清单和预检查结果后，再建立公开 commit 并推送 `origin/main`。推送前不会上传 `outputs/`、预训练模型、实验轨迹、虚拟环境或私有配置。
+截至 2026-10-27，首次公开同步已完成：commit `159599f0575d8f61fbf21b615e2b02d0fd4168ee` 已推送到 `origin/main`。GitHub 地址为 https://github.com/mao455/bcrl_visualTactile 。首次推送没有包含 `outputs/`、预训练模型、实验轨迹、虚拟环境或私有配置。
