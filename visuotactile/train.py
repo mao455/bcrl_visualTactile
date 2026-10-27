@@ -30,9 +30,12 @@ def main():
     data_hash = hashlib.sha256(args.data.read_bytes()).hexdigest()
     with h5py.File(args.data) as f:
         metadata = json.loads(f.attrs["metadata_json"])
+        if metadata.get("nominal_plan_source") == "untrained_perception_probe" and not args.smoke_only:
+            raise ValueError("Untrained perception probe plans are engineering fixtures, not formal training data")
         names = list(f["episodes"])
         shape = f["episodes"][names[0]]["obs/image"].shape
-    cfg = PolicyConfig(views=shape[1], channels=shape[2])
+        perception_version = int(f.attrs["schema_version"])
+    cfg = PolicyConfig(views=shape[1], channels=shape[2], perception_version=perception_version)
     eligible = EpisodeDataset(args.data, allow_incomplete=args.smoke_only, allow_unsuccessful=args.smoke_only)
     names = eligible.episodes
     # Whole episode split. One episode cannot honestly supply validation.
@@ -43,7 +46,7 @@ def main():
     first_step = 0
     if args.resume:
         state = torch.load(args.resume,map_location="cpu",weights_only=False)
-        if (state["data_sha256"] != data_hash or state["config"] != asdict(cfg)
+        if (state["data_sha256"] != data_hash or asdict(PolicyConfig.from_dict(state["config"])) != asdict(cfg)
                 or state["smoke_only"] != args.smoke_only):
             raise ValueError("Resume requires identical dataset and model configuration")
         model.load_state_dict(state["model"])
@@ -52,6 +55,7 @@ def main():
         train_names, val_names = state["train_episodes"], state["validation_episodes"]
         torch.set_rng_state(state["torch_rng"])
     options = dict(history=cfg.history,stride=cfg.stride,horizon=cfg.horizon,
+                   perception_version=cfg.perception_version,
                    allow_incomplete=args.smoke_only,allow_unsuccessful=args.smoke_only)
     train = EpisodeDataset(args.data,episodes=train_names,**options)
     validation = EpisodeDataset(args.data,episodes=val_names,**options) if val_names else None
@@ -75,7 +79,7 @@ def main():
         losses.append(float(loss.detach()))
         if step % 20 == 0:
             print(f"TRAIN step={step+1} denoising_loss={losses[-1]:.6f}",flush=True)
-    state = dict(model=model.state_dict(),optimizer=optimizer.state_dict(),config=asdict(cfg),
+    state = dict(checkpoint_version=cfg.perception_version,model=model.state_dict(),optimizer=optimizer.state_dict(),config=asdict(cfg),
                  step=first_step+args.steps,torch_rng=torch.get_rng_state(),data_sha256=data_hash,
                  train_episodes=train_names,validation_episodes=val_names,metadata=metadata,
                  smoke_only=args.smoke_only,nominalization="none; original actions may contain preload")

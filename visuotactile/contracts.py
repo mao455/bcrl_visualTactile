@@ -5,6 +5,7 @@ import numpy as np
 
 
 def policy_input_contract(metadata):
+    version = metadata.get("perception_version",1)
     student = metadata["student_config"]
     fields = ("proprio_list", "image_modality", "image_width", "image_height",
               "image_input_width", "image_input_height", "crop_enabled",
@@ -18,6 +19,26 @@ def policy_input_contract(metadata):
               "physics_dt": metadata["physics_dt"], "control_dt": metadata["control_dt"],
               "student": {k: student[k] for k in fields},
               "nominal_proprio": metadata["nominal_proprio"]}
+    result["perception_version"] = version
+    if version == 2:
+        calibration = []
+        for camera in metadata["cameras"]:
+            for field in ("pos_env","quat_ros_wxyz","intrinsics"):
+                values = np.asarray(camera[field],dtype=float)
+                if field == "quat_ros_wxyz":
+                    values = np.where(values[:,:1]<0,-values,values)
+                if not np.allclose(values,values[0],atol=1e-5,rtol=0):
+                    raise ValueError("Per-environment camera calibration differs; variable mounts need an explicit model contract")
+                calibration.extend(values[0].reshape(-1).tolist())
+        result.update(camera_ids=metadata["camera_ids"],
+                      resolutions=[c["resolution"] for c in metadata["cameras"]],
+                      depth_encoding=metadata["depth_encoding"],
+                      task_vocabulary=metadata["task_command"]["vocabulary"],
+                      goal_frame=metadata["task_command"]["frame"],
+                      calibration=calibration, fk_urdf_sha256=metadata["fk_urdf_sha256"])
+        return result
+    if version != 1:
+        raise ValueError("Unsupported perception version")
     # Every current view shares the same extrinsics relative to its environment.
     # Legacy schema-1 captures lack env origins; the explicit named oblique mount
     # was fixed by the collector, not inferred from a simulator object pose.

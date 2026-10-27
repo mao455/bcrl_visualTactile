@@ -60,7 +60,7 @@ def test_native_arm_hand_semantics_and_canonical_mapping():
 
 def test_nominal_rejects_tactile_and_privileged_keys():
     torch.set_num_threads(2)
-    model=NominalDiffusionPolicy(PolicyConfig(history=2))
+    model=NominalDiffusionPolicy(PolicyConfig(perception_version=1,views=1,history=2))
     obs={"image":torch.zeros(1,2,1,4,24,32),"proprio":torch.zeros(1,2,58),"valid":torch.ones(1,2,dtype=torch.bool)}
     for name in ("contact_w_N","expert_action","object_pose","goal_pose","stage","corrected_action"):
         with pytest.raises(ValueError):
@@ -69,7 +69,7 @@ def test_nominal_rejects_tactile_and_privileged_keys():
 
 
 def test_correction_is_independent_and_cannot_execute_untrained():
-    cfg=PolicyConfig(history=2)
+    cfg=PolicyConfig(perception_version=1,views=1,history=2)
     nominal=NominalDiffusionPolicy(cfg)
     correction=CorrectionPolicy(cfg)
     assert not ({p.data_ptr() for p in nominal.parameters()} & {p.data_ptr() for p in correction.parameters()})
@@ -91,7 +91,7 @@ def test_correction_is_independent_and_cannot_execute_untrained():
 def test_checkpoint_load_preserves_simulator_rng(tmp_path):
     from dataclasses import asdict
     from visuotactile.rollout import NominalController
-    model=NominalDiffusionPolicy()
+    model=NominalDiffusionPolicy(PolicyConfig(perception_version=1,views=1))
     path=tmp_path/"fixture.pt"
     torch.save(dict(step=1,config=asdict(model.cfg),model=model.state_dict(),metadata={},smoke_only=True),path)
     before=torch.random.get_rng_state().clone()
@@ -101,7 +101,7 @@ def test_checkpoint_load_preserves_simulator_rng(tmp_path):
 
 def test_correction_real_time_alignment_and_async_reset():
     from visuotactile.correction import CorrectionContext
-    context=CorrectionContext(2,PolicyConfig(history=2,stride=1),force_history_steps=3)
+    context=CorrectionContext(2,PolicyConfig(perception_version=1,views=1,history=2,stride=1),force_history_steps=3)
     plan=torch.arange(2*12*29).reshape(2,12,29).float()
     packet=dict(image=torch.zeros(2,1,4,24,32),proprio=torch.zeros(2,58),
                 contact_substeps_w_N=torch.ones(2,2,5,3),contact_valid=torch.tensor([False,False]),
@@ -125,7 +125,7 @@ def test_correction_real_time_alignment_and_async_reset():
 
 def test_nominal_inference_is_invariant_to_tactile_and_diagnostics():
     from visuotactile.rollout import NominalController
-    cfg=PolicyConfig(history=2,stride=1,inference_steps=2)
+    cfg=PolicyConfig(perception_version=1,views=1,history=2,stride=1,inference_steps=2)
     model=NominalDiffusionPolicy(cfg)
     a,b=NominalController(model,1),NominalController(model,1)
     for t in range(8):

@@ -8,7 +8,8 @@ from .vendor.conditional_unet1d import ConditionalUnet1D
 
 @dataclass
 class PolicyConfig:
-    views: int = 1
+    perception_version: int = 2
+    views: int = 2
     channels: int = 4
     proprio_dim: int = 58
     history: int = 4
@@ -19,8 +20,13 @@ class PolicyConfig:
     diffusion_steps: int = 100
     inference_steps: int = 8
 
+    @classmethod
+    def from_dict(cls, config):
+        # Missing version is the published one-camera v1 checkpoint, never v2.
+        return cls(**{"perception_version": 1, **config})
 
-class VisualHistoryEncoder(nn.Module):
+
+class LegacyVisualHistoryEncoder(nn.Module):
     """Shared per-view CNN, ordered view features, masked finite-window GRU."""
     def __init__(self, cfg):
         super().__init__()
@@ -55,6 +61,15 @@ class VisualHistoryEncoder(nn.Module):
             update = self.temporal(x[:,i],hidden)
             hidden = torch.where(valid[:,i,None],update,hidden)
         return hidden
+
+
+def VisualHistoryEncoder(cfg):
+    if cfg.perception_version == 1:
+        return LegacyVisualHistoryEncoder(cfg)
+    if cfg.perception_version == 2:
+        from .vision import MultimodalHistoryEncoder
+        return MultimodalHistoryEncoder(cfg)
+    raise ValueError("Unsupported perception/checkpoint version")
 
 
 class NominalDiffusionPolicy(nn.Module):

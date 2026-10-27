@@ -33,9 +33,14 @@ class CorrectionPolicy(nn.Module):
     def __init__(self, nominal_cfg):
         super().__init__()
         self.visual = VisualHistoryEncoder(nominal_cfg)  # own parameters, no nominal feature sharing
-        self.tactile = TactileEncoder()
+        self.perception_version = nominal_cfg.perception_version
+        if self.perception_version == 2:
+            from .tactile import FingerTactileEncoder
+            self.tactile = FingerTactileEncoder()
+        else:
+            self.tactile = TactileEncoder()
         self.intent = nn.GRUCell(29,64)
-        self.motion = nn.GRUCell(nominal_cfg.proprio_dim+29+1,64)
+        self.motion = nn.GRUCell(nominal_cfg.proprio_dim+29+1+(58 if self.perception_version == 2 else 0),64)
         self.policy = nn.Sequential(nn.Linear(nominal_cfg.hidden+192,256),nn.SiLU(),
                                     nn.Linear(256,128),nn.SiLU(),nn.Linear(128,29),nn.Tanh())
 
@@ -44,11 +49,14 @@ class CorrectionPolicy(nn.Module):
         intent = nominal_chunk.new_zeros(len(nominal_chunk),64)
         for i in range(nominal_chunk.shape[1]):
             intent = torch.where(nominal_valid[:,i,None],self.intent(nominal_chunk[:,i].detach(),intent),intent)
-        if set(motion_history) != {"proprio","previous_command","command_valid","valid"}:
+        extra = {"actuator_target_rad","tracking_error_rad"} if self.perception_version == 2 else set()
+        if set(motion_history) != {"proprio","previous_command","command_valid","valid"}|extra:
             raise ValueError("Correction motion accepts encoders and causal issued-command history only")
         q = (motion_history["proprio"]-self.visual.proprio_mean)/self.visual.proprio_std
         motion = q.new_zeros(len(q),64)
         sequence = torch.cat((q,motion_history["previous_command"],motion_history["command_valid"][...,None].float()),-1)
+        if self.perception_version == 2:
+            sequence = torch.cat((sequence,motion_history["actuator_target_rad"],motion_history["tracking_error_rad"]),-1)
         for i in range(sequence.shape[1]):
             motion = torch.where(motion_history["valid"][:,i,None],self.motion(sequence[:,i],motion),motion)
         context = torch.cat((self.visual(visual_history),self.tactile(tactile_history,tactile_valid),intent,motion),dim=-1)

@@ -12,7 +12,7 @@
 ```bash
 git remote -v
 git branch -vv
-git fetch --prune upstream origin
+git fetch --multiple --prune upstream origin
 ```
 
 ## 每次研究修改
@@ -45,6 +45,8 @@ git fetch --prune upstream origin
    ```bash
    git push -u origin <feature-branch>
    ```
+
+   若该功能已完成测试/文档审计且本轮已获同步授权，可以在确认remote/main没有新变更后，`git switch main`、`git merge --ff-only <feature-branch>`、`git push origin main`，让默认分支保持最新可读代码；保留功能分支和完整历史。不强推，不自动改写其他人的提交。
 
    永远不要执行 `git push upstream`。推送后报告 commit ID、remote、分支、结果和 GitHub URL。
 

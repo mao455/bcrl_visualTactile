@@ -3,9 +3,6 @@ import json
 import h5py
 import numpy as np
 
-from . import SCHEMA_VERSION
-
-
 def numpy_tree(value):
     if isinstance(value, dict):
         return {k: numpy_tree(v) for k, v in value.items()}
@@ -28,7 +25,7 @@ def flatten(value, prefix=""):
 class EpisodeWriter:
     def __init__(self, path, metadata):
         self.file = h5py.File(path, "x")
-        self.file.attrs["schema_version"] = SCHEMA_VERSION
+        self.file.attrs["schema_version"] = metadata.get("perception_version", 1)
         self.file.attrs["metadata_json"] = json.dumps(metadata, default=str)
         self.pending = {}
         self.count = 0

@@ -8,15 +8,17 @@
 3. `RESEARCH.md`: primary literature/code, licensing and choices (written as reviewed).
 4. `CHANGELOG.md`: append-only implementation/test evidence.
 5. `RUNBOOK.md`: 可复制的低资源命令与实际结果。
-6. `AUDIT.md`: 原任务调用链、物理参数、本机 CPU/渲染限制和图像审计。
+6. `PERCEPTION.md`: 双视角/逐指编码、来源实现与当前验证。
+7. `AUDIT.md`: 原任务调用链、物理参数、本机 CPU/渲染限制和图像审计。
 
-## 当前状态 — 2026-10-27（Asia/Shanghai）
+## 当前状态 — 2026-10-27（Perception v2）
 
-- 已审计并复用原资产、任务、控制、随机化和 reset 路径；原 task/RL 源文件未改动。`AUDIT.md` 补充源码调用链、物理参数和本机运行限制。
-- 已实际采集 RGB-D、58 维编码器状态、五个末节刚体的法向接触合力、原生动作和执行器目标，按独立 episode 保存。原默认相机画面为空；新增可选斜视安装位置可看到场景，但遮挡和插入细节仍未解决。
-- 已用真实专家轨迹训练并恢复到 1,000 步 nominal diffusion，完成保存、精确重载和独立仿真 rollout；验证 loss≈.736。最新 2 env × 660 ticks 中专家 5/6 成功，nominal 0/2、未产生接触，**尚未得到有任务能力的 BC 模型**。普通 BC 仍可能学习专家的预加载意图。
-- Correction 已有独立视觉/运动/动作/触觉时序输入、预测 nominal chunk 编码和候选命令输出。旁路运行仅记录未训练候选，绝不执行。**尚无训练过的 correction，也未证明触觉带来改进。**
-- 单元测试已扩至 8 项通过；真实轨迹对齐检查通过。后续 rollout/评估的最新数据见 `CHANGELOG.md` 与 `RUNBOOK.md`。
+- 本轮已接通双固定 RGB-D 相机（224×126）、深度有效掩码和标定/时间记录。经过三次安装候选的真实渲染检查，保留原全局视角并增加左前上方互补视角。详见 [PERCEPTION.md](PERCEPTION.md) 和图示。
+- 视觉升级为共享 ResNet18 前半段 RGB + 独立 Depth 分支、空间 keypoint/grid + masked GRU。Nominal 接收合法 task/可选 operator goal 与自身因果旧计划；不接收触觉、专家动作或 correction 命令。
+- 五指逐指编码合力、身份、编码器 FK 位姿和时序变化；Correction 独立融合视觉/运动/执行目标/触觉及 nominal 未来预测。**始终 Shadow，未训练候选从不执行。**
+- 真实 2 env × 240 ticks 专家旁路：记录/读取、前向、有限梯度、世界/局部力转换、离线/在线历史一致和模型精确重载通过。15项CPU单元测试通过。原渲染环境32步逐位回归通过；有无新模型旁路的480个专家transition动作/目标/物体/奖励等字段逐位相等。
+- **本轮0次参数更新，无正式训练、RL或成功率优化。** 历史v1的1000步nominal模型仍保留，尚无任务能力证据；v2未训练，不能根据接口测试推断精细操作能力或触觉收益。
+- schema/checkpoint v1/v2 明确隔离。旧单相机命令需 `--perception-version 1`；新默认采集v2。当前task ID可用，但目标pose默认缺失；视觉目标估计和自动阶段命令仍待研究。当前CPU完整旁路约200ms/步，未满足实时要求。
 
 ### 本机兼容性的重要限制
 

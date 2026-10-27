@@ -58,6 +58,12 @@ Diffusion BC and a non-controlling tactile correction probe. See
 and commands. Read `AGENTS.md` before continuing this research. These local
 experiments do not establish assembly competence or learned tactile improvement.
 
+Perception v2 now connects **two calibrated RGB-D views**, a shared RGB ResNet / separate
+depth spatial encoder, five-finger force/FK histories, external task commands and
+causal self-plan context. Correction remains in shadow mode. See
+[the perception design and rendered evidence](research_docs/PERCEPTION.md) for
+input provenance, tested interfaces and open limitations. No v2 policy has been trained.
+
 This repository, [mao455/bcrl_visualTactile](https://github.com/mao455/bcrl_visualTactile), is a research fork of the original
 [Play2Perfect](https://github.com/kushal2000/play2perfect) release. The original
 assets, environments, control semantics and RL code remain under the upstream MIT

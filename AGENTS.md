@@ -1,6 +1,6 @@
 # Play2Perfect visual–tactile imitation research
 
-Read `research_docs/README.md`, `CONTRACTS.md`, `ARCHITECTURE.md`, and the latest entries of `CHANGELOG.md` before changing this research system. This is a long-term research project, not a replacement of the original RL environment.
+Read `research_docs/README.md`, `CONTRACTS.md`, `ARCHITECTURE.md`, `PERCEPTION.md`, and the latest entries of `CHANGELOG.md` before changing this research system. This is a long-term research project, not a replacement of the original RL environment.
 
 ## Non-negotiable constraints
 - Preserve original assets, collisions, limits, friction, gains, dynamics, coordinate transforms, reward/success criteria, reset, noise and delay mechanisms. Extend opt-in; do not edit vendored RL to implement BC.
@@ -15,6 +15,8 @@ Read `research_docs/README.md`, `CONTRACTS.md`, `ARCHITECTURE.md`, and the lates
 - Do not automatically freeze open architecture/hyperparameter choices. Do not claim performance from smoke tests.
 
 ## Environment
+Current perception defaults to v2: two calibrated fixed RGB-D cameras, 224×126, metric depth + explicit validity, encoder-only URDF FK and five normal-force sensors. Read the versioned schema before interpreting images/checkpoints. v1 is explicit legacy, single-view normalized depth; never upgrade its weights/data by changing dimensions. Nominal's own-action/remaining-plan history is privately generated, not teacher history. Optional goal poses must be operator commands in robot_base; absent poses stay masked. Correction gets target/tracking-error history but remains shadow-only. No correction training objective has been established. Perception probes use forward/backward checks with zero parameter updates; do not promote their untrained predictions to formal training data. Camera/force timestamps are synchronous simulation acquisition times, not a validated asynchronous real sensor stack.
+
 Use `.venv_isaacsim/bin/python` (project-local overlay of conda isaaclab), not base Python 3.13. Original Isaac Lab source is a local 2.3.2 fork. Use repo rl_games. Boot AppLauncher before importing Isaac Lab simulation/task modules. See prior `outputs/compat_check/REPORT.txt`.
 
 **Critical CPU regression finding:** the original CPU no-render path resets kinematic table/hole/goal transforms to their spawn origin on the first physics step in this installed stack. Prior no-render success rates are not valid quality evidence. A rendered-original reference and the instrumented path are bitwise equal over the documented 32-step probe, including objects/goals/RNG/rewards. See `research_docs/AUDIT.md`. Do not silently disable rendering for CPU evaluation or claim global Isaac Lab compatibility from that bounded test.

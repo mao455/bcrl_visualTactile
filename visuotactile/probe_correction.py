@@ -13,6 +13,7 @@ import torch
 from .rollout import NominalController
 from .correction import CorrectionShadow
 from .contracts import assert_policy_compatible
+from .observations import nominal_keys
 
 
 def main():
@@ -36,8 +37,9 @@ def main():
             force = group["obs/contact_substeps_w_N"][:]
             if not (np.linalg.norm(force,axis=-1)>.1).any():
                 continue
-            arrays = {k:group[f"obs/{k}"][:] for k in ("image","proprio","contact_substeps_w_N",
-                      "contact_w_N","contact_valid","step_id")}
+            keys = (set(nominal_keys(nominal.model.cfg.perception_version))|set(shadow.context.feedback.keys)
+                    |{"contact_w_N","step_id"})-{"previous_command","command_valid"}
+            arrays = {k:group[f"obs/{k}"][:] for k in keys}
             commands = group["transition/executed_action"][:]
             contact_frames, maximum = 0, 0.
             for t in range(len(commands)):

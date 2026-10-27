@@ -9,6 +9,7 @@ import math
 import torch
 from .history import OnlineHistory
 from .models.correction import CorrectionPolicy
+from .observations import nominal_keys
 
 
 def remaining_nominal_chunk(plan, cursor):
@@ -24,9 +25,12 @@ def remaining_nominal_chunk(plan, cursor):
 
 class CorrectionContext:
     def __init__(self, num_envs, nominal_cfg, force_history_steps=12):
-        self.visual = OnlineHistory(num_envs,nominal_cfg.history,nominal_cfg.stride)
+        self.version = nominal_cfg.perception_version
+        self.visual = OnlineHistory(num_envs,nominal_cfg.history,nominal_cfg.stride,keys=nominal_keys(self.version))
+        extra = ("contact_substeps_local_N","finger_position_base_m","finger_rotation_base","contact_time_s",
+                 "actuator_target_rad","tracking_error_rad") if self.version == 2 else ()
         self.feedback = OnlineHistory(num_envs,force_history_steps,keys=(
-            "contact_substeps_w_N","contact_valid","proprio","previous_command","command_valid"))
+            "contact_substeps_w_N","contact_valid","proprio","previous_command","command_valid")+extra)
         self.episode_ids = torch.full((num_envs,),-1,dtype=torch.long)
         self.previous_command = torch.zeros(num_envs,29)
         self.command_valid = torch.zeros(num_envs,dtype=torch.bool)
@@ -47,11 +51,20 @@ class CorrectionContext:
         tactile_valid = (feedback["valid"] & feedback["contact_valid"])[...,None].expand(-1,-1,s).reshape(b,t*s)
         chunk, valid = remaining_nominal_chunk(nominal_plan,current_cursor)
         self.awaiting_command = True
-        return {"visual_history":self.visual.batch(),
+        result = {"visual_history":self.visual.batch(),
                 "tactile_history":force.reshape(b,t*s,f,c),
                 "tactile_valid":tactile_valid,
                 "nominal_chunk":chunk,"nominal_valid":valid,
                 "motion_history":{k:feedback[k] for k in ("proprio","previous_command","command_valid","valid")}}
+        if self.version == 2:
+            result["tactile_history"] = {
+                "force_w_N":force.reshape(b,t*s,f,c),
+                "force_local_N":feedback["contact_substeps_local_N"].reshape(b,t*s,f,c),
+                "position_base_m":feedback["finger_position_base_m"].reshape(b,t*s,f,c),
+                "rotation_base":feedback["finger_rotation_base"].reshape(b,t*s,f,3,3),
+                "time_s":feedback["contact_time_s"].reshape(b,t*s)}
+            result["motion_history"].update({k:feedback[k] for k in ("actuator_target_rad","tracking_error_rad")})
+        return result
 
     def commit(self, command):
         if not self.awaiting_command or command.shape != self.previous_command.shape or not torch.isfinite(command).all():
@@ -78,7 +91,8 @@ class CorrectionShadow:
     @torch.no_grad()
     def observe(self, packet, nominal_controller):
         start = time.perf_counter()
-        inputs = self.context.observe(packet,nominal_controller.plan,nominal_controller.cursor-1)
+        inputs = self.context.observe(nominal_controller.last_packet,nominal_controller.plan,nominal_controller.cursor-1)
+        self.last_inputs = inputs
         candidate = self.model(**inputs)
         if not torch.isfinite(candidate).all():
             raise FloatingPointError("Nonfinite correction shadow output")

@@ -28,3 +28,7 @@ The implemented integration probe now adds a separate encoder/previous-issued-co
 ## Still unresolved
 
 No demonstration nominalization, slip estimator, contact pressure estimator, local force calibration, real-world validation, multi-view policy comparison, learned target estimator or correction performance result exists. The fixed task identity is selected externally by choosing a checkpoint; there is no learned multi-task embedding. The fixture is visible in the oblique image, but 160×90 detail and hand occlusion may be insufficient for millimetric insertion. Next camera study should compare an additional calibrated opposing view and higher resolution, with unchanged collisions/physics.
+
+## 2026-10-27 perception review
+
+See [PERCEPTION.md](PERCEPTION.md) for inspected DP/LeRobot/OpenViTac/3DTacDex source paths, immutable commit IDs, licenses, adaptation boundaries and chosen encoders. This supersedes the original tiny-CNN/flattened-force baseline. No OpenViTac or 3DTacDex implementation was copied or installed; they are design references, not verified drop-in dependencies. No perception/pretraining objective or competence claim is introduced.

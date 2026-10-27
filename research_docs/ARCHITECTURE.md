@@ -5,6 +5,14 @@ Original environment/control/physics/RL remain authoritative. New package `visuo
 
 Policy-visible nominal inputs are explicitly selected camera history, encoder/command history, externally supplied task ID/goal command and their validity/time metadata. Correction sees its OWN visual/history encoder plus tactile history and frozen nominal predicted action chunk. It does not write features into the nominal network. Previous corrected commands must not become nominal action-history inputs; nominal action history is its own plan history. Encoder measurements can naturally reflect contact, which is unavoidable proprioception, not an extra tactile channel.
 
+## Current implementation: perception v2
+
+The current component and tensor contracts are in `PERCEPTION.md` and schema v2 in `DATA_SCHEMA.md`. `observations.py` owns the nominal allowlist, task vocabulary and operator command validation; `kinematics.py` supplies encoder-only FK; `models/vision.py` and `models/tactile.py` provide replaceable encoders. The adapter attaches two cameras/contact sensors and a read-only post-scene-update FK observer. Original task/RL/control/assets remain unchanged.
+
+`NominalController.act` constructs private previous-nominal/remaining-plan fields **before** adding the current observation to history and predicting a new chunk. Collector records these exact inputs. `CorrectionContext` separately constructs prior-issued-command and target/error feedback. `CorrectionEpisodeDataset` uses the same causal windows and returns expert command supervision separately. `probe_perception` compares offline/online tensors on real episodes, checks gradients without weight updates, and generates visibility evidence. Goal commands are optional external inputs, not extracted from task success state.
+
+v1 encoder/checkpoint paths remain explicitly available. The following earlier choices and milestone text are the **historical v1 baseline**, superseded by v2 where noted. No formal model training was performed in this perception milestone.
+
 ## Provisional initial implementation choices
 - RGB-D per-view CNN + GRU over finite history; tensor view axis allows adding calibrated cameras without changing data schema. Start with one verified view, inspect occlusion before deciding on two.
 - Conditional temporal denoiser and DDPM training / DDIM inference for action sequences, following Diffusion Policy. Preserve 29-D native normalized action space. Bounded action chunk execution at 60 Hz; 6-step replanning gives nominal 10 Hz. Independent correction period configured in control steps; no assumed high-frequency requirement.

@@ -15,7 +15,7 @@ def audit_trajectory(path):
     episodes = []
     with h5py.File(path) as f:
         metadata = json.loads(f.attrs["metadata_json"])
-        if int(f.attrs["schema_version"]) != 1:
+        if int(f.attrs["schema_version"]) not in (1,2):
             raise ValueError("Unsupported trajectory schema")
         for name, g in f["episodes"].items():
             steps = g["obs/step_id"][:]
@@ -44,8 +44,29 @@ def audit_trajectory(path):
                     g["transition/diagnostics_after/joint_velocity_rad_s"][:-1],rtol=0,atol=0)
             np.testing.assert_allclose(g["obs/contact_substeps_w_N"][1:],
                 g["transition/contact_substeps_after_w_N"][:-1],rtol=0,atol=0)
+            if int(f.attrs["schema_version"]) == 2:
+                np.testing.assert_array_equal(g["obs/actuator_target_rad"][1:],g["transition/target_after_rad"][:-1])
+                np.testing.assert_allclose(g["obs/tracking_error_rad"][1:],
+                    g["transition/target_after_rad"][:-1]-g["transition/diagnostics_after/joint_position_rad"][:-1],rtol=0,atol=0)
+                previous_valid=g["obs/previous_nominal_valid"][:]
+                if previous_valid[0] or g["obs/prior_plan_valid"][0].any():
+                    raise ValueError(f"{name}: nominal plan history leaked across reset")
+                if "nominal_predicted_chunk" in g["transition"]:
+                    assert previous_valid[1:].all()
+                    np.testing.assert_array_equal(g["obs/previous_nominal_action"][1:],g["transition/nominal_action"][:-1])
+                    old=g["transition/nominal_predicted_chunk"][:-1]
+                    start=g["transition/nominal_chunk_cursor"][:-1]+1
+                    index=start[:,None]+np.arange(old.shape[1])
+                    mask=index<old.shape[1]
+                    expected=np.take_along_axis(old,np.minimum(index,old.shape[1]-1)[...,None],axis=1)
+                    expected=np.where(mask[...,None],expected,0.)
+                    np.testing.assert_array_equal(g["obs/prior_plan_valid"][1:],mask)
+                    np.testing.assert_array_equal(g["obs/prior_plan"][1:],expected)
+                elif previous_valid.any() or g["obs/prior_plan_valid"][:].any():
+                    raise ValueError(f"{name}: unexplained nominal plan source")
             if "correction_shadow" in g["transition"]:
-                np.testing.assert_array_equal(g["transition/executed_action"][:],g["transition/nominal_action"][:])
+                if metadata["action_source"] == "nominal_bc":
+                    np.testing.assert_array_equal(g["transition/executed_action"][:],g["transition/nominal_action"][:])
                 shadow = g["transition/correction_shadow"]
                 if shadow["previous_command_valid"][0] or not shadow["previous_command_valid"][1:].all():
                     raise ValueError(f"{name}: correction command reset mask invalid")

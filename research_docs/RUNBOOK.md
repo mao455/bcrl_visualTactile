@@ -4,18 +4,60 @@
 
 输出目录必须不存在；使用新的 RUN 前缀保留历次证据。退出码不是充分证据：Kit 关闭曾掩盖异常，必须确认 result.json 存在且没有 FAILED.txt，训练确认 report.json，并运行数据审计。
 
+## 当前 v2：只做感知验证，不训练
+
+```bash
+RUN=outputs/visuotactile/perception_$(date +%Y%m%d_%H%M%S)
+
+# 专家执行。双相机 + 未训练 nominal/correction 旁路；网络候选从不执行。
+bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 2 \
+  --steps 240 --num-envs 2 --perception-shadow --output "$RUN/sensors"
+
+# 真实图像/深度/力/FK、时间/episode、离线在线一致、梯度和精确保存恢复；0次参数更新
+bash visuotactile/run_cpu.sh -m visuotactile.probe_perception \
+  --data "$RUN/sensors/trajectories.h5" --output "$RUN/checks"
+
+bash visuotactile/run_cpu.sh -m pytest -q tests/test_visuotactile.py tests/test_perception_v2.py
+```
+
+`--perception-shadow` 用独立随机初始化模型验证信号流；数据明确标注 `untrained_perception_probe`，不能作正式训练集。只需采集专家观测时去掉此参数，self-plan字段会为零且mask=false，绝不用专家动作填充。当前v2任务词表只包含tight_insertion。
+
+输出目录新建且不可覆盖。检查`sensors/result.json`、不存在`FAILED.txt`、`checks/report.json`和`checks/views.png`。图像是实际像素；阶段标签由离线diagnostics选择，不进入网络。若没有成功且含接触的完整episode，probe会明确失败；不要把尾段冒充完整任务。
+
+可选 `--goal-command command.json` 只接受外部明确给定的基座系命令：
+
+```json
+{"source":"operator_command","frame":"robot_base","position_m":[0.0,0.0,0.7],"rotation_columns":[1,0,0,0,1,0]}
+```
+
+这是接口格式示例，并非从随机孔座估计的目标，也不自动改变专家/原任务目标。当前默认只有合法task ID、pose mask=false；目标估计器和多阶段命令尚未实现。
+
+### 本轮真实结果
+
+- `perception_camera01/02/03`：三个安装候选，分别1×300、2×260、2×240 native ticks；每次都开启渲染/场景健康断言。
+- `perception_final01`：最终224×126，2env×240ticks，73.10s循环；480条原专家transition，3完整+2尾段。成功标记只用于选择检查画面，未用于策略优化。
+- `perception_checks02/report.json`：全轨迹传感器有限性、坐标转换、FK与truth只读对照、时间和历史对齐；前向/有限非零梯度、精确保存恢复全部通过。0次参数更新。
+- 五指FK最大位置误差6.60e−7m、旋转矩阵元素误差9.82e−7。最终两段长episode全局有效深度约68.6–69.3%、局部约93.7–94.1%。ring在最终短样本里没有接触；camera01里它有13.73N非零信号，不能把零力说成传感器损坏。
+- `perception_regression01/comparison.json`：原渲染环境32步15字段逐位一致；camera03与final01有无旁路的480条动作/执行目标/奖励/关节/物体/孔座/成功/终止字段逐位一致。
+- 15项单元测试通过；旧v1的真实1000step checkpoint和schema1 Dataset仍可加载/前向，v1/v2混用明确拒绝。
+- 2env完整旁路median206.94ms，Correction部分median199.16ms；单样本冷启动nominal333.17ms（当时并行有本轮回归启动）。**当前限制CPU配置不满足实时10/60Hz**；同步仿真能运行不代表实时可部署。未占用GPU训练，也没有更改后台任务。
+
+### 旧 v1 命令与证据（保留，非本轮训练安排）
+
+以下历史流程继续使用schema1，所有仿真采集/旧checkpoint rollout显式加`--perception-version 1`。新schema2不沿用旧模型权重。
+
 ## 完整的小规模实验链
 
     RUN=outputs/visuotactile/run_$(date +%Y%m%d_%H%M%S)
 
     # 原专家 + 真实相机/接触数据，保留原 DR 和执行器路径
-    bash visuotactile/run_cpu.sh -m visuotactile.collect --steps 660 --num-envs 2 --teacher-group 0 --output "$RUN/teacher"
+    bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 1 --steps 660 --num-envs 2 --teacher-group 0 --output "$RUN/teacher"
 
     # 默认只使用完成所有目标和 retract 的专家 episode
     bash visuotactile/run_cpu.sh -m visuotactile.train --data "$RUN/teacher/trajectories.h5" --output "$RUN/train" --steps 100 --batch-size 4
 
     # 模型独立执行；shadow 只记录未训练候选，绝不执行候选
-    bash visuotactile/run_cpu.sh -m visuotactile.collect --steps 660 --num-envs 2 --policy-checkpoint "$RUN/train/checkpoint.pt" --correction-shadow --output "$RUN/nominal"
+    bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 1 --steps 660 --num-envs 2 --policy-checkpoint "$RUN/train/checkpoint.pt" --correction-shadow --output "$RUN/nominal"
 
     # 对齐/有限数/reset/输入及配置一致性审计和成功统计
     bash visuotactile/run_cpu.sh -m visuotactile.evaluate --data "$RUN/teacher/trajectories.h5" "$RUN/nominal/trajectories.h5" --output "$RUN/evaluation.json"
@@ -26,7 +68,7 @@
 
     RUN=outputs/visuotactile/resume_$(date +%Y%m%d_%H%M%S)
     bash visuotactile/run_cpu.sh -m visuotactile.train --data outputs/visuotactile/episodes02/trajectories.h5 --resume outputs/visuotactile/train02/checkpoint.pt --output "$RUN/train" --steps 100 --batch-size 8
-    bash visuotactile/run_cpu.sh -m visuotactile.collect --steps 660 --num-envs 2 --policy-checkpoint "$RUN/train/checkpoint.pt" --output "$RUN/rollout"
+    bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 1 --steps 660 --num-envs 2 --policy-checkpoint "$RUN/train/checkpoint.pt" --output "$RUN/rollout"
 
 恢复要求相同数据哈希、模型配置和 smoke 筛选模式，恢复优化器与 torch RNG。PolicyConfig 保存历史长度/stride、预测 horizon、重规划周期和 diffusion 步数。配置实验不要通过改变环境 decimation 模拟低频网络。当前默认 history=4、stride=3、horizon=12、replan=6，即 120 Hz 物理、60 Hz native control、10 Hz nominal replan。同步仿真等待推理，尚不是带真实墙钟延迟/超时回退的实时系统。
 
@@ -82,4 +124,4 @@ nominal_shadow03 的两环境重规划中位数 28.44 ms、最大 35.73 ms，但
 
 ## 明确未完成
 
-训练过的 correction、demonstration nominalization、视觉目标估计、多视角比较、接触校准/滑移估计、真实时延/截止期与实机验证均未完成。学生传感器延迟/噪声/随机安装位当前显式拒绝，原 teacher/action DR 保留。不得把全末节法向合力称为触觉图像、切向力或压力。
+训练过的 correction、demonstration nominalization、视觉目标估计、充分覆盖的多视角泛化比较、接触校准/滑移估计、真实时延/截止期与实机验证均未完成。学生传感器延迟/噪声/随机安装位当前显式拒绝，原 teacher/action DR 保留。不得把全末节法向合力称为触觉图像、切向力或压力。

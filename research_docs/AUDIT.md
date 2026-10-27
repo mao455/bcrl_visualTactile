@@ -45,3 +45,9 @@ Teacher 的 140-D noisy actor 和 162-D privileged critic 含模拟物体/目标
 五个接触 sensor 对应 `left_{index,middle,ring,thumb,pinky}_DP`，不是虚构 taxel 图像。每 1/120 s 更新、记录连续两子步、world axes、单位 N；合并固定关节后一个 distal 刚体可能覆盖多种接触表面，未区分接触对象、切向力、力矩或局部压力。实测五通道都非零。
 
 当前明确拒绝 student camera delay、bundle delay、pose randomization、depth augmentation 与非零 camera skip period：这些的曝光时间/独立 RNG 尚未验证。原 pose randomization helper 实际不检查 student enabled，所以并非原先猜测的 no-op；手工斜视安装若直接启用它会复位到 config 的旧安装位，因此先阻止这种混用。原 teacher/action DR 不受这个限制影响。
+
+## 2026-10-27 — v2感知回归补充
+
+新增固定相机、post-scene-update编码器FK采样和未训练网络旁路后，原渲染路径与instrumented路径32步的15个trace字段仍逐位相同（含RNG、原actor观测和PhysX变换）。另对camera03与final01的2env×240ticks记录比较，480条专家动作、执行器目标、奖励、关节、物体、孔座、success和done逐项一致。证据：`outputs/visuotactile/perception_regression01/comparison.json`，公开汇总在`evidence/perception_v2.json`。
+
+仍保留原CPU渲染约束；没有修改引擎、碰撞、控制或任务成功判据。原路径仍会输出运动学刚体不能设置速度的PhysX日志，本轮以实际位置断言/状态回归作为有限范围内的有效性依据，不能宣称所有引擎问题已消除。当前观测/图像/传感器源见`PERCEPTION.md`，terminal图不可用及同tick插入/retract成功现象已明确记录。

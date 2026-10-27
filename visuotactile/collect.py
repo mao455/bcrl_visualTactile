@@ -18,13 +18,25 @@ def main():
                         help="Released SAPG parameter group, 0..5 maps to identifiers 50..0")
     parser.add_argument("--camera", choices=["original", "oblique"], default="oblique")
     parser.add_argument("--audit-default-camera", action="store_true")
+    parser.add_argument("--perception-version", type=int, choices=(1,2), default=2)
+    parser.add_argument("--local-eye", type=float, nargs=3, default=(-.7,-.35,1.15))
+    parser.add_argument("--local-target", type=float, nargs=3, default=(0.,-.03,.68))
+    parser.add_argument("--goal-command", type=Path, help="Operator-provided base-frame pose JSON; no simulator truth fallback")
     parser.add_argument("--policy-checkpoint", type=Path)
     parser.add_argument("--correction-shadow", action="store_true",
                         help="Log untrained correction I/O on real histories; NEVER execute its output")
+    parser.add_argument("--perception-shadow", action="store_true",
+                        help="Teacher executes; random-initialized v2 nominal AND correction run as input/output probes only")
     parser.add_argument("--contact-threshold-N", type=float, default=.1)
     args = parser.parse_args()
     if args.correction_shadow and not args.policy_checkpoint:
         parser.error("Correction shadow requires a nominal checkpoint; expert future actions cannot substitute for nominal plans")
+    if args.perception_shadow and (args.policy_checkpoint or args.perception_version != 2):
+        parser.error("Perception shadow is an untrained v2 probe under teacher execution")
+    if args.perception_version == 2 and args.camera != "oblique":
+        parser.error("Perception v2 requires the calibrated dual-view mount; use v1 for original-camera diagnostics")
+    if args.perception_version == 1 and args.goal_command:
+        parser.error("Goal command conditioning is a v2 interface")
     if not 1 <= args.num_envs <= 2 or not 1 <= args.steps <= 10000:
         parser.error("Protected-workload collection requires 1..2 environments and 1..10000 steps")
     args.output.mkdir(parents=True, exist_ok=False)
@@ -51,11 +63,17 @@ def main():
     cfg.student_obs.image_modality = "rgbd"
     cfg.student_obs.camera_backend = "standard"
     cfg.student_obs.camera_update_period_s = 0.0
+    if args.perception_version == 2:
+        cfg.student_obs.image_width = cfg.student_obs.image_input_width = 224
+        cfg.student_obs.image_height = cfg.student_obs.image_input_height = 126
     env = None
     writer = None
     source = "nominal_bc" if args.policy_checkpoint else "released_rl_checkpoint"
     try:
-        env = InstrumentedAssemblyEnv(cfg)
+        from .observations import TaskCommand
+        command = (TaskCommand(args.problem, json.loads(args.goal_command.read_text()) if args.goal_command else None)
+                   if args.perception_version == 2 else None)
+        env = InstrumentedAssemblyEnv(cfg, perception_version=args.perception_version, task_command=command)
         player = None
         if not args.policy_checkpoint:
             agent_cfg = _configure_agent(task, "rl_games_sapg_cfg_entry_point", rl_device="cpu",
@@ -73,6 +91,16 @@ def main():
                 player.intr_reward_coef_embd.fill_(50.0-10.0*args.teacher_group)
 
         def save_frame(name):
+            if args.perception_version == 2:
+                results = {}
+                for v, identity in enumerate(env.research_metadata()["camera_ids"]):
+                    im = env.research_packet["image"][0, v].cpu().numpy()
+                    valid = env.research_packet["depth_valid"][0, v, 0].cpu().numpy()
+                    Image.fromarray((im[:3].transpose(1,2,0).clip(0,1)*255).astype(np.uint8)).save(args.output/f"{name}_{identity}_rgb.png")
+                    Image.fromarray((im[3].clip(0,2)/2*255).astype(np.uint8)).save(args.output/f"{name}_{identity}_depth.png")
+                    Image.fromarray((valid*255).astype(np.uint8)).save(args.output/f"{name}_{identity}_valid.png")
+                    results[identity] = dict(rgb_std=float(im[:3].std()), valid_fraction=float(valid.mean()))
+                return results
             im = env.research_packet["image"][0, 0].cpu().numpy()
             Image.fromarray((im[:3].transpose(1, 2, 0).clip(0, 1)*255).astype(np.uint8)).save(args.output / f"{name}_rgb.png")
             Image.fromarray((im[3].clip(0, 1)*255).astype(np.uint8)).save(args.output / f"{name}_depth.png")
@@ -90,6 +118,8 @@ def main():
             eye = torch.tensor([[0.6, -0.8, 1.1]], device=env.device) + env.scene.env_origins
             target = torch.tensor([[0.0, 0.15, 0.65]], device=env.device) + env.scene.env_origins
             env.student_camera.set_world_poses_from_view(eye, target)
+            if args.perception_version == 2:
+                env.configure_camera_views(args.local_eye, args.local_target)
         teacher_obs, _ = env.reset(seed=args.seed)
         camera_audit[args.camera] = save_frame("initial")
         metadata = env.research_metadata()
@@ -115,9 +145,21 @@ def main():
             if args.correction_shadow:
                 from .correction import CorrectionShadow
                 shadow = CorrectionShadow(policy,args.num_envs,args.contact_threshold_N)
+        probe = None
+        if args.perception_shadow:
+            from .rollout import NominalController
+            from .models.nominal import NominalDiffusionPolicy, PolicyConfig
+            from .correction import CorrectionShadow
+            with torch.random.fork_rng(devices=[]):
+                torch.manual_seed(123)
+                probe = NominalController(NominalDiffusionPolicy(PolicyConfig()),args.num_envs)
+            shadow = CorrectionShadow(probe,args.num_envs,args.contact_threshold_N)
+        intent = policy or probe
         metadata.update(correction_mode="untrained_shadow_never_executed" if shadow else "disabled",
                         contact_gate_threshold_N=args.contact_threshold_N if shadow else None,
-                        nominal_action_history="stored plans only; model observes visual/encoder history, no teacher-command input")
+                        nominal_action_history=("v1: stored only, not neural input" if args.perception_version == 1 else
+                            "private causal model predictions" if intent else "absent, masked; never teacher history"),
+                        nominal_plan_source="untrained_perception_probe" if probe else "trained_checkpoint" if policy else "absent")
         writer.file.attrs["metadata_json"] = json.dumps(metadata,default=str)
         norms, terminated_count, success_count, inference_ms = [], 0, 0, []
         start = time.perf_counter()
@@ -125,6 +167,8 @@ def main():
             packet = env.research_packet
             t = time.perf_counter()
             with torch.no_grad():
+                if probe is not None:
+                    probe.act(packet)  # discarded action; the expert remains sole controller
                 if policy is None:
                     actor_obs = player.obs_to_torch(teacher_obs["policy"])
                     if player.intr_reward_coef_embd is not None:
@@ -132,16 +176,18 @@ def main():
                     action = player.get_action(actor_obs, is_deterministic=True)
                 else:
                     action = policy.act(packet)
-                shadow_log = shadow.observe(packet,policy) if shadow else None
+                shadow_log = shadow.observe(packet,intent) if shadow else None
+                if intent is not None:
+                    packet = intent.last_packet
             inference_ms.append(1000*(time.perf_counter()-t))
             teacher_obs, reward, terminated, truncated, info = env.step(action)
             if shadow is not None:
                 shadow.context.commit(action)
                 env.last_transition["correction_shadow"] = shadow_log
-            if policy is not None:
-                env.last_transition["nominal_action"] = action.clone()
-                env.last_transition["nominal_predicted_chunk"] = policy.plan.clone()
-                env.last_transition["nominal_chunk_cursor"] = (policy.cursor-1).clone()
+            if intent is not None:
+                env.last_transition["nominal_action"] = intent.previous_action.clone()
+                env.last_transition["nominal_predicted_chunk"] = intent.plan.clone()
+                env.last_transition["nominal_chunk_cursor"] = (intent.cursor-1).clone()
             writer.append(packet, env.last_transition, terminated, truncated, source)
             force = env.last_transition["contact_substeps_after_w_N"].norm(dim=-1)
             norms.append(force.cpu().numpy())

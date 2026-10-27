@@ -1,3 +1,35 @@
+# Dataset schema v2 (current) and v1 compatibility
+
+HDF5 `schema_version=2`, `metadata.perception_version=2`. Original pre-action / post-action / reset contract remains unchanged. All fields below have a leading episode length T when recorded; batch/history axes are added only by loaders. Complete and incomplete episodes are retained separately. See the v1 tables below for unchanged action/diagnostic fields.
+
+| v2 field per observation | Shape / type | Source / permitted use |
+| --- | --- | --- |
+| image | 2,4,126,224 float32 | RGB [0,1] + axial depth **meters**, both policies |
+| depth_m / depth_valid | 2,1,126,224 float32 / bool | Invalid/no-return depth=0 with false mask; duplicate metric field permits explicit audits |
+| camera_valid / camera_time_s / camera_frame | 2 bool / 2 float64 / 2 int | Real acquired frame validity, global simulation acquisition time, backend frame counter (may restart at reset) |
+| proprio | 58 | Original canonical normalized joint positions and rad/s encoder velocity |
+| time_s | scalar float64 | Simulated global control clock; never wall time |
+| task_id | scalar int64 | Operator-selected vocabulary in metadata; currently tight_insertion=0 |
+| goal_command / goal_valid | 9 float32 / bool | Optional operator xyz + first two rotation columns, robot_base frame; absent=zero/false |
+| previous_nominal_action / previous_nominal_valid | 29 / bool | Prediction at t−1 from nominal's private context, never teacher/corrected action |
+| prior_plan / prior_plan_valid | H=12,29 / H bool | Old nominal plan's remaining predictions starting at t, constructed BEFORE predicting at t; missing tails masked |
+| contact_substeps_w_N / contact_substeps_local_N | 2,5,3 | Aggregate normal force at two chronological physics samples; correction only |
+| finger_position_base_m / finger_rotation_base | 2,5,3 / 2,5,3,3 | Encoder-only URDF FK, link origin and R_base_link; not body truth/contact point |
+| contact_time_s | 2 float64 | t−1/120, t, both invalid when contact_valid=false on reset |
+| actuator_target_rad / tracking_error_rad | 29 / 29 | Original controller target and target−encoder; correction only |
+| diagnostics_after/finger_position_w / finger_quat_wxyz | 5,3 / 5,4 | Simulator body truth, offline FK check only |
+| diagnostics_after/fk_position_error_m | 5 | Difference between encoder FK and simulated body origin, diagnostic only |
+
+Metadata `cameras` stores ordered IDs, resolution, per-env pos_env, ROS wxyz quaternion and actual intrinsic matrices; `env_origins_w` converts to world. Camera pose is fixed calibration, not inferred from hidden object poses. `task_command` declares vocabulary/source/frame/optional commanded pose. `fk_urdf_sha256` identifies the exact chain. `nominal_plan_source` distinguishes absent, trained_checkpoint and untrained_perception_probe.
+
+Nominal Dataset returns only `observations.NOMINAL_KEYS_V2` + valid, and separate action_target/action_valid. CorrectionEpisodeDataset returns `inputs` (visual_history, tactile_history, tactile_valid, nominal_chunk/valid, motion_history) and **separate** `supervision.expert_command`; no correction loss is defined. It rejects absent or untrained predictions by default. Probe override is an engineering-only opt-in. No future state, expert current/future command or success field enters either policy.
+
+History defaults: nominal visual/proprio/task/own plan has four frames with stride3; correction uses a separate same visual window plus twelve consecutive motion/controller frames and24 force/FK samples. Padding/reset masks and old-plan cursors are identical offline/online. Packet observations are saved at60Hz, even if nominal replans at10Hz simulated time. Frame times, sensor times and actual command t−1 are recorded independently. There is no supported asynchronous resampling/delay yet.
+
+Legacy data lack these fields and are never zero-padded into v2. `PolicyConfig.from_dict` maps missing version to1. New checkpoint headers carry version2; loader cross-checks header/model/sensor metadata. Changing resolution/calibration/depth units/IDs causes compatibility rejection. Old v1 checkpoint use is explicit via collector `--perception-version 1`.
+
+## Historical schema v1
+
 # Trajectory and policy contracts — schema 1
 
 HDF5 root attributes: schema_version, metadata_json (full resolved task config, seed, source checkpoint, camera actual intrinsics/pose, contact paths/order, joint order, control/physics dt). Groups `episodes/envNNN_epNNNNNN` never cross a full reset. A group has complete, length, action_source, terminal_image_available=false. Incomplete captures are retained and excluded from ordinary training.
