@@ -154,3 +154,54 @@ nominal_shadow03 的两环境重规划中位数 28.44 ms、最大 35.73 ms，但
 ## 明确未完成
 
 训练过的 correction、demonstration nominalization、视觉目标估计、充分覆盖的多视角泛化比较、接触校准/滑移估计、真实时延/截止期与实机验证均未完成。学生传感器延迟/噪声/随机安装位当前显式拒绝，原 teacher/action DR 保留。不得把全末节法向合力称为触觉图像、切向力或压力。
+
+## 2026-10-28：原论文专家配对扰动采集（无训练）
+
+先读[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)：包含本机world-request与实际body-buffer施力差异。本轮使用`wrench_trace_version=3`，感知schema2/trace2不变。以下输出路径必须尚不存在，不覆盖已有实验。
+
+单条自然episode（external budget不是原timeout）：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.collect \
+  --checkpoint pretrained_assembly/tight_insertion/model.pth \
+  --teacher-group 0 --condition original --pair-id manual17 --seed 17 \
+  --episodes 1 --max-steps 2400 --num-envs 1 \
+  --perception-version 2 --camera oblique \
+  --output outputs/visuotactile/manual_exposure_new
+```
+
+`--condition force_1p5`仅将config中的force_scale乘1.5；不改torque、概率、门控、动作频率、成功判据。`--episodes`模式限1env；旧`--steps`固定tick模式保留1–2env。不要添加`--policy-checkpoint`或Shadow来混入本轮纯专家对照。
+
+预先声明两个阶段，自动通过验收后继续pilot：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.run_rl_trials \
+  --output outputs/visuotactile/paired_experiment_new \
+  --exposure-evidence outputs/visuotactile/rl_experiment_20261028/gate_seed17_applied
+```
+
+默认验收910101/910102/910103；pilot910201–910220；2400步/480s每trial，逐条独立进程并交替条件顺序。exposure-evidence是已实测非零物理提交的独立诊断，不放进cohort统计；本轮三个验收seed恰好零暴露不意味着原扰动永远不触发。每条完成就审计；runtime/data/initial-state失败会保留记录并停下。
+
+若只在创建轨迹之前发生SIGABRT，可在检查日志后同样命令加`--resume-startup-errors`：复用已完成的attempt，失败seed只允许在`_attempt02`目录再试一次；不会重采已有成功/失败episode，不允许自动重试含HDF5的部分轨迹。原status/log/空目录都保留。不要以重试为由挑选机器人任务结果。
+
+独立重分析（不启动Isaac Sim、不训练）：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.analyze_rl_trials \
+  --root outputs/visuotactile/rl_experiment_20261028/cohort_v3/pilot \
+  --output outputs/visuotactile/pilot_reanalysis_new
+```
+
+`report.json`包含逐episode状态、受力/力矩、五指接触、tracking、缺失字段、配对初始条件/共同前缀误差和分母；`report.md`为摘要；每对一张静态PNG。计划中未启动trial仍列出，运行错误（包括未启动episode的失败attempt）单列。命令保存于每个`.status.json`；stdout/Kit错误保存于邻接`.launcher.log`。
+
+逐episode导出PKL（可选，HDF5继续为主）：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.recording \
+  --data outputs/visuotactile/rl_experiment_20261028/cohort_v3/acceptance/pair01_original/trajectories.h5 \
+  --episode env000_ep000000 --pkl outputs/visuotactile/episode_export_new.pkl
+```
+
+本轮38步v3真实episode已验证139字段及metadata逐项相等：HDF5=20,330,072 bytes，PKL=82,440,908 bytes，不批量导出。纯专家258步`EpisodeSequenceDataset`逐块读取成功，Nominal plan mask始终false；CorrectionDataset正确拒绝没有Nominal预测的数据。该拒绝不代表专家轨迹不合格，只表示尚不满足Correction模型输入前提。
+
+本轮实测完成目录是`outputs/visuotactile/rl_experiment_20261028/cohort_v3/`，最终以两个阶段的`analysis_final/report.json`及[完整中文报告](RL_EXPERT_TRIALS.md)为准。原自动生成的`analysis/`和中途resume分析都保留，后续`analysis_final`增加完整聚合/接触时曝光/来源hash核对；没有重采或改写HDF5。pilot40条均完成，两次无HDF5的启动SIGABRT在同seed的`_attempt02`恢复。27项测试通过；全程没有训练。

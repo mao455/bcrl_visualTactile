@@ -74,3 +74,7 @@ The shadow path computes the candidate on real measurements, then records it und
 `env.step` → original delay selection → optional `_record_action_trace` → unchanged target math → physics/FK/contact → pre-reset diagnostics → reset/observation → `EpisodeWriter.append`. `EpisodeReader.steps/read` reconstruct raw nested rows; PKL export is optional. Trace2 retains command provenance, plan parameter hash/generation/coverage/selection, targets and outcomes. Actual terminal image is missing and masked. See [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md) and [DATA_SCHEMA.md](DATA_SCHEMA.md) for exact rates, units and version boundaries.
 
 Task ID remains categorical. Expert history is useful but separate from private predicted plans; ordinary imitation targets still contain potential preload. Current encoders are untrained; soft spatial moments are not semantic keypoints. Fixed state compresses history without lossless or task-utility guarantees. User requirements and open research decisions live in [USER_RESEARCH_DIRECTION.md](USER_RESEARCH_DIRECTION.md).
+
+## 独立原专家实验入口（2026-10-28）
+
+`run_rl_trials`负责不可覆盖的配对计划/逐attempt状态、顺序启动、资源边界与验收；复用`collect → InstrumentedAssemblyEnv → EpisodeWriter`。`analyze_rl_trials`负责纯专家轨迹审计、真实终止分类、缺失值与配对共同前缀分析。它们不调用optimizer，不需要Nominal/Correction计划来冒充专家数据。wrench_trace3新增字段都是特权诊断，不修改感知编码、memory或Dataset模型输入。具体入口、字段和本机Lab施力限制见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。

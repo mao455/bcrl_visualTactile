@@ -115,3 +115,29 @@ Correction receives 12 consecutive 60-Hz motion/previous-command samples and 24 
 - In historical v1 the saved RGB-D is the normalized policy input; raw metric-depth example frames are separate .npy artifacts. Current v2 continuously records metric depth plus validity. Continuous raw RGB/depth calibration-grade streams and per-sample exposure timestamps are not yet recorded.
 - Standard ContactSensor gives whole distal-body contact, including merged elastomer/fingertip collision shapes; not just the pad, no partner identity, tangential force, distributed pressure or contact moment. All five body channels respond in episodes02; calibration and saturation tests remain open.
 - Aggregate normal force is not a slip measurement. Force peak statistics must not be called pressure or grasp-stability proof.
+
+## Wrench trace 3：2026-10-28专家扰动实验
+
+感知schema2、trace2和模型memory版本不变；新增**仅诊断**的metadata `wrench_trace_version=3`。此前验收数据没有该key，按1理解；中间诊断2有lift/task gate、RNG与补充状态，但无物理子步composer记录。旧文件缺字段保持缺失，不能补零声称测过。
+
+| 新transition字段（省略T） | 形状 | 来源/时间/单位 |
+| --- | --- | --- |
+| external_force_after_dr_w_N / external_torque_after_dr_w_Nm | 1,3 | 原helper门控后的**请求世界向量**，控制步开始t，非最终PhysX世界向量保证 |
+| external_force_nonzero / external_torque_nonzero | bool | 上述请求范数是否非零 |
+| external_wrench_lift_gate / external_wrench_task_gate | bool | 本次preprocess所见latched lifted / 非retract；原生配置是否启用lift限制另见config |
+| external_force_probability / external_torque_probability | scalar | 本episode原reset采样概率，无重新抽样 |
+| external_object_mass_kg / external_force_scale / external_torque_scale | scalar | 原native扰动公式使用的质量及尺度 |
+| applied_wrench/force_b_N,torque_b_Nm | 2,1,3 | 每次object.write_data_to_sim前实际composer之和，刚体坐标，position_data=None |
+| applied_wrench/object_quat_wxyz | 2,1,4 | 同时刻对象root方向，转换到世界系的诊断真值 |
+| applied_wrench/force_w_N,torque_w_Nm | 2,1,3 | 上述local buffer按同时刻quaternion旋转，实际向PhysX提交量的世界表示 |
+| applied_wrench/time_s | 2 float64 | t、t+physics_dt；与contact_after的t+physics_dt、t+control_dt区分 |
+| torch_rng_before_inference / before_step / after_preprocess | RNG state byte vector | 实际CPU torch RNG；第一项完整字段名`torch_rng_before_inference`，后三段分开保存；跨环境是共同全局state副本，不是独立env RNG |
+| termination_reasons/{fall,max_successes,hand_far,dropped,timeout} | bool | 原任务done判断，奖励后/自动reset前克隆 |
+| diagnostics_before,after/object_velocity_w_m_s_rad_s | 6 | 世界系线速度m/s及角速度rad/s |
+| diagnostics_before,after/goal_velocity_w_m_s_rad_s | 6 | 目标刚体原state速度字段，非部署可见信号 |
+| diagnostics_before,after/base_pose_w,palm_body_pose_w | 7 | xyz+wxyz；palm_body为原`iiwa14_link_7`，不是接触点 |
+| diagnostics_before,after/lifted_object,object_initial_z_m,native_stage_step,is_random_goal | scalar | 原lift/初始高度/可被子目标清零的原进度/任务类型诊断 |
+
+metadata新增condition、pair_id、原/应用force_scale、teacher推理模式/group embedding、checkpoint SHA256、code_identity（base commit、working tree、源码hash）、原timeout、外部预算、初始RNG hash。新采集器`result.steps`是实际控制tick，`step_budget`另存；完成/删失episode分别列出。独立trial的启动失败由外层`.status.json`保留，未产生HDF5不等于机器人失败。
+
+详细原生公式、world→body composer限制、统计与缺失说明见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。所有新增真值/RNG/扰动仅供数据审计，不进入Nominal或Correction模型输入。

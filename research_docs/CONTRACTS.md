@@ -62,3 +62,7 @@ Read [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md) for the complete current contr
 `trace_version=2` records actual selected delayed command/index/source-step/effective-age using a read-only hook after the original RNG draw. Initial queue slots can all reference step0; index and effective age need not match. Original formulas/gains/limits/delay/RNG are preserved. `raw_action` aliases `submitted_action`; `executed_action` is the legacy name for `command_clipped_pre_delay`, not actual delayed execution or joint motion. Player clip-before-mean remains unobserved. Correction may read true past issued commands/targets/tracking errors; Nominal's default context remains private predictions.
 
 Task ID enters `nn.Embedding`, with categorical meaning only. Cross-task shared structure is an open research question. Full raw trajectories include120Hz canonical joint radians for force/FK alignment; base orientation identity is explicitly required. Local force delta is inN, position derivative inbase m/s with actualdt. No pressure/slip claim. Terminal physical state/contact are pre-reset; terminal image unavailable, post-observation placeholders have available=false.
+
+## 本机外力执行观察补充（2026-10-28）
+
+原helper在60Hz生成/门控world-request wrench；当前Lab2.3.2 fork的deprecated setter经permanent composer转成body-frame，再在120Hz `write_data_to_sim`提交。composer姿态缓存与请求world方向可能产生差异，不能仅用`_object_forces`宣称测得最终世界系施力。新wrench_trace3记录每个子步实际local buffer、同时刻object quaternion、世界系换算与提交时间；不修改原helper、Lab或动力学。详见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。这些字段全是特权诊断，模型输入allowlist不变。

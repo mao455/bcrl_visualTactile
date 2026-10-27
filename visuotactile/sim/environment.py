@@ -9,6 +9,7 @@ from contextlib import contextmanager
 import torch
 from pxr import PhysxSchema, UsdPhysics
 from isaaclab.sensors import Camera, ContactSensor, ContactSensorCfg
+from isaaclab.utils.math import quat_apply
 import isaaclab.sim as sim_utils
 
 from isaacsimenvs.tasks.precise_assembly.precise_assembly_env import PreciseAssemblyEnv
@@ -55,6 +56,26 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self.research_tick = 0
         self._kinematic_reset_poses = {}
         self._research_ready = True
+        self._wrench_samples = None
+        # Observe the exact local buffers consumed by this installed Lab's
+        # write_data_to_sim. Its deprecated world-wrench setter composes into
+        # persistent BODY-frame buffers; requested world force is not enough.
+        original_write = self.object.write_data_to_sim
+        def write_with_wrench_sample():
+            if self._wrench_samples is not None:
+                permanent = self.object.permanent_wrench_composer
+                instant = self.object.instantaneous_wrench_composer
+                force_b = torch.zeros_like(permanent.composed_force_as_torch)
+                torque_b = torch.zeros_like(permanent.composed_torque_as_torch)
+                for composer in (permanent, instant):
+                    if composer.active:
+                        force_b += composer.composed_force_as_torch
+                        torque_b += composer.composed_torque_as_torch
+                quat = self.object.data.root_quat_w[:, None].expand(-1, force_b.shape[1], -1).clone()
+                self._wrench_samples.append(dict(force_b_N=force_b.clone(), torque_b_Nm=torque_b.clone(),
+                    object_quat_wxyz=quat, force_w_N=quat_apply(quat,force_b), torque_w_Nm=quat_apply(quat,torque_b)))
+            original_write()
+        self.object.write_data_to_sim = write_with_wrench_sample
         if self.perception_version == 2:
             self._fk = EncoderKinematics(cfg.assets.robot_urdf, self.robot.joint_names)
             self._finger_ids = [self.robot.find_bodies(n)[0][0] for n in DISTAL_BODIES]
@@ -188,6 +209,14 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "retract_phase": self.retract_phase.clone(),
             "retract_succeeded": self.retract_succeeded.clone(),
             "max_goals": self.env_max_goals.clone(),
+            "lifted_object": self._lifted_object.clone(),
+            "object_initial_z_m": self._object_init_z.clone(),
+            "object_velocity_w_m_s_rad_s": self.object.data.root_state_w[:, 7:13].clone(),
+            "goal_velocity_w_m_s_rad_s": self.goal_viz.data.root_state_w[:, 7:13].clone(),
+            "base_pose_w": self.robot.data.root_state_w[:, :7].clone(),
+            "palm_body_pose_w": self.robot.data.body_state_w[:, self._palm_body_id, :7].clone(),
+            "native_stage_step": self.episode_length_buf.clone(),
+            "is_random_goal": self.is_random_goal_env.clone(),
         }
         if self.perception_version == 2:
             pos, rot = self._fk(self.robot.data.joint_pos)
@@ -254,9 +283,32 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "executed_action": actions.clamp(-1, 1).clone(),
             "target_before_rad": self._prev_targets[:, self._perm_lab_to_canon].clone(),
         }
+        self._wrench_samples = []
         super()._pre_physics_step(actions.clamp(-1, 1))
         if "control_trace" not in self.last_transition:
             raise RuntimeError("Replay target bypass has no native command trace; unsupported research capture")
+        # These are the values selected by the native wrench randomizer after
+        # probability gating, lifted/retract gating and decay.  They are
+        # telemetry only: PlayEnv has queued these requests in the object's
+        # composer. Actual per-substep submissions are observed separately.
+        self.last_transition["external_force_after_dr_w_N"] = self._object_forces.clone()
+        self.last_transition["external_torque_after_dr_w_Nm"] = self._object_torques.clone()
+        self.last_transition["external_force_nonzero"] = self._object_forces.norm(dim=-1).squeeze(-1) > 0
+        self.last_transition["external_torque_nonzero"] = self._object_torques.norm(dim=-1).squeeze(-1) > 0
+        self.last_transition["external_wrench_lift_gate"] = self._lifted_object.clone()
+        self.last_transition["external_wrench_task_gate"] = (~self.retract_phase).clone()
+        self.last_transition["torch_rng_after_preprocess"] = torch.random.get_rng_state()[None].expand(self.num_envs, -1).clone()
+        self.last_transition["external_force_probability"] = self._random_force_prob.clone()
+        self.last_transition["external_torque_probability"] = self._random_torque_prob.clone()
+        self.last_transition["external_object_mass_kg"] = self._object_mass.squeeze(-1).clone()
+        self.last_transition["external_force_scale"] = torch.full(
+            (self.num_envs,), float(self.cfg.domain_randomization.force_scale),
+            device=self.device,
+        )
+        self.last_transition["external_torque_scale"] = torch.full(
+            (self.num_envs,), float(self.cfg.domain_randomization.torque_scale),
+            device=self.device,
+        )
         self.last_transition["target_after_rad"] = self._cur_targets[:, self._perm_lab_to_canon].clone()
         self.research_step += 1
         self.research_tick += 1
@@ -272,7 +324,18 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "contact_substeps_after_w_N": self._contact_window(),
             "reward": reward.clone(),
             "time_after_s": torch.full((self.num_envs,),self.research_tick*self.step_dt,dtype=torch.float64,device=self.device),
+            "termination_reasons": {name: value.clone() for name, value in self._termination_reasons.items()},
         })
+        if len(self._wrench_samples) != self.cfg.decimation:
+            raise RuntimeError("Expected one observed PhysX wrench submission per physics substep")
+        self.last_transition["applied_wrench"] = {
+            key: torch.stack([sample[key] for sample in self._wrench_samples], 1)
+            for key in self._wrench_samples[0]
+        }
+        self.last_transition["applied_wrench"]["time_s"] = (
+            self.last_transition["time_before_s"][:,None]
+            + torch.arange(self.cfg.decimation,device=self.device,dtype=torch.float64)*self.physics_dt)
+        self._wrench_samples = None
         if self.perception_version == 2:
             self.last_transition["kinematics_after"] = self._kinematic_packet(self.last_transition["contact_substeps_after_w_N"])
             offsets = torch.arange(1-self.cfg.decimation,1,device=self.device,dtype=torch.float64)*self.physics_dt
@@ -312,6 +375,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def research_metadata(self):
         metadata = {
+            "wrench_trace_version": 3,
+            "wrench_target": "object root rigid body; body-frame composer buffers passed to PhysX, position_data=None",
+            "wrench_timestamp": "external_*_after_dr is requested world wrench at time_before_s; applied_wrench captures each 120Hz submission and world rotation using that instant's object pose",
             "trace_version": 2,
             "missing_fields": {"terminal_image": "Auto-reset occurs before observation render; no terminal exposure captured",
                                "raw_expert_before_player_clip": "Player API returns a clipped command; original policy mean is not captured"},

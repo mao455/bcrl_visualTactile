@@ -12,6 +12,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--steps", type=int, default=120)
+    parser.add_argument("--max-steps", type=int,
+                        help="External control-step budget; does not change the native timeout or success rules")
+    parser.add_argument("--episodes", type=int,
+                        help="Stop after this many naturally completed episodes; omitted keeps the legacy fixed-step mode")
+    parser.add_argument("--condition", choices=("original", "force_1p5"), default="original",
+                        help="Paired experiment label. original keeps the configured wrench scale; force_1p5 multiplies only force_scale")
+    parser.add_argument("--pair-id", help="Stable paired-seed identifier stored in metadata/results")
     parser.add_argument("--num-envs", type=int, default=1)
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--problem", default="tight_insertion")
@@ -41,6 +48,15 @@ def main():
         parser.error("Goal command conditioning is a v2 interface")
     if not 1 <= args.num_envs <= 2 or not 1 <= args.steps <= 10000:
         parser.error("Protected-workload collection requires 1..2 environments and 1..10000 steps")
+    if args.max_steps is not None:
+        args.steps = args.max_steps
+    if not 1 <= args.steps <= 10000:
+        parser.error("--max-steps/--steps must be between 1 and 10000")
+    if args.episodes is not None and not 1 <= args.episodes <= 100:
+        parser.error("--episodes must be between 1 and 100")
+    if args.episodes is not None and args.num_envs != 1:
+        parser.error("Episode-target trials require a single environment; fixed-step mode still supports two")
+    force_multiplier = 1.5 if args.condition == "force_1p5" else 1.0
     args.output.mkdir(parents=True, exist_ok=False)
     os.environ.setdefault("OMNI_KIT_ACCEPT_EULA", "YES")
     from isaaclab.app import AppLauncher
@@ -62,6 +78,8 @@ def main():
     cfg.scene.num_envs = args.num_envs
     cfg.sim.device = "cpu"
     cfg.precise_assembly.problem = args.problem
+    configured_force_scale = float(cfg.domain_randomization.force_scale)
+    cfg.domain_randomization.force_scale = configured_force_scale * force_multiplier
     cfg.student_obs.image_modality = "rgbd"
     cfg.student_obs.camera_backend = "standard"
     cfg.student_obs.camera_update_period_s = 0.0
@@ -125,17 +143,32 @@ def main():
         teacher_obs, _ = env.reset(seed=args.seed)
         camera_audit[args.camera] = save_frame("initial")
         metadata = env.research_metadata()
+        from .trial_utils import code_identity
+        metadata["code_identity"] = code_identity()
         metadata.update(problem=args.problem, seed=args.seed, action_source=source,
                         checkpoint=args.checkpoint if player is not None else None,
                         teacher_group=args.teacher_group if player is not None else None,
                         nominal_checkpoint=str(args.policy_checkpoint) if args.policy_checkpoint else None,
                         config=cfg.to_dict(), camera_mode=args.camera,
+                        condition=args.condition, pair_id=args.pair_id,
+                        force_scale_multiplier=force_multiplier,
+                        configured_force_scale=configured_force_scale,
+                        applied_force_scale=float(cfg.domain_randomization.force_scale),
+                        torque_scale_unchanged=float(cfg.domain_randomization.torque_scale),
+                        external_wrench_formula="force = randn(3) * object_mass_kg * force_scale; sampled once per native control step, then probability/lift/retract gated",
                         camera_pos_w=env.student_camera.data.pos_w.tolist(),
                         camera_pos_env=(env.student_camera.data.pos_w-env.scene.env_origins).tolist(),
                         env_origins_w=env.scene.env_origins.tolist(),
                         camera_quat_ros_wxyz=env.student_camera.data.quat_w_ros.tolist(),
                         camera_intrinsics=env.student_camera.data.intrinsic_matrices.tolist(),
                         successful_expert_demonstrations_verified=False)
+        metadata.update(expert_inference_mode="deterministic" if player else None,
+                        teacher_group_embedding=50.0-10.0*args.teacher_group if player else None,
+                        native_max_episode_length=int(env.max_episode_length),
+                        external_step_budget=args.steps,
+                        initial_torch_rng_sha256=hashlib.sha256(torch.random.get_rng_state().numpy().tobytes()).hexdigest(),
+                        nominal_rate_hz=None if player else "see policy configuration",
+                        expert_rate_hz=1/env.step_dt if player else None)
         writer = EpisodeWriter(args.output / "trajectories.h5", metadata)
         policy = None
         shadow = None
@@ -175,10 +208,16 @@ def main():
             with open(args.checkpoint,"rb") as checkpoint_stream:
                 metadata["expert_model_sha256"] = hashlib.file_digest(checkpoint_stream,"sha256").hexdigest()
         writer.file.attrs["metadata_json"] = json.dumps(metadata,default=str)
-        norms, terminated_count, success_count, inference_ms = [], 0, 0, []
+        (args.output / "metadata.json").write_text(json.dumps(metadata, default=str, indent=2))
+        norms, wrench_norms, lift_gate, terminated_count, success_count, inference_ms = [], [], [], 0, 0, []
+        episode_records = []
+        episode_step_start = [0]*args.num_envs
+        all_goals_count = 0
+        completed_target = args.episodes
         start = time.perf_counter()
         for step in range(args.steps):
             packet = env.research_packet
+            rng_before_inference = torch.random.get_rng_state().clone()
             t = time.perf_counter()
             with torch.no_grad():
                 if probe is not None:
@@ -195,7 +234,10 @@ def main():
                 if intent is not None:
                     packet = intent.last_packet
             inference_ms.append(1000*(time.perf_counter()-t))
+            rng_before_step = torch.random.get_rng_state().clone()
             teacher_obs, reward, terminated, truncated, info = env.step(action)
+            env.last_transition["torch_rng_before_inference"] = rng_before_inference[None].expand(args.num_envs,-1)
+            env.last_transition["torch_rng_before_step"] = rng_before_step[None].expand(args.num_envs,-1)
             if shadow is not None:
                 shadow.context.commit(action.clamp(-1,1))
                 env.last_transition["correction_shadow"] = shadow_log
@@ -226,21 +268,68 @@ def main():
             writer.append(packet, env.last_transition, terminated, truncated, source)
             force = env.last_transition["contact_substeps_after_w_N"].norm(dim=-1)
             norms.append(force.cpu().numpy())
+            wrench_norms.append(env.last_transition["external_force_after_dr_w_N"].norm(dim=-1).squeeze(-1).cpu().numpy())
+            lift_gate.append(env.last_transition["external_wrench_lift_gate"].cpu().numpy())
             done = terminated | truncated
             terminated_count += int(done.sum())
             diag = env.last_transition["diagnostics_after"]
-            success_count += int(((diag["successes"] >= diag["max_goals"]) & done).sum())
+            task_success = (diag["successes"] >= diag["max_goals"])
+            all_goals_count += int((task_success & done).sum())
+            if cfg.precise_assembly.enable_retract:
+                task_success &= diag["retract_succeeded"] | diag["is_random_goal"]
+            success_count += int((task_success & done).sum())
+            for env_index in done.nonzero().flatten().tolist():
+                # The transition is already committed before the automatic
+                # reset.  Summaries use only the completed prefix and the
+                # native termination flags; no post-reset observation is used.
+                stop = step + 1
+                prefix_force = np.asarray(wrench_norms[episode_step_start[env_index]:stop])[:, env_index]
+                reasons = env.last_transition["termination_reasons"]
+                reason_names = [name for name, value in reasons.items() if bool(value[env_index].item())]
+                episode_records.append(dict(
+                    env_index=env_index, episode_id=int(env.last_transition["episode_id"][env_index].item()),
+                    control_steps=stop - episode_step_start[env_index],
+                    terminated=bool(terminated[env_index].item()),
+                    truncated=bool(truncated[env_index].item()),
+                    success=bool(task_success[env_index].item()),
+                    termination_reasons=reason_names,
+                    external_force_nonzero_steps=int((prefix_force > 0).sum()),
+                    external_force_peak_N=float(prefix_force.max(initial=0.0)),
+                    external_force_sum_N_step=float(prefix_force.sum()),
+                    external_force_mean_N=float(prefix_force.mean()) if prefix_force.size else 0.0,
+                ))
+                episode_step_start[env_index] = stop
+            if completed_target is not None and len(episode_records) >= completed_target:
+                break
             if player is not None and player.is_rnn and done.any():
                 for state in player.states:
                     state[:, done, :] = 0
-            if step in (0, args.steps//2, args.steps-1):
+            if step in (0, args.steps//2, args.steps-1) and not bool(done[0]):
                 save_frame(f"step{step+1:05d}")
                 print(f"RESEARCH_STEP {step+1}/{args.steps} max_normal_force_N={float(force.max()):.5g}", flush=True)
         forces = np.stack(norms)
-        result = dict(steps=args.steps, num_envs=args.num_envs, wall_seconds=time.perf_counter()-start,
-                      completed_episodes=terminated_count, all_goals_successes=success_count,
+        wrench_array = np.stack(wrench_norms)
+        lift_array = np.stack(lift_gate)
+        censored_records = [dict(env_index=i,control_steps=len(norms)-start_step,
+                                episode_id=int(env.research_episode[i]))
+                            for i,start_step in enumerate(episode_step_start) if start_step < len(norms)]
+        externally_censored = bool(censored_records)
+        result = dict(steps=len(norms), step_budget=args.steps, num_envs=args.num_envs, wall_seconds=time.perf_counter()-start,
+                      planned_episodes=args.episodes, started_episodes=len(episode_records)+len(censored_records),
+                      completed_episodes=len(episode_records), terminated_count=terminated_count,
+                      truncated_count=sum(int(row["truncated"]) for row in episode_records),
+                      successful_episodes=success_count,
+                      externally_censored=externally_censored,
+                      censored_episodes=len(censored_records), censored_records=censored_records,
+                      trial_status="external_budget_censored" if externally_censored else "completed",
+                      episode_records=episode_records,
+                      all_goals_successes=all_goals_count,
                       max_normal_force_N_by_finger=forces.max(axis=(0,1,2)).tolist(),
                       contact_fraction_gt_0p01N=float((forces > .01).mean()),
+                      external_force_nonzero_control_steps=int((wrench_array > 0).sum()),
+                      external_force_peak_N=float(wrench_array.max(initial=0.0)),
+                      external_force_total_N_step=float(wrench_array.sum()),
+                      external_wrench_lift_gate_steps=int(lift_array.sum()),
                       inference_ms_median=float(np.median(inference_ms)), inference_ms_max=float(max(inference_ms)),
                       camera_audit=camera_audit, teacher_obs_shape=list(teacher_obs["policy"].shape),
                       nominal_proprio_shape=list(env.research_packet["proprio"].shape))

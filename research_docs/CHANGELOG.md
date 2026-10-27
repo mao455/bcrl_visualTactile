@@ -156,3 +156,33 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 - 未解决：示范预加载去除、Correction目标/训练/控制权限、长期记忆的学习效用、实机异步时钟、终止前RGB-D、player裁剪前均值、实时期限。memory2训练只验证接口/反传，完整优化与validation loss尚未验证/接入；不得把旧checkpoint称作新结构能力证据。
 
 本轮用户已授权提交与同步。公共提交只包含源码、测试、Markdown及小型数值JSON，保留MIT和已有vendor声明，使用origin/main且不强推。具体commit与推送结果在完成时报告。
+
+### 2026-10-28 — 原论文专家配对扰动采集（无参数训练）
+
+从本机`6fc04a8`继续，建立`feature/paired-expert-trials`，保留先前迭代输出。用户本轮授权原tight_insertion expert的3对验收及20对pilot，未授权训练；Nominal/Correction均不运行。只修改研究采集/诊断与独立分析工具，原任务、资产、动作helper、RL及本机Lab源码本轮均未改。
+
+| 文件 | 前后行为、职责、调用关系 |
+| --- | --- |
+| `visuotactile/collect.py` | 原固定tick采集 → 保留原模式，新增单env episode目标/外部预算、两个严格条件、pair ID；只将force_scale20→30。记录deterministic/group、源码hash/RNG、原timeout；实际step/完成/删失分别统计，success需全目标＋retract，保留all-goals计数原语义。metadata先于循环落盘；终止后不把reset帧保存成该episode示例图。 |
+| `visuotactile/sim/environment.py` | 原obs/action/target/接触trace → 增加native请求force/torque、概率/质量/门控、原生终止原因、速度/base/palm/阶段与RNG诊断；增加object.write_data_to_sim只读observer，逐物理步记录实际local composer、object quaternion及world换算。request(1,3)与applied(2,1,3)分开；wrench_trace3独立于schema2/trace2，无学生输入维度改变。 |
+| `visuotactile/trial_utils.py`（新增） | 记录base commit/branch/工作区及Python/YAML/TOML/shell源文件hash；原子更新独立实验计划/状态JSON，不读取凭据或其他项目。 |
+| `visuotactile/run_rl_trials.py`（新增） | 先保存验收/pilot全部seed与顺序；复用run_cpu.sh/collect启动独立单env首episode；每条runtime/status/error/audit持久化。资源边界、墙钟限额只约束新child。允许检查后在新attempt目录同seed重试一次“无HDF5的启动SIGABRT”；不挑选任务成败结果。 |
+| `visuotactile/analyze_rl_trials.py`（新增） | 从HDF5 committed rows审计真实字段、目标公式/延迟/因果边界、全RGB-D分块数值、local force/实际施力；支持缺字段旧尝试与纯专家无Nominal计划。episode分母、删失/运行错误分离、Wilson、计划上下界、初始配对、共同前缀位置/旋转/命令差、接触/tracking/外力统计与每对图；不硬编码结论。 |
+| `tests/test_rl_trials.py`（新增） | 原helper下固定RNG验证尺度、torque不变、lift/retract门控、零decay及实际setter值；单位/统计/条件交替测试；启动重试不得覆盖部分HDF5测试。合成fixture仅测试边界，不是研究采样。 |
+| `research_docs/RL_EXPERT_TRIALS.md`（新增） | 用户要求、工程选择、实际checkpoint/config、native成功/timeout、施力frame兼容问题、调用链、完整结果/限制与旧错误记录。 |
+| `AGENTS.md`, `research_docs/{README,ARCHITECTURE,CONTRACTS,DATA_SCHEMA,RUNBOOK,USER_RESEARCH_DIRECTION,CHANGELOG}.md` | 指向本次实验合约，追加用户新阶段授权，说明新诊断维度/来源/时序、可复现采集/恢复/分析/PKL命令；不改写此前研究目标。 |
+
+本机Lab外力composer缓存姿态造成request-world与实际world方向不同，实际220步诊断中峰值向量差5.60690N、范数一致。此行为本轮保持，仅新增观测；不能把这里的实验称为论文原安装栈的严格复现。详情见实验报告。旧一次分析曾因缺字段失败，旧“六条均未达到lift门控”解释被真实门控记录纠正为35/0/53个eligible步；旧数据/错误保留，分析不能以文档推测补齐字段。
+
+最终cohort统计、所有实际验证与公开摘要见本条后续结果记录及`RL_EXPERT_TRIALS.md`；所有raw HDF5/PKL/weights/日志仍被忽略。
+
+#### 最终结果与验证（本轮实际执行）
+
+- `cohort_v3`完成验收6条＋pilot40条，7932控制步；全自然结束，34成功/12fall/0预算删失/0审计错误。验收两条件各2/3，pilot各15/20（Wilson95%53.1%–88.8%）；配对pilot15双方成功、5双方失败、0discordant。pilot保留2个启动SIGABRT错误，均无HDF5、同seed新attempt一次重试通过。
+- 每条件4/20实际外力曝光，其余16保留分母。original13控制步、最大2.3642N；增强14步、最大3.5464N。只有seed910214在指接触时受力，两侧成功、206→215步，共同前缀最大位置差4.60cm；最大差异seed910217为65.62cm但两侧均fall、无指接触。不能推断抗扰动等价或触觉/记忆收益。
+- 当前27项单元测试通过；32步原渲染回归initial13/trace15字段精确；220步observer前后128非图像字段精确，含RNG/奖励/接触。46条完整记录审计通过，所有图像/深度有限性与mask逐块检查；258步FK从q重算误差0；139字段真实v3 PKL往返及metadata精确。原生timeout分类单测，真实短smoke8步censored；本次没采到自然timeout。
+- 代表性真实RGB已手工查看：固定场景正常，图像有RTX噪点，pre-action末帧没有冒充terminal。只有两张审计后的静态统计图加入`research_docs/media/rl_expert_pair_910214.png`及`rl_expert_pair_910217.png`；`research_docs/evidence/rl_expert_trials.json`保存数值/哈希，不含原RGB-D/权重/日志。
+- 主HDF5共4,281,244,905bytes；pilot3,809,235,306bytes。local `cohort_v3/hdf5_manifest.json`含46条完整hash；采集/控制源码快照保存在本机供追溯，metadata有当时工作区hash。最终代码只进一步澄清注释和约束resume预算，不改变已采集物理路径。
+- pilot控制循环墙钟总609.70s（不含Kit启动），每trial有效Hz中位11.75，专家前向中位4.13ms。保留60Hz模拟时间控制契约，不能称为60Hz真实时间性能；后台程序未被停止、发信号或修改优先级。
+- 先前失败/旧尝试另列：6次预创建输出目录FileExistsError、1次诊断Kit启动SIGABRT、旧6episode验收、2条seed17诊断、1条8步censored。全都保留，重复seed不混入pilot；另一次旧分析KeyError保留修复说明。实验全部结果/限制见`RL_EXPERT_TRIALS.md`。
+- 未改原MIT及vendor版权，无新增第三方代码/依赖。公开候选只有研究源码/测试/Markdown、约145KB结果JSON和两张静态图；HDF5/PKL/checkpoint/缓存/日志/虚拟环境均忽略。
