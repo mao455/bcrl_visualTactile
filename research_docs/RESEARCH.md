@@ -32,3 +32,7 @@ No demonstration nominalization, slip estimator, contact pressure estimator, loc
 ## 2026-10-27 perception review
 
 See [PERCEPTION.md](PERCEPTION.md) for inspected DP/LeRobot/OpenViTac/3DTacDex source paths, immutable commit IDs, licenses, adaptation boundaries and chosen encoders. This supersedes the original tiny-CNN/flattened-force baseline. No OpenViTac or 3DTacDex implementation was copied or installed; they are design references, not verified drop-in dependencies. No perception/pretraining objective or competence claim is introduced.
+
+## 2026-10-27 持续历史与数据格式源码复核
+
+本轮另外实读固定版本Robomimic的state/forward_step、BC_RNN reset与HDF5，Stanford DP的Zarr/episode_ends/window sampler，LeRobot的Parquet/video数据类。路径、commit、许可与采用/拒绝的具体行为见 [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md)。选择显式持续GRU state而非周期清空，保留HDF5并加PKL导出；这是可替换工程选择，不是用户冻结的理论结论。没有新增复制第三方源码或训练实验。用户方向独立保存在 [USER_RESEARCH_DIRECTION.md](USER_RESEARCH_DIRECTION.md)。

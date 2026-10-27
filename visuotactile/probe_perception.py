@@ -122,7 +122,7 @@ def main():
         report['visibility']=stage_sheet(selected,metadata,args.output/'views.png')
     data=EpisodeDataset(args.data)
     correction_data=CorrectionEpisodeDataset(args.data,allow_untrained_probe=True)
-    cfg=PolicyConfig()
+    cfg=PolicyConfig(memory_version=1,)
     model=NominalDiffusionPolicy(cfg)
     correction=CorrectionPolicy(cfg)
     chosen=next(i for i,(key,t) in enumerate(correction_data.index) if t>=100)

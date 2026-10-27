@@ -7,7 +7,7 @@ Policy-visible nominal inputs are explicitly selected camera history, encoder/co
 
 ## Current implementation: perception v2
 
-The current component and tensor contracts are in `PERCEPTION.md` and schema v2 in `DATA_SCHEMA.md`. `observations.py` owns the nominal allowlist, task vocabulary and operator command validation; `kinematics.py` supplies encoder-only FK; `models/vision.py` and `models/tactile.py` provide replaceable encoders. The adapter attaches two cameras/contact sensors and a read-only post-scene-update FK observer. Original task/RL/control/assets remain unchanged.
+The current component and tensor contracts are in `PERCEPTION.md` and schema v2 in `DATA_SCHEMA.md`. `observations.py` owns the nominal allowlist, task vocabulary and operator command validation; `kinematics.py` supplies encoder-only FK; `models/vision.py` and `models/tactile.py` provide replaceable encoders. The adapter attaches two cameras/contact sensors and a read-only post-scene-update FK observer. Original task/RL/assets and control mathematics remain unchanged; the only original-source edit is an optional read-only action trace hook after delay selection.
 
 `NominalController.act` constructs private previous-nominal/remaining-plan fields **before** adding the current observation to history and predicting a new chunk. Collector records these exact inputs. `CorrectionContext` separately constructs prior-issued-command and target/error feedback. `CorrectionEpisodeDataset` uses the same causal windows and returns expert command supervision separately. `probe_perception` compares offline/online tensors on real episodes, checks gradients without weight updates, and generates visibility evidence. Goal commands are optional external inputs, not extracted from task success state.
 
@@ -39,7 +39,7 @@ Nominalization of preload; tactile force calibration/slip observability; legal t
 | --- | --- |
 | `sim/environment.py` | Optional scene instrumentation and cached sensor packet; no new collisions or gains |
 | `collect.py`, `recording.py` | Released teacher or independent nominal rollout; per-environment HDF5 episodes, real action provenance |
-| `history.py`, `dataset.py` | Shared causal indexing; successful teacher episodes; expert actions are supervision only |
+| `history.py`, `dataset.py` | Shared causal indexing and carried state; expert future actions are supervision; past expert commands are separate labeled history |
 | `models/nominal.py`, `models/vendor/` | RGB-D/proprio history encoder and attributed MIT diffusion denoiser; exact input allowlist |
 | `train.py`, `rollout.py` | Real-data loss, checkpoint/optimizer/RNG restore; native 60-Hz chunk cursor and 10-Hz replanning |
 | `models/correction.py` | Independent tactile encoder, visual encoder, motion/issued-action history GRU and predicted-chunk GRU → full 29-D candidate; bounded composition helper |
@@ -49,7 +49,7 @@ Nominalization of preload; tactile force calibration/slip observability; legal t
 | `regression.py`, `tests/test_visuotactile.py` | Separate-process rendered reference and local information/reset/control tests |
 | `run_cpu.sh` | Limits only the newly launched process; leaves other workloads untouched |
 
-### Histories actually implemented
+### Historical v1 histories (superseded by memory2 below)
 
 Nominal sees four RGB-D/encoder observations at stride 3, spanning 0.15 seconds. Its internal GRU starts from zero for each finite window, with padded frames masked. Own predicted action chunks/cursors are stored for analysis and execution; they are **not yet neural inputs**. This choice avoids feeding demonstrated or corrected commands into nominal. Causal self-plan conditioning is a later ablation requiring a consistent training rollout construction, not an excuse to substitute expert history.
 
@@ -57,10 +57,20 @@ Correction has its own matching visual history plus twelve consecutive encoder/i
 
 The shadow path computes the candidate on real measurements, then records it under `transition/correction_shadow/untrained_candidate_diagnostic`. The environment always receives nominal. This establishes tensor/lifecycle integration, not a learned controller. A trained correction loader, justified objective, data coverage and matched rollout ablations remain acceptance gates before enabling correction.
 
-### Development order from this milestone
+### Historical roadmap (not authorization to train this milestone)
 
 1. Improve/validate camera coverage and lawful goal command information under occlusion; retain fixed external task identity meanwhile.
 2. Gather more successful episodes with scene health and provenance checks; train a competent nominal baseline and evaluate held-out reset seeds.
 3. Generate causal frozen-nominal plans on expert and on-policy states; optionally query the expert for labels. Separate these from model inputs.
 4. Compare proposed full-command supervised correction and contact-outcome objectives; train only from real transitions. Require no-contact equality, tactile-zero/shuffle and same-budget nominal-only ablations.
 5. Only then enable trained correction and consider constrained joint fine-tuning. Add self-plan history, additional views or more expressive temporal models based on measured failure modes.
+
+## Current persistent memory and trace architecture (2026-10-27)
+
+`NominalController.act` → private own-plan fields → current frame encoder → carried GRU state at **every native control step** → diffusion only when replan is due. `CorrectionShadow.observe` → most recent visual/motion row and two new physical samples → independent carried visual/motion/intent/finger states → diagnostic candidate. Feedback windows remain available for memory1/inspection, and are not repeatedly consumed by memory2. Episode ID changes clear only the relevant batch rows; subgoals do not clear any branch.
+
+`EpisodeSequenceDataset.chunks` → `encode_episode_chunks` → per-step condition/isolated future supervision. `CorrectionSequenceDataset` → `replay_correction_chunks` → isolated actual model plan/context and expert labels. Chunking, detach and reset have distinct meanings. Default future trainer uses sequential TBPTT; no optimizer was run this milestone. Historical training roadmap above is not active authorization.
+
+`env.step` → original delay selection → optional `_record_action_trace` → unchanged target math → physics/FK/contact → pre-reset diagnostics → reset/observation → `EpisodeWriter.append`. `EpisodeReader.steps/read` reconstruct raw nested rows; PKL export is optional. Trace2 retains command provenance, plan parameter hash/generation/coverage/selection, targets and outcomes. Actual terminal image is missing and masked. See [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md) and [DATA_SCHEMA.md](DATA_SCHEMA.md) for exact rates, units and version boundaries.
+
+Task ID remains categorical. Expert history is useful but separate from private predicted plans; ordinary imitation targets still contain potential preload. Current encoders are untrained; soft spatial moments are not semantic keypoints. Fixed state compresses history without lossless or task-utility guarantees. User requirements and open research decisions live in [USER_RESEARCH_DIRECTION.md](USER_RESEARCH_DIRECTION.md).

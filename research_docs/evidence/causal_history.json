@@ -1,0 +1,164 @@
+{
+  "date": "2026-10-27",
+  "baseline_commit": "200ea3490530c4bd64a6351a5e43a7c9d76c4da9",
+  "scope": "Fixed-weight engineering checks; no parameter updates, no policy success optimization",
+  "public_content": "Numeric audit summaries only. Raw trajectories, models and logs stay local.",
+  "reports": {
+    "causal_checks01": {
+      "trace": {
+        "rows": 480,
+        "episodes": 5,
+        "terminal_images_explicitly_missing": 3,
+        "max_fk_reconstruction_error": 0.0,
+        "max_local_force_error_N": 0.0,
+        "max_delay_timestamp_error_s": 1.7518022588092208e-09,
+        "reference_fields_exact": 15
+      },
+      "memory": {
+        "episode": "env000_ep000000",
+        "steps": 225,
+        "nominal_model_hash_verified": true,
+        "nominal_full_vs_chunk_max": 3.725290298461914e-07,
+        "nominal_full_vs_online_max": 4.6566128730773926e-07,
+        "correction_chunk_vs_online_max": 0.0,
+        "correction_vs_recorded_batch2_max": 4.470348358154297e-08,
+        "parameter_updates": 0
+      },
+      "pickle_roundtrip": {
+        "episode": "env001_ep000002",
+        "fields": 113,
+        "exact": true
+      }
+    },
+    "causal_checks02": {
+      "trace": {
+        "rows": 64,
+        "episodes": 2,
+        "terminal_images_explicitly_missing": 0,
+        "max_fk_reconstruction_error": 0.0,
+        "max_local_force_error_N": 0.0,
+        "max_delay_timestamp_error_s": 5.551115123125783e-17,
+        "reference_fields_exact": 15
+      },
+      "pickle_roundtrip": {
+        "episode": "env000_ep000000",
+        "fields": 114,
+        "exact": true
+      }
+    },
+    "causal_checks04": {
+      "trace": {
+        "rows": 16,
+        "episodes": 2,
+        "terminal_images_explicitly_missing": 0,
+        "max_fk_reconstruction_error": 0.0,
+        "max_local_force_error_N": 0.0,
+        "max_delay_timestamp_error_s": 1.3877787807814457e-17,
+        "reference_fields_exact": 15,
+        "target_equations_checked": true,
+        "expert_checkpoint_hash_recorded": true
+      },
+      "memory": {
+        "episode": "env000_ep000000",
+        "steps": 8,
+        "nominal_model_hash_verified": true,
+        "nominal_full_vs_chunk_max": 3.5762786865234375e-07,
+        "nominal_full_vs_online_max": 3.3527612686157227e-07,
+        "correction_chunk_vs_online_max": 0.0,
+        "correction_vs_recorded_batch2_max": 2.9802322387695312e-08,
+        "parameter_updates": 0
+      },
+      "pickle_roundtrip": {
+        "episode": "env000_ep000000",
+        "fields": 114,
+        "exact": true
+      }
+    },
+    "causal_gradients01": {
+      "trace": {
+        "rows": 480,
+        "episodes": 5,
+        "terminal_images_explicitly_missing": 3,
+        "max_fk_reconstruction_error": 0.0,
+        "max_local_force_error_N": 0.0,
+        "max_delay_timestamp_error_s": 1.7518022588092208e-09,
+        "reference_fields_exact": 15,
+        "target_equations_checked": false,
+        "expert_checkpoint_hash_recorded": false
+      },
+      "gradients": {
+        "episode": "env000_ep000000",
+        "step": 37,
+        "causal_prefix_steps": 37,
+        "finite_nonzero_parameter_gradients_L1": {
+          "nominal_rgb": 12597.484787583351,
+          "nominal_depth": 4148.321010351181,
+          "nominal_temporal": 5782.6530418396,
+          "correction_rgb": 30.020298822317272,
+          "correction_depth": 6.937251430936158,
+          "tactile": 31.671111680567265,
+          "motion": 2.5330113638192415,
+          "intent_plan": 0.4697125107049942,
+          "intent_history": 0.5986980050802231,
+          "correction_head": 160.32333731651306
+        },
+        "per_view_rgb_depth_input_gradients_L1": [
+          [
+            91.62820434570312,
+            4.290671348571777
+          ],
+          [
+            87.4332504272461,
+            3.82673716545105
+          ]
+        ],
+        "force_input_gradient_L1": 0.0005126410396769643,
+        "weights_and_carried_state_reload_exact": true,
+        "parameter_updates": 0
+      },
+      "pickle_roundtrip": {
+        "episode": "env001_ep000002",
+        "fields": 113,
+        "exact": true
+      }
+    }
+  },
+  "rendered_regression": {
+    "bitwise_equal": true,
+    "fields": {
+      "initial.npz": 13,
+      "trace.npz": 15
+    },
+    "steps": 32
+  },
+  "timing_ms": {
+    "inference_ms_median": 99.49410849367268,
+    "memory_ms_median": 44.10599799302872,
+    "shadow_inference_ms_median": 48.75264449219685
+  },
+  "timing_context": "2 environments, 2 CPU threads, synchronous rendered simulation; not real-time deadlines",
+  "normal_force_max_N_by_finger": [
+    24.606895446777344,
+    21.09068489074707,
+    0.0,
+    28.70854377746582,
+    24.73626136779785
+  ],
+  "missing": [
+    "pre-reset terminal RGB-D",
+    "expert actor mean before player clip",
+    "real asynchronous exposure/communication times"
+  ],
+  "limitations": [
+    "Fixed-dimensional recurrence is not lossless history or demonstrated long-term skill",
+    "Correction stays untrained Shadow; no objective selected",
+    "Ring has zero contact in this short capture; prior perception evidence showed a response",
+    "Known PhysX kinematic velocity warnings also occur in original rendered reference"
+  ],
+  "source_reports_sha256": {
+    "causal_checks01": "c05c6ee3197ec4ff76b052f8b65a119ed9afcfc307a4c0ffcb561cc0ef478671",
+    "causal_checks02": "58287df5fe034ae5dc5cf574ff7ea74842fd2214e7d3b19f16c0217512493274",
+    "causal_checks04": "a9b6a798339eaf4bc73ba663bad7d27f21ccc453345051a3fd089e3fb9330438",
+    "causal_gradients01": "8bc54de386abb90fda2459c00c2f44bae879ba4d83b8b258066af349abb6da2f"
+  }
+}

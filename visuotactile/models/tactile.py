@@ -18,9 +18,14 @@ class FingerTactileEncoder(nn.Module):
         self.per_finger = nn.GRUCell(32,32)
         self.fusion = nn.Sequential(nn.Linear(5*32,128),nn.SiLU(),nn.Linear(128,hidden),nn.LayerNorm(hidden))
 
-    def forward(self,tactile,valid):
+    def forward(self,tactile,valid,state=None,*,return_state=False):
         if set(tactile) != {"force_w_N","force_local_N","position_base_m","rotation_base","time_s"}:
             raise ValueError("Unexpected tactile field; no privileged inputs accepted")
+        # Retain the previous physical sample for boundary derivatives/events.
+        # Its features are NOT fed through the recurrence a second time.
+        if state is not None:
+            tactile = {k:torch.cat((state["previous"][k][:,None],v),1) for k,v in tactile.items()}
+            valid = torch.cat((state["previous_valid"][:,None],valid),1)
         force = tactile["force_w_N"]
         b,t,f,c = force.shape
         if (f,c) != (5,3) or valid.shape != (b,t):
@@ -50,9 +55,13 @@ class FingerTactileEncoder(nn.Module):
                               velocity,signed_log(delta),torch.log1p(norm),contact.float(),onset.float(),release.float(),
                               dt[...,None,None].expand(b,t,5,1),pair_valid[...,None,None].expand(b,t,5,1).float(),identity),-1)
         features = self.spatial(torch.where(valid[...,None,None],features,0.))
-        hidden = force.new_zeros(b*5,32)
-        for i in range(t):
+        hidden = force.new_zeros(b*5,32) if state is None else state["hidden"].reshape(b*5,32)
+        for i in range(0 if state is None else 1,t):
             m = valid[:,i,None].expand(b,5).reshape(b*5,1)
             hidden = torch.where(m,self.per_finger(features[:,i].reshape(b*5,32),hidden),hidden)
         encoded = self.fusion(hidden.reshape(b,5*32))
-        return torch.where(valid.any(-1,keepdim=True),encoded,0.)
+        seen = valid.any(-1) if state is None else state["seen"] | valid[:,1:].any(-1)
+        result = torch.where(seen[:,None],encoded,0.)
+        next_state = dict(hidden=hidden.reshape(b,5,32),seen=seen,
+                          previous={k:v[:,-1] for k,v in tactile.items()},previous_valid=valid[:,-1])
+        return (result,next_state) if return_state else result

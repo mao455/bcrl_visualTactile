@@ -52,6 +52,12 @@ play2perfect/
 
 ## Local visual–tactile research extension
 
+Current research adds persistent episode memory, explicit command/delay/target provenance,
+and per-control-step HDF5 recording with optional episode PKL export. Read
+[the user's research directions](research_docs/USER_RESEARCH_DIRECTION.md) and
+[history, timing and trace contracts](research_docs/HISTORY_AND_TRACE.md).
+This milestone performs no parameter training; Correction remains Shadow only.
+
 The independent `visuotactile/` package adds audited trajectory recording, nominal
 Diffusion BC and a non-controlling tactile correction probe. See
 [research_docs/README.md](research_docs/README.md) for verified results, limitations

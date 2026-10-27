@@ -4,10 +4,12 @@ import torch
 from torch import nn
 from diffusers import DDPMScheduler, DDIMScheduler
 from .vendor.conditional_unet1d import ConditionalUnet1D
+from ..history import recurrent_scan
 
 
 @dataclass
 class PolicyConfig:
+    memory_version: int = 2  # 1: legacy windows; 2: every-step episode recurrence
     perception_version: int = 2
     views: int = 2
     channels: int = 4
@@ -23,7 +25,7 @@ class PolicyConfig:
     @classmethod
     def from_dict(cls, config):
         # Missing version is the published one-camera v1 checkpoint, never v2.
-        return cls(**{"perception_version": 1, **config})
+        return cls(**{"perception_version": 1, "memory_version": 1, **config})
 
 
 class LegacyVisualHistoryEncoder(nn.Module):
@@ -42,7 +44,7 @@ class LegacyVisualHistoryEncoder(nn.Module):
         self.register_buffer("proprio_mean", torch.zeros(cfg.proprio_dim))
         self.register_buffer("proprio_std", torch.ones(cfg.proprio_dim))
 
-    def forward(self, obs):
+    def forward(self, obs, state=None, *, return_state=False, return_sequence=False, reset=None):
         if set(obs) != {"image", "proprio", "valid"}:
             raise ValueError("Nominal encoder accepts ONLY image, proprio, valid history")
         image, proprio, valid = obs["image"], obs["proprio"], obs["valid"]
@@ -56,11 +58,9 @@ class LegacyVisualHistoryEncoder(nn.Module):
         visual = self.vision(image.reshape(b*t*v,c,h,w)).reshape(b,t,v*64)
         q = self.proprio((proprio-self.proprio_mean)/self.proprio_std)
         x = torch.cat((visual,q),dim=-1)
-        hidden = x.new_zeros(b,self.cfg.hidden)
-        for i in range(t):
-            update = self.temporal(x[:,i],hidden)
-            hidden = torch.where(valid[:,i,None],update,hidden)
-        return hidden
+        sequence,hidden = recurrent_scan(self.temporal,x,valid,state,reset)
+        output = sequence if return_sequence else hidden
+        return (output,hidden) if return_state else output
 
 
 def VisualHistoryEncoder(cfg):
@@ -78,6 +78,8 @@ class NominalDiffusionPolicy(nn.Module):
         self.cfg = cfg or PolicyConfig()
         if self.cfg.horizon % 2 or not 1 <= self.cfg.replan_steps <= self.cfg.horizon:
             raise ValueError("Two-level U-Net requires even horizon; replan must fit chunk")
+        if self.cfg.memory_version not in (1,2):
+            raise ValueError("Unsupported memory contract")
         self.encoder = VisualHistoryEncoder(self.cfg)
         self.denoiser = ConditionalUnet1D(input_dim=29,global_cond_dim=self.cfg.hidden,
             diffusion_step_embed_dim=64,down_dims=(64,128),kernel_size=3,cond_predict_scale=True)
@@ -85,10 +87,16 @@ class NominalDiffusionPolicy(nn.Module):
             beta_schedule="squaredcos_cap_v2",clip_sample=True,prediction_type="epsilon")
         self.sampler = DDIMScheduler.from_config(self.noise.config)
 
-    def loss(self, obs, action_target, action_valid):
+    def loss(self, obs, action_target, action_valid, *, episode_start=False):
+        if self.cfg.memory_version == 2 and not episode_start:
+            raise ValueError("Persistent memory training needs ordered episode conditions; use loss_from_condition")
         if action_target.shape[1:] != (self.cfg.horizon,29):
             raise ValueError("Action supervision must be (B,H,29)")
         cond = self.encoder(obs)
+        return self.loss_from_condition(cond,action_target,action_valid)
+
+    def loss_from_condition(self,cond,action_target,action_valid):
+        """Use conditions from causal episode unroll, including carried TBPTT state."""
         eps = torch.randn_like(action_target)
         t = torch.randint(self.cfg.diffusion_steps,(len(action_target),),device=action_target.device)
         noisy = self.noise.add_noise(action_target,eps,t)
@@ -99,6 +107,10 @@ class NominalDiffusionPolicy(nn.Module):
     @torch.no_grad()
     def predict(self, obs, generator=None):
         cond = self.encoder(obs)
+        return self.predict_from_condition(cond,generator)
+
+    @torch.no_grad()
+    def predict_from_condition(self,cond,generator=None):
         x = torch.randn((len(cond),self.cfg.horizon,29),device=cond.device,generator=generator)
         self.sampler.set_timesteps(self.cfg.inference_steps, device=cond.device)
         for t in self.sampler.timesteps:

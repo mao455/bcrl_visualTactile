@@ -51,3 +51,7 @@ Teacher 的 140-D noisy actor 和 162-D privileged critic 含模拟物体/目标
 新增固定相机、post-scene-update编码器FK采样和未训练网络旁路后，原渲染路径与instrumented路径32步的15个trace字段仍逐位相同（含RNG、原actor观测和PhysX变换）。另对camera03与final01的2env×240ticks记录比较，480条专家动作、执行器目标、奖励、关节、物体、孔座、success和done逐项一致。证据：`outputs/visuotactile/perception_regression01/comparison.json`，公开汇总在`evidence/perception_v2.json`。
 
 仍保留原CPU渲染约束；没有修改引擎、碰撞、控制或任务成功判据。原路径仍会输出运动学刚体不能设置速度的PhysX日志，本轮以实际位置断言/状态回归作为有限范围内的有效性依据，不能宣称所有引擎问题已消除。当前观测/图像/传感器源见`PERCEPTION.md`，terminal图不可用及同tick插入/retract成功现象已明确记录。
+
+## 2026-10-27 持续历史与trace2补充
+
+重新检查原action pipeline后，只增加7行可选只读hook来观察其**实际**delay选择；原数学/RNG/资产/RL未改。新`causal_regression01`再次对比rendered原环境与instrumented32步，initial13项/trace15项bitwise相等。真实480行记录补充逐步延迟源、FK实际弧度、终止缺失和持续历史检查；具体范围和误差见 [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md)。历史段落的“原源码未修改”描述的是当时里程碑，不能替代当前7行hook的审计。CPU无渲染限制仍在。

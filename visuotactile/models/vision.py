@@ -10,6 +10,7 @@ from torch.nn import functional as F
 from torchvision.models import resnet18
 
 from ..observations import NOMINAL_KEYS_V2, TASK_IDS
+from ..history import recurrent_scan
 
 
 class RGBDSpatialEncoder(nn.Module):
@@ -67,7 +68,8 @@ class MultimodalHistoryEncoder(nn.Module):
         self.register_buffer("proprio_mean",torch.zeros(cfg.proprio_dim))
         self.register_buffer("proprio_std",torch.ones(cfg.proprio_dim))
 
-    def forward(self,obs):
+    def encode_frames(self,obs):
+        """Frame-local features, for bounded image batches and full recurrent scans."""
         if set(obs) != set(NOMINAL_KEYS_V2)|{"valid"}:
             raise ValueError("Perception v2 nominal inputs differ from the explicit non-tactile allowlist")
         im, q, valid = obs["image"],obs["proprio"],obs["valid"].bool()
@@ -96,7 +98,10 @@ class MultimodalHistoryEncoder(nn.Module):
             torch.where(previous_valid,obs["previous_nominal_action"].detach(),0.),previous_valid.float(),
             plan_h.reshape(b,t,32),torch.where(camera_valid,age,0.),camera_valid.float()),-1)
         features = torch.cat((vision,self.proprio((q-self.proprio_mean)/self.proprio_std),self.context(context)),-1)
-        hidden = features.new_zeros(b,self.cfg.hidden)
-        for i in range(t):
-            hidden = torch.where(valid[:,i,None],self.temporal(features[:,i],hidden),hidden)
-        return hidden
+        return features,valid
+
+    def forward(self,obs,state=None,*,return_state=False,return_sequence=False,reset=None):
+        features,valid = self.encode_frames(obs)
+        sequence, hidden = recurrent_scan(self.temporal,features,valid,state,reset)
+        output = sequence if return_sequence else hidden
+        return (output,hidden) if return_state else output

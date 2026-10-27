@@ -131,8 +131,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                                             torch.tensor([target], device=self.device)+self.scene.env_origins)
 
     def _sample_kinematics(self):
-        pos, rot = self._fk(self.robot.data.joint_pos)
-        self._fk_samples.append((pos.clone(), rot.clone()))
+        q = self.robot.data.joint_pos.clone()
+        pos, rot = self._fk(q)
+        self._fk_samples.append((pos.clone(), rot.clone(), q[:,self._perm_lab_to_canon]))
         self._fk_samples = self._fk_samples[-self.cfg.decimation:]
 
     def _kinematic_packet(self, force):
@@ -141,12 +142,14 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         samples = ([self._fk_samples[0]]*self.cfg.decimation + self._fk_samples)[-self.cfg.decimation:]
         pos = torch.stack([s[0] for s in samples], 1)
         rot = torch.stack([s[1] for s in samples], 1)
+        joint = torch.stack([s[2] for s in samples],1)
         # After auto-reset replace that env's old interval; contact_valid masks it.
         reset = self.research_step == 0
         current_pos, current_rot = self._fk(self.robot.data.joint_pos)
         pos[reset] = current_pos[reset, None]
         rot[reset] = current_rot[reset, None]
-        return dict(finger_position_base_m=pos, finger_rotation_base=rot,
+        joint[reset] = self.robot.data.joint_pos[reset][:,self._perm_lab_to_canon][:,None]
+        return dict(finger_joint_position_rad=joint,finger_position_base_m=pos, finger_rotation_base=rot,
                     contact_substeps_local_N=rotate_force_to_link(force, rot))
 
     def _camera_packet(self):
@@ -211,17 +214,49 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             if hasattr(self, name):
                 getattr(self, name)[env_ids] = 0
 
+    def _record_action_trace(self, delayed_lab, delay_index, queue_initialized):
+        """Read values chosen by the original pipeline; never resample delay/RNG."""
+        n = self.num_envs
+        steps = self.research_step
+        enabled = delay_index is not None
+        if enabled:
+            length = self._action_queue.shape[1]
+            if not hasattr(self,"_research_command_steps"):
+                self._research_command_steps = steps[:,None].expand(-1,length).clone()
+            self._research_command_steps[queue_initialized] = steps[queue_initialized,None]
+            self._research_command_steps = torch.roll(self._research_command_steps,1,1)
+            self._research_command_steps[:,0] = steps
+            selected_step = self._research_command_steps[torch.arange(n,device=self.device),delay_index]
+        else:
+            length = 1
+            delay_index = torch.zeros_like(steps)
+            selected_step = steps.clone()
+        self.last_transition["control_trace"] = dict(
+            valid=torch.ones(n,dtype=torch.bool,device=self.device),
+            delayed_command=delayed_lab[:,self._perm_lab_to_canon].clone(),
+            delay_index=delay_index.clone(), selected_command_step=selected_step.clone(),
+            effective_lag_steps=steps-selected_step,
+            selected_command_time_s=self.last_transition["time_before_s"]-(steps-selected_step).to(torch.float64)*self.step_dt,
+            delay_enabled=torch.full((n,),enabled,dtype=torch.bool,device=self.device),
+            queue_length=torch.full_like(steps,length))
+
     def _pre_physics_step(self, actions):
         if actions.shape != (self.num_envs, 29) or not torch.isfinite(actions).all():
             raise ValueError("Expected finite (num_envs,29) canonical actions")
         self.last_transition = {
             "episode_id": self.research_episode.clone(),
             "step_id": self.research_step.clone(),
-            "raw_action": actions.clone(),
+            "raw_action": actions.clone(),  # legacy alias of submitted_action
+            "submitted_action": actions.clone(),
+            "command_clipped_pre_delay": actions.clamp(-1,1).clone(),
+            "time_before_s": torch.full((self.num_envs,),self.research_tick*self.step_dt,dtype=torch.float64,device=self.device),
+            "diagnostics_before": self._diagnostics(),
             "executed_action": actions.clamp(-1, 1).clone(),
             "target_before_rad": self._prev_targets[:, self._perm_lab_to_canon].clone(),
         }
         super()._pre_physics_step(actions.clamp(-1, 1))
+        if "control_trace" not in self.last_transition:
+            raise RuntimeError("Replay target bypass has no native command trace; unsupported research capture")
         self.last_transition["target_after_rad"] = self._cur_targets[:, self._perm_lab_to_canon].clone()
         self.research_step += 1
         self.research_tick += 1
@@ -236,7 +271,12 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "diagnostics_after": self._diagnostics(),
             "contact_substeps_after_w_N": self._contact_window(),
             "reward": reward.clone(),
+            "time_after_s": torch.full((self.num_envs,),self.research_tick*self.step_dt,dtype=torch.float64,device=self.device),
         })
+        if self.perception_version == 2:
+            self.last_transition["kinematics_after"] = self._kinematic_packet(self.last_transition["contact_substeps_after_w_N"])
+            offsets = torch.arange(1-self.cfg.decimation,1,device=self.device,dtype=torch.float64)*self.physics_dt
+            self.last_transition["contact_time_after_s"] = self.last_transition["time_after_s"][:,None]+offsets
         return reward
 
     def _get_observations(self):
@@ -272,7 +312,12 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def research_metadata(self):
         metadata = {
+            "trace_version": 2,
+            "missing_fields": {"terminal_image": "Auto-reset occurs before observation render; no terminal exposure captured",
+                               "raw_expert_before_player_clip": "Player API returns a clipped command; original policy mean is not captured"},
             "joint_order": list(JOINT_NAMES_CANONICAL),
+            "joint_order_lab": list(self.robot.joint_names),
+            "joint_limits_rad": self.robot.data.joint_pos_limits[:,self._perm_lab_to_canon].tolist(),
             "contact_bodies": list(DISTAL_BODIES),
             "contact_paths": self.research_contact_paths,
             "contact_kind": "aggregate normal force, world axes, Newton; NOT pressure/tactile image",
@@ -286,6 +331,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             metadata.update(task_command=self.task_command.metadata(), depth_encoding="metric_m_zero_invalid_with_mask",
                             fk_urdf_sha256=self._fk.sha256, fk_root=self._fk.root,
                             base_position_env=list(self.robot.cfg.init_state.pos),
+                            base_orientation_wxyz=list(self.robot.cfg.init_state.rot),
                             contact_pose_source="URDF FK from joint encoders at each physics update; no body truth input",
                             camera_ids=list(CAMERA_IDS), cameras=[])
             for identity, camera in zip(CAMERA_IDS, self.research_cameras):

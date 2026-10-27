@@ -3,6 +3,7 @@
 **Objective:** a tactile-free nominal Diffusion Policy for geometry and an independently learned tactile correction controller for contact execution, integrated with the original Play2Perfect assets/control/tasks.
 
 ## Reading order
+0. `USER_RESEARCH_DIRECTION.md` 与 `HISTORY_AND_TRACE.md`: 用户方向与当前历史/数据合约。
 1. `CONTRACTS.md`: audited control, observation provenance, timing and reset contracts.
 2. `ARCHITECTURE.md`: proposed components, information boundaries, phases and acceptance gates.
 3. `RESEARCH.md`: primary literature/code, licensing and choices (written as reviewed).
@@ -11,14 +12,15 @@
 6. `PERCEPTION.md`: 双视角/逐指编码、来源实现与当前验证。
 7. `AUDIT.md`: 原任务调用链、物理参数、本机 CPU/渲染限制和图像审计。
 
-## 当前状态 — 2026-10-27（Perception v2）
+## 当前状态 — 2026-10-27（持续历史 / trace2）
 
-- 本轮已接通双固定 RGB-D 相机（224×126）、深度有效掩码和标定/时间记录。经过三次安装候选的真实渲染检查，保留原全局视角并增加左前上方互补视角。详见 [PERCEPTION.md](PERCEPTION.md) 和图示。
-- 视觉升级为共享 ResNet18 前半段 RGB + 独立 Depth 分支、空间 keypoint/grid + masked GRU。Nominal 接收合法 task/可选 operator goal 与自身因果旧计划；不接收触觉、专家动作或 correction 命令。
-- 五指逐指编码合力、身份、编码器 FK 位姿和时序变化；Correction 独立融合视觉/运动/执行目标/触觉及 nominal 未来预测。**始终 Shadow，未训练候选从不执行。**
-- 真实 2 env × 240 ticks 专家旁路：记录/读取、前向、有限梯度、世界/局部力转换、离线/在线历史一致和模型精确重载通过。15项CPU单元测试通过。原渲染环境32步逐位回归通过；有无新模型旁路的480个专家transition动作/目标/物体/奖励等字段逐位相等。
-- **本轮0次参数更新，无正式训练、RL或成功率优化。** 历史v1的1000步nominal模型仍保留，尚无任务能力证据；v2未训练，不能根据接口测试推断精细操作能力或触觉收益。
-- schema/checkpoint v1/v2 明确隔离。旧单相机命令需 `--perception-version 1`；新默认采集v2。当前task ID可用，但目标pose默认缺失；视觉目标估计和自动阶段命令仍待研究。当前CPU完整旁路约200ms/步，未满足实时要求。
+- 先读 [用户研究方向](USER_RESEARCH_DIRECTION.md)：用户明确要求、开放问题、Codex暂定决策和已测事实分别记录，方向变更追加历史。
+- [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md) 是当前记忆/动作/频率合约。Nominal每60Hz观察更新持续128D状态，每6步才重规划；Correction保留视觉、运动、计划和五指状态，触觉每120Hz样本更新。只在真实episode reset清空对应环境。
+- 双固定RGB-D、空间编码、五指聚合法向力/FK仍使用perception2。新增memory2与trace2独立版本；旧checkpoint缺memory版本按1解释。过去专家命令可独立作为teacher-forcing历史，绝不冒充Nominal预测；默认Nominal仍只读自己的预测上下文。
+- HDF5逐控制步追加/flush，明确submitted/clipped/delayed command、实际delay、target、post-state、计划来源与缺失终止图。提供逐步reader与单episode PKL导出；不公开轨迹或权重。
+- **23项单元测试通过**；真实480步记录审计、225步完整/分块/逐步回放通过（Nominal最大差4.66e−7，Correction分块/逐步一致）；真实接触前缀双相机RGB/Depth、触觉、motion与intent梯度及权重/状态恢复检查通过。原渲染环境32步15字段逐位一致。证据见 [causal_history.json](evidence/causal_history.json)。
+- **本轮0次参数更新，Correction始终Shadow**。保持原物理/控制数学；原action helper仅增加可选只读trace hook。近期双相机真实图与覆盖限制仍见 [PERCEPTION.md](PERCEPTION.md)。固定维度记忆不是无损轨迹，也未验证长期任务效用。
+- 未来训练入口支持整episode顺序TBPTT，当前没有执行；memory2验证loss尚未接入，恢复从episode边界开始。去预加载、Correction目标、目标估计、异步传感器和实时控制仍未解决。当前双核2env完整旁路中位约99.5ms/步，不能满足60Hz墙钟期限。
 
 ### 本机兼容性的重要限制
 

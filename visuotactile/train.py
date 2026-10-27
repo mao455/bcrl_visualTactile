@@ -8,7 +8,7 @@ import time
 import h5py
 import torch
 from torch.utils.data import default_collate
-from .dataset import EpisodeDataset
+from .dataset import EpisodeDataset, EpisodeSequenceDataset, encode_episode_chunks
 from .models.nominal import NominalDiffusionPolicy, PolicyConfig
 
 
@@ -17,11 +17,15 @@ def main():
     p.add_argument("--data", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--steps", type=int, default=100)
-    p.add_argument("--batch-size", type=int, default=8)
+    p.add_argument("--batch-size", type=int, default=1)
     p.add_argument("--seed", type=int, default=41)
     p.add_argument("--smoke-only", action="store_true", help="Explicitly allow unsuccessful/incomplete real trajectories")
     p.add_argument("--resume", type=Path)
+    p.add_argument("--memory-version",type=int,choices=(1,2),default=2)
+    p.add_argument("--chunk-size",type=int,default=8,help="TBPTT chunk size, never an episode reset")
     args = p.parse_args()
+    if args.memory_version == 2 and (args.batch_size != 1 or args.chunk_size < 1):
+        p.error("Episode recurrence currently supports one ordered episode per batch and positive chunk size")
     if args.steps < 1 or args.batch_size < 1:
         p.error("steps/batch-size must be positive")
     args.output.mkdir(parents=True, exist_ok=False)
@@ -35,7 +39,7 @@ def main():
         names = list(f["episodes"])
         shape = f["episodes"][names[0]]["obs/image"].shape
         perception_version = int(f.attrs["schema_version"])
-    cfg = PolicyConfig(views=shape[1], channels=shape[2], perception_version=perception_version)
+    cfg = PolicyConfig(views=shape[1], channels=shape[2], perception_version=perception_version,memory_version=args.memory_version)
     eligible = EpisodeDataset(args.data, allow_incomplete=args.smoke_only, allow_unsuccessful=args.smoke_only)
     names = eligible.episodes
     # Whole episode split. One episode cannot honestly supply validation.
@@ -57,7 +61,8 @@ def main():
     options = dict(history=cfg.history,stride=cfg.stride,horizon=cfg.horizon,
                    perception_version=cfg.perception_version,
                    allow_incomplete=args.smoke_only,allow_unsuccessful=args.smoke_only)
-    train = EpisodeDataset(args.data,episodes=train_names,**options)
+    dataset_class = EpisodeSequenceDataset if cfg.memory_version == 2 else EpisodeDataset
+    train = dataset_class(args.data,episodes=train_names,**options)
     validation = EpisodeDataset(args.data,episodes=val_names,**options) if val_names else None
     if not args.resume:
         mean,std = train.proprio_statistics()
@@ -66,10 +71,20 @@ def main():
     losses = []
     started = time.perf_counter()
     model.train()
+    def ordered_batches():
+        while True:
+            # Whole episodes may be reordered; every chosen episode starts at 0.
+            for name in train.episodes:
+                yield from encode_episode_chunks(model.encoder,train.chunks(name,args.chunk_size),detach_between_chunks=True)
+    ordered = ordered_batches() if cfg.memory_version == 2 else None
     for step in range(first_step,first_step+args.steps):
-        ids = torch.randint(len(train),(args.batch_size,)).tolist()
-        batch = default_collate([train[i] for i in ids])
-        loss = model.loss(batch["obs"],batch["action_target"],batch["action_valid"])
+        if ordered is not None:
+            conditions,chunk,_ = next(ordered)
+            loss = model.loss_from_condition(conditions[0],chunk["action_target"],chunk["action_valid"])
+        else:
+            ids = torch.randint(len(train),(args.batch_size,)).tolist()
+            batch = default_collate([train[i] for i in ids])
+            loss = model.loss(batch["obs"],batch["action_target"],batch["action_valid"])
         if not torch.isfinite(loss):
             raise FloatingPointError("Non-finite denoising objective")
         optimizer.zero_grad(set_to_none=True)
@@ -82,13 +97,15 @@ def main():
     state = dict(checkpoint_version=cfg.perception_version,model=model.state_dict(),optimizer=optimizer.state_dict(),config=asdict(cfg),
                  step=first_step+args.steps,torch_rng=torch.get_rng_state(),data_sha256=data_hash,
                  train_episodes=train_names,validation_episodes=val_names,metadata=metadata,
+                 memory_training=("ordered full-episode chunks, explicit TBPTT; resume restarts at episode boundary"
+                                  if cfg.memory_version == 2 else "legacy random windows"),
                  smoke_only=args.smoke_only,nominalization="none; original actions may contain preload")
     torch.save(state,args.output/"checkpoint.pt")
     model.eval()
     with torch.no_grad(), torch.random.fork_rng(devices=[]):
         torch.manual_seed(0)
         validation_loss = None
-        if validation:
+        if validation and cfg.memory_version == 1:
             batch = default_collate([validation[i] for i in torch.linspace(0,len(validation)-1,steps=min(16,len(validation))).long().tolist()])
             validation_loss = float(model.loss(batch["obs"],batch["action_target"],batch["action_valid"]))
         check_batch = default_collate([train[0]])["obs"]

@@ -7,7 +7,7 @@ checkpoint/evaluation gate is required before introducing live correction.
 import time
 import math
 import torch
-from .history import OnlineHistory
+from .history import OnlineHistory, reset_state
 from .models.correction import CorrectionPolicy
 from .observations import nominal_keys
 
@@ -87,13 +87,22 @@ class CorrectionShadow:
         self.context = CorrectionContext(num_envs,nominal_controller.model.cfg)
         self.threshold = contact_threshold_N
         self.inference_ms = []
+        self.memory = None
+        self.episode_ids = torch.full((num_envs,),-1,dtype=torch.long)
 
     @torch.no_grad()
     def observe(self, packet, nominal_controller):
         start = time.perf_counter()
         inputs = self.context.observe(nominal_controller.last_packet,nominal_controller.plan,nominal_controller.cursor-1)
         self.last_inputs = inputs
-        candidate = self.model(**inputs)
+        if self.model.memory_version == 2:
+            changed = packet["episode_id"].cpu() != self.episode_ids
+            self.memory = reset_state(self.memory,changed)
+            self.episode_ids = packet["episode_id"].cpu().clone()
+            inputs = latest_correction_inputs(inputs,packet["contact_substeps_w_N"].shape[1])
+            candidate,self.memory = self.model(**inputs,state=self.memory,return_state=True)
+        else:
+            candidate = self.model(**inputs)
         if not torch.isfinite(candidate).all():
             raise FloatingPointError("Nonfinite correction shadow output")
         contact = packet["contact_w_N"].norm(dim=-1).amax(dim=-1) > self.threshold
@@ -104,3 +113,15 @@ class CorrectionShadow:
                 "nominal_remaining_valid":inputs["nominal_valid"],
                 "previous_issued_command":self.context.previous_command.clone(),
                 "previous_command_valid":self.context.command_valid.clone()}
+
+
+def latest_correction_inputs(inputs,physical_samples=2):
+    """Consume only new samples; repeated finite-window history must not be counted twice."""
+    result = dict(inputs)
+    for key in ("visual_history","motion_history"):
+        result[key] = {k:v[:,-1:] for k,v in inputs[key].items()}
+    result["tactile_valid"] = inputs["tactile_valid"][:,-physical_samples:]
+    tactile = inputs["tactile_history"]
+    result["tactile_history"] = ({k:v[:,-physical_samples:] for k,v in tactile.items()}
+                                 if isinstance(tactile,dict) else tactile[:,-physical_samples:])
+    return result

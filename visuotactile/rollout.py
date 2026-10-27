@@ -1,7 +1,7 @@
 """Independent nominal checkpoint execution; no expert/privileged inference data."""
 import time
 import torch
-from .history import OnlineHistory
+from .history import OnlineHistory, reset_state
 from .models.nominal import NominalDiffusionPolicy, PolicyConfig
 from .models.correction import compose_action
 from .observations import nominal_keys, empty_plan_context
@@ -16,6 +16,11 @@ class NominalController:
         self.cursor = torch.full((num_envs,),cfg.replan_steps,dtype=torch.long)
         self.plan = torch.zeros(num_envs,cfg.horizon,29)
         self.inference_ms = []
+        self.memory_ms = []
+        self.memory = None
+        self.memory_updates = torch.zeros(num_envs,dtype=torch.long)
+        self.plan_generation_step = torch.full((num_envs,),-1,dtype=torch.long)
+        self.plan_generation_time_s = torch.zeros(num_envs,dtype=torch.float64)
         self.previous_action = torch.zeros(num_envs,29)
         self.previous_valid = torch.zeros(num_envs,dtype=torch.bool)
         # Do not consume simulator's global RNG when sampling diffusion noise.
@@ -45,6 +50,8 @@ class NominalController:
         # OnlineHistory copies only versioned non-tactile keys plus lifecycle metadata.
         # Tactile, expert labels and diagnostics are never passed into nominal.
         changed = packet["episode_id"].cpu() != self.episode_ids
+        if self.model.cfg.memory_version == 2 and (changed & (packet["step_id"].cpu() != 0)).any():
+            raise ValueError("Persistent online memory requires the episode prefix from step zero")
         if self.model.cfg.perception_version == 2:
             # Construct only from our private predictions, never from supplied
             # packet action fields (which may have come from expert/correction).
@@ -58,15 +65,29 @@ class NominalController:
             packet = {**packet,**own}
         self.last_packet = packet
         self.history.append(packet)
+        if self.model.cfg.memory_version == 2:
+            self.memory = reset_state(self.memory,changed)
+            self.memory_updates[changed] = 0
+            current = {k:packet[k].cpu()[:,None] for k in nominal_keys(self.model.cfg.perception_version)}
+            current["valid"] = torch.ones(len(self.cursor),1,dtype=torch.bool)
+            start = time.perf_counter()
+            self.memory = self.model.encoder(current,self.memory)
+            self.memory_ms.append(1000*(time.perf_counter()-start))
+            self.memory_updates += 1
         self.episode_ids = packet["episode_id"].cpu().clone()
         self.cursor[changed] = self.model.cfg.replan_steps
         due = self.cursor >= self.model.cfg.replan_steps
         if due.any():
             obs = {k:v[due] for k,v in self.history.batch().items()}
             start = time.perf_counter()
-            self.plan[due] = self.model.predict(obs,generator=self.generator)
+            self.plan[due] = (self.model.predict_from_condition(self.memory[due],generator=self.generator)
+                              if self.model.cfg.memory_version == 2 else self.model.predict(obs,generator=self.generator))
+            self.plan_generation_step[due] = packet["step_id"].cpu()[due]
+            if "time_s" in packet:
+                self.plan_generation_time_s[due] = packet["time_s"].cpu()[due].double()
             self.inference_ms.append(1000*(time.perf_counter()-start))
             self.cursor[due] = 0
+        self.replanned = due.clone()
         action = self.plan[torch.arange(len(self.cursor)),self.cursor].clone()
         self.cursor += 1
         self.previous_action = action.clone()

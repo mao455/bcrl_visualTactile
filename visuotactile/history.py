@@ -40,3 +40,35 @@ class OnlineHistory:
                 result[k].append(torch.stack([buf[j][k] for j in idx]))
             masks.append(torch.as_tensor(mask, device=buf[0][self.keys[0]].device))
         return {**{k: torch.stack(v) for k,v in result.items()}, "valid": torch.stack(masks)}
+
+
+def detach_state(state):
+    """Truncate gradients without erasing values or episode history."""
+    if state is None:
+        return None
+    if isinstance(state, dict):
+        return {k: detach_state(v) for k, v in state.items()}
+    return state.detach()
+
+
+def reset_state(state, reset):
+    """Clear only batch rows that really changed episode. All tensors are B-first."""
+    if state is None:
+        return None
+    if isinstance(state, dict):
+        return {k: reset_state(v, reset) for k, v in state.items()}
+    return torch.where(reset.to(state.device).reshape(-1, *([1]*(state.ndim-1))),
+                       torch.zeros_like(state), state)
+
+
+def recurrent_scan(cell, features, valid, state=None, reset=None):
+    """One recurrence per sample; chunk boundaries have no reset semantics."""
+    b, t, _ = features.shape
+    hidden = features.new_zeros(b, cell.hidden_size) if state is None else state
+    outputs = []
+    for i in range(t):
+        if reset is not None:
+            hidden = reset_state(hidden, reset[:, i])
+        hidden = torch.where(valid[:, i, None].bool(), cell(features[:, i], hidden), hidden)
+        outputs.append(hidden)
+    return torch.stack(outputs, 1), hidden

@@ -113,3 +113,46 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 本轮公共提交只包含源代码、测试、文档及一张小型合成场景证据图/汇总JSON；outputs、checkpoint、HDF5、日志、参考源码下载、虚拟环境均忽略。原MIT和已有vendor版权声明保留。提交/同步结果在完成时向用户报告。
 
 最终单元测试：15 passed（包含v2两环境异步reset检查）；详细本地日志`outputs/visuotactile/perception_unit_tests.log`。
+
+### 2026-10-27 — 持续因果历史与完整动作执行追溯（无训练）
+
+从干净`200ea3490530c4bd64a6351a5e43a7c9d76c4da9`建立`feature/causal-memory-trace`。重新审计发现原GRU只重放有限窗口，无跨forward状态；旧`executed_action`只是延迟前裁剪命令；writer原先整episode存RAM。按用户本轮要求修复这些机制，未改变机器人资产、动作数学、动力学、原RL或成功判据。唯一原源码变化是action helper的7行可选只读hook；没有重新抽delay/RNG。
+
+#### 文件、调用关系与前后行为
+
+| 路径 | 原行为 → 现在；输入输出与职责 |
+| --- | --- |
+| `visuotactile/history.py` | 只有有限窗口索引 → 增加B-first递归state reset/detach、显式scan；块边界不清记忆。 |
+| `visuotactile/models/nominal.py` | 隐含每窗零状态 → 独立memory_version，缺字段按1；encoder可带state/返回逐步conditions，diffusion分离predict/loss_from_condition；memory2拒绝隐式随机零状态window loss。29D/horizon不变。 |
+| `visuotactile/models/vision.py` | 每forward重置GRU → `encode_frames`帧局部特征与跨块recurrence分离；双视图、depth/valid、任务embedding、合法自身计划仍严格allowlist；输出128D。 |
+| `visuotactile/rollout.py` | 每6步窗口推理 → 每60Hz控制观察更新记忆、每6步重规划；每env独立reset、拒绝缺episode前缀；计划生成步/时间、计数和memory耗时。 |
+| `visuotactile/models/tactile.py` | 每窗口重新逐指编码 → 持续5×32状态及上一个物理样本/时间/valid；跨块delta/onset/release连续，上一样本只作差分、不重复循环更新；融合64D不变。 |
+| `visuotactile/models/correction.py` | 所有分支只窗口历史 → visual128/motion64/tactile/intent64持续state，另增跨控制步intent_memory；当前未来plan内部GRU仍逐plan总结。独立policy29D候选、未训练执行禁止不变。 |
+| `visuotactile/correction.py` | Shadow重放重叠窗口 → memory2仅消费最新视觉/运动行及2个新物理样本，保存分支state并按env reset；memory1保留。 |
+| `visuotactile/dataset.py` | 随机窗口、旧动作名 → 读committed length/显式clip-pre-delay；新增EpisodeSequenceDataset与encode_episode_chunks、CorrectionSequenceDataset与replay_correction_chunks，完整前缀/顺序校验；expert_history独立于Nominal inputs，future action标签分离。 |
+| `visuotactile/train.py` | 默认随机window → 默认memory2、单episode batch、chunk8/TBPTT、每步condition监督；memory1显式保留。恢复从episode边界，不是exact mid-chunk resume；memory2 validation loss=null。本轮只维护接口，**没有运行optimizer**。 |
+| `isaacsimenvs/tasks/play/utils/action_utils.py` | 无可读实际delay结果 → 原抽样后可选`_record_action_trace`，无hook时原路径保持；clone用于只读telemetry。 |
+| `visuotactile/sim/environment.py` | 只raw/executed和targets → submitted/clipped/delayed分开、原delay slot/source step/effective lag/time、前后物理diag与时间；120Hz实际canonical q/FK/local force、pre-reset结果；metadata实际限位/基座方向/缺失声明。 |
+| `visuotactile/collect.py` | 动作来源粗粒度 → expert/nominal/correction实际计算/执行标志、计划生成/覆盖/选择、Nominal参数hash/config、专家checkpoint hash及实际actor输入诊断、最新Correction hash/config；非terminal post观测保存、terminal mask；专家输入先于env.step冻结。 |
+| `visuotactile/recording.py` | 整episode缓存后写盘 → 每native step append/flush、最后发布length；新增model_fingerprint、post_observation、EpisodeReader.read/steps与无覆盖PKL导出，保留原始arrays/attrs/version/metadata。非断电事务。 |
+| `visuotactile/probe_history.py`（新增） | 真实trace审计、FK/目标公式/时钟/来源、225步full/chunk/online和Shadow复现、真实接触前缀梯度/权重+state重载、PKL字段往返；无optimizer/仿真启动。 |
+| `visuotactile/probe_perception.py` | 明确memory1，保留之前视觉构图/有限窗口诊断，不混充memory2测试。 |
+| `tests/test_causal_memory.py`（新增） | 8个测试补充远历史影响/梯度、逐控制步记忆/重规划/异步reset、触觉chunk边界、Shadow/direct、mask梯度、原helper动作/RNG、完整读写/顺序loss反传、版本/保存恢复。测试fixture不是研究训练数据。 |
+| `.gitignore` | 增加PKL/pickle/partial，本轮轨迹/导出/模型/日志均排除公开提交。 |
+| `research_docs/USER_RESEARCH_DIRECTION.md`（新增） | 独立保存用户方向/理由、开放问题、助手建议、Codex暂定决策、事实与追加变更记录；明确与cuRobo小物体项目无关。 |
+| `research_docs/HISTORY_AND_TRACE.md`（新增） | 记忆/训练分块/信息边界、动作来源、频率公式、FK与特征语义、固定来源实现/许可、HDF5/PKL/Zarr/Parquet比较及实际验证。 |
+| `research_docs/evidence/causal_history.json`（新增） | 经审计数值报告与原报告hash，无原始图像/轨迹/权重/私人文件。 |
+| `AGENTS.md`, `README.md`, `research_docs/{README,ARCHITECTURE,CONTRACTS,DATA_SCHEMA,PERCEPTION,RUNBOOK,AUDIT,RESEARCH,CHANGELOG}.md` | 新方向入口和当前状态、独立memory/trace版本、字段/时序/单位/来源、命令与测试，旧window/训练证据明确历史；纠正“一概禁止专家过去动作”和“原源码全未改”表述。 |
+
+#### 实测与限制
+
+- 固定源码参考Robomimic的显式RNN state/step接口和HDF5，**未采用**其周期rnn_horizon reset；DP Zarr+episode_ends与finite-window sampler；LeRobot Parquet/video。具体commit/路径/许可见HISTORY_AND_TRACE，无新增vendored第三方代码/依赖。
+- 真实渲染`causal_trace01/02`各2×240，03为2×32，04为2×8；场景健康断言始终开启。前两次迭代补齐时间/字段后保留原记录，不篡改历史文件。2的480行15专家字段与原有效capture精确相等；03/04也通过对应前缀比较。最终04专门验证最新模型hash与actor快照，不作为接触证据。
+- `causal_checks01`：225步完整/分块/在线Nominal最大差4.66e−7，Correction分块/逐步0、与原在线4.47e−8；3个terminal图像明确缺失，FK/local force重算0；113字段PKL精确。03/04的114字段PKL精确；03延迟时间float64差5.55e−17s，04包含实际限位/目标公式检查。
+- `causal_gradients01`：真实接触t37之前逐步burn-in；RGB/Depth两视图、Nominal temporal、Correction tactile/motion/intent/current-plan/head均有限非零梯度，输入force梯度非零；所有参数hash前后相同，权重+state重载输出精确。没有训练loss伪目标或参数更新。
+- `causal_regression01`：原rendered与instrumented独立32步initial13/trace15字段逐位一致，包含RNG。PhysX已有kinematic setVelocity告警在原路径也出现；CPU无渲染场景仍不可用。**23 passed，4.52s**；requests既有依赖warning保留。
+- 双核2env完整旁路median99.49ms，memory44.11ms、Correction48.75ms。原生60Hz执行+10Hz重规划不变，未机械缩放动作；这些是同步模拟时钟安排，墙钟速度不满足60Hz。
+- 只对新进程用nice19/CPU22,23/两线程；未向后台任务发送信号、调其优先级或改GPU设置。渲染仍有GPU资源占用，不承诺零竞争。所有本轮仿真自然结束。
+- 未解决：示范预加载去除、Correction目标/训练/控制权限、长期记忆的学习效用、实机异步时钟、终止前RGB-D、player裁剪前均值、实时期限。memory2训练只验证接口/反传，完整优化与validation loss尚未验证/接入；不得把旧checkpoint称作新结构能力证据。
+
+本轮用户已授权提交与同步。公共提交只包含源码、测试、Markdown及小型数值JSON，保留MIT和已有vendor声明，使用origin/main且不强推。具体commit与推送结果在完成时报告。

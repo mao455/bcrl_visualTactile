@@ -1,5 +1,7 @@
 """Bounded CPU collection with original teacher/control; see research_docs/RUNBOOK."""
 import argparse
+from dataclasses import asdict
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -160,6 +162,18 @@ def main():
                         nominal_action_history=("v1: stored only, not neural input" if args.perception_version == 1 else
                             "private causal model predictions" if intent else "absent, masked; never teacher history"),
                         nominal_plan_source="untrained_perception_probe" if probe else "trained_checkpoint" if policy else "absent")
+        if intent is not None:
+            from .recording import model_fingerprint
+            metadata.update(nominal_model_sha256=model_fingerprint(intent.model),nominal_model_config=asdict(intent.model.cfg),
+                            memory_version=intent.model.cfg.memory_version)
+        if shadow is not None:
+            metadata.update(correction_model_sha256=model_fingerprint(shadow.model),
+                            correction_model_config=asdict(intent.model.cfg),correction_initialization_seed=123)
+        metadata.update(command_source_codes={"1":"expert","2":"nominal"},
+                        nominal_prediction_outcome_attribution="Only selected commands cause transitions; shadow plans were not executed")
+        if player is not None:
+            with open(args.checkpoint,"rb") as checkpoint_stream:
+                metadata["expert_model_sha256"] = hashlib.file_digest(checkpoint_stream,"sha256").hexdigest()
         writer.file.attrs["metadata_json"] = json.dumps(metadata,default=str)
         norms, terminated_count, success_count, inference_ms = [], 0, 0, []
         start = time.perf_counter()
@@ -174,6 +188,7 @@ def main():
                     if player.intr_reward_coef_embd is not None:
                         actor_obs = torch.cat([actor_obs, player.intr_reward_coef_embd], dim=1)
                     action = player.get_action(actor_obs, is_deterministic=True)
+                    actor_obs = actor_obs.clone()  # freeze before env.step can reuse observation buffers
                 else:
                     action = policy.act(packet)
                 shadow_log = shadow.observe(packet,intent) if shadow else None
@@ -182,12 +197,32 @@ def main():
             inference_ms.append(1000*(time.perf_counter()-t))
             teacher_obs, reward, terminated, truncated, info = env.step(action)
             if shadow is not None:
-                shadow.context.commit(action)
+                shadow.context.commit(action.clamp(-1,1))
                 env.last_transition["correction_shadow"] = shadow_log
+            env.last_transition["provenance"] = dict(
+                expert_computed=torch.full((args.num_envs,),player is not None,dtype=torch.bool),
+                expert_command=action.clone() if player is not None else torch.zeros_like(action),
+                nominal_computed=torch.full((args.num_envs,),intent is not None,dtype=torch.bool),
+                correction_computed=torch.full((args.num_envs,),shadow is not None,dtype=torch.bool),
+                correction_executed=torch.zeros(args.num_envs,dtype=torch.bool),
+                selected_source=torch.full((args.num_envs,),1 if player is not None else 2,dtype=torch.int8))
+            if player is not None:
+                # Exact input given to get_action, before its internal normalization;
+                # includes privileged teacher fields and SAPG identity. Never student input.
+                env.last_transition["expert_actor_input_diagnostic"] = actor_obs.clone()
             if intent is not None:
+                env.last_transition["plan_trace"] = dict(
+                    generated_now=intent.replanned.clone(),generation_step=intent.plan_generation_step.clone(),
+                    generation_time_s=intent.plan_generation_time_s.clone(),
+                    coverage_start_step=intent.plan_generation_step.clone(),
+                    coverage_end_step_exclusive=intent.plan_generation_step+intent.model.cfg.horizon,
+                    selected_for_execution=torch.full((args.num_envs,),policy is not None,dtype=torch.bool),
+                    memory_updates=intent.memory_updates.clone())
                 env.last_transition["nominal_action"] = intent.previous_action.clone()
                 env.last_transition["nominal_predicted_chunk"] = intent.plan.clone()
                 env.last_transition["nominal_chunk_cursor"] = (intent.cursor-1).clone()
+            from .recording import post_observation
+            env.last_transition["observation_after"] = post_observation(env.research_packet,terminated|truncated)
             writer.append(packet, env.last_transition, terminated, truncated, source)
             force = env.last_transition["contact_substeps_after_w_N"].norm(dim=-1)
             norms.append(force.cpu().numpy())
@@ -214,6 +249,10 @@ def main():
                           replan_ms_median=float(np.median(policy.inference_ms)),
                           replan_ms_max=float(max(policy.inference_ms)),
                           checkpoint_smoke_only=policy.smoke_only)
+        if intent is not None:
+            result.update(memory_version=intent.model.cfg.memory_version,
+                          memory_updates_last_episode=intent.memory_updates.tolist(),
+                          memory_ms_median=float(np.median(intent.memory_ms)) if intent.memory_ms else None)
         if shadow is not None:
             result.update(correction_mode="untrained_shadow_never_executed",
                           shadow_inference_ms_median=float(np.median(shadow.inference_ms)),

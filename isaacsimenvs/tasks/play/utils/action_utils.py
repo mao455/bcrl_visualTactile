@@ -33,6 +33,9 @@ def apply_action_pipeline(env, actions: torch.Tensor) -> None:
     # Canonical policy order -> Lab parser order.
     actions = actions[:, env._perm_canon_to_lab]
 
+    # Optional read-only research telemetry; native processing remains unchanged.
+    delay_idx = None
+    episode_start = None
     # Action delay.
     if dr.use_action_delay and dr.action_delay_max > 0:
         episode_start = (env.episode_length_buf == 0) & (env._successes == 0)
@@ -46,6 +49,10 @@ def apply_action_pipeline(env, actions: torch.Tensor) -> None:
         actions = env._action_queue[
             torch.arange(env.num_envs, device=env.device), delay_idx
         ]
+
+    trace = getattr(env, "_record_action_trace", None)
+    if trace is not None:
+        trace(actions.clone(), delay_idx, episode_start)
 
     # Arm: velocity-delta accumulator.
     arm_action = actions[:, :7]

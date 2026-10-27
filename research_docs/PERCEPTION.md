@@ -32,6 +32,8 @@ v2 的 RGB 在 [0,1]；深度是 **distance_to_image_plane 的米值**，不是 
 
 ## 网络与信息边界
 
+当前持续历史更新见 [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md)；下方相机/空间结构未换模型，历史合约由独立memory2扩展。
+
 ```mermaid
 flowchart LR
   C[两相机 RGB / metric depth / valid] --> NV[Nominal 独立视觉编码]
@@ -48,8 +50,8 @@ flowchart LR
   R --> S[仅 Shadow 日志]
 ```
 
-- RGB：torchvision ResNet18 到 layer2、stride 8、GroupNorm，**无预训练权重**。Depth+valid：独立 2 通道卷积分支。融合后输出 16 个 soft keypoint 的 xy、方差、加权有效深度与置信度，以及 3×5 空间网格。每视图 128D，按身份拼接；没有把 RGB 预训练 conv 直接改为四通道。
-- 历史：默认 4 个 60 Hz 观测、stride=3，覆盖 0.15 s；视觉/关节/目标/自身旧预测统一进入 masked GRU，输出128D。视觉分支可独立替换，v2 版本锁定当前结构。计算量和数据不足问题尚未通过任务训练验证。
+- RGB：torchvision ResNet18 到 layer2、stride 8、GroupNorm，**无预训练权重**。Depth+valid：独立 2 通道卷积分支。空间分支输出 16 个未赋予语义的 soft spatial moments（不是已学习物体/手指关键点） 的 xy、方差、加权有效深度与置信度，以及 3×5 空间网格。每视图 128D，按身份拼接；没有把 RGB 预训练 conv 直接改为四通道。
+- 历史：memory2每60Hz观察更新持续128D GRU；视觉/关节/目标/自身旧预测每步处理，重新规划不清空状态。旧memory1为4帧stride3、0.15s窗口。固定维度记忆有跨episode内全历史的因果通路，但不能无损保存或保证有效记住全部内容。
 - Nominal 自身上下文：上一 native tick 的**自己生成**命令，以及旧计划从当前时刻向后的剩余预测，带 mask。在本次重新推理前构造；不读取本次专家动作、当前新预测或 correction 命令。纯专家数据没有模型预测时全部 mask=false，不用专家动作补齐。
 - 目标：当前明确取得 operator 选择的 `tight_insertion` task ID。可选外部 JSON `operator_command` 的机器人基座系 xyz + 两列旋转矩阵，9D+valid。默认 pose 缺失且 mask=false；不从物体/孔座真值、成功计数或隐藏阶段填值。目标估计器、动态多目标命令和阶段完成判断仍未解决。
 - Correction 使用自己的视觉/历史权重（不共享 nominal 特征），逐指触觉特征、运动/执行状态，以及 detach 的当前/未来 nominal chunk。输出29D完整候选只存日志；没有学习损失、优化或控制权限。
@@ -60,19 +62,21 @@ flowchart LR
 
 `kinematics.py` 从原 URDF 的关节链（包含固定关节）和编码器关节位置计算末节 link 原点及 `R_base_link`。原固定基座 world 方向为单位旋转，故 `F_base=F_world`、`F_link=R_base_linkᵀ F_world`。不使用 simulator `body_pose` 输入；仿真刚体姿态只在 diagnostics 中校验 FK。既不把质心当 link 原点，也不把末节原点称为接触点。当前实现对非单位基座朝向显式拒绝。
 
-每个 120 Hz 物理更新后，保留对应编码器 FK；与 ContactSensor 最近两帧一起构成60Hz packet。触觉历史12个control interval→24个物理样本。每指编码 world/local 力、base position/rotation6、因果位置变化、力变化、接触建立/消失、实际 dt 和身份 embedding；各指独立 GRU、固定顺序融合为64D。接触阈值 .1 N 是未校准的工程特征阈值。特征可训练但未训练；没有虚构预训练目标。
+每个 120 Hz 物理更新后，保留对应编码器 FK；与 ContactSensor 最近两帧一起构成60Hz packet。memory2每次消化两个新物理样本，跨控制步保留五指状态与上一物理样本；旧memory1窗口为12个control interval→24样本。每指编码 world/local 力、base position/rotation6、base系位置差/实际dt（m/s）、局部力差（N，不是N/s；局部轴转动也影响此差）、接触建立/消失、实际dt/pair-valid和身份embedding；各指独立 GRU、固定顺序融合为64D。接触阈值 .1 N 是未校准的工程特征阈值。特征可训练但未训练；没有虚构预训练目标。
 
-Correction 额外使用原控制器可记录的当前 actuator target 和 `target−encoder`（各29D），允许分析跟踪误差/预加载；这些字段从不进入 Nominal。原 action delay 的实际抽样滞后仍未记录，不能从目标反推它并称其已测量。
+Correction 额外使用原控制器可记录的当前 actuator target 和 `target−encoder`（各29D），允许分析跟踪误差/预加载；这些字段从不进入 Nominal。trace2已通过原action helper的只读hook记录实际延迟抽样/index/source-step；trace1仍缺失，不能反推伪造。
 
 ## 频率、边界和兼容性
 
 - 保持120Hz physics、60Hz原生控制、60Hz双相机观察和120Hz力/FK。网络重规划每6个native ticks，预测12个native动作；并未更改动作幅度/decimation。
 - 所有时间是模拟时钟，非墙钟。相机时间是渲染后可取得图像的观察时刻，后端 frame 单独存储。当前未实现不同相机频率、丢帧重采样、学生延迟/augmentation；这些设置仍拒绝运行，不能声称已经模拟实机异步延迟。
-- EpisodeDataset 和 OnlineHistory 使用同一个索引/掩码规则；每env独立，只有真正episode reset清空，subgoal不清空。reset后的接触区间无效；最后一帧终止图仍不可得，后续episode图片不会冒充terminal。
+- memory2使用EpisodeSequenceDataset/CorrectionSequenceDataset完整前缀顺序读取与持久状态；旧EpisodeDataset和OnlineHistory窗口保留同一索引/掩码规则；每env独立，只有真正episode reset清空，subgoal不清空。reset后的接触区间无效；最后一帧终止图仍不可得，后续episode图片不会冒充terminal。
 - schema1 与 schema2 显式区分；旧checkpoint缺失版本按v1解释，旧权重不加载到v2。兼容检查包含view身份、分辨率、实际相机标定、depth语义、关节顺序、任务词表、FK URDF hash及原控制/物理时序。
 - `CorrectionEpisodeDataset` 单独返回 inputs 与 expert supervision；默认拒绝没有因果 nominal 预测的数据。未训练旁路预测必须显式 `allow_untrained_probe=True` 才可用于工程检查，不代表正式训练集。
 
-## 实际验证结果与视野解释
+## 先前 perception2 / memory1 实际验证与视野解释
+
+以下数字保留原感知里程碑的真实结果；当前memory2的225步回放、23项测试、约99.5ms完整旁路见HISTORY_AND_TRACE。没有用旧结果冒充新时序结构训练效果。
 
 ![两视角真实RGB、0–2m depth与有效区域；紫色为无效深度](media/perception_v2_views.png)
 

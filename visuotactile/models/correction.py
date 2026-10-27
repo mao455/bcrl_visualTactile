@@ -2,6 +2,7 @@
 import torch
 from torch import nn
 from .nominal import VisualHistoryEncoder
+from ..history import recurrent_scan
 
 
 class TactileEncoder(nn.Module):
@@ -12,15 +13,13 @@ class TactileEncoder(nn.Module):
         self.temporal = nn.GRUCell(64,hidden)
         self.hidden = hidden
 
-    def forward(self, force_history_w_N, valid):
+    def forward(self, force_history_w_N, valid, state=None, *, return_state=False):
         if force_history_w_N.ndim != 4 or force_history_w_N.shape[2:] != (5,3):
             raise ValueError("Tactile history must be (B,T,5,3)")
         x = force_history_w_N.sign()*torch.log1p(force_history_w_N.abs())
         x = self.spatial(x.flatten(2))
-        h = x.new_zeros(len(x),self.hidden)
-        for i in range(x.shape[1]):
-            h = torch.where(valid[:,i,None],self.temporal(x[:,i],h),h)
-        return h
+        _,h = recurrent_scan(self.temporal,x,valid,state)
+        return (h,h) if return_state else h
 
 
 class CorrectionPolicy(nn.Module):
@@ -40,27 +39,38 @@ class CorrectionPolicy(nn.Module):
         else:
             self.tactile = TactileEncoder()
         self.intent = nn.GRUCell(29,64)
+        self.memory_version = nominal_cfg.memory_version
+        if self.memory_version == 2:
+            self.intent_memory = nn.GRUCell(64,64)
         self.motion = nn.GRUCell(nominal_cfg.proprio_dim+29+1+(58 if self.perception_version == 2 else 0),64)
         self.policy = nn.Sequential(nn.Linear(nominal_cfg.hidden+192,256),nn.SiLU(),
                                     nn.Linear(256,128),nn.SiLU(),nn.Linear(128,29),nn.Tanh())
 
     def forward(self, visual_history, tactile_history, tactile_valid, nominal_chunk,
-                nominal_valid, motion_history):
+                nominal_valid, motion_history, state=None, *, return_state=False):
+        state = {} if state is None else state
         intent = nominal_chunk.new_zeros(len(nominal_chunk),64)
         for i in range(nominal_chunk.shape[1]):
             intent = torch.where(nominal_valid[:,i,None],self.intent(nominal_chunk[:,i].detach(),intent),intent)
+        if self.memory_version == 2:
+            previous = state.get("intent",torch.zeros_like(intent))
+            intent = torch.where(nominal_valid.any(-1,keepdim=True),self.intent_memory(intent,previous),previous)
         extra = {"actuator_target_rad","tracking_error_rad"} if self.perception_version == 2 else set()
         if set(motion_history) != {"proprio","previous_command","command_valid","valid"}|extra:
             raise ValueError("Correction motion accepts encoders and causal issued-command history only")
         q = (motion_history["proprio"]-self.visual.proprio_mean)/self.visual.proprio_std
-        motion = q.new_zeros(len(q),64)
+        motion = state.get("motion",q.new_zeros(len(q),64))
         sequence = torch.cat((q,motion_history["previous_command"],motion_history["command_valid"][...,None].float()),-1)
         if self.perception_version == 2:
             sequence = torch.cat((sequence,motion_history["actuator_target_rad"],motion_history["tracking_error_rad"]),-1)
         for i in range(sequence.shape[1]):
             motion = torch.where(motion_history["valid"][:,i,None],self.motion(sequence[:,i],motion),motion)
-        context = torch.cat((self.visual(visual_history),self.tactile(tactile_history,tactile_valid),intent,motion),dim=-1)
-        return self.policy(context)
+        visual, visual_state = self.visual(visual_history,state.get("visual"),return_state=True)
+        tactile, tactile_state = self.tactile(tactile_history,tactile_valid,state.get("tactile"),return_state=True)
+        context = torch.cat((visual,tactile,intent,motion),dim=-1)
+        result = self.policy(context)
+        next_state = dict(visual=visual_state,tactile=tactile_state,intent=intent,motion=motion)
+        return (result,next_state) if return_state else result
 
 
 def compose_action(nominal, candidate=None, contact=None, *, trained=False, blend=1.0):

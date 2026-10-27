@@ -4,35 +4,64 @@
 
 输出目录必须不存在；使用新的 RUN 前缀保留历次证据。退出码不是充分证据：Kit 关闭曾掩盖异常，必须确认 result.json 存在且没有 FAILED.txt，训练确认 report.json，并运行数据审计。
 
-## 当前 v2：只做感知验证，不训练
+## 当前 memory2 / trace2：只验证，不训练
 
 ```bash
-RUN=outputs/visuotactile/perception_$(date +%Y%m%d_%H%M%S)
+RUN=outputs/visuotactile/history_$(date +%Y%m%d_%H%M%S)
 
-# 专家执行。双相机 + 未训练 nominal/correction 旁路；网络候选从不执行。
+# 专家执行；双相机、持续记忆Nominal/Correction旁路。未训练候选不执行。
 bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 2 \
   --steps 240 --num-envs 2 --perception-shadow --output "$RUN/sensors"
 
-# 真实图像/深度/力/FK、时间/episode、离线在线一致、梯度和精确保存恢复；0次参数更新
-bash visuotactile/run_cpu.sh -m visuotactile.probe_perception \
-  --data "$RUN/sensors/trajectories.h5" --output "$RUN/checks"
+# 逐步来源/时间/延迟/FK/terminal、完整/分块/在线记忆、PKL往返。
+# check-gradients在真实接触前缀上只做Jacobian与权重/隐藏状态重载，无optimizer。
+bash visuotactile/run_cpu.sh -m visuotactile.probe_history \
+  --data "$RUN/sensors/trajectories.h5" --output "$RUN/checks" --check-gradients
 
-bash visuotactile/run_cpu.sh -m pytest -q tests/test_visuotactile.py tests/test_perception_v2.py
+bash visuotactile/run_cpu.sh -m pytest -q \
+  tests/test_visuotactile.py tests/test_perception_v2.py tests/test_causal_memory.py
 ```
 
-`--perception-shadow` 用独立随机初始化模型验证信号流；数据明确标注 `untrained_perception_probe`，不能作正式训练集。只需采集专家观测时去掉此参数，self-plan字段会为零且mask=false，绝不用专家动作填充。当前v2任务词表只包含tight_insertion。
+`probe_history`完整记忆复现只接受有种子/版本的未训练Shadow记录；它验证固定参数，不宣称任意checkpoint可重建。`--trace-only`跳过225步式记忆回放；`--reference`可指定同种子、配置和env数的先前专家capture，精确比较15字段。输入不满足条件即失败，不用无渲染数据补齐。检查`sensors/result.json`、`checks/report.json`且没有`FAILED.txt`。`--check-gradients`要求真实非零接触；极短轨迹可能没有，不能伪造接触。
 
-输出目录新建且不可覆盖。检查`sensors/result.json`、不存在`FAILED.txt`、`checks/report.json`和`checks/views.png`。图像是实际像素；阶段标签由离线diagnostics选择，不进入网络。若没有成功且含接触的完整episode，probe会明确失败；不要把尾段冒充完整任务。
+### 逐步读取与单episode PKL导出
 
-可选 `--goal-command command.json` 只接受外部明确给定的基座系命令：
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.recording \
+  --data "$RUN/sensors/trajectories.h5" --episode env000_ep000000 \
+  --pkl "$RUN/episode.pkl"
+```
+
+Python中`EpisodeReader(path).episodes`列出实际ID，`.read(id,t)`读一个控制步，`.steps(id)`迭代原始嵌套字段。导出不覆盖已有文件；PKL只用于可信本地检查，HDF5保持主格式。完整/尾段标志与缺失标记保留。不要把包含privileged诊断的整个step字典输入模型。
+
+### 当前实际验证
+
+- `causal_trace02`：2env×240tick，480transition，3完成+2尾段；`causal_checks01`检查每步delay/source/time、FK/局部力、post/pre图像与terminal缺失。15专家字段与旧`perception_final01`完全一致。
+- `causal_checks01`：225步全前缀、chunk7、step1固定参数结果一致；Nominal最大差4.66e−7（图像batch浮点差），Correction分块/逐步精确一致、与原2env在线候选最大差4.47e−8；113字段PKL无损往返。
+- `causal_trace03/causal_checks02`：64transition补充实际限位/目标公式、专家actor输入与checkpoint hash、float64延迟时间；FK/force重算误差0，时间差5.55e−17s，114字段PKL精确。
+- `causal_trace04/causal_checks04`：最后2env×8tick核验Correction hash/config和冻结专家输入快照；无接触/完成episode，不作为触觉或成功证据。
+- `causal_gradients01`：真实接触t37前顺序回放形成记忆；双视图RGB/Depth、触觉、motion、intent及Nominal时序分支梯度有限非零，参数hash未变；权重+隐藏状态重载输出精确一致。
+- `causal_regression01`：原渲染环境32步对照，initial13项/trace15项逐位相等，包括RNG。日志有与原路径相同的kinematic setVelocity告警；未把退出码或无告警当成有效场景依据。
+- 最终23项CPU测试：远于旧窗口的输入有影响/梯度、跨块与在线一致、reset分env、视觉mask与非零梯度、真实控制helper数值/RNG、数据往返、旧版本/重载。梯度检查不更新参数。
+- 当前2env双核旁路中位99.49ms、memory44.11ms、Correction48.75ms。120Hz物理/60Hz命令/10Hz重规划为**模拟时间**安排，非实时能力证明。没有操作后台任务或共享GPU设置。
+
+完整数值证据在 [evidence/causal_history.json](evidence/causal_history.json)。真实数据/日志/checkpoint仅在忽略的outputs中，不推送。
+
+`--perception-shadow` 数据标为`untrained_perception_probe`，普通正式训练入口拒绝；单纯专家采集去掉此参数，自己计划mask=false，专家过去命令仍保存。当前只有categorical tight_insertion task ID；可选`--goal-command command.json`格式仍为：
 
 ```json
 {"source":"operator_command","frame":"robot_base","position_m":[0.0,0.0,0.7],"rotation_columns":[1,0,0,0,1,0]}
 ```
 
-这是接口格式示例，并非从随机孔座估计的目标，也不自动改变专家/原任务目标。当前默认只有合法task ID、pose mask=false；目标估计器和多阶段命令尚未实现。
+该值只能是外部命令，不是仿真目标估计，也不自动重写专家原任务。目标pose缺失保持mask=false。
 
-### 本轮真实结果
+### 未来训练接口（本轮没有执行）
+
+默认`memory_version=2`，`batch_size=1`，`chunk_size=8`。`EpisodeSequenceDataset`从episode0步逐块读取，`encode_episode_chunks`传递状态；TBPTT detach保留记忆值。旧window dataset不是新memory训练入口。未来`train`恢复权重/optimizer/RNG后从episode起点重放，不是精确中断点恢复；memory2验证loss目前为null。Correction只有顺序输入/标签接口，没有训练目标和优化器。专家teacher-forcing历史单独暴露，默认Nominal不读它。
+
+`probe_perception`明确使用memory1作历史窗口/相机构图诊断；旧结果如下。当前持续历史检查使用`probe_history`，两者不能混称。
+
+### 先前 perception2 / memory1 的真实结果（保留）
 
 - `perception_camera01/02/03`：三个安装候选，分别1×300、2×260、2×240 native ticks；每次都开启渲染/场景健康断言。
 - `perception_final01`：最终224×126，2env×240ticks，73.10s循环；480条原专家transition，3完整+2尾段。成功标记只用于选择检查画面，未用于策略优化。
@@ -54,7 +83,7 @@ bash visuotactile/run_cpu.sh -m pytest -q tests/test_visuotactile.py tests/test_
     bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 1 --steps 660 --num-envs 2 --teacher-group 0 --output "$RUN/teacher"
 
     # 默认只使用完成所有目标和 retract 的专家 episode
-    bash visuotactile/run_cpu.sh -m visuotactile.train --data "$RUN/teacher/trajectories.h5" --output "$RUN/train" --steps 100 --batch-size 4
+    bash visuotactile/run_cpu.sh -m visuotactile.train --memory-version 1 --data "$RUN/teacher/trajectories.h5" --output "$RUN/train" --steps 100 --batch-size 4
 
     # 模型独立执行；shadow 只记录未训练候选，绝不执行候选
     bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 1 --steps 660 --num-envs 2 --policy-checkpoint "$RUN/train/checkpoint.pt" --correction-shadow --output "$RUN/nominal"
@@ -67,10 +96,10 @@ bash visuotactile/run_cpu.sh -m pytest -q tests/test_visuotactile.py tests/test_
 ## 用已保存的真实数据继续训练
 
     RUN=outputs/visuotactile/resume_$(date +%Y%m%d_%H%M%S)
-    bash visuotactile/run_cpu.sh -m visuotactile.train --data outputs/visuotactile/episodes02/trajectories.h5 --resume outputs/visuotactile/train02/checkpoint.pt --output "$RUN/train" --steps 100 --batch-size 8
+    bash visuotactile/run_cpu.sh -m visuotactile.train --memory-version 1 --data outputs/visuotactile/episodes02/trajectories.h5 --resume outputs/visuotactile/train02/checkpoint.pt --output "$RUN/train" --steps 100 --batch-size 8
     bash visuotactile/run_cpu.sh -m visuotactile.collect --perception-version 1 --steps 660 --num-envs 2 --policy-checkpoint "$RUN/train/checkpoint.pt" --output "$RUN/rollout"
 
-恢复要求相同数据哈希、模型配置和 smoke 筛选模式，恢复优化器与 torch RNG。PolicyConfig 保存历史长度/stride、预测 horizon、重规划周期和 diffusion 步数。配置实验不要通过改变环境 decimation 模拟低频网络。当前默认 history=4、stride=3、horizon=12、replan=6，即 120 Hz 物理、60 Hz native control、10 Hz nominal replan。同步仿真等待推理，尚不是带真实墙钟延迟/超时回退的实时系统。
+恢复要求相同数据哈希、模型配置和 smoke 筛选模式，恢复优化器与 torch RNG。PolicyConfig 保存历史长度/stride、预测 horizon、重规划周期和 diffusion 步数。配置实验不要通过改变环境 decimation 模拟低频网络。历史memory1的默认history=4、stride=3；当前memory2无此记忆上限，horizon=12、replan=6保持，即 120 Hz 物理、60 Hz native control、10 Hz nominal replan。同步仿真等待推理，尚不是带真实墙钟延迟/超时回退的实时系统。
 
 ## 在真实接触轨迹上检查 correction
 
@@ -100,7 +129,7 @@ bash visuotactile/run_cpu.sh -m pytest -q tests/test_visuotactile.py tests/test_
     print('Rendered original / instrumented regression passed')
     PY
 
---mode original 保留无渲染原类用于复现本机问题，不能作为有效 CPU 物理评估基线。无渲染时运动学桌子/孔/目标在首步移回原点；相同渲染调用下，32 步全部 15 个字段逐位一致。见 AUDIT.md。原 task/control/RL 源码没有修改。
+--mode original 保留无渲染原类用于复现本机问题，不能作为有效 CPU 物理评估基线。无渲染时运动学桌子/孔/目标在首步移回原点；相同渲染调用下，32 步全部 15 个字段逐位一致。见 AUDIT.md。原task/RL/控制数学未变；当前action_utils只有可选只读trace hook，回归已覆盖该路径。
 
 ## 实际结果（不是性能承诺）
 
