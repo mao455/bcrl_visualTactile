@@ -41,9 +41,14 @@ def policy_input_contract(metadata):
                       calibration=calibration, fk_urdf_sha256=metadata["fk_urdf_sha256"])
         rig=metadata.get('camera_rig',{})
         if rig.get('version', 2) >= 3:
+            import re
             result['camera_layout_version']=rig['version']
             result['render_config']=metadata['config']['sim']['render']
-            result['camera_mount']=rig.get('wrist',{'type':'all_fixed'})
+            result['camera_mount']=dict(rig.get('wrist',{'type':'all_fixed'}))
+            # The actual parent is preserved in metadata; env instance number
+            # is not a different optical mounting calibration.
+            if 'parent_prim' in result['camera_mount']:
+                result['camera_mount']['parent_prim']=re.sub(r'/env_\d+/', '/env_*/',result['camera_mount']['parent_prim'])
         return result
     if version != 1:
         raise ValueError("Unsupported perception version")

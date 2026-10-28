@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.spatial.transform import Rotation
 
-RIGS = ('legacy_dual', 'focused_pair', 'wrist_side', 'wrist_opposite', 'wrist_dorsal', 'wrist_lower', 'wrist_overhead', 'wrist_bracket', 'wrist_bracket_close', 'third_fixed')
+RIGS = ('legacy_dual', 'focused_pair', 'wrist_side', 'wrist_opposite', 'wrist_dorsal', 'wrist_lower', 'wrist_overhead', 'wrist_bracket', 'wrist_bracket_close', 'wrist_lower_close', 'third_fixed')
 FIXED = (((.32,-.45,1.55),(0.,0.,.68)), ((-.58,-.06,1.05),(0.,0.,.66)))
 # Version 4 is deliberately a new calibration identity.  Only the first
 # fixed camera moves 10% toward the existing target; focal length and every
@@ -30,10 +30,10 @@ def rig_contract(name):
     if name not in RIGS: raise ValueError('Unknown camera rig')
     if name=='legacy_dual':return dict(version=2,name=name,ids=['global_oblique','local_opposite'])
     ids=['fixed_high','fixed_side']
-    version = 4 if name == 'wrist_bracket_close' else 3
-    fixed_views = FIXED_CLOSE if version == 4 else FIXED
+    version = 5 if name == 'wrist_lower_close' else 4 if name == 'wrist_bracket_close' else 3
+    fixed_views = FIXED_CLOSE if version >= 4 else FIXED
     result=dict(version=version,name=name,ids=ids,fixed_views=fixed_views,fixed_focal_length=40.)
-    wrist_name = 'wrist_bracket' if name == 'wrist_bracket_close' else name
+    wrist_name = {'wrist_bracket_close':'wrist_bracket', 'wrist_lower_close':'wrist_lower'}.get(name,name)
     if wrist_name in WRISTS:
         eye,target=WRISTS[wrist_name]
         ids.append('wrist_rgbd')

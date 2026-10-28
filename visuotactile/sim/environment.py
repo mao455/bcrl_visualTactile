@@ -32,7 +32,11 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     """Teacher obs unchanged; research packet cached once per returned observation."""
 
     def __init__(self, cfg, *, perception_version=2, task_command=None,
-                 initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", camera_rig="legacy_dual", **kwargs):
+                 initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", camera_rig="legacy_dual",
+                 reject_invalid_initializations=False, **kwargs):
+        self.reject_invalid_initializations = reject_invalid_initializations
+        self.reset_events = []
+        self.initial_by_env = {}
         self.camera_rig = rig_contract(camera_rig)
         if self.camera_rig['version'] >= 3:
             cfg.student_obs.focal_length = self.camera_rig['fixed_focal_length']
@@ -319,8 +323,36 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             env_ids = torch.arange(self.num_envs, device=self.device)
         super()._reset_idx(env_ids)
         if self._research_ready:
-            self.research_episode[env_ids] += 1
-            self.research_step[env_ids] = 0
+            pending = env_ids
+            for retry in range(100):
+                self.research_episode[pending] += 1
+                self.research_step[pending] = 0
+                if not self.reject_invalid_initializations:
+                    break
+                from visuotactile.initial_geometry import inspect
+                diagnostics = self._diagnostics()
+                invalid = []
+                for j, index in enumerate(pending.tolist()):
+                    initial = {k:v[index].detach().cpu().numpy() for k,v in diagnostics.items()}
+                    geometry = inspect({'config': {'assets':self.cfg.assets.to_dict()}},initial)
+                    offset = dict(self.initial_offset_record)
+                    for key in ('raw_pose_w','final_pose_w','object_minus_hole_m'):
+                        offset[key] = [offset[key][j]]
+                    event = dict(env_index=index, episode_id=int(self.research_episode[index]),
+                        tick=self.research_tick, initial_geometry=geometry, initial_offset=offset,
+                        initial={k:v.tolist() for k,v in initial.items()})
+                    self.reset_events.append(event)
+                    self.initial_by_env[index] = event
+                    if not geometry['valid_box_initialization']:
+                        invalid.append(index)
+                if not invalid:
+                    break
+                pending = torch.tensor(invalid,device=self.device,dtype=torch.long)
+                # Native reset only for rejected environments. Never reseed global
+                # RNG; draws remain in the recorded persistent batch stream.
+                super()._reset_idx(pending)
+            else:
+                raise RuntimeError('100 consecutive native invalid resets; inspect initialization distribution')
             for name in ("hole", "table"):
                 value = getattr(self, name).data.root_pos_w.clone()
                 if name not in self._kinematic_reset_poses:

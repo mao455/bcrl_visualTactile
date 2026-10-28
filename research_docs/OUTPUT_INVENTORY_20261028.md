@@ -23,3 +23,11 @@
 400容量不是已验证承诺：旧三条平均约97MB/条，而新两条较长验收约151MB/条；仅400个成功文件约39–60GB，加当前保留证据会超出部分情景下的60GB硬限。不能以两条平均强行保证目标40GB；新采集按全局预留停机并报告缺口，不降深度精度/采样频率。
 
 最终停止补充：生产2条总HDF5=308,467,237bytes；停止后outputs约8.866GB。额外一次1步启动诊断核验为censored后清理3,638,253bytes，仅保留metadata/result/strace和小统计；累计上述清理约6.483GB，后台各非法尝试的额外小图清理单列。未删除共享Kit中的其他项目或未知minidump。最新本次明确归属的minidump约3.62MB也保留用于启动诊断，不复制大备份。
+
+## 2026-10-29：本轮目录整理覆盖旧位置
+
+详见 [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)。`outputs/visuotactile/` 现在只有 `data/、demos/、run/、tmp/`。当前正式入口是 `data/close_v4/manifest.json`；旧17条双相机和3条v3数据保持独立，移动后重新校验SHA。`data/INDEX.json`列出分组，`run/path_relocations.json`提供旧路径映射。文件内历史来源路径不改写，实际读取以新manifest相对路径为准。
+
+01:58容量快照：data 17,885,157,484 bytes、demos 11,513,550、run 20,381,103、tmp 490,039,437；生产持续增加。当前资源看`run/close400/resources.json`。本轮删除4,541,529,281 bytes，全部有分类、SHA、大小和理由：12条旧非法起点记录、淘汰相机候选、旧观看视频/截图/PKL、已确认的早期截断记录，以及8条邻居入镜试采中的7条（保留1条证据）。没有把未知打不开文件当成可删文件。
+
+旧60GB硬限已经被最新授权覆盖；现在监控真实磁盘余量，保留12GB底线，并限制writer和audit队列。原checkpoint及有效旧数据保留，没有全部搬进archive冒充清理。清理账本在run/output_cleanup.json、obsolete_smoke_cleanup.json、pickle_derivative_cleanup.json及data/diagnostics/spacing1p2/excluded_records.json。

@@ -321,3 +321,29 @@ Updated OUTPUT_INVENTORY to actual non-symlink apparent byte totals (previousdu/
 ### Final status correction — background stopped at2/400
 
 Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and independently rehashed/audited/read. s930017 then failed at native startup(-6), beforemetadata/HDF5; stackFileThread/system_error, notLLVM. Exactly one bounded1-stepstrace diagnostic capturedinotify_add_watchENOSPC despite watcher-off; subsequent successful startup is not stable recovery. No shared quota/process change. Diagnostic censored payload deleted after audit and hash ledger; minimal log/trace retained. Final bulkGPU mean9.48%, maxfull60s21.87%, outputpeak9.496GB, driver exited. Updated latest-entry warnings, handoff and public aggregate evidence; never leave the earlier live snapshot as current. 400 remains398short; no completionETA.
+
+## 2026-10-29 — 持久并行采集与真实数据交付
+
+用户明确覆盖旧预算、截止和首次错误即停规则，要求新加坡时间08:00累计400条。AGENTS、用户研究方向和NIGHT_COLLECTION已记录新授权、实际设计与验证。
+
+| 文件 / 函数 | 修改前 → 修改后及原因 |
+| --- | --- |
+| `collect.py::main` | CPU/环境数固定的单次采集 → 显式设备、线程、环境间距和可选持久入口；原诊断入口保留。 |
+| `collect_success_batch.py::collect_persistent/main/recover_pending` | 每episode重启Kit、笼统排除旧记录 → 持久批量专家、独立记录、有界写盘/审核、按真实合约继承、启动/状态/停止和有限恢复。 |
+| `sim/environment.py::_reset_idx` | 只检查首个环境起点 → 生产模式检查每次真实reset，仅重采非法环境，不重新设seed，不改原任务或DR。 |
+| `recording.py::CompactEpisodeStream/verify_stream_fields` | raw gzip再转换 → 直接写现有storage2、8行批次、LZF无损压缩、143个原字段的来源与重建hash检查。 |
+| `finalize_collection.py::finalize_stream` | 只转换raw → 也支持流式文件的独立完整审核，返回可提交的小记录。 |
+| `contracts.py::policy_input_contract` | 挂载路径固定env0 → 只归一化env实例编号，实际父刚体、安装偏移和标定仍严格检查。 |
+| `collection_resources.py::Supervisor` | 每秒递归容量扫描、瞬时峰值暂停 → 缓存盘点、真实磁盘余量、均值节流、仅本任务heartbeat和停止。 |
+| `initialization_report.py::manifest_statistics` | 重读整批文件 → 利用已审核实测字段生成初态/扰动统计，减去env origin，分开错误与任务失败。 |
+| `run_cpu.sh` | 固定2线程 → 可配置本进程线程，原默认仍2；无共享安装改动。 |
+| `camera_rigs.py::rig_contract` | 下侧候选会恢复旧高位视角 → 单独lower-close候选保持v4固定两路，标定版本5且未用于生产。 |
+| `tests/test_persistent_collection.py` | 新增双episode精确往返、截断末帧、错位拒绝和挂载实例隔离测试。 |
+
+实测发现并修复：tuple与JSON list导致配置误拒绝；PyTorch inference tensor无法在模式外清RNN状态；原1.2m环境间距造成邻居桌子入镜。最后一项是亲看图后发现，数值shape/标定测试不能替代。8条自然成功的1.2m试采全部排除，只保留1条诊断。正式仅把环境原点间距改为8m，局部资产、相机和任务不变。
+
+四环境8m试采：4条合格成功，循环97.15秒，含启动退出116.84秒；分别2.47和2.05条/分钟。GPU全段均值24.04%，结束完整60秒均值25.08%，峰值8189MiB，无节流。标准Camera/CPU吞吐已足够，未继续扩大并行档位，没有声称GPU物理或TiledCamera已验证。
+
+验证：23项相关测试通过；补充截断与挂载实例用例后10项针对性测试通过。真实四环境数据通过143字段来源hash、原生动作/结果、全帧数值与动态标定检查，以及三视角Dataset读取。后续另读env1一条205步成功，检查无邻居入镜。下侧腕部220步对比有128个非图像字段逐位相同；下侧指尖更清楚但孔口覆盖减少，因此保持v4。没有正式训练或重复网络梯度实验。
+
+输出已整理为data/demos/run/tmp，正式旧s930014/016重新校验并继承，v3不混计；旧checkpoint与有效研究数据保留。本轮清理约4.54GB已分类无用载荷，保留SHA/大小/原因账本。旧17条双路和3条v3移动并取消观看视频声明后，HDF5再次通过SHA核验。原始数据、模型与日志均不上传Git。实际运行数字/PID看状态文件，详细取舍和迁移路径见NIGHT_COLLECTION与OUTPUT_INVENTORY_20261028。

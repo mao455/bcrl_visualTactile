@@ -1,5 +1,7 @@
 # 当前会话交接：有限插入数据集（2026-10-28）
 
+> **2026-10-29夜间最新入口：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)。用户覆盖旧预算/截止/停止规则；持久四环境＋8m间距正在向400采集。原1.2m间距试采因邻居桌子入镜排除。实时数量与PID用新状态命令读取，下面旧快照不可当作当前状态。
+
 > **最终覆盖：2026-10-29 00:05北京时间**：新v4生产已在2/400停止，PID2070793已退出。s930014/016已完整提交；s930017启动-6、libomniclient FileThread Invalid argument。额外一次受限strace直接看到inotify_add_watch ENOSPC，当前524205/524288 watch。关闭扩展watch仍不足，勿自动重启或把下文运行快照当当前。0训练，未改系统配额/其他进程。
 
 > **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
@@ -136,3 +138,11 @@ created. The old three successes and all error classifications remain intact.
 本次错误与LLVM不同：std::system_error Invalid argument，native栈在libomniclient FileThread。只读/proc统计watch524205/524288，余83；instances79/4096。进行**唯一一次**同seed、1步上限的strace诊断，捕获真实inotify_add_watch ENOSPC（见startup_inotify.trace/startup_trace_audit.json），即使`--disable-extension-watch`仍有底层监听失败；该次44.50秒、整卡均值13.22%，仅censored诊断，不计生产成功。未修改limit、IDE、驱动、共享库；没有继续无上限试错。先前LLVM原因仍未唯一确定，arena2不构成稳定性修复。恢复需进程内经验证方案或外部watch压力变化，不能假称400仍在跑。
 
 容量/时间预测：两条验收活跃周期约135–136秒；新首条生产123秒，另有19–21秒非法尝试开销。忽略失败的400条就约13.7–15.2小时，因此当前实现不满足6小时完成400；进程复用即使消除启动仍不足，且需reset/RNG/cache对照，不在此偷偷引入。2条生产平均154.23MB，机械外推400约61.69GB，还未加保留证据，超过60GB；样本小不能作为稳定最终容量，但足以说明不能承诺40GB。停止现状没有可信400完成ETA。
+
+## 2026-10-29 02:02 持久生产交接快照
+
+最新实现与命令见NIGHT_COLLECTION。当前已核验的正式数量约87条（之后继续增长）；supervisor PID2117854，Isaac采集 PID2117864，session r931005_1793209376。不要按快照认定仍存活，先运行status。生产目录data/close_v4、manifest.json；日志run/close400/r931005_1793209376.log；progress/resources/statistics同目录。
+
+一个持久CPU实例、四环境、标准三路相机、8m环境间距、4CPU仿真线程＋两个独立CPU审核进程。旧s930014/016计入，原1.2m的8条有邻居入镜已排除。样本均通过143字段精确重建和完整动作/时间/状态审核。四环境试采约2.47条/分钟，长批已约4.26/min；当前GPU批次均值约30.34%，最大完整60秒仍低50%，仅自身进程组按均值节流过12秒。
+
+不能用此快照声称已经400；真正完成以manifest400条＋status complete＋对应文件审核为准。相机保留原v4，lower-close仅诊断不混入。输出只剩data/demos/run/tmp，路径迁移索引run/path_relocations.json。常见本地问题已修复，无正式训练，无其他项目进程或共享设置操作。

@@ -115,3 +115,7 @@ Nominal视觉/历史参数未来经真实动作序列的diffusion epsilon loss�
 - `causal_unit_tests_final.log`：**23 passed，4.52s**，1个已有requests依赖warning；没有更改共享依赖。覆盖超出旧窗口的历史影响/梯度、每步记忆与重规划分离、异步reset、跨块力变化/事件、mask零梯度、真实原action helper的已知正弦序列与RNG、存储/版本边界。`compileall`与`git diff --check`另作最终静态检查。
 
 当前训练入口只验证了顺序条件与loss反传接口，没有运行完整optimizer训练/长期恢复；memory2验证loss仍未实现。公共代码没有附带本轮训练数据或模型。
+
+## 2026-10-29 recording throughput extension
+
+New production stores one independently finalized episode per file with original143 logical fields; no raw observations replaced by network features. Native per-env reset clears only that env's actor RNN/queues; subgoal changes do not clear it. Nominal/Correction remain absent and masked. A four-batch writer queue and at most eight pending CPU audits decouple I/O from simulation without changing simulated timestamps or action dt. Original per-step RNG trace is a global run stream, repeated across env rows by design; episode identity is run/env/native-reset ID. Exact reconstruction and source hashes are checked before manifest publication. Full details/evidence in NIGHT_COLLECTION.

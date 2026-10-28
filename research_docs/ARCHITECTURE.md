@@ -103,3 +103,7 @@ Task ID remains categorical. Expert history is useful but separate from private 
 `camera_rigs.rig_contract`给研究wrapper提供固定外参/ID。wrapper在原场景之上添加纯Camera prim，运行时解析真实link7刚体；CameraParams沿每个render product返回动态世界位姿，原student+第二相机缓存扩成V路。`collect`→`EpisodeWriter`→`compact.convert_episode`→`ManifestReader`/`EpisodeSequenceDataset`→原可变views编码器/持续记忆，结构未重写。Nominal与Correction视觉支路均实测V=3；world calibration用于诊断而不新增特权输入。
 
 `camera_review`提供完整视频、原图/深度/有效性、非图像配对、光心mesh-AABB距离和孔口深度诊断；`camera_diagnostics`只在固定物理状态做render对照；`check_camera_interfaces`只做真实数据因果计划/Shadow/Jacobian/恢复，没有optimizer。`collect_success_batch`复用现有collector、统一completion gate、无损转换和manifest，管理新400成功协议，和旧offset实验runner分开。没有改原RL、传感编码网络、动作、资产、动力学或成功判据。
+
+## 2026-10-29持久专家采集
+
+本轮生产入口和实测见[NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)。一个CPU Isaac实例/4独立env、原released循环专家批量推理；标准三Camera、原120/60Hz。Recorder线程有界队列直接写无损storage2，两spawn审核进程完成143字段来源hash＋完整原生/传感审核，单manifest拥有者发布成功。原资产/原task/RL未重构，Nominal/Correction不参与。本轮8m环境原点间距用于隔离视场，不改变每个环境局部几何。

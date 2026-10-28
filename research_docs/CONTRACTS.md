@@ -80,3 +80,9 @@ CPU必须render，保持table/hole变换审计。格式压缩不改变pre/post�
 新rig3选择/配对证据见CAMERA_VALIDATION。旧双路默认保持，新增固定A/B和link7固定外参腕部。渲染与校准来自同render product，CPU下不能信任移动camera.data的USD缓存。相机数量、顺序、分辨率、mount、实际K、render配置均纳入新视觉checkpoint契约；原RL专家输入仍140D，不受新图像尺寸影响。Schema2/trace2/math/dt不变，storage2支持V路+动态pose，禁止双视角权重静默解释成三视角。
 
 用户已明确授权通过验收后采400成功，旧60尝试/10GiB停止规则只属于旧实验。新protocol `triple400_native_seed_rejection_v1`按原reset seed序列记录/拒绝非法起点，不改物理，不重试同seed；95GiB/1600尝试/单条2400步900s/40GiB空闲底线，软件或审计错误停。所有数据留本地，0参数训练。
+
+## 2026-10-29 persistent production extension
+
+The optional production adapter preserves schema2/trace2/storage2 logical arrays. `stream_writer_version=1` writes RGB uint8, exact float32 metric depth and masks directly with lossless LZF. `source_field_digests_json` records dtype, per-row shape and SHA256 over chronological contiguous source bytes for **every** logical field; an independent CPU worker reconstructs and verifies all fields before commit. Terminal image remains unavailable; graceful nonterminal censor preserves its actual final post frame. `source_env_index`, `source_episode_id`, `persistent_run_id` and `env_origins_w` identify each independent episode. Physical/control dt, released expert and success criteria remain unchanged.
+
+Per-environment metadata stores its own matrices/limits/origin; camera mount compatibility canonicalizes only the `/env_N/` instance component, preserving actual mounting parent and offset. The 8m parallel grid isolates cameras; camera local calibration is still v4. One seed belongs to an entire persistent run, never to an independently reseeded episode; historical metadata `initial_torch_rng_sha256` denotes the run's first reset. Actual per-step CPU RNG is recorded in transitions. Invalid native starts are resampled for that env only, logged before any expert action; this conditions the dataset on box legality and eventual success, not a native success-rate estimate. See NIGHT_COLLECTION for actual measured changes.

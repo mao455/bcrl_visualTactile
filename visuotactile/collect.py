@@ -23,6 +23,13 @@ def main():
     parser.add_argument("--wrench-frame-mode", choices=("legacy","world_hold"), default="legacy")
     parser.add_argument("--experiment-condition", help="Position experiment identity; native force condition remains separate")
     parser.add_argument("--num-envs", type=int, default=1)
+    parser.add_argument('--device',default='cpu',choices=('cpu','cuda:0'))
+    parser.add_argument('--threads',type=int,default=2)
+    parser.add_argument('--env-spacing',type=float,help='Batch origin separation only; local task geometry unchanged')
+    parser.add_argument('--production-root',type=Path,help='Persistent, independently audited episode stream')
+    parser.add_argument('--target-successes',type=int,default=400)
+    parser.add_argument('--deadline-epoch',type=float)
+    parser.add_argument('--run-id',default='persistent')
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--problem", default="tight_insertion")
     parser.add_argument("--checkpoint", default="pretrained_assembly/tight_insertion/model.pth")
@@ -59,8 +66,8 @@ def main():
         parser.error("Perception v2 requires the calibrated dual-view mount; use v1 for original-camera diagnostics")
     if args.perception_version == 1 and args.goal_command:
         parser.error("Goal command conditioning is a v2 interface")
-    if not 1 <= args.num_envs <= 2 or not 1 <= args.steps <= 10000:
-        parser.error("Protected-workload collection requires 1..2 environments and 1..10000 steps")
+    if not 1 <= args.num_envs <= 32 or not 1 <= args.steps <= 10000:
+        parser.error("Collection supports 1..32 environments and 1..10000 bounded diagnostic steps")
     if args.max_steps is not None:
         args.steps = args.max_steps
     if not 1 <= args.steps <= 10000:
@@ -76,7 +83,8 @@ def main():
     kit_args="--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 --/persistent/physics/numThreads=2"
     if args.disable_extension_watch:
         kit_args += " --/app/extensions/fsWatcherEnabled=false"
-    app = AppLauncher(headless=True, enable_cameras=True, device="cpu",
+    kit_args=kit_args.replace('threadCount=2',f'threadCount={args.threads}').replace('numThreads=2',f'numThreads={args.threads}')
+    app = AppLauncher(headless=True, enable_cameras=True, device=args.device,
                       kit_args=kit_args).app
     import numpy as np
     import torch
@@ -87,12 +95,13 @@ def main():
     from rl_games.torch_runner import Runner, _load_checkpoint_weights
     from .sim.environment import InstrumentedAssemblyEnv
     from .recording import EpisodeWriter
-    torch.set_num_threads(2)
+    torch.set_num_threads(args.threads)
     task = "Isaacsimenvs-PreciseAssembly-Direct-v0"
     cfg = _load_env_cfg(task)
     cfg.seed = args.seed
     cfg.scene.num_envs = args.num_envs
-    cfg.sim.device = "cpu"
+    if args.env_spacing is not None:cfg.scene.env_spacing=args.env_spacing
+    cfg.sim.device = args.device
     cfg.precise_assembly.problem = args.problem
     configured_force_scale = float(cfg.domain_randomization.force_scale)
     cfg.domain_randomization.force_scale = configured_force_scale * force_multiplier
@@ -113,12 +122,13 @@ def main():
                    if args.perception_version == 2 else None)
         env = InstrumentedAssemblyEnv(cfg, perception_version=args.perception_version, task_command=command,
                                       initial_offset_xy=args.offset_xy, wrench_frame_mode=args.wrench_frame_mode,
-                                      camera_rig=args.camera_rig)
+                                      camera_rig=args.camera_rig,
+                                      reject_invalid_initializations=bool(args.production_root))
         player = None
         if not args.policy_checkpoint:
-            agent_cfg = _configure_agent(task, "rl_games_sapg_cfg_entry_point", rl_device="cpu",
+            agent_cfg = _configure_agent(task, "rl_games_sapg_cfg_entry_point", rl_device=args.device,
                                          num_envs=args.num_envs, deterministic=True, games=1, extra_overrides={})
-            wrapped = register_rlgames_env(env, rl_device="cpu", clip_obs=agent_cfg["params"]["env"]["clip_observations"], clip_actions=1.0)
+            wrapped = register_rlgames_env(env, rl_device=args.device, clip_obs=agent_cfg["params"]["env"]["clip_observations"], clip_actions=1.0)
             runner = Runner()
             runner.load(agent_cfg)
             runner.reset()
@@ -192,6 +202,14 @@ def main():
                         initial_torch_rng_sha256=hashlib.sha256(torch.random.get_rng_state().numpy().tobytes()).hexdigest(),
                         nominal_rate_hz=None if player else "see policy configuration",
                         expert_rate_hz=1/env.step_dt if player else None)
+        if args.production_root:
+            if player is None or args.perception_shadow or args.correction_shadow:
+                raise ValueError('Persistent production requires released expert only')
+            with open(args.checkpoint,'rb') as stream:
+                metadata['expert_model_sha256']=hashlib.file_digest(stream,'sha256').hexdigest()
+            from .collect_success_batch import collect_persistent
+            collect_persistent(env,player,teacher_obs,metadata,args)
+            return
         if args.experiment_condition:
             from .initial_geometry import inspect
             initial = {k:v[0].detach().cpu().numpy() for k,v in env._diagnostics().items()}
