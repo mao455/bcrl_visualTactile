@@ -23,8 +23,11 @@ def policy_input_contract(metadata):
     if version == 2:
         calibration = []
         for camera in metadata["cameras"]:
+            mount=metadata.get('camera_rig',{}).get('wrist') if camera['id']=='wrist_rgbd' else None
             for field in ("pos_env","quat_ros_wxyz","intrinsics"):
-                values = np.asarray(camera[field],dtype=float)
+                value=([mount['pos_parent_m']] if mount and field=='pos_env' else
+                       [mount['quat_parent_ros_wxyz']] if mount and field=='quat_ros_wxyz' else camera[field])
+                values = np.asarray(value,dtype=float)
                 if field == "quat_ros_wxyz":
                     values = np.where(values[:,:1]<0,-values,values)
                 if not np.allclose(values,values[0],atol=1e-5,rtol=0):
@@ -36,6 +39,11 @@ def policy_input_contract(metadata):
                       task_vocabulary=metadata["task_command"]["vocabulary"],
                       goal_frame=metadata["task_command"]["frame"],
                       calibration=calibration, fk_urdf_sha256=metadata["fk_urdf_sha256"])
+        rig=metadata.get('camera_rig',{})
+        if rig.get('version')==3:
+            result['camera_layout_version']=3
+            result['render_config']=metadata['config']['sim']['render']
+            result['camera_mount']=rig.get('wrist',{'type':'all_fixed'})
         return result
     if version != 1:
         raise ValueError("Unsupported perception version")

@@ -49,7 +49,7 @@ def stage_sheet(group,metadata,path):
     rows=[('Approach',0),('Contact / grasp',first_contact),('Transport (review visually)',(first_contact+pre)//2),
           ('Pre-insert (before first goal)',max(0,pre-1)),('Insert (before second goal)',max(0,inserted-1)),(last_label,min(retract_obs,n-1))]
     h,w=images.shape[-2:]
-    sheet=Image.new('RGB',(6*w,len(rows)*(h+28)),(22,22,22));draw=ImageDraw.Draw(sheet)
+    sheet=Image.new('RGB',(3*len(metadata['cameras'])*w,len(rows)*(h+28)),(22,22,22));draw=ImageDraw.Draw(sheet)
     env_id=int(group.name.split('/env')[1].split('_')[0])
     metrics=[]
     # Observation t corresponds to transition t-1. No terminal/reset image relabeling.
@@ -68,7 +68,10 @@ def stage_sheet(group,metadata,path):
             if t>0:
                 origin=np.array(metadata['env_origins_w'][env_id])
                 p=np.array(cam['pos_env'][env_id])+origin
-                r=Rotation.from_quat(np.array(cam['quat_ros_wxyz'][env_id])[[1,2,3,0]]).as_matrix()
+                quat=np.array(cam['quat_ros_wxyz'][env_id])
+                if 'camera_pose_w' in group['obs']:
+                    pose=group['obs/camera_pose_w'][t,v];p=pose[:3];quat=pose[3:]
+                r=Rotation.from_quat(quat[[1,2,3,0]]).as_matrix()
                 xyz=group['transition/diagnostics_after/finger_position_w'][t-1]
                 optical=(xyz-p)@r;uv=optical@np.array(cam['intrinsics'][env_id]).T
                 uv=uv[:,:2]/uv[:,2:]
@@ -76,7 +79,7 @@ def stage_sheet(group,metadata,path):
                 record['finger_origin_in_frame_count']=int(inside.sum())
                 record['finger_origin_uv']=uv.tolist()
             per_view.append(record)
-        draw.text((4,row*(h+28)+4),f'{label}; observation t={t} | Global: RGB / depth 0..2m / valid | Local: RGB / depth / valid',fill='white')
+        draw.text((4,row*(h+28)+4),f'{label}; observation t={t} | each declared camera: RGB / depth 0..2m / valid',fill='white')
         metrics.append(dict(label=label,step=t,views=per_view))
     sheet.save(path)
     return metrics
@@ -97,7 +100,7 @@ def main():
         for name,g in f['episodes'].items():
             n=len(g['obs/step_id']);s=g['obs/time_s'][:];valid=g['obs/contact_valid'][:]
             np.testing.assert_allclose(np.diff(s),metadata['control_dt'],atol=1e-12,rtol=0)
-            np.testing.assert_allclose(g['obs/camera_time_s'][:],np.repeat(s[:,None],2,axis=1),rtol=0,atol=0)
+            np.testing.assert_allclose(g['obs/camera_time_s'][:],np.repeat(s[:,None],len(metadata["camera_ids"]),axis=1),rtol=0,atol=0)
             ts=g['obs/contact_time_s'][:]
             np.testing.assert_allclose(ts[:,1],s,rtol=0,atol=0)
             np.testing.assert_allclose(ts[:,1]-ts[:,0],metadata['physics_dt'],rtol=0,atol=1e-12)
@@ -122,7 +125,7 @@ def main():
         report['visibility']=stage_sheet(selected,metadata,args.output/'views.png')
     data=EpisodeDataset(args.data)
     correction_data=CorrectionEpisodeDataset(args.data,allow_untrained_probe=True)
-    cfg=PolicyConfig(memory_version=1,)
+    cfg=PolicyConfig(memory_version=1,views=len(metadata["camera_ids"]))
     model=NominalDiffusionPolicy(cfg)
     correction=CorrectionPolicy(cfg)
     chosen=next(i for i,(key,t) in enumerate(correction_data.index) if t>=100)

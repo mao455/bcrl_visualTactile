@@ -84,3 +84,9 @@ Task ID remains categorical. Expert history is useful but separate from private 
 新增`run_insertion_dataset`调用原`collect`，通过`run_rl_trials.validate_completion`共用新/恢复完成门槛；`initial_geometry`仅诊断初始box合法性。`compact.convert_episode`把已审核逐步记录转换成三主文件并精确往返验证；`manifest`统一定位和筛选，`EpisodeFile`让原Reader/Dataset保持相同模型输入；`ManifestSequenceDataset → encode_episode_chunks → Nominal.encoder`已用两条真实新episode共411步零更新验证。没有模型结构改动。`analyze_insertion_dataset`读相同reader审计、统计、最多4预览。
 
 接入读取不等于正式BC训练完成。现有train.py只支持单H5，现能识别storage1但显式拒绝manifest正式训练；纯专家perception2缺自身计划时也拒绝正式训练。未来需确定无计划baseline或因果模型回放，接入按pair_id分组、训练统计、memory2验证loss和checkpoint绑定；不得用专家未来动作填plan。Correction纯专家训练仍不成立。旧checkpoint/rollout原接口保留，本轮没有训练或声称完整新训练闭环。
+
+## 三视角观测扩展（2026-10-28）
+
+`camera_rigs.rig_contract`给研究wrapper提供固定外参/ID。wrapper在原场景之上添加纯Camera prim，运行时解析真实link7刚体；CameraParams沿每个render product返回动态世界位姿，原student+第二相机缓存扩成V路。`collect`→`EpisodeWriter`→`compact.convert_episode`→`ManifestReader`/`EpisodeSequenceDataset`→原可变views编码器/持续记忆，结构未重写。Nominal与Correction视觉支路均实测V=3；world calibration用于诊断而不新增特权输入。
+
+`camera_review`提供完整视频、原图/深度/有效性、非图像配对、光心mesh-AABB距离和孔口深度诊断；`camera_diagnostics`只在固定物理状态做render对照；`check_camera_interfaces`只做真实数据因果计划/Shadow/Jacobian/恢复，没有optimizer。`collect_success_batch`复用现有collector、统一completion gate、无损转换和manifest，管理新400成功协议，和旧offset实验runner分开。没有改原RL、传感编码网络、动作、资产、动力学或成功判据。

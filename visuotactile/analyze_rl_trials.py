@@ -165,16 +165,33 @@ def load_trial(path):
         check(np.allclose(read("obs/camera_time_s"),before[:,None],atol=1e-9,rtol=0), "camera time")
         check(read("obs/camera_valid").all(), "missing camera")
         # Inspect EVERY stored image/depth row in bounded chunks, preserving precision.
-        valid_counts = np.zeros(2); pixels = 0
+        views=len(metadata['camera_ids']);height,width=metadata['cameras'][0]['resolution']
+        valid_counts = np.zeros(views); pixels = 0
         for start in range(0,n,16):
             image = g["obs/image"][start:min(start+16,n)]
             valid = g["obs/depth_valid"][start:min(start+16,n)]
             depth = g["obs/depth_m"][start:min(start+16,n)]
-            check(image.shape[1:]==(2,4,126,224), "image schema")
+            check(image.shape[1:]==(views,4,height,width), "image schema")
             check(np.isfinite(image).all() and image[:,:,:3].min()>=0 and image[:,:,:3].max()<=1, "RGB-D numerical values")
             check(np.array_equal(image[:,:,3:4],depth), "metric depth/image mismatch")
             check(np.all(depth[valid]>0) and np.all(depth[~valid]==0), "depth validity")
-            valid_counts += valid.sum(axis=(0,2,3,4)); pixels += len(image)*126*224
+            valid_counts += valid.sum(axis=(0,2,3,4)); pixels += len(image)*height*width
+        if metadata.get('camera_rig',{}).get('version')==3:
+            pose=read('obs/camera_pose_w')
+            check(pose.shape==(n,views,7) and np.isfinite(pose).all(),'camera pose shape/finite')
+            check(np.allclose(np.linalg.norm(pose[:,:,3:],axis=-1),1,atol=2e-5),'camera rotation norm')
+            check(np.allclose(pose[:,:2],pose[0,:2],atol=2e-5),'fixed cameras moved')
+            mount=metadata['camera_rig'].get('wrist')
+            if mount:
+                parent=read('obs/camera_parent_pose_w');q=parent[:,3:];v=np.broadcast_to(mount['pos_parent_m'],(n,3))
+                expected=parent[:,:3]+v+2*np.cross(q[:,1:],np.cross(q[:,1:],v)+q[:,:1]*v)
+                check(np.allclose(pose[:,2,:3],expected,atol=2e-5),'wrist image/parent pose alignment')
+                from scipy.spatial.transform import Rotation
+                parent_rot=Rotation.from_quat(parent[:,[4,5,6,3]])
+                local_q=np.asarray(mount['quat_parent_ros_wxyz'])
+                expected_rot=parent_rot*Rotation.from_quat(local_q[[1,2,3,0]])
+                observed_rot=Rotation.from_quat(pose[:,2][:,[4,5,6,3]])
+                check(np.max((expected_rot.inv()*observed_rot).magnitude())<2e-5,'wrist image/parent rotation alignment')
         check(np.all(valid_counts>0), "all-invalid depth")
         sample_indices = sorted(set((0,n//2,n-1)))
         rgb_std = [g["obs/image"][i,:,:3].std(axis=(1,2,3)).tolist() for i in sample_indices]

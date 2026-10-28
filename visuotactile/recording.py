@@ -91,7 +91,7 @@ def post_observation(packet,done):
     """Never attach automatic-reset imagery/encoders to the preceding episode."""
     import torch
     keys = ("image","depth_valid","camera_valid","camera_time_s","camera_frame",
-            "proprio","time_s","episode_id","step_id")
+            "proprio","time_s","episode_id","step_id","camera_pose_w","camera_parent_pose_w")
     result = {"available":~done}
     for key in keys:
         if key in packet:

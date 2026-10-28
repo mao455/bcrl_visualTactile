@@ -112,10 +112,10 @@ class EpisodeFile:
         self.file = h5py.File(path, "r")
         self.attrs = self.file.attrs
         version = int(self.attrs.get("storage_version", 0))
-        if version not in (0, 1):
+        if version not in (0, 1, 2):
             self.file.close()
             raise ValueError("Unknown storage version")
-        self.episodes = EpisodeGroups(self.file["episodes"], version == 1)
+        self.episodes = EpisodeGroups(self.file["episodes"], version in (1,2))
     def __enter__(self):
         return self
     def __exit__(self, *args):
@@ -173,7 +173,9 @@ def convert_episode(source, destination, *, result=None):
             raise ValueError("Compact storage currently requires one schema2 episode")
         for k, v in src.attrs.items():
             dst.attrs[k] = v
-        dst.attrs.update(storage_version=1, source_sha256=sha256(source),
+        meta=json.loads(src.attrs['metadata_json'])
+        storage_version=2 if meta.get('camera_rig',{}).get('version',2)==3 else 1
+        dst.attrs.update(storage_version=storage_version, source_sha256=sha256(source),
                          video_role="viewing_derivative_not_training_RGB",
                          result_json=json.dumps(result or {}))
         name = next(iter(src["episodes"]))
@@ -193,6 +195,8 @@ def convert_episode(source, destination, *, result=None):
         post_ids = np.full(n, -1, dtype=np.int64)
         extra = bool(post["available"][n-1])
         shape = g["obs/image"].shape
+        if len(meta.get('camera_ids',range(shape[1]))) != shape[1]:
+            raise ValueError('Camera identity/count mismatch')
         frames = n+int(extra)
         opts = dict(compression="gzip", compression_opts=4, shuffle=True, chunks=(1,shape[1],1,*shape[-2:]))
         rgb = out.create_dataset("frames/rgb_u8", (frames,shape[1],3,*shape[-2:]), dtype="u1", **opts)
@@ -209,6 +213,9 @@ def convert_episode(source, destination, *, result=None):
                     for field in ("image","depth_valid","camera_time_s","camera_frame","episode_id","step_id"):
                         if not np.array_equal(post[field][t], g["obs/"+field][t+1]):
                             raise ValueError("Post/pre dedup misalignment: "+field)
+                    for field in ('camera_pose_w', 'camera_parent_pose_w'):
+                        if field in post and not np.array_equal(post[field][t], g['obs/'+field][t+1]):
+                            raise ValueError('Post/pre calibration misalignment: '+field)
             elif np.any(post["image"][t]) or np.any(post["depth_valid"][t]):
                 raise ValueError("Unavailable post frame contains data")
         if extra:
@@ -233,13 +240,14 @@ def convert_episode(source, destination, *, result=None):
         original.visititems(compare)
     with h5py.File(partial) as f:
         rgb = f["episodes"][name]["frames/rgb_u8"]
-        for view in range(2):
+        for view in range(shape[1]):
             write_video(destination/f"camera_{view}.mp4.partial", (x[view].transpose(1,2,0) for x in rgb))
-    for name_on_disk in ("data.h5", "camera_0.mp4", "camera_1.mp4"):
+    for name_on_disk in ('data.h5',*[f'camera_{v}.mp4' for v in range(shape[1])]):
         p = destination/(name_on_disk+".partial")
         with p.open("rb") as fd:
             os.fsync(fd.fileno())
         p.rename(destination/name_on_disk)
-    return dict(episode=name, length=n, frame_count=frames, exact_fields=compared,
+    return dict(episode=name, length=n, frame_count=frames, exact_fields=compared, storage_version=storage_version,
+                camera_ids=meta.get('camera_ids',['camera_'+str(v) for v in range(shape[1])]),
                 extra_final_post=extra, source_sha256=sha256(source),
                 files={p.name:dict(bytes=p.stat().st_size,sha256=sha256(p)) for p in destination.iterdir()})

@@ -153,7 +153,7 @@ def run(root, stage, continue_unaffected=False):
             if tree_bytes(root)>MAX_BYTES:
                 raise RuntimeError('Output budget exceeded; preserve temporary and stop')
             record=dict(**row,**conversion,directory=directory,outcome=summary['outcome'],valid=True,
-                schema_version=2,trace_version=2,storage_version=1,wrench_trace_version=3,
+                schema_version=2,trace_version=2,wrench_trace_version=3,
                 summary=summary,metadata_json_file_sha256=sha256(temporary/'metadata.json'),
                 parameter_updates=0,video_role='viewing_derivative',nominal_predictions_available=False)
             manifest['episodes'].append(record);write_json(manifest_path,manifest)

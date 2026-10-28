@@ -155,3 +155,13 @@ metadata新增condition、pair_id、原/应用force_scale、teacher推理模式/
 完成协议：原始逐步length提交 → result/FAILED/退出码/身份/全审计 → .partial转换 → **每字段回读精确一致** → MP4解码帧数验证 → fsync三文件并发布 → 压缩记录重审计 → manifest原子替换 → 仅清理本次新临时源。崩溃/异常保留现场，未进manifest的目录不视作完成；旧源一律不改。run_status/final_stop与失败目录不伪装成episode。
 
 ManifestSequenceDataset默认只取scan成功记录，拒绝隐式混合legacy/world_hold，按group分割。训练allowlist/维度不变，完整原始传感保留而非特征替代。正式训练因自身计划缺失/分组验证缺口设误用检查；实际验证是独立零更新回放。
+
+## 2026-10-28：camera layout3 / compact storage2
+
+这是新增可选相机布局，不改变perception/schema2的RGB/米制深度含义。原dual数据仍storage0/1，默认不静默升级。新生产配置camera IDs按顺序为`fixed_high,fixed_side,wrist_rgbd`，单帧image `(N,3,4,252,448)`、depth/valid `(N,3,1,252,448)`；histories增加T轴，网络由显式`PolicyConfig.views=3`构造。intrinsics、分辨率、固定local mount、actual parent prim、裁剪与clock进metadata。metadata腕部pos_env只代表初始标定，不能用于后续帧。
+
+新增obs及有效post字段：`camera_pose_w (N,V,7)` float32世界位置米＋ROS optical wxyz，来自同RGB-D render product的CameraParams；`camera_parent_pose_w (N,7)`是link7当前PhysX link pose，作固定安装变换核验。它们是标定/诊断，**不在Nominal的allowlist**。腕部相机身份/固定局部外参用于checkpoint契约，不能把episode开始的世界pose当固定配置。每帧已有camera_time_s/frame/valid继续使用，60Hz；无终止曝光时post.available=false，位姿和图像一同清零，绝不接入reset帧。
+
+compact2：`frames/rgb_u8 (F,V,3,H,W)`、`depth_m/depth_valid (F,V,1,H,W)`，无损恢复旧float32 RGB/255；其余数值不降精度。四主文件`data.h5,camera_0.mp4,camera_1.mp4,camera_2.mp4`；MP4为观看派生件。转换以实际V生成视频/manifest文件集，拒绝ID数量不一致，新增post/pre位姿精确对齐检查。旧双文件集仍可读。一个Dataset拒绝混camera layout、ID顺序或分辨率。
+
+真实448三视角样本143字段往返精确，168步顺序模型输入/标签相同，chunk7/step1差<5e−7，0更新。见CAMERA_VALIDATION。400协议manifest的`stage=production`，读取时须显式`stage='production'`；默认scan仍服务旧批次。`attempts`记录非法初始化/任务结果/软件错误，`episodes`只收已经审计并完成四文件发布的记录；成功筛选不改变尝试分母。

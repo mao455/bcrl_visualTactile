@@ -27,7 +27,7 @@ def check(original,compact):
         assert not b['obs']['prior_plan_valid'].any() and not b['obs']['previous_nominal_valid'].any()
         rows+=a['stop']-a['start']
     torch.manual_seed(88)
-    model=NominalDiffusionPolicy(PolicyConfig(inference_steps=1)).eval()
+    model=NominalDiffusionPolicy(PolicyConfig(inference_steps=1,views=len(new.metadata['camera_ids']))).eval()
     before=fingerprint(model)
     with torch.no_grad():
         def encode(size):
@@ -60,7 +60,8 @@ def check_manifest(path, ids):
     except ValueError as exc: plan_guard=str(exc)
     else: raise AssertionError('Expected pure expert records in this check')
     torch.manual_seed(88)
-    model=NominalDiffusionPolicy(PolicyConfig(inference_steps=1)).eval()
+    first=dataset.datasets[ids[0]]
+    model=NominalDiffusionPolicy(PolicyConfig(inference_steps=1,views=len(first.metadata['camera_ids']))).eval()
     before=fingerprint(model)
     def sequence(size):
         for episode in ids:

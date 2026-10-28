@@ -74,3 +74,9 @@ Task ID enters `nn.Embedding`, with categorical meaning only. Cross-task shared 
 可选world_hold只重新表达**原生DR世界请求**：每个physics write用当前object root wxyz的逆旋转变成body力/力矩，调用permanent composer公开setter(is_global=False)，随后原write。没有重写随机力公式/概率/门控/scale，没有改变共享Lab；instantaneous composer活跃拒绝。wrench_trace3记录实际每子步body提交及当前姿态对应world值，120Hz/60Hz不变。legacy与旧seed17的220步16数组逐位一致；world_hold非零力方向误差<1e−6N；非零力矩实测尚缺，详见INSERTION_DATASET。两模式数据分批，不能混算。
 
 CPU必须render，保持table/hole变换审计。格式压缩不改变pre/post时间：terminal图明确缺失；预算尾post另存一帧。公开仓库不含轨迹/视频/权重。本轮已停止，不自动再采样。
+
+## 2026-10-28 三视角补充（新授权覆盖旧批次的“不自动扩量”）
+
+新rig3选择/配对证据见CAMERA_VALIDATION。旧双路默认保持，新增固定A/B和link7固定外参腕部。渲染与校准来自同render product，CPU下不能信任移动camera.data的USD缓存。相机数量、顺序、分辨率、mount、实际K、render配置均纳入新视觉checkpoint契约；原RL专家输入仍140D，不受新图像尺寸影响。Schema2/trace2/math/dt不变，storage2支持V路+动态pose，禁止双视角权重静默解释成三视角。
+
+用户已明确授权通过验收后采400成功，旧60尝试/10GiB停止规则只属于旧实验。新protocol `triple400_native_seed_rejection_v1`按原reset seed序列记录/拒绝非法起点，不改物理，不重试同seed；95GiB/1600尝试/单条2400步900s/40GiB空闲底线，软件或审计错误停。所有数据留本地，0参数训练。

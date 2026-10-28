@@ -18,8 +18,9 @@ class ManifestReader:
         for row in self.entries.values():
             if not row.get("valid"):
                 raise ValueError("Unvalidated row in committed manifest")
-            if set(row["files"]) != {"data.h5", "camera_0.mp4", "camera_1.mp4"}:
-                raise ValueError("A committed episode requires all three files")
+            views=len(row.get('camera_ids',['global_oblique','local_opposite']))
+            if set(row["files"]) != {'data.h5',*[f'camera_{v}.mp4' for v in range(views)]}:
+                raise ValueError("A committed episode requires data.h5 and one video per declared camera ID")
             for filename, record in row["files"].items():
                 file = (self.path.parent/row["directory"]/filename).resolve()
                 if not file.is_relative_to(self.path.parent):
@@ -69,6 +70,12 @@ class ManifestSequenceDataset:
         modes={self.reader.entries[k].get("wrench_frame_mode","legacy") for k in self.episodes}
         if len(modes)>1:
             raise ValueError("Do not silently mix legacy/world_hold collection configurations")
+        layouts={(d.metadata.get('camera_rig',{}).get('version',2),
+                  tuple(d.metadata.get('camera_ids',[])),
+                  tuple(tuple(c['resolution']) for c in d.metadata.get('cameras',[])))
+                 for d in self.datasets.values()}
+        if len(layouts)>1:
+            raise ValueError('Do not mix camera layouts/resolutions in one Dataset')
 
     def chunks(self, episode, chunk_size=8):
         row = self.reader.entries[episode]

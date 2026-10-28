@@ -10,17 +10,17 @@ from visuotactile.recording import EpisodeReader, flatten
 from visuotactile.run_rl_trials import validate_completion, prior_attempt
 
 
-def fixture(path, terminal):
+def fixture(path, terminal, views=2):
     rng=np.random.default_rng(9)
-    rgb=rng.integers(0,256,(4,2,3,6,8),dtype=np.uint8).astype('f4')/np.float32(255)
-    depth=rng.random((4,2,1,6,8),dtype=np.float32)
+    rgb=rng.integers(0,256,(4,views,3,6,8),dtype=np.uint8).astype('f4')/np.float32(255)
+    depth=rng.random((4,views,1,6,8),dtype=np.float32)
     images=np.concatenate((rgb,depth),2);valid=np.ones_like(depth,dtype=bool)
     with h5py.File(path,'x') as f:
-        f.attrs.update(schema_version=2,metadata_json=json.dumps({'perception_version':2}))
+        f.attrs.update(schema_version=2,metadata_json=json.dumps({'perception_version':2, 'camera_rig':{'version':3 if views==3 else 2},'camera_ids':[f'view_{i}' for i in range(views)]}))
         g=f.create_group('episodes/test');g.attrs.update(length=3,complete=terminal)
         for key,arr in {'image':images,'depth_m':depth,'depth_valid':valid,
-                        'camera_time_s':np.arange(4)[:,None].repeat(2,1)/60,
-                        'camera_frame':np.arange(4)[:,None].repeat(2,1),
+                        'camera_time_s':np.arange(4)[:,None].repeat(views,1)/60,
+                        'camera_frame':np.arange(4)[:,None].repeat(views,1),
                         'episode_id':np.zeros(4,dtype='i8'),'step_id':np.arange(4)}.items():
             g['obs/'+key]=arr[:3]
             if key!='depth_m':
@@ -31,12 +31,13 @@ def fixture(path, terminal):
         g['transition/action']=rng.random((3,29),dtype=np.float32)
 
 
+@pytest.mark.parametrize('views',[2,3])
 @pytest.mark.parametrize('terminal',[True,False])
-def test_lossless_storage_and_terminal_boundary(tmp_path,terminal):
-    source=tmp_path/'old.h5';fixture(source,terminal)
+def test_lossless_storage_and_terminal_boundary(tmp_path,terminal,views):
+    source=tmp_path/'old.h5';fixture(source,terminal,views)
     output=tmp_path/'compact';info=convert_episode(source,output)
     assert info['frame_count']==3+int(not terminal)
-    assert sorted(p.name for p in output.iterdir())==['camera_0.mp4','camera_1.mp4','data.h5']
+    assert sorted(p.name for p in output.iterdir())==[*(f'camera_{v}.mp4' for v in range(views)),'data.h5']
     a=flatten(EpisodeReader(source).read('test'));b=flatten(EpisodeReader(output/'data.h5').read('test'))
     assert set(a)==set(b)
     for key in a:

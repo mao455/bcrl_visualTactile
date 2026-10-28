@@ -42,7 +42,7 @@ def test_manifest_checksum_missing_files_and_group_split(tmp_path):
     with pytest.raises(ValueError,match='checksum'):ManifestReader(path,verify=True)
     del rows[0]['files']['camera_1.mp4']
     path.write_text(json.dumps(dict(manifest_version=1,episodes=rows)))
-    with pytest.raises(ValueError,match='three files'):ManifestReader(path)
+    with pytest.raises(ValueError,match='one video per declared camera'):ManifestReader(path)
 
 
 def test_manifest_success_filter_and_self_plan_guard(tmp_path):

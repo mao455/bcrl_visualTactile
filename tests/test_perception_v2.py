@@ -12,12 +12,12 @@ from visuotactile.rollout import NominalController
 from visuotactile.kinematics import rotate_force_to_link
 
 
-def packet(n=2,t=0):
+def packet(n=2,t=0,views=2):
     # Deterministic sentinels only to test interfaces, never imitation targets.
-    return dict(image=torch.linspace(0,1,n*2*4*24*32).reshape(n,2,4,24,32),
-                depth_valid=torch.ones(n,2,1,24,32,dtype=torch.bool),
-                camera_valid=torch.ones(n,2,dtype=torch.bool),
-                camera_time_s=torch.full((n,2),t/60,dtype=torch.float64),
+    return dict(image=torch.linspace(0,1,n*views*4*24*32).reshape(n,views,4,24,32),
+                depth_valid=torch.ones(n,views,1,24,32,dtype=torch.bool),
+                camera_valid=torch.ones(n,views,dtype=torch.bool),
+                camera_time_s=torch.full((n,views),t/60,dtype=torch.float64),
                 time_s=torch.full((n,),t/60,dtype=torch.float64),
                 proprio=torch.zeros(n,58),episode_id=torch.zeros(n,dtype=torch.long),
                 step_id=torch.full((n,),t,dtype=torch.long),
@@ -29,22 +29,27 @@ def packet(n=2,t=0):
                 **TaskCommand("tight_insertion").packet(n,"cpu"),**empty_plan_context(n))
 
 
-def test_v2_full_interfaces_gradients_and_untrained_roundtrip(tmp_path):
+@pytest.mark.parametrize("views",[2,3])
+def test_v2_full_interfaces_gradients_and_untrained_roundtrip(tmp_path,views):
     torch.set_num_threads(2)
-    cfg=PolicyConfig(history=2,stride=1,inference_steps=2)
+    cfg=PolicyConfig(history=2,stride=1,inference_steps=2,views=views)
     nominal=NominalController(NominalDiffusionPolicy(cfg),2)
     correction=CorrectionPolicy(cfg)
     assert not ({p.data_ptr() for p in nominal.model.parameters()} & {p.data_ptr() for p in correction.parameters()})
     context=CorrectionContext(2,cfg,force_history_steps=2)
     for t in range(3):
-        p=packet(t=t)
+        p=packet(t=t,views=views)
         nominal.act(p)
         inputs=context.observe(nominal.last_packet,nominal.plan,nominal.cursor-1)
         context.commit(torch.full((2,29),.25))
+    inputs["visual_history"]["image"].requires_grad_(True)
     out=correction(**inputs)
     assert out.shape==(2,29) and torch.isfinite(out).all()
     # Jacobian probe, no labels, loss function, optimizer or weight update.
     out.sum().backward()
+    image_grad=inputs["visual_history"]["image"].grad
+    assert torch.isfinite(image_grad).all()
+    assert (image_grad.abs().sum((0,1,3,4,5))>0).all()
     for module in (correction.visual.vision.rgb,correction.visual.vision.depth,
                    correction.tactile,correction.intent,correction.motion,correction.policy):
         grads=[p.grad for p in module.parameters() if p.grad is not None]

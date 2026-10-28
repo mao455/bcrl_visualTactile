@@ -1,3 +1,5 @@
+> 视觉—触觉研究最新进展： [三相机验证与400条采集协议](research_docs/CAMERA_VALIDATION.md)，[实际运行状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
+
 # Play2Perfect
 
 ### What Matters in Dexterous Play Pretraining for Precise Assembly?

@@ -49,3 +49,15 @@
 先查看3视频，决定是否另立“合法初始化成功示范”协议；随机原生姿态有穿入问题，不能擅自修改初始高度/姿态/物理并混算。Kit启动SIGSEGV需要独立稳定性排查，不能用无上限重试掩盖。未来400成功预算按25/50/75%情景约1600/800/534合法尝试、49.54/24.77/16.53GiB、20.01/10.00/6.68小时（不含非法/崩溃/最后分析）；目前单一起点不足以选真实成功率。
 
 正式训练前还要选择无自身计划baseline或因果模型回放、按pair_id划分、多episode训练统计/绑定、memory2验证loss。Correction目标与去预加载未解决；不运行任何参数训练，也不自动继续400/1200采集。
+
+## 新阶段开始：三视角验证→400成功（2026-10-28）
+
+当前用户明确更新授权：完成相机/专家回归/数据审计/资源检查后可直接启动新的400成功批次；旧停止规则仅限旧批次。起点f39c968，原工作树干净，新分支feature/triple-camera-validation；本项目无采集进程，外部GPU生产任务在运行，绝不操作。新证据目录outputs/visuotactile/camera_v3_20261028。候选补丁未发现，不假定已应用。实际完成结果将在后续追加；当前只启动一个腕部候选完整专家probe，不是400批次。
+
+## 三视角验收完成，准备启动新400协议
+
+读CAMERA_VALIDATION及evidence/camera_validation.json。本轮13条完整专家probe：其中最终448三视角三个合法起点920302/17/920101，共602步、3成功；其余是同seed相机/渲染/分辨率比较，不能算独立成功率或400生产数据。初期2条动态校准错误的数据仅诊断；1次缺numpy import异常已修复，1次Kit startup SIGSEGV仍留现场（配对验收在新目录重做）。41 tests通过；128数组配对完全相同；143字段无损转换；三视角真实顺序/梯度/恢复0更新。
+
+冻结生产方案wrist_bracket、448×252、quality/AA Off、原公开expert/SAPG group0、world_hold、单env、120Hz physics/60Hz control。gate路径 `outputs/visuotactile/camera_v3_20261028/camera_gate.json`；计划新root `outputs/visuotactile/insertion_triple400_20261028`，driver `collect_success_batch`。目标400有效自然成功；seed930000起，原生初始化+零额外偏移，逐条拒绝非法起点并保留原因；最多1600尝试/95GiB，空闲40GiB底线+12GiB尝试预留。失败/删失完整保留；任意软件/审计异常停止、不自动重试，原批次不续跑。下文将追加真正启动状态，本文段本身不表示已经启动。
+
+旧失败清理已按用户授权执行：cohort_v3旧manifest中12条已完整读取、SHA核验、确认native failure且初始化box重叠的H5已删除，共337,127,269 bytes。每条metadata、失败原因、全部统计/小状态数组及原hash保存在新诊断root/old_failure_archive；旧cohort根新增hdf5_cleanup_tombstones_20261028.json。旧manifest作为历史原样保留，不再可用于断言46文件仍全在；全部成功源、未知损坏/未完成/软件错误现场及旧失败预览保留。没有清理其他项目或后台任务文件。

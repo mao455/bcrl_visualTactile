@@ -246,3 +246,37 @@ bash visuotactile/run_cpu.sh -m visuotactile.analyze_insertion_dataset \
 ```
 
 `--previews`仅在需要重新导出最多4个拼接视频时使用，会覆盖该批的同名派生预览；正式三文件不改。当前只3个视频，旧失败已标非法初始诊断。图/JSON在analysis，逐字段压缩大小在storage_audit.json，全部原始产物ignored，不公开上传。
+
+## 新三视角验收及已授权400批次（2026-10-28晚）
+
+先读CAMERA_VALIDATION及SESSION_HANDOFF。旧批次停止记录是历史；新400已授权，但必须先通过gate。原专家权重/资产/物理不变；以下CLI不训练。示例路径必须不存在，旧输出不能覆盖。
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.collect \
+  --output outputs/visuotactile/new_camera_probe \
+  --camera-rig wrist_bracket --image-size 448 252 --render-mode quality \
+  --seed 17 --episodes 1 --max-steps 2400 \
+  --experiment-condition camera_validation --wrench-frame-mode world_hold --camera-diagnostics
+bash visuotactile/run_cpu.sh -m visuotactile.camera_review review outputs/visuotactile/new_camera_probe
+bash visuotactile/run_cpu.sh -m visuotactile.camera_review clearance outputs/visuotactile/new_camera_probe
+bash visuotactile/run_cpu.sh -m visuotactile.camera_review aperture outputs/visuotactile/new_camera_probe
+```
+
+相机诊断末尾render-only对照可能已在reset状态，不能当终止曝光。若camera.data位姿不动而图像在动，使用本轮CameraParams同步字段；不修改共享Lab。原双路仍为`--camera-rig legacy_dual`。
+
+400新driver为`python -m visuotactile.collect_success_batch --output <fresh_root> --gate <camera_gate.json>`，由低优先级run_cpu启动。只启动一个driver；运行前先读实际status/PID/log，避免重复采集。本轮gate在`outputs/visuotactile/camera_v3_20261028/camera_gate.json`，生产实际路径见SESSION_HANDOFF。driver冻结代码hash/相机/权重、逐条完整审计/转换发布，5秒间隔。`run_status/status.json`为当前进度，`manifest.json`记录尝试分母与正式episode。`STOP`文件只让本driver在下一尝试前停止；不可操作其他GPU进程。任何blocked必须先阅读error/日志与现场，不自动循环重启。
+
+读取三视角生产数据：
+
+```python
+from visuotactile.manifest import ManifestReader, ManifestSequenceDataset
+manifest = 'outputs/visuotactile/insertion_triple400_20261028/manifest.json'
+r = ManifestReader(manifest, verify=True)
+print([(k, v['outcome']) for k,v in r.entries.items()])
+ds = ManifestSequenceDataset(manifest, stage='production')
+episode = ds.episodes[0]
+chunk = next(ds.chunks(episode, chunk_size=8))
+print(chunk['obs']['image'].shape)  # (1,T,3,4,252,448)
+```
+
+此读取/顺序记忆接口可用，不等于正式manifest训练已就绪。纯专家缺自身Nominal预测，不要用专家未来命令补prior_plan，也不要启动train.py做“零更新”检查。

@@ -29,6 +29,12 @@ def main():
     parser.add_argument("--teacher-group", type=int, choices=range(6), default=0,
                         help="Released SAPG parameter group, 0..5 maps to identifiers 50..0")
     parser.add_argument("--camera", choices=["original", "oblique"], default="oblique")
+    from .camera_rigs import RIGS
+    parser.add_argument('--camera-rig',choices=RIGS,default='legacy_dual')
+    parser.add_argument('--image-size',type=int,nargs=2,metavar=('WIDTH','HEIGHT'),default=(224,126))
+    parser.add_argument('--render-mode',choices=('performance','balanced','quality'),default='performance')
+    parser.add_argument('--render-aa',choices=('Off','TAA','DLAA'),default='Off')
+    parser.add_argument('--camera-diagnostics',action='store_true',help='Static render-only frames and actual USD mount audit after rollout')
     parser.add_argument("--audit-default-camera", action="store_true")
     parser.add_argument("--perception-version", type=int, choices=(1,2), default=2)
     parser.add_argument("--local-eye", type=float, nargs=3, default=(-.7,-.35,1.15))
@@ -87,8 +93,10 @@ def main():
     cfg.student_obs.camera_backend = "standard"
     cfg.student_obs.camera_update_period_s = 0.0
     if args.perception_version == 2:
-        cfg.student_obs.image_width = cfg.student_obs.image_input_width = 224
-        cfg.student_obs.image_height = cfg.student_obs.image_input_height = 126
+        cfg.student_obs.image_width = cfg.student_obs.image_input_width = args.image_size[0]
+        cfg.student_obs.image_height = cfg.student_obs.image_input_height = args.image_size[1]
+    cfg.sim.render.rendering_mode=args.render_mode
+    cfg.sim.render.antialiasing_mode=args.render_aa
     env = None
     writer = None
     source = "nominal_bc" if args.policy_checkpoint else "released_rl_checkpoint"
@@ -97,7 +105,8 @@ def main():
         command = (TaskCommand(args.problem, json.loads(args.goal_command.read_text()) if args.goal_command else None)
                    if args.perception_version == 2 else None)
         env = InstrumentedAssemblyEnv(cfg, perception_version=args.perception_version, task_command=command,
-                                      initial_offset_xy=args.offset_xy, wrench_frame_mode=args.wrench_frame_mode)
+                                      initial_offset_xy=args.offset_xy, wrench_frame_mode=args.wrench_frame_mode,
+                                      camera_rig=args.camera_rig)
         player = None
         if not args.policy_checkpoint:
             agent_cfg = _configure_agent(task, "rl_games_sapg_cfg_entry_point", rl_device="cpu",
@@ -199,7 +208,7 @@ def main():
             from .correction import CorrectionShadow
             with torch.random.fork_rng(devices=[]):
                 torch.manual_seed(123)
-                probe = NominalController(NominalDiffusionPolicy(PolicyConfig()),args.num_envs)
+                probe = NominalController(NominalDiffusionPolicy(PolicyConfig(views=len(metadata['camera_ids']))),args.num_envs)
             shadow = CorrectionShadow(probe,args.num_envs,args.contact_threshold_N)
         intent = policy or probe
         metadata.update(correction_mode="untrained_shadow_never_executed" if shadow else "disabled",
@@ -358,6 +367,9 @@ def main():
             result.update(correction_mode="untrained_shadow_never_executed",
                           shadow_inference_ms_median=float(np.median(shadow.inference_ms)),
                           shadow_inference_ms_max=float(max(shadow.inference_ms)))
+        if args.camera_diagnostics:
+            from .camera_diagnostics import capture_static
+            capture_static(env,args.output)
         (args.output / "result.json").write_text(json.dumps(result, indent=2))
         (args.output / "metadata.json").write_text(json.dumps(metadata, default=str, indent=2))
         print("RESEARCH_RESULT " + json.dumps(result), flush=True)

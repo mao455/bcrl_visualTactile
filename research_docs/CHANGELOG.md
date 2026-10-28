@@ -218,3 +218,29 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 - `bash visuotactile/run_cpu.sh -m pytest -q tests`：35 passed，既有requests依赖warning未动；`git diff --check`通过。原仿真/资产/RL未改，本轮全程CPU physics+render，未使用已知无效无渲染场景。后台任务未发信号/改优先级，共享环境未修改。
 
 未完成：多起点统计、合法初始生产协议、Kit稳定性、正式manifest trainer/group normalization/memory2 validation、真实self-plan回放或无计划基线、Correction目标、去预加载。完整采集已按问题停止，不自动扩量或训练。
+
+## 2026-10-28：三相机、动态外参、真实视觉验收与新400协议
+
+用户明确允许通过相机/原专家回归/数据审计后启动新的400有效成功批次，覆盖旧批次的no400限制；原批次保持历史单列。本轮不训练，原task/physics/assets/RL没有改动。实际设计和逐项限制见[CAMERA_VALIDATION](CAMERA_VALIDATION.md)，小汇总[evidence/camera_validation.json](evidence/camera_validation.json)，ignored原始证据在camera_v3_20261028。
+
+### 文件、调用与语义变化
+
+- 新`camera_rigs.py`声明固定A/B及少量腕部候选；最终`wrist_bracket`固定局部pos(.12,.16,.07)，固定朝向(0,-.14,.24)，不动态追踪真值。`sim/environment.py`在现有USD中解析link7刚体，增加纯Camera child，不改变固定关节合并/碰撞；由原2路stack扩成按实际ID数量V路。
+- 新动态`camera_pose_w (N,V,7)`来自每个相机/环境render product CameraParams，`camera_parent_pose_w (N,7)`用于诊断。之前CPU camera.data返回静态USD缓存，最初两候选被审计拒绝；现在逐帧检验位置/旋转/时间对齐。固定/局部安装/初始外参作用、K、裁剪、时钟、ID存metadata；Nominal allowlist不增加这些真值。
+- `collect.py`新增rig/image-size/render-mode/render-aa/static-diagnostics可选参数，旧双路默认不变；shadow模型views由实际相机数配置。原专家权重、140Dteacher、动作队列/数学/随机化不动。`camera_diagnostics.py`记录真实USD/运行时render设置，做24帧静止原图/采样对照，0额外物理步。
+- `recording.py`新增有效post动态标定，终止mask保持；`compact.py`增加storage2、按V生成视频和严格ID数量/位姿衔接，全字段无损验证；`run_rl_trials.py`completion gate接受storage2；`run_insertion_dataset.py`删除重复storage_version keyword，保留旧实验逻辑。`manifest.py`按声明视角检查文件完整，Dataset拒绝混布局/分辨率。
+- `contracts.py`将rig3局部mount、实际K、V/ID/resolution/render配置纳入视觉checkpoint兼容检查，旧双权重拒绝；原RL checkpoint不受视觉契约影响。`check_dataset.py`按实际views初始化零更新模型。旧`probe_perception.py`分镜宽度/clock/FK投影改为实际V并用动态pose；它仍是旧memory1/probe数据入口，不作为新完整验证结果。
+- 新`camera_review.py`：实际raw/compact统一读取、完整60Hz同步视频、每12步原RGB/深度/valid导出、128组非图像数组配对、FK+mesh-AABB光心距离、孔口投影＋深度诊断。后两项用真值作离线诊断，不提供给策略。新`check_camera_interfaces.py`：16步真实因果回放生成真正未训练Nominal计划，独立Correction保持Shadow，Jacobian与保存恢复检查，无optimizer。
+- 新`collect_success_batch.py`复用现有collector/completion/convert，不重写物理或记录管线；新的冻结配置/seed序列、400成功计数、1600尝试/95GiB/40GiB空闲/2400步900s界限、完整attempt记录、错误停止、source hash冻结。初始化重叠仅动作前拒绝，不篡改高度/随机分布，不重试同seed。每条成功完整审计/转换/manifest持久化后才清理本条冗余temporary。
+- 新`tests/test_camera_rigs.py`验证独立非单位矩阵row/OpenGL→ROS和局部光轴；`test_success_batch.py`拒绝把未知错误/已开始轨迹当初始重叠。扩展`test_perception_v2.py`三路两环境前向/每路梯度/恢复，`test_compact.py`2/3路终止和预算尾帧往返，`test_insertion_dataset.py`文件数契约断言。全tests最终41通过；此前一次旧错误文字断言失败已修正并重测，未掩盖失败。
+- 文档：新CAMERA_VALIDATION；更新AGENTS、根/研究README、USER_RESEARCH_DIRECTION、SESSION_HANDOFF、DATA_SCHEMA、CONTRACTS、ARCHITECTURE、PERCEPTION、RUNBOOK和本日志。来源网页/CAD索引仅本地，没有复制新第三方源码或改变许可。
+
+### 已测事实
+
+- 本轮13完整专家验收轨迹（多次同seed方案/分辨率比较，不是13独立起点）：最终三种起点920302/17/920101共602步全部自然成功并通过审计；不作为成功率估计/不计400。另1个引入新接口时缺numpy import的reset前异常已修复；1个Kit启动SIGSEGV发生在旧双路baseline，明确记录并在独立目录重做该配对验收，未删除现场。前两个腕部候选的旧动态标定错误保留证据，不准进入正式数据。
+- seed920302旧dual repeat和dual→三448的128数组逐位一致；seed17旧world_hold→新三448亦一致，包含实际非零力。重复基线差为0；physics120/control60和所有事件不变，墙钟较慢不解释为新控制频率。
+- 143字段三路转换精确；168步顺序Dataset chunk7/step1最大4.917e−7、reset一致、参数buffer hash不变。16步三路真实Jacobian/各模态梯度非零有限，(1,29)Correction候选未执行，保存恢复精确。所有检查0参数更新，旧视觉checkpoint拒绝，不宣称学会感知/插入。
+- quality三448主文件119–151MB/episode，双448同168步67.69MB、三448119.01MB（+75.8%）；单进程GPU快照2932→3001MiB。原始静止RGB已存在颗粒，quality显著降低；sampledLighting关闭请求未生效，16spp在performance未解决，不能把根因唯一归到某项。无RGB额外加噪、未降任务DR、未做后处理模糊。
+- 光心到已测机器人mesh包围体>=.127m；并非实体支架/全动作包络认证。腕部真实补充部分搬运/对孔信息，但末段仍遮挡。400运行状态独立追加在交接文档，不能由gate已写推断已运行。
+
+旧失败清理：核验旧cohort46文件SHA和完整结果后，仅删除12条已确认native failure/非法box起点的原H5，共337,127,269 bytes；保留完整统计/原因/metadata/小数组、原manifest与逐文件hash，新增旧root tombstones记录。旧成功和未知partial不动，预览保留。该清理有本轮用户明确授权，不把未知打不开文件当失败删掉。

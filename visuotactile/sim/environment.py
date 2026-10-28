@@ -6,8 +6,9 @@ Only contact reporting APIs are added to existing distal rigid bodies.
 """
 from contextlib import contextmanager
 
+import numpy as np
 import torch
-from pxr import PhysxSchema, UsdPhysics
+from pxr import PhysxSchema, UsdPhysics, Usd
 from isaaclab.sensors import Camera, ContactSensor, ContactSensorCfg
 from isaaclab.utils.math import quat_apply, quat_apply_inverse
 import isaaclab.sim as sim_utils
@@ -18,7 +19,8 @@ from isaacsimenvs.tasks.play.utils.scene_utils import (
     JOINT_NAMES_CANONICAL, setup_student_camera, hide_goal_viz_for_student_camera,
 )
 from visuotactile.kinematics import EncoderKinematics, rotate_force_to_link
-from visuotactile.observations import CAMERA_IDS, TaskCommand, empty_plan_context
+from visuotactile.observations import TaskCommand, empty_plan_context
+from visuotactile.camera_rigs import rig_contract
 
 DISTAL_BODIES = (
     "left_index_DP", "left_middle_DP", "left_ring_DP",
@@ -30,7 +32,14 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     """Teacher obs unchanged; research packet cached once per returned observation."""
 
     def __init__(self, cfg, *, perception_version=2, task_command=None,
-                 initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", **kwargs):
+                 initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", camera_rig="legacy_dual", **kwargs):
+        self.camera_rig = rig_contract(camera_rig)
+        if self.camera_rig['version'] == 3:
+            cfg.student_obs.focal_length = self.camera_rig['fixed_focal_length']
+            cfg.student_obs.horizontal_aperture_offset = 0.
+            cfg.student_obs.vertical_aperture_offset = 0.
+        if camera_rig != "legacy_dual" and perception_version != 2:
+            raise ValueError("New camera rigs require metric RGB-D schema2")
         if wrench_frame_mode not in ("legacy", "world_hold"):
             raise ValueError("Unknown wrench compatibility mode")
         if len(initial_offset_xy) != 2 or any(abs(x) > .05 for x in initial_offset_xy):
@@ -57,6 +66,16 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self.last_transition = None
         self._research_ready = False
         super().__init__(cfg, **kwargs)
+        self._camera_pose_annotators = []
+        if self.camera_rig['version'] == 3:
+            import omni.replicator.core as rep
+            for camera in self.research_cameras:
+                annotators = []
+                for product in camera.render_product_paths:
+                    annotator = rep.AnnotatorRegistry.get_annotator('CameraParams')
+                    annotator.attach(product)
+                    annotators.append(annotator)
+                self._camera_pose_annotators.append(annotators)
         if list(self._arm_joint_ids) != list(range(7)) or list(self._hand_joint_ids) != list(range(7, 29)):
             raise RuntimeError("Native action pipeline assumes arm-first Lab order; discovered mapping differs")
         self.research_episode = torch.full((self.num_envs,), -1, device=self.device, dtype=torch.long)
@@ -137,6 +156,27 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             self.local_camera = Camera(camera_cfg)
             self.scene.sensors["research_local_camera"] = self.local_camera
             self.research_cameras.append(self.local_camera)
+            if 'wrist' in self.camera_rig or self.camera_rig['name']=='third_fixed':
+                third_cfg = camera_cfg.copy()
+                if 'wrist' in self.camera_rig:
+                    mount=self.camera_rig['wrist']
+                    import omni.usd
+                    rigid=[p for p in Usd.PrimRange(omni.usd.get_context().get_stage().GetPrimAtPath('/World/envs/env_0/Robot'))
+                           if p.GetName()==mount['parent_body'] and p.HasAPI(UsdPhysics.RigidBodyAPI)]
+                    if len(rigid)!=1:
+                        raise RuntimeError('Resolve actual wrist rigid prim before creating camera: '+str(rigid))
+                    mount['parent_prim']=str(rigid[0].GetPath())
+                    third_cfg.prim_path=mount['parent_prim'].replace('/env_0/','/env_.*/')+'/ResearchWristCamera'
+                    third_cfg.offset.pos=mount['pos_parent_m']
+                    third_cfg.offset.rot=mount['quat_parent_ros_wxyz']
+                    third_cfg.offset.convention='ros'
+                    third_cfg.spawn.clipping_range=(.015,3.)
+                    third_cfg.spawn.focal_length=24.
+                else:
+                    third_cfg.prim_path='/World/envs/env_.*/ResearchFrontCamera'
+                self.third_camera=Camera(third_cfg)
+                self.scene.sensors['research_third_camera']=self.third_camera
+                self.research_cameras.append(self.third_camera)
         self.research_contacts = []
         self.research_contact_paths = []
         for name in DISTAL_BODIES:
@@ -166,6 +206,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     def configure_camera_views(self, local_eye=(-.7, -.35, 1.15), local_target=(0., -.03, .68)):
         """Static calibrations relative to env origin; never follow a true object pose."""
         views = [((.6, -.8, 1.1), (0., .15, .65)), (local_eye, local_target)]
+        if self.camera_rig['version']==3:
+            views=list(self.camera_rig['fixed_views'])
+            if self.camera_rig['name']=='third_fixed': views.append(((.25,.55,1.1),(0.,0.,.65)))
         for camera, (eye, target) in zip(self.research_cameras, views):
             camera.set_world_poses_from_view(torch.tensor([eye], device=self.device)+self.scene.env_origins,
                                             torch.tensor([target], device=self.device)+self.scene.env_origins)
@@ -208,12 +251,22 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             images.append(torch.cat((rgb, metric), 1))
             depths.append(metric)
             valid.append(mask)
-        return dict(image=torch.stack(images, 1), depth_m=torch.stack(depths, 1),
+        result = dict(image=torch.stack(images, 1), depth_m=torch.stack(depths, 1),
                     depth_valid=torch.stack(valid, 1),
                     camera_valid=torch.ones(self.num_envs, len(images), dtype=torch.bool, device=self.device),
                     camera_time_s=torch.full((self.num_envs, len(images)), self.research_tick*self.step_dt,
                                              dtype=torch.float64, device=self.device),
                     camera_frame=torch.stack([c.frame.clone() for c in self.research_cameras], 1))
+        if self.camera_rig['version']==3:
+            # Synchronized sensor calibration/diagnostic, deliberately not a nominal key.
+            from visuotactile.camera_rigs import renderer_pose_ros
+            result['camera_pose_w']=torch.tensor(np.stack([
+                [renderer_pose_ros(a.get_data()['cameraViewTransform']) for a in annotators]
+                for annotators in self._camera_pose_annotators], axis=1), device=self.device)
+            if 'wrist' in self.camera_rig:
+                body=self.robot.find_bodies(self.camera_rig['wrist']['parent_body'])[0][0]
+                result['camera_parent_pose_w']=self.robot.data.body_link_pose_w[:,body].clone()
+        return result
 
     def _diagnostics(self):
         perm = self._perm_lab_to_canon
@@ -436,10 +489,16 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                             base_position_env=list(self.robot.cfg.init_state.pos),
                             base_orientation_wxyz=list(self.robot.cfg.init_state.rot),
                             contact_pose_source="URDF FK from joint encoders at each physics update; no body truth input",
-                            camera_ids=list(CAMERA_IDS), cameras=[])
-            for identity, camera in zip(CAMERA_IDS, self.research_cameras):
+                            camera_ids=self.camera_rig['ids'], camera_rig=self.camera_rig, cameras=[])
+            for index, (identity, camera) in enumerate(zip(self.camera_rig['ids'], self.research_cameras, strict=True)):
+                pose = (self.research_packet['camera_pose_w'][:,index] if self.camera_rig['version']==3
+                        else torch.cat((camera.data.pos_w,camera.data.quat_w_ros),-1))
                 metadata["cameras"].append(dict(id=identity, resolution=[camera.cfg.height, camera.cfg.width],
-                    pos_env=(camera.data.pos_w-self.scene.env_origins).tolist(),
-                    quat_ros_wxyz=camera.data.quat_w_ros.tolist(), intrinsics=camera.data.intrinsic_matrices.tolist(),
+                    pos_env=(pose[:,:3]-self.scene.env_origins).tolist(),
+                    quat_ros_wxyz=pose[:,3:].tolist(), intrinsics=camera.data.intrinsic_matrices.tolist(),
+                    extrinsic_role='initial_only_use_per_frame_pose' if identity=='wrist_rgbd' else 'fixed',
+                    clipping_range_m=list(camera.cfg.spawn.clipping_range),
                     clock="global simulated control time after render", rate_hz=1/self.step_dt))
+            if self.camera_rig['version'] == 3:
+                metadata['camera_pose_source'] = 'Replicator CameraParams from each RGB/depth render product; world ROS optical wxyz; diagnostic calibration only'
         return metadata

@@ -38,7 +38,7 @@ def validate_completion(path, entry=None, returncode=0):
     elif (path/"data.h5").is_file():
         from .compact import EpisodeFile
         with EpisodeFile(path/"data.h5") as f:
-            if int(f.attrs.get("storage_version",0))!=1 or "result_json" not in f.attrs:
+            if int(f.attrs.get("storage_version",0)) not in (1,2) or "result_json" not in f.attrs:
                 raise RuntimeError("Missing result provenance")
             result=json.loads(f.attrs["result_json"])
     else:
