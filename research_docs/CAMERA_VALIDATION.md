@@ -104,3 +104,7 @@ released checkpoint SHA256 `7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be813
 查证Kit本机支持`/app/extensions/fsWatcherEnabled`后，新增collector可选`--disable-extension-watch`，**只关闭当前进程扩展热重载**，不改OS限制、IDE、共享依赖或后台任务。完整pair A/B各168步正常启动/成功，日志无上述watch错误；metadata实际值false；与改前128数组逐位一致，重复亦一致。原相机/物理合约不变。本轮完整probe由13增为15，仍不计400。
 
 新driver要求bootstrap gate，额外支持只针对“已核验pre-episode阻断且没有任何正式episode”的predecessor继续：新目录保留前批失败尝试及来源，从下一个seed开始，禁止重试/覆盖930000。协议`triple400_native_seed_rejection_watchoff_v2`，新root `insertion_triple400_watchoff_20261028`，gate `camera_gate_watchoff.json`。这是查明启动资源问题后的修复继续，非自动循环重试；若再出现未知软件/审计错误仍停。未来状态仍看真实status，不能用两次成功启动声称Kit完全稳定。
+
+## 最终生产状态（21:18 CST）
+
+三视角方案通过上述观测/回归/数据验收，400已真实启动并提交3条成功（438步、292,101,725 bytes），随后seed930005在Kit初始化报`LLVM ERROR: out of memory`/exit−6，未创建场景/metadata/H5。新driver已停止，**当前3/400，非后台继续运行**。累计6个尝试含原启动错误、3成功、1动作前非法起点和这次启动错误。新错误无change-watch报错，关闭扩展热重载不代表启动问题全部解决。失败后RAM仍available约18.4GiB、VRAM free约22.7GiB、cgroup无OOM事件，不能仅凭错误字样断言GPU显存不足或内核杀进程。保留全部现场/成功数据，没有无条件重试或更改后台任务。详见SESSION_HANDOFF最新段和实际`run_status/blocker_llvm.json`。

@@ -252,3 +252,7 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 ### 正式批次启动后的真实首条检查
 
 新watchoff driver PID1996734已经启动；原930000错误作为predecessor保留，首条s930001自然成功160步，四文件约107.65MB、143字段往返/完整审计/逐文件SHA通过。真实manifest顺序Dataset读出(1,2,3,4,252,448)图像与(2,12,29)监督，0更新。1/400时正在继续930002，状态并非最终完成。仅更新交接/公开小证据，未更改运行中的源码或推送数据；live入口见SESSION_HANDOFF。
+
+### 首条之后的最终状态纠正（21:18 CST）
+
+运行继续提交s930002/3后，s930004非法初始化被正确拒绝，s930005在Kit启动报LLVM out of memory/exit−6，无场景/H5，driver按错误停止。因此上文“正在运行1/400”为较早快照，**最新3/400且无运行进程**。三条438步/292,101,725bytes全部重验SHA。累计6尝试含2软件启动错误、1非法初始化；0合法任务失败。记录资源快照/cgroup无OOM事件，未下结论是GPU内存耗尽；不盲目重试，不删已有成功。更新交接、相机报告、小证据/AGENTS/RUNBOOK当前状态，没有更改冻结研究代码。

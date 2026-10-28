@@ -183,7 +183,7 @@
   },
   "tests": "41 passed; one pre-existing requests dependency warning",
   "hardware_limit": "KUKA left SHARPA physical bracket/housing/cable fit unverified",
-  "production_status": "Live batch exists; see SESSION_HANDOFF and ignored run_status for current counts, not this static validation summary",
+  "production_status": "BLOCKED at 3/400 after LLVM startup allocation error; no collector running",
   "bootstrap_validation": {
     "watchoff_original_exact": true,
     "watchoff_repeat_exact": true,
@@ -211,5 +211,53 @@
       29
     ],
     "sha256_verified": true
+  },
+  "production_final_snapshot": {
+    "committed_successes": 3,
+    "attempts": [
+      {
+        "id": "s930000",
+        "outcome": "software_or_audit_error",
+        "returncode": null
+      },
+      {
+        "id": "s930001",
+        "outcome": "success",
+        "returncode": 0
+      },
+      {
+        "id": "s930002",
+        "outcome": "success",
+        "returncode": 0
+      },
+      {
+        "id": "s930003",
+        "outcome": "success",
+        "returncode": 0
+      },
+      {
+        "id": "s930004",
+        "outcome": "invalid_initialization",
+        "returncode": 0
+      },
+      {
+        "id": "s930005",
+        "outcome": "software_or_audit_error",
+        "returncode": -6
+      }
+    ],
+    "episode_files_bytes": 292101725,
+    "child_and_driver_running": false,
+    "all_committed_file_hashes_rechecked": true,
+    "blocker": "s930005: LLVM ERROR: out of memory before scene/metadata/HDF5, returncode -6; no watch errors",
+    "resource_limits": {
+      "cgroup_memory_max": "max",
+      "cgroup_oom_events": 0,
+      "cgroup_oom_kill_events": 0,
+      "available_ram_after_failure_MiB": 18888,
+      "gpu_free_MiB": 23199,
+      "swap_free_kB": 208
+    },
+    "interpretation": "LLVM native allocation failure is observed; not proven VRAM exhaustion, kernel OOM kill, or solely inotify. No global resource/process changes; no blind retry."
   }
 }

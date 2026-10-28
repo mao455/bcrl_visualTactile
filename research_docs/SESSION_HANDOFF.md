@@ -77,3 +77,13 @@
 - 此快照为1/400有效成功；尝试计数含前批930000的启动错误，930002正在运行。**这不是最终400完成报告**；driver会继续，达到400、容量/尝试上限或软件/审计错误时停止。后续读取最新status/manifest，不能把本静态数字当实时状态。
 - camera/接口提交`37fb6e1`，bootstrap修复`6dfc20f330331970275de55d630c4075c5acb928`均已成功推送origin/main。源码hash在运行plan和每条metadata；文档/提交状态快照可继续更新，不动冻结源码。数据/视频/权重/日志都在ignored目录，未公开。
 - 后续核心未决：实体KUKA左手相机支架/外壳/线缆；更广初态下可见性/合法初始化覆盖；Kit长期稳定性；正式BC自预测历史与manifest训练；Correction学习目标与示范去预加载。不要用这次接口/渲染验收当作已经学到任务。
+
+## 最新状态覆盖前述运行快照：3/400，已停止（2026-10-28 21:18 CST）
+
+**目前没有本项目采集driver/child继续运行。** 新root `insertion_triple400_watchoff_20261028` 的status已为blocked，PID1996734已退出。6个seed尝试（含predecessor）：930000原Kit启动失败；930001/2/3正式成功；930004原生box初始化非法、动作前拒绝；930005新启动错误。合法任务失败0，不能把启动错误计作任务失败，也不能把3条说成完成400。
+
+新阻断的确切日志：`logs/s930005.log`只有启动信息后`LLVM ERROR: out of memory`，returncode−6，没有metadata/HDF5/场景，也没有之前的change-watch ENOSPC。热重载修复只解决该类watch错误，未证明Kit所有启动可靠。失败后只读资源：RAM available约18.4GiB、swap几乎满、VRAM free约22.7GiB；当前cgroup memory.max=max且oom/oom_kill=0。因此不能把LLVM错误直接解释为GPU显存满或内核OOM kill，也不能把它继续归因于inotify。未调整系统、IDE、后台进程或共享Lab，未盲目重试/补seed。
+
+三条正式成功都再次通过ManifestReader verify=True的四文件SHA检查：s930001=160步/107,645,500 bytes，s930002=163步/107,838,360 bytes，s930003=115步/76,617,865 bytes；合计438步、292,101,725 bytes，3/400。原始成功/失败现场完整保留。`run_status/blocker_llvm.json`记录错误、尝试分母和资源快照；launcher/status/manifest入口沿用上文。已有至少一条正式三视角episode可阅读，但没有运行中的批次可以等待到400。
+
+下一步先定位本机LLVM/Kit启动时分配失败并做有依据的启动对照，再设计**保留这3条和全部attempt的恢复**。当前predecessor恢复只支持0episode，不可删除正式数据绕过guard。用户400授权仍有效；技术阻断不等于需要重新询问是否允许采400。不要以调expert、改物理或无限启动重试掩盖问题。

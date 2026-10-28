@@ -284,3 +284,5 @@ print(chunk['obs']['image'].shape)  # (1,T,3,4,252,448)
 实际启动修复追加：本机inotify额度紧张，新400使用`--disable-extension-watch`（Kit进程内扩展热重载false），经两个完整配对probe验证；不修改全局sysctl/IDE。新gate为`camera_gate_watchoff.json`，新root为`insertion_triple400_watchoff_20261028`，需要显式`--predecessor outputs/visuotactile/insertion_triple400_20261028`保留首次启动失败并从930001继续。该旧root没有episode；通用中途有数据resume尚未实现，不可绕过guard删除既有数据。上面的读取示例manifest路径应改为这个新root。
 
 已实际启动：watchoff driver PID1996734；首条`episodes/s930001/data.h5`完成143字段审计与SHA验证，manifest/production Dataset读取成功。当前统计必须读`insertion_triple400_watchoff_20261028/run_status/status.json`及manifest，文档快照不是实时进度。详见SESSION_HANDOFF。原root仍保留启动失败，不要对它再次启动相同seed。
+
+最新状态纠正（21:18 CST）：PID1996734已退出；新root blocked at3/400，s930005是LLVM启动allocation错误，暂无场景/H5。三条正式文件SHA再检查通过。不要仅凭上面的启动记录判断仍在跑；先读status及blocker_llvm.json。已有3条数据的通用恢复未实现，现有predecessor选项会拒绝非空episode，不能删数据绕过。400授权保持，但先诊断启动阻断。
