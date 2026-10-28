@@ -141,3 +141,17 @@ Correction receives 12 consecutive 60-Hz motion/previous-command samples and 24 
 metadata新增condition、pair_id、原/应用force_scale、teacher推理模式/group embedding、checkpoint SHA256、code_identity（base commit、working tree、源码hash）、原timeout、外部预算、初始RNG hash。新采集器`result.steps`是实际控制tick，`step_budget`另存；完成/删失episode分别列出。独立trial的启动失败由外层`.status.json`保留，未产生HDF5不等于机器人失败。
 
 详细原生公式、world→body composer限制、统计与缺失说明见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。所有新增真值/RNG/扰动仅供数据审计，不进入Nominal或Correction模型输入。
+
+## 2026-10-28：storage_version1 / 三主文件，不改变感知版本
+
+详见[INSERTION_DATASET.md](INSERTION_DATASET.md)。旧HDF5无storage_version按0，新文件显式1；schema/perception2、memory2、trace2、wrench_trace3语义不变。单episode包含`data.h5`、`camera_0.mp4`、`camera_1.mp4`，视频只是H264观看副本，训练图像从H5精确重建。
+
+`episodes/<name>/frames/`：`rgb_u8=(F,2,3,126,224)` uint8，`depth_m=(F,2,1,126,224)` float32米，`depth_valid`同形bool；gzip4+shuffle按帧/通道chunk。`post_index=(T,)` int64，非terminal有效post指向t+1，缺失为−1。F=T（自然终止末图缺失）或T+1（预算末post仍有效）。原camera_frame、camera_time_s、episode_id、step_id、post可用性及相机标定仍完整保存；重复post/pre须逐值和时间索引相等才去重。uint8/255恢复原float32 RGB逐值相等，否则拒绝转换；Depth不量化。
+
+`EpisodeFile`按storage版本恢复原obs/image、obs/depth_m、obs/depth_valid、post/image与post/depth_valid，缺失post重建原零占位＋false有效性，其余139个原字段无损保留。不把图像缺失补成下一episode。原raw_action是专家原命令，submitted_action是实际选中命令，clipped_pre_delay是BC标签，delayed_command、target_rad和实际q分别保存，未因压缩混名。两物理子步触觉/FK/实际wrench完整保留，频率不变。
+
+文件metadata保留resolved config、初始/最终pose、额外offset、总object−hole、checkpoint及工作树源码hash；新增wrench_frame_mode和native_force_condition。H5属性保存source_sha256、result_json、video_role；版本不兼容拒绝。manifest_version1逐条记录id/目录/三文件bytes+SHA256、内部episode名、seed/pair_id/stage/condition/offset/mode、版本、有效性、结果、length、frame_count及精确回读字段数。早期本轮manifest的`config_sha256`实际上是整个metadata.json文件hash；最终字段名是`metadata_json_file_sha256`，不是单独config hash，不能误解旧别名。
+
+完成协议：原始逐步length提交 → result/FAILED/退出码/身份/全审计 → .partial转换 → **每字段回读精确一致** → MP4解码帧数验证 → fsync三文件并发布 → 压缩记录重审计 → manifest原子替换 → 仅清理本次新临时源。崩溃/异常保留现场，未进manifest的目录不视作完成；旧源一律不改。run_status/final_stop与失败目录不伪装成episode。
+
+ManifestSequenceDataset默认只取scan成功记录，拒绝隐式混合legacy/world_hold，按group分割。训练allowlist/维度不变，完整原始传感保留而非特征替代。正式训练因自身计划缺失/分组验证缺口设误用检查；实际验证是独立零更新回放。

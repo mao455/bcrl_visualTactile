@@ -1,6 +1,6 @@
 """Strict nominal-input allowlist; future actions are supervision only."""
 import json
-import h5py
+from .compact import EpisodeFile
 import numpy as np
 import torch
 from torch.utils.data import Dataset
@@ -14,7 +14,7 @@ class EpisodeDataset(Dataset):
         self.path = str(path)
         self.history, self.stride, self.horizon = history, stride, horizon
         self.index, self.episodes = [], []
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             self.version = int(f.attrs["schema_version"])
             if self.version not in (1,2) or (perception_version is not None and perception_version != self.version):
                 raise ValueError("Unsupported trajectory schema")
@@ -48,7 +48,7 @@ class EpisodeDataset(Dataset):
     def __getitem__(self, i):
         key, t = self.index[i]
         idx, valid = history_indices(t, self.history, self.stride)
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             g = f["episodes"][key]
             # Read contiguous slice then index: h5py rejects repeated padded indices.
             lo, hi = int(idx[0]), t+1
@@ -65,7 +65,7 @@ class EpisodeDataset(Dataset):
 
     def proprio_statistics(self):
         # Training episodes only; never fit normalization on validation trajectories.
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             a = np.concatenate([f["episodes"][k]["obs/proprio"][:int(f["episodes"][k].attrs["length"])] for k in self.episodes])
         return torch.from_numpy(a.mean(0)), torch.from_numpy(a.std(0).clip(min=1e-3))
 
@@ -91,7 +91,7 @@ class CorrectionEpisodeDataset(EpisodeDataset):
         def read(g,name,indices):
             lo,hi = int(indices.min()),int(indices.max())+1
             return torch.from_numpy(np.asarray(g[name][lo:hi][indices-lo]))
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             g = f["episodes"][key]
             contact_valid = read(g,"obs/contact_valid",idx).bool() & torch.from_numpy(valid)
             tactile = {}
@@ -127,7 +127,7 @@ class EpisodeSequenceDataset(EpisodeDataset):
     def chunks(self,episode,chunk_size=8):
         if episode not in self.episodes or chunk_size < 1:
             raise ValueError("Eligible episode and positive chunk size required")
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             group = f["episodes"][episode]
             length = int(group.attrs["length"])
             steps = group["obs/step_id"][:length]
@@ -190,7 +190,7 @@ class CorrectionSequenceDataset(CorrectionEpisodeDataset):
         from torch.utils.data import default_collate
         if episode not in self.episodes or chunk_size < 1:
             raise ValueError("Eligible episode and positive chunk size required")
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             group = f["episodes"][episode]
             length = int(group.attrs["length"])
             if not np.array_equal(group["obs/step_id"][:length],np.arange(length)):

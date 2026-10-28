@@ -78,3 +78,9 @@ Task ID remains categorical. Expert history is useful but separate from private 
 ## 独立原专家实验入口（2026-10-28）
 
 `run_rl_trials`负责不可覆盖的配对计划/逐attempt状态、顺序启动、资源边界与验收；复用`collect → InstrumentedAssemblyEnv → EpisodeWriter`。`analyze_rl_trials`负责纯专家轨迹审计、真实终止分类、缺失值与配对共同前缀分析。它们不调用optimizer，不需要Nominal/Correction计划来冒充专家数据。wrench_trace3新增字段都是特权诊断，不修改感知编码、memory或Dataset模型输入。具体入口、字段和本机Lab施力限制见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。
+
+## 2026-10-28 完整专家数据接入层
+
+新增`run_insertion_dataset`调用原`collect`，通过`run_rl_trials.validate_completion`共用新/恢复完成门槛；`initial_geometry`仅诊断初始box合法性。`compact.convert_episode`把已审核逐步记录转换成三主文件并精确往返验证；`manifest`统一定位和筛选，`EpisodeFile`让原Reader/Dataset保持相同模型输入；`ManifestSequenceDataset → encode_episode_chunks → Nominal.encoder`已用两条真实新episode共411步零更新验证。没有模型结构改动。`analyze_insertion_dataset`读相同reader审计、统计、最多4预览。
+
+接入读取不等于正式BC训练完成。现有train.py只支持单H5，现能识别storage1但显式拒绝manifest正式训练；纯专家perception2缺自身计划时也拒绝正式训练。未来需确定无计划baseline或因果模型回放，接入按pair_id分组、训练统计、memory2验证loss和checkpoint绑定；不得用专家未来动作填plan。Correction纯专家训练仍不成立。旧checkpoint/rollout原接口保留，本轮没有训练或声称完整新训练闭环。

@@ -5,11 +5,11 @@ import hashlib
 import json
 from pathlib import Path
 import time
-import h5py
 import torch
 from torch.utils.data import default_collate
 from .dataset import EpisodeDataset, EpisodeSequenceDataset, encode_episode_chunks
 from .models.nominal import NominalDiffusionPolicy, PolicyConfig
+from .compact import EpisodeFile
 
 
 def main():
@@ -28,17 +28,23 @@ def main():
         p.error("Episode recurrence currently supports one ordered episode per batch and positive chunk size")
     if args.steps < 1 or args.batch_size < 1:
         p.error("steps/batch-size must be positive")
-    args.output.mkdir(parents=True, exist_ok=False)
+    if args.data.suffix == ".json":
+        p.error("ManifestSequenceDataset is available for ordered replay; this legacy trainer has no grouped manifest split or memory2 validation yet. Do not merge paired variants into random train/validation rows.")
     torch.set_num_threads(2)
     torch.manual_seed(args.seed)
     data_hash = hashlib.sha256(args.data.read_bytes()).hexdigest()
-    with h5py.File(args.data) as f:
+    with EpisodeFile(args.data) as f:
         metadata = json.loads(f.attrs["metadata_json"])
         if metadata.get("nominal_plan_source") == "untrained_perception_probe" and not args.smoke_only:
             raise ValueError("Untrained perception probe plans are engineering fixtures, not formal training data")
         names = list(f["episodes"])
         shape = f["episodes"][names[0]]["obs/image"].shape
         perception_version = int(f.attrs["schema_version"])
+    if perception_version == 2 and not args.smoke_only and (
+        metadata.get("nominal_plan_source") != "trained_checkpoint" or not metadata.get("nominal_model_sha256")
+    ):
+        p.error("Formal own-plan-conditioned BC requires identified causal model replay. Pure expert actions are labels, not own predictions. An explicit no-plan baseline needs a matching deployment contract first.")
+    args.output.mkdir(parents=True, exist_ok=False)
     cfg = PolicyConfig(views=shape[1], channels=shape[2], perception_version=perception_version,memory_version=args.memory_version)
     eligible = EpisodeDataset(args.data, allow_incomplete=args.smoke_only, allow_unsuccessful=args.smoke_only)
     names = eligible.episodes

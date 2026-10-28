@@ -19,6 +19,9 @@ def main():
     parser.add_argument("--condition", choices=("original", "force_1p5"), default="original",
                         help="Paired experiment label. original keeps the configured wrench scale; force_1p5 multiplies only force_scale")
     parser.add_argument("--pair-id", help="Stable paired-seed identifier stored in metadata/results")
+    parser.add_argument("--offset-xy", type=float, nargs=2, default=(0.,0.))
+    parser.add_argument("--wrench-frame-mode", choices=("legacy","world_hold"), default="legacy")
+    parser.add_argument("--experiment-condition", help="Position experiment identity; native force condition remains separate")
     parser.add_argument("--num-envs", type=int, default=1)
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--problem", default="tight_insertion")
@@ -93,7 +96,8 @@ def main():
         from .observations import TaskCommand
         command = (TaskCommand(args.problem, json.loads(args.goal_command.read_text()) if args.goal_command else None)
                    if args.perception_version == 2 else None)
-        env = InstrumentedAssemblyEnv(cfg, perception_version=args.perception_version, task_command=command)
+        env = InstrumentedAssemblyEnv(cfg, perception_version=args.perception_version, task_command=command,
+                                      initial_offset_xy=args.offset_xy, wrench_frame_mode=args.wrench_frame_mode)
         player = None
         if not args.policy_checkpoint:
             agent_cfg = _configure_agent(task, "rl_games_sapg_cfg_entry_point", rl_device="cpu",
@@ -150,7 +154,8 @@ def main():
                         teacher_group=args.teacher_group if player is not None else None,
                         nominal_checkpoint=str(args.policy_checkpoint) if args.policy_checkpoint else None,
                         config=cfg.to_dict(), camera_mode=args.camera,
-                        condition=args.condition, pair_id=args.pair_id,
+                        condition=args.experiment_condition or args.condition, native_force_condition=args.condition,
+                        pair_id=args.pair_id,
                         force_scale_multiplier=force_multiplier,
                         configured_force_scale=configured_force_scale,
                         applied_force_scale=float(cfg.domain_randomization.force_scale),
@@ -169,6 +174,13 @@ def main():
                         initial_torch_rng_sha256=hashlib.sha256(torch.random.get_rng_state().numpy().tobytes()).hexdigest(),
                         nominal_rate_hz=None if player else "see policy configuration",
                         expert_rate_hz=1/env.step_dt if player else None)
+        if args.experiment_condition:
+            from .initial_geometry import inspect
+            initial = {k:v[0].detach().cpu().numpy() for k,v in env._diagnostics().items()}
+            metadata["initial_geometry"] = inspect(metadata,initial)
+            if not metadata["initial_geometry"]["valid_box_initialization"]:
+                (args.output/"metadata.json").write_text(json.dumps(metadata,default=str,indent=2))
+                raise RuntimeError("Initial object/table/hole collision overlap; stop affected collection, no expert action issued")
         writer = EpisodeWriter(args.output / "trajectories.h5", metadata)
         policy = None
         shadow = None

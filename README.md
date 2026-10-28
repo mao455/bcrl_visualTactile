@@ -52,6 +52,12 @@ play2perfect/
 
 ## Local visual–tactile research extension
 
+Latest bounded expert-data milestone: [insertion dataset report](research_docs/INSERTION_DATASET.md)
+and [session handoff](research_docs/SESSION_HANDOFF.md). Lossless dual-view records,
+manifest replay and zero-update checks are implemented; collection stopped on
+invalid initializations and a simulator startup crash. No training or robustness
+claim is made. Raw data, weights and videos remain local.
+
 Current research adds persistent episode memory, explicit command/delay/target provenance,
 and per-control-step HDF5 recording with optional episode PKL export. Read
 [the user's research directions](research_docs/USER_RESEARCH_DIRECTION.md) and

@@ -186,3 +186,35 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 - pilot控制循环墙钟总609.70s（不含Kit启动），每trial有效Hz中位11.75，专家前向中位4.13ms。保留60Hz模拟时间控制契约，不能称为60Hz真实时间性能；后台程序未被停止、发信号或修改优先级。
 - 先前失败/旧尝试另列：6次预创建输出目录FileExistsError、1次诊断Kit启动SIGABRT、旧6episode验收、2条seed17诊断、1条8步censored。全都保留，重复seed不混入pilot；另一次旧分析KeyError保留修复说明。实验全部结果/限制见`RL_EXPERT_TRIALS.md`。
 - 未改原MIT及vendor版权，无新增第三方代码/依赖。公开候选只有研究源码/测试/Markdown、约145KB结果JSON和两张静态图；HDF5/PKL/checkpoint/缓存/日志/虚拟环境均忽略。
+
+## 2026-10-28 — 有界插入数据集、精确紧凑存储与零更新回放
+
+用户授权仅tight_insertion公开expert，≤60尝试/10GiB，先验收再配对XY扫描，完整数据/少量视频/文档，不训练。起点7aed4d9，功能分支feature/bounded-insertion-dataset。完整报告[INSERTION_DATASET.md](INSERTION_DATASET.md)，状态[SESSION_HANDOFF.md](SESSION_HANDOFF.md)，可公开小证据`evidence/insertion_dataset.json`与`insertion_offsets.png`/`insertion_coverage.png`。
+
+### 文件与前后行为
+
+- `visuotactile/sim/environment.py`：原默认legacy保留；新增initial_offset_xy和world_hold。原reset后/目标前平移，仅XY、无额外RNG；可选每physics当前quat逆旋转原世界请求，公开composer body setter，未改共享Lab。记录offset原/最终/总偏差、模式。没有改动作/关节/碰撞/资产/判据。
+- `visuotactile/collect.py`：新增offset/mode/experiment-condition CLI及来源字段；带实验条件时，在第一动作前调用新`initial_geometry.py`的URDF box OBB诊断；非法留metadata/FAILED不发动作。原采集路径不默认启用新实验协议。
+- `visuotactile/run_rl_trials.py`：此前恢复可能仅凭退出状态复用；现fresh/resume共用validate_completion检查result/FAILED/length/审计/身份/结果/删失；bounded新记录要求wrench3完整。分析失败阻止后续stage。
+- 新`visuotactile/run_insertion_dataset.py`：冻结4验收＋52位置条件计划，串行低优先级bounded运行，启动/完成状态、容量/RAM预算、配对检查、转换/审计/manifest发布/新临时源清理。明确非法初始组跳过，其他错误停止；没有重试补种子。
+- 新`visuotactile/compact.py`：storage0→1保留原schema2。正式uint8 RGB(F,2,3,126,224)可逆恢复float32/255，float32 depth与bool mask(F,2,1,126,224)，post引用(T,)含−1缺失；预算保留T+1。三主文件H5＋双派生MP4，逐字段往返校验后发布；失败partial保留，旧源不改。
+- `visuotactile/recording.py`、`dataset.py`、`analyze_rl_trials.py`改用EpisodeFile统一旧/新H5，原模型输入与监督形状不变；没有把观看MP4当正式RGB。
+- 新`visuotactile/manifest.py`：三文件存在/bytes/SHA/版本/路径检查；success+scan默认Dataset、逐完整episode chunks，禁止静默混legacy/world_hold；pair_id分割断言、自身计划训练拒绝。失败仍在manifest，筛选不影响统计分母。
+- 新`visuotactile/check_dataset.py`：独立CPU零更新检查，没有optimizer；old/new模型输入标签比较、完整顺序chunk7/step1/reset、有限diffusion前向、参数和buffer hash。新`storage_audit.py`测实际HDF5分配，混合RGB-D压缩chunk诚实合计。
+- 新`visuotactile/analyze_insertion_dataset.py`：真实逐行审计、条件计数/CI、配对差异、实际wrench方向时刻阶段、覆盖/方向图、资源情景、最多4个拼接预览。非法初始/软件启动错误独立，当前只生成3例。
+- `visuotactile/train.py`：单H5读取支持storage facade，正式manifest路径与纯专家缺self-plan情形增加预检拒绝；没有实现/运行正式manifest训练，不把旧smoke optimizer说成零更新。模型结构/损失未改。
+- `visuotactile/contracts.py`：评估合约hash加入wrench_frame_mode/额外XY，防止相同resolved原config掩盖wrapper配置变化；旧metadata缺字段按legacy/零偏移解释。
+- 新`tests/test_compact.py`、`test_insertion_dataset.py`：真实需要的格式/时序/损坏拒绝、共同完成门槛、OBB旋转接触/穿入、manifest分组/完整性/筛选/混配置拒绝等8项。与原27项合计35通过。
+- 文档：新INSERTION_DATASET/SESSION_HANDOFF；更新根README、AGENTS、研究README、ARCHITECTURE、CONTRACTS、DATA_SCHEMA、RUNBOOK、RL_EXPERT_TRIALS、USER_RESEARCH_DIRECTION和本日志。记录用户新预算/停止条件/三文件偏好，修正旧数据质量解释而不覆盖历史。新增小汇总证据与图，未复制新第三方代码/修改许可。
+
+### 真实结果与边界
+
+- 20新尝试，17完整成功记录=4验收+13扫描，2原生非法初始化动作前停止，1libomniclient SIGSEGV(-11)未产HDF5，未重试。扫描仅1独立合法起点全部13条件，0任务失败/0删失、0原生外力/力矩曝光。另24非法组变体跳过、12因软件错误不启动。不能用13/13推断方向鲁棒或生产率。
+- 旧46文件manifest SHA检查通过；pilot40H5实测3,809,235,306 bytes/7060步。新增box审计旧pilot20/40初始重叠（含全部10失败），旧75%不能直接解释为合法场景质量。保留全部旧源；失败转换例只验证存储，不验证物理场景合法。
+- 旧成功258步/失败38步各139字段、预算8步112字段逐字段dtype/shape/value相同；预算9帧正确。FFV1真实像素无损对比已测，选择H5正式RGB+双观看MP4易随机切片但空间更大，明确记录代价。新17条均139字段精确往返，完整审计＋manifest SHA通过；总三主文件577,176,219 bytes，新目录约0.684GiB，已记录临时峰值0.750GiB。
+- seed17 legacy220步16组数组与旧记录逐位相同。world_hold在首力前174步一致，力世界向量误差5.6069N→9.54e−7N；14实际力样本/7burst/0.1167s/峰值3.2243N，原阶段及方向记录完整。无非零力矩样本，不声称其动态回归充分。
+- 旧258步零更新chunk7/step1最大差5.36e−7；新manifest两episode411步最大差5.07e−7，reset精确、参数buffer前后hash完全相同；有限预测(1,12,29)，parameter_updates=0。纯专家Correction/self-plan训练拒绝。训练CLI预检exit2且无目录/optimizer；RUNBOOK实际读取例通过。
+- 三拼接视频解码/首中末检查完成，保留原颗粒/遮挡，末图缺失明示。旧失败例特别标注非法初始化，不混入新统计。当前没有合法失败例可补，不重跑凑样本。
+- `bash visuotactile/run_cpu.sh -m pytest -q tests`：35 passed，既有requests依赖warning未动；`git diff --check`通过。原仿真/资产/RL未改，本轮全程CPU physics+render，未使用已知无效无渲染场景。后台任务未发信号/改优先级，共享环境未修改。
+
+未完成：多起点统计、合法初始生产协议、Kit稳定性、正式manifest trainer/group normalization/memory2 validation、真实self-plan回放或无计划基线、Correction目标、去预加载。完整采集已按问题停止，不自动扩量或训练。

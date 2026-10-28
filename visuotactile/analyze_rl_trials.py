@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 
 import h5py
+from .compact import EpisodeFile
 import numpy as np
 
 from .trial_utils import write_json
@@ -51,7 +52,8 @@ def exposure(vector, dt):
 def load_trial(path):
     """Return public-size summary and small state arrays; never load all images."""
     path = Path(path)
-    with h5py.File(path/"trajectories.h5", "r") as f:
+    data_path = path/"trajectories.h5" if (path/"trajectories.h5").exists() else path/"data.h5"
+    with EpisodeFile(data_path) as f:
         metadata = json.loads(f.attrs["metadata_json"])
         names = list(f.get("episodes", {}))
         if len(names) != 1:
@@ -219,7 +221,7 @@ def load_trial(path):
             delay_index_counts=np.bincount(tr("control_trace/delay_index").astype(int)).tolist(),
             audit_errors=errors, missing_telemetry=missing,
             trace_version=int(f.attrs.get("trace_version",1)), wrench_trace_version=metadata.get("wrench_trace_version",1),
-            hdf5_bytes=(path/"trajectories.h5").stat().st_size)
+            hdf5_bytes=data_path.stat().st_size)
         arrays = dict(initial=initial,object=state["object_pose_w"],joint=state["joint_position_rad"],target=target,
                       command=submitted, force=force,torque=torque,contact=norm.reshape(n,-1,5),
                       tracking=tracking,time=after,progress=progress,delay=tr("control_trace/delay_index"),

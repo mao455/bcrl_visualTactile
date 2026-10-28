@@ -66,3 +66,11 @@ Task ID enters `nn.Embedding`, with categorical meaning only. Cross-task shared 
 ## 本机外力执行观察补充（2026-10-28）
 
 原helper在60Hz生成/门控world-request wrench；当前Lab2.3.2 fork的deprecated setter经permanent composer转成body-frame，再在120Hz `write_data_to_sim`提交。composer姿态缓存与请求world方向可能产生差异，不能仅用`_object_forces`宣称测得最终世界系施力。新wrench_trace3记录每个子步实际local buffer、同时刻object quaternion、世界系换算与提交时间；不修改原helper、Lab或动力学。详见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。这些字段全是特权诊断，模型输入allowlist不变。
+
+## 2026-10-28 可选初始化与施力兼容模式
+
+`InstrumentedAssemblyEnv(initial_offset_xy=(0,0), wrench_frame_mode="legacy")`默认保留旧路径。额外XY各不超过.05m（仅本轮轴向条件实测），要求桌yaw0；在原Play reset之后、assembly目标构造之前平移物体，无新增RNG，记录raw/final pose和总object−hole。带experiment-condition的采集在第一专家动作前检查实际URDF box重叠，非法即保留现场停止。不是修改reset分布后悄悄重采样。
+
+可选world_hold只重新表达**原生DR世界请求**：每个physics write用当前object root wxyz的逆旋转变成body力/力矩，调用permanent composer公开setter(is_global=False)，随后原write。没有重写随机力公式/概率/门控/scale，没有改变共享Lab；instantaneous composer活跃拒绝。wrench_trace3记录实际每子步body提交及当前姿态对应world值，120Hz/60Hz不变。legacy与旧seed17的220步16数组逐位一致；world_hold非零力方向误差<1e−6N；非零力矩实测尚缺，详见INSERTION_DATASET。两模式数据分批，不能混算。
+
+CPU必须render，保持table/hole变换审计。格式压缩不改变pre/post时间：terminal图明确缺失；预算尾post另存一帧。公开仓库不含轨迹/视频/权重。本轮已停止，不自动再采样。

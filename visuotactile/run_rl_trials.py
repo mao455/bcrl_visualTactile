@@ -28,7 +28,43 @@ def utc():
     return datetime.now(timezone.utc).isoformat()
 
 
-def prior_attempt(root,name):
+def validate_completion(path, entry=None, returncode=0):
+    """Identical fresh/resume gate; exit zero is insufficient (Kit can mask errors)."""
+    path=Path(path)
+    if returncode != 0 or (path/"FAILED.txt").exists():
+        raise RuntimeError("Incomplete/failed collector result: "+str(path))
+    if (path/"result.json").is_file():
+        result=json.loads((path/"result.json").read_text())
+    elif (path/"data.h5").is_file():
+        from .compact import EpisodeFile
+        with EpisodeFile(path/"data.h5") as f:
+            if int(f.attrs.get("storage_version",0))!=1 or "result_json" not in f.attrs:
+                raise RuntimeError("Missing result provenance")
+            result=json.loads(f.attrs["result_json"])
+    else:
+        raise RuntimeError("Missing collector result: "+str(path))
+    trial=load_trial(path)
+    s,m=trial["summary"],trial["metadata"]
+    if s["audit_errors"] or result.get("steps") != s["control_steps"] or result.get("started_episodes") != 1:
+        raise RuntimeError("Committed length/result/audit mismatch: "+str(path))
+    if result.get("successful_episodes") != int(s["outcome"]=="success"):
+        raise RuntimeError("Result success disagrees with native terminal state")
+    if result.get("externally_censored") != (s["outcome"]=="censored"):
+        raise RuntimeError("Result censor disagrees with committed boundary")
+    if entry:
+        if "wrench_frame_mode" in entry and (s.get("missing_telemetry") or s.get("wrench_trace_version") != 3):
+            raise RuntimeError("Bounded dataset requires complete wrench3 telemetry")
+        for k in ("seed","condition","pair_id"):
+            if k in entry and m.get(k)!=entry[k]:
+                raise RuntimeError("Experiment identity mismatch: "+k)
+        if "offset_xy" in entry and m["initial_offset"]["offset_xy_m"]!=entry["offset_xy"]:
+            raise RuntimeError("Initialization offset mismatch")
+        if "wrench_frame_mode" in entry and m.get("wrench_frame_mode")!=entry["wrench_frame_mode"]:
+            raise RuntimeError("Wrench compatibility mode mismatch")
+    return trial
+
+
+def prior_attempt(root,name,entry=None):
     """At most one retry, and only when the simulator never produced an HDF5.
 
     Successful attempts are reused, never reselected based on task outcome.
@@ -43,7 +79,7 @@ def prior_attempt(root,name):
         raise RuntimeError(f"Multiple successful software attempts for {name}; cannot select by outcome")
     if good:
         selected=good[0].get("attempt_name",name)
-        return selected,load_trial(root/selected)
+        return selected,validate_completion(root/selected,entry,good[0]["returncode"])
     if len(paths)!=1 or statuses[0].get("returncode")!=-6 or (root/name/"trajectories.h5").exists():
         raise RuntimeError(f"Unsafe or exhausted retry for {name}; inspect retained attempt")
     return name+"_attempt02",None
@@ -52,7 +88,7 @@ def prior_attempt(root,name):
 def run_stage(root,plan,checkpoint,max_steps,wall_limit,resume=False):
     loaded={}
     for entry in plan["trials"]:
-        attempt_name,previous=(prior_attempt(root,entry["name"]) if resume else (entry["name"],None))
+        attempt_name,previous=(prior_attempt(root,entry["name"],entry) if resume else (entry["name"],None))
         if previous is not None:
             if previous["summary"]["audit_errors"]:
                 raise RuntimeError("Previously completed trial now fails audit")
@@ -92,7 +128,7 @@ def run_stage(root,plan,checkpoint,max_steps,wall_limit,resume=False):
         status.update(state="finished",returncode=code,finish_utc=utc(),wall_seconds=time.monotonic()-started)
         if (path/"trajectories.h5").exists():
             try:
-                trial=load_trial(path);loaded[(entry["seed"],entry["condition"])]=trial
+                trial=validate_completion(path,entry,code);loaded[(entry["seed"],entry["condition"])]=trial
                 status.update(episode_started=True,audit_errors=trial["summary"]["audit_errors"],
                               recorded_outcome=trial["summary"]["outcome"])
             except Exception as exc:
@@ -109,7 +145,12 @@ def run_stage(root,plan,checkpoint,max_steps,wall_limit,resume=False):
     while analysis_path.exists():
         suffix+=1
         analysis_path=root/f"analysis_resumed{suffix:02d}"
-    return analyze(root,analysis_path)
+    report=analyze(root,analysis_path)
+    if any(r.get("audit_errors") or r.get("runtime_error") or not r.get("started") for r in report["trials"]):
+        raise RuntimeError("Stage analysis failed; subsequent stages blocked")
+    if any(not pair.get("initial_pass",False) for pair in report["pairs"]):
+        raise RuntimeError("Stage pairing failed; subsequent stages blocked")
+    return report
 
 
 def main():

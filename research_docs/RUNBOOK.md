@@ -205,3 +205,44 @@ bash visuotactile/run_cpu.sh -m visuotactile.recording \
 本轮38步v3真实episode已验证139字段及metadata逐项相等：HDF5=20,330,072 bytes，PKL=82,440,908 bytes，不批量导出。纯专家258步`EpisodeSequenceDataset`逐块读取成功，Nominal plan mask始终false；CorrectionDataset正确拒绝没有Nominal预测的数据。该拒绝不代表专家轨迹不合格，只表示尚不满足Correction模型输入前提。
 
 本轮实测完成目录是`outputs/visuotactile/rl_experiment_20261028/cohort_v3/`，最终以两个阶段的`analysis_final/report.json`及[完整中文报告](RL_EXPERT_TRIALS.md)为准。原自动生成的`analysis/`和中途resume分析都保留，后续`analysis_final`增加完整聚合/接触时曝光/来源hash核对；没有重采或改写HDF5。pilot40条均完成，两次无HDF5的启动SIGABRT在同seed的`_attempt02`恢复。27项测试通过；全程没有训练。
+
+## 2026-10-28 有界数据集：已停止，仅回读/审计
+
+先看[INSERTION_DATASET.md](INSERTION_DATASET.md)和[SESSION_HANDOFF.md](SESSION_HANDOFF.md)。本轮根目录是`outputs/visuotactile/insertion_dataset_20261028`，20次尝试后停止，无自动续跑授权。`run_insertion_dataset --stage scan`需已通过acceptance_gate；`--continue-unaffected-initializations`只允许跳过已确认动作前非法组继续原计划，不重试其他错误。不要对当前停止批次反复启动。
+
+可复现读取（不启动仿真/训练）：
+
+```bash
+bash visuotactile/run_cpu.sh - <<'PY'
+from visuotactile.manifest import ManifestReader, ManifestSequenceDataset
+path='outputs/visuotactile/insertion_dataset_20261028/manifest.json'
+reader=ManifestReader(path, verify=True)
+step=next(reader.steps('s920302_baseline'))
+print(step['obs']['image'].shape)  # (2,4,126,224), RGB float32 + metric depth
+print(step['transition']['submitted_action'].shape)  # (29,)
+dataset=ManifestSequenceDataset(path)
+chunk=next(dataset.chunks('s920302_baseline',chunk_size=7))
+print(chunk['obs']['image'].shape)  # (1,7,2,4,126,224)
+print(chunk['action_target'].shape) # (7,12,29), supervision only
+PY
+```
+
+独立零更新回放（没有optimizer）：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.check_dataset \
+  --manifest outputs/visuotactile/insertion_dataset_20261028/manifest.json \
+  --ids s920302_baseline s920302_yminus05cm \
+  --output outputs/visuotactile/insertion_dataset_20261028/zero_update_manifest_repeat.json
+```
+
+真实旧/新转换验证见`zero_update_conversion.json`；新manifest两episode411步检查见`zero_update_manifest.json`，参数和buffer hash前后相同。不要运行train.py --smoke-only假装零更新；其仍会optimizer.step。正式manifest训练尚有明确预检拒绝及接口缺口，详见报告。
+
+统计重读：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.analyze_insertion_dataset \
+  --root outputs/visuotactile/insertion_dataset_20261028
+```
+
+`--previews`仅在需要重新导出最多4个拼接视频时使用，会覆盖该批的同名派生预览；正式三文件不改。当前只3个视频，旧失败已标非法初始诊断。图/JSON在analysis，逐字段压缩大小在storage_audit.json，全部原始产物ignored，不公开上传。

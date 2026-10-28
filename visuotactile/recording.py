@@ -5,6 +5,7 @@ import os
 import pickle
 from pathlib import Path
 import h5py
+from .compact import EpisodeFile, VirtualArray
 import numpy as np
 
 
@@ -108,18 +109,18 @@ class EpisodeReader:
     """
     def __init__(self,path):
         self.path = str(path)
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             self.metadata = json.loads(f.attrs["metadata_json"])
             self.schema_version = int(f.attrs["schema_version"])
             self.trace_version = int(f.attrs.get("trace_version",1))
             self.episodes = list(f["episodes"])
 
     def attributes(self,episode):
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             return dict(f["episodes"][episode].attrs)
 
     def read(self,episode,index=slice(None)):
-        with h5py.File(self.path) as f:
+        with EpisodeFile(self.path) as f:
             group = f["episodes"][episode]
             length = int(group.attrs["length"])
             if isinstance(index,int) and not 0 <= index < length:
@@ -127,7 +128,7 @@ class EpisodeReader:
             selection = np.arange(length)[index]
             result = {}
             def visit(name,obj):
-                if isinstance(obj,h5py.Dataset):
+                if isinstance(obj,(h5py.Dataset,VirtualArray)):
                     cursor = result
                     parts = name.split("/")
                     for part in parts[:-1]:

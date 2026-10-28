@@ -69,6 +69,8 @@ def evaluation_contract(metadata):
     sensor = policy_input_contract(metadata)
     sensor["calibration"] = np.round(sensor["calibration"], 5).tolist()
     result = {"task": {k: cfg[k] for k in sections}, "sensors": sensor,
+              "collection": {"wrench_frame_mode": metadata.get("wrench_frame_mode","legacy"),
+                             "initial_offset_xy_m": metadata.get("initial_offset",{}).get("offset_xy_m",[0.,0.])},
               "sim": {k: cfg["sim"][k] for k in ("device","dt","gravity","physx","physics_material","use_fabric")},
               "num_envs": cfg["scene"]["num_envs"], "seed": metadata["seed"],
               "success": "all goals AND retract_succeeded, completed episodes only"}

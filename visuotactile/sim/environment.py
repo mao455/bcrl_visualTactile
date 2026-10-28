@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import torch
 from pxr import PhysxSchema, UsdPhysics
 from isaaclab.sensors import Camera, ContactSensor, ContactSensorCfg
-from isaaclab.utils.math import quat_apply
+from isaaclab.utils.math import quat_apply, quat_apply_inverse
 import isaaclab.sim as sim_utils
 
 from isaacsimenvs.tasks.precise_assembly.precise_assembly_env import PreciseAssemblyEnv
@@ -29,7 +29,15 @@ DISTAL_BODIES = (
 class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     """Teacher obs unchanged; research packet cached once per returned observation."""
 
-    def __init__(self, cfg, *, perception_version=2, task_command=None, **kwargs):
+    def __init__(self, cfg, *, perception_version=2, task_command=None,
+                 initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", **kwargs):
+        if wrench_frame_mode not in ("legacy", "world_hold"):
+            raise ValueError("Unknown wrench compatibility mode")
+        if len(initial_offset_xy) != 2 or any(abs(x) > .05 for x in initial_offset_xy):
+            raise ValueError("Audited initialization offset is limited to +/-5 cm in table-plane XY")
+        self.initial_offset_xy = tuple(initial_offset_xy)
+        self.wrench_frame_mode = wrench_frame_mode
+        self.initial_offset_record = None
         if perception_version not in (1, 2):
             raise ValueError("Unsupported perception version")
         self.perception_version = perception_version
@@ -63,6 +71,17 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         original_write = self.object.write_data_to_sim
         def write_with_wrench_sample():
             if self._wrench_samples is not None:
+                if self.wrench_frame_mode == "world_hold":
+                    # Native DR remains the sole wrench generator. Convert its
+                    # held world request at EACH physics submission; bypass the
+                    # installed composer's stale world->body quaternion cache.
+                    if self.object.instantaneous_wrench_composer.active:
+                        raise RuntimeError("world_hold only audited with native permanent wrench")
+                    q = self.object.data.root_quat_w[:, None]
+                    self.object.permanent_wrench_composer.set_forces_and_torques(
+                        forces=quat_apply_inverse(q, self._object_forces).contiguous(),
+                        torques=quat_apply_inverse(q, self._object_torques).contiguous(),
+                        is_global=False)
                 permanent = self.object.permanent_wrench_composer
                 instant = self.object.instantaneous_wrench_composer
                 force_b = torch.zeros_like(permanent.composed_force_as_torch)
@@ -226,6 +245,22 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                 + self.scene.env_origins[:, None] - result["finger_position_w"]).norm(dim=-1)
         return result
 
+    def _reset_peg_episode(self, env_ids):
+        # PlayEnv has sampled/written the native random pose. Translate only
+        # here, before assembly goals/teacher observations are constructed.
+        # No extra random draw; orientation, z, velocities and other DR stay native.
+        if self.cfg.reset.table_reset_yaw_range_deg != 0:
+            raise ValueError("XY offset contract requires fixed table/world axes")
+        raw = self.object.data.root_state_w[env_ids, :7].clone()
+        final = raw.clone()
+        final[:, :2] += torch.tensor(self.initial_offset_xy, device=self.device)
+        if any(self.initial_offset_xy):
+            self.object.write_root_pose_to_sim(final, env_ids=env_ids)
+        super()._reset_peg_episode(env_ids)
+        self.initial_offset_record = dict(raw_pose_w=raw.tolist(), final_pose_w=final.tolist(),
+            offset_xy_m=list(self.initial_offset_xy), frame="fixed table-plane axes aligned with world XY",
+            object_minus_hole_m=(final[:,:3]-self.hole.data.root_pos_w[env_ids]).tolist())
+
     def _reset_idx(self, env_ids):
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, device=self.device)
@@ -375,6 +410,8 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def research_metadata(self):
         metadata = {
+            "wrench_frame_mode": self.wrench_frame_mode,
+            "initial_offset": self.initial_offset_record,
             "wrench_trace_version": 3,
             "wrench_target": "object root rigid body; body-frame composer buffers passed to PhysX, position_data=None",
             "wrench_timestamp": "external_*_after_dr is requested world wrench at time_before_s; applied_wrench captures each 120Hz submission and world rotation using that instant's object pose",
