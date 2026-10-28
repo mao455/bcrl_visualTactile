@@ -67,3 +67,13 @@
 原生产root `insertion_triple400_20261028`：PID1990175/child1990190均已退出，seed930000在Kit初始化失败，0成功/0HDF5，manifest保留1条software_or_audit_error。libomniclient FileThread Invalid argument伴inotify ENOSPC，当前用户524205/524288 watch，磁盘201GiB可用。未动系统额度/IDE/后台。新增仅本采集进程关闭Kit扩展热重载，两次完整168步通过、无watch错误、128数组配对/repeat一致。
 
 准备采用新gate `camera_v3_20261028/camera_gate_watchoff.json`、新root `insertion_triple400_watchoff_20261028`，将旧blocked root作为predecessor；保留前错误，从930001继续，不重试930000。必须区分下面新root的真实运行状态，旧root仍blocked。15条完整验收probe不计400。
+
+## 当前真实交接状态：新400正在运行（2026-10-28 21:14 CST快照）
+
+- 新root：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/insertion_triple400_watchoff_20261028`。
+- driver PID **1996734**，低优先级nice19/核22,23；launcher日志 `outputs/visuotactile/camera_v3_20261028/production_watchoff_launcher.log`；live状态 `<新root>/run_status/status.json`；计划 `<新root>/run_status/plan.json`；manifest `<新root>/manifest.json`。不要重复启动driver，先核对PID/status。
+- **首条正式记录s930001已经完整发布**：160控制步，原生自然成功，非零原生world_hold力4控制步/8物理样本、峰值约2.60N，全部数据审计通过。143字段精确往返，三份视频各160帧，H5+视频107,645,500 bytes（约102.66MiB）；data.h5=106,934,389 bytes。目录 `<新root>/episodes/s930001`，第一个SHA为975fdf8ab2ded51848667d4c147a9a67e100fd3523d426a9473706a8ba2f0d42。
+- 已用ManifestReader(verify=True)重新验证四文件SHA，并经ManifestSequenceDataset(stage='production')读出 `(1,2,3,4,252,448)`真实图像chunk，动作监督 `(2,12,29)`。未训练。证据 `camera_v3_20261028/first_production_check.json`。
+- 此快照为1/400有效成功；尝试计数含前批930000的启动错误，930002正在运行。**这不是最终400完成报告**；driver会继续，达到400、容量/尝试上限或软件/审计错误时停止。后续读取最新status/manifest，不能把本静态数字当实时状态。
+- camera/接口提交`37fb6e1`，bootstrap修复`6dfc20f330331970275de55d630c4075c5acb928`均已成功推送origin/main。源码hash在运行plan和每条metadata；文档/提交状态快照可继续更新，不动冻结源码。数据/视频/权重/日志都在ignored目录，未公开。
+- 后续核心未决：实体KUKA左手相机支架/外壳/线缆；更广初态下可见性/合法初始化覆盖；Kit长期稳定性；正式BC自预测历史与manifest训练；Correction学习目标与示范去预加载。不要用这次接口/渲染验收当作已经学到任务。

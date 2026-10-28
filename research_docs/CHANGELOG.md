@@ -248,3 +248,7 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 ### 同晚启动故障修复（第二个独立提交）
 
 400第一次启动seed930000在Kit/libomniclient FileThread抛system_error Invalid argument，未创建metadata/HDF5。日志同时出现inotify ENOSPC，实查524205/524288 watch、磁盘201GiB可用；未改系统/IDE/他人进程。`collect.py`增加显式进程级`--disable-extension-watch`并记录实际Kit值；两次独立168步完整probe通过、无watch错误、128数组与原版及repeat一致。`collect_success_batch.py`增加bootstrap gate、检查watcher=false，支持pre-episode blocked前批作为可审计predecessor；前失败保留，从930001继续，不重新尝试930000，尝试总数含前失败，target仍400自然有效成功。unknown错误继续停止。修复状态和过程见CAMERA_VALIDATION；focused3tests通过。没有把这个选项当作已证明修复所有native崩溃。
+
+### 正式批次启动后的真实首条检查
+
+新watchoff driver PID1996734已经启动；原930000错误作为predecessor保留，首条s930001自然成功160步，四文件约107.65MB、143字段往返/完整审计/逐文件SHA通过。真实manifest顺序Dataset读出(1,2,3,4,252,448)图像与(2,12,29)监督，0更新。1/400时正在继续930002，状态并非最终完成。仅更新交接/公开小证据，未更改运行中的源码或推送数据；live入口见SESSION_HANDOFF。
