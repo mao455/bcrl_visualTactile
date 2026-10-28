@@ -19,3 +19,15 @@ def test_mount_looks_along_declared_parent_optical_direction():
     np.testing.assert_allclose(Rotation.from_quat(q[[1,2,3,0]]).apply([0,0,1]),(target-eye)/np.linalg.norm(target-eye))
     assert len(rig_contract('wrist_bracket')['ids'])==3
     assert rig_contract('legacy_dual')['version']==2
+
+
+def test_close_rig_moves_only_high_camera_preserves_real_wrist():
+    old, new = rig_contract('wrist_bracket'), rig_contract('wrist_bracket_close')
+    assert new['ids'] == old['ids'] == ['fixed_high','fixed_side','wrist_rgbd']
+    assert new['version'] == 4 and old['version'] == 3
+    assert new['wrist'] == old['wrist']
+    assert new['fixed_focal_length'] == old['fixed_focal_length']
+    assert new['fixed_views'][1] == old['fixed_views'][1]
+    eye, target = map(np.asarray, old['fixed_views'][0])
+    np.testing.assert_allclose(new['fixed_views'][0][0], target + .9*(eye-target))
+    np.testing.assert_array_equal(new['fixed_views'][0][1],target)

@@ -180,7 +180,7 @@ def convert_episode(source, destination, *, result=None, write_videos=True):
         for k, v in src.attrs.items():
             dst.attrs[k] = v
         meta=json.loads(src.attrs['metadata_json'])
-        storage_version=2 if meta.get('camera_rig',{}).get('version',2)==3 else 1
+        storage_version=2 if meta.get('camera_rig',{}).get('version',2)>=3 else 1
         dst.attrs.update(storage_version=storage_version, source_sha256=sha256(source),
                          video_role="viewing_derivative_not_training_RGB",
                          result_json=json.dumps(result or {}))

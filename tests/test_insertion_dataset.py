@@ -47,7 +47,8 @@ def test_manifest_checksum_missing_files_and_group_split(tmp_path):
 
 def test_manifest_success_filter_and_self_plan_guard(tmp_path):
     path,rows=manifest_fixture(tmp_path)
-    with patch('visuotactile.manifest.EpisodeSequenceDataset') as inner:
+    with patch('visuotactile.manifest.EpisodeSequenceDataset') as inner, patch('visuotactile.manifest.assert_policy_compatible'):
+        # This test isolates selection/provenance; calibration uses real captures in acceptance.
         inner.return_value.metadata={'nominal_plan_source':'unavailable'}
         dataset=ManifestSequenceDataset(path)
         assert dataset.episodes==['a','c']

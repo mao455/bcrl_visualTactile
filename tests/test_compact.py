@@ -58,10 +58,14 @@ def test_refuse_noninvertible_rgb_and_misaligned_frames(tmp_path):
 
 def test_optional_viewing_videos_keep_lossless_hdf5(tmp_path):
     source=tmp_path/'old.h5';fixture(source,True,views=3)
+    with h5py.File(source,'r+') as f:
+        meta=json.loads(f.attrs['metadata_json']);meta['camera_rig']['version']=4
+        f.attrs['metadata_json']=json.dumps(meta)
     output=tmp_path/'compact_no_video';info=convert_episode(source,output,write_videos=False)
     assert info['video_files']==[]
     assert sorted(p.name for p in output.iterdir())==['data.h5']
     with EpisodeFile(output/'data.h5') as f:
+        assert f.attrs['storage_version']==2
         assert f['episodes/test']['obs/image'].shape==(3,3,4,6,8)
 
 

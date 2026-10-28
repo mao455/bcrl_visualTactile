@@ -1,5 +1,8 @@
 # Dataset schema v2 (current) and v1 compatibility
 
+> **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
+
+
 HDF5 `schema_version=2`, `metadata.perception_version=2`. The current
 three-view collection profile is ordered `fixed_high`, `fixed_side`,
 `wrist_rgbd` at **448×252**. Version-3 `wrist_bracket` and version-4

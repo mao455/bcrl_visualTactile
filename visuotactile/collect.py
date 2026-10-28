@@ -37,6 +37,8 @@ def main():
     parser.add_argument('--camera-diagnostics',action='store_true',help='Static render-only frames and actual USD mount audit after rollout')
     parser.add_argument('--disable-extension-watch',action='store_true',
                         help='Process-local Kit extension hot-reload off for frozen headless collection')
+    parser.add_argument('--global-output-guard',action='store_true',
+                        help='Reserve raw row and lossless conversion space within all-project 60 GB limit')
     parser.add_argument("--audit-default-camera", action="store_true")
     parser.add_argument("--perception-version", type=int, choices=(1,2), default=2)
     parser.add_argument("--local-eye", type=float, nargs=3, default=(-.7,-.35,1.15))
@@ -244,6 +246,15 @@ def main():
         completed_target = args.episodes
         start = time.perf_counter()
         for step in range(args.steps):
+            if args.global_output_guard:
+                from .collection_resources import output_inventory, LIMIT_BYTES
+                # Worst-case uncompressed next raw row (pre/post RGB-D,
+                # depth/masks) plus a full compact RGB/depth/mask copy of
+                # every recorded frame. Compression savings are not assumed.
+                pixels = len(metadata['camera_ids'])*args.image_size[0]*args.image_size[1]
+                reserve = pixels*(40 + 8*(step+2)) + 512_000_000
+                if sum(output_inventory(Path(__file__).resolve().parents[1]).values())+reserve >= LIMIT_BYTES:
+                    raise RuntimeError('Global output budget: next raw row plus conversion reserve unavailable')
             packet = env.research_packet
             rng_before_inference = torch.random.get_rng_state().clone()
             t = time.perf_counter()

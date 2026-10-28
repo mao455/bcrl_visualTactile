@@ -491,7 +491,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                             contact_pose_source="URDF FK from joint encoders at each physics update; no body truth input",
                             camera_ids=self.camera_rig['ids'], camera_rig=self.camera_rig, cameras=[])
             for index, (identity, camera) in enumerate(zip(self.camera_rig['ids'], self.research_cameras, strict=True)):
-                pose = (self.research_packet['camera_pose_w'][:,index] if self.camera_rig['version']==3
+                pose = (self.research_packet['camera_pose_w'][:,index] if self.camera_rig['version']>=3
                         else torch.cat((camera.data.pos_w,camera.data.quat_w_ros),-1))
                 metadata["cameras"].append(dict(id=identity, resolution=[camera.cfg.height, camera.cfg.width],
                     pos_env=(pose[:,:3]-self.scene.env_origins).tolist(),

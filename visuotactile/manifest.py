@@ -4,24 +4,7 @@ from pathlib import Path
 from .compact import sha256
 from .dataset import EpisodeSequenceDataset
 from .recording import EpisodeReader
-
-
-def _calibration_identity(metadata):
-    """Stable identity for all sensor geometry used by a manifest split."""
-    cameras = []
-    for camera in metadata.get('cameras', []):
-        cameras.append({k: camera.get(k) for k in
-                        ('id', 'resolution', 'intrinsics',
-                         'clipping_range_m', 'extrinsic_role')})
-    # A wrist camera's world pose legitimately changes with the initial robot
-    # state; it is not a calibration change.  The rig contract carries its
-    # fixed local mount and fixed-view eyes/targets, so use that identity while
-    # excluding per-episode dynamic `pos_env`/quaternion values.
-    rig = metadata.get('camera_rig', {})
-    rig_identity = {k: rig.get(k) for k in ('version', 'name', 'fixed_views',
-                                            'fixed_focal_length', 'wrist')}
-    return json.dumps({'rig': rig_identity, 'cameras': cameras},
-                      sort_keys=True, separators=(',', ':'))
+from .contracts import assert_policy_compatible
 
 
 class ManifestReader:
@@ -92,13 +75,12 @@ class ManifestSequenceDataset:
         modes={self.reader.entries[k].get("wrench_frame_mode","legacy") for k in self.episodes}
         if len(modes)>1:
             raise ValueError("Do not silently mix legacy/world_hold collection configurations")
-        layouts={(d.metadata.get('camera_rig',{}).get('version',2),
-                  tuple(d.metadata.get('camera_ids',[])),
-                  tuple(tuple(c['resolution']) for c in d.metadata.get('cameras',[])),
-                  _calibration_identity(d.metadata))
-                 for d in self.datasets.values()}
-        if len(layouts)>1:
-            raise ValueError('Do not mix camera layouts/resolutions in one Dataset')
+        reference = self.datasets[self.episodes[0]].metadata
+        for dataset in self.datasets.values():
+            # Actual fixed extrinsics, intrinsics and local wrist mount are
+            # checked with the same tolerance as checkpoint loading. Initial
+            # wrist WORLD pose changes with reset and is not a calibration.
+            assert_policy_compatible(reference, dataset.metadata)
 
     def chunks(self, episode, chunk_size=8):
         row = self.reader.entries[episode]

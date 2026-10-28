@@ -1,5 +1,8 @@
 # 可复现命令与验证结果
 
+> **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
+
+
 ## Current production gate and blocked v4 probe
 
 The prior three committed successes are version-3 `wrist_bracket` records. A
@@ -310,3 +313,19 @@ print(chunk['obs']['image'].shape)  # (1,T,3,4,252,448)
 已实际启动：watchoff driver PID1996734；首条`episodes/s930001/data.h5`完成143字段审计与SHA验证，manifest/production Dataset读取成功。当前统计必须读`insertion_triple400_watchoff_20261028/run_status/status.json`及manifest，文档快照不是实时进度。详见SESSION_HANDOFF。原root仍保留启动失败，不要对它再次启动相同seed。
 
 最新状态纠正（21:18 CST）：PID1996734已退出；新root blocked at3/400，s930005是LLVM启动allocation错误，暂无场景/H5。三条正式文件SHA再检查通过。不要仅凭上面的启动记录判断仍在跑；先读status及blocker_llvm.json。已有3条数据的通用恢复未实现，现有predecessor选项会拒绝非空episode，不能删数据绕过。400授权保持，但先诊断启动阻断。
+
+## v4生产与资源读法（最新）
+
+启动命令必须带绝对deadline，不能改成每个新目录再6小时：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.collect_success_batch \
+  --output outputs/visuotactile/insertion_close400_20261028 \
+  --gate outputs/visuotactile/camera_v4_close_20261028/camera_gate_v4.json \
+  --predecessor outputs/visuotactile/insertion_triple400_watchoff_20261028 \
+  --deadline-epoch 1793220679 --seed-start 930011
+```
+
+首次实际后台PID/启动方式见最新SESSION_HANDOFF；运行前先核实，不重复启动。`run_status/resources.json`是整卡时间加权批均值/足60s滚动均值/全部输出字节；`gpu_samples.jsonl`保留连续样本；`owned_gpu_process_samples.json`只记录自己进程组，缺失SM不能充零。`status.json`与`manifest.json`分别表示当前工作和已提交成功。STOP文件只要求下一条前退出；硬deadline和容量由监督器在当前条也检查。
+
+`MALLOC_ARENA_MAX=2`仅传入自己的collector，不修改全局。失败软件不无限重启；普通任务失败和明确非法起点记账并清理已确认无用载荷后下一seed。正式训练仍不运行。
