@@ -1,4 +1,14 @@
-# Perception v2 — 双相机与五指力观测
+# Perception v2 — 多视角与五指力观测
+
+## Current entry
+
+The active research profile is three calibrated RGB-D views at 448×252:
+`fixed_high`, `fixed_side`, and the dynamic `wrist_rgbd` mounted under the
+actual `iiwa14_link_7` rigid prim. Existing version-3 episodes use the
+original `wrist_bracket` high camera; version-4 `wrist_bracket_close` is a
+separate candidate that moves only that high camera. The older dual-view
+224×126 descriptions below are historical evidence, not the current batch
+contract.
 
 本轮只建设感知和可训练网络接口，不进行参数更新、BC/Correction/RL 训练或策略成功率优化。旧 1,000-step checkpoint 的低成功率既不是新架构证据，也不参与新模型初始化。以下设计是可替换的工程基线。
 
@@ -24,7 +34,12 @@ OpenViTac 的全局 + 腕部视角提供局部接触上下文，DP/LeRobot 支�
 | `global_oblique` | (.6,−.8,1.1) / (0,.15,.65) | 保留原研究斜视安装；可见桌面、机器人和整体任务空间。 |
 | `local_opposite` | (−.7,−.35,1.15) / (0,−.03,.68) | 从相反横向观察五指与物体/孔座。前两个实测候选在随机孔位下有裁切，第三个覆盖更稳定。 |
 
-最终默认 **224×126**，原始 focal length 24 / horizontal aperture 33.1973787，实际 fx=fy 由运行时记录。相机本身不增加碰撞。v1 仍为单相机 160×90，必须显式选 `--perception-version 1`。修改分辨率只在独立 collector 的 v2 配置中，不改原资产/任务默认参数。
+历史双视角基线使用 **224×126** 和 focal length 24；它不是当前三视角
+采集分辨率。当前 `wrist_bracket`/`wrist_bracket_close` 使用三路
+448×252，固定相机 focal length 40、腕部 focal length 24；实际 fx=fy
+仍由运行时记录。相机本身不增加碰撞。v1 仍为单相机 160×90，必须显式
+选 `--perception-version 1`。修改分辨率只在独立 collector 的 v2 配置中，
+不改原资产/任务默认参数。
 
 v2 的 RGB 在 [0,1]；深度是 **distance_to_image_plane 的米值**，不是 ray range。无效深度置 0 并单独记录 `depth_valid`。不再把原窗口归一化深度误当米值。模型只在自己的 depth 分支除以固定 2 m；原学生 depth/noise 代码未改。
 
@@ -68,7 +83,7 @@ Correction 额外使用原控制器可记录的当前 actuator target 和 `targe
 
 ## 频率、边界和兼容性
 
-- 保持120Hz physics、60Hz原生控制、60Hz双相机观察和120Hz力/FK。网络重规划每6个native ticks，预测12个native动作；并未更改动作幅度/decimation。
+- 保持120Hz physics、60Hz原生控制、60Hz三相机观察和120Hz力/FK。网络重规划每6个native ticks，预测12个native动作；并未更改动作幅度/decimation。
 - 所有时间是模拟时钟，非墙钟。相机时间是渲染后可取得图像的观察时刻，后端 frame 单独存储。当前未实现不同相机频率、丢帧重采样、学生延迟/augmentation；这些设置仍拒绝运行，不能声称已经模拟实机异步延迟。
 - memory2使用EpisodeSequenceDataset/CorrectionSequenceDataset完整前缀顺序读取与持久状态；旧EpisodeDataset和OnlineHistory窗口保留同一索引/掩码规则；每env独立，只有真正episode reset清空，subgoal不清空。reset后的接触区间无效；最后一帧终止图仍不可得，后续episode图片不会冒充terminal。
 - schema1 与 schema2 显式区分；旧checkpoint缺失版本按v1解释，旧权重不加载到v2。兼容检查包含view身份、分辨率、实际相机标定、depth语义、关节顺序、任务词表、FK URDF hash及原控制/物理时序。

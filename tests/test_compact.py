@@ -56,6 +56,15 @@ def test_refuse_noninvertible_rgb_and_misaligned_frames(tmp_path):
     assert source.exists() and (tmp_path/'bad/data.h5.partial').exists()
 
 
+def test_optional_viewing_videos_keep_lossless_hdf5(tmp_path):
+    source=tmp_path/'old.h5';fixture(source,True,views=3)
+    output=tmp_path/'compact_no_video';info=convert_episode(source,output,write_videos=False)
+    assert info['video_files']==[]
+    assert sorted(p.name for p in output.iterdir())==['data.h5']
+    with EpisodeFile(output/'data.h5') as f:
+        assert f['episodes/test']['obs/image'].shape==(3,3,4,6,8)
+
+
 def test_fresh_and_resume_share_result_identity_gate(tmp_path):
     path=tmp_path/'trial';path.mkdir()
     result={'steps':3,'started_episodes':1,'successful_episodes':0,'externally_censored':False}

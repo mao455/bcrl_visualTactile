@@ -256,3 +256,46 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 ### 首条之后的最终状态纠正（21:18 CST）
 
 运行继续提交s930002/3后，s930004非法初始化被正确拒绝，s930005在Kit启动报LLVM out of memory/exit−6，无场景/H5，driver按错误停止。因此上文“正在运行1/400”为较早快照，**最新3/400且无运行进程**。三条438步/292,101,725bytes全部重验SHA。累计6尝试含2软件启动错误、1非法初始化；0合法任务失败。记录资源快照/cgroup无OOM事件，未下结论是GPU内存耗尽；不盲目重试，不删已有成功。更新交接、相机报告、小证据/AGENTS/RUNBOOK当前状态，没有更改冻结研究代码。
+# 2026-10-28 — version-4 close-camera audit and bounded collection guard
+
+## Changed
+
+- `visuotactile/camera_rigs.py`: added independent `wrist_bracket_close`
+  layout version 4; only the first fixed camera moves to
+  `(0.288,-0.405,1.463)`. Fixed a dispatch bug so the close name still creates
+  the link7 wrist camera. `environment.py`, `contracts.py` and the analysis
+  path accept layout versions >=3 without changing physics or control.
+- `visuotactile/compact.py` and `manifest.py`: MP4s are explicit optional
+  viewing derivatives; HDF5 remains lossless source-of-truth. Existing
+  video-bearing manifests and tests remain compatible. `tests/test_compact.py`
+  adds a no-video HDF5 roundtrip check.
+- `visuotactile/collect_success_batch.py`: added 50% conservative whole-card
+  GPU telemetry, rolling/batch means, six-hour wall guard, decimal 60 GB guard,
+  inter-episode throttling and nonempty-predecessor preservation. Production
+  conversion defaults to no MP4 copies.
+- Documentation: updated current three-view entry in `ARCHITECTURE.md`,
+  `DATA_SCHEMA.md`, `HISTORY_AND_TRACE.md`, `PERCEPTION.md`, `RUNBOOK.md` and
+  `CAMERA_VALIDATION.md`; added `INITIALIZATION_AND_PERTURBATIONS.md` and
+  `OUTPUT_INVENTORY_20261028.md`; AGENTS now points at the new resource and
+  startup constraints.
+- Review artifacts: a Chinese-labeled three-column demo, camera overview,
+  URDF fixed-chain schematic and source/pose audit are under
+  `outputs/visuotactile/camera_v3_20261028/review_artifacts/`.
+
+## Actual verification
+
+- `bash visuotactile/run_cpu.sh -m pytest -q tests/test_compact.py
+  tests/test_insertion_dataset.py tests/test_perception_v2.py
+  tests/test_visuotactile.py`: **26 passed** (one existing requests warning);
+  the full `tests` suite after the optional-video and calibration checks is
+  **42 passed**.
+- Existing `bracket_17`, `bracket_920101` and `bracket_448` synchronized videos
+  were decoded and matched to HDF5 view order; fixed-high pose delta was 0,
+  wrist pose delta was 0.180–0.323 m, frames and timestamps were aligned.
+- Version-4 probes: 930006/008/009 invalid before action; 930007 completed but
+  had only two cameras and is rejected; 930010 hit LLVM OOM at startup. **No
+  version-4 triple-view success and no 400 batch** are claimed.
+- All-output inventory after authorized candidate cleanup is
+  10,074,898,432 bytes; 3,037,673,433 bytes of redundant candidate payloads
+  were deleted with a hash ledger. No training, optimizer update, background
+  process signal or shared simulator change occurred.

@@ -1,12 +1,20 @@
 # Dataset schema v2 (current) and v1 compatibility
 
-HDF5 `schema_version=2`, `metadata.perception_version=2`. Original pre-action / post-action / reset contract remains unchanged. All fields below have a leading episode length T when recorded; batch/history axes are added only by loaders. Complete and incomplete episodes are retained separately. See the v1 tables below for unchanged action/diagnostic fields.
+HDF5 `schema_version=2`, `metadata.perception_version=2`. The current
+three-view collection profile is ordered `fixed_high`, `fixed_side`,
+`wrist_rgbd` at **448×252**. Version-3 `wrist_bracket` and version-4
+`wrist_bracket_close` calibrations are separate layout identities. Older
+dual-view 224×126 entries are historical and cannot be reinterpreted as a
+three-view file. Original pre-action / post-action / reset contract remains
+unchanged. All fields below have a leading episode length T when recorded;
+batch/history axes are added only by loaders. Complete and incomplete episodes
+are retained separately.
 
 | v2 field per observation | Shape / type | Source / permitted use |
 | --- | --- | --- |
-| image | 2,4,126,224 float32 | RGB [0,1] + axial depth **meters**, both policies |
-| depth_m / depth_valid | 2,1,126,224 float32 / bool | Invalid/no-return depth=0 with false mask; duplicate metric field permits explicit audits |
-| camera_valid / camera_time_s / camera_frame | 2 bool / 2 float64 / 2 int | Real acquired frame validity, global simulation acquisition time, backend frame counter (may restart at reset) |
+| image | V,4,252,448 float32 (current V=3) | RGB [0,1] + axial depth **meters**, both policies |
+| depth_m / depth_valid | V,1,252,448 float32 / bool (current V=3) | Invalid/no-return depth=0 with false mask; duplicate metric field permits explicit audits |
+| camera_valid / camera_time_s / camera_frame | V bool / V float64 / V int (current V=3) | Real acquired frame validity, global simulation acquisition time, backend frame counter (may restart at reset) |
 | proprio | 58 | Original canonical normalized joint positions and rad/s encoder velocity |
 | time_s | scalar float64 | Simulated global control clock; never wall time |
 | task_id | scalar int64 | Operator-selected category/embedding, not magnitude; currently tight_insertion=0 |
@@ -146,7 +154,14 @@ metadata新增condition、pair_id、原/应用force_scale、teacher推理模式/
 
 详见[INSERTION_DATASET.md](INSERTION_DATASET.md)。旧HDF5无storage_version按0，新文件显式1；schema/perception2、memory2、trace2、wrench_trace3语义不变。单episode包含`data.h5`、`camera_0.mp4`、`camera_1.mp4`，视频只是H264观看副本，训练图像从H5精确重建。
 
-`episodes/<name>/frames/`：`rgb_u8=(F,2,3,126,224)` uint8，`depth_m=(F,2,1,126,224)` float32米，`depth_valid`同形bool；gzip4+shuffle按帧/通道chunk。`post_index=(T,)` int64，非terminal有效post指向t+1，缺失为−1。F=T（自然终止末图缺失）或T+1（预算末post仍有效）。原camera_frame、camera_time_s、episode_id、step_id、post可用性及相机标定仍完整保存；重复post/pre须逐值和时间索引相等才去重。uint8/255恢复原float32 RGB逐值相等，否则拒绝转换；Depth不量化。
+`episodes/<name>/frames/`：当前 `rgb_u8=(F,V,3,252,448)` uint8，
+`depth_m=(F,V,1,252,448)` float32米，`depth_valid`同形bool；旧双视角
+文件仍按其自身metadata读取。gzip4+shuffle按帧/通道chunk。
+`post_index=(T,)` int64，非terminal有效post指向t+1，缺失为−1。F=T
+（自然终止末图缺失）或T+1（预算末post仍有效）。原camera_frame、
+camera_time_s、episode_id、step_id、post可用性及相机标定仍完整保存；重复
+post/pre须逐值和时间索引相等才去重。uint8/255恢复原float32 RGB逐值相等，
+否则拒绝转换；Depth不量化。
 
 `EpisodeFile`按storage版本恢复原obs/image、obs/depth_m、obs/depth_valid、post/image与post/depth_valid，缺失post重建原零占位＋false有效性，其余139个原字段无损保留。不把图像缺失补成下一episode。原raw_action是专家原命令，submitted_action是实际选中命令，clipped_pre_delay是BC标签，delayed_command、target_rad和实际q分别保存，未因压缩混名。两物理子步触觉/FK/实际wrench完整保留，频率不变。
 

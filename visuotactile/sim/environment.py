@@ -34,7 +34,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     def __init__(self, cfg, *, perception_version=2, task_command=None,
                  initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", camera_rig="legacy_dual", **kwargs):
         self.camera_rig = rig_contract(camera_rig)
-        if self.camera_rig['version'] == 3:
+        if self.camera_rig['version'] >= 3:
             cfg.student_obs.focal_length = self.camera_rig['fixed_focal_length']
             cfg.student_obs.horizontal_aperture_offset = 0.
             cfg.student_obs.vertical_aperture_offset = 0.
@@ -67,7 +67,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self._research_ready = False
         super().__init__(cfg, **kwargs)
         self._camera_pose_annotators = []
-        if self.camera_rig['version'] == 3:
+        if self.camera_rig['version'] >= 3:
             import omni.replicator.core as rep
             for camera in self.research_cameras:
                 annotators = []
@@ -206,7 +206,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     def configure_camera_views(self, local_eye=(-.7, -.35, 1.15), local_target=(0., -.03, .68)):
         """Static calibrations relative to env origin; never follow a true object pose."""
         views = [((.6, -.8, 1.1), (0., .15, .65)), (local_eye, local_target)]
-        if self.camera_rig['version']==3:
+        if self.camera_rig['version']>=3:
             views=list(self.camera_rig['fixed_views'])
             if self.camera_rig['name']=='third_fixed': views.append(((.25,.55,1.1),(0.,0.,.65)))
         for camera, (eye, target) in zip(self.research_cameras, views):
@@ -257,7 +257,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                     camera_time_s=torch.full((self.num_envs, len(images)), self.research_tick*self.step_dt,
                                              dtype=torch.float64, device=self.device),
                     camera_frame=torch.stack([c.frame.clone() for c in self.research_cameras], 1))
-        if self.camera_rig['version']==3:
+        if self.camera_rig['version']>=3:
             # Synchronized sensor calibration/diagnostic, deliberately not a nominal key.
             from visuotactile.camera_rigs import renderer_pose_ros
             result['camera_pose_w']=torch.tensor(np.stack([
@@ -499,6 +499,6 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                     extrinsic_role='initial_only_use_per_frame_pose' if identity=='wrist_rgbd' else 'fixed',
                     clipping_range_m=list(camera.cfg.spawn.clipping_range),
                     clock="global simulated control time after render", rate_hz=1/self.step_dt))
-            if self.camera_rig['version'] == 3:
+            if self.camera_rig['version'] >= 3:
                 metadata['camera_pose_source'] = 'Replicator CameraParams from each RGB/depth render product; world ROS optical wxyz; diagnostic calibration only'
         return metadata

@@ -176,7 +176,7 @@ def load_trial(path):
             check(np.array_equal(image[:,:,3:4],depth), "metric depth/image mismatch")
             check(np.all(depth[valid]>0) and np.all(depth[~valid]==0), "depth validity")
             valid_counts += valid.sum(axis=(0,2,3,4)); pixels += len(image)*height*width
-        if metadata.get('camera_rig',{}).get('version')==3:
+        if metadata.get('camera_rig',{}).get('version', 2)>=3:
             pose=read('obs/camera_pose_w')
             check(pose.shape==(n,views,7) and np.isfinite(pose).all(),'camera pose shape/finite')
             check(np.allclose(np.linalg.norm(pose[:,:,3:],axis=-1),1,atol=2e-5),'camera rotation norm')

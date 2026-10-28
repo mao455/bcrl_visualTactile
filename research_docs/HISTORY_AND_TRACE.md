@@ -1,6 +1,11 @@
 # 持续历史、动作来源与时间合约
 
-本文件对应 `memory_version=2` 与 `trace_version=2`。`perception_version/schema_version=2` 仍指双相机与五指观测，三个版本各自有含义。用户方向见 [USER_RESEARCH_DIRECTION.md](USER_RESEARCH_DIRECTION.md)。本轮没有参数训练。
+本文件对应 `memory_version=2` 与 `trace_version=2`。当前采集入口的
+`perception_version/schema_version=2` 使用三路 RGB-D（448×252，固定高位、
+固定侧视、link7 腕部）；已提交的三条生产记录仍是独立的 v3
+`wrist_bracket` 构图，v4 `wrist_bracket_close` 尚未通过两条成功门槛。
+历史双相机表格明确标为旧基线，不能与当前布局混读。用户方向见
+[USER_RESEARCH_DIRECTION.md](USER_RESEARCH_DIRECTION.md)。本轮没有参数训练。
 
 ## 从真实源码发现的问题与实现
 

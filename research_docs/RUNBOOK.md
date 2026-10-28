@@ -1,5 +1,29 @@
 # 可复现命令与验证结果
 
+## Current production gate and blocked v4 probe
+
+The prior three committed successes are version-3 `wrist_bracket` records. A
+new version-4 close-camera attempt must be run in a fresh output root and must
+first produce two complete records whose metadata contains exactly
+`fixed_high,fixed_side,wrist_rgbd`. The direct probe command is:
+
+```bash
+RUN=outputs/visuotactile/camera_v4_close_$(date +%Y%m%d_%H%M%S)
+bash visuotactile/run_cpu.sh -m visuotactile.collect \
+  --output "$RUN/s930011" --camera-rig wrist_bracket_close \
+  --image-size 448 252 --render-mode quality --seed 930011 \
+  --pair-id close_v4_930011 --episodes 1 --max-steps 2400 \
+  --experiment-condition triple400_native --wrench-frame-mode world_hold \
+  --disable-extension-watch
+```
+
+This run was not continued after seed 930010's native LLVM startup OOM in the
+current session. `collect_success_batch.py` is prepared for a future new root,
+with a six-hour wall budget, decimal 60 GB cap, optional MP4 derivatives and
+whole-card conservative GPU telemetry. It must not be launched until a fresh
+camera gate references version-4 metadata; the old version-3 gate cannot be
+silently reused.
+
 从仓库根目录运行。所有命令使用项目 .venv_isaacsim。run_cpu.sh 只限制它新启动的进程：nice 19、两线程、CPU 22/23（可用 RESEARCH_CPUS 指定），不操作其他任务或 GPU 配置。CPU physics 仍需 GPU 渲染相机，不能承诺零资源竞争。这些是短实验命令，不是论文规模训练。
 
 输出目录必须不存在；使用新的 RUN 前缀保留历次证据。退出码不是充分证据：Kit 关闭曾掩盖异常，必须确认 result.json 存在且没有 FAILED.txt，训练确认 report.json，并运行数据审计。

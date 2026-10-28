@@ -87,3 +87,25 @@
 三条正式成功都再次通过ManifestReader verify=True的四文件SHA检查：s930001=160步/107,645,500 bytes，s930002=163步/107,838,360 bytes，s930003=115步/76,617,865 bytes；合计438步、292,101,725 bytes，3/400。原始成功/失败现场完整保留。`run_status/blocker_llvm.json`记录错误、尝试分母和资源快照；launcher/status/manifest入口沿用上文。已有至少一条正式三视角episode可阅读，但没有运行中的批次可以等待到400。
 
 下一步先定位本机LLVM/Kit启动时分配失败并做有依据的启动对照，再设计**保留这3条和全部attempt的恢复**。当前predecessor恢复只支持0episode，不可删除正式数据绕过guard。用户400授权仍有效；技术阻断不等于需要重新询问是否允许采400。不要以调expert、改物理或无限启动重试掩盖问题。
+
+## Version-4 close-camera follow-up (2026-10-28 late evening)
+
+The only intended geometric change for the next production profile is the
+version-4 `wrist_bracket_close` calibration: `fixed_high` eye
+`(0.288,-0.405,1.463)` with the old target; `fixed_side`, link7 wrist mount,
+448×252 and rendering settings are unchanged. Existing v3 episodes remain
+separate and were not relabelled.
+
+Probe accounting is explicit: s930006, s930008 and s930009 were native
+pre-action box-overlap rejections; s930007 completed but had only two views
+because the new rig name was initially absent from the wrist dispatch (the bug
+was fixed, and the payload is not eligible); s930010 stopped at startup with
+`LLVM ERROR: out of memory` before a scene/metadata/HDF5. Therefore there are
+zero version-4 triple-view successes and no new production driver. The small
+ledger is `outputs/visuotactile/camera_v4_close_20261028/version4_probe_audit.json`.
+
+The collection runner now has a decimal 60 GB root guard, six-hour wall budget,
+whole-card conservative GPU samples with rolling/batch means and
+inter-episode throttling. No further automatic launch is justified until the
+native startup blocker is independently bounded and a fresh v4 gate is
+created. The old three successes and all error classifications remain intact.

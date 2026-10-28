@@ -38,3 +38,35 @@ Read `research_docs/GIT_WORKFLOW.md` before repository operations. `origin` is t
 Production startup follow-up: read the appended CAMERA_VALIDATION/SESSION_HANDOFF. New400 uses process-local `--disable-extension-watch` after two complete paired probes; no system/IDE changes. First root `insertion_triple400_20261028` is blocked before any episode (seed930000). Current successor is `insertion_triple400_watchoff_20261028`, preserving that attempt and continuing at930001; never retry or erase the predecessor. Stop again on unexplained software errors. Do not mistake old startup/validation counts for successful production records.
 
 Latest production status (2026-10-28 21:18 CST): **blocked at 3/400, no driver running**. Successes s930001/2/3 are committed and rehashed; s930004 rejected before action; s930005 failed before scene/HDF5 with LLVM out of memory, distinct from prior watch exhaustion. Preserve all three successes and error evidence. The existing zero-episode predecessor option must reject this nonempty batch; do not delete data to bypass it. Diagnose native startup allocation before a deliberate resume; user400 authorization persists.
+
+## Current milestone override (2026-10-28 late evening)
+
+The user has now set the production hard limits to **60,000,000,000 decimal
+bytes across all retained and temporary project outputs**, a **six-hour wall
+clock budget**, and a conservative **whole-card GPU utilization average of at
+most 50%**.  The collector records five-second whole-card samples, a rolling
+60-second mean and a batch mean; process attribution is not trusted on this
+host, so the metric includes unrelated GPU work.  Throttling may only sleep
+between episodes and must never change the 120 Hz physics or 60 Hz native
+control contract.  If telemetry is unavailable, the GPU gate is unproven.
+
+The newly selected calibration is `wrist_bracket_close` (camera layout version
+4).  It changes only `fixed_high` from `(0.32,-0.45,1.55)` to
+`(0.288,-0.405,1.463)` with the same target, focal length, side view, wrist
+mount, resolution and rendering settings.  Version-3 episodes must stay in a
+separate dataset; metadata must be checked for all three camera IDs before a
+trajectory can count.  MP4s are optional viewing derivatives; lossless HDF5 is
+the source of truth and a manifest must explicitly list any video files.
+
+On 2026-10-28, version-4 seeds 930006--930010 were probed.  930006, 930008
+and 930009 were rejected before any expert action for the native object/table
+/hole box-overlap gate; 930007 completed with only two cameras because a name
+mapping bug was found and fixed, so it is diagnostic and not a three-view
+success; 930010 stopped at startup with `LLVM ERROR: out of memory`.  Do not
+blindly retry this blocker or count these probes as the two required final
+configuration successes.  Preserve the evidence, classify/delete only useless
+payloads, and keep the old three version-3 successes untouched.
+
+Read [INITIALIZATION_AND_PERTURBATIONS.md](research_docs/INITIALIZATION_AND_PERTURBATIONS.md)
+for the concrete reset/DR trace and three real initial-state rows.  It is a
+report of measured data, not a replacement for the original task configuration.

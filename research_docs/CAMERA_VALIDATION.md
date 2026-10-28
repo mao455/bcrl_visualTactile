@@ -1,5 +1,50 @@
 # 三视角验证与400条采集协议（2026-10-28）
 
+## 最新 version-4 close candidate (2026-10-28 late evening)
+
+To address the large empty area in the left image, `camera_rigs.py` now exposes
+`wrist_bracket_close` (layout version 4). Its only geometric change is
+`fixed_high` eye `(0.288,-0.405,1.463)` with the original target `(0,0,.68)`;
+the shared focal length remains 40, `fixed_side`, wrist local mount,
+448×252, quality and AA Off are unchanged. This is a new calibration identity,
+not an in-place edit of the three version-3 episodes.
+
+The first v4 probes exposed a real integration issue: seed 930007 completed
+with only `fixed_high` and `fixed_side` because the new rig name was not mapped
+through the existing wrist-key dispatch. Metadata showed two camera IDs, so it
+was rejected from the final configuration and its payload was removed after
+the audit. The mapping was fixed before further probes. Seeds 930006, 930008
+and 930009 were rejected by the original pre-action object/table/hole box
+overlap gate. Seed 930010 stopped at startup with `LLVM ERROR: out of memory`
+before metadata or a scene was created. Consequently **zero v4 triple-view
+successes** have passed the two-success gate; no new 400 batch was started.
+The old version-3 successes remain intact.
+
+The v4 source and deletion evidence is
+`outputs/visuotactile/camera_v4_close_20261028/version4_probe_audit.json`.
+The production runner now records conservative whole-card GPU samples,
+rolling/batch averages, six-hour wall time and a 60,000,000,000-byte decimal
+output guard. It sleeps only between episodes when the rolling utilization is
+above 50%; it never alters the 120 Hz physics or 60 Hz native control loop.
+
+## 为什么手腕附近看起来有空隙
+
+实际加载的 URDF 是
+`assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf`。
+第 277–283 行的 `iiwa14_joint_ee` 是 `z=0.045 m` 的固定关节，
+`iiwa14_link_ee` 为空 link；第 285–291 行的 `sharpa_mount` 没有
+`visual/collision`；第 292–296 行的 `sharpa_mount_joint` 再加
+`z=0.05 m`、yaw `-1.5708`。第 1159–1163 行的
+`iiwa14_sharpa` 还加 yaw `0.261799`，之后连接到带有 visual/collision
+的 `left_hand_C_MC`。转换器把固定链合并到真实的
+`iiwa14_link_7` 刚体，所以运行时腕部相机 parent 是
+`/World/envs/env_0/Robot/iiwa14_link_7`。
+
+两个 origin 平移合计 0.095 m，但这不是实测可见缝隙长度：其中一个 link
+为空，mount 也没有网格。局部示意图见
+`outputs/visuotactile/camera_v3_20261028/review_artifacts/urdf_mount_gap_schematic.png`。
+本轮没有缩短固定关节、补网格、加碰撞，也没有未经硬件资料认定真实法兰型号。
+
 本报告基于本机实际源码、渲染和完整轨迹。起点 `f39c968`，分支 `feature/triple-camera-validation`。只做观测扩展、原专家采集与零更新检查；不训练、不换手、不改原资产/控制/物理/判据。证据根目录为 `outputs/visuotactile/camera_v3_20261028/`（不公开上传）。当前400批次状态以 SESSION_HANDOFF 和实际 run_status 为准，不能把本文的验收样本计入400。
 
 ## 研究判断与选择

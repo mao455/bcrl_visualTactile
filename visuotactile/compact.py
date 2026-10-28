@@ -163,8 +163,14 @@ def write_video(path, frames, fps=60, *, lossless=False):
     return count
 
 
-def convert_episode(source, destination, *, result=None):
-    """One episode, no source mutation. Failed .partial files are retained."""
+def convert_episode(source, destination, *, result=None, write_videos=True):
+    """One episode, no source mutation. Failed .partial files are retained.
+
+    The HDF5 file is the training/readback source of truth.  MP4 files are
+    optional viewing derivatives and can be omitted for production batches to
+    keep the global storage budget bounded.  Existing callers keep the
+    historical ``write_videos=True`` default.
+    """
     source, destination = Path(source), Path(destination)
     destination.mkdir(parents=True, exist_ok=False)
     partial = destination/"data.h5.partial"
@@ -238,11 +244,13 @@ def convert_episode(source, destination, *, result=None):
                         raise ValueError("Roundtrip values: "+key)
                 compared += 1
         original.visititems(compare)
-    with h5py.File(partial) as f:
-        rgb = f["episodes"][name]["frames/rgb_u8"]
-        for view in range(shape[1]):
-            write_video(destination/f"camera_{view}.mp4.partial", (x[view].transpose(1,2,0) for x in rgb))
-    for name_on_disk in ('data.h5',*[f'camera_{v}.mp4' for v in range(shape[1])]):
+    if write_videos:
+        with h5py.File(partial) as f:
+            rgb = f["episodes"][name]["frames/rgb_u8"]
+            for view in range(shape[1]):
+                write_video(destination/f"camera_{view}.mp4.partial", (x[view].transpose(1,2,0) for x in rgb))
+    committed_files = ['data.h5'] + ([f'camera_{v}.mp4' for v in range(shape[1])] if write_videos else [])
+    for name_on_disk in committed_files:
         p = destination/(name_on_disk+".partial")
         with p.open("rb") as fd:
             os.fsync(fd.fileno())
@@ -250,4 +258,5 @@ def convert_episode(source, destination, *, result=None):
     return dict(episode=name, length=n, frame_count=frames, exact_fields=compared, storage_version=storage_version,
                 camera_ids=meta.get('camera_ids',['camera_'+str(v) for v in range(shape[1])]),
                 extra_final_post=extra, source_sha256=sha256(source),
+                video_files=[f'camera_{v}.mp4' for v in range(shape[1])] if write_videos else [],
                 files={p.name:dict(bytes=p.stat().st_size,sha256=sha256(p)) for p in destination.iterdir()})

@@ -19,6 +19,24 @@ from .run_rl_trials import validate_completion, utc
 from .trial_utils import code_identity, write_json
 
 GIB = 1024**3
+MAX_BATCH_BYTES = 60_000_000_000  # user constraint: decimal GB, not GiB
+MAX_WALL_SECONDS = 6 * 60 * 60
+
+
+def whole_card_gpu_percent():
+    """Conservative whole-card utilization, including unrelated workloads.
+
+    NVML process attribution is not reliable on this host, so the batch never
+    subtracts another process.  ``None`` means nvidia-smi was unavailable and
+    the run must not claim the GPU gate passed.
+    """
+    try:
+        text = subprocess.check_output(
+            ['nvidia-smi', '--query-gpu=utilization.gpu', '--format=csv,noheader,nounits'],
+            text=True, stderr=subprocess.STDOUT, timeout=2)
+        return float(text.strip().splitlines()[0].strip())
+    except (OSError, ValueError, subprocess.SubprocessError, IndexError):
+        return None
 
 
 def classify_pre_action_rejection(path):
@@ -45,34 +63,52 @@ def run(root, gate_path, predecessor=None):
     if predecessor is not None:
         prior_manifest=json.loads((predecessor/'manifest.json').read_text())
         prior_status=json.loads((predecessor/'run_status/status.json').read_text())
-        if prior_status['state']!='blocked' or prior_manifest['episodes'] or prior_status['successful_episodes']:
-            raise ValueError('This continuation only handles a pre-episode blocked predecessor; never discards existing data')
+        if prior_status['state']!='blocked':
+            raise ValueError('Predecessor must be blocked; never continue a running or complete batch')
         prior_attempts=[dict(r,predecessor=str(predecessor)) for r in prior_manifest['attempts']]
-        if not prior_attempts or any(r['outcome']!='software_or_audit_error' for r in prior_attempts):
-            raise ValueError('Inspect predecessor attempts before continuation')
+        if any(r.get('outcome') is None for r in prior_attempts):
+            raise ValueError('Predecessor has an unclassified attempt')
     if sha256(CHECKPOINT)!=CHECKPOINT_SHA: raise ValueError('Released expert checksum changed')
     root.mkdir(parents=True,exist_ok=False)
     for sub in ('episodes','temporary','logs','run_status'): (root/sub).mkdir()
     identity=code_identity()
     seed_start=max([929999,*[r['seed'] for r in prior_attempts]])+1
-    plan=dict(protocol='triple400_native_seed_rejection_watchoff_v2',created_utc=utc(),identity=identity,
+    plan=dict(protocol='triple400_native_seed_rejection_watchoff_v3',created_utc=utc(),identity=identity,
         target_successes=400,max_attempts=1600,seed_start=seed_start,max_steps=2400,wall_limit_s=900,
-        predecessor=str(predecessor) if predecessor else None,prior_attempt_count=len(prior_attempts),
+        wall_budget_s=MAX_WALL_SECONDS, predecessor=str(predecessor) if predecessor else None,
+        prior_attempt_count=len(prior_attempts),
         kit_extension_watcher_enabled=False,
-        max_bytes=95*GIB,min_free_bytes=40*GIB,attempt_reserve_bytes=12*GIB,
+        max_bytes=MAX_BATCH_BYTES,min_free_bytes=40*GIB,attempt_reserve_bytes=1*GIB,
+        gpu_limit_percent=50, gpu_metric='whole_card_conservative', gpu_sample_period_s=5,
         checkpoint=CHECKPOINT,checkpoint_sha256=CHECKPOINT_SHA,gate=gate,gate_sha256=sha256(gate_path),
         seed_rule='Continue from last attempted seed + 1 (930000 if no predecessor); original native reset, zero added offset; never retry a seed',
         selection='Original object/table/hole box overlap is pre-action rejection; all legal task failures/censored records retained. Only audited natural success counts.',
         software_rule='Stop on any startup/runtime/conversion/audit error; retain partials, no automatic retry',
-        camera_rig='wrist_bracket',image_size=[448,252],render_mode='quality',render_aa='Off',
+        camera_rig='wrist_bracket_close',image_size=[448,252],render_mode='quality',render_aa='Off',
         wrench_frame_mode='world_hold',parameter_updates=0,cooldown_seconds=5)
     write_json(root/'run_status/plan.json',plan)
     manifest=dict(manifest_version=1,protocol=plan['protocol'],episodes=[],attempts=prior_attempts.copy())
     write_json(root/'manifest.json',manifest)
-    status=dict(pid=os.getpid(),state='starting',successful_episodes=0,attempted_seeds=len(prior_attempts),started_utc=utc())
+    status=dict(pid=os.getpid(),state='starting',successful_episodes=0,attempted_seeds=len(prior_attempts),
+                started_utc=utc(),wall_budget_s=MAX_WALL_SECONDS,gpu_metric=plan['gpu_metric'],
+                gpu_samples=[],gpu_rolling_60s_avg_percent=None,gpu_batch_avg_percent=None)
     def publish(**updates):
         status.update(updates,updated_utc=utc());write_json(root/'run_status/status.json',status)
     successes=0
+    batch_start=time.monotonic()
+    gpu_samples=[]
+    def sample_gpu():
+        value=whole_card_gpu_percent()
+        if value is not None:
+            gpu_samples.append((time.monotonic(),value))
+        cutoff=time.monotonic()-60
+        recent=[v for t,v in gpu_samples if t>=cutoff]
+        all_values=[v for _,v in gpu_samples]
+        status['gpu_rolling_60s_avg_percent']=sum(recent)/len(recent) if recent else None
+        status['gpu_batch_avg_percent']=sum(all_values)/len(all_values) if all_values else None
+        status['gpu_last_percent']=value
+        status['gpu_samples_count']=len(gpu_samples)
+        return value
     try:
         for i in range(plan['max_attempts']-len(prior_attempts)):
             if successes==plan['target_successes']: break
@@ -80,6 +116,9 @@ def run(root, gate_path, predecessor=None):
                 publish(state='stopped_by_STOP_file');return
             if code_identity()['source_manifest_sha256']!=identity['source_manifest_sha256']:
                 raise RuntimeError('Source changed during frozen batch')
+            sample_gpu()
+            if time.monotonic()-batch_start > MAX_WALL_SECONDS:
+                raise RuntimeError('Six-hour wall-clock budget reached before next attempt')
             if tree_bytes(root)+plan['attempt_reserve_bytes']>plan['max_bytes'] or shutil.disk_usage(root).free<plan['min_free_bytes']+plan['attempt_reserve_bytes']:
                 raise RuntimeError('Capacity guard before next attempt')
             seed=plan['seed_start']+i;name=f's{seed}';temporary=root/'temporary'/name
@@ -96,13 +135,26 @@ def run(root, gate_path, predecessor=None):
                 child=subprocess.Popen(cmd,stdout=log,stderr=subprocess.STDOUT)
                 publish(child_pid=child.pid)
                 while child.poll() is None:
-                    time.sleep(5)
+                    time.sleep(plan['gpu_sample_period_s'])
+                    sample_gpu()
+                    status['bytes']=tree_bytes(root)
+                    status['wall_seconds']=time.monotonic()-batch_start
+                    write_json(root/'run_status/status.json',status)
                     if time.monotonic()-start>plan['wall_limit_s'] or tree_bytes(root)>plan['max_bytes'] or shutil.disk_usage(root).free<plan['min_free_bytes']:
                         child.terminate()
                         try: child.wait(timeout=15)
                         except subprocess.TimeoutExpired: child.kill();child.wait()
                         raise RuntimeError('Owned collector stopped by wall/disk bound; partial preserved')
             outcome=dict(**row,returncode=child.returncode,wall_seconds=time.monotonic()-start)
+            # Throttle only between episodes.  Physics/control clocks inside a
+            # collector are untouched; the conservative whole-card metric is
+            # allowed to include unrelated GPU work.
+            rolling=status.get('gpu_rolling_60s_avg_percent')
+            if rolling is not None and rolling > plan['gpu_limit_percent']:
+                pause=min(60.0, max(5.0, (rolling-plan['gpu_limit_percent'])*2.0))
+                publish(state='gpu_throttling',throttle_seconds=pause)
+                time.sleep(pause)
+                sample_gpu()
             rejected=classify_pre_action_rejection(temporary)
             if rejected is not None:
                 outcome.update(outcome='invalid_initialization',reason=rejected['initial_geometry'],episode_started=False,
@@ -122,12 +174,12 @@ def run(root, gate_path, predecessor=None):
             publish(state='converting',child_pid=None)
             result=json.loads((temporary/'result.json').read_text())
             directory='episodes/'+name
-            conversion=convert_episode(temporary/'trajectories.h5',root/directory,result=result)
+            conversion=convert_episode(temporary/'trajectories.h5',root/directory,result=result,write_videos=False)
             compact=validate_completion(root/directory,row)
             if compact['summary']['outcome']!=summary['outcome']: raise RuntimeError('Converted outcome differs')
             record=dict(**row,**conversion,directory=directory,outcome=summary['outcome'],valid=True,
                 schema_version=2,trace_version=2,wrench_trace_version=3,summary=summary,parameter_updates=0,
-                nominal_predictions_available=False,video_role='viewing_derivative',
+                nominal_predictions_available=False,video_role='optional_viewing_derivative',
                 initial_object_pose_w=trial['arrays']['initial']['object_pose_w'].tolist(),
                 initial_hole_pose_w=trial['arrays']['initial']['hole_pose_w'].tolist())
             manifest['episodes'].append(record)
@@ -139,13 +191,17 @@ def run(root, gate_path, predecessor=None):
             publish(state='committed',successful_episodes=successes,bytes=tree_bytes(root),last_episode=directory)
             print(json.dumps(dict(id=name,outcome=summary['outcome'],successful_episodes=successes,attempted_seeds=i+1+len(prior_attempts))),flush=True)
             time.sleep(plan['cooldown_seconds'])
-        publish(state='complete' if successes==400 else 'attempt_limit',child_pid=None,successful_episodes=successes)
+        sample_gpu()
+        publish(state='complete' if successes==400 else 'attempt_limit',child_pid=None,successful_episodes=successes,
+                wall_seconds=time.monotonic()-batch_start,bytes=tree_bytes(root),gpu_samples=gpu_samples)
     except BaseException as exc:
         if 'row' in locals() and not any(a['id']==row['id'] for a in manifest['attempts']):
             manifest['attempts'].append(dict(**row,outcome='software_or_audit_error',error=repr(exc),
                 returncode=child.returncode if 'child' in locals() else None))
             write_json(root/'manifest.json',manifest)
-        publish(state='blocked',error=repr(exc),successful_episodes=successes,child_pid=None)
+        sample_gpu()
+        publish(state='blocked',error=repr(exc),successful_episodes=successes,child_pid=None,
+                wall_seconds=time.monotonic()-batch_start,bytes=tree_bytes(root),gpu_samples=gpu_samples)
         raise
 
 

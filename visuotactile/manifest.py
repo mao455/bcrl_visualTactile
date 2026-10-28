@@ -6,6 +6,24 @@ from .dataset import EpisodeSequenceDataset
 from .recording import EpisodeReader
 
 
+def _calibration_identity(metadata):
+    """Stable identity for all sensor geometry used by a manifest split."""
+    cameras = []
+    for camera in metadata.get('cameras', []):
+        cameras.append({k: camera.get(k) for k in
+                        ('id', 'resolution', 'intrinsics',
+                         'clipping_range_m', 'extrinsic_role')})
+    # A wrist camera's world pose legitimately changes with the initial robot
+    # state; it is not a calibration change.  The rig contract carries its
+    # fixed local mount and fixed-view eyes/targets, so use that identity while
+    # excluding per-episode dynamic `pos_env`/quaternion values.
+    rig = metadata.get('camera_rig', {})
+    rig_identity = {k: rig.get(k) for k in ('version', 'name', 'fixed_views',
+                                            'fixed_focal_length', 'wrist')}
+    return json.dumps({'rig': rig_identity, 'cameras': cameras},
+                      sort_keys=True, separators=(',', ':'))
+
+
 class ManifestReader:
     def __init__(self, path, verify=False):
         self.path = Path(path).resolve()
@@ -19,8 +37,12 @@ class ManifestReader:
             if not row.get("valid"):
                 raise ValueError("Unvalidated row in committed manifest")
             views=len(row.get('camera_ids',['global_oblique','local_opposite']))
-            if set(row["files"]) != {'data.h5',*[f'camera_{v}.mp4' for v in range(views)]}:
-                raise ValueError("A committed episode requires data.h5 and one video per declared camera ID")
+            expected_video_names={f'camera_{v}.mp4' for v in range(views)}
+            declared=set(row.get('video_files', expected_video_names))
+            if declared - expected_video_names:
+                raise ValueError("Manifest declares an unknown camera video")
+            if set(row["files"]) != {'data.h5'} | declared:
+                raise ValueError("A committed episode must contain data.h5 and only declared optional camera videos; legacy rows require one video per declared camera")
             for filename, record in row["files"].items():
                 file = (self.path.parent/row["directory"]/filename).resolve()
                 if not file.is_relative_to(self.path.parent):
@@ -72,7 +94,8 @@ class ManifestSequenceDataset:
             raise ValueError("Do not silently mix legacy/world_hold collection configurations")
         layouts={(d.metadata.get('camera_rig',{}).get('version',2),
                   tuple(d.metadata.get('camera_ids',[])),
-                  tuple(tuple(c['resolution']) for c in d.metadata.get('cameras',[])))
+                  tuple(tuple(c['resolution']) for c in d.metadata.get('cameras',[])),
+                  _calibration_identity(d.metadata))
                  for d in self.datasets.values()}
         if len(layouts)>1:
             raise ValueError('Do not mix camera layouts/resolutions in one Dataset')

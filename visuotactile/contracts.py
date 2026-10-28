@@ -40,8 +40,8 @@ def policy_input_contract(metadata):
                       goal_frame=metadata["task_command"]["frame"],
                       calibration=calibration, fk_urdf_sha256=metadata["fk_urdf_sha256"])
         rig=metadata.get('camera_rig',{})
-        if rig.get('version')==3:
-            result['camera_layout_version']=3
+        if rig.get('version', 2) >= 3:
+            result['camera_layout_version']=rig['version']
             result['render_config']=metadata['config']['sim']['render']
             result['camera_mount']=rig.get('wrist',{'type':'all_fixed'})
         return result

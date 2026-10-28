@@ -1,5 +1,15 @@
 # Architecture and staged acceptance gates
 
+## Current camera profile (2026-10-28)
+
+The active collection candidate is **three RGB-D views at 448×252**:
+`fixed_high`, `fixed_side`, and the `iiwa14_link_7`-mounted `wrist_rgbd`.
+The already committed production episodes use the earlier version-3
+`wrist_bracket` calibration. The candidate version-4 `wrist_bracket_close`
+moves only `fixed_high` to `(0.288,-0.405,1.463)`; until two complete
+successes pass the final audit, it is a separate dataset and must not be mixed
+with version 3. Older dual-view descriptions below are historical baselines.
+
 ## Frozen boundaries
 Original environment/control/physics/RL remain authoritative. New package `visuotactile` is independent of Isaac Lab for model, data and history code; `visuotactile.sim` loads only after AppLauncher. Opt-in subclasses reuse task `_setup_scene`, `_pre_physics_step`, rewards and reset, attaching sensors/capturing records without replacing task math. No change to existing Gym IDs or teacher RL algorithms.
 
@@ -7,7 +17,7 @@ Policy-visible nominal inputs are explicitly selected camera history, encoder/co
 
 ## Current implementation: perception v2
 
-The current component and tensor contracts are in `PERCEPTION.md` and schema v2 in `DATA_SCHEMA.md`. `observations.py` owns the nominal allowlist, task vocabulary and operator command validation; `kinematics.py` supplies encoder-only FK; `models/vision.py` and `models/tactile.py` provide replaceable encoders. The adapter attaches two cameras/contact sensors and a read-only post-scene-update FK observer. Original task/RL/assets and control mathematics remain unchanged; the only original-source edit is an optional read-only action trace hook after delay selection.
+The current component and tensor contracts are in `PERCEPTION.md` and schema v2 in `DATA_SCHEMA.md`. `observations.py` owns the nominal allowlist, task vocabulary and operator command validation; `kinematics.py` supplies encoder-only FK; `models/vision.py` and `models/tactile.py` provide replaceable encoders. The adapter attaches three cameras/contact sensors and a read-only post-scene-update FK observer. Original task/RL/assets and control mathematics remain unchanged; the only original-source edit is an optional read-only action trace hook after delay selection.
 
 `NominalController.act` constructs private previous-nominal/remaining-plan fields **before** adding the current observation to history and predicting a new chunk. Collector records these exact inputs. `CorrectionContext` separately constructs prior-issued-command and target/error feedback. `CorrectionEpisodeDataset` uses the same causal windows and returns expert command supervision separately. `probe_perception` compares offline/online tensors on real episodes, checks gradients without weight updates, and generates visibility evidence. Goal commands are optional external inputs, not extracted from task success state.
 
