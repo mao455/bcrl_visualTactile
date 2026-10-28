@@ -96,3 +96,11 @@ released checkpoint SHA256 `7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be813
 `collect_success_batch.py`只在camera_gate各项验收后启动新的根目录。固定上述rig/resolution/render/原专家，seed序列930000起，每次+1，原生reset姿态/位置/孔座/DR，零额外XY；非法box初始化动作前拒绝且记录，不修改高度或重新采样同seed。自然成功且全字段/转换/动态标定/物理协议审计通过才计数；任务失败、删失仍保留并进入尝试分母；软件/审计错误停止，未知损坏文件不删。最多1600个seed尝试、95GiB、每条2400步/900s；不能以尝试数替代400成功。源代码hash冻结，改变源码后停止下一次启动。未来划分按seed/初态组，不按帧。
 
 已授权400不再受上一批60尝试/10GiB/不扩量限制；上一批仍原样单列。新批次不混入候选相机、旧失败或验收轨迹。具体PID、首条episode及中途/最终状态写在SESSION_HANDOFF，来源是实际文件与进程。
+
+## 启动故障定位与局部修复（当晚追加）
+
+初次400driver实际启动PID1990175，首seed930000在Kit初始化崩溃，0episode/0HDF5/0成功；旧root `insertion_triple400_20261028`状态blocked并保留。不能把它报为正在采集。日志是libomniclient FileThread抛`std::system_error: Invalid argument`，同时反复`Failed to create change watch errno=28`。只读检查：inotify额度524288、当前用户约524205个watch，主要来自code进程；磁盘约201GiB可用，因此不是文件磁盘满。成功probe也曾出现watch警告，故不把额度问题武断认作唯一C++根因。
+
+查证Kit本机支持`/app/extensions/fsWatcherEnabled`后，新增collector可选`--disable-extension-watch`，**只关闭当前进程扩展热重载**，不改OS限制、IDE、共享依赖或后台任务。完整pair A/B各168步正常启动/成功，日志无上述watch错误；metadata实际值false；与改前128数组逐位一致，重复亦一致。原相机/物理合约不变。本轮完整probe由13增为15，仍不计400。
+
+新driver要求bootstrap gate，额外支持只针对“已核验pre-episode阻断且没有任何正式episode”的predecessor继续：新目录保留前批失败尝试及来源，从下一个seed开始，禁止重试/覆盖930000。协议`triple400_native_seed_rejection_watchoff_v2`，新root `insertion_triple400_watchoff_20261028`，gate `camera_gate_watchoff.json`。这是查明启动资源问题后的修复继续，非自动循环重试；若再出现未知软件/审计错误仍停。未来状态仍看真实status，不能用两次成功启动声称Kit完全稳定。

@@ -35,6 +35,8 @@ def main():
     parser.add_argument('--render-mode',choices=('performance','balanced','quality'),default='performance')
     parser.add_argument('--render-aa',choices=('Off','TAA','DLAA'),default='Off')
     parser.add_argument('--camera-diagnostics',action='store_true',help='Static render-only frames and actual USD mount audit after rollout')
+    parser.add_argument('--disable-extension-watch',action='store_true',
+                        help='Process-local Kit extension hot-reload off for frozen headless collection')
     parser.add_argument("--audit-default-camera", action="store_true")
     parser.add_argument("--perception-version", type=int, choices=(1,2), default=2)
     parser.add_argument("--local-eye", type=float, nargs=3, default=(-.7,-.35,1.15))
@@ -69,8 +71,11 @@ def main():
     args.output.mkdir(parents=True, exist_ok=False)
     os.environ.setdefault("OMNI_KIT_ACCEPT_EULA", "YES")
     from isaaclab.app import AppLauncher
+    kit_args="--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 --/persistent/physics/numThreads=2"
+    if args.disable_extension_watch:
+        kit_args += " --/app/extensions/fsWatcherEnabled=false"
     app = AppLauncher(headless=True, enable_cameras=True, device="cpu",
-                      kit_args="--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 --/persistent/physics/numThreads=2").app
+                      kit_args=kit_args).app
     import numpy as np
     import torch
     from PIL import Image
@@ -156,6 +161,8 @@ def main():
         teacher_obs, _ = env.reset(seed=args.seed)
         camera_audit[args.camera] = save_frame("initial")
         metadata = env.research_metadata()
+        import carb
+        metadata['kit_extension_watcher_enabled']=carb.settings.get_settings().get('/app/extensions/fsWatcherEnabled')
         from .trial_utils import code_identity
         metadata["code_identity"] = code_identity()
         metadata.update(problem=args.problem, seed=args.seed, action_source=source,

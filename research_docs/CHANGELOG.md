@@ -244,3 +244,7 @@ Camera geometry/detail under occlusion and lawful goal commands; additional demo
 - 光心到已测机器人mesh包围体>=.127m；并非实体支架/全动作包络认证。腕部真实补充部分搬运/对孔信息，但末段仍遮挡。400运行状态独立追加在交接文档，不能由gate已写推断已运行。
 
 旧失败清理：核验旧cohort46文件SHA和完整结果后，仅删除12条已确认native failure/非法box起点的原H5，共337,127,269 bytes；保留完整统计/原因/metadata/小数组、原manifest与逐文件hash，新增旧root tombstones记录。旧成功和未知partial不动，预览保留。该清理有本轮用户明确授权，不把未知打不开文件当失败删掉。
+
+### 同晚启动故障修复（第二个独立提交）
+
+400第一次启动seed930000在Kit/libomniclient FileThread抛system_error Invalid argument，未创建metadata/HDF5。日志同时出现inotify ENOSPC，实查524205/524288 watch、磁盘201GiB可用；未改系统/IDE/他人进程。`collect.py`增加显式进程级`--disable-extension-watch`并记录实际Kit值；两次独立168步完整probe通过、无watch错误、128数组与原版及repeat一致。`collect_success_batch.py`增加bootstrap gate、检查watcher=false，支持pre-episode blocked前批作为可审计predecessor；前失败保留，从930001继续，不重新尝试930000，尝试总数含前失败，target仍400自然有效成功。unknown错误继续停止。修复状态和过程见CAMERA_VALIDATION；focused3tests通过。没有把这个选项当作已证明修复所有native崩溃。
