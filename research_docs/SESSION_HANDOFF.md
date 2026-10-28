@@ -1,5 +1,7 @@
 # 当前会话交接：有限插入数据集（2026-10-28）
 
+> **最终覆盖：2026-10-29 00:05北京时间**：新v4生产已在2/400停止，PID2070793已退出。s930014/016已完整提交；s930017启动-6、libomniclient FileThread Invalid argument。额外一次受限strace直接看到inotify_add_watch ENOSPC，当前524205/524288 watch。关闭扩展watch仍不足，勿自动重启或把下文运行快照当当前。0训练，未改系统配额/其他进程。
+
 > **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
 
 
@@ -112,3 +114,25 @@ whole-card conservative GPU samples with rolling/batch means and
 inter-episode throttling. No further automatic launch is justified until the
 native startup blocker is independently bounded and a fresh v4 gate is
 created. The old three successes and all error classifications remain intact.
+
+## 当前真实状态：v4两条验收通过，预算内生产已后台启动（2026-10-28续）
+
+本段覆盖旧“零v4成功/没有driver”快照。实现commit **e546bca**已推送origin/main。新driver **PID2070793**，通过start_new_session及日志文件启动，stdin为DEVNULL；不会依赖交互PTY继续存在。输出`outputs/visuotactile/insertion_close400_20261028`；launcher日志`outputs/visuotactile/camera_v4_close_20261028/production_launcher.log`；实时进程/资源/成功数量分别看root下run_status/status.json、resources.json、manifest.json。截止20:51:19Z（北京时间次日04:51:19），从第一轮14:51:19Z计6小时，换目录不延期。
+
+验收seed17/920101为2条v4成功，独立于目标400生产数；旧v3三条保留且重hash/audit，不合并标定。930006–010所有旧错误分类导入新manifest。新seed930011–013原生非法、动作前拒绝后继续；**首条正式s930014已提交**，244步自然成功，HDF5163,059,257bytes、143字段精确往返。独立ManifestReader verify=True、ManifestSequenceDataset `(1,1,3,4,252,448)`、完整validate_completion均通过，audit_errors=[]。这是实际后台新增episode，不是仅检查PID。其后仍运行，请读取实时文件，勿重复启动。
+
+两条验收从启动到转换审计完成实际墙钟205.25/223.20秒，包含中间开发等待；执行阶段合计136.45/135.29秒。GPU监测只覆盖各执行阶段，不能把空档伪造为全周期测量；生产采用单Supervisor贯穿全部阶段。首条生产完整周期123.29秒；前3个非法尝试约19–21秒。400在当前独立进程+精确转换实现下无法保证6小时，甚至忽略全部失败也明显不足；剩余预算尽量采，不暗延长24h。进程复用可省启动，但不消除写盘/精确转换，且需要新的reset/RNG/相机缓存验证，未擅自接入。
+
+全项目清理/真实数字见OUTPUT_INVENTORY；旧普通MP4已显式变为可选，data.h5不变。两个v4完整原始字段分别在`paired17_compact/data.h5`和`paired920101_compact/data.h5`，duplicate raw已经验证后清理。旧bracket17等同理；旧路径metadata与demo保留，读取原始字段改用对应compact。
+
+仍未解决：LLVM根因（arena2两次成功不构成修复证明）、全部硬件安装、广初态下可见性、去预加载、Correction监督与正式manifest训练。未知新软件/审计错误停止并保留现场；普通失败/非法继续。该轮0训练，无其他任务信号/驱动/共享Lab改动。
+
+## 最终停止与诊断证据（2026-10-29 00:05）
+
+新生产7次尝试：s930011/012/013/015非法起点；s930014=244步自然成功、163,059,257bytes；s930016=226步自然成功、145,407,980bytes；s930017启动软件错误(-6)、未产生metadata/HDF5。2/400，缺398；两条相机验收和旧v3三条均单列。driver2070793退出，当前无本项目采集后台可等待；launcher日志/status/manifest均保留。两条再次hash验证、完整审计、Dataset三路读取通过，证据run_status/final_readback.json。
+
+批次349.49秒连续监测整卡均值9.48%，最大已满60秒滚动21.87%；最大采样间隔1.83秒，无缺测；整卡显存峰值5261MiB，项目outputs峰值9,495,693,267bytes。C+G pmon部分SM值缺失，不能给可靠独占RTX百分比。停止时outputs约8.866GB，外部明确归属的Kit/Lab日志约.021GB另计，仍远低60GB。此前验收监测峰值11.692GB，最初盘点约13.10GB；不声称覆盖未监测间隔的精确峰值。
+
+本次错误与LLVM不同：std::system_error Invalid argument，native栈在libomniclient FileThread。只读/proc统计watch524205/524288，余83；instances79/4096。进行**唯一一次**同seed、1步上限的strace诊断，捕获真实inotify_add_watch ENOSPC（见startup_inotify.trace/startup_trace_audit.json），即使`--disable-extension-watch`仍有底层监听失败；该次44.50秒、整卡均值13.22%，仅censored诊断，不计生产成功。未修改limit、IDE、驱动、共享库；没有继续无上限试错。先前LLVM原因仍未唯一确定，arena2不构成稳定性修复。恢复需进程内经验证方案或外部watch压力变化，不能假称400仍在跑。
+
+容量/时间预测：两条验收活跃周期约135–136秒；新首条生产123秒，另有19–21秒非法尝试开销。忽略失败的400条就约13.7–15.2小时，因此当前实现不满足6小时完成400；进程复用即使消除启动仍不足，且需reset/RNG/cache对照，不在此偷偷引入。2条生产平均154.23MB，机械外推400约61.69GB，还未加保留证据，超过60GB；样本小不能作为稳定最终容量，但足以说明不能承诺40GB。停止现状没有可信400完成ETA。

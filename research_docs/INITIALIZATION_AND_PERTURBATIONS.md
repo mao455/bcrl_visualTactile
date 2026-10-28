@@ -101,3 +101,7 @@ batch is made here.
 旧三条零force比例1/3；438控制步实际lag0/1/2=130/148/160（29.68/33.79/36.53%）。三条完整初态无精确重复；物体XYZ范围[-.046796,.035756]、[-.000229,.056078]、[.631235,.645310]m，样本太少不能代表覆盖。候选包括旧930004非法、930000/005启动未产生初态；新930006/008/009非法、930007两视图错误不合格、930010启动未产生初态。不能把只保留成功的表当无条件reset分布。
 
 小CSV和实测分位数：`outputs/visuotactile/camera_v4_close_20261028/old_v3_initialization_report/`；由`python -m visuotactile.initialization_report <manifest> --output <directory>`重建。程序审计真实applied_wrench与lag，不从配置伪造经验噪声分布。新v4验收seed17/920101单列；后续新生产manifest用同命令另行更新，不合并版本。
+
+实际目标补充：`make_pre_insert_sequence`默认沿孔局部+Z从final回退0.05m；final孔局部位置(0,0,.136)m，姿态xyzw=(0,-.70710678,0,.70710678)。目标观测xy reset均匀±.002m，yaw噪声0。撤手距离阈值.1m，插入/撤手keypoint容差配置.01/.005，实际判定还乘原keypoint_scale；不把配置数字直接另解释成新米制成功阈值。物体mass实测.0578kg。
+
+新v4生产初态与扰动CSV/JSON已单独生成在`insertion_close400_20261028/initialization_report/`；这是生成时的已提交记录快照，继续运行后需重跑命令更新。非法候选有metadata和attempt里的raw/final pose、object_minus_hole及具体overlap。启动未产生状态时保持缺失；原采集器对动作前非法样本没有保存完整q/dq/力经验序列，不能凭配置补出这些数据。
