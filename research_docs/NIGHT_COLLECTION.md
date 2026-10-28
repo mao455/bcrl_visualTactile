@@ -82,3 +82,9 @@ world坐标以每个环境真实origin存储；所有相机局部标定仍同v4�
 完整episode初始状态、命令与目标、关节/力/时间字段保持现有schema2/trace2/storage2；新增writer provenance和per-env metadata。文件不是通过降低图像/深度精度变小。非终止截止的最后真实post帧被另存；自然终止图仍显式缺失，不能把reset图归到上条。
 
 剩余风险：共享inotify watch压力未全局修改；持久实例减少启动次数但不能证明native根因消失。若未来native启动/worker卡顿，supervisor有限恢复并保留已提交数据；Python/审计异常需要定位后恢复，不无限重启。真实KUKA左手实体支架、视觉/触觉策略能力、去预加载和Correction训练目标仍未验证/未决定。本轮零参数训练。
+
+### 02:08 长批真实快照
+
+累计112/400（剩288），当前run106成功、88非法起点、3原生任务失败，4条正在运行/2条审核中；另外6条是旧2＋本轮8m验收4。循环4.23条/分钟，含启动4.18条/分钟，动态ETA约68分钟。GPU最大完整60秒46.22%，全批约30.8%，无遥测缺失。进程2117854/2117864均实查存活。源码commit80e703f已成功推送origin/main，10个实际运行文件hash均匹配。此处是快照，是否400完成必须看实时manifest/status。
+
+可以使用更短的默认命令：`bash visuotactile/run_cpu.sh -m visuotactile.collect_success_batch start`；默认即4环境、4线程、目标400和本轮08:00截止。status/stop同上。
