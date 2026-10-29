@@ -192,3 +192,21 @@ checkpoints under separate ignored directories:
 Record the actual PIDs, start time, epoch progress and ETA here after launch.
 Do not upload checkpoints, logs or data.  B2/B3 remain design-only and no
 closed-loop evaluation is authorized until the reports are inspected.
+
+## Background launch (2026-10-29 13:16 UTC)
+
+Both jobs were then relaunched with `setsid`, independent stdin, and
+`--throttle-ms 1200`:
+
+| variant | PID | output | observed state |
+|---|---:|---|---|
+| B0 | 2347815 | `outputs/visuotactile/run/dp_b0_20261028/` | epoch 1, 100 chunks logged |
+| B1 | 2347938 | `outputs/visuotactile/run/dp_b1_20261028/` | epoch 1, 100 chunks logged |
+
+The first 100 chunks took 179.6 s (B0) and 181.3 s (B1), which gives a rough
+75–80 min/epoch and 62–67 h for 50 epochs before validation overhead.  This
+is a running estimate, not a completion promise.  A 60 s sample window after
+launch was about 14% GPU utilization (peak sample 54%) and 19.5 GB of 24 GB
+VRAM; the protected workload was not signalled or changed.  Check live PIDs
+and logs before assuming completion; a `report.json` is the only completion
+marker.
