@@ -88,3 +88,20 @@ world坐标以每个环境真实origin存储；所有相机局部标定仍同v4�
 累计112/400（剩288），当前run106成功、88非法起点、3原生任务失败，4条正在运行/2条审核中；另外6条是旧2＋本轮8m验收4。循环4.23条/分钟，含启动4.18条/分钟，动态ETA约68分钟。GPU最大完整60秒46.22%，全批约30.8%，无遥测缺失。进程2117854/2117864均实查存活。源码commit80e703f已成功推送origin/main，10个实际运行文件hash均匹配。此处是快照，是否400完成必须看实时manifest/status。
 
 可以使用更短的默认命令：`bash visuotactile/run_cpu.sh -m visuotactile.collect_success_batch start`；默认即4环境、4线程、目标400和本轮08:00截止。status/stop同上。
+
+## 最终交付验收（2026-10-29 03:26:58 新加坡时间记录）
+
+本批已正常完成 `400/400`。`outputs/visuotactile/run/close400/progress.json` 与 `status.json` 均为 `complete`，采集器和 supervisor 已退出；没有重新启动采集。生产清单是 `outputs/visuotactile/data/close_v4/manifest.json`，只统计 `stage=production`，目标字段为400。
+
+- 400个 episode ID 唯一，400个 `data.h5` 存在且声明大小匹配；全量 SHA256 重新计算通过（IsaacLab Python，约41.9秒）。400条现已补齐 `content_digest`，400个 digest 唯一，无超额记录。
+- 400条均为三路 `fixed_high/fixed_side/wrist_rgbd`、`exact_fields=143`、`audit_errors=[]`、`missing_telemetry=[]`；MP4不在生产记录中，HDF5是无损数据源。`ManifestSequenceDataset(manifest, stage="production")`抽查5条不同环境、长度和外力曝光轨迹，顺序分块和有限值检查通过。
+- 总控制步为21,271；轨迹长度来自400条正式记录，范围119–539，均值约204.7，中位数196。400条文件合计70,186,972,525 bytes（目录含manifest/报告约70,198,253,726 bytes）。
+- `initialization_report/initial_states.csv`和`report.json`已改为当前400条；旧两条相机验收另存为`preproduction_initial_states.csv`/`preproduction_report.json`。位置统计使用各环境局部坐标，未把8m间距当作扰动范围：物体xyz min/median/max约`[-0.0997,-0.0996,0.6029]`/`[0.0015,-0.0042,0.6347]`/`[0.0996,0.0987,0.6574]`m；孔座xyz约`[-0.1869,-0.0997,0.5201]`/`[0.0031,-0.0011,0.5300]`/`[0.1872,0.0999,0.5399]`m。关节初态、姿态和延迟逐条在CSV保存。
+- attempts不是成功率分母：正式400之外，attempts中有403条历史/本批成功标记（其中3条历史成功不在当前manifest）、370非法初始化、18合法任务失败、8条1.2m邻居入镜排除、2条软件/审核类、1条worker、2条启动类及2条外部删失等分类。按当前长批`r931005`，成功394、非法335、任务失败17；这只是该批尝试统计，不能写成专家成功率100%。
+- 外力按真实采样频率分开：60Hz控制摘要非零力262周期、82条成功有曝光，峰值4.5410N、累计持续约4.37s；120Hz实际施加样本524，力零曝光比例为318/400=79.5%。扭矩为60Hz 240周期/85条、120Hz 480样本/约4.00s，峰值0.4488Nm。接触传感器与外力不是同一量，不能将其改称压力图或滑移标签。
+- 生产总控制步各环境为env0 106条/20,716步、env1 94/19,596、env2 104/20,722、env3 94/20,390；没有把env0数据复制到其他环境。1.2m邻居入镜的8条没有进入生产episodes。
+- 运行资源快照（覆盖 supervisor 监测区间）：项目输出峰值/结束 `76,732,681,445` bytes，GPU全卡批次时间加权均值29.41%，最后完整60秒34.66%，峰值显存12,356 MiB，缺测0，节流约23.0s。此监测区间不覆盖更早探针。结束记录的 `shutil.disk_usage` 可用108.74GB；当前 `df` 可用空间约76GB，仍有余量。完整采集从01:42:56开始，03:26:58完成；按提交计约3.8条/分钟。
+
+`tmp/`已确认无活跃写入并清空（0 bytes）。`data/`中除close_v4外保留`reference_v4`（两条相机验收基准）、`legacy_dual_insertion`/`legacy_triple_v3`（不同协议历史数据）、`legacy_research`/`legacy_expert_experiments`（历史接口与专家研究）、`diagnostics`（1.2m邻居排除证据）、`checkpoints`（旧模型，仅作兼容性参考）；它们不计入400，也没有删除或混入训练。最终演示在`outputs/visuotactile/demos/production_v4/`和`demos/wrist_choice/`，只是查看派生物。
+
+本轮没有训练。后续BC入口仍需显式选择production manifest、验证持续历史的分块训练一致性，并建立“纯专家记录无自身Nominal计划”的baseline；普通专家BC不能称为已去除预加载的纯几何Nominal，Correction仍是Shadow且训练目标未冻结。

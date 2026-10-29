@@ -288,11 +288,23 @@ def recover_pending(root, run):
     from .finalize_collection import finalize_stream
     root=Path(root);manifest_path=root/'manifest.json'
     m=json.loads(manifest_path.read_text());reference=json.loads((root/'reference_metadata.json').read_text())
-    present={r['id'] for r in m['episodes']};reports=[]
+    present={r['id'] for r in m['episodes']}
+    digests={r.get('content_digest') for r in m['episodes'] if r.get('content_digest')}
+    progress_path=Path(run)/'progress.json'
+    progress=json.loads(progress_path.read_text()) if progress_path.exists() else {}
+    target=int(progress.get('target',m.get('target_successes',400)))
+    tmp_root=root.parent.parent/'tmp'
+    reports=[]
+
+    def discard_recovered_payload(source, destination):
+        """Remove only a temporary recovery payload, never an existing orphan."""
+        if source != destination and source.exists():
+            shutil.rmtree(source)
+
     for row in m['attempts']:
         if row['id'] in present or row.get('outcome') not in ('awaiting_audit','running','audit_error'):
             continue
-        source=Path('outputs/visuotactile/tmp')/row['run_id']/row['id']
+        source=tmp_root/row['run_id']/row['id']
         published=root/'episodes'/row['id']
         if not source.exists() and published.exists():source=published
         if (source/'data.h5').exists():
@@ -303,15 +315,37 @@ def recover_pending(root, run):
             outcome=info['summary']['outcome']
             row.update(outcome=outcome,summary=info['summary'],initial=info['initial'],
                        control_steps=info['length'],effective_delay_counts=info['effective_delay_counts'])
+            destination=root/'episodes'/row['id']
             if outcome=='success':
-                destination=root/'episodes'/row['id']
-                if source!=destination:source.rename(destination)
-                m['episodes'].append(dict(row,**info,directory='episodes/'+row['id'],valid=True,
-                    parameter_updates=0,nominal_predictions_available=False,recovered_after_worker_exit=True))
-                present.add(row['id'])
+                digest=info.get('content_digest')
+                row['content_digest']=digest
+                if digest and digest in digests:
+                    outcome='duplicate_success_not_counted'
+                    row['outcome']=outcome
+                    row['reason']='Recovered success has an existing committed content_digest'
+                    write_json(Path(run)/(row['id']+'_duplicate.json'),info)
+                    discard_recovered_payload(source,destination)
+                elif len(m['episodes']) >= target:
+                    outcome='surplus_success_not_counted'
+                    row['outcome']=outcome
+                    row['reason']='Recovery found success after target was already reached'
+                    write_json(Path(run)/(row['id']+'_surplus.json'),info)
+                    discard_recovered_payload(source,destination)
+                else:
+                    if destination.exists() and source != destination:
+                        raise FileExistsError(f'Recovery destination already exists: {destination}')
+                    if source!=destination:source.rename(destination)
+                    m['episodes'].append(dict(row,**info,directory='episodes/'+row['id'],valid=True,
+                        parameter_updates=0,nominal_predictions_available=False,recovered_after_worker_exit=True))
+                    present.add(row['id'])
+                    if digest:digests.add(digest)
             reports.append(dict(id=row['id'],outcome=outcome))
             write_json(manifest_path,m)
-            if outcome!='success':shutil.rmtree(source)
+            # A recovered file may already be under the published directory
+            # after a worker moved it before exiting.  Never remove that
+            # directory merely because the recovery row is classified as a
+            # duplicate, surplus, or audited non-success.
+            if outcome!='success':discard_recovered_payload(source,destination)
         else:
             row.update(outcome='external_censor_partial',retained_path=str(source),
                        reason='Worker exited before independent episode finalization; not a task failure')

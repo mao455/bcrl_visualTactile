@@ -152,3 +152,13 @@ created. The old three successes and all error classifications remain intact.
 `80e703f9e6180459bec668ce83321beb858f930a`已推送origin/main，工作树干净；逐项对比持久进程记录的源码hash，当前10个相关运行文件均与此公开提交一致。实际112/400，剩288；文件存在/大小、每条143字段审核记录均核对。新长批106成功、88非法起点、3自然失败、4进行中、2等待审核；另外计入旧2和本轮4条8m验收，不计旧v3或1.2m试采。
 
 supervisor2117854和collector2117864均实查存活，长批含启动吞吐4.18/min，循环4.23/min，预计剩余约68分钟，非完成承诺。GPU全批约30.8%，最大完整60秒46.22%，无缺失采样；磁盘余量约166GB。实时状态命令与日志入口见NIGHT_COLLECTION，当前采集继续后台，不因本轮答复退出。详细公开小统计见evidence/night_collection_20261029.json；所有数据/权重/日志未上传。
+
+## 最终交付：close_v4 400条（2026-10-29）
+
+实时核对后，`outputs/visuotactile/data/close_v4/manifest.json` 已有400/400条 `stage=production` 成功；`progress.json`/`status.json` 为 `complete`，supervisor和Isaac采集器均已退出。完成时间由状态记录为新加坡时间2026-10-29 03:26:58，早于原08:00目标。不要重新启动采集。
+
+最终验收：400个episode ID和HDF5文件唯一；全量ManifestReader(verify=True) SHA256/大小通过；400条均为三路相机、143字段、无audit error/缺失telemetry；400条content_digest已补齐且唯一。`ManifestSequenceDataset(..., stage="production")`抽查5条不同环境、长度和外力曝光样本通过。`tmp/`清空。生产HDF5合计70,186,972,525 bytes，项目输出结束快照76,732,681,445 bytes。
+
+当前统计和入口：`close_v4/initialization_report/{report.json,initial_states.csv}`为400条生产统计，早期相机验收保存在同目录`preproduction_*`；详细分类、控制步、外力/扭矩和GPU统计见`research_docs/NIGHT_COLLECTION.md`及`run/close400/statistics/summary.json`。正式数据入口仍是`close_v4/manifest.json`，读取必须显式`stage="production"`。1.2m邻居入镜8条、失败/删失/错误均不计生产清单。
+
+资源记录为全卡均值29.41%、最后完整60秒34.66%、GPU显存峰值12,356MiB、缺测0，结束时记录磁盘可用108.74GB；当前系统`df`约76GB。全程保持四环境/8m/v4三相机、CPU专家与物理、GPU渲染、120/60Hz，零训练且未操作其他后台任务。

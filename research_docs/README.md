@@ -1,8 +1,10 @@
 # 视觉与触觉模仿学习研究工程
 
-> **2026-10-29夜间最新入口：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)。用户覆盖旧预算/截止/停止规则；持久四环境＋8m间距正在向400采集。原1.2m间距试采因邻居桌子入镜排除。实时数量与PID用新状态命令读取，下面旧快照不可当作当前状态。
+> **当前交付（2026-10-29）：** 四环境、8m、v4三相机生产批次已完成 **400/400 条审计通过的自然成功轨迹**，采集器已退出。最终统计见 [`NIGHT_COLLECTION.md`](NIGHT_COLLECTION.md) 和 [`SESSION_HANDOFF.md`](SESSION_HANDOFF.md)；读取正式数据时使用 `outputs/visuotactile/data/close_v4/manifest.json` 并显式指定 `stage="production"`。本轮未训练。
 
-> **最新实测状态（2026-10-29 00:05）**：v4两条验收通过；随后后台提交2条新成功后在seed930017启动崩溃而停止（2/400，缺398，当前无采集进程）。一次受限strace确认底层inotify_add_watch ENOSPC；未改系统/其他进程。详见SESSION_HANDOFF最后一节。
+> **历史快照（已被上方最终交付覆盖）：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)记录了四环境＋8m生产过程、原1.2m邻居入镜排除和运行证据；下面旧快照不可当作当前状态。
+
+> **历史状态（已完成）：** 2026-10-29 00:05时曾是2/400并遇到启动错误；该快照后来恢复生产并已被400条最终交付覆盖。一次受限strace确认底层inotify_add_watch ENOSPC；未改系统/其他进程。
 
 > **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
 
