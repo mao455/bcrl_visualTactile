@@ -1,5 +1,39 @@
 # Engineering change and verification log
 
+## 2026-10-29 18:54 — 不中断B0/B1训练的公开审查与GPU评估接线
+
+本轮用户授权发布76bb58e并补齐证据，禁止仅因审查停训/重开实验。76bb58e已推送origin/main；
+运行中两trainer的10个launch源码SHA匹配该提交（launch HEAD为4714c96＋当时工作树），
+本轮未重启/热改已加载训练代码、未改模型/reader/训练预算。5/50轮完成、正在第6轮。
+
+| 路径 / 函数 | 修改前 → 修改后与职责 |
+| --- | --- |
+| `visuotactile/rollout.py::load_command_controller` | 仅CPU → 显式device，保持默认CPU兼容；恢复epoch/manifest身份，B0/B1模型部署到所选device。 |
+| `NominalController.act/condition_rows/synchronize` | CPU网络、重规划复制完整原图window → CUDA current allowlist与持续memory、私有device RNG，回传CPU29D命令；memory2可只保留episode/step验证，无未使用图像副本；每步记忆不变。 |
+| `TactileCommandController.encode_current` | CPU五个触觉输入 → 与模型同device；五指来源、物理样本顺序、独立融合状态不变。 |
+| `visuotactile/evaluate_baselines.py::checkpoint_identity/main` | 文件名推断checkpoint身份、CPU推理粗计时 → 完成report/best/epoch/manifest/hash准入、协议2 CUDA FP32、持久场景和模型、源hash、reset/记忆/重规划/step/写盘计时、两组后ETA。 |
+| `evaluate_baselines.publish_report` | 候选不足也会写report后抛异常 → incomplete_report单独保存；避免Kit掩盖退出码使已运行runner误报完成。 |
+| `tests/test_command_training.py` | 归一化接近单位配置 → 非零mean/非单位std实际加载回放；新增两模型原图缓存开/关9步/异步reset一致、best身份拒错、完成marker测试。 |
+| `research_docs/BASELINE_TRAINING.md`与`evidence/baseline_review_20261029.json` | 早期ETA/粗吞吐 → 真实配置/有效目标/完整周期/资源/分支梯度与参数变化/关键测试映射/15小时来源及新ETA，聚合证据不含数据权重。 |
+| `AGENTS.md`、`USER_RESEARCH_DIRECTION.md`、`CONTRACTS.md`、`RUNBOOK.md`、`SESSION_HANDOFF.md` | 补充本轮授权、设备/评估/来源合约、自动入口、当前状态；保留旧快照但明确历史，不恢复50%GPU限制。 |
+
+形状不变：三路448×252 RGB-D，训练[B=2,T=32,3,4,252,448]；在线[N,1,3,4,252,448]，
+condition128D、H12×29命令，B1每60Hz观察两个120Hz力/FK样本。原任务/动作处理/物理/资产不变。
+GPU网络执行与CPU的随机生成器不同，作为协议2记录；固定相同初始噪声的GPU/CPU8步DDIM
+动作最大差3.94e-6，condition最大差1.08e-6，未改全局CPU/CUDA RNG。这是小输入设备检查，不是性能训练。
+
+实际短仿真：首次在首次reset前取metadata失败（NoneType），未产出有效trial，保留错误；
+移动metadata读取到reset后，在新目录完成B0/B1各96步。初态差0、command/submitted及clipped
+逐位相同，延迟0/1/2、joint/target有限且有运动、dt误差<7e-12s。两条主动删失，不能发布成功率。
+App11.041s/scene4.831s/checkpoint0.934s；控制循环33.280s，物理+渲染未独立分解；
+与训练争用GPU，整卡峰值7381MiB，短probe启动19.87s采样间隙如实标出。两trainer均无缺测/等待。
+本轮没有额外参数训练、正式评估尚待50epoch完成；没有重新全量采样、减画质或减少评估条数。
+
+验证：65 tests passed（7.99s，原requests依赖warning），包含之前61项与本轮4项新增。
+compileall与diff whitespace检查通过；公开扫描只匹配说明中的checkpoint/字段名，没有发现凭据。旧15h为全部100条×2400外部上限的CPU外推；
+原生阶段实际601步、2子目标+撤手保守1803步；新ETA依赖实际终止，正式首两组将更新且计入50。
+公开只含源码、测试、文档和小统计，保留MIT/vendor声明，训练数据/checkpoint/log均忽略。
+
 ## 2026-10-29 — command-training acceptance, online loading and background resume
 
 This entry supersedes the old 6GiB/8GiB thresholds and incomplete online-training

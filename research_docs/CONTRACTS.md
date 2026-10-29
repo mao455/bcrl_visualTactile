@@ -104,3 +104,15 @@ CPU必须render，保持table/hole变换审计。格式压缩不改变pre/post�
 The optional production adapter preserves schema2/trace2/storage2 logical arrays. `stream_writer_version=1` writes RGB uint8, exact float32 metric depth and masks directly with lossless LZF. `source_field_digests_json` records dtype, per-row shape and SHA256 over chronological contiguous source bytes for **every** logical field; an independent CPU worker reconstructs and verifies all fields before commit. Terminal image remains unavailable; graceful nonterminal censor preserves its actual final post frame. `source_env_index`, `source_episode_id`, `persistent_run_id` and `env_origins_w` identify each independent episode. Physical/control dt, released expert and success criteria remain unchanged.
 
 Per-environment metadata stores its own matrices/limits/origin; camera mount compatibility canonicalizes only the `/env_N/` instance component, preserving actual mounting parent and offset. The 8m parallel grid isolates cameras; camera local calibration is still v4. One seed belongs to an entire persistent run, never to an independently reseeded episode; historical metadata `initial_torch_rng_sha256` denotes the run's first reset. Actual per-step CPU RNG is recorded in transitions. Invalid native starts are resampled for that env only, logged before any expert action; this conditions the dataset on box legality and eventual success, not a native success-rate estimate. See NIGHT_COLLECTION for actual measured changes.
+## 2026-10-29 B0/B1评估协议2补充
+
+训练标签、checkpoint格式、模型结构与数据schema不变。正式评估准入由
+`evaluate_baselines.checkpoint_identity` 核对训练完成report的best路径、variant、epoch及manifest，
+并在加载前后检查SHA256；禁止last替代、诊断权重进入正式结果。`plan.json`记录实际源码hash。
+网络、图像与循环状态/扩散迁至CUDA FP32，返回CPU canonical29D命令；120/60Hz、H12/replan6与
+checkpoint中DDIM步数不变。CPU/CUDA随机生成器可能产生不同轨迹，协议2结果不与旧CPU探针混合。
+memory2在线不保留未使用的原图滑窗时，仍按episode/step验证连续性且每控制观察更新持续状态。
+正式仍50配对。只有完整cohort生成report.json；候选耗尽生成incomplete_report.json，错误单列。
+原生阶段上限实测601步，子目标会重置计数；外部2400不裁短2子目标＋撤手的保守1803步允许量。
+关键执行NPZ为诊断记录，不伪装成完整训练轨迹；未保存的原始图像不能从特征宣称可还原。
+实测与限制见BASELINE_TRAINING末尾，训练未因本次修改重新开始。

@@ -88,12 +88,16 @@ def test_tactile_reference_with_initial_missing_and_padded_tail():
 @pytest.mark.parametrize('variant',['b0','b1'])
 def test_checkpoint_actual_controller_online_no_plan_rng_and_causal_state(tmp_path,variant):
     cfg=PolicyConfig(views=3,own_plan_mode='none');model=_make_model(variant,cfg).eval()
+    encoder=model.encoder if variant=='b0' else model.visual
+    encoder.proprio_mean.copy_(torch.linspace(-.4,.7,58))
+    encoder.proprio_std.copy_(torch.linspace(.2,1.4,58))
     opt=torch.optim.AdamW(model.parameters())
     args=SimpleNamespace(variant=variant,chunk_size=2,batch_size=2,seed=41,amp='off')
     _save(tmp_path/'model.pt',model,opt,cfg,args,'fixture',(['a'],['b'],['c']),1,[],
-          torch.zeros(58),torch.ones(58),metadata={},optimizer_updates=1)
+          encoder.proprio_mean,encoder.proprio_std,metadata={},optimizer_updates=1)
     before=torch.get_rng_state().clone(); controller=load_command_controller(tmp_path/'model.pt',2)
     torch.testing.assert_close(before,torch.get_rng_state(),atol=0,rtol=0)
+
     data=chunk(8)
     with torch.no_grad():
         cond,state=_condition(model,variant,data,None)
@@ -109,6 +113,46 @@ def test_checkpoint_actual_controller_online_no_plan_rng_and_causal_state(tmp_pa
             assert controller.replanned.all()==(t%6==0)
         compare_state(state,controller.memory)
     torch.testing.assert_close(before,torch.get_rng_state(),atol=0,rtol=0)
+
+
+@pytest.mark.parametrize('variant',['b0','b1'])
+def test_command_history_fast_path_matches_retained_images(tmp_path,variant):
+    cfg=PolicyConfig(views=3,own_plan_mode='none');model=_make_model(variant,cfg).eval()
+    args=SimpleNamespace(variant=variant,chunk_size=2,batch_size=2,seed=41,amp='off')
+    _save(tmp_path/'model.pt',model,torch.optim.AdamW(model.parameters()),cfg,args,
+          'fixture',(['a'],[],[]),1,[],torch.zeros(58),torch.ones(58),metadata={},optimizer_updates=1)
+    a=load_command_controller(tmp_path/'model.pt',2,retain_image_history=True)
+    b=load_command_controller(tmp_path/'model.pt',2)
+    for t in range(9):
+        p=packet(t=t,views=3)
+        if t>=4:p['episode_id'][0]=1;p['step_id'][0]=t-4
+        torch.testing.assert_close(a.act(p),b.act(p),atol=0,rtol=0)
+        compare_state(a.memory,b.memory)
+    assert all(len(buf)==1 and not buf[0] for buf in b.history.buffers)
+
+
+def test_evaluation_requires_actual_best_identity(tmp_path):
+    import json
+    from visuotactile.evaluate_baselines import checkpoint_identity
+    payload=dict(variant='b0',epoch=3,manifest_sha256='fixture')
+    torch.save(payload,tmp_path/'best.pt');torch.save(payload,tmp_path/'last.pt')
+    report=dict(training_complete=True,variant='b0',checkpoint=str(tmp_path/'best.pt'),
+                selected_epoch=3,manifest_sha256='fixture')
+    (tmp_path/'report.json').write_text(json.dumps(report))
+    assert checkpoint_identity(tmp_path/'best.pt','b0')['epoch']==3
+    with pytest.raises(ValueError,match='best identity'):checkpoint_identity(tmp_path/'last.pt','b0')
+    report['selected_epoch']=4;(tmp_path/'report.json').write_text(json.dumps(report))
+    with pytest.raises(ValueError,match='best identity'):checkpoint_identity(tmp_path/'best.pt','b0')
+
+
+def test_incomplete_evaluation_never_publishes_completion_marker(tmp_path):
+    from visuotactile.evaluate_baselines import publish_report
+    with pytest.raises(RuntimeError,match='Candidate budget'):
+        publish_report(tmp_path,dict(complete=False,legal_pairs=49))
+    assert not (tmp_path/'report.json').exists()
+    assert (tmp_path/'incomplete_report.json').exists()
+    publish_report(tmp_path,dict(complete=True,legal_pairs=50))
+    assert (tmp_path/'report.json').exists()
 
 
 def test_activation_recomputation_keeps_features_and_parameter_gradients():

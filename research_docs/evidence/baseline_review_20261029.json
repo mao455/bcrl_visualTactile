@@ -1,0 +1,502 @@
+{
+  "snapshot_singapore": "2026-10-29T18:54:44.284233+08:00",
+  "scope": "In-flight training evidence; no final policy-performance claim",
+  "training_source_commit": "76bb58effc7be462dbad8cbe6bda4905aa520f5f",
+  "variants": {
+    "b0": {
+      "source_recorded_commit": "4714c966b20251173d1c198ee1456da4b9c720d3",
+      "trainable_parameters": 2003085,
+      "frozen_parameters": 0,
+      "parameter_dtype": "torch.float32",
+      "config": {
+        "own_plan_mode": "none",
+        "vision_checkpoint_images": 12,
+        "memory_version": 2,
+        "perception_version": 2,
+        "views": 3,
+        "channels": 4,
+        "proprio_dim": 58,
+        "history": 4,
+        "stride": 3,
+        "horizon": 12,
+        "replan_steps": 6,
+        "hidden": 128,
+        "diffusion_steps": 100,
+        "inference_steps": 8
+      },
+      "batch_size": 2,
+      "chunk_size": 32,
+      "gradient_accumulation": 1,
+      "amp": "bf16",
+      "model_device": "cuda:0",
+      "image_shape": [
+        2,
+        32,
+        3,
+        4,
+        252,
+        448
+      ],
+      "completed_epochs": 5,
+      "latest_complete_epoch": {
+        "epoch": 5,
+        "train": {
+          "loss_sum": 276134.8129608631,
+          "chunks": 1221,
+          "steps": 64825,
+          "valid_targets": 756780,
+          "updates": 1221,
+          "skipped_updates": 0,
+          "grad_norm_sum": 1546.6408841609955,
+          "padded_steps": 13319,
+          "io_wait_s": 356.882485018461,
+          "compute_s": 483.54511871095747,
+          "wall_seconds": 849.0066901809769,
+          "loss": 0.36488122434639275,
+          "mean_grad_norm": 1.266700150828006
+        },
+        "validation": {
+          "loss_sum": 35845.96554861963,
+          "chunks": 167,
+          "steps": 8670,
+          "valid_targets": 101400,
+          "updates": 0,
+          "skipped_updates": 0,
+          "grad_norm_sum": 0.0,
+          "padded_steps": 2018,
+          "io_wait_s": 84.47095334279584,
+          "compute_s": 21.929898627626244,
+          "wall_seconds": 107.34710933599854,
+          "loss": 0.35351050836902986,
+          "mean_grad_norm": 0.0
+        },
+        "eta_seconds": 43035.92097826389,
+        "save_seconds": 0.07387886202195659
+      },
+      "stable_epoch_ids": [
+        3,
+        4,
+        5
+      ],
+      "stable_mean_train_s": 831.1484306899947,
+      "stable_mean_validation_s": 106.10160470098101,
+      "stable_mean_epoch_save_s": 0.07414478667002793,
+      "stable_control_steps_s": 77.99449244725663,
+      "stable_targets_s": 910.5232856804455,
+      "complete_cycle_control_steps_s": 69.15963694408703,
+      "eta_50_epochs_singapore": "2026-10-30T06:30:56.588108+08:00",
+      "offline_final_test_allowance_s": 600,
+      "resources": {
+        "pid": 2429429,
+        "latest": {
+          "pid": 2429429,
+          "utc_epoch": 1793271283.9651084,
+          "elapsed_s": 4816.5220831610495,
+          "gpu_util_percent": 99.0,
+          "gpu_used_mib": 4200.0,
+          "gpu_free_mib": 19884.0,
+          "ram_available_bytes": 37944975360,
+          "process_rss_bytes": 3214176256,
+          "cuda_allocated_bytes": 49160192,
+          "cuda_reserved_bytes": 1516240896,
+          "rolling_60s_percent": 57.16851191558817
+        },
+        "samples": 1993,
+        "gpu_time_weighted_mean_percent": 53.892948477794576,
+        "max_complete_60s_mean_percent": 78.290394616225,
+        "missing_samples": 0,
+        "missing_seconds": 0.0,
+        "max_sample_gap_s": 3.7336918239598162,
+        "wait_seconds": 0.0,
+        "peak_gpu_used_mib": 7381.0,
+        "peak_process_rss_bytes": 3270451200,
+        "min_ram_available_bytes": 32712036352,
+        "thresholds": {
+          "gpu_free_mib": 4096.0,
+          "ram_available_bytes": 10737418240.0
+        },
+        "scope": "whole card, sampled only for this process lifetime; latest user allows full GPU utilization"
+      },
+      "live_status": {
+        "state": "training",
+        "pid": 2429429,
+        "updated_utc": 1793271274.2010458,
+        "variant": "b0",
+        "epoch": 6,
+        "completed_epochs": 5,
+        "group": 76,
+        "train": {
+          "loss_sum": 125346.86830820143,
+          "chunks": 575,
+          "steps": 30692,
+          "valid_targets": 358244,
+          "updates": 575,
+          "skipped_updates": 0,
+          "grad_norm_sum": 656.1046693325043,
+          "padded_steps": 6108,
+          "io_wait_s": 172.0488631944172,
+          "compute_s": 221.04675710655283,
+          "wall_seconds": 397.0572480239789
+        },
+        "steps_per_second": 77.29867708685288,
+        "eta_seconds": 42942.493650574645,
+        "eta_basis": "measured training rate + estimated 15% validation/save/test; closed-loop evaluation separate"
+      },
+      "launch_recorded_source_sha256": {
+        "visuotactile/train_dp.py": "b34ee05ff0b197c40aff825f9ad89b8cca77c0d8321e756edd353708634d832b",
+        "visuotactile/rollout.py": "a56d1088d6b25050c98c2ba0596ff0dbcaddd02fcfd21e4ffcd0972742ea7538",
+        "visuotactile/dataset.py": "3a9b533876bd70c26497631b02e068fbc163f287d10cbb234c190e6c73137c99",
+        "visuotactile/compact.py": "4a7335955bacae8291b7d454c4e034710a13755787ef40e4bbc9bc3b60cd13ba",
+        "visuotactile/models/tactile_dp.py": "5e12d504ec17f2266a10bae14d7471d1813168a1bb0d91f460bde1ac68b04d82",
+        "visuotactile/models/correction.py": "f9c2c320b3d122506c521dd602571fb81544c65926149b3917cd6732ba0dfe6b",
+        "visuotactile/models/tactile.py": "50d04b5967d8aa22036211e391427ecf8734208a52e00212341f2a54555c1cce",
+        "visuotactile/models/vision.py": "f2b68f4a199e66263f301d28d19dbb824b61ef61ab3f26e2ba4a3c71697c4bf1",
+        "visuotactile/models/__init__.py": "6eef10f160f5a03ea1262f4f1f55bf0ed62b75841130fb224760e2797e44e396",
+        "visuotactile/models/nominal.py": "467bce71a04837845d84e8d96bda9586353761365e8d8309e72cab75893186bd"
+      },
+      "launch_recorded_sources_match_76bb58e": {
+        "visuotactile/train_dp.py": true,
+        "visuotactile/rollout.py": true,
+        "visuotactile/dataset.py": true,
+        "visuotactile/compact.py": true,
+        "visuotactile/models/tactile_dp.py": true,
+        "visuotactile/models/correction.py": true,
+        "visuotactile/models/tactile.py": true,
+        "visuotactile/models/vision.py": true,
+        "visuotactile/models/__init__.py": true,
+        "visuotactile/models/nominal.py": true
+      }
+    },
+    "b1": {
+      "source_recorded_commit": "4714c966b20251173d1c198ee1456da4b9c720d3",
+      "trainable_parameters": 2166613,
+      "frozen_parameters": 0,
+      "parameter_dtype": "torch.float32",
+      "config": {
+        "own_plan_mode": "none",
+        "vision_checkpoint_images": 12,
+        "memory_version": 2,
+        "perception_version": 2,
+        "views": 3,
+        "channels": 4,
+        "proprio_dim": 58,
+        "history": 4,
+        "stride": 3,
+        "horizon": 12,
+        "replan_steps": 6,
+        "hidden": 128,
+        "diffusion_steps": 100,
+        "inference_steps": 8
+      },
+      "batch_size": 2,
+      "chunk_size": 32,
+      "gradient_accumulation": 1,
+      "amp": "bf16",
+      "model_device": "cuda:0",
+      "image_shape": [
+        2,
+        32,
+        3,
+        4,
+        252,
+        448
+      ],
+      "completed_epochs": 5,
+      "latest_complete_epoch": {
+        "epoch": 5,
+        "train": {
+          "loss_sum": 271823.02361507714,
+          "chunks": 1221,
+          "steps": 64825,
+          "valid_targets": 756780,
+          "updates": 1221,
+          "skipped_updates": 0,
+          "grad_norm_sum": 1539.2267873883247,
+          "padded_steps": 13319,
+          "io_wait_s": 317.0462393729249,
+          "compute_s": 554.2427937555476,
+          "wall_seconds": 880.0136424140073,
+          "loss": 0.35918367770696524,
+          "mean_grad_norm": 1.2606279994990375
+        },
+        "validation": {
+          "loss_sum": 35555.27772488445,
+          "chunks": 167,
+          "steps": 8670,
+          "valid_targets": 101400,
+          "updates": 0,
+          "skipped_updates": 0,
+          "grad_norm_sum": 0.0,
+          "padded_steps": 2018,
+          "io_wait_s": 81.14667658158578,
+          "compute_s": 25.548240966396406,
+          "wall_seconds": 107.67854854202596,
+          "loss": 0.35064376454521157,
+          "mean_grad_norm": 0.0
+        },
+        "eta_seconds": 44446.1485930215,
+        "save_seconds": 0.07917557202745229
+      },
+      "stable_epoch_ids": [
+        3,
+        4,
+        5
+      ],
+      "stable_mean_train_s": 865.2556060720235,
+      "stable_mean_validation_s": 105.77090763300657,
+      "stable_mean_epoch_save_s": 0.07905407368283097,
+      "stable_control_steps_s": 74.92005777839941,
+      "stable_targets_s": 874.6317211806727,
+      "complete_cycle_control_steps_s": 66.75381354086907,
+      "eta_50_epochs_singapore": "2026-10-30T06:58:36.750550+08:00",
+      "offline_final_test_allowance_s": 600,
+      "resources": {
+        "pid": 2429455,
+        "latest": {
+          "pid": 2429455,
+          "utc_epoch": 1793271283.1197157,
+          "elapsed_s": 4815.107751726988,
+          "gpu_util_percent": 83.0,
+          "gpu_used_mib": 4200.0,
+          "gpu_free_mib": 19884.0,
+          "ram_available_bytes": 37330653184,
+          "process_rss_bytes": 3015094272,
+          "cuda_allocated_bytes": 51794944,
+          "cuda_reserved_bytes": 1522532352,
+          "rolling_60s_percent": 71.78977133284691
+        },
+        "samples": 1997,
+        "gpu_time_weighted_mean_percent": 54.36065833214043,
+        "max_complete_60s_mean_percent": 79.52164112476457,
+        "missing_samples": 0,
+        "missing_seconds": 0.0,
+        "max_sample_gap_s": 3.5352429790073074,
+        "wait_seconds": 0.0,
+        "peak_gpu_used_mib": 7380.0,
+        "peak_process_rss_bytes": 3321655296,
+        "min_ram_available_bytes": 32764567552,
+        "thresholds": {
+          "gpu_free_mib": 4096.0,
+          "ram_available_bytes": 10737418240.0
+        },
+        "scope": "whole card, sampled only for this process lifetime; latest user allows full GPU utilization"
+      },
+      "live_status": {
+        "state": "training",
+        "pid": 2429455,
+        "updated_utc": 1793271271.2090464,
+        "variant": "b1",
+        "epoch": 6,
+        "completed_epochs": 5,
+        "group": 48,
+        "train": {
+          "loss_sum": 76107.69010792673,
+          "chunks": 350,
+          "steps": 18757,
+          "valid_targets": 218742,
+          "updates": 350,
+          "skipped_updates": 0,
+          "grad_norm_sum": 398.9439996480942,
+          "padded_steps": 3643,
+          "io_wait_s": 88.18843141302932,
+          "compute_s": 162.5112668175134,
+          "wall_seconds": 253.25019138795324
+        },
+        "steps_per_second": 74.06509703783878,
+        "eta_seconds": 45002.61706667522,
+        "eta_basis": "measured training rate + estimated 15% validation/save/test; closed-loop evaluation separate"
+      },
+      "launch_recorded_source_sha256": {
+        "visuotactile/train_dp.py": "b34ee05ff0b197c40aff825f9ad89b8cca77c0d8321e756edd353708634d832b",
+        "visuotactile/rollout.py": "a56d1088d6b25050c98c2ba0596ff0dbcaddd02fcfd21e4ffcd0972742ea7538",
+        "visuotactile/dataset.py": "3a9b533876bd70c26497631b02e068fbc163f287d10cbb234c190e6c73137c99",
+        "visuotactile/compact.py": "4a7335955bacae8291b7d454c4e034710a13755787ef40e4bbc9bc3b60cd13ba",
+        "visuotactile/models/tactile_dp.py": "5e12d504ec17f2266a10bae14d7471d1813168a1bb0d91f460bde1ac68b04d82",
+        "visuotactile/models/correction.py": "f9c2c320b3d122506c521dd602571fb81544c65926149b3917cd6732ba0dfe6b",
+        "visuotactile/models/tactile.py": "50d04b5967d8aa22036211e391427ecf8734208a52e00212341f2a54555c1cce",
+        "visuotactile/models/vision.py": "f2b68f4a199e66263f301d28d19dbb824b61ef61ab3f26e2ba4a3c71697c4bf1",
+        "visuotactile/models/__init__.py": "6eef10f160f5a03ea1262f4f1f55bf0ed62b75841130fb224760e2797e44e396",
+        "visuotactile/models/nominal.py": "467bce71a04837845d84e8d96bda9586353761365e8d8309e72cab75893186bd"
+      },
+      "launch_recorded_sources_match_76bb58e": {
+        "visuotactile/train_dp.py": true,
+        "visuotactile/rollout.py": true,
+        "visuotactile/dataset.py": true,
+        "visuotactile/compact.py": true,
+        "visuotactile/models/tactile_dp.py": true,
+        "visuotactile/models/correction.py": true,
+        "visuotactile/models/tactile.py": true,
+        "visuotactile/models/vision.py": true,
+        "visuotactile/models/__init__.py": true,
+        "visuotactile/models/nominal.py": true
+      }
+    }
+  },
+  "cuda_check": {
+    "b0": {
+      "condition_max_error": 1.0728836059570312e-06,
+      "matched_noise_ddim8_max_error": 3.933906555175781e-06,
+      "global_cpu_cuda_rng_unchanged": true,
+      "model_memory_device": "cuda:0",
+      "returned_command_device": "cpu"
+    },
+    "b1": {
+      "condition_max_error": 4.7497451305389404e-07,
+      "matched_noise_ddim8_max_error": 1.7881393432617188e-06,
+      "global_cpu_cuda_rng_unchanged": true,
+      "model_memory_device": "cuda:0",
+      "returned_command_device": "cpu"
+    }
+  },
+  "cuda_development_rollout": {
+    "development": true,
+    "legal_pairs": 1,
+    "invalid_initializations": 1,
+    "elapsed_s": 34.08013606071472,
+    "timing": {
+      "isaac_app_s": 11.04130207997514,
+      "scene_s": 4.8308270489797,
+      "checkpoint_load_s": 0.9339514970197342,
+      "reset_s": 0.7685155399958603,
+      "loop_s": 33.280163747025654,
+      "trace_write_s": 0.0064352200133726,
+      "demo_write_s": 0.09291261498583481
+    },
+    "process_wall_s": 54.26011751696933,
+    "protocol_version": 2,
+    "resources": {
+      "pid": 2454081,
+      "latest": {
+        "pid": 2454081,
+        "utc_epoch": 1793270608.2182012,
+        "elapsed_s": 51.30702135199681,
+        "gpu_util_percent": 92.0,
+        "gpu_used_mib": 7380.0,
+        "gpu_free_mib": 16704.0,
+        "ram_available_bytes": 33257005056,
+        "process_rss_bytes": 6101786624,
+        "cuda_allocated_bytes": 25245184,
+        "cuda_reserved_bytes": 109051904,
+        "rolling_60s_percent": null
+      },
+      "samples": 17,
+      "gpu_time_weighted_mean_percent": 94.28860577682879,
+      "max_complete_60s_mean_percent": null,
+      "missing_samples": 0,
+      "missing_seconds": 19.8741763579892,
+      "max_sample_gap_s": 19.8741763579892,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 7380.0,
+      "peak_process_rss_bytes": 6101786624,
+      "min_ram_available_bytes": 33257005056,
+      "thresholds": {
+        "gpu_free_mib": 4096,
+        "ram_available_bytes": 10737418240
+      },
+      "scope": "whole card, sampled only for this process lifetime; latest user allows full GPU utilization"
+    },
+    "traces": {
+      "b0": {
+        "steps": 96,
+        "command_submitted_exact": true,
+        "clipped_exact": true,
+        "control_dt_max_error_s": 6.666726198867323e-12,
+        "all_trace_finite": true,
+        "action_shape": [
+          96,
+          29
+        ],
+        "target_shape": [
+          96,
+          29
+        ],
+        "nonzero_joint_motion_rad": 0.10735476016998291,
+        "delay_indices": [
+          0,
+          1,
+          2
+        ],
+        "pair_initial_max_error": 0.0,
+        "latency_median_ms": 27.375690988264978,
+        "latency_p95_ms": 86.07196449884214,
+        "timing": {
+          "memory_s": 2.9589457079418935,
+          "replan_s": 0.9965850190492347,
+          "policy_s": 4.2381761918077245,
+          "env_step_s": 11.5328210821026,
+          "trace_pack_s": 0.016663546091876924,
+          "demo_s": 0.04725761496229097,
+          "resource_gate_s": 0.208906440238934,
+          "reset_s": 0.11550274101318792,
+          "loop_s": 16.051803402020596,
+          "trace_write_s": 0.003261576988734305
+        },
+        "devices": {
+          "simulation": "cpu",
+          "model": "cuda:0",
+          "images": "cuda:0",
+          "recurrence": "cuda:0",
+          "diffusion": "cuda:0",
+          "command": "cpu"
+        }
+      },
+      "b1": {
+        "steps": 96,
+        "command_submitted_exact": true,
+        "clipped_exact": true,
+        "control_dt_max_error_s": 6.666726198867323e-12,
+        "all_trace_finite": true,
+        "action_shape": [
+          96,
+          29
+        ],
+        "target_shape": [
+          96,
+          29
+        ],
+        "nonzero_joint_motion_rad": 0.11577501893043518,
+        "delay_indices": [
+          0,
+          1,
+          2
+        ],
+        "pair_initial_max_error": 0.0,
+        "latency_median_ms": 37.669866025680676,
+        "latency_p95_ms": 215.7841464795638,
+        "timing": {
+          "memory_s": 3.249008745420724,
+          "replan_s": 1.220670550945215,
+          "policy_s": 5.901789772789925,
+          "env_step_s": 11.056850541906897,
+          "trace_pack_s": 0.01675207755761221,
+          "demo_s": 0.045655000023543835,
+          "resource_gate_s": 0.19903793593402952,
+          "reset_s": 0.052531073975842446,
+          "loop_s": 17.228360345005058,
+          "trace_write_s": 0.003173643024638295
+        },
+        "devices": {
+          "simulation": "cpu",
+          "model": "cuda:0",
+          "images": "cuda:0",
+          "recurrence": "cuda:0",
+          "diffusion": "cuda:0",
+          "command": "cpu"
+        }
+      }
+    },
+    "limits": "96 controls per variant, both externally censored; diagnostic weights; concurrent with both trainers. Not success rate or a complete-episode benchmark.",
+    "failed_prior_attempt": "metadata read before initial reset raised TypeError; fixed and retried fresh; original failed directory preserved"
+  },
+  "regression": {
+    "passed": 65,
+    "seconds": 7.99,
+    "warning": "pre-existing requests dependency mismatch"
+  },
+  "limitations": [
+    "current process resources are not combined across historical restarts",
+    "whole-card samples include other processes; sampled VRAM is not exact CUDA active tensor maximum",
+    "periodic group saves included in train wall but not timed independently",
+    "CPU and CUDA generators differ; numerical comparison uses identical supplied diffusion noise"
+  ]
+}

@@ -46,6 +46,16 @@ runner只向自己的训练child发一次SIGTERM。trainer在下一整组episode
 `evaluate_baselines --pairs 50 --seed-start 981000 --max-steps 2400`。
 开发seed980010起的2组/600步删失运行只检验接线。正式评估未完成时不能报告任务成功率。
 
+2026-10-29评估协议2：上述自动命令默认 `--policy-device cuda:0`，模型、图像、持续记忆和
+DDIM在GPU；物理仍CPU，动作交回原链。无需重启当前runner，它会新建评估进程加载当前源码。
+正式只接受完成训练report指定的best.pt及一致epoch/manifest，plan/trials记录权重SHA和源码SHA。
+1个持久场景、两个常驻模型、50配对；每步记忆/6步重规划/8步DDIM，三路448×252保持。
+原生阶段超时实测601步，外部2400未缩短。前两组合法配对计入正式50并更新ETA。
+只记录小型NPZ与首配对稀疏PNG，不再默认保存100条完整RGB-D或MP4。
+候选耗尽只写incomplete_report.json；report.json只能标志完整50组。Kit退出0不能替代报告核验。
+软件错误看error.txt/status.json，保留现场，不覆盖已有结果、不把错误计作任务失败。
+当前训练/短CUDA检查的来源、时间分解与ETA见BASELINE_TRAINING末尾和evidence/baseline_review_20261029.json。
+
 下方是保留的历史运行记录；旧PID、epoch边界保存、6GiB/8GiB阈值和不训练条款不覆盖本节。
 
 > **2026-10-29夜间最新入口：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)。用户覆盖旧预算/截止/停止规则；持久四环境＋8m间距正在向400采集。原1.2m间距试采因邻居桌子入镜排除。实时数量与PID用新状态命令读取，下面旧快照不可当作当前状态。

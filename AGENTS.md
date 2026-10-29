@@ -23,6 +23,15 @@ STOP asks owned children once to save at a complete episode-group boundary.
 Do not infer a process is live from historical PIDs or report early diagnostic
 weights as final results. Best-validation weights precede test and 50-pair evaluation.
 
+Latest review (2026-10-29 evening): user explicitly authorizes publishing 76bb58e
+and its review follow-up. It is public on origin/main. Do not restart active
+trainers to apply evaluation-only changes. Runtime launch hashes match 76bb58e;
+future evaluation imports the new protocol2 implementation: persistent CPU
+physics/RTX scene, CUDA FP32 policy/images/memory/DDIM, full three-view quality,
+50 matched legal pairs, best epoch/hash admission, no incomplete report marker.
+Keep memory guards; the old 50% utilization cap remains removed. Exact current
+evidence and ETA: BASELINE_TRAINING.md and evidence/baseline_review_20261029.json.
+
 
 ## Authoritative overnight authorization — 2026-10-29
 
