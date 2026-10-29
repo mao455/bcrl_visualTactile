@@ -357,5 +357,5 @@ Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and 
 - 400条生产目标已真实达到并正常退出；更新 `close_v4/initialization_report/{report.json,initial_states.csv}`，保留早期两条相机验收为 `preproduction_*`，避免旧统计冒充400批次。
 - `ManifestReader(verify=True)` 对400条逐文件重新计算SHA256/大小通过；生产 Dataset 显式 `stage="production"` 抽查不同环境、长度、外力曝光轨迹通过。400条均为三相机、143字段、无审计错误；tmp清空。
 - `collect_success_batch.py::recover_pending` 增加与正常提交路径一致的 `content_digest` 去重、target上限和安全临时文件清理；当前批次无待恢复项，修复由 `tests/test_success_batch.py`/`tests/test_persistent_collection.py` 5项测试覆盖。
-- 最终实测：21,271控制步；正式HDF5 70,186,972,525 bytes；项目输出结束快照76,732,681,445 bytes；全卡GPU批次均值29.41%、完整60秒34.66%、峰值显存12,356MiB、缺测0；节流约23s。60Hz非零力262周期/82条，120Hz施加力524样本；外力非接触传感器，未作压力图解释。
+- 最终实测：400条 `length` 合计81,894个episode控制步；progress中的21,271是四环境批处理tick。正式HDF5 70,186,972,525 bytes；项目输出结束快照76,732,681,445 bytes；全卡GPU批次均值29.41%、完整60秒34.66%、峰值显存12,356MiB、缺测0；节流约23s。60Hz非零力262周期/82条，120Hz施加力524样本；外力非接触传感器，未作压力图解释。
 - 全批尝试分类、局部坐标初始化分布、保留目录和训练边界详见 `research_docs/NIGHT_COLLECTION.md`。本轮没有训练、没有修改原资产/物理/控制，也没有操作其他GPU进程。

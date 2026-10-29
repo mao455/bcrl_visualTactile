@@ -157,7 +157,7 @@ supervisor2117854和collector2117864均实查存活，长批含启动吞吐4.18/
 
 实时核对后，`outputs/visuotactile/data/close_v4/manifest.json` 已有400/400条 `stage=production` 成功；`progress.json`/`status.json` 为 `complete`，supervisor和Isaac采集器均已退出。完成时间由状态记录为新加坡时间2026-10-29 03:26:58，早于原08:00目标。不要重新启动采集。
 
-最终验收：400个episode ID和HDF5文件唯一；全量ManifestReader(verify=True) SHA256/大小通过；400条均为三路相机、143字段、无audit error/缺失telemetry；400条content_digest已补齐且唯一。`ManifestSequenceDataset(..., stage="production")`抽查5条不同环境、长度和外力曝光样本通过。`tmp/`清空。生产HDF5合计70,186,972,525 bytes，项目输出结束快照76,732,681,445 bytes。
+最终验收：400个episode ID和HDF5文件唯一；全量ManifestReader(verify=True) SHA256/大小通过；400条均为三路相机、143字段、无audit error/缺失telemetry；400条content_digest已补齐且唯一。`ManifestSequenceDataset(..., stage="production")`抽查5条不同环境、长度和外力曝光样本通过。400条 `length` 合计81,894个episode控制步；progress中的21,271是四环境批处理tick。`tmp/`清空。生产HDF5合计70,186,972,525 bytes，项目输出结束快照76,732,681,445 bytes。
 
 当前统计和入口：`close_v4/initialization_report/{report.json,initial_states.csv}`为400条生产统计，早期相机验收保存在同目录`preproduction_*`；详细分类、控制步、外力/扭矩和GPU统计见`research_docs/NIGHT_COLLECTION.md`及`run/close400/statistics/summary.json`。正式数据入口仍是`close_v4/manifest.json`，读取必须显式`stage="production"`。1.2m邻居入镜8条、失败/删失/错误均不计生产清单。
 
