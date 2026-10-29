@@ -237,6 +237,12 @@ def main(argv=None):
             payload = torch.load(args.resume, map_location="cpu", weights_only=False)
             if payload.get("variant") != args.variant or payload.get("manifest_sha256") != _manifest_hash(args.manifest):
                 raise ValueError("Resume checkpoint does not match variant or manifest")
+            if int(payload.get("seed", args.seed)) != args.seed:
+                raise ValueError("Resume checkpoint split seed differs")
+            if (payload.get("train_episodes") != splits[0] or
+                    payload.get("validation_episodes") != splits[1] or
+                    payload.get("test_episodes") != splits[2]):
+                raise ValueError("Resume checkpoint episode split differs")
             model.load_state_dict(payload["model"]); optimizer.load_state_dict(payload["optimizer"])
             start_epoch = int(payload["epoch"]); history = payload.get("metrics", [])
             log(f"resuming epoch={start_epoch}")
