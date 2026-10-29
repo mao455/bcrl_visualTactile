@@ -2,6 +2,8 @@
 
 ## 2026-10-29 18:54 — 不中断B0/B1训练的公开审查与GPU评估接线
 
+18:58资源审查补记：BASELINE_TRAINING与小证据新增cgroup memory.events，MemoryHigh回收>22万次、OOM为0。明确ResourceGuard等待0不包含内核回收时间；保留原阈值和训练进程。只补文档/统计，未执行新测试或benchmark。
+
 本轮用户授权发布76bb58e并补齐证据，禁止仅因审查停训/重开实验。76bb58e已推送origin/main；
 运行中两trainer的10个launch源码SHA匹配该提交（launch HEAD为4714c96＋当时工作树），
 本轮未重启/热改已加载训练代码、未改模型/reader/训练预算。5/50轮完成、正在第6轮。
