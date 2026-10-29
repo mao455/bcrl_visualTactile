@@ -241,7 +241,8 @@ def main():
         metadata.update(correction_mode="untrained_shadow_never_executed" if shadow else "disabled",
                         contact_gate_threshold_N=args.contact_threshold_N if shadow else None,
                         nominal_action_history=("v1: stored only, not neural input" if args.perception_version == 1 else
-                            "private causal model predictions" if intent else "absent, masked; never teacher history"),
+                            ("absent, masked; no-own-plan command baseline" if intent.model.cfg.own_plan_mode == "none"
+                             else "private causal model predictions") if intent else "absent, masked; never teacher history"),
                         nominal_plan_source="untrained_perception_probe" if probe else "trained_checkpoint" if policy else "absent")
         if intent is not None:
             from .recording import model_fingerprint

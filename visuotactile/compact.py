@@ -55,13 +55,24 @@ class VirtualArray:
         if len(ids) == 0:
             value = np.empty((0, *self.shape[1:]), dtype=self.dtype)
         elif np.all(ids >= 0):
+            # Slices use HDF5 hyperslabs; fancy indexing requires unique,
+            # increasing ids, unlike numpy's repeated/reversed indexing.
+            contiguous = len(ids) == 1 or np.all(np.diff(ids) == 1)
+            unique, inverse = np.unique(ids, return_inverse=True)
+            selection = slice(int(ids[0]), int(ids[-1])+1) if contiguous else unique
             if self.kind.endswith("image"):
-                rgb = self.g["frames/rgb_u8"][ids].astype(np.float32) / np.float32(255)
-                depth = self.g["frames/depth_m"][ids]
-                value = np.concatenate((rgb, depth), axis=2)
+                rgb = self.g["frames/rgb_u8"][selection]
+                # Decode directly into the final RGB-D array. astype/divide/
+                # concatenate otherwise allocate three large float RGB copies
+                # while two trainers and their prefetchers are active.
+                value = np.empty((len(rgb), *self.shape[1:]), dtype=np.float32)
+                np.divide(rgb, np.float32(255), out=value[:, :, :3], dtype=np.float32)
+                value[:, :, 3:] = self.g["frames/depth_m"][selection]
             else:
                 key = "depth_valid" if self.kind.endswith("valid") else "depth_m"
-                value = self.g["frames/"+key][ids]
+                value = self.g["frames/"+key][selection]
+            if not contiguous:
+                value = value[inverse]
         else:
             values = []
             for i in ids:

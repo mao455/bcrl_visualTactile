@@ -1,5 +1,7 @@
 # 视觉与触觉模仿学习研究工程
 
+> **当前工作（2026-10-29下午）：** 400条生产数据保持不变，用户已授权B0/B1普通命令DP各50epoch训练和50组配对评估，全部GPU算力可用，仍保护RAM/VRAM。两模型在后台独立并行训练，尚未完成正式评估。入口见 [BASELINE_TRAINING.md](BASELINE_TRAINING.md)、[RUNBOOK.md](RUNBOOK.md) 和交接顶部；下方“不训练”属于采集/感知阶段历史。
+
 > **当前交付（2026-10-29）：** 四环境、8m、v4三相机生产批次已完成 **400/400 条审计通过的自然成功轨迹**，采集器已退出。最终统计见 [`NIGHT_COLLECTION.md`](NIGHT_COLLECTION.md) 和 [`SESSION_HANDOFF.md`](SESSION_HANDOFF.md)；读取正式数据时使用 `outputs/visuotactile/data/close_v4/manifest.json` 并显式指定 `stage="production"`。本轮未训练。
 
 > **历史快照（已被上方最终交付覆盖）：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)记录了四环境＋8m生产过程、原1.2m邻居入镜排除和运行证据；下面旧快照不可当作当前状态。

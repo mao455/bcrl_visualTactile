@@ -1,5 +1,65 @@
 # Engineering change and verification log
 
+## 2026-10-29 — command-training acceptance, online loading and background resume
+
+This entry supersedes the old 6GiB/8GiB thresholds and incomplete online-training
+claims below. User now permits full GPU utilization and B0/B1 formal training;
+preserve RAM/VRAM reserves and unrelated productive jobs. Details in BASELINE_TRAINING.md.
+
+| Path / function | Before → after; purpose |
+| --- | --- |
+| `compact.py::VirtualArray.__getitem__` | Per-frame/fancy copies → hyperslab or unique/inverse indexing, direct float32 RGB-D allocation; repeated/reversed/empty selections preserved |
+| `train_dp.py::_batch_episode_chunks/_prefetch/_run_epoch` | Unbounded legacy windows → two fixed independent episode slots, masked tails, one pending CPU chunk, BF16 autocast, actual valid-step/target/update metrics |
+| `train_dp.py::_save/main` | Epoch-only save → atomic group-boundary checkpoints, real optimizer/RNG/AMP resume, source hashes, metadata and split checks; test loads best; guarded sampled-command metrics |
+| `models/nominal.py::PolicyConfig` | Explicit own_plan_mode/private legacy default and activation-recompute size; command baselines choose none |
+| `models/vision.py::encode_frames` | Accept masked trailing rows; bound activation lifetime with real backward recomputation, preserve RGB/Depth parameter gradients |
+| `models/tactile.py::forward` | Last positional/sample-count reference → last truly valid physical sample; missing first sample/padded tails do not corrupt derivatives |
+| `models/tactile_dp.py::encode` | Proper B,T,2 force/timing batching, valid mask intersection, reject future force timestamps |
+| `rollout.py::load_command_controller/TactileCommandController/act` | Strict versioned B0/B1 online loaders; B1 persistent visual/tactile/fusion state; no-own-plan enforced at deployment; private inference RNG |
+| `collect.py::main` | Metadata identifies no-own-plan when running that controller, not fictitious private predictions |
+| new `training_resources.py::ResourceGuard` | Process-local memory admission, whole-card sampled telemetry and bounded waits; no utilization cap under new authorization |
+| new `run_baselines.py::main/read_status` | Independent background trainers then best-weight paired evaluation; lock/STOP/read-only live status; send TERM once, not repeatedly during shutdown |
+| new `command_metrics.py::sampled_command_metrics` | Full causal test replay, DDIM command errors by joint/horizon and B1 zero-force replay with matched noise; resource gate retained |
+| new `evaluate_baselines.py::main` | Rendered original CPU physics, legal matched reset checks, bounded new-seed B0/B1 pairs, failure/censor distinction, actual checkpoint hash and traces; incomplete candidate budget returns failure |
+| new `validate_command_training.py::main` | Real production label/timing, branch gradient/update, packed state/actual-controller checks plus limited benchmarks; diagnostic weights marked |
+| `tests/test_command_training.py`, `test_compact.py` | State isolation, causality, no-plan, actual loader, exact next-update resume, recomputation gradients, index semantics and metric mask/replan oracle |
+
+Tensor contract: images[B,T,3,4,252,448], condition[B,T,128], labels[B,T,12,29],
+force[B,T,2,5,3]. B=2,T=32; command label unchanged. No original RL, asset,
+collision, reward/reset, dynamics or action formula changed. No new third-party code/dependency.
+
+Actual evidence: 119/509-step training-split streams (628 valid steps), packed/singleton
+condition/state errors <=2.99e-7; online controller <=1.79e-7. Eight real fixed-noise
+diagnostic updates give B0 loss1.132095→1.019368 and B1 1.176422→1.025207;
+all enabled modality/history/denoiser branches have nonzero finite gradients and deltas.
+Real simulation development: two legal pairs, four600-step censored rollouts, matched starts,
+544.25s; no success-rate conclusion. Suite **61 passed**, existing requests warning;
+compileall and diff whitespace passed. Public aggregate evidence in
+`research_docs/evidence/command_training_acceptance.json`, no raw data/checkpoint uploaded.
+
+Performance: 2,380-step short probes B0(batch=1)37.87s versus B0(batch=2)39.77s and
+B1(batch=2)39.18s; batching is not proven faster by this probe. First parallel100 chunks
+waited134–139s for data versus37–43s compute. Direct RGB allocation reduced same8-chunk
+reader probe13.073→8.764s; real8-frame RGB-D reconstruction exact. OS cache/load not controlled.
+
+Both running jobs saved group51/372updates/19,813steps, then resumed 17:34 local with
+optimized reader and guarded final metrics. No saved updates discarded. Old repeatedly
+sent SIGTERM produced one cleanup exit-15 after successful save; fixed to send once.
+Initial start also diagnosed torch device `cuda` lacking explicit index for allocator
+fraction; trainer now normalizes it to cuda:0. Transient user service is recreated via
+systemd-run, not assumed persistent after exit. New code/workflow/docs remain local
+until explicit authorization for this update's public push.
+
+Updated AGENTS, user directions, README, ARCHITECTURE, CONTRACTS, HISTORY_AND_TRACE,
+PERCEPTION, RUNBOOK, SESSION_HANDOFF and new BASELINE_TRAINING to distinguish present
+command imitation from historical no-training and future preload/Correction research.
+
+17:46 actual first complete epoch: each variant1,221 updates/64,825 training steps,
+8,670 validation steps; best loaders and finite weights checked. B0 validation0.634335,
+B1 0.618740. Resumed epoch wall logs omit pre-restart training; full cumulative
+training+validation is about20.3min, yielding49 remaining epochs≈16.6h before final
+test/evaluation overhead. Both jobs continue epoch2; no formal success-rate result yet.
+
 ## 2026-10-29 — B0/B1 batch and resource guard follow-up
 
 - `visuotactile/train_dp.py`: packed independent episode slots now permit a

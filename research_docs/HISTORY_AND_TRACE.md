@@ -1,5 +1,11 @@
 # 持续历史、动作来源与时间合约
 
+> **2026-10-29更新：** v4三相机400条已完成；B0/B1现已获正式命令训练授权。
+> `train_dp`以B=2/T=32完整有序前缀训练/验证，各行visual/tactile/fusion状态独立，
+> padding不更新state，组边界保存游标后可恢复；不在episode中间用零状态继续。
+> 本轮两组关闭自身计划且在线一致。下文关于未训练、单episode训练、尚无memory2验证的
+> 文字是以前阶段；当前证据见[BASELINE_TRAINING.md](BASELINE_TRAINING.md)。
+
 本文件对应 `memory_version=2` 与 `trace_version=2`。当前采集入口的
 `perception_version/schema_version=2` 使用三路 RGB-D（448×252，固定高位、
 固定侧视、link7 腕部）；已提交的三条生产记录仍是独立的 v3

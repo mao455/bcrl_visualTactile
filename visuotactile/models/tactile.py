@@ -1,7 +1,7 @@
 """Five aggregate normal-force sensors; per-finger identity, kinematics and time.
 
-Features are trainable but UNTRAINED until a justified correction objective is
-established. No taxel/pressure/friction/slip observability is implied.
+The B1 copy is trained by command imitation; Correction owns a separate copy
+and remains untrained. No taxel/pressure/friction/slip observability is implied.
 """
 import torch
 from torch import nn
@@ -23,7 +23,6 @@ class FingerTactileEncoder(nn.Module):
             raise ValueError("Unexpected tactile field; no privileged inputs accepted")
         # Retain the previous physical sample for boundary derivatives/events.
         # Its features are NOT fed through the recurrence a second time.
-        original_length = valid.shape[1]
         if state is not None:
             previous_valid = state["previous_valid"].bool()
             tactile = {k:torch.cat((state["previous"][k][:,None],v),1) for k,v in tactile.items()}
@@ -75,10 +74,9 @@ class FingerTactileEncoder(nn.Module):
             result = torch.where(seen[:,None],encoded,0.)
         # Carry the last actually valid physical sample.  A padded tail must
         # never become the derivative reference for the next chunk.
-        last = valid.long().sum(1).clamp_min(1) - 1
+        last = torch.where(valid, torch.arange(t, device=force.device), -1).amax(1).clamp_min(0)
         rows = torch.arange(b,device=force.device)
         next_state = dict(hidden=hidden.reshape(b,5,32),seen=seen,
                           previous={k:v[rows,last] for k,v in tactile.items()},
-                          previous_valid=valid[rows,last],
-                          valid_count=torch.full((b,), original_length, device=force.device, dtype=torch.long))
+                          previous_valid=valid[rows,last])
         return (result,next_state) if return_state else result

@@ -14,13 +14,15 @@ import os
 from contextlib import nullcontext
 from dataclasses import asdict
 from pathlib import Path
-import statistics
 import subprocess
+import signal
+from concurrent.futures import ThreadPoolExecutor
 import time
 
 import numpy as np
 import torch
 
+from .training_resources import ResourceGuard, atomic_json
 from .compact import EpisodeFile
 from .dataset import EpisodeSequenceDataset
 from .history import detach_state
@@ -139,6 +141,7 @@ def _batch_episode_chunks(dataset, ids, chunk_size, batch_size):
         group = ids[group_start:group_start+batch_size]
         iterators = [iter(dataset.chunks(key, chunk_size)) for key in group]
         ordinal = 0
+        length = max(len(dataset.datasets[key]) for key in group)
         while True:
             rows = []
             active = False
@@ -163,6 +166,8 @@ def _batch_episode_chunks(dataset, ids, chunk_size, batch_size):
                                         for row in rows], 0).bool()
             result = dict(episode=group, start=ordinal*chunk_size,
                           stop=(ordinal+1)*chunk_size, episode_start=ordinal == 0,
+                          group_index=group_start//batch_size,
+                          group_end=(ordinal+1)*chunk_size >= length,
                           obs=obs, action_target=target, action_valid=action_valid)
             if "tactile" in reference:
                 tactile = {}
@@ -184,155 +189,60 @@ def _amp_context(device, mode):
     return torch.autocast(device_type="cuda", dtype=torch.bfloat16 if mode == "bf16" else torch.float16)
 
 
-class ResourceGuard:
-    """Pause this trainer before a chunk when host/card headroom is low.
-
-    The guard only sleeps this process.  It never signals or changes another
-    process, and it does not alter the simulator/control timing (training has
-    no simulator clock).  GPU telemetry is whole-card, so an unrelated job's
-    memory spike also causes a safe wait.
-    """
-    def __init__(self, output, *, min_gpu_free_mib=6000.0,
-                 min_ram_available_gib=8.0, poll_s=2.0,
-                 wait_timeout_s=900.0):
-        self.output = Path(output)
-        self.min_gpu_free_mib = float(min_gpu_free_mib)
-        self.min_ram_available_bytes = int(float(min_ram_available_gib) * (1024 ** 3))
-        self.poll_s = max(0.25, float(poll_s))
-        self.wait_timeout_s = max(0.0, float(wait_timeout_s))
-        self.samples = []
-        self.wait_seconds = 0.0
-        self.started = time.monotonic()
-        self._last_wait_log = -1e9
-        self._last_sample = -1e9
-        self._last_row = None
-
-    @staticmethod
-    def _ram_available():
-        try:
-            fields = {}
-            for line in Path('/proc/meminfo').read_text().splitlines():
-                name, value = line.split(':', 1)
-                fields[name] = int(value.strip().split()[0]) * 1024
-            return fields.get('MemAvailable')
-        except (OSError, ValueError):
-            return None
-
-    @staticmethod
-    def _gpu():
-        try:
-            line = subprocess.check_output(
-                ['nvidia-smi', '--query-gpu=utilization.gpu,memory.used,memory.free',
-                 '--format=csv,noheader,nounits'], text=True, timeout=3
-            ).splitlines()[0]
-            util, used, free = (float(x.strip()) for x in line.split(','))
-            return dict(util_percent=util, used_mib=used, free_mib=free)
-        except (OSError, ValueError, subprocess.SubprocessError, IndexError):
-            return None
-
-    def sample(self):
-        now = time.monotonic()
-        gpu = self._gpu()
-        ram = self._ram_available()
-        row = dict(utc_epoch=time.time(), elapsed_s=now-self.started,
-                   gpu=gpu, ram_available_bytes=ram,
-                   gpu_telemetry_missing=gpu is None,
-                   ram_telemetry_missing=ram is None)
-        self.samples.append(row)
-        self._last_sample = now
-        self._last_row = row
-        self.output.mkdir(parents=True, exist_ok=True)
-        summary = self.summary()
-        (self.output / 'resources.json').write_text(json.dumps(summary, indent=2))
-        with (self.output / 'resources.jsonl').open('a') as stream:
-            stream.write(json.dumps(row) + '\n')
-        return row
-
-    def _safe(self, row):
-        gpu = row['gpu']
-        ram = row['ram_available_bytes']
-        return (gpu is not None and gpu['free_mib'] >= self.min_gpu_free_mib and
-                ram is not None and ram >= self.min_ram_available_bytes)
-
-    def before_chunk(self, log=None):
-        # Avoid an nvidia-smi subprocess for every small TBPTT chunk.  A fresh
-        # sample is still taken at least once per poll interval and on every
-        # wait iteration after a threshold breach.
-        if self._last_row is not None and time.monotonic()-self._last_sample < self.poll_s:
-            if self._safe(self._last_row):
-                return self._last_row
-        waited = 0.0
+def _prefetch(stream, enabled):
+    """One CPU producer thread, one pending chunk, no CUDA or shared HDF5 handles."""
+    if not enabled:
+        yield from stream
+        return
+    sentinel = object()
+    with ThreadPoolExecutor(max_workers=1, thread_name_prefix="hdf5-reader") as pool:
+        future = pool.submit(next, stream, sentinel)
         while True:
-            row = self.sample()
-            if self._safe(row):
-                self.wait_seconds += waited
-                return row
-            if waited >= self.wait_timeout_s:
-                raise RuntimeError(
-                    'resource guard timeout: require '
-                    f'gpu_free>={self.min_gpu_free_mib:.0f}MiB and '
-                    f'ram_available>={self.min_ram_available_bytes/(1024**3):.1f}GiB; '
-                    f'last={row}')
-            now = time.monotonic()
-            if log is not None and now-self._last_wait_log >= 30:
-                log('resource_wait ' + json.dumps(row, sort_keys=True))
-                self._last_wait_log = now
-            start = time.monotonic()
-            time.sleep(self.poll_s)
-            waited += time.monotonic()-start
-
-    def summary(self):
-        gpu_rows = [x['gpu'] for x in self.samples if x['gpu'] is not None]
-        ram_rows = [x['ram_available_bytes'] for x in self.samples
-                    if x['ram_available_bytes'] is not None]
-        util = [x['util_percent'] for x in gpu_rows]
-        free = [x['free_mib'] for x in gpu_rows]
-        return dict(samples=len(self.samples), missing_gpu=sum(x['gpu'] is None for x in self.samples),
-                    missing_ram=sum(x['ram_available_bytes'] is None for x in self.samples),
-                    gpu_util_mean_percent=(statistics.fmean(util) if util else None),
-                    gpu_util_max_percent=(max(util) if util else None),
-                    gpu_memory_used_max_mib=(max(x['used_mib'] for x in gpu_rows) if gpu_rows else None),
-                    gpu_free_min_mib=(min(free) if free else None),
-                    ram_available_min_bytes=(min(ram_rows) if ram_rows else None),
-                    wait_seconds=self.wait_seconds, thresholds=dict(
-                        gpu_free_mib=self.min_gpu_free_mib,
-                        ram_available_bytes=self.min_ram_available_bytes),
-                    updated_utc=time.time())
+            value = future.result()
+            if value is sentinel:
+                break
+            future = pool.submit(next, stream, sentinel)
+            yield value
 
 
 def _run_epoch(model, dataset, ids, variant, device, chunk_size, optimizer=None,
                throttle_ms=0, log=None, *, batch_size=1, amp="off", scaler=None,
-               resource_guard=None):
+               resource_guard=None, prefetch=0, start_group=0, prior=None,
+               on_group=None, on_progress=None):
     training = optimizer is not None
     model.train(training)
-    total_loss = 0.0
-    chunks = 0
-    steps = 0
-    valid_targets = 0
-    updates = 0
-    skipped = 0
-    grad_norm_sum = 0.0
+    totals = dict(loss_sum=0., chunks=0, steps=0, valid_targets=0, updates=0,
+                  skipped_updates=0, grad_norm_sum=0., padded_steps=0,
+                  io_wait_s=0., compute_s=0., wall_seconds=0.)
+    if prior:
+        totals.update({k:v for k,v in prior.items() if k in totals})
     started = time.perf_counter()
+    previous_wall = totals["wall_seconds"]
     state = None
-    for ep_index, chunk in enumerate(_batch_episode_chunks(dataset, ids, chunk_size, batch_size)):
+    stream = _prefetch(_batch_episode_chunks(dataset, ids[start_group*batch_size:],
+                                             chunk_size, batch_size), prefetch)
+    tick = time.perf_counter()
+    for chunk in stream:
+        totals["io_wait_s"] += time.perf_counter()-tick
         if chunk["episode_start"]:
             state = None
-        if resource_guard is not None:
+        if resource_guard:
             resource_guard.before_chunk(log)
-        tick = time.perf_counter()
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        compute_start = time.perf_counter()
         data = _move(chunk, device)
         with _amp_context(device, amp):
             cond, state = _condition(model, variant, data, state)
             b, t, hidden = cond.shape
             target_data = data["action_target"]
-            valid_data = data["action_valid"].bool()
             current_valid = data["obs"]["valid"].bool()
-            valid_data = valid_data & current_valid[..., None]
-            target = target_data.reshape(b * t, target_data.shape[2], 29)
-            valid = valid_data.reshape(b * t, valid_data.shape[2])
-            loss = model.loss_from_condition(cond.reshape(b * t, hidden), target, valid)
+            valid = (data["action_valid"].bool() & current_valid[..., None]).flatten(0,1)
+            target = target_data.flatten(0,1)
+            loss = model.loss_from_condition(cond.reshape(b*t, hidden), target, valid)
         if not torch.isfinite(loss):
-            raise FloatingPointError(f"non-finite {variant} loss at chunk {ep_index} step {chunk['start']}")
+            raise FloatingPointError(f"non-finite {variant} loss at {chunk['episode']}:{chunk['start']}")
+        skipped = False
         if training:
             optimizer.zero_grad(set_to_none=True)
             if scaler is not None and scaler.is_enabled():
@@ -340,40 +250,58 @@ def _run_epoch(model, dataset, ids, variant, device, chunk_size, optimizer=None,
                 scaler.unscale_(optimizer)
             else:
                 loss.backward()
-            grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-            if not torch.isfinite(grad_norm):
-                raise FloatingPointError(f"non-finite {variant} gradient at chunk {ep_index}:{chunk['start']}")
-            old_scale = scaler.get_scale() if scaler is not None and scaler.is_enabled() else None
+            norm = torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             if scaler is not None and scaler.is_enabled():
+                old = scaler.get_scale()
                 scaler.step(optimizer); scaler.update()
-                if scaler.get_scale() < old_scale:
-                    skipped += 1
+                skipped = scaler.get_scale() < old
             else:
+                if not torch.isfinite(norm):
+                    raise FloatingPointError("Non-finite gradient")
                 optimizer.step()
-            updates += 1
-            grad_norm_sum += float(grad_norm.detach().cpu())
-            state = detach_state(state)
-        else:
-            state = detach_state(state)
-        total_loss += float(loss.detach().cpu())
-        chunks += 1
-        steps += int(current_valid.sum().item())
-        valid_targets += int(valid.sum().item())
+            totals["updates"] += int(not skipped)
+            totals["skipped_updates"] += int(skipped)
+            if torch.isfinite(norm):
+                totals["grad_norm_sum"] += float(norm)
+        state = detach_state(state)
+        count = int(valid.sum())
+        totals["loss_sum"] += float(loss.detach())*count
+        totals["chunks"] += 1
+        totals["steps"] += int(current_valid.sum())
+        totals["padded_steps"] += b*t-int(current_valid.sum())
+        totals["valid_targets"] += count
+        # Do not keep old image/condition graphs alive during the next forward.
+        del data, cond, loss, target_data, target, valid, current_valid
+        if device.type == "cuda":
+            torch.cuda.synchronize()
+        totals["compute_s"] += time.perf_counter()-compute_start
         if throttle_ms:
-            time.sleep(throttle_ms / 1000.0)
-        if log and chunks % 100 == 0:
-            elapsed = time.perf_counter() - started
-            log(f"chunks={chunks} groups={ep_index+1}/{(len(ids)+batch_size-1)//batch_size} steps={steps} "
-                f"loss={total_loss/chunks:.6f} wall_s={elapsed:.1f}")
-    return dict(loss=total_loss / max(chunks, 1), chunks=chunks, steps=steps,
-                valid_targets=valid_targets, updates=updates, skipped_updates=skipped,
-                mean_grad_norm=grad_norm_sum/max(updates,1),
-                wall_seconds=time.perf_counter() - started)
+            time.sleep(throttle_ms/1000.)
+        totals["wall_seconds"] = previous_wall+time.perf_counter()-started
+        group = start_group+chunk["group_index"]
+        if on_progress and totals["chunks"] % 25 == 0:
+            on_progress(totals, group)
+        if log and totals["chunks"] % 100 == 0:
+            log(f"chunks={totals['chunks']} groups={group+1}/{(len(ids)+batch_size-1)//batch_size} "
+                f"steps={totals['steps']} loss={totals['loss_sum']/max(totals['valid_targets'],1):.6f} "
+                f"wall_s={totals['wall_seconds']:.1f}")
+        if chunk["group_end"] and on_group:
+            on_group(group+1, dict(totals))
+        tick = time.perf_counter()
+    totals.update(loss=totals['loss_sum']/max(totals['valid_targets'],1),
+                  mean_grad_norm=totals['grad_norm_sum']/max(totals['updates'],1))
+    return totals
 
 
-def _save(path, model, optimizer, cfg, args, manifest_hash, splits, epoch, metrics, mean, std, scaler=None):
+def _save(path, model, optimizer, cfg, args, manifest_hash, splits, epoch, metrics, mean, std, scaler=None, *, metadata=None,
+          progress=None, optimizer_updates=None):
     payload = dict(
-        checkpoint_version=1, variant=args.variant, epoch=epoch,
+        checkpoint_version=2, command_checkpoint_version=2, variant=args.variant, epoch=epoch,
+        metadata=metadata, progress=progress,
+        training_source_sha256=getattr(args, 'training_source_sha256', {}),
+        optimizer_updates=(optimizer_updates if optimizer_updates is not None else
+                           sum(x['train']['updates'] for x in metrics)),
+        training_options=dict(batch_size=args.batch_size, chunk_size=args.chunk_size, amp=args.amp),
         model={k: v.detach().cpu() for k, v in model.state_dict().items()},
         optimizer=optimizer.state_dict(), config=asdict(cfg),
         manifest_sha256=manifest_hash, train_episodes=splits[0],
@@ -399,28 +327,49 @@ def main(argv=None):
     p.add_argument("--variant", choices=("b0", "b1"), required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--epochs", type=int, default=50)
-    p.add_argument("--chunk-size", type=int, default=8)
+    p.add_argument("--chunk-size", type=int, default=32)
     p.add_argument("--seed", type=int, default=41)
     p.add_argument("--device", default="cuda")
     p.add_argument("--throttle-ms", type=float, default=0.0)
     p.add_argument("--batch-size", type=int, choices=(1,2,4), default=1)
     p.add_argument("--amp", choices=("off","bf16","fp16"), default="bf16")
-    p.add_argument("--min-gpu-free-mib", type=float, default=6000.0)
-    p.add_argument("--min-ram-available-gib", type=float, default=8.0)
+    p.add_argument("--vision-checkpoint-images", type=int, default=12)
+    p.add_argument("--prefetch", type=int, choices=(0,1), default=1)
+    p.add_argument("--cuda-memory-fraction", type=float, default=.36)
+    p.add_argument("--save-every-groups", type=int, default=8)
+    p.add_argument("--min-gpu-free-mib", type=float, default=4096.0)
+    p.add_argument("--min-ram-available-gib", type=float, default=10.0)
     p.add_argument("--resource-poll-s", type=float, default=2.0)
-    p.add_argument("--resource-wait-timeout-s", type=float, default=900.0)
+    p.add_argument("--resource-wait-timeout-s", type=float, default=3600.0)
     p.add_argument("--resume", type=Path)
     args = p.parse_args(argv)
+    args.training_source_sha256 = {str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in (
+        Path(__file__),Path(__file__).with_name('rollout.py'),Path(__file__).with_name('dataset.py'),
+        Path(__file__).with_name('compact.py'),*Path(__file__).with_name('models').glob('*.py'))}
     if args.epochs < 1 or args.chunk_size < 1:
         p.error("epochs and chunk-size must be positive")
     if args.batch_size < 1:
         p.error("batch-size must be positive")
     torch.set_num_threads(min(4, max(1, int(os.environ.get("OMP_NUM_THREADS", "2")))))
     torch.manual_seed(args.seed)
+    # Float32 fixed-weight replay equivalence should not depend on TF32's
+    # batch-shape-dependent convolution rounding. BF16 autocast is explicit.
+    torch.backends.cudnn.allow_tf32 = False
+    torch.backends.cuda.matmul.allow_tf32 = False
     if args.device.startswith("cuda") and not torch.cuda.is_available():
         raise RuntimeError("CUDA requested but unavailable")
-    device = torch.device(args.device)
+    device = torch.device('cuda:0' if args.device == 'cuda' else args.device)
+    if device.type == "cuda":
+        torch.cuda.set_per_process_memory_fraction(args.cuda_memory_fraction, device)
     args.output.mkdir(parents=True, exist_ok=True)
+    if (args.output/'last.pt').exists() and not args.resume:
+        raise ValueError("Output already has a checkpoint; use --resume or a fresh output")
+    stop = [False]
+    def handle_stop(signum, frame):
+        stop[0] = True
+    signal.signal(signal.SIGTERM, handle_stop)
+    signal.signal(signal.SIGINT, handle_stop)
+    stop_requested = lambda: stop[0] or (args.output/'STOP').exists()
     log_path = args.output / "train.log"
     with log_path.open("a", buffering=1) as log_file:
         def log(message):
@@ -445,7 +394,8 @@ def main(argv=None):
         _assert_no_own_plan(test)
         mean, std, train_rows = _fit_proprio_stats(train)
         cfg = PolicyConfig(views=3, channels=4, perception_version=2,
-                           memory_version=2, horizon=12, replan_steps=6)
+                           memory_version=2, horizon=12, replan_steps=6,
+                           own_plan_mode="none", vision_checkpoint_images=args.vision_checkpoint_images)
         model = _make_model(args.variant, cfg).to(device)
         if args.variant == "b0":
             model.encoder.proprio_mean.copy_(mean.to(device)); model.encoder.proprio_std.copy_(std.to(device))
@@ -454,15 +404,18 @@ def main(argv=None):
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-6)
         if args.amp == "fp16" and device.type != "cuda":
             p.error("fp16 AMP requires CUDA")
-        scaler = torch.cuda.amp.GradScaler(enabled=args.amp == "fp16" and device.type == "cuda")
+        scaler = torch.amp.GradScaler("cuda", enabled=args.amp == "fp16" and device.type == "cuda")
         resource_guard = None
         if device.type == "cuda":
             resource_guard = ResourceGuard(
                 args.output, min_gpu_free_mib=args.min_gpu_free_mib,
                 min_ram_available_gib=args.min_ram_available_gib,
-                poll_s=args.resource_poll_s, wait_timeout_s=args.resource_wait_timeout_s)
+                poll_s=args.resource_poll_s, wait_timeout_s=args.resource_wait_timeout_s,
+                stop_requested=stop_requested)
             resource_guard.before_chunk(log)
+        metadata = train.datasets[splits[0][0]].metadata
         start_epoch = 0
+        resume_progress = None
         history = []
         if args.resume:
             payload = torch.load(args.resume, map_location="cpu", weights_only=False)
@@ -474,7 +427,14 @@ def main(argv=None):
                     payload.get("validation_episodes") != splits[1] or
                     payload.get("test_episodes") != splits[2]):
                 raise ValueError("Resume checkpoint episode split differs")
+            from .contracts import assert_policy_compatible
+            assert_policy_compatible(payload['metadata'], metadata)
+            if (payload.get('command_checkpoint_version') != 2 or payload['config'] != asdict(cfg)
+                    or payload['training_options'] != dict(batch_size=args.batch_size,
+                                                          chunk_size=args.chunk_size, amp=args.amp)):
+                raise ValueError("Resume model/training protocol differs")
             model.load_state_dict(payload["model"]); optimizer.load_state_dict(payload["optimizer"])
+            resume_progress = payload.get('progress')
             if payload.get("amp_mode", args.amp) != args.amp:
                 raise ValueError("Resume checkpoint AMP mode differs")
             if payload.get("amp_state") is not None:
@@ -491,50 +451,87 @@ def main(argv=None):
             seed=args.seed, history_contract={"memory_version":2,"chunk_size":args.chunk_size,
                 "horizon":12,"replan_steps":6,"own_plan_mode":"none",
                 "action_label":"command_clipped_pre_delay"}), indent=2))
+        atomic_json(args.output/'launch.json', dict(pid=os.getpid(), started_utc=time.time(),
+                    options={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()},
+                    source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()))
         log(f"device={device} params={sum(p.numel() for p in model.parameters())} train_rows={train_rows}")
         for epoch in range(start_epoch, args.epochs):
-            before = {name: value.detach().cpu().clone() for name,value in model.state_dict().items()
-                      if torch.is_floating_point(value)}
+            epoch_start = time.perf_counter()
+            previous_updates = sum(x['train']['updates'] for x in history)
+            def publish_progress(totals, group):
+                rate = totals['steps']/max(totals['wall_seconds'],1e-9)
+                atomic_json(args.output/'status.json', dict(state='training', pid=os.getpid(),
+                    updated_utc=time.time(), variant=args.variant, epoch=epoch+1,
+                    completed_epochs=epoch, group=group, train=totals,
+                    steps_per_second=rate,
+                    eta_seconds=((args.epochs-epoch)*train_rows-totals['steps'])/max(rate,1e-9)*1.15,
+                    eta_basis='measured training rate + estimated 15% validation/save/test; closed-loop evaluation separate'))
+            def group_checkpoint(next_group, totals):
+                if next_group % args.save_every_groups == 0 or stop_requested():
+                    _save(args.output/'last.pt', model, optimizer, cfg, args, manifest_hash, splits,
+                          epoch, history, mean, std, scaler, metadata=metadata,
+                          progress=dict(next_group=next_group, train=totals),
+                          optimizer_updates=previous_updates+totals['updates'])
+                if stop_requested():
+                    atomic_json(args.output/'status.json', dict(state='stopped',pid=os.getpid(),
+                        epoch=epoch, next_group=next_group, checkpoint=str(args.output/'last.pt')))
+                    raise SystemExit(0)
             train_result = _run_epoch(model, train, splits[0], args.variant, device, args.chunk_size,
-                                      optimizer, args.throttle_ms, lambda s: log(f"epoch={epoch+1} train {s}"),
-                                      batch_size=args.batch_size, amp=args.amp, scaler=scaler,
-                                      resource_guard=resource_guard)
+                optimizer, args.throttle_ms, lambda s: log(f"epoch={epoch+1} train {s}"),
+                batch_size=args.batch_size, amp=args.amp, scaler=scaler, resource_guard=resource_guard,
+                prefetch=args.prefetch, start_group=(resume_progress or {}).get('next_group',0),
+                prior=(resume_progress or {}).get('train'), on_group=group_checkpoint,
+                on_progress=publish_progress)
+            resume_progress = None
+            # Save completed training before validation, so interruption there
+            # resumes validation without repeating optimizer updates.
+            _save(args.output/'last.pt', model, optimizer, cfg, args, manifest_hash, splits,
+                epoch, history, mean, std, scaler, metadata=metadata,
+                progress=dict(next_group=(len(splits[0])+args.batch_size-1)//args.batch_size, train=train_result),
+                optimizer_updates=previous_updates+train_result['updates'])
             with torch.no_grad():
-                val_result = _run_epoch(model, validation, splits[1], args.variant, device,
-                                        args.chunk_size, None, args.throttle_ms,
-                                        lambda s: log(f"epoch={epoch+1} val {s}"),
-                                        batch_size=args.batch_size, amp=args.amp,
-                                        resource_guard=resource_guard)
-            train_result["parameter_delta_l1"] = sum(float((value.detach().cpu()-before[name]).abs().sum())
-                                                       for name,value in model.state_dict().items()
-                                                       if name in before)
-            record = dict(epoch=epoch + 1, train=train_result, validation=val_result,
-                          eta_seconds=(args.epochs - epoch - 1) * train_result["wall_seconds"])
+                val_result = _run_epoch(model, validation, splits[1], args.variant, device, args.chunk_size,
+                    batch_size=args.batch_size, amp=args.amp, resource_guard=resource_guard, prefetch=args.prefetch)
+            record = dict(epoch=epoch+1, train=train_result, validation=val_result,
+                          eta_seconds=(args.epochs-epoch-1)*(train_result['wall_seconds']+val_result['wall_seconds']))
             history.append(record)
-            (args.output / "metrics.jsonl").open("a").write(json.dumps(record) + "\n")
-            _save(args.output / "last.pt", model, optimizer, cfg, args, manifest_hash, splits,
-                  epoch + 1, history, mean, std, scaler)
-            if val_result["loss"] <= best_val:
-                _save(args.output / "best.pt", model, optimizer, cfg, args, manifest_hash, splits,
-                      epoch + 1, history, mean, std, scaler)
-                best_val = val_result["loss"]
+            save_start = time.perf_counter()
+            if val_result['loss'] <= best_val:
+                _save(args.output/'best.pt',model,optimizer,cfg,args,manifest_hash,splits,
+                      epoch+1,history,mean,std,scaler,metadata=metadata)
+                best_val=val_result['loss']
+            _save(args.output/'last.pt',model,optimizer,cfg,args,manifest_hash,splits,
+                  epoch+1,history,mean,std,scaler,metadata=metadata)
+            record['save_seconds'] = time.perf_counter()-save_start
+            with (args.output/'metrics.jsonl').open('a') as stream:
+                stream.write(json.dumps(record)+'\n')
+            atomic_json(args.output/'status.json', dict(state='epoch_complete',pid=os.getpid(),
+                updated_utc=time.time(),completed_epochs=epoch+1,latest=record))
             log(f"epoch={epoch+1}/{args.epochs} train_loss={train_result['loss']:.6f} "
-                f"val_loss={val_result['loss']:.6f} epoch_s={train_result['wall_seconds']+val_result['wall_seconds']:.1f} "
-                f"eta_h={record['eta_seconds']/3600:.2f} "
-                f"resource_wait_s={resource_guard.wait_seconds if resource_guard else 0.0:.1f}")
+                f"val_loss={val_result['loss']:.6f} epoch_s={time.perf_counter()-epoch_start:.1f} "
+                f"eta_h={record['eta_seconds']/3600:.2f}")
+            if stop_requested():
+                return
+        best = torch.load(args.output/'best.pt', map_location='cpu', weights_only=False)
+        model.load_state_dict(best['model'])
         model.eval()
         with torch.no_grad():
             test_result = _run_epoch(model, test, splits[2], args.variant, device,
                                      args.chunk_size, None, args.throttle_ms,
                                      batch_size=args.batch_size, amp=args.amp,
                                      resource_guard=resource_guard)
-        report = dict(variant=args.variant, epochs=args.epochs, test=test_result,
+        from .command_metrics import sampled_command_metrics
+        sampled = sampled_command_metrics(model, test, splits[2], args.variant, device,
+                                          args.chunk_size, args.batch_size, resource_guard=resource_guard)
+        report = dict(variant=args.variant, epochs=args.epochs, test=test_result, sampled_commands=sampled,
                       split_sizes=list(map(len, splits)), manifest_sha256=manifest_hash,
-                      checkpoint=str(args.output / "best.pt"),
+                      checkpoint=str(args.output / "best.pt"), selected_epoch=best['epoch'],
                       action_label="transition/command_clipped_pre_delay",
                       tactile=(args.variant == "b1"), training_complete=True,
                       resources=(resource_guard.summary() if resource_guard else None))
-        (args.output / "report.json").write_text(json.dumps(report, indent=2))
+        atomic_json(args.output / "report.json", report)
+        atomic_json(args.output/'status.json', dict(state='complete', pid=os.getpid(),
+                    updated_utc=time.time(), report=report))
         log(json.dumps(report))
 
 

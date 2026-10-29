@@ -1,5 +1,23 @@
 # Audited contracts
 
+## 2026-10-29 active command-baseline extension
+
+The 400 production episodes use frozen camera layout4 (three 448×252 views).
+B0/B1 formal training is now authorized; the no-training statements below
+describe earlier milestones. See BASELINE_TRAINING.md for actual evidence.
+Both supervise canonical `command_clipped_pre_delay[t:t+12]` from obs[t],
+never joint position or a shifted action. B0 excludes all tactile; B1 adds
+causal observed five-finger force/FK and a separate fusion GRU. Both disable
+own-plan conditioning online and offline. Original 120/60Hz/control is unchanged.
+
+Command checkpoint version2 stores variant, perception/camera metadata,
+memory2/no-own-plan contract, optimizer, CPU/CUDA RNG, AMP and fixed split.
+B=2/T=32 batches hold independent episode slots; only group boundaries can
+be saved without serialized live memory. Resume starts the next unconsumed
+group; prefetched chunks never advance the committed cursor. Epoch validation
+now replays complete ordered histories; old statements that it is absent are
+superseded for train_dp.py, not for unrelated legacy train.py.
+
 Baseline: upstream commit ff2fc62873f6c6cd93164123c8358e9ce2d65c9b. Local Isaac Lab VERSION=2.3.2, Isaac Sim=5.1.0.0, torch=2.7.0+cu128. Upstream installation pins are not identical to this local fork.
 
 ## Control (read action_utils.py and reset_utils.py)

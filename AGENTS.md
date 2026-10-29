@@ -1,5 +1,29 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest override — B0/B1 command baselines, 2026-10-29
+
+User now authorizes B0/B1 parameter training and paired evaluation: 400 production
+records, fixed 320/40/40 split, 50 complete epochs each, three 448×252 RGB-D views,
+H=12/replan=6, memory2 and own_plan_mode=none at training AND deployment.
+Supervision is command_clipped_pre_delay; B1 separately adds observed five-finger
+force/FK history and a fusion GRU. These are command imitation baselines, not
+preload nominalization. B2/B3/Correction/RL training remain out of scope.
+The user's latest message permits full GPU utilization; the historical 50% cap
+is superseded for training. Keep RAM/VRAM reserves and bounded data queues.
+Common local engineering fixes are authorized. Preserve unrelated productive
+jobs. Read the current B0/B1 section of SESSION_HANDOFF and BASELINE_TRAINING.md;
+old PIDs and no-training clauses below are historical. No automatic recollection.
+
+Current background root is `outputs/visuotactile/run/dp_command_20261029`;
+`python -m visuotactile.run_baselines --root <root> --status` reads status only.
+Both trainers use B=2/T=32/BF16, bounded prefetch and independent parameters.
+User service has MemoryHigh12G/MemoryMax16G, no swap; wait when VRAM free<4GiB
+or RAM available<10GiB. Full GPU permission does not remove these memory gates.
+STOP asks owned children once to save at a complete episode-group boundary.
+Do not infer a process is live from historical PIDs or report early diagnostic
+weights as final results. Best-validation weights precede test and 50-pair evaluation.
+
+
 ## Authoritative overnight authorization — 2026-10-29
 
 The latest user request overrides conflicting historical restrictions below. Target: **400 audited natural successes total by 2026-10-29 08:00 Asia/Singapore (00:00 UTC)**. Start checked at 01:19 local, about 6h40m remaining. Existing compatible v4 s930014 and s930016 count. Use persistent simulation, batched expert inference and independently recorded environments where validated; CPU/GPU and TiledCamera may be evaluated without upgrading shared installations. No training or changes to original hand/assets/control/physics/success criteria. Preserve all unrelated processes.

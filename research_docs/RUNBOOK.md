@@ -1,5 +1,53 @@
 # 可复现命令与验证结果
 
+## B0/B1 后台训练与恢复（2026-10-29 最新）
+
+400条采集已结束，不重启采集。现在是用户授权的50epoch命令模仿训练及随后50组配对评估。
+旧GPU50%上限被用户全部GPU授权覆盖，内存保护继续有效。详细架构/检查/限制见
+[BASELINE_TRAINING.md](BASELINE_TRAINING.md)。以下命令在仓库根目录执行。
+
+状态（不启动CUDA，也不启动新训练）：
+
+```bash
+.venv_isaacsim/bin/python -m visuotactile.run_baselines --root outputs/visuotactile/run/dp_command_20261029 --status
+systemctl --user status p2p-dp-command-20261029.service
+tail -f outputs/visuotactile/run/dp_command_20261029/b0/train.log outputs/visuotactile/run/dp_command_20261029/b1/train.log
+```
+
+启动/恢复（已有unit活跃时不要重复；首次启动也用同一命令）。恢复前检查根STOP确实由本任务停止产生，
+确认旧进程退出后才删除STOP；last.pt自动恢复，完整report存在的模型跳过：
+
+```bash
+rm -f outputs/visuotactile/run/dp_command_20261029/STOP
+systemd-run --user --unit=p2p-dp-command-20261029 \
+  --property=MemoryHigh=12G --property=MemoryMax=16G --property=MemorySwapMax=0 \
+  --property="WorkingDirectory=$PWD" \
+  --property="StandardOutput=append:$PWD/outputs/visuotactile/run/dp_command_20261029/runner.log" \
+  --property=StandardError=inherit \
+  "$PWD/.venv_isaacsim/bin/python" -m visuotactile.run_baselines \
+  --root outputs/visuotactile/run/dp_command_20261029 --mode parallel
+```
+
+该unit是临时user service，退出后可能不再存在，需要上述systemd-run重建，不能假设`systemctl start`
+总能恢复。重启机器不会自动重新创建临时unit。不要对工作中的旧进程热改后声称已应用新代码。
+
+安全停止：
+
+```bash
+touch outputs/visuotactile/run/dp_command_20261029/STOP
+```
+
+runner只向自己的训练child发一次SIGTERM。trainer在下一整组episode结束保存last再退出；
+不强杀、不断开其他项目。恢复游标不是预取游标。若在内存等待中停止，使用上一个安全保存点。
+评估中停止会保留部分结果，恢复时须检查该目录并使用单独后续评估目录，不静默覆盖。
+
+`b0/、b1/`各有config/launch/status、train/stdout日志、resources JSON/JSONL、有限last/best。
+50epoch后先选best计算test loss、DDIM命令误差/B1零力消融，再由runner自动调用
+`evaluate_baselines --pairs 50 --seed-start 981000 --max-steps 2400`。
+开发seed980010起的2组/600步删失运行只检验接线。正式评估未完成时不能报告任务成功率。
+
+下方是保留的历史运行记录；旧PID、epoch边界保存、6GiB/8GiB阈值和不训练条款不覆盖本节。
+
 > **2026-10-29夜间最新入口：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)。用户覆盖旧预算/截止/停止规则；持久四环境＋8m间距正在向400采集。原1.2m间距试采因邻居桌子入镜排除。实时数量与PID用新状态命令读取，下面旧快照不可当作当前状态。
 
 > **最新实测状态（2026-10-29 00:05）**：v4两条验收通过；随后后台提交2条新成功后在seed930017启动崩溃而停止（2/400，缺398，当前无采集进程）。一次受限strace确认底层inotify_add_watch ENOSPC；未改系统/其他进程。详见SESSION_HANDOFF最后一节。

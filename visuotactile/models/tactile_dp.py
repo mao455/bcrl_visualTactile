@@ -67,7 +67,11 @@ class TactileCommandDiffusionPolicy(nn.Module):
                 flat[key] = value.reshape(b, t * 2)
             else:
                 flat[key] = value.reshape(b, t * 2, *value.shape[3:])
-        physical_valid = tactile_valid.bool().unsqueeze(-1).expand(b, t, 2).reshape(b, t * 2)
+        control_valid = tactile_valid.bool() & obs["valid"].bool()
+        stamps = tactile["contact_time_s"]
+        if ((stamps > obs["time_s"][..., None]+1e-6) & control_valid[..., None]).any():
+            raise ValueError("B1 tactile observation comes from the future")
+        physical_valid = control_valid.unsqueeze(-1).expand(b, t, 2).reshape(b, t * 2)
         tactile_seq, tactile_state = self.tactile(
             {"force_w_N": flat["contact_substeps_w_N"],
              "force_local_N": flat["contact_substeps_local_N"],

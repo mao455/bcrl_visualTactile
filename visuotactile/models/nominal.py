@@ -9,6 +9,8 @@ from ..history import recurrent_scan
 
 @dataclass
 class PolicyConfig:
+    own_plan_mode: str = "private"  # legacy default; command baselines explicitly use none
+    vision_checkpoint_images: int = 0  # recomputation only; no frozen/latent cache
     memory_version: int = 2  # 1: legacy windows; 2: every-step episode recurrence
     perception_version: int = 2
     views: int = 2

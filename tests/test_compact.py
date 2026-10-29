@@ -82,3 +82,14 @@ def test_fresh_and_resume_share_result_identity_gate(tmp_path):
         (path/'FAILED.txt').write_text('Kit returned zero after exception')
         with pytest.raises(RuntimeError):validate_completion(path)
         with pytest.raises(RuntimeError):prior_attempt(tmp_path,'trial',{'seed':10})
+
+
+def test_compact_repeated_reversed_and_empty_indices(tmp_path):
+    source=tmp_path/'source.h5';fixture(source,True,3)
+    convert_episode(source,tmp_path/'converted',write_videos=False)
+    with EpisodeFile(tmp_path/'converted/data.h5') as f:
+        g=f['episodes/test']
+        for key in ('obs/image','obs/depth_valid','transition/observation_after/image'):
+            array=g[key];full=array[:]
+            for index in ([1,0,1],slice(None,None,-1),[],[2,1,0]):
+                np.testing.assert_array_equal(array[index],full[index])

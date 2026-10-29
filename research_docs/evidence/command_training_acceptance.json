@@ -1,0 +1,281 @@
+{
+  "scope": "real production data; bounded diagnostic updates, not formal epochs",
+  "ids": [
+    "r931005_1793209376_e00_p000158",
+    "r931005_1793209376_e01_p000097"
+  ],
+  "lengths": [
+    119,
+    509
+  ],
+  "variants": {
+    "b0": {
+      "label_alignment": "obs[t] -> clipped command[t:t+12] exact",
+      "tactile_causality": "all valid stored physical timestamps <= observation time, strictly ordered",
+      "gradient_l1": {
+        "rgb": 12.404167620115913,
+        "depth": 4.814191013108939,
+        "history": 8.662963062524796,
+        "denoiser": 134.3501955437241
+      },
+      "parameter_delta_l1": {
+        "rgb": 166.42075298167765,
+        "depth": 23.836953438818455,
+        "history": 90.61143064498901,
+        "denoiser": 337.58899711444974
+      },
+      "fixed_noise_losses": [
+        1.1320948600769043,
+        1.1039782762527466,
+        1.0731021165847778,
+        1.0602604150772095,
+        1.04997718334198,
+        1.0408622026443481,
+        1.0327543020248413,
+        1.0256515741348267,
+        1.0193676948547363
+      ],
+      "peak_cuda_allocated_bytes": 1266803200,
+      "batch_singleton_max_error": 2.384185791015625e-07,
+      "batch_swap_max_error": 0.0,
+      "branch_state_max_error": 2.384185791015625e-07,
+      "compared_valid_steps": 628,
+      "actual_controller_max_error": 1.7881393432617188e-07,
+      "updates": 8
+    },
+    "b1": {
+      "label_alignment": "obs[t] -> clipped command[t:t+12] exact",
+      "tactile_causality": "all valid stored physical timestamps <= observation time, strictly ordered",
+      "gradient_l1": {
+        "rgb": 7.699151161126792,
+        "depth": 2.8252979401149787,
+        "history": 7.482011877000332,
+        "denoiser": 159.36599858407862,
+        "tactile": 6.9808853068389,
+        "fusion": 10.400169912725687
+      },
+      "parameter_delta_l1": {
+        "rgb": 196.60251235589385,
+        "depth": 25.986960781738162,
+        "history": 82.48281605541706,
+        "denoiser": 313.77681881189346,
+        "tactile": 11.937856063246727,
+        "fusion": 42.55017787218094
+      },
+      "fixed_noise_losses": [
+        1.176422119140625,
+        1.10577392578125,
+        1.0842347145080566,
+        1.0658360719680786,
+        1.0504101514816284,
+        1.0427147150039673,
+        1.0357614755630493,
+        1.0300534963607788,
+        1.0252071619033813
+      ],
+      "peak_cuda_allocated_bytes": 1285172224,
+      "batch_singleton_max_error": 2.384185791015625e-07,
+      "batch_swap_max_error": 0.0,
+      "branch_state_max_error": 2.980232238769531e-07,
+      "compared_valid_steps": 628,
+      "actual_controller_max_error": 1.7136335372924805e-07,
+      "updates": 8
+    }
+  },
+  "benchmarks": [
+    {
+      "loss_sum": 28107.617725789547,
+      "chunks": 81,
+      "steps": 2380,
+      "valid_targets": 27768,
+      "updates": 81,
+      "skipped_updates": 0,
+      "grad_norm_sum": 48.93635377287865,
+      "padded_steps": 212,
+      "io_wait_s": 25.246356903924607,
+      "compute_s": 12.290434744034428,
+      "wall_seconds": 37.873434633016586,
+      "loss": 1.0122305432796581,
+      "mean_grad_norm": 0.6041525157145512,
+      "variant": "b0",
+      "batch_size": 1,
+      "prefetch": 0,
+      "peak_allocated_bytes": 1074363904,
+      "whole_card_mean_percent": 22.14999486588433,
+      "complete_60s_mean_percent": null
+    },
+    {
+      "loss_sum": 28376.78574460745,
+      "chunks": 47,
+      "steps": 2380,
+      "valid_targets": 27768,
+      "updates": 47,
+      "skipped_updates": 0,
+      "grad_norm_sum": 30.480651319026947,
+      "padded_steps": 628,
+      "io_wait_s": 25.78644530067686,
+      "compute_s": 13.663816900749225,
+      "wall_seconds": 39.769169776001945,
+      "loss": 1.0219240040552957,
+      "mean_grad_norm": 0.6485244961495095,
+      "variant": "b0",
+      "batch_size": 2,
+      "prefetch": 1,
+      "peak_allocated_bytes": 1258123776,
+      "whole_card_mean_percent": 11.830890829970555,
+      "complete_60s_mean_percent": null
+    },
+    {
+      "loss_sum": 28351.154878377914,
+      "chunks": 47,
+      "steps": 2380,
+      "valid_targets": 27768,
+      "updates": 47,
+      "skipped_updates": 0,
+      "grad_norm_sum": 28.661445185542107,
+      "padded_steps": 628,
+      "io_wait_s": 22.70011536113452,
+      "compute_s": 16.13707057328429,
+      "wall_seconds": 39.17855198105099,
+      "loss": 1.0210009679623278,
+      "mean_grad_norm": 0.6098179826711086,
+      "variant": "b1",
+      "batch_size": 2,
+      "prefetch": 1,
+      "peak_allocated_bytes": 1260805120,
+      "whole_card_mean_percent": 15.717836430091358,
+      "complete_60s_mean_percent": null
+    }
+  ],
+  "limits": "Engineering checks and epoch1 are completed; 50-epoch formal training and paired evaluation remain pending.",
+  "regression_tests": {
+    "passed": 61,
+    "warning": "existing requests dependency versions",
+    "seconds": 7.5
+  },
+  "io_optimization": {
+    "utc": 1793266540.8886688,
+    "frames": 8,
+    "views": 3,
+    "shape": [
+      8,
+      3,
+      4,
+      252,
+      448
+    ],
+    "rgb_depth_bitwise_equal": true,
+    "before_8_chunks_s": 13.073,
+    "after_8_chunks_s": 8.764,
+    "caveat": "same chunk prefix while trainers active; OS cache/load uncontrolled, not full-epoch speedup"
+  },
+  "development_rollout": {
+    "development": true,
+    "legal_pairs": 2,
+    "target_pairs": 2,
+    "invalid_initializations": 1,
+    "complete": true,
+    "elapsed_s": 544.2502191066742,
+    "variants": {
+      "b0": {
+        "successes": 0,
+        "attempted_legal": 2,
+        "censored": 2,
+        "success_fraction": 0.0,
+        "wilson_95": [
+          0.0,
+          0.6576197724933469
+        ]
+      },
+      "b1": {
+        "successes": 0,
+        "attempted_legal": 2,
+        "censored": 2,
+        "success_fraction": 0.0,
+        "wilson_95": [
+          0.0,
+          0.6576197724933469
+        ]
+      }
+    },
+    "paired": {
+      "both": 0,
+      "b0_only": 0,
+      "b1_only": 0,
+      "neither": 2
+    },
+    "limitation": "Single training seed; same starts, policy-dependent disturbance gates/trajectories"
+  },
+  "formal_epoch1": {
+    "b0": {
+      "epoch": 1,
+      "train": {
+        "loss_sum": 585210.7981309295,
+        "chunks": 1221,
+        "steps": 64825,
+        "valid_targets": 756780,
+        "updates": 1221,
+        "skipped_updates": 0,
+        "grad_norm_sum": 1655.9413293600082,
+        "padded_steps": 13319,
+        "io_wait_s": 614.1423188395565,
+        "compute_s": 487.9201460822951,
+        "wall_seconds": 1111.716295921069,
+        "loss": 0.7732905178928215,
+        "mean_grad_norm": 1.3562173049631516
+      },
+      "validation": {
+        "loss_sum": 64321.57074677944,
+        "chunks": 167,
+        "steps": 8670,
+        "valid_targets": 101400,
+        "updates": 0,
+        "skipped_updates": 0,
+        "grad_norm_sum": 0.0,
+        "padded_steps": 2018,
+        "io_wait_s": 83.9602697424707,
+        "compute_s": 18.444100910273846,
+        "wall_seconds": 103.29581727896584,
+        "loss": 0.6343350172266217,
+        "mean_grad_norm": 0.0
+      },
+      "eta_seconds": 59535.59354680171,
+      "save_seconds": 0.07531582203228027
+    },
+    "b1": {
+      "epoch": 1,
+      "train": {
+        "loss_sum": 581009.631049484,
+        "chunks": 1221,
+        "steps": 64825,
+        "valid_targets": 756780,
+        "updates": 1221,
+        "skipped_updates": 0,
+        "grad_norm_sum": 1683.4602470844984,
+        "padded_steps": 13319,
+        "io_wait_s": 554.4940447263652,
+        "compute_s": 553.6014422342996,
+        "wall_seconds": 1118.2777621659916,
+        "loss": 0.767739146184471,
+        "mean_grad_norm": 1.3787553211175254
+      },
+      "validation": {
+        "loss_sum": 62740.25778633356,
+        "chunks": 167,
+        "steps": 8670,
+        "valid_targets": 101400,
+        "updates": 0,
+        "skipped_updates": 0,
+        "grad_norm_sum": 0.0,
+        "padded_steps": 2018,
+        "io_wait_s": 78.97419494297355,
+        "compute_s": 21.104374815069605,
+        "wall_seconds": 100.9638267570408,
+        "loss": 0.6187402148553606,
+        "mean_grad_norm": 0.0
+      },
+      "eta_seconds": 59742.83785722859,
+      "save_seconds": 0.08556640200549737
+    }
+  }
+}

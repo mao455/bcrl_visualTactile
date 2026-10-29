@@ -8,6 +8,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torchvision.models import resnet18
+from torch.utils.checkpoint import checkpoint
 
 from ..observations import NOMINAL_KEYS_V2, TASK_IDS
 from ..history import recurrent_scan
@@ -89,7 +90,21 @@ class MultimodalHistoryEncoder(nn.Module):
         # the last valid state and the trainer masks all corresponding losses.
         if obs["prior_plan"].shape != (b,t,self.cfg.horizon,29):
             raise ValueError("Prior predicted plan horizon mismatch")
-        vision = self.vision(im.reshape(b*t*v,c,h,w),obs["depth_valid"].reshape(b*t*v,1,h,w)).reshape(b,t,v,128)
+        images = im.reshape(b*t*v,c,h,w)
+        masks = obs["depth_valid"].reshape(b*t*v,1,h,w)
+        micro = self.cfg.vision_checkpoint_images
+        if micro > 0:
+            # GroupNorm has no cross-image statistics. Recompute activations
+            # during backward, preserving all gradients and the full T horizon.
+            parts = []
+            for i in range(0, len(images), micro):
+                fn = lambda x, m: checkpoint(self.vision, x, m, use_reentrant=False)
+                parts.append(fn(images[i:i+micro], masks[i:i+micro])
+                             if self.training and torch.is_grad_enabled()
+                             else self.vision(images[i:i+micro], masks[i:i+micro]))
+            vision = torch.cat(parts).reshape(b,t,v,128)
+        else:
+            vision = self.vision(images,masks).reshape(b,t,v,128)
         camera_valid = obs["camera_valid"].bool()
         vision = torch.where(camera_valid[...,None],vision,0.).flatten(2)
         age = (obs["time_s"][...,None]-obs["camera_time_s"]).to(q.dtype)
