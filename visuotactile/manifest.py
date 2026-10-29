@@ -51,12 +51,15 @@ class ManifestSequenceDataset:
     no-own-plan baseline or provide identified causal model replay predictions.
     """
     def __init__(self, manifest, *, allow_unsuccessful=False, allow_incomplete=False,
-                 ids=None, horizon=12, stage="scan"):
+                 ids=None, horizon=12, stage="scan", include_tactile=False,
+                 require_command=None):
         self.reader = ManifestReader(manifest)
         if ids is not None and set(ids)-self.reader.entries.keys():
             raise ValueError("Unknown requested episode identity")
         self.episodes = []
         self.datasets = {}
+        if require_command is None:
+            require_command = stage == "production"
         for key, row in self.reader.entries.items():
             if stage is not None and row.get("stage","scan") != stage:
                 continue
@@ -68,7 +71,8 @@ class ManifestSequenceDataset:
                 continue
             self.datasets[key] = EpisodeSequenceDataset(
                 self.reader.path.parent/row["directory"]/"data.h5", horizon=horizon,
-                allow_unsuccessful=allow_unsuccessful, allow_incomplete=allow_incomplete)
+                allow_unsuccessful=allow_unsuccessful, allow_incomplete=allow_incomplete,
+                include_tactile=include_tactile, require_command=require_command)
             self.episodes.append(key)
         if not self.episodes:
             raise ValueError("No eligible episodes")

@@ -359,3 +359,22 @@ Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and 
 - `collect_success_batch.py::recover_pending` 增加与正常提交路径一致的 `content_digest` 去重、target上限和安全临时文件清理；当前批次无待恢复项，修复由 `tests/test_success_batch.py`/`tests/test_persistent_collection.py` 5项测试覆盖。
 - 最终实测：400条 `length` 合计81,894个episode控制步；progress中的21,271是四环境批处理tick。正式HDF5 70,186,972,525 bytes；项目输出结束快照76,732,681,445 bytes；全卡GPU批次均值29.41%、完整60秒34.66%、峰值显存12,356MiB、缺测0；节流约23s。60Hz非零力262周期/82条，120Hz施加力524样本；外力非接触传感器，未作压力图解释。
 - 全批尝试分类、局部坐标初始化分布、保留目录和训练边界详见 `research_docs/NIGHT_COLLECTION.md`。本轮没有训练、没有修改原资产/物理/控制，也没有操作其他GPU进程。
+### 2026-10-28 — B0/B1 command diffusion training interface
+
+- Added `visuotactile/train_dp.py` for the first formal offline baselines on the
+  400 episode `close_v4` production manifest.  The fixed split is 320/40/40
+  episodes by `pair_id`; each episode is read in order and each chunk carries
+  memory across TBPTT boundaries.  The command label is explicitly
+  `transition/command_clipped_pre_delay`.
+- Added `visuotactile/models/tactile_dp.py`.  B0 uses the v2 three-view RGB-D
+  and proprioception encoder; B1 adds the independent five-finger vector
+  tactile encoder.  Both predict the same complete 29-D native command and
+  use `own_plan_mode=none`; expert commands are labels only.
+- Corrected `FingerTactileEncoder` so `return_sequence=True` emits one feature
+  per physical sample while preserving previous-sample derivatives across
+  chunks.  Corrected the production two-samples-per-control-step shape check.
+- Before launch, one real HDF5 chunk per variant was run through forward,
+  backward and optimizer step on CUDA.  The full repository regression suite
+  remains **50 passed**.  No Isaac Sim process or correction/RL training was
+  started by this change.  Runtime checkpoint and metric paths are recorded in
+  the current session handoff after the background jobs start.

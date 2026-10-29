@@ -10,7 +10,8 @@ from .observations import nominal_keys
 
 class EpisodeDataset(Dataset):
     def __init__(self, path, history=4, stride=3, horizon=12, episodes=None,
-                 allow_incomplete=False, allow_unsuccessful=False, perception_version=None):
+                 allow_incomplete=False, allow_unsuccessful=False, perception_version=None,
+                 require_command=False):
         self.path = str(path)
         self.history, self.stride, self.horizon = history, stride, horizon
         self.index, self.episodes = [], []
@@ -31,6 +32,8 @@ class EpisodeDataset(Dataset):
                 length = int(g.attrs["length"])
                 if length == 0:
                     continue
+                if require_command and "command_clipped_pre_delay" not in g["transition"]:
+                    raise ValueError("Production command baseline requires transition/command_clipped_pre_delay")
                 success = (g["transition/diagnostics_after/successes"][length-1] >= g["transition/diagnostics_after/max_goals"][length-1]
                            and bool(g["transition/diagnostics_after/retract_succeeded"][length-1]))
                 if not allow_unsuccessful and not success:
@@ -39,6 +42,13 @@ class EpisodeDataset(Dataset):
                     raise ValueError("Camera identity list and recorded image axes disagree")
                 self.episodes.append(key)
                 self.index.extend((key,t) for t in range(length))
+            action_keys = {
+                "transition/command_clipped_pre_delay" if "command_clipped_pre_delay" in f["episodes"][key]["transition"]
+                else "transition/executed_action" for key in self.episodes
+            }
+            if len(action_keys) != 1:
+                raise ValueError("Selected episodes mix command supervision fields")
+            self.action_key = action_keys.pop()
         if not self.index:
             raise ValueError("No eligible demonstrations; smoke-only data require explicit allow flags")
 
@@ -54,9 +64,7 @@ class EpisodeDataset(Dataset):
             lo, hi = int(idx[0]), t+1
             obs = {k: torch.from_numpy(np.asarray(g[f"obs/{k}"][lo:hi][idx-lo]))
                    for k in nominal_keys(self.version)}
-            action_key = ("transition/command_clipped_pre_delay" if "command_clipped_pre_delay" in g["transition"]
-                          else "transition/executed_action")
-            actions = g[action_key][t:min(t+self.horizon,int(g.attrs["length"]))]
+            actions = g[self.action_key][t:min(t+self.horizon,int(g.attrs["length"]))]
             n = len(actions)
             target = np.concatenate([actions, np.repeat(actions[-1:], self.horizon-n, axis=0)])
         return {"obs": {**obs, "valid": torch.from_numpy(valid)},
@@ -124,6 +132,10 @@ class EpisodeSequenceDataset(EpisodeDataset):
     a validity mask; they are NOT disguised as a model prediction. The current
     default nominal encoder continues to condition on its own recorded predictions.
     """
+    def __init__(self,*args,include_tactile=False,**kwargs):
+        self.include_tactile = include_tactile
+        super().__init__(*args,**kwargs)
+
     def chunks(self,episode,chunk_size=8):
         if episode not in self.episodes or chunk_size < 1:
             raise ValueError("Eligible episode and positive chunk size required")
@@ -133,8 +145,7 @@ class EpisodeSequenceDataset(EpisodeDataset):
             steps = group["obs/step_id"][:length]
             if not np.array_equal(steps,np.arange(len(steps))):
                 raise ValueError("Persistent training needs the full causal prefix from step zero")
-            action_key = ("transition/command_clipped_pre_delay" if "command_clipped_pre_delay" in group["transition"]
-                          else "transition/executed_action")
+            action_key = self.action_key
             actions = torch.from_numpy(group[action_key][:length]).float()
             for lo in range(0,len(steps),chunk_size):
                 hi = min(lo+chunk_size,len(steps))
@@ -145,10 +156,19 @@ class EpisodeSequenceDataset(EpisodeDataset):
                 previous_index = torch.arange(lo,hi)-1
                 previous_valid = previous_index>=0
                 previous = torch.where(previous_valid[:,None],actions[previous_index.clamp(min=0)],0.)
-                yield dict(episode=episode,start=lo,stop=hi,episode_start=lo==0,obs=obs,
-                           action_target=target,action_valid=index<len(actions),
-                           expert_history=dict(previous_issued_command=previous,valid=previous_valid,
-                               source="expert_teacher_forcing_only_not_nominal_prediction"))
+                result = dict(episode=episode,start=lo,stop=hi,episode_start=lo==0,obs=obs,
+                              action_target=target,action_valid=index<len(actions),
+                              expert_history=dict(previous_issued_command=previous,valid=previous_valid,
+                                  source="expert_teacher_forcing_only_not_nominal_prediction"))
+                if self.include_tactile:
+                    names = ("contact_substeps_w_N", "contact_substeps_local_N",
+                             "finger_position_base_m", "finger_rotation_base", "contact_time_s")
+                    tactile = {name: torch.from_numpy(group["obs/"+name][lo:hi]) for name in names}
+                    tactile_valid = torch.from_numpy(group["obs/contact_valid"][lo:hi]).bool()
+                    if tactile["contact_substeps_w_N"].ndim != 4 or tactile["contact_substeps_w_N"].shape[1] != 2:
+                        raise ValueError("Production tactile contract expects two 120Hz samples per 60Hz control step")
+                    result.update(tactile=tactile,tactile_valid=tactile_valid)
+                yield result
 
 
 def encode_episode_chunks(encoder,chunks,*,detach_between_chunks=False):

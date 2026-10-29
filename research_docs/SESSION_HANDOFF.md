@@ -162,3 +162,33 @@ supervisor2117854和collector2117864均实查存活，长批含启动吞吐4.18/
 当前统计和入口：`close_v4/initialization_report/{report.json,initial_states.csv}`为400条生产统计，早期相机验收保存在同目录`preproduction_*`；详细分类、控制步、外力/扭矩和GPU统计见`research_docs/NIGHT_COLLECTION.md`及`run/close400/statistics/summary.json`。正式数据入口仍是`close_v4/manifest.json`，读取必须显式`stage="production"`。1.2m邻居入镜8条、失败/删失/错误均不计生产清单。
 
 资源记录为全卡均值29.41%、最后完整60秒34.66%、GPU显存峰值12,356MiB、缺测0，结束时记录磁盘可用108.74GB；当前系统`df`约76GB。全程保持四环境/8m/v4三相机、CPU专家与物理、GPU渲染、120/60Hz，零训练且未操作其他后台任务。
+# 2026-10-29 — B0/B1 training handoff
+
+Formal training was prepared from the completed `close_v4` production
+manifest.  The implementation is `visuotactile/train_dp.py`; B0 is
+`NominalDiffusionPolicy` and B1 is the independent
+`TactileCommandDiffusionPolicy`.  Both use the fixed 320/40/40 episode split,
+memory2 ordered replay, H=12 and 6-step replanning semantics, and
+`transition/command_clipped_pre_delay` as the only supervision label.  B1
+consumes exactly two 120 Hz contact samples per 60 Hz control step.  Expert
+commands are never conditions; no nominalization or Correction training is
+performed.
+
+Preflight on the real HDF5 data passed: manifest split `[320,40,40]`, one
+production chunk per variant, finite forward/backward and one CUDA optimizer
+step.  The repository regression suite remains 50 passed.  A B0 chunk of 32
+steps took about 3.9 s including first-pass startup and 6.8 GB peak allocated
+on the 24 GB RTX 4090 D; subsequent chunks were about 0.04 s.  B1 had the
+same 6.8 GB peak and about 3.8 s for the first 148-step smoke epoch.  These
+are throughput probes, not training results.
+
+The user requested both jobs to run in the background.  Launch only after
+checking `nvidia-smi` and the protected workload; write B0/B1 logs and
+checkpoints under separate ignored directories:
+
+* `outputs/visuotactile/run/dp_b0_20261028/`
+* `outputs/visuotactile/run/dp_b1_20261028/`
+
+Record the actual PIDs, start time, epoch progress and ETA here after launch.
+Do not upload checkpoints, logs or data.  B2/B3 remain design-only and no
+closed-loop evaluation is authorized until the reports are inspected.

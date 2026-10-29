@@ -333,3 +333,40 @@ bash visuotactile/run_cpu.sh -m visuotactile.collect_success_batch \
 首次实际后台PID/启动方式见最新SESSION_HANDOFF；运行前先核实，不重复启动。`run_status/resources.json`是整卡时间加权批均值/足60s滚动均值/全部输出字节；`gpu_samples.jsonl`保留连续样本；`owned_gpu_process_samples.json`只记录自己进程组，缺失SM不能充零。`status.json`与`manifest.json`分别表示当前工作和已提交成功。STOP文件只要求下一条前退出；硬deadline和容量由监督器在当前条也检查。
 
 `MALLOC_ARENA_MAX=2`仅传入自己的collector，不修改全局。失败软件不无限重启；普通任务失败和明确非法起点记账并清理已确认无用载荷后下一seed。正式训练仍不运行。
+## B0/B1 offline command diffusion training (current milestone)
+
+The formal baseline uses only the 400 episode production manifest.  B0 reads
+three RGB-D views and proprioception; B1 adds the five-finger aggregate contact
+history.  Both supervise the native clipped pre-delay command and keep
+`own_plan_mode=none`; no achieved pose, future state, expert future action or
+Correction output is an input.  The fixed split is 320/40/40 episodes by
+`pair_id`, with ordered memory2 replay and `chunk_size=32` in the current run.
+
+Start commands (each command is independent and writes only to its own ignored
+run directory):
+
+```bash
+CUDA_VISIBLE_DEVICES=0 .venv_isaacsim/bin/python -m visuotactile.train_dp \
+  --manifest outputs/visuotactile/data/close_v4/manifest.json --variant b0 \
+  --epochs 50 --chunk-size 32 --device cuda \
+  --output outputs/visuotactile/run/dp_b0_20261028
+CUDA_VISIBLE_DEVICES=0 .venv_isaacsim/bin/python -m visuotactile.train_dp \
+  --manifest outputs/visuotactile/data/close_v4/manifest.json --variant b1 \
+  --epochs 50 --chunk-size 32 --device cuda \
+  --output outputs/visuotactile/run/dp_b1_20261028
+```
+
+Inspect status without touching the jobs:
+
+```bash
+ps -o pid,etime,stat,cmd -p <B0_PID>,<B1_PID>
+tail -f outputs/visuotactile/run/dp_b0_20261028/train.log
+tail -f outputs/visuotactile/run/dp_b1_20261028/train.log
+nvidia-smi --query-gpu=utilization.gpu,memory.used --format=csv
+```
+
+Stop only these jobs with `kill -TERM <B0_PID> <B1_PID>`; checkpoints are
+written at epoch boundaries and can be resumed with `--resume .../last.pt`.
+The training run does not start Isaac Sim and does not modify the original RL
+or physics path.  Until `report.json` exists, no offline or closed-loop
+performance claim is made.

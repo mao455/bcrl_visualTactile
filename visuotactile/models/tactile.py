@@ -18,7 +18,7 @@ class FingerTactileEncoder(nn.Module):
         self.per_finger = nn.GRUCell(32,32)
         self.fusion = nn.Sequential(nn.Linear(5*32,128),nn.SiLU(),nn.Linear(128,hidden),nn.LayerNorm(hidden))
 
-    def forward(self,tactile,valid,state=None,*,return_state=False):
+    def forward(self,tactile,valid,state=None,*,return_state=False,return_sequence=False):
         if set(tactile) != {"force_w_N","force_local_N","position_base_m","rotation_base","time_s"}:
             raise ValueError("Unexpected tactile field; no privileged inputs accepted")
         # Retain the previous physical sample for boundary derivatives/events.
@@ -39,7 +39,7 @@ class FingerTactileEncoder(nn.Module):
         dt = tactile["time_s"]-torch.roll(tactile["time_s"],1,1)
         if ((dt<=0)&pair_valid).any():
             raise ValueError("Tactile timestamps must strictly increase within valid history")
-        dt = torch.where(pair_valid,dt,1.).to(force.dtype)
+        dt = torch.where(pair_valid,dt,torch.ones_like(dt)).to(force.dtype)
         velocity = (pos-torch.roll(pos,1,1))/dt[...,None,None]
         delta = local-torch.roll(local,1,1)
         velocity = torch.where(pair_valid[...,None,None],velocity,0.)
@@ -56,12 +56,21 @@ class FingerTactileEncoder(nn.Module):
                               dt[...,None,None].expand(b,t,5,1),pair_valid[...,None,None].expand(b,t,5,1).float(),identity),-1)
         features = self.spatial(torch.where(valid[...,None,None],features,0.))
         hidden = force.new_zeros(b*5,32) if state is None else state["hidden"].reshape(b*5,32)
-        for i in range(0 if state is None else 1,t):
-            m = valid[:,i,None].expand(b,5).reshape(b*5,1)
-            hidden = torch.where(m,self.per_finger(features[:,i].reshape(b*5,32),hidden),hidden)
-        encoded = self.fusion(hidden.reshape(b,5*32))
-        seen = valid.any(-1) if state is None else state["seen"] | valid[:,1:].any(-1)
-        result = torch.where(seen[:,None],encoded,0.)
+        seen = torch.zeros(b,dtype=torch.bool,device=force.device) if state is None else state["seen"].bool()
+        start = 0 if state is None else 1
+        encoded_steps=[]
+        for i in range(t):
+            if i >= start:
+                m = valid[:,i,None].expand(b,5).reshape(b*5,1)
+                hidden = torch.where(m,self.per_finger(features[:,i].reshape(b*5,32),hidden),hidden)
+                seen = seen | valid[:,i]
+                encoded_i = self.fusion(hidden.reshape(b,5*32))
+                encoded_steps.append(torch.where(seen[:,None],encoded_i,0.))
+        if return_sequence:
+            result = torch.stack(encoded_steps,1) if encoded_steps else force.new_zeros(b,0,self.fusion[-1].normalized_shape[0])
+        else:
+            encoded = self.fusion(hidden.reshape(b,5*32))
+            result = torch.where(seen[:,None],encoded,0.)
         next_state = dict(hidden=hidden.reshape(b,5,32),seen=seen,
                           previous={k:v[:,-1] for k,v in tactile.items()},previous_valid=valid[:,-1])
         return (result,next_state) if return_state else result
