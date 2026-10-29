@@ -370,3 +370,34 @@ written at epoch boundaries and can be resumed with `--resume .../last.pt`.
 The training run does not start Isaac Sim and does not modify the original RL
 or physics path.  Until `report.json` exists, no offline or closed-loop
 performance claim is made.
+
+### Current restart profile (2026-10-29)
+
+The first background B0/B1 attempt (epoch 1, no checkpoint) exited before
+completion. Real-data B=2 packed replay and BF16 optimizer paths were then
+checked on the shortest and longest production episodes. Both variants passed
+finite forward/backward/update checks and matched single-stream conditions on
+valid rows within `4.1e-7`.
+
+`visuotactile.train_dp` now waits before chunks when whole-card GPU free memory
+is below 6 GiB or host `MemAvailable` is below 8 GiB. This wait affects only the
+training process; it never signals, pauses, renices, or reconfigures another
+process. It writes `resources.json` and `resources.jsonl` in each run
+ directory. Use a separate output directory per variant and inspect these
+files if the protected workload changes.
+
+Conservative launch (run one job first and check its observed peak):
+
+```bash
+CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=2 \
+  .venv_isaacsim/bin/python -m visuotactile.train_dp \
+  --manifest outputs/visuotactile/data/close_v4/manifest.json --variant b0 \
+  --epochs 50 --chunk-size 32 --batch-size 2 --amp bf16 --device cuda \
+  --output outputs/visuotactile/run/dp_b0_v2_20261029
+```
+
+Use the same command with `--variant b1` and a distinct output directory for
+B1. `last.pt` and `best.pt` are published atomically at epoch boundaries. A
+run is complete only when `report.json` exists; a partial epoch is not a
+completed baseline. The B1 online controller remains separate and must not use
+the B0 checkpoint loader.

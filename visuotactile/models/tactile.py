@@ -23,9 +23,11 @@ class FingerTactileEncoder(nn.Module):
             raise ValueError("Unexpected tactile field; no privileged inputs accepted")
         # Retain the previous physical sample for boundary derivatives/events.
         # Its features are NOT fed through the recurrence a second time.
+        original_length = valid.shape[1]
         if state is not None:
+            previous_valid = state["previous_valid"].bool()
             tactile = {k:torch.cat((state["previous"][k][:,None],v),1) for k,v in tactile.items()}
-            valid = torch.cat((state["previous_valid"][:,None],valid),1)
+            valid = torch.cat((previous_valid[:,None],valid),1)
         force = tactile["force_w_N"]
         b,t,f,c = force.shape
         if (f,c) != (5,3) or valid.shape != (b,t):
@@ -71,6 +73,12 @@ class FingerTactileEncoder(nn.Module):
         else:
             encoded = self.fusion(hidden.reshape(b,5*32))
             result = torch.where(seen[:,None],encoded,0.)
+        # Carry the last actually valid physical sample.  A padded tail must
+        # never become the derivative reference for the next chunk.
+        last = valid.long().sum(1).clamp_min(1) - 1
+        rows = torch.arange(b,device=force.device)
         next_state = dict(hidden=hidden.reshape(b,5,32),seen=seen,
-                          previous={k:v[:,-1] for k,v in tactile.items()},previous_valid=valid[:,-1])
+                          previous={k:v[rows,last] for k,v in tactile.items()},
+                          previous_valid=valid[rows,last],
+                          valid_count=torch.full((b,), original_length, device=force.device, dtype=torch.long))
         return (result,next_state) if return_state else result

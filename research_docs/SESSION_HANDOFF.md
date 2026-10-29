@@ -210,3 +210,27 @@ launch was about 14% GPU utilization (peak sample 54%) and 19.5 GB of 24 GB
 VRAM; the protected workload was not signalled or changed.  Check live PIDs
 and logs before assuming completion; a `report.json` is the only completion
 marker.
+
+## 2026-10-29 — B0/B1 batch validation and guarded restart
+
+The previous parallel B0/B1 attempt exited in epoch 1 without `last.pt`,
+`best.pt`, or `report.json`; it is not resumable. Its last logged losses were
+B0 0.710049 and B1 0.708066 after about 2,100 chunks. No traceback or training
+checkpoint was found.
+
+The current uncommitted implementation adds independent episode packing with
+masked tails, BF16/FP16 support, atomic epoch checkpoints, and a process-local
+resource guard. The guard waits only the trainer when whole-card free GPU
+memory is below 6 GiB or host `MemAvailable` is below 8 GiB, and records its
+samples. It does not signal or modify the protected external program.
+
+Real `close_v4` data validation used a 119-step and a 539-step production
+episode. B0 and B1 B=2 BF16 forward/backward/optimizer checks were finite, with
+condition shape `(2,32,128)`, losses 1.134418 and 1.130959, and nonzero
+parameter gradients. Fixed-weight singleton versus packed replay matched
+valid conditions within 4.03e-7 (B0) and 2.38e-7 (B1). The full repository
+suite is 50 passed with one existing requests warning.
+
+A formal 50-epoch run has not yet completed. New runs must use separate output
+folders, `--batch-size 2 --amp bf16`, and are complete only when `report.json`
+exists. No closed-loop or success-rate claim follows from these checks.

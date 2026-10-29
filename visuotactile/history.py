@@ -51,6 +51,23 @@ def detach_state(state):
     return state.detach()
 
 
+def detach_state_rows(state, rows):
+    """Detach selected B rows while preserving the other rows' graph.
+
+    This is useful when a packed batch carries several episode streams and one
+    slot reaches a TBPTT boundary before the others.  It never clears values.
+    """
+    if state is None:
+        return None
+    if isinstance(state, dict):
+        return {k: detach_state_rows(v, rows) for k, v in state.items()}
+    if not torch.is_tensor(state):
+        return state
+    detached = state.detach()
+    mask = rows.to(state.device).reshape(-1, *([1] * (state.ndim - 1)))
+    return torch.where(mask, detached, state)
+
+
 def reset_state(state, reset):
     """Clear only batch rows that really changed episode. All tensors are B-first."""
     if state is None:

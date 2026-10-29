@@ -48,17 +48,32 @@ class VirtualArray:
         scalar = np.ndim(rows) == 0
         rows = np.atleast_1d(rows)
         ids = rows if self.kind.startswith("pre") else self.g["frames/post_index"][:][rows]
-        values = []
-        for i in ids:
-            if i < 0:
-                values.append(np.zeros(self.shape[1:], dtype=self.dtype))
-            elif self.kind.endswith("image"):
-                rgb = self.g["frames/rgb_u8"][i].astype(np.float32) / np.float32(255)
-                values.append(np.concatenate((rgb, self.g["frames/depth_m"][i]), axis=1))
+        # EpisodeSequenceDataset normally requests contiguous slices.  Reading
+        # the frame batch in one HDF5 operation avoids one read per timestep
+        # and one Python concat per camera, while preserving scalar/indexed
+        # semantics and the -1 terminal placeholder contract.
+        if len(ids) == 0:
+            value = np.empty((0, *self.shape[1:]), dtype=self.dtype)
+        elif np.all(ids >= 0):
+            if self.kind.endswith("image"):
+                rgb = self.g["frames/rgb_u8"][ids].astype(np.float32) / np.float32(255)
+                depth = self.g["frames/depth_m"][ids]
+                value = np.concatenate((rgb, depth), axis=2)
             else:
                 key = "depth_valid" if self.kind.endswith("valid") else "depth_m"
-                values.append(self.g["frames/"+key][i])
-        value = np.stack(values) if values else np.empty((0, *self.shape[1:]), dtype=self.dtype)
+                value = self.g["frames/"+key][ids]
+        else:
+            values = []
+            for i in ids:
+                if i < 0:
+                    values.append(np.zeros(self.shape[1:], dtype=self.dtype))
+                elif self.kind.endswith("image"):
+                    rgb = self.g["frames/rgb_u8"][i].astype(np.float32) / np.float32(255)
+                    values.append(np.concatenate((rgb, self.g["frames/depth_m"][i]), axis=1))
+                else:
+                    key = "depth_valid" if self.kind.endswith("valid") else "depth_m"
+                    values.append(self.g["frames/"+key][i])
+            value = np.stack(values)
         value = value[0] if scalar else value
         return value[tail if scalar else (slice(None), *tail)] if tail else value
 

@@ -76,8 +76,17 @@ class MultimodalHistoryEncoder(nn.Module):
         if im.ndim != 6:
             raise ValueError("Image must be B,T,V,4,H,W")
         b,t,v,c,h,w = im.shape
-        if (v,c) != (self.cfg.views,4) or q.shape != (b,t,self.cfg.proprio_dim) or not valid[:,-1].all():
+        if (v,c) != (self.cfg.views,4) or q.shape != (b,t,self.cfg.proprio_dim):
             raise ValueError("Image, proprio or history contract mismatch")
+        if valid.shape != (b,t) or not valid.any():
+            raise ValueError("The batch must contain at least one valid observation")
+        # A packed batch keeps a finished, shorter episode in its slot until
+        # the longest slot reaches the end.  Such a row is entirely padding;
+        # recurrent_scan intentionally carries its previous state unchanged.
+        # Active rows still have to contain their current observation, which
+        # is checked by the dataset/batch masks and by the caller's loss mask.
+        # Padding is allowed after an episode ends.  The recurrent scan keeps
+        # the last valid state and the trainer masks all corresponding losses.
         if obs["prior_plan"].shape != (b,t,self.cfg.horizon,29):
             raise ValueError("Prior predicted plan horizon mismatch")
         vision = self.vision(im.reshape(b*t*v,c,h,w),obs["depth_valid"].reshape(b*t*v,1,h,w)).reshape(b,t,v,128)

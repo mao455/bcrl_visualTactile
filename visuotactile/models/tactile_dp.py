@@ -50,6 +50,10 @@ class TactileCommandDiffusionPolicy(nn.Module):
         visual, visual_state = self.visual(
             obs, visual_state, return_state=True, return_sequence=True)
         force = tactile["contact_substeps_w_N"]
+        if force.ndim == 4:
+            force = force.unsqueeze(0)
+            tactile = {k: (v.unsqueeze(0) if v.ndim >= 1 else v) for k, v in tactile.items()}
+            tactile_valid = tactile_valid.unsqueeze(0)
         if force.ndim != 5 or force.shape[2:] != (2, 5, 3):
             raise ValueError("B1 expects tactile force shape (B,T,2,5,3)")
         b, t, physical = force.shape[:3]

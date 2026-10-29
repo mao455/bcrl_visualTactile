@@ -1,5 +1,36 @@
 # Engineering change and verification log
 
+## 2026-10-29 — B0/B1 batch and resource guard follow-up
+
+- `visuotactile/train_dp.py`: packed independent episode slots now permit a
+  fully padded tail without clearing the other slot's memory. Added BF16/FP16
+  options, atomic checkpoints and a process-local `ResourceGuard` that samples
+  whole-card GPU free memory and `/proc/meminfo` available RAM before chunks.
+  The guard waits this trainer only, records `resources.json` and
+  `resources.jsonl`, and never signals another process. Defaults require 6 GiB
+  GPU free and 8 GiB RAM available.
+- `visuotactile/models/vision.py`: v2 frame encoder accepts all-padding rows in
+  a packed batch; `valid` masks still prevent padded rows from changing the
+  recurrent state or contributing loss. Single-episode semantics are
+  unchanged.
+- Existing staged changes in `compact.py`, `history.py`, `models/tactile.py`
+  and `models/tactile_dp.py` preserve batched HDF5 reads, selected-row TBPTT
+  detachment, physical-sample tactile carry and B1 batch dimensions.
+
+### Actual verification
+
+- `bash visuotactile/run_cpu.sh -m pytest -q tests --ignore=outputs --ignore=rl_games`:
+  **50 passed**, one pre-existing requests warning.
+- Real `close_v4` production data, shortest 119-step and longest 539-step
+  episodes, B=2 BF16 forward/backward/optimizer checks passed for B0 and B1.
+  Conditions were `(2,32,128)`, losses were finite (1.134418 and 1.130959),
+  and nonzero gradients reached 163/184 parameter groups.
+- Fixed-weight single-stream versus B=2 packed replay agreed on valid rows to
+  `4.03e-7` (B0) and `2.38e-7` (B1); padded tails did not alter either stream.
+- No formal 50-epoch run has been resumed yet. The old B0/B1 processes exited
+  during epoch 1 with no checkpoint or report. Current production data and
+  the original simulator remain unchanged.
+
 ## 2026-10-26 — Phase 1 started
 - Added root `AGENTS.md`: persistent instructions protecting original physics/RL and information boundaries.
 - Added `research_docs/{README,CONTRACTS,ARCHITECTURE,CHANGELOG}.md`: research objective, actual audited runtime semantics and staged gates. No original source modified.
