@@ -136,3 +136,19 @@ B0无触觉，B1允许触觉，未来B2 nominal不能读取触觉或混合命令
 本轮审查验证后的代码、文档与脱敏小统计已获提交并推送用户fork功能分支授权，无需重复询问。
 
 工程选择和实际证据单列于独立审查报告；不能把接口修复或测试通过写成策略成功率提高。
+
+### 2026-10-30追加：独立残差Correction训练与有界闭环授权
+
+用户要求独立比较官方DP/RDP/ImplicitRDP/OmniTacTune及指定补充方法，核实生效配置与未知实现。
+授权policy/data/history修改及第一版Correction训练/真实执行，覆盖历史B2不训练/不得进入下一阶段。
+默认冻结正式B0 v2/no-own-plan，不用读触觉的B1作nominal；Correction有独立执行历史，mixed不回填B0。
+新版本显式加性delta、零初始化头、无接触exact-base；arm/hand分组幅度由train-only覆盖和可达下界决定。
+现有专家观察完整因果跑冻结B0生成真实plan/cursor/hash，不用专家未来标签冒充预测；历史明确teacher forcing。
+固定320/40/40；先train16或32/val8完整episode，正常学习后自动最多5epoch，改善且有预算可再最多5。
+首GPU阶段最多90分钟，总训练/诊断窗口最多6小时，包含等待；最多12条预分配seed诊断。
+自主任务与真实专家env.step roll-in到观察接触后的局部纠正分开报告，memory/plan因果预热。
+优先A零残差/B已训练残差；C匹配初始化/顺序/更新量，只屏蔽网络力及派生量，gate/mask先由真实数据确定。
+原生控制/资产/物理/reset/DR/reward/timeout及研究sim wrapper只读；整卡双GPU均值<=50%、45%准入，
+4GiB显存/10GiB RAM及磁盘余量；连续记录启动至收尾，保护其他作业，原400/best/正式100结果不变。
+本轮明确授权审查过的代码、MD、小型去敏统计commit/push到origin feature分支，不上传原始产物。
+工程决定、代码事实、实测与未知在本轮报告分开，不能称残差监督为RL或预先宣称触觉收益。

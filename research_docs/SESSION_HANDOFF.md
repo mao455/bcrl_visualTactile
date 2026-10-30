@@ -1,5 +1,25 @@
 # 当前会话交接：有限插入数据集（2026-10-28）
 
+## 当前进展 — 独立残差v1，2026-10-30 05:55 UTC
+
+本轮在`feature/trained-tactile-residual`从fe9a634接续。新增独立residual1训练/执行/缓存/连续资源监测链，
+正式B0 v2冻结；视觉frame encoder复制并冻结，Correction视觉/触觉/intent/motion GRU独立训练。
+24条pilot完整缓存，2轮B/C各160更新；val8加权MSE .727845→.623025/.620782。
+真实13步首步/replan6/12/teacher execution ack检查通过，34项关联测试通过。
+当前全train320/val40缓存正在生成，完整训练和闭环尚未执行完；不得用本快照冒充最终结果。
+本轮root=`outputs/visuotactile/run/residual_20261030_01`；只读`session.json/resources/resources.json/cache/index.json`判断实时进度。
+固定12条：seed981001/981002×A/B/C×自主/真实expert roll-in；不并入正式100，不改变原0/50。
+详见[CORRECTION_TRAINING.md](CORRECTION_TRAINING.md)。最终状态将追加于本条之上。
+
+## 当前授权 — 2026-10-30独立残差Correction
+
+用户已授权独立Correction训练/执行与最多12条诊断，覆盖下方不要进入下一阶段限制。
+正式B0 v2冻结、独立Correction真实反馈，原生及sim wrapper只读；GPU双均值<=50%。
+先完整train16/val8，首GPU阶段90分钟、总窗口6小时，随后最多5+5epoch按验证/预算决定。
+原400/best/100正式trace保留；本轮代码/MD/小统计已获origin功能分支推送授权。
+接手HEAD fe9a634，工作树干净，原项目训练/评估进程未运行；其他项目进程不触动。
+本节当前为启动记录，后续追加实测状态；未把旧0/50改为新结果。
+
 ## 最新交接 — 2026-10-30独立审查完成
 
 用户本轮要求独立核查B0/B1失败、实现真实自身行动历史、有界验证并推送用户fork功能分支；

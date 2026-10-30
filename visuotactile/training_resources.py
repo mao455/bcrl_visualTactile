@@ -17,7 +17,7 @@ def atomic_json(path, value):
 class ResourceGuard:
     def __init__(self, output, *, min_gpu_free_mib=4096, min_ram_available_gib=10,
                  poll_s=2, wait_timeout_s=3600, stop_requested=lambda: False,
-                 max_gpu_mean_percent=50):
+                 max_gpu_mean_percent=50, cuda_metrics=True):
         self.output = Path(output)
         self.output.mkdir(parents=True, exist_ok=True)
         self.min_gpu_free_mib = min_gpu_free_mib
@@ -25,6 +25,7 @@ class ResourceGuard:
         self.poll_s, self.timeout = poll_s, wait_timeout_s
         self.stop_requested = stop_requested
         self.max_gpu_mean = max_gpu_mean_percent
+        self.cuda_metrics = cuda_metrics
         # Start waiting below the cap to leave room for sampling/admission lag.
         self.gpu_admission_mean = None if self.max_gpu_mean is None else self.max_gpu_mean-5
         self.started = time.monotonic()
@@ -37,7 +38,8 @@ class ResourceGuard:
         self.max_gap = 0.
 
     def sample(self):
-        import torch
+        if self.cuda_metrics:
+            import torch
         try:
             line = subprocess.check_output(['nvidia-smi', '--query-gpu=utilization.gpu,memory.used,memory.free',
                 '--format=csv,noheader,nounits'], text=True, timeout=3).splitlines()[0]
@@ -50,8 +52,9 @@ class ResourceGuard:
         now = time.monotonic()
         row = dict(pid=os.getpid(), utc_epoch=time.time(), elapsed_s=now-self.started, gpu_util_percent=util,
                    gpu_used_mib=used, gpu_free_mib=free, ram_available_bytes=mem['MemAvailable'],
-                   process_rss_bytes=rss, cuda_allocated_bytes=torch.cuda.memory_allocated(),
-                   cuda_reserved_bytes=torch.cuda.memory_reserved())
+                   process_rss_bytes=rss,
+                   cuda_allocated_bytes=torch.cuda.memory_allocated() if self.cuda_metrics else None,
+                   cuda_reserved_bytes=torch.cuda.memory_reserved() if self.cuda_metrics else None)
         if self.last:
             dt = row['elapsed_s']-self.last['elapsed_s']
             self.max_gap = max(self.max_gap, dt)

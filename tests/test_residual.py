@@ -1,0 +1,91 @@
+import copy
+import torch
+import pytest
+
+from visuotactile.models.nominal import PolicyConfig, VisualHistoryEncoder
+from visuotactile.models.residual import ResidualCorrection, compose_residual, residual_loss
+from visuotactile.history import detach_state
+
+
+def fixture_model(masked=False):
+    config = PolicyConfig(views=3, own_plan_mode='none')
+    encoder = VisualHistoryEncoder(config).requires_grad_(False)
+    return encoder, ResidualCorrection(encoder, config, [2.]*29, force_masked=masked)
+
+
+def inputs(steps=5):
+    force = torch.randn(1, steps*2, 5, 3)
+    return dict(features=torch.randn(1, steps, 512),
+        tactile=dict(force_w_N=force, force_local_N=force.clone(), position_base_m=torch.randn_like(force),
+            rotation_base=torch.eye(3).expand(1, steps*2, 5, 3, 3),
+            time_s=torch.arange(steps*2, dtype=torch.float64)[None]/120),
+        tactile_valid=torch.ones(1, steps*2, dtype=torch.bool),
+        plans=torch.randn(1, steps, 12, 29), plan_valid=torch.ones(1, steps, 12, dtype=torch.bool),
+        motion=dict(proprio=torch.randn(1, steps, 58), previous_command=torch.randn(1, steps, 29),
+            command_valid=torch.ones(1, steps, dtype=torch.bool), actuator_target_rad=torch.randn(1, steps, 29),
+            tracking_error_rad=torch.randn(1, steps, 29)))
+
+
+def test_zero_residual_bypass_and_reachable_two():
+    base = torch.tensor([[-1.]*29, [.2]*29])
+    raw = torch.zeros_like(base, requires_grad=True)
+    contact = torch.tensor([True, False])
+    action, delta = compose_residual(base, raw, contact, torch.full((29,), 2.))
+    assert torch.equal(action, base)
+    target = torch.ones_like(base)
+    loss = residual_loss(action, target, delta, contact)
+    loss.backward()
+    assert raw.grad[0].abs().sum() > 0
+    assert raw.grad[1].abs().sum() == 0
+    action, _ = compose_residual(base, torch.full_like(base, 8.), contact, torch.full((29,), 2.))
+    assert torch.allclose(action[0], target[0], atol=1e-6)
+    assert torch.equal(action[1], base[1])
+
+
+def test_independent_freeze_and_full_prefix_equivalence():
+    encoder, model = fixture_model()
+    original = copy.deepcopy(encoder.state_dict())
+    data = inputs()
+    with torch.no_grad():
+        model.policy[-1].weight.normal_(std=.01)
+    output, final = model.forward_cached(**data)
+    state, pieces = None, []
+    for step in range(5):
+        piece = {name:value[:, step:step+1] for name,value in data.items()
+                 if name not in ('tactile', 'tactile_valid', 'motion')}
+        piece['tactile'] = {name:value[:, 2*step:2*step+2] for name,value in data['tactile'].items()}
+        piece['tactile_valid'] = data['tactile_valid'][:, 2*step:2*step+2]
+        piece['motion'] = {name:value[:, step:step+1] for name,value in data['motion'].items()}
+        value, state = model.forward_cached(**piece, state=state)
+        pieces.append(value)
+        state = detach_state(state)
+    assert torch.allclose(output, torch.cat(pieces, 1), atol=1e-6)
+    assert torch.allclose(final['visual'], state['visual'], atol=1e-6)
+    output.square().mean().backward()
+    assert all(parameter.grad is None for parameter in encoder.parameters())
+    assert all(torch.equal(value, encoder.state_dict()[name]) for name,value in original.items())
+    assert all(parameter.grad is None for name,parameter in model.visual.named_parameters() if not name.startswith('temporal.'))
+    assert model.visual.temporal.weight_ih.grad is not None
+    assert encoder.temporal.weight_ih.data_ptr() != model.visual.temporal.weight_ih.data_ptr()
+
+
+def test_force_mask_removes_force_derived_features_but_retains_fk():
+    _, model = fixture_model(True)
+    with torch.no_grad():
+        model.policy[-1].weight.normal_(std=.01)
+    data = inputs()
+    changed = copy.deepcopy(data)
+    changed['tactile']['force_w_N'] *= 100
+    changed['tactile']['force_local_N'] += 100
+    reference, _ = model.forward_cached(**data)
+    result, _ = model.forward_cached(**changed)
+    assert torch.equal(reference, result)
+    changed['tactile']['position_base_m'] += .1
+    result, _ = model.forward_cached(**changed)
+    assert not torch.equal(reference, result)
+
+
+def test_v3_is_not_silently_connected():
+    config = PolicyConfig(views=3, own_plan_mode='none', action_history_mode='issued')
+    with pytest.raises(ValueError, match='v3'):
+        ResidualCorrection(VisualHistoryEncoder(config), config, [2.]*29)

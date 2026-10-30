@@ -1,5 +1,17 @@
 # Audited contracts
 
+## 2026-10-30独立Residual v1
+
+当前授权包含真实独立Correction训练和12条诊断，详见[CORRECTION_TRAINING.md](CORRECTION_TRAINING.md)。
+新增checkpoint residual1/input `residual_frozen_frame_memory2_v1`/action `gated_additive_native_command_v1`。
+base必须为指定hash的正式B0 command v2、memory2/own_plan=none/action_history=none，全部冻结。
+Correction独立视觉逐帧副本冻结、视觉GRU及触觉/intent/motion/MLP可训练；独立参数不共享梯度。
+训练plan来自B0因果推理，监督仅当前专家clipped命令；过去专家执行明确teacher forcing。
+部署每step native ack后仅Correction读取真实clipped命令、target/tracking；B0永不读mixed或触觉。
+无接触exact-base；接触仅观测合力>.1N且valid，不代表工件接触。C先计算真实gate/loss mask再屏蔽网络力及派生特征。
+旧Correction完整candidate语义、v3和旧checkpoint均不被重新解释；无训练有效更新明确拒绝执行。
+原生控制、仿真wrapper、原始数据与正式统计保持只读。
+
 ## 2026-10-30独立审查：执行历史与原生配置准入
 
 本轮授权版本化行动历史与有界诊断；旧B0/B1版本2与正式0/50保持不变。

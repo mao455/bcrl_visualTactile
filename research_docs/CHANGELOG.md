@@ -1,5 +1,21 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 独立残差Correction v1真实训练链（进行中）
+
+本轮用户授权已追加AGENTS、USER_RESEARCH_DIRECTION与SESSION_HANDOFF。新增
+`models/residual.py`：旧完整candidate替换之外，独立版本的零初始化raw delta、分组scale与严格contact旁路；
+冻结正式B0及复制的已训练逐帧编码器，训练Correction自己的四路GRU/MLP。
+`residual_data.py`沿完整原专家观察因果生成真实plan/cursor和冻结特征缓存；原HDF5不改。
+`train_residual.py`实现contact command监督、train-only幅度选择、TBPTT、B/C匹配对照、严格checkpoint和完整边界保存。
+`residual_controller.py`用实际native ack更新Correction历史，禁止mixed回填B0或静默连接v3。
+`evaluate_residual.py`实现固定12条自主/专家真实roll-in诊断，原生wrapper不变；尚待本轮实际执行。
+`residual_session.py`独立连续监测与不可重置预算；ResourceGuard新增可选无CUDA统计模式供轻量监测进程使用，旧默认不变。
+`validate_residual.py`和`tests/test_residual.py`检查真实因果链与关键边界。
+
+实际：34项针对性及关联测试通过；train16/val8完整缓存、2轮pilot各160更新完成；val MSE .727845→B .623025/C .620782。
+13步真实checkpoint/cache/反馈等价通过（plan最大差1.91e-6）。完整训练与闭环待完成，不把pilot当任务收益。
+架构/冻结/训练来源及预算见[CORRECTION_TRAINING.md](CORRECTION_TRAINING.md)。无新增第三方代码或依赖。
+
 ## 2026-10-30 — 独立失败审查、版本化真实行动历史和有界诊断
 
 用户要求独立核查B0/B1失败、官方对照、实现自身行动历史并推送功能分支；GPU恢复整卡时间加权

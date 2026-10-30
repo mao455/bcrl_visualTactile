@@ -1,5 +1,24 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest override — 2026-10-30 trained independent residual Correction
+
+The current user authorizes policy/data/history changes, first independent
+Correction training, bounded autonomous and expert-roll-in diagnostics, and
+reviewed code/docs/small sanitized report commits/pushes to an origin feature branch.
+Freeze formal B0 v2/no-own-plan; never feed mixed commands or tactile into nominal.
+New explicit residual version uses observed-contact exact-base bypass; train on
+causally generated B0 plans over existing expert observations, labeled teacher forcing.
+First GPU stage <=90 minutes; entire training/diagnostic window <=6 hours including
+waits. Start fixed train16/val8 complete episodes, then at most5 full-split epochs;
+at most5 additional epochs only with validation improvement and remaining budget.
+At most12 preallocated diagnostic rollouts; local expert-roll-in outcomes stay
+separate from autonomous performance and original100 formal trials. No full50 epochs.
+Native controller/assets/physics/reset/DR/reward/timeout and research sim wrapper
+remain read-only. Whole-card batch and complete60s GPU means <=50%,45% admission;
+4GiB free VRAM/10GiB RAM and disk reserves, continuous startup-through-exit telemetry.
+Preserve original400 data, best weights and0/50 reports; no unrelated process changes.
+This overrides historical no-Correction-training/no-next-stage instructions below.
+
 ## Latest override — 2026-10-30 independent audit and action history
 
 The current user authorizes independent source/result/upstream review, evidence-based
