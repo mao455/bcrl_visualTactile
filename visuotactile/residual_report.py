@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+import shutil
 
 from .compact import sha256
 from .residual_data import BASE_HASH
@@ -48,6 +49,10 @@ def main():
     full = json.loads((root / 'training_full/report.json').read_text())
     test = json.loads((root / 'training_test/report.json').read_text())
     closed = json.loads((root / 'closed_loop/report.json').read_text())
+    session = json.loads((root / 'session.json').read_text())
+    launch = json.loads((root / 'closed_loop/launch.json').read_text())
+    if not closed['complete'] or len(closed['trials']) != session['diagnostics_max']:
+        raise ValueError('Incomplete diagnostic cohort cannot become a final report')
     aggregate = dict(report_version=1, base_sha256=BASE_HASH, manifest_sha256=index['manifest_sha256'],
         original_formal_results='unchanged B0 0/50 and B1 0/50; no new formal samples',
         cache_index_sha256=sha256(root / 'cache/index.json'), cached_episodes=len(index['entries']),
@@ -88,6 +93,16 @@ def main():
     historical_waits = root / 'cache_completed_waits.json'
     if historical_waits.exists():
         aggregate['early_stage_waits'] = json.loads(historical_waits.read_text())
+    aggregate['session'] = session
+    aggregate['gpu_stage'] = json.loads((root / 'gpu_stage.json').read_text())
+    aggregate['training_configuration'] = {name:value for name,value in full['source_and_config'].items()
+        if name not in ('pid', 'source_sha256', 'parameter_counts')}
+    aggregate['closed_loop_source'] = {name:launch[name] for name in ('source_commit', 'source_sha256', 'checkpoints')}
+    aggregate['final_disk_free_bytes'] = shutil.disk_usage(root).free
+    aggregate['disk_scope'] = '12 GB reserve checked before work; final free space is not a recorded continuous minimum'
+    preservation = root / 'preservation.json'
+    if preservation.exists():
+        aggregate['original_preservation'] = json.loads(preservation.read_text())
     aggregate['diagnostic_aggregates'] = {}
     for mode in ('autonomous', 'expert_rollin'):
         aggregate['diagnostic_aggregates'][mode] = {}
@@ -96,7 +111,8 @@ def main():
             aggregate['diagnostic_aggregates'][mode][variant] = dict(allocated=len(selected),
                 evaluated=sum(row.get('success') is not None for row in selected),
                 successes=sum(row.get('success') is True for row in selected),
-                first_subgoal_hits=sum(row.get('max_subgoals', 0)>0 for row in selected))
+                first_subgoal_hits=sum(row.get('success') is not None and row.get('max_subgoals', 0)>0
+                                       for row in selected))
     atomic_json(root / 'public_report.json', aggregate)
     print(json.dumps(dict(full_epochs=full['completed_epochs'], diagnostics=aggregate['diagnostic_aggregates'],
                           resources=aggregate['resources']), indent=2))

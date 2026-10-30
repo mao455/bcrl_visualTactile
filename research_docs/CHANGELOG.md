@@ -1,5 +1,15 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 完整离线训练与一次held-out test完成
+
+B/C各5完整epoch、7,875更新、320独立episode/1,600次完整遍历；B的validation选第5轮，C保持同轮。
+val40加权command MSE：A .673454、B .339453、C .340667；一次test40：B .336392、C .337817。
+原B0无梯度且张量不变，无接触旁路逐位一致。原100个正式NPZ逐个与上一审查SHA核对一致，
+原best/manifest和各0/50保持不变。训练与缓存均在首次GPU90分钟窗口内完成；最终资源另报。
+此前全套80项通过（156.46秒，保留既有requests警告）；reset后metadata读取通过compileall。
+`residual_report.py`补完整训练配置、预算/闭环源码/最终磁盘口径与原产物核验，拒绝不完整诊断聚合；
+无switch的专家prefix不计为学生子目标命中。闭环当前进行中，不能用离线改善推断触觉闭环收益。
+
 ## 2026-10-30 — 闭环启动前的相机metadata生命周期修复
 
 源码核对发现`evaluate_residual.py`在首次reset之前调用`research_metadata()`，而v4相机标定
