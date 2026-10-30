@@ -79,5 +79,4 @@ class ResidualController:
             raise ValueError('Student command differs from the selected residual/base action')
         self.history.observe(transition, submitted.clamp(-1, 1),
                              self.last_packet['episode_id'], self.last_packet['step_id'])
-        self.base.observe_execution(transition)
         self.pending = False

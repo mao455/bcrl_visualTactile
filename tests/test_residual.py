@@ -89,3 +89,37 @@ def test_v3_is_not_silently_connected():
     config = PolicyConfig(views=3, own_plan_mode='none', action_history_mode='issued')
     with pytest.raises(ValueError, match='v3'):
         ResidualCorrection(VisualHistoryEncoder(config), config, [2.]*29)
+
+
+def test_untrained_checkpoint_cannot_execute(tmp_path, monkeypatch):
+    from visuotactile import residual_controller
+    from visuotactile.residual_data import BASE_HASH
+    monkeypatch.setattr(residual_controller, 'load_base', lambda device: None)
+    path = tmp_path / 'untrained.pt'
+    torch.save(dict(residual_checkpoint_version=1, base_sha256=BASE_HASH,
+                    trained=True, optimizer_updates=0), path)
+    with pytest.raises(ValueError, match='Untrained'):
+        residual_controller.ResidualController(path, device='cpu')
+
+
+def test_acknowledged_mixed_feedback_is_private_to_correction():
+    from visuotactile.action_history import ExecutionHistory
+    from visuotactile.residual_controller import ResidualController
+    controller = ResidualController.__new__(ResidualController)
+    controller.base = object()
+    controller.history = ExecutionHistory(1)
+    controller.pending = True
+    controller.last = dict(command=torch.full((1, 29), .3))
+    controller.last_packet = dict(episode_id=torch.tensor([7]), step_id=torch.tensor([0]))
+    transition = dict(episode_id=torch.tensor([7]), step_id=torch.tensor([0]),
+        command_clipped_pre_delay=torch.full((1, 29), .3), time_before_s=torch.tensor([0.], dtype=torch.float64),
+        time_after_s=torch.tensor([1/60], dtype=torch.float64), control_trace=dict(valid=torch.tensor([True]),
+            delayed_command=torch.full((1, 29), .1), selected_command_time_s=torch.tensor([0.], dtype=torch.float64)))
+    with pytest.raises(ValueError, match='differs'):
+        controller.acknowledge(transition, torch.full((1, 29), .4))
+    controller.acknowledge(transition, controller.last['command'])
+    context = controller.history.context(dict(episode_id=torch.tensor([7]), step_id=torch.tensor([1]),
+                                              time_s=torch.tensor([1/60], dtype=torch.float64)))
+    assert torch.equal(context['previous_issued_command'], controller.last['command'])
+    with pytest.raises(ValueError, match='pending'):
+        controller.acknowledge(transition, controller.last['command'])

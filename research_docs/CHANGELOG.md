@@ -1,5 +1,12 @@
 # Engineering change and verification log
 
+## 2026-10-30 — Correction反馈隔离的显式验收
+
+`residual_controller.py`去掉对v2 B0无操作`observe_execution`的调用，mixed transition现在连nominal入口也不传递。
+实际v2行为不变，但权限边界更直接。新增测试拒绝零更新checkpoint、拒绝学生提交覆盖和重复ack，
+确认真实mixed feedback仅留在Correction；新增及相关历史共11项测试通过（此前全套77项通过，现多2项）。
+原真实13步回放证据保留，不把这次无操作调用移除描述为重新运行仿真。
+
 ## 2026-10-30 — 诊断指标、统一阶段截止与统计溯源
 
 `evaluate_residual.py`新增纯诊断的指端/掌心到物体距离、段内jump、实际delta幅度，以及进程启动/结束时间和源码commit；
