@@ -1,5 +1,18 @@
 # Audited contracts
 
+## 2026-10-30资源与观看副本补充（当前）
+
+用户恢复GPU时间加权整卡批次均值与完整60秒滚动均值<=50%。ResourceGuard默认cap50、
+准入均值45，未测得时间段不填0；只等本任务，不更改仿真dt/动作或外部任务。内存/显存余量保留。
+10月29日不限GPU授权只描述历史实验，不能用于本次或后续启动。
+
+`evaluate_baselines --record-video`在每个控制步读取已有动作前RGB，流式CPU H264，三相机ID顺序
+取实际metadata；字幕在新增64像素顶部，不进入模型。601个观察=601帧，60fps对应10.0167秒。
+最后一帧是终止动作前观察；自动reset之后的帧不属于本episode，不录入。没有声称捕获终止后RGB。
+完成才把.mp4.partial重命名.mp4，异常保留partial；trial视频字段保存帧数、fps、相机IDs及缺失说明。
+`purpose=viewing_rerun`与正式统计分开，不将重复种子计入原50组，不假定跨运行渲染/策略逐位一致。
+原数据/模型/物理/时钟/成功判据不变；MP4为有损观看副本，Depth仍作为模型输入但不写入RGB视频。
+
 ## 2026-10-29 active command-baseline extension
 
 The 400 production episodes use frozen camera layout4 (three 448×252 views).

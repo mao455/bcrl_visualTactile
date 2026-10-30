@@ -1,4 +1,4 @@
-"""Memory admission and bounded telemetry for offline training, no external signals."""
+"""Memory/GPU-average admission with bounded telemetry; no external signals."""
 from collections import deque
 import json
 import os
@@ -16,13 +16,17 @@ def atomic_json(path, value):
 
 class ResourceGuard:
     def __init__(self, output, *, min_gpu_free_mib=4096, min_ram_available_gib=10,
-                 poll_s=2, wait_timeout_s=3600, stop_requested=lambda: False):
+                 poll_s=2, wait_timeout_s=3600, stop_requested=lambda: False,
+                 max_gpu_mean_percent=50):
         self.output = Path(output)
         self.output.mkdir(parents=True, exist_ok=True)
         self.min_gpu_free_mib = min_gpu_free_mib
         self.min_ram_bytes = min_ram_available_gib * 1024**3
         self.poll_s, self.timeout = poll_s, wait_timeout_s
         self.stop_requested = stop_requested
+        self.max_gpu_mean = max_gpu_mean_percent
+        # Start waiting below the cap to leave room for sampling/admission lag.
+        self.gpu_admission_mean = None if self.max_gpu_mean is None else self.max_gpu_mean-5
         self.started = time.monotonic()
         self.last = None
         self.window = deque()
@@ -86,16 +90,30 @@ class ResourceGuard:
         atomic_json(self.output/'resources.json', self.summary())
         return row
 
-    def safe(self, row):
+    def memory_safe(self, row):
         return (row['gpu_free_mib'] is not None and row['gpu_free_mib'] >= self.min_gpu_free_mib
                 and row['ram_available_bytes'] >= self.min_ram_bytes)
+
+    def utilization_safe(self, row):
+        if self.max_gpu_mean is None:
+            return True
+        if row['gpu_util_percent'] is None or not self.measured_s:
+            return False  # require an actual measured interval before admission
+        means=[self.area/self.measured_s]
+        if row['rolling_60s_percent'] is not None:
+            means.append(row['rolling_60s_percent'])
+        # Historical peak is evidence, not a condition that can never recover.
+        return max(means) <= self.gpu_admission_mean
+
+    def safe(self, row):
+        return self.memory_safe(row) and self.utilization_safe(row)
 
     def before_chunk(self, log=None):
         import torch
         if self.last and time.monotonic()-self.started-self.last['elapsed_s'] < self.poll_s and self.safe(self.last):
             return
         row = self.sample()
-        if not self.safe(row):
+        if not self.memory_safe(row):
             # Cached blocks are not live tensors. Release them before deciding
             # that our own previous peak has consumed the admission reserve.
             torch.cuda.empty_cache()
@@ -103,9 +121,9 @@ class ResourceGuard:
         began = last_log = time.monotonic()
         while not self.safe(row):
             if self.stop_requested():
-                raise InterruptedError('Stop while waiting for memory; use last safe group checkpoint')
+                raise InterruptedError('Stop while waiting for resources; use last safe group checkpoint')
             if time.monotonic()-began > self.timeout:
-                raise RuntimeError('Memory headroom unavailable for bounded wait; last safe checkpoint retained')
+                raise RuntimeError('Resource budget unavailable for bounded wait; last safe checkpoint retained')
             if log and (last_log == began or time.monotonic()-last_log > 30):
                 log('resource_wait '+json.dumps(row)); last_log = time.monotonic()
             tick = time.monotonic()
@@ -120,5 +138,6 @@ class ResourceGuard:
             missing_samples=self.missing, missing_seconds=self.missing_s, max_sample_gap_s=self.max_gap,
             wait_seconds=self.wait_seconds, peak_gpu_used_mib=self.max_used,
             peak_process_rss_bytes=self.max_rss, min_ram_available_bytes=self.min_ram if self.samples else None,
-            thresholds=dict(gpu_free_mib=self.min_gpu_free_mib, ram_available_bytes=self.min_ram_bytes),
-            scope='whole card, sampled only for this process lifetime; latest user allows full GPU utilization')
+            thresholds=dict(gpu_free_mib=self.min_gpu_free_mib, ram_available_bytes=self.min_ram_bytes,
+                            max_gpu_mean_percent=self.max_gpu_mean,gpu_admission_mean_percent=self.gpu_admission_mean),
+            scope='whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched')

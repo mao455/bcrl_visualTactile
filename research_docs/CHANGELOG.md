@@ -1,5 +1,31 @@
 # Engineering change and verification log
 
+## 2026-10-30 — B0/B1完成结果、四条观看视频与恢复GPU平均限额
+
+用户要求两模型分别录制2条视频、恢复GPU平均<=50%、更新实验记录与原则。已有两组50epoch
+和50合法配对在07:39:36正常结束，均0/50、601步timeout、无第一子目标；本轮没有追加训练。
+
+| 路径 / 函数 | 修改前 → 修改后；接口与原因 |
+| --- | --- |
+| `visuotactile/evaluate_baselines.py::RolloutVideo/main` | 只首配对稀疏PNG → 可选record-video旁路，每原生控制步动作前RGB三路并排流式CPU H264；metadata检查相机数量，独立partial提交，不缓存整条原图。报告增加purpose/video元数据；step-sleep-ms只墙钟节流。 |
+| `visuotactile/training_resources.py::ResourceGuard` | 昨日只内存准入、GPU仅监测 → 默认整卡均值cap50/准入45；同时检查时间加权batch和当前完整60秒均值，保留原内存门槛；没有测得区间不准入，瞬时峰值和历史最大均值不造成错误永久暂停；不操作外部进程。 |
+| `tests/test_training_resources.py` | 新增3项：均值两种口径/瞬时峰值/可恢复性、缺测与内存余量、视频两帧三视图颜色/顺序/60fps解码及partial提交。 |
+| `research_docs/BASELINE_TRAINING.md`、`evidence/baseline_final_20261030.json` | 训练中ETA → 真实50epoch/选定epoch49/hash/test指标/50配对及错误分母；保留历史实测，不用新限额判旧实验。 |
+| `AGENTS.md`、`USER_RESEARCH_DIRECTION.md` | 追加最新50%授权覆盖昨日不限GPU；不擅自追加训练，视频独立于正式结果，旧方向保留。 |
+| `README.md`、`RUNBOOK.md`、`SESSION_HANDOFF.md`、`CONTRACTS.md`、`ARCHITECTURE.md`（均research_docs下） | 顶部补当前结束状态、查看和录制命令、真实输入/视频/资源语义；旧运行快照明确标历史。 |
+
+输入模型仍三路448×252 RGB-D、持续历史、60Hz动作/120Hz物理；输出MP4是三栏1344×316，
+顶部64像素为字幕，原RGB像素区域不缩放。Depth仍进模型，视频不含Depth；每条601帧/60fps、
+仅动作前观察，不保存自动reset帧也不伪造终止后的RGB。MP4是有损观看副本，不是训练源文件。
+原正式100个数值trace/数据/checkpoint不变，新的4条不加入正式分母。
+
+验证：针对性17项通过；全套68项通过（30.86s，已有requests依赖warning），compileall/diff检查通过。
+没有为录像跑新的优化器更新、换网络/资产/物理/成功标准或调参。实际4个MP4完整解码601帧/60fps与PTS检查通过；三视图快照已查看。
+10:35:17正常退出，GPU批次均值29.498%/完整60秒最大38.154%、缺测0；视频总8.89MB。
+新增本地demo README/video_checks/preview（忽略，不上传），小统计写入baseline_final证据JSON。
+对照原正式trace：B1 seed981002后段最大命令差1.527、关节差0.0923rad，其他三条差较小，
+全四条仍601步timeout、物体位姿序列相同。不宣称精确重放或为该分歧编造根因。
+
 ## 2026-10-29 18:54 — 不中断B0/B1训练的公开审查与GPU评估接线
 
 18:58资源审查补记：BASELINE_TRAINING与小证据新增cgroup memory.events，MemoryHigh回收>22万次、OOM为0。明确ResourceGuard等待0不包含内核回收时间；保留原阈值和训练进程。只补文档/统计，未执行新测试或benchmark。

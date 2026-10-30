@@ -1,5 +1,36 @@
 # 可复现命令与验证结果
 
+## 最新入口 — 2026-10-30：查看结果和录制视频
+
+训练及正式50组评估已完成，当前无需训练启动/恢复。结果见BASELINE_TRAINING顶部。
+从本次起GPU整卡时间加权批次和完整60秒均值<=50%，覆盖下文昨日不限GPU条款；
+ResourceGuard默认50%/45%准入余量，主存/显存保护保留。历史实验资源数字不改写。
+
+本次四视频（B0/B1各2条）的可复现命令如下；output必须换为不存在的新目录，不覆盖已交付视频：
+
+```bash
+bash visuotactile/run_cpu.sh -u -m visuotactile.evaluate_baselines \
+  --b0 outputs/visuotactile/run/dp_command_20261029/b0/best.pt \
+  --b1 outputs/visuotactile/run/dp_command_20261029/b1/best.pt \
+  --output outputs/visuotactile/demos/baselines_NEW \
+  --pairs 2 --seed-start 981000 --max-steps 2400 --record-video --step-sleep-ms 50
+```
+
+实际目录 `outputs/visuotactile/demos/baselines_20261030`；三相机并排60fps，每条到原生终止，
+视频逐动作前观察记录，不是稀疏PNG拼成录像；本次是viewing_rerun，不并入正式50组。
+MP4是有损观看副本，原训练数据/checkpoint与已完成正式评估不变。启动使用本任务独立user service，
+MemoryHigh8G/Max12G/no-swap。查看/必要时停止仅本任务：
+
+```bash
+systemctl --user status p2p-b0b1-videos-20261030.service
+cat outputs/visuotactile/demos/baselines_20261030/status.json
+systemctl --user stop p2p-b0b1-videos-20261030.service
+```
+
+停止时未完成的.mp4.partial不能当完整视频，保留查因。已完成不需要重启。
+以下是历史训练操作手册，不意味着重新训练已获授权。
+
+
 ## B0/B1 后台训练与恢复（2026-10-29 最新）
 
 400条采集已结束，不重启采集。现在是用户授权的50epoch命令模仿训练及随后50组配对评估。

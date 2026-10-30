@@ -1,5 +1,17 @@
 # 视觉与触觉模仿学习研究工程
 
+## 最新结果 — 2026-10-30
+
+B0/B1各50epoch已完成；验证选epoch49。50组配对各0/50，全部601步原生超时、未完成第一子目标。
+服务已退出，不再按旧ETA视为仍在训练。详见[训练与正式评估结果](BASELINE_TRAINING.md)和
+[最终小统计](evidence/baseline_final_20261030.json)。用户本次要求各2条真实视频，并恢复整卡
+GPU时间加权批次与完整60秒均值<=50%；保留主存/显存余量，不启动追加训练。
+4条视频已完成，目录为 `outputs/visuotactile/demos/baselines_20261030/`（目录内README为观看入口）。
+每条601帧/60fps约10秒；录制GPU均值29.50%、完整60秒最大38.15%，service已退出。
+
+下文均为按日期保留的先前阶段记录；“正在训练”“不限GPU”及旧ETA不覆盖上述最新状态。
+
+
 > **当前工作（2026-10-29下午）：** 400条生产数据保持不变，用户已授权B0/B1普通命令DP各50epoch训练和50组配对评估，全部GPU算力可用，仍保护RAM/VRAM。两模型在后台独立并行训练，尚未完成正式评估。入口见 [BASELINE_TRAINING.md](BASELINE_TRAINING.md)、[RUNBOOK.md](RUNBOOK.md) 和交接顶部；下方“不训练”属于采集/感知阶段历史。
 
 > **当前交付（2026-10-29）：** 四环境、8m、v4三相机生产批次已完成 **400/400 条审计通过的自然成功轨迹**，采集器已退出。最终统计见 [`NIGHT_COLLECTION.md`](NIGHT_COLLECTION.md) 和 [`SESSION_HANDOFF.md`](SESSION_HANDOFF.md)；读取正式数据时使用 `outputs/visuotactile/data/close_v4/manifest.json` 并显式指定 `stage="production"`。本轮未训练。

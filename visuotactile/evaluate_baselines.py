@@ -51,6 +51,53 @@ def publish_report(output, report):
     atomic_json(output/'status.json',dict(state='complete',report=report))
 
 
+class RolloutVideo:
+    """Bounded, CPU-encoded viewing derivative of every pre-action RGB packet."""
+    def __init__(self, path, variant, seed, epoch, camera_ids):
+        import av
+        from PIL import ImageFont
+        self.path=Path(path)
+        self.partial=self.path.with_suffix('.mp4.partial')
+        self.container=av.open(str(self.partial),'w',format='mp4')
+        self.stream=None;self.frames=0
+        self.title=f'{variant.upper()} | epoch {epoch} | seed {seed} | rerun for viewing | 1x simulation time'
+        self.camera_ids=camera_ids
+        self.font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',18)
+
+    def append(self, packet, step):
+        import av
+        import numpy as np
+        from PIL import Image,ImageDraw
+        rgb=np.rint(packet['image'][0,:,:3].cpu().numpy().clip(0,1)*255).astype('uint8').transpose(0,2,3,1)
+        n,h,w,_=rgb.shape
+        if n!=len(self.camera_ids):raise ValueError('Video camera identity/count mismatch')
+        canvas=Image.new('RGB',(n*w,h+64),(22,22,26));draw=ImageDraw.Draw(canvas)
+        draw.text((10,3),self.title,font=self.font,fill='white')
+        for i,name in enumerate(self.camera_ids):
+            draw.text((i*w+10,32),f'{name} | step {step} | t={step/60:.3f}s',font=self.font,fill='white')
+            canvas.paste(Image.fromarray(rgb[i]),(i*w,64))
+        if self.stream is None:
+            self.stream=self.container.add_stream('libx264',rate=60)
+            self.stream.width,self.stream.height=canvas.size
+            self.stream.pix_fmt='yuv420p';self.stream.codec_context.thread_count=2
+            self.stream.options={'crf':'18','preset':'fast'}
+        frame=av.VideoFrame.from_ndarray(np.asarray(canvas),format='rgb24');frame.pts=self.frames
+        for encoded in self.stream.encode(frame):self.container.mux(encoded)
+        self.frames+=1
+
+    def close(self, complete=False):
+        if self.container is None:return
+        if self.stream is not None:
+            for encoded in self.stream.encode():self.container.mux(encoded)
+        self.container.close();self.container=None
+        if complete:
+            self.partial.replace(self.path)
+            return dict(file=self.path.name,frames=self.frames,fps=60,duration_s=self.frames/60,
+                        camera_ids=self.camera_ids,frame_source='RGB observation before each native action',
+                        terminal_image_available=False,reset_frames_included=False,
+                        encoding='CPU libx264 CRF18 yuv420p; viewing only, not lossless training data')
+
+
 def main():
     process_started=time.perf_counter()
     p=argparse.ArgumentParser()
@@ -60,7 +107,10 @@ def main():
     p.add_argument('--max-steps',type=int,default=2400)
     p.add_argument('--development',action='store_true')
     p.add_argument('--policy-device',choices=('cpu','cuda:0'),default='cuda:0')
+    p.add_argument('--record-video',action='store_true',help='Every pre-action frame; separate viewing run, not new formal trials')
+    p.add_argument('--step-sleep-ms',type=float,default=0,help='Wall-only pacing; native dt and actions unchanged')
     args=p.parse_args()
+    if args.step_sleep_ms<0:p.error('step-sleep-ms must be nonnegative')
     args.output.mkdir(parents=True,exist_ok=False)
     candidates=list(range(args.seed_start,args.seed_start+max(30,args.pairs*10)))
     identities={v:checkpoint_identity(getattr(args,v),v,args.development) for v in ('b0','b1')}
@@ -68,7 +118,8 @@ def main():
         development=args.development,max_steps=args.max_steps,
         policy_device=args.policy_device,network_dtype='float32',num_envs=1,env_spacing_m=8.,
         pairing='compare recorded initial states before actions; first legal starts, no outcome selection',
-        checkpoints=identities)
+        checkpoints=identities,record_video=args.record_video,step_sleep_ms=args.step_sleep_ms,
+        purpose='viewing_rerun' if args.record_video else 'evaluation')
     from .compact import sha256
     import subprocess
     source_root=Path(__file__).resolve().parent
@@ -89,8 +140,9 @@ def main():
         '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
     timing=dict(isaac_app_s=time.perf_counter()-tick,scene_s=0.,checkpoint_load_s=0.,
                 reset_s=0.,loop_s=0.,trace_write_s=0.,demo_write_s=0.)
-    env=None;rows=[];rejections=[]
+    env=None;video=None;rows=[];rejections=[]
     try:
+        guard.before_chunk()
         import numpy as np
         import torch
         import isaacsimenvs
@@ -173,8 +225,11 @@ def main():
                     'submitted_action','command_clipped_pre_delay','delayed_command','selected_delay',
                     'native_stage_step','successes')}
                 latencies=[];rng_unchanged=True;done=False
+                if args.record_video:
+                    video=RolloutVideo(args.output/f'{variant}_s{seed}.mp4',variant,seed,
+                                       policy.checkpoint_epoch,meta['camera_ids'])
                 costs=dict(memory_s=0.,replan_s=0.,policy_s=0.,env_step_s=0.,trace_pack_s=0.,
-                           demo_s=0.,resource_gate_s=0.,reset_s=reset_seconds)
+                           demo_s=0.,resource_gate_s=0.,pacing_s=0.,reset_s=reset_seconds)
                 loop_tick=time.perf_counter()
                 for step in range(args.max_steps):
                     tick=time.perf_counter();guard.before_chunk();costs['resource_gate_s']+=time.perf_counter()-tick
@@ -186,6 +241,9 @@ def main():
                     if policy.replanned.any():costs['replan_s']+=policy.inference_ms[-1]/1000
                     rng_unchanged &= torch.equal(rng,torch.get_rng_state())
                     if not rng_unchanged:raise RuntimeError('Policy polluted environment RNG')
+                    if video is not None:
+                        tick=time.perf_counter();video.append(packet,step)
+                        costs['demo_s']+=time.perf_counter()-tick
                     if legal==0 and step%120==0:
                         tick=time.perf_counter()
                         im=packet['image'][0,:,:3].numpy().transpose(0,2,3,1)
@@ -209,7 +267,14 @@ def main():
                     for k,v in values.items():trace[k].append(v[0].detach().numpy().copy())
                     done=bool((terminated|truncated)[0])
                     costs['trace_pack_s']+=time.perf_counter()-tick
+                    if args.step_sleep_ms:
+                        tick=time.perf_counter();time.sleep(args.step_sleep_ms/1000)
+                        costs['pacing_s']+=time.perf_counter()-tick
                     if done:break
+                video_info=None
+                if video is not None:
+                    tick=time.perf_counter();video_info=video.close(complete=True);video=None
+                    costs['demo_s']+=time.perf_counter()-tick
                 costs['loop_s']=time.perf_counter()-loop_tick
                 timing['loop_s']+=costs['loop_s'];timing['demo_write_s']+=costs['demo_s']
                 success=bool(done and diag['successes'][0]>=diag['max_goals'][0] and diag['retract_succeeded'][0])
@@ -229,6 +294,7 @@ def main():
                     devices=dict(simulation=str(env.device),model=str(policy.device),images=str(policy.device),
                                  recurrence=str(policy.device),diffusion=str(policy.device),command=str(action.device)),
                     inference_steps=policy.model.cfg.inference_steps)
+                if video_info is not None:row['video']=video_info
                 rows.append(row);pair_rows.append(row)
                 atomic_json(args.output/'trials.json',dict(trials=rows,invalid=rejections))
                 print('TRIAL '+json.dumps({k:v for k,v in row.items() if k!='initial'}),flush=True)
@@ -245,7 +311,7 @@ def main():
             limitation='Single training seed; same starts, policy-dependent disturbance gates/trajectories',
             success_metric='success within the declared control-step budget / all legal trials; censoring reported separately',
             resources=guard.summary(),timing=timing,process_wall_s=time.perf_counter()-process_started,
-            protocol_version=2,checkpoints=identities)
+            protocol_version=2,checkpoints=identities,purpose=plan['purpose'])
         for variant in ('b0','b1'):
             selected=[r for r in rows if r['variant']==variant];n=len(selected);success=sum(r['success'] for r in selected)
             report['variants'][variant]=dict(successes=success,attempted_legal=n,censored=sum(r['outcome']=='censored' for r in selected),
@@ -260,6 +326,7 @@ def main():
         atomic_json(args.output/'status.json',dict(state='failed',error=repr(error),completed_trials=len(rows)))
         raise
     finally:
+        if video is not None:video.close()
         if env is not None:env.close()
         app.close()
 

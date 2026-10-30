@@ -1,5 +1,33 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest override — 2026-10-30: completed baselines, four videos, GPU mean <=50%
+
+B0/B1 each completed 50 epochs; validation selected epoch49 for both. Formal
+50 paired legal starts /100 trials completed at07:39:36 Asia/Singapore, all
+601-step native timeouts with zero first-subgoal hits, 0/50 successes each.
+No training/evaluation process is currently active. Do not restart training,
+collection or the full evaluation automatically. Read the latest
+BASELINE_TRAINING and SESSION_HANDOFF before using historical progress below.
+
+The user NOW restores whole-card time-weighted batch and complete60-second
+GPU mean <=50%, superseding yesterday's unrestricted GPU permission. Keep
+4GiB free VRAM/10GiB available RAM, bounded queues, and protect unrelated jobs.
+ResourceGuard defaults to a50% cap with45% admission margin; wait only our
+process between chunks/control calls, never alter120/60Hz dt or action scale.
+A sampled gate cannot prevent unpredictable external bursts; report actual
+means, gaps and waits, never claim per-process attribution or a hard GPU quota.
+User requests two B0 and two B1 videos. Use the first two legal formal seeds
+981001/981002 with actual best checkpoints, three native views and full natural
+termination. These are separate viewing reruns, not added formal test samples.
+Preserve original100 results and all data/checkpoints. No new parameter training.
+Video delivery completed at10:35:17 local: four601-frame/60fps MP4s in
+outputs/visuotactile/demos/baselines_20261030 (README is the viewing index).
+Whole-card mean29.50%, maximum complete60-second mean38.15%, missing0; service
+exited. Video reruns are not bitwise replays; B1 seed981002 diverged late from
+the original numeric trace, documented without changing the formal results.
+
+## Historical authorization and snapshots (overridden above where conflicting)
+
 ## Latest override — B0/B1 command baselines, 2026-10-29
 
 User now authorizes B0/B1 parameter training and paired evaluation: 400 production

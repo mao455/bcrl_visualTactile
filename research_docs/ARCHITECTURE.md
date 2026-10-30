@@ -1,5 +1,10 @@
 # Architecture and staged acceptance gates
 
+> **最新2026-10-30：** 两组50epoch和正式50配对完成，B0/B1均0/50、第一阶段601步超时。
+> 本轮仅各2条完整视频与文档更新，不新增模型或训练；GPU均值恢复<=50%，内存保护保留。
+> 观看入口复用evaluate_baselines与rollout，新增流式RGB视频旁路，不改变模型输入/控制链。
+> 真实结果及当前原则见BASELINE_TRAINING顶部、USER_RESEARCH_DIRECTION最新追加。
+
 > **Current 2026-10-29:** camera layout4 production is complete (400 episodes).
 > Independent command B0/B1 training uses the existing spatial encoder and
 > persistent memory, without changing the simulator. The batch/AMP/save/online

@@ -1,0 +1,460 @@
+{
+  "recorded_singapore": "2026-10-30T10:29:53.986714+08:00",
+  "purpose": "completed single-seed baseline experiment; not evidence of successful task learning",
+  "training_source": "76bb58effc7be462dbad8cbe6bda4905aa520f5f",
+  "evaluation_source": "dc77a6b7b00621cef6b0607d3174d5d55f86b3c7",
+  "variants": {
+    "b0": {
+      "epochs": 50,
+      "train_finished_singapore": "2026-10-30T06:29:50.985789+08:00",
+      "selected_epoch": 49,
+      "checkpoint_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+      "validation_loss": 0.17650475004485844,
+      "test": {
+        "loss_sum": 17449.30220258236,
+        "chunks": 156,
+        "steps": 8399,
+        "valid_targets": 98148,
+        "updates": 0,
+        "skipped_updates": 0,
+        "grad_norm_sum": 0.0,
+        "padded_steps": 1585,
+        "io_wait_s": 104.57217356003821,
+        "compute_s": 19.84710271313088,
+        "wall_seconds": 125.47124420601176,
+        "loss": 0.17778561155176223,
+        "mean_grad_norm": 0.0
+      },
+      "sampled_commands": {
+        "protocol": "one DDIM8 draw at every sixth control observation, seed101; full causal history",
+        "replans": 1419,
+        "arm_rmse": 0.9696393539961439,
+        "hand_rmse": 0.6829835111613533,
+        "horizon_rmse": [
+          0.6903429488500593,
+          0.7187831352240213,
+          0.7361437822098849,
+          0.7466083891114794,
+          0.7541651855180554,
+          0.7610126822559575,
+          0.7645941117243245,
+          0.7774713620974414,
+          0.7836748505331691,
+          0.7895420517764721,
+          0.8086956713110113,
+          0.8119354653713733
+        ],
+        "horizon_valid_targets": [
+          1419.0,
+          1411.0,
+          1402.0,
+          1396.0,
+          1388.0,
+          1383.0,
+          1379.0,
+          1371.0,
+          1362.0,
+          1356.0,
+          1348.0,
+          1343.0
+        ],
+        "memory_seconds": 13.21455483516911,
+        "sampling_seconds": 4.731549120275304,
+        "wall_seconds": 125.36866554495646,
+        "zero_force_rmse": null,
+        "ablation": null,
+        "units": "native clipped commands, not joint-angle errors"
+      },
+      "resources": {
+        "pid": 2429429,
+        "latest": {
+          "pid": 2429429,
+          "utc_epoch": 1793312990.4255257,
+          "elapsed_s": 46522.98250034102,
+          "gpu_util_percent": 38.0,
+          "gpu_used_mib": 4202.0,
+          "gpu_free_mib": 19882.0,
+          "ram_available_bytes": 36248608768,
+          "process_rss_bytes": 3297435648,
+          "cuda_allocated_bytes": 49223168,
+          "cuda_reserved_bytes": 1516240896,
+          "rolling_60s_percent": 35.71523175325128
+        },
+        "samples": 19347,
+        "gpu_time_weighted_mean_percent": 53.67006107139899,
+        "max_complete_60s_mean_percent": 82.59016007409664,
+        "missing_samples": 0,
+        "missing_seconds": 0.0,
+        "max_sample_gap_s": 4.934982653998304,
+        "wait_seconds": 0.0,
+        "peak_gpu_used_mib": 7381.0,
+        "peak_process_rss_bytes": 3384270848,
+        "min_ram_available_bytes": 32681705472,
+        "thresholds": {
+          "gpu_free_mib": 4096.0,
+          "ram_available_bytes": 10737418240.0
+        },
+        "scope": "whole card, sampled only for this process lifetime; latest user allows full GPU utilization"
+      },
+      "train_control_moments": 3241250,
+      "train_optimizer_updates": 61050,
+      "train_valid_targets": 37839000,
+      "evaluation": {
+        "successes": 0,
+        "attempted_legal": 50,
+        "censored": 0,
+        "success_fraction": 0.0,
+        "wilson_95": [
+          6.938893903907228e-18,
+          0.07134759913335872
+        ]
+      },
+      "control_steps": 30050,
+      "length_min": 601,
+      "length_max": 601,
+      "length_median": 601.0,
+      "reasons": {
+        "timeout": 50
+      },
+      "pair_initial_max_error": 0.0
+    },
+    "b1": {
+      "epochs": 50,
+      "train_finished_singapore": "2026-10-30T06:46:10.365446+08:00",
+      "selected_epoch": 49,
+      "checkpoint_sha256": "bb23694f94294b20a2bb21b0c260b3ebbd30f2e3ed6a6e22b2465a501b1c5cc2",
+      "validation_loss": 0.14773963568849705,
+      "test": {
+        "loss_sum": 14620.251541466452,
+        "chunks": 156,
+        "steps": 8399,
+        "valid_targets": 98148,
+        "updates": 0,
+        "skipped_updates": 0,
+        "grad_norm_sum": 0.0,
+        "padded_steps": 1585,
+        "io_wait_s": 77.28201158507727,
+        "compute_s": 16.763435076805763,
+        "wall_seconds": 94.83122349000769,
+        "loss": 0.1489612782885688,
+        "mean_grad_norm": 0.0
+      },
+      "sampled_commands": {
+        "protocol": "one DDIM8 draw at every sixth control observation, seed101; full causal history",
+        "replans": 1419,
+        "arm_rmse": 0.8958635205825167,
+        "hand_rmse": 0.6391752616079768,
+        "horizon_rmse": [
+          0.6427911858065353,
+          0.6690624109255879,
+          0.6774875900434975,
+          0.6831635956179646,
+          0.6918323239830798,
+          0.6989256303092386,
+          0.7033280125862552,
+          0.7159551840473525,
+          0.7279497574867169,
+          0.7408841509416921,
+          0.7682617228460276,
+          0.790874448213217
+        ],
+        "horizon_valid_targets": [
+          1419.0,
+          1411.0,
+          1402.0,
+          1396.0,
+          1388.0,
+          1383.0,
+          1379.0,
+          1371.0,
+          1362.0,
+          1356.0,
+          1348.0,
+          1343.0
+        ],
+        "memory_seconds": 11.036223396367859,
+        "sampling_seconds": 2.599107889283914,
+        "wall_seconds": 108.19914875202812,
+        "zero_force_rmse": 0.7245586794019172,
+        "ablation": "B1 zero world/local force causal replay; FK and times retained; same noise",
+        "units": "native clipped commands, not joint-angle errors"
+      },
+      "resources": {
+        "pid": 2429455,
+        "latest": {
+          "pid": 2429455,
+          "utc_epoch": 1793313969.6118708,
+          "elapsed_s": 47501.59990708396,
+          "gpu_util_percent": 36.0,
+          "gpu_used_mib": 2313.0,
+          "gpu_free_mib": 21771.0,
+          "ram_available_bytes": 39500918784,
+          "process_rss_bytes": 3345657856,
+          "cuda_allocated_bytes": 51958272,
+          "cuda_reserved_bytes": 1522532352,
+          "rolling_60s_percent": 9.809891003954302
+        },
+        "samples": 19822,
+        "gpu_time_weighted_mean_percent": 54.357232730995065,
+        "max_complete_60s_mean_percent": 82.17847909838407,
+        "missing_samples": 0,
+        "missing_seconds": 0.0,
+        "max_sample_gap_s": 4.690487827989273,
+        "wait_seconds": 0.0,
+        "peak_gpu_used_mib": 7380.0,
+        "peak_process_rss_bytes": 3432361984,
+        "min_ram_available_bytes": 32659775488,
+        "thresholds": {
+          "gpu_free_mib": 4096.0,
+          "ram_available_bytes": 10737418240.0
+        },
+        "scope": "whole card, sampled only for this process lifetime; latest user allows full GPU utilization"
+      },
+      "train_control_moments": 3241250,
+      "train_optimizer_updates": 61050,
+      "train_valid_targets": 37839000,
+      "evaluation": {
+        "successes": 0,
+        "attempted_legal": 50,
+        "censored": 0,
+        "success_fraction": 0.0,
+        "wilson_95": [
+          6.938893903907228e-18,
+          0.07134759913335872
+        ]
+      },
+      "control_steps": 30050,
+      "length_min": 601,
+      "length_max": 601,
+      "length_median": 601.0,
+      "reasons": {
+        "timeout": 50
+      },
+      "pair_initial_max_error": 0.0
+    }
+  },
+  "evaluation": {
+    "legal_pairs": 50,
+    "invalid_initializations": 39,
+    "complete": true,
+    "elapsed_s": 3184.3615157604218,
+    "paired": {
+      "both": 0,
+      "b0_only": 0,
+      "b1_only": 0,
+      "neither": 50
+    },
+    "resources": {
+      "pid": 2706236,
+      "latest": {
+        "pid": 2706236,
+        "utc_epoch": 1793317169.6621182,
+        "elapsed_s": 3197.444972705969,
+        "gpu_util_percent": 38.0,
+        "gpu_used_mib": 3595.0,
+        "gpu_free_mib": 20489.0,
+        "ram_available_bytes": 36712284160,
+        "process_rss_bytes": 6186881024,
+        "cuda_allocated_bytes": 25245184,
+        "cuda_reserved_bytes": 109051904,
+        "rolling_60s_percent": 38.27403853399543
+      },
+      "samples": 1558,
+      "gpu_time_weighted_mean_percent": 37.06696412299523,
+      "max_complete_60s_mean_percent": 38.554535140440564,
+      "missing_samples": 0,
+      "missing_seconds": 0.0,
+      "max_sample_gap_s": 13.748102076002397,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 3595.0,
+      "peak_process_rss_bytes": 6201311232,
+      "min_ram_available_bytes": 32582483968,
+      "thresholds": {
+        "gpu_free_mib": 4096,
+        "ram_available_bytes": 10737418240
+      },
+      "scope": "whole card, sampled only for this process lifetime; latest user allows full GPU utilization"
+    },
+    "timing": {
+      "isaac_app_s": 7.437195008969866,
+      "scene_s": 4.067507050000131,
+      "checkpoint_load_s": 0.426275297999382,
+      "reset_s": 3.9708860643440858,
+      "loop_s": 3177.124029596336,
+      "trace_write_s": 1.2742390946950763,
+      "demo_write_s": 0.4521705840015784
+    },
+    "process_wall_s": 3198.5685585060273,
+    "protocol_version": 2
+  },
+  "runner_completed_singapore": "2026-10-30T07:39:36.785584+08:00",
+  "checks": {
+    "trace_files": 100,
+    "unique_pairs": 50,
+    "error_file_exists": false,
+    "checkpoint_hashes_verified": true,
+    "all_100_numeric_trace_lengths_and_finite_commands_verified": "2026-10-30 10:22 Asia/Singapore",
+    "subgoal_hits_max": 0,
+    "formal_results_unchanged_by_video_rerun": true
+  },
+  "resource_policy": "Training/official evaluation took place under authorized unrestricted GPU. From2026-10-30 video task, new50% whole-card average cap applies; historical telemetry retained.",
+  "video_delivery": {
+    "checked_singapore": "2026-10-30T10:36:27.509118+08:00",
+    "purpose": "viewing_rerun",
+    "videos": [
+      {
+        "file": "b0_s981001.mp4",
+        "variant": "b0",
+        "seed": 981001,
+        "checkpoint_epoch": 49,
+        "checkpoint_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+        "frames": 601,
+        "fps": 60,
+        "width": 1344,
+        "height": 316,
+        "duration_s": 10.016666666666667,
+        "pts_max_error_s": 0,
+        "bytes": 2036194,
+        "sha256": "005e6ae087b62dcf5bfc35390eb9f5b0dd7bec54e3257cca3e3bcb021ccfc281",
+        "outcome": "failure",
+        "reasons": [
+          "timeout"
+        ],
+        "pair_initial_max_error": 0.0,
+        "max_difference_from_original_formal_trace": {
+          "command": 0.002257823944091797,
+          "target_rad": 0.0009508728981018066,
+          "joint_after": 0.0009316205978393555,
+          "object_after": 0.0
+        },
+        "terminal_image_available": false,
+        "reset_frames_included": false,
+        "preview": "b0_s981001_preview.jpg"
+      },
+      {
+        "file": "b1_s981001.mp4",
+        "variant": "b1",
+        "seed": 981001,
+        "checkpoint_epoch": 49,
+        "checkpoint_sha256": "bb23694f94294b20a2bb21b0c260b3ebbd30f2e3ed6a6e22b2465a501b1c5cc2",
+        "frames": 601,
+        "fps": 60,
+        "width": 1344,
+        "height": 316,
+        "duration_s": 10.016666666666667,
+        "pts_max_error_s": 0,
+        "bytes": 2430632,
+        "sha256": "10fc8d779f1ada30a7042ff072e262d4fa7a927604e661e0aeacf83a6476509f",
+        "outcome": "failure",
+        "reasons": [
+          "timeout"
+        ],
+        "pair_initial_max_error": 0.0,
+        "max_difference_from_original_formal_trace": {
+          "command": 0.005520999431610107,
+          "target_rad": 0.002274453639984131,
+          "joint_after": 0.002181828022003174,
+          "object_after": 0.0
+        },
+        "terminal_image_available": false,
+        "reset_frames_included": false,
+        "preview": "b1_s981001_preview.jpg"
+      },
+      {
+        "file": "b0_s981002.mp4",
+        "variant": "b0",
+        "seed": 981002,
+        "checkpoint_epoch": 49,
+        "checkpoint_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+        "frames": 601,
+        "fps": 60,
+        "width": 1344,
+        "height": 316,
+        "duration_s": 10.016666666666667,
+        "pts_max_error_s": 0,
+        "bytes": 2115265,
+        "sha256": "c1c58e954ab9cc9fdda45404e8a03ad6a6c9258fffd55266ffdf28fa5ab5d7bc",
+        "outcome": "failure",
+        "reasons": [
+          "timeout"
+        ],
+        "pair_initial_max_error": 0.0,
+        "max_difference_from_original_formal_trace": {
+          "command": 0.0020477324724197388,
+          "target_rad": 0.000581204891204834,
+          "joint_after": 0.0005459785461425781,
+          "object_after": 0.0
+        },
+        "terminal_image_available": false,
+        "reset_frames_included": false,
+        "preview": "b0_s981002_preview.jpg"
+      },
+      {
+        "file": "b1_s981002.mp4",
+        "variant": "b1",
+        "seed": 981002,
+        "checkpoint_epoch": 49,
+        "checkpoint_sha256": "bb23694f94294b20a2bb21b0c260b3ebbd30f2e3ed6a6e22b2465a501b1c5cc2",
+        "frames": 601,
+        "fps": 60,
+        "width": 1344,
+        "height": 316,
+        "duration_s": 10.016666666666667,
+        "pts_max_error_s": 0,
+        "bytes": 2310198,
+        "sha256": "3839cb7fdb6727b51ba3f64bc7301ead6ffc89ce2e6845ce5792ab42deeb827b",
+        "outcome": "failure",
+        "reasons": [
+          "timeout"
+        ],
+        "pair_initial_max_error": 0.0,
+        "max_difference_from_original_formal_trace": {
+          "command": 1.527278482913971,
+          "target_rad": 0.11071515083312988,
+          "joint_after": 0.09229576587677002,
+          "object_after": 0.0
+        },
+        "terminal_image_available": false,
+        "reset_frames_included": false,
+        "preview": "b1_s981002_preview.jpg"
+      }
+    ],
+    "resources": {
+      "pid": 2765765,
+      "latest": {
+        "pid": 2765765,
+        "utc_epoch": 1793327713.36163,
+        "elapsed_s": 374.0744251880096,
+        "gpu_util_percent": 8.0,
+        "gpu_used_mib": 3595.0,
+        "gpu_free_mib": 20489.0,
+        "ram_available_bytes": 30245457920,
+        "process_rss_bytes": 6353223680,
+        "cuda_allocated_bytes": 25245184,
+        "cuda_reserved_bytes": 109051904,
+        "rolling_60s_percent": 35.59995399908124
+      },
+      "samples": 173,
+      "gpu_time_weighted_mean_percent": 29.49834038292705,
+      "max_complete_60s_mean_percent": 38.153726052397786,
+      "missing_samples": 0,
+      "missing_seconds": 0.0,
+      "max_sample_gap_s": 9.067671717028134,
+      "wait_seconds": 2.0000713409972377,
+      "peak_gpu_used_mib": 6625.0,
+      "peak_process_rss_bytes": 6353223680,
+      "min_ram_available_bytes": 28672774144,
+      "thresholds": {
+        "gpu_free_mib": 4096,
+        "ram_available_bytes": 10737418240,
+        "max_gpu_mean_percent": 50,
+        "gpu_admission_mean_percent": 45
+      },
+      "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+    },
+    "process_wall_s": 376.81411144003505,
+    "pacing_s": 120.35194517316995,
+    "video_total_bytes": 8892289,
+    "limits": "Fresh live rollouts of first two original legal seeds, not old video reconstruction or extra independent formal trials; not bitwise replay."
+  }
+}
