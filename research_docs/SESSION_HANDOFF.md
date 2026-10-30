@@ -1,5 +1,29 @@
 # 当前会话交接：有限插入数据集（2026-10-28）
 
+## 最终交接 — 2026-10-30 07:15:56 UTC，残差v1本轮结束
+
+全部自有缓存/训练/诊断/monitor进程已退出，不自动重启或增加样本。完整证据见
+[CORRECTION_TRAINING.md](CORRECTION_TRAINING.md)、[比较报告](POLICY_COMPARISON_20261030.md)、
+`evidence/residual_20261030.json`；原400/best/正式100及0/50保持不变，旧100 SHA再次全部匹配。
+
+- B0 v2完全冻结；Residual B/C各5完整epoch、7,875更新、320独立episode/1,600完整遍历。
+  B验证选epoch5、C同轮；val .339453/.340667，test40仅一次 .336392/.337817（A .659997）。
+- 12次预分配启动已用完：6自主均601步timeout、无gate；5个完成的roll-in亦601步timeout；
+  均无首子目标/抬升。第8条B981001在step120、学生接管前switch核验中止，不算任务失败。
+- 只接续了9–12，未重跑8。C981001与旧A prefix/state不匹配，明确非配对；981002 A/B/C在step88
+  交接，prefix及所有保存switch字段精确相同，但三者仍失败。只有这一个完整严格匹配的局部三联。
+- 两次运行位于同root下`closed_loop`与`closed_loop_remaining_01`，原失败证据保留；第8条旧异常未存
+  prefix数组/逐字段state，不能补造。新runner已保存initial/switch/partial与物理单位解释，不改原生wrapper。
+- 连续5,606.67秒：整卡均值22.0602%、完整60秒最大37.1971%，缺测0、最大间隔1.26857秒；
+  最低VRAM空闲11,875MiB、RAM26.227GiB。离线首GPU阶段完成上界53.62分钟，总93.45分钟，预算未重置。
+  早期wait分拆缺口如实标未知，不能声称硬quota/进程归因。外部生产PID未触碰。
+- 全套82项通过；400缓存/11完整诊断hash和memory/cursor/ack/旁路核验通过，原控制器/研究wrapper无diff。
+  当前是监督残差，未实现critic/replay/SAC，不声称触觉收益、去预加载或任务成功。
+
+最终checkpoint B `0ce3ce5c…36ada8b`，C `8750ebb9…e3899be`；完整hash/config/source/normalizer见报告与权重。
+首次闭环launch `000b069`，未启动分配接续launch `86424fd`；后续只增加只读统计和文档，不热改执行模型。
+公开在`origin/feature/trained-tactile-residual`，不合并main、不上传outputs/权重/轨迹/原日志。
+
 ## 当前恢复边界 — 2026-10-30 06:56 UTC第8条中止
 
 闭环原进程已退出：6自主+roll-in A自然终止，第8条B在step120接管前switch核验失败。

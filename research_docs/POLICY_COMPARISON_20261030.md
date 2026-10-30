@@ -1,5 +1,11 @@
 # 独立policy比较：源码、论文与本轮实验分开
 
+本轮实际训练/执行已结束：Residual B/C各5完整epoch、7,875有效更新；一次test加权command MSE
+A .659997→B .336392/C .337817，但自主各0/2且完全无gate。12个预分配启动中11条自然timeout、
+1条switch核验中止；唯一完整严格匹配的局部981002三联也全失败，无首子目标/抬升。
+详见[完整训练、交接失败与资源证据](CORRECTION_TRAINING.md)。这支持“离线监督学会了部分命令映射”，
+不支持触觉收益、闭环成功或RL已经实现；严格action gate确实阻止了无接触接近阶段的任何修正。
+
 本报告读取固定版本的policy、训练workspace、task配置和真实部署runner；没有运行这些外部项目或
 下载它们的checkpoint。源码选择不等于作者所有实验的最终resolved配置。没有公开/没有实际读取的
 参数和实现明确记为未知，不以摘要或名称推断。参考文件留在本轮ignored `references/`，不vendoring新代码。

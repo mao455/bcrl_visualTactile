@@ -162,7 +162,7 @@ def main():
         diagnostic_trials=[{name:value for name,value in row.items() if name not in ('causal_events', 'geometry')}
                            for row in closed['trials']],
         resources=resource_summary(root / 'resources/resources.jsonl'),
-        waits=dict(pilot_s=pilot['wait_s'], full_training_s=full['wait_s'], closed_loop_s=closed['wait_s']),
+        waits=dict(pilot_s=pilot['wait_s'], full_training_s=full['wait_s'], closed_loop_final_process_s=closed['wait_s']),
         causal_validation=json.loads((root / 'causal_validation.json').read_text()),
         limitations=['teacher-forced expert state/history and one cached policy-noise sequence per demonstration',
             'force-masked control retains true tactile gate; not a strict tactile-free ablation',
@@ -180,7 +180,8 @@ def main():
     aggregate['gpu_stage'] = json.loads((root / 'gpu_stage.json').read_text())
     aggregate['training_configuration'] = {name:value for name,value in full['source_and_config'].items()
         if name not in ('pid', 'source_sha256', 'parameter_counts')}
-    aggregate['closed_loop_source'] = {name:launch[name] for name in ('source_commit', 'source_sha256', 'checkpoints')}
+    aggregate['closed_loop_source'] = dict(source_commit=launch['source_commit'], checkpoints=launch['checkpoints'],
+        source_sha256={Path(name).name:value for name,value in launch['source_sha256'].items()})
     aggregate['diagnostic_completion'] = dict(all_allocations_resolved=True,
         all_trials_naturally_terminated=closed['complete'], naturally_terminated=closed.get('naturally_terminated', 12),
         mismatch_policy=launch.get('mismatch_policy', 'stop_before_student'),
@@ -190,14 +191,28 @@ def main():
     aggregate['execution_metrics'] = execution_summary(root, closed['trials'])
     if diagnostic_root.name != 'closed_loop':
         original_launch = json.loads((root / 'closed_loop/launch.json').read_text())
-        aggregate['original_closed_loop_source'] = {name:original_launch[name]
-            for name in ('source_commit', 'source_sha256', 'checkpoints')}
+        aggregate['original_closed_loop_source'] = dict(source_commit=original_launch['source_commit'],
+            checkpoints=original_launch['checkpoints'], source_sha256={Path(name).name:value
+                for name,value in original_launch['source_sha256'].items()})
+    else:
+        original_launch = launch
+    if (root / 'training_test/report.json').stat().st_mtime > original_launch['started_epoch']:
+        raise ValueError('Offline test was not completed before the closed-loop cohort')
+    monitor = json.loads((root / 'monitor_final.json').read_text())
+    aggregate['budget_observations'] = dict(
+        offline_gpu_stage_completion_upper_bound_s=original_launch['started_epoch']-aggregate['gpu_stage']['started_epoch'],
+        offline_gpu_stage_limit_s=session['first_gpu_stage_seconds'],
+        session_through_monitor_shutdown_s=monitor['ended_epoch']-session['started_epoch'],
+        session_limit_s=session['deadline_epoch']-session['started_epoch'])
     aggregate['limitations'].append('matched physical resets do not guarantee pixel-identical observations or bitwise policy replay; action differences alone are not residual effects')
     aggregate['final_disk_free_bytes'] = shutil.disk_usage(root).free
     aggregate['disk_scope'] = '12 GB reserve checked before work; final free space is not a recorded continuous minimum'
     preservation = root / 'preservation.json'
     if preservation.exists():
         aggregate['original_preservation'] = json.loads(preservation.read_text())
+    validation = root / 'validation_final.json'
+    if validation.exists():
+        aggregate['validation'] = json.loads(validation.read_text())
     aggregate['diagnostic_aggregates'] = {}
     for mode in ('autonomous', 'expert_rollin'):
         aggregate['diagnostic_aggregates'][mode] = {}

@@ -1,5 +1,23 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — 2026-10-30 independent residual v1
+
+This authorized bounded session is finished; all owned workers and monitor exited.
+Read CORRECTION_TRAINING and the newest SESSION_HANDOFF before historical progress.
+B/C each completed5 full epochs,7875 updates,320 unique training episodes; best epoch5,
+one held-out test40. Offline command errors improved, but no task success was observed.
+All12 preallocated starts are resolved:11 native601-step timeouts, one switch-validation
+interruption before student control. The failed eighth trial was not rerun; only9–12
+continued in a fresh directory under the same session/deadline. One local seed's C is
+explicitly unmatched; seed981002 has a complete exact-switch A/B/C triad, all failures.
+Autonomous A/B/C each0/2 with no contact gate, no first subgoal or lift. No tactile
+causal benefit or RL is established. Original400/best/100 formal traces and0/50 are intact.
+Whole-card mean22.0602%, maximum complete60s37.1971%, telemetry missing0; early worker
+wait-attribution gaps remain documented.82 tests plus real artifact checks passed.
+Do not automatically restart, add trials/epochs, or launch DAgger/SAC from suggestions.
+This session's reviewed code/docs/small sanitized statistics are authorized for the
+origin feature branch only; native controller and research sim wrapper remain read-only.
+
 ## Latest override — 2026-10-30 trained independent residual Correction
 
 The current user authorizes policy/data/history changes, first independent

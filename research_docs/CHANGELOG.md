@@ -1,5 +1,25 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 残差v1最终实测、预算收尾与去敏发布
+
+5完整epoch B/C各7,875更新/1,600完整episode访问，B val选epoch5、C匹配；test一次。
+12个固定启动已解决：11条601步原生timeout、1条第8次switch校验中止，不能写成12条完整评估。
+自主各0/2、gate0；局部自然终止A0/2、B0/1、C0/2，无首子目标/抬升；981002三联switch与prefix精确一致。
+第8条不重跑，第9条非配对，失败现场与旧数组保留。真实训练残差在局部确实执行，但没有任务收益。
+
+`residual_report.py`最终区分两进程等待、自然终止/分配解决、原始与接续源码，检查test先于闭环、
+用首闭环启动给离线阶段完成上界；移除源码绝对机器路径，接入真实hash/因果核验。
+`CORRECTION_TRAINING.md`补全部架构参数/冻结、配置hash、val/test、闭环指标、失败/未验证与资源；
+比较报告、README、SESSION_HANDOFF、AGENTS同步最终范围。小聚合`evidence/residual_20261030.json`约75KB，
+不包含原数组、权重、视频、raw日志或私有配置；无新第三方代码/依赖，原MIT及vendor来源不变。
+
+验证：82项通过，后续最终报告真实生成与compileall/diff通过；400缓存、11完整trace哈希一致，
+memory1..601/cursor0..5/plan生成步/真实ack/无接触旁路逐项通过；时钟误差<6.7e-12s。
+原100正式NPZ与旧审查SHA全部匹配，原best/manifest不变；原生与sim wrapper相对fe9a634无diff。
+持续监测05:42:30–07:15:56 UTC：均值22.0602%、完整60秒最大37.1971%，缺测0、max gap1.26857s；
+最低VRAM11,875MiB/RAM26.227GiB。首离线阶段<=53.62分钟，总93.45分钟，所有自有进程退出。
+早期wait累计/第8条异常数组缺失明确保留，不编造精确归属；不声称SAC、触觉收益或重放差异根因已解决。
+
 ## 2026-10-30 — 计划边界与专家交接跳变分开统计
 
 原逐trial jump汇总包含一次expert→student切换；`residual_report.py`新增从已存NPZ重算的
