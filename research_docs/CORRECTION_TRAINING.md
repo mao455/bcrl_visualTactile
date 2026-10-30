@@ -10,10 +10,11 @@
 | --- | --- | --- |
 | 正式B0 v2 | 2,003,085；全部冻结 | 三448×252 RGB-D、58D本体、任务/外部goal；128D持续GRU；H12/DDIM8，每6步重规划；无触觉、无mixed history |
 | 每个Residual v1 | 1,344,597总参数；489,125可训练、855,472冻结 | 独立复制B0已训练逐帧编码器并冻结；视觉128、触觉64、intent64、motion64 → MLP256/128/29 raw delta |
-| Residual视觉GRU | 可训练，独立初始化自B0 | 冻结逐帧512D特征，逐60Hz更新；不是缓存随机网络或冻结全部Correction |
-| 触觉分支 | 可训练 | 五指world/local法向合力、encoder FK/旋转/速度、120Hz时间及因果差分；没有taxel、压力图、slip或partner身份 |
-| intent / motion | 可训练 | 当前真实B0剩余chunk及mask；q/qd、实际t−1 command/valid、当前actuator target/tracking error |
-| 输出头 | 零初始化，可训练 | `clip(base + gate * scales * tanh(raw), -1, 1)`；无接触逐位等于base |
+| Residual视觉GRU | 246,528可训练，独立复制自B0 | 冻结逐帧512D特征，逐60Hz更新；不是缓存随机网络或冻结全部Correction |
+| 触觉分支 | 39,880可训练 | 五指world/local法向合力、encoder FK/旋转/速度、120Hz时间及因果差分；没有taxel、压力图、slip或partner身份 |
+| intent / intent-memory | 18,240 / 24,960可训练 | 当前真实B0剩余chunk及mask，完整episode持续intent状态 |
+| motion | 40,704可训练 | q/qd、实际t−1 command/valid、当前actuator target/tracking error |
+| 输出MLP | 118,813可训练，末层零初始化 | `clip(base + gate * scales * tanh(raw), -1, 1)`；无接触逐位等于base |
 
 旧`CorrectionPolicy`仍是完整candidate+替换/blend接口，新版不重新解释它的checkpoint。
 新`residual_checkpoint_version=1`，输入`residual_frozen_frame_memory2_v1`，动作
@@ -45,11 +46,42 @@ C仅在网络入口把world/local力置零，力差分、norm、contact/onset/re
 
 ## 已完成验收与阶段状态
 
-- 7项针对性测试通过：零残差、无接触exact-base、[-2,2]可达、独立参数/冻结、持续memory、完整/逐步等价、C力派生屏蔽、v3拒绝及资源基础测试。
+- 全套80项通过：包括零残差、无接触exact-base、[-2,2]可达、独立参数/冻结、持续memory、完整/逐步等价、C力派生屏蔽、v3拒绝、未训练checkpoint拒绝、真实mixed反馈隔离与资源等待异常保存。
 - 24条pilot缓存完整：train16共3226控制观察、1894个contact；val8共1758观察、1088个contact。
 - 两轮pilot B/C各160有效更新、32次完整train episode遍历。val加权MSE从.727845降至B .623025、C .620782；通过学习信号门槛，已进入320/40全划分缓存。不能称触觉收益。
 - 真实首条示范13步只读回放：step0/6/12采样，memory计数1/7/13；cache与online base/plan最大差1.91e-6，raw residual8.94e-8，过去真实专家命令逐位相同。没有为凑接触扩展此检查。
-- 完整训练、held-out test与12条闭环尚在本轮执行中；最终结果另追加，不能把当前pilot当最终交付。
+- 完整训练与一次held-out test已完成；12条闭环仍进行中。下表是离线监督指标，不能当任务成功率。
+
+## 完整离线结果
+
+2026-10-30 06:16:18–06:33:12 UTC运行5完整epoch。每轮320条、64,825控制观察，
+37,224个contact观察、1,575有效optimizer updates；最终B/C各7,875更新、1,600次完整episode访问，
+共324,125观察、186,120 contact观察。两个模型初始化/数据顺序/有效更新相同，参数独立。
+没有追加第6–10轮；使用首阶段固定5轮结果进入闭环。pilot各160更新是独立验证模型，不计入最终权重更新数。
+
+B validation按epoch的加权command MSE为`.387972, .355340, .356157, .344325, .339453`；
+C为`.381940, .357386, .347283, .342369, .340667`。B选择第5轮，C同轮匹配。
+validation40有8,670观察/5,059 contact；test40只计算一次，有8,399观察/4,848 contact。
+
+| 数据 / 模型 | 全程arm RMSE | 全程hand RMSE | contact arm RMSE | contact hand RMSE | 加权全程MSE |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| val A（零残差） | .954809 | .659734 | .992612 | .737060 | .673454 |
+| val B（真实力特征） | .682415 | .461754 | .470090 | .403417 | .339453 |
+| val C（屏蔽力特征） | .679812 | .468177 | .463582 | .415910 | .340667 |
+| test A（零残差） | .947055 | .650447 | .989277 | .721658 | .659997 |
+| test B | .676828 | .463344 | .467370 | .399695 | .336392 |
+| test C | .674974 | .469088 | .462700 | .411137 | .337817 |
+
+单位均为native clipped pre-delay command。模型仅在contact时可改变动作；所有无接触旁路逐位一致。
+train320事后描述统计（不重选scale）仍p99=2；严格旁路使全程arm/hand RMSE下界为.561776/.338660。
+val输出饱和元素占比B50.16%、C50.59%。B与C差异很小且不是独立随机种子的重复实验，不能称触觉因果收益。
+
+最终B checkpoint SHA256：`0ce3ce5c7df77abfb79c557528b2869cbef38321ad9d1d6047046d73036ada8b`；
+C：`8750ebb9f2595ee0af96abcbc44a414a73035a3e06f24e99093c777cce3899be`。
+训练时360条缓存索引SHA256为`14be455a5014f2c58ae64ac8b4c167e994e4be72dc62013434d8c735dc3549b8`，
+同字节快照保存在`cache/train_validation_index.json`。之后仅追加test40，原360条缓存不改。
+训练launch commit为`b88d685a5880aca0fe88b91dd38a857b179b2c61`，精确源码hash与完整配置保存在checkpoint及config.json。
+B0参数全程无梯度、张量逐项不变；没有优化base或偷偷采用B1。
 
 ## 固定闭环与资源计划
 
