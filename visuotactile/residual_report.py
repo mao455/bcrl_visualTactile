@@ -1,0 +1,101 @@
+"""Small sanitized aggregate, recomputed from local residual artifacts."""
+import argparse
+import json
+from pathlib import Path
+
+from .compact import sha256
+from .residual_data import BASE_HASH
+from .training_resources import atomic_json
+
+
+def metric_summary(result):
+    fields = ('rows', 'contact_rows', 'arm_rmse', 'hand_rmse', 'contact_arm_rmse', 'contact_hand_rmse',
+              'base_arm_rmse', 'base_hand_rmse', 'selection_mse', 'saturation_fraction', 'bypass_exact', 'updates')
+    return {name:result[name] for name in fields}
+
+
+def resource_summary(path):
+    rows = [json.loads(line) for line in path.read_text().splitlines()]
+    area, measured, missing = 0., 0., 0.
+    for previous, current in zip(rows, rows[1:]):
+        duration = current['elapsed_s']-previous['elapsed_s']
+        if previous['gpu_util_percent'] is None or duration>15:
+            missing += duration
+        else:
+            area += duration*previous['gpu_util_percent']
+            measured += duration
+    complete = [row['rolling_60s_percent'] for row in rows if row['rolling_60s_percent'] is not None]
+    free = [row['gpu_free_mib'] for row in rows if row['gpu_free_mib'] is not None]
+    return dict(samples=len(rows), time_weighted_mean_percent=area/measured if measured else None,
+        max_complete_60s_mean_percent=max(complete) if complete else None,
+        complete_windows=len(complete), measured_seconds=measured, missing_seconds=missing,
+        missing_samples=sum(row['gpu_util_percent'] is None for row in rows),
+        max_sample_gap_s=max((current['elapsed_s']-previous['elapsed_s'] for previous,current in zip(rows,rows[1:])), default=None),
+        min_gpu_free_mib=min(free) if free else None,
+        min_ram_available_gib=min(row['ram_available_bytes'] for row in rows)/1024**3,
+        started_epoch=rows[0]['utc_epoch'], finished_epoch=rows[-1]['utc_epoch'],
+        scope='whole card including unrelated workloads; sampled means, not a quota or process attribution')
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--root', type=Path, required=True)
+    args = parser.parse_args()
+    root = args.root
+    index = json.loads((root / 'cache/index.json').read_text())
+    pilot = json.loads((root / 'training_pilot/report.json').read_text())
+    full = json.loads((root / 'training_full/report.json').read_text())
+    test = json.loads((root / 'training_test/report.json').read_text())
+    closed = json.loads((root / 'closed_loop/report.json').read_text())
+    aggregate = dict(report_version=1, base_sha256=BASE_HASH, manifest_sha256=index['manifest_sha256'],
+        original_formal_results='unchanged B0 0/50 and B1 0/50; no new formal samples',
+        cache_index_sha256=sha256(root / 'cache/index.json'), cached_episodes=len(index['entries']),
+        cached_steps=sum(row['steps'] for row in index['entries'].values()),
+        split_sizes={name:len(value) for name,value in index['splits'].items()},
+        architecture=json.loads((root / 'parameter_counts.json').read_text()),
+        pilot=dict(epochs=pilot['completed_epochs'], updates=pilot['effective_updates'],
+                   validation={name:metric_summary(value) for name,value in pilot['history'][-1]['validation'].items()}),
+        full=dict(epochs=full['completed_epochs'], requested_epochs=full['requested_epochs'],
+            selected_epoch=full['selected_epoch'], updates=full['effective_updates'],
+            selected_updates=next(row['updates'] for row in full['history'] if row['epoch']==full['selected_epoch']),
+            episode_visits=full['episode_visits'], unique_training_episodes=full['unique_training_episodes'],
+            base_gradients_absent=full['base_gradients_absent'], frozen_base_unchanged=full['frozen_base_unchanged'],
+            zero_validation={name:metric_summary(value) for name,value in full['baseline'].items()},
+            epochs_metrics=[dict(epoch=row['epoch'], updates=row['updates'],
+                train={name:metric_summary(value) for name,value in row['train'].items()},
+                validation={name:metric_summary(value) for name,value in row['validation'].items()}) for row in full['history']],
+            source_commit=full['source_and_config']['source_commit'],
+            source_sha256={Path(name).name:value for name,value in full['source_and_config']['source_sha256'].items()},
+            derived_index_at_training_sha256=full['source_and_config']['cache_index_sha256'],
+            started_epoch=full['source_and_config']['started_epoch'], finished_epoch=full['finished_epoch']),
+        test={name:metric_summary(value) for name,value in test['test'].items()},
+        checkpoints={name:sha256(root / 'training_full' / (name+'_best.pt')) for name in ('b', 'c')},
+        diagnostic_trials=[{name:value for name,value in row.items() if name not in ('causal_events', 'geometry')}
+                           for row in closed['trials']],
+        resources=resource_summary(root / 'resources/resources.jsonl'),
+        waits=dict(pilot_s=pilot['wait_s'], full_training_s=full['wait_s'], closed_loop_s=closed['wait_s']),
+        causal_validation=json.loads((root / 'causal_validation.json').read_text()),
+        limitations=['teacher-forced expert state/history and one cached policy-noise sequence per demonstration',
+            'force-masked control retains true tactile gate; not a strict tactile-free ablation',
+            'aggregate normal-force contacts have unknown partners',
+            'diagnostics are two paired starts per mode; local roll-in is not autonomous success',
+            'no critic, replay buffer, reward training, or RL implementation'])
+    amplitude = json.loads((root / 'amplitude.json').read_text())
+    aggregate['amplitude'] = dict(scales=amplitude['scales'],
+        statistics={name:value for name,value in amplitude['statistics'].items() if name!='episodes'})
+    aggregate['diagnostic_aggregates'] = {}
+    for mode in ('autonomous', 'expert_rollin'):
+        aggregate['diagnostic_aggregates'][mode] = {}
+        for variant in ('a', 'b', 'c'):
+            selected = [row for row in closed['trials'] if row['mode']==mode and row['variant']==variant]
+            aggregate['diagnostic_aggregates'][mode][variant] = dict(allocated=len(selected),
+                evaluated=sum(row.get('success') is not None for row in selected),
+                successes=sum(row.get('success') is True for row in selected),
+                first_subgoal_hits=sum(row.get('max_subgoals', 0)>0 for row in selected))
+    atomic_json(root / 'public_report.json', aggregate)
+    print(json.dumps(dict(full_epochs=full['completed_epochs'], diagnostics=aggregate['diagnostic_aggregates'],
+                          resources=aggregate['resources']), indent=2))
+
+
+if __name__ == '__main__':
+    main()

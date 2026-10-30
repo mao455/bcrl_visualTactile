@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import subprocess
 import time
 import traceback
 
@@ -12,11 +13,13 @@ from .training_resources import atomic_json
 
 
 def main():
+    process_started = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
     args = parser.parse_args()
     output = args.root / 'closed_loop'
     output.mkdir(exist_ok=False)
+    atomic_json(output / 'status.json', dict(state='initializing', started_epoch=process_started, pid=os.getpid()))
     gate = SessionGate(args.root)
     plan = json.loads((args.root / 'session.json').read_text())
     gate.before(reserve_s=600)
@@ -71,7 +74,9 @@ def main():
             assert_policy_compatible(policy.base.metadata, metadata)
             assert_execution_compatible(policy.base.metadata, metadata)
         atomic_json(output / 'environment.json', metadata)
-        atomic_json(output / 'launch.json', dict(plan=plan, checkpoints={name:policy.checkpoint_sha256
+        atomic_json(output / 'launch.json', dict(started_epoch=process_started, pid=os.getpid(), plan=plan,
+            source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+            checkpoints={name:policy.checkpoint_sha256
             for name,policy in policies.items()}, source_sha256={str(path):sha256(path) for path in (
                 Path(__file__), Path('visuotactile/residual_controller.py'), Path('visuotactile/models/residual.py'),
                 Path('visuotactile/rollout.py'), Path('visuotactile/sim/environment.py'))}))
@@ -107,7 +112,8 @@ def main():
             prefix = hashlib.sha256()
             trace = {name:[] for name in ('base', 'command', 'delta', 'gate', 'cursor', 'generation_step',
                 'previous_command', 'command_valid', 'memory_updates', 'submitted', 'clipped', 'delayed',
-                'target', 'tracking_error', 'object', 'goal', 'successes', 'lifted', 'force', 'student')}
+                'target', 'tracking_error', 'object', 'goal', 'successes', 'lifted', 'force', 'student',
+                'finger_object_distance', 'palm_object_distance')}
             events, done, rng_unchanged = [], False, True
             started = time.monotonic()
             natural_bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
@@ -153,7 +159,11 @@ def main():
                     clipped=transition['command_clipped_pre_delay'], delayed=transition['control_trace']['delayed_command'],
                     target=transition['target_after_rad'], tracking_error=transition['target_after_rad']-diagnostic['joint_position_rad'],
                     object=diagnostic['object_pose_w'], goal=diagnostic['goal_pose_w'], successes=diagnostic['successes'],
-                    lifted=diagnostic['lifted_object'], force=packet['contact_w_N'], student=torch.tensor([switched]))
+                    lifted=diagnostic['lifted_object'], force=packet['contact_w_N'], student=torch.tensor([switched]),
+                    finger_object_distance=(diagnostic['finger_position_w']-
+                        diagnostic['object_pose_w'][:, None, :3]).norm(dim=-1).mean(-1),
+                    palm_object_distance=(diagnostic['palm_body_pose_w'][:, :3]-
+                        diagnostic['object_pose_w'][:, :3]).norm(dim=-1))
                 for name, value in values.items():
                     trace[name].append(value[0].detach().cpu().numpy().copy())
                 if step in (0, 1, 5, 6, 7) or step==switch_step or (bool(policy.last['contact'][0]) and not any(event['contact'] for event in events)):
@@ -185,6 +195,10 @@ def main():
                 native_lifted=bool(arrays['lifted'].any()),
                 max_object_z_rise_from_reset_m=float(arrays['object'][:, 2].max()-initial['object_pose_w'][2]),
                 min_goal_position_distance_m=float(np.linalg.norm(arrays['object'][:, :3]-arrays['goal'][:, :3], axis=-1).min()),
+                min_student_finger_object_distance_m=float(arrays['finger_object_distance'][student].min()) if student.any() else None,
+                first_student_finger_object_distance_m=float(arrays['finger_object_distance'][student][0]) if student.any() else None,
+                final_finger_object_distance_m=float(arrays['finger_object_distance'][-1]),
+                min_student_palm_object_distance_m=float(arrays['palm_object_distance'][student].min()) if student.any() else None,
                 student_gate_fraction=float(arrays['gate'][student].mean()) if student.any() else None,
                 student_saturation_fraction=float((np.abs(command)>=.99999).mean()) if len(command) else None,
                 bypass_exact=bool(np.array_equal(arrays['command'][no_contact], arrays['base'][no_contact])),
@@ -192,6 +206,10 @@ def main():
                                    for name,selected in (('arm', slice(0, 7)), ('hand', slice(7, 29)))},
                 boundary_jump_rmse={name:float(np.sqrt(np.mean(jumps[boundaries, selected]**2))) if boundaries.any() else None
                                     for name,selected in (('arm', slice(0, 7)), ('hand', slice(7, 29)))},
+                within_plan_jump_rmse={name:float(np.sqrt(np.mean(jumps[~boundaries & student[1:], selected]**2)))
+                    if (~boundaries & student[1:]).any() else None for name,selected in (('arm', slice(0, 7)), ('hand', slice(7, 29)))},
+                effective_correction_rmse={name:float(np.sqrt(np.mean((arrays['command'][student, selected]-arrays['base'][student, selected])**2)))
+                    if student.any() else None for name,selected in (('arm', slice(0, 7)), ('hand', slice(7, 29)))},
                 contact_partner='unknown; five aggregate normal forces do not identify the object',
                 rng_unchanged=rng_unchanged, native_ack_exact=bool(np.array_equal(arrays['command'].clip(-1, 1), arrays['clipped'])),
                 actual_feedback_exact=bool(np.array_equal(arrays['previous_command'][1:], arrays['clipped'][:-1])),
@@ -201,6 +219,7 @@ def main():
             atomic_json(output / 'trials.json', rows)
             print(json.dumps({name:value for name,value in row.items() if name!='causal_events'}), flush=True)
         atomic_json(output / 'report.json', dict(trials=rows, complete=len(rows)==12, wait_s=gate.wait_s,
+                    started_epoch=process_started, finished_epoch=time.time(),
                     purpose='separate diagnostic cohort; never appended to formal 0/50', plan=plan))
         atomic_json(output / 'status.json', dict(state='complete', completed=len(rows)))
     except BaseException as error:

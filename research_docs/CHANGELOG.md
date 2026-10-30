@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 诊断指标、统一阶段截止与统计溯源
+
+`evaluate_residual.py`新增纯诊断的指端/掌心到物体距离、段内jump、实际delta幅度，以及进程启动/结束时间和源码commit；
+不向policy传入物体真值。`train_residual.py`的CPU残差训练也遵守首次GPU起90分钟的同一阶段截止，保存launch commit。
+`residual_report.py`独立从本地缓存/指标/trace摘要与连续resources.jsonl生成小型去敏报告，分别报告总更新和best更新，
+不上传原始轨迹、权重或环境。新增`evidence/policy_sources_20261030.json`固定主要参考源码/论文hash和补充README版本。
+全部77项测试通过（保留既有requests依赖warning），compileall/diff检查通过。完整阶段与闭环最终结果待追加。
+
 ## 2026-10-30 — 官方配置比较与残差准入补强
 
 新增`POLICY_COMPARISON_20261030.md`，实际读取固定DP/RDP/ImplicitRDP训练配置、policy与部署override，

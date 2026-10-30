@@ -3,6 +3,7 @@
 本报告读取固定版本的policy、训练workspace、task配置和真实部署runner；没有运行这些外部项目或
 下载它们的checkpoint。源码选择不等于作者所有实验的最终resolved配置。没有公开/没有实际读取的
 参数和实现明确记为未知，不以摘要或名称推断。参考文件留在本轮ignored `references/`，不vendoring新代码。
+主要源码和论文的SHA256及补充README版本见[evidence/policy_sources_20261030.json](evidence/policy_sources_20261030.json)。
 
 ## 来源与生效配置
 

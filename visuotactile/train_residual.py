@@ -5,6 +5,7 @@ import json
 import math
 import os
 from pathlib import Path
+import subprocess
 import time
 import traceback
 
@@ -159,7 +160,7 @@ def main():
     parser.add_argument('--stage', choices=('pilot', 'full', 'test'), default='pilot')
     args = parser.parse_args()
     torch.set_num_threads(2)
-    gate = SessionGate(args.root)
+    gate = SessionGate(args.root, gpu_stage=True)
     index = json.loads((args.root / 'cache/index.json').read_text())
     base = load_base()
     frozen_reference = {name:value.clone() for name,value in base.model.state_dict().items()}
@@ -183,6 +184,7 @@ def main():
     if not all(torch.equal(value, models['c'].state_dict()[name]) for name, value in models['b'].state_dict().items()):
         raise RuntimeError('Matched independent initialization failed')
     config = dict(stage=args.stage, seed=20261030, started_epoch=time.time(), pid=os.getpid(),
+        source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         base_config=asdict(base.model.cfg),
         cache_index_sha256=sha256(args.root / 'cache/index.json'),
         architecture='independent copied frozen B0 frame encoder; train visual/tactile/intent/motion GRUs and raw residual MLP',
