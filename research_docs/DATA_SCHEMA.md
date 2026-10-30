@@ -1,5 +1,14 @@
 # Dataset schema v2 (current) and v1 compatibility
 
+## Derived residual cache1（原trajectory schema不变）
+
+新缓存存于独立run/cache，每episode一个本地`.pt`与带SHA的index；原HDF5保持只读。
+字段为trained frozen frame features、真实B0 remaining plans/valid/base/cursor/generation_step/time、
+真实传感motion/tactile/valid/contact gate及独立expert command target。metadata含base/source hash、
+独立噪声seed、完整episode长度、teacher-forcing来源和precision；index保留原320/40/40身份。
+Residual checkpoint1另保存base hash、输入/动作版本、normalizer、derived hashes、完整配置与有效更新数。
+这些派生数据不是新expert成功示范，不把原production空计划改写为模型计划，也不上传缓存/轨迹/权重。
+
 ## 2026-10-30执行历史派生输入（不重写原记录）
 
 `EpisodeSequenceDataset(include_action_history=True)`从既有transition[t−1]构造新增输入；

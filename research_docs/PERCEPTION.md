@@ -1,5 +1,14 @@
 # Perception v2 — 多视角与五指力观测
 
+## 2026-10-30：残差训练的特征与屏蔽边界
+
+Residual v1复用三448×252 layout4输入。冻结的是独立复制的**已训练**B0 frame encoder，
+缓存512D frame feature；Correction自己的visual GRU仍可训练，在线用相同冻结副本，未缓存随机特征。
+五指world/local法向合力、encoder FK、时间/差分经独立逐指GRU；B0完全不读触觉。
+匹配对照C先用真实数据确定gate/contact loss mask，再将网络world/local力置零，从而屏蔽其norm、差分和接触事件；
+FK/速度/时间/valid保留。C仍用真实触觉gate，不能称严格无触觉。合力不识别partner，不把接触自动当工件抓持。
+没有新增相机随机化、异步传感假设、taxel或privileged状态输入。
+
 > **2026-10-29 当前阶段：** v4三视角400条数据已交付，B0/B1命令模仿获正式训练授权。
 > 本文件下方“可训练但未训练”描述原感知阶段；现在B1的独立视觉/触觉/融合分支在真实命令
 > diffusion loss下更新，Correction的副本仍未训练。没有新增压力/滑移观测或改变相机。

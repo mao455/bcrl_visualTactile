@@ -4,6 +4,7 @@
 
 本轮已授权真实Correction训练、固定最多12条诊断和feature发布，覆盖下方历史限制。
 [Correction训练与执行报告](CORRECTION_TRAINING.md)记录实际版本、输入权限、冻结、pilot学习及运行预算。
+[官方方法独立比较](POLICY_COMPARISON_20261030.md)区分固定源码配置、部署override、论文描述与未知实现。
 正式B0保持冻结、B1不充当nominal；原400条、best与各0/50保持不变。pilot已完成，全划分与闭环正在推进。
 
 ## 最新独立审查 — 2026-10-30

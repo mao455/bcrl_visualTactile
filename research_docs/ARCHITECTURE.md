@@ -1,5 +1,15 @@
 # Architecture and staged acceptance gates
 
+## 2026-10-30：已实现独立加性Residual v1
+
+原Correction GRU+MLP full-candidate/blend保留为旧研究接口。新增`models/residual.py`与
+`residual_data/train_residual/residual_controller/evaluate_residual`：冻结正式B0，复制已训练frame encoder并冻结，
+独立训练visual128、tactile64、intent64、motion64及MLP256/128/29，输出头零初始化。
+当前观测contact gate控制加性native command residual，无接触exact-base；训练标签不经过残差[-1,1]裁剪。
+新版本有真实完整episode训练、checkpoint、native ack执行链；属于监督命令纠正，不是去预加载、联合训练或RL。
+当前实测与尚未完成项见[CORRECTION_TRAINING.md](CORRECTION_TRAINING.md)，方法区别见
+[POLICY_COMPARISON_20261030.md](POLICY_COMPARISON_20261030.md)。历史“无Correction训练”不覆盖新授权。
+
 > **最新2026-10-30独立审查：** 用户要求补齐真实行动历史并授权有界验证，覆盖下面观看阶段范围。
 > B0/B1新增独立的61→32命令历史编码，经原context进入每60Hz持续GRU；B1仍有五指力/FK与融合GRU。
 > 训练为过去已执行专家命令teacher forcing，部署为真实学生执行反馈；新版本3，不升级旧权重。

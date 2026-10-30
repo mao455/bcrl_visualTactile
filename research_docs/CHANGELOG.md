@@ -1,5 +1,15 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 官方配置比较与残差准入补强
+
+新增`POLICY_COMPARISON_20261030.md`，实际读取固定DP/RDP/ImplicitRDP训练配置、policy与部署override，
+纠正只读单个DP100步yaml的比较方式：官方hybrid确有DDIM8，RDP部署也设8；OmniTacTune是feature gate而非exact-base action gate。
+补充五种方法的来源/差异/未知项，没有移植第三方代码。同步ARCHITECTURE/PERCEPTION/HISTORY_AND_TRACE/DATA_SCHEMA/README。
+`train_residual.py`新增真实base张量不变核验、full阶段必须通过真实因果回放、异常现场与完整边界预算退出计数；
+`evaluate_residual.py`按原生max_goals/timeout推导外部保护上限，避免固定2400误截断可推进子目标的策略。
+7项关联测试再次通过、compileall/diff检查通过；原生与wrapper相对fe9a634无diff，B0/B1/manifest hash再次一致。
+本条未宣称已经跑完完整训练或闭环，实时/最终状态见训练报告与交接。
+
 ## 2026-10-30 — 独立残差Correction v1真实训练链（进行中）
 
 本轮用户授权已追加AGENTS、USER_RESEARCH_DIRECTION与SESSION_HANDOFF。新增

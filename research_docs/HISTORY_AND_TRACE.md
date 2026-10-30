@@ -1,5 +1,14 @@
 # 持续历史、动作来源与时间合约
 
+## 2026-10-30：Residual v1的独立执行反馈
+
+B0固定command v2/none；Correction v1独立保存实际native ack并在下一观察核对episode/step/time。
+训练的previous command/target/tracking来自过去专家执行，显式teacher forcing；部署来自实际学生mixed命令，
+或标明的released-expert roll-in。B0自己的plan/cursor/RNG不接受这条反馈，v3 issued不接入此链。
+cache1沿完整step0前缀生成真实B0计划，保存生成step/cursor/time/source/base hash；未来专家命令从未成为计划。
+每60Hz更新四路memory、两120Hz触觉样本；TBPTT32只detach，episode ID才reset，roll-in交接也不清状态。
+详情与真实回放误差见[Correction训练报告](CORRECTION_TRAINING.md)。
+
 ## 最新2026-10-30：真实已执行命令历史
 
 新增command checkpoint3/history1，显式`--action-history-mode issued`；默认none继续复现旧B0/B1。

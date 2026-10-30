@@ -3,8 +3,10 @@ import argparse
 from dataclasses import asdict
 import json
 import math
+import os
 from pathlib import Path
 import time
+import traceback
 
 import numpy as np
 import torch
@@ -180,7 +182,8 @@ def main():
                                             if parameter.requires_grad], lr=1e-3, weight_decay=1e-4)
     if not all(torch.equal(value, models['c'].state_dict()[name]) for name, value in models['b'].state_dict().items()):
         raise RuntimeError('Matched independent initialization failed')
-    config = dict(stage=args.stage, seed=20261030, base_config=asdict(base.model.cfg),
+    config = dict(stage=args.stage, seed=20261030, started_epoch=time.time(), pid=os.getpid(),
+        base_config=asdict(base.model.cfg),
         cache_index_sha256=sha256(args.root / 'cache/index.json'),
         architecture='independent copied frozen B0 frame encoder; train visual/tactile/intent/motion GRUs and raw residual MLP',
         base_frozen=True, visual_frame_frozen=True, batch_episodes=1, tbptt=32, padding='none; exact variable tails',
@@ -203,8 +206,9 @@ def main():
     epochs = 2 if args.stage=='pilot' else 5
     if args.stage == 'full':
         pilot = json.loads((args.root / 'training_pilot/report.json').read_text())
-        if not pilot['learning_signal']:
-            raise ValueError('Pilot did not pass learning signal admission')
+        causal = json.loads((args.root / 'causal_validation.json').read_text())
+        if not pilot['learning_signal'] or not causal['passed']:
+            raise ValueError('Pilot learning signal or causal replay admission failed')
     if args.stage == 'test':
         for name in models:
             saved = torch.load(args.root / 'training_full' / (name+'_best.pt'), weights_only=False)
@@ -245,6 +249,16 @@ def main():
                                                                           for name,result in validation.items()})), flush=True)
     except InterruptedError as error:
         atomic_json(output / 'budget_stop.json', dict(reason=str(error), completed_epochs=len(history)))
+        for name in models:
+            last_path = output / (name+'_last.pt')
+            if last_path.exists():
+                last = torch.load(last_path, weights_only=False)
+                updates[name] = last['optimizer_updates']
+                coverage[name] = last['full_episode_coverage']
+    except BaseException as error:
+        (output / 'error.txt').write_text(traceback.format_exc())
+        atomic_json(output / 'status.json', dict(state='failed', reason=repr(error), completed_epochs=len(history)))
+        raise
     if any(parameter.grad is not None or parameter.requires_grad for parameter in base.model.parameters()):
         raise RuntimeError('Base was not frozen')
     if any(not torch.equal(value, base.model.state_dict()[name]) for name,value in frozen_reference.items()):
@@ -253,7 +267,7 @@ def main():
         effective_updates=updates, episode_visits={name:len(value) for name,value in coverage.items()},
         unique_training_episodes={name:len(set(value)) for name,value in coverage.items()},
         baseline=baseline, history=history, wait_s=gate.wait_s, base_sha256=BASE_HASH,
-        learning_signal=bool(history and best < baseline['b']['selection_mse']),
+        learning_signal=bool(history and best < baseline['b']['selection_mse']), finished_epoch=time.time(),
         source_and_config=config, base_gradients_absent=True, frozen_base_unchanged=True)
     atomic_json(output / 'report.json', report)
     atomic_json(output / 'status.json', dict(state='complete' if len(history)==epochs else 'budget_stopped',

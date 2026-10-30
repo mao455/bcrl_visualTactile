@@ -110,7 +110,8 @@ def main():
                 'target', 'tracking_error', 'object', 'goal', 'successes', 'lifted', 'force', 'student')}
             events, done, rng_unchanged = [], False, True
             started = time.monotonic()
-            for step in range(2400):
+            natural_bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
+            for step in range(natural_bound):
                 gate.before()
                 tick = time.monotonic()
                 packet = env.research_packet
