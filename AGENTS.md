@@ -1,5 +1,16 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current — 2026-10-30 experiment videos and parameter census
+
+The user requests representative experiment videos, per-group data explanations,
+a full pinned-source DP parameter comparison, and reviewed commit/push to origin.
+This authorizes a separate viewing cohort, not new training or changes to old counts.
+Record at most six new runs: seed981002, A/B/C, autonomous and real expert roll-in.
+Reuse the four existing B0/B1 videos in the index. Use fresh outputs and a two-hour
+viewing window including resource waits; all original control/resource/data rules hold.
+Unmatched switch states must be labeled, never called paired performance evidence.
+Report precise parameter-count scope, source pins and unknown published settings.
+
 ## Completed — 2026-10-30 independent residual v1
 
 This authorized bounded session is finished; all owned workers and monitor exited.

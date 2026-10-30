@@ -13,6 +13,10 @@ from .training_resources import atomic_json
 
 
 def diagnostic_allocation(root, plan, continuation):
+    if plan.get('purpose') == 'viewing_rerun':
+        if continuation:
+            raise ValueError('Viewing runs cannot resume or replace started allocations')
+        return root / 'viewing', 0, []
     if not continuation:
         return root / 'closed_loop', 0, []
     previous = root / 'closed_loop'
@@ -41,8 +45,14 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--continue-unstarted', action='store_true')
+    parser.add_argument('--viewing-checkpoints-root', type=Path)
     args = parser.parse_args()
     plan = json.loads((args.root / 'session.json').read_text())
+    viewing = plan.get('purpose') == 'viewing_rerun'
+    if viewing != (args.viewing_checkpoints_root is not None):
+        raise ValueError('Viewing requires a separate session and explicit trained checkpoint root')
+    checkpoint_root = args.viewing_checkpoints_root if viewing else args.root
+    allow_unmatched = viewing or args.continue_unstarted
     output, start_ordinal, inherited = diagnostic_allocation(args.root, plan, args.continue_unstarted)
     output.mkdir(exist_ok=False)
     atomic_json(output / 'status.json', dict(state='initializing', started_epoch=process_started, pid=os.getpid()))
@@ -53,7 +63,7 @@ def main():
     app = AppLauncher(headless=True, enable_cameras=True, device='cpu', kit_args=(
         '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
         '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
-    env, rows, trace = None, list(inherited), {}
+    env, rows, trace, video = None, list(inherited), {}, None
     try:
         import numpy as np
         import torch
@@ -62,6 +72,7 @@ def main():
         from .compact import sha256
         from .contracts import assert_policy_compatible, assert_execution_compatible
         from .expert_reference import ExpertReference
+        from .evaluate_baselines import RolloutVideo
         from .initial_geometry import inspect
         from .observations import TaskCommand
         from .residual_controller import ResidualController
@@ -86,8 +97,8 @@ def main():
         env = InstrumentedAssemblyEnv(config, perception_version=2, task_command=TaskCommand('tight_insertion'),
                                       wrench_frame_mode='world_hold', camera_rig='wrist_bracket_close')
         env.configure_camera_views((-.7, -.35, 1.15), (0., -.03, .68))
-        checkpoint = args.root / 'training_full/b_best.pt'
-        policies = {name: ResidualController(checkpoint if name!='c' else args.root/'training_full/c_best.pt',
+        checkpoint = checkpoint_root / 'training_full/b_best.pt'
+        policies = {name: ResidualController(checkpoint if name!='c' else checkpoint_root/'training_full/c_best.pt',
                                             bypass=name=='a') for name in ('a', 'b', 'c')}
         expert_path = Path('pretrained_assembly/tight_insertion/model.pth')
         expert = ExpertReference(env, expert_path, policies['a'].base.metadata)
@@ -95,7 +106,7 @@ def main():
             raise ValueError('Released expert identity mismatch')
         atomic_json(output / 'launch.json', dict(started_epoch=process_started, pid=os.getpid(), plan=plan,
             start_ordinal=start_ordinal+1, inherited_started_trials=start_ordinal,
-            mismatch_policy='record_unmatched_and_continue_native' if args.continue_unstarted else 'stop_before_student',
+            mismatch_policy='record_unmatched_and_continue_native' if allow_unmatched else 'stop_before_student',
             source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
             checkpoints={name:policy.checkpoint_sha256
             for name,policy in policies.items()}, source_sha256={str(path):sha256(path) for path in (
@@ -138,7 +149,7 @@ def main():
             np.savez_compressed(output / (attempt+'_initial.npz'), **initial)
             initial_error = max(float(np.max(np.abs(initial[name].astype(float)-reference.astype(float))))
                                 for name, reference in references[pair].items())
-            if initial_error > 1e-5 and not args.continue_unstarted:
+            if initial_error > 1e-5 and not allow_unmatched:
                 raise RuntimeError('Paired initial states differ')
             policy = policies[variant]
             policy.base.generator.manual_seed(seed+1000000)
@@ -152,6 +163,9 @@ def main():
                 'target', 'tracking_error', 'object', 'goal', 'successes', 'lifted', 'force', 'student',
                 'finger_object_distance', 'palm_object_distance')}
             events, done, rng_unchanged = [], False, True
+            if viewing:
+                video = RolloutVideo(output / (attempt+'.mp4'), variant, seed, 49 if variant=='a' else 5,
+                                     metadata['camera_ids'])
             started = time.monotonic()
             natural_bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
             for step in range(natural_bound):
@@ -181,7 +195,7 @@ def main():
                     if not switch_match:
                         atomic_json(output / (attempt+'_switch_error.json'), dict(step=step, reference_step=ref_step,
                             max_state_error=switch_error, field_max_errors=switch_field_errors, prefix_equal=switch_prefix_equal))
-                        if not args.continue_unstarted:
+                        if not allow_unmatched:
                             raise RuntimeError('Expert roll-in prefix/switch state did not match')
                 if mode=='expert_rollin' and not switched:
                     expert.teacher_observation = teacher_observation
@@ -189,6 +203,9 @@ def main():
                     prefix.update(command.numpy().tobytes())
                     prefix_steps += 1
                 source = 'student' if switched else 'released_expert_rollin'
+                if video is not None:
+                    video.append(packet, step, status=f'{variant.upper()} | {mode} | seed {seed} | {source} | '
+                        f'gate={int(policy.last["contact"][0])} | cursor={int(policy.last["cursor"][0])} | viewing rerun | 1x sim')
                 teacher_observation, _, terminated, truncated, _ = env.step(command)
                 transition = env.last_transition
                 policy.acknowledge(transition, command, source=source)
@@ -220,6 +237,10 @@ def main():
                 if done:
                     break
             arrays = {name:np.stack(value) for name,value in trace.items()}
+            video_info = video.close(complete=done) if video is not None else None
+            video = None
+            if video_info is not None:
+                video_info['sha256'] = sha256(output / video_info['file'])
             np.savez_compressed(output / (attempt+'.npz'), **arrays)
             student = arrays['student'].astype(bool)
             command = arrays['command'][student]
@@ -259,17 +280,19 @@ def main():
                 rng_unchanged=rng_unchanged, native_ack_exact=bool(np.array_equal(arrays['command'].clip(-1, 1), arrays['clipped'])),
                 actual_feedback_exact=bool(np.array_equal(arrays['previous_command'][1:], arrays['clipped'][:-1])),
                 elapsed_s=time.monotonic()-started, trace_sha256=sha256(output / (attempt+'.npz')),
-                checkpoint_sha256=policy.checkpoint_sha256, causal_events=events, trace_directory=output.name)
+                checkpoint_sha256=policy.checkpoint_sha256, causal_events=events, trace_directory=output.name,
+                video=video_info, purpose='viewing_rerun' if viewing else 'diagnostic')
             rows.append(row)
             atomic_json(output / 'trials.json', rows)
             print(json.dumps({name:value for name,value in row.items() if name!='causal_events'}), flush=True)
             trace = {}
         natural = sum(row.get('outcome') in ('success', 'failure', 'no_contact_switch') for row in rows)
-        atomic_json(output / 'report.json', dict(trials=rows, complete=natural==12, allocation_complete=len(rows)==12,
+        expected = len(plan['diagnostics'])
+        atomic_json(output / 'report.json', dict(trials=rows, complete=natural==expected, allocation_complete=len(rows)==expected,
                     naturally_terminated=natural, wait_s=gate.wait_s,
                     started_epoch=process_started, finished_epoch=time.time(),
-                    purpose='separate diagnostic cohort; never appended to formal 0/50', plan=plan))
-        atomic_json(output / 'status.json', dict(state='complete' if natural==12 else 'complete_with_failure',
+                    purpose='viewing_rerun' if viewing else 'separate diagnostic cohort; never appended to formal 0/50', plan=plan))
+        atomic_json(output / 'status.json', dict(state='complete' if natural==expected else 'complete_with_failure',
                                                 resolved_allocations=len(rows), naturally_terminated=natural))
     except BaseException as error:
         if trace and any(trace.values()):
@@ -279,6 +302,8 @@ def main():
         atomic_json(output / 'status.json', dict(state='failed', error=repr(error), completed=len(rows)))
         raise
     finally:
+        if video is not None:
+            video.close()
         gate.save_waits()
         if env is not None:
             env.close()

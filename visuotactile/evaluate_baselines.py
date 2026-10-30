@@ -65,7 +65,7 @@ class RolloutVideo:
         self.camera_ids=camera_ids
         self.font=ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',18)
 
-    def append(self, packet, step):
+    def append(self, packet, step, *, status=None):
         import av
         import numpy as np
         from PIL import Image,ImageDraw
@@ -73,7 +73,7 @@ class RolloutVideo:
         n,h,w,_=rgb.shape
         if n!=len(self.camera_ids):raise ValueError('Video camera identity/count mismatch')
         canvas=Image.new('RGB',(n*w,h+64),(22,22,26));draw=ImageDraw.Draw(canvas)
-        draw.text((10,3),self.title,font=self.font,fill='white')
+        draw.text((10,3),self.title if status is None else status,font=self.font,fill='white')
         for i,name in enumerate(self.camera_ids):
             draw.text((i*w+10,32),f'{name} | step {step} | t={step/60:.3f}s',font=self.font,fill='white')
             canvas.paste(Image.fromarray(rgb[i]),(i*w,64))

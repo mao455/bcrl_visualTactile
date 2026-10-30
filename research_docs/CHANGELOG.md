@@ -1,5 +1,16 @@
 # Engineering change and verification log
 
+## 2026-10-30 — A/B/C独立观看入口与参数核查启动
+
+新增`residual_session --viewing`固定6次/2小时与显式既有checkpoint root；复用同一ResidualController，
+每步真实RGB流式编码并显示expert/student、gate、cursor，原生自然终止发布，异常保留partial。
+观看与原12次诊断/正式100分别保存；不一致switch继续原生观看但标非配对，旧诊断默认准入不放宽。
+`RolloutVideo.append`新增可选字幕，不修改图像输入。授权、范围与输入/发布契约同步；无新训练。
+测试与录像/资源实测将在完成记录追加；参数核算针对固定官方源码，不从网络宽度臆造总参数。
+
+入口验证：残差/资源14项通过（2.51秒），包括观看分配不接续、真实MP4三帧完整解码、字幕不改模型输入；
+diff检查通过，既有requests依赖warning保留。录像完整性与整卡实测另行记录。
+
 ## 2026-10-30 — 残差v1最终实测、预算收尾与去敏发布
 
 5完整epoch B/C各7,875更新/1,600完整episode访问，B val选epoch5、C匹配；test一次。

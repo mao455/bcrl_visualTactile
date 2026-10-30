@@ -155,3 +155,32 @@ def test_pose_comparison_respects_quaternion_double_cover_and_units():
     result = pose_difference(first, second)
     assert result['position_distance_m'] == pytest.approx(.002)
     assert result['orientation_distance_rad'] == 0
+
+
+def test_viewing_allocation_is_separate_and_never_continued(tmp_path):
+    from visuotactile.evaluate_residual import diagnostic_allocation
+    plan = dict(purpose='viewing_rerun')
+    output, offset, inherited = diagnostic_allocation(tmp_path, plan, False)
+    assert output == tmp_path / 'viewing'
+    assert offset == 0 and inherited == []
+    with pytest.raises(ValueError, match='cannot resume'):
+        diagnostic_allocation(tmp_path, plan, True)
+
+
+def test_video_status_does_not_modify_policy_images(tmp_path):
+    import av
+    from visuotactile.evaluate_baselines import RolloutVideo
+    packet = dict(image=torch.rand(1, 3, 4, 24, 80))
+    original = packet['image'].clone()
+    path = tmp_path / 'view.mp4'
+    video = RolloutVideo(path, 'b', 981002, 5, ['high', 'side', 'wrist'])
+    for step in range(3):
+        video.append(packet, step, status='student | gate=1')
+    info = video.close(complete=True)
+    assert torch.equal(packet['image'], original)
+    assert info['frames'] == 3 and not info['terminal_image_available']
+    with av.open(str(path)) as container:
+        frames = list(container.decode(video=0))
+        assert len(frames) == 3
+        assert (frames[0].width, frames[0].height) == (240, 88)
+        assert float(container.streams.video[0].average_rate) == 60

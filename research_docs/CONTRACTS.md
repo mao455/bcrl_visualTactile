@@ -1,5 +1,13 @@
 # Audited contracts
 
+## 2026-10-30残差观看副本
+
+`residual_session --viewing`预分配seed981002的A/B/C自主与roll-in共6次，独立2小时含等待预算。
+`evaluate_residual --viewing-checkpoints-root`显式指定既有训练root；session类型必须一致，拒绝接续或替换。
+流式三视图RGB字幕记录真实学生/专家来源、观测gate、cursor与模拟时间；视频旁路不改policy图像。
+原生自然终止才发布MP4，异常保留partial，不写自动reset图。switch不一致保存证据并标非配对观看。
+观看结果不新增正式或旧诊断分母，原始策略/控制/判据和所有旧checkpoint语义不变。
+
 ## 2026-10-30独立Residual v1
 
 当前授权包含真实独立Correction训练和12条诊断，详见[CORRECTION_TRAINING.md](CORRECTION_TRAINING.md)。

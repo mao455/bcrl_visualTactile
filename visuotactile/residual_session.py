@@ -66,15 +66,19 @@ class SessionGate:
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
+    parser.add_argument('--viewing', action='store_true')
     args = parser.parse_args()
     args.root.mkdir(parents=True, exist_ok=False)
     started = time.time()
+    duration = 7200 if args.viewing else 21600
+    seeds = [981002] if args.viewing else [981001, 981002]
     atomic_json(args.root / 'session.json', dict(session_version=1, started_epoch=started,
-        deadline_epoch=started+21600, first_gpu_stage_seconds=5400, monitor_pid=os.getpid(),
+        deadline_epoch=started+duration, first_gpu_stage_seconds=5400, monitor_pid=os.getpid(),
+        purpose='viewing_rerun' if args.viewing else 'residual_training_diagnostics',
         pilot_train_count=16, pilot_validation_count=8, full_epochs=5, extra_epochs_max=5,
-        diagnostic_seeds=[981001, 981002], diagnostics_max=12,
+        diagnostic_seeds=seeds, diagnostics_max=6 if args.viewing else 12,
         diagnostics=[dict(mode=mode, seed=seed, variant=variant)
-            for mode in ('autonomous', 'expert_rollin') for seed in (981001, 981002)
+            for mode in ('autonomous', 'expert_rollin') for seed in seeds
             for variant in ('a', 'b', 'c')],
         rollin_condition='first observation with valid max finger force >0.1 N for 3 consecutive control ticks',
         rollin_limit_steps=240, missing_contact='no switch; report unavailable, no replacement',
@@ -88,7 +92,7 @@ def main():
             safe = guard.safe(row) and row['rolling_60s_percent'] is not None
             atomic_json(args.root / 'admission.json', dict(utc_epoch=time.time(), safe=safe,
                         resources=guard.summary()))
-            if (args.root / 'MONITOR_STOP').exists() or time.time() >= started+21600:
+            if (args.root / 'MONITOR_STOP').exists() or time.time() >= started+duration:
                 break
             time.sleep(1)
     finally:
