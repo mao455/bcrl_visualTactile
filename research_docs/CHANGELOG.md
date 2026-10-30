@@ -1,5 +1,11 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 明确 canonical 四组与未执行 G11
+
+在实验组、policy 比较、录像索引和会话交接中补齐 G00/G10/G01/G11 映射。
+G00=B0/A、G10=B1、G01=Residual B；C 保留真实触觉 gate，因此仅是连续力屏蔽诊断，
+不冒充 G11 或严格无触觉对照。G11 没有训练、checkpoint、录像或成功率分母；未改旧数据、权重和结果。
+
 ## 2026-10-30 — 六条观看录像完成、资源超限如实交付
 
 6次分配全部自然601步timeout：自主A/B/C gate0；局部均step88交接、513学生步、gate6/10/7，
