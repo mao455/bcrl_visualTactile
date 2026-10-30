@@ -1,5 +1,17 @@
 # Audited contracts
 
+## 2026-10-30 candidate2：H64绝对参考和明确历史
+
+G00-new/G10-new与B0/B1/residual旧checkpoint隔离，固定H64/replan12；原120/60Hz不变。
+输入allowlist、三相机/DINO pin、11视觉/121控制/242物理样本显式窗口、native60Hz持续记忆及mask见
+[新候选报告](LONG_HORIZON_20261030.md)。G00无触觉旁路；两组无correction、无privileged输入。
+训练过去专家执行反馈严格t−1，当前未来仅监督；部署从实际学生native ack构造。subgoal/重规划/TBPTT不reset。
+输出absolute_joint_reference，arm未提前限位；每tick由当前controller target逆转回命令，经原env.step执行。
+controller target不进神经条件。candidate1因泄漏/划分错误禁止部署或计入有效训练。
+prediction_type显式进入新checkpoint；旧缺省epsilon，新sample pilot独立初始化，禁止切换旧权重含义。
+恢复默认要求配置及source hash一致；显式runtime-only恢复仅允许trainer/resource文件差异，
+模型/数据/优化器/schedule/seed等配置仍必须完全一致，保存旧/新源码hash与恢复更新数。
+
 ## 2026-10-30残差观看副本
 
 `residual_session --viewing`预分配seed981002的A/B/C自主与roll-in共6次，独立2小时含等待预算。

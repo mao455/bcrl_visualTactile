@@ -1,5 +1,28 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 强pilot复核、采样目标与后台阶段接续
+
+epsilon强pilot各3300更新完成，arm命令RMSE约1.36，高于零命令0.952；未放行main。
+inspect_long的raw/EMA与16/100步实查表明100步在无clip的epsilon反演下发散，不能宣称更多步已修复。
+固定官方DP支持sample目标；新配置显式记录prediction_type，旧权重缺省epsilon，独立sample3300 pilot。
+run_long验收完整train示范上arm/hand命令及copy-q参考基线，才启动40遍/33280更新main；
+训练/test/六诊断/视频解码与monitor退出接续，截止不延长、错误不自动重跑、原分母不变。
+train_long修复H2D/D2H锁范围、CPU snapshot回收、完成status、resume config写入顺序和test截止；
+long_resources新增worker峰值；evaluate_long补实际trace字段、初态DR比对、来源hash、异常保存和原生自然上界。
+新全套95通过，包含9个long-horizon测试；真实25tick回放与400条oracle证据见LONG_HORIZON。
+原控制器/研究sim wrapper/原400/best/0/50未改；真实新闭环仍待执行，不将代码覆盖当行为结果。
+sample pilot快照RSS增长被发现后，在RAM余量内于1115/1122更新完整episode边界保存退出；
+修复CPU复制/回收后显式runtime-only恢复，模型/data/optimizer/schedule/RNG不变，hash差异留档；13项定向通过。
+
+## 2026-10-30 — 长预测候选实现，初步泄漏尝试作废
+
+新增action_reference、models/long_horizon、long_data、long_resources、train_long、long_controller、evaluate_long。
+旧H12小CNN命令模型保持原样；新candidate2用固定DINO-S/14、全空间patch、两秒显式历史、60Hz持续记忆、
+H64/5Hz与绝对参考逐tick转回原控制器。输入/输出/冻结/EMA/normalizer/验证/恢复见LONG_HORIZON报告。
+初步candidate1含当前命令泄漏和错误划分，400缓存/G00一轮822更新无效，定向停止且不部署。
+修正版直接读取原划分，严格t−1反馈、mask/尾部/全前缀；6项新测试通过，相关组合15通过（有重叠）。
+连续独立monitor和所有自有GPU工作共享互斥lease，保护原环境及其他进程。合法训练/闭环仍待完成。
+
 ## 2026-10-30 — 明确 canonical 四组与未执行 G11
 
 在实验组、policy 比较、录像索引和会话交接中补齐 G00/G10/G01/G11 映射。

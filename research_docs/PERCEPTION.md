@@ -1,5 +1,13 @@
 # Perception v2 — 多视角与五指力观测
 
+## 2026-10-30新candidate2：冻结预训练视觉
+
+原三路448×252 RGB-D记录/相机身份不改；模型每12native tick编码RGB，即5Hz，保留原18×32 patch网格。
+官方DINOv2-S/14源码pin7764ea0f、预训练权重SHA b938bf1b…，全部冻结；RGB/255+ImageNet normalization，
+不沿用旧[-1,1]处理、不resize/crop。深度按14×14有效平均/coverage固定预处理，独立训练卷积与空间汇聚。
+缓存仅冻结patch特征与确定性深度预处理；后续投影/空间/历史融合仍训练。11视觉时刻跨度2s，真实sample age。
+完整张量/冻结/版本见[长预测候选报告](LONG_HORIZON_20261030.md)；旧B0/B1没有获得这些新语义。
+
 ## 2026-10-30：残差训练的特征与屏蔽边界
 
 Residual v1复用三448×252 layout4输入。冻结的是独立复制的**已训练**B0 frame encoder，

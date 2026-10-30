@@ -135,8 +135,8 @@ ImplicitRDP视觉backbone21,284,672＋投影404,736，force GRU含输出投影1,
 | condition | 持续128D；B1额外fusion128 | hybrid137×2=274；real1026×2=2052 | obs522×2=1044 | 102个768D观察tokens＋force GRU512→768 |
 | 动作/latent | 原native29D | hybrid10D abs；real2D EEF | 实际动作4D；AT内部conv latent4，Gaussian channels16；**扩散8×16 latent** | 存储19D→训练13D RPY；部署action_type还override为right_arm_6DOF |
 | H / 执行节奏 | H12@60Hz=.20s；commit6=.10s | H16；hybridcommit8，实际Hz依dataset env metadata；real10Hz/commit6→1.60/.60s | 原动作H32@24Hz=1.333s；latent更新16tick=.667s，planner6Hz，decode24Hz | H16@10Hz=1.60s；vision/noise cache6tick=.60s；force重采样10Hz |
-| 训练扩散 / 推理 | cosine100 / DDIM8 eta0 | cosine100 / hybrid8；real yaml100→部署16 | cosine100 / yaml100→部署8 | cosine100 / 部署5；eval.sh v_prediction覆盖yaml epsilon |
-| optimizer / beta / wd | AdamW1e-4 / (.9,.999) / 1e-6 | AdamW1e-4 / (.95,.999) / 1e-6 | LDP同DP；非timm路径LR再乘accelerator.num_processes | AdamW3e-4 / (.95,.999) / 1e-6；**视觉backbone**3e-5，projection仍3e-4 |
+| 训练扩散 / 推理 | cosine100 / DDIM8 eta0 | cosine100 / hybrid8；real yaml100→部署16 | cosine100 / yaml100→部署8 | cosine100 / 部署5；train_implicitrdp.sh与eval.sh均v_prediction覆盖yaml epsilon |
+| optimizer / beta / wd | AdamW1e-4 / (.9,.999) / 1e-6 | AdamW1e-4 / (.95,.999) / 1e-6 | LDP同DP；非timm路径LR再乘accelerator.num_processes | 所选训练脚本AdamW1e-4覆盖YAML默认3e-4 / (.95,.999) / 1e-6；**视觉backbone**另设3e-5，projection1e-4 |
 | EMA / LR schedule | 无 / 无 | EMA .9999上限 / cosine warmup500 | LDP同DP；AT无EMA、cosine warmup100 | EMA .9999上限 / cosine warmup2000 |
 | batch / 配置轮数 | 2×连续TBPTT32 / 实测50轮 | random window64 / 3000、600 | window64 / AT601、LDP401 | window64 / 600 |
 | 数据顺序 / val | 固定episode顺序 / 10% | shuffle / hybrid2%、real0%示例 | shuffle / 当前peel示例0% | shuffle / 10% |
@@ -242,3 +242,12 @@ manifest、两份best、正式report未变，原生控制/资产/研究wrapper�
 小报告另列recorder启动到最后trial报告的资源窗口，避免把monitor尾段与执行阶段混称。
 全部录像、monitor、参数核算和测试worker已退出，没有新的训练进程。
 全套85项通过，随后新增录制窗口/缺测边界测试在针对性12项中通过；原requests依赖warning保留。
+
+### 后续订正与产物可用性 — 2026-10-30新训练任务
+
+固定ImplicitRDP revision的`train_implicitrdp.sh`明确POLICY_LR=1e-4与v_prediction；YAML默认3e-4不是该入口生效值。
+视觉backbone独立obs_encoder_lr仍3e-5，projection使用policy1e-4。此订正不改变既有参数量计数。
+旧85是当时完整tests；12是后续定向集合且与完整集合重叠，不能相加为97个独立测试。
+本轮新候选测试命令/版本另见LONG_HORIZON_20261030，不把跨版本回归次数合成一个通过总数。
+六条A/B/C观看MP4已按新授权清理，逐文件hash/bytes/原因见evidence/long_horizon_cleanup_20261030.json；
+原trace、0/50逐条摘要、400示范、best仍保留。上文完整解码/视频可得性是清理前事实，不能再声称旧MP4仍在。

@@ -1,5 +1,15 @@
 # Architecture and staged acceptance gates
 
+## 2026-10-30 G00-new/G10-new candidate2
+
+Independent of old checkpoints: frozen pinned DINOv2-S/14 patch features plus separate depth/valid processing,
+11 visual /121 native /242 physical-sample explicit histories, and a separate native60Hz persistent GRU.
+512D fusion conditions the official pinned U-Net [256,512,1024], kernel5, FiLM, H64; replan every12native ticks.
+G00 strictly excludes tactile; G10 adds real five-finger force history, neither has an external residual.
+Absolute pre-delay joint references are converted to original native commands on every tick; unchanged env.step.
+See [complete candidate specification and measured status](LONG_HORIZON_20261030.md). Initial candidate1 was
+invalidated for history leakage/wrong split; only version2 can pass deployment admission.
+
 ## 2026-10-30：已实现独立加性Residual v1
 
 原Correction GRU+MLP full-candidate/blend保留为旧研究接口。新增`models/residual.py`与

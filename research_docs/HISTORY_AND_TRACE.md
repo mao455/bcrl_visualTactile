@@ -1,5 +1,13 @@
 # 持续历史、动作来源与时间合约
 
+## 2026-10-30新candidate2
+
+G00-new/G10-new与旧history隔离：视觉11×5Hz、本体/执行反馈121×60Hz、G10触觉242×120Hz，
+跨度至少2s且含当前合法观察。反馈最新t−1；开头mask、尾部H64未来mask，短轨迹不丢。
+native60Hz更新持续状态，TBPTT96只detach、episode才reset，5Hz重规划H64/commit12不改120/60Hz。
+显式视觉sample time/持有age、encoder q/qd、issued/delayed反馈；controller target只在输出适配。
+详见[新候选](LONG_HORIZON_20261030.md)，初步candidate1泄漏产物不可执行。
+
 ## 2026-10-30：Residual v1的独立执行反馈
 
 B0固定command v2/none；Correction v1独立保存实际native ack并在下一观察核对episode/step/time。

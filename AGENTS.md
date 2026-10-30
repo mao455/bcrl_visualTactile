@@ -1,5 +1,26 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-10-30 long-horizon pretrained DP
+
+User authorizes new G00-new/G10-new implementation, real bounded training,
+three preregistered autonomous starts each, classified artifact deletion,
+and reviewed code/docs/small-report commits/pushes to origin feature only.
+Deadline 2026-10-31 12:00 Asia/Singapore; reserve final two hours for diagnostics.
+Read LONG_HORIZON_20261030.md and current handoff. Fixed native120/60Hz;
+planner5Hz/H64/commit12, explicit>=2s histories plus native60Hz persistent memory.
+Pinned frozen DINOv2-S/14; absolute pre-delay references converted through
+native commands/env.step. Original400/split/native control/old results protected.
+All owned GPU workers share long_resources lease and continuous monitor.
+Preliminary long_horizon_20261030 outputs INVALID: current-command leakage,
+wrong split. Never deploy or count their training. Replacement root:
+outputs/visuotactile/run/long_horizon_20261030_v2. Completed-stage no-training
+and no-cleanup restrictions below do not override this authorization.
+Epsilon pilots completed3300 updates each but did not pass arm-command fitting.
+Independent sample-target pilots use the same architecture/cache and3300-update budget;
+never flip an epsilon checkpoint's prediction_type. Explicit fitting gate and
+background continuation are in run_long; failures do not authorize reruns.
+Read actual pipeline/status/report and the current handoff, not historical PIDs.
+
 ## Completed — 2026-10-30 videos and exact parameter census
 
 Six A/B/C viewing runs (seed981002, autonomous and expert roll-in) are complete;

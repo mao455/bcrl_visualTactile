@@ -1,0 +1,484 @@
+{
+  "causal_acceptance_145": {
+    "passed": true,
+    "steps": 145,
+    "condition_max_error": {"G00-new": 0.0000016689300537109375, "G10-new": 0.0000018477439880371094},
+    "memory_max_error": {"G00-new": 0.0000005662441253662109, "G10-new": 0.0000005066394805908203},
+    "scope": "real expert-feedback replay across two-second boundary, not autonomous control"
+  },
+  "cache_integrity_recheck": {
+    "files": 400,
+    "all_bytes_and_sha256_match": true,
+    "original_manifest_and_split_source_checkpoint_unchanged": true
+  },
+  "snapshot_epoch": 1793382502.0432098,
+  "scope": "implementation and pilot review; full training/test/closed-loop not completed",
+  "cache": {
+    "version": 2,
+    "manifest_sha256": "f4562c18c51a7f7e40bc0a587b7e58aae4889dc5a06dfce4521a1e9e0f003b28",
+    "source_split_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+    "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+    "dino_weights_sha256": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9",
+    "roundtrip_max": 2.384185791015625e-06,
+    "native_formula_max": 0.0,
+    "delay_indices": {
+      "0": 27063,
+      "1": 27568,
+      "2": 27263
+    },
+    "episodes": 400,
+    "bytes": 9456515110,
+    "split_counts": {
+      "train": 320,
+      "validation": 40,
+      "test": 40
+    }
+  },
+  "epsilon_pilots": {
+    "G00-new": {
+      "fit": {
+        "initial": {
+          "targets": 4160,
+          "saturated": 111114,
+          "anchors": 75,
+          "boundaries": 71,
+          "first12_targets": 884,
+          "reference_arm_rmse": 4.017505681018958,
+          "reference_hand_rmse": 5.5134036923184215,
+          "command_arm_rmse": 1.3895492177629336,
+          "command_hand_rmse": 1.3366359489365744,
+          "boundary_rmse": 1.350261450539882,
+          "first12_command_rmse": 1.3539138481817634,
+          "copy_q_arm_rmse": 0.07439000200230583,
+          "copy_q_hand_rmse": 0.6250297476951687,
+          "reference_target_rmse": 5.181264480891985,
+          "reference_motion_rmse": 5.18098441862088,
+          "command_saturation_fraction": 0.9210377984084881,
+          "selection_mse": 1.858721344287579,
+          "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+          "episodes": 4
+        },
+        "trained": {
+          "targets": 4160,
+          "saturated": 38077,
+          "anchors": 75,
+          "boundaries": 71,
+          "first12_targets": 884,
+          "reference_arm_rmse": 0.2285962822076531,
+          "reference_hand_rmse": 0.5863081443493269,
+          "command_arm_rmse": 1.3558843639745761,
+          "command_hand_rmse": 0.785597593733942,
+          "boundary_rmse": 0.8297562948882684,
+          "first12_command_rmse": 0.9059746583332241,
+          "copy_q_arm_rmse": 0.07439000200230583,
+          "copy_q_hand_rmse": 0.6250297476951687,
+          "reference_target_rmse": 0.42863412893904335,
+          "reference_motion_rmse": 0.4208348768350729,
+          "command_saturation_fraction": 0.315625,
+          "selection_mse": 1.2277929938756502,
+          "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+          "episodes": 4
+        },
+        "improved": true,
+        "updates": 3300
+      },
+      "sampling_review": {
+        "source_sha256": "f512e4198c4a90df4acd3f58b23ce1ef972c2fa833b18c5d963666edb9ef4d95",
+        "updates": 3300,
+        "scope": "same four complete training episodes; no test, no deployment change",
+        "results": [
+          {
+            "weights": "model",
+            "inference_steps": 16,
+            "metrics": {
+              "targets": 4160,
+              "saturated": 37980,
+              "anchors": 75,
+              "boundaries": 71,
+              "first12_targets": 884,
+              "reference_arm_rmse": 0.22784895927884838,
+              "reference_hand_rmse": 0.5792015730590317,
+              "command_arm_rmse": 1.3541560675603128,
+              "command_hand_rmse": 0.7747869958488954,
+              "boundary_rmse": 0.8256188731860953,
+              "first12_command_rmse": 0.8965849507998928,
+              "copy_q_arm_rmse": 0.07439000200230583,
+              "copy_q_hand_rmse": 0.6250297476951687,
+              "reference_target_rmse": 0.42195995513319956,
+              "reference_motion_rmse": 0.41456737604337107,
+              "zero_command_arm_rmse": 0.9520169401538776,
+              "zero_command_hand_rmse": 0.920328888355503,
+              "copy_q_command_arm_rmse": 1.5536720336298746,
+              "copy_q_command_hand_rmse": 0.885347992087896,
+              "command_saturation_fraction": 0.3148209549071618,
+              "selection_mse": 1.2170167721234835,
+              "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+              "episodes": 4
+            }
+          },
+          {
+            "weights": "ema",
+            "inference_steps": 16,
+            "metrics": {
+              "targets": 4160,
+              "saturated": 38077,
+              "anchors": 75,
+              "boundaries": 71,
+              "first12_targets": 884,
+              "reference_arm_rmse": 0.2285962822076531,
+              "reference_hand_rmse": 0.5863081443493269,
+              "command_arm_rmse": 1.3558843639745761,
+              "command_hand_rmse": 0.785597593733942,
+              "boundary_rmse": 0.8297562948882684,
+              "first12_command_rmse": 0.9059746583332241,
+              "copy_q_arm_rmse": 0.07439000200230583,
+              "copy_q_hand_rmse": 0.6250297476951687,
+              "reference_target_rmse": 0.42863412893904335,
+              "reference_motion_rmse": 0.4208348768350729,
+              "zero_command_arm_rmse": 0.9520169401538776,
+              "zero_command_hand_rmse": 0.920328888355503,
+              "copy_q_command_arm_rmse": 1.5536720336298746,
+              "copy_q_command_hand_rmse": 0.885347992087896,
+              "command_saturation_fraction": 0.315625,
+              "selection_mse": 1.2277929938756502,
+              "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+              "episodes": 4
+            }
+          },
+          {
+            "weights": "ema",
+            "inference_steps": 100,
+            "metrics": {
+              "targets": 4160,
+              "saturated": 120268,
+              "anchors": 75,
+              "boundaries": 71,
+              "first12_targets": 884,
+              "reference_arm_rmse": 121.92162625111406,
+              "reference_hand_rmse": 169.54060187782792,
+              "command_arm_rmse": 1.353409502050713,
+              "command_hand_rmse": 1.2399591169350197,
+              "boundary_rmse": 1.3568015195175849,
+              "first12_command_rmse": 1.2239422699014448,
+              "copy_q_arm_rmse": 0.07439000200230583,
+              "copy_q_hand_rmse": 0.6250297476951687,
+              "reference_target_rmse": 159.3655757960234,
+              "reference_motion_rmse": 159.36970287200015,
+              "zero_command_arm_rmse": 0.9520169401538776,
+              "zero_command_hand_rmse": 0.920328888355503,
+              "copy_q_command_arm_rmse": 1.5536720336298746,
+              "copy_q_command_hand_rmse": 0.885347992087896,
+              "command_saturation_fraction": 0.9969164456233421,
+              "selection_mse": 1.6846079459557166,
+              "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+              "episodes": 4
+            }
+          }
+        ]
+      },
+      "admitted": false
+    },
+    "G10-new": {
+      "fit": {
+        "initial": {
+          "targets": 4160,
+          "saturated": 110980,
+          "anchors": 75,
+          "boundaries": 71,
+          "first12_targets": 884,
+          "reference_arm_rmse": 3.915688199672509,
+          "reference_hand_rmse": 5.434069953888741,
+          "command_arm_rmse": 1.3861580614717781,
+          "command_hand_rmse": 1.3311021438217276,
+          "boundary_rmse": 1.3383007858949534,
+          "first12_command_rmse": 1.3587179458533294,
+          "copy_q_arm_rmse": 0.07439000200230583,
+          "copy_q_hand_rmse": 0.6250297476951687,
+          "reference_target_rmse": 5.102509717377432,
+          "reference_motion_rmse": 5.101144067395175,
+          "command_saturation_fraction": 0.9199270557029178,
+          "selection_mse": 1.8466335443349986,
+          "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+          "episodes": 4
+        },
+        "trained": {
+          "targets": 4160,
+          "saturated": 37834,
+          "anchors": 75,
+          "boundaries": 71,
+          "first12_targets": 884,
+          "reference_arm_rmse": 0.21886460097867177,
+          "reference_hand_rmse": 0.589422079309966,
+          "command_arm_rmse": 1.362114267390317,
+          "command_hand_rmse": 0.787535498008814,
+          "boundary_rmse": 0.859098052312428,
+          "first12_command_rmse": 0.9046501696151998,
+          "copy_q_arm_rmse": 0.07439000200230583,
+          "copy_q_hand_rmse": 0.6250297476951687,
+          "reference_target_rmse": 0.4220038344980521,
+          "reference_motion_rmse": 0.41534323421670183,
+          "command_saturation_fraction": 0.31361074270557027,
+          "selection_mse": 1.2377837190261254,
+          "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+          "episodes": 4
+        },
+        "improved": true,
+        "updates": 3300
+      },
+      "sampling_review": {
+        "source_sha256": "772d165e9962e750339263bd5b0bef1eb6a4e8b6296a8c9c2a3c017dcc9abe81",
+        "updates": 3300,
+        "scope": "same four complete training episodes; no test, no deployment change",
+        "results": [
+          {
+            "weights": "model",
+            "inference_steps": 16,
+            "metrics": {
+              "targets": 4160,
+              "saturated": 37677,
+              "anchors": 75,
+              "boundaries": 71,
+              "first12_targets": 884,
+              "reference_arm_rmse": 0.21626199073547178,
+              "reference_hand_rmse": 0.5804560922075316,
+              "command_arm_rmse": 1.3641214359172005,
+              "command_hand_rmse": 0.7745479949340653,
+              "boundary_rmse": 0.8448166318840682,
+              "first12_command_rmse": 0.8949581626676164,
+              "copy_q_arm_rmse": 0.07439000200230583,
+              "copy_q_hand_rmse": 0.6250297476951687,
+              "reference_target_rmse": 0.41242643808575397,
+              "reference_motion_rmse": 0.4064016603629186,
+              "zero_command_arm_rmse": 0.9520169401538776,
+              "zero_command_hand_rmse": 0.920328888355503,
+              "copy_q_command_arm_rmse": 1.5536720336298746,
+              "copy_q_command_hand_rmse": 0.885347992087896,
+              "command_saturation_fraction": 0.312309350132626,
+              "selection_mse": 1.230375944192593,
+              "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+              "episodes": 4
+            }
+          },
+          {
+            "weights": "ema",
+            "inference_steps": 16,
+            "metrics": {
+              "targets": 4160,
+              "saturated": 37834,
+              "anchors": 75,
+              "boundaries": 71,
+              "first12_targets": 884,
+              "reference_arm_rmse": 0.21886460097867177,
+              "reference_hand_rmse": 0.589422079309966,
+              "command_arm_rmse": 1.362114267390317,
+              "command_hand_rmse": 0.787535498008814,
+              "boundary_rmse": 0.859098052312428,
+              "first12_command_rmse": 0.9046501696151998,
+              "copy_q_arm_rmse": 0.07439000200230583,
+              "copy_q_hand_rmse": 0.6250297476951687,
+              "reference_target_rmse": 0.4220038344980521,
+              "reference_motion_rmse": 0.41534323421670183,
+              "zero_command_arm_rmse": 0.9520169401538776,
+              "zero_command_hand_rmse": 0.920328888355503,
+              "copy_q_command_arm_rmse": 1.5536720336298746,
+              "copy_q_command_hand_rmse": 0.885347992087896,
+              "command_saturation_fraction": 0.31361074270557027,
+              "selection_mse": 1.2377837190261254,
+              "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+              "episodes": 4
+            }
+          },
+          {
+            "weights": "ema",
+            "inference_steps": 100,
+            "metrics": {
+              "targets": 4160,
+              "saturated": 120292,
+              "anchors": 75,
+              "boundaries": 71,
+              "first12_targets": 884,
+              "reference_arm_rmse": 120.34983224497752,
+              "reference_hand_rmse": 166.84397849804975,
+              "command_arm_rmse": 1.3532800741106632,
+              "command_hand_rmse": 1.2201857677709236,
+              "boundary_rmse": 1.3612077498569033,
+              "first12_command_rmse": 1.2122897796962206,
+              "copy_q_arm_rmse": 0.07439000200230583,
+              "copy_q_hand_rmse": 0.6250297476951687,
+              "reference_target_rmse": 156.89574362929793,
+              "reference_motion_rmse": 156.89959813278927,
+              "zero_command_arm_rmse": 0.9520169401538776,
+              "zero_command_hand_rmse": 0.920328888355503,
+              "copy_q_command_arm_rmse": 1.5536720336298746,
+              "copy_q_command_hand_rmse": 0.885347992087896,
+              "command_saturation_fraction": 0.9971153846153846,
+              "selection_mse": 1.66011013342784,
+              "scope": "teacher-forced recorded targets for native conversion; not simulated future controller targets",
+              "episodes": 4
+            }
+          }
+        ]
+      },
+      "admitted": false
+    }
+  },
+  "sample_pilots": {
+    "G00-new": {
+      "status": {
+        "state": "training",
+        "epoch": 128,
+        "episode": 0,
+        "updates": 1400,
+        "scheduled_updates": 3300,
+        "loss": 0.0014402103843167424,
+        "lr": 7.129853513888971e-05,
+        "seconds_per_update": 0.5067422277016336,
+        "estimated_epoch_seconds": 5.57416450471797,
+        "timings": {
+          "io_s": 0.7504670958733186,
+          "compute_s": 11.609417217259761,
+          "updates": 285,
+          "native_rows": 22889,
+          "anchors": 1942,
+          "valid_targets": 107653
+        },
+        "wait_s": 57.74184341105865,
+        "pacing_s": 50.80310621642275,
+        "memory": {
+          "peak_rss_bytes": 3650326528,
+          "peak_cuda_allocated_bytes": 1765075968,
+          "peak_cuda_reserved_bytes": 1958739968,
+          "scope": "this worker; CUDA allocator excludes renderer and driver allocations"
+        },
+        "remaining_train_seconds": 962.8102326331039
+      },
+      "configuration_sha256": "e609d5fc1b245b5900641b10693901c4604fd753add0b829f7b1096f4daac38b"
+    },
+    "G10-new": {
+      "status": {
+        "state": "training",
+        "epoch": 128,
+        "episode": 1,
+        "updates": 1400,
+        "scheduled_updates": 3300,
+        "loss": 0.008290242403745651,
+        "lr": 7.129853513888971e-05,
+        "seconds_per_update": 0.5035948068418176,
+        "estimated_epoch_seconds": 5.5395428752599924,
+        "timings": {
+          "io_s": 0.6859929819474928,
+          "compute_s": 12.69035744201392,
+          "updates": 278,
+          "native_rows": 22344,
+          "anchors": 1896,
+          "valid_targets": 105164
+        },
+        "wait_s": 52.712463543983176,
+        "pacing_s": 53.26055285328766,
+        "memory": {
+          "peak_rss_bytes": 3647758336,
+          "peak_cuda_allocated_bytes": 1770940416,
+          "peak_cuda_reserved_bytes": 1973420032,
+          "scope": "this worker; CUDA allocator excludes renderer and driver allocations"
+        },
+        "remaining_train_seconds": 956.8301329994533
+      },
+      "configuration_sha256": "800e7153ccb1376531aaf6bae197ce60283037f647e4b45948f2fb24acc0e55d"
+    }
+  },
+  "resources": {
+    "pid": 3063789,
+    "latest": {
+      "pid": 3063789,
+      "utc_epoch": 1793382501.5154006,
+      "elapsed_s": 10513.258861293027,
+      "gpu_util_percent": 28.0,
+      "gpu_used_mib": 5139.0,
+      "gpu_free_mib": 18945.0,
+      "ram_available_bytes": 38272774144,
+      "process_rss_bytes": 11382784,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 16.60714020531741
+    },
+    "samples": 10507,
+    "gpu_time_weighted_mean_percent": 7.889629800959311,
+    "max_complete_60s_mean_percent": 25.63192585815268,
+    "missing_samples": 0,
+    "missing_seconds": 0.0,
+    "max_sample_gap_s": 1.7851596870459616,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 5140.0,
+    "peak_process_rss_bytes": 14372864,
+    "min_ram_available_bytes": 10550296576,
+    "thresholds": {
+      "gpu_free_mib": 4096,
+      "ram_available_bytes": 10737418240,
+      "max_gpu_mean_percent": 50,
+      "gpu_admission_mean_percent": 45
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+  },
+  "compliance_limitation": "preliminary attempt lacked continuous monitoring; never claim entire session compliant",
+  "causal_acceptance": {
+    "passed": true,
+    "results": {
+      "G00-new": {
+        "condition_max_error": 2.384185791015625e-06,
+        "memory_max_error": 4.172325134277344e-07,
+        "steps": 25,
+        "episode": "r931005_1793209376_e00_p000000",
+        "source": "real recorded expert acknowledgment replay; not autonomous student control"
+      },
+      "G10-new": {
+        "condition_max_error": 1.430511474609375e-06,
+        "memory_max_error": 5.401670932769775e-07,
+        "steps": 25,
+        "episode": "r931005_1793209376_e00_p000000",
+        "source": "real recorded expert acknowledgment replay; not autonomous student control"
+      }
+    }
+  },
+  "parameter_counts": {
+    "G00-new": {
+      "trainable": 71166285,
+      "denoiser": 70369437,
+      "frozen_dino": 22056576,
+      "total_with_dino": 93222861
+    },
+    "G10-new": {
+      "trainable": 71242445,
+      "denoiser": 70369437,
+      "frozen_dino": 22056576,
+      "total_with_dino": 93299021
+    }
+  },
+  "cleanup": {
+    "files": 410,
+    "deleted_bytes": 4350141356,
+    "ledger": "long_horizon_cleanup_20261030.json"
+  },
+  "training_budget": {
+    "declared_epoch": 1793373806.1574004,
+    "epochs_each": 40,
+    "updates_each": 33280,
+    "updates_per_epoch": 832,
+    "train_episodes_each": 320,
+    "anchors_each_epoch": 5547,
+    "valid_future_targets_each_epoch": 301333,
+    "learning_rate": 0.0001,
+    "warmup_updates": 500,
+    "schedule": "cosine over fixed33280 updates; no late budget relabel",
+    "pilot_complete_episodes": 4,
+    "pilot_updates_each": 3300,
+    "pilot_full_traversals_each": 300,
+    "pilot_not_continued_into_main": true,
+    "seeds": {
+      "G00-new": 20261031,
+      "G10-new": 20261032
+    },
+    "estimate": "preliminary shared-lease pilot0.5-0.6s/update per active worker incl frequent4episode saves/val; main throughput measured after first25 updates",
+    "training_deadline": "2026-10-31T10:00:00+08:00",
+    "final_deadline": "2026-10-31T12:00:00+08:00"
+  }
+}

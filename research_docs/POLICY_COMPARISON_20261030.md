@@ -58,8 +58,8 @@ ImplicitRDP transformer部署override成5，UNet分支8。当前B0使用8有明�
 | H / commit / 秒数 | H16；hybrid action8。real runner默认10Hz、每6步inference：1.60s计划、.60s提交；hybrid仿真Hz须读任务metadata | H32@24Hz=1.333s，obs2×downsample2后可用29步；planner inference6Hz，latent更新interval16 native ticks=.667s；力条件解码24Hz。不能把6Hz当control | H16@10Hz=1.60s；obs2→可用15步；vision/noise cache每6tick=.60s刷新，force-conditioned重采样10Hz | B0 H12@60Hz=.20s、commit6=.10s；全部60Hz观察更新memory；Correction每60Hz一次，触觉两120Hz样本。原物理120Hz不变 |
 | 网络尺寸 | hybrid UNet[256,512,1024]；real_image[512,1024,2048]；ResNet18 | UNet[512,1024,2048]、ResNet18；AT conv32、RNN32、peel latent4（其他task8）、n_embed16 | Transformer d768×7层×4heads、ResNet34，force RNN512×1 | B0/B1 denoiser[64,128]，visual GRU128；2,003,085 / 2,166,613参数。Residual每个1,344,597总 / 489,125可训练 |
 | 神经参数量（指定示例） | hybrid lift89,317,578；real PushT328,915,202 | LDP198,169,296＋独立AT8,588＝198,177,884 | flip/wrench95,006,541；作者checkpoint未知 | B0 2,003,085；B1 2,166,613；Residual1,344,597，其中训练489,125；完整B0＋Residual3,347,682 |
-| loss | masked epsilon MSE，取决于scheduler prediction_type | AT动作重建+KL1e-6（当前use_vq=False）；LDP latent epsilon MSE | 当前eval.sh指定v_prediction；workspace调用compute_diffusion_loss，13D输出包含辅助动作标签 | 原epsilon MSE；新残差监督clip后的command，contact mask，arm/hand各.5，delta L2 1e-4 |
-| optimizer / EMA / LR | AdamW1e-4、wd1e-6、betas(.95,.999)；EMA、cosine、warmup500 | AT AdamW1e-3/wd1e-4、cosine/warmup100、无EMA；LDP AdamW1e-4/wd1e-6、cosine/warmup500、EMA | model LR3e-4、encoder3e-5、wd1e-6、betas(.95,.999)；EMA、cosine、warmup2000 | 原AdamW1e-4无EMA/schedule；本轮CPU FP32 AdamW1e-3/wd1e-4、gradclip1，无EMA/schedule，显式有限基线 |
+| loss | masked epsilon MSE，取决于scheduler prediction_type | AT动作重建+KL1e-6（当前use_vq=False）；LDP latent epsilon MSE | train_implicitrdp.sh与eval.sh均指定v_prediction；workspace调用compute_diffusion_loss，13D输出含辅助标签 | 原epsilon MSE；新残差监督clip后的command，contact mask，arm/hand各.5，delta L2 1e-4 |
+| optimizer / EMA / LR | AdamW1e-4、wd1e-6、betas(.95,.999)；EMA、cosine、warmup500 | AT AdamW1e-3/wd1e-4、cosine/warmup100、无EMA；LDP AdamW1e-4/wd1e-6、cosine/warmup500、EMA | 所选脚本model LR1e-4覆盖YAML默认3e-4；backbone独立3e-5、wd1e-6、betas(.95,.999)；EMA、cosine、warmup2000 | 原AdamW1e-4无EMA/schedule；本轮CPU FP32 AdamW1e-3/wd1e-4、gradclip1，无EMA/schedule，显式有限基线 |
 | 训练量 / 顺序 | batch64随机window/shuffle；hybrid配置3000epochs、real600；实际有效更新数未知 | batch64/shuffle，AT601、LDP401配置epochs；实际有效更新数未知 | batch64/shuffle、配置600epochs；actual checkpoint有效更新数未知 | 原batch2×TBPTT32、50完整epochs，各61,050更新，3,241,250有效控制时刻（含重复）；固定episode顺序。本轮pilot16/val8后最多5完整epochs，B/C匹配顺序与更新 |
 | 冻结 / 梯度 | 所选配置端到端；EMA另存影子权重 | AT是非nn.Module容器、另加载权重，LDP optimizer不注册AT；`.eval()`本身不是冻结梯度，latent loss路径未显式detach AT输出。本次不替作者声称全部梯度截断 | force encoder、视觉和Transformer共同优化；不是冻结视觉base外接残差 | B0 requires_grad=False/no_grad；独立复制已训练frame encoder冻结，四路GRU/MLP可训练；head零初始化 |
 | 噪声 / 缓存 | 高斯扩散噪声；重新采样chunk | latent计划更新；新力不断解码，不是每tick重新抽latent | vision tokens与initial noise缓存跨6tick，新force改变扩散输出 | B0每6步私有RNG新噪声；cache每示范固定一个私有seed和一条完整采样序列。跨epoch重用训练过的冻结特征/真实计划，不是随机latent |
@@ -71,7 +71,7 @@ batch2×TBPTT32是两个相关episode流中的64个control observation loss位�
 精确生效配置补充：RDP非VQ的AT conv latent4经Gaussian projection变为16通道，H32经过两次
 stride2得到8；实际latent diffusion为8×16、kernel3，不能照yaml的dummy kernel5计数。
 ImplicitRDP存储360×640图在encoder内变为224²，产生102×768观察tokens；其3e-5仅用于
-视觉backbone，projection仍3e-4。RDP当前非timm路径LR为1e-4乘accelerator进程数，实际训练进程数未知。
+视觉backbone，projection按train_implicitrdp.sh覆盖后为1e-4。RDP非timm路径LR为1e-4乘accelerator进程数，实际进程数未知。
 我方AdamW beta1=.9，三类公开DP示例为.95；DP hybrid的10fps字段是录像fps，真实控制Hz依dataset metadata。
 以上新增事实及计数环境/未知范围见完整参数报告，不据容量倍数推断任务表现。
 
