@@ -1,5 +1,42 @@
 # 可复现命令与验证结果
 
+## 独立残差v1入口 — 2026-10-30
+
+实际本轮root为`outputs/visuotactile/run/residual_20261030_01`；以下是复现顺序，
+不是授权自动重跑。先核查[Correction报告](CORRECTION_TRAINING.md)与当前授权。
+monitor必须从worker导入前保持到全部退出，完整60秒准入后才计算；新root拒绝覆盖既有目录。
+每个命令只运行一次，pilot/full/test的输出目录也拒绝覆盖。GPU阶段90分钟与全窗口6小时包含等待，
+不能通过换root恢复预算。资源不足等待自己的worker，不改原生120/60Hz。
+
+```bash
+RESIDUAL_ROOT=outputs/visuotactile/run/residual_NEW
+bash visuotactile/run_cpu.sh -m visuotactile.residual_session --root "$RESIDUAL_ROOT"
+```
+
+保持上述monitor运行，在另一终端依序执行；pilot学习与因果校验必须通过才进入full：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.residual_data --root "$RESIDUAL_ROOT" --stage pilot
+bash visuotactile/run_cpu.sh -m visuotactile.train_residual --root "$RESIDUAL_ROOT" --stage pilot
+bash visuotactile/run_cpu.sh -m visuotactile.validate_residual --root "$RESIDUAL_ROOT"
+bash visuotactile/run_cpu.sh -m visuotactile.residual_data --root "$RESIDUAL_ROOT" --stage full
+bash visuotactile/run_cpu.sh -m visuotactile.train_residual --root "$RESIDUAL_ROOT" --stage full
+bash visuotactile/run_cpu.sh -m visuotactile.residual_data --root "$RESIDUAL_ROOT" --stage test
+bash visuotactile/run_cpu.sh -m visuotactile.train_residual --root "$RESIDUAL_ROOT" --stage test
+bash visuotactile/run_cpu.sh -m visuotactile.evaluate_residual --root "$RESIDUAL_ROOT"
+```
+
+本轮实现固定full最多5epoch，未实现自动追加5epoch；B的validation选epoch，C取同epoch。
+test只做一次、不用于选择；closed_loop严格固定12个分配，不追加replacement seed。
+`STOP`使worker在下次门控退出并保留最近完整episode checkpoint；不称精确中断点恢复。
+全部worker结束后创建root下`MONITOR_STOP`，确认monitor正常退出，再生成小聚合：
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.residual_report --root "$RESIDUAL_ROOT"
+```
+
+成功完成以report/status和真实进程为准，不以Kit退出码为准。权重、缓存、轨迹、资源原日志留本地。
+
 ## 最新入口 — 2026-10-30独立审查与行动历史
 
 本轮审查已使用新目录运行离线冻结采样、单演示前缀拟合与少量development闭环；

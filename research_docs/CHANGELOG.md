@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 闭环启动前的相机metadata生命周期修复
+
+源码核对发现`evaluate_residual.py`在首次reset之前调用`research_metadata()`，而v4相机标定
+依赖reset/render生成的`research_packet`，构造后其值为None。改为每个已分配trial原生reset之后
+读取并核验metadata，不新增reset或rollout、不修改只读环境wrapper。这是运行前发现的确定性错误，
+不是已经发生的Kit崩溃。`RUNBOOK.md`补残差真实命令顺序、不可重置预算及完成/停止判据。
+全套回归及真实闭环结果在后续完成记录中报告。
+
 ## 2026-10-30 — 等待时间持久化与早期记录限制
 
 `residual_session.py`将准入等待与主动节流分开，用实际elapsed测sleep（包含调度超时），

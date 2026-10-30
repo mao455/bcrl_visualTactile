@@ -68,12 +68,6 @@ def main():
         expert = ExpertReference(env, expert_path, policies['a'].base.metadata)
         if sha256(expert_path) != policies['a'].base.metadata['expert_model_sha256']:
             raise ValueError('Released expert identity mismatch')
-        metadata = env.research_metadata()
-        metadata.update(problem='tight_insertion', camera_mode='oblique', config=config.to_dict())
-        for policy in policies.values():
-            assert_policy_compatible(policy.base.metadata, metadata)
-            assert_execution_compatible(policy.base.metadata, metadata)
-        atomic_json(output / 'environment.json', metadata)
         atomic_json(output / 'launch.json', dict(started_epoch=process_started, pid=os.getpid(), plan=plan,
             source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
             checkpoints={name:policy.checkpoint_sha256
@@ -87,6 +81,13 @@ def main():
             attempt = f'{ordinal+1:02d}_{mode}_{variant}_s{seed}'
             atomic_json(output / 'status.json', dict(state='running', attempt=attempt, completed=len(rows), pid=os.getpid()))
             teacher_observation, _ = env.reset(seed=seed)
+            metadata = env.research_metadata()
+            metadata.update(problem='tight_insertion', camera_mode='oblique', config=config.to_dict())
+            for candidate in policies.values():
+                assert_policy_compatible(candidate.base.metadata, metadata)
+                assert_execution_compatible(candidate.base.metadata, metadata)
+            if ordinal == 0:
+                atomic_json(output / 'environment.json', metadata)
             initial = {name:value[0].detach().cpu().numpy().copy() for name,value in env._diagnostics().items()}
             initial.update(actuator_target_rad=env.research_packet['actuator_target_rad'][0].numpy().copy(),
                            force_probability=env._random_force_prob[0].numpy().copy(),
