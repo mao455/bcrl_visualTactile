@@ -132,9 +132,12 @@ class EpisodeSequenceDataset(EpisodeDataset):
     a validity mask; they are NOT disguised as a model prediction. The current
     default nominal encoder continues to condition on its own recorded predictions.
     """
-    def __init__(self,*args,include_tactile=False,**kwargs):
+    def __init__(self,*args,include_tactile=False,include_action_history=False,**kwargs):
         self.include_tactile = include_tactile
+        self.include_action_history = include_action_history
         super().__init__(*args,**kwargs)
+        if self.include_action_history and self.version != 2:
+            raise ValueError("Issued action history requires schema/perception version 2")
 
     def chunks(self,episode,chunk_size=8):
         if episode not in self.episodes or chunk_size < 1:
@@ -147,10 +150,30 @@ class EpisodeSequenceDataset(EpisodeDataset):
                 raise ValueError("Persistent training needs the full causal prefix from step zero")
             action_key = self.action_key
             actions = torch.from_numpy(group[action_key][:length]).float()
+            history = None
+            if self.include_action_history:
+                from .action_history import execution_context
+                if action_key != "transition/command_clipped_pre_delay":
+                    raise ValueError("Issued action history requires command_clipped_pre_delay")
+                delayed = torch.from_numpy(group["transition/control_trace/delayed_command"][:length]).float()
+                issued_time = torch.from_numpy(group["transition/time_before_s"][:length]).double()
+                delayed_time = torch.from_numpy(group["transition/control_trace/selected_command_time_s"][:length]).double()
+                trace_valid = torch.from_numpy(group["transition/control_trace/valid"][:length]).bool()
+                if not trace_valid.all():
+                    raise ValueError("Action history requires actual native telemetry")
+                end_time = torch.from_numpy(group["transition/time_after_s"][:length]).double()
+                obs_time = torch.from_numpy(group["obs/time_s"][:length]).double()
+                if not torch.allclose(end_time[:-1], obs_time[1:], atol=1e-6, rtol=0):
+                    raise ValueError("Previous execution and current observation timestamps differ")
+                indices = (torch.arange(length)-1).clamp_min(0)
+                history = execution_context(actions[indices], delayed[indices], issued_time[indices],
+                                            delayed_time[indices], torch.arange(length)>0)
             for lo in range(0,len(steps),chunk_size):
                 hi = min(lo+chunk_size,len(steps))
                 obs = {k:torch.from_numpy(group["obs/"+k][lo:hi])[None] for k in nominal_keys(self.version)}
                 obs["valid"] = torch.ones(1,hi-lo,dtype=torch.bool)
+                if history is not None:
+                    obs.update({name: value[None,lo:hi] for name,value in history.items()})
                 index = torch.arange(lo,hi)[:,None]+torch.arange(self.horizon)
                 target = actions[index.clamp(max=len(actions)-1)]
                 previous_index = torch.arange(lo,hi)-1

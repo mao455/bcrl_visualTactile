@@ -5,6 +5,7 @@ from .history import OnlineHistory, reset_state
 from .models.nominal import NominalDiffusionPolicy, PolicyConfig
 from .models.correction import compose_action
 from .observations import nominal_keys, empty_plan_context
+from .action_history import ExecutionHistory, history_contract
 
 
 class NominalController:
@@ -16,7 +17,7 @@ class NominalController:
         # lifecycle validation, not another large unused raw image window.
         keep = retain_image_history or cfg.memory_version != 2
         self.history = OnlineHistory(num_envs,cfg.history if keep else 1,cfg.stride if keep else 1,
-                                     keys=nominal_keys(cfg.perception_version) if keep else ())
+                                     keys=nominal_keys(cfg.perception_version, cfg.action_history_mode) if keep else ())
         self.episode_ids = torch.full((num_envs,),-1,dtype=torch.long)
         self.cursor = torch.full((num_envs,),cfg.replan_steps,dtype=torch.long)
         self.plan = torch.zeros(num_envs,cfg.horizon,29)
@@ -28,6 +29,7 @@ class NominalController:
         self.plan_generation_time_s = torch.zeros(num_envs,dtype=torch.float64)
         self.previous_action = torch.zeros(num_envs,29)
         self.previous_valid = torch.zeros(num_envs,dtype=torch.bool)
+        self.execution_history = ExecutionHistory(num_envs) if cfg.action_history_mode == "issued" else None
         # Do not consume simulator's global RNG when sampling diffusion noise.
         self.generator = torch.Generator(device=self.device).manual_seed(0)
 
@@ -62,6 +64,11 @@ class NominalController:
         if self.device.type == "cuda":
             torch.cuda.synchronize(self.device)
 
+    def observe_execution(self, transition):
+        if self.execution_history is not None:
+            self.execution_history.observe(transition, self.previous_action,
+                                           self.last_packet["episode_id"], self.last_packet["step_id"])
+
     @torch.no_grad()
     def act(self,packet):
         # OnlineHistory copies only versioned non-tactile keys plus lifecycle metadata.
@@ -81,6 +88,8 @@ class NominalController:
             own["prior_plan"] = torch.where(mask[...,None],self.plan.gather(1,indices.clamp(max=self.model.cfg.horizon-1)[...,None].expand(-1,-1,29)),0.)
             own["prior_plan_valid"] = mask
             packet = {**packet,**own}
+            if self.model.cfg.action_history_mode == "issued":
+                packet = {**packet, **self.execution_history.context(packet)}
         self.last_packet = packet
         self.history.append(packet)
         if self.model.cfg.memory_version == 2:
@@ -88,7 +97,9 @@ class NominalController:
             self.memory_updates[changed] = 0
             self.synchronize()
             start = time.perf_counter()
-            current = {k:packet[k].to(self.device)[:,None] for k in nominal_keys(self.model.cfg.perception_version)}
+            current = {k:packet[k].to(self.device)[:,None]
+                       for k in nominal_keys(self.model.cfg.perception_version,
+                                             self.model.cfg.action_history_mode)}
             current["valid"] = torch.ones(len(self.cursor),1,dtype=torch.bool,device=self.device)
             self.memory = self.encode_current(current, packet, self.memory)
             self.synchronize()
@@ -143,7 +154,10 @@ def load_command_controller(path, num_envs, *, device="cpu", retain_image_histor
                     tactile_physical_hz=120, own_plan_mode="none",
                     action_label="command_clipped_pre_delay",
                     camera_order=["fixed_high", "fixed_side", "wrist_rgbd"])
-    if (saved.get("command_checkpoint_version") != 2 or cfg.own_plan_mode != "none"
+    if cfg.action_history_mode == "issued":
+        expected.update(history_contract("issued"))
+    version = 3 if cfg.action_history_mode == "issued" else 2
+    if (saved.get("command_checkpoint_version") != version or cfg.own_plan_mode != "none"
             or any(contract.get(k) != v for k,v in expected.items())
             or cfg.views != 3 or cfg.horizon != 12 or cfg.replan_steps != 6
             or cfg.memory_version != 2 or cfg.perception_version != 2):

@@ -1,5 +1,35 @@
 # 当前会话交接：有限插入数据集（2026-10-28）
 
+## 最新交接 — 2026-10-30独立审查完成
+
+用户本轮要求独立核查B0/B1失败、实现真实自身行动历史、有界验证并推送用户fork功能分支；
+这是当前授权，覆盖下面仅视频/旧不限GPU/永久none的历史快照。完整依据见
+[INDEPENDENT_AUDIT_20261030.md](INDEPENDENT_AUDIT_20261030.md)与小聚合
+`evidence/independent_audit_20261030.json`。全任务结束，不自动继续训练、采集或评估。
+
+- 原400条manifest、best权重与100条正式NPZ的SHA再次核对未变；B0/B1仍各0/50、全部601步timeout。
+  训练10个源码hash对应76bb58e，评估13个对应dc77a6b；无动作目标公式或chunk索引错误证据。
+- 新command版本3/history1显式`action_history_mode=issued`：过去clipped/delayed命令及时间进入持续状态。
+  训练源为专家过去已执行teacher forcing；部署只读学生真实env.step后ack。B0无触觉，B1保留力/FK。
+  旧模型默认none/version2，不可改flag直接升级；未来B2混合/correction信息仍需独立权限。
+- 冻结4完整前缀DDIM8/20/50/100；两条24步前缀各240更新。拟合误差下降，但mask历史几乎无差别。
+  同seed981001共7条诊断：旧8、旧100、新历史各B0/B1均601步timeout；同入口原专家217步成功。
+  新历史600个有效反馈的命令/延迟/时间与实际执行精确一致，但接近更差、无抬升，不能称性能改善。
+- `audit_rollout_history_20261030_01`在scene/动作前发生libomniclient FileThread SIGABRT，保留完整现场；
+  唯一有界恢复`_02`成功结束。未改共享库/系统，不把软件启动错误计为任务失败或宣称根因已修。
+- GPU已监测区间加权20.225%、完整60秒最大35.288%；样本缺测0、最大间隔12.303s。
+  任务间隙与崩溃尾部未监测，未算0；无硬配额/进程归因承诺。最小空闲VRAM17577MiB、RAM31.814GiB。
+  当前50%整卡双均值、4GiB/10GiB余量继续有效，禁止沿用10月29日不限GPU授权。
+- 原生控制器及研究sim wrapper本轮均未修改；历史原生差异仅7行只读trace hook，world_hold历史施力
+  兼容行为单独说明。全套73项、后续相关22项通过；无完整重训/重采/第二轮正式100条。
+
+本地诊断目录位于`outputs/visuotactile/run/`：`audit_20261030_01`、`history_probe_20261030_01`、
+`audit_rollout_old8_20261030_01`、`audit_rollout_old100_20261030_01`、`audit_rollout_history_20261030_01/_02`。
+后者表示两个独立目录后缀，不是覆盖重跑。复现见RUNBOOK，每次必须新目录。
+公开分支`feature/baseline-audit-action-history`，用户已授权本轮push；仅代码/MD/小统计，
+不上传原始输出，不合并main。下一阶段先完整演示拟合/历史消融（总90分钟上限），通过才讨论
+5epoch×2、固定320/40/40、6小时阶段训练；本轮未启动这些后续实验。
+
 ## 最新交接 — 2026-10-30：实验完成，视频与GPU限额更新
 
 10:22核查真实报告、100个NPZ、best SHA和systemd：两模型50epoch完成、best均epoch49；

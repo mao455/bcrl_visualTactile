@@ -1,5 +1,39 @@
 # 可复现命令与验证结果
 
+## 最新入口 — 2026-10-30独立审查与行动历史
+
+本轮审查已使用新目录运行离线冻结采样、单演示前缀拟合与少量development闭环；
+详细结果、权限与局限见[INDEPENDENT_AUDIT_20261030.md](INDEPENDENT_AUDIT_20261030.md)。
+旧400条、best、100正式trace不变。下面是复现命令，不表示自动追加实验；每次必须换新output。
+GPU任务串行，整卡均值/完整60秒<=50%，保留4GiB显存、10GiB RAM、12GB磁盘，原120/60Hz不变。
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.audit_baselines \
+  --root outputs/visuotactile/run/dp_command_20261029 \
+  --manifest outputs/visuotactile/data/close_v4/manifest.json \
+  --output outputs/visuotactile/run/audit_NEW --offline
+bash visuotactile/run_cpu.sh -m visuotactile.probe_action_history \
+  --root outputs/visuotactile/run/dp_command_20261029 \
+  --manifest outputs/visuotactile/data/close_v4/manifest.json \
+  --output outputs/visuotactile/run/history_probe_NEW --updates 240 --prefix 24
+bash visuotactile/run_cpu.sh -m visuotactile.evaluate_baselines \
+  --b0 outputs/visuotactile/run/dp_command_20261029/b0/best.pt \
+  --b1 outputs/visuotactile/run/dp_command_20261029/b1/best.pt \
+  --output outputs/visuotactile/run/diagnostic_NEW \
+  --pairs 1 --seed-start 981001 --max-steps 1803 --development \
+  --diagnostic-plans --expert-reference pretrained_assembly/tight_insertion/model.pth \
+  --step-sleep-ms 100
+```
+
+DDIM100对照删除expert-reference，增加`--diagnostic-inference-steps 100`、sleep150ms。
+历史闭环对照将b0/b1改为新probe下各自diagnostic.pt，保留DDIM8/sleep100ms；无需专家持续输入。
+`audit_baselines.audit_development(path)`只读完整development报告和trace，输出前60/全程、
+计划重叠、命令索引、历史执行反馈和资源统计。原expert也消费global RNG，原样记录false而不改其推理。
+有界实验结束看report/status及真实进程，不凭Kit退出码或历史PID断言完成。
+
+未来命令训练显式加`train_dp --action-history-mode issued`形成v3；默认none复现v2。
+本轮不启动完整训练；下轮配置与预算门槛见审查报告。不得直接以诊断checkpoint冒充正式best。
+
 ## 最新入口 — 2026-10-30：查看结果和录制视频
 
 训练及正式50组评估已完成，当前无需训练启动/恢复。结果见BASELINE_TRAINING顶部。

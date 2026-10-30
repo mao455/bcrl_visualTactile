@@ -1,5 +1,42 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 独立失败审查、版本化真实行动历史和有界诊断
+
+用户要求独立核查B0/B1失败、官方对照、实现自身行动历史并推送功能分支；GPU恢复整卡时间加权
+和完整60秒均值<=50%。原400条、best与100条正式评估不变，没有完整重训/重采。
+主报告为[INDEPENDENT_AUDIT_20261030.md](INDEPENDENT_AUDIT_20261030.md)，小型公开聚合为
+`evidence/independent_audit_20261030.json`；原数组/权重/日志留ignored outputs。
+
+| 路径 / 接口 | 修改前 → 修改后；输入输出和原因 |
+| --- | --- |
+| `observations.py`、`models/nominal.py`、`models/vision.py` | 旧B0/B1无行动条件 → 显式issued模式增加两29D命令、两source时间与valid，61→32 MLP进入持续GRU；allowlist隔离触觉，缺字段旧模型仍none。 |
+| `action_history.py` | 新私有执行记录；只接受真实transition和匹配学生提交，缺失/重复/跨episode/混合覆盖拒绝；t0无效，不用packet伪造历史。 |
+| `dataset.py`、`manifest.py` | 可选从现有transition[t−1]构造相同字段并核对时间/trace；专家过去执行明确teacher forcing，当前未来专家仍仅监督；无原数据重写。 |
+| `train_dp.py`、`rollout.py` | 显式CLI/command版本3/history1；保存来源契约、加载/恢复严格匹配，旧v2仍可加载；每原生观察读前一步执行反馈，版本不兼容拒绝。 |
+| `collect.py` | 学生env.step后传递执行ack；原专家路径不变。 |
+| `contracts.py` | 原传感兼容检查外新增控制/DR/reset/任务/物理/timeout/限位比较；实际旧配置仅seed与num_envs不同，检查缺口不是已证实验漂移。 |
+| `evaluate_baselines.py`、`expert_reference.py` | development限定采样步数/完整计划/实际历史和接近诊断，显式同入口专家最多2起点且校验SHA；保留自然终止，新增12GB磁盘/180秒开发准入等待边界。 |
+| `audit_baselines.py` | 新只读原100trace/完整前缀冻结采样/有界闭环聚合；前60/full、arm/hand、overlap、真实目标公式与资源分开报告。初版observations计数显示最后replan+1，后修为实际chunk.stop，旧实验JSON不改。 |
+| `probe_action_history.py` | 新单演示8..32步/最多300更新受限拟合与真实执行回放，独立评估噪声、mask消融、梯度/重载；输出diagnostic_only，不自动进入正式评估。后补未来运行source plan，本次已跑probe无完整源码launch hash。 |
+| `tests/test_action_history.py` | 新5项关键测试（含双变体参数化）：未来标签不泄漏、跨chunk、线上/整段一致、异步reset、梯度/版本/保存加载、拒绝错误ack、native配置漂移。 |
+| `AGENTS.md`、`USER_RESEARCH_DIRECTION.md`及README/交接/训练/架构/契约/历史/schema/RUNBOOK | 追加本轮授权与新版本、来源权限、真实证据与限制；保留原阶段记录，不将普通BC称去预加载或B1称Correction。 |
+
+证据：训练10个source hash匹配76bb58e，评估13个匹配dc77a6b；100条均601步timeout，
+原目标公式误差<2.2e-7rad，命令/submitted一致。边界jump大于段内，但没有发现chunk错位。
+冻结4条完整前缀DDIM8/20/50/100没有100步系统性优势；已知原test epsilon loss不能解释为动作误差。
+24步前缀/各240更新first6 arm RMSE B0 .974926→.584939、B1 .794000→.331831；
+mask后.584900/.331859，不能归因于历史。真实回放时序逐位相同，条件误差<3e-7，重载精确。
+同入口seed981001原专家217步成功，旧B0/B1各601步timeout；1个起点不能估计成功率。
+DDIM100和新版历史也各601步timeout；新历史issued/delayed/time与前一步真实执行误差均0，
+接近距离却更差，更多法向接触没有对象身份且未抬升。7条诊断不加入正式100条。
+新版首次native启动SIGABRT保留，唯一新目录恢复已完成；不是策略失败或已修复共享库的证据。
+监测区间加权GPU20.225%、完整60秒最大35.288%，缺测0、最大间隔12.303s；未监测间隙/崩溃尾部
+未当0，不能据此声称整个会话硬配额。最小VRAM空闲17577MiB、可用RAM31.814GiB，诊断均退出。
+全部73项通过后，新增resume/诊断记录等修改又运行相关22项通过；compileall和diff检查通过。
+一个测试命令曾误写不存在的test_baseline_training.py，未执行任何测试；改为test_command_training.py后通过。
+requests旧依赖warning保留。真实闭环最终细分与资源数字见主报告/小聚合，不以测试通过冒充任务学习。
+本轮未修改原生controller、sim wrapper、物理/DR/reset/成功/timeout或共享依赖；保护其他作业。
+
 ## 2026-10-30 — B0/B1完成结果、四条观看视频与恢复GPU平均限额
 
 用户要求两模型分别录制2条视频、恢复GPU平均<=50%、更新实验记录与原则。已有两组50epoch

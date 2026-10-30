@@ -294,6 +294,8 @@ def main():
             inference_ms.append(1000*(time.perf_counter()-t))
             rng_before_step = torch.random.get_rng_state().clone()
             teacher_obs, reward, terminated, truncated, info = env.step(action)
+            if policy is not None:
+                policy.observe_execution(env.last_transition)
             env.last_transition["torch_rng_before_inference"] = rng_before_inference[None].expand(args.num_envs,-1)
             env.last_transition["torch_rng_before_step"] = rng_before_step[None].expand(args.num_envs,-1)
             if shadow is not None:

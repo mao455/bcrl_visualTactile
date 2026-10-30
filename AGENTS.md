@@ -1,5 +1,26 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest override — 2026-10-30 independent audit and action history
+
+The current user authorizes independent source/result/upstream review, evidence-based
+adapter/model/data fixes, versioned action history, lightweight tests, a few diagnostic
+rollouts and bounded small-demonstration overfit checks. Preserve old checkpoints,
+400 records and formal 0/50 results. No automatic full retraining, recollection or
+100-trial evaluation. Native controller/physics/reset/timeout remain read-only.
+Whole-card time-weighted and complete 60-second GPU means must remain <=50%; retain
+4GiB VRAM/10GiB RAM and disk reserves, record work/wait/missing telemetry.
+Past executed expert commands may be explicitly teacher-forced; never call them
+student predictions. New history changes checkpoint contracts; never toggle old weights.
+The user explicitly authorizes focused commits and pushes of reviewed code/docs/small
+sanitized reports to origin on a feature branch; never push upstream or raw artifacts.
+Current audit progress and evidence supersede the viewing-only scope below.
+Audit completed: see research_docs/INDEPENDENT_AUDIT_20261030.md and latest handoff.
+Version3 issued history passed real closed-loop alignment; short-prefix fitting did
+not improve approach/lift or task success. Seven diagnostic rollouts are separate
+from the original100; expert succeeded once, six students timed out. One pre-action
+native SIGABRT attempt is preserved; its sole new-directory recovery completed.
+All owned diagnostic jobs exited. Do not restart these or the proposed next phase.
+
 ## Latest override — 2026-10-30: completed baselines, four videos, GPU mean <=50%
 
 B0/B1 each completed 50 epochs; validation selected epoch49 for both. Formal

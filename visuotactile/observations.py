@@ -8,13 +8,17 @@ TASK_IDS = ("tight_insertion",)
 NOMINAL_KEYS_V2 = ("image", "depth_valid", "camera_valid", "camera_time_s", "time_s",
                    "proprio", "task_id", "goal_command", "goal_valid",
                    "previous_nominal_action", "previous_nominal_valid", "prior_plan", "prior_plan_valid")
+ACTION_HISTORY_KEYS = ("previous_issued_command", "previous_delayed_command",
+                       "previous_command_time_s", "previous_delayed_time_s", "action_history_valid")
 
 
-def nominal_keys(version):
+def nominal_keys(version, action_history_mode="none"):
     if version == 1:
         return ("image", "proprio")
     if version == 2:
-        return NOMINAL_KEYS_V2
+        if action_history_mode not in ("none", "issued"):
+            raise ValueError("Unsupported action history mode")
+        return NOMINAL_KEYS_V2 + (ACTION_HISTORY_KEYS if action_history_mode == "issued" else ())
     raise ValueError("Unsupported perception version")
 
 

@@ -29,6 +29,7 @@ from .history import detach_state
 from .manifest import ManifestReader, ManifestSequenceDataset, assert_group_disjoint
 from .models.nominal import NominalDiffusionPolicy, PolicyConfig
 from .models.tactile_dp import TactileCommandDiffusionPolicy
+from .action_history import history_contract
 
 
 def _move(value, device):
@@ -296,7 +297,8 @@ def _run_epoch(model, dataset, ids, variant, device, chunk_size, optimizer=None,
 def _save(path, model, optimizer, cfg, args, manifest_hash, splits, epoch, metrics, mean, std, scaler=None, *, metadata=None,
           progress=None, optimizer_updates=None):
     payload = dict(
-        checkpoint_version=2, command_checkpoint_version=2, variant=args.variant, epoch=epoch,
+        checkpoint_version=2, command_checkpoint_version=(3 if cfg.action_history_mode == "issued" else 2),
+        variant=args.variant, epoch=epoch,
         metadata=metadata, progress=progress,
         training_source_sha256=getattr(args, 'training_source_sha256', {}),
         optimizer_updates=(optimizer_updates if optimizer_updates is not None else
@@ -310,7 +312,8 @@ def _save(path, model, optimizer, cfg, args, manifest_hash, splits, epoch, metri
                              horizon=cfg.horizon, replan_steps=cfg.replan_steps,
                              tactile_physical_hz=120, command_hz=60,
                              own_plan_mode="none", action_label="command_clipped_pre_delay",
-                             camera_order=["fixed_high", "fixed_side", "wrist_rgbd"]),
+                             camera_order=["fixed_high", "fixed_side", "wrist_rgbd"],
+                             **history_contract(cfg.action_history_mode)),
         perception_version=cfg.perception_version,
         proprio_mean=mean, proprio_std=std,
         torch_rng=torch.get_rng_state(), cuda_rng=torch.cuda.get_rng_state_all() if torch.cuda.is_available() else None,
@@ -334,6 +337,7 @@ def main(argv=None):
     p.add_argument("--batch-size", type=int, choices=(1,2,4), default=1)
     p.add_argument("--amp", choices=("off","bf16","fp16"), default="bf16")
     p.add_argument("--vision-checkpoint-images", type=int, default=12)
+    p.add_argument("--action-history-mode", choices=("none", "issued"), default="none")
     p.add_argument("--prefetch", type=int, choices=(0,1), default=1)
     p.add_argument("--cuda-memory-fraction", type=float, default=.36)
     p.add_argument("--save-every-groups", type=int, default=8)
@@ -345,7 +349,8 @@ def main(argv=None):
     args = p.parse_args(argv)
     args.training_source_sha256 = {str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in (
         Path(__file__),Path(__file__).with_name('rollout.py'),Path(__file__).with_name('dataset.py'),
-        Path(__file__).with_name('compact.py'),*Path(__file__).with_name('models').glob('*.py'))}
+        Path(__file__).with_name('compact.py'),Path(__file__).with_name('action_history.py'),
+        Path(__file__).with_name('observations.py'),*Path(__file__).with_name('models').glob('*.py'))}
     if args.epochs < 1 or args.chunk_size < 1:
         p.error("epochs and chunk-size must be positive")
     if args.batch_size < 1:
@@ -384,18 +389,22 @@ def main(argv=None):
         splits = _split(reader, args.seed)
         log(f"manifest={args.manifest} episodes={len(reader.entries)} split={list(map(len,splits))}")
         train = ManifestSequenceDataset(args.manifest, ids=splits[0], stage="production",
-                                        include_tactile=args.variant == "b1", require_command=True)
+                                        include_tactile=args.variant == "b1", require_command=True,
+                                        action_history_mode=args.action_history_mode)
         validation = ManifestSequenceDataset(args.manifest, ids=splits[1], stage="production",
-                                             include_tactile=args.variant == "b1", require_command=True)
+                                             include_tactile=args.variant == "b1", require_command=True,
+                                             action_history_mode=args.action_history_mode)
         test = ManifestSequenceDataset(args.manifest, ids=splits[2], stage="production",
-                                       include_tactile=args.variant == "b1", require_command=True)
+                                       include_tactile=args.variant == "b1", require_command=True,
+                                       action_history_mode=args.action_history_mode)
         _assert_no_own_plan(train)
         _assert_no_own_plan(validation)
         _assert_no_own_plan(test)
         mean, std, train_rows = _fit_proprio_stats(train)
         cfg = PolicyConfig(views=3, channels=4, perception_version=2,
                            memory_version=2, horizon=12, replan_steps=6,
-                           own_plan_mode="none", vision_checkpoint_images=args.vision_checkpoint_images)
+                           own_plan_mode="none", action_history_mode=args.action_history_mode,
+                           vision_checkpoint_images=args.vision_checkpoint_images)
         model = _make_model(args.variant, cfg).to(device)
         if args.variant == "b0":
             model.encoder.proprio_mean.copy_(mean.to(device)); model.encoder.proprio_std.copy_(std.to(device))
@@ -427,9 +436,16 @@ def main(argv=None):
                     payload.get("validation_episodes") != splits[1] or
                     payload.get("test_episodes") != splits[2]):
                 raise ValueError("Resume checkpoint episode split differs")
-            from .contracts import assert_policy_compatible
+            from .contracts import assert_policy_compatible, assert_execution_compatible
             assert_policy_compatible(payload['metadata'], metadata)
-            if (payload.get('command_checkpoint_version') != 2 or payload['config'] != asdict(cfg)
+            assert_execution_compatible(payload['metadata'], metadata)
+            if cfg.action_history_mode == "issued" and any(
+                    payload.get('history_contract', {}).get(key) != value
+                    for key, value in history_contract("issued").items()):
+                raise ValueError("Resume action history provenance differs")
+            expected_version = 3 if cfg.action_history_mode == "issued" else 2
+            if (payload.get('command_checkpoint_version') != expected_version or
+                    asdict(PolicyConfig.from_dict(payload['config'])) != asdict(cfg)
                     or payload['training_options'] != dict(batch_size=args.batch_size,
                                                           chunk_size=args.chunk_size, amp=args.amp)):
                 raise ValueError("Resume model/training protocol differs")
@@ -450,6 +466,7 @@ def main(argv=None):
             manifest_sha256=manifest_hash, split_sizes=list(map(len,splits)), train_rows=train_rows,
             seed=args.seed, history_contract={"memory_version":2,"chunk_size":args.chunk_size,
                 "horizon":12,"replan_steps":6,"own_plan_mode":"none",
+                "action_history_mode":args.action_history_mode,
                 "action_label":"command_clipped_pre_delay"}), indent=2))
         atomic_json(args.output/'launch.json', dict(pid=os.getpid(), started_utc=time.time(),
                     options={k:str(v) if isinstance(v,Path) else v for k,v in vars(args).items()},

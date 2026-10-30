@@ -1,5 +1,21 @@
 # Audited contracts
 
+## 2026-10-30独立审查：执行历史与原生配置准入
+
+本轮授权版本化行动历史与有界诊断；旧B0/B1版本2与正式0/50保持不变。
+新增`action_history_mode=issued`仅适用于perception2/memory2、B0/B1无correction、own_plan_mode=none。
+command checkpoint版本3/history版本1明确保存训练来源`past_executed_expert_teacher_forcing`、
+部署来源`past_executed_student_no_correction`；缺字段旧模型默认none，不自动升级或切换权重。
+训练仅取transition[t−1]的clipped命令、实际delayed命令及source时间；当前未来专家命令只作监督。
+部署每次env.step后ack，核对实际命令、episode/step/time；缺失、重复、覆盖/mixed命令拒绝。
+t0置零/false；跨chunk、重规划和任务子目标不清历史。B0仍无触觉，B1保留因果力/FK与融合状态。
+新增字段、单位、7类权限表及teacher-forcing分布偏差见[独立审查](INDEPENDENT_AUDIT_20261030.md)。
+
+`assert_execution_compatible`增加action/assets/DR/obs/reset/reward/termination/task、dt/decimation、
+物理配置、timeout、world_hold、offset、关节顺序与实际limits比较；seed和num_envs允许不同。
+这不是资产文件/源码身份或全栈确定性证明。诊断sampler/plans/expert仅development可用，
+expert最多2起点并校验示范专家SHA，原正式评估不加入expert。原native源码与研究wrapper不变。
+
 ## 2026-10-30资源与观看副本补充（当前）
 
 用户恢复GPU时间加权整卡批次均值与完整60秒滚动均值<=50%。ResourceGuard默认cap50、

@@ -10,7 +10,7 @@ from torch.nn import functional as F
 from torchvision.models import resnet18
 from torch.utils.checkpoint import checkpoint
 
-from ..observations import NOMINAL_KEYS_V2, TASK_IDS
+from ..observations import nominal_keys, TASK_IDS
 from ..history import recurrent_scan
 
 
@@ -64,14 +64,18 @@ class MultimodalHistoryEncoder(nn.Module):
         self.proprio = nn.Sequential(nn.Linear(cfg.proprio_dim,64),nn.SiLU())
         self.task = nn.Embedding(len(TASK_IDS),16)
         self.plan = nn.GRUCell(29,32)
-        self.context = nn.Sequential(nn.Linear(16+10+30+32+cfg.views*2,64),nn.SiLU())
+        self.action_history = (nn.Sequential(nn.Linear(29+29+2+1,32),nn.SiLU())
+                               if cfg.action_history_mode == "issued" else None)
+        context_dim = 16+10+30+32+cfg.views*2+(32 if self.action_history is not None else 0)
+        self.context = nn.Sequential(nn.Linear(context_dim,64),nn.SiLU())
         self.temporal = nn.GRUCell(128*cfg.views+128,cfg.hidden)
         self.register_buffer("proprio_mean",torch.zeros(cfg.proprio_dim))
         self.register_buffer("proprio_std",torch.ones(cfg.proprio_dim))
 
     def encode_frames(self,obs):
         """Frame-local features, for bounded image batches and full recurrent scans."""
-        if set(obs) != set(NOMINAL_KEYS_V2)|{"valid"}:
+        expected = set(nominal_keys(2, self.cfg.action_history_mode))|{"valid"}
+        if set(obs) != expected:
             raise ValueError("Perception v2 nominal inputs differ from the explicit non-tactile allowlist")
         im, q, valid = obs["image"],obs["proprio"],obs["valid"].bool()
         if im.ndim != 6:
@@ -117,10 +121,24 @@ class MultimodalHistoryEncoder(nn.Module):
             plan_h = torch.where(m,self.plan(torch.where(m,a,0.),plan_h),plan_h)
         pose_valid = obs["goal_valid"].bool()[...,None]
         previous_valid = obs["previous_nominal_valid"].bool()[...,None]
+        history_feature = None
+        if self.cfg.action_history_mode == "issued":
+            command_valid = obs["action_history_valid"].bool() & valid
+            issued = torch.where(command_valid[...,None], obs["previous_issued_command"], 0.)
+            delayed = torch.where(command_valid[...,None], obs["previous_delayed_command"], 0.)
+            issued_age = obs["time_s"]-obs["previous_command_time_s"]
+            delayed_age = obs["time_s"]-obs["previous_delayed_time_s"]
+            if ((issued_age <= 0) & command_valid).any() or ((delayed_age < issued_age-1e-6) & command_valid).any():
+                raise ValueError("Action history must precede this observation; delayed source cannot be newer")
+            ages = torch.stack((issued_age, delayed_age), -1).to(q.dtype)*60.
+            ages = torch.where(command_valid[...,None], ages, 0.)
+            history_feature = self.action_history(torch.cat((issued, delayed, ages,
+                                                              command_valid[...,None].float()), -1))
         context = torch.cat((self.task(obs["task_id"].long()),
             torch.where(pose_valid,obs["goal_command"],0.),pose_valid.float(),
             torch.where(previous_valid,obs["previous_nominal_action"].detach(),0.),previous_valid.float(),
-            plan_h.reshape(b,t,32),torch.where(camera_valid,age,0.),camera_valid.float()),-1)
+            plan_h.reshape(b,t,32),torch.where(camera_valid,age,0.),camera_valid.float(),
+            *((history_feature,) if history_feature is not None else ())),-1)
         features = torch.cat((vision,self.proprio((q-self.proprio_mean)/self.proprio_std),self.context(context)),-1)
         return features,valid
 

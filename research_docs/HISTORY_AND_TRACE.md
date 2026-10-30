@@ -1,5 +1,16 @@
 # 持续历史、动作来源与时间合约
 
+## 最新2026-10-30：真实已执行命令历史
+
+新增command checkpoint3/history1，显式`--action-history-mode issued`；默认none继续复现旧B0/B1。
+obs[t]额外读29D previous_issued_command、29D previous_delayed_command、两项float64模拟秒时间与bool有效性。
+两个时间年龄乘60成为native ticks；61维输入经32维MLP进入context与持续GRU。t0无效，真实episode reset清理。
+离线使用专家已经执行的transition[t−1]，明确teacher forcing；部署通过实际env.step后ack构造学生自身历史。
+两者时序/字段定义一致，但轨迹分布不相同；本轮没有生成虚假学生未来计划或改旧权重flag。
+已有q/qd历史不等于命令历史；target/error与混合命令未放入B0/B1或未来nominal allowlist。
+7类输入权限、因果测试、真实24步前缀拟合及限制见[独立审查](INDEPENDENT_AUDIT_20261030.md)。
+下面未训练/v4尚未完成等文字为历史；400条和旧50epoch/50组评估均已完成，本轮仅有界诊断。
+
 > **2026-10-29更新：** v4三相机400条已完成；B0/B1现已获正式命令训练授权。
 > `train_dp`以B=2/T=32完整有序前缀训练/验证，各行visual/tactile/fusion状态独立，
 > padding不更新state，组边界保存游标后可恢复；不在episode中间用零状态继续。

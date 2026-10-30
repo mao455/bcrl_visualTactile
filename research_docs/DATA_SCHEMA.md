@@ -1,5 +1,22 @@
 # Dataset schema v2 (current) and v1 compatibility
 
+## 2026-10-30执行历史派生输入（不重写原记录）
+
+`EpisodeSequenceDataset(include_action_history=True)`从既有transition[t−1]构造新增输入；
+manifest入口为`action_history_mode=issued`。原HDF5 schema2、trace2、camera layout4不变。
+
+| 派生obs[t]字段 | 单步shape / 单位 | 原始来源 |
+| --- | --- | --- |
+| previous_issued_command | 29 float32 / native[-1,1] | transition/command_clipped_pre_delay[t−1] |
+| previous_delayed_command | 29 float32 / native[-1,1] | transition/control_trace/delayed_command[t−1] |
+| previous_command_time_s | scalar float64 / 模拟秒 | transition/time_before_s[t−1] |
+| previous_delayed_time_s | scalar float64 / 模拟秒 | transition/control_trace/selected_command_time_s[t−1] |
+| action_history_valid | scalar bool | t>0且原trace有效；t0全零/false |
+
+只允许完整前缀；检查前transition/time_after_s与当前obs/time_s一致，原trace缺失则拒绝。
+这些是过去专家执行的teacher forcing，不是专家当前监督或学生预测；部署用实际学生执行记录生成同字段。
+训练批次轴B,T后加上述维度；checkpoint版本3/history1显式声明来源。原版本2模型不读取新增字段。
+
 > **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
 
 

@@ -74,6 +74,33 @@ def assert_policy_compatible(checkpoint_metadata, current_metadata):
         raise ValueError("Checkpoint camera calibration differs from current environment")
 
 
+def native_execution_contract(metadata):
+    """Native task/control identity, excluding seed and parallel environment count."""
+    config = metadata["config"]
+    sections = ("action", "assets", "domain_randomization", "obs", "reset",
+                "reward", "termination", "precise_assembly")
+    return dict(task={key:config[key] for key in sections},
+                episode_length_s=config["episode_length_s"], decimation=config["decimation"],
+                sim={key:config["sim"][key] for key in
+                     ("device", "dt", "gravity", "physx", "physics_material", "use_fabric")},
+                wrench_frame_mode=metadata.get("wrench_frame_mode", "legacy"),
+                initial_offset_xy_m=metadata.get("initial_offset", {}).get("offset_xy_m", [0.,0.]),
+                joint_order=metadata["joint_order"], joint_order_lab=metadata["joint_order_lab"])
+
+
+def assert_execution_compatible(reference, current):
+    current_contract = native_execution_contract(current)
+    for key, value in native_execution_contract(reference).items():
+        if json.dumps(value, sort_keys=True) != json.dumps(current_contract[key], sort_keys=True):
+            raise ValueError("Native execution contract differs: "+key)
+    for metadata in (reference, current):
+        limits = np.asarray(metadata["joint_limits_rad"])
+        if not np.allclose(limits, limits[0], atol=1e-6, rtol=0):
+            raise ValueError("Per-environment native joint limits differ")
+    if not np.allclose(reference["joint_limits_rad"][0], current["joint_limits_rad"][0], atol=1e-6, rtol=0):
+        raise ValueError("Native joint limits differ")
+
+
 def evaluation_contract(metadata):
     """Compare experiments only within one recorded physical/success protocol."""
     cfg = metadata["config"]

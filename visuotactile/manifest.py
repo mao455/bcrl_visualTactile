@@ -52,12 +52,14 @@ class ManifestSequenceDataset:
     """
     def __init__(self, manifest, *, allow_unsuccessful=False, allow_incomplete=False,
                  ids=None, horizon=12, stage="scan", include_tactile=False,
-                 require_command=None):
+                 require_command=None, action_history_mode="none"):
         self.reader = ManifestReader(manifest)
         if ids is not None and set(ids)-self.reader.entries.keys():
             raise ValueError("Unknown requested episode identity")
         self.episodes = []
         self.datasets = {}
+        if action_history_mode not in ("none", "issued"):
+            raise ValueError("Unsupported action history mode")
         if require_command is None:
             require_command = stage == "production"
         for key, row in self.reader.entries.items():
@@ -72,7 +74,8 @@ class ManifestSequenceDataset:
             self.datasets[key] = EpisodeSequenceDataset(
                 self.reader.path.parent/row["directory"]/"data.h5", horizon=horizon,
                 allow_unsuccessful=allow_unsuccessful, allow_incomplete=allow_incomplete,
-                include_tactile=include_tactile, require_command=require_command)
+                include_tactile=include_tactile, require_command=require_command,
+                include_action_history=action_history_mode == "issued")
             self.episodes.append(key)
         if not self.episodes:
             raise ValueError("No eligible episodes")

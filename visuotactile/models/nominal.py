@@ -10,6 +10,7 @@ from ..history import recurrent_scan
 @dataclass
 class PolicyConfig:
     own_plan_mode: str = "private"  # legacy default; command baselines explicitly use none
+    action_history_mode: str = "none"
     vision_checkpoint_images: int = 0  # recomputation only; no frozen/latent cache
     memory_version: int = 2  # 1: legacy windows; 2: every-step episode recurrence
     perception_version: int = 2
@@ -24,10 +25,20 @@ class PolicyConfig:
     diffusion_steps: int = 100
     inference_steps: int = 8
 
+    def __post_init__(self):
+        if self.own_plan_mode not in ("none", "private"):
+            raise ValueError("Unknown own-plan mode")
+        if self.action_history_mode not in ("none", "issued"):
+            raise ValueError("Unknown action history mode")
+        if self.action_history_mode == "issued" and (
+                self.perception_version != 2 or self.memory_version != 2 or self.own_plan_mode != "none"):
+            raise ValueError("Issued history is a separate memory2 command-baseline contract, without private plans")
+
     @classmethod
     def from_dict(cls, config):
         # Missing version is the published one-camera v1 checkpoint, never v2.
-        return cls(**{"perception_version": 1, "memory_version": 1, **config})
+        return cls(**{"perception_version": 1, "memory_version": 1,
+                      "action_history_mode": "none", **config})
 
 
 class LegacyVisualHistoryEncoder(nn.Module):

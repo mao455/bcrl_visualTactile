@@ -1,0 +1,342 @@
+{
+  "scope": "Independent bounded audit; original formal results preserved; no full retraining",
+  "identities": {
+    "training_source_commit": "76bb58e",
+    "training_source_files_verified": 10,
+    "evaluation_source_commit": "dc77a6b7b00621cef6b0607d3174d5d55f86b3c7",
+    "evaluation_source_files_verified": 13,
+    "play2perfect": "ff2fc62873f6c6cd93164123c8358e9ce2d65c9b",
+    "diffusion_policy": "5ba07ac6661db573af695b419a7947ecb704690f"
+  },
+  "formal": {
+    "b0": {
+      "epochs": 50,
+      "best_epoch": 49,
+      "checkpoint_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+      "test_epsilon_mse": 0.177785612,
+      "sampled_arm_rmse": 0.969639354,
+      "sampled_hand_rmse": 0.682983511,
+      "successes": 0,
+      "trials": 50,
+      "timeout_steps": 601,
+      "contacted_trials_above_0p1N": 21,
+      "lift_above_initial_5cm_trials": 0,
+      "native_target_formula_max_error_rad": 1.55e-7,
+      "boundary_arm_jump_rmse": 0.859585838,
+      "within_chunk_arm_jump_rmse": 0.608542883
+    },
+    "b1": {
+      "epochs": 50,
+      "best_epoch": 49,
+      "checkpoint_sha256": "bb23694f94294b20a2bb21b0c260b3ebbd30f2e3ed6a6e22b2465a501b1c5cc2",
+      "test_epsilon_mse": 0.148961278,
+      "sampled_arm_rmse": 0.895863521,
+      "sampled_hand_rmse": 0.639175262,
+      "successes": 0,
+      "trials": 50,
+      "timeout_steps": 601,
+      "contacted_trials_above_0p1N": 40,
+      "lift_above_initial_5cm_trials": 0,
+      "native_target_formula_max_error_rad": 2.15e-7,
+      "boundary_arm_jump_rmse": 0.791221594,
+      "within_chunk_arm_jump_rmse": 0.345892667
+    }
+  },
+  "offline_four_episodes": {
+    "b0": {
+      "8": 1.010735955,
+      "20": 0.984566545,
+      "50": 0.968690401,
+      "100": 0.98485983
+    },
+    "b1": {
+      "8": 0.94555925,
+      "20": 0.937624897,
+      "50": 0.941507973,
+      "100": 0.967699067
+    }
+  },
+  "prefix_fit": {
+    "b0": {
+      "prefix_observations": 24,
+      "updates": 240,
+      "first6_arm_before": 0.974925884,
+      "first6_arm_after": 0.584938823,
+      "first6_arm_history_masked": 0.584899649,
+      "history_gradient_max_norm": 0.000382752,
+      "replay_condition_max_error": 2.68e-7,
+      "save_reload_exact": true
+    },
+    "b1": {
+      "prefix_observations": 24,
+      "updates": 240,
+      "first6_arm_before": 0.794000467,
+      "first6_arm_after": 0.331830553,
+      "first6_arm_history_masked": 0.331859389,
+      "history_gradient_max_norm": 0.000119443,
+      "replay_condition_max_error": 2.98e-7,
+      "save_reload_exact": true
+    }
+  },
+  "development_seed_981001": {
+    "old_ddim8_expert": [
+      {
+        "variant": "b0",
+        "steps": 601,
+        "success": false,
+        "max_subgoals": 0,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 0,
+        "max_height_above_initial_m": -0.002043724,
+        "finger_link_object_distance_m": {
+          "first": 0.534075856,
+          "first60_min": 0.413463116,
+          "minimum": 0.115015425,
+          "last": 0.283807278
+        },
+        "arm_boundary_jump_rmse": 0.829295473,
+        "arm_within_chunk_jump_rmse": 0.580504091,
+        "overlap_arm_rmse": 0.859544619,
+        "command_plan_max_error": 0,
+        "generation_alignment_exact": true
+      },
+      {
+        "variant": "b1",
+        "steps": 601,
+        "success": false,
+        "max_subgoals": 0,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 0,
+        "max_height_above_initial_m": -0.002043724,
+        "finger_link_object_distance_m": {
+          "first": 0.533818781,
+          "first60_min": 0.366009653,
+          "minimum": 0.103390776,
+          "last": 0.300824791
+        },
+        "arm_boundary_jump_rmse": 0.736116846,
+        "arm_within_chunk_jump_rmse": 0.335957033,
+        "overlap_arm_rmse": 0.839385409,
+        "command_plan_max_error": 0,
+        "generation_alignment_exact": true
+      },
+      {
+        "variant": "expert",
+        "steps": 217,
+        "success": true,
+        "max_subgoals": 2,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 92,
+        "max_height_above_initial_m": 0.089864194,
+        "finger_link_object_distance_m": {
+          "first": 0.534372211,
+          "first60_min": 0.300953299,
+          "minimum": 0.048615225,
+          "last": 0.116527103
+        }
+      }
+    ],
+    "old_ddim100": [
+      {
+        "variant": "b0",
+        "steps": 601,
+        "success": false,
+        "max_subgoals": 0,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 0,
+        "max_height_above_initial_m": -0.002043724,
+        "finger_link_object_distance_m": {
+          "first": 0.533998966,
+          "first60_min": 0.418996006,
+          "minimum": 0.138274461,
+          "last": 0.328990638
+        },
+        "arm_boundary_jump_rmse": 0.709796243,
+        "arm_within_chunk_jump_rmse": 0.380953118,
+        "overlap_arm_rmse": 0.756276396,
+        "command_plan_max_error": 0,
+        "generation_alignment_exact": true
+      },
+      {
+        "variant": "b1",
+        "steps": 601,
+        "success": false,
+        "max_subgoals": 0,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 3,
+        "max_height_above_initial_m": -0.002043724,
+        "finger_link_object_distance_m": {
+          "first": 0.533910811,
+          "first60_min": 0.380025089,
+          "minimum": 0.070837237,
+          "last": 0.253421843
+        },
+        "arm_boundary_jump_rmse": 0.771410798,
+        "arm_within_chunk_jump_rmse": 0.382040791,
+        "overlap_arm_rmse": 0.82951306,
+        "command_plan_max_error": 0,
+        "generation_alignment_exact": true
+      }
+    ],
+    "history_ddim8": [
+      {
+        "variant": "b0",
+        "steps": 601,
+        "success": false,
+        "max_subgoals": 0,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 366,
+        "max_height_above_initial_m": -0.002043724,
+        "finger_link_object_distance_m": {
+          "first": 0.534648597,
+          "first60_min": 0.452983707,
+          "minimum": 0.261741102,
+          "last": 0.360342085
+        },
+        "arm_boundary_jump_rmse": 0.722872933,
+        "arm_within_chunk_jump_rmse": 0.62632564,
+        "overlap_arm_rmse": 0.742135116,
+        "command_plan_max_error": 0,
+        "generation_alignment_exact": true,
+        "history": {
+          "reset_invalid": true,
+          "subsequent_valid": true,
+          "issued_max_error": 0,
+          "delayed_max_error": 0,
+          "issued_time_max_error_s": 0
+        }
+      },
+      {
+        "variant": "b1",
+        "steps": 601,
+        "success": false,
+        "max_subgoals": 0,
+        "native_lift_seen": false,
+        "pair_initial_max_error": 0,
+        "contact_steps_above_0p1N": 191,
+        "max_height_above_initial_m": -0.002043724,
+        "finger_link_object_distance_m": {
+          "first": 0.534398198,
+          "first60_min": 0.410760731,
+          "minimum": 0.174521819,
+          "last": 0.394084543
+        },
+        "arm_boundary_jump_rmse": 0.563057617,
+        "arm_within_chunk_jump_rmse": 0.419499498,
+        "overlap_arm_rmse": 0.613983662,
+        "command_plan_max_error": 0,
+        "generation_alignment_exact": true,
+        "history": {
+          "reset_invalid": true,
+          "subsequent_valid": true,
+          "issued_max_error": 0,
+          "delayed_max_error": 0,
+          "issued_time_max_error_s": 0
+        }
+      }
+    ]
+  },
+  "resource_intervals": {
+    "offline": {
+      "measured_seconds": 138.947632583,
+      "gpu_mean_percent": 12.496535172,
+      "max_complete60_percent": 15.365989622,
+      "max_sample_gap_s": 2.107731691,
+      "missing_samples": 0,
+      "missing_seconds": 0,
+      "admission_wait_s": 1.000204764,
+      "work_s": 39.174003481,
+      "pacing_s": 78.42536378
+    },
+    "prefix_fit": {
+      "measured_seconds": 334.083219801,
+      "gpu_mean_percent": 26.99954414,
+      "max_complete60_percent": 35.288152758,
+      "max_sample_gap_s": 1.944730638,
+      "missing_samples": 0,
+      "missing_seconds": 0,
+      "admission_wait_s": 1.000059498,
+      "work_s": 108.609689292,
+      "pacing_s": 217.27983819
+    },
+    "old_ddim8_expert": {
+      "measured_seconds": 271.012036852,
+      "gpu_mean_percent": 18.442671486,
+      "max_complete60_percent": 20.007476025,
+      "max_sample_gap_s": 9.929207893,
+      "missing_samples": 0,
+      "missing_seconds": 0,
+      "admission_wait_s": 2.000069976,
+      "process_wall_s": 272.321813513,
+      "work_s": 105.460143221,
+      "pacing_s": 142.031677026
+    },
+    "old_ddim100": {
+      "measured_seconds": 339.338175781,
+      "gpu_mean_percent": 19.660214981,
+      "max_complete60_percent": 28.114557066,
+      "max_sample_gap_s": 9.882323592,
+      "missing_samples": 0,
+      "missing_seconds": 0,
+      "admission_wait_s": 2.000158099,
+      "process_wall_s": 341.496335163,
+      "work_s": 134.71719379,
+      "pacing_s": 180.415110601
+    },
+    "history_startup_failure": {
+      "measured_seconds": 11.629487474,
+      "gpu_mean_percent": 25.436172634,
+      "max_complete60_percent": null,
+      "max_sample_gap_s": 9.608764056,
+      "missing_samples": 0,
+      "missing_seconds": 0,
+      "admission_wait_s": 2.00006649
+    },
+    "history_ddim8": {
+      "measured_seconds": 237.334356299,
+      "gpu_mean_percent": 17.798382815,
+      "max_complete60_percent": 21.114310871,
+      "max_sample_gap_s": 12.302941102,
+      "missing_samples": 0,
+      "missing_seconds": 0,
+      "admission_wait_s": 2.000078558,
+      "process_wall_s": 239.770935668,
+      "work_s": 91.65380122,
+      "pacing_s": 120.309503827
+    }
+  },
+  "resource_observed_union": {
+    "measured_seconds": 1332.34490879,
+    "time_weighted_mean_percent": 20.224555422,
+    "max_complete60_within_task_percent": 35.288152758,
+    "min_free_vram_mib": 17577,
+    "min_ram_available_gib": 31.813941956,
+    "scope": "Measured task intervals only; excludes inter-task gaps and crash tail; no hard quota or process attribution claim"
+  },
+  "startup_failure": {
+    "attempt": "audit_rollout_history_20261030_01",
+    "exit_code": 134,
+    "completed_actions": 0,
+    "diagnosis": "Native libomniclient FileThread/TickThread std::system_error Invalid argument before scene/policy load; underlying cause unproven",
+    "recovery": "One retry in new _02 directory; original evidence preserved"
+  },
+  "validation": {
+    "full_suite_passed": 73,
+    "subsequent_focused_passed": 22,
+    "formal_traces_hash_unchanged": 100,
+    "old_best_and_manifest_hash_unchanged": true,
+    "native_controller_and_sim_wrapper_modified": false
+  },
+  "limitations": [
+    "One diagnostic legal start, not a success-rate estimate; no external wrench exposure on these seven rollouts",
+    "Prefix fitting improvement cannot be attributed to history; masked ablation is almost identical",
+    "Past expert executed commands are teacher forcing; deployment uses actual student history with distribution shift",
+    "Probe launch source hashes were not recorded in the completed probe; future probe source recording added afterward"
+  ]
+}
