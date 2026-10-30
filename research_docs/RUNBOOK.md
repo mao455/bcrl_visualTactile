@@ -566,3 +566,21 @@ B1. `last.pt` and `best.pt` are published atomically at epoch boundaries. A
 run is complete only when `report.json` exists; a partial epoch is not a
 completed baseline. The B1 online controller remains separate and must not use
 the B0 checkpoint loader.
+## 2026-10-30：观看录像与参数统计
+
+本轮实际分配与结论见[实验组完整报告](EXPERIMENT_GROUPS_AND_PARAMETERS_20261030.md)。
+以下是本轮入口记录，不是自动增加录像/训练授权；已完成目录不可重复运行或覆盖。
+
+1. 新root独立监测：`bash visuotactile/run_cpu.sh -m visuotactile.residual_session --root <fresh-viewing-root> --viewing`。
+   预分配981002×A/B/C×自主/roll-in共6次，2小时含等待。监测独立进程持续覆盖Kit启动和退出。
+2. 监测已启动后：`bash visuotactile/run_cpu.sh -m visuotactile.evaluate_residual --root <fresh-viewing-root> --viewing-checkpoints-root outputs/visuotactile/run/residual_20261030_01`。
+   固定原权重；资源准入前等待，不能通过改dt、画质或控制缩短耗时。
+3. recorder实际退出后才创建该新root的`MONITOR_STOP`；等monitor退出，运行
+   `bash visuotactile/run_cpu.sh -m visuotactile.viewing_report --root <fresh-viewing-root> --baseline-root outputs/visuotactile/demos/baselines_20261030`。
+   全帧解码、因果/hash/保留原结果核验完成才形成最终小报告；退出码不能代替report完整性检查。
+
+参数核算使用`visuotactile.policy_census --references <pinned-reference-root> --isolated-dependencies <local-deps> --training-root <completed-residual-root> --output <fresh-json>`。
+本轮references为原residual root下`references`；deps为ignored `outputs/visuotactile/tmp/parameter_census_deps_20261030`。
+依赖只隔离安装robomimic0.2.0/timm1.0.15/loguru0.7.3/dill0.3.8，不改共享环境、不下载外部权重。
+外部源码必须为报告指定revision；本轮57个实际导入文件逐一远端SHA核验，未把文件夹命名当身份保证。
+该入口只CPU/meta构造计数，不运行外部训练或机器人任务；旧checkpoint/normalizer统计不改变。

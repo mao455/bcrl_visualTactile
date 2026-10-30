@@ -184,3 +184,32 @@ def test_video_status_does_not_modify_policy_images(tmp_path):
         assert len(frames) == 3
         assert (frames[0].width, frames[0].height) == (240, 88)
         assert float(container.streams.video[0].average_rate) == 60
+
+
+def test_resource_overlimit_intervals_preserve_unknown_gap(tmp_path):
+    import json
+    from visuotactile.viewing_report import resource_intervals
+    path = tmp_path / 'samples.jsonl'
+    values = [49., 51., 52., None, 53., 49.]
+    path.write_text('\n'.join(json.dumps(dict(utc_epoch=100+index, rolling_60s_percent=value))
+                              for index, value in enumerate(values)))
+    intervals = resource_intervals(path)
+    assert len(intervals) == 2
+    assert intervals[0]['first_sample_epoch'] == 101
+    assert intervals[0]['last_sample_epoch'] == 102
+    assert intervals[0]['max_complete_60s_mean_percent'] == 52.
+    assert intervals[1]['samples'] == 1
+
+
+def test_recorder_resource_window_excludes_monitor_tail_and_keeps_missing(tmp_path):
+    import json
+    from visuotactile.viewing_report import worker_resource_window
+    path = tmp_path / 'samples.jsonl'
+    values = [(0, 80), (10, None), (20, 20), (30, 0), (40, 0)]
+    path.write_text('\n'.join(json.dumps(dict(utc_epoch=100+stamp, elapsed_s=stamp,
+        gpu_util_percent=value, rolling_60s_percent=None)) for stamp,value in values))
+    result = worker_resource_window(path, 105, 125)
+    assert result['measured_seconds'] == 10
+    assert result['missing_seconds'] == 10
+    assert result['time_weighted_mean_percent'] == 50
+    assert result['max_complete_60s_mean_percent'] is None

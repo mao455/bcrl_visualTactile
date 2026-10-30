@@ -1,5 +1,29 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 六条观看录像完成、资源超限如实交付
+
+6次分配全部自然601步timeout：自主A/B/C gate0；局部均step88交接、513学生步、gate6/10/7，
+expert prefix与保存switch状态精确一致，无子目标/抬升。视频不是旧trace逐位重放，不新增原统计分母。
+新6＋旧4视频完整解码/PTS/三视图/hash通过；新13,582,728bytes，视频/预览/原日志只留ignored outputs。
+补完整观看索引、逐组数据/实际best更新数、执行误差和资源报告，公开约36KB去敏观看证据。
+`viewing_report.py`额外单列recorder工作窗口，排除monitor尾段；缺测不填0，新增边界测试通过。
+
+连续09:02:23–09:27:59 UTC，25.61分钟；均值27.9960%、完整60秒最大60.3794%，四段超50%，
+明确**未全程满足资源约束**。准入等待250.644秒/主动节流763.655秒，缺测0/max gap1.122秒，
+最低空闲VRAM11,869MiB/RAM26.081GiB；recorder工作窗口均值27.8784%，不以尾段稀释掩盖超限。
+原100正式/旧11残差trace、manifest/best/report SHA核对不变；native/wrapper无diff。
+85项全套＋新增录制窗口测试的12项针对性通过，compile/diff及真实最终聚合通过；
+所有自有工作进程退出，无新训练，原生日志kinematic错误/requests warning保留，不改共享依赖。
+
+## 2026-10-30 — 观看完整解码与原始产物保护核验
+
+新增`viewing_report.py`：完整解码每帧及PTS/三视图尺寸校验，核对视频/trace SHA、真实ack、t−1反馈、
+持续memory/cursor/generation与无接触旁路；单列交接/重规划跳变、switch物理单位和跨运行差异。
+只公开小聚合，预览留ignored新目录；旧B0/B1视频仅只读核对，不改旧预览或统计。
+从连续遥测重算整卡均值及完整60秒超限区间，unknown gap不接成连续区间，不将原50%限制标为已满足。
+已核对原100正式trace/旧11完整残差trace、manifest、best、正式report哈希全部未变；native与wrapper无diff。
+全套85项通过（11.65秒，既有requests warning保留），新增资源区间测试也通过；录像当前最后一条运行中。
+
 ## 2026-10-30 — 固定官方完整网络参数核算
 
 新增`policy_census.py`，CPU加载本项目实际best，CPU/meta构造固定DP hybrid/real、RDP、ImplicitRDP。

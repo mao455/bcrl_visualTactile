@@ -1,5 +1,21 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — 2026-10-30 videos and exact parameter census
+
+Six A/B/C viewing runs (seed981002, autonomous and expert roll-in) are complete;
+all601-step native timeouts, no subgoal/lift. Autonomous gates0; local switch88,
+513 student steps, observed gate counts6/10/7. Expert prefixes and saved switch
+states match exactly; images/plans are not claimed bitwise equal. All six plus
+four previous B0/B1 videos fully decoded; index is ignored demos/residual_20261030_01/README.md.
+Read EXPERIMENT_GROUPS_AND_PARAMETERS_20261030 and the newest SESSION_HANDOFF.
+Whole-card mean27.9960%, maximum complete60s60.3794%: the50% window limit WAS
+exceeded in four recorded intervals despite admission waits; never label this
+session fully resource-compliant. Telemetry missing0; VRAM/RAM reserves held.
+Recorder/monitor/all owned workers exited; no training started, no auto-reruns.
+Original400 manifest/best/100 formal traces/0/50 and11 prior residual traces intact.
+Pinned full neural examples were counted on CPU/meta,57 imported source hashes
+verified; no author checkpoints/robot-task reproduction or new RL claims.
+
 ## Current — 2026-10-30 experiment videos and parameter census
 
 The user requests representative experiment videos, per-group data explanations,
