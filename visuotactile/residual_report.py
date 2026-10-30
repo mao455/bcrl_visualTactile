@@ -97,6 +97,30 @@ def switch_physical_summary(root, trials):
     return result
 
 
+def execution_summary(root, trials):
+    result = {}
+    for row in trials:
+        if 'trace_sha256' not in row:
+            continue
+        path = root / row.get('trace_directory', 'closed_loop') / (row['attempt']+'.npz')
+        with np.load(path) as trace:
+            student = trace['student'].astype(bool)
+            active = np.flatnonzero(student & trace['gate'].astype(bool))
+            adjacent = student[1:] & student[:-1]
+            boundary = adjacent & (trace['cursor'][1:]==0)
+            within = adjacent & ~boundary
+            handoff = student[1:] & ~student[:-1]
+            jumps = np.diff(trace['command'], axis=0)
+            result[row['attempt']] = dict(student_steps=int(student.sum()), contact_student_steps=len(active),
+                first_contact_step=int(active[0]) if len(active) else None,
+                last_contact_step=int(active[-1]) if len(active) else None,
+                student_native_lifted=bool(trace['lifted'][student].any()),
+                jumps={kind:{name:float(np.sqrt(np.mean(jumps[mask, selected]**2))) if mask.any() else None
+                    for name,selected in (('arm', slice(0, 7)), ('hand', slice(7, 29)))}
+                    for kind,mask in (('student_replan', boundary), ('student_within_plan', within), ('expert_to_student', handoff))})
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
@@ -163,6 +187,7 @@ def main():
         software_errors=sum(row.get('outcome')=='switch_validation_error' for row in closed['trials']))
     aggregate['paired_trace_comparisons'] = paired_trace_summary(root / 'closed_loop', closed['trials'])
     aggregate['switch_physical_comparisons'] = switch_physical_summary(root, closed['trials'])
+    aggregate['execution_metrics'] = execution_summary(root, closed['trials'])
     if diagnostic_root.name != 'closed_loop':
         original_launch = json.loads((root / 'closed_loop/launch.json').read_text())
         aggregate['original_closed_loop_source'] = {name:original_launch[name]

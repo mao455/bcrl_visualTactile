@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 计划边界与专家交接跳变分开统计
+
+原逐trial jump汇总包含一次expert→student切换；`residual_report.py`新增从已存NPZ重算的
+student→student重规划/段内jump及单独handoff jump，避免把交接冲击混为常规计划边界。
+同时记录学生阶段首次/末次真实gate、接触步数与native lift；原trace与原汇总保留不重写。
+恢复边界/四元数物理单位/资源关联12项测试通过；最终全套82项通过（11.42秒，既有requests警告保留），
+compileall/diff通过。已完成轨迹的实际重算通过；全分配最终聚合仍待最后两条自然终止。
+
 ## 2026-10-30 — switch误差按物理单位解释，不重写旧准入
 
 第9条相对旧A的逐字段证据表明：raw goal quaternion最大差1.414，但q与−q等价，实际goal位置差0、

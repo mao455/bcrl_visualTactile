@@ -16,6 +16,7 @@ bash visuotactile/run_cpu.sh -m visuotactile.residual_session --root "$RESIDUAL_
 保持上述monitor运行，在另一终端依序执行；pilot学习与因果校验必须通过才进入full：
 
 ```bash
+RESIDUAL_ROOT=outputs/visuotactile/run/residual_NEW
 bash visuotactile/run_cpu.sh -m visuotactile.residual_data --root "$RESIDUAL_ROOT" --stage pilot
 bash visuotactile/run_cpu.sh -m visuotactile.train_residual --root "$RESIDUAL_ROOT" --stage pilot
 bash visuotactile/run_cpu.sh -m visuotactile.validate_residual --root "$RESIDUAL_ROOT"
