@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "scope": "whole-card observed GPU pacing update; active training, not final model evaluation",
+  "root": "outputs/visuotactile/run/long_horizon_20261030_v2",
+  "target_percent": 40,
+  "admission_mean_percent": 45,
+  "gpu_mean_caps_percent": 50,
+  "averaging": "left-held whole-card samples, duration weighted; missing intervals excluded and reported",
+  "resumed_interval": {
+    "start_utc": "2026-10-30T18:20:54.985027+00:00",
+    "end_utc": "2026-10-30T18:26:29.771736+00:00",
+    "duration_seconds": 334.7867088317871,
+    "measured_seconds": 334.7867088317871,
+    "missing_seconds": 0.0,
+    "gpu_time_weighted_mean_percent": 36.50945808729524,
+    "max_complete_60s_mean_percent": 39.267723072735436,
+    "latest_complete_60s_mean_percent": 38.45828714807285,
+    "complete_60s_windows_above_50": 0,
+    "missing_samples": 0,
+    "min_gpu_free_mib": 18889.0,
+    "min_ram_available_bytes": 34744274944
+  },
+  "last_180_seconds": {
+    "start_utc": "2026-10-30T18:23:29.771736+00:00",
+    "end_utc": "2026-10-30T18:26:29.771736+00:00",
+    "duration_seconds": 180.0,
+    "measured_seconds": 180.0,
+    "missing_seconds": 0.0,
+    "gpu_time_weighted_mean_percent": 38.44957930909263,
+    "max_complete_60s_mean_percent": 39.267723072735436,
+    "latest_complete_60s_mean_percent": 38.45828714807285,
+    "complete_60s_windows_above_50": 0,
+    "missing_samples": 0,
+    "min_gpu_free_mib": 18891.0,
+    "min_ram_available_bytes": 35745017856
+  },
+  "before_complete_60s_mean_percent": 17.56453479169868,
+  "cumulative_gpu_time_weighted_mean_percent": 9.812177559949474,
+  "training": {
+    "G00-new": {
+      "state": "training",
+      "epoch": 6,
+      "updates": 4950,
+      "scheduled_updates": 33280,
+      "loss": 0.18829673528671265,
+      "seconds_per_update": 0.1544744851192373,
+      "memory": {
+        "peak_rss_bytes": 3635519488,
+        "peak_cuda_allocated_bytes": 1766138368,
+        "peak_cuda_reserved_bytes": 2023751680,
+        "scope": "this worker; CUDA allocator excludes renderer and driver allocations"
+      },
+      "before_seconds_per_update": 0.36663112333060893
+    },
+    "G10-new": {
+      "state": "training",
+      "epoch": 6,
+      "updates": 4975,
+      "scheduled_updates": 33280,
+      "loss": 0.10075819492340088,
+      "seconds_per_update": 0.15408586489211712,
+      "memory": {
+        "peak_rss_bytes": 3666526208,
+        "peak_cuda_allocated_bytes": 1771082240,
+        "peak_cuda_reserved_bytes": 1965031424,
+        "scope": "this worker; CUDA allocator excludes renderer and driver allocations"
+      },
+      "before_seconds_per_update": 0.365501474701052
+    }
+  },
+  "handover": {
+    "resume_updates": {
+      "G00-new": 2845,
+      "G10-new": 2852
+    },
+    "monitor_continuous": true,
+    "preserved": [
+      "model",
+      "EMA",
+      "optimizer",
+      "RNG",
+      "epoch and episode cursors",
+      "33280-update budget",
+      "deadlines"
+    ]
+  },
+  "caveats": [
+    "Earlier unmonitored preliminary attempt prevents full-session compliance claim",
+    "Earlier RAM minimum 10550296576 bytes was below 10 GiB; remains recorded",
+    "Cumulative mean includes prior idle periods; no compensating extra GPU work",
+    "Throughput snapshots cover different phases; not a controlled benchmark",
+    "Training, once-only test and six diagnostics remain incomplete"
+  ]
+}

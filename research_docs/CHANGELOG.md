@@ -1,5 +1,21 @@
 # Engineering change and verification log
 
+## 2026-10-31 — GPU目标约40%，共享自适应节流
+
+用户要求提高平均GPU利用率。long_resources由固定工作时长2.5倍休眠改为统一gpu.lock内的共享反馈，
+10秒时间加权均值每5秒调休眠倍率，目标40%±2%；整批/完整60秒/短窗口45%准入保留50%安全上限。
+长于2秒的重型调用保持至少2.5倍休眠；6GiB显存/14GiB RAM准入余量不降低。gpu_schedule.json支持读取目标，
+gpu_pacing_state.json与work.jsonl记录实际倍率/短均值；缺测不按0、两个worker不重复反馈同一采样点。
+run_long增加仅显式--resume-training的阶段接续，归档旧owner状态/新日志，拒绝存在活跃旧trainer或跨阶段重跑。
+实际仅终止本任务owner，trainers于2845/2852更新完整episode边界保存退出，连续monitor未停；
+新owner从相同model/EMA/optimizer/RNG/游标恢复，只有resource源码变化，40遍/33280更新和截止不变。
+定向16项通过，含3个新控制反馈/缺测/重复采样回归；实机新均值另记录，不把模拟反馈测试当实际40%。
+命令为`bash visuotactile/run_cpu.sh -m pytest -q tests/test_long_resources.py tests/test_long_horizon.py tests/test_training_resources.py`；
+16项与先前95项存在重叠，不能相加。两处runtime模块py_compile及diff检查通过。
+02:26:29 UTC+8恢复334.787秒实测均值36.5095%、末180秒38.4496%、完整60秒最大39.2677%，
+此段超限/缺测0；G00/G10为4950/4975更新，第6遍继续后台运行。统计存于evidence/gpu_pacing_20261031.json；
+早期缺测尝试和RAM低于10GiB事件仍保留，不宣称全程合规或训练完成。
+
 ## 2026-10-31 — 强pilot复核、采样目标与后台阶段接续
 
 epsilon强pilot各3300更新完成，arm命令RMSE约1.36，高于零命令0.952；未放行main。

@@ -20,6 +20,10 @@ Independent sample-target pilots use the same architecture/cache and3300-update 
 never flip an epsilon checkpoint's prediction_type. Explicit fitting gate and
 background continuation are in run_long; failures do not authorize reruns.
 Read actual pipeline/status/report and the current handoff, not historical PIDs.
+Latest2026-10-31: user targets whole-card GPU mean around40%, retaining both50% caps.
+Shared adaptive pacing replaces fixed2.5x sleep; 45% admission and6GiB/14GiB headroom.
+Sample pilots passed; full training continues from2845/2852-update episode checkpoints
+after a reviewed runtime-only scheduler restart. Do not reset budgets or repeat test/trials.
 
 ## Completed — 2026-10-30 videos and exact parameter census
 

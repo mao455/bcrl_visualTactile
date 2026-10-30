@@ -45,19 +45,23 @@ def pilot_admission(root):
         scope='small complete-trajectory fitting gate only; no task success or convergence claim',created_epoch=time.time())
 
 
-def active_pilots(root):
+def active_trainers(root, stage, tag=None):
     found = []
     for path in Path('/proc').glob('[0-9]*/cmdline'):
         try:
             args = path.read_bytes().decode().split('\0')
             if ('visuotactile.train_long' in args and '--stage' in args and
-                    args[args.index('--stage')+1]=='pilot' and '--tag' in args and
-                    args[args.index('--tag')+1]=='sample3300' and '--root' in args and
+                    args[args.index('--stage')+1]==stage and
+                    (tag is None or ('--tag' in args and args[args.index('--tag')+1]==tag)) and '--root' in args and
                     Path(args[args.index('--root')+1]).resolve()==root.resolve()):
                 found.append(int(path.parent.name))
         except (OSError,ValueError,IndexError):
             continue
     return found
+
+
+def active_pilots(root):
+    return active_trainers(root,'pilot','sample3300')
 
 
 def decode_videos(directory):
@@ -78,7 +82,7 @@ def decode_videos(directory):
     return result
 
 
-def run(root):
+def run(root, resume_training=False):
     session = json.loads((root/'session.json').read_text())
     children = []
     handles = []
@@ -123,15 +127,26 @@ def run(root):
         if time.time()>=session['training_deadline']:
             raise TimeoutError('No training time remains')
         for group in GROUPS:
-            if (root/(group+'_full')).exists():
+            directory = root/(group+'_full')
+            if directory.exists() and not resume_training:
                 raise ValueError('Full training output already exists; no implicit restart')
+            if resume_training and not (directory/'last.pt').exists():
+                raise ValueError('Explicit continuation requires both existing training checkpoints')
         status('training',admission=admission)
-        workers = [launch('visuotactile.train_long',[
-            '--group',group,'--stage','full','--epochs','40','--seed',str(20261031+index),
-            '--prediction-type','sample'],group+'_full') for index,group in enumerate(GROUPS)]
-        status('training',workers={group:worker.pid for group,worker in zip(GROUPS,workers)},
-               epochs_each=40,updates_each=33280)
-        codes = wait(workers,session['training_deadline'])
+        workers = {}
+        for index,group in enumerate(GROUPS):
+            if resume_training and (root/(group+'_full')/'report.json').exists():
+                continue
+            arguments = ['--group',group,'--stage','full','--epochs','40','--seed',str(20261031+index),
+                         '--prediction-type','sample']
+            label = group+'_full'
+            if resume_training:
+                arguments += ['--resume','--resume-runtime-update']
+                label += '_resume_'+str(time.time_ns())
+            workers[group] = launch('visuotactile.train_long',arguments,label)
+        status('training',workers={group:worker.pid for group,worker in workers.items()},
+               epochs_each=40,updates_each=33280,resumed=resume_training)
+        codes = wait(list(workers.values()),session['training_deadline'])
         completed = [(root/(group+'_full')/'report.json').exists() for group in GROUPS]
         if any(codes) and time.time()<session['training_deadline']:
             raise RuntimeError(f'Trainer error before cutoff: {codes}; no automatic retry')
@@ -171,6 +186,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--status',action='store_true')
+    parser.add_argument('--resume-training',action='store_true')
     args = parser.parse_args()
     if args.status:
         print((args.root/'pipeline.json').read_text())
@@ -178,8 +194,15 @@ def main():
     with (args.root/'pipeline.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         if (args.root/'pipeline.json').exists():
-            raise ValueError('Preserve prior pipeline evidence; no implicit restart')
-        run(args.root)
+            previous = json.loads((args.root/'pipeline.json').read_text())
+            if not args.resume_training or previous['state']!='training':
+                raise ValueError('Preserve prior pipeline evidence; only explicit training continuation is allowed')
+            if active_trainers(args.root,'full'):
+                raise ValueError('Previous trainers must finish saving and exit before continuation')
+            atomic_json(args.root/f'pipeline_before_resume_{time.time_ns()}.json',previous)
+        elif args.resume_training:
+            raise ValueError('No existing pipeline to continue')
+        run(args.root,args.resume_training)
 
 
 if __name__ == '__main__':

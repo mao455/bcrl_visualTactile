@@ -3,12 +3,46 @@ import argparse
 from contextlib import contextmanager
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import shutil
 import time
 
 from .training_resources import ResourceGuard, atomic_json
+
+
+def update_pacing(state, row, target=40.):
+    if not math.isfinite(target) or not 10 <= target <= 40:
+        raise ValueError('GPU target must be between 10 and 40 percent, below the 50 percent cap')
+    state = dict(state)
+    now = row['utc_epoch']
+    observations = list(state.get('observations',[]))
+    if not observations or now > observations[-1][0]:
+        observations.append([now,row['gpu_util_percent']])
+    while len(observations)>1 and observations[1][0] <= now-10:
+        observations.pop(0)
+    area = duration = 0.
+    valid = bool(observations and now-observations[0][0]>=10)
+    for before,after in zip(observations,observations[1:]):
+        interval = after[0]-max(before[0],now-10)
+        if before[1] is None or after[0]-before[0]>4:
+            valid = False
+        else:
+            area += before[1]*interval
+            duration += interval
+    short_mean = area/duration if valid and duration>=9.999 else None
+    ratio = float(state.get('sleep_work_ratio',1.))
+    adjusted = state.get('last_adjusted_utc',now)
+    if now-adjusted>=5 and short_mean is not None:
+        rolling = row.get('rolling_60s_percent')
+        if short_mean>target+2 or (rolling is not None and rolling>target+2):
+            ratio = min(6.,ratio+.25)
+        elif short_mean<target-2 and rolling is not None and rolling<target+2:
+            ratio = max(0.,ratio-.1)
+        adjusted = now
+    return dict(observations=observations,short_mean_percent=short_mean,sleep_work_ratio=ratio,
+                last_adjusted_utc=adjusted,target_percent=target,updated_utc=now)
 
 
 class Lease:
@@ -49,11 +83,19 @@ class Lease:
                 try:
                     report = json.loads((self.root / 'resources/resources.json').read_text())
                     row = report['latest']
+                    settings_path = self.root/'gpu_schedule.json'
+                    settings = json.loads(settings_path.read_text()) if settings_path.exists() else {}
+                    target = float(settings.get('target_percent',40.))
+                    state_path = self.root/'gpu_pacing_state.json'
+                    state = json.loads(state_path.read_text()) if state_path.exists() else {}
+                    state = update_pacing(state,row,target)
+                    atomic_json(state_path,state)
                     safe = (time.time()-row['utc_epoch'] < 4 and row['gpu_free_mib'] is not None
                             and row['gpu_free_mib'] >= 6144 and row['ram_available_bytes'] >= 14*1024**3
                             and report['gpu_time_weighted_mean_percent'] is not None
-                            and report['gpu_time_weighted_mean_percent'] <= 38
-                            and row['rolling_60s_percent'] is not None and row['rolling_60s_percent'] <= 35)
+                            and report['gpu_time_weighted_mean_percent'] <= 45
+                            and row['rolling_60s_percent'] is not None and row['rolling_60s_percent'] <= 45
+                            and (state['short_mean_percent'] is None or state['short_mean_percent']<=45))
                 except (FileNotFoundError, ValueError, KeyError, TypeError):
                     safe = False
                 if safe:
@@ -70,7 +112,8 @@ class Lease:
                 duration = time.monotonic()-began
                 self.work_s += duration
                 pacing = time.monotonic()
-                remaining = 2.5*duration
+                ratio = max(2.5,state['sleep_work_ratio']) if duration>=2 else state['sleep_work_ratio']
+                remaining = ratio*duration
                 while remaining > 0:
                     interval = min(remaining, 1.)
                     time.sleep(interval)
@@ -79,6 +122,7 @@ class Lease:
                 with (self.root / 'work.jsonl').open('a') as stream:
                     stream.write(json.dumps(dict(pid=os.getpid(),utc=time.time(),work_s=duration,
                         total_work_s=self.work_s,total_wait_s=self.wait_s,total_pacing_s=self.pacing_s,
+                        sleep_work_ratio=ratio,target_percent=target,short_mean_percent=state['short_mean_percent'],
                         memory=self.memory(cuda)))+'\n')
 
 
