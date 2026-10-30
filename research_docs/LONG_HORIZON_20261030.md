@@ -63,6 +63,8 @@ EMA validation固定RNG7091，以arm/hand等权采样native command MSE选best�
 
 独立1Hz monitor从替代缓存启动前到最终退出；全部GPU worker共享fcntl锁，batch准入38%、完整60s准入35%，
 每短块后实测工作墙钟2.5倍让出。资源余量4GiB VRAM/10GiB可用RAM/12,000,000,000 bytes磁盘。
+01:55复核后，后续新worker准入提高到空闲VRAM6GiB/可用RAM14GiB，为模型和CPU快照临时分配留余量；
+正在运行的pilot仍按其启动hash使用旧4/10准入，已应用快照回收修复，当前余量须看实时监测。
 软件采样不是硬件quota，实际超限照实记。初步未连续监测的尝试仍单列，不能用后段覆盖。
 patch缓存预估9,297,690,624 bytes，每次最多2个采样帧，每episode有界。内存统一MiB/GiB，磁盘另列bytes。
 删除前sha/size/type/reason清单，实际unlink才记已清理；原400/manifest/split/best/旧0/50及逐条摘要保留。
@@ -156,3 +158,12 @@ bash visuotactile/run_cpu.sh -m visuotactile.run_long --root outputs/visuotactil
 提交时sample pilot约1650/3300更新，main/test/六条诊断仍待验收后接续；这是进行中快照。
 公开小报告见[evidence/long_horizon_review_20261031.json](evidence/long_horizon_review_20261031.json)，
 不上传缓存、checkpoint、原始轨迹、视频或日志。
+
+### 资源不合规订正（01:55 UTC+8核对）
+
+替代阶段在2026-10-31 01:45:08.447985出现一个1Hz采样点，可用RAM10,550,296,576 bytes=
+9.825729GiB，低于10GiB要求。该点发生在旧CPU快照路径停止/恢复之前；不能把“发出停止时仍有余量”
+写成整个停止过程始终满足余量。整卡GPU均值约8.16%、最大完整60秒25.63%，监测缺失0，
+但RAM约束已实际违反，且更早无效尝试还有连续监测缺口，因此本轮绝不标为全程资源合规。
+快照回收修复后worker RSS约3.4GiB，当前可用RAM约35GiB；新主训练将使用6/14GiB保守准入。
+采样不是硬配额，后续仍按真实记录报告，不以最终均值覆盖这次低余量。

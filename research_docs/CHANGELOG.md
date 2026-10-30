@@ -13,6 +13,8 @@ long_resources新增worker峰值；evaluate_long补实际trace字段、初态DR�
 原控制器/研究sim wrapper/原400/best/0/50未改；真实新闭环仍待执行，不将代码覆盖当行为结果。
 sample pilot快照RSS增长被发现后，在RAM余量内于1115/1122更新完整episode边界保存退出；
 修复CPU复制/回收后显式runtime-only恢复，模型/data/optimizer/schedule/RNG不变，hash差异留档；13项定向通过。
+最终资源复核发现01:45:08一个RAM采样点9.825729GiB低于10GiB，明确记录不合规；
+后续新worker准入由4/10提高为6GiB空闲VRAM/14GiB可用RAM，给分配留余量，不掩盖已发生超限。
 
 ## 2026-10-30 — 长预测候选实现，初步泄漏尝试作废
 

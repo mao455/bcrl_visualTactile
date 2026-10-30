@@ -50,7 +50,7 @@ class Lease:
                     report = json.loads((self.root / 'resources/resources.json').read_text())
                     row = report['latest']
                     safe = (time.time()-row['utc_epoch'] < 4 and row['gpu_free_mib'] is not None
-                            and row['gpu_free_mib'] >= 4096 and row['ram_available_bytes'] >= 10*1024**3
+                            and row['gpu_free_mib'] >= 6144 and row['ram_available_bytes'] >= 14*1024**3
                             and report['gpu_time_weighted_mean_percent'] is not None
                             and report['gpu_time_weighted_mean_percent'] <= 38
                             and row['rolling_60s_percent'] is not None and row['rolling_60s_percent'] <= 35)
