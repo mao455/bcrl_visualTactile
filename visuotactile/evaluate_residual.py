@@ -12,23 +12,48 @@ from .residual_session import SessionGate
 from .training_resources import atomic_json
 
 
+def diagnostic_allocation(root, plan, continuation):
+    if not continuation:
+        return root / 'closed_loop', 0, []
+    previous = root / 'closed_loop'
+    status = json.loads((previous / 'status.json').read_text())
+    rows = json.loads((previous / 'trials.json').read_text())
+    errors = sorted(previous.glob('*_switch_error.json'))
+    if status['state'] != 'failed' or status['completed'] != len(rows) or len(errors) != 1:
+        raise ValueError('Continuation requires one preserved switch failure after completed trials')
+    started = int(errors[0].name.split('_')[0])
+    if started != len(rows)+1 or not 0 < started < len(plan['diagnostics']):
+        raise ValueError('Cannot establish the exact unstarted allocation boundary')
+    for ordinal, row in enumerate(rows):
+        if any(row[name] != value for name, value in plan['diagnostics'][ordinal].items()):
+            raise ValueError('Prior trials differ from the immutable allocation')
+        row['trace_directory'] = 'closed_loop'
+    failure = json.loads(errors[0].read_text())
+    rows.append(dict(**plan['diagnostics'][started-1], attempt=errors[0].name.removesuffix('_switch_error.json'),
+        outcome='switch_validation_error', success=None, steps=failure['step'], student_steps=0,
+        switch_failure=failure, natural_termination=False,
+        partial_trace='original runner did not persist the in-memory prefix before this exception; error/log retained'))
+    return root / 'closed_loop_remaining_01', started, rows
+
+
 def main():
     process_started = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
+    parser.add_argument('--continue-unstarted', action='store_true')
     args = parser.parse_args()
-    output = args.root / 'closed_loop'
+    plan = json.loads((args.root / 'session.json').read_text())
+    output, start_ordinal, inherited = diagnostic_allocation(args.root, plan, args.continue_unstarted)
     output.mkdir(exist_ok=False)
     atomic_json(output / 'status.json', dict(state='initializing', started_epoch=process_started, pid=os.getpid()))
     gate = SessionGate(args.root)
-    plan = json.loads((args.root / 'session.json').read_text())
     gate.before(reserve_s=600)
     os.environ.setdefault('OMNI_KIT_ACCEPT_EULA', 'YES')
     from isaaclab.app import AppLauncher
     app = AppLauncher(headless=True, enable_cameras=True, device='cpu', kit_args=(
         '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
         '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
-    env, rows = None, []
+    env, rows, trace = None, list(inherited), {}
     try:
         import numpy as np
         import torch
@@ -69,13 +94,21 @@ def main():
         if sha256(expert_path) != policies['a'].base.metadata['expert_model_sha256']:
             raise ValueError('Released expert identity mismatch')
         atomic_json(output / 'launch.json', dict(started_epoch=process_started, pid=os.getpid(), plan=plan,
+            start_ordinal=start_ordinal+1, inherited_started_trials=start_ordinal,
+            mismatch_policy='record_unmatched_and_continue_native' if args.continue_unstarted else 'stop_before_student',
             source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
             checkpoints={name:policy.checkpoint_sha256
             for name,policy in policies.items()}, source_sha256={str(path):sha256(path) for path in (
                 Path(__file__), Path('visuotactile/residual_controller.py'), Path('visuotactile/models/residual.py'),
                 Path('visuotactile/rollout.py'), Path('visuotactile/sim/environment.py'))}))
         references, switches = {}, {}
-        for ordinal, trial in enumerate(plan['diagnostics']):
+        prior_pairs = {(row['mode'], row['seed']) for row in inherited}
+        for row in inherited:
+            if row['mode']=='expert_rollin' and row['variant']=='a' and row.get('switch_step') is not None:
+                with np.load(args.root / 'closed_loop' / (row['attempt']+'_switch.npz')) as saved:
+                    switches[(row['mode'], row['seed'])] = (row['switch_step'], dict(saved), row['prefix_sha256'])
+        for ordinal, trial in enumerate(plan['diagnostics'][start_ordinal:], start_ordinal):
+            trace = {}
             gate.before(reserve_s=240)
             seed, variant, mode = trial['seed'], trial['variant'], trial['mode']
             attempt = f'{ordinal+1:02d}_{mode}_{variant}_s{seed}'
@@ -86,7 +119,7 @@ def main():
             for candidate in policies.values():
                 assert_policy_compatible(candidate.base.metadata, metadata)
                 assert_execution_compatible(candidate.base.metadata, metadata)
-            if ordinal == 0:
+            if ordinal == start_ordinal:
                 atomic_json(output / 'environment.json', metadata)
             initial = {name:value[0].detach().cpu().numpy().copy() for name,value in env._diagnostics().items()}
             initial.update(actuator_target_rad=env.research_packet['actuator_target_rad'][0].numpy().copy(),
@@ -99,16 +132,19 @@ def main():
                 atomic_json(output / 'trials.json', rows)
                 continue
             pair = (mode, seed)
+            initial_reference_available = pair in references or pair not in prior_pairs
             if pair not in references:
                 references[pair] = initial
+            np.savez_compressed(output / (attempt+'_initial.npz'), **initial)
             initial_error = max(float(np.max(np.abs(initial[name].astype(float)-reference.astype(float))))
                                 for name, reference in references[pair].items())
-            if initial_error > 1e-5:
+            if initial_error > 1e-5 and not args.continue_unstarted:
                 raise RuntimeError('Paired initial states differ')
             policy = policies[variant]
             policy.base.generator.manual_seed(seed+1000000)
             switched = mode=='autonomous'
             switch_step, switch_error = (0 if switched else None), None
+            switch_match, switch_field_errors, switch_prefix_equal = None, {}, None
             contact_streak, prefix_steps = 0, 0
             prefix = hashlib.sha256()
             trace = {name:[] for name in ('base', 'command', 'delta', 'gate', 'cursor', 'generation_step',
@@ -136,13 +172,17 @@ def main():
                     if pair not in switches:
                         switches[pair] = (step, state, prefix.hexdigest())
                     ref_step, reference, prefix_digest = switches[pair]
-                    switch_error = max(float(np.max(np.abs(state[name].astype(float)-value.astype(float))))
-                                       for name,value in reference.items())
-                    if step != ref_step or switch_error>1e-5 or prefix.hexdigest()!=prefix_digest:
-                        atomic_json(output / (attempt+'_switch_error.json'), dict(step=step, reference_step=ref_step,
-                            max_state_error=switch_error, prefix_equal=prefix.hexdigest()==prefix_digest))
-                        raise RuntimeError('Expert roll-in prefix/switch state did not match')
+                    switch_field_errors = {name:float(np.max(np.abs(state[name].astype(float)-value.astype(float))))
+                                           for name,value in reference.items()}
+                    switch_error = max(switch_field_errors.values())
+                    switch_prefix_equal = prefix.hexdigest()==prefix_digest
+                    switch_match = step == ref_step and switch_error<=1e-5 and switch_prefix_equal
                     np.savez_compressed(output / (attempt+'_switch.npz'), **state)
+                    if not switch_match:
+                        atomic_json(output / (attempt+'_switch_error.json'), dict(step=step, reference_step=ref_step,
+                            max_state_error=switch_error, field_max_errors=switch_field_errors, prefix_equal=switch_prefix_equal))
+                        if not args.continue_unstarted:
+                            raise RuntimeError('Expert roll-in prefix/switch state did not match')
                 if mode=='expert_rollin' and not switched:
                     expert.teacher_observation = teacher_observation
                     command = expert.act(packet)
@@ -192,6 +232,10 @@ def main():
                     'no_contact_switch' if not switched else 'censored',
                 native_reasons=[name for name,value in transition['termination_reasons'].items() if bool(value[0])],
                 prefix_steps=prefix_steps, prefix_sha256=prefix.hexdigest(), switch_step=switch_step, switch_max_state_error=switch_error,
+                switch_field_max_errors=switch_field_errors, switch_prefix_equal=switch_prefix_equal,
+                switch_matches_reference=switch_match, initial_reference_available=initial_reference_available,
+                paired_comparison_valid=bool(initial_reference_available and initial_error<=1e-5 and
+                                             (switch_match if mode=='expert_rollin' else True)),
                 initial_max_state_error=initial_error, max_subgoals=int(arrays['successes'].max()),
                 native_lifted=bool(arrays['lifted'].any()),
                 max_object_z_rise_from_reset_m=float(arrays['object'][:, 2].max()-initial['object_pose_w'][2]),
@@ -215,15 +259,22 @@ def main():
                 rng_unchanged=rng_unchanged, native_ack_exact=bool(np.array_equal(arrays['command'].clip(-1, 1), arrays['clipped'])),
                 actual_feedback_exact=bool(np.array_equal(arrays['previous_command'][1:], arrays['clipped'][:-1])),
                 elapsed_s=time.monotonic()-started, trace_sha256=sha256(output / (attempt+'.npz')),
-                checkpoint_sha256=policy.checkpoint_sha256, causal_events=events)
+                checkpoint_sha256=policy.checkpoint_sha256, causal_events=events, trace_directory=output.name)
             rows.append(row)
             atomic_json(output / 'trials.json', rows)
             print(json.dumps({name:value for name,value in row.items() if name!='causal_events'}), flush=True)
-        atomic_json(output / 'report.json', dict(trials=rows, complete=len(rows)==12, wait_s=gate.wait_s,
+            trace = {}
+        natural = sum(row.get('outcome') in ('success', 'failure', 'no_contact_switch') for row in rows)
+        atomic_json(output / 'report.json', dict(trials=rows, complete=natural==12, allocation_complete=len(rows)==12,
+                    naturally_terminated=natural, wait_s=gate.wait_s,
                     started_epoch=process_started, finished_epoch=time.time(),
                     purpose='separate diagnostic cohort; never appended to formal 0/50', plan=plan))
-        atomic_json(output / 'status.json', dict(state='complete', completed=len(rows)))
+        atomic_json(output / 'status.json', dict(state='complete' if natural==12 else 'complete_with_failure',
+                                                resolved_allocations=len(rows), naturally_terminated=natural))
     except BaseException as error:
+        if trace and any(trace.values()):
+            np.savez_compressed(output / (attempt+'_partial.npz'),
+                                **{name:np.stack(value) for name,value in trace.items() if value})
         (output / 'error.txt').write_text(traceback.format_exc())
         atomic_json(output / 'status.json', dict(state='failed', error=repr(error), completed=len(rows)))
         raise

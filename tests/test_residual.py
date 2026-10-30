@@ -123,3 +123,23 @@ def test_acknowledged_mixed_feedback_is_private_to_correction():
     assert torch.equal(context['previous_issued_command'], controller.last['command'])
     with pytest.raises(ValueError, match='pending'):
         controller.acknowledge(transition, controller.last['command'])
+
+
+def test_diagnostic_continuation_never_repeats_a_started_allocation(tmp_path):
+    import json
+    from visuotactile.evaluate_residual import diagnostic_allocation
+    plan = dict(diagnostics=[dict(mode='expert_rollin', seed=seed, variant=variant)
+                            for seed in (981001, 981002) for variant in ('a', 'b', 'c')])
+    previous = tmp_path / 'closed_loop'
+    previous.mkdir()
+    (previous / 'status.json').write_text(json.dumps(dict(state='failed', completed=1)))
+    (previous / 'trials.json').write_text(json.dumps([dict(**plan['diagnostics'][0], attempt='01_reference')]))
+    (previous / '02_failed_switch_error.json').write_text(json.dumps(dict(step=120, prefix_equal=True, max_state_error=4.)))
+    output, offset, inherited = diagnostic_allocation(tmp_path, plan, True)
+    assert offset == 2 and len(inherited) == 2
+    assert plan['diagnostics'][offset:] == plan['diagnostics'][2:]
+    assert inherited[-1]['success'] is None and inherited[-1]['student_steps'] == 0
+    assert output != previous
+    (previous / 'status.json').write_text(json.dumps(dict(state='failed', completed=0)))
+    with pytest.raises(ValueError, match='preserved'):
+        diagnostic_allocation(tmp_path, plan, True)

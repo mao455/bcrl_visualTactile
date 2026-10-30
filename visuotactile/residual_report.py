@@ -48,7 +48,9 @@ def paired_trace_summary(root, trials):
         reference = lookup.get((mode, seed, 'a'))
         if variant == 'a' or reference is None or 'trace_sha256' not in row or 'trace_sha256' not in reference:
             continue
-        with np.load(root / (reference['attempt']+'.npz')) as first, np.load(root / (row['attempt']+'.npz')) as second:
+        first_path = root.parent / reference.get('trace_directory', root.name) / (reference['attempt']+'.npz')
+        second_path = root.parent / row.get('trace_directory', root.name) / (row['attempt']+'.npz')
+        with np.load(first_path) as first, np.load(second_path) as second:
             common = min(len(first['command']), len(second['command']))
             prefix = min(reference['prefix_steps'], row['prefix_steps'])
             switch = row['switch_step']
@@ -72,11 +74,12 @@ def main():
     pilot = json.loads((root / 'training_pilot/report.json').read_text())
     full = json.loads((root / 'training_full/report.json').read_text())
     test = json.loads((root / 'training_test/report.json').read_text())
-    closed = json.loads((root / 'closed_loop/report.json').read_text())
+    diagnostic_root = root / 'closed_loop_remaining_01' if (root / 'closed_loop_remaining_01/report.json').exists() else root / 'closed_loop'
+    closed = json.loads((diagnostic_root / 'report.json').read_text())
     session = json.loads((root / 'session.json').read_text())
-    launch = json.loads((root / 'closed_loop/launch.json').read_text())
-    if not closed['complete'] or len(closed['trials']) != session['diagnostics_max']:
-        raise ValueError('Incomplete diagnostic cohort cannot become a final report')
+    launch = json.loads((diagnostic_root / 'launch.json').read_text())
+    if not closed.get('allocation_complete', closed['complete']) or len(closed['trials']) != session['diagnostics_max']:
+        raise ValueError('Unresolved diagnostic allocations cannot become a final report')
     aggregate = dict(report_version=1, base_sha256=BASE_HASH, manifest_sha256=index['manifest_sha256'],
         original_formal_results='unchanged B0 0/50 and B1 0/50; no new formal samples',
         cache_index_sha256=sha256(root / 'cache/index.json'), cached_episodes=len(index['entries']),
@@ -122,6 +125,10 @@ def main():
     aggregate['training_configuration'] = {name:value for name,value in full['source_and_config'].items()
         if name not in ('pid', 'source_sha256', 'parameter_counts')}
     aggregate['closed_loop_source'] = {name:launch[name] for name in ('source_commit', 'source_sha256', 'checkpoints')}
+    aggregate['diagnostic_completion'] = dict(all_allocations_resolved=True,
+        all_trials_naturally_terminated=closed['complete'], naturally_terminated=closed.get('naturally_terminated', 12),
+        mismatch_policy=launch.get('mismatch_policy', 'stop_before_student'),
+        software_errors=sum(row.get('outcome')=='switch_validation_error' for row in closed['trials']))
     aggregate['paired_trace_comparisons'] = paired_trace_summary(root / 'closed_loop', closed['trials'])
     aggregate['limitations'].append('matched physical resets do not guarantee pixel-identical observations or bitwise policy replay; action differences alone are not residual effects')
     aggregate['final_disk_free_bytes'] = shutil.disk_usage(root).free
@@ -137,6 +144,8 @@ def main():
             aggregate['diagnostic_aggregates'][mode][variant] = dict(allocated=len(selected),
                 evaluated=sum(row.get('success') is not None for row in selected),
                 successes=sum(row.get('success') is True for row in selected),
+                strict_pair_admission_passes=sum(row.get('paired_comparison_valid', row.get('switch_max_state_error')==0)
+                                                 for row in selected) if mode=='expert_rollin' else None,
                 first_subgoal_hits=sum(row.get('success') is not None and row.get('max_subgoals', 0)>0
                                        for row in selected))
     atomic_json(root / 'public_report.json', aggregate)

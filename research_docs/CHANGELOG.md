@@ -1,5 +1,18 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 第8条switch核验中止，保留失败并仅接续未启动分配
+
+原runner完成6自主+1 roll-in A后，第8条B在step120、学生接管前中止：专家prefix SHA相同，
+但混合单位的全部state最大差4.085026>1e-5。旧异常只写总差，没有逐字段保存，不能断言是哪种状态造成。
+Kit返回0不等于完成；error/status/log保留，旧内存prefix未flush，明确缺失而不重构冒充实测。
+
+`evaluate_residual.py`新增显式`--continue-unstarted`：核对唯一既有失败/immutable allocation，
+第8条仍占预算且不重跑；新目录只执行9–12。保存每次initial/switch及逐字段差异、异常partial trace。
+接续协议在不匹配时完成原生诊断但标`paired_comparison_valid=false`，不把它当有效配对或触觉收益；
+不放宽旧1e-5阈值，不改环境/物理/接触值。继承旧switch参考，跨进程缺失的初态参考明确标不可用。
+报告区分12个分配解决、自然终止数和软件中止数，不再以“已解决”冒充12次完整任务。
+新增测试验证接续不会重复已启动分配、拒绝不一致边界；实际执行结果待最终记录。
+
 ## 2026-10-30 — 已记录轨迹的配对重放限制
 
 首组自主A/B均601步无接触、无首子目标/抬升，且每步无接触输出逐位等于各自base；

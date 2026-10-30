@@ -37,6 +37,10 @@ bash visuotactile/run_cpu.sh -m visuotactile.residual_report --root "$RESIDUAL_R
 
 成功完成以report/status和真实进程为准，不以Kit退出码为准。权重、缓存、轨迹、资源原日志留本地。
 
+本轮第8条switch核验失败后，唯一接续命令为`evaluate_residual --root "$RESIDUAL_ROOT" --continue-unstarted`：
+只允许读取匹配的原失败边界，写新`closed_loop_remaining_01`并运行原9–12分配，不重跑第8条。
+未匹配switch的结果仍记录自然终止，但明确非配对；最终报告必须保留中止和参考缺失，不自动增补样本。
+
 ## 最新入口 — 2026-10-30独立审查与行动历史
 
 本轮审查已使用新目录运行离线冻结采样、单演示前缀拟合与少量development闭环；
