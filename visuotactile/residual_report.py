@@ -65,6 +65,38 @@ def paired_trace_summary(root, trials):
     return comparisons
 
 
+def pose_difference(first, second):
+    first_quaternion, second_quaternion = first[3:].astype(float), second[3:].astype(float)
+    cosine = abs(np.dot(first_quaternion, second_quaternion) /
+                 (np.linalg.norm(first_quaternion)*np.linalg.norm(second_quaternion)))
+    return dict(position_distance_m=float(np.linalg.norm(first[:3]-second[:3])),
+                orientation_distance_rad=float(2*np.arccos(np.clip(cosine, 0, 1))))
+
+
+def switch_physical_summary(root, trials):
+    references = {row['seed']:row for row in trials if row['mode']=='expert_rollin' and row['variant']=='a'}
+    result = []
+    for row in trials:
+        if row['mode']!='expert_rollin' or row['variant']=='a' or row.get('switch_step') is None:
+            continue
+        reference = references[row['seed']]
+        first_path = root / reference.get('trace_directory', 'closed_loop') / (reference['attempt']+'_switch.npz')
+        second_path = root / row.get('trace_directory', 'closed_loop') / (row['attempt']+'_switch.npz')
+        if not first_path.exists() or not second_path.exists():
+            continue
+        with np.load(first_path) as first, np.load(second_path) as second:
+            velocity = first['object_velocity_w_m_s_rad_s']-second['object_velocity_w_m_s_rad_s']
+            result.append(dict(seed=row['seed'], variant=row['variant'],
+                poses={name:pose_difference(first[name+'_pose_w'], second[name+'_pose_w'])
+                       for name in ('object', 'goal', 'palm_body')},
+                joint_position_max_rad=float(np.abs(first['joint_position_rad']-second['joint_position_rad']).max()),
+                joint_velocity_max_rad_s=float(np.abs(first['joint_velocity_rad_s']-second['joint_velocity_rad_s']).max()),
+                object_linear_velocity_distance_m_s=float(np.linalg.norm(velocity[:3])),
+                object_angular_velocity_distance_rad_s=float(np.linalg.norm(velocity[3:])),
+                finger_force_max_distance_N=float(np.linalg.norm(first['contact']-second['contact'], axis=-1).max())))
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
@@ -130,6 +162,11 @@ def main():
         mismatch_policy=launch.get('mismatch_policy', 'stop_before_student'),
         software_errors=sum(row.get('outcome')=='switch_validation_error' for row in closed['trials']))
     aggregate['paired_trace_comparisons'] = paired_trace_summary(root / 'closed_loop', closed['trials'])
+    aggregate['switch_physical_comparisons'] = switch_physical_summary(root, closed['trials'])
+    if diagnostic_root.name != 'closed_loop':
+        original_launch = json.loads((root / 'closed_loop/launch.json').read_text())
+        aggregate['original_closed_loop_source'] = {name:original_launch[name]
+            for name in ('source_commit', 'source_sha256', 'checkpoints')}
     aggregate['limitations'].append('matched physical resets do not guarantee pixel-identical observations or bitwise policy replay; action differences alone are not residual effects')
     aggregate['final_disk_free_bytes'] = shutil.disk_usage(root).free
     aggregate['disk_scope'] = '12 GB reserve checked before work; final free space is not a recorded continuous minimum'

@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-10-30 — switch误差按物理单位解释，不重写旧准入
+
+第9条相对旧A的逐字段证据表明：raw goal quaternion最大差1.414，但q与−q等价，实际goal位置差0、
+旋转差约1.69e-7rad；物体位置差0.191mm、旋转差.007984rad，专家prefix不相同。
+因此不能把混合state的最大值解释为米、牛顿或真实姿态差。`residual_report.py`补符号不变的姿态角、
+独立位置/关节/线速度/角速度/力差，保留原raw误差及strict admission结果，不事后将未匹配样本改判为配对。
+新增q/−q与位置单位回归测试；第8条没有保存细分state，仍不能由第9条推断其确切差异来源。
+
 ## 2026-10-30 — 第8条switch核验中止，保留失败并仅接续未启动分配
 
 原runner完成6自主+1 roll-in A后，第8条B在step120、学生接管前中止：专家prefix SHA相同，

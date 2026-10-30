@@ -143,3 +143,15 @@ def test_diagnostic_continuation_never_repeats_a_started_allocation(tmp_path):
     (previous / 'status.json').write_text(json.dumps(dict(state='failed', completed=0)))
     with pytest.raises(ValueError, match='preserved'):
         diagnostic_allocation(tmp_path, plan, True)
+
+
+def test_pose_comparison_respects_quaternion_double_cover_and_units():
+    import numpy as np
+    from visuotactile.residual_report import pose_difference
+    first = np.array([.1, .2, .3, 1., 0., 0., 0.])
+    second = first.copy()
+    second[3:] *= -1
+    second[0] += .002
+    result = pose_difference(first, second)
+    assert result['position_distance_m'] == pytest.approx(.002)
+    assert result['orientation_distance_rad'] == 0
