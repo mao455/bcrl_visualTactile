@@ -26,6 +26,32 @@ def test_average_gate_requires_telemetry_and_keeps_memory_reserve(tmp_path):
     assert not guard.safe({**row(),'gpu_free_mib':3000})
 
 
+def test_session_waits_measure_sleep_and_survive_budget_exit(tmp_path, monkeypatch):
+    import json
+    import pytest
+    from visuotactile import residual_session
+    (tmp_path / 'session.json').write_text(json.dumps(dict(deadline_epoch=400)))
+    monkeypatch.setattr(residual_session.atexit, 'register', lambda callback: None)
+    clock = dict(now=100.)
+    monkeypatch.setattr(residual_session.time, 'time', lambda: clock['now'])
+    monkeypatch.setattr(residual_session.time, 'monotonic', lambda: clock['now'])
+    def delayed_sleep(duration):
+        clock['now'] += duration + .25
+    monkeypatch.setattr(residual_session.time, 'sleep', delayed_sleep)
+    gate = residual_session.SessionGate(tmp_path)
+    gate.pace(97.)
+    assert gate.pacing_wait_s == 6.25
+    clock['now'] = 500.
+    times = iter((10., 10.2))
+    monkeypatch.setattr(residual_session.time, 'monotonic', lambda: next(times))
+    with pytest.raises(InterruptedError, match='budget'):
+        gate.before()
+    gate.save_waits()
+    saved = json.loads(next(tmp_path.glob('waits_*.json')).read_text())
+    assert saved['admission_wait_s'] == pytest.approx(.2)
+    assert saved['total_wait_s'] == pytest.approx(6.45)
+
+
 def test_stream_video_records_each_view_and_frame_without_raw_frame_cache(tmp_path):
     import av
     import numpy as np

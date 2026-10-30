@@ -1,5 +1,15 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 等待时间持久化与早期记录限制
+
+`residual_session.py`将准入等待与主动节流分开，用实际elapsed测sleep（包含调度超时），
+预算/异常路径也累计并在退出时写各worker的`waits_<pid>.json`；闭环在Kit关闭前显式保存。
+`residual_report.py`增加这些记录和base接触RMSE。早期缓存只保存了准入实测加请求sleep的总量，
+13步causal检查没有单独wait累计；报告明确未知，不填0。连续GPU遥测覆盖不受此wait归属缺口影响。
+当前训练不重启、不热改已加载实现。新增测试模拟sleep超时与预算异常，验证等待仍保存。
+残差/资源针对性10项测试通过（既有requests依赖warning保留），diff检查通过；
+此改动不改变仿真dt、动作或资源阈值。
+
 ## 2026-10-30 — Correction反馈隔离的显式验收
 
 `residual_controller.py`去掉对v2 B0无操作`observe_execution`的调用，mixed transition现在连nominal入口也不传递。

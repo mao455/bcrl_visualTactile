@@ -1,5 +1,6 @@
 """Continuous external telemetry and immutable deadlines for residual experiments."""
 import argparse
+import atexit
 import json
 import os
 from pathlib import Path
@@ -15,6 +16,14 @@ class SessionGate:
         self.plan = json.loads((self.root / 'session.json').read_text())
         self.gpu_stage = gpu_stage
         self.wait_s = 0.
+        self.admission_wait_s = 0.
+        self.pacing_wait_s = 0.
+        atexit.register(self.save_waits)
+
+    def save_waits(self):
+        atomic_json(self.root / ('waits_'+str(os.getpid())+'.json'), dict(pid=os.getpid(),
+            admission_wait_s=self.admission_wait_s, pacing_wait_s=self.pacing_wait_s,
+            total_wait_s=self.wait_s, recorded_epoch=time.time()))
 
     def remaining(self):
         deadline = self.plan['deadline_epoch']
@@ -25,26 +34,33 @@ class SessionGate:
 
     def before(self, reserve_s=0):
         began = time.monotonic()
-        while True:
-            if self.remaining() <= reserve_s or (self.root / 'STOP').exists():
-                raise InterruptedError('Immutable session budget/STOP reached')
-            status = json.loads((self.root / 'admission.json').read_text())
-            if time.time() - status['utc_epoch'] > 5:
-                raise RuntimeError('Continuous resource monitor is stale')
-            if shutil.disk_usage(self.root).free < 12_000_000_000:
-                raise RuntimeError('Disk reserve below 12 GB')
-            if status['safe']:
-                break
-            time.sleep(.25)
-        self.wait_s += time.monotonic() - began
+        try:
+            while True:
+                if self.remaining() <= reserve_s or (self.root / 'STOP').exists():
+                    raise InterruptedError('Immutable session budget/STOP reached')
+                status = json.loads((self.root / 'admission.json').read_text())
+                if time.time() - status['utc_epoch'] > 5:
+                    raise RuntimeError('Continuous resource monitor is stale')
+                if shutil.disk_usage(self.root).free < 12_000_000_000:
+                    raise RuntimeError('Disk reserve below 12 GB')
+                if status['safe']:
+                    break
+                time.sleep(.25)
+        finally:
+            waited = time.monotonic() - began
+            self.wait_s += waited
+            self.admission_wait_s += waited
         if self.gpu_stage and not (self.root / 'gpu_stage.json').exists():
             atomic_json(self.root / 'gpu_stage.json', dict(started_epoch=time.time(),
                         deadline_epoch=min(time.time()+5400, self.plan['deadline_epoch'])))
 
     def pace(self, began):
         delay = min(2 * (time.monotonic() - began), max(0., self.remaining()))
+        started = time.monotonic()
         time.sleep(delay)
-        self.wait_s += delay
+        waited = time.monotonic() - started
+        self.wait_s += waited
+        self.pacing_wait_s += waited
 
 
 def main():

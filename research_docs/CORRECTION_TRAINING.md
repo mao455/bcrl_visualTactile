@@ -63,3 +63,7 @@ A明确base bypass；B训练残差；C匹配更新的force-masked残差。roll-i
 完整60秒出现且batch/window均值≤45%才准入；4GiB显存、10GiB RAM、12GB磁盘；只睡自己的chunk/控制调用。
 首次GPU计算起90分钟、整个session6小时不可换目录重置，计入等待。所有worker经run_cpu.sh，nice19、CPU22/23、两线程。
 整卡采样包含外部负载，不能称硬quota或进程归因；不改变120/60Hz模拟时间。
+
+等待记录限制：早期pilot/full缓存累计包括实测准入等待和请求的pacing sleep，未单独计调度超时；
+13步causal检查未持久化独立wait总量，标为未知。后续worker独立保存实测准入/节流时间，
+包括预算异常退出。连续整卡GPU遥测覆盖所有这些阶段；wait归属缺口不等同于GPU缺测。

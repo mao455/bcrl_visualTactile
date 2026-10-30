@@ -10,7 +10,8 @@ from .training_resources import atomic_json
 
 def metric_summary(result):
     fields = ('rows', 'contact_rows', 'arm_rmse', 'hand_rmse', 'contact_arm_rmse', 'contact_hand_rmse',
-              'base_arm_rmse', 'base_hand_rmse', 'selection_mse', 'saturation_fraction', 'bypass_exact', 'updates')
+              'base_arm_rmse', 'base_hand_rmse', 'base_contact_arm_rmse', 'base_contact_hand_rmse',
+              'selection_mse', 'saturation_fraction', 'bypass_exact', 'updates')
     return {name:result[name] for name in fields}
 
 
@@ -83,6 +84,10 @@ def main():
     amplitude = json.loads((root / 'amplitude.json').read_text())
     aggregate['amplitude'] = dict(scales=amplitude['scales'],
         statistics={name:value for name,value in amplitude['statistics'].items() if name!='episodes'})
+    aggregate['wait_records'] = [json.loads(path.read_text()) for path in sorted(root.glob('waits_*.json'))]
+    historical_waits = root / 'cache_completed_waits.json'
+    if historical_waits.exists():
+        aggregate['early_stage_waits'] = json.loads(historical_waits.read_text())
     aggregate['diagnostic_aggregates'] = {}
     for mode in ('autonomous', 'expert_rollin'):
         aggregate['diagnostic_aggregates'][mode] = {}

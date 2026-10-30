@@ -227,6 +227,7 @@ def main():
         atomic_json(output / 'status.json', dict(state='failed', error=repr(error), completed=len(rows)))
         raise
     finally:
+        gate.save_waits()
         if env is not None:
             env.close()
         app.close()
