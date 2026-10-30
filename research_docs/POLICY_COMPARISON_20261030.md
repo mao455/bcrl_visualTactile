@@ -1,13 +1,18 @@
 # 独立policy比较：源码、论文与本轮实验分开
 
+新增[实验组、视频与完整参数统计](EXPERIMENT_GROUPS_AND_PARAMETERS_20261030.md)及
+[逐模块计数/57个上游文件SHA核验](evidence/parameter_census_20261030.json)。本次已在CPU/meta构造
+固定DP/RDP/ImplicitRDP示例的完整神经网络；没有运行它们的机器人任务或取得作者checkpoint。
+后文先前“未实例化/完整参数未知”范围由以下计数更新，论文未公开实现仍保持未知。
+
 本轮实际训练/执行已结束：Residual B/C各5完整epoch、7,875有效更新；一次test加权command MSE
 A .659997→B .336392/C .337817，但自主各0/2且完全无gate。12个预分配启动中11条自然timeout、
 1条switch核验中止；唯一完整严格匹配的局部981002三联也全失败，无首子目标/抬升。
 详见[完整训练、交接失败与资源证据](CORRECTION_TRAINING.md)。这支持“离线监督学会了部分命令映射”，
 不支持触觉收益、闭环成功或RL已经实现；严格action gate确实阻止了无接触接近阶段的任何修正。
 
-本报告读取固定版本的policy、训练workspace、task配置和真实部署runner；没有运行这些外部项目或
-下载它们的checkpoint。源码选择不等于作者所有实验的最终resolved配置。没有公开/没有实际读取的
+本报告读取固定版本的policy、训练workspace、task配置和真实部署runner；外部只做构造与参数核算，
+没有执行其训练/任务或下载checkpoint。源码选择不等于作者所有实验的最终resolved配置。没有公开/没有实际读取的
 参数和实现明确记为未知，不以摘要或名称推断。参考文件留在本轮ignored `references/`，不vendoring新代码。
 主要源码和论文的SHA256及补充README版本见[evidence/policy_sources_20261030.json](evidence/policy_sources_20261030.json)。
 
@@ -49,7 +54,7 @@ ImplicitRDP transformer部署override成5，UNet分支8。当前B0使用8有明�
 | --- | --- | --- | --- | --- |
 | H / commit / 秒数 | H16；hybrid action8。real runner默认10Hz、每6步inference：1.60s计划、.60s提交；hybrid仿真Hz须读任务metadata | H32@24Hz=1.333s，obs2×downsample2后可用29步；planner inference6Hz，latent更新interval16 native ticks=.667s；力条件解码24Hz。不能把6Hz当control | H16@10Hz=1.60s；obs2→可用15步；vision/noise cache每6tick=.60s刷新，force-conditioned重采样10Hz | B0 H12@60Hz=.20s、commit6=.10s；全部60Hz观察更新memory；Correction每60Hz一次，触觉两120Hz样本。原物理120Hz不变 |
 | 网络尺寸 | hybrid UNet[256,512,1024]；real_image[512,1024,2048]；ResNet18 | UNet[512,1024,2048]、ResNet18；AT conv32、RNN32、peel latent4（其他task8）、n_embed16 | Transformer d768×7层×4heads、ResNet34，force RNN512×1 | B0/B1 denoiser[64,128]，visual GRU128；2,003,085 / 2,166,613参数。Residual每个1,344,597总 / 489,125可训练 |
-| 参数量限制 | 本次未实例化完整任务模型；总参数未知，不能拿UNet宽度当精确参数倍数 | 本次没有实际AT/LDP checkpoint；完整参数量未知 | 实际checkpoint/完整参数量未知；源码维度明确 | 我方均从实际模型计数；B0零可训练，Residual独立冻结855,472 |
+| 神经参数量（指定示例） | hybrid lift89,317,578；real PushT328,915,202 | LDP198,169,296＋独立AT8,588＝198,177,884 | flip/wrench95,006,541；作者checkpoint未知 | B0 2,003,085；B1 2,166,613；Residual1,344,597，其中训练489,125；完整B0＋Residual3,347,682 |
 | loss | masked epsilon MSE，取决于scheduler prediction_type | AT动作重建+KL1e-6（当前use_vq=False）；LDP latent epsilon MSE | 当前eval.sh指定v_prediction；workspace调用compute_diffusion_loss，13D输出包含辅助动作标签 | 原epsilon MSE；新残差监督clip后的command，contact mask，arm/hand各.5，delta L2 1e-4 |
 | optimizer / EMA / LR | AdamW1e-4、wd1e-6、betas(.95,.999)；EMA、cosine、warmup500 | AT AdamW1e-3/wd1e-4、cosine/warmup100、无EMA；LDP AdamW1e-4/wd1e-6、cosine/warmup500、EMA | model LR3e-4、encoder3e-5、wd1e-6、betas(.95,.999)；EMA、cosine、warmup2000 | 原AdamW1e-4无EMA/schedule；本轮CPU FP32 AdamW1e-3/wd1e-4、gradclip1，无EMA/schedule，显式有限基线 |
 | 训练量 / 顺序 | batch64随机window/shuffle；hybrid配置3000epochs、real600；实际有效更新数未知 | batch64/shuffle，AT601、LDP401配置epochs；实际有效更新数未知 | batch64/shuffle、配置600epochs；actual checkpoint有效更新数未知 | 原batch2×TBPTT32、50完整epochs，各61,050更新，3,241,250有效控制时刻（含重复）；固定episode顺序。本轮pilot16/val8后最多5完整epochs，B/C匹配顺序与更新 |
@@ -59,6 +64,13 @@ ImplicitRDP transformer部署override成5，UNet分支8。当前B0使用8有明�
 batch2×TBPTT32是两个相关episode流中的64个control observation loss位置，不等于64个独立random windows，
 也不能直接称window64的32倍训练量。需要同时报告独立episode数、有效观察数、有效target数、optimizer更新和遍历次数。
 原模型无EMA/schedule、固定顺序、较短H和较小网络是明确差异；本轮没有将它们未经对照定性为唯一根因。
+
+精确生效配置补充：RDP非VQ的AT conv latent4经Gaussian projection变为16通道，H32经过两次
+stride2得到8；实际latent diffusion为8×16、kernel3，不能照yaml的dummy kernel5计数。
+ImplicitRDP存储360×640图在encoder内变为224²，产生102×768观察tokens；其3e-5仅用于
+视觉backbone，projection仍3e-4。RDP当前非timm路径LR为1e-4乘accelerator进程数，实际训练进程数未知。
+我方AdamW beta1=.9，三类公开DP示例为.95；DP hybrid的10fps字段是录像fps，真实控制Hz依dataset metadata。
+以上新增事实及计数环境/未知范围见完整参数报告，不据容量倍数推断任务表现。
 
 ## OmniTacTune：相似目标，不同训练与门控
 

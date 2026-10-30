@@ -1,5 +1,12 @@
 # 视觉与触觉模仿学习研究工程
 
+## 实验组录像与精确参数统计 — 2026-10-30
+
+[完整对照报告](EXPERIMENT_GROUPS_AND_PARAMETERS_20261030.md)汇总B0/B1/A/B/C的数据、best更新数、
+各类离线/闭环分母、逐模块参数和官方生效配置；[可核查小统计](evidence/parameter_census_20261030.json)
+包含57个实际导入上游文件的固定revision SHA核验。原始视频保留本机ignored demos，未上传公开仓库。
+本轮仅观看重跑与CPU核算，不重新训练；原400数据、正式0/50和旧12次诊断保持不变。
+
 ## 当前独立残差Correction阶段 — 2026-10-30
 
 本轮已授权真实Correction训练、固定最多12条诊断和feature发布，覆盖下方历史限制。

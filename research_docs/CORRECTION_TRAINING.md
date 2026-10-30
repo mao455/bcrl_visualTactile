@@ -1,5 +1,8 @@
 # 独立残差 Correction v1（2026-10-30）
 
+后续观看录像与B0/B1/A/B/C完整数据/参数统计见
+[实验组对照报告](EXPERIMENT_GROUPS_AND_PARAMETERS_20261030.md)。观看重跑不改本报告训练、test或12次诊断分母。
+
 本轮明确授权实际训练、最多12条诊断和feature分支发布。原400条数据、B0/B1 best、正式100条
 及各0/50结果不变。原生环境与`sim/environment.py`只读。所有新产物在
 `outputs/visuotactile/run/residual_20261030_01`，不发布原数组或权重。

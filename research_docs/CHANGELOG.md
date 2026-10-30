@@ -1,5 +1,16 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 固定官方完整网络参数核算
+
+新增`policy_census.py`，CPU加载本项目实际best，CPU/meta构造固定DP hybrid/real、RDP、ImplicitRDP。
+统计唯一神经参数/冻结/组件，排除normalizer统计、optimizer/EMA副本；RDP非Module的AT独立补计。
+完整总量89,317,578 / 328,915,202 / 198,177,884 / 95,006,541；我方B0＋Residual3,347,682，
+Residual可训练489,125。57个实际导入源码文件与指定GitHub revision SHA逐一匹配。
+补核RDP实际8×16 latent/kernel3、ImplicitRDP224²变换/仅backbone低LR、我方beta1=.9等生效差异。
+外部代码/小依赖仅ignored目录，无共享环境更新或第三方代码再分发；PEFT未用分支sentinel拒绝调用。
+真实构造与第二次完整计数一致；失败尝试日志保留，不声称外部训练/任务复现。
+新增完整实验组报告与48KB去敏计数JSON，更新方法比较/入口；录像运行中，最终资源单独记录。
+
 ## 2026-10-30 — A/B/C独立观看入口与参数核查启动
 
 新增`residual_session --viewing`固定6次/2小时与显式既有checkpoint root；复用同一ResidualController，

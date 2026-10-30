@@ -1,0 +1,1362 @@
+{
+  "schema_version": 1,
+  "scope": "Neural parameters only, unique tensors; no normalizer statistics, optimizer state, EMA duplicate, activation memory or measured latency. External counts describe explicit pinned example constructors, not trained author checkpoints.",
+  "own": {
+    "b0": {
+      "total": 2003085,
+      "requires_grad": 2003085,
+      "frozen": 0,
+      "components": {
+        "encoder": {
+          "total": 1102000,
+          "requires_grad": 1102000,
+          "frozen": 0
+        },
+        "denoiser": {
+          "total": 901085,
+          "requires_grad": 901085,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 7.641162872314453,
+      "checkpoint_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+      "config": {
+        "own_plan_mode": "none",
+        "action_history_mode": "none",
+        "vision_checkpoint_images": 12,
+        "memory_version": 2,
+        "perception_version": 2,
+        "views": 3,
+        "channels": 4,
+        "proprio_dim": 58,
+        "history": 4,
+        "stride": 3,
+        "horizon": 12,
+        "replan_steps": 6,
+        "hidden": 128,
+        "diffusion_steps": 100,
+        "inference_steps": 8
+      },
+      "selected_epoch": 49,
+      "selected_checkpoint_updates": 59829,
+      "optimizer_groups": [
+        {
+          "lr": 0.0001,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-8,
+          "weight_decay": 0.000001,
+          "amsgrad": false,
+          "maximize": false,
+          "foreach": null,
+          "capturable": false,
+          "differentiable": false,
+          "fused": null,
+          "decoupled_weight_decay": true
+        }
+      ],
+      "encoder_components": {
+        "vision": {
+          "total": 839552,
+          "requires_grad": 839552,
+          "frozen": 0
+        },
+        "proprio": {
+          "total": 3776,
+          "requires_grad": 3776,
+          "frozen": 0
+        },
+        "task": {
+          "total": 16,
+          "requires_grad": 16,
+          "frozen": 0
+        },
+        "plan": {
+          "total": 6048,
+          "requires_grad": 6048,
+          "frozen": 0
+        },
+        "context": {
+          "total": 6080,
+          "requires_grad": 6080,
+          "frozen": 0
+        },
+        "temporal": {
+          "total": 246528,
+          "requires_grad": 246528,
+          "frozen": 0
+        }
+      },
+      "rgbd_components": {
+        "rgb": {
+          "total": 683072,
+          "requires_grad": 683072,
+          "frozen": 0
+        },
+        "depth": {
+          "total": 94432,
+          "requires_grad": 94432,
+          "frozen": 0
+        },
+        "fuse": {
+          "total": 16576,
+          "requires_grad": 16576,
+          "frozen": 0
+        },
+        "keypoints": {
+          "total": 1040,
+          "requires_grad": 1040,
+          "frozen": 0
+        },
+        "grid": {
+          "total": 1040,
+          "requires_grad": 1040,
+          "frozen": 0
+        },
+        "output": {
+          "total": 43392,
+          "requires_grad": 43392,
+          "frozen": 0
+        }
+      }
+    },
+    "residual_b": {
+      "total": 1344597,
+      "requires_grad": 489125,
+      "frozen": 855472,
+      "components": {
+        "visual": {
+          "total": 1102000,
+          "requires_grad": 246528,
+          "frozen": 855472
+        },
+        "tactile": {
+          "total": 39880,
+          "requires_grad": 39880,
+          "frozen": 0
+        },
+        "intent": {
+          "total": 18240,
+          "requires_grad": 18240,
+          "frozen": 0
+        },
+        "intent_memory": {
+          "total": 24960,
+          "requires_grad": 24960,
+          "frozen": 0
+        },
+        "motion": {
+          "total": 40704,
+          "requires_grad": 40704,
+          "frozen": 0
+        },
+        "policy": {
+          "total": 118813,
+          "requires_grad": 118813,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 5.129230499267578,
+      "checkpoint_sha256": "0ce3ce5c7df77abfb79c557528b2869cbef38321ad9d1d6047046d73036ada8b",
+      "base_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+      "optimizer_updates": 7875,
+      "input_version": "residual_frozen_frame_memory2_v1",
+      "action_version": "gated_additive_native_command_v1",
+      "optimizer_parameter_count": 489125
+    },
+    "residual_c": {
+      "total": 1344597,
+      "requires_grad": 489125,
+      "frozen": 855472,
+      "components": {
+        "visual": {
+          "total": 1102000,
+          "requires_grad": 246528,
+          "frozen": 855472
+        },
+        "tactile": {
+          "total": 39880,
+          "requires_grad": 39880,
+          "frozen": 0
+        },
+        "intent": {
+          "total": 18240,
+          "requires_grad": 18240,
+          "frozen": 0
+        },
+        "intent_memory": {
+          "total": 24960,
+          "requires_grad": 24960,
+          "frozen": 0
+        },
+        "motion": {
+          "total": 40704,
+          "requires_grad": 40704,
+          "frozen": 0
+        },
+        "policy": {
+          "total": 118813,
+          "requires_grad": 118813,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 5.129230499267578,
+      "checkpoint_sha256": "8750ebb9f2595ee0af96abcbc44a414a73035a3e06f24e99093c777cce3899be",
+      "base_sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+      "optimizer_updates": 7875,
+      "input_version": "residual_frozen_frame_memory2_v1",
+      "action_version": "gated_additive_native_command_v1",
+      "optimizer_parameter_count": 489125
+    },
+    "b1": {
+      "total": 2166613,
+      "requires_grad": 2166613,
+      "frozen": 0,
+      "components": {
+        "visual": {
+          "total": 1102000,
+          "requires_grad": 1102000,
+          "frozen": 0
+        },
+        "tactile": {
+          "total": 39880,
+          "requires_grad": 39880,
+          "frozen": 0
+        },
+        "fusion": {
+          "total": 123648,
+          "requires_grad": 123648,
+          "frozen": 0
+        },
+        "denoiser": {
+          "total": 901085,
+          "requires_grad": 901085,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 8.264972686767578,
+      "checkpoint_sha256": "bb23694f94294b20a2bb21b0c260b3ebbd30f2e3ed6a6e22b2465a501b1c5cc2",
+      "config": {
+        "own_plan_mode": "none",
+        "action_history_mode": "none",
+        "vision_checkpoint_images": 12,
+        "memory_version": 2,
+        "perception_version": 2,
+        "views": 3,
+        "channels": 4,
+        "proprio_dim": 58,
+        "history": 4,
+        "stride": 3,
+        "horizon": 12,
+        "replan_steps": 6,
+        "hidden": 128,
+        "diffusion_steps": 100,
+        "inference_steps": 8
+      },
+      "selected_epoch": 49,
+      "selected_checkpoint_updates": 59829,
+      "optimizer_groups": [
+        {
+          "lr": 0.0001,
+          "betas": [
+            0.9,
+            0.999
+          ],
+          "eps": 1e-8,
+          "weight_decay": 0.000001,
+          "amsgrad": false,
+          "maximize": false,
+          "foreach": null,
+          "capturable": false,
+          "differentiable": false,
+          "fused": null,
+          "decoupled_weight_decay": true
+        }
+      ],
+      "encoder_components": {
+        "vision": {
+          "total": 839552,
+          "requires_grad": 839552,
+          "frozen": 0
+        },
+        "proprio": {
+          "total": 3776,
+          "requires_grad": 3776,
+          "frozen": 0
+        },
+        "task": {
+          "total": 16,
+          "requires_grad": 16,
+          "frozen": 0
+        },
+        "plan": {
+          "total": 6048,
+          "requires_grad": 6048,
+          "frozen": 0
+        },
+        "context": {
+          "total": 6080,
+          "requires_grad": 6080,
+          "frozen": 0
+        },
+        "temporal": {
+          "total": 246528,
+          "requires_grad": 246528,
+          "frozen": 0
+        }
+      },
+      "rgbd_components": {
+        "rgb": {
+          "total": 683072,
+          "requires_grad": 683072,
+          "frozen": 0
+        },
+        "depth": {
+          "total": 94432,
+          "requires_grad": 94432,
+          "frozen": 0
+        },
+        "fuse": {
+          "total": 16576,
+          "requires_grad": 16576,
+          "frozen": 0
+        },
+        "keypoints": {
+          "total": 1040,
+          "requires_grad": 1040,
+          "frozen": 0
+        },
+        "grid": {
+          "total": 1040,
+          "requires_grad": 1040,
+          "frozen": 0
+        },
+        "output": {
+          "total": 43392,
+          "requires_grad": 43392,
+          "frozen": 0
+        }
+      }
+    },
+    "deployment": {
+      "a": 2003085,
+      "b": 3347682,
+      "c": 3347682,
+      "note": "A mathematically uses B0 only; matched runner also loads and evaluates bypassed residual B. All deployment parameters are frozen; requires_grad columns above describe training construction."
+    }
+  },
+  "public": {
+    "dp_hybrid_lift": {
+      "total": 89317578,
+      "requires_grad": 89317578,
+      "frozen": 0,
+      "components": {
+        "obs_encoder": {
+          "total": 22394176,
+          "requires_grad": 22394176,
+          "frozen": 0
+        },
+        "model": {
+          "total": 66923402,
+          "requires_grad": 66923402,
+          "frozen": 0
+        },
+        "mask_generator": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        },
+        "normalizer": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 340.71952056884766,
+      "shape_meta": {
+        "obs": {
+          "agentview_image": {
+            "shape": [
+              3,
+              84,
+              84
+            ],
+            "type": "rgb"
+          },
+          "robot0_eye_in_hand_image": {
+            "shape": [
+              3,
+              84,
+              84
+            ],
+            "type": "rgb"
+          },
+          "robot0_eef_pos": {
+            "shape": [
+              3
+            ]
+          },
+          "robot0_eef_quat": {
+            "shape": [
+              4
+            ]
+          },
+          "robot0_gripper_qpos": {
+            "shape": [
+              2
+            ]
+          }
+        },
+        "action": {
+          "shape": [
+            10
+          ]
+        }
+      },
+      "obs_feature_dim": 137,
+      "denoiser": {
+        "total": 66923402,
+        "requires_grad": 66923402,
+        "frozen": 0,
+        "components": {
+          "mid_modules": {
+            "total": 22634496,
+            "requires_grad": 22634496,
+            "frozen": 0
+          },
+          "diffusion_step_encoder": {
+            "total": 131712,
+            "requires_grad": 131712,
+            "frozen": 0
+          },
+          "up_modules": {
+            "total": 15339008,
+            "requires_grad": 15339008,
+            "frozen": 0
+          },
+          "down_modules": {
+            "total": 28487168,
+            "requires_grad": 28487168,
+            "frozen": 0
+          },
+          "final_conv": {
+            "total": 331018,
+            "requires_grad": 331018,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 255.29251861572266
+      },
+      "encoder": {
+        "total": 22394176,
+        "requires_grad": 22394176,
+        "frozen": 0,
+        "components": {
+          "obs_nets": {
+            "total": 22394176,
+            "requires_grad": 22394176,
+            "frozen": 0
+          },
+          "obs_randomizers": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          },
+          "activation": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 85.427001953125
+      },
+      "method": "Unmodified pinned full policy constructor on CPU, robomimic 0.2.0; no checkpoint or rollout"
+    },
+    "dp_real_pusht": {
+      "total": 328915202,
+      "requires_grad": 328915202,
+      "frozen": 0,
+      "components": {
+        "obs_encoder": {
+          "total": 22353024,
+          "requires_grad": 22353024,
+          "frozen": 0
+        },
+        "model": {
+          "total": 306562178,
+          "requires_grad": 306562178,
+          "frozen": 0
+        },
+        "mask_generator": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        },
+        "normalizer": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 1254.7119216918945,
+      "shape_meta": {
+        "obs": {
+          "camera_1": {
+            "shape": [
+              3,
+              240,
+              320
+            ],
+            "type": "rgb"
+          },
+          "camera_3": {
+            "shape": [
+              3,
+              240,
+              320
+            ],
+            "type": "rgb"
+          },
+          "robot_eef_pose": {
+            "shape": [
+              2
+            ],
+            "type": "low_dim"
+          }
+        },
+        "action": {
+          "shape": [
+            2
+          ]
+        }
+      },
+      "obs_feature_dim": 1026,
+      "denoiser": {
+        "total": 306562178,
+        "requires_grad": 306562178,
+        "frozen": 0,
+        "components": {
+          "mid_modules": {
+            "total": 101777408,
+            "requires_grad": 101777408,
+            "frozen": 0
+          },
+          "diffusion_step_encoder": {
+            "total": 131712,
+            "requires_grad": 131712,
+            "frozen": 0
+          },
+          "up_modules": {
+            "total": 69782528,
+            "requires_grad": 69782528,
+            "frozen": 0
+          },
+          "down_modules": {
+            "total": 133557248,
+            "requires_grad": 133557248,
+            "frozen": 0
+          },
+          "final_conv": {
+            "total": 1313282,
+            "requires_grad": 1313282,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 1169.4419021606445
+      },
+      "encoder": {
+        "total": 22353024,
+        "requires_grad": 22353024,
+        "frozen": 0,
+        "components": {
+          "key_model_map": {
+            "total": 22353024,
+            "requires_grad": 22353024,
+            "frozen": 0
+          },
+          "key_transform_map": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 85.27001953125
+      },
+      "method": "Pinned full policy, topology unmodified; denoiser factory uses meta device, CPU encoder, deployment DDIM16 override"
+    },
+    "rdp_peel_wrench": {
+      "total": 198169296,
+      "requires_grad": 198169296,
+      "frozen": 0,
+      "components": {
+        "obs_encoder": {
+          "total": 11176512,
+          "requires_grad": 11176512,
+          "frozen": 0
+        },
+        "model": {
+          "total": 186992784,
+          "requires_grad": 186992784,
+          "frozen": 0
+        },
+        "mask_generator": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        },
+        "normalizer": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 755.9558715820312,
+      "mutated_model_shape_meta": {
+        "obs": {
+          "left_wrist_img": {
+            "shape": [
+              3,
+              240,
+              320
+            ],
+            "type": "rgb"
+          },
+          "left_robot_tcp_pose": {
+            "shape": [
+              3
+            ],
+            "type": "low_dim"
+          },
+          "left_robot_gripper_width": {
+            "shape": [
+              1
+            ],
+            "type": "low_dim"
+          },
+          "left_robot_tcp_wrench": {
+            "shape": [
+              6
+            ],
+            "type": "low_dim"
+          }
+        },
+        "extended_obs": {
+          "left_robot_tcp_wrench": {
+            "shape": [
+              6
+            ],
+            "type": "low_dim"
+          }
+        },
+        "action": {
+          "shape": [
+            16
+          ]
+        }
+      },
+      "obs_feature_dim": 522,
+      "latent_horizon": 8,
+      "latent_channels": 16,
+      "effective_kernel": 3,
+      "tokenizer": {
+        "encoder": {
+          "total": 1316,
+          "requires_grad": 1316,
+          "frozen": 0
+        },
+        "decoder": {
+          "total": 7044,
+          "requires_grad": 7044,
+          "frozen": 0
+        },
+        "quant": {
+          "total": 160,
+          "requires_grad": 160,
+          "frozen": 0
+        },
+        "post_quant": {
+          "total": 68,
+          "requires_grad": 68,
+          "frozen": 0
+        }
+      },
+      "tokenizer_total": 8588,
+      "complete_including_tokenizer": 198177884,
+      "deployed_tokenizer_decoder_only": 7112,
+      "denoiser": {
+        "total": 186992784,
+        "requires_grad": 186992784,
+        "frozen": 0,
+        "components": {
+          "mid_modules": {
+            "total": 59965440,
+            "requires_grad": 59965440,
+            "frozen": 0
+          },
+          "diffusion_step_encoder": {
+            "total": 131712,
+            "requires_grad": 131712,
+            "frozen": 0
+          },
+          "up_modules": {
+            "total": 45239296,
+            "requires_grad": 45239296,
+            "frozen": 0
+          },
+          "down_modules": {
+            "total": 80860160,
+            "requires_grad": 80860160,
+            "frozen": 0
+          },
+          "final_conv": {
+            "total": 796176,
+            "requires_grad": 796176,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 713.3208618164062
+      },
+      "encoder": {
+        "total": 11176512,
+        "requires_grad": 11176512,
+        "frozen": 0,
+        "components": {
+          "key_model_map": {
+            "total": 11176512,
+            "requires_grad": 11176512,
+            "frozen": 0
+          },
+          "key_transform_map": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 42.635009765625
+      },
+      "method": "Pinned full LDP constructor with meta-device denoiser factory; topology unmodified. CPU encoder/AT. AT is not an nn.Module and is counted separately; actual non-VQ latent channels=16, latent horizon=8, kernel=3."
+    },
+    "implicitrdp_flip_wrench": {
+      "total": 95006541,
+      "requires_grad": 95006541,
+      "frozen": 0,
+      "components": {
+        "rnn_obs_encoder": {
+          "total": 1192704,
+          "requires_grad": 1192704,
+          "frozen": 0
+        },
+        "obs_encoder": {
+          "total": 21689408,
+          "requires_grad": 21689408,
+          "frozen": 0
+        },
+        "model": {
+          "total": 72124429,
+          "requires_grad": 72124429,
+          "frozen": 0
+        },
+        "normalizer": {
+          "total": 0,
+          "requires_grad": 0,
+          "frozen": 0
+        }
+      },
+      "fp32_parameter_mib": 362.42119216918945,
+      "shape_meta": {
+        "obs": {
+          "right_wrist_img": {
+            "shape": [
+              3,
+              360,
+              640
+            ],
+            "type": "rgb"
+          },
+          "right_robot_tcp_pose": {
+            "shape": [
+              6
+            ],
+            "type": "low_dim"
+          },
+          "right_robot_tcp_wrench": {
+            "shape": [
+              6
+            ],
+            "type": "low_dim"
+          }
+        },
+        "extended_obs": {
+          "right_robot_tcp_wrench": {
+            "shape": [
+              6
+            ],
+            "type": "low_dim"
+          }
+        },
+        "action": {
+          "shape": [
+            13
+          ]
+        }
+      },
+      "obs_token_shape": [
+        1,
+        102,
+        768
+      ],
+      "denoiser": {
+        "total": 72124429,
+        "requires_grad": 72124429,
+        "frozen": 0,
+        "components": {
+          "input_emb": {
+            "total": 10752,
+            "requires_grad": 10752,
+            "frozen": 0
+          },
+          "drop": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          },
+          "time_emb": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          },
+          "cond_obs_emb": {
+            "total": 590592,
+            "requires_grad": 590592,
+            "frozen": 0
+          },
+          "encoder": {
+            "total": 4722432,
+            "requires_grad": 4722432,
+            "frozen": 0
+          },
+          "decoder_blocks": {
+            "total": 66162432,
+            "requires_grad": 66162432,
+            "frozen": 0
+          },
+          "ln_f": {
+            "total": 1536,
+            "requires_grad": 1536,
+            "frozen": 0
+          },
+          "head": {
+            "total": 9997,
+            "requires_grad": 9997,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 275.13286209106445
+      },
+      "encoder": {
+        "total": 21689408,
+        "requires_grad": 21689408,
+        "frozen": 0,
+        "components": {
+          "key_model_map": {
+            "total": 21284672,
+            "requires_grad": 21284672,
+            "frozen": 0
+          },
+          "key_transform_map": {
+            "total": 0,
+            "requires_grad": 0,
+            "frozen": 0
+          },
+          "key_projection_map": {
+            "total": 404736,
+            "requires_grad": 404736,
+            "frozen": 0
+          }
+        },
+        "fp32_parameter_mib": 82.738525390625
+      },
+      "method": "Unmodified full policy constructor; CPU timm ResNet34 encoder/force GRU, meta transformer; no official checkpoint; 224-square transform from stored 360x640 RGB"
+    }
+  },
+  "revisions": {
+    "dp": "real-stanford/diffusion_policy@5ba07ac6661db573af695b419a7947ecb704690f",
+    "rdp": "xiaoxiaoxh/reactive_diffusion_policy@824c5e8de1fd1811106907a04b5f0186e0138c0b",
+    "implicitrdp": "Chen-Wendi/ImplicitRDP@112d6857d914c5dee4c4c172790088adc6bdc3a5"
+  },
+  "dependencies": {
+    "torch": "2.7.0+cu128",
+    "torchvision": "0.22.0+cu128",
+    "robomimic": "0.2.0",
+    "timm": "1.0.15",
+    "diffusers": "0.39.0",
+    "einops": "0.8.2"
+  },
+  "import_limitations": [
+    "Unused optional peft import replaced by a sentinel that raises on use; none of the selected architectures uses LoRA. No upstream source or shared installation was edited.",
+    "timm is unpinned upstream; this census fixes 1.0.15. DP robomimic uses its declared 0.2.0. PyTorch/torchvision are the installed versions, not author training environments."
+  ],
+  "loaded_source_sha256": {
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/common/pytorch_util.py": "96ce50e191b4c837532529040af65d2b9a1f433f33a5187f8cf256b62d84b6b4",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/common/dict_of_tensor_mixin.py": "158b63a244bcfb9aa377206730f5f59778c6aeb9138ff55c76d2c28ec46952d1",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/common/normalizer.py": "92322852fc04d956d0dd43a2e41fb461dee246bbf97ddc7940186a9307525ed3",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/common/module_attr_mixin.py": "658dececa20f7628960fc1a8db89e4be3693e1bba47f63d1ff8a4faa2d481e45",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/base_image_policy.py": "32fd3fe35e2827f4472e195381e642dd8d78f4f0038f4f9625e0128c76e1aecd",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/diffusion/conv1d_components.py": "ea2aa10e297cf253bc1a1919ba47fe6ae32049b5eaaab292ed9cc145d8d2adc0",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/diffusion/positional_embedding.py": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/diffusion/conditional_unet1d.py": "8a95014f8aa52ade086f967c9018a66bf0c68f2133969c8f7a8522da01b472ac",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/diffusion/mask_generator.py": "23dba4c112ed57e41d530612c79d9841c9b3c5bd3d6790863d1739190a9ab7b0",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/common/robomimic_config_util.py": "e782f9ba46ea433a77dfe95525a879bcf3033969f07ba9f776268c247e8a8a30",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/common/tensor_util.py": "751b042aa5390ddf1f5b6220a465dfa20dbb9304e3c057f04512d6ee55f4e1b1",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/vision/crop_randomizer.py": "85787b6becd337352c2a1795f1e77be977c073134f91c3d0924b9d0e36c92978",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py": "d8ead767ed3b1501c358aa3dd97ab479ebdf77a62ec9ab7081d6a2211c2d2e76",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/vision/multi_image_obs_encoder.py": "d0b02e56142804bbaec766896d8f903e251bd643d117d075512737132cd6638c",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/model/vision/model_getter.py": "1040afebde10070f68e658a00241e8190bfa152e353c1d20675375e2d7e6dd30",
+    "diffusion_policy-5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_image_policy.py": "00d6767fcbc965a6e7a38ef4ae143116122e5b189ae381f082cdc6f817ca09c9",
+    "rdp/reactive_diffusion_policy/model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "rdp/reactive_diffusion_policy/model/common/tensor_util.py": "751b042aa5390ddf1f5b6220a465dfa20dbb9304e3c057f04512d6ee55f4e1b1",
+    "rdp/reactive_diffusion_policy/model/vision/crop_randomizer.py": "66d58e62ea7cdb4a3f122d5ac067dfddfc572e2cc2e296877ce15ebcbea66fee",
+    "rdp/reactive_diffusion_policy/model/common/module_attr_mixin.py": "658dececa20f7628960fc1a8db89e4be3693e1bba47f63d1ff8a4faa2d481e45",
+    "rdp/reactive_diffusion_policy/common/pytorch_util.py": "96ce50e191b4c837532529040af65d2b9a1f433f33a5187f8cf256b62d84b6b4",
+    "rdp/reactive_diffusion_policy/model/vision/multi_image_obs_encoder.py": "23e3730aa99ee52219ada2b5581b96b464bacbda9d8b9a898424fa816dbd0f16",
+    "rdp/reactive_diffusion_policy/model/vision/model_getter.py": "1040afebde10070f68e658a00241e8190bfa152e353c1d20675375e2d7e6dd30",
+    "rdp/reactive_diffusion_policy/model/common/dict_of_tensor_mixin.py": "158b63a244bcfb9aa377206730f5f59778c6aeb9138ff55c76d2c28ec46952d1",
+    "rdp/reactive_diffusion_policy/model/common/normalizer.py": "3a8f2f401bdd79d15e5f9a8f698899ae99eedd48f6d16e010389139a5a38c154",
+    "rdp/reactive_diffusion_policy/model/common/shape_util.py": "0143d9c5cddb7f47f9db017d74aa415c39e19148e5f960dd7129dd172ebbcbca",
+    "rdp/reactive_diffusion_policy/model/vae/vector_quantize_pytorch/vector_quantize_pytorch.py": "415d7eebb6316deb58179b55087216f92b1b72c3b7177874378c61d2b8133e59",
+    "rdp/reactive_diffusion_policy/model/vae/vector_quantize_pytorch/residual_vq.py": "df807fb77893c0ae6528d36daf852a1760a9e092ae06bf7603575c86210e3b3e",
+    "rdp/reactive_diffusion_policy/model/vae/distributions.py": "02108322dea5e497e874fa04bff68e4a6a340215154735061bca6daee5f87e94",
+    "rdp/reactive_diffusion_policy/model/vae/utils.py": "e7d360ac6cbed5e17c423fd7a896750726deb4ad206cd859d352bb3775a661f8",
+    "rdp/reactive_diffusion_policy/model/vae/model.py": "e01ff6024442673ed34125f840e456652c1314cd465acd7880b99af8781d73bd",
+    "rdp/reactive_diffusion_policy/policy/base_image_policy.py": "75c952aef1a4021a74c4a6041780dcbedfa61efd40222adde1843cd2f2c006e3",
+    "rdp/reactive_diffusion_policy/model/diffusion/conv1d_components.py": "e3117bde00314e37b2240583b2013a61a80ad7c848a45ec6c13715dd8e9b02ab",
+    "rdp/reactive_diffusion_policy/model/diffusion/positional_embedding.py": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+    "rdp/reactive_diffusion_policy/model/diffusion/conditional_unet1d.py": "34b629c7d3cd068a36f429cd3a3bb60fcc464dee38989ff80ba1900877f5ff84",
+    "rdp/reactive_diffusion_policy/model/diffusion/mask_generator.py": "179a517fa43422fb529073110540ae7c7dbf0598a339a1e01d8d7c9af4948146",
+    "rdp/reactive_diffusion_policy/model/vision/choice_randomizer.py": "969d00a65c941789b63f4bb65900fc582014a97a8b88db33cb4e0cc605ef7eeb",
+    "rdp/reactive_diffusion_policy/model/vision/timm_obs_encoder.py": "2d0f975f46443667038dc602da09c008cc2a24be372d3d42df84224b7da526f2",
+    "rdp/reactive_diffusion_policy/policy/diffusion_unet_image_policy.py": "9dfe5a0d0258d9dc79b07862327cfa00dd51387f3a7b1ef57ea2ab2b9d994479",
+    "rdp/reactive_diffusion_policy/policy/latent_diffusion_unet_image_policy.py": "9b19affcbf1263887183fa750ea269107b0bd4d9f576ff102a7587ce1e00572c",
+    "irdp/ImplicitRDP/model/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "irdp/ImplicitRDP/model/common/module_attr_mixin.py": "658dececa20f7628960fc1a8db89e4be3693e1bba47f63d1ff8a4faa2d481e45",
+    "irdp/ImplicitRDP/common/pytorch_util.py": "96ce50e191b4c837532529040af65d2b9a1f433f33a5187f8cf256b62d84b6b4",
+    "irdp/ImplicitRDP/model/vision/transformer_obs_encoder.py": "2ad09942becbd4d127ca1923990460405e7899a48ea850db06cf2e8a82066bbf",
+    "irdp/ImplicitRDP/model/diffusion/positional_embedding.py": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+    "irdp/ImplicitRDP/model/diffusion/transformer_utils.py": "351a576f4a99b6a32be8ad82a2e3ad2edc530d030b8431b552838d8a7ea32bc8",
+    "irdp/ImplicitRDP/model/diffusion/transformer_for_diffusion.py": "8140249bf6692ed070163456d2ce3a5dd63f101c9971e803f141e26d03c8cc2b",
+    "irdp/ImplicitRDP/model/common/dict_of_tensor_mixin.py": "158b63a244bcfb9aa377206730f5f59778c6aeb9138ff55c76d2c28ec46952d1",
+    "irdp/ImplicitRDP/model/common/normalizer.py": "65149b9aff14151eb8b8351a508b0bff55130815b5bdead2856a6b7154a3930d",
+    "irdp/ImplicitRDP/policy/base_image_policy.py": "7442d0ccced103df8c12f33c0701af716f926188556aef7344aa8d1019d88e51",
+    "irdp/ImplicitRDP/model/common/tensor_util.py": "751b042aa5390ddf1f5b6220a465dfa20dbb9304e3c057f04512d6ee55f4e1b1",
+    "irdp/ImplicitRDP/model/vision/crop_randomizer.py": "3a8e16c8080976aa0bfd09b5f7872abc7fc619ad9023b7266a7febcf65c8d74a",
+    "irdp/ImplicitRDP/model/vision/multi_image_obs_encoder.py": "fad04212e338779a9fbf4242a923edf6988407d745e8a8dc94390248325a392e",
+    "irdp/ImplicitRDP/model/vision/choice_randomizer.py": "969d00a65c941789b63f4bb65900fc582014a97a8b88db33cb4e0cc605ef7eeb",
+    "irdp/ImplicitRDP/model/vision/timm_obs_encoder.py": "a3e0f33f2466806f06044ec7c638d8b968f239a3e91d54e74821221edaed3253",
+    "irdp/ImplicitRDP/model/force/rnn.py": "dd7bd18e9305215db9cde3152aa26874b9859ca27cb81aa2fb53d8f604cb0751",
+    "irdp/ImplicitRDP/policy/diffusion_transformer_image_policy.py": "988dd74d80561409c2f2ee0e355e27d7a869fed0c4d5eecd1dca7731ec76ff18"
+  },
+  "census_source_sha256": "968443da7da0b33f85894659c9c42954e47bbc91c6ddc0a7b2a2a390c95b62ef",
+  "verified_upstream_sources": [
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/common/pytorch_util.py",
+      "sha256": "96ce50e191b4c837532529040af65d2b9a1f433f33a5187f8cf256b62d84b6b4",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/common/dict_of_tensor_mixin.py",
+      "sha256": "158b63a244bcfb9aa377206730f5f59778c6aeb9138ff55c76d2c28ec46952d1",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/common/normalizer.py",
+      "sha256": "92322852fc04d956d0dd43a2e41fb461dee246bbf97ddc7940186a9307525ed3",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/common/module_attr_mixin.py",
+      "sha256": "658dececa20f7628960fc1a8db89e4be3693e1bba47f63d1ff8a4faa2d481e45",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/policy/base_image_policy.py",
+      "sha256": "32fd3fe35e2827f4472e195381e642dd8d78f4f0038f4f9625e0128c76e1aecd",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/diffusion/conv1d_components.py",
+      "sha256": "ea2aa10e297cf253bc1a1919ba47fe6ae32049b5eaaab292ed9cc145d8d2adc0",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/diffusion/positional_embedding.py",
+      "sha256": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/diffusion/conditional_unet1d.py",
+      "sha256": "8a95014f8aa52ade086f967c9018a66bf0c68f2133969c8f7a8522da01b472ac",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/diffusion/mask_generator.py",
+      "sha256": "23dba4c112ed57e41d530612c79d9841c9b3c5bd3d6790863d1739190a9ab7b0",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/common/robomimic_config_util.py",
+      "sha256": "e782f9ba46ea433a77dfe95525a879bcf3033969f07ba9f776268c247e8a8a30",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/common/tensor_util.py",
+      "sha256": "751b042aa5390ddf1f5b6220a465dfa20dbb9304e3c057f04512d6ee55f4e1b1",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/vision/crop_randomizer.py",
+      "sha256": "85787b6becd337352c2a1795f1e77be977c073134f91c3d0924b9d0e36c92978",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/policy/diffusion_unet_hybrid_image_policy.py",
+      "sha256": "d8ead767ed3b1501c358aa3dd97ab479ebdf77a62ec9ab7081d6a2211c2d2e76",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/vision/multi_image_obs_encoder.py",
+      "sha256": "d0b02e56142804bbaec766896d8f903e251bd643d117d075512737132cd6638c",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/model/vision/model_getter.py",
+      "sha256": "1040afebde10070f68e658a00241e8190bfa152e353c1d20675375e2d7e6dd30",
+      "verified": true
+    },
+    {
+      "repository": "real-stanford/diffusion_policy",
+      "commit": "5ba07ac6661db573af695b419a7947ecb704690f",
+      "path": "diffusion_policy/policy/diffusion_unet_image_policy.py",
+      "sha256": "00d6767fcbc965a6e7a38ef4ae143116122e5b189ae381f082cdc6f817ca09c9",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/common/tensor_util.py",
+      "sha256": "751b042aa5390ddf1f5b6220a465dfa20dbb9304e3c057f04512d6ee55f4e1b1",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vision/crop_randomizer.py",
+      "sha256": "66d58e62ea7cdb4a3f122d5ac067dfddfc572e2cc2e296877ce15ebcbea66fee",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/common/module_attr_mixin.py",
+      "sha256": "658dececa20f7628960fc1a8db89e4be3693e1bba47f63d1ff8a4faa2d481e45",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/common/pytorch_util.py",
+      "sha256": "96ce50e191b4c837532529040af65d2b9a1f433f33a5187f8cf256b62d84b6b4",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vision/multi_image_obs_encoder.py",
+      "sha256": "23e3730aa99ee52219ada2b5581b96b464bacbda9d8b9a898424fa816dbd0f16",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vision/model_getter.py",
+      "sha256": "1040afebde10070f68e658a00241e8190bfa152e353c1d20675375e2d7e6dd30",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/common/dict_of_tensor_mixin.py",
+      "sha256": "158b63a244bcfb9aa377206730f5f59778c6aeb9138ff55c76d2c28ec46952d1",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/common/normalizer.py",
+      "sha256": "3a8f2f401bdd79d15e5f9a8f698899ae99eedd48f6d16e010389139a5a38c154",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/common/shape_util.py",
+      "sha256": "0143d9c5cddb7f47f9db017d74aa415c39e19148e5f960dd7129dd172ebbcbca",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vae/vector_quantize_pytorch/vector_quantize_pytorch.py",
+      "sha256": "415d7eebb6316deb58179b55087216f92b1b72c3b7177874378c61d2b8133e59",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vae/vector_quantize_pytorch/residual_vq.py",
+      "sha256": "df807fb77893c0ae6528d36daf852a1760a9e092ae06bf7603575c86210e3b3e",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vae/distributions.py",
+      "sha256": "02108322dea5e497e874fa04bff68e4a6a340215154735061bca6daee5f87e94",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vae/utils.py",
+      "sha256": "e7d360ac6cbed5e17c423fd7a896750726deb4ad206cd859d352bb3775a661f8",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vae/model.py",
+      "sha256": "e01ff6024442673ed34125f840e456652c1314cd465acd7880b99af8781d73bd",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/policy/base_image_policy.py",
+      "sha256": "75c952aef1a4021a74c4a6041780dcbedfa61efd40222adde1843cd2f2c006e3",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/diffusion/conv1d_components.py",
+      "sha256": "e3117bde00314e37b2240583b2013a61a80ad7c848a45ec6c13715dd8e9b02ab",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/diffusion/positional_embedding.py",
+      "sha256": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/diffusion/conditional_unet1d.py",
+      "sha256": "34b629c7d3cd068a36f429cd3a3bb60fcc464dee38989ff80ba1900877f5ff84",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/diffusion/mask_generator.py",
+      "sha256": "179a517fa43422fb529073110540ae7c7dbf0598a339a1e01d8d7c9af4948146",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vision/choice_randomizer.py",
+      "sha256": "969d00a65c941789b63f4bb65900fc582014a97a8b88db33cb4e0cc605ef7eeb",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/model/vision/timm_obs_encoder.py",
+      "sha256": "2d0f975f46443667038dc602da09c008cc2a24be372d3d42df84224b7da526f2",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/policy/diffusion_unet_image_policy.py",
+      "sha256": "9dfe5a0d0258d9dc79b07862327cfa00dd51387f3a7b1ef57ea2ab2b9d994479",
+      "verified": true
+    },
+    {
+      "repository": "xiaoxiaoxh/reactive_diffusion_policy",
+      "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+      "path": "reactive_diffusion_policy/policy/latent_diffusion_unet_image_policy.py",
+      "sha256": "9b19affcbf1263887183fa750ea269107b0bd4d9f576ff102a7587ce1e00572c",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/common/module_attr_mixin.py",
+      "sha256": "658dececa20f7628960fc1a8db89e4be3693e1bba47f63d1ff8a4faa2d481e45",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/common/pytorch_util.py",
+      "sha256": "96ce50e191b4c837532529040af65d2b9a1f433f33a5187f8cf256b62d84b6b4",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/vision/transformer_obs_encoder.py",
+      "sha256": "2ad09942becbd4d127ca1923990460405e7899a48ea850db06cf2e8a82066bbf",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/diffusion/positional_embedding.py",
+      "sha256": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/diffusion/transformer_utils.py",
+      "sha256": "351a576f4a99b6a32be8ad82a2e3ad2edc530d030b8431b552838d8a7ea32bc8",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/diffusion/transformer_for_diffusion.py",
+      "sha256": "8140249bf6692ed070163456d2ce3a5dd63f101c9971e803f141e26d03c8cc2b",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/common/dict_of_tensor_mixin.py",
+      "sha256": "158b63a244bcfb9aa377206730f5f59778c6aeb9138ff55c76d2c28ec46952d1",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/common/normalizer.py",
+      "sha256": "65149b9aff14151eb8b8351a508b0bff55130815b5bdead2856a6b7154a3930d",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/policy/base_image_policy.py",
+      "sha256": "7442d0ccced103df8c12f33c0701af716f926188556aef7344aa8d1019d88e51",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/common/tensor_util.py",
+      "sha256": "751b042aa5390ddf1f5b6220a465dfa20dbb9304e3c057f04512d6ee55f4e1b1",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/vision/crop_randomizer.py",
+      "sha256": "3a8e16c8080976aa0bfd09b5f7872abc7fc619ad9023b7266a7febcf65c8d74a",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/vision/multi_image_obs_encoder.py",
+      "sha256": "fad04212e338779a9fbf4242a923edf6988407d745e8a8dc94390248325a392e",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/vision/choice_randomizer.py",
+      "sha256": "969d00a65c941789b63f4bb65900fc582014a97a8b88db33cb4e0cc605ef7eeb",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/vision/timm_obs_encoder.py",
+      "sha256": "a3e0f33f2466806f06044ec7c638d8b968f239a3e91d54e74821221edaed3253",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/model/force/rnn.py",
+      "sha256": "dd7bd18e9305215db9cde3152aa26874b9859ca27cb81aa2fb53d8f604cb0751",
+      "verified": true
+    },
+    {
+      "repository": "Chen-Wendi/ImplicitRDP",
+      "commit": "112d6857d914c5dee4c4c172790088adc6bdc3a5",
+      "path": "ImplicitRDP/policy/diffusion_transformer_image_policy.py",
+      "sha256": "988dd74d80561409c2f2ee0e355e27d7a869fed0c4d5eecd1dca7731ec76ff18",
+      "verified": true
+    }
+  ]
+}
