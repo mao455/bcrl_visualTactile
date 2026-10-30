@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 import shutil
 
+import numpy as np
+
 from .compact import sha256
 from .residual_data import BASE_HASH
 from .training_resources import atomic_json
@@ -37,6 +39,28 @@ def resource_summary(path):
         min_ram_available_gib=min(row['ram_available_bytes'] for row in rows)/1024**3,
         started_epoch=rows[0]['utc_epoch'], finished_epoch=rows[-1]['utc_epoch'],
         scope='whole card including unrelated workloads; sampled means, not a quota or process attribution')
+
+
+def paired_trace_summary(root, trials):
+    lookup = {(row['mode'], row['seed'], row['variant']): row for row in trials}
+    comparisons = []
+    for (mode, seed, variant), row in lookup.items():
+        reference = lookup.get((mode, seed, 'a'))
+        if variant == 'a' or reference is None or 'trace_sha256' not in row or 'trace_sha256' not in reference:
+            continue
+        with np.load(root / (reference['attempt']+'.npz')) as first, np.load(root / (row['attempt']+'.npz')) as second:
+            common = min(len(first['command']), len(second['command']))
+            prefix = min(reference['prefix_steps'], row['prefix_steps'])
+            switch = row['switch_step']
+            comparisons.append(dict(mode=mode, seed=seed, reference='a', variant=variant, common_steps=common,
+                first_command_max_abs=float(np.abs(first['command'][0]-second['command'][0]).max()),
+                whole_command_max_abs=float(np.abs(first['command'][:common]-second['command'][:common]).max()),
+                both_observed_gate_always_off=bool(not first['gate'].any() and not second['gate'].any()),
+                expert_prefix_commands_equal=bool(prefix == reference['prefix_steps'] == row['prefix_steps'] and
+                    np.array_equal(first['command'][:prefix], second['command'][:prefix])) if mode=='expert_rollin' else None,
+                switch_nominal_max_abs=float(np.abs(first['base'][switch]-second['base'][switch]).max())
+                    if switch is not None and switch == reference['switch_step'] and switch < common else None))
+    return comparisons
 
 
 def main():
@@ -98,6 +122,8 @@ def main():
     aggregate['training_configuration'] = {name:value for name,value in full['source_and_config'].items()
         if name not in ('pid', 'source_sha256', 'parameter_counts')}
     aggregate['closed_loop_source'] = {name:launch[name] for name in ('source_commit', 'source_sha256', 'checkpoints')}
+    aggregate['paired_trace_comparisons'] = paired_trace_summary(root / 'closed_loop', closed['trials'])
+    aggregate['limitations'].append('matched physical resets do not guarantee pixel-identical observations or bitwise policy replay; action differences alone are not residual effects')
     aggregate['final_disk_free_bytes'] = shutil.disk_usage(root).free
     aggregate['disk_scope'] = '12 GB reserve checked before work; final free space is not a recorded continuous minimum'
     preservation = root / 'preservation.json'

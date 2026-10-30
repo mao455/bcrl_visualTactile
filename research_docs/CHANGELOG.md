@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-10-30 — 已记录轨迹的配对重放限制
+
+首组自主A/B均601步无接触、无首子目标/抬升，且每步无接触输出逐位等于各自base；
+物理初态误差0，但首命令最大差.011999、全程最大差.096404。不能将此差异归因于未激活的残差。
+同一已存示范输入的cache/online因果等价仍通过；本次没有保存逐像素配对输入，具体重放差异来源未验证。
+不为追查追加rollout、不修改原生wrapper。`residual_report.py`新增只读NPZ配对摘要，
+单列首命令、整段差异、专家prefix一致与switch时nominal差异，避免把同seed误称逐位重放。
+
 ## 2026-10-30 — 完整离线训练与一次held-out test完成
 
 B/C各5完整epoch、7,875更新、320独立episode/1,600次完整遍历；B的validation选第5轮，C保持同轮。
