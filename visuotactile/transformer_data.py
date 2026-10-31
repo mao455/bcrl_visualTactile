@@ -260,6 +260,9 @@ def main():
     admission = json.loads((root/'dp_closed_loop/report.json').read_text())
     if not admission['complete']:
         raise ValueError('Base closed-loop contact assessment is incomplete')
+    from .evaluate_study import allocation
+    residual_trials = allocation(root,'residual')
+    atomic_json(root/'residual_trial_allocation.json',dict(trials=residual_trials,allocated_before_residual_training=True))
     directory = root/'transformer_cache'
     directory.mkdir(exist_ok=False)
     lease = StudyLease(root)

@@ -26,6 +26,8 @@ def allocation(root, phase):
     if phase=='dp':
         return [dict(seed=seed,line=line,mode='autonomous',variant='dp')
                 for seed in session['seeds'] for line in session['dp_lines']]
+    if (root/'residual_trial_allocation.json').exists():
+        return json.loads((root/'residual_trial_allocation.json').read_text())['trials']
     report = json.loads((root/'dp_closed_loop/report.json').read_text())
     history = json.loads((root/selected['G00']/'metrics.json').read_text())
     validation = min(history,key=lambda row:row['validation']['selection_mse'])['validation']

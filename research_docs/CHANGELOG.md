@@ -13,6 +13,7 @@ BF16多步GRU与逐tick差异传播到reference0.172144rad，尚未生成正式�
 完整失败预检结果留本地。逐tick修正后的25真实观察GPU名义plan/command/history差0，
 非零残差head的GPU batch/streaming输出差1.78814e−7、memory差3.57628e−7；残差统一FP32，共828,189参数。
 当前只证明实现与局部测试，不宣称Transformer训练或收益完成。
+残差缓存前依据完整DP诊断和validation固定剩余6次自主/局部分配并落盘；训练后不按残差结果再选择种子或模式。
 
 ## 2026-10-31 — 配对损失实现、真实接口验收与启动
 
