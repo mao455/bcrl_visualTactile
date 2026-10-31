@@ -82,6 +82,13 @@ RAM/显存压力时保存已有CPU断点，不在低余量时再复制大型chec
 UVTA固定源码许可证MIT；本次只阅读、未复制实现。GitHub API触发403限流后，用稀疏只读clone核查固定提交。
 TouchWorld的58维mask具体索引未在已读材料中展开，保持未知；不把论文参数直接填入本项目配置。
 
+官方DP同pin的`config/train_diffusion_unet_hybrid_workspace.yaml`还明确AdamW1e−4、betas(.95,.999)、
+wd1e−6、cosine/warmup500、EMA inv_gamma1/power.75/min0/max.9999；
+`model/diffusion/ema_model.py`的step计数与本地`update_ema`核对一致。这些是所选公开配置，不是所有DP实验通用超参。
+官方该例为H16/commit8、epsilon/100步推理、clip_sample=True；本轮保持原候选H64/commit12、sample/DDIM16、
+clip_sample=False及既有limits归一化。绝对arm参考可能略越限，执行经原生命令/控制器限制；
+本轮不同时改这些因素。官方checkpoint monitor配置不是本轮选模规则，本轮只用固定validation前缀指标。
+
 ## 实际结果
 
 第一阶段：真实旧epoch40 EMA权重、145个完整连续观察跨两秒边界，CPU历史前向+实际GPU DDIM采样，
@@ -114,3 +121,22 @@ step12条件最大差0.014226，step24参考差0.172144rad，已执行前缀命�
 小残差网络训练/验证/部署统一FP32，并额外检查GPU batch/streaming，不把CPU结果充当GPU证明。
 同一非零head在GPU的输出/持续状态batch-streaming最大差1.78814e−7/3.57628e−7；
 独立残差实际828,189参数（不含冻结DINO/nominal）。最终选定G00权重后还会再次验收，预检不替代正式缓存验收。
+进一步扩大到145个真实观察跨两秒窗口：名义命令/reference/私有history最大差仍0；
+CPU残差输出/记忆差1.78814e−7/3.27826e−7，GPU差1.19209e−7/4.17233e−7，均通过预定阈值。
+
+### G00配对续训完成（G10及闭环仍运行/待运行）
+
+两条均完成12完整train320遍历、9,984更新；A/B各自耗时1698.38/1709.09秒（并行共享lease，不能相加当wall）。
+原epoch40 EMA的val40前12arm/hand为0.962260/0.504293，零命令0.953035/0.924980。
+
+| G00线 | validation选定额外epoch | 选定额外更新 | 前12 arm RMSE | 前12 hand RMSE | H64 arm RMSE | H64 hand RMSE |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| A | 8 | 6656 | 0.951643 | 0.517129 | 1.135070 | 0.728337 |
+| B | 12 | 9984 | 0.917858 | 0.508648 | 1.115963 | 0.717122 |
+
+表均为EMA、validation40、归一化native命令单位；完整训练预算相同，validation选择的checkpoint时刻可不同。
+B相对A的前12arm下降约3.55%，hand下降约1.64%；相对续训起点，B的arm改善约4.61%，hand仍略差约0.86%。
+不能称继续训练让每个动作分量都改善。A后段接近平台，B的arm也在末几轮趋于平台，hand仍缓慢下降。
+B选定时固定train16/val40前12arm为0.809004/0.917858、hand0.449987/0.508648，存在泛化差距；
+这是固定16条诊断子集，不是整个train320的评估，不能单凭该差距断言整体过拟合。
+G10已接续；本小节不包含尚未生成的test或自主成功结果。

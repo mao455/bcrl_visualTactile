@@ -39,7 +39,7 @@ def audit_generated_episode(root, row, record, saved, lease, output_name='transf
     controller.generator.manual_seed(record['policy_noise_seed'])
     command_error = plan_error = action_error = 0.
     per_plan = []
-    length = min(25,len(record['time']))
+    length = min(145,len(record['time']))
     with h5py.File(MANIFEST.parent/row['directory']/'data.h5','r') as stream:
         group = stream['episodes'][row['episode']]
         def at(name,step):

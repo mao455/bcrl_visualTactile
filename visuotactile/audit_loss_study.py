@@ -131,6 +131,9 @@ def main():
     manifest = Path('outputs/visuotactile/data/close_v4/manifest.json')
     protected['manifest_unchanged'] = sha256(manifest)==original_cache['manifest_sha256']
     protected['original_B0_unchanged'] = sha256(Path('outputs/visuotactile/run/dp_command_20261029/b0/best.pt'))==original_cache['source_split_sha256']
+    historical = json.loads(Path('research_docs/evidence/baseline_final_20261030.json').read_text())
+    protected['original_B1_unchanged'] = sha256(Path('outputs/visuotactile/run/dp_command_20261029/b1/best.pt'))==historical['variants']['b1']['checkpoint_sha256']
+    protected['formal_report_unchanged'] = sha256(Path('outputs/visuotactile/run/dp_command_20261029/evaluation/report.json'))=='a93cba0f89fbc501e6f43bf94e8176edccce26dbf47ab6e72a690112302f9366'
     initial = json.loads((root/'initial_sources.json').read_text())
     for group in ('G00','G10'):
         protected[group+'_epoch40_unchanged'] = sha256(Path(session['source_root'])/(group+'-new_full/best.pt'))==initial[group]
