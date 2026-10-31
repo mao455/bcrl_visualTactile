@@ -1,5 +1,27 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-10-31 — T0真实事件重放与冻结DP验收完成
+
+最新入口`T0_REPLAY_AND_DP_CONTROL_FIX.md`，小证据`evidence/t0_replay_20261031`。
+唯一root `outputs/visuotactile/run/t0_control_replay_20261031_01`，13:58:18–14:34:57UTC，原4h截止未延长。
+12历史T0+4源world坐标+新expert/v1replay/v2replay3次+16DP=35starts完成；所有worker/monitor退出并查/proc。
+原方法0/4；fixed delay1/4、delay+wrench v1 1/4，全部fixed命令/index/delayed/target逐字节相同。
+源world2/4成功但物理超容差；四条首个object z差step1为1.19209e−7m，源四lane内部积分/contact状态仍不完整。
+新seed17专家220步成功；首版实际world重投影在首次force tick174造成误差。native-request v2消除额外坐标往返，
+新Kit相同样本220步成功，control/q/qd/子步q/qd/object/wrench/stage全逐字节相同；不扩展成历史全通过。
+
+DP真实1,005步reference/native往返最大target误差4.76837e−7rad，普通adapter/history/model无需修改，无第二层delay、无训练。
+G00-B/G10-B固定v1事件和正常随机各0/4，共16条601timeout，无native lift/子目标；approach proxy各3/4，grasp/align未独立证实。
+新9,616逐tick输入、816个H64计划/cursor/执行反馈核验通过；stage和原始报告全部独立保存，不与正式0/50混合。
+本次DP和历史组启动代码是actual_world v1，只有fresh_exact跑native_request v2；launch源码hash保留，不能回填最终代码身份。
+
+原生仅新增显式历史index7行，原随机draw/queue/math保持；研究sim wrapper无diff。
+外围修复kinematic速度API与depth_m记录别名；31项测试、12个Python AST、五条源request/body重建通过。
+整卡均值20.6873%、最大完整60秒26.8527%、missing/事件0，最低free VRAM16593MiB/RAM27.0068GiB，磁盘约74.98GB。
+worker累计wait125.34s/pacing193.99s可能重叠；monitor wait0不代表worker无等待。旧会话违规不撤销。
+原manifest/B0/B1/正式报告/epoch40/G00-B/G10-B重新hash保持；原400图像全hash复用既有证据。
+本轮交付代码/文档/小统计已获当前origin feature提交推送授权；不得上传raw outputs/权重/日志或自动增加试验。
+
 ## 2026-10-31 — 完整系统审计与局部修复完成
 
 从a07d0aa干净feature开始。本轮主入口SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT、PROJECT_FILE_MAP、

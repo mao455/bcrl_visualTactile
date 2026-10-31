@@ -98,7 +98,7 @@ def test_native_hook_preserves_pinned_upstream_targets_queue_and_rng():
 
 def test_diagnostic_snapshot_records_native_tick_without_rng_or_state_changes(tmp_path):
     packet=dict(episode_id=torch.tensor([9]),step_id=torch.tensor([1]),time_s=torch.tensor([1/60]),
-        image=torch.zeros(1,3,4,2,2),depth_valid=torch.ones(1,3,1,2,2,dtype=torch.bool),
+        image=torch.zeros(1,3,4,2,2),depth_m=torch.zeros(1,3,1,2,2),depth_valid=torch.ones(1,3,1,2,2,dtype=torch.bool),
         contact_valid=torch.tensor([True]),contact_substeps_w_N=torch.ones(1,2,5,3),
         contact_time_s=torch.tensor([[1/120,1/60]]),finger_position_base_m=torch.ones(1,2,5,3),
         proprio=torch.zeros(1,58))

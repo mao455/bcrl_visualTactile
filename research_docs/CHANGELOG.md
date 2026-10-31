@@ -1,5 +1,24 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 专用T0历史事件重放与DP接口验收
+
+- 新增`replay_events.py`/`sim/replay_environment.py`与`evaluate_recorded_replay.py`：源lane历史delay、
+  子步wrench、三种T0模式、冻结DP固定事件/正常随机；原native draw保留，原queue/target/physics数学不改。
+  `action_utils.py`仅7行显式index校验覆盖；原研究sim wrapper无diff。`study_resources.py`识别本轮自有worker。
+- 新增`replay_fresh.py`导出独立成功expert初态tensor/实际PhysX属性与完整数值源；
+  v1 actual-world额外坐标往返在非零force tick174产生FP32偏差，v2 native-request经源body重建校验后消除。
+  新Kit对同一220步成功样本的控制、q/qd、子步q/qd/object、wrench、stage全逐位一致；不宣称完整PhysX序列化。
+- 历史12条T0 original0/4、delay1/4、delay+wrench1/4；fixed控制链误差0，但物理超容差。
+  额外源world坐标2/4成功；首次物体z差定位step1的1.19209e−7m，四lane隐藏状态仍未完全恢复。
+  不改变原400或历史成功/正式0/50，不把删失标native timeout。
+- 新增`audit_replay_control.py`：真实1,005步pre-delay/reference/native往返，target最大4.76837e−7rad；
+  DP普通adapter/history/model无需修改，不加delay层、不重训。`analyze_recorded_replay.py`输出首差/曲线/输入反馈核验。
+- 修复record2 live depth_m别名重复dataset；近似restore不向kinematic body写动态速度。
+  新`test_recorded_replay.py`和原`test_system_audit.py`覆盖真实wrench精度、队列/RNG/首步/子目标、记录形状/别名；
+  六文件31项测试通过，既有requests警告1条；增加正负零/dtype与逐字节报告核验。源码AST通过，真实Kit与CPU证据分开。
+- 更新主报告、合约、历史/架构/文件地图、有效性矩阵与用户方向。冻结DP16条最终结果和资源/退出状态见
+  `T0_REPLAY_AND_DP_CONTROL_FIX.md`及`evidence/t0_replay_20261031`；原保护文件逐项hash保持。
+
 ## 2026-10-31 — 审计后Loss B默认与未来诊断记录修复
 
 - 文档首版6022330先推送审阅，再完成以下外围改动；不改原生controller/physics/reset/DR/task或sim wrapper。

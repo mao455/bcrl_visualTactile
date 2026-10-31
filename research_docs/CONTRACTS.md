@@ -1,5 +1,18 @@
 # Audited contracts
 
+## 2026-10-31专用历史事件重放与DP语义验收
+
+详见[T0_REPLAY_AND_DP_CONTROL_FIX](T0_REPLAY_AND_DP_CONTROL_FIX.md)。原生控制只新增显式`_recorded_delay_index`：
+保留原randint消耗，再验证shape/long/device/queue范围并覆盖index；正常路径不设置该字段。
+`RecordedReplayEnv`为独立single CPU physics/world_hold评估子类，不改变原任务或研究wrapper。
+actual_world(v1)与native_request(v2)是不同版本；v2要求原请求/源quat计算的body buffer逐位等于记录，
+运行使用当前quat，杜绝额外world/body往返，不给学生注入专家状态。
+DP人工matched事件用完后循环原块，正常部署继续原生随机delay/wrench；分别报告结果。
+H64/commit12、120/60Hz、reference/pre-delay、旧checkpoint和normalizer不变；1,005步真实数据native往返最大target误差4.76837e−7rad。
+历史四条fixed控制链误差0，但仅1/4成功且轨迹超容差；源坐标2/4同样不精确。新单lane220步在新Kit逐位重现。
+历史exact验收仍未通过，不把新样本的有限验收扩展到所有PhysX状态或原400。
+record2 live深度别名已修复并完成真实Kit记录；普通路径/数学/记录/外力精度/严格bytes等31项定向测试通过。
+
 ## 2026-10-31系统与历史有效性审计
 
 主合同解释见SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT。原400数字链重新检查全部81,894步：

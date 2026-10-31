@@ -1,5 +1,14 @@
 # Architecture and staged acceptance gates
 
+## 2026-10-31 recorded replay acceptance
+
+`evaluate_recorded_replay` adds an isolated `RecordedReplayEnv` over the unchanged research wrapper.
+Explicit historical delay selection preserves the native draw, queue and target math; historical wrench injection is per physics step.
+The normal DP adapter/model/history contract is unchanged and requires no extra delay or retraining.
+Historical four-lane observable restoration still fails exact trajectory acceptance; one new single-lane220-step expert replay
+matches all measured control/physical fields bitwise after removing a redundant wrench coordinate roundtrip.
+See [measured scope, code paths and results](T0_REPLAY_AND_DP_CONTROL_FIX.md); no new network architecture or residual research.
+
 ## 2026-10-31完整系统审计
 
 [SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT](SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)

@@ -33,7 +33,7 @@ def write_policy_step(stream, step, packet, snapshot, command, controller=None):
     stream.attrs['torch_version'] = str(torch.__version__)
     group = stream.create_group(str(step))
     for name,value in packet.items():
-        if not torch.is_tensor(value):
+        if not torch.is_tensor(value) or name == 'depth_m':
             continue
         if name == 'image':
             if step%12 == 0:

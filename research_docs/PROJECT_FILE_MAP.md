@@ -1,5 +1,23 @@
 # 研究项目逐文件地图
 
+## 2026-10-31 T0重放补充入口
+
+原下文AST清单保留上次审计身份。本轮新增路径及真实I/O如下；完整运行SHA见
+[T0小证据](evidence/t0_replay_20261031/results.json)，主解释见[T0报告](T0_REPLAY_AND_DP_CONTROL_FIX.md)。
+
+| 文件 | 输入 → 输出/调用 |
+|---|---|
+| visuotactile/replay_events.py | 源HDF5 index/request/actual wrench → 已校验事件、误差摘要 |
+| visuotactile/sim/replay_environment.py | 显式事件 → 原生queue选择与world_hold施力；只读子步物理记录 |
+| visuotactile/evaluate_recorded_replay.py | 新session/历史数据/冻结DP → Kit T0/DP独立phase、HDF5/NPZ/JSON |
+| visuotactile/replay_fresh.py | released RL expert → 独立成功样本、可导出初态/物理属性、同样本replay |
+| visuotactile/audit_replay_control.py | 四条真实pre-delay/target → reference往返及native queue/target数值证据 |
+| visuotactile/analyze_recorded_replay.py | 已跑本地轨迹 → 首差、阶段、DP输入合同、误差图和小JSON |
+| tests/test_recorded_replay.py | 原生队列/RNG、真实非零wrench精度、事件边界、记录shape回归 |
+
+修改的既有入口：action_utils显式index、evaluate_training_initials的kinematic API、diagnostic_recording深度别名、
+study_resources自有worker识别；普通DP模型/适配/数据接口不变。下文历史原生“只读hook”描述不包含此次明确授权的index覆盖。
+
 历史审计基线为 a07d0aa；文档首版6022330后按本轮最终工作树刷新，包含Loss B及诊断记录修复。此表覆盖全部 visuotactile Python/shell、研究测试、实际原生任务/配置及专家加载入口。
 每项列出路径、源码定义行、静态模块依赖/调用者、潜在 I/O 调用及关联文档/测试。依赖是 AST import 图，不冒充完整动态调用图；CLI、注册表和 shell 子进程调用另见下方主链。
 所有源文件 SHA256、完整定义和依赖在 [file_inventory.json](evidence/system_audit_20261031/file_inventory.json)。第三方完整源码不逐文件复制。

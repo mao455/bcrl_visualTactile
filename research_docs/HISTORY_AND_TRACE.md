@@ -1,5 +1,16 @@
 # 持续历史、动作来源与时间合约
 
+## 2026-10-31记录事件的真实Kit重放
+
+历史index来自源lane记录，不能由重复动作值反推；新专用覆盖保留每tick原随机draw与原生queue更新。
+T0提交原pre-delay，不能提交delayed后再次进入延迟，也不能直接写target。
+源实际world/body wrench、quat与原请求分别保留；native_request核验原body后经当前姿态world_hold执行，
+actual_world旧版会增加浮点坐标往返，源非零force tick174已有真实反例。
+新增每物理子步只读q/qd/object；新expert导出初态tensor/实际物理属性，仍不声称完整solver序列化。
+record2每tick输入/执行反馈和每12tick完整plan已在真实Kit写入；depth_m别名只保留image派生的一份。
+本次DP旧权重保持过去issued/delayed反馈，下一tick才使用；没有增加随机延迟层。
+完整证据、v1/v2运行身份与历史四lane限制见[T0报告](T0_REPLAY_AND_DP_CONTROL_FIX.md)。
+
 ## 2026-10-31控制与随机流复核
 
 原生delay每tick抽取num_envs个index，queue长度3、lag0..2；首步填满u0，index与effective age不同。

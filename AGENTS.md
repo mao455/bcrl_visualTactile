@@ -1,5 +1,41 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — 2026-10-31 T0 replay and frozen DP control validation
+
+Read T0_REPLAY_AND_DP_CONTROL_FIX and latest SESSION_HANDOFF. All35 allocated
+starts resolved in36m39s; all owned Kit workers and monitor exited14:34:57UTC.
+Historical T0 original0/4, delay1/4, delay+wrench1/4; fixed control fields bytewise
+equal, but physical trajectories exceed tolerance. Source-world diagnostic2/4
+also only reproduces outcomes. Earliest historical object z difference at step1
+is1.19209e-7m; missing four-lane internal state remains unresolved.
+Fresh expert seed17 and corrected native-request replay in a new Kit both succeed
+220steps, all compared control and physical fields bytewise equal. Actual-world
+v1 had redundant world/body roundtrip at first force tick174; preserve its results.
+DP G00-B/G10-B each0/4 in both fixed-v1 and ordinary native modes, all601timeouts,
+no lift/subgoal. No DP adapter/model/history/normalizer change, extra delay or training.
+31 focused tests and9,616 DP input/816 plan contract checks pass; protected hashes hold.
+Whole-card mean20.6873%,max complete60s26.8527%,missing/incidents0; VRAM/RAM reserves held.
+Native code only adds explicit recorded-index override after retained random draw;
+ordinary path and research wrapper physics are unchanged. Historical4lane exact
+acceptance is still unproven. No automatic reruns, new starts or parameter updates.
+
+## Current override — 2026-10-31 recorded T0 replay and DP control validation
+
+User explicitly authorizes an opt-in historical delay-index and per-physics-step
+wrench replay mode, actual Kit T0 original/delay/wrench comparisons, then existing
+G00/G10 checkpoint closed-loop comparisons and reviewed feature commit/push.
+Ordinary RL/DP keeps its native random delay and wrench; no new residual research.
+Read T0_REPLAY_AND_DP_CONTROL_FIX. Fresh session t0_control_replay_20261031_01:
+one4h monitored window,12 T0 plus16 DP starts, at most7 additional diagnostic starts
+only for unresolved T0 (4 origin, new expert/replay,1 coordinate-roundtrip fix).
+The seventh was added after fresh tick174 identified a concrete wrench roundtrip;
+the original deadline is unchanged. This explicit new
+cohort supersedes the previous completed audit's12-start bound, not resource caps.
+No parameter updates unless a substantive training-label error is demonstrated.
+No per-step state forcing, native target bypass, task/asset/physics modifications.
+Whole-card mean/complete60s<=50%, target38%,4GiB VRAM/10GiB RAM/disk reserves.
+Preserve all original400, checkpoints, splits and formal results; no unrelated jobs.
+
 ## Current override — 2026-10-31 system and experiment audit
 
 User authorizes a documentation-first complete architecture/control/data/history

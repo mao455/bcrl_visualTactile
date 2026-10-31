@@ -46,6 +46,13 @@ def apply_action_pipeline(env, actions: torch.Tensor) -> None:
         delay_idx = torch.randint(
             0, env._action_queue.shape[1], (env.num_envs,), device=env.device
         )
+        recorded_index = getattr(env, "_recorded_delay_index", None)
+        if recorded_index is not None:
+            if (recorded_index.shape != delay_idx.shape or recorded_index.dtype != torch.long
+                    or recorded_index.device != delay_idx.device
+                    or (recorded_index < 0).any() or (recorded_index >= env._action_queue.shape[1]).any()):
+                raise ValueError("Recorded replay delay index violates the native queue contract")
+            delay_idx = recorded_index.clone()
         actions = env._action_queue[
             torch.arange(env.num_envs, device=env.device), delay_idx
         ]

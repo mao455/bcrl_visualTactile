@@ -1,5 +1,10 @@
 # 完整系统架构、控制接口与历史实验审计
 
+后续真实Kit证据见[T0重放与DP控制报告](T0_REPLAY_AND_DP_CONTROL_FIX.md)。本文件下文为b367bba阶段审计快照。
+本轮专用delay/wrench模式已使历史四条控制链一致，原生显式index是最新授权的7行改动；普通路径与研究wrapper保持。
+历史精确物理验收仍未通过；新单lane样本经native-request修复后220步观测轨迹逐位重现。
+DP语义无新增接口bug，旧权重保持，record2已完成真实Kit验收；旧“无新GPU/Kit”仅指本文件原审计阶段。
+
 审计日期：2026-10-31，时间使用 Asia/Shanghai。起点 `a07d0aa789ad1ac9c7fc769e6cb22921d8cf9513`，
 分支 `feature/trained-tactile-residual`，起始工作树干净。本文是当前系统说明；历史文档中的“当前训练中”不代表实时状态。
 文档首版已由 `6022330` 提交并推送；本文已更新为局部修复完成状态。没有启动新训练、Kit 或 GPU 实验；新仿真分配为 0/12。

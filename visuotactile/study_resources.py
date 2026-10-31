@@ -28,7 +28,8 @@ def owned_workers(root):
             supplied = Path(arguments[arguments.index('--root')+1]).resolve()
             modules = ('visuotactile.train_loss_study','visuotactile.study_audit',
                        'visuotactile.train_transformer_residual','visuotactile.evaluate_study',
-                       'visuotactile.transformer_data','visuotactile.evaluate_training_initials')
+                       'visuotactile.transformer_data','visuotactile.evaluate_training_initials',
+                       'visuotactile.evaluate_recorded_replay')
             if supplied == root.resolve() and any(module in arguments for module in modules):
                 result.append(int(path.parent.name))
         except (OSError,ValueError,IndexError):

@@ -5,6 +5,16 @@ Verified=在明确范围内关键接口实测；Qualified=结果真实但解释�
 Unverified=证据不足。重跑只对未来确需使用的无效声明，不代表自动重做所有旧实验。
 原400、固定320/40/40、全部权重与旧正式各0/50不修改。
 
+## 后续证据 — 专用T0事件重放
+
+下方各历史分母保持，最新详见[T0_REPLAY_AND_DP_CONTROL_FIX](T0_REPLAY_AND_DP_CONTROL_FIX.md)。
+新12条T0：original0/4、delay_fixed1/4、delay_wrench_fixed v1 1/4；fixed控制链误差0是**Verified**，
+历史完整物理轨迹仍超容差，精确重放声明仍**Unverified**。源世界坐标额外2/4成功也是**Qualified**结果重现。
+新seed17专家与native_request v2在新Kit中均220步成功，所有已比较控制和物理字段逐位相同；
+此单lane观测轨迹重现**Verified**，不等于历史4lane/完整PhysX状态验收。
+源400有效性不受影响；DP1,005步reference/native控制数学通过，无双重延迟，无普通controller修改或重训。
+新增DP16条独立报告，不并入旧T1/T2或正式0/50；record2获得真实Kit整轨迹验收，替代下方当时“尚无新Kit”的状态。
+
 ## 1. 身份和共同接口
 
 原manifest为`outputs/visuotactile/data/close_v4/manifest.json`，SHA256

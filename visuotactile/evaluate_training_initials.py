@@ -45,7 +45,10 @@ def restore_observable_state(env, group, metadata):
         pose[:,:3]+=target_origin-original_origin
         body=getattr(env,name)
         body.write_root_pose_to_sim(pose)
-        body.write_root_velocity_to_sim(initial[velocity] if velocity else torch.zeros(1,6))
+        if name=='object':
+            body.write_root_velocity_to_sim(initial[velocity])
+        elif velocity and bool(initial[velocity].abs().max()>0):
+            raise ValueError('Nonzero recorded kinematic velocity cannot be restored through a dynamic-body API')
         if name in ('table','hole'):
             env._kinematic_reset_poses[name]=pose[:,:3].clone()
     permutation=env._perm_canon_to_lab
