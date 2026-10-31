@@ -1,5 +1,24 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 配对损失实现、真实接口验收与启动
+
+新增study_metrics/train_loss_study/run_loss_study/study_resources/study_audit/plot_loss_study，
+原模型/normalizer/历史代码不改；Loss A/B独立优化器/EMA/随机状态和新cosine，完整episode断点可恢复。
+long_resources增加可配置的更保守准入（旧默认不变），新watchdog在违规时记录、暂停全部自有GPU lease并降目标。
+细分原生命令/参考rad/归一参考、arm/hand/五指、前12/H64/逐位置指标，固定train16/val40诊断和独立一次test。
+研究计划先于代码建立，默认四线各12遍；真实epoch40接口回放通过，DINO缓存误差0、命令往返2.38419e−6。
+命令`bash visuotactile/run_cpu.sh -m pytest -q tests/test_loss_study.py tests/test_long_resources.py tests/test_long_horizon.py tests/test_training_resources.py`
+19通过；py_compile/diff检查通过。G00 pilot各11更新完成后开始正式配对；尚未完成四线或Transformer。
+plot入口仅读已存统计；缺失的旧train/分指曲线不补造。外部论文/固定源码差异及验证局限在主报告中。
+
+## 2026-10-31 — DP损失/Transformer任务预登记
+
+先于新代码建立DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md，记录用户新授权、Loss A/B的单变量边界、
+四线各12遍/9984更新、新AdamW/cosine、前12步validation选模、6小时窗口和最多18次诊断。
+实际canonical手指关节数量5/4/4/4/5，本轮B保留22维均权，逐指只作指标，不混入额外消融。
+旧40遍没有保存的逐epoch train/分指/前缀细项标缺失；允许train/val补测旧最终权重，不补造历史。
+初始HEAD/远端7a592ad一致，工作树干净、旧worker退出；当前尚未执行新参数训练。
+
 ## 2026-10-31 — 长预测训练与六条诊断最终归档
 
 后台流程03:41:43 UTC+8已结束；G00-new/G10-new各40完整遍历/33,280更新，validation选epoch40 EMA，

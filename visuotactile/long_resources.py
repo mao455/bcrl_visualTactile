@@ -90,12 +90,15 @@ class Lease:
                     state = json.loads(state_path.read_text()) if state_path.exists() else {}
                     state = update_pacing(state,row,target)
                     atomic_json(state_path,state)
+                    admission = min(45.,float(settings.get('admission_percent',45.)))
+                    free_mib = max(6144.,float(settings.get('min_gpu_free_mib',6144.)))
+                    ram_bytes = max(14.,float(settings.get('min_ram_gib',14.)))*1024**3
                     safe = (time.time()-row['utc_epoch'] < 4 and row['gpu_free_mib'] is not None
-                            and row['gpu_free_mib'] >= 6144 and row['ram_available_bytes'] >= 14*1024**3
+                            and row['gpu_free_mib'] >= free_mib and row['ram_available_bytes'] >= ram_bytes
                             and report['gpu_time_weighted_mean_percent'] is not None
-                            and report['gpu_time_weighted_mean_percent'] <= 45
-                            and row['rolling_60s_percent'] is not None and row['rolling_60s_percent'] <= 45
-                            and (state['short_mean_percent'] is None or state['short_mean_percent']<=45))
+                            and report['gpu_time_weighted_mean_percent'] <= admission
+                            and row['rolling_60s_percent'] is not None and row['rolling_60s_percent'] <= admission
+                            and (state['short_mean_percent'] is None or state['short_mean_percent']<=admission))
                 except (FileNotFoundError, ValueError, KeyError, TypeError):
                     safe = False
                 if safe:

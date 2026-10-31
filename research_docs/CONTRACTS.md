@@ -1,5 +1,13 @@
 # Audited contracts
 
+## 2026-10-31配对损失研究
+
+本轮A/B均固定sample/x0、同一旧epoch40 EMA/normalizer，独立新AdamW/cosine及RNG，额外12遍/9984更新。
+A按29维均权，B先7Darm/22Dhand各自平均再各50%；尾部按实际有效目标数，无时间权重/额外动作loss。
+validation以EMA前12步arm/hand等权native MSE选模，保留H64/每指/每位置指标；test各线仅最终一次。
+新checkpoint仍用candidate2执行接口，另记录study_line/additional_updates/source_sha256，原checkpoint不覆盖。
+细节见DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031；Transformer部署契约必须在训练前独立登记。
+
 ## 2026-10-30 candidate2：H64绝对参考和明确历史
 
 G00-new/G10-new与B0/B1/residual旧checkpoint隔离，固定H64/replan12；原120/60Hz不变。

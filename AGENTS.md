@@ -1,5 +1,17 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-10-31 DP loss comparison and Transformer residual
+
+User explicitly authorizes new paired DP A/B continuation, independent trained
+Transformer correction, bounded diagnostics, curves and origin feature push.
+Read DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md before changing this stage.
+Use one new run/session with a six-hour total window; no deadline reset.
+Freeze all native control/physics/DR/reset/reward/timeout and sim wrapper.
+Original400/split/bests/formal results protected. Both losses use sample/x0,
+same starting epoch40 EMA, fresh optimizers/schedules, equal paired budgets.
+Whole-card batch/complete60s means<=50%, target35–40%; reserve4GiB/10GiB.
+Historical no-new-training clauses below do not override this explicit task.
+
 ## Completed — 2026-10-31 long-horizon candidates
 
 Pipeline finished at03:41:43 Asia/Singapore; all owned workers/monitor exited.

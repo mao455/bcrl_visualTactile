@@ -1,5 +1,15 @@
 # 当前会话交接：有限插入数据集（2026-10-28）
 
+## 当前任务 — 2026-10-31 DP损失对照与Transformer
+
+用户新附件授权实际四线配对续训及独立Transformer，覆盖下方旧阶段结束限制。主报告
+DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md；root outputs/visuotactile/run/dp_loss_trt_20261031_01。
+唯一窗口03:01:47–09:01:47 UTC（11:01:47–17:01:47 UTC+8），DP截止06:01:47 UTC，训练截止08:01:47 UTC。
+原40遍权重接口数值验收通过、G00 pilot A/B各11更新完成，当前G00-A/B各12遍/9984更新正式运行；随后G10。
+owner3287451/monitor3287455仅为启动快照，必须查实际/proc和pipeline；所有GPU工作共享lease。
+资源目标38/准入42%，6GiB/16GiB准入、4GiB/10GiB硬余量，独立watchdog违规暂停并记录；旧产物和控制只读。
+四线test与闭环/残差均尚未完成；downstream注册前owner只等待，不宣称未实现阶段会自动完成。
+
 ## 最终接续 — 2026-10-31长预测候选已结束
 
 03:41:43 Asia/Singapore流程完成，当前所有自有owner/trainer/仿真/monitor已退出，无待运行阶段。
