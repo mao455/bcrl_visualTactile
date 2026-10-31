@@ -16,6 +16,12 @@ plot_loss_study补每个共同seed的自主高度、指端距离、累计观测�
 离线动作误差图标题明确teacher-forced target转换，避免与自主实际控制误差混淆。
 首条完整601步trace的有限值/命令/原始plan/60Hz/专家prefix核查通过，实际生成并查看新增进展图；
 四线已完成同预算续训及test一次，主报告补完整数值。全cohort审计待全部结束后执行。
+最终审计补逐条历史epoch40初态比较及从原telemetry计算最低空闲VRAM/可用RAM和超限60秒样本数；
+12条与旧对应初态最大差均0，旧G10抬升轨迹未保存actual wrench，不能据本轮信息反推旧掉落原因。
+DP完整cohort12条audit_traces通过、G10-B视频601帧全解码；各0/3，G10-B有7.6863cm短暂高度提升但无原生lift。
+选定G00-B缓存145步真实验收通过；正式force/masked训练尚待400缓存完成。
+plot_loss_study补用户关注的G10 seed981004事件PNG/小CSV：峰值前后高度、按实际contact_bodies命名的五指力、
+arm/hand命令变化、实际外力/力矩；区分观察前/动作后/步内时间。合约补触觉slot顺序与动作分组顺序的区别。
 
 ## 2026-10-31 — 独立Transformer实现与真实数据预检
 

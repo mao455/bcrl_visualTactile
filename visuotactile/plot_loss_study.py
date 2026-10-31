@@ -12,6 +12,57 @@ import numpy as np
 from .training_resources import atomic_json
 
 
+def plot_dp_lift_event(root, output, trials):
+    selected = json.loads((root/'selected.json').read_text())['selected']['G10']
+    trial = next((row for row in trials if row['line']==selected and row['seed']==981004 and 'trace' in row),None)
+    if trial is None:
+        return
+    directory = root/'dp_closed_loop'
+    with np.load(directory/trial['trace']) as trace, np.load(directory/(trial['attempt']+'_initial.npz')) as initial:
+        peak = trial['height_peak_step']
+        indices = np.arange(max(0,peak-60),min(trial['steps'],peak+61))
+        height = trace['object_pose'][:,2]-float(initial['object_initial_z_m'])
+        forces = np.linalg.norm(trace['force'],axis=-1).max(axis=1)
+        difference = np.diff(trace['command'],axis=0,prepend=trace['command'][:1])
+        arm_jump = np.sqrt(np.mean(difference[:,:7]**2,axis=1))
+        hand_jump = np.sqrt(np.mean(difference[:,7:]**2,axis=1))
+        external_force = np.linalg.norm(trace['applied_force_w_N'],axis=-1).max(axis=(1,2))
+        external_torque = np.linalg.norm(trace['applied_torque_w_Nm'],axis=-1).max(axis=(1,2))
+        rows = [dict(step=int(step),height_after_step_m=float(height[step]),gate_before_step=bool(trace['gate'][step]),
+            arm_command_change_rms=float(arm_jump[step]),hand_command_change_rms=float(hand_jump[step]),
+            actual_force_peak_N=float(external_force[step]),actual_torque_peak_Nm=float(external_torque[step]),
+            **{f'sensor{finger}_force_before_N':float(forces[step,finger]) for finger in range(5)}) for step in indices]
+    with (output/'dp_G10_lift_event.csv').open('w',newline='') as stream:
+        writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    figure,axes = plt.subplots(5,1,figsize=(11,10),sharex=True)
+    axes[0].plot(indices,height[indices],label=selected+' object height after step')
+    axes[0].axhline(.05,color='grey',linestyle=':')
+    bodies = json.loads((root/'metadata.json').read_text())['contact_bodies']
+    for finger,body in enumerate(bodies):
+        axes[1].plot(indices,forces[indices,finger],label=body)
+    axes[2].plot(indices,arm_jump[indices],label='arm')
+    axes[2].plot(indices,hand_jump[indices],label='hand')
+    axes[3].plot(indices,external_force[indices],label='actual applied force')
+    axes[4].plot(indices,external_torque[indices],label='actual applied torque')
+    axes[3].set_ylim(0,max(1.,float(external_force.max())*1.1))
+    axes[4].set_ylim(0,max(1.,float(external_torque.max())*1.1))
+    for axis,label in zip(axes,('Height change\n(m)','Finger force\n(N)',
+                               'Command change\nRMS','Applied force\n(N)','Applied torque\n(Nm)')):
+        axis.set_ylabel(label)
+        axis.axvline(peak,color='red',linestyle=':',alpha=.5)
+        if trial['first_drop_below_2cm_after_5cm'] is not None:
+            axis.axvline(trial['first_drop_below_2cm_after_5cm'],color='black',linestyle='--',alpha=.5)
+        axis.grid(alpha=.2)
+        axis.legend(fontsize=7)
+    axes[-1].set_xlabel('Native control step; red = peak height, black = drop below reset +2cm')
+    figure.suptitle(selected+' seed981004; measured associations, no identified drop cause\nForces observed before action; height after action; external wrench sampled within the step',fontsize=10)
+    figure.tight_layout(rect=(0,0,1,.94))
+    figure.savefig(output/'dp_G10_lift_event.png',dpi=150)
+    plt.close(figure)
+
+
 def plot_dp_closed_loop(root, output):
     directory = root/'dp_closed_loop'
     path = directory/'trials.json'
@@ -50,6 +101,7 @@ def plot_dp_closed_loop(root, output):
             writer = csv.DictWriter(stream,fieldnames=list(summaries[0]))
             writer.writeheader()
             writer.writerows(summaries)
+    plot_dp_lift_event(root,output,trials)
 
 
 def plot_residual(root, output):

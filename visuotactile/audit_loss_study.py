@@ -157,6 +157,21 @@ def main():
     for phase in ('dp','residual'):
         result[phase+'_closed_loop'] = json.loads((root/(phase+'_closed_loop/trials.json')).read_text())
         result['verification'][phase] = audit_traces(root,phase)
+    historical_directory = Path(session['source_root'])/'closed_loop'
+    historical_comparison = []
+    for trial in result['dp_closed_loop']:
+        if 'trace' not in trial:
+            continue
+        previous_path = historical_directory/f'{trial["line"][:3]}-new_s{trial["seed"]}_initial.npz'
+        with np.load(previous_path) as previous, np.load(root/'dp_closed_loop'/(trial['attempt']+'_initial.npz')) as current:
+            require(set(previous.files)==set(current.files),'Historical initial-state fields differ')
+            error = max(float(np.max(np.abs(current[name].astype(float)-previous[name].astype(float))))
+                        for name in current.files)
+        historical_comparison.append(dict(attempt=trial['attempt'],initial_max_error=error,
+            historical_initial_sha256=sha256(previous_path),saved_initial_match=error<=1e-5))
+    result['historical_dp_comparison'] = dict(initials=historical_comparison,
+        scope='saved physical/target/DR initial states; rendered images and trajectories are not claimed bitwise equal',
+        prior_lift_trial='G10-new_s981004; old trace lacks actual-wrench telemetry, so old drop cause remains unidentified')
     protected = {}
     original_cache = json.loads((root/'cache_index.json').read_text())
     manifest = Path('outputs/visuotactile/data/close_v4/manifest.json')
@@ -172,6 +187,13 @@ def main():
     result['protected'] = protected
     incidents = root/'resource_incidents.jsonl'
     result['resource_incident_records'] = len(incidents.read_text().splitlines()) if incidents.exists() else 0
+    telemetry = [json.loads(line) for line in (root/'resources/resources.jsonl').read_text().splitlines()]
+    free_vram = [row['gpu_free_mib'] for row in telemetry if row['gpu_free_mib'] is not None]
+    result['sampled_reserves'] = dict(min_gpu_free_mib=min(free_vram) if free_vram else None,
+        min_ram_available_bytes=min(row['ram_available_bytes'] for row in telemetry),
+        complete60_samples_above_50=sum(row['rolling_60s_percent'] is not None and row['rolling_60s_percent']>50
+                                      for row in telemetry),
+        scope='whole-card/system samples; no per-process GPU attribution')
     work_by_pid = {}
     for line in (root/'work.jsonl').read_text().splitlines():
         entry = json.loads(line)

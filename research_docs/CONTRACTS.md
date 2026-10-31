@@ -14,6 +14,8 @@ validation以EMA前12步arm/hand等权native MSE选模，保留H64/每指/每位
 按当前cursor屏蔽，未来controller target不进入input。视觉来自选定G00冻结投影，q/qd、当前target/tracking、
 严格t−1真实issued/delayed/时间、五指world/local合力与encoder FK/时间/valid输入独立残差。
 近期13个60Hz观察保留26个120Hz样本及五指身份；GRU每60Hz更新，完整episode持久，TBPTT仅detach。
+触觉slot严格继承metadata.contact_bodies：index/middle/ring/thumb/pinky；动作hand分组则thumb先行，
+二者不按相同下标误配。缓存与在线传感顺序一致，finger embedding对应传感slot身份。
 每6tick生成6个delta，执行只读取未执行下标；原名义plan不被改写。原生执行仍60Hz，base重规划5Hz。
 训练标签同tick expert_clipped_pre_delay−base，允许[-2,2]；contact-valid raw MSE的arm/hand各50%，
 另1e−4 delta均方幅度正则；clip只在执行组合，不阻断监督梯度。无接触逐tick精确返回base。

@@ -9,7 +9,11 @@ DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md；root outputs/visuotactile/run/dp_
 validation选择G00-B/G10-B（均额外epoch12）；G00-A为epoch8、G10-A为epoch12。
 owner3287451/monitor3287455仅为启动快照，必须查实际/proc和pipeline；所有GPU工作共享lease。
 资源目标38/准入42%，6GiB/16GiB准入、4GiB/10GiB硬余量，独立watchdog违规暂停并记录；旧产物和控制只读。
-闭环/残差尚未完成。Transformer实现/CPU与GPU真实预检已通过，残差828,189参数、统一FP32。
+12条DP闭环完成并通过artifact审计：四线各0/3、全部601步timeout、无子目标/原生lift。
+G10-B seed981004最高+7.6863cm，高于5cm最长0.30s后掉落；新12条actual外力/力矩均0。
+G00-B连续接触机会门槛通过，最后6次固定force/masked各三seed自主，无新增roll-in/G11。
+选定G00-B真实145步缓存验收通过，名义command/plan/history差0；400条残差缓存运行中。
+Transformer残差828,189参数、统一FP32，训练尚未完成。
 BF16缓存将中间步合批曾出现0.172144rad reference差，两个失败报告保留；逐tick修复后nominal最大差0。
 后续注册顺序：12次DP诊断→选定G00逐tick缓存/再次验收→force/masked短pilot→各5完整遍历→test一次→6次残差→曲线。
 用户后续明确授权新G01/G11读取过去实际混合命令。残差尚未训练，现改为past_actual_mixed_commands_v1，
