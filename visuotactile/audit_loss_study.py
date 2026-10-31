@@ -172,6 +172,28 @@ def main():
     result['historical_dp_comparison'] = dict(initials=historical_comparison,
         scope='saved physical/target/DR initial states; rendered images and trajectories are not claimed bitwise equal',
         prior_lift_trial='G10-new_s981004; old trace lacks actual-wrench telemetry, so old drop cause remains unidentified')
+    residual_comparison = []
+    for trial in result['residual_closed_loop']:
+        if trial['mode']!='autonomous' or 'trace' not in trial:
+            continue
+        baseline = next(row for row in result['dp_closed_loop'] if row['line']==trial['line'] and row['seed']==trial['seed'])
+        with np.load(root/'dp_closed_loop'/(baseline['attempt']+'_initial.npz')) as base_initial, np.load(
+                root/'residual_closed_loop'/(trial['attempt']+'_initial.npz')) as current_initial:
+            require(set(base_initial.files)==set(current_initial.files),'Residual/base initial-state fields differ')
+            initial_error = max(float(np.max(np.abs(base_initial[name].astype(float)-current_initial[name].astype(float))))
+                                for name in base_initial.files)
+        with np.load(root/'dp_closed_loop'/baseline['trace']) as base_trace, np.load(
+                root/'residual_closed_loop'/trial['trace']) as current_trace:
+            first_base = np.flatnonzero(base_trace['gate'])
+            first_current = np.flatnonzero(current_trace['gate'])
+            stop = min(int(first_base[0]) if len(first_base) else len(base_trace['gate']),
+                       int(first_current[0]) if len(first_current) else len(current_trace['gate']))
+            difference = np.abs(base_trace['command'][:stop]-current_trace['command'][:stop])
+            prefix_error = float(difference.max()) if stop else None
+        residual_comparison.append(dict(attempt=trial['attempt'],base_attempt=baseline['attempt'],
+            saved_initial_max_error=initial_error,precontact_compared_steps=stop,precontact_command_max_error=prefix_error,
+            scope='prefix ends before either trajectory first observes contact; rendered images are not assumed identical'))
+    result['residual_base_comparison'] = residual_comparison
     protected = {}
     original_cache = json.loads((root/'cache_index.json').read_text())
     manifest = Path('outputs/visuotactile/data/close_v4/manifest.json')

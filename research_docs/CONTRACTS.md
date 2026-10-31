@@ -19,6 +19,8 @@ validation以EMA前12步arm/hand等权native MSE选模，保留H64/每指/每位
 每6tick生成6个delta，执行只读取未执行下标；原名义plan不被改写。原生执行仍60Hz，base重规划5Hz。
 训练标签同tick expert_clipped_pre_delay−base，允许[-2,2]；contact-valid raw MSE的arm/hand各50%，
 另1e−4 delta均方幅度正则；clip只在执行组合，不阻断监督梯度。无接触逐tick精确返回base。
+execution_clip_fraction记录接触时执行组合的裁剪比例；不表示raw residual监督梯度被阻断。
+delta_mean_abs为全部有效位置的raw预测幅度，实际施加修正另由闭环command−base记录。
 force_masked在任何force派生特征/记忆前清零连续world/local力，保留真实gate/valid/FK，不能称无触觉。
 用户明确授权新G01/G11名义读取过去实际混合命令，使用`past_actual_mixed_commands_v1`。
 名义和残差均只读取严格t−1真实issued/delayed/时间；新G01名义通过该反馈间接受到残差/触觉影响，

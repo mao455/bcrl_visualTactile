@@ -25,6 +25,10 @@ arm/hand命令变化、实际外力/力矩；区分观察前/动作后/步内时
 公开evidence/dp_loss_trt_20261031收录已完成DP阶段的统计CSV、必要PNG和图表索引，残差阶段仍标待完成；
 不含原始相机图像、trace、checkpoint、视频或完整日志。
 CSV writer显式使用LF换行，修复公开统计的Git CRLF whitespace告警；数值不变。
+最终审计补自主残差与冻结base的保存初态及双方首次接触前命令差，检查残差介入前是否已有轨迹差异；
+不预设跨进程渲染逐位一致，待残差真实产物生成后核查。
+残差训练开始前，将日志字段命名为execution_clip_fraction，明确其为执行裁剪而非监督梯度阻断；
+raw residual目标/梯度/数值和训练配置不变，绘图/CSV同步。raw幅度与实际施加修正分别解释。
 
 ## 2026-10-31 — 独立Transformer实现与真实数据预检
 

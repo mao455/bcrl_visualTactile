@@ -58,7 +58,7 @@ class ResidualMetrics:
     def result(self):
         result = dict(valid_steps=self.count,contact_steps=self.contact,noncontact_steps=self.noncontact,
             gate_fraction=self.contact/max(1,self.count),delta_mean_abs=self.amplitude/max(1,29*self.count),
-            clip_blocked_fraction=self.clipped/max(1,29*self.contact),
+            execution_clip_fraction=self.clipped/max(1,29*self.contact),
             wrong_direction_saturation_fraction=self.wrong/max(1,29*self.contact),
             command_saturation_fraction=self.saturated/max(1,29*self.count),metrics={})
         for name,squared in self.sums.items():

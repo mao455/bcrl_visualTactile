@@ -117,7 +117,7 @@ def plot_residual(root, output):
                 metrics = record[split]
                 row = dict(variant=variant,epoch=record['epoch'],updates=record['updates'],split=split,ema=False,
                     loss=metrics['loss'],gate_fraction=metrics['gate_fraction'],tactile_valid_fraction=metrics['tactile_valid_fraction'],
-                    delta_mean_abs=metrics['delta_mean_abs'],clip_blocked_fraction=metrics['clip_blocked_fraction'],
+                    delta_mean_abs=metrics['delta_mean_abs'],execution_clip_fraction=metrics['execution_clip_fraction'],
                     wrong_direction_saturation_fraction=metrics['wrong_direction_saturation_fraction'],
                     batched_forward_ms_per_anchor=metrics['batched_forward_ms_per_anchor'])
                 for space,parts in metrics['metrics'].items():
@@ -166,7 +166,7 @@ def plot_residual(root, output):
         axis.set_ylabel('Val40 contact residual RMSE')
     finish(figure,'transformer_fingers.png','Raw residual supervision remains differentiable outside execution clip')
     figure,axes = plt.subplots(2,3,figsize=(13,7))
-    for axis,key in zip(axes.flat,('gate_fraction','tactile_valid_fraction','delta_mean_abs','clip_blocked_fraction',
+    for axis,key in zip(axes.flat,('gate_fraction','tactile_valid_fraction','delta_mean_abs','execution_clip_fraction',
                                   'wrong_direction_saturation_fraction','batched_forward_ms_per_anchor')):
         for variant,history in histories.items():
             axis.plot([row['updates'] for row in history],[row['validation'][key] for row in history],
