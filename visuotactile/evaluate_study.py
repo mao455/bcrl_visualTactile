@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import signal
 import subprocess
 import time
 
@@ -52,6 +53,9 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--phase',choices=('dp','residual'),required=True)
     args = parser.parse_args()
+    def interrupted(signum, frame):
+        raise InterruptedError('Owned evaluation received termination; preserve partial trace')
+    signal.signal(signal.SIGTERM,interrupted)
     root,phase = args.root,args.phase
     output = root/(phase+'_closed_loop')
     output.mkdir(exist_ok=False)

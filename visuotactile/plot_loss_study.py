@@ -32,6 +32,9 @@ def plot_residual(root, output):
                     for part,value in parts.items():
                         row[space+'_'+part+'_rmse'] = value
                 rows.append(row)
+    configs = {variant:json.loads((root/'transformer_training'/variant/'config.json').read_text()) for variant in histories}
+    for row in rows:
+        row['base_sha256'] = configs[row['variant']]['base_sha256']
     with (output/'transformer_metrics.csv').open('w',newline='') as stream:
         writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
         writer.writeheader()
@@ -117,10 +120,14 @@ def plot(root, final=False):
     colors = dict(zip(session['dp_lines'],('tab:blue','tab:orange','tab:green','tab:red')))
     metadata = dict(source_root=session['source_root'],lines={},scope='recorded train/validation only; no test-driven selection')
     rows = []
+    training_rows = []
     for line,history in histories.items():
         metadata['lines'][line] = dict(source_checkpoint=history[0]['source_checkpoint'],
                                      last_additional_updates=history[-1]['additional_updates'])
         for record in history:
+            if 'train' in record:
+                training_rows.append(dict(line=line,epoch=record['epoch'],additional_updates=record['additional_updates'],
+                    source_checkpoint=record['source_checkpoint'],split='train320 evolving raw',**record['train']))
             for split in ('validation','train_diagnostic'):
                 measured = record[split]
                 row = dict(line=line,epoch=record['epoch'],additional_updates=record['additional_updates'],
@@ -137,6 +144,11 @@ def plot(root, final=False):
             writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
             writer.writeheader()
             writer.writerows(rows)
+    if training_rows:
+        with (output/'dp_training.csv').open('w',newline='') as stream:
+            writer = csv.DictWriter(stream,fieldnames=list(training_rows[0]))
+            writer.writeheader()
+            writer.writerows(training_rows)
 
     def finish(figure,name,title,x_scope='additional optimizer updates'):
         figure.suptitle(title+'\nInitialization: original epoch40 EMA; x-axis = '+x_scope,fontsize=10)
