@@ -1,5 +1,14 @@
 # Audited contracts
 
+## 2026-10-31系统与历史有效性审计
+
+主合同解释见SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT。原400数字链重新检查全部81,894步：
+pre-delay标签、target-before观察、选中队列命令、native平滑公式和相邻q/target连续误差0；reference往返≤2.38419e−6。
+398条原4env、2条1env，三槽delay实际index0/1/2。147条旧numeric评估轨迹的delayed均属合法队列候选；
+动作重复/饱和时不据值唯一推断随机index。T0仅初始RNG恢复不匹配后续多环境随机消耗，原示范成功不受其失败否定。
+未来正式H64 DP采用Loss B：归一化sample/x0空间arm7/hand22组内MSE各50%，valid尾部mask；A仅显式历史复现。
+第一份审阅提交仅记录该新要求；代码落实和验证以主报告第12节为准，不重新解释历史checkpoint。
+
 ## 2026-10-31审计与近似初态的结果契约
 
 本轮仅增加只读checkpoint/数据分析和独立最多12次诊断，不改变训练输入或原生控制协议。

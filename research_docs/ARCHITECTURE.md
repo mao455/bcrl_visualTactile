@@ -1,5 +1,12 @@
 # Architecture and staged acceptance gates
 
+## 2026-10-31完整系统审计
+
+[SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT](SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)
+集中说明真实场景、RL actor、两代DP/残差、动态历史及六条原生执行链。
+逐文件定义/调用和历史接口身份见PROJECT_FILE_MAP与EXPERIMENT_VALIDITY_MATRIX。
+下文旧阶段的“current”仅代表其日期；新G01允许实际mixed反馈，不是严格触觉隔离nominal。
+
 ## 2026-10-31 actual-checkpoint architecture audit
 
 [NETWORK_ARCHITECTURE_EXACT](NETWORK_ARCHITECTURE_EXACT.md) is the current measured specification:

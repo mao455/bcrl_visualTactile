@@ -1,0 +1,6600 @@
+[
+  {
+    "path": "evaluation/eval_isaacsim.py",
+    "purpose": "Interactive (viser) evaluation of a precise-assembly policy in Isaac Sim.",
+    "definitions": [
+      "PolicySpec:86",
+      "PopenAdapter:100",
+      "_resolve_path:120",
+      "_default_isaacsim_python:127",
+      "_default_policies_dir:137",
+      "_load_metadata:148",
+      "discover_policies:154",
+      "_choose_policy:171",
+      "_iter_policy_lines:185",
+      "_coerce_override_value:191",
+      "_set_attr_path:210",
+      "_set_dict_path:219",
+      "_wxyz_to_xyzw_np:228",
+      "_tensor_bool:232",
+      "_tensor_float:236",
+      "_tensor_int:240",
+      "_done0:244",
+      "_load_env_cfg:250",
+      "_instantiate_env:266",
+      "_apply_env_overrides:276",
+      "_configure_agent:314",
+      "_sim_get_state:340",
+      "_sim_episode:428",
+      "sim_worker:479",
+      "_worker_main:599",
+      "_build_parser:628",
+      "_collect_policies:675",
+      "_run_viewer:703",
+      "main:912",
+      "problem:93",
+      "__init__:103",
+      "is_alive:107",
+      "join:110",
+      "kill:116",
+      "IsaacSimPegDynamicDemo:736",
+      "__init__:737",
+      "_load_env:752",
+      "run:879"
+    ],
+    "imports": [
+      "__future__",
+      "argparse",
+      "dataclasses",
+      "evaluation._viser_demo",
+      "gymnasium",
+      "importlib",
+      "isaaclab.app",
+      "isaaclab.utils.math",
+      "isaaclab_tasks.utils.parse_cfg",
+      "isaacsimenvs",
+      "isaacsimenvs.tasks.play.utils.obs_utils",
+      "isaacsimenvs.utils.rlgames_utils",
+      "json",
+      "math",
+      "multiprocessing.connection",
+      "numpy",
+      "os",
+      "pathlib",
+      "rl_games.torch_runner",
+      "subprocess",
+      "sys",
+      "time",
+      "torch",
+      "traceback",
+      "typing",
+      "yaml"
+    ],
+    "io_calls": [
+      "PopenAdapter",
+      "json.dumps",
+      "player.env_step",
+      "self._kill_subprocess",
+      "self.popen.kill",
+      "self.popen.poll",
+      "self.popen.wait",
+      "subprocess.Popen"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INSERTION_DATASET.md",
+      "research_docs/AUDIT.md"
+    ],
+    "tests": [],
+    "sha256": "b79d1e1ed17f61ddb881d71e32c6241dba6e06f8c808027a2a2853d17759dcb5",
+    "imported_by": [
+      "visuotactile/collect.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/expert_reference.py",
+      "visuotactile/regression.py"
+    ]
+  },
+  {
+    "path": "evaluation/objects.py",
+    "purpose": "Object registry shared by the assembly problem definitions.",
+    "definitions": [
+      "get_repo_root_dir:18",
+      "Object:24",
+      "rescale_by_factor:76",
+      "__post_init__:36",
+      "get_object_mesh_path_and_scale:39",
+      "get_object_mesh:69"
+    ],
+    "imports": [
+      "dataclasses",
+      "numpy",
+      "pathlib",
+      "trimesh",
+      "typing",
+      "yourdfpy"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "59a1e6d34dc1741812c7105ea33df04491437ac82950ba32858646f9543866ee",
+    "imported_by": [
+      "evaluation/problems/peg/objects.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "evaluation/problems/__init__.py",
+    "purpose": "Unified registry for precise-assembly problem instances.",
+    "definitions": [
+      "make_pre_insert_sequence:19",
+      "make_transport_pre_insert_sequence:44",
+      "Problem:75",
+      "__post_init__:102",
+      "_normalize_pose_sequence:107",
+      "final_insert_pose_rel_receptive:122"
+    ],
+    "imports": [
+      "dataclasses",
+      "evaluation.problems",
+      "math",
+      "typing"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "0966a87c1fe062746f5de1327ce3448fee36bd9b73ac566f220df1d3e7366bb1",
+    "imported_by": []
+  },
+  {
+    "path": "evaluation/problems/peg/__init__.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [],
+    "imports": [
+      "evaluation.problems.peg"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "034927da97858ac5b893622c107d268e319c88901568fb1c942dd246d1e12d3d",
+    "imported_by": []
+  },
+  {
+    "path": "evaluation/problems/peg/objects.py",
+    "purpose": "Register the L-peg (matched-mass) inserter in the global NAME_TO_OBJECT registry.",
+    "definitions": [],
+    "imports": [
+      "evaluation.objects"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "2de9d34941c449d1aaa0d76f7ba8f95446c4a4082cb775c836600536bedb488e",
+    "imported_by": []
+  },
+  {
+    "path": "evaluation/problems/peg/problems.py",
+    "purpose": "Register peg-in-hole Problem entries.",
+    "definitions": [
+      "_dense_insert_sequence:30",
+      "_playnatural_insert_sequence:55",
+      "_register_all:66"
+    ],
+    "imports": [
+      "evaluation.problems",
+      "pathlib"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [],
+    "tests": [],
+    "sha256": "ab7dfcde4e14c69dc5ca6069e075150131992a37dfc5f32537324f146e8d944c",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/__init__.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/task/Play.yaml",
+    "purpose": "\u539f\u751f\u4efb\u52a1/\u8bad\u7ec3\u914d\u7f6e\uff1b\u7531 Hydra / _load_env_cfg / _configure_agent \u89e3\u6790",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "27fe46e25f96b95974341482b0eb9f0547c4a78966bb5062f173ce5faf478d16",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/task/PreciseAssembly.yaml",
+    "purpose": "\u539f\u751f\u4efb\u52a1/\u8bad\u7ec3\u914d\u7f6e\uff1b\u7531 Hydra / _load_env_cfg / _configure_agent \u89e3\u6790",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md",
+      "research_docs/INSERTION_DATASET.md"
+    ],
+    "tests": [],
+    "sha256": "2e995ca81f7bc1d320deacd39b159632505eb835822455600ea903797629f8ea",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/task/__init__.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/train/PlayPPO.yaml",
+    "purpose": "\u539f\u751f\u4efb\u52a1/\u8bad\u7ec3\u914d\u7f6e\uff1b\u7531 Hydra / _load_env_cfg / _configure_agent \u89e3\u6790",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "02dc79c793ad6457757dc21b84178dc7a2472fb15488d8a9d801a814b36987a1",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/train/PlaySAPG.yaml",
+    "purpose": "\u539f\u751f\u4efb\u52a1/\u8bad\u7ec3\u914d\u7f6e\uff1b\u7531 Hydra / _load_env_cfg / _configure_agent \u89e3\u6790",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "d32d199c5755cf5036d764d719417744dcf48ef59dc687f59e83691957660609",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/train/PreciseAssemblyPPO.yaml",
+    "purpose": "\u539f\u751f\u4efb\u52a1/\u8bad\u7ec3\u914d\u7f6e\uff1b\u7531 Hydra / _load_env_cfg / _configure_agent \u89e3\u6790",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "02dc79c793ad6457757dc21b84178dc7a2472fb15488d8a9d801a814b36987a1",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/train/PreciseAssemblySAPG.yaml",
+    "purpose": "\u539f\u751f\u4efb\u52a1/\u8bad\u7ec3\u914d\u7f6e\uff1b\u7531 Hydra / _load_env_cfg / _configure_agent \u89e3\u6790",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "d32d199c5755cf5036d764d719417744dcf48ef59dc687f59e83691957660609",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/cfg/train/__init__.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/__init__.py",
+    "purpose": "Play task registration.",
+    "definitions": [],
+    "imports": [
+      "__future__",
+      "gymnasium",
+      "isaacsimenvs.tasks.play.play_env",
+      "isaacsimenvs.tasks.play.play_env_cfg",
+      "pathlib"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "928cc880fe1c1edb0019158bbf761fbae0ab4d5bd514c746b12e68d0372b31e7",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/play_env.py",
+    "purpose": "Thin DirectRLEnv wrapper for Play.",
+    "definitions": [
+      "PlayEnv:31",
+      "__init__:34",
+      "_setup_scene:46",
+      "_reset_idx:49",
+      "_pre_physics_step:58",
+      "_apply_action:62",
+      "_get_dones:66",
+      "_get_rewards:71",
+      "_get_observations:76",
+      "get_student_obs:79"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.envs",
+      "isaacsimenvs.tasks.play.play_env_cfg",
+      "isaacsimenvs.tasks.play.utils.action_utils",
+      "isaacsimenvs.tasks.play.utils.logging_utils",
+      "isaacsimenvs.tasks.play.utils.obs_utils",
+      "isaacsimenvs.tasks.play.utils.reset_utils",
+      "isaacsimenvs.tasks.play.utils.reward_utils",
+      "isaacsimenvs.tasks.play.utils.scene_utils",
+      "isaacsimenvs.tasks.play.utils.termination_utils",
+      "torch"
+    ],
+    "io_calls": [
+      "log_step_metrics"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "cb662949c715a4c07c014ea38659ffcb6e5345e556b92919790e08cf39065300",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/__init__.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/play_env_cfg.py",
+    "purpose": "PlayEnvCfg \u2014 typed defaults for the Play goal-pose-reaching task.",
+    "definitions": [
+      "AssetsCfg:56",
+      "ObsCfg:102",
+      "StudentObsCfg:148",
+      "ActionCfg:311",
+      "RewardCfg:325",
+      "ResetCfg:353",
+      "TerminationCfg:411",
+      "DomainRandomizationCfg:443",
+      "_default_sim_cfg:505",
+      "PlayEnvCfg:525"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.envs",
+      "isaaclab.scene",
+      "isaaclab.sim",
+      "isaaclab.utils"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "05bfbc1ccde2c77882be4dab787fa25c3e59dac7bd80e8a259323c8e5b04cf7b",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/__init__.py",
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env_cfg.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/pose_viewer.py",
+    "purpose": "Pose-only interactive HTML capture for Play training.",
+    "definitions": [
+      "_to_numpy:32",
+      "_quat_wxyz_to_xyzw:40",
+      "_pose_xyzw:45",
+      "_git_output:52",
+      "_github_slug_from_remote:63",
+      "_derive_github_raw_base:86",
+      "_normalize_raw_base:112",
+      "_check_url:117",
+      "_raw_url_for_repo_path:133",
+      "_rewrite_embedded_urdf_mesh_urls:141",
+      "object_urdf_for_env:185",
+      "object_urdf_text_for_env:201",
+      "table_urdf_for_env:205",
+      "table_urdf_text_for_env:215",
+      "hole_urdf_for_env:219",
+      "capture_pose_viewer_frame:229",
+      "build_pose_viewer_html:265",
+      "PlayPoseViewerWrapper:338",
+      "__init__:341",
+      "step:397",
+      "_capture_student_image:419",
+      "_capture_student_image_clean:440",
+      "close:457",
+      "_finalize_capture:462",
+      "_log_wandb:491",
+      "_to_uint8_grayscale_rgb:511"
+    ],
+    "imports": [
+      "__future__",
+      "gymnasium",
+      "isaacsimenvs.tasks.play.utils.scene_utils",
+      "isaacsimenvs.utils.interactive_viewer",
+      "numpy",
+      "pathlib",
+      "subprocess",
+      "time",
+      "typing",
+      "urllib.parse",
+      "urllib.request",
+      "wandb",
+      "xml.etree.ElementTree"
+    ],
+    "io_calls": [
+      "_rewrite_embedded_urdf_mesh_urls",
+      "html_path.write_text",
+      "self.env.step",
+      "self.output_dir.mkdir",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', '-C', str(REPO_ROOT), *args], stderr=subprocess.DEVNULL, text=True).strip"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "3ba51faa9d10729b712461d64d020197e7fc6ab6b6fca0191350fdc3f77b4d07",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/__init__.py",
+    "purpose": "Helper modules for the Play task.",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "911fff80db44b5585db333ed3488ddb73599575ecb7a25025325acf79998144b",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/action_utils.py",
+    "purpose": "Action processing and random object wrench helpers.",
+    "definitions": [
+      "sample_log_uniform:10",
+      "apply_action_pipeline:18",
+      "apply_wrench_dr:84"
+    ],
+    "imports": [
+      "__future__",
+      "math",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "modified upstream",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/INDEPENDENT_AUDIT_20261030.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/CONTRACTS.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/RL_EXPERT_TRIALS.md"
+    ],
+    "tests": [],
+    "sha256": "b1a723f85501362bc187cbe2ef4e240d63c4de37a9628b8b674f7fa915f5e69d",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/play/utils/reset_utils.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/generate_objects.py",
+    "purpose": "Procedural handle-head URDF generation for Play.",
+    "definitions": [
+      "_cuboid_urdf_constant_density:47",
+      "_cylinder_urdf_constant_density:80",
+      "generate_handle_urdf:115",
+      "_compute_mass_and_inertia:133",
+      "_handle_head_urdf_variable_density:166",
+      "generate_handle_head_urdf:262",
+      "_scale_to_3d:293",
+      "generate_handle_head_urdfs:302"
+    ],
+    "imports": [
+      "__future__",
+      "isaacsimenvs.tasks.play.utils.object_size_distributions",
+      "math",
+      "numpy",
+      "os",
+      "pathlib",
+      "typing"
+    ],
+    "io_calls": [
+      "p.unlink",
+      "path.write_text"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "08c03641e56daf06e9f8a720b517e52fe5176c8d997b2f7722fa7997a0aec2cd",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/utils/scene_utils.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/goal_sampling.py",
+    "purpose": "Pure-torch goal-pose samplers for Play.",
+    "definitions": [
+      "_scale_workspace_bounds:12",
+      "sample_absolute_goal_pose:21",
+      "sample_delta_goal_pose:36"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.utils.math",
+      "math",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "cede8986d4847aa0d1d9bae99d9333d191ce413c90fe1b44e7b30980994369f4",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/utils/reset_utils.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/logging_utils.py",
+    "purpose": "Task metric publishing for Play.",
+    "definitions": [
+      "log_step_metrics:8"
+    ],
+    "imports": [
+      "__future__",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "cd9f507ae2351cf463a4bee1bef1708cf13c1aa460d4e9950ccfd1cb1c8b95b3",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/object_size_distributions.py",
+    "purpose": "Per-handle-head-type procedural-asset size distributions for Play.",
+    "definitions": [
+      "ObjectSizeDistribution:25",
+      "__post_init__:36",
+      "shape:48",
+      "sample_handle_scales:51",
+      "sample_head_scales:58",
+      "sample_handle_densities:67",
+      "sample_head_densities:72"
+    ],
+    "imports": [
+      "__future__",
+      "dataclasses",
+      "numpy",
+      "typing"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "abadce824623e00acc1be2dd2d5ecd9d10145b03148ac758080c02fa866266a5",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/utils/generate_objects.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/obs_utils.py",
+    "purpose": "Observation assembly and step-shared geometry caches for Play.",
+    "definitions": [
+      "compute_obs_dim:57",
+      "_stack_obs_dict:62",
+      "_perturb_quat:75",
+      "_apply_local_offset:88",
+      "_keypoints_world:103",
+      "_episode_start:115",
+      "_sample_delay:119",
+      "_canonical_joint_obs:136",
+      "compute_intermediate_values:153",
+      "_apply_object_state_dr:210",
+      "_apply_obs_delay:223",
+      "build_observations:231",
+      "_student_proprio_dict:352",
+      "_apply_student_tensor_delay:361",
+      "_apply_student_bundle_delay:394",
+      "build_student_observations:423"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.utils.math",
+      "isaacsimenvs.tasks.play.utils.reward_utils",
+      "isaacsimenvs.tasks.play.utils.scene_utils",
+      "math",
+      "torch"
+    ],
+    "io_calls": [
+      "update_near_goal_steps"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CONTRACTS.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "bb7fa980f16d643d5e7c137e0a159ac7bc20933d2934958a350ad26c72dd68a5",
+    "imported_by": [
+      "evaluation/eval_isaacsim.py",
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/play/utils/reset_utils.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/reset_utils.py",
+    "purpose": "State allocation and reset helpers for Play.",
+    "definitions": [
+      "allocate_state_buffers:23",
+      "_randomize_robot_dof_state:200",
+      "_reset_table_pose:223",
+      "_reset_object_pose:271",
+      "_reset_goal_pose:304",
+      "_clear_goal_trackers:372",
+      "reset_goal_trackers:378",
+      "reset_env_state:384"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.utils.math",
+      "isaacsimenvs.tasks.play.utils.action_utils",
+      "isaacsimenvs.tasks.play.utils.goal_sampling",
+      "isaacsimenvs.tasks.play.utils.obs_utils",
+      "isaacsimenvs.tasks.play.utils.scene_utils",
+      "json",
+      "pathlib",
+      "torch"
+    ],
+    "io_calls": [
+      "env._traj_step[env_ids].clamp",
+      "env.goal_viz.write_root_pose_to_sim",
+      "env.object.write_root_pose_to_sim",
+      "env.object.write_root_velocity_to_sim",
+      "env.robot.write_joint_state_to_sim",
+      "env.table.write_root_pose_to_sim"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CONTRACTS.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "3b845d20189e508a07de68b7396fc7823437259805349230901c4a5a1906515e",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/play/utils/termination_utils.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/reward_utils.py",
+    "purpose": "Pure-torch reward helpers for Play.",
+    "definitions": [
+      "lifting_reward:8",
+      "distance_delta_reward:26",
+      "keypoint_reward:40",
+      "action_penalty:54",
+      "update_near_goal_steps:67",
+      "reach_goal_bonus:79",
+      "compute_rewards:92"
+    ],
+    "imports": [
+      "__future__",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "86a0a779bca7093a25a75ab646619a4cb88877005fd4718793e8411a9ca25e6d",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/play/utils/obs_utils.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/scene_utils.py",
+    "purpose": "Scene construction, asset conversion, and runtime material setup.",
+    "definitions": [
+      "build_robot_articulation_usd_cfg:150",
+      "build_rigid_object_cfg:179",
+      "_log_scene_step:187",
+      "_student_camera_data_types:191",
+      "hide_goal_viz_for_student_camera:205",
+      "_quat_wxyz_to_rotmat:224",
+      "_stereo_right_pose_from_left:239",
+      "_diagnose_target_expr:255",
+      "_expand_link_wildcard:303",
+      "setup_student_camera:371",
+      "_apply_depth_noise:613",
+      "_draw_depth_sticks:670",
+      "_apply_camera_pose_rand_at_reset:759",
+      "_preprocess_student_depth:812",
+      "_validate_student_image_shape:844",
+      "_crop_student_image:856",
+      "_run_foundation_stereo:874",
+      "read_student_camera_image:933",
+      "_set_usd_attr:1061",
+      "_UrdfSdfCollisionMarker:1072",
+      "_usd_safe_identifier:1081",
+      "_resolve_urdf_mesh_path:1089",
+      "_prepare_urdf_for_isaacsim:1096",
+      "_parse_optional_int:1157",
+      "_parse_optional_float:1161",
+      "_parse_urdf_sdf_collision_markers:1165",
+      "_apply_urdf_sdf_collision_markers:1197",
+      "_generate_scaled_table_urdfs:1268",
+      "_convert_urdf_to_usd:1322",
+      "_robot_joint_drive_cfg:1354",
+      "_bake_usd:1362",
+      "apply_physx_material_properties:1447",
+      "_materialize_env_prims:1532",
+      "_build_object_scale_tensor:1539",
+      "setup_scene:1559",
+      "_build_stereo_cam_cfg:549"
+    ],
+    "imports": [
+      "__future__",
+      "dataclasses",
+      "isaaclab.actuators",
+      "isaaclab.assets",
+      "isaaclab.sensors",
+      "isaaclab.sensors.ray_caster",
+      "isaaclab.sim",
+      "isaaclab.sim.converters",
+      "isaaclab.sim.schemas",
+      "isaaclab.sim.spawners.from_files",
+      "isaaclab.sim.spawners.wrappers",
+      "isaaclab.sim.utils",
+      "isaaclab.utils.math",
+      "isaacsimenvs.tasks.play.utils.generate_objects",
+      "numpy",
+      "pathlib",
+      "pxr",
+      "re",
+      "shutil",
+      "tempfile",
+      "time",
+      "torch",
+      "torch.nn.functional",
+      "xml.etree.ElementTree"
+    ],
+    "io_calls": [
+      "_log_scene_step",
+      "alias_dir.mkdir",
+      "baked_usd_path.parent.mkdir",
+      "obj_path.rsplit('/', 2)[-2].removeprefix",
+      "out_dir.mkdir",
+      "path.write_text",
+      "prim.RemoveProperty",
+      "stage.GetRootLayer().Save",
+      "tree.write",
+      "usd_work_dir.mkdir"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CONTRACTS.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/AUDIT.md"
+    ],
+    "tests": [],
+    "sha256": "1099fcdd5718415b1f9d59034c76945ec33f25c9152023b4d0f41c6061937d97",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/play/pose_viewer.py",
+      "isaacsimenvs/tasks/play/utils/obs_utils.py",
+      "isaacsimenvs/tasks/play/utils/reset_utils.py",
+      "isaacsimenvs/tasks/precise_assembly/scene_utils.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/play/utils/termination_utils.py",
+    "purpose": "Termination and success-tolerance curriculum helpers.",
+    "definitions": [
+      "update_tolerance_curriculum:10",
+      "compute_terminations:39"
+    ],
+    "imports": [
+      "__future__",
+      "isaacsimenvs.tasks.play.utils.reset_utils",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "19f161e890f84f389856223be83550533e26e9ae2abb736ac840d71c10b62075",
+    "imported_by": [
+      "isaacsimenvs/tasks/play/play_env.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/precise_assembly/__init__.py",
+    "purpose": "Precise-assembly task registration.",
+    "definitions": [],
+    "imports": [
+      "__future__",
+      "gymnasium",
+      "isaacsimenvs.tasks.precise_assembly.precise_assembly_env",
+      "isaacsimenvs.tasks.precise_assembly.precise_assembly_env_cfg",
+      "pathlib"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "02e54ebcc1cad223117ded1c6de33af55b0cba9f4e930db0828e5b59fe353ad3",
+    "imported_by": []
+  },
+  {
+    "path": "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py",
+    "purpose": "Dynamic peg-in-hole task built as a PlayEnv variant.",
+    "definitions": [
+      "_xyzw_to_wxyz:37",
+      "_obs_field_slice:41",
+      "_resolve_asset_path:51",
+      "PreciseAssemblyEnv:64",
+      "__init__:67",
+      "_configure_problem:204",
+      "_setup_scene:290",
+      "_reset_idx:293",
+      "_reset_peg_episode:303",
+      "_write_goal_pose:416",
+      "_clear_goal_trackers:517",
+      "_keypoint_success_tolerance_m:522",
+      "_curriculum_eligible_mask:562",
+      "_curriculum_success_threshold:571",
+      "_wrench_dr_active_mask:581",
+      "_get_dones:590",
+      "_get_rewards:678",
+      "_log_peg_metrics:748",
+      "_get_observations:797"
+    ],
+    "imports": [
+      "__future__",
+      "evaluation.objects",
+      "evaluation.problems",
+      "gymnasium",
+      "isaaclab.utils.math",
+      "isaacsimenvs.tasks.play.play_env",
+      "isaacsimenvs.tasks.play.utils.goal_sampling",
+      "isaacsimenvs.tasks.play.utils.logging_utils",
+      "isaacsimenvs.tasks.play.utils.obs_utils",
+      "isaacsimenvs.tasks.play.utils.reward_utils",
+      "isaacsimenvs.tasks.play.utils.termination_utils",
+      "isaacsimenvs.tasks.precise_assembly.precise_assembly_env_cfg",
+      "isaacsimenvs.tasks.precise_assembly.scene_utils",
+      "math",
+      "numpy",
+      "pathlib",
+      "sys",
+      "torch"
+    ],
+    "io_calls": [
+      "log_step_metrics",
+      "self._write_goal_pose",
+      "self.goal_viz.write_root_pose_to_sim",
+      "self.goal_viz.write_root_velocity_to_sim",
+      "self.hole.write_root_pose_to_sim",
+      "self.hole.write_root_velocity_to_sim"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "2c55d9fe77e50125e46bfadbf5be1fc59b115405c389de0d607f433a39ccdbe0",
+    "imported_by": [
+      "isaacsimenvs/tasks/precise_assembly/__init__.py",
+      "visuotactile/regression.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/precise_assembly/precise_assembly_env_cfg.py",
+    "purpose": "Config for the peg-in-hole Play variant.",
+    "definitions": [
+      "PreciseAssemblyAssetsCfg:27",
+      "PreciseAssemblyCfg:37",
+      "_default_precise_assembly_sim_cfg:83",
+      "PreciseAssemblyEnvCfg:108"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.sim",
+      "isaaclab.utils",
+      "isaacsimenvs.tasks.play.play_env_cfg"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "32e48d2d1cb3295cff710a7101c1df1708663eb0f350c75f47b0cf5a3ac8a8c0",
+    "imported_by": [
+      "isaacsimenvs/tasks/precise_assembly/__init__.py",
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/tasks/precise_assembly/scene_utils.py",
+    "purpose": "Peg-in-hole scene setup.",
+    "definitions": [
+      "_asset_path:30",
+      "_pih_rigid_object_cfg:37",
+      "setup_scene:51"
+    ],
+    "imports": [
+      "__future__",
+      "isaaclab.assets",
+      "isaaclab.sim",
+      "isaaclab.sim.spawners.from_files",
+      "isaacsimenvs.tasks.play.utils.scene_utils",
+      "pathlib",
+      "tempfile",
+      "time",
+      "torch"
+    ],
+    "io_calls": [
+      "_log_scene_step",
+      "usd_work_dir.mkdir"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/CONTRACTS.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/AUDIT.md"
+    ],
+    "tests": [],
+    "sha256": "0ea81bea44eb050123470ea9ded3dfe11c3e2b3234bcdcc9057cb22512c83146",
+    "imported_by": [
+      "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py"
+    ]
+  },
+  {
+    "path": "isaacsimenvs/utils/rlgames_utils.py",
+    "purpose": "Glue between Isaac Lab DirectRLEnv and our vendored `./rl_games/`.",
+    "definitions": [
+      "_flatten_dict:19",
+      "_is_scalar:30",
+      "_as_float:36",
+      "_mean_float:42",
+      "_value_at:50",
+      "_has_env_axis:62",
+      "_slice_env_axis:72",
+      "_remove_env_boundary_from_info:78",
+      "EnvStatsAlgoObserver:102",
+      "MultiObserver:212",
+      "register_rlgames_env:252",
+      "teacher_env_info:309",
+      "__init__:105",
+      "after_init:115",
+      "process_infos:119",
+      "_process_episode_cumulative:139",
+      "_process_episode_final:158",
+      "_process_vector_summaries:169",
+      "after_clear_stats:187",
+      "after_print_stats:193",
+      "__init__:218",
+      "_call_multi:222",
+      "before_init:233",
+      "after_init:236",
+      "process_infos:239",
+      "after_steps:242",
+      "after_clear_stats:245",
+      "after_print_stats:248",
+      "_DAggerRlGamesVecEnvWrapper:273",
+      "_process_obs:274",
+      "teacher_obs_space:281"
+    ],
+    "imports": [
+      "__future__",
+      "collections",
+      "copy",
+      "gymnasium",
+      "isaaclab_rl.rl_games",
+      "numpy",
+      "rl_games.common",
+      "rl_games.common.algo_observer",
+      "torch"
+    ],
+    "io_calls": [
+      "_remove_env_boundary_from_info",
+      "self.writer.add_scalar"
+    ],
+    "upstream": "upstream identical",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "50602f25409f7ef9c43d9cd7734191795905db9123c9e17e0a69c0d6d7e28dad",
+    "imported_by": [
+      "evaluation/eval_isaacsim.py",
+      "visuotactile/collect.py",
+      "visuotactile/expert_reference.py"
+    ]
+  },
+  {
+    "path": "rl_games/rl_games/algos_torch/models.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "BaseModel:13",
+      "BaseModelNetwork:36",
+      "ModelA2C:64",
+      "ModelA2CMultiDiscrete:120",
+      "ModelA2CContinuous:187",
+      "ModelA2CContinuousLogStd:245",
+      "ModelMultiA2CContinuousLogStd:302",
+      "ModelCentralValue:440",
+      "ModelSACContinuous:478",
+      "__init__:14",
+      "is_rnn:17",
+      "is_separate_critic:20",
+      "get_value_layer:23",
+      "build:26",
+      "__init__:37",
+      "norm_obs:53",
+      "denorm_value:60",
+      "__init__:65",
+      "Network:69",
+      "__init__:121",
+      "Network:125",
+      "__init__:188",
+      "Network:192",
+      "__init__:246",
+      "Network:250",
+      "__init__:303",
+      "Network:307",
+      "build:428",
+      "__init__:441",
+      "Network:445",
+      "__init__:480",
+      "Network:484",
+      "__init__:70",
+      "is_rnn:74",
+      "get_default_rnn_state:77",
+      "get_value_layer:80",
+      "kl:83",
+      "forward:88",
+      "__init__:126",
+      "is_rnn:130",
+      "get_default_rnn_state:133",
+      "get_value_layer:136",
+      "kl:139",
+      "forward:144",
+      "__init__:193",
+      "is_rnn:197",
+      "get_default_rnn_state:200",
+      "get_value_layer:203",
+      "kl:206",
+      "forward:211",
+      "__init__:251",
+      "is_rnn:255",
+      "get_value_layer:258",
+      "get_default_rnn_state:261",
+      "forward:264",
+      "neglogp:297",
+      "__init__:308",
+      "split_input_dicts:314",
+      "concat_results:348",
+      "is_rnn:359",
+      "get_value_layer:362",
+      "get_default_rnn_state:365",
+      "forward:368",
+      "neglogp:423",
+      "__init__:446",
+      "is_rnn:450",
+      "get_value_layer:453",
+      "get_default_rnn_state:456",
+      "kl:459",
+      "forward:462",
+      "__init__:485",
+      "critic:489",
+      "critic_target:492",
+      "actor:495",
+      "is_rnn:498",
+      "forward:501"
+    ],
+    "imports": [
+      "numpy",
+      "rl_games.algos_torch.layers",
+      "rl_games.algos_torch.moving_mean_std",
+      "rl_games.algos_torch.running_mean_std",
+      "rl_games.algos_torch.sac_helper",
+      "rl_games.common.divergence",
+      "rl_games.common.extensions.distributions",
+      "torch",
+      "torch.distributions",
+      "torch.nn",
+      "torch.nn.functional"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [],
+    "tests": [],
+    "sha256": "0b1cfe90ba56622b2c9dcf439235e3c97b95fad4503dcf00b21b45e32983fbec",
+    "imported_by": []
+  },
+  {
+    "path": "rl_games/rl_games/algos_torch/network_builder.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "_create_initializer:13",
+      "NetworkBuilder:17",
+      "A2CBuilder:183",
+      "Conv2dAuto:564",
+      "ConvBlock:570",
+      "ResidualBlock:585",
+      "ImpalaSequential:617",
+      "A2CResnetBuilder:632",
+      "DiagGaussianActor:860",
+      "DoubleQCritic:889",
+      "SACBuilder:912",
+      "__init__:18",
+      "load:21",
+      "build:24",
+      "__call__:27",
+      "BaseNetwork:30",
+      "__init__:184",
+      "load:187",
+      "Network:190",
+      "build:560",
+      "__init__:565",
+      "__init__:571",
+      "forward:578",
+      "__init__:586",
+      "forward:601",
+      "__init__:618",
+      "forward:625",
+      "__init__:633",
+      "load:636",
+      "Network:639",
+      "build:855",
+      "__init__:862",
+      "forward:871",
+      "__init__:891",
+      "forward:902",
+      "__init__:913",
+      "load:916",
+      "build:919",
+      "Network:923",
+      "__init__:31",
+      "is_separate_critic:57",
+      "get_value_layer:60",
+      "is_rnn:63",
+      "get_default_rnn_state:66",
+      "_calc_input_size:69",
+      "_noisy_dense:76",
+      "_build_rnn:79",
+      "_build_sequential_mlp:87",
+      "_build_mlp:114",
+      "_build_conv:128",
+      "_build_cnn2d:138",
+      "_build_cnn1d:156",
+      "_build_value_layer:171",
+      "__init__:191",
+      "forward:317",
+      "is_separate_critic:485",
+      "is_rnn:488",
+      "get_default_rnn_state:491",
+      "load:515",
+      "__init__:640",
+      "forward:726",
+      "load:800",
+      "_build_impala:833",
+      "is_separate_critic:841",
+      "is_rnn:844",
+      "get_default_rnn_state:847",
+      "__init__:924",
+      "_build_critic:975",
+      "_build_actor:978",
+      "forward:981",
+      "is_separate_critic:987",
+      "load:990"
+    ],
+    "imports": [
+      "os",
+      "rl_games.algos_torch",
+      "rl_games.algos_torch.d2rl",
+      "rl_games.algos_torch.sac_helper",
+      "rl_games.common",
+      "rl_games.common.layers.recurrent",
+      "rl_games.common.layers.value",
+      "torch",
+      "torch.nn"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [],
+    "tests": [],
+    "sha256": "cfdaedd321f72c10373a4540a874e60da6abe01f20507b8fbf8791315b2bd36d",
+    "imported_by": []
+  },
+  {
+    "path": "rl_games/rl_games/algos_torch/players.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "rescale_actions:13",
+      "PpoPlayerContinuous:20",
+      "PpoPlayerDiscrete:115",
+      "SACPlayer:219",
+      "__init__:22",
+      "get_action:62",
+      "restore:96",
+      "reset:111",
+      "__init__:117",
+      "get_masked_action:145",
+      "get_action:176",
+      "restore:205",
+      "reset:215",
+      "__init__:221",
+      "restore:246",
+      "get_action:258",
+      "reset:268"
+    ],
+    "imports": [
+      "gym",
+      "numpy",
+      "os",
+      "rl_games.algos_torch",
+      "rl_games.algos_torch.running_mean_std",
+      "rl_games.common.custom_utils",
+      "rl_games.common.player",
+      "rl_games.common.tr_helpers",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [],
+    "tests": [],
+    "sha256": "10e71a5bf243460b5192ecc6b24e1c37d94a8886ef4977967b1b63b8702f8438",
+    "imported_by": []
+  },
+  {
+    "path": "rl_games/rl_games/torch_runner.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "_restore:19",
+      "_load_checkpoint_weights:37",
+      "_override_sigma:46",
+      "Runner:57",
+      "__init__:59",
+      "reset:78",
+      "load_config:81",
+      "load:130",
+      "set_vec_env:135",
+      "run_train:138",
+      "run_play:145",
+      "create_player:152",
+      "reset:155",
+      "run:158"
+    ],
+    "imports": [
+      "copy",
+      "numpy",
+      "os",
+      "random",
+      "rl_games.algos_torch",
+      "rl_games.common",
+      "rl_games.common.algo_observer",
+      "time",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "upstream identical",
+    "documents": [],
+    "tests": [],
+    "sha256": "e605fe084044db17f9b736e96fc035feb695ff34ebb30bc70b1b0e2bac192ed9",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_action_history.py",
+    "purpose": "Causal execution feedback, native configuration and version admission tests.",
+    "definitions": [
+      "transition:19",
+      "test_offline_history_is_past_execution_across_chunks_and_label_mutation:27",
+      "test_history_actual_controller_sequence_gradients_reset_and_version:53",
+      "test_execution_acknowledgment_rejects_missing_mixed_duplicate_and_future:101",
+      "test_native_contract_rejects_control_dr_reset_timeout_changes:128"
+    ],
+    "imports": [
+      "copy",
+      "h5py",
+      "pytest",
+      "test_causal_memory",
+      "test_perception_v2",
+      "torch",
+      "types",
+      "visuotactile.action_history",
+      "visuotactile.contracts",
+      "visuotactile.dataset",
+      "visuotactile.models.nominal",
+      "visuotactile.observations",
+      "visuotactile.rollout",
+      "visuotactile.train_dp"
+    ],
+    "io_calls": [
+      "_save",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "3ef5fcd9ee1da1abb796aae467ae682b25a5dbf9cb4f2d61c58a36eaad3e4029",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_camera_rigs.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_renderer_row_matrix_ros_roundtrip:6",
+      "test_mount_looks_along_declared_parent_optical_direction:16",
+      "test_close_rig_moves_only_high_camera_preserves_real_wrist:24"
+    ],
+    "imports": [
+      "numpy",
+      "scipy.spatial.transform",
+      "visuotactile.camera_rigs"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "8a7dcfff0c5f3d36a635f2f98c667a8d184baa4f80b3323ba089e151d5406b63",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_causal_memory.py",
+    "purpose": "Fixed-parameter causal tests; fixtures never used for training.",
+    "definitions": [
+      "sequence:25",
+      "test_episode_sequence_chunk_online_and_detach:32",
+      "test_controller_updates_between_replans_and_only_episode_reset:60",
+      "test_tactile_chunk_boundaries_preserve_derivatives_and_events:85",
+      "test_shadow_state_matches_direct_step_carry_and_reset:107",
+      "test_masked_depth_and_invalid_camera_do_not_influence_or_receive_gradient:128",
+      "test_action_delay_trace_rng_and_formulas:145",
+      "fixture_file:174",
+      "test_hdf5_step_pickle_and_sequential_training_roundtrip:187",
+      "test_legacy_memory_contract_and_checkpoint_state:218"
+    ],
+    "imports": [
+      "copy",
+      "dataclasses",
+      "importlib.util",
+      "numpy",
+      "pathlib",
+      "pickle",
+      "pytest",
+      "test_perception_v2",
+      "torch",
+      "types",
+      "visuotactile.correction",
+      "visuotactile.dataset",
+      "visuotactile.history",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile",
+      "visuotactile.observations",
+      "visuotactile.recording",
+      "visuotactile.rollout"
+    ],
+    "io_calls": [
+      "EpisodeWriter",
+      "controller.plan_generation_step.tolist",
+      "reader.steps",
+      "steps.append",
+      "torch.save",
+      "writer.append",
+      "writer.close"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "8a50455f7ad8b2f1c1e16a88e670190df93cd6c644da95cb04b112e30feee1f1",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_collection_resources.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_inventory_counts_other_batch_and_temporary_never_links:7",
+      "test_irregular_samples_are_weighted_and_missing_not_zero:16"
+    ],
+    "imports": [
+      "os",
+      "pathlib",
+      "pytest",
+      "visuotactile.collection_resources"
+    ],
+    "io_calls": [
+      "(outside / 'large').write_bytes",
+      "outside.mkdir",
+      "p.parent.mkdir",
+      "p.write_bytes"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "976c3725b14e86c7f71a4aeea37a71ac14b565a59870d5ffcbcca8d916df4c55",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_command_training.py",
+    "purpose": "Control, causal batching and reload regressions; fixtures are not demonstrations.",
+    "definitions": [
+      "chunk:18",
+      "sliced:28",
+      "compare_state:33",
+      "test_causal_packing_swap_padding_and_row_reset:41",
+      "test_tactile_reference_with_initial_missing_and_padded_tail:76",
+      "test_checkpoint_actual_controller_online_no_plan_rng_and_causal_state:89",
+      "test_command_history_fast_path_matches_retained_images:119",
+      "test_evaluation_requires_actual_best_identity:134",
+      "test_incomplete_evaluation_never_publishes_completion_marker:148",
+      "test_activation_recomputation_keeps_features_and_parameter_gradients:158",
+      "test_future_tactile_rejected_and_b0_rejects_extra_fields:170",
+      "test_resume_checkpoint_restores_optimizer_rng_and_next_update:180",
+      "test_sampled_metrics_replan_phase_and_episode_tail_masks:209",
+      "step:188",
+      "Oracle:223",
+      "unchanged:67",
+      "eval:225",
+      "predict_from_condition:226",
+      "select:57"
+    ],
+    "imports": [
+      "copy",
+      "dataclasses",
+      "json",
+      "numpy",
+      "pytest",
+      "test_perception_v2",
+      "torch",
+      "types",
+      "visuotactile.command_metrics",
+      "visuotactile.evaluate_baselines",
+      "visuotactile.history",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile",
+      "visuotactile.observations",
+      "visuotactile.rollout",
+      "visuotactile.train_dp"
+    ],
+    "io_calls": [
+      "(tmp_path / 'report.json').write_text",
+      "_save",
+      "json.dumps",
+      "o.step",
+      "step",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "edbddc8e530e9de5c455e5684b6dde8058bbc148e9315d18b56cda1df8d9c695",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_compact.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "fixture:13",
+      "test_lossless_storage_and_terminal_boundary:36",
+      "test_refuse_noninvertible_rgb_and_misaligned_frames:51",
+      "test_optional_viewing_videos_keep_lossless_hdf5:59",
+      "test_fresh_and_resume_share_result_identity_gate:72",
+      "test_compact_repeated_reversed_and_empty_indices:87"
+    ],
+    "imports": [
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "pytest",
+      "unittest.mock",
+      "visuotactile.compact",
+      "visuotactile.recording",
+      "visuotactile.run_rl_trials"
+    ],
+    "io_calls": [
+      "(path / 'FAILED.txt').write_text",
+      "(path / 'result.json').write_text",
+      "(tmp_path / 'trial.status.json').write_text",
+      "json.dumps",
+      "path.mkdir",
+      "{'image': images, 'depth_m': depth, 'depth_valid': valid, 'camera_time_s': np.arange(4)[:, None].repeat(views, 1) / 60, 'camera_frame': np.arange(4)[:, None].repeat(views, 1), 'episode_id': np.zeros(4, dtype='i8'), 'step_id': np.arange(4)}.items"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "17c2c486fb6ab18509515b100eb95bf66df2557636332afe4224acdbe74f6a54",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_insertion_dataset.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_box_geometry_rotation_touch_and_penetration:13",
+      "manifest_fixture:23",
+      "test_manifest_checksum_missing_files_and_group_split:36",
+      "test_manifest_success_filter_and_self_plan_guard:48",
+      "test_frozen_design_and_storage_accounting:65"
+    ],
+    "imports": [
+      "json",
+      "numpy",
+      "pytest",
+      "unittest.mock",
+      "visuotactile.compact",
+      "visuotactile.initial_geometry",
+      "visuotactile.manifest",
+      "visuotactile.run_insertion_dataset",
+      "visuotactile.storage_audit"
+    ],
+    "io_calls": [
+      "(tmp_path / 'a/data.h5').write_bytes",
+      "directory.mkdir",
+      "file.write_bytes",
+      "json.dumps",
+      "path.write_text"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "ebe7f707b9b99132f369a19150dbf0f8c28b6f382c24b5b0c6b9ef3d4ce1b4c1",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_long_horizon.py",
+    "purpose": "Causality, boundary coverage and native representation tests for candidate2.",
+    "definitions": [
+      "record:16",
+      "test_roundtrip_unclipped_arm_limits_and_nonidentity_hand_order:33",
+      "test_current_and_future_commands_never_enter_conditions:47",
+      "test_short_episode_and_two_second_boundaries:61",
+      "test_padding_does_not_change_masked_history:78",
+      "test_sample_prediction_preserves_unclipped_reference_at_terminal_noise:88",
+      "test_pilot_admission_rejects_angle_only_improvement:103",
+      "test_adapter_uses_unchanged_native_delay_and_smoothing:125",
+      "test_whole_prefix_chunk_and_online_memory_match:165"
+    ],
+    "imports": [
+      "copy",
+      "importlib.util",
+      "json",
+      "pathlib",
+      "pytest",
+      "torch",
+      "types",
+      "visuotactile.action_reference",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon",
+      "visuotactile.run_long"
+    ],
+    "io_calls": [
+      "(output / 'config.json').write_text",
+      "(output / 'fit.json').write_text",
+      "(output / 'report.json').write_text",
+      "(tmp_path / 'cache_index.json').write_text",
+      "(tmp_path / 'causal_acceptance.json').write_text",
+      "json.dumps",
+      "output.mkdir",
+      "scheduler.set_timesteps",
+      "scheduler.step"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/LONG_HORIZON_20261030.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "6c64afe009fec4e87805778ea2be046cfbb227883c958972fe75bbb184451421",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_long_resources.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "sample:8",
+      "test_shared_feedback_does_not_adjust_twice_for_same_sample:12",
+      "test_feedback_targets_forty_and_reacts_to_increased_load:24",
+      "test_missing_short_window_never_becomes_zero_utilization:42"
+    ],
+    "imports": [
+      "math",
+      "pytest",
+      "visuotactile.long_resources"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "a919734f892f51d7d33567e74022504fd16bcaf322fa667b3f9c563fe760f02f",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_loss_study.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_group_weight_gradient_and_tail_mask:8",
+      "test_per_finger_mapping_respects_unequal_counts:26",
+      "test_resource_violation_uses_whole_card_and_memory:37"
+    ],
+    "imports": [
+      "pytest",
+      "torch",
+      "visuotactile.study_metrics",
+      "visuotactile.study_resources"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "6b9737496b71a5b93095361efbda4ae1bf00a3dfb427fea95b698d30c29132a3",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_network_audit.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_force_interventions_preserve_nonforce_fields_and_past_support:8",
+      "test_parameter_audit_rejects_partial_optimizer_scope:25",
+      "test_first_deviation_uses_time_axis_and_tolerance:32"
+    ],
+    "imports": [
+      "pytest",
+      "torch",
+      "visuotactile.audit_network",
+      "visuotactile.audit_training_initials"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "d292d75a84729a05da96f16e819eebbacc8742ba5e54d868c8413b59a78ab6b0",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_perception_v2.py",
+    "purpose": "Boundary/numerical checks, not synthetic learning or policy evaluation.",
+    "definitions": [
+      "packet:15",
+      "test_v2_full_interfaces_gradients_and_untrained_roundtrip:33",
+      "test_v2_nominal_private_plan_and_no_tactile_leak:66",
+      "test_goal_sources_masks_and_camera_time:88",
+      "test_force_frame_rotation_and_reset_mask:104",
+      "test_v2_modalities_and_view_identity_reach_encoder:119",
+      "test_legacy_config_explicit_interpretation:134",
+      "test_v2_correction_async_reset_preserves_other_environment:140"
+    ],
+    "imports": [
+      "copy",
+      "dataclasses",
+      "pytest",
+      "torch",
+      "visuotactile.correction",
+      "visuotactile.kinematics",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile",
+      "visuotactile.observations",
+      "visuotactile.rollout"
+    ],
+    "io_calls": [
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "9026b3b0f1e5612ce27af4a06c7e420fe36431ebab3a73dbd44efabdfa90c367",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_persistent_collection.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "rows:8",
+      "test_stream_exact_fields_and_independent_episodes:26",
+      "test_stream_rejects_misalignment:39",
+      "test_stream_graceful_censor_preserves_real_last_post_frame:47",
+      "test_mount_env_instance_is_not_a_new_calibration:59"
+    ],
+    "imports": [
+      "copy",
+      "hashlib",
+      "json",
+      "numpy",
+      "pytest",
+      "visuotactile.camera_rigs",
+      "visuotactile.contracts",
+      "visuotactile.recording"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "7b62a9ddbe97fe4e4511a35aa0810e1f55f4fcbe0083c8a0d52a1036efe6b4ef",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_residual.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "fixture_model:10",
+      "inputs:16",
+      "test_zero_residual_bypass_and_reachable_two:29",
+      "test_independent_freeze_and_full_prefix_equivalence:45",
+      "test_force_mask_removes_force_derived_features_but_retains_fk:72",
+      "test_v3_is_not_silently_connected:88",
+      "test_untrained_checkpoint_cannot_execute:94",
+      "test_acknowledged_mixed_feedback_is_private_to_correction:105",
+      "test_diagnostic_continuation_never_repeats_a_started_allocation:128",
+      "test_pose_comparison_respects_quaternion_double_cover_and_units:148",
+      "test_viewing_allocation_is_separate_and_never_continued:160",
+      "test_video_status_does_not_modify_policy_images:170",
+      "test_resource_overlimit_intervals_preserve_unknown_gap:189",
+      "test_recorder_resource_window_excludes_monitor_tail_and_keeps_missing:204"
+    ],
+    "imports": [
+      "av",
+      "copy",
+      "json",
+      "numpy",
+      "pytest",
+      "torch",
+      "visuotactile",
+      "visuotactile.action_history",
+      "visuotactile.evaluate_baselines",
+      "visuotactile.evaluate_residual",
+      "visuotactile.history",
+      "visuotactile.models.nominal",
+      "visuotactile.models.residual",
+      "visuotactile.residual_controller",
+      "visuotactile.residual_data",
+      "visuotactile.residual_report",
+      "visuotactile.viewing_report"
+    ],
+    "io_calls": [
+      "(previous / '02_failed_switch_error.json').write_text",
+      "(previous / 'status.json').write_text",
+      "(previous / 'trials.json').write_text",
+      "json.dumps",
+      "path.write_text",
+      "previous.mkdir",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "60f9db8a7bf0f6189af512be8a03b2b36ad2a5f2d1607474ed666760c6ad5d44",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_rl_trials.py",
+    "purpose": "Experiment denominator/gating checks; no Isaac Sim or training required.",
+    "definitions": [
+      "native_wrench:16",
+      "fake_env:22",
+      "test_native_scale_changes_only_force_with_same_rng_and_gates:38",
+      "test_censor_errors_remain_unknown_not_robot_failure:52",
+      "test_alternation_and_impulse_units:72",
+      "test_startup_retry_retains_failed_attempt_and_rejects_partial_data:82",
+      "setter:24"
+    ],
+    "imports": [
+      "importlib.util",
+      "json",
+      "numpy",
+      "pathlib",
+      "pytest",
+      "torch",
+      "types",
+      "visuotactile.analyze_rl_trials",
+      "visuotactile.run_rl_trials"
+    ],
+    "io_calls": [
+      "(tmp_path / (name + '.status.json')).write_text",
+      "(tmp_path / name).mkdir",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "72f0a4b9a2e63245b6103122d008c2351e07f952b5a6d3f7d0b24dabf3ac84ba",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_success_batch.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_rejection_requires_explicit_diagnostic_and_no_started_trajectory:5",
+      "_recovery_fixture:15",
+      "test_recovery_deduplicates_and_respects_target:39"
+    ],
+    "imports": [
+      "json",
+      "pathlib",
+      "visuotactile.collect_success_batch",
+      "visuotactile.finalize_collection"
+    ],
+    "io_calls": [
+      "(root / 'manifest.json').write_text",
+      "(root / 'reference_metadata.json').write_text",
+      "(run / 'progress.json').write_text",
+      "(source / 'data.h5').write_bytes",
+      "(tmp_path / 'FAILED.txt').write_text",
+      "(tmp_path / 'metadata.json').write_text",
+      "(tmp_path / 'trajectories.h5').write_bytes",
+      "json.dumps",
+      "root.mkdir",
+      "run.mkdir",
+      "source.mkdir"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "cc0589d4af3c0aba4fc1735969e255c974f790346b40295a1c64d882b9b3f47e",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_training_resources.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "row:4",
+      "test_average_gate_ignores_isolated_peak_but_checks_both_means:9",
+      "test_average_gate_requires_telemetry_and_keeps_memory_reserve:20",
+      "test_session_waits_measure_sleep_and_survive_budget_exit:29",
+      "test_stream_video_records_each_view_and_frame_without_raw_frame_cache:55",
+      "delayed_sleep:38"
+    ],
+    "imports": [
+      "av",
+      "json",
+      "numpy",
+      "pytest",
+      "torch",
+      "visuotactile",
+      "visuotactile.evaluate_baselines",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(tmp_path / 'session.json').write_text",
+      "gate.save_waits",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "44cb949701d85eafab803669a7171aa5b9da7c9fbd61f6447e870b78007d4399",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_transformer_residual.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "record_fixture:14",
+      "test_native_memory_matches_streaming_and_future_is_not_input:26",
+      "test_force_mask_before_memory_and_no_contact_exact_bypass:52",
+      "test_raw_delta_loss_retains_gradient_at_execution_clip:67",
+      "test_plan_and_target_alignment_at_six_and_twelve_ticks:82",
+      "test_private_proposals_equal_actual_without_correction_and_ignore_mixed:96",
+      "test_tactile_rejects_future_sensor_sample:122",
+      "test_authorized_mixed_feedback_reaches_nominal_after_actual_ack:130"
+    ],
+    "imports": [
+      "copy",
+      "pytest",
+      "torch",
+      "types",
+      "visuotactile.action_history",
+      "visuotactile.models.transformer_residual",
+      "visuotactile.private_history",
+      "visuotactile.transformer_controller",
+      "visuotactile.transformer_data"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "82b50b14dd4a4a9859e1e13e39677aba52460a2637af9f627de4ab7662bac566",
+    "imported_by": []
+  },
+  {
+    "path": "tests/test_visuotactile.py",
+    "purpose": "Contract tests. Synthetic sentinels test boundaries; they are not training data.",
+    "definitions": [
+      "test_async_history_matches_offline_indices:13",
+      "test_duplicate_observation_is_rejected:33",
+      "test_native_arm_hand_semantics_and_canonical_mapping:41",
+      "test_nominal_rejects_tactile_and_privileged_keys:61",
+      "test_correction_is_independent_and_cannot_execute_untrained:71",
+      "test_checkpoint_load_preserves_simulator_rng:91",
+      "test_correction_real_time_alignment_and_async_reset:102",
+      "test_nominal_inference_is_invariant_to_tactile_and_diagnostics:126"
+    ],
+    "imports": [
+      "dataclasses",
+      "importlib.util",
+      "numpy",
+      "pathlib",
+      "pytest",
+      "torch",
+      "types",
+      "visuotactile.correction",
+      "visuotactile.history",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.rollout"
+    ],
+    "io_calls": [
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/GIT_WORKFLOW.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [],
+    "sha256": "82cb509e31dc47f214c9c6f608f2784496a25d977dc22c974d324f1cafc8fee7",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/__init__.py",
+    "purpose": "Visual\u2013tactile research extensions; importing this package never boots Isaac.",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "5a735e709bbc20eb3cfb1d67c6a4e04fb861bdf1ca689dece1790ee18b6edadc",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/action_history.py",
+    "purpose": "Past native execution feedback for command baselines, never private plans.",
+    "definitions": [
+      "history_contract:5",
+      "execution_context:17",
+      "ExecutionHistory:36",
+      "__init__:39",
+      "observe:43",
+      "context:62"
+    ],
+    "imports": [
+      "torch"
+    ],
+    "io_calls": [
+      "packet['step_id'].cpu",
+      "step_ids.cpu",
+      "step_ids.cpu().clone",
+      "transition['step_id'].cpu"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_transformer_residual.py",
+      "tests/test_residual.py"
+    ],
+    "sha256": "a1436401bbf86e7a90a72e9c3b163313e44e43d1c436910ac81bddac44be726b",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_residual.py",
+      "tests/test_transformer_residual.py",
+      "visuotactile/dataset.py",
+      "visuotactile/long_controller.py",
+      "visuotactile/private_history.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/rollout.py",
+      "visuotactile/train_dp.py",
+      "visuotactile/transformer_controller.py"
+    ]
+  },
+  {
+    "path": "visuotactile/action_reference.py",
+    "purpose": "Reversible research adapter between native commands and joint references.",
+    "definitions": [
+      "_validate:12",
+      "command_to_reference:23",
+      "reference_to_command:35",
+      "roundtrip_metrics:48"
+    ],
+    "imports": [
+      "__future__",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_long_horizon.py"
+    ],
+    "sha256": "97a9dd772b1399edafbd0f17c74db9ae887ef2ea986ca6bd027f00085b099c6c",
+    "imported_by": [
+      "tests/test_long_horizon.py",
+      "visuotactile/audit_system.py",
+      "visuotactile/long_controller.py",
+      "visuotactile/long_data.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/study_metrics.py",
+      "visuotactile/train_long.py",
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/analyze_insertion_dataset.py",
+    "purpose": "Descriptive signed-offset results, storage, force exposure and <=4 previews.",
+    "definitions": [
+      "wrench_events:23",
+      "preview:38",
+      "analyze:60",
+      "main:222",
+      "frames:44"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "collections",
+      "datetime",
+      "h5py",
+      "json",
+      "matplotlib",
+      "matplotlib.pyplot",
+      "numpy",
+      "pathlib",
+      "visuotactile.analyze_rl_trials",
+      "visuotactile.compact",
+      "visuotactile.initial_geometry",
+      "visuotactile.manifest",
+      "visuotactile.run_insertion_dataset",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "(output / 'report.md').write_text",
+      "fig.savefig",
+      "json.dumps",
+      "output.mkdir",
+      "preview_dir.mkdir",
+      "write_json",
+      "write_video"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "3d9a321030cc7bcfe5089a5784ebd138481ece45ce82a61fc32bdab7ea5b72bf",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/analyze_rl_trials.py",
+    "purpose": "Audit and compare bounded, single-environment RL trials, without training.",
+    "definitions": [
+      "episode_outcome:21",
+      "wilson:27",
+      "maxdiff:36",
+      "exposure:40",
+      "load_trial:52",
+      "config_differences:251",
+      "compare_pair:260",
+      "aggregate:313",
+      "condition_metrics:333",
+      "plot_pair:372",
+      "analyze:399",
+      "main:466",
+      "read:66",
+      "check:75",
+      "quantiles:347"
+    ],
+    "imports": [
+      "__future__",
+      "argparse",
+      "h5py",
+      "json",
+      "matplotlib",
+      "matplotlib.pyplot",
+      "numpy",
+      "pathlib",
+      "scipy.spatial.transform",
+      "visuotactile.compact",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "(output / 'report.md').write_text",
+      "fig.savefig",
+      "json.dumps",
+      "output.mkdir",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_rl_trials.py"
+    ],
+    "sha256": "39e3535216f4ecf70ed2a3d1a43ba2b5f80eb5c42d1b354609c91a939bf569d5",
+    "imported_by": [
+      "tests/test_rl_trials.py",
+      "visuotactile/analyze_insertion_dataset.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/run_insertion_dataset.py",
+      "visuotactile/run_rl_trials.py"
+    ]
+  },
+  {
+    "path": "visuotactile/audit_baselines.py",
+    "purpose": "Bounded read-only diagnostics; reports never replace formal evaluation.",
+    "definitions": [
+      "DiagnosticBudget:23",
+      "rms:57",
+      "trace_statistics:62",
+      "audit_traces:90",
+      "audit_development:132",
+      "sample_frozen:180",
+      "command_errors:190",
+      "audit_offline:203",
+      "main:268",
+      "__init__:26",
+      "block:32",
+      "summary:50"
+    ],
+    "imports": [
+      "argparse",
+      "contextlib",
+      "diffusers",
+      "importlib.metadata",
+      "json",
+      "numpy",
+      "pathlib",
+      "shutil",
+      "subprocess",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.manifest",
+      "visuotactile.rollout",
+      "visuotactile.train_dp",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "args.output.mkdir",
+      "json.dumps",
+      "scheduler.alphas_cumprod[scheduler.timesteps].tolist",
+      "scheduler.set_timesteps",
+      "scheduler.step",
+      "scheduler.timesteps.tolist",
+      "steps.extend",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "b01689838c0497296188fc0cebc869bcabd32cf8d747e4f53317ef1db133e5f3",
+    "imported_by": [
+      "visuotactile/probe_action_history.py"
+    ]
+  },
+  {
+    "path": "visuotactile/audit_distribution.py",
+    "purpose": "Read-only fixed400 diversity census and outcome-independent diagnostic selection.",
+    "definitions": [
+      "summary:15",
+      "census:21",
+      "read:35"
+    ],
+    "imports": [
+      "argparse",
+      "csv",
+      "h5py",
+      "hashlib",
+      "json",
+      "numpy",
+      "pathlib",
+      "visuotactile.long_data",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "csv.DictWriter",
+      "json.dumps",
+      "output.mkdir",
+      "writer.writeheader",
+      "writer.writerows"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "b925e71b4785e8cc2fe33f817233b96c24875c0deb2af6e4319c94ec15673c63",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/audit_loss_study.py",
+    "purpose": "Read-only final verification and small sanitized result export for this study.",
+    "definitions": [
+      "require:14",
+      "compact_metrics:19",
+      "precontact_difference:24",
+      "audit_traces:37",
+      "main:127"
+    ],
+    "imports": [
+      "argparse",
+      "av",
+      "hashlib",
+      "json",
+      "numpy",
+      "pathlib",
+      "shutil",
+      "visuotactile.compact",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "args.output.parent.mkdir",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "49f2bfb542f8112dc832660144b5f969a0ee6355c1f4df42f38083ebdd49c427",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/audit_network.py",
+    "purpose": "Actual-checkpoint CPU hooks, parameter census and paired force interventions.",
+    "definitions": [
+      "describe:26",
+      "Hooks:38",
+      "parameter_rows:74",
+      "write_csv:97",
+      "intervene:103",
+      "residual_audit:120",
+      "main:214",
+      "__init__:39",
+      "finish:53",
+      "capture:44"
+    ],
+    "imports": [
+      "argparse",
+      "csv",
+      "gc",
+      "h5py",
+      "json",
+      "pathlib",
+      "torch",
+      "torch.nn.utils.rnn",
+      "visuotactile.compact",
+      "visuotactile.long_data",
+      "visuotactile.manifest",
+      "visuotactile.models.long_horizon",
+      "visuotactile.models.residual",
+      "visuotactile.models.transformer_residual",
+      "visuotactile.residual_data",
+      "visuotactile.study_metrics",
+      "visuotactile.train_residual",
+      "visuotactile.train_transformer_residual",
+      "visuotactile.training_resources",
+      "visuotactile.transformer_data"
+    ],
+    "io_calls": [
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).eval",
+      "ResidualCorrection(base.model.encoder, base.model.cfg, saved['scales']).eval",
+      "TransformerResidual(TransformerResidualConfig(**saved['config'])).eval",
+      "args.output.mkdir",
+      "csv.DictWriter",
+      "handle.remove",
+      "json.dumps",
+      "write_csv",
+      "writer.writeheader",
+      "writer.writerows"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_network_audit.py"
+    ],
+    "sha256": "8322f03f408c3d235994c056e8184bbf6791bbc2a920344ce37f23cda881d4f4",
+    "imported_by": [
+      "tests/test_network_audit.py"
+    ]
+  },
+  {
+    "path": "visuotactile/audit_system.py",
+    "purpose": "CPU-only control, dataset, RNG provenance and repository inventory audit.",
+    "definitions": [
+      "digest:23",
+      "sanitized:27",
+      "source_audit:37",
+      "inventory:50",
+      "dataset_audit:134",
+      "rng_audit:225",
+      "historical_sources:257",
+      "evaluation_audit:290",
+      "parameter_contracts:325",
+      "main:354",
+      "read:151"
+    ],
+    "imports": [
+      "argparse",
+      "ast",
+      "collections",
+      "csv",
+      "h5py",
+      "hashlib",
+      "json",
+      "numpy",
+      "pathlib",
+      "subprocess",
+      "torch",
+      "visuotactile.action_reference",
+      "visuotactile.long_data",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(delayed - command[source_steps]).abs",
+      "(delayed - command[source_steps]).abs().max",
+      "(source_steps <= torch.arange(length)).all",
+      "(source_steps >= 0).all",
+      "Path('research_docs/PROJECT_FILE_MAP.md').write_text",
+      "args.output.mkdir",
+      "csv.writer",
+      "json.dumps",
+      "json.dumps(code, sort_keys=True).encode",
+      "json.dumps(configuration, sort_keys=True).encode",
+      "read('transition/control_trace/selected_command_step').long",
+      "saved['model'].items",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'ls-files', 'isaacsimenvs'], text=True).splitlines",
+      "subprocess.check_output(['git', 'ls-files'], text=True).splitlines",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip",
+      "subprocess.run",
+      "writer.writerow"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "5b9c3d1ea11ec37ef842bd52c5ce2356e20a6108a1699699ef43e896948433b7",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/audit_training_initials.py",
+    "purpose": "Read-only analysis of completed approximate-initial-state diagnostics.",
+    "definitions": [
+      "first_difference:19",
+      "write_csv:27",
+      "audit:34"
+    ],
+    "imports": [
+      "argparse",
+      "csv",
+      "h5py",
+      "json",
+      "matplotlib",
+      "matplotlib.pyplot",
+      "numpy",
+      "pathlib",
+      "subprocess",
+      "visuotactile.compact",
+      "visuotactile.long_data",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "csv.DictWriter",
+      "figure.savefig",
+      "frame_figure.savefig",
+      "json.dumps",
+      "np.linalg.norm(trace['force'][step], axis=-1).max",
+      "np.savez_compressed",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'diff', '--name-only', '--', *protected], text=True).splitlines",
+      "subprocess.check_output(['git', 'ls-files', 'isaacsimenvs'], text=True).splitlines",
+      "trial['restoration']['saved_observable_errors'].values",
+      "write_csv",
+      "writer.writeheader",
+      "writer.writerows"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_network_audit.py"
+    ],
+    "sha256": "473fe8399123783899aa24b339bedd779b363788ee2310061ceed7d768c4e6c1",
+    "imported_by": [
+      "tests/test_network_audit.py"
+    ]
+  },
+  {
+    "path": "visuotactile/camera_diagnostics.py",
+    "purpose": "Render-only diagnostic after a rollout. No physics steps or task observation calls.",
+    "definitions": [
+      "capture_static:11"
+    ],
+    "imports": [
+      "carb",
+      "json",
+      "numpy",
+      "omni.usd",
+      "os",
+      "pxr",
+      "subprocess",
+      "time",
+      "torch",
+      "visuotactile.camera_rigs",
+      "xml.etree.ElementTree"
+    ],
+    "io_calls": [
+      "(output / 'camera_diagnostics.json').write_text",
+      "json.dumps",
+      "np.savez_compressed",
+      "subprocess.check_output",
+      "subprocess.check_output(['nvidia-smi', '--query-gpu=memory.used,utilization.gpu', '--format=csv,noheader'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "560eb5b956cb5fb6a098237798e28627caf3167e7a7e95ad1d3049e0910a346e",
+    "imported_by": [
+      "visuotactile/collect.py"
+    ]
+  },
+  {
+    "path": "visuotactile/camera_review.py",
+    "purpose": "Offline camera evidence from committed raw frames; no simulation or training.",
+    "definitions": [
+      "data_path:19",
+      "compare:24",
+      "review:51",
+      "clearance:94",
+      "aperture_diagnostics:147",
+      "main:186",
+      "visit:30",
+      "frames:59"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "json",
+      "numpy",
+      "pathlib",
+      "scipy.spatial.transform",
+      "torch",
+      "trimesh",
+      "visuotactile.compact",
+      "visuotactile.initial_geometry",
+      "visuotactile.kinematics",
+      "visuotactile.trial_utils",
+      "xml.etree.ElementTree"
+    ],
+    "io_calls": [
+      "Image.fromarray((np.clip(depth / 1.5, 0, 1) * 255).astype('u1')).save",
+      "Image.fromarray((valid * 255).astype('u1')).save",
+      "Image.fromarray(rgb[j]).save",
+      "json.dumps",
+      "np.save",
+      "out.mkdir",
+      "sheet.save",
+      "write_json",
+      "write_video"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "a8ae47d063b9b8dce5cd1684f400223c49686f9c15291f7f2ede2dd41f54e5d1",
+    "imported_by": [
+      "visuotactile/review_delivery.py"
+    ]
+  },
+  {
+    "path": "visuotactile/camera_rigs.py",
+    "purpose": "Explicit observation-only camera layouts. No object state or task stages.",
+    "definitions": [
+      "optical_quat:21",
+      "rig_contract:29",
+      "renderer_pose_ros:46"
+    ],
+    "imports": [
+      "numpy",
+      "scipy.spatial.transform"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/CAMERA_VALIDATION.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_camera_rigs.py",
+      "tests/test_persistent_collection.py"
+    ],
+    "sha256": "36c8b7264cd04bf3aaa7fbe2ebe5d668e6afe863562850d79d81eb2aff3c4b2c",
+    "imported_by": [
+      "tests/test_camera_rigs.py",
+      "tests/test_persistent_collection.py",
+      "visuotactile/camera_diagnostics.py",
+      "visuotactile/collect.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "visuotactile/check_camera_interfaces.py",
+    "purpose": "Bounded real three-camera causal replay and Jacobian probe; zero updates.",
+    "definitions": [
+      "main:16"
+    ],
+    "imports": [
+      "argparse",
+      "dataclasses",
+      "pathlib",
+      "torch",
+      "visuotactile.check_dataset",
+      "visuotactile.compact",
+      "visuotactile.correction",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.rollout",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "a.output.mkdir",
+      "torch.save",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "922c638d16aea31381d22d820b9e364c4357d67b2f0d5c25f2536e9f69500364",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/check_dataset.py",
+    "purpose": "Real data zero-update checks; reads expert labels, never creates an optimizer.",
+    "definitions": [
+      "fingerprint:13",
+      "check:20",
+      "check_manifest:54",
+      "main:95",
+      "sequence:66",
+      "encode:69",
+      "encode:33"
+    ],
+    "imports": [
+      "argparse",
+      "hashlib",
+      "json",
+      "pathlib",
+      "torch",
+      "visuotactile.dataset",
+      "visuotactile.manifest",
+      "visuotactile.models.nominal",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "NominalDiffusionPolicy(PolicyConfig(inference_steps=1, views=len(first.metadata['camera_ids']))).eval",
+      "NominalDiffusionPolicy(PolicyConfig(inference_steps=1, views=len(new.metadata['camera_ids']))).eval",
+      "json.dumps",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "62d0e448cdab62aff9e6c209bc4be8a0e49b00f914041a03f6d4a4d6215fe2b1",
+    "imported_by": [
+      "visuotactile/check_camera_interfaces.py"
+    ]
+  },
+  {
+    "path": "visuotactile/cleanup_long.py",
+    "purpose": "Explicit one-session cleanup of invalid caches and redundant failed videos.",
+    "definitions": [
+      "main:9"
+    ],
+    "imports": [
+      "json",
+      "pathlib",
+      "visuotactile.compact",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "json.dumps",
+      "path.unlink"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "eea984ebbfb8932b73e4984f28c27e8ef000f02cea1e88aa88f6c1abe7fb206f",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/collect.py",
+    "purpose": "Bounded CPU collection with original teacher/control; see research_docs/RUNBOOK.",
+    "definitions": [
+      "main:11",
+      "save_frame:143"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "carb",
+      "dataclasses",
+      "evaluation.eval_isaacsim",
+      "hashlib",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "isaacsimenvs.utils.rlgames_utils",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "rl_games.torch_runner",
+      "time",
+      "torch",
+      "traceback",
+      "visuotactile.camera_diagnostics",
+      "visuotactile.camera_rigs",
+      "visuotactile.collect_success_batch",
+      "visuotactile.collection_resources",
+      "visuotactile.contracts",
+      "visuotactile.correction",
+      "visuotactile.initial_geometry",
+      "visuotactile.models.nominal",
+      "visuotactile.observations",
+      "visuotactile.recording",
+      "visuotactile.rollout",
+      "visuotactile.sim.environment",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "(args.output / 'FAILED.txt').write_text",
+      "(args.output / 'metadata.json').write_text",
+      "(args.output / 'result.json').write_text",
+      "EpisodeWriter",
+      "Image.fromarray((im[3].clip(0, 1) * 255).astype(np.uint8)).save",
+      "Image.fromarray((im[3].clip(0, 2) / 2 * 255).astype(np.uint8)).save",
+      "Image.fromarray((im[:3].transpose(1, 2, 0).clip(0, 1) * 255).astype(np.uint8)).save",
+      "Image.fromarray((valid * 255).astype(np.uint8)).save",
+      "args.output.mkdir",
+      "env.last_transition['contact_substeps_after_w_N'].norm",
+      "env.step",
+      "intent.plan_generation_step.clone",
+      "json.dumps",
+      "np.save",
+      "rng_before_step[None].expand",
+      "save_frame",
+      "writer.append",
+      "writer.close"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_success_batch.py",
+      "tests/test_collection_resources.py"
+    ],
+    "sha256": "69cf9bb14585f29e33fd5f0de4f9226b56a81919ff7f2a9ded278f576496a7d0",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/collect_success_batch.py",
+    "purpose": "Persistent released-expert capture, bounded audit pipeline and resumable manifest.",
+    "definitions": [
+      "audit_worker_init:26",
+      "classify_pre_action_rejection:33",
+      "episode_metadata:42",
+      "collect_persistent:68",
+      "process_alive:275",
+      "recover_pending:282",
+      "main:357",
+      "identity:99",
+      "publish:101",
+      "consume_resets:122",
+      "write_batch:133",
+      "reap_writes:144",
+      "reap_audits:151",
+      "discard_recovered_payload:299",
+      "close_partial:253"
+    ],
+    "imports": [
+      "argparse",
+      "collections",
+      "concurrent.futures",
+      "copy",
+      "datetime",
+      "fcntl",
+      "json",
+      "multiprocessing",
+      "numpy",
+      "os",
+      "pathlib",
+      "shutil",
+      "subprocess",
+      "sys",
+      "threadpoolctl",
+      "time",
+      "torch",
+      "visuotactile.collection_resources",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.finalize_collection",
+      "visuotactile.initialization_report",
+      "visuotactile.recording",
+      "visuotactile.run_insertion_dataset",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "(run / 'STOP').unlink",
+      "dest.parent.mkdir",
+      "env.step",
+      "json.dumps",
+      "reap_writes",
+      "rng_before_step[None].expand",
+      "run.mkdir",
+      "subprocess.Popen",
+      "tmp.mkdir",
+      "write_json",
+      "writer.shutdown",
+      "writer.submit",
+      "writer.submit(close_partial).result",
+      "writes.append",
+      "writes.popleft",
+      "writes.popleft().result",
+      "writes[0].done"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/CAMERA_VALIDATION.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_success_batch.py"
+    ],
+    "sha256": "c053bb502c127f237ef23989292bc77cfedd47df2a0bedda156eb10a7b60ec66",
+    "imported_by": [
+      "tests/test_success_batch.py",
+      "visuotactile/collect.py"
+    ]
+  },
+  {
+    "path": "visuotactile/collection_resources.py",
+    "purpose": "Wall-clock supervision of ONLY owned children; no simulation-time changes.",
+    "definitions": [
+      "output_inventory:19",
+      "time_mean:38",
+      "gpu_sample:54",
+      "Supervisor:63",
+      "main:192",
+      "__init__:70",
+      "sample:81",
+      "check:127",
+      "wait:136",
+      "run:141"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "os",
+      "pathlib",
+      "shutil",
+      "signal",
+      "stat",
+      "subprocess",
+      "time",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "a.output.mkdir",
+      "f.write",
+      "json.dumps",
+      "self.root.mkdir",
+      "subprocess.Popen",
+      "subprocess.check_output",
+      "subprocess.check_output(['nvidia-smi', '--query-gpu=utilization.gpu,memory.used', '--format=csv,noheader,nounits'], text=True, timeout=3).splitlines",
+      "subprocess.check_output(['nvidia-smi', '--query-gpu=utilization.gpu,memory.used', '--format=csv,noheader,nounits'], text=True, timeout=3).splitlines()[0].split",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_collection_resources.py"
+    ],
+    "sha256": "d93b1d6b7b29aae5432ec7064304238e75d7a428ce5caa40f16465fb2c7243fb",
+    "imported_by": [
+      "tests/test_collection_resources.py",
+      "visuotactile/collect.py",
+      "visuotactile/collect_success_batch.py"
+    ]
+  },
+  {
+    "path": "visuotactile/command_metrics.py",
+    "purpose": "Offline sampled-command error with one fixed DDIM draw per replan condition.",
+    "definitions": [
+      "sampled_command_metrics:7"
+    ],
+    "imports": [
+      "time",
+      "torch",
+      "visuotactile.train_dp"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_command_training.py"
+    ],
+    "sha256": "926baee51f4a29b8f432a67c71892a5a24ad95f9603f4cd84420c2559585cd65",
+    "imported_by": [
+      "tests/test_command_training.py",
+      "visuotactile/train_dp.py"
+    ]
+  },
+  {
+    "path": "visuotactile/compact.py",
+    "purpose": "Lossless storage v1: uint8 RGB, float32 depth, explicit post-frame references.",
+    "definitions": [
+      "sha256:20",
+      "rgb_u8:25",
+      "VirtualArray:32",
+      "GroupView:92",
+      "EpisodeGroups:123",
+      "EpisodeFile:136",
+      "write_video:161",
+      "convert_episode:192",
+      "__init__:33",
+      "__len__:41",
+      "__getitem__:44",
+      "__init__:94",
+      "__getitem__:97",
+      "__contains__:104",
+      "items:107",
+      "visititems:114",
+      "__init__:124",
+      "__iter__:126",
+      "__getitem__:128",
+      "items:130",
+      "__len__:132",
+      "__init__:137",
+      "__enter__:145",
+      "__exit__:147",
+      "__getitem__:149",
+      "get:157",
+      "visit:115",
+      "copy:220",
+      "compare:262"
+    ],
+    "imports": [
+      "av",
+      "h5py",
+      "hashlib",
+      "json",
+      "numpy",
+      "os",
+      "pathlib"
+    ],
+    "io_calls": [
+      "destination.mkdir",
+      "json.dumps",
+      "write_video"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/BASELINE_TRAINING.md"
+    ],
+    "tests": [
+      "tests/test_compact.py",
+      "tests/test_insertion_dataset.py"
+    ],
+    "sha256": "4a7335955bacae8291b7d454c4e034710a13755787ef40e4bbc9bc3b60cd13ba",
+    "imported_by": [
+      "tests/test_compact.py",
+      "tests/test_insertion_dataset.py",
+      "visuotactile/analyze_insertion_dataset.py",
+      "visuotactile/analyze_rl_trials.py",
+      "visuotactile/audit_baselines.py",
+      "visuotactile/audit_loss_study.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/audit_training_initials.py",
+      "visuotactile/camera_review.py",
+      "visuotactile/check_camera_interfaces.py",
+      "visuotactile/cleanup_long.py",
+      "visuotactile/collect_success_batch.py",
+      "visuotactile/dataset.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/finalize_collection.py",
+      "visuotactile/initialization_report.py",
+      "visuotactile/inspect_long.py",
+      "visuotactile/long_data.py",
+      "visuotactile/manifest.py",
+      "visuotactile/plot_network_audit.py",
+      "visuotactile/policy_census.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/recording.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/residual_report.py",
+      "visuotactile/review_delivery.py",
+      "visuotactile/run_insertion_dataset.py",
+      "visuotactile/run_long.py",
+      "visuotactile/run_loss_study.py",
+      "visuotactile/run_rl_trials.py",
+      "visuotactile/storage_audit.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/train.py",
+      "visuotactile/train_dp.py",
+      "visuotactile/train_long.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/train_residual.py",
+      "visuotactile/train_transformer_residual.py",
+      "visuotactile/transformer_controller.py",
+      "visuotactile/transformer_data.py",
+      "visuotactile/validate_command_training.py",
+      "visuotactile/viewing_report.py"
+    ]
+  },
+  {
+    "path": "visuotactile/contracts.py",
+    "purpose": "Serializable sensor/execution contracts, independent of Isaac Lab imports.",
+    "definitions": [
+      "policy_input_contract:7",
+      "assert_policy_compatible:68",
+      "native_execution_contract:77",
+      "assert_execution_compatible:91",
+      "evaluation_contract:104",
+      "contract_hash:120"
+    ],
+    "imports": [
+      "hashlib",
+      "json",
+      "numpy",
+      "re"
+    ],
+    "io_calls": [
+      "hashlib.sha256(json.dumps(contract, sort_keys=True).encode()).hexdigest",
+      "json.dumps",
+      "json.dumps(contract, sort_keys=True).encode"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_persistent_collection.py"
+    ],
+    "sha256": "1a25019fbc72119cb28dbafa47311aba3ee389a2880dbdfcdb90435ce211f253",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_persistent_collection.py",
+      "visuotactile/audit_baselines.py",
+      "visuotactile/collect.py",
+      "visuotactile/collect_success_batch.py",
+      "visuotactile/evaluate.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/finalize_collection.py",
+      "visuotactile/manifest.py",
+      "visuotactile/probe_correction.py",
+      "visuotactile/probe_perception.py",
+      "visuotactile/train_dp.py"
+    ]
+  },
+  {
+    "path": "visuotactile/correction.py",
+    "purpose": "Causal correction context and NON-CONTROLLING real-data integration probe.",
+    "definitions": [
+      "remaining_nominal_chunk:15",
+      "CorrectionContext:26",
+      "CorrectionShadow:77",
+      "latest_correction_inputs:118",
+      "__init__:27",
+      "observe:39",
+      "commit:69",
+      "__init__:79",
+      "observe:94"
+    ],
+    "imports": [
+      "math",
+      "time",
+      "torch",
+      "visuotactile.history",
+      "visuotactile.models.correction",
+      "visuotactile.observations"
+    ],
+    "io_calls": [
+      "feedback['contact_substeps_local_N'].reshape"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_causal_memory.py",
+      "tests/test_visuotactile.py",
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "7481c57f260074a007473ddb67f48baa4b92f5b280b709ac6dd516b33b571e2b",
+    "imported_by": [
+      "tests/test_causal_memory.py",
+      "tests/test_perception_v2.py",
+      "tests/test_visuotactile.py",
+      "visuotactile/check_camera_interfaces.py",
+      "visuotactile/collect.py",
+      "visuotactile/dataset.py",
+      "visuotactile/probe_correction.py",
+      "visuotactile/probe_perception.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/residual_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/dataset.py",
+    "purpose": "Strict nominal-input allowlist; future actions are supervision only.",
+    "definitions": [
+      "EpisodeDataset:11",
+      "CorrectionEpisodeDataset:81",
+      "EpisodeSequenceDataset:127",
+      "encode_episode_chunks:197",
+      "CorrectionSequenceDataset:219",
+      "replay_correction_chunks:247",
+      "__init__:12",
+      "__len__:55",
+      "__getitem__:58",
+      "proprio_statistics:74",
+      "__init__:87",
+      "__getitem__:94",
+      "__init__:135",
+      "chunks:142",
+      "__init__:226",
+      "chunks:232",
+      "read:99"
+    ],
+    "imports": [
+      "json",
+      "numpy",
+      "torch",
+      "torch.utils.data",
+      "visuotactile.action_history",
+      "visuotactile.compact",
+      "visuotactile.correction",
+      "visuotactile.history",
+      "visuotactile.observations"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/HISTORY_AND_TRACE.md",
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_causal_memory.py"
+    ],
+    "sha256": "792c1069554fbb9092f8e4503e22c66bbb1bbf610994d39da868e10d29854b44",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_causal_memory.py",
+      "visuotactile/check_dataset.py",
+      "visuotactile/manifest.py",
+      "visuotactile/probe_history.py",
+      "visuotactile/probe_perception.py",
+      "visuotactile/train.py",
+      "visuotactile/train_dp.py"
+    ]
+  },
+  {
+    "path": "visuotactile/evaluate.py",
+    "purpose": "Audit recorded trajectories and compare only identical recorded protocols.",
+    "definitions": [
+      "audit_trajectory:14",
+      "main:95"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "visuotactile.contracts"
+    ],
+    "io_calls": [
+      "args.output.parent.mkdir",
+      "json.dump",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_training_resources.py",
+      "tests/test_command_training.py",
+      "tests/test_residual.py"
+    ],
+    "sha256": "f00fccea0ee272042550a5f049e72e8dd76e2d1ba4dc58a6ccb7c517f90a8f14",
+    "imported_by": [
+      "visuotactile/probe_perception.py"
+    ]
+  },
+  {
+    "path": "visuotactile/evaluate_baselines.py",
+    "purpose": "Paired B0/B1 command-controller evaluation on prespecified fresh legal resets.",
+    "definitions": [
+      "checkpoint_identity:16",
+      "publish_report:40",
+      "RolloutVideo:55",
+      "main:102",
+      "__init__:57",
+      "append:68",
+      "close:89",
+      "initial:212"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "av",
+      "evaluation.eval_isaacsim",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "shutil",
+      "subprocess",
+      "time",
+      "torch",
+      "traceback",
+      "visuotactile.analyze_rl_trials",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.expert_reference",
+      "visuotactile.initial_geometry",
+      "visuotactile.observations",
+      "visuotactile.rollout",
+      "visuotactile.sim.environment",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(args.output / 'error.txt').write_text",
+      "Image.fromarray((np.concatenate(im, axis=1).clip(0, 1) * 255).astype('uint8')).save",
+      "args.output.mkdir",
+      "env.step",
+      "json.dumps",
+      "np.savez_compressed",
+      "saved.get",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_training_resources.py",
+      "tests/test_command_training.py",
+      "tests/test_residual.py"
+    ],
+    "sha256": "f9c05202d3665600f8fb2f1f8174bb8140d08aea01be0de3fb523b406d5cde71",
+    "imported_by": [
+      "tests/test_command_training.py",
+      "tests/test_residual.py",
+      "tests/test_training_resources.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py"
+    ]
+  },
+  {
+    "path": "visuotactile/evaluate_long.py",
+    "purpose": "Six preregistered autonomous candidate diagnostics, unchanged native simulator.",
+    "definitions": [
+      "main:14",
+      "block:24"
+    ],
+    "imports": [
+      "argparse",
+      "evaluation.eval_isaacsim",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "subprocess",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.evaluate_baselines",
+      "visuotactile.initial_geometry",
+      "visuotactile.long_controller",
+      "visuotactile.long_resources",
+      "visuotactile.models.long_horizon",
+      "visuotactile.observations",
+      "visuotactile.sim.environment",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "env.step",
+      "json.dumps",
+      "np.savez_compressed",
+      "output.mkdir",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "bf55f93f213daae68d0e20a7fb4c35bad657efd848b49ac04849123423aa28f8",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/evaluate_residual.py",
+    "purpose": "Twelve prespecified diagnostic trials, autonomous and real expert roll-in.",
+    "definitions": [
+      "diagnostic_allocation:15",
+      "main:43"
+    ],
+    "imports": [
+      "argparse",
+      "evaluation.eval_isaacsim",
+      "hashlib",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "subprocess",
+      "time",
+      "torch",
+      "traceback",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.evaluate_baselines",
+      "visuotactile.expert_reference",
+      "visuotactile.initial_geometry",
+      "visuotactile.observations",
+      "visuotactile.residual_controller",
+      "visuotactile.residual_session",
+      "visuotactile.sim.environment",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(output / 'error.txt').write_text",
+      "env.step",
+      "errors[0].name.removesuffix",
+      "gate.save_waits",
+      "json.dumps",
+      "np.savez_compressed",
+      "output.mkdir",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_residual.py"
+    ],
+    "sha256": "9f74f25c2eee2f26bc4e1216e601756a8bf5209a4b872d186959d63a215d0599",
+    "imported_by": [
+      "tests/test_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/evaluate_study.py",
+    "purpose": "Preregistered native DP comparisons and matched local/autonomous residual trials.",
+    "definitions": [
+      "longest_streak:16",
+      "allocation:24",
+      "main:52",
+      "interrupted:57"
+    ],
+    "imports": [
+      "argparse",
+      "evaluation.eval_isaacsim",
+      "hashlib",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "signal",
+      "subprocess",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.evaluate_baselines",
+      "visuotactile.expert_reference",
+      "visuotactile.initial_geometry",
+      "visuotactile.long_controller",
+      "visuotactile.models.long_horizon",
+      "visuotactile.models.residual",
+      "visuotactile.observations",
+      "visuotactile.sim.environment",
+      "visuotactile.study_resources",
+      "visuotactile.training_resources",
+      "visuotactile.transformer_controller"
+    ],
+    "io_calls": [
+      "env.step",
+      "json.dumps",
+      "np.savez_compressed",
+      "output.mkdir",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "1fc5114e9cb7470b67f6a29208a55da108c7e2ef2794070abf67f3bd49bd3848",
+    "imported_by": [
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/evaluate_training_initials.py",
+    "purpose": "Bounded native diagnostics from explicitly approximate saved demonstration states.",
+    "definitions": [
+      "initialize:15",
+      "restore_observable_state:29",
+      "evaluate:88",
+      "main:229",
+      "interrupted:259"
+    ],
+    "imports": [
+      "argparse",
+      "evaluation.eval_isaacsim",
+      "h5py",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "signal",
+      "subprocess",
+      "sys",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.long_controller",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon",
+      "visuotactile.models.residual",
+      "visuotactile.observations",
+      "visuotactile.sim.environment",
+      "visuotactile.study_resources",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "body.write_root_pose_to_sim",
+      "body.write_root_velocity_to_sim",
+      "env.robot.write_joint_state_to_sim",
+      "env.scene.write_data_to_sim",
+      "env.step",
+      "group['transition/diagnostics_after/object_pose_w'][step].copy",
+      "json.dumps",
+      "np.savez_compressed",
+      "restoration['saved_observable_errors'].values",
+      "root.mkdir",
+      "saved_input.create_dataset",
+      "subprocess.Popen",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "6288ee38d3fe764b50ef43b1ffc2fa4524e87a09c0246d72ef6f424be2625cc0",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/expert_reference.py",
+    "purpose": "Released privileged expert, solely for explicit diagnostic reference runs.",
+    "definitions": [
+      "ExpertReference:6",
+      "__init__:7",
+      "act:38",
+      "observe_execution:48"
+    ],
+    "imports": [
+      "evaluation.eval_isaacsim",
+      "isaacsimenvs.utils.rlgames_utils",
+      "rl_games.torch_runner",
+      "torch",
+      "types"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "2aa7247e99d0ff9bc48ffccf98e23bf7df030e6d9c4c3bf033ec72b3d40578c4",
+    "imported_by": [
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py"
+    ]
+  },
+  {
+    "path": "visuotactile/finalize_collection.py",
+    "purpose": "Audited conversion worker; supervisor monitors its complete wall time.",
+    "definitions": [
+      "finalize_stream:11",
+      "finalize:44",
+      "main:65"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "numpy",
+      "pathlib",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.recording",
+      "visuotactile.run_rl_trials",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_success_batch.py"
+    ],
+    "sha256": "54c467e66615daf47346f876fb8cc7e1b42bf7e01b50a83537d59d75df254510",
+    "imported_by": [
+      "tests/test_success_batch.py",
+      "visuotactile/collect_success_batch.py"
+    ]
+  },
+  {
+    "path": "visuotactile/history.py",
+    "purpose": "Shared causal indexing for dataset windows and independently resetting envs.",
+    "definitions": [
+      "history_indices:7",
+      "OnlineHistory:14",
+      "detach_state:45",
+      "detach_state_rows:54",
+      "reset_state:71",
+      "recurrent_scan:81",
+      "__init__:15",
+      "append:21",
+      "batch:32"
+    ],
+    "imports": [
+      "collections",
+      "numpy",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_command_training.py",
+      "tests/test_causal_memory.py",
+      "tests/test_residual.py",
+      "tests/test_visuotactile.py"
+    ],
+    "sha256": "9442e643afc1c1de4288fce6e21166839fd24305affaada9a3b00b374e37d703",
+    "imported_by": [
+      "tests/test_causal_memory.py",
+      "tests/test_command_training.py",
+      "tests/test_residual.py",
+      "tests/test_visuotactile.py",
+      "visuotactile/correction.py",
+      "visuotactile/dataset.py",
+      "visuotactile/models/correction.py",
+      "visuotactile/models/nominal.py",
+      "visuotactile/models/residual.py",
+      "visuotactile/models/tactile_dp.py",
+      "visuotactile/models/vision.py",
+      "visuotactile/probe_history.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/rollout.py",
+      "visuotactile/train_dp.py",
+      "visuotactile/train_residual.py",
+      "visuotactile/validate_command_training.py"
+    ]
+  },
+  {
+    "path": "visuotactile/initial_geometry.py",
+    "purpose": "Diagnostic OBB overlap of the original box colliders (no scene mutation).",
+    "definitions": [
+      "rotation:10",
+      "boxes:16",
+      "overlaps:28",
+      "inspect:40"
+    ],
+    "imports": [
+      "numpy",
+      "xml.etree.ElementTree"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INSERTION_DATASET.md"
+    ],
+    "tests": [
+      "tests/test_insertion_dataset.py"
+    ],
+    "sha256": "c86894fd02f72329eef9fe1be8d4a49d794e06fb7ec85cc356efb3c0a8d76c48",
+    "imported_by": [
+      "tests/test_insertion_dataset.py",
+      "visuotactile/analyze_insertion_dataset.py",
+      "visuotactile/camera_review.py",
+      "visuotactile/collect.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "visuotactile/initialization_report.py",
+    "purpose": "Small measured reset/wrench report from audited episodes, not inferred noise.",
+    "definitions": [
+      "manifest_statistics:12",
+      "report:58",
+      "main:89"
+    ],
+    "imports": [
+      "argparse",
+      "collections",
+      "csv",
+      "json",
+      "numpy",
+      "pathlib",
+      "visuotactile.compact",
+      "visuotactile.run_rl_trials",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "csv.DictWriter",
+      "json.dumps",
+      "output.mkdir",
+      "write_json",
+      "writer.writeheader",
+      "writer.writerows"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "428014638d17fa3642d389e770d0d6ad97ae24eebd971116e307da742395d065",
+    "imported_by": [
+      "visuotactile/collect_success_batch.py"
+    ]
+  },
+  {
+    "path": "visuotactile/inspect_long.py",
+    "purpose": "Bounded training-only sampling checks on a completed long-horizon pilot.",
+    "definitions": [
+      "main:15"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "pathlib",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.long_resources",
+      "visuotactile.models.long_horizon",
+      "visuotactile.train_long",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "LongHorizonPolicy(LongHorizonConfig(**saved['configuration']['model'])).to",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "55f17463c2b9b31090ff033f0c4273bae9621e22797f4733afdcff45390cdf11",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/kinematics.py",
+    "purpose": "Encoder-only URDF forward kinematics. No simulator body state is an input.",
+    "definitions": [
+      "rpy_matrix:12",
+      "EncoderKinematics:19",
+      "rotate_force_to_link:86",
+      "__init__:25",
+      "__call__:67"
+    ],
+    "imports": [
+      "hashlib",
+      "math",
+      "torch",
+      "xml.etree.ElementTree"
+    ],
+    "io_calls": [
+      "needed.remove"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/PERCEPTION.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "2403948c7427c81d84b76f8f7e1818dae073e101545b545add2277fc4283a341",
+    "imported_by": [
+      "tests/test_perception_v2.py",
+      "visuotactile/camera_review.py",
+      "visuotactile/probe_history.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "visuotactile/long_controller.py",
+    "purpose": "Native-tick deployment for candidate2, with actual execution acknowledgments.",
+    "definitions": [
+      "LongController:10",
+      "__init__:11",
+      "act:38",
+      "observe_execution:86"
+    ],
+    "imports": [
+      "torch",
+      "visuotactile.action_history",
+      "visuotactile.action_reference",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon"
+    ],
+    "io_calls": [
+      "inputs_for(record, step, step + 1, self.model.cfg.tactile, torch.tensor([step])).items",
+      "packet['contact_substeps_local_N'][0].cpu",
+      "packet['contact_substeps_w_N'][0].cpu",
+      "saved.get"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "562091b44abb35d9f66059b918b2a517df2d8d56a8b37e445583bfeb5d38301c",
+    "imported_by": [
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/transformer_controller.py",
+      "visuotactile/transformer_data.py",
+      "visuotactile/validate_long.py"
+    ]
+  },
+  {
+    "path": "visuotactile/long_data.py",
+    "purpose": "Versioned frozen feature cache and identical causal offline/online windows.",
+    "definitions": [
+      "depth_grid:24",
+      "proprio_radians:35",
+      "tactile_values:41",
+      "shift_actions:51",
+      "window:62",
+      "inputs_for:70",
+      "supervision:107",
+      "load_record:115",
+      "cache:122",
+      "main:221",
+      "read:159"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "time",
+      "torch",
+      "torch.nn",
+      "visuotactile.action_reference",
+      "visuotactile.compact",
+      "visuotactile.long_resources",
+      "visuotactile.models.long_horizon",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "directory.mkdir",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_long_horizon.py"
+    ],
+    "sha256": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+    "imported_by": [
+      "tests/test_long_horizon.py",
+      "visuotactile/audit_distribution.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/audit_system.py",
+      "visuotactile/audit_training_initials.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/long_controller.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/study_metrics.py",
+      "visuotactile/train_long.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/transformer_controller.py",
+      "visuotactile/transformer_data.py",
+      "visuotactile/validate_long.py"
+    ]
+  },
+  {
+    "path": "visuotactile/long_resources.py",
+    "purpose": "One monitored GPU lease shared by all workers of a long-horizon session.",
+    "definitions": [
+      "update_pacing:15",
+      "Lease:48",
+      "main:132",
+      "__init__:49",
+      "memory:56",
+      "check:67",
+      "block:77"
+    ],
+    "imports": [
+      "argparse",
+      "contextlib",
+      "fcntl",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "shutil",
+      "time",
+      "torch",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "json.dumps",
+      "stream.write"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_long_resources.py"
+    ],
+    "sha256": "5bea749b392d0649916983033d180797ae89b73d3ed6f3e8c567230f547ffb0a",
+    "imported_by": [
+      "tests/test_long_resources.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/inspect_long.py",
+      "visuotactile/long_data.py",
+      "visuotactile/study_resources.py",
+      "visuotactile/train_long.py"
+    ]
+  },
+  {
+    "path": "visuotactile/manifest.py",
+    "purpose": "Explicit multi-episode index over legacy or compact lossless HDF5 records.",
+    "definitions": [
+      "ManifestReader:10",
+      "ManifestSequenceDataset:43",
+      "assert_group_disjoint:104",
+      "__init__:11",
+      "reader:36",
+      "steps:39",
+      "__init__:53",
+      "chunks:92",
+      "require_self_plan_training:97"
+    ],
+    "imports": [
+      "json",
+      "pathlib",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.dataset",
+      "visuotactile.recording"
+    ],
+    "io_calls": [
+      "self.reader(episode_id).steps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_insertion_dataset.py"
+    ],
+    "sha256": "95783445b255e7cc44aadf307808431b67d2d49dee5a0698aa55493f66d64bd2",
+    "imported_by": [
+      "tests/test_insertion_dataset.py",
+      "visuotactile/analyze_insertion_dataset.py",
+      "visuotactile/audit_baselines.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/check_dataset.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/run_insertion_dataset.py",
+      "visuotactile/train_dp.py",
+      "visuotactile/validate_command_training.py",
+      "visuotactile/validate_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/__init__.py",
+    "purpose": "Pure PyTorch policies; no simulator imports.",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "6eef10f160f5a03ea1262f4f1f55bf0ed62b75841130fb224760e2797e44e396",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/models/correction.py",
+    "purpose": "Replaceable correction research interface. Untrained networks cannot execute.",
+    "definitions": [
+      "TactileEncoder:8",
+      "CorrectionPolicy:25",
+      "compose_action:76",
+      "__init__:10",
+      "forward:16",
+      "__init__:32",
+      "forward:49"
+    ],
+    "imports": [
+      "torch",
+      "visuotactile.history",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_causal_memory.py",
+      "tests/test_visuotactile.py",
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "f9c2c320b3d122506c521dd602571fb81544c65926149b3917cd6732ba0dfe6b",
+    "imported_by": [
+      "tests/test_causal_memory.py",
+      "tests/test_perception_v2.py",
+      "tests/test_visuotactile.py",
+      "visuotactile/check_camera_interfaces.py",
+      "visuotactile/correction.py",
+      "visuotactile/models/residual.py",
+      "visuotactile/probe_history.py",
+      "visuotactile/probe_perception.py",
+      "visuotactile/rollout.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/long_horizon.py",
+    "purpose": "H64 reference policy with explicit recent histories and native-rate memory.",
+    "definitions": [
+      "LongHorizonConfig:16",
+      "FrozenDinoSpatial:42",
+      "MaskedHistory:64",
+      "LongHorizonPolicy:80",
+      "__post_init__:28",
+      "tactile:38",
+      "__init__:43",
+      "forward:52",
+      "__init__:65",
+      "forward:69",
+      "__init__:81",
+      "project_frames:105",
+      "encode:113",
+      "loss_from_condition:141",
+      "predict_from_condition:153"
+    ],
+    "imports": [
+      "dataclasses",
+      "diffusers",
+      "torch",
+      "torch.nn",
+      "visuotactile.models.vendor.conditional_unet1d"
+    ],
+    "io_calls": [
+      "self.sampler.set_timesteps",
+      "self.sampler.step"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/LONG_HORIZON_20261030.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_long_horizon.py"
+    ],
+    "sha256": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+    "imported_by": [
+      "tests/test_long_horizon.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/inspect_long.py",
+      "visuotactile/long_controller.py",
+      "visuotactile/long_data.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/train_long.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/transformer_data.py",
+      "visuotactile/validate_long.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/nominal.py",
+    "purpose": "Tactile-free history-conditioned action diffusion, not preload nominalization.",
+    "definitions": [
+      "PolicyConfig:11",
+      "LegacyVisualHistoryEncoder:44",
+      "VisualHistoryEncoder:79",
+      "NominalDiffusionPolicy:88",
+      "__post_init__:28",
+      "from_dict:38",
+      "__init__:46",
+      "forward:60",
+      "__init__:89",
+      "loss:103",
+      "loss_from_condition:111",
+      "predict:121",
+      "predict_from_condition:126"
+    ],
+    "imports": [
+      "dataclasses",
+      "diffusers",
+      "torch",
+      "visuotactile.history",
+      "visuotactile.models.vendor.conditional_unet1d",
+      "visuotactile.models.vision"
+    ],
+    "io_calls": [
+      "self.sampler.set_timesteps",
+      "self.sampler.step"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/BASELINE_TRAINING.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_command_training.py",
+      "tests/test_causal_memory.py",
+      "tests/test_residual.py",
+      "tests/test_visuotactile.py",
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "d10f20ca596b04c276b7553f51e15459af83b7d0e1ef22daa216144d66e25c2c",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_causal_memory.py",
+      "tests/test_command_training.py",
+      "tests/test_perception_v2.py",
+      "tests/test_residual.py",
+      "tests/test_visuotactile.py",
+      "visuotactile/check_camera_interfaces.py",
+      "visuotactile/check_dataset.py",
+      "visuotactile/collect.py",
+      "visuotactile/models/correction.py",
+      "visuotactile/models/tactile_dp.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/probe_history.py",
+      "visuotactile/probe_perception.py",
+      "visuotactile/rollout.py",
+      "visuotactile/train.py",
+      "visuotactile/train_dp.py",
+      "visuotactile/validate_command_training.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/residual.py",
+    "purpose": "Version 1 contact-gated native-command residual with independent parameters.",
+    "definitions": [
+      "observed_contact:10",
+      "compose_residual:14",
+      "ResidualCorrection:26",
+      "residual_loss:69",
+      "__init__:29",
+      "forward_cached:43"
+    ],
+    "imports": [
+      "copy",
+      "torch",
+      "visuotactile.history",
+      "visuotactile.models.correction"
+    ],
+    "io_calls": [
+      "(per_step[contact] + regularization * penalty[contact]).mean"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_residual.py"
+    ],
+    "sha256": "822b70c4bc7479e1b9eebf3705586a2e8d6c6da701ebe7373bcb394da0aa443b",
+    "imported_by": [
+      "tests/test_residual.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/policy_census.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/train_residual.py",
+      "visuotactile/transformer_controller.py",
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/tactile.py",
+    "purpose": "Five aggregate normal-force sensors; per-finger identity, kinematics and time.",
+    "definitions": [
+      "FingerTactileEncoder:10",
+      "__init__:11",
+      "forward:21"
+    ],
+    "imports": [
+      "torch"
+    ],
+    "io_calls": [
+      "encoded_steps.append"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/GIT_WORKFLOW.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/PERCEPTION.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_command_training.py",
+      "tests/test_causal_memory.py",
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "50d04b5967d8aa22036211e391427ecf8734208a52e00212341f2a54555c1cce",
+    "imported_by": [
+      "tests/test_causal_memory.py",
+      "tests/test_command_training.py",
+      "tests/test_perception_v2.py",
+      "visuotactile/models/correction.py",
+      "visuotactile/models/tactile_dp.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/tactile_dp.py",
+    "purpose": "Tactile conditioned command diffusion baseline (B1).",
+    "definitions": [
+      "TactileCommandDiffusionPolicy:18",
+      "__init__:21",
+      "encode:41",
+      "loss_from_condition:95",
+      "predict_from_condition:107"
+    ],
+    "imports": [
+      "diffusers",
+      "torch",
+      "visuotactile.history",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile",
+      "visuotactile.models.vendor.conditional_unet1d"
+    ],
+    "io_calls": [
+      "self.sampler.set_timesteps",
+      "self.sampler.step"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/BASELINE_TRAINING.md"
+    ],
+    "tests": [],
+    "sha256": "5e12d504ec17f2266a10bae14d7471d1813168a1bb0d91f460bde1ac68b04d82",
+    "imported_by": [
+      "visuotactile/rollout.py",
+      "visuotactile/train_dp.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/transformer_residual.py",
+    "purpose": "Causal native-command correction with explicit current and remaining-plan tokens.",
+    "definitions": [
+      "TransformerResidualConfig:12",
+      "combine:27",
+      "residual_loss:35",
+      "TransformerResidual:44",
+      "__post_init__:22",
+      "__init__:45",
+      "force_features:70",
+      "forward:78"
+    ],
+    "imports": [
+      "dataclasses",
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_transformer_residual.py"
+    ],
+    "sha256": "ab5befab7292d709c0233696d63fb51d1c558f81d8cefdcdabb2bcc50f584a61",
+    "imported_by": [
+      "tests/test_transformer_residual.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/train_transformer_residual.py",
+      "visuotactile/transformer_controller.py",
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/vendor/__init__.py",
+    "purpose": "MIT Diffusion Policy modules; see PROVENANCE.md.",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "96223a2f2664daa2bc2924314ddca976b926e595c778f46d9c291391a14811c4",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/models/vendor/conditional_unet1d.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "ConditionalResidualBlock1D:14",
+      "ConditionalUnet1D:69",
+      "__init__:15",
+      "forward:46",
+      "__init__:70",
+      "forward:173"
+    ],
+    "imports": [
+      "einops",
+      "einops.layers.torch",
+      "logging",
+      "torch",
+      "torch.nn",
+      "typing",
+      "visuotactile.models.vendor.conv1d_components",
+      "visuotactile.models.vendor.positional_embedding"
+    ],
+    "io_calls": [
+      "self.diffusion_step_encoder",
+      "timesteps.expand",
+      "timesteps[None].to"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/RESEARCH.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "7cef53c66b731fbc4fdd796ad6cc313b4ff9556d2e3ebe26d88462a01a07da2c",
+    "imported_by": [
+      "visuotactile/models/long_horizon.py",
+      "visuotactile/models/nominal.py",
+      "visuotactile/models/tactile_dp.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/vendor/conv1d_components.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "Downsample1d:7",
+      "Upsample1d:15",
+      "Conv1dBlock:23",
+      "test:43",
+      "__init__:8",
+      "forward:12",
+      "__init__:16",
+      "forward:20",
+      "__init__:28",
+      "forward:39"
+    ],
+    "imports": [
+      "torch",
+      "torch.nn",
+      "torch.nn.functional"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "ea2aa10e297cf253bc1a1919ba47fe6ae32049b5eaaab292ed9cc145d8d2adc0",
+    "imported_by": [
+      "visuotactile/models/vendor/conditional_unet1d.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/vendor/positional_embedding.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "SinusoidalPosEmb:5",
+      "__init__:6",
+      "forward:10"
+    ],
+    "imports": [
+      "math",
+      "torch",
+      "torch.nn"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+    "imported_by": [
+      "visuotactile/models/vendor/conditional_unet1d.py"
+    ]
+  },
+  {
+    "path": "visuotactile/models/vision.py",
+    "purpose": "Shared multi-view RGB/depth spatial encoder; see PERCEPTION.md for sources.",
+    "definitions": [
+      "RGBDSpatialEncoder:17",
+      "MultimodalHistoryEncoder:58",
+      "__init__:18",
+      "forward:30",
+      "__init__:60",
+      "encode_frames:75",
+      "forward:145"
+    ],
+    "imports": [
+      "torch",
+      "torch.nn",
+      "torch.utils.checkpoint",
+      "torchvision.models",
+      "visuotactile.history",
+      "visuotactile.observations"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [],
+    "sha256": "47c034c562f929b574e31ab3ad39fba7733dc51fa1241a26e7b0f0da6fe9306e",
+    "imported_by": [
+      "visuotactile/models/nominal.py"
+    ]
+  },
+  {
+    "path": "visuotactile/observations.py",
+    "purpose": "Versioned, explicit inference inputs and operator-provided task commands.",
+    "definitions": [
+      "nominal_keys:15",
+      "empty_plan_context:25",
+      "TaskCommand:32",
+      "__init__:38",
+      "packet:56",
+      "metadata:61"
+    ],
+    "imports": [
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_command_training.py",
+      "tests/test_causal_memory.py",
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "459ccc55a9f4af27110ccc442759cce33e10e639f5ef7bebae036b1d34d88f23",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_causal_memory.py",
+      "tests/test_command_training.py",
+      "tests/test_perception_v2.py",
+      "visuotactile/collect.py",
+      "visuotactile/correction.py",
+      "visuotactile/dataset.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/models/vision.py",
+      "visuotactile/probe_correction.py",
+      "visuotactile/probe_perception.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/rollout.py",
+      "visuotactile/sim/environment.py"
+    ]
+  },
+  {
+    "path": "visuotactile/plot_loss_study.py",
+    "purpose": "CPU-only figures from recorded metrics and bounded traces; no model loading.",
+    "definitions": [
+      "plot_dp_lift_event:15",
+      "plot_dp_closed_loop:66",
+      "plot_residual:107",
+      "plot:215",
+      "finish:142",
+      "finish:254"
+    ],
+    "imports": [
+      "argparse",
+      "csv",
+      "json",
+      "matplotlib",
+      "matplotlib.pyplot",
+      "numpy",
+      "pathlib",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "csv.DictWriter",
+      "figure.savefig",
+      "output.mkdir",
+      "writer.writeheader",
+      "writer.writerows"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "df2a23ecb0fb6f0bcc2dcc927b381a6f7fa0af6bed0ba19cdbfe0671c7157304",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/plot_network_audit.py",
+    "purpose": "Reproducible architecture diagrams and plots from audited statistics.",
+    "definitions": [
+      "curve_sources:18",
+      "diagram:83",
+      "architecture:128",
+      "plots:199",
+      "write:19"
+    ],
+    "imports": [
+      "argparse",
+      "csv",
+      "io",
+      "json",
+      "matplotlib",
+      "matplotlib.patches",
+      "matplotlib.pyplot",
+      "numpy",
+      "pathlib",
+      "visuotactile.compact",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(output / (name + '.svg')).write_text",
+      "csv.DictWriter",
+      "figure.savefig",
+      "write",
+      "writer.writeheader",
+      "writer.writerows"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "3efbb10c7916472546e470951c87c345f8981ac14b591e1fa239bd11aea2ee77",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/policy_census.py",
+    "purpose": "CPU/meta parameter census of local checkpoints and pinned public examples.",
+    "definitions": [
+      "count:18",
+      "describe:25",
+      "meta_factory:32",
+      "own_models:39",
+      "public_models:78",
+      "main:194",
+      "create:33",
+      "unavailable:84"
+    ],
+    "imports": [
+      "ImplicitRDP.model.diffusion.transformer_for_diffusion",
+      "ImplicitRDP.model.vision.transformer_obs_encoder",
+      "ImplicitRDP.policy.diffusion_transformer_image_policy",
+      "argparse",
+      "diffusers",
+      "diffusion_policy.model.vision.model_getter",
+      "diffusion_policy.model.vision.multi_image_obs_encoder",
+      "diffusion_policy.policy",
+      "diffusion_policy.policy.diffusion_unet_hybrid_image_policy",
+      "diffusion_policy.policy.diffusion_unet_image_policy",
+      "gc",
+      "importlib.metadata",
+      "json",
+      "omegaconf",
+      "pathlib",
+      "reactive_diffusion_policy.model.vae.model",
+      "reactive_diffusion_policy.model.vision.model_getter",
+      "reactive_diffusion_policy.model.vision.multi_image_obs_encoder",
+      "reactive_diffusion_policy.policy",
+      "reactive_diffusion_policy.policy.latent_diffusion_unet_image_policy",
+      "sys",
+      "torch",
+      "torchvision",
+      "types",
+      "unittest.mock",
+      "visuotactile.compact",
+      "visuotactile.models.residual",
+      "visuotactile.rollout",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "args.output.parent.mkdir",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "968443da7da0b33f85894659c9c42954e47bbc91c6ddc0a7b2a2a390c95b62ef",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/private_history.py",
+    "purpose": "Versioned private base proposals with observed native delay timestamps.",
+    "definitions": [
+      "PrivateProposalHistory:9",
+      "private_action_rows:41",
+      "__init__:10",
+      "observe:14",
+      "observe_proposal:17"
+    ],
+    "imports": [
+      "collections",
+      "torch",
+      "visuotactile.action_history"
+    ],
+    "io_calls": [
+      "(times[:step] - selected_times[previous]).abs",
+      "packet['step_id'].cpu",
+      "packet['step_id'].cpu().clone"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_transformer_residual.py"
+    ],
+    "sha256": "00622e505fe4130737c033ef8aaa4fc6f76f651705c676197987b84d13e7bcf7",
+    "imported_by": [
+      "tests/test_transformer_residual.py",
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/probe_action_history.py",
+    "purpose": "Bounded real-prefix fit and executed-history replay; never formal training.",
+    "definitions": [
+      "initialize_history_model:21",
+      "assess:40",
+      "verify_real_execution_context:58",
+      "main:94"
+    ],
+    "imports": [
+      "argparse",
+      "copy",
+      "dataclasses",
+      "pathlib",
+      "time",
+      "torch",
+      "types",
+      "visuotactile.action_history",
+      "visuotactile.audit_baselines",
+      "visuotactile.compact",
+      "visuotactile.manifest",
+      "visuotactile.models.nominal",
+      "visuotactile.rollout",
+      "visuotactile.train_dp",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "_save",
+      "args.output.mkdir",
+      "optimizer.step",
+      "saved.update",
+      "target.mkdir",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "57a28265ed140cfefaedb0adb029e8054eeefa278c187447bf9f84cbb812e9ad",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/probe_correction.py",
+    "purpose": "Replay real contact episodes through causal correction inputs on CPU.",
+    "definitions": [
+      "main:19"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "torch",
+      "visuotactile.contracts",
+      "visuotactile.correction",
+      "visuotactile.observations",
+      "visuotactile.rollout"
+    ],
+    "io_calls": [
+      "args.output.parent.mkdir",
+      "json.dump",
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [],
+    "sha256": "3cbf2141059d84d6a338aaa12876f52d992fe160376534016009cf7bf125252f",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/probe_history.py",
+    "purpose": "Audit real trace/memory at fixed weights; no optimizer and no simulation.",
+    "definitions": [
+      "audit_trace:25",
+      "audit_memory:139",
+      "audit_gradients:177",
+      "main:246",
+      "encode:149",
+      "replay:163"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "io",
+      "json",
+      "numpy",
+      "pathlib",
+      "pickle",
+      "torch",
+      "traceback",
+      "visuotactile.dataset",
+      "visuotactile.history",
+      "visuotactile.kinematics",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.recording"
+    ],
+    "io_calls": [
+      "((source >= 0) & (source <= step)).all",
+      "(args.output / 'FAILED.txt').write_text",
+      "(args.output / 'report.json').write_text",
+      "args.output.mkdir",
+      "json.dumps",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "1742204d8886611215244924e2804c45cde6b72798a43829b428adcc840ec296",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/probe_perception.py",
+    "purpose": "Audit real v2 recordings, render stage sheets and check trainable I/O.",
+    "definitions": [
+      "check_tree:28",
+      "stage_sheet:36",
+      "main:88"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "dataclasses",
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "scipy.spatial.transform",
+      "time",
+      "torch",
+      "torch.utils.data",
+      "visuotactile.contracts",
+      "visuotactile.correction",
+      "visuotactile.dataset",
+      "visuotactile.evaluate",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.observations"
+    ],
+    "io_calls": [
+      "(args.output / 'report.json').write_text",
+      "args.output.mkdir",
+      "json.dumps",
+      "sheet.save",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "1ee58155afaaf1b4c48e8f21b7843eea4601814a83dee2cc2779bb43ab543881",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/recording.py",
+    "purpose": "Episode-based HDF5 recorder; model inputs and privileged labels are separate.",
+    "definitions": [
+      "model_fingerprint:12",
+      "numpy_tree:20",
+      "flatten:28",
+      "EpisodeWriter:39",
+      "CompactEpisodeStream:90",
+      "verify_stream_fields:188",
+      "post_observation:207",
+      "EpisodeReader:221",
+      "main:284",
+      "__init__:40",
+      "append:48",
+      "close:86",
+      "__init__:97",
+      "append:111",
+      "_extend:143",
+      "flush:153",
+      "finish:167",
+      "__init__:227",
+      "attributes:235",
+      "read:239",
+      "steps:257",
+      "export_pickle:261",
+      "verify:194",
+      "visit:247"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "hashlib",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "pickle",
+      "torch",
+      "visuotactile.compact"
+    ],
+    "io_calls": [
+      "json.dumps",
+      "pickle.dump",
+      "self.directory.mkdir",
+      "temporary.unlink"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_compact.py",
+      "tests/test_causal_memory.py",
+      "tests/test_persistent_collection.py"
+    ],
+    "sha256": "1f4638b45f7a6d4827568ccf4fe4d2619ed1f3c38bd106dd1f1547db7579a815",
+    "imported_by": [
+      "tests/test_causal_memory.py",
+      "tests/test_compact.py",
+      "tests/test_persistent_collection.py",
+      "visuotactile/collect.py",
+      "visuotactile/collect_success_batch.py",
+      "visuotactile/finalize_collection.py",
+      "visuotactile/manifest.py",
+      "visuotactile/probe_history.py"
+    ]
+  },
+  {
+    "path": "visuotactile/regression.py",
+    "purpose": "Compare original and instrumented tasks in separate Kit processes.",
+    "definitions": [
+      "main:12",
+      "RenderedOriginal:34",
+      "snapshot:42",
+      "_get_observations:35"
+    ],
+    "imports": [
+      "argparse",
+      "evaluation.eval_isaacsim",
+      "isaaclab.app",
+      "isaacsimenvs",
+      "isaacsimenvs.tasks.precise_assembly.precise_assembly_env",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "torch",
+      "traceback",
+      "visuotactile.sim.environment"
+    ],
+    "io_calls": [
+      "(args.output / 'FAILED.txt').write_text",
+      "(args.output / 'result.json').write_text",
+      "args.output.mkdir",
+      "env.step",
+      "json.dumps",
+      "np.savez"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [],
+    "sha256": "62bb7fc460a0bb4f3a511b06f2e7f95e2fd8145a5835b93abe761e1a84c4d49d",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/residual_controller.py",
+    "purpose": "Trained residual execution; mixed feedback belongs only to Correction.",
+    "definitions": [
+      "ResidualController:14",
+      "__init__:15",
+      "act:39",
+      "acknowledge:75"
+    ],
+    "imports": [
+      "pathlib",
+      "torch",
+      "visuotactile.action_history",
+      "visuotactile.compact",
+      "visuotactile.correction",
+      "visuotactile.history",
+      "visuotactile.models.residual",
+      "visuotactile.observations",
+      "visuotactile.residual_data"
+    ],
+    "io_calls": [
+      "saved.get",
+      "self.base.plan_generation_step.clone"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_residual.py"
+    ],
+    "sha256": "44147e0cf0752bc6f84b76554ab209a63f8f5944092ef8d68dd1a0247a558c64",
+    "imported_by": [
+      "tests/test_residual.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/validate_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/residual_data.py",
+    "purpose": "Immutable, causal B0 replay caches over full expert observation sequences.",
+    "definitions": [
+      "load_base:27",
+      "splits:37",
+      "cache_episode:43",
+      "main:111"
+    ],
+    "imports": [
+      "argparse",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "numpy",
+      "pathlib",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.correction",
+      "visuotactile.history",
+      "visuotactile.manifest",
+      "visuotactile.models.residual",
+      "visuotactile.residual_session",
+      "visuotactile.rollout",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "cache.mkdir",
+      "json.dumps",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_residual.py"
+    ],
+    "sha256": "15d733ea7a816c2527e04c9293c6cf9c1065ac3da8fd4f8d91ecf27630266979",
+    "imported_by": [
+      "tests/test_residual.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/residual_controller.py",
+      "visuotactile/residual_report.py",
+      "visuotactile/train_residual.py",
+      "visuotactile/validate_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/residual_report.py",
+    "purpose": "Small sanitized aggregate, recomputed from local residual artifacts.",
+    "definitions": [
+      "metric_summary:14",
+      "resource_summary:21",
+      "paired_trace_summary:44",
+      "pose_difference:68",
+      "switch_physical_summary:76",
+      "execution_summary:100",
+      "main:124"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "numpy",
+      "pathlib",
+      "shutil",
+      "visuotactile.compact",
+      "visuotactile.residual_data",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "json.dumps"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_residual.py"
+    ],
+    "sha256": "31e6d95c566e39407b0c3b26f4c6f1d06664c06ec316beda275facd612d7174c",
+    "imported_by": [
+      "tests/test_residual.py",
+      "visuotactile/viewing_report.py"
+    ]
+  },
+  {
+    "path": "visuotactile/residual_session.py",
+    "purpose": "Continuous external telemetry and immutable deadlines for residual experiments.",
+    "definitions": [
+      "SessionGate:13",
+      "main:66",
+      "__init__:14",
+      "save_waits:23",
+      "remaining:28",
+      "before:35",
+      "pace:57"
+    ],
+    "imports": [
+      "argparse",
+      "atexit",
+      "json",
+      "os",
+      "pathlib",
+      "shutil",
+      "time",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "args.root.mkdir"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "047db60dabe47fb4288c6b3f98c0164320e0f45d45e12ce09e84997acd866801",
+    "imported_by": [
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/train_residual.py",
+      "visuotactile/validate_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/review_delivery.py",
+    "purpose": "Small human-readable camera delivery; original training pixels untouched.",
+    "definitions": [
+      "rotation:15",
+      "source_audit:17",
+      "deliver:51",
+      "main:118",
+      "canvas:57"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "av",
+      "json",
+      "matplotlib",
+      "matplotlib.pyplot",
+      "numpy",
+      "pathlib",
+      "scipy.spatial.transform",
+      "visuotactile.camera_review",
+      "visuotactile.compact",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "canvas(n // 3).save",
+      "fig.savefig",
+      "image.save",
+      "out.mkdir",
+      "sheet.save",
+      "write_json",
+      "write_video"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "04bcc2bb4db603db1fded3717ed61763bce7f0673426771a193a18585c49e39a",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/rollout.py",
+    "purpose": "Independent nominal checkpoint execution; no expert/privileged inference data.",
+    "definitions": [
+      "NominalController:11",
+      "TactileCommandController:133",
+      "load_command_controller:147",
+      "__init__:12",
+      "load:37",
+      "encode_current:57",
+      "condition_rows:60",
+      "synchronize:63",
+      "observe_execution:67",
+      "act:73",
+      "encode_current:135",
+      "condition_rows:143"
+    ],
+    "imports": [
+      "time",
+      "torch",
+      "visuotactile.action_history",
+      "visuotactile.history",
+      "visuotactile.models.correction",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile_dp",
+      "visuotactile.observations"
+    ],
+    "io_calls": [
+      "(changed & (packet['step_id'].cpu() != 0)).any",
+      "packet['step_id'].cpu",
+      "saved.get"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/BASELINE_TRAINING.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_command_training.py",
+      "tests/test_causal_memory.py",
+      "tests/test_visuotactile.py",
+      "tests/test_perception_v2.py"
+    ],
+    "sha256": "8bf2f6a26224adfd92a59bc91b1c8f84da8856e937b059f230dad5d6008554e2",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_causal_memory.py",
+      "tests/test_command_training.py",
+      "tests/test_perception_v2.py",
+      "tests/test_visuotactile.py",
+      "visuotactile/audit_baselines.py",
+      "visuotactile/check_camera_interfaces.py",
+      "visuotactile/collect.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/policy_census.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/probe_correction.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/validate_command_training.py"
+    ]
+  },
+  {
+    "path": "visuotactile/run_baselines.py",
+    "purpose": "Run two independent trainers, then their paired evaluation. Own children only.",
+    "definitions": [
+      "read_status:14",
+      "main:38",
+      "read:17",
+      "stop:54"
+    ],
+    "imports": [
+      "argparse",
+      "fcntl",
+      "json",
+      "os",
+      "pathlib",
+      "signal",
+      "subprocess",
+      "sys",
+      "time",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(output / 'pid').write_text",
+      "args.root.mkdir",
+      "json.dumps",
+      "output.mkdir",
+      "subprocess.Popen"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "0e92ed46fd0fa3dcbb2e529a62cb6a2292e6cb45ac5ac5f250a135a4babade6a",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/run_cpu.sh",
+    "purpose": "\u8fd0\u884c\u5165\u53e3\u6216\u663e\u5f0f\u914d\u7f6e\uff1b\u5177\u4f53 shell / JSON \u5b57\u6bb5\u89c1\u6e90\u6587\u4ef6",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/LONG_HORIZON_20261030.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/GIT_WORKFLOW.md",
+      "research_docs/SESSION_HANDOFF.md",
+      "research_docs/NETWORK_ARCHITECTURE_EXACT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/CORRECTION_TRAINING.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [],
+    "sha256": "c864016084206ccf2b7a3c94041eb8e35ebe9a2d0922d51a644d43b30e791204",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/run_insertion_dataset.py",
+    "purpose": "Bounded serial expert collection. No optimizer, retries or outcome selection.",
+    "definitions": [
+      "tree_bytes:20",
+      "design:24",
+      "check_pairing:50",
+      "run:69",
+      "main:186"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "numpy",
+      "pathlib",
+      "shutil",
+      "subprocess",
+      "time",
+      "visuotactile.analyze_rl_trials",
+      "visuotactile.compact",
+      "visuotactile.manifest",
+      "visuotactile.run_rl_trials",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "(root / 'run_status').mkdir",
+      "json.dumps",
+      "subprocess.Popen",
+      "subprocess.check_output",
+      "subprocess.check_output(['nvidia-smi', '--query-gpu=memory.used,utilization.gpu', '--format=csv,noheader'], text=True).strip",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_insertion_dataset.py"
+    ],
+    "sha256": "f16f1360f28d9b37dc45b452deda887f480f1feed6d911a4b5273a60020e337b",
+    "imported_by": [
+      "tests/test_insertion_dataset.py",
+      "visuotactile/analyze_insertion_dataset.py",
+      "visuotactile/collect_success_batch.py"
+    ]
+  },
+  {
+    "path": "visuotactile/run_long.py",
+    "purpose": "One bounded owner for pilot admission, training and the six diagnostics.",
+    "definitions": [
+      "pilot_admission:22",
+      "active_trainers:48",
+      "active_pilots:63",
+      "decode_videos:67",
+      "run:85",
+      "main:185",
+      "status:89",
+      "launch:91",
+      "wait:99"
+    ],
+    "imports": [
+      "argparse",
+      "av",
+      "fcntl",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "subprocess",
+      "time",
+      "visuotactile.compact",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "subprocess.Popen"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_long_horizon.py"
+    ],
+    "sha256": "93e9e628e172d171c423eab63478bd5ca3b2b92f54eec2bb95dd5d591c4ad598",
+    "imported_by": [
+      "tests/test_long_horizon.py"
+    ]
+  },
+  {
+    "path": "visuotactile/run_loss_study.py",
+    "purpose": "Bounded owner for paired loss experiments and registered downstream stages.",
+    "definitions": [
+      "initialize:15",
+      "run:33",
+      "status:39",
+      "launch:41",
+      "wait:50"
+    ],
+    "imports": [
+      "argparse",
+      "datetime",
+      "fcntl",
+      "json",
+      "os",
+      "pathlib",
+      "subprocess",
+      "time",
+      "visuotactile.compact",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "root.mkdir",
+      "subprocess.Popen",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "04cb2c44f84a4d6498cdde967a436214561ce919ce168a866bb98c920c636c7a",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/run_rl_trials.py",
+    "purpose": "Sequential paired first-episode collection, with a durable plan and status.",
+    "definitions": [
+      "make_trials:18",
+      "utc:27",
+      "validate_completion:31",
+      "prior_attempt:67",
+      "run_stage:88",
+      "main:156"
+    ],
+    "imports": [
+      "argparse",
+      "datetime",
+      "json",
+      "pathlib",
+      "shutil",
+      "subprocess",
+      "time",
+      "visuotactile.analyze_rl_trials",
+      "visuotactile.compact",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "(args.output / stage).mkdir",
+      "args.output.mkdir",
+      "json.dumps",
+      "stream.write",
+      "subprocess.Popen",
+      "subprocess.check_output",
+      "subprocess.check_output(['nvidia-smi', '--query-gpu=memory.used,utilization.gpu', '--format=csv,noheader'], text=True).strip",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_compact.py",
+      "tests/test_rl_trials.py"
+    ],
+    "sha256": "ec07f67ac2297dc859d4e421b7ab060f6a8ae22927434eae35f78eb263b8e02d",
+    "imported_by": [
+      "tests/test_compact.py",
+      "tests/test_rl_trials.py",
+      "visuotactile/finalize_collection.py",
+      "visuotactile/initialization_report.py",
+      "visuotactile/run_insertion_dataset.py"
+    ]
+  },
+  {
+    "path": "visuotactile/sim/__init__.py",
+    "purpose": "Import simulation modules only AFTER Isaac Lab AppLauncher.",
+    "definitions": [],
+    "imports": [],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/INITIALIZATION_AND_PERTURBATIONS.md"
+    ],
+    "tests": [],
+    "sha256": "63cdecdcc2893131dd45472ae44703d761402d07f95a73fc2f695b89293b571e",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/sim/environment.py",
+    "purpose": "Opt-in instrumentation; original task, control and RL classes are unchanged.",
+    "definitions": [
+      "InstrumentedAssemblyEnv:31",
+      "__init__:34",
+      "_student_enabled:137",
+      "_setup_scene:145",
+      "_contact_window:206",
+      "configure_camera_views:210",
+      "_sample_kinematics:220",
+      "_kinematic_packet:226",
+      "_camera_packet:242",
+      "_diagnostics:275",
+      "_reset_peg_episode:305",
+      "_reset_idx:321",
+      "_record_action_trace:366",
+      "_pre_physics_step:392",
+      "_get_rewards:436",
+      "_get_observations:465",
+      "research_metadata:496",
+      "write_with_wrench_sample:95",
+      "update_with_encoder_sample:130"
+    ],
+    "imports": [
+      "contextlib",
+      "isaaclab.sensors",
+      "isaaclab.sim",
+      "isaaclab.utils.math",
+      "isaacsimenvs.tasks.play.utils.obs_utils",
+      "isaacsimenvs.tasks.play.utils.scene_utils",
+      "isaacsimenvs.tasks.precise_assembly.precise_assembly_env",
+      "numpy",
+      "omni.replicator.core",
+      "omni.usd",
+      "pxr",
+      "torch",
+      "visuotactile.camera_rigs",
+      "visuotactile.initial_geometry",
+      "visuotactile.kinematics",
+      "visuotactile.observations"
+    ],
+    "io_calls": [
+      "(self.research_step > 0).clone",
+      "(steps - selected_step).to",
+      "original_write",
+      "selected_step.clone",
+      "self.object.write_root_pose_to_sim",
+      "self.research_step.clone",
+      "steps.clone",
+      "steps[:, None].expand",
+      "steps[:, None].expand(-1, length).clone",
+      "super()._pre_physics_step"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/INDEPENDENT_AUDIT_20261030.md",
+      "research_docs/NIGHT_COLLECTION.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/CORRECTION_TRAINING.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [],
+    "sha256": "fade1f8b5711877ffeaa86368f0ede267d381de559cfb40b9a1bd73fe84b6d3a",
+    "imported_by": [
+      "visuotactile/collect.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/regression.py"
+    ]
+  },
+  {
+    "path": "visuotactile/storage_audit.py",
+    "purpose": "Measure HDF5 allocation, not decoded-array size. No simulator or training.",
+    "definitions": [
+      "category:12",
+      "allocation_groups:35",
+      "audit_file:43",
+      "main:63",
+      "visit:46"
+    ],
+    "imports": [
+      "argparse",
+      "collections",
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "visuotactile.compact",
+      "visuotactile.trial_utils"
+    ],
+    "io_calls": [
+      "json.dumps",
+      "write_json"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_insertion_dataset.py"
+    ],
+    "sha256": "9ca8e17b2a11ac57451babf8a7297765ea33bb8856b8985aacf8f01b31e77050",
+    "imported_by": [
+      "tests/test_insertion_dataset.py"
+    ]
+  },
+  {
+    "path": "visuotactile/study_audit.py",
+    "purpose": "Pinned real-checkpoint input, normalization and execution-history audit.",
+    "definitions": [
+      "audit:20",
+      "CachedVision:49",
+      "predict:61",
+      "__init__:50",
+      "__call__:52"
+    ],
+    "imports": [
+      "argparse",
+      "gc",
+      "h5py",
+      "json",
+      "pathlib",
+      "torch",
+      "visuotactile.action_reference",
+      "visuotactile.compact",
+      "visuotactile.long_controller",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon",
+      "visuotactile.study_metrics",
+      "visuotactile.study_resources",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(controller.last_condition[0] - full[step // 12]).abs",
+      "(controller.last_condition[0] - full[step // 12]).abs().max",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "326572621b925863a09cc68b07a316ae3a42ffb6ad9fa91f6254dc90d1db4101",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/study_metrics.py",
+    "purpose": "Matched x0 objectives and sampled native-command metrics by group/horizon.",
+    "definitions": [
+      "joint_groups:12",
+      "masked_objectives:23",
+      "denoising_objectives:32",
+      "evaluate:44"
+    ],
+    "imports": [
+      "json",
+      "math",
+      "torch",
+      "visuotactile.action_reference",
+      "visuotactile.long_data",
+      "visuotactile.train_long"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_loss_study.py"
+    ],
+    "sha256": "b4286315aec92d36c5ef88c0286c351e4130bbbff99817f0819ecefbb16034d2",
+    "imported_by": [
+      "tests/test_loss_study.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/train_transformer_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/study_resources.py",
+    "purpose": "Independent resource watchdog for the bounded loss/residual study.",
+    "definitions": [
+      "StudyLease:13",
+      "owned_workers:21",
+      "violation_reasons:39",
+      "monitor:54",
+      "check:14"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "os",
+      "pathlib",
+      "signal",
+      "time",
+      "visuotactile.long_resources",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(root / 'RESOURCE_PAUSE').unlink",
+      "json.dumps",
+      "stream.write"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_loss_study.py"
+    ],
+    "sha256": "3bab0456d389e962e85569dd273e18713a82fa800f211e270fe2bcd5eacebd9d",
+    "imported_by": [
+      "tests/test_loss_study.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/train_transformer_residual.py",
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/train.py",
+    "purpose": "CPU smoke or research training on recorded actions; never synthetic labels.",
+    "definitions": [
+      "main:15",
+      "ordered_batches:80"
+    ],
+    "imports": [
+      "argparse",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "pathlib",
+      "time",
+      "torch",
+      "torch.utils.data",
+      "visuotactile.compact",
+      "visuotactile.dataset",
+      "visuotactile.models.nominal"
+    ],
+    "io_calls": [
+      "(args.output / 'report.json').write_text",
+      "args.output.mkdir",
+      "json.dumps",
+      "optimizer.step",
+      "torch.linspace(0, len(validation) - 1, steps=min(16, len(validation))).long",
+      "torch.linspace(0, len(validation) - 1, steps=min(16, len(validation))).long().tolist",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/CONTRACTS.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/ARCHITECTURE.md",
+      "research_docs/DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md",
+      "research_docs/INSERTION_DATASET.md",
+      "research_docs/AUDIT.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_training_resources.py",
+      "tests/test_command_training.py"
+    ],
+    "sha256": "c83d66140d729cc1efc14f859c2a080c97e591b635593842d1d0a728ee76ebe7",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/train_dp.py",
+    "purpose": "Train the command imitation baselines B0 and B1 on the production manifest.",
+    "definitions": [
+      "_move:35",
+      "_manifest_hash:41",
+      "_split:45",
+      "_assert_no_own_plan:66",
+      "_fit_proprio_stats:85",
+      "_make_model:103",
+      "_condition:111",
+      "_pad_time:121",
+      "_batch_episode_chunks:131",
+      "_amp_context:187",
+      "_prefetch:193",
+      "_run_epoch:209",
+      "_save:297",
+      "main:327",
+      "handle_stop:373",
+      "log:380",
+      "publish_progress:478",
+      "group_checkpoint:486"
+    ],
+    "imports": [
+      "__future__",
+      "argparse",
+      "concurrent.futures",
+      "contextlib",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "numpy",
+      "os",
+      "pathlib",
+      "signal",
+      "subprocess",
+      "time",
+      "torch",
+      "visuotactile.action_history",
+      "visuotactile.command_metrics",
+      "visuotactile.compact",
+      "visuotactile.contracts",
+      "visuotactile.dataset",
+      "visuotactile.history",
+      "visuotactile.manifest",
+      "visuotactile.models.nominal",
+      "visuotactile.models.tactile_dp",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(args.output / 'config.json').write_text",
+      "_save",
+      "args.output.mkdir",
+      "json.dumps",
+      "log_file.write",
+      "optimizer.step",
+      "scaler.step",
+      "stream.write",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/CONTRACTS.md",
+      "research_docs/SESSION_HANDOFF.md",
+      "research_docs/PROJECT_FILE_MAP.md",
+      "research_docs/BASELINE_TRAINING.md"
+    ],
+    "tests": [
+      "tests/test_action_history.py",
+      "tests/test_command_training.py"
+    ],
+    "sha256": "bf82237c2db01cb64e2e79538d3dd1353d63b697e152ecd03edb28476522e9dc",
+    "imported_by": [
+      "tests/test_action_history.py",
+      "tests/test_command_training.py",
+      "visuotactile/audit_baselines.py",
+      "visuotactile/command_metrics.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/validate_command_training.py"
+    ]
+  },
+  {
+    "path": "visuotactile/train_long.py",
+    "purpose": "Sequential H64 training, EMA validation, resumable updates and held-out test.",
+    "definitions": [
+      "move:22",
+      "fit_statistics:26",
+      "update_ema:50",
+      "learning_rate:59",
+      "sampled_metrics:65",
+      "save:130",
+      "cpu_snapshot:136",
+      "train:146",
+      "test:334",
+      "main:350",
+      "checkpoint:218",
+      "inference_payload:227"
+    ],
+    "imports": [
+      "argparse",
+      "copy",
+      "dataclasses",
+      "gc",
+      "json",
+      "math",
+      "pathlib",
+      "random",
+      "signal",
+      "time",
+      "torch",
+      "visuotactile.action_reference",
+      "visuotactile.compact",
+      "visuotactile.long_data",
+      "visuotactile.long_resources",
+      "visuotactile.models.long_horizon",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval",
+      "optimizer.step",
+      "output.mkdir",
+      "save",
+      "saved['cpu_rng'].cpu",
+      "saved['cuda_rng'].cpu",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "2ed60c836f6c046fa62bf0c40f02a5506951ab1414853bd49ffbd30e23020065",
+    "imported_by": [
+      "visuotactile/inspect_long.py",
+      "visuotactile/study_metrics.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/train_transformer_residual.py",
+      "visuotactile/transformer_controller.py",
+      "visuotactile/transformer_data.py"
+    ]
+  },
+  {
+    "path": "visuotactile/train_loss_study.py",
+    "purpose": "Independent paired continuations from a frozen epoch40 EMA checkpoint.",
+    "definitions": [
+      "train:25",
+      "test:207",
+      "checkpoint:95",
+      "best_checkpoint:105",
+      "measurements:115"
+    ],
+    "imports": [
+      "argparse",
+      "copy",
+      "dataclasses",
+      "gc",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "random",
+      "signal",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon",
+      "visuotactile.study_metrics",
+      "visuotactile.study_resources",
+      "visuotactile.train_long",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval",
+      "optimizer.step",
+      "output.mkdir",
+      "save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "c887ef319aca82589f1ce00499f529780fb3f662c0999c50af01726851ec7705",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/train_residual.py",
+    "purpose": "Full-episode supervised residual training with matched force-masked control.",
+    "definitions": [
+      "read_record:23",
+      "amplitude_statistics:33",
+      "chunk_record:59",
+      "metrics_empty:67",
+      "accumulate:74",
+      "finish_metrics:89",
+      "run_epoch:100",
+      "save_checkpoint:141",
+      "main:157",
+      "boundary:227"
+    ],
+    "imports": [
+      "argparse",
+      "dataclasses",
+      "json",
+      "math",
+      "numpy",
+      "os",
+      "pathlib",
+      "subprocess",
+      "time",
+      "torch",
+      "traceback",
+      "visuotactile.compact",
+      "visuotactile.history",
+      "visuotactile.models.residual",
+      "visuotactile.residual_data",
+      "visuotactile.residual_session",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(output / 'error.txt').write_text",
+      "json.dumps",
+      "optimizers[name].step",
+      "output.mkdir",
+      "save_checkpoint",
+      "stream.write",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "e52600fc4dbc04d03ba4ca1274f2394f892009d95077a7eae797432d7e4cbe63",
+    "imported_by": [
+      "visuotactile/audit_network.py",
+      "visuotactile/validate_residual.py"
+    ]
+  },
+  {
+    "path": "visuotactile/train_transformer_residual.py",
+    "purpose": "Matched real-force and force-masked full-episode residual training.",
+    "definitions": [
+      "ResidualMetrics:24",
+      "evaluate:73",
+      "build_model:110",
+      "train:127",
+      "test:286",
+      "__init__:25",
+      "add:31",
+      "result:58",
+      "checkpoint:198",
+      "measurements:205"
+    ],
+    "imports": [
+      "argparse",
+      "dataclasses",
+      "gc",
+      "json",
+      "math",
+      "os",
+      "pathlib",
+      "random",
+      "signal",
+      "time",
+      "torch",
+      "visuotactile.compact",
+      "visuotactile.models.transformer_residual",
+      "visuotactile.study_metrics",
+      "visuotactile.study_resources",
+      "visuotactile.train_long",
+      "visuotactile.training_resources",
+      "visuotactile.transformer_data"
+    ],
+    "io_calls": [
+      "optimizer.step",
+      "output.mkdir",
+      "save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "63176d4bb6eefd907faf475dcf895f1591aad4b2d6a5560349290e46b574b554",
+    "imported_by": [
+      "visuotactile/audit_network.py"
+    ]
+  },
+  {
+    "path": "visuotactile/training_resources.py",
+    "purpose": "Memory/GPU-average admission with bounded telemetry; no external signals.",
+    "definitions": [
+      "atomic_json:10",
+      "ResourceGuard:17",
+      "__init__:18",
+      "sample:40",
+      "memory_safe:96",
+      "utilization_safe:100",
+      "safe:111",
+      "before_chunk:114",
+      "summary:137"
+    ],
+    "imports": [
+      "collections",
+      "json",
+      "os",
+      "pathlib",
+      "subprocess",
+      "time",
+      "torch"
+    ],
+    "io_calls": [
+      "json.dumps",
+      "self.output.mkdir",
+      "stream.write",
+      "subprocess.check_output",
+      "subprocess.check_output(['nvidia-smi', '--query-gpu=utilization.gpu,memory.used,memory.free', '--format=csv,noheader,nounits'], text=True, timeout=3).splitlines",
+      "temporary.write_text"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_training_resources.py"
+    ],
+    "sha256": "cc6612e5b485bc9f4d361742bc88331a31a2c6504cf807b5fe3a810f98780999",
+    "imported_by": [
+      "tests/test_training_resources.py",
+      "visuotactile/audit_baselines.py",
+      "visuotactile/audit_distribution.py",
+      "visuotactile/audit_loss_study.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/audit_system.py",
+      "visuotactile/audit_training_initials.py",
+      "visuotactile/cleanup_long.py",
+      "visuotactile/evaluate_baselines.py",
+      "visuotactile/evaluate_long.py",
+      "visuotactile/evaluate_residual.py",
+      "visuotactile/evaluate_study.py",
+      "visuotactile/evaluate_training_initials.py",
+      "visuotactile/inspect_long.py",
+      "visuotactile/long_data.py",
+      "visuotactile/long_resources.py",
+      "visuotactile/plot_loss_study.py",
+      "visuotactile/plot_network_audit.py",
+      "visuotactile/policy_census.py",
+      "visuotactile/probe_action_history.py",
+      "visuotactile/residual_data.py",
+      "visuotactile/residual_report.py",
+      "visuotactile/residual_session.py",
+      "visuotactile/run_baselines.py",
+      "visuotactile/run_long.py",
+      "visuotactile/run_loss_study.py",
+      "visuotactile/study_audit.py",
+      "visuotactile/study_resources.py",
+      "visuotactile/train_dp.py",
+      "visuotactile/train_long.py",
+      "visuotactile/train_loss_study.py",
+      "visuotactile/train_residual.py",
+      "visuotactile/train_transformer_residual.py",
+      "visuotactile/transformer_data.py",
+      "visuotactile/validate_command_training.py",
+      "visuotactile/validate_long.py",
+      "visuotactile/validate_residual.py",
+      "visuotactile/viewing_report.py"
+    ]
+  },
+  {
+    "path": "visuotactile/transformer_controller.py",
+    "purpose": "G01 actual mixed-command history and10Hz residual with native60Hz feedback.",
+    "definitions": [
+      "TransformerController:17",
+      "__init__:18",
+      "act:38",
+      "acknowledge:97"
+    ],
+    "imports": [
+      "pathlib",
+      "time",
+      "torch",
+      "visuotactile.action_history",
+      "visuotactile.compact",
+      "visuotactile.long_controller",
+      "visuotactile.long_data",
+      "visuotactile.models.residual",
+      "visuotactile.models.transformer_residual",
+      "visuotactile.train_long",
+      "visuotactile.transformer_data"
+    ],
+    "io_calls": [
+      "packet['contact_substeps_local_N'][0].cpu",
+      "packet['contact_substeps_w_N'][0].cpu",
+      "saved.get"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_transformer_residual.py"
+    ],
+    "sha256": "b5a399cdb8dcdc7fb5d7e5caa9e378656ccb116a6b0fee9493af22d69b6cc59e",
+    "imported_by": [
+      "tests/test_transformer_residual.py",
+      "visuotactile/evaluate_study.py"
+    ]
+  },
+  {
+    "path": "visuotactile/transformer_data.py",
+    "purpose": "Frozen selected G00 replay with explicitly teacher-forced actual history.",
+    "definitions": [
+      "audit_generated_episode:24",
+      "tactile_features:118",
+      "remaining_plans:130",
+      "residual_inputs:138",
+      "residual_labels:155",
+      "load_residual_record:163",
+      "generate_episode:171",
+      "main:229",
+      "CachedDino:28",
+      "__init__:29",
+      "__call__:32",
+      "at:44",
+      "read:180"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "hashlib",
+      "json",
+      "pathlib",
+      "time",
+      "torch",
+      "visuotactile.action_reference",
+      "visuotactile.compact",
+      "visuotactile.evaluate_study",
+      "visuotactile.long_controller",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon",
+      "visuotactile.models.residual",
+      "visuotactile.models.transformer_residual",
+      "visuotactile.private_history",
+      "visuotactile.study_resources",
+      "visuotactile.train_long",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(command[0] - record['base'][step]).abs",
+      "(command[0] - record['base'][step]).abs().max",
+      "(controller.last_condition[0] - record['nominal_conditions'][step // 12]).abs",
+      "(controller.last_condition[0] - record['nominal_conditions'][step // 12]).abs().max",
+      "(controller.plan[0] - record['plans'][step // 12]).abs",
+      "(controller.plan[0] - record['plans'][step // 12]).abs().max",
+      "(controller.records['action'][-1] - record['nominal_action'][step]).abs",
+      "(controller.records['action'][-1] - record['nominal_action'][step]).abs().max",
+      "(controller.records['depth'][-1] - original['depth'][step // 12]).abs",
+      "(controller.records['depth'][-1] - original['depth'][step // 12]).abs().max",
+      "(controller.state.float().cpu() - record['nominal_states'][step // 12]).abs",
+      "(controller.state.float().cpu() - record['nominal_states'][step // 12]).abs().max",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval",
+      "LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval().requires_grad_",
+      "at('frames/depth_m', step).float",
+      "at('frames/rgb_u8', step).float",
+      "directory.mkdir",
+      "model.project_frames(original['patches'][step // 12:step // 12 + 1].to('cuda:0'), original['depth'][step // 12:step // 12 + 1].to('cuda:0'), original['camera_valid'][step // 12:step // 12 + 1].to('cuda:0')).float",
+      "model.project_frames(original['patches'][step // 12:step // 12 + 1].to('cuda:0'), original['depth'][step // 12:step // 12 + 1].to('cuda:0'), original['camera_valid'][step // 12:step // 12 + 1].to('cuda:0')).float().cpu",
+      "original['camera_valid'][step // 12:step // 12 + 1].to",
+      "original['depth'][step // 12:step // 12 + 1].to",
+      "original['patches'][step // 12:step // 12 + 1].to",
+      "save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_transformer_residual.py"
+    ],
+    "sha256": "80e9c577bda090611a700cb968df61cfc1af89acf3cd35eb4ef2b4ddbac2194d",
+    "imported_by": [
+      "tests/test_transformer_residual.py",
+      "visuotactile/audit_network.py",
+      "visuotactile/train_transformer_residual.py",
+      "visuotactile/transformer_controller.py"
+    ]
+  },
+  {
+    "path": "visuotactile/trial_utils.py",
+    "purpose": "Small, simulation-independent provenance utilities for bounded RL trials.",
+    "definitions": [
+      "code_identity:8",
+      "write_json:20",
+      "git:10"
+    ],
+    "imports": [
+      "hashlib",
+      "json",
+      "pathlib",
+      "subprocess"
+    ],
+    "io_calls": [
+      "hashlib.sha256(json.dumps(hashes, sort_keys=True).encode()).hexdigest",
+      "json.dumps",
+      "json.dumps(hashes, sort_keys=True).encode",
+      "subprocess.check_output",
+      "subprocess.check_output(['git', *args], cwd=root, text=True).strip",
+      "temporary.write_text"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "bf9fc68cf158feea6eb4e479b8efe858adec1040d609ca5e8a8a2ab3c6264f87",
+    "imported_by": [
+      "visuotactile/analyze_insertion_dataset.py",
+      "visuotactile/analyze_rl_trials.py",
+      "visuotactile/camera_review.py",
+      "visuotactile/check_camera_interfaces.py",
+      "visuotactile/check_dataset.py",
+      "visuotactile/collect.py",
+      "visuotactile/collect_success_batch.py",
+      "visuotactile/collection_resources.py",
+      "visuotactile/finalize_collection.py",
+      "visuotactile/initialization_report.py",
+      "visuotactile/review_delivery.py",
+      "visuotactile/run_insertion_dataset.py",
+      "visuotactile/run_rl_trials.py",
+      "visuotactile/storage_audit.py"
+    ]
+  },
+  {
+    "path": "visuotactile/validate_command_training.py",
+    "purpose": "Bounded real-production acceptance; writes local evidence, never full training.",
+    "definitions": [
+      "_slice:20",
+      "main:25",
+      "loss_fixed:64",
+      "state_error:91"
+    ],
+    "imports": [
+      "argparse",
+      "copy",
+      "json",
+      "numpy",
+      "pathlib",
+      "time",
+      "torch",
+      "types",
+      "visuotactile.compact",
+      "visuotactile.history",
+      "visuotactile.manifest",
+      "visuotactile.models.nominal",
+      "visuotactile.rollout",
+      "visuotactile.train_dp",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "_save",
+      "args.output.mkdir",
+      "json.dumps",
+      "optimizer.step",
+      "torch.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "23435d2e501c4b5f0301381a12c7d12225b2b0c7299fd1333cc8da100b1c6894",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/validate_long.py",
+    "purpose": "Actual-data causal alignment checks, without new simulator trajectories.",
+    "definitions": [
+      "main:15",
+      "CachedVision:35",
+      "__init__:36",
+      "__call__:38"
+    ],
+    "imports": [
+      "argparse",
+      "h5py",
+      "json",
+      "pathlib",
+      "torch",
+      "visuotactile.long_controller",
+      "visuotactile.long_data",
+      "visuotactile.models.long_horizon",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(controller.last_condition[0] - full[step // 12]).abs",
+      "(controller.last_condition[0] - full[step // 12]).abs().max"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "8001aaefaf400082b65e3824da5c8179bbd2d9219502225bad91aa1407181a3f",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/validate_residual.py",
+    "purpose": "Read-only real checkpoint/cache/feedback equivalence on an observed prefix.",
+    "definitions": [
+      "tensors:18",
+      "main:24",
+      "move:43"
+    ],
+    "imports": [
+      "argparse",
+      "json",
+      "numpy",
+      "pathlib",
+      "time",
+      "torch",
+      "visuotactile.manifest",
+      "visuotactile.residual_controller",
+      "visuotactile.residual_data",
+      "visuotactile.residual_session",
+      "visuotactile.train_residual",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "(controller.last['base'][0] - record['base'][step]).abs",
+      "(controller.last['base'][0] - record['base'][step]).abs().max",
+      "(controller.last['plans'][0] - record['plans'][step]).abs",
+      "(controller.last['plans'][0] - record['plans'][step]).abs().max",
+      "(controller.last['raw'][0] - expected[0, step].cpu()).abs",
+      "(controller.last['raw'][0] - expected[0, step].cpu()).abs().max",
+      "expected[0, step].cpu"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [],
+    "sha256": "561a5f618bcfabf89b4119ac60db98536c97d1d793e24af14fd4ce4011d8c388",
+    "imported_by": []
+  },
+  {
+    "path": "visuotactile/viewing_report.py",
+    "purpose": "Decode every viewing frame and publish only small, sanitized statistics.",
+    "definitions": [
+      "check_video:14",
+      "check_trace:45",
+      "resource_intervals:66",
+      "preservation_checks:87",
+      "worker_resource_window:115",
+      "main:133"
+    ],
+    "imports": [
+      "PIL",
+      "argparse",
+      "av",
+      "json",
+      "numpy",
+      "pathlib",
+      "shutil",
+      "visuotactile.compact",
+      "visuotactile.residual_report",
+      "visuotactile.training_resources"
+    ],
+    "io_calls": [
+      "json.dumps",
+      "preview.save"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
+    "tests": [
+      "tests/test_residual.py"
+    ],
+    "sha256": "28b8831ff05d1b86af3a882f0315b1f199d6cb21bdb267e5b32f074eeac5fa31",
+    "imported_by": [
+      "tests/test_residual.py"
+    ]
+  }
+]

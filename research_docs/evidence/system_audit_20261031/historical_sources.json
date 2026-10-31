@@ -1,0 +1,1232 @@
+[
+  {
+    "path": "outputs/visuotactile/run/dp_command_20261029/b0/report.json",
+    "file_sha256": "ba76dbf8eea6f56fa47ecf1feb7b5d77993e30322ca16c6bb701edfaf9394e8e",
+    "evidence": {
+      "manifest_sha256": "f4562c18c51a7f7e40bc0a587b7e58aae4889dc5a06dfce4521a1e9e0f003b28"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_command_20261029/b1/report.json",
+    "file_sha256": "d06ee1df631b7533df6269f552990a1698150240fb809428a3e2794f91911522",
+    "evidence": {
+      "manifest_sha256": "f4562c18c51a7f7e40bc0a587b7e58aae4889dc5a06dfce4521a1e9e0f003b28"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_command_20261029/evaluation/environment.json",
+    "file_sha256": "12fa817a5c5e70a439d7840218a3092a4cce6b212433c0d406a590b75a198498",
+    "evidence": {
+      "config": {
+        "decimation": 2,
+        "scene": {
+          "num_envs": 1,
+          "env_spacing": 8.0,
+          "lazy_sensor_update": true,
+          "replicate_physics": false,
+          "filter_collisions": true,
+          "clone_in_fabric": false
+        },
+        "assets": {
+          "robot_urdf": "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf",
+          "table_urdf": "assets/urdf/table_narrow.urdf",
+          "table_scale_range_x": [
+            1.0,
+            1.0
+          ],
+          "table_scale_range_y": [
+            1.0,
+            1.0
+          ],
+          "table_scale_num_variants": 1,
+          "object_name": "lpeg_matchedmass",
+          "handle_head_types": [
+            "hammer",
+            "screwdriver",
+            "marker",
+            "spatula",
+            "eraser",
+            "brush"
+          ],
+          "num_assets_per_type": 1,
+          "shuffle_assets": true,
+          "modify_asset_frictions": true,
+          "robot_friction": 0.5,
+          "finger_tip_friction": 1.5,
+          "object_friction": 0.5,
+          "table_friction": 0.5,
+          "object_urdf": "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf",
+          "receptive_urdf": "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf",
+          "object_scale": [
+            6.25,
+            0.75,
+            0.5
+          ]
+        },
+        "action": {
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "dof_speed_scale": 1.5
+        },
+        "reset": {
+          "reset_position_noise_x": 0.1,
+          "reset_position_noise_y": 0.1,
+          "reset_position_noise_z": 0.02,
+          "fixed_start_pose": null,
+          "reset_dof_pos_random_interval_arm": 0.1,
+          "reset_dof_pos_random_interval_fingers": 0.1,
+          "reset_dof_vel_random_interval": 0.5,
+          "table_reset_z": 0.38,
+          "table_reset_z_range": 0.01,
+          "table_object_z_offset": 0.25,
+          "table_reset_xy_range_m": [
+            0.0,
+            0.0
+          ],
+          "table_reset_yaw_range_deg": 0.0,
+          "goal_sampling_type": "delta",
+          "delta_goal_distance": 0.1,
+          "delta_rotation_degrees": 90.0,
+          "target_volume_mins": [
+            -0.35,
+            -0.2,
+            0.6
+          ],
+          "target_volume_maxs": [
+            0.35,
+            0.2,
+            0.95
+          ],
+          "target_volume_region_scale": 1.0,
+          "fixed_goal_pose": null,
+          "fixed_trajectory_file": "",
+          "fixed_trajectory_count": 0
+        },
+        "termination": {
+          "episode_length": 600,
+          "success_tolerance": 0.075,
+          "target_success_tolerance": 0.01,
+          "eval_success_tolerance": null,
+          "success_steps": 10,
+          "max_consecutive_successes": 2,
+          "force_consecutive_near_goal_steps": false,
+          "tolerance_curriculum_increment": 0.9,
+          "tolerance_curriculum_interval": 3000,
+          "tolerance_curriculum_success_threshold": 3.0
+        },
+        "domain_randomization": {
+          "use_obs_delay": true,
+          "obs_delay_max": 3,
+          "use_action_delay": true,
+          "action_delay_max": 3,
+          "use_object_state_delay_noise": true,
+          "object_state_delay_max": 10,
+          "object_state_xyz_noise_std": 0.01,
+          "object_state_rotation_noise_degrees": 5.0,
+          "object_scale_noise_multiplier_range": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_obs_noise_std": 0.1,
+          "force_scale": 20.0,
+          "force_prob_range": [
+            0.001,
+            0.1
+          ],
+          "force_decay": 0.0,
+          "force_decay_interval": 0.08,
+          "force_only_when_lifted": true,
+          "torque_scale": 2.0,
+          "torque_prob_range": [
+            0.001,
+            0.1
+          ],
+          "torque_decay": 0.0,
+          "torque_decay_interval": 0.08,
+          "torque_only_when_lifted": true,
+          "object_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "fingertip_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "friction_n_buckets": 16
+        },
+        "precise_assembly": {
+          "problem": "tight_insertion",
+          "goal_mode": "preInsertAndFinal",
+          "hole_x_range": [
+            -0.1875,
+            0.1875
+          ],
+          "hole_y_range": [
+            -0.1,
+            0.1
+          ],
+          "hole_yaw_range_deg": 0.0,
+          "goal_xy_obs_noise": 0.002,
+          "goal_yaw_obs_noise_deg": 0.0,
+          "random_goal_fraction": 0.0,
+          "random_goal_max_successes": 5,
+          "random_goal_curriculum_success_threshold": 2.0,
+          "lift_bonus_fade_threshold": 2.0,
+          "insertion_success_tolerance": 0.01,
+          "enable_retract": true,
+          "retract_reward_scale": 1.0,
+          "retract_distance_threshold": 0.1,
+          "retract_success_bonus": 1000.0,
+          "retract_success_tolerance": 0.005,
+          "force_lift_reward_active": false,
+          "enable_dropped_on_table_term": false,
+          "dropped_on_table_z_margin": 0.05,
+          "dropped_on_table_ft_distance": 0.15
+        }
+      },
+      "physics_dt": 0.00833333333,
+      "control_dt": 0.01666666666
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_command_20261029/evaluation/plan.json",
+    "file_sha256": "01293fe64316060a3eaa81de932e0821656633ac93f8fbab702e9fc5ee19781f",
+    "evidence": {
+      "source_commit": "dc77a6b7b00621cef6b0607d3174d5d55f86b3c7",
+      "source_sha256": {
+        "visuotactile/evaluate_baselines.py": "b2083c19aba846eb68660ac15d8194746b496132868d8c808957db11416b3825",
+        "visuotactile/rollout.py": "0ed3e70b335d0043142967b205b3bd0cedee502bce1168d6535d55d85d7c7b87",
+        "visuotactile/history.py": "9442e643afc1c1de4288fce6e21166839fd24305affaada9a3b00b374e37d703",
+        "visuotactile/observations.py": "d4a1349121737533b8f1a294eccb1c14abc4d17f47587cafb45bd31a8456f54f",
+        "visuotactile/contracts.py": "8ef20b7bed7b39c37c030a1d314b02ee57e315020422f6097e76b6896510989d",
+        "visuotactile/training_resources.py": "8e5fc1d4815ab6b250042dc0100dea6685fa39f8945c8d45d2750f0249a0d825",
+        "visuotactile/sim/environment.py": "fade1f8b5711877ffeaa86368f0ede267d381de559cfb40b9a1bd73fe84b6d3a",
+        "visuotactile/models/__init__.py": "6eef10f160f5a03ea1262f4f1f55bf0ed62b75841130fb224760e2797e44e396",
+        "visuotactile/models/correction.py": "f9c2c320b3d122506c521dd602571fb81544c65926149b3917cd6732ba0dfe6b",
+        "visuotactile/models/nominal.py": "467bce71a04837845d84e8d96bda9586353761365e8d8309e72cab75893186bd",
+        "visuotactile/models/tactile.py": "50d04b5967d8aa22036211e391427ecf8734208a52e00212341f2a54555c1cce",
+        "visuotactile/models/tactile_dp.py": "5e12d504ec17f2266a10bae14d7471d1813168a1bb0d91f460bde1ac68b04d82",
+        "visuotactile/models/vision.py": "f2b68f4a199e66263f301d28d19dbb824b61ef61ab3f26e2ba4a3c71697c4bf1"
+      },
+      "checkpoints": {
+        "b0": {
+          "variant": "b0",
+          "epoch": 49,
+          "sha256": "fd1bd263de38ea6c6e0082d2ba55121adf3908b31c78b55d1cf39477ad6ff9d5",
+          "manifest_sha256": "f4562c18c51a7f7e40bc0a587b7e58aae4889dc5a06dfce4521a1e9e0f003b28",
+          "path": "outputs/visuotactile/run/dp_command_20261029/b0/best.pt"
+        },
+        "b1": {
+          "variant": "b1",
+          "epoch": 49,
+          "sha256": "bb23694f94294b20a2bb21b0c260b3ebbd30f2e3ed6a6e22b2465a501b1c5cc2",
+          "manifest_sha256": "f4562c18c51a7f7e40bc0a587b7e58aae4889dc5a06dfce4521a1e9e0f003b28",
+          "path": "outputs/visuotactile/run/dp_command_20261029/b1/best.pt"
+        }
+      },
+      "physics_dt": 0.00833333333,
+      "control_dt": 0.01666666666,
+      "num_envs": 1,
+      "env_spacing_m": 8.0,
+      "native_stage_timeout_steps": 601
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/G00-A/config.json",
+    "file_sha256": "e2266c3ac71c2021eee81050d61faf8f5ba6f423ca6adbb3e13cf07016fc28f1",
+    "evidence": {
+      "source_sha256": "6410514f9031a891f2df21873c5bcc7e4b82c9aea23b695b06bdda738075ce3d",
+      "source_hashes": {
+        "visuotactile/train_loss_study.py": "c887ef319aca82589f1ce00499f529780fb3f662c0999c50af01726851ec7705",
+        "visuotactile/study_metrics.py": "b4286315aec92d36c5ef88c0286c351e4130bbbff99817f0819ecefbb16034d2",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/study_resources.py": "ca746c3f5f18a75bcf8e4887a2c757c145013744bd945b90511d19e8a5e9080f",
+        "visuotactile/long_resources.py": "5bea749b392d0649916983033d180797ae89b73d3ed6f3e8c567230f547ffb0a"
+      },
+      "source": "outputs/visuotactile/run/long_horizon_20261030_v2/G00-new_full/best.pt",
+      "source_epoch": 40,
+      "source_updates": 33280,
+      "model": {
+        "group": "G00-new",
+        "version": 2,
+        "horizon": 64,
+        "replan_steps": 12,
+        "visual_history": 11,
+        "native_history": 121,
+        "tactile_history": 242,
+        "condition_dim": 512,
+        "inference_steps": 16,
+        "prediction_type": "sample"
+      },
+      "loss": "A"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/G00-B/config.json",
+    "file_sha256": "bd8a651caf7cd4b9e8785d5d01ee35d21b1f99171375bc77482baaab27c68988",
+    "evidence": {
+      "source_sha256": "6410514f9031a891f2df21873c5bcc7e4b82c9aea23b695b06bdda738075ce3d",
+      "source_hashes": {
+        "visuotactile/train_loss_study.py": "c887ef319aca82589f1ce00499f529780fb3f662c0999c50af01726851ec7705",
+        "visuotactile/study_metrics.py": "b4286315aec92d36c5ef88c0286c351e4130bbbff99817f0819ecefbb16034d2",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/study_resources.py": "ca746c3f5f18a75bcf8e4887a2c757c145013744bd945b90511d19e8a5e9080f",
+        "visuotactile/long_resources.py": "5bea749b392d0649916983033d180797ae89b73d3ed6f3e8c567230f547ffb0a"
+      },
+      "source": "outputs/visuotactile/run/long_horizon_20261030_v2/G00-new_full/best.pt",
+      "source_epoch": 40,
+      "source_updates": 33280,
+      "model": {
+        "group": "G00-new",
+        "version": 2,
+        "horizon": 64,
+        "replan_steps": 12,
+        "visual_history": 11,
+        "native_history": 121,
+        "tactile_history": 242,
+        "condition_dim": 512,
+        "inference_steps": 16,
+        "prediction_type": "sample"
+      },
+      "loss": "B"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/G10-A/config.json",
+    "file_sha256": "177218c6412bdc08b189db47058feb13e66453520d636d1c8a369a462cd2f469",
+    "evidence": {
+      "source_sha256": "7976a0ddb33bb33f62ab7728118272ec085863878d4a0e1eb3a8af69d55bef19",
+      "source_hashes": {
+        "visuotactile/train_loss_study.py": "c887ef319aca82589f1ce00499f529780fb3f662c0999c50af01726851ec7705",
+        "visuotactile/study_metrics.py": "b4286315aec92d36c5ef88c0286c351e4130bbbff99817f0819ecefbb16034d2",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/study_resources.py": "ca746c3f5f18a75bcf8e4887a2c757c145013744bd945b90511d19e8a5e9080f",
+        "visuotactile/long_resources.py": "5bea749b392d0649916983033d180797ae89b73d3ed6f3e8c567230f547ffb0a"
+      },
+      "source": "outputs/visuotactile/run/long_horizon_20261030_v2/G10-new_full/best.pt",
+      "source_epoch": 40,
+      "source_updates": 33280,
+      "model": {
+        "group": "G10-new",
+        "version": 2,
+        "horizon": 64,
+        "replan_steps": 12,
+        "visual_history": 11,
+        "native_history": 121,
+        "tactile_history": 242,
+        "condition_dim": 512,
+        "inference_steps": 16,
+        "prediction_type": "sample"
+      },
+      "loss": "A"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/G10-B/config.json",
+    "file_sha256": "ac16d5f9e02b080b2e6a376eed57e0bc2aee876346ccf2fe79c0ef5e4f03ef6f",
+    "evidence": {
+      "source_sha256": "7976a0ddb33bb33f62ab7728118272ec085863878d4a0e1eb3a8af69d55bef19",
+      "source_hashes": {
+        "visuotactile/train_loss_study.py": "c887ef319aca82589f1ce00499f529780fb3f662c0999c50af01726851ec7705",
+        "visuotactile/study_metrics.py": "b4286315aec92d36c5ef88c0286c351e4130bbbff99817f0819ecefbb16034d2",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/study_resources.py": "ca746c3f5f18a75bcf8e4887a2c757c145013744bd945b90511d19e8a5e9080f",
+        "visuotactile/long_resources.py": "5bea749b392d0649916983033d180797ae89b73d3ed6f3e8c567230f547ffb0a"
+      },
+      "source": "outputs/visuotactile/run/long_horizon_20261030_v2/G10-new_full/best.pt",
+      "source_epoch": 40,
+      "source_updates": 33280,
+      "model": {
+        "group": "G10-new",
+        "version": 2,
+        "horizon": 64,
+        "replan_steps": 12,
+        "visual_history": 11,
+        "native_history": 121,
+        "tactile_history": 242,
+        "condition_dim": 512,
+        "inference_steps": 16,
+        "prediction_type": "sample"
+      },
+      "loss": "B"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/dp_closed_loop/environment.json",
+    "file_sha256": "14ad5dfb37f30c93a11522f4e15586ac340adb5591eb9658e1c92ebac784bddd",
+    "evidence": {
+      "config": {
+        "decimation": 2,
+        "scene": {
+          "num_envs": 1,
+          "env_spacing": 8.0,
+          "lazy_sensor_update": true,
+          "replicate_physics": false,
+          "filter_collisions": true,
+          "clone_in_fabric": false
+        },
+        "assets": {
+          "robot_urdf": "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf",
+          "table_urdf": "assets/urdf/table_narrow.urdf",
+          "table_scale_range_x": [
+            1.0,
+            1.0
+          ],
+          "table_scale_range_y": [
+            1.0,
+            1.0
+          ],
+          "table_scale_num_variants": 1,
+          "object_name": "lpeg_matchedmass",
+          "handle_head_types": [
+            "hammer",
+            "screwdriver",
+            "marker",
+            "spatula",
+            "eraser",
+            "brush"
+          ],
+          "num_assets_per_type": 1,
+          "shuffle_assets": true,
+          "modify_asset_frictions": true,
+          "robot_friction": 0.5,
+          "finger_tip_friction": 1.5,
+          "object_friction": 0.5,
+          "table_friction": 0.5,
+          "object_urdf": "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf",
+          "receptive_urdf": "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf",
+          "object_scale": [
+            6.25,
+            0.75,
+            0.5
+          ]
+        },
+        "action": {
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "dof_speed_scale": 1.5
+        },
+        "reset": {
+          "reset_position_noise_x": 0.1,
+          "reset_position_noise_y": 0.1,
+          "reset_position_noise_z": 0.02,
+          "fixed_start_pose": null,
+          "reset_dof_pos_random_interval_arm": 0.1,
+          "reset_dof_pos_random_interval_fingers": 0.1,
+          "reset_dof_vel_random_interval": 0.5,
+          "table_reset_z": 0.38,
+          "table_reset_z_range": 0.01,
+          "table_object_z_offset": 0.25,
+          "table_reset_xy_range_m": [
+            0.0,
+            0.0
+          ],
+          "table_reset_yaw_range_deg": 0.0,
+          "goal_sampling_type": "delta",
+          "delta_goal_distance": 0.1,
+          "delta_rotation_degrees": 90.0,
+          "target_volume_mins": [
+            -0.35,
+            -0.2,
+            0.6
+          ],
+          "target_volume_maxs": [
+            0.35,
+            0.2,
+            0.95
+          ],
+          "target_volume_region_scale": 1.0,
+          "fixed_goal_pose": null,
+          "fixed_trajectory_file": "",
+          "fixed_trajectory_count": 0
+        },
+        "termination": {
+          "episode_length": 600,
+          "success_tolerance": 0.075,
+          "target_success_tolerance": 0.01,
+          "eval_success_tolerance": null,
+          "success_steps": 10,
+          "max_consecutive_successes": 2,
+          "force_consecutive_near_goal_steps": false,
+          "tolerance_curriculum_increment": 0.9,
+          "tolerance_curriculum_interval": 3000,
+          "tolerance_curriculum_success_threshold": 3.0
+        },
+        "domain_randomization": {
+          "use_obs_delay": true,
+          "obs_delay_max": 3,
+          "use_action_delay": true,
+          "action_delay_max": 3,
+          "use_object_state_delay_noise": true,
+          "object_state_delay_max": 10,
+          "object_state_xyz_noise_std": 0.01,
+          "object_state_rotation_noise_degrees": 5.0,
+          "object_scale_noise_multiplier_range": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_obs_noise_std": 0.1,
+          "force_scale": 20.0,
+          "force_prob_range": [
+            0.001,
+            0.1
+          ],
+          "force_decay": 0.0,
+          "force_decay_interval": 0.08,
+          "force_only_when_lifted": true,
+          "torque_scale": 2.0,
+          "torque_prob_range": [
+            0.001,
+            0.1
+          ],
+          "torque_decay": 0.0,
+          "torque_decay_interval": 0.08,
+          "torque_only_when_lifted": true,
+          "object_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "fingertip_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "friction_n_buckets": 16
+        },
+        "precise_assembly": {
+          "problem": "tight_insertion",
+          "goal_mode": "preInsertAndFinal",
+          "hole_x_range": [
+            -0.1875,
+            0.1875
+          ],
+          "hole_y_range": [
+            -0.1,
+            0.1
+          ],
+          "hole_yaw_range_deg": 0.0,
+          "goal_xy_obs_noise": 0.002,
+          "goal_yaw_obs_noise_deg": 0.0,
+          "random_goal_fraction": 0.0,
+          "random_goal_max_successes": 5,
+          "random_goal_curriculum_success_threshold": 2.0,
+          "lift_bonus_fade_threshold": 2.0,
+          "insertion_success_tolerance": 0.01,
+          "enable_retract": true,
+          "retract_reward_scale": 1.0,
+          "retract_distance_threshold": 0.1,
+          "retract_success_bonus": 1000.0,
+          "retract_success_tolerance": 0.005,
+          "force_lift_reward_active": false,
+          "enable_dropped_on_table_term": false,
+          "dropped_on_table_z_margin": 0.05,
+          "dropped_on_table_ft_distance": 0.15
+        }
+      },
+      "physics_dt": 0.00833333333,
+      "control_dt": 0.01666666666
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/dp_closed_loop/plan.json",
+    "file_sha256": "a46c7cbf266ec9b66d590ee8d1c5030e2cb197d5c4c1e262115b631deaa8347b",
+    "evidence": {
+      "source_commit": "eef7a9d490a16d1f114e00de65a026550cbaffae",
+      "source_hashes": {
+        "visuotactile/evaluate_study.py": "1fc5114e9cb7470b67f6a29208a55da108c7e2ef2794070abf67f3bd49bd3848",
+        "visuotactile/transformer_controller.py": "b5a399cdb8dcdc7fb5d7e5caa9e378656ccb116a6b0fee9493af22d69b6cc59e",
+        "visuotactile/private_history.py": "00622e505fe4130737c033ef8aaa4fc6f76f651705c676197987b84d13e7bcf7",
+        "visuotactile/models/transformer_residual.py": "ab5befab7292d709c0233696d63fb51d1c558f81d8cefdcdabb2bcc50f584a61",
+        "visuotactile/long_controller.py": "562091b44abb35d9f66059b918b2a517df2d8d56a8b37e445583bfeb5d38301c",
+        "visuotactile/sim/environment.py": "fade1f8b5711877ffeaa86368f0ede267d381de559cfb40b9a1bd73fe84b6d3a"
+      },
+      "checkpoint_sha256": {
+        "G00-A": "7339552bdc65068223648fdd7559d20fcede19d67e8c6de899be838907199632",
+        "G00-B": "926b2628bb5f5c1eed4869ac257926dcdefdcc1533456553a51e9d0e035cdb92",
+        "G10-A": "266bd3291ba0741f7e0c19aa69280560907c79598e2a3662a8b0bc5e92b0fa8b",
+        "G10-B": "ac8456d6b5a48d063583a7107f1ec8896aa8ed585c85e12762beb77027758f86"
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/residual_closed_loop/environment.json",
+    "file_sha256": "14ad5dfb37f30c93a11522f4e15586ac340adb5591eb9658e1c92ebac784bddd",
+    "evidence": {
+      "config": {
+        "decimation": 2,
+        "scene": {
+          "num_envs": 1,
+          "env_spacing": 8.0,
+          "lazy_sensor_update": true,
+          "replicate_physics": false,
+          "filter_collisions": true,
+          "clone_in_fabric": false
+        },
+        "assets": {
+          "robot_urdf": "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf",
+          "table_urdf": "assets/urdf/table_narrow.urdf",
+          "table_scale_range_x": [
+            1.0,
+            1.0
+          ],
+          "table_scale_range_y": [
+            1.0,
+            1.0
+          ],
+          "table_scale_num_variants": 1,
+          "object_name": "lpeg_matchedmass",
+          "handle_head_types": [
+            "hammer",
+            "screwdriver",
+            "marker",
+            "spatula",
+            "eraser",
+            "brush"
+          ],
+          "num_assets_per_type": 1,
+          "shuffle_assets": true,
+          "modify_asset_frictions": true,
+          "robot_friction": 0.5,
+          "finger_tip_friction": 1.5,
+          "object_friction": 0.5,
+          "table_friction": 0.5,
+          "object_urdf": "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf",
+          "receptive_urdf": "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf",
+          "object_scale": [
+            6.25,
+            0.75,
+            0.5
+          ]
+        },
+        "action": {
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "dof_speed_scale": 1.5
+        },
+        "reset": {
+          "reset_position_noise_x": 0.1,
+          "reset_position_noise_y": 0.1,
+          "reset_position_noise_z": 0.02,
+          "fixed_start_pose": null,
+          "reset_dof_pos_random_interval_arm": 0.1,
+          "reset_dof_pos_random_interval_fingers": 0.1,
+          "reset_dof_vel_random_interval": 0.5,
+          "table_reset_z": 0.38,
+          "table_reset_z_range": 0.01,
+          "table_object_z_offset": 0.25,
+          "table_reset_xy_range_m": [
+            0.0,
+            0.0
+          ],
+          "table_reset_yaw_range_deg": 0.0,
+          "goal_sampling_type": "delta",
+          "delta_goal_distance": 0.1,
+          "delta_rotation_degrees": 90.0,
+          "target_volume_mins": [
+            -0.35,
+            -0.2,
+            0.6
+          ],
+          "target_volume_maxs": [
+            0.35,
+            0.2,
+            0.95
+          ],
+          "target_volume_region_scale": 1.0,
+          "fixed_goal_pose": null,
+          "fixed_trajectory_file": "",
+          "fixed_trajectory_count": 0
+        },
+        "termination": {
+          "episode_length": 600,
+          "success_tolerance": 0.075,
+          "target_success_tolerance": 0.01,
+          "eval_success_tolerance": null,
+          "success_steps": 10,
+          "max_consecutive_successes": 2,
+          "force_consecutive_near_goal_steps": false,
+          "tolerance_curriculum_increment": 0.9,
+          "tolerance_curriculum_interval": 3000,
+          "tolerance_curriculum_success_threshold": 3.0
+        },
+        "domain_randomization": {
+          "use_obs_delay": true,
+          "obs_delay_max": 3,
+          "use_action_delay": true,
+          "action_delay_max": 3,
+          "use_object_state_delay_noise": true,
+          "object_state_delay_max": 10,
+          "object_state_xyz_noise_std": 0.01,
+          "object_state_rotation_noise_degrees": 5.0,
+          "object_scale_noise_multiplier_range": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_obs_noise_std": 0.1,
+          "force_scale": 20.0,
+          "force_prob_range": [
+            0.001,
+            0.1
+          ],
+          "force_decay": 0.0,
+          "force_decay_interval": 0.08,
+          "force_only_when_lifted": true,
+          "torque_scale": 2.0,
+          "torque_prob_range": [
+            0.001,
+            0.1
+          ],
+          "torque_decay": 0.0,
+          "torque_decay_interval": 0.08,
+          "torque_only_when_lifted": true,
+          "object_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "fingertip_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "friction_n_buckets": 16
+        },
+        "precise_assembly": {
+          "problem": "tight_insertion",
+          "goal_mode": "preInsertAndFinal",
+          "hole_x_range": [
+            -0.1875,
+            0.1875
+          ],
+          "hole_y_range": [
+            -0.1,
+            0.1
+          ],
+          "hole_yaw_range_deg": 0.0,
+          "goal_xy_obs_noise": 0.002,
+          "goal_yaw_obs_noise_deg": 0.0,
+          "random_goal_fraction": 0.0,
+          "random_goal_max_successes": 5,
+          "random_goal_curriculum_success_threshold": 2.0,
+          "lift_bonus_fade_threshold": 2.0,
+          "insertion_success_tolerance": 0.01,
+          "enable_retract": true,
+          "retract_reward_scale": 1.0,
+          "retract_distance_threshold": 0.1,
+          "retract_success_bonus": 1000.0,
+          "retract_success_tolerance": 0.005,
+          "force_lift_reward_active": false,
+          "enable_dropped_on_table_term": false,
+          "dropped_on_table_z_margin": 0.05,
+          "dropped_on_table_ft_distance": 0.15
+        }
+      },
+      "physics_dt": 0.00833333333,
+      "control_dt": 0.01666666666
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/residual_closed_loop/plan.json",
+    "file_sha256": "fae9158f3caeeca82a5a2fa05b2a939bfe2fdb13c780e2c0354a72fee8fb567f",
+    "evidence": {
+      "source_commit": "d11f953e6496359dc3bf3548903c566127ccbfb5",
+      "source_hashes": {
+        "visuotactile/evaluate_study.py": "1fc5114e9cb7470b67f6a29208a55da108c7e2ef2794070abf67f3bd49bd3848",
+        "visuotactile/transformer_controller.py": "b5a399cdb8dcdc7fb5d7e5caa9e378656ccb116a6b0fee9493af22d69b6cc59e",
+        "visuotactile/private_history.py": "00622e505fe4130737c033ef8aaa4fc6f76f651705c676197987b84d13e7bcf7",
+        "visuotactile/models/transformer_residual.py": "ab5befab7292d709c0233696d63fb51d1c558f81d8cefdcdabb2bcc50f584a61",
+        "visuotactile/long_controller.py": "562091b44abb35d9f66059b918b2a517df2d8d56a8b37e445583bfeb5d38301c",
+        "visuotactile/sim/environment.py": "fade1f8b5711877ffeaa86368f0ede267d381de559cfb40b9a1bd73fe84b6d3a"
+      },
+      "checkpoint_sha256": {
+        "G00-B": "926b2628bb5f5c1eed4869ac257926dcdefdcc1533456553a51e9d0e035cdb92"
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/transformer_training/force/config.json",
+    "file_sha256": "223519aecbfa0b0868acb9b14cf4a0e059e60910ea05b0c4c6641536f76c472a",
+    "evidence": {
+      "source_hashes": {
+        "visuotactile/train_transformer_residual.py": "63176d4bb6eefd907faf475dcf895f1591aad4b2d6a5560349290e46b574b554",
+        "visuotactile/transformer_data.py": "80e9c577bda090611a700cb968df61cfc1af89acf3cd35eb4ef2b4ddbac2194d",
+        "visuotactile/models/transformer_residual.py": "ab5befab7292d709c0233696d63fb51d1c558f81d8cefdcdabb2bcc50f584a61",
+        "visuotactile/private_history.py": "00622e505fe4130737c033ef8aaa4fc6f76f651705c676197987b84d13e7bcf7"
+      },
+      "model": {
+        "version": 1,
+        "hidden": 128,
+        "layers": 2,
+        "heads": 4,
+        "horizon": 6,
+        "recent_ticks": 13,
+        "force_masked": false,
+        "amplitude_weight": 0.0001
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/dp_loss_trt_20261031_01/transformer_training/masked/config.json",
+    "file_sha256": "dae9776f5cde61124dd063087a73b86490efac10c5d77cb2069a479be7851bf6",
+    "evidence": {
+      "source_hashes": {
+        "visuotactile/train_transformer_residual.py": "63176d4bb6eefd907faf475dcf895f1591aad4b2d6a5560349290e46b574b554",
+        "visuotactile/transformer_data.py": "80e9c577bda090611a700cb968df61cfc1af89acf3cd35eb4ef2b4ddbac2194d",
+        "visuotactile/models/transformer_residual.py": "ab5befab7292d709c0233696d63fb51d1c558f81d8cefdcdabb2bcc50f584a61",
+        "visuotactile/private_history.py": "00622e505fe4130737c033ef8aaa4fc6f76f651705c676197987b84d13e7bcf7"
+      },
+      "model": {
+        "version": 1,
+        "hidden": 128,
+        "layers": 2,
+        "heads": 4,
+        "horizon": 6,
+        "recent_ticks": 13,
+        "force_masked": true,
+        "amplitude_weight": 0.0001
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/long_horizon_20261030_v2/G00-new_full/config.json",
+    "file_sha256": "dcf60b58e0219996d818c35458d285ddbea1760ba455ac280eaa33e2a2477ee5",
+    "evidence": {
+      "source_hashes": {
+        "visuotactile/train_long.py": "2ed60c836f6c046fa62bf0c40f02a5506951ab1414853bd49ffbd30e23020065",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/action_reference.py": "97a9dd772b1399edafbd0f17c74db9ae887ef2ea986ca6bd027f00085b099c6c",
+        "visuotactile/long_resources.py": "0a21cd39d58103f2c930ff6e0497844e97c6ffaac801291dcbedd61900293406"
+      },
+      "model": {
+        "group": "G00-new",
+        "version": 2,
+        "horizon": 64,
+        "replan_steps": 12,
+        "visual_history": 11,
+        "native_history": 121,
+        "tactile_history": 242,
+        "condition_dim": 512,
+        "inference_steps": 16,
+        "prediction_type": "sample"
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/long_horizon_20261030_v2/G10-new_full/config.json",
+    "file_sha256": "fd0a25719c562b918f29f4ceb857d326f61e43298378f581dd3634eaf9083ce9",
+    "evidence": {
+      "source_hashes": {
+        "visuotactile/train_long.py": "2ed60c836f6c046fa62bf0c40f02a5506951ab1414853bd49ffbd30e23020065",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/action_reference.py": "97a9dd772b1399edafbd0f17c74db9ae887ef2ea986ca6bd027f00085b099c6c",
+        "visuotactile/long_resources.py": "0a21cd39d58103f2c930ff6e0497844e97c6ffaac801291dcbedd61900293406"
+      },
+      "model": {
+        "group": "G10-new",
+        "version": 2,
+        "horizon": 64,
+        "replan_steps": 12,
+        "visual_history": 11,
+        "native_history": 121,
+        "tactile_history": 242,
+        "condition_dim": 512,
+        "inference_steps": 16,
+        "prediction_type": "sample"
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/long_horizon_20261030_v2/closed_loop/plan.json",
+    "file_sha256": "4cd3300144fbb41215b13d4f042cf6e317d28a17f0c4bd6fbbfbd4ada73d9ee2",
+    "evidence": {
+      "source_commit": "e65c30606c736cbed94b5864574cc5b74db88d00",
+      "source_hashes": {
+        "visuotactile/evaluate_long.py": "bf55f93f213daae68d0e20a7fb4c35bad657efd848b49ac04849123423aa28f8",
+        "visuotactile/long_controller.py": "562091b44abb35d9f66059b918b2a517df2d8d56a8b37e445583bfeb5d38301c",
+        "visuotactile/models/long_horizon.py": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+        "visuotactile/long_resources.py": "0a21cd39d58103f2c930ff6e0497844e97c6ffaac801291dcbedd61900293406",
+        "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+        "visuotactile/sim/environment.py": "fade1f8b5711877ffeaa86368f0ede267d381de559cfb40b9a1bd73fe84b6d3a"
+      },
+      "checkpoint_hashes": {
+        "G00-new": "6410514f9031a891f2df21873c5bcc7e4b82c9aea23b695b06bdda738075ce3d",
+        "G10-new": "7976a0ddb33bb33f62ab7728118272ec085863878d4a0e1eb3a8af69d55bef19"
+      }
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/network_audit_20261031_01/session.json",
+    "file_sha256": "2262130a6add3b374f3aabdcecf7157196f5d1c2147223620cfbac8b90a54961",
+    "evidence": {
+      "source_commit": "3ce0c187c414a27992aaa7d01de6e09d7300408e",
+      "source": "outputs/visuotactile/run/dp_loss_trt_20261031_01"
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/residual_20261030_01/closed_loop/environment.json",
+    "file_sha256": "14ad5dfb37f30c93a11522f4e15586ac340adb5591eb9658e1c92ebac784bddd",
+    "evidence": {
+      "config": {
+        "decimation": 2,
+        "scene": {
+          "num_envs": 1,
+          "env_spacing": 8.0,
+          "lazy_sensor_update": true,
+          "replicate_physics": false,
+          "filter_collisions": true,
+          "clone_in_fabric": false
+        },
+        "assets": {
+          "robot_urdf": "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf",
+          "table_urdf": "assets/urdf/table_narrow.urdf",
+          "table_scale_range_x": [
+            1.0,
+            1.0
+          ],
+          "table_scale_range_y": [
+            1.0,
+            1.0
+          ],
+          "table_scale_num_variants": 1,
+          "object_name": "lpeg_matchedmass",
+          "handle_head_types": [
+            "hammer",
+            "screwdriver",
+            "marker",
+            "spatula",
+            "eraser",
+            "brush"
+          ],
+          "num_assets_per_type": 1,
+          "shuffle_assets": true,
+          "modify_asset_frictions": true,
+          "robot_friction": 0.5,
+          "finger_tip_friction": 1.5,
+          "object_friction": 0.5,
+          "table_friction": 0.5,
+          "object_urdf": "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf",
+          "receptive_urdf": "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf",
+          "object_scale": [
+            6.25,
+            0.75,
+            0.5
+          ]
+        },
+        "action": {
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "dof_speed_scale": 1.5
+        },
+        "reset": {
+          "reset_position_noise_x": 0.1,
+          "reset_position_noise_y": 0.1,
+          "reset_position_noise_z": 0.02,
+          "fixed_start_pose": null,
+          "reset_dof_pos_random_interval_arm": 0.1,
+          "reset_dof_pos_random_interval_fingers": 0.1,
+          "reset_dof_vel_random_interval": 0.5,
+          "table_reset_z": 0.38,
+          "table_reset_z_range": 0.01,
+          "table_object_z_offset": 0.25,
+          "table_reset_xy_range_m": [
+            0.0,
+            0.0
+          ],
+          "table_reset_yaw_range_deg": 0.0,
+          "goal_sampling_type": "delta",
+          "delta_goal_distance": 0.1,
+          "delta_rotation_degrees": 90.0,
+          "target_volume_mins": [
+            -0.35,
+            -0.2,
+            0.6
+          ],
+          "target_volume_maxs": [
+            0.35,
+            0.2,
+            0.95
+          ],
+          "target_volume_region_scale": 1.0,
+          "fixed_goal_pose": null,
+          "fixed_trajectory_file": "",
+          "fixed_trajectory_count": 0
+        },
+        "termination": {
+          "episode_length": 600,
+          "success_tolerance": 0.075,
+          "target_success_tolerance": 0.01,
+          "eval_success_tolerance": null,
+          "success_steps": 10,
+          "max_consecutive_successes": 2,
+          "force_consecutive_near_goal_steps": false,
+          "tolerance_curriculum_increment": 0.9,
+          "tolerance_curriculum_interval": 3000,
+          "tolerance_curriculum_success_threshold": 3.0
+        },
+        "domain_randomization": {
+          "use_obs_delay": true,
+          "obs_delay_max": 3,
+          "use_action_delay": true,
+          "action_delay_max": 3,
+          "use_object_state_delay_noise": true,
+          "object_state_delay_max": 10,
+          "object_state_xyz_noise_std": 0.01,
+          "object_state_rotation_noise_degrees": 5.0,
+          "object_scale_noise_multiplier_range": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_obs_noise_std": 0.1,
+          "force_scale": 20.0,
+          "force_prob_range": [
+            0.001,
+            0.1
+          ],
+          "force_decay": 0.0,
+          "force_decay_interval": 0.08,
+          "force_only_when_lifted": true,
+          "torque_scale": 2.0,
+          "torque_prob_range": [
+            0.001,
+            0.1
+          ],
+          "torque_decay": 0.0,
+          "torque_decay_interval": 0.08,
+          "torque_only_when_lifted": true,
+          "object_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "fingertip_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "friction_n_buckets": 16
+        },
+        "precise_assembly": {
+          "problem": "tight_insertion",
+          "goal_mode": "preInsertAndFinal",
+          "hole_x_range": [
+            -0.1875,
+            0.1875
+          ],
+          "hole_y_range": [
+            -0.1,
+            0.1
+          ],
+          "hole_yaw_range_deg": 0.0,
+          "goal_xy_obs_noise": 0.002,
+          "goal_yaw_obs_noise_deg": 0.0,
+          "random_goal_fraction": 0.0,
+          "random_goal_max_successes": 5,
+          "random_goal_curriculum_success_threshold": 2.0,
+          "lift_bonus_fade_threshold": 2.0,
+          "insertion_success_tolerance": 0.01,
+          "enable_retract": true,
+          "retract_reward_scale": 1.0,
+          "retract_distance_threshold": 0.1,
+          "retract_success_bonus": 1000.0,
+          "retract_success_tolerance": 0.005,
+          "force_lift_reward_active": false,
+          "enable_dropped_on_table_term": false,
+          "dropped_on_table_z_margin": 0.05,
+          "dropped_on_table_ft_distance": 0.15
+        }
+      },
+      "physics_dt": 0.00833333333,
+      "control_dt": 0.01666666666
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/residual_20261030_01/closed_loop_remaining_01/environment.json",
+    "file_sha256": "14ad5dfb37f30c93a11522f4e15586ac340adb5591eb9658e1c92ebac784bddd",
+    "evidence": {
+      "config": {
+        "decimation": 2,
+        "scene": {
+          "num_envs": 1,
+          "env_spacing": 8.0,
+          "lazy_sensor_update": true,
+          "replicate_physics": false,
+          "filter_collisions": true,
+          "clone_in_fabric": false
+        },
+        "assets": {
+          "robot_urdf": "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf",
+          "table_urdf": "assets/urdf/table_narrow.urdf",
+          "table_scale_range_x": [
+            1.0,
+            1.0
+          ],
+          "table_scale_range_y": [
+            1.0,
+            1.0
+          ],
+          "table_scale_num_variants": 1,
+          "object_name": "lpeg_matchedmass",
+          "handle_head_types": [
+            "hammer",
+            "screwdriver",
+            "marker",
+            "spatula",
+            "eraser",
+            "brush"
+          ],
+          "num_assets_per_type": 1,
+          "shuffle_assets": true,
+          "modify_asset_frictions": true,
+          "robot_friction": 0.5,
+          "finger_tip_friction": 1.5,
+          "object_friction": 0.5,
+          "table_friction": 0.5,
+          "object_urdf": "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf",
+          "receptive_urdf": "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf",
+          "object_scale": [
+            6.25,
+            0.75,
+            0.5
+          ]
+        },
+        "action": {
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "dof_speed_scale": 1.5
+        },
+        "reset": {
+          "reset_position_noise_x": 0.1,
+          "reset_position_noise_y": 0.1,
+          "reset_position_noise_z": 0.02,
+          "fixed_start_pose": null,
+          "reset_dof_pos_random_interval_arm": 0.1,
+          "reset_dof_pos_random_interval_fingers": 0.1,
+          "reset_dof_vel_random_interval": 0.5,
+          "table_reset_z": 0.38,
+          "table_reset_z_range": 0.01,
+          "table_object_z_offset": 0.25,
+          "table_reset_xy_range_m": [
+            0.0,
+            0.0
+          ],
+          "table_reset_yaw_range_deg": 0.0,
+          "goal_sampling_type": "delta",
+          "delta_goal_distance": 0.1,
+          "delta_rotation_degrees": 90.0,
+          "target_volume_mins": [
+            -0.35,
+            -0.2,
+            0.6
+          ],
+          "target_volume_maxs": [
+            0.35,
+            0.2,
+            0.95
+          ],
+          "target_volume_region_scale": 1.0,
+          "fixed_goal_pose": null,
+          "fixed_trajectory_file": "",
+          "fixed_trajectory_count": 0
+        },
+        "termination": {
+          "episode_length": 600,
+          "success_tolerance": 0.075,
+          "target_success_tolerance": 0.01,
+          "eval_success_tolerance": null,
+          "success_steps": 10,
+          "max_consecutive_successes": 2,
+          "force_consecutive_near_goal_steps": false,
+          "tolerance_curriculum_increment": 0.9,
+          "tolerance_curriculum_interval": 3000,
+          "tolerance_curriculum_success_threshold": 3.0
+        },
+        "domain_randomization": {
+          "use_obs_delay": true,
+          "obs_delay_max": 3,
+          "use_action_delay": true,
+          "action_delay_max": 3,
+          "use_object_state_delay_noise": true,
+          "object_state_delay_max": 10,
+          "object_state_xyz_noise_std": 0.01,
+          "object_state_rotation_noise_degrees": 5.0,
+          "object_scale_noise_multiplier_range": [
+            1.0,
+            1.0
+          ],
+          "joint_velocity_obs_noise_std": 0.1,
+          "force_scale": 20.0,
+          "force_prob_range": [
+            0.001,
+            0.1
+          ],
+          "force_decay": 0.0,
+          "force_decay_interval": 0.08,
+          "force_only_when_lifted": true,
+          "torque_scale": 2.0,
+          "torque_prob_range": [
+            0.001,
+            0.1
+          ],
+          "torque_decay": 0.0,
+          "torque_decay_interval": 0.08,
+          "torque_only_when_lifted": true,
+          "object_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "fingertip_friction_scale_range": [
+            1.0,
+            1.0
+          ],
+          "friction_n_buckets": 16
+        },
+        "precise_assembly": {
+          "problem": "tight_insertion",
+          "goal_mode": "preInsertAndFinal",
+          "hole_x_range": [
+            -0.1875,
+            0.1875
+          ],
+          "hole_y_range": [
+            -0.1,
+            0.1
+          ],
+          "hole_yaw_range_deg": 0.0,
+          "goal_xy_obs_noise": 0.002,
+          "goal_yaw_obs_noise_deg": 0.0,
+          "random_goal_fraction": 0.0,
+          "random_goal_max_successes": 5,
+          "random_goal_curriculum_success_threshold": 2.0,
+          "lift_bonus_fade_threshold": 2.0,
+          "insertion_success_tolerance": 0.01,
+          "enable_retract": true,
+          "retract_reward_scale": 1.0,
+          "retract_distance_threshold": 0.1,
+          "retract_success_bonus": 1000.0,
+          "retract_success_tolerance": 0.005,
+          "force_lift_reward_active": false,
+          "enable_dropped_on_table_term": false,
+          "dropped_on_table_z_margin": 0.05,
+          "dropped_on_table_ft_distance": 0.15
+        }
+      },
+      "physics_dt": 0.00833333333,
+      "control_dt": 0.01666666666
+    }
+  },
+  {
+    "path": "outputs/visuotactile/run/residual_20261030_01/training_full/config.json",
+    "file_sha256": "8aaf10509cee43fd3ed96fe2355223fd747050e33d4119dfa38cf0b9c18e8e29",
+    "evidence": {
+      "source_commit": "b88d685a5880aca0fe88b91dd38a857b179b2c61",
+      "source_sha256": {
+        "visuotactile/train_residual.py": "e52600fc4dbc04d03ba4ca1274f2394f892009d95077a7eae797432d7e4cbe63",
+        "visuotactile/models/residual.py": "822b70c4bc7479e1b9eebf3705586a2e8d6c6da701ebe7373bcb394da0aa443b",
+        "visuotactile/residual_data.py": "15d733ea7a816c2527e04c9293c6cf9c1065ac3da8fd4f8d91ecf27630266979",
+        "visuotactile/residual_session.py": "e5b87fcb8ac2b198bc0b7210a8cc0f174e1a19c381a5dd3885951e517f1f1679"
+      },
+      "loss": "0.5 arm mean squared command error + 0.5 hand; only real contact; delta L2 1e-4"
+    }
+  }
+]

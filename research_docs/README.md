@@ -1,5 +1,12 @@
 # 视觉与触觉模仿学习研究工程
 
+## 最新系统与实验审计 — 2026-10-31
+
+[完整系统说明与控制链审计](SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、
+[逐文件地图](PROJECT_FILE_MAP.md)、[实验有效性矩阵](EXPERIMENT_VALIDITY_MATRIX.md)
+是本轮审阅入口。400条/81,894步数值链重读、147条既有评估队列核验、T0源RNG重建均已完成。
+原生控制仅有只读hook；近似T0不能否定原示范成功。先提交文档，再完成Loss B默认及诊断记录修复；未启动新GPU实验。
+
 ## 最新完成 — 2026-10-31网络核验与近似训练初态诊断
 
 [中文核心结论与完整逐层说明](NETWORK_ARCHITECTURE_EXACT.md)包含真实checkpoint的594行模块审计、

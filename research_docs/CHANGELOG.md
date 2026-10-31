@@ -1,5 +1,16 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 系统控制审计与可审阅文档第一版
+
+- 新增SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT、PROJECT_FILE_MAP、EXPERIMENT_VALIDITY_MATRIX：
+  场景/原生控制/两代模型/全部历史阶段与有效性，复用既有594层/743参数和网络图。
+- 新增visuotactile/audit_system.py：CPU只读400条全部数值链、147条既有evaluation队列、固定上游源码diff、
+  source RNG的原lane抽样重建和AST文件地图；输出仅小JSON/CSV/Markdown，原数据/权重不写。
+- 实测：400/81894无数值接口错误，native公式0误差、reference roundtrip最大2.38419e−6；
+  147条队列候选误差0；4条源1,005次RNG delay重建一致。398条4env/2条1env；T0不构成数据无效证据。
+- Loss B未来默认与完整诊断记录列为后续局部修复；本文档提交前未改训练/执行，也未启动新GPU/Kit。
+- 原生isaacsimenvs除既有七行read-only trace外与ff2fc628上游相同；本轮没有修改native或sim wrapper。
+
 ## 2026-10-31 — 实际网络逐层核验、曲线补齐与近似训练初态诊断
 
 新增`audit_network.py`从真实DINO/G00-B/G10-B/Force/Masked/历史GRU权重与真实train样本采集594行

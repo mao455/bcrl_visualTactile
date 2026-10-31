@@ -1,5 +1,13 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-10-31 — 系统审计第一版，正在完成普通修复
+
+从a07d0aa干净feature开始。本轮主入口SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT、PROJECT_FILE_MAP、
+EXPERIMENT_VALIDITY_MATRIX；audit_system本轮重读400/81894数值链、147既有trace队列、1005源RNG draw。
+全部通过；原生唯一diff仍既有只读hook。T0单lane与原多lane随机流不同，不能否定原400真实成功。
+当前没有本轮训练/仿真进程；未启动新GPU窗口。先交付文档，再落实未来Loss B默认及诊断记录不足的普通修复。
+原400、split、best、正式0/50保持；不得把旧状态段落当实时进度。
+
 ## 最终交接 — 2026-10-31网络架构、训练验收与近似训练初态诊断
 
 新run `network_audit_20261031_01`已完成预登记4条train×T0/G00-B/G10-B共12次诊断，

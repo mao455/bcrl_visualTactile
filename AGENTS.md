@@ -1,5 +1,19 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-10-31 system and experiment audit
+
+User authorizes a documentation-first complete architecture/control/data/history
+audit, focused peripheral fixes, Loss B as future formal DP default, and reviewed
+origin feature commits/pushes. Preserve Loss A reproduction and all old artifacts.
+Read SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT, PROJECT_FILE_MAP and
+EXPERIMENT_VALIDITY_MATRIX. Static/CPU evidence first; no new GPU work yet.
+Necessary new GPU work is bounded to one monitored <=4h session and <=12 starts;
+native controller/physics/reset/DR/task and wrapper physical behavior stay read-only.
+Core redesign requires a concrete review proposal. Exact replay is not implied
+by saved observable state or seed; unsuccessful approximate T0 does not invalidate
+the400 naturally successful demonstrations. Whole-card batch/60s<=50%,4GiB VRAM,
+10GiB RAM and disk reserves; no unrelated process changes.
+
 ## Current override — 2026-10-31 exact architecture and generalization audit
 
 Completed: read NETWORK_ARCHITECTURE_EXACT.md and newest SESSION_HANDOFF.

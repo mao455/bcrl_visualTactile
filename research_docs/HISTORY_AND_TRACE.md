@@ -1,5 +1,12 @@
 # 持续历史、动作来源与时间合约
 
+## 2026-10-31控制与随机流复核
+
+原生delay每tick抽取num_envs个index，queue长度3、lag0..2；首步填满u0，index与effective age不同。
+T0源四条1,005次index由保存的逐步CPU RNG和原lane完整重建，singleton lane0不能替代lane3。
+此CPU检查没有改变仿真随机流，也不是物理重放。近似restore缺完整lane/solver/sensor/actor状态；
+原400所有pre-delay/target/时间字段检查通过。详细首处分歧和原生来源见SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT第6–8节。
+
 ## 2026-10-30新candidate2
 
 G00-new/G10-new与旧history隔离：视觉11×5Hz、本体/执行反馈121×60Hz、G10触觉242×120Hz，
