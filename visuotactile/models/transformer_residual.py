@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 
-HISTORY_PROTOCOL = 'private_proposals_with_native_delay_timing_v1'
+HISTORY_PROTOCOL = 'past_actual_mixed_commands_v1'
 
 
 @dataclass

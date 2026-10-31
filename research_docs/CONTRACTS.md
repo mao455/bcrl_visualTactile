@@ -18,9 +18,10 @@ validation以EMA前12步arm/hand等权native MSE选模，保留H64/每指/每位
 训练标签同tick expert_clipped_pre_delay−base，允许[-2,2]；contact-valid raw MSE的arm/hand各50%，
 另1e−4 delta均方幅度正则；clip只在执行组合，不阻断监督梯度。无接触逐tick精确返回base。
 force_masked在任何force派生特征/记忆前清零连续world/local力，保留真实gate/valid/FK，不能称无触觉。
-新`private_proposals_with_native_delay_timing_v1`只允许名义读取自身base建议，使用原生selected timestamp
-选择过去base建议，不读取混合或专家动作值；这些是反事实建议，不标实际delayed。残差另存真实feedback。
-缓存使用同样私有建议历史，在专家观察上逐native tick运行真实冻结DP；残差actual history明确teacher forcing。
+用户明确授权新G01/G11名义读取过去实际混合命令，使用`past_actual_mixed_commands_v1`。
+名义和残差均只读取严格t−1真实issued/delayed/时间；新G01名义通过该反馈间接受到残差/触觉影响，
+不能称严格触觉隔离。缓存在专家观察上逐native tick运行冻结DP，双方实际历史均明确teacher forcing；
+部署使用学生实际混合命令ack。当前/未来专家命令仍仅为监督，禁止进入因果输入。
 原G00/G10 actual-history DP比较不变，旧权重不切换history flag；新残差checkpoint显式绑定base hash与此协议。
 训练前必须通过真实数据缓存/在线数值验收；测试只在最终validation选模后一次；旧GRU是不同基座历史参照。
 

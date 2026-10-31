@@ -5,13 +5,17 @@
 用户新附件授权实际四线配对续训及独立Transformer，覆盖下方旧阶段结束限制。主报告
 DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md；root outputs/visuotactile/run/dp_loss_trt_20261031_01。
 唯一窗口03:01:47–09:01:47 UTC（11:01:47–17:01:47 UTC+8），DP截止06:01:47 UTC，训练截止08:01:47 UTC。
-原40遍权重接口数值验收通过、G00 pilot A/B各11更新完成，当前G00-A/B各12遍/9984更新正式运行；随后G10。
+原40遍权重接口数值验收通过；G00-A/B各12遍/9984更新已完成，G10-A/B当前最后一遍；两组pilot各11更新。
 owner3287451/monitor3287455仅为启动快照，必须查实际/proc和pipeline；所有GPU工作共享lease。
 资源目标38/准入42%，6GiB/16GiB准入、4GiB/10GiB硬余量，独立watchdog违规暂停并记录；旧产物和控制只读。
 四线test与闭环/残差均尚未完成。Transformer实现/CPU与GPU真实预检已通过，残差828,189参数、统一FP32。
 BF16缓存将中间步合批曾出现0.172144rad reference差，两个失败报告保留；逐tick修复后nominal最大差0。
 后续注册顺序：12次DP诊断→选定G00逐tick缓存/再次验收→force/masked短pilot→各5完整遍历→test一次→6次残差→曲线。
-名义使用独立版本私有base建议历史；实际混合反馈只进残差。最后6次若需local则2seed×base/force/masked配对。
+用户后续明确授权新G01/G11读取过去实际混合命令。残差尚未训练，现改为past_actual_mixed_commands_v1，
+名义与残差均接收实际ack，明确名义间接受残差/触觉影响；专家缓存为teacher forcing，部署为学生反馈。
+之前私有建议预检仅是被取代设计的历史证据；新协议145步真实预检已通过：名义command/plan/history差0，
+GPU残差输出/记忆误差1.49012e−7/4.17233e−7。正式缓存仍须以实际选定基座再次验收。
+最后6次若需local则2seed×base/force/masked配对；原DP A/B不变。
 尚未执行的阶段只记待运行；pipeline和各completion文件才是完成证据。
 
 ## 最终接续 — 2026-10-31长预测候选已结束

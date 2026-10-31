@@ -103,7 +103,7 @@ def evaluate(model, root, identities, lease, groups):
     result.update(loss=loss_sum/max(1,count),episodes=len(identities),ema=False,
         tactile_valid_fraction=tactile_valid/max(1,tactile_total),
         batched_forward_ms_per_anchor=1000*forward_s/max(1,anchors_total),
-        history_source='expert actual feedback; nominal private proposals; all observations causal')
+        history_source='expert actual-command teacher forcing for nominal and residual; deployment uses actual mixed feedback')
     return result
 
 
@@ -128,7 +128,7 @@ def train(args):
     root = args.root
     pilot = args.pilot
     if not json.loads((root/'transformer_interface_audit.json').read_text())['passed']:
-        raise ValueError('Real residual and private-history interface audit must pass first')
+        raise ValueError('Real residual and actual-history interface audit must pass first')
     label = args.variant+('_pilot' if pilot else '')
     output = root/'transformer_training'/label
     output.mkdir(parents=True,exist_ok=args.resume)

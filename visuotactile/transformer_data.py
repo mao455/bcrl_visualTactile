@@ -1,4 +1,4 @@
-"""Frozen selected G00 replay, with isolated proposals and true teacher feedback."""
+"""Frozen selected G00 replay with explicitly teacher-forced actual history."""
 import argparse
 import hashlib
 import json
@@ -24,7 +24,6 @@ from .training_resources import atomic_json
 def audit_generated_episode(root, row, record, saved, lease, output_name='transformer_interface_audit.json'):
     from .long_controller import LongController
     from .models.transformer_residual import TransformerResidual
-    from .private_history import PrivateProposalHistory
     original = load_record(root,row['id'])
     class CachedDino:
         def __init__(self):
@@ -55,15 +54,15 @@ def audit_generated_episode(root, row, record, saved, lease, output_name='transf
                 episode_id=torch.tensor([1]),step_id=torch.tensor([step]))
             with lease.block():
                 command = controller.act(packet)
-            if step==0:
-                controller.execution = PrivateProposalHistory()
             transition = dict(episode_id=packet['episode_id'],step_id=packet['step_id'],
                 time_before_s=at('transition/time_before_s',step),time_after_s=at('transition/time_after_s',step),
+                command_clipped_pre_delay=at('transition/command_clipped_pre_delay',step),
                 control_trace=dict(valid=at('transition/control_trace/valid',step),
+                                   delayed_command=at('transition/control_trace/delayed_command',step),
                                    selected_command_time_s=at('transition/control_trace/selected_command_time_s',step)))
-            controller.execution.observe_proposal(transition,command,packet)
+            controller.execution.observe(transition,record['expert'][step:step+1],packet['episode_id'],packet['step_id'])
             command_error = max(command_error,float((command[0]-record['base'][step]).abs().max()))
-            action_error = max(action_error,float((controller.records['action'][-1]-record['private_action'][step]).abs().max()))
+            action_error = max(action_error,float((controller.records['action'][-1]-record['nominal_action'][step]).abs().max()))
             if step%12==0:
                 plan_error = max(plan_error,float((controller.plan[0]-record['plans'][step//12]).abs().max()))
                 per_plan.append(dict(step=step,reference_error=float((controller.plan[0]-record['plans'][step//12]).abs().max()),
@@ -104,15 +103,16 @@ def audit_generated_episode(root, row, record, saved, lease, output_name='transf
         and residual_error<=1e-5 and memory_error<=1e-5 and gpu_error<=1e-5 and gpu_memory_error<=1e-5,
         observations=length,episode=row['id'],
         nominal_command_max_error=command_error,nominal_reference_max_error_rad=plan_error,
-        private_history_max_error=action_error,actual_private_no_correction_max_error=actual_error,
+        actual_nominal_history_max_error=action_error,actual_delay_reconstruction_max_error=actual_error,
         residual_streaming_max_error=residual_error,residual_memory_max_error=memory_error,
         residual_gpu_streaming_max_error=gpu_error,residual_gpu_memory_max_error=gpu_memory_error,
         residual_parameters=sum(parameter.numel() for parameter in residual.parameters()),
-        scope='real expert observations; cached audited DINO; GPU nominal private replay, CPU/GPU FP32 nonzero-head residual parity',
+        scope='real expert observations and actual expert-command teacher forcing; GPU nominal replay, CPU/GPU FP32 residual parity',
+        history_protocol=HISTORY_PROTOCOL,
         thresholds=dict(nominal_bf16=1e-3,residual_fp32=1e-5),base_sha256=record['base_sha256'],per_plan=per_plan)
     atomic_json(root/output_name,result)
     if not result['passed']:
-        raise ValueError('New residual/private-history real data parity failed')
+        raise ValueError('Residual/actual-history real data parity failed')
 
 
 def tactile_features(world, local, position, rotation, timestamps, observed, valid):
@@ -194,8 +194,6 @@ def generate_episode(root, row, model, metadata, lease):
         raise ValueError('Frozen visual cache and expert observations differ')
     limits = torch.tensor(metadata['joint_limits_rad'][0])
     speed,dt = metadata['config']['action']['dof_speed_scale'],metadata['control_dt']
-    private = dict(original)
-    private['action'] = torch.zeros_like(original['action'])
     bases = torch.zeros(length,29)
     plans,visuals,conditions,states = [],[],[],[]
     state = None
@@ -203,8 +201,7 @@ def generate_episode(root, row, model, metadata, lease):
     generator = torch.Generator(device='cuda:0').manual_seed(seed)
     plan = None
     for step in range(length):
-        private['action'][step:step+1] = private_action_rows(bases,times,selected,step,step+1)
-        inputs = inputs_for(private,step,step+1,False,torch.tensor([step]))
+        inputs = inputs_for(original,step,step+1,False,torch.tensor([step]))
         with lease.block():
             with torch.autocast('cuda',dtype=torch.bfloat16):
                 condition,state = model.encode(move(inputs,'cuda:0'),state)
@@ -222,7 +219,7 @@ def generate_episode(root, row, model, metadata, lease):
             speed_scale=speed,control_dt=dt)
     return dict(version=1,identity=identity,history_protocol=HISTORY_PROTOCOL,
         actual_history_source='past_executed_expert_teacher_forcing',policy_noise_seed=seed,
-        time=times,proprio=original['proprio'],action=original['action'],private_action=private['action'],
+        time=times,proprio=original['proprio'],action=original['action'],nominal_action=original['action'],
         target=original['target_before'],tracking=tracking,tactile=tactile,gate=gate,
         expert=original['command'],base=bases,plans=torch.stack(plans),visual=torch.stack(visuals),
         nominal_conditions=torch.stack(conditions),nominal_states=states,

@@ -1,5 +1,16 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 用户授权新残差实际混合命令历史
+
+残差训练前用户明确允许新G01/G11名义接收过去真实混合命令，须披露间接影响。
+transformer_data/controller/model契约改为past_actual_mixed_commands_v1：缓存双方使用过去专家实际命令
+teacher forcing，部署双方由实际submitted/delayed ack更新；evaluate_study和audit_loss_study保存/核对
+nominal_previous与实际前一步命令。原DP A/B、旧checkpoint与只读控制/sim wrapper不变。
+旧私有建议预检保留为历史，不能代替新协议真实验收；新测试检查混合命令与真实延迟反馈及错误ack拒绝。
+新协议145步真实预检通过：名义command/reference/history及延迟重建最大差0，GPU残差输出/记忆差
+1.49012e−7/4.17233e−7；合并定向19项通过。正式选定基座尚待独立缓存验收，不据此宣称训练完成。
+资源审计另补每worker工作/等待/节流及最终磁盘余量，不将重叠等待求和当wall或虚构连续磁盘最低值。
+
 ## 2026-10-31 — 独立Transformer实现与真实数据预检
 
 新增models/transformer_residual、private_history、transformer_data、train_transformer_residual、

@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+import shutil
 
 import numpy as np
 
@@ -55,7 +56,7 @@ def audit_traces(root, phase):
                 delta = trace['delta_windows'][np.arange(count)//6,np.arange(count)%6]
                 require(np.array_equal(delta,trace['delta']),'Stale or overwritten residual window')
                 require(np.array_equal(trace['actual_previous'][1:],trace['clipped'][:-1]),'Actual residual feedback misaligned')
-                require(np.array_equal(trace['private_previous'][1:],trace['base'][:-1]),'Mixed feedback entered private nominal history')
+                require(np.array_equal(trace['nominal_previous'][1:],trace['clipped'][:-1]),'Nominal actual mixed feedback misaligned')
                 expected = trace['base'] if row['variant']=='base' else np.where(gate[:,None],
                     np.clip(trace['base']+trace['delta'],-1,1),trace['base'])
                 require(np.array_equal(expected[student],trace['command'][student]),'Residual composition differs')
@@ -141,12 +142,22 @@ def main():
     result['protected'] = protected
     incidents = root/'resource_incidents.jsonl'
     result['resource_incident_records'] = len(incidents.read_text().splitlines()) if incidents.exists() else 0
+    work_by_pid = {}
+    for line in (root/'work.jsonl').read_text().splitlines():
+        entry = json.loads(line)
+        work_by_pid[str(entry['pid'])] = {name:entry[name] for name in ('total_work_s','total_wait_s','total_pacing_s','memory')}
+    result['worker_accounting'] = dict(work_by_pid=work_by_pid,
+        total_worker_wait_s=sum(row['total_wait_s'] for row in work_by_pid.values()),
+        total_worker_pacing_s=sum(row['total_pacing_s'] for row in work_by_pid.values()),
+        scope='software lease elapsed times; concurrent worker waits overlap, not per-process GPU attribution or session wall time')
+    result['disk'] = dict(final_free_bytes=shutil.disk_usage(root).free,reserve_bytes=12_000_000_000,
+        scope='reserve checked before each owned lease; continuous disk minimum was not logged')
     result['figures'] = json.loads((root/'plots_complete.json').read_text())['files']
     result['within_original_deadline'] = monitor['utc_epoch']<=session['deadline']
     result['limitations'] = ['diagnostic sample size3 per DP, no formal0/50 denominator changes',
         'aggregate force lacks contact-partner identity','old GRU uses a different frozen base and is not a matched comparator',
         'DP teacher-forced offline conversion is not autonomous command prediction',
-        'private nominal proposal history is a new declared residual protocol',
+        'user-authorized past actual mixed history allows indirect residual influence on nominal; G01 is not strictly tactile-isolated',
         'BF16 batch/native recurrence is not bitwise identical; residual cache uses actual native-tick nominal replay']
     args.output.parent.mkdir(parents=True,exist_ok=True)
     atomic_json(args.output,result)

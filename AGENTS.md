@@ -11,6 +11,11 @@ Original400/split/bests/formal results protected. Both losses use sample/x0,
 same starting epoch40 EMA, fresh optimizers/schedules, equal paired budgets.
 Whole-card batch/complete60s means<=50%, target35–40%; reserve4GiB/10GiB.
 Historical no-new-training clauses below do not override this explicit task.
+User subsequently explicitly authorizes new G01/G11 to read past actually
+executed mixed commands, with nominal's indirect residual/tactile influence
+clearly disclosed. Use past_actual_mixed_commands_v1 for the new residual;
+expert replay is teacher forcing, deployment uses actual submitted/delayed
+feedback. Original DP A/B and old checkpoint contracts remain unchanged.
 
 ## Completed — 2026-10-31 long-horizon candidates
 

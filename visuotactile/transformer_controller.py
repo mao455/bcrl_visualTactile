@@ -1,4 +1,4 @@
-"""G01 isolated nominal proposals and10Hz residual with native60Hz feedback."""
+"""G01 actual mixed-command history and10Hz residual with native60Hz feedback."""
 from pathlib import Path
 import time
 
@@ -10,7 +10,6 @@ from .long_controller import LongController
 from .long_data import proprio_radians
 from .models.residual import observed_contact
 from .models.transformer_residual import HISTORY_PROTOCOL, TransformerResidual, TransformerResidualConfig, combine
-from .private_history import PrivateProposalHistory
 from .train_long import move
 from .transformer_data import residual_inputs, tactile_features
 
@@ -47,8 +46,6 @@ class TransformerController:
             self.actual = ExecutionHistory(1)
             self.records = {name:[] for name in ('time','proprio','action','target','tracking','tactile','base','plans','visual')}
         base = self.base.act(packet)
-        if step==0:
-            self.base.execution = PrivateProposalHistory()
         history = self.actual.context(packet)
         now = packet['time_s'][0].cpu()
         action = torch.cat((history['previous_issued_command'][0],history['previous_delayed_command'][0],
@@ -92,7 +89,7 @@ class TransformerController:
             residual_generation_step=self.generation_step,residual_cursor=step-self.generation_step,
             nominal_generation_step=step-step%12,nominal_cursor=step%12,
             residual_forward_s=elapsed,residual_refresh=step%6==0,actual_previous=history['previous_issued_command'],
-            private_previous=self.base.records['action'][-1][:29][None])
+            nominal_previous=self.base.records['action'][-1][:29][None])
         self.packet = packet
         self.pending = True
         return command
@@ -103,5 +100,5 @@ class TransformerController:
         if source=='student' and not torch.equal(submitted.cpu(),self.last['command']):
             raise ValueError('Student executed a different residual/base command')
         self.actual.observe(transition,submitted.clamp(-1,1),self.packet['episode_id'],self.packet['step_id'])
-        self.base.execution.observe_proposal(transition,self.last['base'],self.packet)
+        self.base.execution.observe(transition,submitted.clamp(-1,1),self.packet['episode_id'],self.packet['step_id'])
         self.pending = False

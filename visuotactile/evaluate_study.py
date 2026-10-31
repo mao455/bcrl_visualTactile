@@ -38,7 +38,8 @@ def allocation(root, phase):
     local = not (offline and opportunity)
     atomic_json(root/'residual_admission.json',dict(validation_prefix_below_zero=offline,
         autonomous_observed_contact_opportunity=opportunity,mode='expert_rollin_local' if local else 'autonomous',
-        base_line=selected['G00'],base_history='private_proposals_with_native_delay_timing_v1',
+        base_line=selected['G00'],base_history='past_actual_mixed_commands_v1',
+        nominal_indirect_residual_influence=True,
         switch='first3 consecutive true-gate observations at step<=180; no state writes',
         interpretation='local diagnostic authorization does not imply the autonomous base gate passed'))
     if local:
@@ -253,7 +254,7 @@ def main():
                     residual_generation=np.asarray(last['residual_generation_step']),policy_s=np.asarray(policy_seconds),
                     residual_s=np.asarray(last['residual_forward_s']),residual_refresh=np.asarray(last['residual_refresh']))
                 if phase=='residual':
-                    row.update(private_previous=controller.last['private_previous'][0].numpy().copy(),
+                    row.update(nominal_previous=controller.last['nominal_previous'][0].numpy().copy(),
                                actual_previous=controller.last['actual_previous'][0].numpy().copy())
                 trace.append(row)
                 if step%60==0:

@@ -1,4 +1,5 @@
 import copy
+from types import SimpleNamespace
 
 import pytest
 import torch
@@ -7,6 +8,7 @@ from visuotactile.action_history import ExecutionHistory
 from visuotactile.models.transformer_residual import TransformerResidual, TransformerResidualConfig, combine, residual_loss
 from visuotactile.private_history import PrivateProposalHistory, private_action_rows
 from visuotactile.transformer_data import remaining_plans, residual_inputs, residual_labels, tactile_features
+from visuotactile.transformer_controller import TransformerController
 
 
 def record_fixture(length=18):
@@ -123,3 +125,32 @@ def test_tactile_rejects_future_sensor_sample():
     rotation = torch.eye(3).expand(2,5,3,3)
     with pytest.raises(ValueError):
         tactile_features(force,force,position,rotation,torch.tensor([1.,1.1]),torch.tensor(1.),torch.tensor(True))
+
+
+def test_authorized_mixed_feedback_reaches_nominal_after_actual_ack():
+    controller = TransformerController.__new__(TransformerController)
+    controller.base = SimpleNamespace(execution=ExecutionHistory(1))
+    controller.actual = ExecutionHistory(1)
+    controller.pending = True
+    controller.packet = dict(episode_id=torch.tensor([4]),step_id=torch.tensor([0]),
+        time_s=torch.tensor([0.],dtype=torch.float64))
+    base = torch.zeros(1,29)
+    mixed = torch.full_like(base,.7)
+    delayed = torch.full_like(base,-.3)
+    controller.last = dict(base=base,command=mixed)
+    transition = dict(episode_id=torch.tensor([4]),step_id=torch.tensor([0]),
+        time_before_s=torch.tensor([0.],dtype=torch.float64),
+        time_after_s=torch.tensor([1/60],dtype=torch.float64),command_clipped_pre_delay=mixed,
+        control_trace=dict(valid=torch.tensor([True]),delayed_command=delayed,
+            selected_command_time_s=torch.tensor([0.],dtype=torch.float64)))
+    with pytest.raises(ValueError):
+        controller.acknowledge(transition,base)
+    controller.acknowledge(transition,mixed)
+    packet = dict(episode_id=torch.tensor([4]),step_id=torch.tensor([1]),
+        time_s=transition['time_after_s'])
+    for history in (controller.base.execution,controller.actual):
+        context = history.context(packet)
+        assert torch.equal(context['previous_issued_command'],mixed)
+        assert torch.equal(context['previous_delayed_command'],delayed)
+    with pytest.raises(ValueError):
+        controller.acknowledge(transition,mixed)
