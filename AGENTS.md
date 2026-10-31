@@ -1,5 +1,30 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-10-31 exact architecture and generalization audit
+
+Completed: read NETWORK_ARCHITECTURE_EXACT.md and newest SESSION_HANDOFF.
+No optimizer updates;6 actual checkpoint instances,594 layer rows,743 parameter rows.
+T0 four recorded-command replays exhausted without success (censored, not timeout);
+T1 G00-B/G10-B each0/4 native601-step timeouts, no lift/subgoal. Observable fields
+restore exactly but PhysX/sensor/multi-env RNG state does not; do not claim exact
+training-state failure or poor generalization. Force responds to force interventions
+without demonstrated error benefit; Masked unchanged. All12 starts resolved, all
+owned GPU processes exited. Whole-card mean30.3900%,max complete60s38.1214%,missing0.
+Do not automatically restart diagnostics, training,20trial T2 or proposed OOD work.
+The authorization paragraph below records this now-completed bounded audit.
+
+User authorizes actual-checkpoint forward/gradient inspection without optimizer
+updates, continuous-force input interventions, existing-curve publication,
+all400 metadata/state diversity audit, bounded T0/T1 native diagnostics and
+reviewed origin feature commits/pushes. Read NETWORK_ARCHITECTURE_EXACT.md.
+This supersedes the completed prior run's no-new-diagnostics restriction only
+for this new audit. No new training or old-run restart. Native controller,
+physics/reset/DR/reward/timeout/120/60Hz and sim wrapper remain read-only.
+Initial-state reconstruction must disclose missing simulator state; same seed
+is never an exact-state claim. Preserve original data/weights/formal results.
+Whole-card batch/complete60s <=50%,4GiB VRAM/10GiB RAM/disk reserves; one new
+monitored run for all new GPU work, no unbounded trial expansion or retries.
+
 ## Completed — 2026-10-31 DP loss study and Transformer residual
 
 Read DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md and the latest SESSION_HANDOFF.

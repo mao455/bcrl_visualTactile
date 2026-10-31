@@ -1,5 +1,15 @@
 # Audited contracts
 
+## 2026-10-31审计与近似初态的结果契约
+
+本轮仅增加只读checkpoint/数据分析和独立最多12次诊断，不改变训练输入或原生控制协议。
+`evaluate_training_initials`仅恢复保存的observable初态，不补造PhysX/contact/sensor/并行RNG完整状态。
+T0按源记录长度执行：命令用尽且无native reason为censored replay，绝不能标timeout或精确重放通过。
+T1按原生终止；与T0、旧T2及原0/50分别报告。seed相同、字段误差0、RGB相似均不等同精确模拟状态。
+`audit_network`新backward探针无optimizer step，CPU FP32梯度不能充当原BF16/FP32训练历史。
+同权重力干预固定gate/base/plan及96tick边界memory；反事实仅当前块/过去窗口，不声称全episode闭环因果效应。
+详细输入单位、204token mask、teacher forcing/混合反馈与实际权重身份见[逐层核验](NETWORK_ARCHITECTURE_EXACT.md)。
+
 ## 2026-10-31配对损失研究
 
 本轮A/B均固定sample/x0、同一旧epoch40 EMA/normalizer，独立新AdamW/cosine及RNG，额外12遍/9984更新。

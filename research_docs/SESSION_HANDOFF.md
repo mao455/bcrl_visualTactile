@@ -1,5 +1,28 @@
 # 当前会话交接：视觉—触觉研究
 
+## 最终交接 — 2026-10-31网络架构、训练验收与近似训练初态诊断
+
+新run `network_audit_20261031_01`已完成预登记4条train×T0/G00-B/G10-B共12次诊断，
+2026-10-31 17:27（Asia/Shanghai）worker、owner、monitor正常退出并核对/proc；无新训练、无重试。
+T0四条精确提交原记录命令，但全部命令用尽前未成功，属于删失重放，不是native timeout。
+保存的observable初态恢复误差0，仍缺PhysX/contact/sensor/多环境RNG历史；延迟命令于3/1/2/1步偏离源。
+T1 G00-B/G10-B各0/4，全部601步timeout，无lift/子目标，第0步动作已偏离；不能据此断言精确训练态失败或泛化差。
+原T2各0/3与旧正式0/50分别保留；未新增20条T2/OOD。
+
+实际checkpoint6实例CPU forward/backward无optimizer更新，594层记录、743参数记录；
+Force/Masked均828189参数、optimizer全3730step，五遍仍小幅学习而不证明收敛。
+同权重置零/过去力倒序：Force当前query arm/hand变化.01654/.00402，Masked精确0；
+选定validation4条置零误差没有变差，不证明连续力收益。history协议仍past_actual_mixed_commands_v1。
+400数据固定320/40/40，400不同初态/command/hash，同一任务/资产/相机/DR；没有几何OOD证据。
+
+主报告`NETWORK_ARCHITECTURE_EXACT.md`含两页内中文核心结论、五张SVG/PNG网络图、公式、统计、论文对照；
+`evidence/network_layers.csv`为真实leaf表，`evidence/network_audit_20261031`为新小统计与图。
+原曲线索引`evidence/dp_loss_trt_20261031/README.md`已嵌入全部PNG并补逐图CSV来源。
+保存的源初态快照为事后提取；新轨迹只在replan时保存完整输入，未保存逐次Gaussian噪声张量，限制明确。
+新GPU监控997.50s、整卡均值30.3900%、完整60秒最大38.1214%、missing0，最低空闲VRAM9472MiB、RAM26.9552GiB；
+无资源事件，磁盘结束审核82.45GB。旧会话资源违规不撤销，不自动重启建议阶段。
+13项定向测试通过；原native/sim wrapper无diff，原400/所有权重/正式报告保持。
+
 ## 最终交接 — 2026-10-31 DP损失对照与Transformer已完成
 
 主报告[DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031](DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md)

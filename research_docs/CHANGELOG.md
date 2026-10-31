@@ -1,5 +1,33 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 实际网络逐层核验、曲线补齐与近似训练初态诊断
+
+新增`audit_network.py`从真实DINO/G00-B/G10-B/Force/Masked/历史GRU权重与真实train样本采集594行
+leaf/MHA记录及743行参数/optimizer，检查实际配置、完整DDIM、参数变化与无更新梯度探针；
+同权重real/zero/reverse_past力输入干预，保持base/plan/gate及96tick边界memory，分train/validation及current query。
+Force确实响应力但置零误差不变差；Masked变化0。epoch/optimizer均核实5遍3730步；不宣称收敛或触觉收益。
+
+新增`audit_distribution.py`全400 HDF5只读统计：状态/动作hash、三split逐维范围、接触/native flag/实际wrench、
+动作饱和与最近邻描述符；预登记4条train按初态+长度/contact选取，不根据学生结果挑样本。
+公开配置仅保留必要研究参数，移除本机资产路径及无关配置。
+
+新增`evaluate_training_initials.py`在独立run恢复observable初态、原生执行T0记录命令和G00/G10自主控制，
+`study_resources.py`仅增加该worker到按root限制的自有进程白名单。没有修改native/controller/physics/sim wrapper。
+新增`audit_training_initials.py`逐条核对源命令、delay/target/q首次偏离、plan/current target换算、原始输入差与资源退出。
+12次实际完成：T0四条删失重放未成功、T1各0/4且601步timeout；恢复字段误差0但T0 delay从3/1/2/1步偏离。
+学生首动作即偏离、无lift/子目标；精确训练环境可重现性未通过，不用近似初态结论代替泛化检验。
+
+新增`plot_network_audit.py`输出五张详细网络SVG/PNG、力干预、真实固定轨迹、400分布；分析脚本输出
+初态三视图缩略拼图及T0/T1偏离曲线。补导出既有horizon/验证示范/旧40遍/自主标量曲线CSV，
+原索引直接嵌入全部关键PNG并逐图说明数据来源与结论；没有重训或重算原正式test。
+更新`NETWORK_ARCHITECTURE_EXACT`、CONTRACTS、ARCHITECTURE、README、SESSION_HANDOFF与AGENTS；
+近期论文按原文区分验证、闭环分母、OOD定义，VISTA以此次原文A.7为准，RDP12FPS动作采样不写成重规划12Hz。
+
+验证：13项定向测试通过（含力干预边界、optimizer成员拒绝、首次偏离、既有资源/Transformer测试）；
+实际400数据、真实checkpoint forward及12条产物分析成功；网络图/训练图代表样例人工查看，PNG可解码。
+新监控整卡均值30.3900%、最大完整60秒38.1214%、missing0；全部自有进程正常退出。
+没有新增训练或额外rollout；缺逐次noise/完整G10历史记录、PhysX/sensor恢复状态等限制如实保留。
+
 ## 2026-10-31 — DP损失与Transformer最终结果、配对限制及归档
 
 固定单次run于05:01:00 UTC完成并退出全部自有GPU进程；四线DP各12遍/9984更新，

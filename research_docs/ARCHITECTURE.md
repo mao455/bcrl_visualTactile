@@ -1,5 +1,15 @@
 # Architecture and staged acceptance gates
 
+## 2026-10-31 actual-checkpoint architecture audit
+
+[NETWORK_ARCHITECTURE_EXACT](NETWORK_ARCHITECTURE_EXACT.md) is the current measured specification:
+594 observed/inactive module rows,743 named parameters, exact G00/G10 and Transformer training/deployment diagrams.
+Residual1 uses204 tokens, two pre-LN128/4-head layers and a separate persistent761→128 GRU;
+padding mask only, causal sensor windows, six29D unbounded raw outputs,10Hz refresh and60Hz execution.
+Continuous force is zeroed before both memory and tokens in Masked; true contact gate remains.
+G10's force-only history does not contain the residual FK features or historical encoder derivatives.
+No architecture or trained weights changed in this audit; training-state replay limitations are explicit.
+
 ## 2026-10-30 G00-new/G10-new candidate2
 
 Independent of old checkpoints: frozen pinned DINOv2-S/14 patch features plus separate depth/valid processing,

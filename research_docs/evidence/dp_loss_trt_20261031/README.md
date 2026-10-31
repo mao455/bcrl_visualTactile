@@ -49,3 +49,117 @@ force的test接触arm误差相对缓存base下降24.91%、hand下降1.56%；mask
 
 本地视频索引为`outputs/visuotactile/run/dp_loss_trt_20261031_01/README.md`，视频不上传。
 本轮整卡均值33.20%、最大完整60秒39.43%，缺测/资源越界0；旧会话的资源违规记录不变。
+
+## 直接阅读关键曲线
+
+以下均为原训练记录，除明确标注的固定权重重算图。checkpoint来源和各线更新数见
+`dp_figure_metadata.json`；DP评估为EMA、残差为raw权重。不同定义loss不能直接排名。
+
+### DP训练目标与共同外部指标
+
+`dp_losses.png` ← `dp_training.csv`、`dp_metrics.csv`：各loss各自下降，不以A/B目标数值大小判胜负。
+
+![DP训练验证损失](dp_losses.png)
+
+`dp_command_rmse.png` ← `dp_metrics.csv`：B前12步命令误差较低，但完整H64 arm仍较大。
+
+![前12步与H64命令误差](dp_command_rmse.png)
+
+`dp_fingers.png` ← `dp_metrics.csv`：五指单独记录，改善幅度不一致。
+
+![五指误差](dp_fingers.png)
+
+`dp_horizon.png` ← `dp_horizon.csv`（原各线selected_validation.horizon）：远期误差不能由前缀平均代替。
+
+![未来位置误差](dp_horizon.png)
+
+`dp_generalization.png` ← `dp_metrics.csv`：固定train16与val40存在差距，不是训练初态自主成功证据。
+
+![训练验证差距](dp_generalization.png)
+
+`dp_reference_rmse.png`与`dp_normalized_rmse.png` ← `dp_metrics.csv`：分别为rad与归一化参考单位。
+
+![弧度参考误差](dp_reference_rmse.png)
+![归一化参考误差](dp_normalized_rmse.png)
+
+`dp_optimizer.png` ← `dp_training.csv`、`dp_metrics.csv`：新学习率计划实际执行，末期衰减到接近0。
+
+![DP优化器和饱和](dp_optimizer.png)
+
+### Transformer训练与输出
+
+`transformer_loss_and_command.png` ← `transformer_training.csv`、`transformer_metrics.csv`：arm改善明显，hand较小；masked略好。
+
+![Transformer训练验证和组合命令](transformer_loss_and_command.png)
+
+`transformer_fingers.png` ← `transformer_metrics.csv`：各分支raw残差误差变化，不是抓握成功率。
+
+![Transformer分支误差](transformer_fingers.png)
+
+`transformer_diagnostics.png` ← `transformer_metrics.csv`：真实gate固定，执行裁剪率较高；此处延迟是批处理前向。
+
+![Transformer诊断曲线](transformer_diagnostics.png)
+
+### 固定真实轨迹：新计算点
+
+以下由真实训练示范和最终epoch5/3730更新权重在CPU FP32重新计算，历史为teacher forcing，
+不是原训练逐epoch曲线或自主rollout。CSV含checkpoint身份、样本与时间。
+
+`force_fixed_trajectory.png` ← `../network_audit_20261031/force_fixed_trajectory.csv`：同专家观察上的expert/base/composed命令。
+
+![Force固定真实轨迹](../network_audit_20261031/force_fixed_trajectory.png)
+
+`masked_fixed_trajectory.png` ← `../network_audit_20261031/masked_fixed_trajectory.csv`：独立masked权重的同样比较。
+
+![Masked固定真实轨迹](../network_audit_20261031/masked_fixed_trajectory.png)
+
+### 自主接触和高度事件
+
+`dp_G10_lift_event.png` ← `dp_G10_lift_event.csv`：短暂抬高后接触/动作变化，不能识别唯一掉落原因。
+
+![DP抬高事件](dp_G10_lift_event.png)
+
+`dp_closed_loop_progress.png` ← `dp_closed_loop_curves.csv`及`dp_closed_loop_outcomes.csv`；各线0/3，无稳定抬升。
+
+![DP自主进展](dp_closed_loop_progress.png)
+
+`transformer_closed_loop_s981004.png` ← `transformer_closed_loop_curves.csv`筛选seed981004：残差确有控制机会，未改善抬升。
+
+![残差接触与高度](transformer_closed_loop_s981004.png)
+
+保存物理初态相同但接触前命令不同；该图不能证明严格因果差异。
+
+### 旧40遍、固定验证样本与其余自主轨迹
+
+以下补充曲线的CSV从原保存指标/trace导出，不运行新模型或重算历史指标；来源SHA与权重见`curve_sources.json`。
+
+`original40_validation.png` ← `original40_validation.csv`：原40遍只保存这些val40 EMA指标，缺失train/finger历史不补造。
+
+![原40遍验证](original40_validation.png)
+
+`G00-A_validation_trace.png` ← `dp_validation_examples.csv`筛选G00-A：固定专家观察上的预测仍有较大偏差。
+
+![G00A固定验证示范](G00-A_validation_trace.png)
+
+`G00-B_validation_trace.png` ← 同CSV筛选G00-B：改变损失后命令仍不是专家逐位复制。
+
+![G00B固定验证示范](G00-B_validation_trace.png)
+
+`G10-A_validation_trace.png` ← 同CSV筛选G10-A：触觉输入不保证固定轨迹每个动作准确。
+
+![G10A固定验证示范](G10-A_validation_trace.png)
+
+`G10-B_validation_trace.png` ← 同CSV筛选G10-B：这是teacher-forced未来target换算，非自主轨迹。
+
+![G10B固定验证示范](G10-B_validation_trace.png)
+
+`transformer_closed_loop_s981001.png` ← `transformer_closed_loop_curves.csv`筛选981001：少量接触修正未形成lift。
+
+![残差981001自主轨迹](transformer_closed_loop_s981001.png)
+
+`transformer_closed_loop_s981002.png` ← 同CSV筛选981002：全部native timeout，不能因物理初态相同声称严格因果配对。
+
+![残差981002自主轨迹](transformer_closed_loop_s981002.png)
+
+本轮[完整网络核验与近似训练初态测试](../../NETWORK_ARCHITECTURE_EXACT.md)将离线拟合、T0重放、T1学生闭环、
+T2 ID和未运行T3分开；原诊断/正式0/50分母保持不变。
