@@ -1,5 +1,19 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 长预测训练与六条诊断最终归档
+
+后台流程03:41:43 UTC+8已结束；G00-new/G10-new各40完整遍历/33,280更新，validation选epoch40 EMA，
+test40各一次。六条自主诊断各0/3、无子目标；五条601步timeout，G10 seed981004抬升0.107093m后600步fall。
+test arm命令RMSE1.145378/1.154378仍差于零命令0.955774；不将参考误差下降或单条抬升称为任务成功。
+更新AGENTS、SESSION_HANDOFF、LONG_HORIZON_20261030和evidence/long_horizon_final_20261031.json，
+把顶部状态由运行中更新为已完成；历史快照、原0/50分母与先前资源违规记录保留。无模型/控制代码变更。
+只读CPU产物审查：6条trace有限值/H64/replan12/逐tick reference/60Hz/命令提交一致，3对保存初态精确匹配，
+best/test/部署hash相同、6个运行源hash未漂移、2条完整解码视频的当前hash匹配，原manifest/B0 best hash未变。
+首次审查在读取video_validation外层字典时有检查脚本TypeError；按实际videos字段修正后整套产物核验通过，
+未修改实验结果或重新执行test/诊断。既有95项全套与16项定向不可累加，本次文档修改不重复运行训练测试。
+所有自有worker和monitor已退出；自适应训练段均值37.8641%、整段monitor16.7201%、最大完整60秒41.3339%，
+缺测0。早期RAM9.825729GiB及无效初版监测缺口仍阻止全程合规结论；截止时间满足，无新增训练或清理。
+
 ## 2026-10-31 — GPU目标约40%，共享自适应节流
 
 用户要求提高平均GPU利用率。long_resources由固定工作时长2.5倍休眠改为统一gpu.lock内的共享反馈，

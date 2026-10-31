@@ -1,5 +1,22 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — 2026-10-31 long-horizon candidates
+
+Pipeline finished at03:41:43 Asia/Singapore; all owned workers/monitor exited.
+G00-new/G10-new each completed40 train320 traversals/33280 updates, validation
+selected epoch40 EMA, held-out test40 once, three autonomous diagnostics each.
+Both0/3: five601-step timeouts; G10 seed981004 native lift(+0.107093m), then
+fall at600 steps. All zero subgoals; fingertip force does not establish stable
+object grasp. Test native arm errors1.14538/1.15438 exceed zero baseline0.95577.
+Read LONG_HORIZON_20261030 and evidence/long_horizon_final_20261031.json.
+Six finite traces, H64/replan12/reference/native60Hz alignment, three exact
+saved initial-state pairs, deployed/test/best hashes and two video hashes pass.
+Adaptive training whole-card mean37.8641%; entire replacement monitor16.7201%,
+maximum complete60s41.3339%, missing0. Earlier RAM9.825729GiB and preliminary
+telemetry gap remain: do not claim full-session resource compliance.
+No automatic new epochs, test, diagnostics or retries; original400/bests/formal
+0/50 remain protected. Later sections contain historical running snapshots.
+
 ## Current override — 2026-10-30 long-horizon pretrained DP
 
 User authorizes new G00-new/G10-new implementation, real bounded training,
