@@ -1,5 +1,7 @@
 # DP损失对照与Transformer触觉残差：2026-10-31
 
+[公开图表与CSV索引](evidence/dp_loss_trt_20261031/README.md)
+
 ## 开始状态与预登记
 
 接手HEAD及origin功能分支均为`7a592ad86377ef29fac8b5b694e883ecdacc24a0`，工作树干净，旧任务已退出。

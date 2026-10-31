@@ -22,6 +22,9 @@ DP完整cohort12条audit_traces通过、G10-B视频601帧全解码；各0/3，G1
 选定G00-B缓存145步真实验收通过；正式force/masked训练尚待400缓存完成。
 plot_loss_study补用户关注的G10 seed981004事件PNG/小CSV：峰值前后高度、按实际contact_bodies命名的五指力、
 arm/hand命令变化、实际外力/力矩；区分观察前/动作后/步内时间。合约补触觉slot顺序与动作分组顺序的区别。
+公开evidence/dp_loss_trt_20261031收录已完成DP阶段的统计CSV、必要PNG和图表索引，残差阶段仍标待完成；
+不含原始相机图像、trace、checkpoint、视频或完整日志。
+CSV writer显式使用LF换行，修复公开统计的Git CRLF whitespace告警；数值不变。
 
 ## 2026-10-31 — 独立Transformer实现与真实数据预检
 

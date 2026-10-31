@@ -33,7 +33,7 @@ def plot_dp_lift_event(root, output, trials):
             actual_force_peak_N=float(external_force[step]),actual_torque_peak_Nm=float(external_torque[step]),
             **{f'sensor{finger}_force_before_N':float(forces[step,finger]) for finger in range(5)}) for step in indices]
     with (output/'dp_G10_lift_event.csv').open('w',newline='') as stream:
-        writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
+        writer = csv.DictWriter(stream,fieldnames=list(rows[0]),lineterminator='\n')
         writer.writeheader()
         writer.writerows(rows)
     figure,axes = plt.subplots(5,1,figsize=(11,10),sharex=True)
@@ -98,7 +98,7 @@ def plot_dp_closed_loop(root, output):
     plt.close(figure)
     if summaries:
         with (output/'dp_closed_loop_outcomes.csv').open('w',newline='') as stream:
-            writer = csv.DictWriter(stream,fieldnames=list(summaries[0]))
+            writer = csv.DictWriter(stream,fieldnames=list(summaries[0]),lineterminator='\n')
             writer.writeheader()
             writer.writerows(summaries)
     plot_dp_lift_event(root,output,trials)
@@ -128,7 +128,7 @@ def plot_residual(root, output):
     for row in rows:
         row['base_sha256'] = configs[row['variant']]['base_sha256']
     with (output/'transformer_metrics.csv').open('w',newline='') as stream:
-        writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
+        writer = csv.DictWriter(stream,fieldnames=list(rows[0]),lineterminator='\n')
         writer.writeheader()
         writer.writerows(rows)
     def finish(figure,name,title):
@@ -233,12 +233,12 @@ def plot(root, final=False):
                 rows.append(row)
     if rows:
         with (output/'dp_metrics.csv').open('w',newline='') as stream:
-            writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
+            writer = csv.DictWriter(stream,fieldnames=list(rows[0]),lineterminator='\n')
             writer.writeheader()
             writer.writerows(rows)
     if training_rows:
         with (output/'dp_training.csv').open('w',newline='') as stream:
-            writer = csv.DictWriter(stream,fieldnames=list(training_rows[0]))
+            writer = csv.DictWriter(stream,fieldnames=list(training_rows[0]),lineterminator='\n')
             writer.writeheader()
             writer.writerows(training_rows)
 
