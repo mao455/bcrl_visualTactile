@@ -8,7 +8,11 @@ DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md；root outputs/visuotactile/run/dp_
 原40遍权重接口数值验收通过、G00 pilot A/B各11更新完成，当前G00-A/B各12遍/9984更新正式运行；随后G10。
 owner3287451/monitor3287455仅为启动快照，必须查实际/proc和pipeline；所有GPU工作共享lease。
 资源目标38/准入42%，6GiB/16GiB准入、4GiB/10GiB硬余量，独立watchdog违规暂停并记录；旧产物和控制只读。
-四线test与闭环/残差均尚未完成；downstream注册前owner只等待，不宣称未实现阶段会自动完成。
+四线test与闭环/残差均尚未完成。Transformer实现/CPU与GPU真实预检已通过，残差828,189参数、统一FP32。
+BF16缓存将中间步合批曾出现0.172144rad reference差，两个失败报告保留；逐tick修复后nominal最大差0。
+后续注册顺序：12次DP诊断→选定G00逐tick缓存/再次验收→force/masked短pilot→各5完整遍历→test一次→6次残差→曲线。
+名义使用独立版本私有base建议历史；实际混合反馈只进残差。最后6次若需local则2seed×base/force/masked配对。
+尚未执行的阶段只记待运行；pipeline和各completion文件才是完成证据。
 
 ## 最终接续 — 2026-10-31长预测候选已结束
 

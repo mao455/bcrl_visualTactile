@@ -96,3 +96,21 @@ raw分别0.965712/1.001787及0.529436/0.531897，未发现EMA与raw巨大分离�
 G00两条短pilot各11个真实更新完成；03:11:59 UTC开始G00正式配对训练。新root的monitor先于GPU工作启动，
 独立watchdog与恢复checkpoint已实际运行，后续阶段以pipeline/status为准。最终结果未完成，不能据此宣称收益。
 启动HEAD为7a592ad，但新增实现当时尚未提交；实际运行源码SHA保存在worker/config文件，不能把旧HEAD当作新增源码版本。
+
+### Transformer实现检查（尚未完成训练）
+
+独立模型/缓存/训练/控制/闭环代码已实现。单独6项测试覆盖非零head的未来隔离、batch/逐tick持续记忆、
+当前base独立输入生效、force屏蔽先于memory、无接触exact bypass、clip外raw监督梯度、6/12tick窗口对齐、
+私有建议与实际历史的无修正等价以及未来触觉拒绝。含DP相关项的定向18项通过，不与之前测试数相加。
+真实244步示范的actual命令作为私有建议回放时，history最大差0；真实tactile输入为244×2×5×20且有限。
+
+首次新缓存预检发现BF16将中间11步GRU合批与在线逐tick执行有数值漂移：首计划完全相同，
+step12条件最大差0.014226，step24参考差0.172144rad，已执行前缀命令最大差0.100141。
+失败报告保留，没有放行该缓存或Transformer训练；改为与在线相同的逐native tick冻结DP回放，再验收。
+这也说明此前CPU FP32语义验收不等于GPU BF16任意分批的逐位一致；DP A/B的公共离线分批口径保持不变，
+其真实控制质量仍必须由逐tick闭环检验，不能用离线下降替代。
+修正后旧epoch40权重的25个真实观察（含step0/12/24三次计划）命令、reference、condition、memory、
+私有history最大差均0；非零残差head的CPU batch/streaming差1.19209e−7、memory差3.57628e−7。
+小残差网络训练/验证/部署统一FP32，并额外检查GPU batch/streaming，不把CPU结果充当GPU证明。
+同一非零head在GPU的输出/持续状态batch-streaming最大差1.78814e−7/3.57628e−7；
+独立残差实际828,189参数（不含冻结DINO/nominal）。最终选定G00权重后还会再次验收，预检不替代正式缓存验收。

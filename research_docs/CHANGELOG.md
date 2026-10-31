@@ -1,5 +1,19 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 独立Transformer实现与真实数据预检
+
+新增models/transformer_residual、private_history、transformer_data、train_transformer_residual、
+transformer_controller、evaluate_study及六项测试；扩展plot_loss_study的残差loss/分指/执行/资源与交接曲线。
+输入为当前base29D、剩余reference、冻结视觉、q/qd/target/tracking/实际过去命令、五指force/FK/time/valid；
+每native观察更新GRU，每6tick预测6delta；raw监督避开执行clip的梯度阻断，无接触exact base。
+新私有建议协议隔离名义与混合反馈，原模型/控制/sim wrapper不改。12次DP＋6次残差预分配，
+若自主门槛不满足，最后6次为2seed×base/force/masked真实expert roll-in，匹配失败明确标非配对。
+6项新测试/含DP的18项定向通过，真实history无修正差0；首次实际GPU缓存预检失败被拦截：
+BF16多步GRU与逐tick差异传播到reference0.172144rad，尚未生成正式缓存/训练；改逐tick回放后重新验收。
+完整失败预检结果留本地。逐tick修正后的25真实观察GPU名义plan/command/history差0，
+非零残差head的GPU batch/streaming输出差1.78814e−7、memory差3.57628e−7；残差统一FP32，共828,189参数。
+当前只证明实现与局部测试，不宣称Transformer训练或收益完成。
+
 ## 2026-10-31 — 配对损失实现、真实接口验收与启动
 
 新增study_metrics/train_loss_study/run_loss_study/study_resources/study_audit/plot_loss_study，

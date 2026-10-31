@@ -6,7 +6,23 @@
 A按29维均权，B先7Darm/22Dhand各自平均再各50%；尾部按实际有效目标数，无时间权重/额外动作loss。
 validation以EMA前12步arm/hand等权native MSE选模，保留H64/每指/每位置指标；test各线仅最终一次。
 新checkpoint仍用candidate2执行接口，另记录study_line/additional_updates/source_sha256，原checkpoint不覆盖。
-细节见DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031；Transformer部署契约必须在训练前独立登记。
+细节见DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031。
+
+## 2026-10-31 G01 Transformer residual1
+
+独立2层/128维/4heads Transformer、128维native GRU，29维当前base独立token；剩余H64绝对参考
+按当前cursor屏蔽，未来controller target不进入input。视觉来自选定G00冻结投影，q/qd、当前target/tracking、
+严格t−1真实issued/delayed/时间、五指world/local合力与encoder FK/时间/valid输入独立残差。
+近期13个60Hz观察保留26个120Hz样本及五指身份；GRU每60Hz更新，完整episode持久，TBPTT仅detach。
+每6tick生成6个delta，执行只读取未执行下标；原名义plan不被改写。原生执行仍60Hz，base重规划5Hz。
+训练标签同tick expert_clipped_pre_delay−base，允许[-2,2]；contact-valid raw MSE的arm/hand各50%，
+另1e−4 delta均方幅度正则；clip只在执行组合，不阻断监督梯度。无接触逐tick精确返回base。
+force_masked在任何force派生特征/记忆前清零连续world/local力，保留真实gate/valid/FK，不能称无触觉。
+新`private_proposals_with_native_delay_timing_v1`只允许名义读取自身base建议，使用原生selected timestamp
+选择过去base建议，不读取混合或专家动作值；这些是反事实建议，不标实际delayed。残差另存真实feedback。
+缓存使用同样私有建议历史，在专家观察上逐native tick运行真实冻结DP；残差actual history明确teacher forcing。
+原G00/G10 actual-history DP比较不变，旧权重不切换history flag；新残差checkpoint显式绑定base hash与此协议。
+训练前必须通过真实数据缓存/在线数值验收；测试只在最终validation选模后一次；旧GRU是不同基座历史参照。
 
 ## 2026-10-30 candidate2：H64绝对参考和明确历史
 

@@ -1,4 +1,4 @@
-"""CPU-only figures from recorded metrics; no model or trajectory loading."""
+"""CPU-only figures from recorded metrics and bounded traces; no model loading."""
 import argparse
 import csv
 import json
@@ -10,6 +10,102 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from .training_resources import atomic_json
+
+
+def plot_residual(root, output):
+    histories = {variant:json.loads((root/'transformer_training'/variant/'metrics.json').read_text())
+                 for variant in ('force','masked') if (root/'transformer_training'/variant/'metrics.json').exists()}
+    if not histories:
+        return
+    colors = {'force':'tab:blue','masked':'tab:orange'}
+    rows = []
+    for variant,history in histories.items():
+        for record in history:
+            for split in ('validation','train_diagnostic'):
+                metrics = record[split]
+                row = dict(variant=variant,epoch=record['epoch'],updates=record['updates'],split=split,ema=False,
+                    loss=metrics['loss'],gate_fraction=metrics['gate_fraction'],tactile_valid_fraction=metrics['tactile_valid_fraction'],
+                    delta_mean_abs=metrics['delta_mean_abs'],clip_blocked_fraction=metrics['clip_blocked_fraction'],
+                    wrong_direction_saturation_fraction=metrics['wrong_direction_saturation_fraction'],
+                    batched_forward_ms_per_anchor=metrics['batched_forward_ms_per_anchor'])
+                for space,parts in metrics['metrics'].items():
+                    for part,value in parts.items():
+                        row[space+'_'+part+'_rmse'] = value
+                rows.append(row)
+    with (output/'transformer_metrics.csv').open('w',newline='') as stream:
+        writer = csv.DictWriter(stream,fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+    def finish(figure,name,title):
+        figure.suptitle(title+'\nG01 frozen validation-selected G00; raw residual weights, native-command units',fontsize=10)
+        for axis in figure.axes:
+            axis.grid(alpha=.2)
+            axis.set_xlabel('Residual optimizer updates')
+            if axis.get_legend_handles_labels()[0]:
+                axis.legend(fontsize=6)
+        figure.tight_layout(rect=(0,0,1,.93))
+        figure.savefig(output/name,dpi=150)
+        plt.close(figure)
+    figure,axes = plt.subplots(1,2,figsize=(11,4))
+    for variant,history in histories.items():
+        for split,style in (('validation','-'),('train_diagnostic','--')):
+            axes[0].plot([row['updates'] for row in history],[row[split]['loss'] for row in history],
+                color=colors[variant],linestyle=style,label=variant+' '+split)
+        trained = [row for row in history if 'train' in row]
+        axes[0].plot([row['updates'] for row in trained],[row['train']['loss'] for row in trained],
+            color=colors[variant],linestyle=':',label=variant+' train320 evolving')
+        for part,style in (('arm','-'),('hand','--')):
+            axes[1].plot([row['updates'] for row in history],
+                [row['validation']['metrics']['contact_combined'][part] for row in history],
+                color=colors[variant],linestyle=style,label=variant+' '+part)
+    axes[0].set_ylabel('Contact balanced raw delta MSE +1e-4 amplitude')
+    axes[1].set_ylabel('Val40 contact composed-command RMSE')
+    finish(figure,'transformer_loss_and_command.png','Real-force versus masked continuous-force; identical true gate')
+    figure,axes = plt.subplots(2,3,figsize=(13,7))
+    for axis,part in zip(axes.flat,('arm','thumb','index','middle','ring','pinky')):
+        for variant,history in histories.items():
+            axis.plot([row['updates'] for row in history],
+                [row['validation']['metrics']['contact_residual'][part] for row in history],
+                label=variant,color=colors[variant])
+        axis.set_title(part)
+        axis.set_ylabel('Val40 contact residual RMSE')
+    finish(figure,'transformer_fingers.png','Raw residual supervision remains differentiable outside execution clip')
+    figure,axes = plt.subplots(2,3,figsize=(13,7))
+    for axis,key in zip(axes.flat,('gate_fraction','tactile_valid_fraction','delta_mean_abs','clip_blocked_fraction',
+                                  'wrong_direction_saturation_fraction','batched_forward_ms_per_anchor')):
+        for variant,history in histories.items():
+            axis.plot([row['updates'] for row in history],[row['validation'][key] for row in history],
+                      label=variant,color=colors[variant])
+        axis.set_ylabel(key)
+    finish(figure,'transformer_diagnostics.png','Validation40; batch latency is not online latency or a real-time guarantee')
+    path = root/'residual_closed_loop/trials.json'
+    if path.exists():
+        trials = json.loads(path.read_text())
+        for seed in sorted({row['seed'] for row in trials}):
+            figure,axes = plt.subplots(4,1,figsize=(11,9),sharex=True)
+            for trial in trials:
+                if trial['seed']!=seed or 'trace' not in trial:
+                    continue
+                with np.load(path.parent/trial['trace']) as trace:
+                    stamps = (trace['time_before']-trace['time_before'][0]).reshape(-1)
+                    height = trace['object_pose'][:,2]-trace['object_pose'][0,2]
+                    axes[0].plot(stamps,height,label=trial['variant'])
+                    axes[1].plot(stamps,np.linalg.norm(trace['force'],axis=-1).max(axis=(1,2)),label=trial['variant'])
+                    axes[2].plot(stamps,np.abs(trace['command']-trace['base']).mean(-1)*trace['student'],label=trial['variant'])
+                    axes[3].plot(stamps,np.linalg.norm(trace['applied_force_w_N'],axis=-1).max(axis=(1,2)),label=trial['variant'])
+                    if trial['switch_step'] is not None:
+                        for axis in axes:
+                            axis.axvline(trial['switch_step']/60.,color='grey',linestyle=':',alpha=.4)
+            for axis,label in zip(axes,('Height relative first after-step (m)','Peak finger force (N)',
+                                       'Student applied correction mean absolute command','Actual applied world force (N)')):
+                axis.set_ylabel(label)
+                axis.grid(alpha=.2)
+                axis.legend(fontsize=7)
+            axes[-1].set_xlabel('Native simulation time (s); dotted = expert handoff if present')
+            figure.suptitle(f'Residual diagnostic seed{seed}; aggregate force does not identify a grasp')
+            figure.tight_layout(rect=(0,0,1,.96))
+            figure.savefig(output/f'transformer_closed_loop_s{seed}.png',dpi=150)
+            plt.close(figure)
 
 
 def plot(root, final=False):
@@ -159,6 +255,7 @@ def plot(root, final=False):
     figure.savefig(output/'original40_validation.png',dpi=150)
     plt.close(figure)
     atomic_json(output/'metadata.json',metadata)
+    plot_residual(root,output)
     if final:
         atomic_json(root/'plots_complete.json',dict(files=sorted(path.name for path in output.iterdir())))
 
