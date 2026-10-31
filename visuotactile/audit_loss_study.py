@@ -1,5 +1,6 @@
 """Read-only final verification and small sanitized result export for this study."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import shutil
@@ -20,7 +21,7 @@ def audit_traces(root, phase):
     report = json.loads((directory/'report.json').read_text())
     require(report['complete'],'Closed-loop cohort incomplete')
     verified,videos = [],[]
-    initials = {}
+    initials,switches = {},{}
     for row in report['trials']:
         if 'trace' not in row:
             verified.append(dict(attempt=row['attempt'],outcome=row['outcome'],trace_available=False))
@@ -47,6 +48,34 @@ def audit_traces(root, phase):
             require(np.array_equal(reference,trace['reference']),'Executed reference was not original nominal plan')
             gate = trace['gate'].astype(bool)
             student = trace['student'].astype(bool)
+            prefix_hash = hashlib.sha256(trace['command'][~student].tobytes()).hexdigest()
+            require(prefix_hash==row['prefix_sha256'],'Expert roll-in command prefix changed')
+            switch_error = None
+            if row['mode']=='expert_rollin' and row['switch_step'] is not None:
+                with np.load(directory/(row['attempt']+'_switch.npz')) as saved_switch:
+                    switch = dict(saved_switch)
+                if row['seed'] not in switches:
+                    switches[row['seed']] = (row['switch_step'],prefix_hash,switch)
+                reference_step,reference_prefix,reference = switches[row['seed']]
+                switch_error = max(float(np.max(np.abs(value.astype(float)-reference[name].astype(float))))
+                                   for name,value in switch.items())
+                switch_matches = row['switch_step']==reference_step and prefix_hash==reference_prefix and switch_error<=1e-5
+                require(switch_matches==row['switch_match'],'Saved switch pairing differs from reported pairing')
+            height = trace['object_pose'][:,2]-float(state['object_initial_z_m'])
+            student_height = height[student]
+            command_change = np.linalg.norm(np.diff(trace['command'],axis=0),axis=-1)
+            refresh = trace['nominal_cursor'][1:]==0
+            adjacent_student = student[1:]&student[:-1]
+            progress = dict(student_steps=int(student.sum()),
+                student_max_height_change_m=float(student_height.max()) if student.any() else None,
+                student_height_above_5cm_steps=int((student_height>.05).sum()),
+                student_native_lift_seen=bool(trace['lifted'][student].any()),
+                student_gate_steps=int((student&gate).sum()),
+                command_jump_l2_at_replan_mean=float(command_change[refresh&adjacent_student].mean())
+                    if (refresh&adjacent_student).any() else None,
+                command_jump_l2_other_mean=float(command_change[~refresh&adjacent_student].mean())
+                    if (~refresh&adjacent_student).any() else None,
+                scope='student interval only; command jumps and forces are associations, not identified failure causes')
             inactive = student&~gate
             require(np.array_equal(trace['command'][inactive],trace['base'][inactive]),'No-contact exact bypass violated')
             require(trace['applied_time_s'].shape==(count,2),'Missing120Hz applied-wrench samples')
@@ -73,6 +102,7 @@ def audit_traces(root, phase):
         verified.append(dict(attempt=row['attempt'],steps=count,trace_available=True,finite=True,
             control_clock_hz=60,physics_trace_hz=120,command_reference_alignment=True,
             initial_match_max_error=initial_error,paired_claim=row['paired'],no_contact_exact=True))
+        verified[-1].update(expert_prefix_verified=True,switch_match_max_error=switch_error,student_progress=progress)
     return dict(traces=verified,videos=videos)
 
 

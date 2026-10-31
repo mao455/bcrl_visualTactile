@@ -12,6 +12,46 @@ import numpy as np
 from .training_resources import atomic_json
 
 
+def plot_dp_closed_loop(root, output):
+    directory = root/'dp_closed_loop'
+    path = directory/'trials.json'
+    if not path.exists():
+        return
+    trials = json.loads(path.read_text())
+    seeds = sorted({row['seed'] for row in trials})
+    figure,axes = plt.subplots(len(seeds),3,figsize=(14,3.5*len(seeds)),squeeze=False)
+    summaries = []
+    for row_index,seed in enumerate(seeds):
+        for trial in trials:
+            if trial['seed']!=seed or 'trace' not in trial:
+                continue
+            with np.load(directory/trial['trace']) as trace, np.load(directory/(trial['attempt']+'_initial.npz')) as initial:
+                stamps = (trace['time_before']-trace['time_before'][0]).reshape(-1)
+                values = (trace['object_pose'][:,2]-float(initial['object_initial_z_m']),
+                          trace['finger_distance'],np.cumsum(trace['gate'])/60.)
+                for axis,value in zip(axes[row_index],values):
+                    axis.plot(stamps,value,label=trial['line'])
+            summaries.append({name:trial[name] for name in ('line','seed','steps','success','paired','native_lift',
+                'max_subgoals','max_object_height_change_m','longest_height_above_5cm_s','contact_steps',
+                'max_contact_streak','minimum_finger_distance_m','actual_force_peak_N','actual_torque_peak_Nm')})
+        for axis,label in zip(axes[row_index],('Object height relative reset (m)',
+                                             'Mean fingertip to object origin (m)','Cumulative observed contact (s)')):
+            axis.set_title(f'Seed {seed}')
+            axis.set_ylabel(label)
+            axis.set_xlabel('Native simulation time (s)')
+            axis.grid(alpha=.2)
+            axis.legend(fontsize=7)
+    figure.suptitle('Autonomous validation-selected DP checkpoints; native termination\nAggregate contact and distance do not prove object grasp',fontsize=10)
+    figure.tight_layout(rect=(0,0,1,.94))
+    figure.savefig(output/'dp_closed_loop_progress.png',dpi=150)
+    plt.close(figure)
+    if summaries:
+        with (output/'dp_closed_loop_outcomes.csv').open('w',newline='') as stream:
+            writer = csv.DictWriter(stream,fieldnames=list(summaries[0]))
+            writer.writeheader()
+            writer.writerows(summaries)
+
+
 def plot_residual(root, output):
     histories = {variant:json.loads((root/'transformer_training'/variant/'metrics.json').read_text())
                  for variant in ('force','masked') if (root/'transformer_training'/variant/'metrics.json').exists()}
@@ -186,7 +226,7 @@ def plot(root, final=False):
                 axis.set_title(part+' '+scope)
                 axis.set_ylabel('RMSE ('+unit+')')
                 axis.set_xlabel('Additional updates')
-        finish(figure,'dp_'+space+'_rmse.png','Validation40 EMA; first12 executed prefix versus full H64')
+        finish(figure,'dp_'+space+'_rmse.png','Validation40 EMA, teacher-forced targets; first12 committed prefix versus full H64')
 
     figure,axes = plt.subplots(2,5,figsize=(16,6))
     for column,part in enumerate(('thumb','index','middle','ring','pinky')):
@@ -267,6 +307,7 @@ def plot(root, final=False):
     figure.savefig(output/'original40_validation.png',dpi=150)
     plt.close(figure)
     atomic_json(output/'metadata.json',metadata)
+    plot_dp_closed_loop(root,output)
     plot_residual(root,output)
     if final:
         atomic_json(root/'plots_complete.json',dict(files=sorted(path.name for path in output.iterdir())))

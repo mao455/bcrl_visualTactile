@@ -10,6 +10,12 @@ nominal_previous与实际前一步命令。原DP A/B、旧checkpoint与只读控
 新协议145步真实预检通过：名义command/reference/history及延迟重建最大差0，GPU残差输出/记忆差
 1.49012e−7/4.17233e−7；合并定向19项通过。正式选定基座尚待独立缓存验收，不据此宣称训练完成。
 资源审计另补每worker工作/等待/节流及最终磁盘余量，不将重叠等待求和当wall或虚构连续磁盘最低值。
+最终artifact审计另从trace重新计算专家prefix SHA和保存switch state的匹配，补学生区间独立高度/接触与
+名义重规划时命令跳变统计，避免将专家前缀进展当学生能力；统计关联不能直接识别掉落原因。
+plot_loss_study补每个共同seed的自主高度、指端距离、累计观测接触曲线与小型outcomes CSV；
+离线动作误差图标题明确teacher-forced target转换，避免与自主实际控制误差混淆。
+首条完整601步trace的有限值/命令/原始plan/60Hz/专家prefix核查通过，实际生成并查看新增进展图；
+四线已完成同预算续训及test一次，主报告补完整数值。全cohort审计待全部结束后执行。
 
 ## 2026-10-31 — 独立Transformer实现与真实数据预检
 

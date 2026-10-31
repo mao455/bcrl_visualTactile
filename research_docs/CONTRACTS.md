@@ -22,6 +22,7 @@ force_masked在任何force派生特征/记忆前清零连续world/local力，保
 名义和残差均只读取严格t−1真实issued/delayed/时间；新G01名义通过该反馈间接受到残差/触觉影响，
 不能称严格触觉隔离。缓存在专家观察上逐native tick运行冻结DP，双方实际历史均明确teacher forcing；
 部署使用学生实际混合命令ack。当前/未来专家命令仍仅为监督，禁止进入因果输入。
+无接触bypass仅保证当前输出与当前base相等；先前残差经actual history可能改变后续名义预测。
 原G00/G10 actual-history DP比较不变，旧权重不切换history flag；新残差checkpoint显式绑定base hash与此协议。
 训练前必须通过真实数据缓存/在线数值验收；测试只在最终validation选模后一次；旧GRU是不同基座历史参照。
 
