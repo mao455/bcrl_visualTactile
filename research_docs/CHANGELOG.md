@@ -1,5 +1,29 @@
 # Engineering change and verification log
 
+## 2026-10-31 — DP损失与Transformer最终结果、配对限制及归档
+
+固定单次run于05:01:00 UTC完成并退出全部自有GPU进程；四线DP各12遍/9984更新，
+force/masked各5遍/3730更新，验证选模后各test40一次；18条自主诊断全部完成，各组0/3。
+Loss B改善前12步arm/hand离线误差；残差接触arm改善约25%，masked略好，未证明连续力收益。
+G10-B短暂+7.6863cm后掉落；残差未改善抬升。原400/best/0/50及native/sim wrapper保留。
+
+`audit_loss_study.py`将初态匹配与接触前命令一致性分开：新增base/force/masked前缀比较、
+strict_precontact_match和训练后同输入/递推验收。真实前缀均不匹配，报告禁止严格残差因果归因；
+完整输入快照不足，具体来源未定位。同输入13步名义command/plan/condition差0，最终残差145步
+CPU输出/记忆差不超过5.96046e−7；不推广为DP BF16合批/逐tick逐位等价。
+`plot_loss_study.py`新增实际train320残差统计CSV，与固定train16/val40曲线分开；
+视觉复核修正残差闭环纵轴文字重叠，图内直接注明接触前不匹配，自主step0不标专家交接。
+公开JSON移除重复历史horizon数组，保留选定validation/test分位置统计，不含动作轨迹数组。
+
+更新AGENTS、SESSION_HANDOFF、主报告与evidence图表索引为最终状态，主报告逐项回答12问；
+新增6张残差PNG、2份CSV及最终去敏JSON。本地视频索引只引用两条既有诊断录像，未新增rollout。
+实际运行最终CPU绘图和artifact审计通过：18条trace、两条601帧视频全解码、选择/预算/保护hash均通过。
+28份公开PNG/CSV/图表元数据与本地生成件SHA一致，PNG解码验证及CSV行数检查通过；
+6张新增残差曲线完成代表图视觉复核，代码语法与diff空白检查通过。
+此前相关19项合并定向与随后7项残差测试通过，存在重叠不累加；本次不重跑科学评估。
+整卡均值33.1988%、最大完整60秒39.4259%，缺测/资源事件0；最低VRAM/RAM余量10.6592/28.8657GiB。
+未运行G11、20Hz或新专家roll-in，不自动追加试验；原会话资源违规继续单列。
+
 ## 2026-10-31 — 用户授权新残差实际混合命令历史
 
 残差训练前用户明确允许新G01/G11名义接收过去真实混合命令，须披露间接影响。
@@ -29,6 +53,11 @@ CSV writer显式使用LF换行，修复公开统计的Git CRLF whitespace告警�
 不预设跨进程渲染逐位一致，待残差真实产物生成后核查。
 残差训练开始前，将日志字段命名为execution_clip_fraction，明确其为执行裁剪而非监督梯度阻断；
 raw residual目标/梯度/数值和训练配置不变，绘图/CSV同步。raw幅度与实际施加修正分别解释。
+最终真实轨迹发现：初态相同但首次gate前命令已不同，审计补base/force/masked前缀误差和strict_precontact_match，
+不把原生paired初态标记冒充严格轨迹配对。相同真实观察与采样种子下，训练后控制封装13步名义command/plan/condition差0；
+另用最终训练权重做145步CPU递推等价复验，结果纳入最终artifact报告。未新增原生rollout或参数更新。
+公开统计移除重复的历史horizon数组，保留选定validation/test分位置误差；新增transformer_training.csv
+给出实际train320逐epoch损失/LR/梯度/更新数，与固定train16/val40指标分开。
 
 ## 2026-10-31 — 独立Transformer实现与真实数据预检
 

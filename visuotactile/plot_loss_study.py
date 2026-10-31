@@ -127,6 +127,14 @@ def plot_residual(root, output):
     configs = {variant:json.loads((root/'transformer_training'/variant/'config.json').read_text()) for variant in histories}
     for row in rows:
         row['base_sha256'] = configs[row['variant']]['base_sha256']
+    training_rows = [dict(variant=variant,epoch=record['epoch'],optimizer_updates=record['updates'],
+        base_sha256=configs[variant]['base_sha256'],split='train320 evolving raw',ema=False,**record['train'])
+        for variant,history in histories.items() for record in history if 'train' in record]
+    if training_rows:
+        with (output/'transformer_training.csv').open('w',newline='') as stream:
+            writer = csv.DictWriter(stream,fieldnames=list(training_rows[0]),lineterminator='\n')
+            writer.writeheader()
+            writer.writerows(training_rows)
     with (output/'transformer_metrics.csv').open('w',newline='') as stream:
         writer = csv.DictWriter(stream,fieldnames=list(rows[0]),lineterminator='\n')
         writer.writeheader()
@@ -188,17 +196,18 @@ def plot_residual(root, output):
                     axes[1].plot(stamps,np.linalg.norm(trace['force'],axis=-1).max(axis=(1,2)),label=trial['variant'])
                     axes[2].plot(stamps,np.abs(trace['command']-trace['base']).mean(-1)*trace['student'],label=trial['variant'])
                     axes[3].plot(stamps,np.linalg.norm(trace['applied_force_w_N'],axis=-1).max(axis=(1,2)),label=trial['variant'])
-                    if trial['switch_step'] is not None:
+                    if trial['mode']!='autonomous' and trial['switch_step'] is not None:
                         for axis in axes:
                             axis.axvline(trial['switch_step']/60.,color='grey',linestyle=':',alpha=.4)
-            for axis,label in zip(axes,('Height relative first after-step (m)','Peak finger force (N)',
-                                       'Student applied correction mean absolute command','Actual applied world force (N)')):
+            for axis,label in zip(axes,('Height vs first\nafter-step (m)','Peak finger force (N)',
+                                       'Applied correction\nmean absolute command','Applied external\nworld force (N)')):
                 axis.set_ylabel(label)
                 axis.grid(alpha=.2)
                 axis.legend(fontsize=7)
             axes[-1].set_xlabel('Native simulation time (s); dotted = expert handoff if present')
-            figure.suptitle(f'Residual diagnostic seed{seed}; aggregate force does not identify a grasp')
-            figure.tight_layout(rect=(0,0,1,.96))
+            figure.suptitle(f'Residual diagnostic seed{seed}; aggregate force does not identify a grasp\n'
+                           'Physical initial states match; precontact commands differ: no strict causal pairing',fontsize=11)
+            figure.tight_layout(rect=(0,0,1,.94))
             figure.savefig(output/f'transformer_closed_loop_s{seed}.png',dpi=150)
             plt.close(figure)
 

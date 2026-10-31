@@ -16,6 +16,24 @@ def require(condition, message):
         raise ValueError(message)
 
 
+def compact_metrics(row, keep_horizon=False):
+    excluded = {'representative'} if keep_horizon else {'representative','horizon'}
+    return {key:value for key,value in row.items() if key not in excluded}
+
+
+def precontact_difference(first_path, second_path):
+    with np.load(first_path) as first, np.load(second_path) as second:
+        first_contact = np.flatnonzero(first['gate'])
+        second_contact = np.flatnonzero(second['gate'])
+        stop = min(int(first_contact[0]) if len(first_contact) else len(first['gate']),
+                   int(second_contact[0]) if len(second_contact) else len(second['gate']))
+        difference = np.abs(first['command'][:stop]-second['command'][:stop])
+        error = float(difference.max()) if stop else None
+    return dict(precontact_compared_steps=stop,precontact_command_max_error=error,
+        strict_precontact_match=bool(stop and error<=1e-6),
+        scope='prefix ends before either trajectory first observes contact; rendered images are not assumed identical')
+
+
 def audit_traces(root, phase):
     directory = root/(phase+'_closed_loop')
     report = json.loads((directory/'report.json').read_text())
@@ -121,6 +139,12 @@ def main():
         transformer_interface_audit=json.loads((root/'transformer_interface_audit.json').read_text()),
         residual_admission=json.loads((root/'residual_admission.json').read_text()),
         selection=json.loads((root/'selected.json').read_text()),verification={})
+    for name in ('controller_composition_audit','trained_residual_cpu_parity'):
+        result[name] = json.loads((root/(name+'.json')).read_text())
+        require(result[name]['passed'],'Final trained controller parity failed')
+    for group in result['interface_audit']['groups'].values():
+        for name in ('ema_validation8','raw_validation8'):
+            group[name] = compact_metrics(group[name])
     for line in session['dp_lines']:
         directory = root/line
         report = json.loads((directory/'report.json').read_text())
@@ -130,11 +154,9 @@ def main():
         history = json.loads((directory/'metrics.json').read_text())
         selected = min(history,key=lambda row:row['validation']['selection_mse'])
         require(test['additional_updates']==selected['additional_updates'],'DP checkpoint selection differs from validation argmin')
-        def compact_metrics(row):
-            return {key:value for key,value in row.items() if key!='representative'}
         result['dp'][line] = dict(training=report,test=test,
             baseline_validation=compact_metrics(history[0]['validation']),
-            selected_validation=compact_metrics(selected['validation']),
+            selected_validation=compact_metrics(selected['validation'],keep_horizon=True),
             final_validation=compact_metrics(history[-1]['validation']),
             selected_additional_epoch=selected['epoch'],selected_additional_updates=selected['additional_updates'],
             selected_train_diagnostic=compact_metrics(selected['train_diagnostic']),
@@ -182,18 +204,17 @@ def main():
             require(set(base_initial.files)==set(current_initial.files),'Residual/base initial-state fields differ')
             initial_error = max(float(np.max(np.abs(base_initial[name].astype(float)-current_initial[name].astype(float))))
                                 for name in base_initial.files)
-        with np.load(root/'dp_closed_loop'/baseline['trace']) as base_trace, np.load(
-                root/'residual_closed_loop'/trial['trace']) as current_trace:
-            first_base = np.flatnonzero(base_trace['gate'])
-            first_current = np.flatnonzero(current_trace['gate'])
-            stop = min(int(first_base[0]) if len(first_base) else len(base_trace['gate']),
-                       int(first_current[0]) if len(first_current) else len(current_trace['gate']))
-            difference = np.abs(base_trace['command'][:stop]-current_trace['command'][:stop])
-            prefix_error = float(difference.max()) if stop else None
         residual_comparison.append(dict(attempt=trial['attempt'],base_attempt=baseline['attempt'],
-            saved_initial_max_error=initial_error,precontact_compared_steps=stop,precontact_command_max_error=prefix_error,
-            scope='prefix ends before either trajectory first observes contact; rendered images are not assumed identical'))
+            saved_initial_max_error=initial_error,**precontact_difference(root/'dp_closed_loop'/baseline['trace'],
+                root/'residual_closed_loop'/trial['trace'])))
     result['residual_base_comparison'] = residual_comparison
+    result['residual_force_masked_comparison'] = []
+    for seed in session['seeds']:
+        variants = {row['variant']:row for row in result['residual_closed_loop'] if row['seed']==seed and 'trace' in row}
+        if 'force' in variants and 'masked' in variants:
+            result['residual_force_masked_comparison'].append(dict(seed=seed,**precontact_difference(
+                root/'residual_closed_loop'/variants['force']['trace'],root/'residual_closed_loop'/variants['masked']['trace'])))
+    result['pairing_interpretation'] = 'Native paired flags describe saved physical initial/switch states; nonmatching precontact commands prevent strict residual causal attribution'
     protected = {}
     original_cache = json.loads((root/'cache_index.json').read_text())
     manifest = Path('outputs/visuotactile/data/close_v4/manifest.json')

@@ -1,27 +1,42 @@
-# 当前会话交接：有限插入数据集（2026-10-28）
+# 当前会话交接：视觉—触觉研究
 
-## 当前任务 — 2026-10-31 DP损失对照与Transformer
+## 最终交接 — 2026-10-31 DP损失对照与Transformer已完成
 
-用户新附件授权实际四线配对续训及独立Transformer，覆盖下方旧阶段结束限制。主报告
-DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md；root outputs/visuotactile/run/dp_loss_trt_20261031_01。
-唯一窗口03:01:47–09:01:47 UTC（11:01:47–17:01:47 UTC+8），DP截止06:01:47 UTC，训练截止08:01:47 UTC。
-原40遍权重接口数值验收通过；四线各12遍/9984更新及test40一次完成，每线pilot11更新。
-validation选择G00-B/G10-B（均额外epoch12）；G00-A为epoch8、G10-A为epoch12。
-owner3287451/monitor3287455仅为启动快照，必须查实际/proc和pipeline；所有GPU工作共享lease。
-资源目标38/准入42%，6GiB/16GiB准入、4GiB/10GiB硬余量，独立watchdog违规暂停并记录；旧产物和控制只读。
-12条DP闭环完成并通过artifact审计：四线各0/3、全部601步timeout、无子目标/原生lift。
-G10-B seed981004最高+7.6863cm，高于5cm最长0.30s后掉落；新12条actual外力/力矩均0。
-G00-B连续接触机会门槛通过，最后6次固定force/masked各三seed自主，无新增roll-in/G11。
-选定G00-B真实145步缓存验收通过，名义command/plan/history差0；400条残差缓存运行中。
-Transformer残差828,189参数、统一FP32，训练尚未完成。
-BF16缓存将中间步合批曾出现0.172144rad reference差，两个失败报告保留；逐tick修复后nominal最大差0。
-后续注册顺序：12次DP诊断→选定G00逐tick缓存/再次验收→force/masked短pilot→各5完整遍历→test一次→6次残差→曲线。
-用户后续明确授权新G01/G11读取过去实际混合命令。残差尚未训练，现改为past_actual_mixed_commands_v1，
-名义与残差均接收实际ack，明确名义间接受残差/触觉影响；专家缓存为teacher forcing，部署为学生反馈。
-之前私有建议预检仅是被取代设计的历史证据；新协议145步真实预检已通过：名义command/plan/history差0，
-GPU残差输出/记忆误差1.49012e−7/4.17233e−7。正式缓存仍须以实际选定基座再次验收。
-最后6次若需local则2seed×base/force/masked配对；原DP A/B不变。
-尚未执行的阶段只记待运行；pipeline和各completion文件才是完成证据。
+主报告[DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031](DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md)
+含最终12问；[图表/CSV](evidence/dp_loss_trt_20261031/README.md)、
+[去敏统计与验收](evidence/dp_loss_trt_20261031.json)。唯一root为
+`outputs/visuotactile/run/dp_loss_trt_20261031_01`，本地README索引两条真实诊断视频。
+固定窗口03:01:47–09:01:47 UTC；实际流程和monitor于05:01:00 UTC（13:01:00 UTC+8）结束，
+从固定起点用时1h59m13s。pipeline=complete，自有GPU进程全部退出；旧PID3287451/3287455仅为历史。
+
+四线DP各额外12完整train320遍历/9984更新，每线独立pilot11更新，选定后各test40一次。
+G00-A选额外epoch8，其余选epoch12；B相对A的test前12步arm误差改善3.26%/3.57%，
+hand改善2.74%/0.57%，但H64 arm仍差于零命令。四线自主各0/3、全601步timeout，零子目标/原生lift。
+G10-B seed981004最高+7.6863cm，高于5cm最长0.30s后掉落；没有可靠保持或插入。
+
+冻结G00-B的400条逐tick因果缓存完成，train320共64825步/37224接触步。
+828,189参数FP32 Transformer的force/masked各pilot11更新后，独立正式训练5遍/3730更新，
+均验证选epoch5、各test40一次。相同缓存test接触arm/hand RMSE：base0.947673/0.587045，
+force0.711644/0.577887，masked0.710323/0.576170。arm改善约25%，masked略好，未证明连续力输入收益。
+两组自主各0/3、全601步timeout，无子目标/原生lift。force实际gate为6/10/191步，确有控制机会。
+所有18条新轨迹actual外力/力矩均0；聚合接触不含对象身份，不能据此确认抓握工件。
+
+**配对限制：** 保存物理初态相同，但base/force/masked在首次接触前命令已不同，全部
+strict_precontact_match=false。原paired字段仅表示初态，不证明严格轨迹配对或残差因果收益。
+缺少当时完整输入快照，具体来源尚未定位；不能武断归咎于渲染，也不能新增试验突破本轮预算。
+用户授权的past_actual_mixed_commands_v1已落地：新G01名义可间接受残差/触觉影响，
+缓存专家历史明确teacher forcing，部署双方使用真实混合命令ack。原DP A/B和旧契约不变。
+
+选定G00-B145步缓存/在线command/reference/history最大差0；同真实输入与种子的训练后13步
+封装复验command/plan/condition差0。最终残差145步CPU递推输出/记忆误差均不超过5.96046e−7。
+18条trace、两条601帧视频全解码、checkpoint/保护文件hash和真实时钟/ack审计通过。
+早期BF16合批缓存失败保留，残差改逐tick后才放行；现有DP合批训练与逐tick推理仍非逐位等价。
+
+本轮整卡均值33.1988%、最大完整60秒39.4259%，缺测/资源事件/超限窗口均0；
+最低空闲VRAM10.6592GiB、RAM28.8657GiB，结束磁盘约119.0GB。监控覆盖全部GPU阶段6650.96s；
+软件等待有重叠，不当作GPU逐进程归因。旧阶段资源越界记录保持，不宣称所有历史阶段合规。
+原400/HDF5身份、B0/B1 best、正式0/50报告和原epoch40权重保留；native与sim wrapper无diff。
+未运行G11、20Hz、新roll-in或额外诊断，不自动追加训练、试验或重试。下方均为历史快照。
 
 ## 最终接续 — 2026-10-31长预测候选已结束
 

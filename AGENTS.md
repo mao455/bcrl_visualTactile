@@ -1,5 +1,28 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — 2026-10-31 DP loss study and Transformer residual
+
+Read DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031.md and the latest SESSION_HANDOFF.
+The single bounded run dp_loss_trt_20261031_01 finished at05:01:00 UTC;
+all owned trainers, cache workers, simulators, owner and monitor exited.
+Four DP lines each completed12 additional train320 epochs/9984 updates;
+validation selected G00-A epoch8 and the other three epoch12, test40 once each.
+Force/masked Transformer each completed5 epochs/3730 updates, selected epoch5,
+test40 once each. Loss B modestly improves prefix command errors; residual
+contact arm error improves about25% offline, but masked is slightly better.
+All18 autonomous diagnostics are complete: each of six groups0/3, all601-step
+timeouts, zero subgoals/native lift. G10-B briefly rises7.69cm then drops.
+Saved physical initial states match, but precontact commands differ across
+base/force/masked; these are not strict trajectory pairs or causal benefit evidence.
+New G01 uses user-authorized past_actual_mixed_commands_v1, allowing indirect
+residual/tactile influence on nominal. Same-input wrapper and trained residual
+parity passed; existing DP BF16 batch/native recurrence is not bitwise equivalent.
+Whole-card mean33.1988%, maximum complete60s39.4259%, missing/violations0;
+minimum free VRAM10.6592GiB/RAM28.8657GiB. Earlier session violations remain.
+Original400/bests/formal0/50/native control/sim wrapper remain unchanged.
+No automatic new epochs, trials, G11,20Hz, roll-in or retries; only reviewed
+code/docs/small statistics/curve PNGs go to origin feature, never raw artifacts.
+
 ## Current override — 2026-10-31 DP loss comparison and Transformer residual
 
 User explicitly authorizes new paired DP A/B continuation, independent trained
