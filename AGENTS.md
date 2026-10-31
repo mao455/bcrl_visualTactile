@@ -6,7 +6,12 @@ User authorizes a documentation-first complete architecture/control/data/history
 audit, focused peripheral fixes, Loss B as future formal DP default, and reviewed
 origin feature commits/pushes. Preserve Loss A reproduction and all old artifacts.
 Read SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT, PROJECT_FILE_MAP and
-EXPERIMENT_VALIDITY_MATRIX. Static/CPU evidence first; no new GPU work yet.
+EXPERIMENT_VALIDITY_MATRIX. Audit complete:400/81894 numeric steps,147 old
+evaluation queues and1005 source delay draws checked. Documentation6022330
+pushed first; formal H64 Loss B default and diagnostic recording2 now implemented.
+26 focused CPU tests pass; no new GPU/Kit/training or trajectories(0/12).
+Recorder has no new live Kit acceptance; complete physical replay is unresolved.
+Missing historical loss stays A; never silently resume A as B or restart old runs.
 Necessary new GPU work is bounded to one monitored <=4h session and <=12 starts;
 native controller/physics/reset/DR/task and wrapper physical behavior stay read-only.
 Core redesign requires a concrete review proposal. Exact replay is not implied

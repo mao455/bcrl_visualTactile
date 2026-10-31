@@ -1,4 +1,4 @@
-> 视觉—触觉研究最新进展： [三相机验证与400条采集协议](research_docs/CAMERA_VALIDATION.md)，[实际运行状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
+> 视觉—触觉研究最新入口：[完整系统与实验审计](research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、[文件地图](research_docs/PROJECT_FILE_MAP.md)、[有效性矩阵](research_docs/EXPERIMENT_VALIDITY_MATRIX.md)、[实际状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
 
 # Play2Perfect
 

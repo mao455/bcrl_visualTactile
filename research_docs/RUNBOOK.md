@@ -1,5 +1,25 @@
 # 可复现命令与验证结果
 
+## 系统审计与后续正式DP入口 — 2026-10-31
+
+本轮CPU审计与局部修复已完成；未启动新训练/Kit，旧会话不要按下面历史命令自动重启。
+完整解释见[SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT](SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)。
+
+```bash
+bash visuotactile/run_cpu.sh -m pytest -q tests/test_system_audit.py tests/test_loss_study.py tests/test_long_horizon.py tests/test_network_audit.py tests/test_transformer_residual.py
+bash visuotactile/run_cpu.sh -m visuotactile.train_long --help
+bash visuotactile/run_cpu.sh -m visuotactile.run_long --help
+```
+
+定向结果26 passed。上述help不启动训练。未来有独立配置/预算/缓存/完整episode拟合准入的新会话，
+正式`train_long`默认`--loss B`与`--prediction-type sample`；`run_long`默认`--loss B`并向worker显式传入sample；
+`run_long`仍等待两个已登记pilot，不自动创建新pilot。pilot/full必须使用同loss，A pilot不能给B full准入。
+`--loss A`只用于明确的历史复现；旧缺字段checkpoint仍为A，旧续训还需其对应源码/配置，不能只加flag绕过source检查。
+旧`train_dp`/`run_baselines`保留原B0/B1复现；`run_loss_study`保留历史A/B方案，不作为未来默认双主线。
+
+未来`evaluate_training_initials`记录version2全tick数值/采样/RNG，RGB-D只存实际刷新帧；
+只能使用新目录与新预算。CPU记录测试通过，尚未新增Kit验收；此记录修复不构成完整物理精确回放实现。
+
 ## 独立残差v1入口 — 2026-10-30
 
 实际本轮root为`outputs/visuotactile/run/residual_20261030_01`；以下是复现顺序，

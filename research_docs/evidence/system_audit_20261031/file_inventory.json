@@ -208,7 +208,9 @@
     ],
     "io_calls": [],
     "upstream": "upstream identical",
-    "documents": [],
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
     "tests": [],
     "sha256": "ab7dfcde4e14c69dc5ca6069e075150131992a37dfc5f32537324f146e8d944c",
     "imported_by": []
@@ -1225,7 +1227,9 @@
     ],
     "io_calls": [],
     "upstream": "upstream identical",
-    "documents": [],
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
     "tests": [],
     "sha256": "0b1cfe90ba56622b2c9dcf439235e3c97b95fad4503dcf00b21b45e32983fbec",
     "imported_by": []
@@ -1320,7 +1324,9 @@
     ],
     "io_calls": [],
     "upstream": "upstream identical",
-    "documents": [],
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
     "tests": [],
     "sha256": "cfdaedd321f72c10373a4540a874e60da6abe01f20507b8fbf8791315b2bd36d",
     "imported_by": []
@@ -1360,7 +1366,9 @@
     ],
     "io_calls": [],
     "upstream": "upstream identical",
-    "documents": [],
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
     "tests": [],
     "sha256": "10e71a5bf243460b5192ecc6b24e1c37d94a8886ef4977967b1b63b8702f8438",
     "imported_by": []
@@ -1397,7 +1405,9 @@
     ],
     "io_calls": [],
     "upstream": "upstream identical",
-    "documents": [],
+    "documents": [
+      "research_docs/PROJECT_FILE_MAP.md"
+    ],
     "tests": [],
     "sha256": "e605fe084044db17f9b736e96fc035feb695ff34ebb30bc70b1b0e2bac192ed9",
     "imported_by": []
@@ -1692,8 +1702,8 @@
       "test_padding_does_not_change_masked_history:78",
       "test_sample_prediction_preserves_unclipped_reference_at_terminal_noise:88",
       "test_pilot_admission_rejects_angle_only_improvement:103",
-      "test_adapter_uses_unchanged_native_delay_and_smoothing:125",
-      "test_whole_prefix_chunk_and_online_memory_match:165"
+      "test_adapter_uses_unchanged_native_delay_and_smoothing:126",
+      "test_whole_prefix_chunk_and_online_memory_match:166"
     ],
     "imports": [
       "copy",
@@ -1722,11 +1732,13 @@
     "upstream": "local addition",
     "documents": [
       "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
       "research_docs/LONG_HORIZON_20261030.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
-    "sha256": "6c64afe009fec4e87805778ea2be046cfbb227883c958972fe75bbb184451421",
+    "sha256": "e555c849280e6d18f9b117d577f7806ea3fd485051296521f4d3be91bf8133cc",
     "imported_by": []
   },
   {
@@ -1771,6 +1783,8 @@
     "upstream": "local addition",
     "documents": [
       "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
@@ -1794,6 +1808,8 @@
     "io_calls": [],
     "upstream": "local addition",
     "documents": [
+      "research_docs/RUNBOOK.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
@@ -1999,6 +2015,49 @@
     "imported_by": []
   },
   {
+    "path": "tests/test_system_audit.py",
+    "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
+    "definitions": [
+      "test_diagnostic_session_records_sources_before_simulator_start:20",
+      "test_formal_default_loss_balances_arm_hand_and_masks_tail:38",
+      "test_native_hook_preserves_pinned_upstream_targets_queue_and_rng:61",
+      "test_diagnostic_snapshot_records_native_tick_without_rng_or_state_changes:99"
+    ],
+    "imports": [
+      "copy",
+      "diffusers",
+      "h5py",
+      "json",
+      "numpy",
+      "pathlib",
+      "pytest",
+      "runpy",
+      "subprocess",
+      "torch",
+      "types",
+      "visuotactile.diagnostic_recording",
+      "visuotactile.dp_objectives",
+      "visuotactile.evaluate_training_initials",
+      "visuotactile.models.long_horizon"
+    ],
+    "io_calls": [
+      "(evidence / 'dataset_distribution.json').write_text",
+      "evidence.mkdir",
+      "json.dumps",
+      "subprocess.check_output",
+      "write_policy_step"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md"
+    ],
+    "tests": [],
+    "sha256": "aeadd92c270975dde4b63db3270d5ffe9ba7de9da8eb39bce238ad808cf19035",
+    "imported_by": []
+  },
+  {
     "path": "tests/test_training_resources.py",
     "purpose": "\u5305\u5165\u53e3/\u6d4b\u8bd5\u6216\u8f85\u52a9\u5b9a\u4e49",
     "definitions": [
@@ -2060,6 +2119,8 @@
     "io_calls": [],
     "upstream": "local addition",
     "documents": [
+      "research_docs/RUNBOOK.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
@@ -2503,13 +2564,13 @@
       "sanitized:27",
       "source_audit:37",
       "inventory:50",
-      "dataset_audit:134",
-      "rng_audit:225",
-      "historical_sources:257",
-      "evaluation_audit:290",
-      "parameter_contracts:325",
-      "main:354",
-      "read:151"
+      "dataset_audit:136",
+      "rng_audit:227",
+      "historical_sources:259",
+      "evaluation_audit:292",
+      "parameter_contracts:327",
+      "main:356",
+      "read:153"
     ],
     "imports": [
       "argparse",
@@ -2553,7 +2614,7 @@
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
-    "sha256": "5b9c3d1ea11ec37ef842bd52c5ce2356e20a6108a1699699ef43e896948433b7",
+    "sha256": "4330390e8d97542ebd726491a6ca05d1775b86529114a4072d3f8d445fddfedc",
     "imported_by": []
   },
   {
@@ -3335,6 +3396,66 @@
     ]
   },
   {
+    "path": "visuotactile/diagnostic_recording.py",
+    "purpose": "Behavior-neutral snapshots for future approximate-state diagnostics.",
+    "definitions": [
+      "snapshot_before_policy:6",
+      "write_tensors:18",
+      "write_policy_step:29"
+    ],
+    "imports": [
+      "numpy",
+      "torch"
+    ],
+    "io_calls": [
+      "write_tensors"
+    ],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/HISTORY_AND_TRACE.md",
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_system_audit.py"
+    ],
+    "sha256": "9ca82248050b5629d94df69758758ca54a5feb8abf7dea266c9363ddd737d1ca",
+    "imported_by": [
+      "tests/test_system_audit.py",
+      "visuotactile/evaluate_training_initials.py"
+    ]
+  },
+  {
+    "path": "visuotactile/dp_objectives.py",
+    "purpose": "Explicit historical A and default formal B diffusion objectives.",
+    "definitions": [
+      "masked_objectives:8",
+      "recorded_objective:19"
+    ],
+    "imports": [
+      "torch"
+    ],
+    "io_calls": [],
+    "upstream": "local addition",
+    "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
+      "research_docs/ARCHITECTURE.md"
+    ],
+    "tests": [
+      "tests/test_system_audit.py"
+    ],
+    "sha256": "eacd03c97948e7edfd0713436a413c1ded66ac265686a36601477a8f7606d23c",
+    "imported_by": [
+      "tests/test_system_audit.py",
+      "visuotactile/models/long_horizon.py",
+      "visuotactile/run_long.py",
+      "visuotactile/study_metrics.py",
+      "visuotactile/train_long.py"
+    ]
+  },
+  {
     "path": "visuotactile/evaluate.py",
     "purpose": "Audit recorded trajectories and compare only identical recorded protocols.",
     "definitions": [
@@ -3363,7 +3484,8 @@
     "tests": [
       "tests/test_training_resources.py",
       "tests/test_command_training.py",
-      "tests/test_residual.py"
+      "tests/test_residual.py",
+      "tests/test_system_audit.py"
     ],
     "sha256": "f00fccea0ee272042550a5f049e72e8dd76e2d1ba4dc58a6ccb7c517f90a8f14",
     "imported_by": [
@@ -3601,11 +3723,11 @@
     "path": "visuotactile/evaluate_training_initials.py",
     "purpose": "Bounded native diagnostics from explicitly approximate saved demonstration states.",
     "definitions": [
-      "initialize:15",
-      "restore_observable_state:29",
-      "evaluate:88",
-      "main:229",
-      "interrupted:259"
+      "initialize:16",
+      "restore_observable_state:35",
+      "evaluate:94",
+      "main:233",
+      "interrupted:263"
     ],
     "imports": [
       "argparse",
@@ -3623,6 +3745,7 @@
       "time",
       "torch",
       "visuotactile.compact",
+      "visuotactile.diagnostic_recording",
       "visuotactile.long_controller",
       "visuotactile.long_data",
       "visuotactile.models.long_horizon",
@@ -3643,19 +3766,26 @@
       "np.savez_compressed",
       "restoration['saved_observable_errors'].values",
       "root.mkdir",
-      "saved_input.create_dataset",
+      "saved_input.create_group",
       "subprocess.Popen",
       "subprocess.check_output",
-      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip"
+      "subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip",
+      "write_policy_step",
+      "write_tensors"
     ],
     "upstream": "local addition",
     "documents": [
       "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
-    "tests": [],
-    "sha256": "6288ee38d3fe764b50ef43b1ffc2fa4524e87a09c0246d72ef6f424be2625cc0",
-    "imported_by": []
+    "tests": [
+      "tests/test_system_audit.py"
+    ],
+    "sha256": "4a2f701d53b8b1e5fc07341266d42f542a6f715f448a23e5e30e7db53453daa6",
+    "imported_by": [
+      "tests/test_system_audit.py"
+    ]
   },
   {
     "path": "visuotactile/expert_reference.py",
@@ -4180,27 +4310,28 @@
     "path": "visuotactile/models/long_horizon.py",
     "purpose": "H64 reference policy with explicit recent histories and native-rate memory.",
     "definitions": [
-      "LongHorizonConfig:16",
-      "FrozenDinoSpatial:42",
-      "MaskedHistory:64",
-      "LongHorizonPolicy:80",
-      "__post_init__:28",
-      "tactile:38",
-      "__init__:43",
-      "forward:52",
-      "__init__:65",
-      "forward:69",
-      "__init__:81",
-      "project_frames:105",
-      "encode:113",
-      "loss_from_condition:141",
-      "predict_from_condition:153"
+      "LongHorizonConfig:17",
+      "FrozenDinoSpatial:43",
+      "MaskedHistory:65",
+      "LongHorizonPolicy:81",
+      "__post_init__:29",
+      "tactile:39",
+      "__init__:44",
+      "forward:53",
+      "__init__:66",
+      "forward:70",
+      "__init__:82",
+      "project_frames:106",
+      "encode:114",
+      "loss_from_condition:142",
+      "predict_from_condition:155"
     ],
     "imports": [
       "dataclasses",
       "diffusers",
       "torch",
       "torch.nn",
+      "visuotactile.dp_objectives",
       "visuotactile.models.vendor.conditional_unet1d"
     ],
     "io_calls": [
@@ -4210,15 +4341,19 @@
     "upstream": "local addition",
     "documents": [
       "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
       "research_docs/LONG_HORIZON_20261030.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [
-      "tests/test_long_horizon.py"
+      "tests/test_long_horizon.py",
+      "tests/test_system_audit.py"
     ],
-    "sha256": "439336c6f66d140a8782b15a90315d13b5e5d70a78ca06dc7c4bedb6a2e6c527",
+    "sha256": "5a0fd5cb670561d11ce71490257d91b48bd9a86d713535760ce51475e8dae7e5",
     "imported_by": [
       "tests/test_long_horizon.py",
+      "tests/test_system_audit.py",
       "visuotactile/audit_network.py",
       "visuotactile/evaluate_long.py",
       "visuotactile/evaluate_study.py",
@@ -4324,6 +4459,8 @@
     "upstream": "local addition",
     "documents": [
       "research_docs/CHANGELOG.md",
+      "research_docs/RUNBOOK.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md",
       "research_docs/ARCHITECTURE.md"
     ],
@@ -4437,6 +4574,8 @@
     "io_calls": [],
     "upstream": "local addition",
     "documents": [
+      "research_docs/RUNBOOK.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [
@@ -5026,9 +5165,11 @@
     ],
     "upstream": "local addition",
     "documents": [
+      "research_docs/HISTORY_AND_TRACE.md",
       "research_docs/CHANGELOG.md",
       "research_docs/NIGHT_COLLECTION.md",
       "research_docs/PROJECT_GUIDE_ZH.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md",
       "research_docs/ARCHITECTURE.md"
     ],
@@ -5476,15 +5617,15 @@
     "path": "visuotactile/run_long.py",
     "purpose": "One bounded owner for pilot admission, training and the six diagnostics.",
     "definitions": [
-      "pilot_admission:22",
-      "active_trainers:48",
-      "active_pilots:63",
-      "decode_videos:67",
-      "run:85",
-      "main:185",
-      "status:89",
-      "launch:91",
-      "wait:99"
+      "pilot_admission:23",
+      "active_trainers:50",
+      "active_pilots:65",
+      "decode_videos:69",
+      "run:87",
+      "main:187",
+      "status:91",
+      "launch:93",
+      "wait:101"
     ],
     "imports": [
       "argparse",
@@ -5497,6 +5638,7 @@
       "subprocess",
       "time",
       "visuotactile.compact",
+      "visuotactile.dp_objectives",
       "visuotactile.training_resources"
     ],
     "io_calls": [
@@ -5504,12 +5646,14 @@
     ],
     "upstream": "local addition",
     "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [
       "tests/test_long_horizon.py"
     ],
-    "sha256": "93e9e628e172d171c423eab63478bd5ca3b2b92f54eec2bb95dd5d591c4ad598",
+    "sha256": "b4c5615a87610a194cbeee8dfc4d1997af00938a9cc5bf5c777cb4475c82d92a",
     "imported_by": [
       "tests/test_long_horizon.py"
     ]
@@ -5775,28 +5919,30 @@
     "path": "visuotactile/study_metrics.py",
     "purpose": "Matched x0 objectives and sampled native-command metrics by group/horizon.",
     "definitions": [
-      "joint_groups:12",
-      "masked_objectives:23",
-      "denoising_objectives:32",
-      "evaluate:44"
+      "joint_groups:13",
+      "denoising_objectives:24",
+      "evaluate:36"
     ],
     "imports": [
       "json",
       "math",
       "torch",
       "visuotactile.action_reference",
+      "visuotactile.dp_objectives",
       "visuotactile.long_data",
       "visuotactile.train_long"
     ],
     "io_calls": [],
     "upstream": "local addition",
     "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [
       "tests/test_loss_study.py"
     ],
-    "sha256": "b4286315aec92d36c5ef88c0286c351e4130bbbff99817f0819ecefbb16034d2",
+    "sha256": "c7c724980ed7a14fc02d83d5cc25bfadae8484e1adf6b93a9765a51c39610da0",
     "imported_by": [
       "tests/test_loss_study.py",
       "visuotactile/audit_network.py",
@@ -5986,18 +6132,18 @@
     "path": "visuotactile/train_long.py",
     "purpose": "Sequential H64 training, EMA validation, resumable updates and held-out test.",
     "definitions": [
-      "move:22",
-      "fit_statistics:26",
-      "update_ema:50",
-      "learning_rate:59",
-      "sampled_metrics:65",
-      "save:130",
-      "cpu_snapshot:136",
-      "train:146",
-      "test:334",
-      "main:350",
-      "checkpoint:218",
-      "inference_payload:227"
+      "move:23",
+      "fit_statistics:27",
+      "update_ema:51",
+      "learning_rate:60",
+      "sampled_metrics:66",
+      "save:131",
+      "cpu_snapshot:137",
+      "train:147",
+      "test:339",
+      "main:355",
+      "checkpoint:223",
+      "inference_payload:232"
     ],
     "imports": [
       "argparse",
@@ -6013,6 +6159,7 @@
       "torch",
       "visuotactile.action_reference",
       "visuotactile.compact",
+      "visuotactile.dp_objectives",
       "visuotactile.long_data",
       "visuotactile.long_resources",
       "visuotactile.models.long_horizon",
@@ -6030,10 +6177,12 @@
     ],
     "upstream": "local addition",
     "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
-    "sha256": "2ed60c836f6c046fa62bf0c40f02a5506951ab1414853bd49ffbd30e23020065",
+    "sha256": "6a8968b2328a9bde1ff957276bcabea127d8a5a2582a2a7d36210b693721d19d",
     "imported_by": [
       "visuotactile/inspect_long.py",
       "visuotactile/study_metrics.py",
@@ -6048,10 +6197,10 @@
     "purpose": "Independent paired continuations from a frozen epoch40 EMA checkpoint.",
     "definitions": [
       "train:25",
-      "test:207",
-      "checkpoint:95",
-      "best_checkpoint:105",
-      "measurements:115"
+      "test:208",
+      "checkpoint:96",
+      "best_checkpoint:106",
+      "measurements:116"
     ],
     "imports": [
       "argparse",
@@ -6083,10 +6232,12 @@
     ],
     "upstream": "local addition",
     "documents": [
+      "research_docs/CHANGELOG.md",
+      "research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md",
       "research_docs/PROJECT_FILE_MAP.md"
     ],
     "tests": [],
-    "sha256": "c887ef319aca82589f1ce00499f529780fb3f662c0999c50af01726851ec7705",
+    "sha256": "2d011f8b6d8fc0a55f38c2ea89b6875085dbfa5cf8741524840b10f46c09edaf",
     "imported_by": []
   },
   {

@@ -1,5 +1,22 @@
 # Engineering change and verification log
 
+## 2026-10-31 — 审计后Loss B默认与未来诊断记录修复
+
+- 文档首版6022330先推送审阅，再完成以下外围改动；不改原生controller/physics/reset/DR/task或sim wrapper。
+- 新增`visuotactile/dp_objectives.py`统一canonical29预测/目标/valid的A/B计算；
+  `models/long_horizon.py`、`train_long.py`、`run_long.py`默认B并保存loss身份，pilot/full/resume检查一致。
+  缺字段历史A不静默改B；保留显式A、旧state_dict/推理、旧B0/B1训练入口和A/B研究复现。
+  `study_metrics.py`复用同一函数，`train_loss_study.py`记录新helper源码hash；无五指等权或前缀加权。
+- 新增`visuotactile/diagnostic_recording.py`，`evaluate_training_initials.py`由每12tick部分输入改为每tick数值packet、
+  force-valid/FK、incoming/outgoing memory、t−1执行反馈、condition/reference/command、采样和CPU RNG边界、native queue/target。
+  RGB-D仍只存实际DINO刷新帧；BF16无损可表示FP32+dtype标记；首个restore后存环境身份，未修改近似恢复物理协议。
+- 新增`tests/test_system_audit.py`与更新`test_long_horizon.py`：实际loss反传、历史loss解释、pilot身份拒绝、
+  固定上游4lane/8tick原生动作/queue/RNG一致、诊断初始化/HDF5/采样state恢复和无状态副作用。
+  与loss_study/network_audit/transformer_residual共26项通过（既有requests依赖警告1条）；修改Python AST通过。
+- 更新主审计、有效性矩阵、文件地图生成器及当前合同/状态/RUNBOOK；保护产物hash和验证范围以小JSON公开。
+  本轮新参数更新0、轨迹0/12、GPU窗口未启动；record2未做新Kit整轨迹验收，精确物理重放未解决。
+  不改变历史0/50或其他分母，不将CPU测试解释为自主成功、触觉收益或RSS方法验收。
+
 ## 2026-10-31 — 系统控制审计与可审阅文档第一版
 
 - 新增SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT、PROJECT_FILE_MAP、EXPERIMENT_VALIDITY_MATRIX：

@@ -6,6 +6,9 @@
 集中说明真实场景、RL actor、两代DP/残差、动态历史及六条原生执行链。
 逐文件定义/调用和历史接口身份见PROJECT_FILE_MAP与EXPERIMENT_VALIDITY_MATRIX。
 下文旧阶段的“current”仅代表其日期；新G01允许实际mixed反馈，不是严格触觉隔离nominal。
+未来正式H64训练已共用`dp_objectives.py`，默认Loss B（arm7/hand22各50%），A仅历史复现；
+pilot/full/resume记录并核对loss，不改变网络参数形状、已有checkpoint推理或原生动作接口。
+`diagnostic_recording.py`为未来近似初态诊断逐tick记录传感/记忆/RNG/queue；CPU行为中性测试通过，未启动新Kit验收。
 
 ## 2026-10-31 actual-checkpoint architecture audit
 

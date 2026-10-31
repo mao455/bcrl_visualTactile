@@ -98,7 +98,7 @@ def inventory(output):
         row['imported_by'] = sorted(incoming[row['path']])
     atomic_json(output/'file_inventory.json',rows)
     sections = ['# 研究项目逐文件地图', '',
-        '审计基线为 a07d0aa；本轮工具 audit_system.py 也列入。此表覆盖全部 visuotactile Python/shell、研究测试、实际原生任务/配置及专家加载入口。',
+        '历史审计基线为 a07d0aa；文档首版6022330后按本轮最终工作树刷新，包含Loss B及诊断记录修复。此表覆盖全部 visuotactile Python/shell、研究测试、实际原生任务/配置及专家加载入口。',
         '每项列出路径、源码定义行、静态模块依赖/调用者、潜在 I/O 调用及关联文档/测试。依赖是 AST import 图，不冒充完整动态调用图；CLI、注册表和 shell 子进程调用另见下方主链。',
         '所有源文件 SHA256、完整定义和依赖在 [file_inventory.json](evidence/system_audit_20261031/file_inventory.json)。第三方完整源码不逐文件复制。', '',
         '## 从入口追踪系统', '',
@@ -107,10 +107,12 @@ def inventory(output):
         '| 原专家采集 | collect_success_batch → collect → evaluation.eval_isaacsim / rl_games → sim.environment → recording → compact/storage_audit → manifest | 原生观察→专家命令→真实 env.step→成功审核→本地 HDF5/manifest；可启动 Kit/审核进程 |',
         '| 旧命令DP | run_baselines → train_dp → dataset/history/models.nominal或tactile_dp；evaluate_baselines → rollout | 固定320/40/40→训练checkpoint；GPU策略/CPU物理→原生轨迹 |',
         '| H64 DP | run_long → long_data/train_long/validate_long；evaluate_long → long_controller | 冻结DINO缓存→完整episode训练→绝对reference→共享action_reference→native command |',
+        '| DP损失 | train_long / models.long_horizon / study_metrics → dp_objectives | canonical29预测/目标/valid→arm7与hand22组内MSE各50%；正式默认B，A仅显式历史复现；不改推理参数 |',
         '| A/B历史对照 | run_loss_study → train_loss_study/study_metrics → evaluate_study | 相同epoch40 EMA→四条受控续训；只作为显式历史复现 |',
         '| GRU残差 | residual_session → residual_data/train_residual/evaluate_residual → residual_controller | 冻结B0因果计划→专家teacher forcing→contact-gated delta；不回填B0 |',
         '| Transformer | transformer_data/train_transformer_residual → transformer_controller → long_controller | 专家过去实际动作/DP计划→独立残差；部署ack回填实际混合命令 |',
         '| T0/T1 | evaluate_training_initials → restore_observable_state → native env.step；audit_training_initials | 近似初态+原命令或DP→删失/timeout独立报告；不是精确重放 |',
+        '| 未来诊断记录v2 | evaluate_training_initials → diagnostic_recording | 每tick传感/记忆/采样与原生RNG、queue、target→本地HDF5；RGB-D只存12tick刷新帧；只读快照，CPU测试通过，未新增Kit验收 |',
         '| 资源 | collection_resources / training_resources / long_resources / study_resources | 只管理自有进程、锁、墙钟等待；不改模拟dt或他人任务 |', '',
         '## 状态和边界', '',
         '`train.py`/早期 probes 是保留的历史接口；当前正式候选从 `train_long.py` 进入。`models/correction.py` 的 full-candidate shadow 与 `models/residual.py` 的已训练 additive delta 不可混称。',

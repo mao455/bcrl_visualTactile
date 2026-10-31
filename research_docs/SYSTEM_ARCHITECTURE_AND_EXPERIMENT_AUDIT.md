@@ -2,7 +2,7 @@
 
 审计日期：2026-10-31，时间使用 Asia/Shanghai。起点 `a07d0aa789ad1ac9c7fc769e6cb22921d8cf9513`，
 分支 `feature/trained-tactile-residual`，起始工作树干净。本文是当前系统说明；历史文档中的“当前训练中”不代表实时状态。
-本轮首先交付可审阅文档，再提交普通局部修复。没有启动新训练、Kit 或 GPU 实验；新仿真分配为 0/12。
+文档首版已由 `6022330` 提交并推送；本文已更新为局部修复完成状态。没有启动新训练、Kit 或 GPU 实验；新仿真分配为 0/12。
 本轮没有改变原生任务或研究 wrapper 的物理行为。
 
 ## 1. 可以直接作出的判断
@@ -18,8 +18,8 @@
 3. **没有发现应将当前有效400条、B0/B1或candidate2整体作废的新标签错误。**
    已知早期candidate1确实有当前动作泄漏、错误split和记忆时钟，仍是Invalid；不能把修复后的candidate2替它背书。
    有效结果也有范围：离线teacher forcing、0成功的小样本闭环、近似初态和非严格配对不能互相替代。
-4. **Loss B应成为以后正式H64 DP的唯一默认主线。** B为arm7/hand22组内均值各50%，没有五指等权或前缀加权。
-   A保留历史实现、权重与显式复现。第一版文档时默认代码修订列为待办，完成记录在第12节更新。
+4. **Loss B已成为以后正式H64 DP的唯一默认主线。** B为arm7/hand22组内均值各50%，没有五指等权或前缀加权。
+   A保留历史实现、权重与显式复现。训练、模型loss和调度入口默认B，checkpoint记录loss；旧缺字段按A解释且禁止静默续为B。
 5. **基础可用于受控接口研究，尚不足以宣称已建立可靠自主操作或RSS方法验证基础。**
    尚缺可验收的自主接近/抬升、严格同输入同采样的残差因果闭环对照、连续力收益、独立初始化/几何泛化及精确重放状态覆盖。
    本轮无需为已经查明的多环境RNG差异重复跑同样0成功实验，也没有证据支持全面重训。
@@ -411,8 +411,8 @@ TouchWorld/ReTouch本轮沿用上一轮明确版本的论文阅读证据；论�
 | candidate1泄漏/错误split/5Hz记忆 | 91fc738首次公开追溯；初步run一遍822更新 | 该权重/指标Invalid | v2干净初始化及新cache；不复活旧checkpoint |
 | BF16 batch/native不等价，base/force/masked前接触不同 | DP study d11f953/3ce0c18 | 各组实际失败保留；严格触觉因果配对Invalid | 同输入wrapper/parity已过；未来闭环需要同输入/精度/采样noise身份 |
 | T0仅observable近似恢复 | a07d0aa | “精确训练态失败/数据无效”推断Invalid | 本轮CPU查明RNG/lane机制；精确物理重放未实现 |
-| T0/T1输入仅replan保存、无逐次noise/RNG | a07d0aa evaluate_training_initials | 无法完全分解首步神经误差或重建完整G10条件 | 本轮普通诊断记录修复候选；旧文件缺失不补造 |
-| train_long仍默认A | 91fc738至审计起点a07d0aa | 不是历史A/B错误；与最新“未来默认B”要求冲突 | 本轮实现明确loss选项与checkpoint记录；不改变老权重 |
+| T0/T1输入仅replan保存、无逐次noise/RNG | a07d0aa evaluate_training_initials | 无法完全分解首步神经误差或重建完整G10条件 | 新诊断record2逐tick数值、memory/采样RNG/native queue已实现并通过CPU测试；没有新增Kit验收，旧文件缺失不补造 |
+| train_long原默认A | 91fc738至审计起点a07d0aa | 不是历史A/B错误；与最新“未来默认B”要求冲突 | 已默认B，显式A和旧语义保留；pilot/full/resume核对loss，不改变老权重 |
 | 资源旧会话超限 | viewing四个60s窗；长预测早期RAM事件 | 资源合规声明受限，不等于轨迹标签自动作废 | 原违规保留，本轮CPU无新GPU窗口 |
 
 ## 11. 工程准入与下一步的明确条件
@@ -431,6 +431,31 @@ TouchWorld/ReTouch本轮沿用上一轮明确版本的论文阅读证据；论�
 
 ## 12. 本轮交付和后续修复记录
 
-文档第一版：三份主文档、CPU400控制核验、147轨迹队列核验、原生源diff、T0 RNG/lane重建、公开实现对照已形成。
-待第二提交完成：正式H64入口默认Loss B、保留显式A和旧checkpoint解释；诊断记录不足的外围修复及有针对性的CPU测试。
-没有申请修改原生controller/physics/task，也没有把建议中的新实验计为已完成。
+文档第一版 `60223302682af6fc66b67f9d9b404588c712e088` 已推送origin功能分支并核对远端hash：
+三份主文档、CPU400控制核验、147轨迹队列核验、原生源diff、T0 RNG/lane重建、公开实现对照先行公开供审阅。
+
+随后完成的局部修复：
+
+| 路径/入口 | 原行为 → 当前行为 | 影响与验收 |
+|---|---|---|
+| `visuotactile/dp_objectives.py:8`、`models/long_horizon.py:142` | 默认29维MSE → 默认arm7/hand22各50%的B；共享valid mask/FP32计算 | 实际模型loss反传数值和梯度通过；显式A仍为29维均权，没有更改推理结构 |
+| `visuotactile/train_long.py:147`、`run_long.py:23` | loss未写配置 → CLI默认B、配置和checkpoint记loss、pilot/full/resume核对 | 旧无loss配置解释A；不会静默续训成B，旧source/config严格检查继续生效。完全复现旧续训需对应历史源码 |
+| `visuotactile/study_metrics.py:8`、`train_loss_study.py:68` | 研究脚本私有MSE → 共用相同A/B数学并记录helper hash | 旧A/B复现入口仍显式指定；不再作为默认新训练双线，旧曲线/权重/结果完整保留 |
+| `visuotactile/diagnostic_recording.py:6`、`evaluate_training_initials.py:173` | 仅12tick输入片段 → 每tick数值packet（含force-valid/FK）、incoming memory、独立采样generator、native queue/target/stage和CPU RNG边界 | RGB-D仅存DINO实际12tick刷新帧；BF16记忆以精确可表示FP32存储并标原dtype。CPU无RNG/状态改变，未验证真实Kit整轨迹记录 |
+| `evaluate_training_initials.py:155` | 旧诊断无独立环境身份文件 → 首次恢复之后保存environment/config和源码hash | 不提前读取尚未建立的camera packet；初始化CLI测试通过；仍是observable近似恢复，不升级为精确物理重放 |
+
+验证命令：
+
+```bash
+bash visuotactile/run_cpu.sh -m pytest -q tests/test_system_audit.py tests/test_loss_study.py tests/test_long_horizon.py tests/test_network_audit.py tests/test_transformer_residual.py
+```
+
+结果 **26 passed**。包括真实模型loss函数默认B/显式A反传、pilot损失拒绝、原上游与当前action pipeline的4lane/8tick
+目标、queue、RNG完全一致、诊断HDF5读回和generator重建。已有requests依赖版本警告1条；无测试失败。
+修改Python完成AST检查，提交前做差异、文档链接、凭据/产物边界检查。测试不是闭环性能或完整物理重放验收。
+受保护manifest、B0/B1 best、正式report及G00/G10 epoch40 EMA重新hash与预期一致，见
+[protected_artifacts.json](evidence/system_audit_20261031/protected_artifacts.json)；没有重hash全部70GB图像。
+[verification.json](evidence/system_audit_20261031/verification.json)记录检查范围和限制。
+
+本轮新训练更新0、新仿真0/12、GPU计算窗口未启动；不需要用新轨迹重复证明已查明的随机流差异。
+没有修改原生controller/physics/task或研究sim wrapper，也没有把未执行的微调、精确重放、残差因果配对计为已完成。

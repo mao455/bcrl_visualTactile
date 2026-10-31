@@ -13,6 +13,7 @@ import torch
 
 from .action_reference import reference_to_command
 from .compact import sha256
+from .dp_objectives import DEFAULT_DP_OBJECTIVE, recorded_objective
 from .long_data import inputs_for, load_record, supervision
 from .long_resources import Lease
 from .models.long_horizon import LongHorizonConfig, LongHorizonPolicy
@@ -149,7 +150,8 @@ def train(args):
     splits = index['splits']
     if args.stage == 'full':
         admission = json.loads((root/'pilot_admission.json').read_text())
-        if not admission.get('passed') or admission.get('prediction_type') != args.prediction_type:
+        if (not admission.get('passed') or admission.get('prediction_type') != args.prediction_type
+                or recorded_objective(admission) != args.loss):
             raise ValueError('Full-episode fitting admission has not passed')
     identities = splits['train'][:4] if args.stage == 'pilot' else splits['train']
     validation_ids = splits['validation'][:4] if args.stage == 'pilot' else splits['validation']
@@ -171,7 +173,7 @@ def train(args):
     updates_per_epoch = sum(math.ceil(index['entries'][identity]['native_rows']/96) for identity in identities)
     total_updates = updates_per_epoch*args.epochs
     warmup = min(500,max(10,total_updates//10)) if args.stage == 'pilot' else 500
-    configuration = dict(model=asdict(cfg),seed=args.seed,epochs=args.epochs,updates_per_epoch=updates_per_epoch,
+    configuration = dict(model=asdict(cfg),loss=args.loss,seed=args.seed,epochs=args.epochs,updates_per_epoch=updates_per_epoch,
         total_updates=total_updates,learning_rate=1e-4,schedule='cosine',warmup_updates=warmup,
         ema=dict(inv_gamma=1.,power=.75,min_value=0.,max_value=.9999),
         normalizer='DP limits affine train320 min/max, constant channels preserved; no label/sample clipping',
@@ -181,13 +183,16 @@ def train(args):
         cache_index_sha256=sha256(root/'cache_index.json'),data_history='past expert commands explicitly teacher-forced',
         train_episodes=identities,validation_episodes=validation_ids,test_episodes=splits['test'],
         source_hashes={str(path):sha256(path) for path in (Path(__file__),Path('visuotactile/long_data.py'),
-            Path('visuotactile/models/long_horizon.py'),Path('visuotactile/action_reference.py'),Path('visuotactile/long_resources.py'))})
+            Path('visuotactile/models/long_horizon.py'),Path('visuotactile/dp_objectives.py'),
+            Path('visuotactile/action_reference.py'),Path('visuotactile/long_resources.py'))})
     updates = 0
     epoch_start = episode_start = 0
     history = []
     best = float('inf')
     if args.resume:
         saved = torch.load(output/'last.pt',map_location='cpu',weights_only=False)
+        if recorded_objective(saved['configuration']) != args.loss:
+            raise ValueError('Resume loss differs: missing historical loss means A; never silently resume as B')
         if saved['configuration'] != configuration:
             before = dict(saved['configuration'])
             after = dict(configuration)
@@ -263,7 +268,7 @@ def train(args):
                         optimizer.zero_grad(set_to_none=True)
                         with torch.autocast('cuda',dtype=torch.bfloat16):
                             condition,state = model.encode(inputs,state)
-                            loss = model.loss_from_condition(condition,labels['reference'],labels['valid'])
+                            loss = model.loss_from_condition(condition,labels['reference'],labels['valid'],objective=args.loss)
                         if not torch.isfinite(loss):
                             raise FloatingPointError('Nonfinite loss')
                         loss.backward()
@@ -358,6 +363,8 @@ def main():
     parser.add_argument('--resume-runtime-update',action='store_true')
     parser.add_argument('--tag',default='')
     parser.add_argument('--prediction-type',choices=['epsilon','sample'],default='sample')
+    parser.add_argument('--loss',choices=['A','B'],default=DEFAULT_DP_OBJECTIVE,
+                        help='Formal default B; A is retained only for explicit historical reproduction')
     args = parser.parse_args()
     torch.set_num_threads(2)
     if args.stage == 'test':

@@ -7,6 +7,7 @@ from torch.nn import functional as functional
 from diffusers import DDPMScheduler, DDIMScheduler
 
 from .vendor.conditional_unet1d import ConditionalUnet1D
+from ..dp_objectives import DEFAULT_DP_OBJECTIVE, masked_objectives
 
 
 DINO_REVISION = '7764ea0f912e53c92e82eb78a2a1631e92725fc8'
@@ -138,7 +139,9 @@ class LongHorizonPolicy(nn.Module):
         recent.append(memory[0,inputs['anchor_indices']])
         return self.condition(torch.cat(recent,-1)),state
 
-    def loss_from_condition(self, condition, target, valid, generator=None):
+    def loss_from_condition(self, condition, target, valid, generator=None, *, objective=DEFAULT_DP_OBJECTIVE):
+        if objective not in ('A','B'):
+            raise ValueError('Unknown diffusion objective; use B or explicit historical A')
         normalized = target*self.target_scale+self.target_offset
         normalized = torch.where(valid[...,None],normalized,0.)
         noise = torch.randn(normalized.shape,device=target.device,generator=generator)
@@ -146,8 +149,7 @@ class LongHorizonPolicy(nn.Module):
         noisy = self.noise.add_noise(normalized,noise,timestep)
         prediction = self.denoiser(noisy,timestep,global_cond=condition)
         target_value = noise if self.cfg.prediction_type == 'epsilon' else normalized
-        error = (prediction-target_value).float().square().mean(-1)
-        return (error*valid).sum()/valid.sum().clamp_min(1)
+        return masked_objectives(prediction,target_value,valid)[objective]
 
     @torch.no_grad()
     def predict_from_condition(self, condition, generator=None):

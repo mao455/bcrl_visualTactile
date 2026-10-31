@@ -114,9 +114,10 @@ def test_pilot_admission_rejects_angle_only_improvement(tmp_path):
             initial[f'command_{part}_rmse'] = 1.2
         (output/'fit.json').write_text(json.dumps({'trained':trained,'initial':initial}))
         (output/'report.json').write_text(json.dumps({'updates':3300,'completed_epochs':300}))
-        (output/'config.json').write_text(json.dumps({'model':{'prediction_type':'sample'},
+        (output/'config.json').write_text(json.dumps({'model':{'prediction_type':'sample'},'loss':'B',
             'train_episodes':['a','b','c','d'],'source_hashes':{}}))
     assert pilot_admission(tmp_path)['passed']
+    assert not pilot_admission(tmp_path,'A')['passed']
     trained['command_arm_rmse'] = 1.3
     (output/'fit.json').write_text(json.dumps({'trained':trained,'initial':initial}))
     assert not pilot_admission(tmp_path)['passed']

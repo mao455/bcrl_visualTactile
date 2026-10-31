@@ -7,7 +7,15 @@ pre-delay标签、target-before观察、选中队列命令、native平滑公式�
 398条原4env、2条1env，三槽delay实际index0/1/2。147条旧numeric评估轨迹的delayed均属合法队列候选；
 动作重复/饱和时不据值唯一推断随机index。T0仅初始RNG恢复不匹配后续多环境随机消耗，原示范成功不受其失败否定。
 未来正式H64 DP采用Loss B：归一化sample/x0空间arm7/hand22组内MSE各50%，valid尾部mask；A仅显式历史复现。
-第一份审阅提交仅记录该新要求；代码落实和验证以主报告第12节为准，不重新解释历史checkpoint。
+已由`dp_objectives`统一实现，`train_long`、`run_long`、`LongHorizonPolicy.loss_from_condition`默认B；
+`configuration.loss`保存A/B身份，缺字段按历史A解释。pilot/full/resume必须同loss；旧source/config检查不放宽。
+显式`--loss A`保留历史复现；旧`train_dp`/B0/B1属于历史命令基线，不作为未来正式H64入口。
+损失改动不改模型state_dict或推理语义，离线误差改善仍不代表闭环成功率提高。
+
+未来`evaluate_training_initials`使用独立`diagnostic_input_version=2`（不修改原400 schema2/trace2）：
+每native tick保存数值packet、force-valid/FK、incoming memory、采样generator前后状态、native queue/target/stage和CPU RNG边界；
+RGB-D/depth_valid只保存实际DINO刷新tick。环境身份在首次restore之后读取。快照不抽随机数、不写env/controller状态。
+CPU HDF5/RNG/原上游action pipeline对照通过；未启动新Kit轨迹验收，完整物理精确重放仍未解决。
 
 ## 2026-10-31审计与近似初态的结果契约
 

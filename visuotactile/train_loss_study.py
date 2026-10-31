@@ -65,6 +65,7 @@ def train(args):
         cache_index_sha256=sha256(root/'cache_index.json'),native_chunk=96,precision='BF16/FP32 loss',
         selection='EMA validation prefix12 native command .5arm MSE+.5hand MSE; RNG7091',
         source_hashes={str(path):sha256(path) for path in (Path(__file__),Path('visuotactile/study_metrics.py'),
+            Path('visuotactile/dp_objectives.py'),
             Path('visuotactile/models/long_horizon.py'),Path('visuotactile/long_data.py'),
             Path('visuotactile/study_resources.py'),Path('visuotactile/long_resources.py'))})
     generator = torch.Generator(device=device).manual_seed(seed)

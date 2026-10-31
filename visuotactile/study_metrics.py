@@ -5,6 +5,7 @@ import math
 import torch
 
 from .action_reference import reference_to_command
+from .dp_objectives import masked_objectives
 from .long_data import inputs_for, load_record, supervision
 from .train_long import move
 
@@ -18,15 +19,6 @@ def joint_groups(joint_order):
     if sorted(sum([groups[name] for name in ('thumb','index','middle','ring','pinky')],[])) != groups['hand']:
         raise ValueError('Finger names must partition canonical hand joints')
     return groups
-
-
-def masked_objectives(prediction, target, valid):
-    error = (prediction.float()-target.float()).square()
-    error = torch.where(valid[...,None],error,0.)
-    denominator = valid.sum().clamp_min(1)
-    arm = error[...,:7].mean(-1).sum()/denominator
-    hand = error[...,7:].mean(-1).sum()/denominator
-    return dict(A=error.mean(-1).sum()/denominator,B=.5*(arm+hand),arm=arm,hand=hand)
 
 
 def denoising_objectives(model, condition, target, valid, generator=None):

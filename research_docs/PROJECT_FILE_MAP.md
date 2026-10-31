@@ -1,6 +1,6 @@
 # 研究项目逐文件地图
 
-审计基线为 a07d0aa；本轮工具 audit_system.py 也列入。此表覆盖全部 visuotactile Python/shell、研究测试、实际原生任务/配置及专家加载入口。
+历史审计基线为 a07d0aa；文档首版6022330后按本轮最终工作树刷新，包含Loss B及诊断记录修复。此表覆盖全部 visuotactile Python/shell、研究测试、实际原生任务/配置及专家加载入口。
 每项列出路径、源码定义行、静态模块依赖/调用者、潜在 I/O 调用及关联文档/测试。依赖是 AST import 图，不冒充完整动态调用图；CLI、注册表和 shell 子进程调用另见下方主链。
 所有源文件 SHA256、完整定义和依赖在 [file_inventory.json](evidence/system_audit_20261031/file_inventory.json)。第三方完整源码不逐文件复制。
 
@@ -11,10 +11,12 @@
 | 原专家采集 | collect_success_batch → collect → evaluation.eval_isaacsim / rl_games → sim.environment → recording → compact/storage_audit → manifest | 原生观察→专家命令→真实 env.step→成功审核→本地 HDF5/manifest；可启动 Kit/审核进程 |
 | 旧命令DP | run_baselines → train_dp → dataset/history/models.nominal或tactile_dp；evaluate_baselines → rollout | 固定320/40/40→训练checkpoint；GPU策略/CPU物理→原生轨迹 |
 | H64 DP | run_long → long_data/train_long/validate_long；evaluate_long → long_controller | 冻结DINO缓存→完整episode训练→绝对reference→共享action_reference→native command |
+| DP损失 | train_long / models.long_horizon / study_metrics → dp_objectives | canonical29预测/目标/valid→arm7与hand22组内MSE各50%；正式默认B，A仅显式历史复现；不改推理参数 |
 | A/B历史对照 | run_loss_study → train_loss_study/study_metrics → evaluate_study | 相同epoch40 EMA→四条受控续训；只作为显式历史复现 |
 | GRU残差 | residual_session → residual_data/train_residual/evaluate_residual → residual_controller | 冻结B0因果计划→专家teacher forcing→contact-gated delta；不回填B0 |
 | Transformer | transformer_data/train_transformer_residual → transformer_controller → long_controller | 专家过去实际动作/DP计划→独立残差；部署ack回填实际混合命令 |
 | T0/T1 | evaluate_training_initials → restore_observable_state → native env.step；audit_training_initials | 近似初态+原命令或DP→删失/timeout独立报告；不是精确重放 |
+| 未来诊断记录v2 | evaluate_training_initials → diagnostic_recording | 每tick传感/记忆/采样与原生RNG、queue、target→本地HDF5；RGB-D只存12tick刷新帧；只读快照，CPU测试通过，未新增Kit验收 |
 | 资源 | collection_resources / training_resources / long_resources / study_resources | 只管理自有进程、锁、墙钟等待；不改模拟dt或他人任务 |
 
 ## 状态和边界
@@ -83,7 +85,7 @@ Register peg-in-hole Problem entries.
 - 来源：upstream identical；依赖：evaluation.problems, pathlib。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：本系统审计/文件地图；测试：未检出直接import测试；不表示已验证。
+- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `isaacsimenvs/cfg/__init__.py`
 
@@ -383,7 +385,7 @@ Glue between Isaac Lab DirectRLEnv and our vendored `./rl_games/`.
 - 来源：upstream identical；依赖：numpy, rl_games.algos_torch.layers, rl_games.algos_torch.moving_mean_std, rl_games.algos_torch.running_mean_std, rl_games.algos_torch.sac_helper, rl_games.common.divergence, rl_games.common.extensions.distributions, torch, torch.distributions, torch.nn, torch.nn.functional。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：本系统审计/文件地图；测试：未检出直接import测试；不表示已验证。
+- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `rl_games/rl_games/algos_torch/network_builder.py`
 
@@ -393,7 +395,7 @@ Glue between Isaac Lab DirectRLEnv and our vendored `./rl_games/`.
 - 来源：upstream identical；依赖：os, rl_games.algos_torch, rl_games.algos_torch.d2rl, rl_games.algos_torch.sac_helper, rl_games.common, rl_games.common.layers.recurrent, rl_games.common.layers.value, torch, torch.nn。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：本系统审计/文件地图；测试：未检出直接import测试；不表示已验证。
+- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `rl_games/rl_games/algos_torch/players.py`
 
@@ -403,7 +405,7 @@ Glue between Isaac Lab DirectRLEnv and our vendored `./rl_games/`.
 - 来源：upstream identical；依赖：gym, numpy, os, rl_games.algos_torch, rl_games.algos_torch.running_mean_std, rl_games.common.custom_utils, rl_games.common.player, rl_games.common.tr_helpers, torch。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：本系统审计/文件地图；测试：未检出直接import测试；不表示已验证。
+- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `rl_games/rl_games/torch_runner.py`
 
@@ -413,7 +415,7 @@ Glue between Isaac Lab DirectRLEnv and our vendored `./rl_games/`.
 - 来源：upstream identical；依赖：copy, numpy, os, random, rl_games.algos_torch, rl_games.common, rl_games.common.algo_observer, time, torch。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：本系统审计/文件地图；测试：未检出直接import测试；不表示已验证。
+- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `tests/test_action_history.py`
 
@@ -489,11 +491,11 @@ Control, causal batching and reload regressions; fixtures are not demonstrations
 
 Causality, boundary coverage and native representation tests for candidate2.
 
-- 定义（函数/类:行）：record:16, test_roundtrip_unclipped_arm_limits_and_nonidentity_hand_order:33, test_current_and_future_commands_never_enter_conditions:47, test_short_episode_and_two_second_boundaries:61, test_padding_does_not_change_masked_history:78, test_sample_prediction_preserves_unclipped_reference_at_terminal_noise:88, test_pilot_admission_rejects_angle_only_improvement:103, test_adapter_uses_unchanged_native_delay_and_smoothing:125, test_whole_prefix_chunk_and_online_memory_match:165。
+- 定义（函数/类:行）：record:16, test_roundtrip_unclipped_arm_limits_and_nonidentity_hand_order:33, test_current_and_future_commands_never_enter_conditions:47, test_short_episode_and_two_second_boundaries:61, test_padding_does_not_change_masked_history:78, test_sample_prediction_preserves_unclipped_reference_at_terminal_noise:88, test_pilot_admission_rejects_angle_only_improvement:103, test_adapter_uses_unchanged_native_delay_and_smoothing:126, test_whole_prefix_chunk_and_online_memory_match:166。
 - 来源：local addition；依赖：copy, importlib.util, json, pathlib, pytest, torch, types, visuotactile.action_reference, visuotactile.long_data, visuotactile.models.long_horizon, visuotactile.run_long。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：(output / 'config.json').write_text, (output / 'fit.json').write_text, (output / 'report.json').write_text, (tmp_path / 'cache_index.json').write_text, (tmp_path / 'causal_acceptance.json').write_text, json.dumps, output.mkdir, scheduler.set_timesteps, scheduler.step。
-- 文档：CHANGELOG.md, LONG_HORIZON_20261030.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 文档：CHANGELOG.md, RUNBOOK.md, LONG_HORIZON_20261030.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `tests/test_long_resources.py`
 
@@ -513,7 +515,7 @@ Causality, boundary coverage and native representation tests for candidate2.
 - 来源：local addition；依赖：pytest, torch, visuotactile.study_metrics, visuotactile.study_resources。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：CHANGELOG.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 文档：CHANGELOG.md, RUNBOOK.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `tests/test_network_audit.py`
 
@@ -523,7 +525,7 @@ Causality, boundary coverage and native representation tests for candidate2.
 - 来源：local addition；依赖：pytest, torch, visuotactile.audit_network, visuotactile.audit_training_initials。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 文档：RUNBOOK.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `tests/test_perception_v2.py`
 
@@ -575,6 +577,16 @@ Experiment denominator/gating checks; no Isaac Sim or training required.
 - I/O或状态操作候选：(root / 'manifest.json').write_text, (root / 'reference_metadata.json').write_text, (run / 'progress.json').write_text, (source / 'data.h5').write_bytes, (tmp_path / 'FAILED.txt').write_text, (tmp_path / 'metadata.json').write_text, (tmp_path / 'trajectories.h5').write_bytes, json.dumps, root.mkdir, run.mkdir, source.mkdir。
 - 文档：CHANGELOG.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
+### `tests/test_system_audit.py`
+
+包入口/测试或辅助定义
+
+- 定义（函数/类:行）：test_diagnostic_session_records_sources_before_simulator_start:20, test_formal_default_loss_balances_arm_hand_and_masks_tail:38, test_native_hook_preserves_pinned_upstream_targets_queue_and_rng:61, test_diagnostic_snapshot_records_native_tick_without_rng_or_state_changes:99。
+- 来源：local addition；依赖：copy, diffusers, h5py, json, numpy, pathlib, pytest, runpy, subprocess, torch, types, visuotactile.diagnostic_recording, visuotactile.dp_objectives, visuotactile.evaluate_training_initials, visuotactile.models.long_horizon。
+- 静态调用者：CLI/动态调用或无静态调用；需结合主链。
+- I/O或状态操作候选：(evidence / 'dataset_distribution.json').write_text, evidence.mkdir, json.dumps, subprocess.check_output, write_policy_step。
+- 文档：CHANGELOG.md, RUNBOOK.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md；测试：未检出直接import测试；不表示已验证。
+
 ### `tests/test_training_resources.py`
 
 包入口/测试或辅助定义
@@ -593,7 +605,7 @@ Experiment denominator/gating checks; no Isaac Sim or training required.
 - 来源：local addition；依赖：copy, pytest, torch, types, visuotactile.action_history, visuotactile.models.transformer_residual, visuotactile.private_history, visuotactile.transformer_controller, visuotactile.transformer_data。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 文档：RUNBOOK.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `tests/test_visuotactile.py`
 
@@ -699,7 +711,7 @@ Actual-checkpoint CPU hooks, parameter census and paired force interventions.
 
 CPU-only control, dataset, RNG provenance and repository inventory audit.
 
-- 定义（函数/类:行）：digest:23, sanitized:27, source_audit:37, inventory:50, dataset_audit:134, rng_audit:225, historical_sources:257, evaluation_audit:290, parameter_contracts:325, main:354, read:151。
+- 定义（函数/类:行）：digest:23, sanitized:27, source_audit:37, inventory:50, dataset_audit:136, rng_audit:227, historical_sources:259, evaluation_audit:292, parameter_contracts:327, main:356, read:153。
 - 来源：local addition；依赖：argparse, ast, collections, csv, h5py, hashlib, json, numpy, pathlib, subprocess, torch, visuotactile.action_reference, visuotactile.long_data, visuotactile.training_resources。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：(delayed - command[source_steps]).abs, (delayed - command[source_steps]).abs().max, (source_steps <= torch.arange(length)).all, (source_steps >= 0).all, Path('research_docs/PROJECT_FILE_MAP.md').write_text, args.output.mkdir, csv.writer, json.dumps, json.dumps(code, sort_keys=True).encode, json.dumps(configuration, sort_keys=True).encode, read('transition/control_trace/selected_command_step').long, saved['model'].items, subprocess.check_output, subprocess.check_output(['git', 'ls-files', 'isaacsimenvs'], text=True).splitlines, subprocess.check_output(['git', 'ls-files'], text=True).splitlines, subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip, subprocess.run, writer.writerow。
@@ -855,6 +867,26 @@ Strict nominal-input allowlist; future actions are supervision only.
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
 - 文档：HISTORY_AND_TRACE.md, CHANGELOG.md, PROJECT_GUIDE_ZH.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_action_history.py, tests/test_causal_memory.py。
 
+### `visuotactile/diagnostic_recording.py`
+
+Behavior-neutral snapshots for future approximate-state diagnostics.
+
+- 定义（函数/类:行）：snapshot_before_policy:6, write_tensors:18, write_policy_step:29。
+- 来源：local addition；依赖：numpy, torch。
+- 静态调用者：tests/test_system_audit.py, visuotactile/evaluate_training_initials.py。
+- I/O或状态操作候选：write_tensors。
+- 文档：HISTORY_AND_TRACE.md, CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, ARCHITECTURE.md；测试：tests/test_system_audit.py。
+
+### `visuotactile/dp_objectives.py`
+
+Explicit historical A and default formal B diffusion objectives.
+
+- 定义（函数/类:行）：masked_objectives:8, recorded_objective:19。
+- 来源：local addition；依赖：torch。
+- 静态调用者：tests/test_system_audit.py, visuotactile/models/long_horizon.py, visuotactile/run_long.py, visuotactile/study_metrics.py, visuotactile/train_long.py。
+- I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
+- 文档：CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, ARCHITECTURE.md；测试：tests/test_system_audit.py。
+
 ### `visuotactile/evaluate.py`
 
 Audit recorded trajectories and compare only identical recorded protocols.
@@ -863,7 +895,7 @@ Audit recorded trajectories and compare only identical recorded protocols.
 - 来源：local addition；依赖：argparse, h5py, json, numpy, pathlib, visuotactile.contracts。
 - 静态调用者：visuotactile/probe_perception.py。
 - I/O或状态操作候选：args.output.parent.mkdir, json.dump, json.dumps。
-- 文档：CHANGELOG.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_training_resources.py, tests/test_command_training.py, tests/test_residual.py。
+- 文档：CHANGELOG.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_training_resources.py, tests/test_command_training.py, tests/test_residual.py, tests/test_system_audit.py。
 
 ### `visuotactile/evaluate_baselines.py`
 
@@ -909,11 +941,11 @@ Preregistered native DP comparisons and matched local/autonomous residual trials
 
 Bounded native diagnostics from explicitly approximate saved demonstration states.
 
-- 定义（函数/类:行）：initialize:15, restore_observable_state:29, evaluate:88, main:229, interrupted:259。
-- 来源：local addition；依赖：argparse, evaluation.eval_isaacsim, h5py, isaaclab.app, isaacsimenvs, json, numpy, os, pathlib, signal, subprocess, sys, time, torch, visuotactile.compact, visuotactile.long_controller, visuotactile.long_data, visuotactile.models.long_horizon, visuotactile.models.residual, visuotactile.observations, visuotactile.sim.environment, visuotactile.study_resources, visuotactile.training_resources。
-- 静态调用者：CLI/动态调用或无静态调用；需结合主链。
-- I/O或状态操作候选：body.write_root_pose_to_sim, body.write_root_velocity_to_sim, env.robot.write_joint_state_to_sim, env.scene.write_data_to_sim, env.step, group['transition/diagnostics_after/object_pose_w'][step].copy, json.dumps, np.savez_compressed, restoration['saved_observable_errors'].values, root.mkdir, saved_input.create_dataset, subprocess.Popen, subprocess.check_output, subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip。
-- 文档：CHANGELOG.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 定义（函数/类:行）：initialize:16, restore_observable_state:35, evaluate:94, main:233, interrupted:263。
+- 来源：local addition；依赖：argparse, evaluation.eval_isaacsim, h5py, isaaclab.app, isaacsimenvs, json, numpy, os, pathlib, signal, subprocess, sys, time, torch, visuotactile.compact, visuotactile.diagnostic_recording, visuotactile.long_controller, visuotactile.long_data, visuotactile.models.long_horizon, visuotactile.models.residual, visuotactile.observations, visuotactile.sim.environment, visuotactile.study_resources, visuotactile.training_resources。
+- 静态调用者：tests/test_system_audit.py。
+- I/O或状态操作候选：body.write_root_pose_to_sim, body.write_root_velocity_to_sim, env.robot.write_joint_state_to_sim, env.scene.write_data_to_sim, env.step, group['transition/diagnostics_after/object_pose_w'][step].copy, json.dumps, np.savez_compressed, restoration['saved_observable_errors'].values, root.mkdir, saved_input.create_group, subprocess.Popen, subprocess.check_output, subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip, write_policy_step, write_tensors。
+- 文档：CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：tests/test_system_audit.py。
 
 ### `visuotactile/expert_reference.py`
 
@@ -1049,11 +1081,11 @@ Replaceable correction research interface. Untrained networks cannot execute.
 
 H64 reference policy with explicit recent histories and native-rate memory.
 
-- 定义（函数/类:行）：LongHorizonConfig:16, FrozenDinoSpatial:42, MaskedHistory:64, LongHorizonPolicy:80, __post_init__:28, tactile:38, __init__:43, forward:52, __init__:65, forward:69, __init__:81, project_frames:105, encode:113, loss_from_condition:141, predict_from_condition:153。
-- 来源：local addition；依赖：dataclasses, diffusers, torch, torch.nn, visuotactile.models.vendor.conditional_unet1d。
-- 静态调用者：tests/test_long_horizon.py, visuotactile/audit_network.py, visuotactile/evaluate_long.py, visuotactile/evaluate_study.py, visuotactile/evaluate_training_initials.py, visuotactile/inspect_long.py, visuotactile/long_controller.py, visuotactile/long_data.py, visuotactile/study_audit.py, visuotactile/train_long.py, visuotactile/train_loss_study.py, visuotactile/transformer_data.py, visuotactile/validate_long.py。
+- 定义（函数/类:行）：LongHorizonConfig:17, FrozenDinoSpatial:43, MaskedHistory:65, LongHorizonPolicy:81, __post_init__:29, tactile:39, __init__:44, forward:53, __init__:66, forward:70, __init__:82, project_frames:106, encode:114, loss_from_condition:142, predict_from_condition:155。
+- 来源：local addition；依赖：dataclasses, diffusers, torch, torch.nn, visuotactile.dp_objectives, visuotactile.models.vendor.conditional_unet1d。
+- 静态调用者：tests/test_long_horizon.py, tests/test_system_audit.py, visuotactile/audit_network.py, visuotactile/evaluate_long.py, visuotactile/evaluate_study.py, visuotactile/evaluate_training_initials.py, visuotactile/inspect_long.py, visuotactile/long_controller.py, visuotactile/long_data.py, visuotactile/study_audit.py, visuotactile/train_long.py, visuotactile/train_loss_study.py, visuotactile/transformer_data.py, visuotactile/validate_long.py。
 - I/O或状态操作候选：self.sampler.set_timesteps, self.sampler.step。
-- 文档：CHANGELOG.md, LONG_HORIZON_20261030.md, PROJECT_FILE_MAP.md；测试：tests/test_long_horizon.py。
+- 文档：CHANGELOG.md, RUNBOOK.md, LONG_HORIZON_20261030.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：tests/test_long_horizon.py, tests/test_system_audit.py。
 
 ### `visuotactile/models/nominal.py`
 
@@ -1073,7 +1105,7 @@ Version 1 contact-gated native-command residual with independent parameters.
 - 来源：local addition；依赖：copy, torch, visuotactile.history, visuotactile.models.correction。
 - 静态调用者：tests/test_residual.py, visuotactile/audit_network.py, visuotactile/evaluate_study.py, visuotactile/evaluate_training_initials.py, visuotactile/policy_census.py, visuotactile/residual_controller.py, visuotactile/residual_data.py, visuotactile/train_residual.py, visuotactile/transformer_controller.py, visuotactile/transformer_data.py。
 - I/O或状态操作候选：(per_step[contact] + regularization * penalty[contact]).mean。
-- 文档：CHANGELOG.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_residual.py。
+- 文档：CHANGELOG.md, RUNBOOK.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_residual.py。
 
 ### `visuotactile/models/tactile.py`
 
@@ -1103,7 +1135,7 @@ Causal native-command correction with explicit current and remaining-plan tokens
 - 来源：local addition；依赖：dataclasses, torch。
 - 静态调用者：tests/test_transformer_residual.py, visuotactile/audit_network.py, visuotactile/train_transformer_residual.py, visuotactile/transformer_controller.py, visuotactile/transformer_data.py。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：PROJECT_FILE_MAP.md；测试：tests/test_transformer_residual.py。
+- 文档：RUNBOOK.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：tests/test_transformer_residual.py。
 
 ### `visuotactile/models/vendor/__init__.py`
 
@@ -1253,7 +1285,7 @@ Episode-based HDF5 recorder; model inputs and privileged labels are separate.
 - 来源：local addition；依赖：argparse, h5py, hashlib, json, numpy, os, pathlib, pickle, torch, visuotactile.compact。
 - 静态调用者：tests/test_causal_memory.py, tests/test_compact.py, tests/test_persistent_collection.py, visuotactile/collect.py, visuotactile/collect_success_batch.py, visuotactile/finalize_collection.py, visuotactile/manifest.py, visuotactile/probe_history.py。
 - I/O或状态操作候选：json.dumps, pickle.dump, self.directory.mkdir, temporary.unlink。
-- 文档：CHANGELOG.md, NIGHT_COLLECTION.md, PROJECT_GUIDE_ZH.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_compact.py, tests/test_causal_memory.py, tests/test_persistent_collection.py。
+- 文档：HISTORY_AND_TRACE.md, CHANGELOG.md, NIGHT_COLLECTION.md, PROJECT_GUIDE_ZH.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md, ARCHITECTURE.md；测试：tests/test_compact.py, tests/test_causal_memory.py, tests/test_persistent_collection.py。
 
 ### `visuotactile/regression.py`
 
@@ -1359,11 +1391,11 @@ Bounded serial expert collection. No optimizer, retries or outcome selection.
 
 One bounded owner for pilot admission, training and the six diagnostics.
 
-- 定义（函数/类:行）：pilot_admission:22, active_trainers:48, active_pilots:63, decode_videos:67, run:85, main:185, status:89, launch:91, wait:99。
-- 来源：local addition；依赖：argparse, av, fcntl, json, math, os, pathlib, subprocess, time, visuotactile.compact, visuotactile.training_resources。
+- 定义（函数/类:行）：pilot_admission:23, active_trainers:50, active_pilots:65, decode_videos:69, run:87, main:187, status:91, launch:93, wait:101。
+- 来源：local addition；依赖：argparse, av, fcntl, json, math, os, pathlib, subprocess, time, visuotactile.compact, visuotactile.dp_objectives, visuotactile.training_resources。
 - 静态调用者：tests/test_long_horizon.py。
 - I/O或状态操作候选：subprocess.Popen。
-- 文档：PROJECT_FILE_MAP.md；测试：tests/test_long_horizon.py。
+- 文档：CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：tests/test_long_horizon.py。
 
 ### `visuotactile/run_loss_study.py`
 
@@ -1429,11 +1461,11 @@ Pinned real-checkpoint input, normalization and execution-history audit.
 
 Matched x0 objectives and sampled native-command metrics by group/horizon.
 
-- 定义（函数/类:行）：joint_groups:12, masked_objectives:23, denoising_objectives:32, evaluate:44。
-- 来源：local addition；依赖：json, math, torch, visuotactile.action_reference, visuotactile.long_data, visuotactile.train_long。
+- 定义（函数/类:行）：joint_groups:13, denoising_objectives:24, evaluate:36。
+- 来源：local addition；依赖：json, math, torch, visuotactile.action_reference, visuotactile.dp_objectives, visuotactile.long_data, visuotactile.train_long。
 - 静态调用者：tests/test_loss_study.py, visuotactile/audit_network.py, visuotactile/study_audit.py, visuotactile/train_loss_study.py, visuotactile/train_transformer_residual.py。
 - I/O或状态操作候选：未检出写入/step命名调用；以源码为准。
-- 文档：PROJECT_FILE_MAP.md；测试：tests/test_loss_study.py。
+- 文档：CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：tests/test_loss_study.py。
 
 ### `visuotactile/study_resources.py`
 
@@ -1469,21 +1501,21 @@ Train the command imitation baselines B0 and B1 on the production manifest.
 
 Sequential H64 training, EMA validation, resumable updates and held-out test.
 
-- 定义（函数/类:行）：move:22, fit_statistics:26, update_ema:50, learning_rate:59, sampled_metrics:65, save:130, cpu_snapshot:136, train:146, test:334, main:350, checkpoint:218, inference_payload:227。
-- 来源：local addition；依赖：argparse, copy, dataclasses, gc, json, math, pathlib, random, signal, time, torch, visuotactile.action_reference, visuotactile.compact, visuotactile.long_data, visuotactile.long_resources, visuotactile.models.long_horizon, visuotactile.training_resources。
+- 定义（函数/类:行）：move:23, fit_statistics:27, update_ema:51, learning_rate:60, sampled_metrics:66, save:131, cpu_snapshot:137, train:147, test:339, main:355, checkpoint:223, inference_payload:232。
+- 来源：local addition；依赖：argparse, copy, dataclasses, gc, json, math, pathlib, random, signal, time, torch, visuotactile.action_reference, visuotactile.compact, visuotactile.dp_objectives, visuotactile.long_data, visuotactile.long_resources, visuotactile.models.long_horizon, visuotactile.training_resources。
 - 静态调用者：visuotactile/inspect_long.py, visuotactile/study_metrics.py, visuotactile/train_loss_study.py, visuotactile/train_transformer_residual.py, visuotactile/transformer_controller.py, visuotactile/transformer_data.py。
 - I/O或状态操作候选：LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to, LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval, optimizer.step, output.mkdir, save, saved['cpu_rng'].cpu, saved['cuda_rng'].cpu, torch.save。
-- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 文档：CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `visuotactile/train_loss_study.py`
 
 Independent paired continuations from a frozen epoch40 EMA checkpoint.
 
-- 定义（函数/类:行）：train:25, test:207, checkpoint:95, best_checkpoint:105, measurements:115。
+- 定义（函数/类:行）：train:25, test:208, checkpoint:96, best_checkpoint:106, measurements:116。
 - 来源：local addition；依赖：argparse, copy, dataclasses, gc, json, math, os, pathlib, random, signal, time, torch, visuotactile.compact, visuotactile.long_data, visuotactile.models.long_horizon, visuotactile.study_metrics, visuotactile.study_resources, visuotactile.train_long, visuotactile.training_resources。
 - 静态调用者：CLI/动态调用或无静态调用；需结合主链。
 - I/O或状态操作候选：LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to, LongHorizonPolicy(LongHorizonConfig(**saved['config'])).to('cuda:0').eval, optimizer.step, output.mkdir, save。
-- 文档：PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
+- 文档：CHANGELOG.md, SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md, PROJECT_FILE_MAP.md；测试：未检出直接import测试；不表示已验证。
 
 ### `visuotactile/train_residual.py`
 

@@ -9,6 +9,7 @@ import sys
 import time
 
 from .compact import sha256
+from .diagnostic_recording import snapshot_before_policy, write_policy_step, write_tensors
 from .training_resources import atomic_json
 
 
@@ -21,7 +22,12 @@ def initialize(root, source, evidence):
     atomic_json(root/'session.json',dict(started_epoch=started,deadline=started+10800,training_deadline=started+10800,
         source=str(source),evidence=str(evidence),selected_train=distribution['selected_train'],
         max_native_starts=12,parameter_updates=0,initialization='saved observable state restoration, not exact simulator restoration',
-        source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()))
+        source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+        diagnostic_input_version=2,
+        source_sha256={str(path):sha256(path) for path in (Path(__file__),Path('visuotactile/diagnostic_recording.py'),
+            Path('visuotactile/long_controller.py'),Path('visuotactile/long_data.py'),
+            Path('visuotactile/models/long_horizon.py'),Path('visuotactile/sim/environment.py'),
+            Path('isaacsimenvs/tasks/play/utils/action_utils.py'))}))
     atomic_json(root/'gpu_schedule.json',dict(target_percent=38,admission_percent=42,min_gpu_free_mib=6144,min_ram_gib=16))
     atomic_json(root/'status.json',dict(state='registered',utc_epoch=started))
 
@@ -146,6 +152,10 @@ def evaluate(root):
                     with lease.block():
                         env.reset(seed=20261031+ordinal)
                         restoration=restore_observable_state(env,group,metadata)
+                        if not (root/'environment.json').exists():
+                            environment=env.research_metadata()
+                            environment.update(config=env.cfg.to_dict(),problem='tight_insertion',camera_mode='oblique')
+                            atomic_json(root/'environment.json',environment)
                     if max(restoration['saved_observable_errors'].values())>1e-4:
                         raise RuntimeError('Observable initial state restoration outside tolerance')
                     controller=controllers.get(mode)
@@ -160,25 +170,19 @@ def evaluate(root):
                             packet=env.research_packet
                             before={key:value[0].cpu().numpy().copy() for key,value in env._diagnostics().items()}
                             with lease.block():
+                                snapshot=snapshot_before_policy(env,controller)
                                 if controller:
                                     command=controller.act(packet)
                                 else:
                                     command=torch.from_numpy(group['transition/command_clipped_pre_delay'][step:step+1])
-                                if step%12==0:
-                                    saved_input=inputs_file.create_group(str(step))
-                                    for key in ('image','depth_valid','camera_time_s','camera_valid','camera_pose_w','proprio',
-                                                'actuator_target_rad','contact_substeps_w_N','contact_substeps_local_N','contact_time_s'):
-                                        value=packet[key][0].cpu().numpy()
-                                        if key=='image':
-                                            saved_input.create_dataset('rgb_u8',data=np.rint(value[:,:3]*255).astype(np.uint8),compression='lzf')
-                                            saved_input.create_dataset('depth_m',data=value[:,3:],compression='lzf')
-                                        else:
-                                            saved_input.create_dataset(key,data=value)
-                                    if controller:
-                                        saved_input.create_dataset('plan',data=controller.plan[0].numpy())
-                                        saved_input.create_dataset('condition',data=controller.last_condition[0].numpy())
+                                saved_input=write_policy_step(inputs_file,step,packet,snapshot,command,controller)
                                 _,_,terminated,truncated,_=env.step(command)
                                 transition=env.last_transition
+                                write_tensors(saved_input.create_group('native'),dict(
+                                    control_trace=transition['control_trace'],
+                                    cpu_rng_after_preprocess=transition['torch_rng_after_preprocess'],
+                                    cpu_rng_after_step=torch.get_rng_state(),target_after_rad=transition['target_after_rad'],
+                                    diagnostics_after=transition['diagnostics_after']))
                                 if controller:
                                     controller.observe_execution(transition)
                             after={key:value[0].cpu().numpy().copy() for key,value in transition['diagnostics_after'].items()}

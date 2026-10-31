@@ -13,13 +13,14 @@ import subprocess
 import time
 
 from .compact import sha256
+from .dp_objectives import DEFAULT_DP_OBJECTIVE, recorded_objective
 from .training_resources import atomic_json
 
 
 GROUPS = ('G00-new', 'G10-new')
 
 
-def pilot_admission(root):
+def pilot_admission(root, objective=DEFAULT_DP_OBJECTIVE):
     root = Path(root)
     rows = {}
     causal = json.loads((root/'causal_acceptance.json').read_text())
@@ -31,6 +32,7 @@ def pilot_admission(root):
         config = json.loads((directory/'config.json').read_text())
         learned, initial = fit['trained'], fit['initial']
         checks = dict(completed=report['updates']==3300 and report['completed_epochs']==300,
+            objective=recorded_objective(config)==objective,
             prediction_type=config['model']['prediction_type']=='sample',
             correct_train=config['train_episodes']==index['splits']['train'][:4],
             finite=all(math.isfinite(value) for value in learned.values() if isinstance(value,(float,int))))
@@ -41,7 +43,7 @@ def pilot_admission(root):
         rows[group] = dict(passed=all(checks.values()),checks=checks,metrics=learned,
             fit_sha256=sha256(directory/'fit.json'),source_hashes=config['source_hashes'])
     return dict(passed=bool(causal['passed']) and all(row['passed'] for row in rows.values()),
-        prediction_type='sample',groups=rows,causal_sha256=sha256(root/'causal_acceptance.json'),
+        prediction_type='sample',loss=objective,groups=rows,causal_sha256=sha256(root/'causal_acceptance.json'),
         scope='small complete-trajectory fitting gate only; no task success or convergence claim',created_epoch=time.time())
 
 
@@ -82,7 +84,7 @@ def decode_videos(directory):
     return result
 
 
-def run(root, resume_training=False):
+def run(root, resume_training=False, objective=DEFAULT_DP_OBJECTIVE):
     session = json.loads((root/'session.json').read_text())
     children = []
     handles = []
@@ -120,7 +122,7 @@ def run(root, resume_training=False):
             if not active_pilots(root):
                 raise RuntimeError('A pilot exited without its completion report; no automatic retry')
             time.sleep(5)
-        admission = pilot_admission(root)
+        admission = pilot_admission(root,objective)
         atomic_json(root/'pilot_admission.json',admission)
         if not admission['passed']:
             raise RuntimeError('Complete-trajectory pilot gate failed; full training not admitted')
@@ -138,7 +140,7 @@ def run(root, resume_training=False):
             if resume_training and (root/(group+'_full')/'report.json').exists():
                 continue
             arguments = ['--group',group,'--stage','full','--epochs','40','--seed',str(20261031+index),
-                         '--prediction-type','sample']
+                         '--prediction-type','sample','--loss',objective]
             label = group+'_full'
             if resume_training:
                 arguments += ['--resume','--resume-runtime-update']
@@ -187,6 +189,8 @@ def main():
     parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--status',action='store_true')
     parser.add_argument('--resume-training',action='store_true')
+    parser.add_argument('--loss',choices=['A','B'],default=DEFAULT_DP_OBJECTIVE,
+                        help='Formal default B; A only for explicit historical reproduction')
     args = parser.parse_args()
     if args.status:
         print((args.root/'pipeline.json').read_text())
@@ -202,7 +206,7 @@ def main():
             atomic_json(args.root/f'pipeline_before_resume_{time.time_ns()}.json',previous)
         elif args.resume_training:
             raise ValueError('No existing pipeline to continue')
-        run(args.root,args.resume_training)
+        run(args.root,args.resume_training,args.loss)
 
 
 if __name__ == '__main__':

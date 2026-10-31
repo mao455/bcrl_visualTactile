@@ -5,7 +5,8 @@
 [完整系统说明与控制链审计](SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、
 [逐文件地图](PROJECT_FILE_MAP.md)、[实验有效性矩阵](EXPERIMENT_VALIDITY_MATRIX.md)
 是本轮审阅入口。400条/81,894步数值链重读、147条既有评估队列核验、T0源RNG重建均已完成。
-原生控制仅有只读hook；近似T0不能否定原示范成功。先提交文档，再完成Loss B默认及诊断记录修复；未启动新GPU实验。
+原生控制仅有只读hook；近似T0不能否定原示范成功。文档首版`6022330`已推送，随后Loss B默认与诊断record2修复完成，
+26项定向CPU测试通过。未启动新GPU实验；记录器尚无新Kit验收，完整物理精确重放仍未解决。
 
 ## 最新完成 — 2026-10-31网络核验与近似训练初态诊断
 

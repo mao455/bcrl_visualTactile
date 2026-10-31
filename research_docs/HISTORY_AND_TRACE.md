@@ -7,6 +7,15 @@ T0源四条1,005次index由保存的逐步CPU RNG和原lane完整重建，single
 此CPU检查没有改变仿真随机流，也不是物理重放。近似restore缺完整lane/solver/sensor/actor状态；
 原400所有pre-delay/target/时间字段检查通过。详细首处分歧和原生来源见SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT第6–8节。
 
+未来近似初态诊断的`diagnostic_input_version=2`由`diagnostic_recording.py`实现：
+每tick保存全部数值packet（包括contact_valid、两120Hz力/FK和时间）、策略incoming/outgoing memory、
+实际t−1动作上下文、condition/reference/command、DDIM独立generator前后state；RGB-D与plan仅在12tick刷新时保存。
+native queue以Lab顺序、packet/command以canonical顺序显式分开；CPU RNG在policy前、env.step前、
+native preprocess后和step后记录，另存选中delay、target_after和diagnostics_after。
+BF16记忆转无损可表示FP32并带原dtype；不将float32存储误称原计算精度。
+CPU快照无RNG/状态变化与HDF5读回通过，尚无新Kit整轨迹记录验收。旧T0输入文件不追补伪造字段，
+新记录也不包含PhysX全部内部状态，不能因此将approximate restore宣称为精确重放。
+
 ## 2026-10-30新candidate2
 
 G00-new/G10-new与旧history隔离：视觉11×5Hz、本体/执行反馈121×60Hz、G10触觉242×120Hz，
