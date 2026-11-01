@@ -1,5 +1,14 @@
 # 视觉与触觉模仿学习研究工程
 
+## State-first Native DP V2 — 2026-11-02
+
+[训练设置/固定官方源码对照](NATIVE_DP_TRAINING_REFERENCE_AUDIT.md)、
+[失败机制与证据边界](NATIVE_DP_TRAINING_FAILURE_ANALYSIS.md)、
+[协议、Gate、配置和运行入口](NATIVE_DP_TRAINING_PROTOCOL_V2.md)、
+[实际结果与待执行项](NATIVE_DP_EXPERIMENT_RESULTS_V2.md)。
+独立worktree保护旧run；400数据与原native控制数值链已复核，物理replay与新闭环尚须实际验收。
+G0未过禁止新更新；G4未过禁止大规模视觉训练。不是再次无条件三组各19000updates。
+
 ## 当前实施 — 三组Native-command DP
 
 [结果与运行状态](NATIVE_DP_THREE_WAY_RESULTS.md)、[历史网络与tensor](HISTORY_AND_OBSERVATION_ARCHITECTURE.md)、

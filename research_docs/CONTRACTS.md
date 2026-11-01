@@ -1,5 +1,19 @@
 # Audited contracts
 
+## Native training protocol V2 (2026-11-02)
+
+Inference contract remains native-command v1: H64/commit12, real current controller
+state, strictly past issued/delayed feedback, state geometry only in S. New protocol2
+training metadata identifies shuffled anchor batches; old checkpoints are not silently
+resumed under a new sampler. Diagnostic StateBC has its own contract and is not a
+formal fourth baseline. See NATIVE_DP_TRAINING_PROTOCOL_V2.
+
+G0 requires eight distinct expert task replays; new optimizer steps fail closed if
+G0 is false. Software completion, offline fit and autonomous native success are
+separate fields. Historical approximate state restore never becomes an exact claim.
+Only validation selects models; record previous test40 use. Visual training is gated
+on State success and repeat evidence. Native control/physics and old run02 stay unchanged.
+
 ## Native-command v1（三组新身份）
 
 当前用户授权三组新模型训练；详见[NATIVE_COMMAND_CONTROL_CONTRACT](NATIVE_COMMAND_CONTROL_CONTRACT.md)。

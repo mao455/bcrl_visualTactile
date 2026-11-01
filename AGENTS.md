@@ -1,5 +1,30 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-11-02 State-first training protocol V2
+
+The user explicitly requests the attached full training/data/control audit and
+state-first pipeline repair from 3e11d62. Independent worktree
+`/home/CNS2025331827/docs/bc+rl_RSS_native_v2`, branch
+`feature/native-dp-training-v2`; the original run02 source and workers stay intact.
+Read NATIVE_DP_TRAINING_REFERENCE_AUDIT, NATIVE_DP_TRAINING_FAILURE_ANALYSIS,
+NATIVE_DP_TRAINING_PROTOCOL_V2 and NATIVE_DP_EXPERIMENT_RESULTS_V2.
+400 original SHA hashes, 81,894 numeric steps, train-only statistics and actual
+native queued command/target math have passed CPU audit; this is NOT physical replay acceptance.
+New root is outputs/visuotactile/native_dp_v2/state_first_20261102_01.
+Persistent owner waits for old run02 workers, then performs eight distinct expert
+replays and frozen State train8/val8 diagnostics with registered seed/last checks.
+At most32 initial starts (identical best/last EMA deduplicated). No test tuning.
+G0 requires8/8 expert native success plus control parity; failure blocks every new
+optimizer update, including diagnostic BC. Frozen old diagnostics may still finish.
+New BC and State milestone training only follow passed gates; visual training stays
+locked until State validation and repeat evidence. No silent architecture/control
+changes, no unbounded retries, no raw data/weights/videos in git. User authorizes
+reviewed origin feature push. Whole-card dual50% caps and4GiB/10GiB reserves remain.
+New session absolute24h includes predecessor waits; GPU diagnostics<=4h, learning
+bounded by original registered endpoint. Old run deadlines are not reset.
+Read actual status/gates/results; registration or service startup is not task success.
+Codex verifies persistent startup once and yields without polling/sleep supervision.
+
 ## Current override — Native-command three-way implementation
 
 The user authorizes the accepted 24-hour S-NativeDP/I-OfficialDP/I-HistoryDP

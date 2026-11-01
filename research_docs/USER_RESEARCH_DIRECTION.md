@@ -232,3 +232,16 @@ T0近似重放失败不等于原专家数据无效；必要新GPU限一窗口≤
 Codex仅实现、测试和一次有界启动核验，随后不通过工具轮询/sleep监督长训练；后台不依赖Codex会话。
 实验结束后用户再次唤起时读取证据、分析、逐文件审计清理、完成七份报告并提交推送当前origin功能分支。
 不假设脚本能唤醒Codex，不自动追加H32/残差/RL实验。此前无训练/禁止target条款不覆盖此新授权。
+
+### 2026-11-02追加：State优先训练系统全面审计与修复
+
+用户附件要求读取当前真实源码/旧结果，对照固定官方DP和robomimic，保留400/旧权重/旧任务。
+先做400数据和8独立专家replay，再评估旧State train8/validation8和多seed，增加确定性StateBC诊断。
+不能因offline fit通过或程序正常完成就放行完整训练；State未解决前暂停高成本视觉预算。
+允许独立新worktree/实验、必要代码与有界实验、曲线/视频和GitHub代码文档推送；不上传大产物。
+
+本轮工程实现：feature/native-dp-training-v2隔离原运行；新session总24h含等待，GPU诊断4h，
+成功Gate后至预注册20hGPU端点并受24h绝对截止约束。原run02继续其原任务/截止。
+G0数据/控制与8专家原生成功；G2/G3固定各8至少2完整成功；G4另需两validation初态第二seed成功。
+先读NATIVE_DP_TRAINING_PROTOCOL_V2等四报告及真实session/status/gates，不以授权代替验收。
+G0失败禁止一切新optimizer更新；新视觉小规模验收、4env一致性和最终test并未提前完成。

@@ -1,5 +1,31 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 — State-first V2 audit and isolated implementation
+
+User's attached task supersedes automatic three-way full training for the new experiment.
+Original run02 continues unchanged; all three old test40 start markers now exist, so
+future reporting must disclose prior held-out usage. No new test calls in V2 debugging.
+
+New worktree `bc+rl_RSS_native_v2`, branch `feature/native-dp-training-v2` from3e11d62.
+Read the four NATIVE_DP_*_V2/reference/failure reports. All400 original hashes and
+81,894 steps audited; command/target/robot/geometry/history and six train-only
+statistics reproduce with max error0. Actual native action function on all400
+also returns delayed/target max error0. Initial observable and command duplicates0.
+These do not establish historical physical replay or student success.
+
+V2 has fail-closed distinct Gate fields, state-only numeric caching, diagnostic
+StateBC, repeatable sampler/checkpoints/milestone hooks, single persistent Kit
+frozen evaluation, shadow teacher-history comparison and a lock that excludes
+resource/pacing waits. Final CPU tests/evidence: `evidence/native_dp_v2/verification.json`.
+
+Root: `outputs/visuotactile/native_dp_v2/state_first_20261102_01`; status command:
+`bash visuotactile/run_cpu.sh -m visuotactile.native_v2_pipeline status --root outputs/visuotactile/native_dp_v2/state_first_20261102_01`.
+Owner waits for all old workers to exit, then runs8 expert replays, old State
+train8/val8 and fixed seed/last checks. Failed G0 prevents all new training.
+Visual performance/4env parity/new formal testing are not claimed complete.
+Source/control/400/weights preserved; cleanup deletes nothing. Later results must
+come from result/trace/Gate files, not this startup-era handoff.
+
 ## 2026-11-02 01:30（UTC+8）中期结果统计
 
 新增 `research_docs/NATIVE_DP_CURRENT_RESULTS_20261102.md`。当前可直接复核的六条诊断

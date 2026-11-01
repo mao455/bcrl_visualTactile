@@ -1,5 +1,25 @@
 # Engineering change and verification log
 
+## 2026-11-02 — Native DP V2 state-first audit and guarded execution
+
+- New `native_v2_audit/control_audit`: all400 original SHA,81,894 steps, success/retract,
+  numeric causality/cache/statistics, duplicates and actual native command queue/target checks;
+  all measured numeric maxima0. No change to source trajectories, controller or task.
+- New `native_v2_state/training`: same State input/command contract, one-time CPU numeric
+  windows; independent2601→256→256→64×29 diagnostic BC; deterministic shuffled anchors,
+  multi-seed validation, last/offline-best/milestone identities and exact RNG/cursor resume.
+  CPU conditioning-only8-episode profile: old.44174s; new load.04372s+condition.00385s;
+  not an end-to-end GPU/training speed claim. Real learning awaits G0.
+- New `native_v2_gates/pipeline/evaluation/report/resources`, config and tests:
+  normal program completion no longer admits failed closed-loop policies. Eight distinct
+  replay IDs, old train8/val8, shadow expert-history plans, repeat noise seeds, checkpoint
+  bytewise identity deduplication, native stage outcomes, videos and first-error traces.
+  Persistent single Kit and owner; predecessor wait, absolute24h, no duplicate rollout retries.
+  Wait/pacing outside GPU lock. Original run02 source and service unchanged in another worktree.
+- Four requested reports, pinned DP/robomimic source hash manifest and sanitized statistics.
+  Regression results in evidence/native_dp_v2/verification.json; physical/GPU/student
+  acceptance remains pending actual background evidence. No new held-out test or deletion.
+
 ## 2026-11-01 — Native DINO缓存精度与后台恢复边界
 
 - 恢复后实测：native_perception400/400，复现误差0，202独立尾帧overlay；History网络Gate
