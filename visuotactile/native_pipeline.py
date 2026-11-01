@@ -84,6 +84,45 @@ def video_tools():
     return resolved
 
 
+def authorize_late_gate(root, reason):
+    session_path = root/'session.json'
+    session = json.loads(session_path.read_text())
+    if session.get('late_gate_recovery', {}).get('authorized'):
+        raise ValueError('late_gate_recovery is already authorized for this root')
+    now = time.time()
+    if session['started_epoch'] is None or session['gate_deadline'] is None:
+        raise ValueError('Cannot authorize late gate before the original GPU clock exists')
+    if now < session['gate_deadline']:
+        raise ValueError('Late-gate authorization is only valid after the original Gate deadline')
+    if now >= session['deadline']:
+        raise TimeoutError('Original immutable total deadline expired')
+    if not reason or len(reason.strip()) < 12:
+        raise ValueError('Late-gate reason must be explicit and at least 12 characters')
+    record = dict(authorized=True, authorized_at=now, reason=reason.strip(),
+        original_started_epoch=session['started_epoch'], original_gate_deadline=session['gate_deadline'],
+        original_training_deadline=session['training_deadline'], original_deadline=session['deadline'],
+        deadline_unchanged=True, source_commit=session.get('source_commit'),
+        revalidated_stages=['late_gate_preflight', 'I-OfficialDP_fit1_diagnostic',
+                            'I-OfficialDP_fit4_diagnostic', 'I-HistoryDP_network'])
+    session['late_gate_recovery'] = record
+    atomic_json(session_path, session)
+    atomic_json(root/'late_gate_recovery.json', record)
+    return record
+
+
+def failure_class(exit_code, log_path, monitor_exited=False):
+    if monitor_exited:
+        return 'resource_monitor_exit'
+    text = log_path.read_text(errors='replace') if log_path.exists() else ''
+    if exit_code in (-6, 134) and ('std::system_error' in text or 'terminate called' in text):
+        return 'kit_native_crash'
+    if 'Nonfinite' in text or 'nan' in text.lower():
+        return 'training_nonfinite'
+    if exit_code in (-9, 137):
+        return 'resource_kill_or_oom'
+    return 'worker_failure'
+
+
 def review_pre_freeze_update(root, reason):
     if (root/'frozen.json').exists():
         raise ValueError('Formal configuration frozen; source migration forbidden')
@@ -132,6 +171,11 @@ class Pipeline:
         if sources() != self.session['source_hashes']:
             raise ValueError('Source hashes changed after experiment registration')
 
+    def effective_budget(self, budget):
+        if budget == 'gate_deadline' and self.session.get('late_gate_recovery', {}).get('authorized'):
+            return 'deadline'
+        return budget
+
     def start_gpu_clock(self):
         if self.session['started_epoch'] is None:
             now = time.time()
@@ -159,8 +203,9 @@ class Pipeline:
         # not briefly launch Kit after the immutable stage window has expired.
         if self.stop or (self.root/'STOP').exists():
             raise InterruptedError('Explicit stop before worker launch: '+name)
+        effective_budget = self.effective_budget(budget)
         if gpu:
-            self.check_stage_budget(budget)
+            self.check_stage_budget(effective_budget)
         attempt = len(previous.get('attempts', []))+1
         output = self.root/'stages'/name/('attempt_'+str(attempt))
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -177,7 +222,9 @@ class Pipeline:
         attempts = previous.get('attempts', [])
         row = dict(state='starting', attempt=attempt, command=command, output=str(output),
             dependencies=[key for key, value in self.manifest['stages'].items() if value.get('state') == 'complete'],
-            started=time.time(), source_hashes=self.session['source_hashes'], attempts=attempts)
+            started=time.time(), source_hashes=self.session['source_hashes'], attempts=attempts,
+            budget_requested=budget, budget_effective=effective_budget,
+            late_gate_recovery=bool(self.session.get('late_gate_recovery', {}).get('authorized')))
         attempts.append(dict(number=attempt, output=str(output), command=command, started=row['started']))
         self.manifest['stages'][name] = row
         self.manifest.update(state='running', current_stage=name, pid=os.getpid())
@@ -193,7 +240,7 @@ class Pipeline:
                     stop_owned(self.child)
                     raise InterruptedError('Explicit stop; completed artifacts and last checkpoint retained')
                 if gpu:
-                    self.check_stage_budget(budget)
+                    self.check_stage_budget(effective_budget)
                 state = 'running'
                 resource_path = self.root/'resources/resources.json'
                 if gpu and resource_path.exists():
@@ -211,6 +258,16 @@ class Pipeline:
         self.child = None
         result_path = output/'result.json'
         if row['exit_code'] != 0 or not result_path.exists():
+            row['failure_class'] = failure_class(row['exit_code'], output.parent/('attempt_'+str(attempt)+'.log'),
+                monitor_exited=bool(gpu and self.monitor is not None and self.monitor.poll() is not None))
+            attempts[-1].update(exit_code=row['exit_code'], state='blocked', failure_class=row['failure_class'])
+            if row['failure_class'] == 'kit_native_crash' and self.resume and row.get('kit_retries', 0) < 1:
+                row.update(state='retrying', kit_retries=row.get('kit_retries', 0)+1,
+                    retry_reason='One bounded retry after isolated Kit native crash; no cache or global resource changes')
+                self.write()
+                self.attempt_active = False
+                return self.stage(name, module, arguments, budget=budget, gpu=gpu)
+            self.write()
             raise RuntimeError('Worker failed or completion marker absent: '+name)
         result = json.loads(result_path.read_text())
         if not result.get('passed'):
@@ -254,6 +311,8 @@ class Pipeline:
             atomic_json(self.root/'video_tools.json',
                 {name: dict(path=path, sha256=sha256(path)) for name, path in media.items()})
             self.start_gpu_clock()
+            if self.session.get('late_gate_recovery', {}).get('authorized'):
+                self.stage('late_gate_preflight', 'visuotactile.native_evaluation', ['--mode', 'preflight'])
             self.stage('oracle_base', 'visuotactile.native_evaluation', ['--mode', 'oracle-base'])
             self.stage('oracle_instrumented', 'visuotactile.native_evaluation', ['--mode', 'oracle-instrumented'])
             pilots, validation = {}, {}
@@ -291,6 +350,8 @@ class Pipeline:
                 if self.attempt_active and stage:
                     stage['exit_code'] = self.child.returncode
                     stage['attempts'][-1]['exit_code'] = self.child.returncode
+                    stage['failure_class'] = failure_class(self.child.returncode,
+                        self.root/'stages'/self.current/(('attempt_'+str(stage.get('attempt', 1)))+'.log'))
                 self.child = None
             if self.attempt_active and stage and stage.get('state') != 'complete':
                 stage.update(state='blocked', reason=repr(error), ended=time.time())
@@ -372,6 +433,7 @@ def main():
     parser.add_argument('--output', type=Path)
     parser.add_argument('--task', choices=('data', 'verify'))
     parser.add_argument('--review-pre-freeze-source-update')
+    parser.add_argument('--late-gate-recovery', help='Authorize one auditable late Gate recovery within the original deadline')
     args = parser.parse_args()
     args.root = args.root.resolve()
     os.environ.setdefault('MALLOC_ARENA_MAX', '2')
@@ -394,6 +456,8 @@ def main():
             if args.command == 'resume':
                 if args.review_pre_freeze_source_update:
                     review_pre_freeze_update(args.root, args.review_pre_freeze_source_update)
+                if args.late_gate_recovery:
+                    authorize_late_gate(args.root, args.late_gate_recovery)
                 (args.root/'STOP').unlink(missing_ok=True)
                 if (args.root/'blocked.json').exists():
                     (args.root/'blocked.json').rename(args.root/('blocked_'+str(time.time_ns())+'.json'))

@@ -1,5 +1,15 @@
 # Engineering change and verification log
 
+## 2026-11-01 — late-gate recovery and Kit preflight
+
+- 新增显式 `--late-gate-recovery`：只在原 Gate 截止后、原24小时总截止前登记，保留
+  原始 `gate_deadline`、`training_deadline`、`deadline`，不创建第二个预算或删除 blocked 历史。
+- recovery 会先运行独立 `late_gate_preflight`：新 Kit 子进程加载真实环境、reset 并执行一次零命令，
+  检查 RGB-D shape/finite 和 transition；Gate 组 worker/lease 在 recovery 下只延伸到原总截止。
+- Native worker 失败分类为 Kit 原生崩溃、资源监视退出、训练非有限、资源杀进程或普通 worker 失败；
+  仅对隔离的 Kit `-6` 做一次有界自动重试，连续第二次阻断并保留所有 attempts。
+- Official/History 的 fit Gate lease 与流水线截止保持一致；网络、动作、物理、数据、阈值没有改变。
+
 ## 2026-11-01 — 截止前置校验及真实Gate进度纠正
 
 - `native_pipeline`由“启动worker后检查超时”改为创建attempt/复制checkpoint/启动前

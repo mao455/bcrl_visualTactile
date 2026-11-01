@@ -235,19 +235,39 @@ def autonomous(root, output, env, lease, group, checkpoint_path, cohort):
         completed=len(results), required=len(identities), successes=sum(row['success'] for row in results)))
 
 
+def preflight(root, output, env, lease):
+    with lease.block():
+        reset = env.reset(seed=20261101)
+        packet = env.research_packet
+        command = torch.zeros((1, 29), dtype=torch.float32, device=env.device)
+        _, _, terminated, truncated, _ = env.step(command)
+        transition = env.last_transition
+    image = packet['image']
+    if image.shape[-2:] != (252, 448) or not torch.isfinite(image).all():
+        raise ValueError('Kit preflight returned invalid image tensor')
+    if (terminated | truncated).shape != (1,):
+        raise ValueError('Kit preflight returned invalid termination shape')
+    atomic_json(output/'result.json', dict(passed=True, mode='kit-preflight',
+        reset_type=type(reset).__name__, image_shape=list(image.shape),
+        step_id=int(transition['step_id'][0]), finite_image=True,
+        zero_command_step=True, termination=bool((terminated | truncated)[0])))
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    parser.add_argument('--mode', choices=('oracle-base', 'oracle-instrumented', 'autonomous'), required=True)
+    parser.add_argument('--mode', choices=('oracle-base', 'oracle-instrumented', 'autonomous', 'preflight'), required=True)
     parser.add_argument('--group', choices=GROUPS)
     parser.add_argument('--checkpoint', type=Path)
     parser.add_argument('--cohort', choices=('fit', 'train', 'formal'))
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=False)
     session = json.loads((args.root/'session.json').read_text())
-    gate = args.mode.startswith('oracle') or args.cohort == 'fit'
-    lease = NativeLease(args.root, deadline=session['gate_deadline'] if gate else session['deadline'])
+    gate = args.mode.startswith('oracle') or args.mode == 'preflight' or args.cohort == 'fit'
+    recovery = session.get('late_gate_recovery', {})
+    lease_deadline = session['deadline'] if gate and recovery.get('authorized') else session['gate_deadline'] if gate else session['deadline']
+    lease = NativeLease(args.root, deadline=lease_deadline)
     torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
@@ -264,6 +284,8 @@ def main():
         env = make_env(args.mode != 'oracle-base', lease)
         if args.mode.startswith('oracle'):
             oracle(args.root, args.output, env, lease, args.mode == 'oracle-instrumented')
+        elif args.mode == 'preflight':
+            preflight(args.root, args.output, env, lease)
         else:
             autonomous(args.root, args.output, env, lease, args.group, args.checkpoint, args.cohort)
     finally:

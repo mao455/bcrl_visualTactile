@@ -341,3 +341,42 @@ def test_video_preflight_checks_explicit_tools_and_library_failures(monkeypatch)
         SimpleNamespace(returncode=127, stderr='error while loading shared libraries: libass.so.9'))
     with pytest.raises(RuntimeError, match='ffprobe cannot run.*shared libraries'):
         module.video_tools()
+
+
+def test_late_gate_authorization_preserves_original_deadlines(tmp_path, monkeypatch):
+    import json
+    import visuotactile.native_pipeline as module
+    monkeypatch.setattr(module.time, 'time', lambda: 250.)
+    session = dict(started_epoch=1, gate_deadline=100, training_deadline=800,
+                   deadline=1000, source_commit='old', source_hashes={})
+    (tmp_path/'session.json').write_text(json.dumps(session))
+    result = module.authorize_late_gate(tmp_path, 'Emergency recovery after Kit initialization crash')
+    saved = json.loads((tmp_path/'session.json').read_text())
+    assert result['authorized'] and result['deadline_unchanged']
+    assert saved['gate_deadline'] == 100 and saved['training_deadline'] == 800 and saved['deadline'] == 1000
+    assert json.loads((tmp_path/'late_gate_recovery.json').read_text()) == result
+    with pytest.raises(ValueError, match='already authorized'):
+        module.authorize_late_gate(tmp_path, 'A second late gate is forbidden')
+
+
+def test_late_gate_authorization_rejects_before_gate_or_after_total(tmp_path, monkeypatch):
+    import json
+    import visuotactile.native_pipeline as module
+    session = dict(started_epoch=1, gate_deadline=100, training_deadline=800,
+                   deadline=1000, source_commit='old', source_hashes={})
+    (tmp_path/'session.json').write_text(json.dumps(session))
+    monkeypatch.setattr(module.time, 'time', lambda: 50.)
+    with pytest.raises(ValueError, match='only valid after'):
+        module.authorize_late_gate(tmp_path, 'Too early late gate')
+    monkeypatch.setattr(module.time, 'time', lambda: 1001.)
+    with pytest.raises(TimeoutError, match='total deadline'):
+        module.authorize_late_gate(tmp_path, 'Too late late gate')
+
+
+def test_kit_crash_is_classified_from_worker_log(tmp_path):
+    import visuotactile.native_pipeline as module
+    log = tmp_path/'worker.log'
+    log.write_text("terminate called after throwing an instance of 'std::system_error'\n")
+    assert module.failure_class(-6, log) == 'kit_native_crash'
+    assert module.failure_class(-9, log) == 'resource_kill_or_oom'
+    assert module.failure_class(1, log) == 'worker_failure'

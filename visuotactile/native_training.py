@@ -312,7 +312,10 @@ def main():
     torch.backends.cudnn.allow_tf32 = False
     args.output.mkdir(exist_ok=args.resume, parents=True)
     session = json.loads((args.root/'session.json').read_text())
-    deadline = session['deadline'] if args.stage == 'test' else session['training_deadline'] if args.stage == 'formal' else session['gate_deadline']
+    gate_recovery = session.get('late_gate_recovery', {}).get('authorized')
+    deadline = (session['deadline'] if args.stage == 'test' else
+                session['training_deadline'] if args.stage == 'formal' else
+                session['deadline'] if gate_recovery else session['gate_deadline'])
     lease = NativeLease(args.root, deadline=deadline)
     if args.stage == 'network':
         network_gate(args.root, args.group, args.output, lease)
