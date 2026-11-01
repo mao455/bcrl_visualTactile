@@ -21,6 +21,11 @@ Current run `native_20261101_01` completed its 400/400 data Gate but is blocked
 at `oracle_base` with an Omniverse `provider_file::FileThread` abort (exit -6).
 The Gate deadline has passed; do not reset it or retry this root automatically.
 
+The authorized replacement run is `native_20261101_02`, source commit `8a147f8`,
+managed by `native-dp-20261101-02.service`; check its machine-readable status before
+claiming progress. Its first bounded check observed `data` running; the new deadline
+is fixed only when the first GPU Gate starts.
+
 ## Completed — 2026-10-31 T0 replay and frozen DP control validation
 
 Read T0_REPLAY_AND_DP_CONTROL_FIX and latest SESSION_HANDOFF. All35 allocated

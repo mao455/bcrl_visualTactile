@@ -8,6 +8,13 @@
 - 当前 inotify 约524199/524288时，独立最小 Kit 启动探针成功；未修改系统额度、IDE、其他进程、场景物理或控制器。
 - `native_pipeline` 为自有 worker 固定进程级 `MALLOC_ARENA_MAX=2`，不改变共享环境；完整 Oracle 仍须在新独立 run 中验收。
 
+## 2026-11-01 — Native DP新run后台启动
+
+- 新建独立 root `native_20261101_02`，旧 blocked root 未覆盖；服务
+  `native-dp-20261101-02.service` 由 user-level systemd 托管并已脱离当前会话运行。
+- 有界启动验收时服务为 `active (running)`、当前阶段为 `data`；新24小时 deadline
+  尚未开始，不能把后台启动或数据复核称为 GPU 训练完成。
+
 ## 2026-11-01 — Native-command流水线 Oracle Gate 阻断
 
 - 数据Gate attempt2完成400/400；恢复服务在`oracle_base`启动约10分钟后返回-6。

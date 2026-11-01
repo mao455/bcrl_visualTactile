@@ -1,5 +1,23 @@
 # 当前会话交接：视觉—触觉研究
 
+## 当前实施 — Native-command新run已后台启动（2026-11-01）
+
+旧 `native_20261101_01` 保持 Oracle Gate blocked，不修改历史状态。针对其
+`libomniclient` `FileThread` abort，独立最小 Kit 探针在用户级 inotify约
+524199/524288时成功；新入口在 AppLauncher 前调用 `libomniclient.so` 的
+`testSetWatchesEnabled(false)`，同时保留 `fsWatcherEnabled=false` 和进程级
+`MALLOC_ARENA_MAX=2`。没有修改系统额度、IDE、其他进程、物理、控制器或网络。
+
+新独立 root 为 `outputs/visuotactile/native_dp_3way/native_20261101_02`，source
+commit `8a147f8`。服务 `native-dp-20261101-02.service` 已由 user-level
+systemd 启动并在 Codex 会话外持续运行；启动验收时 `Active: running`，当前
+阶段为 `data`，400条数据复核正在写入 root。新24小时 deadline 将在首个 GPU
+Gate 前由流水线固定；当前仍为 `null`，不能把数据阶段称为训练开始。
+
+进度入口：`status.json`、`manifest.json`、`data_progress.json`、各 stage 日志；
+Oracle attempt 还会写 `runtime_controls.json`。Codex不会驻守轮询；服务结束后
+必须以 `completion.json` 或 `blocked.json`、真实checkpoint和结果产物为准。
+
 ## 当前实施 — 三组Native-command后台流水线（已阻断）
 
 用户确认24小时方案，入口`visuotactile.native_pipeline`，新root

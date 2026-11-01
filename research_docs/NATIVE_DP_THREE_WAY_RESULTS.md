@@ -1,5 +1,14 @@
 # 三组 Native-command DP：实施与结果登记
 
+## 新run（进行中）
+
+旧 `native_20261101_01` 的 Oracle 阻断已单独保留。新 run
+`native_20261101_02` 使用 source commit `8a147f8`，已通过独立最小 Kit 探针：
+在现有近满 inotify 环境中调用 OmniClient `testSetWatchesEnabled(false)` 后，Kit
+正常启动并退出。正式流水线服务 `native-dp-20261101-02.service` 已脱离会话运行，
+当前实查阶段为 `data`，400条数据复核尚未写入完成标记；GPU deadline 尚未开始。
+训练、checkpoint、闭环和视频仍不能填写结果，后续以该 root 的机器可读产物为准。
+
 状态：实现已完成，训练前数据Gate通过，但 Oracle Gate 阻断。正式训练、test40、60条闭环与四视频尚未验收，不能填写成功率。
 本次最后实查：root `outputs/visuotactile/native_dp_3way/native_20261101_01`，
 独立用户服务 `native-dp-20261101-01-resume1.service` 已退出，`MainPID=0`、退出码2。
