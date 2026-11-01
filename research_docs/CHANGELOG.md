@@ -9,6 +9,8 @@
 - Native worker 失败分类为 Kit 原生崩溃、资源监视退出、训练非有限、资源杀进程或普通 worker 失败；
   仅对隔离的 Kit `-6` 做一次有界自动重试，连续第二次阻断并保留所有 attempts。
 - Official/History 的 fit Gate lease 与流水线截止保持一致；网络、动作、物理、数据、阈值没有改变。
+- 实际恢复首次在 `video_preflight` 被 Bash 路径映射阻断，未消耗 GPU；现改用可执行的
+  bundled `imageio-ffmpeg`，`ffprobe` 缺失时用 PyAV 元数据后端，并将后端写入 `video_tools.json`。
 
 ## 2026-11-01 — 截止前置校验及真实Gate进度纠正
 

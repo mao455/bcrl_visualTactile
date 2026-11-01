@@ -310,9 +310,11 @@ def test_monitor_exit_is_not_reported_as_deadline_expiry(tmp_path, monkeypatch):
 
 
 def test_missing_video_acceptance_tools_block_before_gpu_clock(tmp_path, monkeypatch):
+    import sys
     import visuotactile.native_pipeline as module
     monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
     monkeypatch.setattr(module.shutil, 'which', lambda name: None)
+    monkeypatch.setitem(sys.modules, 'imageio_ffmpeg', None)
     (tmp_path/'session.json').write_text('{"deadline": null, "gate_deadline": null, "training_deadline": null}')
     (tmp_path/'manifest.json').write_text('{"stages": {}}')
     runner = module.Pipeline(tmp_path)
@@ -321,7 +323,7 @@ def test_missing_video_acceptance_tools_block_before_gpu_clock(tmp_path, monkeyp
     runner.run()
     assert runner.manifest['state'] == 'blocked'
     assert runner.manifest['last_failure']['stage'] == 'video_preflight'
-    assert 'ffprobe, ffmpeg' in runner.manifest['reason']
+    assert 'ffmpeg unavailable' in runner.manifest['reason']
 
 
 def test_video_preflight_checks_explicit_tools_and_library_failures(monkeypatch):

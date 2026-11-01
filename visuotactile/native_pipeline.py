@@ -72,16 +72,40 @@ def valid_artifacts(stage):
 
 
 def video_tools():
-    resolved = {name: shutil.which(os.environ.get('NATIVE_DP_'+name.upper(), name))
-                for name in ('ffprobe', 'ffmpeg')}
-    missing = [name for name, path in resolved.items() if path is None]
-    if missing:
-        raise RuntimeError('Video acceptance executables missing from PATH: '+', '.join(missing))
+    requested = {name: os.environ.get('NATIVE_DP_'+name.upper(), name)
+                 for name in ('ffprobe', 'ffmpeg')}
+    resolved = {name: shutil.which(path) for name, path in requested.items()}
+    if resolved['ffmpeg'] is None:
+        try:
+            import imageio_ffmpeg
+            resolved['ffmpeg'] = imageio_ffmpeg.get_ffmpeg_exe()
+        except (ImportError, RuntimeError) as error:
+            raise RuntimeError('Video acceptance ffmpeg unavailable: '+repr(error)) from error
     for name, path in resolved.items():
+        if path is None:
+            continue
         result = subprocess.run([path, '-version'], capture_output=True, text=True, timeout=10)
         if result.returncode:
             raise RuntimeError(f'{name} cannot run: '+result.stderr[:1000])
+    if resolved['ffprobe'] is None:
+        try:
+            import av
+        except ImportError as error:
+            raise RuntimeError('Neither ffprobe nor PyAV is available for video metadata') from error
     return resolved
+
+
+def probe_video(path, media):
+    if media['ffprobe'] is not None:
+        return json.loads(subprocess.check_output([media['ffprobe'], '-v', 'error', '-show_streams', '-show_format',
+            '-of', 'json', str(path)], text=True, timeout=30)), 'ffprobe'
+    import av
+    with av.open(str(path)) as container:
+        stream = container.streams.video[0]
+        return dict(streams=[dict(codec_name=stream.codec_context.name, pix_fmt=stream.codec_context.format.name,
+            width=stream.width, height=stream.height, r_frame_rate=str(stream.average_rate),
+            nb_frames=stream.frames, duration=float(stream.duration*stream.time_base) if stream.duration else None)],
+            format=dict(filename=str(path), duration=float(container.duration/1e6) if container.duration else None)), 'pyav'
 
 
 def authorize_late_gate(root, reason):
@@ -309,7 +333,8 @@ class Pipeline:
             self.current, self.attempt_active = 'video_preflight', False
             media = video_tools()
             atomic_json(self.root/'video_tools.json',
-                {name: dict(path=path, sha256=sha256(path)) for name, path in media.items()})
+                {name: (dict(path=path, sha256=sha256(path)) if path else dict(backend='pyav'))
+                 for name, path in media.items()})
             self.start_gpu_clock()
             if self.session.get('late_gate_recovery', {}).get('authorized'):
                 self.stage('late_gate_preflight', 'visuotactile.native_evaluation', ['--mode', 'preflight'])
@@ -413,13 +438,13 @@ def verify(root, output):
         raise ValueError('Exactly four main videos required')
     reports = []
     for video in videos:
-        probe = json.loads(subprocess.check_output([media['ffprobe'], '-v', 'error', '-show_streams', '-show_format',
-            '-of', 'json', str(video)], text=True, timeout=30))
+        probe, probe_backend = probe_video(video, media)
         stream = probe['streams'][0]
         if (stream['codec_name'], stream['pix_fmt'], stream['r_frame_rate']) != ('h264', 'yuv420p', '60/1'):
             raise ValueError('Video encoding contract mismatch')
         subprocess.run([media['ffmpeg'], '-v', 'error', '-threads', '2', '-i', str(video), '-f', 'null', '-'], check=True, timeout=120)
-        reports.append(dict(path=str(video.resolve()), bytes=video.stat().st_size, sha256=sha256(video), metadata=probe))
+        reports.append(dict(path=str(video.resolve()), bytes=video.stat().st_size, sha256=sha256(video),
+            metadata=probe, metadata_backend=probe_backend))
     artifacts = [dict(path=str(path.resolve()), bytes=path.stat().st_size, sha256=sha256(path))
                  for path in root.rglob('*') if path.is_file() and path.name not in ('gpu.lock', 'runner.lock')]
     atomic_json(output/'artifact_manifest.json', dict(artifacts=artifacts, videos=reports, public_upload=False))
