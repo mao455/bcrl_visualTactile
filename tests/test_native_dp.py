@@ -178,7 +178,7 @@ def test_official_full_field_spatial_keypoints_and_depth_gradient(monkeypatch):
     import visuotactile.models.native_dp as module
     monkeypatch.setattr(module, 'ConditionalUnet1D', lambda **kwargs: nn.Linear(29, 29))
     model = NativePolicy('I-OfficialDP')
-    rgb = torch.randint(0, 256, (3, 3, 252, 448), dtype=torch.uint8)
+    rgb = torch.rand(3, 3, 252, 448)
     depth = torch.ones(3, 1, 252, 448, requires_grad=True)
     encoded = model.vision(rgb, depth, torch.ones_like(depth, dtype=torch.bool))
     assert encoded.shape == (384,)
@@ -466,7 +466,7 @@ def test_native_dino_uses_only_current_views_and_restores_precision(monkeypatch,
     monkeypatch.setattr(FrozenDinoSpatial, 'forward', forward)
     model = NativeDinoSpatial.__new__(NativeDinoSpatial)
     nn.Module.__init__(model)
-    rgb = torch.rand(3, 3, 252, 448)
+    rgb = torch.randint(0, 256, (3, 3, 252, 448), dtype=torch.uint8)
     before = (torch.backends.cudnn.enabled, torch.backends.cudnn.allow_tf32,
               torch.backends.cuda.matmul.allow_tf32)
     if fail:
