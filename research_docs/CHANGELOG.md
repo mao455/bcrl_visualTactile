@@ -1051,6 +1051,11 @@ Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and 
 - Added `tests/test_native_dp_status.py`; the fixed temporary-run fixture verifies update rate, ETA, resource summary and lease timing fields.
 - Added `research_docs/NATIVE_DP_EXECUTION_AUDIT_20261101.md` with measured stage timings, current Official formal progress, GPU/resource evidence, confirmed performance/recovery defects and the decision not to interrupt the active worker.
 - Validation: `.venv_isaacsim/bin/python -m pytest -q tests/test_native_dp.py tests/test_native_dp_status.py` passed (32 tests, one existing requests warning). The active run remains under its original deadlines and no training contract or threshold changed.
+
+### 2026-11-02 — Native DP interim result statistics
+
+- Added `research_docs/NATIVE_DP_CURRENT_RESULTS_20261102.md`, an evidence-only Chinese report covering data/Oracle/Gate status, fit RMSE, diagnostic contact/lift/alignment/fall counts, formal-training progress and the distinction between measured diagnostic success (`0/6`) and not-yet-run formal success rates.
+- No active worker, checkpoint, threshold, source contract or test cohort was changed while producing the report.
 ### 2026-10-28 — B0/B1 command diffusion training interface
 
 - Added `visuotactile/train_dp.py` for the first formal offline baselines on the
