@@ -2,6 +2,13 @@
 
 ## 2026-11-02 — State-first V2 audit and isolated implementation
 
+启动核验补充：服务native-dp-v2-state-first-20261102-01.service active/running，
+owner269512，状态waiting_predecessor；源码9431b42与SHA登记一致。
+best/last EMA字节相同，实际首批28starts；新updates0，未启动Kit。
+新session绝对截止2026-11-03 02:43:45 UTC+8，含旧run等待；不重置旧run截止。
+该核验后不驻守轮询。实际未来进度以root状态/结果为准。
+
+
 User's attached task supersedes automatic three-way full training for the new experiment.
 Original run02 continues unchanged; all three old test40 start markers now exist, so
 future reporting must disclose prior held-out usage. No new test calls in V2 debugging.

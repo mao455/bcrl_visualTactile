@@ -65,3 +65,31 @@ test这里只做原数据完整性/分布审计，不将test模型误差或succe
 清理清单零删除，所有历史证据保留。后续人工分析应从每条result/trace开始，不能用本文件的进行中快照替代结果。
 
 CPU条件编码实测：8条/150anchors/23segments，旧加载+编码0.44174s；新一次加载0.04372s、编码0.00385s，缓存2,683,800bytes。两CPU线程、未训练参数，仅测State观察条件路径；不代表GPU扩散或端到端训练加速。
+
+## 一次启动核验（2026-11-02 02:44，UTC+8）
+
+实际实现commit **9431b4286db09fdd1c54b76075ee61be8e1da496**，全部运行源码SHA与登记一致。
+服务 `native-dp-v2-state-first-20261102-01.service` 为active/running，owner PID269512；
+机器状态 **waiting_predecessor**。这是owner启动通过，**不是GPU/Kit/闭环通过**；新updates仍0。
+脚本待旧owner/evaluator/monitor退出后自动开始，不需要对话轮询。
+
+新session注册11月2日02:43:45，绝对终点11月3日02:43:45（UTC+8，包括全部等待），
+GPU诊断最多4h；条件学习最多到首次GPU+20h，且不超过该绝对终点。
+旧run02原deadline完全不变。
+
+旧State模型71,300,509个参数；best/last均19000updates、91个完整数据遍历。
+它们的文件SHA不同，但所有EMA tensor名称/字节hash相同：
+`09a005306391bf02fa665feac9c7328c500aed69799bed9bcbdb693e48e6b511`。
+不重复执行相同last，因此本轮首批为**28 starts**：8 replay + train8 + validation8 + 第二seed4。
+确切路径/文件SHA与初态见 `evidence/native_dp_v2/startup.json` 和本机session/job。
+
+G0数值部分通过、物理replay待测；G1新流水线学习验收待测；G2/G3闭环待测；G4/G5锁定。
+没有新的完整任务成功率，不写0/28或0/60。没有StateBC/新DP/新视觉训练结果。
+当前视觉小规模验收与正式test的自动执行尚未实现，不将预注册Gate函数当已完成实验；
+只有State基础通过后才继续该受条件约束的工作。
+
+![旧三组实际训练与验证曲线](evidence/native_dp_v2/old_training.png)
+
+曲线来自旧run02日志；validation为旧单seed采样MSE，不能作为V2改善曲线。
+新成功率、阶段进展、动作误差、资源曲线和视频由后台实际产物生成于run/report。
+原有220步专家成功参考视频被索引并重新完整解码；它不是本批学生成功或同初态配对。

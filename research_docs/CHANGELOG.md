@@ -2,6 +2,11 @@
 
 ## 2026-11-02 — Native DP V2 state-first audit and guarded execution
 
+- 最终56项定向测试通过（6.05s）；实现commit9431b42。独立服务单次核验为waiting_predecessor，
+  source SHA一致、newupdates0；best/last EMA相同去重，固定首批28starts。既有三组真实训练曲线已导出，
+  220步专家参考视频重新完整解码。GPU/Kit和新success仍待执行，未宣称全面重构实验完成。
+
+
 - New `native_v2_audit/control_audit`: all400 original SHA,81,894 steps, success/retract,
   numeric causality/cache/statistics, duplicates and actual native command queue/target checks;
   all measured numeric maxima0. No change to source trajectories, controller or task.
