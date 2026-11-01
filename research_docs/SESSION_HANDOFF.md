@@ -1,34 +1,36 @@
 # 当前会话交接：视觉—触觉研究
 
-## 当前实施 — Native-command新run已后台启动（2026-11-01）
+## 2026-11-01 — Native DP真实进度：Gate阻断，当前无worker
 
-旧 `native_20261101_01` 保持 Oracle Gate blocked，不修改历史状态。针对其
-`libomniclient` `FileThread` abort，独立最小 Kit 探针在用户级 inotify约
-524199/524288时成功；新入口在 AppLauncher 前调用 `libomniclient.so` 的
-`testSetWatchesEnabled(false)`，同时保留 `fsWatcherEnabled=false` 和进程级
-`MALLOC_ARENA_MAX=2`。没有修改系统额度、IDE、其他进程、物理、控制器或网络。
+权威快照为 `evidence/native_dp_status_20261101.json`，详细结果为
+`NATIVE_DP_THREE_WAY_RESULTS.md`。run02 的数据400/400、两个220步Oracle、S组
+network/fit1/fit4/pilot及两条自主诊断、Official network/fit1均通过对应阶段验收。
+Official fit1实际400次更新；S fit1/fit4为400/500次。它们是Gate权重，正式训练0更新。
+S两条自主诊断均有目标接触、稳定抓持诊断和native lift，最终fall，成功0/2、子目标0。
+History GPU Gate、正式训练、test40和60条正式闭环均未开始；已有专家视频1个（220帧，ffprobe及全片解码通过）。
 
-新独立 root 为 `outputs/visuotactile/native_dp_3way/native_20261101_02`，source
-commit `8a147f8`。服务 `native-dp-20261101-02.service` 已由 user-level
-systemd 启动并在 Codex 会话外持续运行；启动验收时 `Active: running`，当前
-阶段为 `data`，400条数据复核正在写入 root。新24小时 deadline 将在首个 GPU
-Gate 前由流水线固定；当前仍为 `null`，不能把数据阶段称为训练开始。
+run02 在2026-11-01 11:02（北京时间）的 `I-OfficialDP_fit1_diagnostic/attempt_1`
+Kit初始化期间出现 `std::system_error: Invalid argument`；只有runtime_controls，
+没有该阶段轨迹。旧交接把它直接称为FileThread根因，现存worker日志未给出该栈，
+所指Kit日志已不可读，不能补造诊断。systemd存在inotify ENOSPC警告，但该服务随后
+成功完成多个Kit阶段，不能据此断言换成setsid就能修复。进程内OmniClient开关对
+两个Oracle有效，尚未证明能稳定完成所有后续启动。
 
-进度入口：`status.json`、`manifest.json`、`data_progress.json`、各 stage 日志；
-Oracle attempt 还会写 `runtime_controls.json`。Codex不会驻守轮询；服务结束后
-必须以 `completion.json` 或 `blocked.json`、真实checkpoint和结果产物为准。
+**截止纠正：** run02首GPU时间为11月1日10:38:19，Gate截止13:38:19；
+总截止是 **11月2日10:38:19**，训练截止11月2日07:38:19。15:51恢复的attempt2
+因Gate截止退出，不是本run的第二次原生崩溃，也不是24小时总截止已过。
+本轮曾按错误摘要启动run03数据复核，现已在GPU前显式停止，保留blocked记录；
+其source commit实际为5032af3，started_epoch仍为null，未使用第二个24小时预算。
+run02原deadline未改，run01历史失败未改，当前三个root均无自有worker运行。
 
-## 当前实施 — 三组Native-command后台流水线（已阻断）
+`native_pipeline`现在在创建attempt/复制checkpoint/启动worker前检查具体截止，
+将Gate截止、总截止和monitor退出分别报错，保留失败attempt退出码；预启动拒绝
+不会重写旧attempt原因。21项Native CPU测试通过。代码变化未迁移到历史run。
+若继续实验，需先有新的Kit故障证据及验证，并明确解决已耗尽的Gate窗口；不能
+自行延长、跳Gate或新建run重计时。用户未要求Codex驻守，本轮不等待训练。
 
-用户确认24小时方案，入口`visuotactile.native_pipeline`，新root
-`outputs/visuotactile/native_dp_3way/native_20261101_01`。
-代码、CPU测试和七份中文说明已建立；数据Gate attempt2完成400/400。
-恢复服务`native-dp-20261101-01-resume1.service`在`oracle_base`启动约10分钟后以-6退出；
-`blocked.json`和完整attempt日志已保存。日志为`libomniclient` `provider_file::FileThread`的
-`std::system_error: Invalid argument`原生abort；进程级`fsWatcherEnabled=false`已传入，当前用户inotify约524199/524288。
-因此未发生GPU Gate、optimizer更新、checkpoint读回、正式训练、闭环或视频。3小时Gate deadline已过，
-原24小时deadline不变；不重置、不自动重试、不把阻断run改称完成。原生任务/控制器/wrapper没有diff。
-累计35项针对性测试通过；本轮失败attempt、资源日志和源码审计保留，未删除旧文件。
+原活动区间整卡均值27.8459%、完整60秒最高46.4103%、采样缺失0；恢复后的汇总
+额外记录停机期间17311.88秒未采样，不能称整段连续无缺测。原数据/权重和崩溃证据保留。
 
 ## 2026-10-31 — T0真实事件重放与冻结DP验收完成
 

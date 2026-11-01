@@ -32,8 +32,17 @@ bash visuotactile/run_cpu.sh -m visuotactile.native_pipeline stop --root outputs
 ```
 
 显式resume使用同一root和同一deadline；已完成阶段先复验hash再跳过；失败尝试保留新attempt。
+2026-11-01修复：截止检查在新attempt创建、checkpoint复制及worker启动之前执行；
+Gate截止、总截止和monitor退出分别报告，预启动拒绝保留原attempt原因及退出码。
 源码/配置不符、NaN、Gate失败、Kit异常不自动重试。修改源码后不能绕过身份检查恢复正式权重。
 禁止以新目录重置同一授权运行窗口；需要修复时先核对是否仍在正式冻结前，并记录具体变更。
+
+首GPU前检查`ffprobe`/`ffmpeg`可执行及动态库，并登记`video_tools.json`中的路径/hash。
+PATH没有工具时允许进程级`NATIVE_DP_FFPROBE`和`NATIVE_DP_FFMPEG`指定绝对路径；
+本机已验证副本为`/home/CNS2025331827/miniconda3/envs/isaac/bin/{ffprobe,ffmpeg}`。
+systemd启动时用`--setenv=NATIVE_DP_FFPROBE=<path>`与`--setenv=NATIVE_DP_FFMPEG=<path>`
+传入；不激活该环境或修改共享库。只读工具检查不代表Kit或训练恢复通过。
+当前run02因Gate窗口已过而blocked，run03重复启动已在GPU前停止，不照上述模板重开预算。
 
 资源监测贯穿GPU启动至全部owned workers退出。stop只作用于本服务创建的子进程组，不操作无关任务。
 systemd用户服务必须实际验证Linger和服务状态；后台脚本没有唤醒Codex的能力。

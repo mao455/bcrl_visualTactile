@@ -1,5 +1,20 @@
 # Engineering change and verification log
 
+## 2026-11-01 — 截止前置校验及真实Gate进度纠正
+
+- `native_pipeline`由“启动worker后检查超时”改为创建attempt/复制checkpoint/启动前
+  校验Gate与总截止；区分monitor退出，失败attempt写退出码，预启动拒绝保留旧attempt。
+- `tests/test_native_dp.py`新增过期恢复零启动、历史失败保留、崩溃退出码及monitor分类回归；
+  另加视频验收工具/动态库前置检查及显式NATIVE_DP_FFPROBE/FFMPEG路径，
+  共21项通过；本机已有工具完成专家视频ffprobe/全片解码，未改共享环境。没有GPU/网络/控制合同变更，未将代码变更迁移到历史run。
+- 复核run02：两个220步Oracle通过；S fit1/fit4/pilot 400/500/20更新，Official fit1
+  400更新；S两条自主诊断接触/抓持/lift后fall。正式训练/test40/formal60仍未开始。
+- 更正摘要：过期的是11月1日13:38:19 Gate窗口，总截止仍为11月2日10:38:19；
+  attempt2因Gate超时退出，不是第二次原生崩溃。重复启动的run03已在GPU前停止并保留，
+  source commit为5032af3，未重置预算。当前无自有worker。
+- 新增精简证据JSON，核验真实checkpoint步数、视频和protected hash；资源汇总明确
+  保留恢复前停机区间17311.88秒无采样。systemd ENOSPC不等于Kit唯一根因，setsid未经修复验收。
+
 ## 2026-11-01 — Native Oracle底层监听开关修复
 
 - `native_evaluation` 在启动 Kit 前调用 `libomniclient.so` 导出的

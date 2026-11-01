@@ -71,6 +71,19 @@ def valid_artifacts(stage):
     return bool(stage.get('artifacts'))
 
 
+def video_tools():
+    resolved = {name: shutil.which(os.environ.get('NATIVE_DP_'+name.upper(), name))
+                for name in ('ffprobe', 'ffmpeg')}
+    missing = [name for name, path in resolved.items() if path is None]
+    if missing:
+        raise RuntimeError('Video acceptance executables missing from PATH: '+', '.join(missing))
+    for name, path in resolved.items():
+        result = subprocess.run([path, '-version'], capture_output=True, text=True, timeout=10)
+        if result.returncode:
+            raise RuntimeError(f'{name} cannot run: '+result.stderr[:1000])
+    return resolved
+
+
 def review_pre_freeze_update(root, reason):
     if (root/'frozen.json').exists():
         raise ValueError('Formal configuration frozen; source migration forbidden')
@@ -107,6 +120,7 @@ class Pipeline:
         self.monitor = None
         self.child = None
         self.current = None
+        self.attempt_active = False
         self.stop = False
         signal.signal(signal.SIGTERM, lambda *_: setattr(self, 'stop', True))
         signal.signal(signal.SIGINT, lambda *_: setattr(self, 'stop', True))
@@ -133,13 +147,20 @@ class Pipeline:
             stderr=subprocess.STDOUT, start_new_session=True)
 
     def stage(self, name, module, arguments, *, budget='gate_deadline', gpu=True):
-        self.check_identity()
         self.current = name
+        self.attempt_active = False
+        self.check_identity()
         previous = self.manifest['stages'].get(name, {})
         if valid_artifacts(previous):
             return Path(previous['output'])
         if previous and not self.resume:
             raise RuntimeError('Incomplete attempt requires explicit resume: '+name)
+        # Check before copying recovery files or spawning a worker. A resume must
+        # not briefly launch Kit after the immutable stage window has expired.
+        if self.stop or (self.root/'STOP').exists():
+            raise InterruptedError('Explicit stop before worker launch: '+name)
+        if gpu:
+            self.check_stage_budget(budget)
         attempt = len(previous.get('attempts', []))+1
         output = self.root/'stages'/name/('attempt_'+str(attempt))
         output.parent.mkdir(parents=True, exist_ok=True)
@@ -160,6 +181,7 @@ class Pipeline:
         attempts.append(dict(number=attempt, output=str(output), command=command, started=row['started']))
         self.manifest['stages'][name] = row
         self.manifest.update(state='running', current_stage=name, pid=os.getpid())
+        self.attempt_active = True
         self.write()
         with (output.parent/('attempt_'+str(attempt)+'.log')).open('w') as log:
             self.child = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=log,
@@ -170,9 +192,8 @@ class Pipeline:
                 if self.stop or (self.root/'STOP').exists():
                     stop_owned(self.child)
                     raise InterruptedError('Explicit stop; completed artifacts and last checkpoint retained')
-                if gpu and (time.time() >= self.session[budget] or self.monitor.poll() is not None):
-                    stop_owned(self.child)
-                    raise TimeoutError('Stage deadline expired or resource monitor exited')
+                if gpu:
+                    self.check_stage_budget(budget)
                 state = 'running'
                 resource_path = self.root/'resources/resources.json'
                 if gpu and resource_path.exists():
@@ -186,6 +207,7 @@ class Pipeline:
                     stage_output=str(output), utc_epoch=time.time(), deadline=self.session['deadline']))
                 time.sleep(2)
             row['exit_code'] = self.child.returncode
+            attempts[-1]['exit_code'] = self.child.returncode
         self.child = None
         result_path = output/'result.json'
         if row['exit_code'] != 0 or not result_path.exists():
@@ -204,6 +226,17 @@ class Pipeline:
         self.write()
         return output
 
+    def check_stage_budget(self, budget):
+        now = time.time()
+        for key in dict.fromkeys(('deadline', budget)):
+            deadline = self.session[key]
+            if deadline is None:
+                raise RuntimeError('GPU clock has not been registered: '+key)
+            if now >= deadline:
+                raise TimeoutError(f'{key} expired: now={now}, deadline={deadline}; stage={self.current}')
+        if self.monitor is None or self.monitor.poll() is not None:
+            raise RuntimeError('Resource monitor is not running; stage='+str(self.current))
+
     def training(self, group, stage):
         return self.stage(group+'_'+stage, 'visuotactile.native_training', ['--group', group, '--stage', stage],
                           budget='training_deadline' if stage == 'formal' else 'deadline' if stage == 'test' else 'gate_deadline')
@@ -216,6 +249,10 @@ class Pipeline:
     def run(self):
         try:
             self.stage('data', 'visuotactile.native_pipeline', ['worker', '--task', 'data'], gpu=False)
+            self.current, self.attempt_active = 'video_preflight', False
+            media = video_tools()
+            atomic_json(self.root/'video_tools.json',
+                {name: dict(path=path, sha256=sha256(path)) for name, path in media.items()})
             self.start_gpu_clock()
             self.stage('oracle_base', 'visuotactile.native_evaluation', ['--mode', 'oracle-base'])
             self.stage('oracle_instrumented', 'visuotactile.native_evaluation', ['--mode', 'oracle-instrumented'])
@@ -248,16 +285,22 @@ class Pipeline:
             self.stage('verify', 'visuotactile.native_pipeline', ['worker', '--task', 'verify'], budget='deadline')
             self.manifest.update(state='complete', ended=time.time())
         except BaseException as error:
+            stage = self.manifest['stages'].get(self.current)
             if self.child is not None:
                 stop_owned(self.child)
+                if self.attempt_active and stage:
+                    stage['exit_code'] = self.child.returncode
+                    stage['attempts'][-1]['exit_code'] = self.child.returncode
                 self.child = None
-            stage = self.manifest['stages'].get(self.current)
-            if stage and stage.get('state') != 'complete':
+            if self.attempt_active and stage and stage.get('state') != 'complete':
                 stage.update(state='blocked', reason=repr(error), ended=time.time())
                 stage['attempts'][-1].update(state='blocked', reason=repr(error))
-            self.manifest.update(state='blocked', reason=repr(error), ended=time.time())
+            self.manifest.update(state='blocked', reason=repr(error), ended=time.time(),
+                last_failure=dict(stage=self.current, attempt_started=self.attempt_active, reason=repr(error)))
             atomic_json(self.root/'blocked.json', dict(stage=self.current, reason=repr(error),
-                deadline=self.session['deadline'], utc_epoch=time.time(), automatic_retry=False))
+                deadline=self.session['deadline'], gate_deadline=self.session['gate_deadline'],
+                training_deadline=self.session['training_deadline'], attempt_started=self.attempt_active,
+                utc_epoch=time.time(), automatic_retry=False))
         finally:
             if self.monitor is not None:
                 (self.root/'STOP_MONITOR').touch()
@@ -274,6 +317,7 @@ class Pipeline:
 
 
 def verify(root, output):
+    media = video_tools()
     manifest = json.loads((root/'manifest.json').read_text())
     session = json.loads((root/'session.json').read_text())
     for name, info in session['protected'].items():
@@ -308,12 +352,12 @@ def verify(root, output):
         raise ValueError('Exactly four main videos required')
     reports = []
     for video in videos:
-        probe = json.loads(subprocess.check_output(['ffprobe', '-v', 'error', '-show_streams', '-show_format',
+        probe = json.loads(subprocess.check_output([media['ffprobe'], '-v', 'error', '-show_streams', '-show_format',
             '-of', 'json', str(video)], text=True, timeout=30))
         stream = probe['streams'][0]
         if (stream['codec_name'], stream['pix_fmt'], stream['r_frame_rate']) != ('h264', 'yuv420p', '60/1'):
             raise ValueError('Video encoding contract mismatch')
-        subprocess.run(['ffmpeg', '-v', 'error', '-i', str(video), '-f', 'null', '-'], check=True, timeout=120)
+        subprocess.run([media['ffmpeg'], '-v', 'error', '-threads', '2', '-i', str(video), '-f', 'null', '-'], check=True, timeout=120)
         reports.append(dict(path=str(video.resolve()), bytes=video.stat().st_size, sha256=sha256(video), metadata=probe))
     artifacts = [dict(path=str(path.resolve()), bytes=path.stat().st_size, sha256=sha256(path))
                  for path in root.rglob('*') if path.is_file() and path.name not in ('gpu.lock', 'runner.lock')]

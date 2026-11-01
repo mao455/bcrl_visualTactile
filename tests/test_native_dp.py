@@ -247,3 +247,97 @@ def test_oracle_runtime_watch_control_is_explicit():
     import visuotactile.native_evaluation as evaluation
     assert hasattr(ctypes, 'CDLL')
     assert callable(evaluation.disable_omniclient_watches)
+
+
+@pytest.mark.parametrize('total_deadline,expected', [(90000, 'gate_deadline'), (100, 'deadline')])
+def test_expired_resume_preserves_attempt_and_never_spawns(tmp_path, monkeypatch, total_deadline, expected):
+    import json
+    import visuotactile.native_pipeline as module
+    from visuotactile.compact import sha256
+    monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
+    monkeypatch.setattr(module, 'sources', lambda: {})
+    monkeypatch.setattr(module.time, 'time', lambda: 101.)
+    monkeypatch.setattr(module, 'video_tools', lambda: {})
+    session = dict(source_hashes={}, started_epoch=1, gate_deadline=100,
+                   training_deadline=80000, deadline=total_deadline)
+    (tmp_path/'session.json').write_text(json.dumps(session))
+    result = tmp_path/'data_result.json'
+    result.write_text('{"passed":true}')
+    previous = dict(state='blocked', exit_code=-6, output=str(tmp_path/'old_attempt'),
+                    attempts=[dict(number=1, exit_code=-6, reason='native abort')])
+    manifest = dict(state='blocked', stages={
+        'data': dict(state='complete', exit_code=0, output=str(tmp_path), artifacts={str(result): sha256(result)}),
+        'oracle_base': copy.deepcopy(previous)})
+    (tmp_path/'manifest.json').write_text(json.dumps(manifest))
+    runner = module.Pipeline(tmp_path, resume=True)
+    monkeypatch.setattr(runner, 'start_gpu_clock', lambda: None)
+    monkeypatch.setattr(module.subprocess, 'Popen', lambda *a, **kw: pytest.fail('Expired run spawned a worker'))
+    runner.run()
+    assert runner.manifest['state'] == 'blocked'
+    assert runner.manifest['stages']['oracle_base'] == previous
+    assert f'{expected} expired' in runner.manifest['reason']
+    assert not runner.manifest['last_failure']['attempt_started']
+    assert json.loads((tmp_path/'session.json').read_text()) == session
+    assert not (tmp_path/'stages').exists()
+
+
+def test_stage_records_native_crash_exit_code_in_attempt(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import visuotactile.native_pipeline as module
+    monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
+    monkeypatch.setattr(module, 'sources', lambda: {})
+    (tmp_path/'session.json').write_text('{"source_hashes": {}}')
+    (tmp_path/'manifest.json').write_text('{"stages": {}}')
+    runner = module.Pipeline(tmp_path)
+    child = SimpleNamespace(pid=123, returncode=-6, poll=lambda: -6)
+    monkeypatch.setattr(module.subprocess, 'Popen', lambda *a, **kw: child)
+    with pytest.raises(RuntimeError, match='Worker failed'):
+        runner.stage('oracle_base', 'unused', [], gpu=False)
+    assert runner.manifest['stages']['oracle_base']['attempts'][0]['exit_code'] == -6
+
+
+def test_monitor_exit_is_not_reported_as_deadline_expiry(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import visuotactile.native_pipeline as module
+    monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
+    monkeypatch.setattr(module.time, 'time', lambda: 50.)
+    (tmp_path/'session.json').write_text('{"deadline": 200, "gate_deadline": 100}')
+    (tmp_path/'manifest.json').write_text('{"stages": {}}')
+    runner = module.Pipeline(tmp_path)
+    runner.monitor = SimpleNamespace(poll=lambda: 2)
+    with pytest.raises(RuntimeError, match='Resource monitor is not running'):
+        runner.check_stage_budget('gate_deadline')
+
+
+def test_missing_video_acceptance_tools_block_before_gpu_clock(tmp_path, monkeypatch):
+    import visuotactile.native_pipeline as module
+    monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
+    monkeypatch.setattr(module.shutil, 'which', lambda name: None)
+    (tmp_path/'session.json').write_text('{"deadline": null, "gate_deadline": null, "training_deadline": null}')
+    (tmp_path/'manifest.json').write_text('{"stages": {}}')
+    runner = module.Pipeline(tmp_path)
+    monkeypatch.setattr(runner, 'stage', lambda *a, **kw: tmp_path)
+    monkeypatch.setattr(runner, 'start_gpu_clock', lambda: pytest.fail('Missing tools consumed GPU budget'))
+    runner.run()
+    assert runner.manifest['state'] == 'blocked'
+    assert runner.manifest['last_failure']['stage'] == 'video_preflight'
+    assert 'ffprobe, ffmpeg' in runner.manifest['reason']
+
+
+def test_video_preflight_checks_explicit_tools_and_library_failures(monkeypatch):
+    from types import SimpleNamespace
+    import visuotactile.native_pipeline as module
+    monkeypatch.setenv('NATIVE_DP_FFPROBE', '/explicit/ffprobe')
+    monkeypatch.setenv('NATIVE_DP_FFMPEG', '/explicit/ffmpeg')
+    monkeypatch.setattr(module.shutil, 'which', lambda name: name if name.startswith('/explicit/') else None)
+    calls = []
+    def execute(args, **kwargs):
+        calls.append(args)
+        return SimpleNamespace(returncode=0)
+    monkeypatch.setattr(module.subprocess, 'run', execute)
+    assert module.video_tools() == {'ffprobe': '/explicit/ffprobe', 'ffmpeg': '/explicit/ffmpeg'}
+    assert calls == [['/explicit/ffprobe', '-version'], ['/explicit/ffmpeg', '-version']]
+    monkeypatch.setattr(module.subprocess, 'run', lambda *a, **kw:
+        SimpleNamespace(returncode=127, stderr='error while loading shared libraries: libass.so.9'))
+    with pytest.raises(RuntimeError, match='ffprobe cannot run.*shared libraries'):
+        module.video_tools()
