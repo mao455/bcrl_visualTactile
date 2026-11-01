@@ -1,6 +1,18 @@
 # 当前会话交接：视觉—触觉研究
 
-## 最新状态 — late-gate recovery 已启动（2026-11-01 08:48 UTC）
+## 最新核验 — DINO缓存数值修复（2026-11-01 18:11 UTC+8）
+
+唯一有效root仍为`outputs/visuotactile/native_dp_3way/native_20261101_02`，原总截止
+2026-11-02 10:38:19 UTC+8、训练截止07:38:19不变。run03不重启。
+Official剩余Gate及late-gate真实环境preflight均完成，已有16个完整stage产物hash通过复核。
+新阻断为History network attempt1的DINO cache reproduction，非Kit；正式训练尚无更新。
+原缓存6图TF32-enabled卷积与新3图FP32计算不一致；精确原配置复现误差0。
+Native专用因果6图前端与首train的12个完整双帧来源anchor逐位一致，奇数尾帧需单独overlay。
+保留原400、旧cache、失败日志；新增400份缓存核验和尾帧修复阶段后重跑History网络Gate。
+Kit自动重试计数与初始化边界已修正；ffprobe恢复强制验收。详见NATIVE_DP_THREE_WAY_RESULTS。
+未在此快照宣称正式训练启动；后台启动验收另记，之后不驻守等待训练。
+
+## 历史状态 — late-gate recovery 已启动（2026-11-01 08:48 UTC）
 
 紧急授权已写入 `outputs/visuotactile/native_dp_3way/native_20261101_02/late_gate_recovery.json`。
 原始 Gate/训练/总截止保持不变；第一次恢复因错误的 Bash 视频路径在 `video_preflight`

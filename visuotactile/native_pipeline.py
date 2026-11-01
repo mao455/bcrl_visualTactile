@@ -4,6 +4,7 @@ import fcntl
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import signal
 import subprocess
@@ -11,7 +12,8 @@ import sys
 import time
 
 from .compact import sha256
-from .native_data import CONTRACT, GROUPS, MANIFEST, BASE, prepare
+from .native_data import CONTRACT, GROUPS, MANIFEST, BASE, prepare, prepare_native_perception
+from .native_resources import NativeLease
 from .native_training import common_budget
 from .training_resources import atomic_json
 
@@ -88,24 +90,15 @@ def video_tools():
         if result.returncode:
             raise RuntimeError(f'{name} cannot run: '+result.stderr[:1000])
     if resolved['ffprobe'] is None:
-        try:
-            import av
-        except ImportError as error:
-            raise RuntimeError('Neither ffprobe nor PyAV is available for video metadata') from error
+        raise RuntimeError('Required ffprobe metadata acceptance tool unavailable; set NATIVE_DP_FFPROBE')
     return resolved
 
 
 def probe_video(path, media):
-    if media['ffprobe'] is not None:
-        return json.loads(subprocess.check_output([media['ffprobe'], '-v', 'error', '-show_streams', '-show_format',
-            '-of', 'json', str(path)], text=True, timeout=30)), 'ffprobe'
-    import av
-    with av.open(str(path)) as container:
-        stream = container.streams.video[0]
-        return dict(streams=[dict(codec_name=stream.codec_context.name, pix_fmt=stream.codec_context.format.name,
-            width=stream.width, height=stream.height, r_frame_rate=str(stream.average_rate),
-            nb_frames=stream.frames, duration=float(stream.duration*stream.time_base) if stream.duration else None)],
-            format=dict(filename=str(path), duration=float(container.duration/1e6) if container.duration else None)), 'pyav'
+    if media['ffprobe'] is None:
+        raise RuntimeError('Required ffprobe metadata acceptance tool unavailable')
+    return json.loads(subprocess.check_output([media['ffprobe'], '-v', 'error', '-show_streams', '-show_format',
+        '-of', 'json', str(path)], text=True, timeout=30)), 'ffprobe'
 
 
 def authorize_late_gate(root, reason):
@@ -140,11 +133,46 @@ def failure_class(exit_code, log_path, monitor_exited=False):
     text = log_path.read_text(errors='replace') if log_path.exists() else ''
     if exit_code in (-6, 134) and ('std::system_error' in text or 'terminate called' in text):
         return 'kit_native_crash'
-    if 'Nonfinite' in text or 'nan' in text.lower():
+    if re.search(r'nonfinite|non-finite|\bnan\b', text, re.IGNORECASE):
         return 'training_nonfinite'
     if exit_code in (-9, 137):
         return 'resource_kill_or_oom'
+    if re.search(r'(ValueError|RuntimeError):.*(gate|cache reproduction|identity|mismatch)', text, re.IGNORECASE):
+        return 'experiment_consistency_failure'
+    if 'TimeoutError:' in text and 'deadline' in text.lower():
+        return 'time_budget_exhausted'
     return 'worker_failure'
+
+
+def retryable_kit_startup(row):
+    if row.get('failure_class') != 'kit_native_crash' or row.get('kit_retries', 0) >= 1:
+        return False
+    attempts = row['attempts']
+    if len(attempts) > 1 and attempts[-2].get('failure_class') == 'kit_native_crash':
+        return False
+    lifecycle = Path(row['output'])/'kit_lifecycle.json'
+    if not lifecycle.exists():
+        return False
+    return json.loads(lifecycle.read_text()).get('phase') == 'initializing'
+
+
+def cleanup_worker_group(pid):
+    try:
+        os.killpg(pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return 'no_remaining_process_group'
+    deadline = time.monotonic()+2
+    while time.monotonic() < deadline:
+        try:
+            os.killpg(pid, 0)
+        except ProcessLookupError:
+            return 'owned_group_terminated'
+        time.sleep(.1)
+    try:
+        os.killpg(pid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+    return 'owned_group_killed_after_grace'
 
 
 def review_pre_freeze_update(root, reason):
@@ -159,6 +187,7 @@ def review_pre_freeze_update(root, reason):
         raise ValueError('Reviewed update must be restricted to the new native DP modules')
     session.setdefault('pre_freeze_source_reviews', []).append(dict(utc_epoch=time.time(), reason=reason,
         changed=sorted(changed), previous=session['source_hashes'], current=current,
+        current_source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         original_started_epoch=session['started_epoch'], original_deadline=session['deadline']))
     session['source_hashes'] = current
     atomic_json(root/'session.json', session)
@@ -221,7 +250,7 @@ class Pipeline:
         previous = self.manifest['stages'].get(name, {})
         if valid_artifacts(previous):
             return Path(previous['output'])
-        if previous and not self.resume:
+        if previous and not self.resume and previous.get('state') != 'retrying':
             raise RuntimeError('Incomplete attempt requires explicit resume: '+name)
         # Check before copying recovery files or spawning a worker. A resume must
         # not briefly launch Kit after the immutable stage window has expired.
@@ -247,6 +276,7 @@ class Pipeline:
         row = dict(state='starting', attempt=attempt, command=command, output=str(output),
             dependencies=[key for key, value in self.manifest['stages'].items() if value.get('state') == 'complete'],
             started=time.time(), source_hashes=self.session['source_hashes'], attempts=attempts,
+            kit_retries=previous.get('kit_retries', 0),
             budget_requested=budget, budget_effective=effective_budget,
             late_gate_recovery=bool(self.session.get('late_gate_recovery', {}).get('authorized')))
         attempts.append(dict(number=attempt, output=str(output), command=command, started=row['started']))
@@ -285,9 +315,12 @@ class Pipeline:
             row['failure_class'] = failure_class(row['exit_code'], output.parent/('attempt_'+str(attempt)+'.log'),
                 monitor_exited=bool(gpu and self.monitor is not None and self.monitor.poll() is not None))
             attempts[-1].update(exit_code=row['exit_code'], state='blocked', failure_class=row['failure_class'])
-            if row['failure_class'] == 'kit_native_crash' and self.resume and row.get('kit_retries', 0) < 1:
+            if row['failure_class'] == 'kit_native_crash':
+                attempts[-1]['group_cleanup'] = cleanup_worker_group(row['pid'])
+            if retryable_kit_startup(row):
+                attempts[-1].update(ended=time.time(), automatic_retry=True)
                 row.update(state='retrying', kit_retries=row.get('kit_retries', 0)+1,
-                    retry_reason='One bounded retry after isolated Kit native crash; no cache or global resource changes')
+                    retry_reason='One bounded initialization retry after owned process-group cleanup; no rollout started')
                 self.write()
                 self.attempt_active = False
                 return self.stage(name, module, arguments, budget=budget, gpu=gpu)
@@ -299,6 +332,11 @@ class Pipeline:
         if 'required' in result and result.get('completed') != result['required']:
             raise RuntimeError('Incomplete evaluation cohort')
         artifacts = {str(result_path): sha256(result_path)}
+        for filename in result.get('artifact_files', []):
+            path = Path(filename).resolve()
+            if not path.is_relative_to(self.root.resolve()) or not path.is_file():
+                raise ValueError('Stage artifact outside experiment or missing: '+str(path))
+            artifacts[str(path)] = sha256(path)
         for filename in ('best.pt', 'last.pt'):
             if (output/filename).exists():
                 artifacts[str(output/filename)] = sha256(output/filename)
@@ -342,6 +380,8 @@ class Pipeline:
             self.stage('oracle_instrumented', 'visuotactile.native_evaluation', ['--mode', 'oracle-instrumented'])
             pilots, validation = {}, {}
             for group in GROUPS:
+                if group == 'I-HistoryDP':
+                    self.stage('native_perception', 'visuotactile.native_pipeline', ['worker', '--task', 'perception'])
                 self.training(group, 'network')
                 for stage in ('fit1', 'fit4'):
                     output = self.training(group, stage)
@@ -396,7 +436,8 @@ class Pipeline:
                     stop_owned(self.monitor)
                 self.monitor_log.close()
             self.write()
-            atomic_json(self.root/'status.json', dict(state=self.manifest['state'], ended=time.time(), owned_workers_exited=True))
+            atomic_json(self.root/'status.json', dict(state=self.manifest['state'], stage=self.current,
+                reason=self.manifest.get('reason'), ended=time.time(), owned_workers_exited=True))
             if self.manifest['state'] == 'complete':
                 atomic_json(self.root/'completion.json', dict(completed=time.time(), stages=self.manifest['stages'],
                     owned_workers_exited=True, human_analysis_pending=True, cleanup_pending=True, git_push_pending=True))
@@ -456,7 +497,7 @@ def main():
     parser.add_argument('command', choices=('initialize', 'run', 'resume', 'status', 'stop', 'worker'))
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--output', type=Path)
-    parser.add_argument('--task', choices=('data', 'verify'))
+    parser.add_argument('--task', choices=('data', 'perception', 'verify'))
     parser.add_argument('--review-pre-freeze-source-update')
     parser.add_argument('--late-gate-recovery', help='Authorize one auditable late Gate recovery within the original deadline')
     args = parser.parse_args()
@@ -473,6 +514,14 @@ def main():
         if args.task == 'data':
             prepare(args.root)
             atomic_json(args.output/'result.json', json.loads((args.root/'data_gate.json').read_text()))
+        elif args.task == 'perception':
+            import torch
+            torch.set_num_threads(2)
+            torch.backends.cuda.matmul.allow_tf32 = False
+            torch.backends.cudnn.allow_tf32 = False
+            session = json.loads((args.root/'session.json').read_text())
+            deadline = session['deadline'] if session.get('late_gate_recovery', {}).get('authorized') else session['gate_deadline']
+            prepare_native_perception(args.root, args.output, NativeLease(args.root, deadline=deadline))
         else:
             verify(args.root, args.output)
     else:

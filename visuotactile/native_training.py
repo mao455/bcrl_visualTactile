@@ -84,12 +84,13 @@ def network_gate(root, group, output, lease):
     data = json.loads((root/'data.json').read_text())
     episode = Episode(root, data['splits']['train'][0], group)
     dino_evidence = None
+    dino = None
     if group == 'I-HistoryDP':
-        from .models.long_horizon import FrozenDinoSpatial
+        from .models.native_vision import NativeDinoSpatial
         if sha256(Path(torch.hub.get_dir())/'checkpoints/dinov2_vits14_pretrain.pth') != data['dino_weights_sha256']:
             raise ValueError('Frozen DINO weights changed since cache creation')
         with lease.block():
-            dino = FrozenDinoSpatial().to('cuda:0').eval()
+            dino = NativeDinoSpatial().to('cuda:0').eval()
             if any(parameter.requires_grad for parameter in dino.parameters()):
                 raise ValueError('DINO must remain frozen')
             rgb = Episode(root, data['splits']['train'][0], 'I-OfficialDP').frame(0, 'cuda:0')['rgb']
@@ -97,10 +98,12 @@ def network_gate(root, group, output, lease):
             cached = episode.perception['patches'][0]
             difference = float((actual.float()-cached.float()).abs().max())
             if difference > .005:
+                atomic_json(output/'cache_failure.json', dict(max_abs=difference, threshold=.005))
                 raise ValueError('Pinned DINO perception cache reproduction failed')
             dino_evidence = dict(frozen=True, parameters=sum(parameter.numel() for parameter in dino.parameters()),
-                cache_max_abs_difference=difference, cache_precision='FP16', backbone_compute='FP32')
-            del dino, rgb, actual, cached
+                cache_max_abs_difference=difference, cache_precision='FP16',
+                backbone_compute='FP32 transformer; TF32-enabled convolution; fixed six-image batch')
+            del rgb, actual, cached
     with lease.block():
         torch.manual_seed(20261101)
         model = initialize_model(root, group, 'cuda:0')
@@ -134,14 +137,19 @@ def network_gate(root, group, output, lease):
         model.eval()
     with torch.no_grad():
         full_conditions = []
+        raw_episode = Episode(root, episode.record['identity'], 'I-OfficialDP') if dino is not None else None
         with lease.block():
             full, _, full_memory = encode_segment(model, episode, 0, len(episode))
         memory = None
         for tick in range(len(episode)):
             with lease.block():
                 stamp = episode.record['time'][tick].cuda()
+                frame = episode.frame(tick, 'cuda:0') if tick % 12 == 0 else None
+                if dino is not None and frame is not None:
+                    raw = raw_episode.frame(tick, 'cuda:0')
+                    frame['patches'] = dino(raw['rgb'].float()/255.)
                 memory = model.observe(episode.record['robot'][tick].cuda(), stamp, tick,
-                    episode.frame(tick, 'cuda:0') if tick % 12 == 0 else None, memory)
+                    frame, memory)
                 if tick % 12 == 0:
                     full_conditions.append(model.condition(memory, stamp))
         online = torch.cat(full_conditions)
@@ -178,6 +186,8 @@ def train(root, group, stage, output, lease, resume=False):
         optimizer=dict(lr=1e-4, betas=[.95, .999], weight_decay=1e-6), warmup=500,
         precision='FP32', gradient_accumulation_segments=4, segment_ticks=96,
         schedule='cosine', selection='EMA sampled first12 arm/hand equal native command MSE')
+    if group == 'I-HistoryDP':
+        configuration['native_perception_sha256'] = sha256(root/'native_perception.json')
     atomic_json(output/'configuration.json', configuration)
     with lease.block():
         torch.manual_seed(20261101)

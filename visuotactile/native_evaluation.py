@@ -121,7 +121,7 @@ def oracle(root, output, env, lease, instrumented):
 
 
 def autonomous(root, output, env, lease, group, checkpoint_path, cohort):
-    from .models.long_horizon import FrozenDinoSpatial
+    from .models.native_vision import NativeDinoSpatial
     from .native_controller import NativeController
     data = json.loads((root/'data.json').read_text())
     identities = (sorted(data['splits']['test'])[:20] if cohort == 'formal' else
@@ -130,7 +130,9 @@ def autonomous(root, output, env, lease, group, checkpoint_path, cohort):
     if saved['group'] != group:
         raise ValueError('Evaluation checkpoint group differs')
     with lease.block():
-        dino = FrozenDinoSpatial().to('cuda:0') if group == 'I-HistoryDP' else None
+        if group == 'I-HistoryDP' and saved['configuration'].get('native_perception_sha256') != sha256(root/'native_perception.json'):
+            raise ValueError('Native perception checkpoint identity mismatch')
+        dino = NativeDinoSpatial().to('cuda:0').eval() if group == 'I-HistoryDP' else None
     results = []
     for ordinal, identity in enumerate(identities):
         entry = data['entries'][identity]
@@ -273,6 +275,7 @@ def main():
     torch.backends.cudnn.allow_tf32 = False
     runtime_controls = disable_omniclient_watches()
     atomic_json(args.output/'runtime_controls.json', runtime_controls)
+    atomic_json(args.output/'kit_lifecycle.json', dict(phase='initializing', utc_epoch=time.time()))
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
         app = AppLauncher(headless=True, enable_cameras=True, device='cpu', kit_args=(
@@ -282,6 +285,7 @@ def main():
     try:
         import isaacsimenvs
         env = make_env(args.mode != 'oracle-base', lease)
+        atomic_json(args.output/'kit_lifecycle.json', dict(phase='environment_ready', utc_epoch=time.time()))
         if args.mode.startswith('oracle'):
             oracle(args.root, args.output, env, lease, args.mode == 'oracle-instrumented')
         elif args.mode == 'preflight':

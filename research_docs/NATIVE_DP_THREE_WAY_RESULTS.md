@@ -1,6 +1,31 @@
 # 三组 Native-command DP：实施与结果登记
 
-## 最新运行（late-gate recovery，2026-11-01）
+## 最新核验（2026-11-01 18:11，北京时间）
+
+这次阻断是`I-HistoryDP_network/attempt_1`的DINO缓存数值一致性检查，退出码1，
+不是Kit崩溃。late-gate preflight已完成真实reset与零命令，Official fit1诊断、fit4、
+fit4诊断和pilot也已完成。16个完成stage的产物hash及11个受保护产物已重新核验。
+正式训练、test40和60条正式闭环仍未开始。
+
+Official fit4实际500更新，arm/hand RMSE为0.10679/0.17511，通过原拟合条件；pilot20更新，
+实测0.86320秒/更新、val40 35.306秒。两条fit自主诊断分别175/176步fall，均有目标接触、
+稳定抓持诊断与native lift，子目标0、最终成功0/2；不属于正式测试结果。
+
+**代码与实验证实的原因：** 原DINO缓存的卷积允许TF32、每批两帧共6张图像；新Gate单帧且
+关闭TF32。相同权重/原图，严格FP32与缓存最大差异0.4375，恢复旧batch/卷积设置则差异0。
+固定6图、仅重复当前三视角的因果探针，对首train完整episode的12个双帧来源anchor逐位相等；
+奇数最后一帧差异0.67969，需独立尾帧overlay。原缓存完全保留，阈值不放宽。
+完整证据在`evidence/native_dp_dino_recovery_20261101.json`，修复合同见
+`NATIVE_COMMAND_CONTROL_CONTRACT.md`。400份缓存修复Gate及History完整网络Gate尚待后台验收。
+
+另修复Kit重试计数在递归attempt中清零的问题；现在跨attempt保存，自动最多一次，
+仅有`initializing`证据且未进入环境运行的原生崩溃才可重试；先清理已退出worker的自有进程组。
+运行期失败不能自动重复正式cohort。Kit历史根因仍未唯一确定，不称“永久消除崩溃”。
+视频验收恢复强制ffprobe；已验证本机isaac环境的ffprobe/ffmpeg可以执行。
+此前所谓Bash路径映射故障实际是调用了不存在的路径；PyAV后端的“60”也不满足旧字符串“60/1”检查。
+此次使用实际二进制路径，既保留原视频验收合同，也避免该后续工程错误。
+
+## 历史快照（late-gate recovery启动时，已被上节取代）
 
 用户紧急授权已被机器记录为 `native_20261101_02/late_gate_recovery.json`：原
 `gate_deadline`、`training_deadline` 和总 `deadline` 均未修改，没有新建预算或清除
@@ -12,7 +37,7 @@ bundled `imageio-ffmpeg`/PyAV 后端重新启动。
 尚未写入 `result.json`，因此不能称为补验通过；没有新的训练更新或评估结果。
 后台继续由原 run 的资源监控、总截止和阶段 manifest 管理，Codex不驻守轮询。
 
-## 当前状态（2026-11-01核验）
+## 历史状态（2026-11-01恢复前）
 
 **未完成，当前blocked，无后台训练worker。** 主run为`native_20261101_02`，
 source commit `8a147f8`。证据见[evidence/native_dp_status_20261101.json](evidence/native_dp_status_20261101.json)。

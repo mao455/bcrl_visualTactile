@@ -1,5 +1,20 @@
 # Engineering change and verification log
 
+## 2026-11-01 — Native DINO缓存精度与后台恢复边界
+
+- `models/native_vision.py`固定当前三视角重复为6图，复用原DINO revision/weights，
+  FP32 transformer/TF32-enabled卷积/FP16缓存，调用后恢复全局精度开关；不输入未来图像。
+- `native_data.py`新增400缓存hash/首帧复现Gate，奇数尾帧单独overlay，不改原数据或旧标签。
+  `native_training.py`完整History轨迹Gate增加真实原图重算，checkpoint绑定perception索引hash；
+  `native_evaluation.py`使用同一冻结前端。动作、网络结构、GRU精度、阈值、截止均不变。
+- `native_pipeline.py`跨attempt持久化Kit重试计数，仅允许初始化期一次自动重试，清理自有进程组；
+  已进入环境运行的失败不自动重跑cohort。增加明确一致性失败分类，避免provenance误判NaN。
+  强制ffprobe并验证本机实际二进制；旧PyAV降级不再冒充合同验收。最终status保留stage与reason。
+- 首train实测：旧严格FP32双帧与cache最大差0.4375；旧TF32卷积双帧误差0；因果重复当前帧的
+  12个原双帧anchor误差0；原奇数尾帧差0.6796875。完整400和History Gate仍待后台。
+- 恢复前16个完成stage、11个受保护产物hash复核通过；Official fit4实际500更新、RMSE
+  .10679/.17511，两条fit自主诊断有lift后fall，最终0/2，非正式结果。31项聚焦CPU测试通过。
+
 ## 2026-11-01 — late-gate recovery and Kit preflight
 
 - 新增显式 `--late-gate-recovery`：只在原 Gate 截止后、原24小时总截止前登记，保留

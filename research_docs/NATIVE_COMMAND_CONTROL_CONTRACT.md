@@ -24,3 +24,17 @@ S组另行允许当前及过去两次5Hz的85维模拟几何，统一robot-base�
 
 checkpoint保存完整合同、模型组、训练统计、划分、数据/源码hash、EMA及恢复状态。
 加载器逐项比较合同；不能通过切换配置把旧reference权重解释为native-command模型。
+
+## 2026-11-01 DINO缓存数值修复
+
+冻结DINO的历史缓存实际使用FP32 transformer、允许TF32的卷积、FP16 patch存储，
+不是完整严格FP32前端。原缓存两次观测合为6张独立图像，奇数末帧则只有3张；
+本机两种batch shape选择不同卷积计算，旧缓存与新单帧严格FP32路径的最大差异达0.4375。
+
+Native专用`NativeDinoSpatial`固定6张图像：仅重复当前三视角，无未来图像、无跨图注意力，
+仍用原revision/weights和18×32 patch。合法uint8/255相机输入先无损恢复像素字节。
+精度开关限定在冻结DINO调用内并恢复；机器人编码、GRU、condition及U-Net仍为FP32。
+原完整双帧缓存复用；奇数尾帧从原图重算为单独overlay，原400数据、旧缓存和旧reference标签不变。
+新增`native_perception` Gate检查400份旧cache hash和首帧复现；overlay与索引均进入artifact hash。
+History checkpoint记录该索引hash，部署须一致；完整episode Gate使用原图重算线上patch，
+与训练缓存比较memory/condition≤1e−5、动作≤1e−4，缓存复现原0.005阈值保持不变。

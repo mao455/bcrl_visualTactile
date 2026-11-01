@@ -1,5 +1,6 @@
 """Native-command causal boundaries, independent identities and admission tests."""
 import copy
+from pathlib import Path
 
 import pytest
 import torch
@@ -177,7 +178,7 @@ def test_official_full_field_spatial_keypoints_and_depth_gradient(monkeypatch):
     import visuotactile.models.native_dp as module
     monkeypatch.setattr(module, 'ConditionalUnet1D', lambda **kwargs: nn.Linear(29, 29))
     model = NativePolicy('I-OfficialDP')
-    rgb = torch.rand(3, 3, 252, 448)
+    rgb = torch.randint(0, 256, (3, 3, 252, 448), dtype=torch.uint8)
     depth = torch.ones(3, 1, 252, 448, requires_grad=True)
     encoded = model.vision(rgb, depth, torch.ones_like(depth, dtype=torch.bool))
     assert encoded.shape == (384,)
@@ -286,6 +287,7 @@ def test_stage_records_native_crash_exit_code_in_attempt(tmp_path, monkeypatch):
     import visuotactile.native_pipeline as module
     monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
     monkeypatch.setattr(module, 'sources', lambda: {})
+    monkeypatch.setattr(module, 'cleanup_worker_group', lambda pid: 'no_remaining_process_group')
     (tmp_path/'session.json').write_text('{"source_hashes": {}}')
     (tmp_path/'manifest.json').write_text('{"stages": {}}')
     runner = module.Pipeline(tmp_path)
@@ -382,3 +384,117 @@ def test_kit_crash_is_classified_from_worker_log(tmp_path):
     assert module.failure_class(-6, log) == 'kit_native_crash'
     assert module.failure_class(-9, log) == 'resource_kill_or_oom'
     assert module.failure_class(1, log) == 'worker_failure'
+
+
+def test_kit_startup_retry_is_bounded_across_attempts_and_resume(tmp_path, monkeypatch):
+    import json
+    from types import SimpleNamespace
+    import visuotactile.native_pipeline as module
+    monkeypatch.setattr(module.signal, 'signal', lambda *args: None)
+    monkeypatch.setattr(module, 'sources', lambda: {})
+    cleaned = []
+    monkeypatch.setattr(module, 'cleanup_worker_group', lambda pid: cleaned.append(pid) or 'no_remaining_process_group')
+    (tmp_path/'session.json').write_text('{"source_hashes": {}}')
+    (tmp_path/'manifest.json').write_text('{"stages": {}}')
+    launches = []
+    def launch(command, **kwargs):
+        output = Path(command[command.index('--output')+1])
+        output.mkdir()
+        (output/'kit_lifecycle.json').write_text('{"phase":"initializing"}')
+        kwargs['stdout'].write('terminate called: std::system_error')
+        kwargs['stdout'].flush()
+        launches.append(output)
+        return SimpleNamespace(pid=123, returncode=-6, poll=lambda: -6)
+    monkeypatch.setattr(module.subprocess, 'Popen', launch)
+    runner = module.Pipeline(tmp_path)
+    with pytest.raises(RuntimeError, match='Worker failed'):
+        runner.stage('oracle_base', 'unused', [], gpu=False)
+    assert len(launches) == len(cleaned) == 2
+    row = runner.manifest['stages']['oracle_base']
+    assert row['kit_retries'] == 1
+    assert row['attempts'][0]['automatic_retry']
+    assert [attempt['exit_code'] for attempt in row['attempts']] == [-6, -6]
+    assert json.loads((tmp_path/'manifest.json').read_text())['stages']['oracle_base']['kit_retries'] == 1
+    resumed = module.Pipeline(tmp_path, resume=True)
+    with pytest.raises(RuntimeError, match='Worker failed'):
+        resumed.stage('oracle_base', 'unused', [], gpu=False)
+    assert len(launches) == 3
+    assert resumed.manifest['stages']['oracle_base']['kit_retries'] == 1
+
+
+def test_kit_runtime_crash_or_missing_lifecycle_cannot_repeat_cohort(tmp_path):
+    import visuotactile.native_pipeline as module
+    row = dict(failure_class='kit_native_crash', attempts=[{}], output=str(tmp_path))
+    assert not module.retryable_kit_startup(row)
+    (tmp_path/'kit_lifecycle.json').write_text('{"phase":"environment_ready"}')
+    assert not module.retryable_kit_startup(row)
+
+
+def test_consistency_failure_is_distinct_from_nonfinite_and_provenance(tmp_path):
+    import visuotactile.native_pipeline as module
+    log = tmp_path/'worker.log'
+    log.write_text('ValueError: Pinned DINO perception cache reproduction failed')
+    assert module.failure_class(1, log) == 'experiment_consistency_failure'
+    log.write_text('Checking provenance; unrelated error')
+    assert module.failure_class(1, log) == 'worker_failure'
+    log.write_text('FloatingPointError: nonfinite loss/gradient')
+    assert module.failure_class(1, log) == 'training_nonfinite'
+
+
+def test_required_ffprobe_cannot_be_replaced_by_pyav(monkeypatch):
+    from types import SimpleNamespace
+    import visuotactile.native_pipeline as module
+    monkeypatch.setattr(module.shutil, 'which', lambda name: '/ffmpeg' if name.endswith('ffmpeg') else None)
+    monkeypatch.setattr(module.subprocess, 'run', lambda *args, **kwargs: SimpleNamespace(returncode=0))
+    with pytest.raises(RuntimeError, match='Required ffprobe'):
+        module.video_tools()
+
+
+@pytest.mark.parametrize('fail', [False, True])
+def test_native_dino_uses_only_current_views_and_restores_precision(monkeypatch, fail):
+    from visuotactile.models.long_horizon import FrozenDinoSpatial
+    from visuotactile.models.native_vision import NativeDinoSpatial
+    seen = []
+    def forward(model, rgb):
+        assert torch.backends.cudnn.enabled
+        assert torch.backends.cudnn.allow_tf32
+        assert not torch.backends.cuda.matmul.allow_tf32
+        seen.append(rgb.clone())
+        if fail:
+            raise RuntimeError('Injected encoder failure')
+        return rgb[:, :, :, :1, :1]
+    monkeypatch.setattr(FrozenDinoSpatial, 'forward', forward)
+    model = NativeDinoSpatial.__new__(NativeDinoSpatial)
+    nn.Module.__init__(model)
+    rgb = torch.rand(3, 3, 252, 448)
+    before = (torch.backends.cudnn.enabled, torch.backends.cudnn.allow_tf32,
+              torch.backends.cuda.matmul.allow_tf32)
+    if fail:
+        with pytest.raises(RuntimeError, match='Injected'):
+            model(rgb)
+    else:
+        assert torch.equal(model(rgb), rgb[:, :, :1, :1])
+    assert len(seen) == 1 and seen[0].shape == (2, 3, 3, 252, 448)
+    assert torch.equal(seen[0][0], rgb) and torch.equal(seen[0][1], rgb)
+    assert before == (torch.backends.cudnn.enabled, torch.backends.cudnn.allow_tf32,
+                      torch.backends.cuda.matmul.allow_tf32)
+    if not fail:
+        assert torch.equal(model(rgb.float()/255.), rgb[:, :, :1, :1])
+
+
+def test_native_perception_tail_overlay_preserves_original_cache(tmp_path):
+    import json
+    from visuotactile.compact import sha256
+    from visuotactile.native_data import Episode
+    (tmp_path/'numeric').mkdir()
+    torch.save({'time': torch.arange(25)}, tmp_path/'numeric/episode.pt')
+    original = tmp_path/'original.pt'
+    torch.save(dict(patches=torch.tensor([1., 2., 3.]), depth=torch.zeros(3)), original)
+    digest = sha256(original)
+    tail = tmp_path/'tail.pt'
+    torch.save(torch.tensor(4.), tail)
+    (tmp_path/'data.json').write_text(json.dumps({'entries': {'episode': {'perception': str(original)}}}))
+    (tmp_path/'native_perception.json').write_text(json.dumps({'entries': {'episode': {'tail': {'path': str(tail)}}}}))
+    episode = Episode(tmp_path, 'episode', 'I-HistoryDP')
+    assert torch.equal(episode.perception['patches'], torch.tensor([1., 2., 4.]))
+    assert sha256(original) == digest

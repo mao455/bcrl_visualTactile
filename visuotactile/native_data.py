@@ -230,6 +230,10 @@ class Episode:
         if group == 'I-HistoryDP':
             old = torch.load(index['perception'], map_location='cpu', weights_only=False)
             self.perception = {name: old[name] for name in ('patches', 'depth')}
+            perception_index = json.loads((root/'native_perception.json').read_text())
+            overlay = perception_index['entries'][identity].get('tail')
+            if overlay:
+                self.perception['patches'][-1] = torch.load(overlay['path'], map_location='cpu', weights_only=False)
 
     def __len__(self):
         return len(self.record['time'])
@@ -249,3 +253,49 @@ class Episode:
                     depth=torch.from_numpy(frames['depth_m'][tick]).to(device),
                     depth_valid=torch.from_numpy(frames['depth_valid'][tick]).to(device))
         return result
+
+
+def prepare_native_perception(root, output, lease):
+    from .models.native_vision import NativeDinoSpatial
+    data = json.loads((root/'data.json').read_text())
+    weights = Path(torch.hub.get_dir())/'checkpoints/dinov2_vits14_pretrain.pth'
+    if sha256(weights) != data['dino_weights_sha256']:
+        raise ValueError('Pinned DINO weights identity mismatch')
+    with lease.block():
+        model = NativeDinoSpatial().to('cuda:0').eval()
+    entries, artifacts, maximum = {}, [], 0.
+    for identity, entry in data['entries'].items():
+        lease.check()
+        if sha256(entry['perception']) != entry['perception_sha256']:
+            raise ValueError('Original DINO cache identity mismatch: '+identity)
+        cached = torch.load(entry['perception'], map_location='cpu', weights_only=False)['patches']
+        source = Episode(root, identity, 'I-OfficialDP')
+        with lease.block():
+            reproduced = model(source.frame(0, 'cuda:0')['rgb']).cpu()
+        difference = float((reproduced.float()-cached[0].float()).abs().max())
+        maximum = max(maximum, difference)
+        evidence = dict(original_sha256=entry['perception_sha256'], first_frame_max_error=difference)
+        entries[identity] = evidence
+        if difference > .005:
+            atomic_json(output/'cache_failure.json', dict(identity=identity, max_abs=difference, threshold=.005))
+            raise ValueError('Pinned DINO perception cache reproduction failed: '+identity)
+        if len(cached) % 2:
+            with lease.block():
+                tail = model(source.frame((len(cached)-1)*12, 'cuda:0')['rgb']).cpu()
+            destination = output/(identity+'_tail.pt')
+            torch.save(tail, destination)
+            artifacts.append(str(destination.resolve()))
+            evidence['tail'] = dict(path=str(destination.resolve()), sha256=sha256(destination),
+                original_max_difference=float((tail.float()-cached[-1].float()).abs().max()))
+        atomic_json(output/'progress.json', dict(completed=len(entries), required=len(data['entries'])))
+    index_path = root/'native_perception.json'
+    atomic_json(index_path, dict(version=1, dino_revision=data['dino_revision'],
+        dino_weights_sha256=data['dino_weights_sha256'], entries=entries,
+        compute='FP32 transformer; TF32-enabled convolution; FP16 patch storage',
+        batching='six independent images; current three views duplicated; no future input',
+        tail_reason='Original odd final anchor used a three-image kernel; separate native-only overlay',
+        original_cache_modified=False, maximum_reproduction_error=maximum))
+    artifacts.append(str(index_path.resolve()))
+    atomic_json(output/'result.json', dict(passed=True, completed=len(entries), required=len(data['entries']),
+        overlays=sum('tail' in entry for entry in entries.values()), maximum_reproduction_error=maximum,
+        artifact_files=artifacts, original_cache_modified=False))
