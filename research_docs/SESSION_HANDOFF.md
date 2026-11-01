@@ -1,5 +1,17 @@
 # 当前会话交接：视觉—触觉研究
 
+## 当前实施 — 三组Native-command后台流水线（已阻断）
+
+用户确认24小时方案，入口`visuotactile.native_pipeline`，新root
+`outputs/visuotactile/native_dp_3way/native_20261101_01`。
+代码、CPU测试和七份中文说明已建立；数据Gate attempt2完成400/400。
+恢复服务`native-dp-20261101-01-resume1.service`在`oracle_base`启动约10分钟后以-6退出；
+`blocked.json`和完整attempt日志已保存。日志为`libomniclient` `provider_file::FileThread`的
+`std::system_error: Invalid argument`原生abort；进程级`fsWatcherEnabled=false`已传入，当前用户inotify约524199/524288。
+因此未发生GPU Gate、optimizer更新、checkpoint读回、正式训练、闭环或视频。3小时Gate deadline已过，
+原24小时deadline不变；不重置、不自动重试、不把阻断run改称完成。原生任务/控制器/wrapper没有diff。
+累计35项针对性测试通过；本轮失败attempt、资源日志和源码审计保留，未删除旧文件。
+
 ## 2026-10-31 — T0真实事件重放与冻结DP验收完成
 
 最新入口`T0_REPLAY_AND_DP_CONTROL_FIX.md`，小证据`evidence/t0_replay_20261031`。

@@ -1,5 +1,11 @@
 # Diffusion Policy modules
 
+Native-command v1 additionally reuses `ema_model.py` from
+`diffusion_policy/model/diffusion/ema_model.py` at the same pinned revision below.
+Only trailing whitespace is removed. The original EMA decay/step and frozen
+parameter handling are preserved; its optimization_step is saved for resume.
+The existing MIT license covers this file. No author checkpoint is redistributed.
+
 Source: https://github.com/real-stanford/diffusion_policy at commit 5ba07ac6661db573af695b419a7947ecb704690f (MIT).
 
 Copied conditional_unet1d.py, conv1d_components.py, positional_embedding.py after inspection. Only two imports changed to relative imports. Original local-conditioning compatibility quirk is retained; our integration uses global conditioning only. Dependencies: torch and einops. No upstream checkpoint assumed compatible with our RGB-D/GRU conditioning.

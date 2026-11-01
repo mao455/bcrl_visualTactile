@@ -1,5 +1,12 @@
 # 视觉与触觉模仿学习研究工程
 
+## 当前实施 — 三组Native-command DP
+
+[结果与运行状态](NATIVE_DP_THREE_WAY_RESULTS.md)、[历史网络与tensor](HISTORY_AND_OBSERVATION_ARCHITECTURE.md)、
+[控制合同](NATIVE_COMMAND_CONTROL_CONTRACT.md)、[11方法固定源码对照](OPEN_SOURCE_DP_COMPARISON.md)、
+[中文代码交接与命令](CODE_WALKTHROUGH_AND_HANDOFF_ZH.md)、[产物索引](ARTIFACT_MANIFEST.md)、[清理审计](CLEANUP_AUDIT.md)。
+新模型/Gate/后台24小时流水线独立于历史实验；未验收结果不得视为已完成训练。
+
 ## 最新完成 — 2026-10-31 T0真实重放与DP控制验证
 
 [完整报告、逐轨迹表及复现命令](T0_REPLAY_AND_DP_CONTROL_FIX.md)、[去敏证据索引](evidence/t0_replay_20261031/README.md)。

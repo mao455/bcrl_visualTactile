@@ -1,5 +1,14 @@
 # Audited contracts
 
+## Native-command v1（三组新身份）
+
+当前用户授权三组新模型训练；详见[NATIVE_COMMAND_CONTROL_CONTRACT](NATIVE_COMMAND_CONTROL_CONTRACT.md)。
+直接H64 pre-delay command、commit12，不使用reference adapter。新共同输入允许真实controller target
+与严格过去issued/delayed历史；S单独允许文档化特权几何。旧checkpoint和旧组权限不升级。
+History训练按当前权重从episode起点无梯度预热，再反传96tick；部署仅真episode reset清记忆。
+正式训练须通过数据/控制/网络/历史/拟合Gate，固定test20×3、test40离线只选模后一次。
+本段为新接口合同，不代表尚未完成的真实实验已验收。
+
 ## 2026-10-31专用历史事件重放与DP语义验收
 
 详见[T0_REPLAY_AND_DP_CONTROL_FIX](T0_REPLAY_AND_DP_CONTROL_FIX.md)。原生控制只新增显式`_recorded_delay_index`：

@@ -1,5 +1,12 @@
 # 历史实验有效性矩阵
 
+## 新Native-command三组（独立身份，实施中）
+
+共享标签、目标输入梯度、因果mask/窗口、视觉深度梯度及两种GRU更新频率：CPU范围Verified。
+真实400数据全量Gate、220步行为中性、GPU完整episode一致性、过拟合、正式训练与成功率：
+在新root产物验收前均Unverified，不将旧0/50或旧reference权重结果移入新组。
+详见[NATIVE_DP_THREE_WAY_RESULTS](NATIVE_DP_THREE_WAY_RESULTS.md)。
+
 审计基线a07d0aa，2026-10-31。本表评价**具体结论**，不按“某模型所有内容一律有效/无效”处理。
 Verified=在明确范围内关键接口实测；Qualified=结果真实但解释有限；Invalid / Must rerun=已有实质错误使特定声明不成立；
 Unverified=证据不足。重跑只对未来确需使用的无效声明，不代表自动重做所有旧实验。

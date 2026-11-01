@@ -1,5 +1,26 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — Native-command three-way implementation
+
+The user authorizes the accepted 24-hour S-NativeDP/I-OfficialDP/I-HistoryDP
+plan on this feature branch from a905bca. H64/commit12 direct native commands,
+real controller targets, strict past issued/delayed history and train320-only
+statistics use new identities. S alone receives documented current/past state
+geometry. Historical no-training/target-input restrictions do not apply here.
+Gate deadline3h, training deadline21h, absolute session24h including waits.
+Gates must pass before formal training; no relaxed thresholds or test tuning.
+Formal cohort is sorted first20 test IDs per model; final train diagnostic4.
+Persistent ordinary scripts handle monitoring, stage transitions and recovery.
+Codex verifies startup once then yields without model polling/sleep. A later
+invocation reviews results, audits cleanup and commits/pushes reviewed public
+changes to the current origin feature branch. Preserve all original evidence.
+Read NATIVE_DP_THREE_WAY_RESULTS for actual readiness; authorization is not
+evidence of implementation, training completion or task success.
+
+Current run `native_20261101_01` completed its 400/400 data Gate but is blocked
+at `oracle_base` with an Omniverse `provider_file::FileThread` abort (exit -6).
+The Gate deadline has passed; do not reset it or retry this root automatically.
+
 ## Completed — 2026-10-31 T0 replay and frozen DP control validation
 
 Read T0_REPLAY_AND_DP_CONTROL_FIX and latest SESSION_HANDOFF. All35 allocated

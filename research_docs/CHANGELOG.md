@@ -1,5 +1,30 @@
 # Engineering change and verification log
 
+## 2026-11-01 — Native-command流水线 Oracle Gate 阻断
+
+- 数据Gate attempt2完成400/400；恢复服务在`oracle_base`启动约10分钟后返回-6。
+- 日志确认`libomniclient` `provider_file::FileThread`抛出`std::system_error: Invalid argument`并abort；
+  Oracle命令已传入`/app/extensions/fsWatcherEnabled=false`，不能据此宣称根因已修复。
+- 只读资源审计显示用户级inotify约524199/524288个watch；未修改系统额度、IDE、驱动或其他进程。
+- 3小时Gate截止已过，原24小时deadline未重置；未发生正式训练、optimizer更新、checkpoint读回、闭环或视频，未自动重试。
+- 失败attempt、blocked证据和资源日志保留；35项针对性测试、compileall和diff检查通过。
+
+## 2026-11-01 — Native-command三组独立实现与后台流水线
+
+- 新增native_data/native_training/native_controller/models/native_dp：统一pre-delay H64标签、
+  train320统计、真实target与13tick机器人窗口；S特权几何、Official完整ResNet18/GN关键点、
+  History空间token与双频GRU。旧reference权重拒绝加载，原生控制与研究wrapper无修改。
+- 新增native_pipeline/native_resources/native_evaluation/sim/native_diagnostics：固定24h/3h Gate/21h训练，
+  可恢复阶段manifest、原子checkpoint与完整RNG/游标、对象过滤接触、真实Kit闭环及同次评估视频。
+  独立服务监测资源和转换阶段；Codex有界启动核验后不驻守轮询。
+- 复用官方DP EMA并保留来源；native_sources登记11个方法固定源码revision。
+  七份中文报告当前明确区分实现、测试与待运行结果；没有编造成功率或视频。
+- 新增14项CPU测试通过；旧H64/T0/资源相关合并35项通过，compileall及diff检查通过。实际GPU/Kit/Gate及训练以run manifest为准。
+  当前只是清理盘点，删除0；原400、关键best、历史T0与0/50不覆盖。
+- 初次有界启动检查只到数据阶段；主动暂停修复Oracle构造种子、数值cache原子提交和DINO权重hash绑定，
+  显式pre-freeze source review后在同root恢复attempt2，原deadline未重置。最后实查数据Gate62/400，
+  服务native-dp-20261101-01-resume1 active，尚无GPU Gate/正式更新，未声称checkpoint验收完成。
+
 ## 2026-10-31 — 专用T0历史事件重放与DP接口验收
 
 - 新增`replay_events.py`/`sim/replay_environment.py`与`evaluate_recorded_replay.py`：源lane历史delay、
