@@ -11,6 +11,8 @@
 - Official/History 的 fit Gate lease 与流水线截止保持一致；网络、动作、物理、数据、阈值没有改变。
 - 实际恢复首次在 `video_preflight` 被 Bash 路径映射阻断，未消耗 GPU；现改用可执行的
   bundled `imageio-ffmpeg`，`ffprobe` 缺失时用 PyAV 元数据后端，并将后端写入 `video_tools.json`。
+- 原 run02 已按授权启动一次 late-gate recovery；`late_gate_preflight` 脱离会话存活，
+  当前真实状态为 `waiting_resources`，尚无补验 `result.json`，不宣称 Gate 通过。
 
 ## 2026-11-01 — 截止前置校验及真实Gate进度纠正
 

@@ -1,5 +1,16 @@
 # 当前会话交接：视觉—触觉研究
 
+## 最新状态 — late-gate recovery 已启动（2026-11-01 08:48 UTC）
+
+紧急授权已写入 `outputs/visuotactile/native_dp_3way/native_20261101_02/late_gate_recovery.json`。
+原始 Gate/训练/总截止保持不变；第一次恢复因错误的 Bash 视频路径在 `video_preflight`
+阻断，未启动 GPU，随后改用 bundled `imageio-ffmpeg` 和 PyAV 后端。
+
+当前同一 run 已通过 `setsid + nohup` 脱离会话启动，`late_gate_preflight` worker
+和资源监控仍存活，`status.json` 为 `waiting_resources`。preflight 尚未完成，不能
+把补验标为通过，也没有新的训练/评估结果。后续只读取 `completion.json`/`blocked.json`
+和真实 stage 产物；不创建新 run、不重置 deadline。
+
 ## 2026-11-01 — Native DP真实进度：Gate阻断，当前无worker
 
 权威快照为 `evidence/native_dp_status_20261101.json`，详细结果为

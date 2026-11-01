@@ -1,5 +1,17 @@
 # 三组 Native-command DP：实施与结果登记
 
+## 最新运行（late-gate recovery，2026-11-01）
+
+用户紧急授权已被机器记录为 `native_20261101_02/late_gate_recovery.json`：原
+`gate_deadline`、`training_deadline` 和总 `deadline` 均未修改，没有新建预算或清除
+blocked 历史。恢复前置检查因 Bash 路径映射阻断一次，未启动 GPU；随后使用本机
+bundled `imageio-ffmpeg`/PyAV 后端重新启动。
+
+当前恢复进程已用 `setsid + nohup` 脱离会话运行，主 stage 为
+`late_gate_preflight`，`status.json` 实测 `waiting_resources`。Kit preflight
+尚未写入 `result.json`，因此不能称为补验通过；没有新的训练更新或评估结果。
+后台继续由原 run 的资源监控、总截止和阶段 manifest 管理，Codex不驻守轮询。
+
 ## 当前状态（2026-11-01核验）
 
 **未完成，当前blocked，无后台训练worker。** 主run为`native_20261101_02`，
