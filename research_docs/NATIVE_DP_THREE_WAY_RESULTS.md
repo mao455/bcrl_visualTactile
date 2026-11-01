@@ -1,5 +1,20 @@
 # 三组 Native-command DP：实施与结果登记
 
+## 2026-11-01 全链路执行审计快照
+
+`native_20261101_02` 已从 Gate 恢复并进入真实正式训练。2026-11-01 20:05（UTC+8）
+只读快照显示：`S-NativeDP` 已完成 `19000/19000` updates；`I-OfficialDP_formal`
+正在运行，约 `3130/19000` updates，PID `4163572`，服务为
+`native-dp-20261101-02-dino-recovery.service`。训练截止和总截止仍为原记录的
+2026-11-02 07:38:19 / 10:38:19（UTC+8）。这不是最终结果，test40、60条闭环和学生视频
+尚未开始。
+
+整卡资源快照为时间加权 `33.10%`、完整60秒最大 `46.41%`、缺测0；Official worker
+累计 work/wait/pacing 为 `2051.0/79.3/138.5 s`。历史监控空档 `23814.78 s` 保留，
+不被解释成连续监控。执行审计、代码瓶颈和只读状态命令见
+`research_docs/NATIVE_DP_EXECUTION_AUDIT_20261101.md`；可直接运行
+`python tools/native_dp_status.py --root outputs/visuotactile/native_dp_3way/native_20261101_02`。
+
 ## 恢复启动验收（2026-11-01 18:17 UTC+8）
 
 同一run02已由user systemd服务`native-dp-20261101-02-dino-recovery.service`独立运行，

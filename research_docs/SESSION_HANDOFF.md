@@ -1,5 +1,20 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-01 20:05（UTC+8）执行审计更新
+
+用户无需再次确认：同一 `native_20261101_02` 已真实进入正式训练，当前不应停止或重启。
+`S-NativeDP` 完成 `19000/19000` updates；`I-OfficialDP_formal` PID `4163572` 在
+`3130/19000` 附近持续增长。服务为
+`native-dp-20261101-02-dino-recovery.service`，原训练/总截止保持不变。
+
+只读审计记录在 `research_docs/NATIVE_DP_EXECUTION_AUDIT_20261101.md`。确认的问题是
+Episode 逐段重复加载、History 每段从 tick0 重算前缀、GPU lock 覆盖等待/pacing，以及
+test marker 早于 checkpoint 读取；本次冻结 run 不做运行中 source 替换。新增状态入口：
+`python tools/native_dp_status.py --root outputs/visuotactile/native_dp_3way/native_20261101_02`。
+该工具与测试不进入 `visuotactile/` source inventory，不改变当前 run 的 source hash。
+GPU 当前快照为整卡均值 `33.10%`、最大完整60秒 `46.41%`，Official worker
+work/wait/pacing 为 `2051.0/79.3/138.5 s`；历史监测空档照实保留。
+
 ## 最新状态 — History真实拟合更新已验收（2026-11-01 18:17 UTC+8）
 
 run02独立user systemd服务`native-dp-20261101-02-dino-recovery.service` active/running，
