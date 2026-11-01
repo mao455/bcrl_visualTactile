@@ -1,0 +1,98 @@
+{
+  "snapshot_epoch": 1793528243.0226855,
+  "status": {
+    "state": "running",
+    "stage": "I-HistoryDP_fit1",
+    "pid": 4119308,
+    "stage_output": "outputs/visuotactile/native_dp_3way/native_20261101_02/stages/I-HistoryDP_fit1/attempt_1",
+    "utc_epoch": 1793528241.7364626,
+    "deadline": 1793587099.8335786
+  },
+  "launch_acceptance": {
+    "started": 1793528096.3151274,
+    "bounded_seconds": 300,
+    "acceptance": "real_history_fit_update_checkpoint_readback",
+    "group": "I-HistoryDP",
+    "updates": 1,
+    "ema_step": 1,
+    "optimizer_steps": [
+      1
+    ],
+    "checkpoint": "outputs/visuotactile/native_dp_3way/native_20261101_02/stages/I-HistoryDP_fit1/attempt_1/last.pt",
+    "formal_training": false,
+    "worker_pid": 4119308,
+    "worker_alive": true,
+    "ended": 1793528196.8069382
+  },
+  "stages": {
+    "native_perception": {
+      "passed": true,
+      "completed": 400,
+      "required": 400,
+      "overlays": 202,
+      "maximum_reproduction_error": 0,
+      "original_cache_modified": false,
+      "attempt": 1
+    },
+    "I-HistoryDP_network": {
+      "passed": true,
+      "group": "I-HistoryDP",
+      "real_episode": "r931005_1793209376_e00_p000000",
+      "parameters": 72770109,
+      "controller_target_condition_delta": 2.0389134883880615,
+      "controller_target_gradient": 134.44581604003906,
+      "condition_max_error": 0,
+      "memory_max_error": 0,
+      "action_max_error": 0,
+      "production_precision": "FP32; no unvalidated mixed-precision promotion",
+      "native_ticks": 148,
+      "attempt": 2,
+      "dino": {
+        "frozen": true,
+        "parameters": 22056576,
+        "cache_max_abs_difference": 0,
+        "cache_precision": "FP16",
+        "backbone_compute": "FP32 transformer; TF32-enabled convolution; fixed six-image batch"
+      }
+    }
+  },
+  "resource_summary": {
+    "pid": 4118231,
+    "samples": 3734,
+    "gpu_time_weighted_mean_percent": 28.957462297866186,
+    "max_complete_60s_mean_percent": 46.41027746511002,
+    "missing_samples": 0,
+    "missing_seconds": 23814.777332903817,
+    "max_sample_gap_s": 17311.88101466454,
+    "wait_seconds": 0,
+    "peak_gpu_used_mib": 22709,
+    "peak_process_rss_bytes": 15302656,
+    "min_ram_available_bytes": 26061651968,
+    "thresholds": {
+      "gpu_free_mib": 4096,
+      "ram_available_bytes": 10737418240,
+      "max_gpu_mean_percent": 50,
+      "gpu_admission_mean_percent": 45
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+  },
+  "resource_latest": {
+    "pid": 4118231,
+    "utc_epoch": 1793528242.507658,
+    "elapsed_s": 27542.62742137385,
+    "gpu_util_percent": 35,
+    "gpu_used_mib": 2714,
+    "gpu_free_mib": 21370,
+    "ram_available_bytes": 34711089152,
+    "process_rss_bytes": 15302656,
+    "cuda_allocated_bytes": null,
+    "cuda_reserved_bytes": null,
+    "rolling_60s_percent": 24.03784095902811
+  },
+  "service": [
+    "MainPID=4118213",
+    "ControlGroup=/user.slice/user-1001.slice/user@1001.service/app.slice/native-dp-20261101-02-dino-recovery.service",
+    "ActiveState=active",
+    "SubState=running"
+  ]
+}

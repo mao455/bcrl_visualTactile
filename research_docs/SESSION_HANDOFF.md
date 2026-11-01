@@ -1,5 +1,17 @@
 # 当前会话交接：视觉—触觉研究
 
+## 最新状态 — History真实拟合更新已验收（2026-11-01 18:17 UTC+8）
+
+run02独立user systemd服务`native-dp-20261101-02-dino-recovery.service` active/running，
+main4118213、monitor4118231、History fit1 worker4119308；运行源码commit`902b4b1`。
+400份缓存首帧复现误差0，202份奇数尾帧单独overlay，原cache未改；History network attempt2
+完整148tick原图在线/缓存离线condition、memory、action误差均0。16个先前完成stage复用。
+单次启动检查100.49秒结束，真实History fit1 updates1、EMA1、optimizer1 checkpoint读回及RNG通过。
+这是拟合Gate，正式训练/test40/60正式闭环仍未开始；脚本会在剩余Gate通过后自动继续。
+总截止11月2日10:38:19 UTC+8、训练截止07:38:19均保持；无新预算，无run03恢复。
+查询和真实产物见`CODE_WALKTHROUGH_AND_HANDOFF_ZH.md`、`evidence/native_dp_dino_launch_20261101.json`。
+不持续轮询；下次用户唤起时一次读取实际结果。历史停机缺测23814.78秒及历史显存低余量必须保留报告。
+
 ## 最新核验 — DINO缓存数值修复（2026-11-01 18:11 UTC+8）
 
 唯一有效root仍为`outputs/visuotactile/native_dp_3way/native_20261101_02`，原总截止

@@ -44,6 +44,11 @@ feature-map上32个softmax关键点保留xy，并关联depth/valid与独立深�
 共享权重编码三个视角；camera顺序在融合向量中固定。无随机裁剪/新增强，也不宣称官方配置原样复现。
 
 History的4query汇聚是有损压缩，GRU也是有损记忆，原始轨迹另存。
+冻结DINO前端现通过`models/native_vision.py`固定计算batch：只将当前三视角重复为6图，
+不引用下一个采样时刻。旧cache生成时TF32卷积随batch shape改变，本次显式固定旧6图算法；
+transformer FP32、patch存储FP16，精度开关调用后恢复，原生/视觉GRU仍FP32。
+原两帧batch来源patch复用；奇数尾帧的3图旧算法由独立native overlay替换，不改旧cache。
+这只修复冻结前端的训练/部署数值一致性，图像尺寸、空间token、参数与输入权限不变。
 视觉GRU仅在新采样时更新；保持旧图像的11个tick不会反复更新视觉GRU。
 native GRU逐tick更新。所有近期token保留相机有效mask与采样年龄，不读未来图像或触觉。
 

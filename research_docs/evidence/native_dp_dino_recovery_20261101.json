@@ -499,5 +499,38 @@
     ]
   },
   "state": "repair_tested_before_resume",
-  "formal_training_updates": 0
+  "formal_training_updates": 0,
+  "runtime_source_commit": "902b4b1ba296f469a255f890ee979c30dd799810",
+  "service": "native-dp-20261101-02-dino-recovery.service",
+  "initial_service_acceptance": {
+    "main_pid": 4118213,
+    "worker_pid": 4118305,
+    "active_state": "active",
+    "sub_state": "running",
+    "stage": "native_perception",
+    "state": "waiting_resources",
+    "utc_epoch": 1793528123.5609443,
+    "linger": true
+  },
+  "unchanged_times": {
+    "started_epoch": 1793500699.8335786,
+    "gate_deadline": 1793511499.8335786,
+    "training_deadline": 1793576299.8335786,
+    "deadline": 1793587099.8335786
+  },
+  "cpu_tests": {
+    "command": "bash visuotactile/run_cpu.sh -m pytest -q tests/test_native_dp.py",
+    "passed": 31,
+    "warning": "existing requests dependency version warning"
+  },
+  "expert_video_recheck": {
+    "ffprobe": true,
+    "codec": "h264",
+    "pixel_format": "yuv420p",
+    "fps": "60/1",
+    "frames": 220,
+    "width": 1344,
+    "height": 316,
+    "full_ffmpeg_decode": true
+  }
 }

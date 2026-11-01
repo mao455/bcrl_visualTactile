@@ -1,5 +1,26 @@
 # 三组 Native-command DP：实施与结果登记
 
+## 恢复启动验收（2026-11-01 18:17 UTC+8）
+
+同一run02已由user systemd服务`native-dp-20261101-02-dino-recovery.service`独立运行，
+源码`902b4b1`，主PID4118213、监控4118231。单次300秒上限启动检查在100.49秒结束：
+History fit1已有真实optimizer更新，last读回updates=1、EMA=1、全部optimizer step=1、RNG完整。
+18:17快照仍为`running / I-HistoryDP_fit1`，worker4119308；这属于拟合Gate，**正式训练仍未开始**。
+
+- 新`native_perception`：400/400，原完整双帧cache首帧最大复现误差0，202份奇数尾帧overlay；原cache未修改。
+- History network attempt2：148tick完整episode，原图在线对缓存离线的condition/memory/action最大误差均0；
+  target干预condition变化2.03891，target梯度134.44582，冻结DINO22,056,576参数，policy可训练72,770,109。
+- S/Official原16个完成stage直接复用。剩余History fit1/fit4、诊断/pilot通过后，脚本自动计算公平预算，
+  衔接三组正式训练、test40、60条正式闭环和视频；不预先将尚无结果的阶段记为完成。
+- 原GPU起点、Gate/训练/总deadline逐项保持；总截止仍为**11月2日10:38:19 UTC+8**。
+
+启动证据见`evidence/native_dp_dino_launch_20261101.json`。汇总已测整卡均值28.9575%、
+完整60秒最高46.4103%；另有历史停机区间23814.78秒无采样，不能称整个墙钟窗口连续无缺测。
+快照空闲显存21370MiB、RAM约32.33GiB；全程峰值GPU占用22709MiB保留，不用当前余量掩盖历史低余量。
+资源事件日志累计82条`vram_below_4gib`采样记录，本次服务启动至快照为0条；不得称历史全程显存合规。
+四视频中的专家220帧已再次通过真实ffprobe和ffmpeg全片解码；三个正式学生视频尚未生成。
+有界启动验收已结束，后台不依赖Codex，不持续轮询等待训练。
+
 ## 最新核验（2026-11-01 18:11，北京时间）
 
 这次阻断是`I-HistoryDP_network/attempt_1`的DINO缓存数值一致性检查，退出码1，

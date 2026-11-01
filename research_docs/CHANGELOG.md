@@ -2,6 +2,12 @@
 
 ## 2026-11-01 — Native DINO缓存精度与后台恢复边界
 
+- 恢复后实测：native_perception400/400，复现误差0，202独立尾帧overlay；History网络Gate
+  148tick condition/memory/action误差均0。原16阶段保留。独立systemd服务已启动，History fit1
+  更新1的optimizer/EMA/RNG及checkpoint读回通过；有界验收100.49秒结束，不驻守等待正式训练。
+- `HISTORY_AND_OBSERVATION_ARCHITECTURE`、`CODE_WALKTHROUGH_AND_HANDOFF_ZH`、
+  `ARTIFACT_MANIFEST`与`CLEANUP_AUDIT`同步实际恢复/缓存/服务合同，未删除科研产物。
+
 - `models/native_vision.py`固定当前三视角重复为6图，复用原DINO revision/weights，
   FP32 transformer/TF32-enabled卷积/FP16缓存，调用后恢复全局精度开关；不输入未来图像。
 - `native_data.py`新增400缓存hash/首帧复现Gate，奇数尾帧单独overlay，不改原数据或旧标签。
