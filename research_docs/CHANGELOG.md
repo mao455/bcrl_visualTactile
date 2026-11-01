@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-11-01 — Native Oracle底层监听开关修复
+
+- `native_evaluation` 在启动 Kit 前调用 `libomniclient.so` 导出的
+  `testSetWatchesEnabled(false)`，并把库路径、符号和实际值写入每个 attempt 的 `runtime_controls.json`。
+- 该开关不同于 `/app/extensions/fsWatcherEnabled=false`：它直接控制 OmniClient `WatchDirectoryThread`。
+- 当前 inotify 约524199/524288时，独立最小 Kit 启动探针成功；未修改系统额度、IDE、其他进程、场景物理或控制器。
+- `native_pipeline` 为自有 worker 固定进程级 `MALLOC_ARENA_MAX=2`，不改变共享环境；完整 Oracle 仍须在新独立 run 中验收。
+
 ## 2026-11-01 — Native-command流水线 Oracle Gate 阻断
 
 - 数据Gate attempt2完成400/400；恢复服务在`oracle_base`启动约10分钟后返回-6。

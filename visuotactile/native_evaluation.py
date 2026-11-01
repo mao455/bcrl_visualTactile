@@ -1,5 +1,6 @@
 """True Kit oracle and prespecified autonomous cohorts with in-trial videos."""
 import argparse
+import ctypes
 import json
 from pathlib import Path
 import time
@@ -17,6 +18,19 @@ from .training_resources import atomic_json
 
 
 EXPERT_SOURCE = Path('outputs/visuotactile/run/t0_control_replay_20261031_01/fresh')
+
+
+def disable_omniclient_watches():
+    import isaacsim
+    library = Path(isaacsim.__file__).parent/'kit'/'extscore'/'omni.client.lib'/'bin'/'libomniclient.so'
+    if not library.is_file():
+        raise RuntimeError('OmniClient library not found: '+str(library))
+    client = ctypes.CDLL(str(library))
+    setter = client.testSetWatchesEnabled
+    setter.argtypes = [ctypes.c_bool]
+    setter.restype = None
+    setter(False)
+    return dict(library=str(library.resolve()), symbol='testSetWatchesEnabled', enabled=False)
 
 
 def stable_grasp(arrays, initial_height):
@@ -237,6 +251,8 @@ def main():
     torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32 = False
     torch.backends.cudnn.allow_tf32 = False
+    runtime_controls = disable_omniclient_watches()
+    atomic_json(args.output/'runtime_controls.json', runtime_controls)
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
         app = AppLauncher(headless=True, enable_cameras=True, device='cpu', kit_args=(

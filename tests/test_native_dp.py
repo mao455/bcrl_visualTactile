@@ -240,3 +240,10 @@ def test_monitor_resume_retains_previous_time_weighted_exposure(tmp_path):
     restore_telemetry(guard)
     assert guard.area == 60 and guard.measured_s == 2
     assert guard.last == rows[-1]
+
+
+def test_oracle_runtime_watch_control_is_explicit():
+    import ctypes
+    import visuotactile.native_evaluation as evaluation
+    assert hasattr(ctypes, 'CDLL')
+    assert callable(evaluation.disable_omniclient_watches)

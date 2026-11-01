@@ -330,6 +330,7 @@ def main():
     parser.add_argument('--review-pre-freeze-source-update')
     args = parser.parse_args()
     args.root = args.root.resolve()
+    os.environ.setdefault('MALLOC_ARENA_MAX', '2')
     if args.command == 'initialize':
         initialize(args.root)
     elif args.command == 'status':
