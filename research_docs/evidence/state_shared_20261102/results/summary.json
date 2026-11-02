@@ -4,6 +4,30 @@
     "bc": {
       "complete": false
     },
+    "bc_pilot": {
+      "complete": true,
+      "partial": false,
+      "sha256": "4aee097f96e1bb4ae64fe67562e1edff5a6121738bb400dd6feb222e2bdc3309"
+    },
+    "bc_pilot_loop": {
+      "complete": false,
+      "partial": true,
+      "sha256": "8b1276df9319570507a4b11b8e65aeb03b379317320348049ce8bfaf0d361ce0",
+      "cohorts": {
+        "train": {
+          "attempted": 1,
+          "legal": 1,
+          "successes": 0,
+          "lifts": 0,
+          "subgoals": 0
+        }
+      }
+    },
+    "bc_pilot_train": {
+      "complete": true,
+      "partial": false,
+      "sha256": "4aee097f96e1bb4ae64fe67562e1edff5a6121738bb400dd6feb222e2bdc3309"
+    },
     "bc_train": {
       "complete": false
     },
@@ -14,9 +38,9 @@
       "complete": false
     },
     "expert": {
-      "complete": false,
-      "partial": true,
-      "sha256": "f5498b977c08304873c8868a3ff8b7cc23440b8cc7aaf6ceb4c9f5e598c89b95",
+      "complete": true,
+      "partial": false,
+      "sha256": "cad14645a2f8ad47bc86da93d80fff209d8562b1512a7e42e81ccb3e3e964084",
       "cohorts": {
         "fresh": {
           "attempted": 4,
@@ -26,11 +50,18 @@
           "subgoals": 4
         },
         "train": {
-          "attempted": 3,
-          "legal": 3,
-          "successes": 3,
+          "attempted": 4,
+          "legal": 4,
+          "successes": 4,
           "lifts": 2,
-          "subgoals": 3
+          "subgoals": 4
+        },
+        "validation": {
+          "attempted": 4,
+          "legal": 4,
+          "successes": 4,
+          "lifts": 4,
+          "subgoals": 4
         }
       }
     },
@@ -53,11 +84,70 @@
       "sha256": "57507d431fa103c08f5156c2e6f156c8df5544d60fbee75e4ca5ac086d1c1097"
     },
     "replay": {
-      "complete": false
+      "complete": true,
+      "partial": false,
+      "sha256": "aa485033763c508828651a96ddb9f1a9e52caa0dbe362aaef06cf42442230dbe",
+      "cohorts": {
+        "fresh": {
+          "attempted": 2,
+          "legal": 2,
+          "successes": 2,
+          "lifts": 0,
+          "subgoals": 2
+        }
+      }
     }
   },
-  "trace_diagnostics": [],
+  "trace_diagnostics": [
+    {
+      "stage": "bc_pilot_loop",
+      "identity": "r931005_1793209376_e00_p000000",
+      "compared_ticks": 145,
+      "first_contact_expert": 51,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 51,
+      "reset_arm_rmse": 0.789460301399231,
+      "reset_hand_rmse": 0.5303846597671509,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 0.9668812155723572,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.7473574280738831,
+      "chunk_boundary_command_jump_rms": 0.18029645085334778,
+      "within_chunk_command_jump_rms": 0.19363121688365936,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 51,
+          "arm_rmse": 0.733856201171875,
+          "hand_rmse": 0.6034192442893982
+        },
+        "after_contact_before_lift": {
+          "ticks": 28,
+          "arm_rmse": 0.8757363557815552,
+          "hand_rmse": 0.8635498881340027
+        },
+        "lifted_before_subgoal": {
+          "ticks": 31,
+          "arm_rmse": 0.8199259042739868,
+          "hand_rmse": 0.790184497833252
+        },
+        "after_first_subgoal": {
+          "ticks": 35,
+          "arm_rmse": 1.0322375297546387,
+          "hand_rmse": 0.8906681537628174
+        }
+      },
+      "trace_sha256": "99f0fc5354ccfd3c93d9f2425817acc45f27dcbcb18a33233f85d8a217148b10",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    }
+  ],
   "videos": [
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/bc_pilot_loop_single_00/r931005_1793209376_e00_p000000/rollout.mp4",
+      "bytes": 1528541,
+      "sha256": "1efbf713605c238e6163a4dac1092aca48b89c661d3201c662d7194ba01b3c5a"
+    },
     {
       "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/expert_single_00/fresh_982501/rollout.mp4",
       "bytes": 396784,
@@ -66,21 +156,36 @@
   ],
   "resource_paused": false,
   "session.json": {
-    "sha256": "a8c7e562345a3864cd7ff52b9cef0bafceb2be879437854f63ba4145e7fbda99",
+    "sha256": "aa1e106abda3a6395908531276b818d3f93724839e8e734d3dbbdae15dbc198c",
     "value": "registration copied"
   },
   "status.json": {
-    "sha256": "6415d6b7cdf97db8ea3e35627cdf6ff05c148b888cb9164a0f43e9ed2b9f89cd",
+    "sha256": "c1ce43ad88b4e322901451e68dd3b421ddb28b392e9fcc8df6633b3759984219",
     "value": {
       "state": "blocked",
-      "reason": "RuntimeError('expert_single_07 failed: exit=-6')",
-      "utc": 1793611169.3465292
+      "reason": "RuntimeError('bc_pilot_loop_single_01 failed: exit=-6')",
+      "utc": 1793620515.4241922
+    }
+  },
+  "foundation.json": {
+    "sha256": "911ecf2c38c35536bca037a6054c3c9f99dd64d23d7d2f159e89315cb23ed1f2",
+    "value": {
+      "passed": true,
+      "evidence_sha256": {
+        "preservation/result.json": "57507d431fa103c08f5156c2e6f156c8df5544d60fbee75e4ca5ac086d1c1097",
+        "parity/result.json": "6211445de6870efe724e962b2e55d868b2ea0772fb1c6105d715f6741d7b45a9",
+        "freeze/benchmark.json": "ed5645c94ae4d49589cfdb24a36e33902a04253cd25bae9c0a84d911a5f2ea98",
+        "expert/result.json": "cad14645a2f8ad47bc86da93d80fff209d8562b1512a7e42e81ccb3e3e964084",
+        "replay/result.json": "aa485033763c508828651a96ddb9f1a9e52caa0dbe362aaef06cf42442230dbe"
+      },
+      "historical_open_loop_is_training_veto": false,
+      "expert_successes": 12
     }
   },
   "owner_exit.json": {
-    "sha256": "edb581ec935861996ca38c2325ff5883e65ac2d87e936feefaba456590d70ef9",
+    "sha256": "f1f885a09cfbd0d90e3ba9c5bccb1c2977abf097def60e9226be603946279fca",
     "value": {
-      "utc": 1793611169.4102514,
+      "utc": 1793620516.3896363,
       "owned_children_exited": true
     }
   }

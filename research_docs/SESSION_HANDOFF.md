@@ -1,5 +1,17 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 20:42UTC+8 — foundation passes, BC300, second startup interruption
+
+expert12/12 legal native complete, replay2/2 exact16fields; foundation passed.
+BC pilot300 train4/val4, loss.881→.562, recurrent gradients nonzero. First closed
+loop0/1:601timeout/no lift/subgoal. Next pre-scene startupexit-6 has truncated
+system_error/Invalid argument and no FileThread stack. Preserve evidence in
+runtime_recovery_02; expand only bounded classification, not1/stage or3/session limits.
+Both numerical pilots now first; classified pre-scene loop failures may defer while
+fulltrain320 proceeds. Missing outcomes are not success; formaltest withheld until
+diagnostics resolved. OriginaldeadlineNov3 17:12:42UTC+8 unchanged. Check status for
+actual resume/DP/fullupdates; never infer progress from this snapshot.
+
 ## 2026-11-02 19:40UTC+8 — stopped startup discovered, bounded recovery
 
 state_full_20261102_01 stopped17:19 on expert_single_07 FileThread SIGABRT(-6),

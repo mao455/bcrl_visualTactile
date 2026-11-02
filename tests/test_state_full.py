@@ -2,7 +2,7 @@ import copy
 import pytest
 import torch
 from visuotactile.models.vendor.ema_model import EMAModel
-from visuotactile.state_full_run import should_stop, recover_preaction_start
+from visuotactile.state_full_run import should_stop, recover_preaction_start, startup_failure_evidence, Runner
 from visuotactile.state_full_training import split_ids, training_state, restore_training
 from visuotactile.state_resources import policy
 
@@ -92,3 +92,37 @@ def test_partial_expert_results_are_not_lost(tmp_path):
     result = module.summarize(tmp_path, tmp_path/'report')
     assert result['stages']['expert']['complete'] is False
     assert result['stages']['expert']['cohorts']['fresh']['successes'] == 1
+
+
+def test_truncated_startup_log_requires_native_exit_and_no_trajectory(tmp_path):
+    import json
+    path = tmp_path/'bc_loop_single_01'; path.mkdir()
+    (path/'runtime_controls.json').write_text('{}')
+    (tmp_path/'bc_loop_single_01.log').write_text(
+        "terminate called after throwing an instance of 'std::system_error'\n  what():  Invalid argument")
+    assert startup_failure_evidence(tmp_path, path.name) is None
+    (tmp_path/'blocked.json').write_text(json.dumps(dict(reason="RuntimeError('bc_loop_single_01 failed: exit=-6')")))
+    evidence = startup_failure_evidence(tmp_path, path.name)
+    assert evidence['confirmed_sigabrt'] and not evidence['native_stack_available']
+    (path/'started.json').write_text('{}')
+    assert startup_failure_evidence(tmp_path, path.name) is None
+
+
+def test_startup_deferral_does_not_mask_control_errors(tmp_path, monkeypatch):
+    import json
+    runner = object.__new__(Runner)
+    runner.root = tmp_path
+    checkpoint = tmp_path/'model.pt'; checkpoint.write_bytes(b'checkpoint identity')
+    (tmp_path/'foundation.json').write_text('{"passed": true}')
+    (tmp_path/'status.json').write_text('{"stage": "bc_loop_single_01"}')
+    path = tmp_path/'bc_loop_single_01'; path.mkdir()
+    (path/'runtime_controls.json').write_text('{}')
+    (tmp_path/'bc_loop_single_01.log').write_text('std::system_error FileThread abort')
+    def failed(*args):
+        raise RuntimeError('Native startup failed')
+    monkeypatch.setattr(runner, 'evaluate', failed)
+    assert runner.evaluate_learning('bc_loop', 'bc', checkpoint, []) is None
+    assert not json.loads((tmp_path/'bc_loop_deferred.json').read_text())['counted_as_success']
+    (path/'started.json').write_text('{}')
+    with pytest.raises(RuntimeError):
+        runner.evaluate_learning('bc_loop', 'bc', checkpoint, [])

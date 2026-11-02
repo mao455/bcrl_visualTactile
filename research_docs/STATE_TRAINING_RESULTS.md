@@ -1,5 +1,35 @@
 # State observation/history repair — actual results
 
+## 2026-11-02 20:42 UTC+8：基础设施通过，BC首次真实学习
+
+新冻结cohort专家12/12合法完整成功（fresh4、train4、validation4）；
+两条same-command replay均完整成功，Actor/command/delayed/delay index/target/q/qd/
+object/contact/object_contact/force/torque/lifted/subgoals/retract/alignment共16字段逐字节相同。
+foundation正式通过。此结果支持当前单环境条件下的控制/随机流一致性，不证明历史4lane精确重放。
+
+持续StateBC pilot已实际300updates、train4/val4，全部4条训练身份被采样；
+首25步平均loss0.881002，末25步0.562472（下降36.16%），GRU梯度非零。
+teacher-forced prefix12 arm/hand RMSE：train0.824452/0.727427，
+validation0.939361/0.769086。模型尚未充分拟合，不能据此判定完整320数据训练能力。
+首条train初态自主闭环0/1、601步native timeout、无lift/子目标/alignment；
+Actor normalization maxerror0。其余3条尚未完成，不能报0/4。
+逐步证据显示reset Actor与专家完全一致，但第0步arm/hand动作RMSE已为0.789460/0.530385；
+q/target第0步即超过1mrad，物体到专家首次接触第51步才偏离超过1mm。
+这条pilot主要是接触前命令拟合不足；chunk边界跳变量RMS0.180296，
+小于chunk内部0.193631，未发现边界独有的尖峰证据。不能用这一个pilot归因正式模型。
+截至本次检查，DP0updates、full320两组均未开始。
+
+19:55:15第二条BC闭环的Kit在动作前SIGABRT(-6)，输出仅runtime_controls.json。
+stderr只有std::system_error/Invalid argument，没有FileThread堆栈，因此上轮严格匹配未恢复。
+保留stdout和对应原Kit日志，不能将这个缺栈崩溃唯一归因FileThread。
+修复识别需要明确exit-6、精确错误签名、且没有任何场景/轨迹产物；仍每stage一次、总计三次。
+
+调度修正：先完成BC/DP两个数值pilot，再做pilot闭环。基础设施通过之后，若学习阶段
+仿真仅因上述动作前启动问题不可用，记录deferred并继续授权的train320；
+任何已开始轨迹或真实控制一致性错误仍阻断，缺失闭环不算成功，正式test等待补齐。
+不改网络/损失/优化器/初始化/物理/成功判据/截止；不重跑已完成更新和轨迹。
+7项针对性回归通过，含截断日志必须有native退出证据、已开始轨迹不得延期放行。
+
 ## 2026-11-02 19:40 UTC+8：真实中断与恢复
 
 17:19:29流水线在第8个Kit启动时停止，错误为OmniClient
@@ -129,19 +159,24 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 
 
 
+
+
 ## 自动收尾实测表（待人工复核与Git提交）
 
 此表只读取普通owner结束后的产物，不新增训练或rollout。旧/前置失效样本不混入新分母。
 
 |组|cohort|已尝试|合法|完整成功|native lift|至少1子目标|
 |---|---|---:|---:|---:|---:|---:|
+|bc_pilot_loop|train|1|1|0|0|0|
 |expert|fresh|4|4|4|2|4|
-|expert|train|3|3|3|2|3|
+|expert|train|4|4|4|2|4|
+|expert|validation|4|4|4|4|4|
+|replay|fresh|2|2|2|0|2|
 
 |组|updates|train arm/hand RMSE|validation arm/hand RMSE|
 |---|---:|---|---|
 
-最终owner状态：`{"state": "blocked", "reason": "RuntimeError('expert_single_07 failed: exit=-6')", "utc": 1793611169.3465292}`。
+最终owner状态：`{"state": "blocked", "reason": "RuntimeError('bc_pilot_loop_single_01 failed: exit=-6')", "utc": 1793620515.4241922}`。
 
 逐条reset误差、接触前后首差及阶段误差见公开`summary.json/trace_diagnostics`。
 这些观测不唯一证明网络失败机制；同输入/同命令验收与完整成功分开报告。

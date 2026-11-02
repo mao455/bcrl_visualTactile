@@ -60,7 +60,7 @@
     "visuotactile/kinematics.py": "2403948c7427c81d84b76f8f7e1818dae073e101545b545add2277fc4283a341",
     "visuotactile/evaluate_baselines.py": "f9c05202d3665600f8fb2f1f8174bb8140d08aea01be0de3fb523b406d5cde71",
     "visuotactile/cleanup_long.py": "eea984ebbfb8932b73e4984f28c27e8ef000f02cea1e88aa88f6c1abe7fb206f",
-    "visuotactile/state_full_run.py": "77795b982e2198067b571f9e3f0e90aea73dd29fcadbff5262a48094df650409",
+    "visuotactile/state_full_run.py": "a2612eea77c3471aa0708a98bef2977f39ab01d5fdb5a7f37ade70ed11856c82",
     "visuotactile/validate_residual.py": "561a5f618bcfabf89b4119ac60db98536c97d1d793e24af14fd4ce4011d8c388",
     "visuotactile/run_rl_trials.py": "ec07f67ac2297dc859d4e421b7ab060f6a8ae22927434eae35f78eb263b8e02d",
     "visuotactile/manifest.py": "95783445b255e7cc44aadf307808431b67d2d49dee5a0698aa55493f66d64bd2",
@@ -112,7 +112,7 @@
     "visuotactile/native_v2_evaluation.py": "8699cc8e6503e59334b525adef7259e3701e56e41be687e4f82b4f5cd1cdb826",
     "visuotactile/audit_loss_study.py": "49f2bfb542f8112dc832660144b5f969a0ee6355c1f4df42f38083ebdd49c427",
     "visuotactile/plot_network_audit.py": "3efbb10c7916472546e470951c87c345f8981ac14b591e1fa239bd11aea2ee77",
-    "visuotactile/state_resources.py": "348e014c5201807d83a455c895ae3f52c7338782ccb2c991886a95eec61c3699",
+    "visuotactile/state_resources.py": "488162eff776acd88ea45a1800b77a3b46703ee950af49378b274065c202927f",
     "visuotactile/audit_distribution.py": "b925e71b4785e8cc2fe33f817233b96c24875c0deb2af6e4319c94ec15673c63",
     "visuotactile/finalize_collection.py": "54c467e66615daf47346f876fb8cc7e1b42bf7e01b50a83537d59d75df254510",
     "visuotactile/dp_objectives.py": "eacd03c97948e7edfd0713436a413c1ded66ac265686a36601477a8f7606d23c",
@@ -398,5 +398,21 @@
       "seed": 983120
     }
   ],
-  "training_scope": "pilots4 then full train320/validation40; test40 only after frozen EMA selection"
+  "training_scope": "pilots4 then full train320/validation40; test40 only after frozen EMA selection",
+  "runtime_amendments": [
+    {
+      "utc": 1793619971.005069,
+      "commit": "3754f1951692c0775bd4c627064506c025404738",
+      "review": "runtime_recovery_01/review.json",
+      "changed_sources": [
+        "visuotactile/state_full_run.py",
+        "visuotactile/state_resources.py"
+      ]
+    }
+  ],
+  "startup_recovery_policy": {
+    "per_stage": 1,
+    "session_total": 3,
+    "only": "known FileThread pre-scene abort; sole runtime_controls.json"
+  }
 }

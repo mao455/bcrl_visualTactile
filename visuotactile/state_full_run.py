@@ -65,20 +65,42 @@ def should_stop(history, minimum=6000):
     return min(r['validation']['selection_mse'] for r in history[-2:]) >= .99*earlier
 
 
+def startup_failure_evidence(root, name):
+    """Classify an abort only before scene or trajectory artifacts exist."""
+    root = Path(root); output = root/name; log = root/(name+'.log')
+    if not output.is_dir() or not log.is_file():
+        return None
+    files = {str(path.relative_to(output)) for path in output.rglob('*') if path.is_file()}
+    contents = log.read_text(errors='replace')
+    if files != {'runtime_controls.json'}:
+        return None
+    if '[INFO]: Completed setting up the environment' in contents or 'Traceback (most recent call last)' in contents:
+        return None
+    stack = all(signature in contents for signature in ('FileThread', 'std::system_error', 'abort'))
+    exit_confirmed = False
+    for path in (root/(name+'_exit.json'), root/'blocked.json'):
+        if path.exists():
+            value = json.loads(path.read_text())
+            reason = value.get('error', value.get('reason', ''))
+            exit_confirmed |= f'{name} failed: exit=-6' in reason
+    truncated = exit_confirmed and all(signature in contents for signature in (
+        "terminate called after throwing an instance of 'std::system_error'", 'what():  Invalid argument'))
+    if not (stack or truncated):
+        return None
+    return dict(native_stack_available=stack, confirmed_sigabrt=exit_confirmed,
+        classification='pre-scene FileThread abort' if stack else 'pre-scene system_error/Invalid argument abort; native stack missing')
+
+
 def recover_preaction_start(root, name, deadline):
-    """Retry one known pre-scene FileThread abort, with a session-wide bound."""
+    """Retry one confirmed pre-scene abort, with a session-wide bound."""
     root = Path(root); output = root/name; log = root/(name+'.log')
     recoveries = root/'startup_recoveries'
-    if time.time() >= deadline or not output.is_dir() or not log.is_file():
+    if time.time() >= deadline:
         return False
     if (recoveries/name).exists() or len(list(recoveries.glob('*/recovery.json'))) >= 3:
         return False
-    files = {str(path.relative_to(output)) for path in output.rglob('*') if path.is_file()}
-    contents = log.read_text(errors='replace')
-    if files != {'runtime_controls.json'} or not all(
-        signature in contents for signature in ('FileThread', 'std::system_error', 'abort')):
-        return False
-    if '[INFO]: Completed setting up the environment' in contents or 'Traceback (most recent call last)' in contents:
+    evidence = startup_failure_evidence(root, name)
+    if evidence is None:
         return False
     archive = recoveries/name; archive.mkdir(parents=True)
     output.rename(archive/'attempt')
@@ -87,7 +109,7 @@ def recover_preaction_start(root, name, deadline):
     if launch.exists():
         launch.rename(archive/'launch.json')
     atomic_json(archive/'recovery.json', dict(utc=time.time(), stage=name, deadline=deadline,
-        reason='Known native FileThread abort before scene/trajectory; only runtime_controls existed',
+        reason=evidence['classification'], evidence=evidence,
         original_log_sha256=sha256(archive/'worker.log'), same_seed_and_job=True,
         new_controlled_trajectories=0, maximum_per_stage=1, maximum_per_session=3))
     return True
@@ -119,7 +141,9 @@ class Runner(RepairRunner):
                 raise RuntimeError('Incomplete simulation attempt preserved, no blind repeat: '+name)
         try:
             return super().stage(name, module, extra)
-        except RuntimeError:
+        except RuntimeError as error:
+            if module == 'visuotactile.state_benchmark':
+                atomic_json(self.root/(name+'_exit.json'), dict(error=str(error), utc=time.time()))
             if module == 'visuotactile.state_benchmark' and recover_preaction_start(
                     self.root, name, self.session['deadline']):
                 return self.stage(name, module, extra)
@@ -153,6 +177,26 @@ class Runner(RepairRunner):
         atomic_json(output/'result.json', result)
         return result
 
+    def evaluate_learning(self, name, mode, checkpoint, specs):
+        """A launcher abort cannot invalidate already passed control/learning."""
+        try:
+            result = self.evaluate(name, mode, checkpoint, specs)
+            (self.root/(name+'_deferred.json')).unlink(missing_ok=True)
+            return result
+        except RuntimeError:
+            status = json.loads((self.root/'status.json').read_text())
+            child = status.get('stage', '')
+            evidence = startup_failure_evidence(self.root, child)
+            if not child.startswith(name+'_single_') or evidence is None:
+                raise
+            if not json.loads((self.root/'foundation.json').read_text())['passed']:
+                raise
+            atomic_json(self.root/(name+'_deferred.json'), dict(utc=time.time(), failed_stage=child,
+                checkpoint=str(checkpoint), checkpoint_sha256=sha256(checkpoint), specs=specs,
+                evidence=evidence, reason='Evaluation startup unavailable; validated numerical training can continue',
+                native_outcome=None, counted_as_success=False))
+            return None
+
     def run(self):
         try:
             (self.root/'STOP_MONITOR').unlink(missing_ok=True)
@@ -181,14 +225,15 @@ class Runner(RepairRunner):
                     ['--kind', kind, '--target', str(self.session['pilot_updates']), '--pilot'])
                 if not result['history_gradient_nonzero'] or result['last25_loss'] >= result['first25_loss']:
                     raise RuntimeError(kind+' pilot did not demonstrate valid learning/GRU gradient')
-                self.evaluate(kind+'_pilot_loop', kind, self.root/(kind+'_pilot_train/best.pt'), short_specs)
+            for kind in ('bc', 'dp'):
+                self.evaluate_learning(kind+'_pilot_loop', kind, self.root/(kind+'_pilot_train/best.pt'), short_specs)
             for kind in ('bc', 'dp'):
                 for target in self.session[kind+'_milestones']:
                     if time.time() >= self.session['training_deadline']:
                         raise TimeoutError('Training budget expired; reserve final three hours for existing weights')
                     result = self.stage(f'{kind}_train_{target}', 'visuotactile.state_full_training',
                         ['--kind', kind, '--target', str(target)])
-                    self.evaluate(f'{kind}_loop_{target}', kind, self.root/(kind+'_train')/f'milestone_{target}.pt', short_specs)
+                    self.evaluate_learning(f'{kind}_loop_{target}', kind, self.root/(kind+'_train')/f'milestone_{target}.pt', short_specs)
                     if should_stop(result['history']):
                         atomic_json(self.root/(kind+'_early_stop.json'), dict(updates=target,
                             reason='Two milestones without >=1% validation improvement; no test used'))
@@ -201,7 +246,13 @@ class Runner(RepairRunner):
                     test_used_for_selection=False, configuration_frozen=True)
                 del chosen
                 atomic_json(self.root/(kind+'_selection.json'), selection)
-                self.evaluate(kind, kind, checkpoint, benchmark)
+                self.evaluate_learning(kind, kind, checkpoint, benchmark)
+            deferred = [p.name for p in self.root.glob('*_deferred.json')]
+            if deferred:
+                atomic_json(self.root/'status.json', dict(state='training_complete_evaluation_incomplete',
+                    utc=time.time(), deferred=deferred, formal_test_started=False,
+                    reason='Preserved startup failures need resolution; no success inferred'))
+                return
             self.evaluate('old', 'old', Path(self.session['old_state_checkpoint']), benchmark)
             atomic_json(self.root/'formal_selection_freeze.json', dict(utc=time.time(),
                 models={k: json.loads((self.root/(k+'_selection.json')).read_text()) for k in ('bc', 'dp')},

@@ -1,5 +1,19 @@
 # Engineering change and verification log
 
+## 2026-11-02 — foundation passed and nonblocking pre-scene evaluation failures
+
+- Actual expert12/12 legal native successes, same-command replay2/2 exact16fields.
+  BC pilot300 updates completed, loss.881002→.562472, GRU gradient nonzero;
+  first student0/1,601timeout/no lift/subgoal; full320 and DP not yet started at review.
+- Next startupSIGABRT had only runtime_controls and truncated system_error/Invalid
+  argument stderr, missing FileThread stack. Require confirmedexit-6 for this new
+  classified pre-scene signature; retain original1/stage,3/session recovery bound.
+- Both numerical pilots precede simulation. Only classified pre-scene startup failures
+  may defer learning-stage loops after foundation, allowing authorizedtrain320.
+  Control/started-trajectory errors remain fatal; missing loops block formal test.
+- Report discovers partial pilot loops and plots pilot offline metrics.7 focused tests
+  pass; no changes to model, loss,optimizer,physics,data,success or sessiondeadline.
+
 ## 2026-11-02 — bounded pre-scene recovery and complete partial reports
 
 - Actual run stopped at17:19UTC+8: seven legal expert native successes, eighth Kit

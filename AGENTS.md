@@ -2,6 +2,16 @@
 
 ## Current override — 2026-11-02 full recurrent State learning
 
+20:42UTC+8 review: expert12/12 legal complete successes, replay2/2 with16 exact fields,
+foundation passed. Recurrent BC pilot300 updates with nonzero GRU gradients; first
+autonomous trial601timeout/no lift. Second Kit abort has truncated system_error/
+Invalid argument log and confirmedexit-6, no scene/action. Recognize that bounded
+startup failure separately (no FileThread root-cause claim), retaining1/stage,3/session.
+Both numerical pilots precede simulation pilots. After foundation passes, only
+classified pre-scene launcher failures may defer learning-stage evaluation while
+train320 continues; no control/runtime-after-action error is swallowed. Deferred
+closed loops remain missing, never success; formal test waits for their resolution.
+
 19:40UTC+8 review found root01 stopped17:19 on expert_single_07 FileThread abort,
 before scene/trajectory, with prior7/7 native successes and0 student updates.
 Runtime-only recovery preserves the same root/deadline and completed stages; known

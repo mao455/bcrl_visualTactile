@@ -30,7 +30,8 @@ def summarize(root, output):
             value = json.loads(path.read_text()); write(output/name, value)
             result[name] = dict(sha256=digest(path), value=value if name != 'session.json' else 'registration copied')
     stages = sorted(set(('preservation', 'parity', 'freeze', 'expert', 'replay', 'old', 'bc_train', 'bc', 'dp_train', 'dp')) |
-        {p.parent.name for p in root.glob('*/result.json') if '_single_' not in p.parent.name})
+        {p.parent.name for pattern in ('*/result.json', '*/progress.json') for p in root.glob(pattern)
+            if '_single_' not in p.parent.name})
     for stage in stages:
         path = root/stage/'result.json'
         partial = not path.exists()
@@ -124,13 +125,14 @@ def resource_plot(root, output):
 
 
 def plot(root, output, summary):
-    if not any((root/(kind+'_train')/'metrics.json').exists() for kind in ('bc', 'dp')):
+    kinds = ('bc', 'dp', 'bc_pilot', 'dp_pilot')
+    if not any((root/(kind+'_train')/'metrics.json').exists() for kind in kinds):
         return
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     fig, axes = plt.subplots(1, 2, figsize=(10, 3.4))
-    for kind in ('bc', 'dp'):
+    for kind in kinds:
         path = root/(kind+'_train')/'metrics.json'
         if not path.exists():
             continue
