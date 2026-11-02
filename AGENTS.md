@@ -1,5 +1,23 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-11-02 persistent State and reproducible benchmark
+
+The new explicit attachment authorizes Actor141 parity, independent own GRU history,
+opt-in environment/policy RNG isolation, pre-action legal benchmark, small recurrent
+BC and StateDP training plus closed loops, and reviewed origin feature delivery.
+Read EXPERT_STATE_INPUT_PARITY, STATE_PERSISTENT_HISTORY,
+ENVIRONMENT_REPRODUCIBILITY_CONTRACT, STATE_TRAINING_RESULTS and GIT_DELIVERY_MANIFEST.
+New corrected root state_history_20261102_02 inherits root01 original6h endpoint; <=38 valid-protocol trajectories,
+plus2 preserved root01 preliminary starts (query disabled; total<=40). Read-only scene queries
+and actual-object positive control are required; empty disabled queries cannot prove legality.
+fresh4 selected geometrically from32 preregistered candidates BEFORE outcomes, saved
+train4/validation4; expert12, exact shared-command replay2, oldState8, BC8, DP8.
+Own GRU256 updates every60Hz tick; H64/commit12/DDIM16/U-Net/native physics unchanged.
+BC<=2000, DP<=1000 updates after current legal expert>=10/12 (saved>=6/8) and numeric/
+shared-command control gates. No full expansion or test/visual training. Ordinary owner
+scripts monitor/transition; user explicitly requests results and failure attribution.
+Keep dual50% GPU principles and4GiB/10GiB reserves; preserve every old root/data/weight.
+
 ## Completed — 2026-11-02 environment/learning repair
 
 Read NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR and latest SESSION_HANDOFF.

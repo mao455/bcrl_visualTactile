@@ -1,5 +1,19 @@
 # Audited contracts
 
+## 2026-11-02 State persistent-history v2 (State only)
+
+New STATE_CONTRACT is incompatible with nativev1 weights. Actor141 is the actual native
+noisy/delayed/clipped stream; frozen expertRMS140 and staticgroup32 preserve its effective
+input. Existingrobot178/geometry85 remain separate privileged State branches. OwnGRU256
+updates every60Hz tick and resets on trueepisode identity only; current-weight complete
+prefix precedes96tick TBPTT. No expert hidden/cell, current/future action or task outcome.
+OriginalU-Net/sample/LossB/DDIM16/H64/commit12 and native120/60Hz unchanged.
+Environment RNG isolation is opt-inCPUphysics; real collision query support and positive
+control are required before legal admission. Disabled-query root01 evidence is invalid
+for legality, preserved separately. Current legal expert and identical-command replay
+must pass before smallBC/DP; historical4lane replay remains diagnostic. See five focused
+State documents; numeric pass is not autonomous task success.
+
 ## 2026-11-02 G0 scientific repair and diagnostic ActorBC
 
 G0-A numerical original400 integrity and G0-B fresh online released expert native success jointly admit bounded learning.

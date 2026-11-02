@@ -61,7 +61,7 @@ def stable_grasp(arrays, initial_height):
         object_contact_threshold_N=.1, stable_window_s=.2, scope='filtered normal forces; not native success')
 
 
-def make_env(instrumented, lease, *, num_envs=1, seed=20261031):
+def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False):
     from evaluation.eval_isaacsim import _load_env_cfg
     from .observations import TaskCommand
     from .sim.replay_environment import RecordedReplayEnv
@@ -70,6 +70,10 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031):
     cfg.seed = seed
     cfg.scene.num_envs, cfg.scene.env_spacing = num_envs, 8.
     cfg.sim.device = 'cpu'
+    # Optional read-only collision admission queries. Default historical runners
+    # retain their exact configuration; no integration/control property changes.
+    if scene_queries:
+        cfg.sim.enable_scene_query_support = True
     cfg.precise_assembly.problem = 'tight_insertion'
     cfg.student_obs.image_modality, cfg.student_obs.camera_backend = 'rgbd', 'standard'
     cfg.student_obs.camera_update_period_s = 0.

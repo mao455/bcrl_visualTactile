@@ -1,5 +1,22 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 — State persistent history repair in progress
+
+Latest explicit attachment authorizes new Actor parity, own persistent GRU, RNG-isolated
+legal benchmark, smallBC and smallStateDP plus actual closed-loop delivery. Worktree
+bc+rl_RSS_native_v2; branchfeature/native-dp-training-v2, baseec84bd3.
+Read the five requested EXPERT_STATE_INPUT_PARITY / STATE_PERSISTENT_HISTORY /
+ENVIRONMENT_REPRODUCIBILITY_CONTRACT / STATE_TRAINING_RESULTS / GIT_DELIVERY_MANIFEST.
+Current ordinary owner: state-history-20261102-02.service; rootstate_history_20261102_02.
+It inherits root01 deadline (no reset), first hashes/parity passed, currently legal freeze.
+Root01 query-disabled admission INVALID; one expert success168steps and one interrupted
+start preserved, no training. New query support+positive control fixes that exact defect.
+92 tests and400Actor numerical parity are infrastructure evidence only; actual new students
+not yet trained. Resource pause protects unrelated work; recorded max60s exceeds50% and is a violation.
+Original endpoint2026-11-02 13:08:22UTC; automaticfinish service updates local measured tables
+afterowner exits, but never automatically commits/pushes unseen results.
+Check machine-readable status/results before claiming future progress; never restart old roots.
+
 ## 2026-11-02 12:01（UTC+8）— 环境/学习归因修复实际完成
 
 当前分支`feature/native-dp-training-v2`，独立worktree`bc+rl_RSS_native_v2`；原worktree保持干净。

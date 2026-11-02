@@ -1,5 +1,24 @@
 # Engineering change and verification log
 
+## 2026-11-02 — State Actor stream, persistent history and isolated environment RNG
+
+- New versioned State condition keeps robot178/geometry85 and original U-Net/H64/commit12,
+  adds complete recorded Actor141→checkpoint RMS140/group32 plus own GRU256 at every native tick.
+  Short detailed windows remain; current-weight full-prefix recomputation precedes96tick TBPTT.
+- New environment_rng isolates Python/NumPy/Torch CPU native draws from policy inference;
+  new state_benchmark shares env.step and records actual Actor/control/state/expert-shadow traces.
+- Initial headless scene-query flag was false: empty overlap hits were not physical evidence.
+  Root01 preserved one168step expert success and one interrupted expert; neither establishes
+  legal benchmark admission. Corrected root02 enables read-only scene queries and a positive
+  object detection check, retains original6h deadline; no physics/controller/task change.
+-91 focused regressions pass;400/81,894 actual Actor normalization rows maxerror0 and static
+  embedding exact;8 full/streaming/prefix/controller parity checks pass. Original preservation
+  checks pass. Actual legal expert/BC/DP outcomes pending; no success claim from tests.
+- Added5 requested focused reports and public small evidence; outputs/venv symlinks explicitly
+  ignored. Runtime asset/library pins and four-source history comparison recorded.
+- Resources: a complete60s window exceeded50% during current session. Whole-card monitor
+  paused owned computation; other productive jobs remain untouched. Final actual totals pending.
+
 ## 2026-11-02 — G0 scientific repair and registered environment/learning attribution
 
 - Split G0-A numerical integrity, G0-B fresh online expert evidence, G0-C diagnostic historical replay.

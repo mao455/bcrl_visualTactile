@@ -1,0 +1,16 @@
+diff --git a/source/isaaclab/isaaclab/envs/direct_rl_env.py b/source/isaaclab/isaaclab/envs/direct_rl_env.py
+index 69be0edb7..80cc94e42 100644
+--- a/source/isaaclab/isaaclab/envs/direct_rl_env.py
++++ b/source/isaaclab/isaaclab/envs/direct_rl_env.py
+@@ -363,0 +364,5 @@ class DirectRLEnv(gym.Env):
++        diagnostic_callback = getattr(
++            self, "_diagnostic_after_pre_physics_step", None
++        )
++        if callable(diagnostic_callback):
++            diagnostic_callback()
+@@ -384,0 +390,5 @@ class DirectRLEnv(gym.Env):
++            diagnostic_callback = getattr(
++                self, "_diagnostic_after_physics_substep", None
++            )
++            if callable(diagnostic_callback):
++                diagnostic_callback()

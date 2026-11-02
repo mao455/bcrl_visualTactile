@@ -1,5 +1,12 @@
 # 视觉与触觉模仿学习研究工程
 
+## State完整Actor输入与持续历史 — 2026-11-02
+
+[输入逐字段对照](EXPERT_STATE_INPUT_PARITY.md)、[持续历史/结构与论文对照](STATE_PERSISTENT_HISTORY.md)、
+[冻结环境合同](ENVIRONMENT_REPRODUCIBILITY_CONTRACT.md)、[实际学习/闭环结果](STATE_TRAINING_RESULTS.md)、
+[交付文件清单](GIT_DELIVERY_MANIFEST.md)。新State身份只扩展condition，保留U-Net/H64/commit12。
+原400Actor数值验收已通过；新合法基准及有界学习的实际状态以结果文档为准。
+
 ## 环境/学习归因修复 — 2026-11-02
 
 [本轮预登记、首差表、输入审计与实测结果](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)。
