@@ -1,5 +1,21 @@
 # Engineering change and verification log
 
+## 2026-11-03 — reviewed final H32 position results
+
+- STATE_TRAINING_RESULTS, SESSION_HANDOFF, AGENTS and KIT_RELIABILITY now report actual completion,
+  replacing stale position-training-not-started status. No runtime/model/control source changes.
+- NativeH32 1000 andPositionH32 19000 updates complete; selected both0/12, position10timeouts/2falls,
+  2lift and1train firstsubgoal/alignment. Allfinal12 outcomes present;6k validation0/7+1startupmissing.
+  Expert learning12/12 andposition replay2/2/14exactfields; no complete student success or Image start.
+- Selected position validation/test arm-hand .020641/.110750 and.022406/.112744rad;
+  holdarm baseline better. All12 resetActor/actuatortarget checks pass, policy errors appear beforecontact.
+  Report separates unequal budgets/units, teacher-forced metrics, partial progress and causal hypotheses.
+- Read-only review170source/119stage/2best/15prior-decodedvideo hashes; original400manifest unchanged.
+  Prior89tests pass, not rerun for documentation-only final review; no new updates or trajectories.
+- GIT_DELIVERY_MANIFEST lists reviewed small evidence/curves only; duplicate cumulative metric exports
+  and mislabeled generic learning curve omitted, raw experiment artifacts unchanged. Wholecard37.8656%,
+  max60s57.2718%,1376.63s telemetry gaps disclosed. Allownedprocesses exited04:45:10UTC+8.
+
 ## 2026-11-03 — explicit H32 position action, Kit isolation, staged DP-only pipeline
 
 - position_control audits all400/81894 directly recorded target_after radians and RGB-D timestamps;

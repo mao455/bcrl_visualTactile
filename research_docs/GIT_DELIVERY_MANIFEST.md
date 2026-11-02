@@ -1,20 +1,27 @@
 # Git delivery manifest
 
-## 2026-11-03 H32位置动作与有界V2流水线
+## 2026-11-03 H32位置：最终证据交付
 
-基准f1953c7，沿用feature/native-dp-training-v2；新增position_control单个动作合同/数据审计模块，
-训练、控制、评估、owner和自动报告均扩展原V2文件。无新的服务包装框架，无BC更新。
-89项针对性及相关控制回归测试通过；当前真实Kit/专家/位置回放状态见STATE_TRAINING_RESULTS与KIT_RELIABILITY。
-依赖审计删除5个冗余载荷，共2,512,265,377bytes；所有best/milestone、原400及必要失败trace保留。
-逐文件原SHA、保留bestSHA、内部成员对照摘要、文档去重记录在evidence/position_20261103/cleanup.json。
-当前核心文档为POSITION_ACTION_CONTRACT、KIT_RELIABILITY、STATE_TRAINING_RESULTS、本交付清单；
-若Image触发，其表/曲线加入同一结果报告，不再新增重复MD。历史明细保留在Git与旧小证据。
+基准f1953c7，沿用feature/native-dp-training-v2。实现提交
+`c7fcbb0e2d27e21fa5c818171014413d2b067d0a`，启动快照817d885，短对照结果
+`c5b0fa747887a93f1f3551ce5f051077f3968025`均已推送origin；它们不代表最终研究成功。
+本节所在Git提交交付04:45:10UTC+8结束的实际结果；最终提交SHA由交付回复及Git历史给出，
+运行源码仍以session登记hash为准，报告提交不追溯改变实验身份。
 
-运行服务`position-state-20261103-01.service`；普通owner自行推进Gate→nativeH32→positionH32→条件Image。
-每次启动/源码修订均落盘，同一会话不重置时限。当前提交只包含已复核代码、测试、文档和小JSON；
-权重、原400、MP4/HDF5/NPZ和outputs链接不上传。代码实现已push：`c7fcbb0e2d27e21fa5c818171014413d2b067d0a`，origin/feature/native-dp-training-v2核对同SHA。
-启动交付快照：新增学习初态专家已完成11/11成功，第12条运行中；新optimizer更新尚未开始，Image未启动。
-这不是训练完成或学生任务成功。快照见evidence/position_20261103/startup_delivery.json。
+NativeH32/PositionH32完成1000/19000 updates，最终各0/12。位置2lift、1train首子目标，
+没有完整自主成功。Image未触发，H24未执行，无新BC。服务和全部自有进程已退出。
+核心文档：POSITION_ACTION_CONTRACT、KIT_RELIABILITY、STATE_TRAINING_RESULTS、本清单；
+AGENTS/SESSION_HANDOFF/CHANGELOG同步状态，不新增另一份结果报告。
+
+最终小证据在`evidence/position_20261103/results`：完整累计训练指标、各cohort结果、
+冻结后test40、注册配置、接口审计、87条trace诊断摘要、15视频解码hash和两张曲线。
+重复的累计训练快照无需再提交，原始outputs完整保留；通用旧图把位置误差标作Native RMSE，
+不交付该图，使用注明profile单位的position_curves.png。completed_review.json核验
+170源码/119stage/2best/15视频hash；前次89测试通过，本次无源码修改及重复测试。
+
+权重、原400、MP4/HDF5/NPZ和outputs链接不上传。全部best/milestone与原400仍保留；
+先前依赖审计只删4份逻辑重复last和1份旧可重建cache，共2,512,265,377bytes，
+逐文件SHA与保留对象见cleanup.json。本次不追加实验载荷删除。
 
 
 ## 2026-11-02 full State execution delivery

@@ -1,0 +1,733 @@
+{
+  "reviewed_utc": 1793661076.200438,
+  "current_source_files": 170,
+  "all_sources_match": true,
+  "committed_stage_hashes": 119,
+  "all_markers_match": true,
+  "checkpoints": {
+    "native_h32": {
+      "path": "outputs/visuotactile/native_dp_v2/position_20261103_01/native_h32_train/best.pt",
+      "checkpoint_sha256": "efb9a3f4b560f4024f1382a3ef9531827ba5d4a76fadb23a861625e8596c5ddf",
+      "updates": 1000,
+      "criterion": "minimum validation40 first12 balanced MSE",
+      "stop_reason": null,
+      "contract": {
+        "version": 3,
+        "action": "native_command_clipped_pre_delay",
+        "horizon": 32,
+        "commit": 12,
+        "native_history": 13,
+        "visual_history": 3,
+        "native_hz": 60,
+        "physics_hz": 120,
+        "observation": "actor141_robot178_geometry85_v2",
+        "prediction_type": "sample",
+        "loss": "B",
+        "train_noise_steps": 100,
+        "inference_steps": 16,
+        "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+        "history_source": "past_expert_executed_teacher_forcing; student_executed_at_deployment",
+        "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+        "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+        "geometry_hz": 60,
+        "action_contract": "native_command_h32_control_v1"
+      }
+    },
+    "position_h32": {
+      "path": "outputs/visuotactile/native_dp_v2/position_20261103_01/position_h32_train/best.pt",
+      "checkpoint_sha256": "5ecc930ffd52af166e00904b0515159193d8527d9f5726908bf57967c445a416",
+      "updates": 19000,
+      "criterion": "minimum validation40 first12 balanced MSE",
+      "stop_reason": null,
+      "contract": {
+        "version": 3,
+        "action": "absolute_joint_position_target_rad",
+        "horizon": 32,
+        "commit": 12,
+        "native_history": 13,
+        "visual_history": 3,
+        "native_hz": 60,
+        "physics_hz": 120,
+        "observation": "actor141_robot178_geometry85_v2",
+        "prediction_type": "sample",
+        "loss": "B",
+        "train_noise_steps": 100,
+        "inference_steps": 16,
+        "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+        "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+        "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+        "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+        "geometry_hz": 60,
+        "action_contract": "position_rad_v1"
+      }
+    }
+  },
+  "cohorts": {
+    "expert": {
+      "complete": true,
+      "registered": 2,
+      "completed": 2,
+      "successes": 2,
+      "lifts": 0,
+      "subgoals": 2,
+      "alignment": 2,
+      "termination_counts": {
+        "max_successes": 2
+      },
+      "missing": [],
+      "result_sha256": "ee33cc878ee56e2dd5338866b4eb3e8f67616037761da17d283b8e749f2265ba"
+    },
+    "expert_learning": {
+      "complete": true,
+      "registered": 12,
+      "completed": 12,
+      "successes": 12,
+      "lifts": 6,
+      "subgoals": 12,
+      "alignment": 12,
+      "termination_counts": {
+        "max_successes": 12
+      },
+      "missing": [],
+      "result_sha256": "ffaa04aed704817b6134215fe22f4fb5c3787d5e5ece162243389771f6a87729"
+    },
+    "native_h32_loop_1000": {
+      "complete": true,
+      "registered": 4,
+      "completed": 4,
+      "successes": 0,
+      "lifts": 0,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 4
+      },
+      "missing": [],
+      "result_sha256": "61c60203f014d449be6d7eb7881c659ee5a9ec92410a7e082c859785f03f1030"
+    },
+    "native_h32_selected": {
+      "complete": true,
+      "registered": 12,
+      "completed": 12,
+      "successes": 0,
+      "lifts": 0,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 11,
+        "fall": 1
+      },
+      "missing": [],
+      "result_sha256": "962ec45fba096dbab3d722c56856876ee96b47bc29d31be8a9e87a5b309af46d"
+    },
+    "position_h32_loop_1000": {
+      "complete": true,
+      "registered": 4,
+      "completed": 4,
+      "successes": 0,
+      "lifts": 1,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 4
+      },
+      "missing": [],
+      "result_sha256": "e7dc9795b9bc6599f4104e7bcc02151fb61192eb02fdcbcfb80162f34d10a4cc"
+    },
+    "position_h32_loop_10000": {
+      "complete": true,
+      "registered": 4,
+      "completed": 4,
+      "successes": 0,
+      "lifts": 0,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 4
+      },
+      "missing": [],
+      "result_sha256": "f21922e6a7303d9a4618d5c1b3b9e5d3f8ecbccace2cb1144126a933fe47759a"
+    },
+    "position_h32_loop_19000": {
+      "complete": true,
+      "registered": 4,
+      "completed": 4,
+      "successes": 0,
+      "lifts": 2,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "fall": 2,
+        "timeout": 2
+      },
+      "missing": [],
+      "result_sha256": "660e89f4142b328574fb2aeed7b912a5bfaa75a4f39d06859f72fa70805bf59b"
+    },
+    "position_h32_loop_3000": {
+      "complete": true,
+      "registered": 4,
+      "completed": 4,
+      "successes": 0,
+      "lifts": 3,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "fall": 2,
+        "timeout": 2
+      },
+      "missing": [],
+      "result_sha256": "b2beff3e1d5feaa665a281c500b11620dfe00a3d46d4b719ef795f2306fe310f"
+    },
+    "position_h32_loop_6000": {
+      "complete": true,
+      "registered": 4,
+      "completed": 4,
+      "successes": 0,
+      "lifts": 1,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "fall": 1,
+        "timeout": 3
+      },
+      "missing": [],
+      "result_sha256": "65f2ce42672382d9009c83f373a64e9d06ce4903fbb5dea16f65a238e3948866"
+    },
+    "position_h32_selected": {
+      "complete": true,
+      "registered": 12,
+      "completed": 12,
+      "successes": 0,
+      "lifts": 2,
+      "subgoals": 1,
+      "alignment": 1,
+      "termination_counts": {
+        "fall": 2,
+        "timeout": 10
+      },
+      "missing": [],
+      "result_sha256": "dc178a8d873e4b1a4ba58364acd1cd055aea22443e0f73fee4f3603e6cd368ef"
+    },
+    "position_h32_validation_1000": {
+      "complete": true,
+      "registered": 8,
+      "completed": 8,
+      "successes": 0,
+      "lifts": 1,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 8
+      },
+      "missing": [],
+      "result_sha256": "4985656979a95841319ac7ebb37cafab5063e4887fe4d3703ee29ba991f944c5"
+    },
+    "position_h32_validation_10000": {
+      "complete": true,
+      "registered": 8,
+      "completed": 8,
+      "successes": 0,
+      "lifts": 0,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 8
+      },
+      "missing": [],
+      "result_sha256": "69b9e995cdc775a4534a292ebd3e6b4620d74df82df1fed7787c498d18a0143f"
+    },
+    "position_h32_validation_19000": {
+      "complete": true,
+      "registered": 8,
+      "completed": 8,
+      "successes": 0,
+      "lifts": 0,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 8
+      },
+      "missing": [],
+      "result_sha256": "1e2464d7e779e600846de799567a998b0cda60794a779eca9b99d295bfb1b2a1"
+    },
+    "position_h32_validation_3000": {
+      "complete": true,
+      "registered": 8,
+      "completed": 8,
+      "successes": 0,
+      "lifts": 1,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 7,
+        "fall": 1
+      },
+      "missing": [],
+      "result_sha256": "e47650c08d19bf87faf43ddf5754bd205b01f40fd25437c6ff2dcf77ee9ff83f"
+    },
+    "position_h32_validation_6000": {
+      "complete": false,
+      "registered": 8,
+      "completed": 7,
+      "successes": 0,
+      "lifts": 0,
+      "subgoals": 0,
+      "alignment": 0,
+      "termination_counts": {
+        "timeout": 7
+      },
+      "missing": [
+        {
+          "spec": {
+            "identity": "r931005_1793209376_e00_p000067",
+            "cohort": "validation",
+            "seed": 984103
+          },
+          "stage": "position_h32_validation_6000_single_02",
+          "error": "position_h32_validation_6000_single_02 failed: exit=-6",
+          "native_outcome": null,
+          "classification": "worker_incomplete",
+          "evidence": null
+        }
+      ],
+      "result_sha256": "10db99ce190a50a059609a67a222b7ae4b85d801f10b08420417280e5ff6691b"
+    },
+    "position_replay": {
+      "complete": true,
+      "registered": 2,
+      "completed": 2,
+      "successes": 2,
+      "lifts": 0,
+      "subgoals": 2,
+      "alignment": 2,
+      "termination_counts": {
+        "max_successes": 2
+      },
+      "missing": [],
+      "result_sha256": "e5cb9a0404bca69df53f2fd13b9ccd718da5d8c2321871db620be993c3c8c260"
+    }
+  },
+  "selected_traces": [
+    {
+      "identity": "r931005_1793209376_e00_p000000",
+      "cohort": "train",
+      "steps": 339,
+      "reasons": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "lift": true,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 46,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "c2877f6aeb0801f59b5418baa6a6f2c47d29ffdb7c6f8a0965124f4e12a1fbf3"
+    },
+    {
+      "identity": "r931005_1793209376_e03_p000159",
+      "cohort": "train",
+      "steps": 202,
+      "reasons": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "lift": true,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 65,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "45d96817822f3448358112fcafaeb8bc4a543ac74610045acd8bb974487a827c"
+    },
+    {
+      "identity": "r931005_1793209376_e02_p000059",
+      "cohort": "train",
+      "steps": 717,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 1,
+      "first_subgoal_tick": 115,
+      "first_object_contact_tick": 50,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "ac9d91c2e893f20c16681e68a2a4ab2cda5df16388849f2f732efc04f8b1630f"
+    },
+    {
+      "identity": "r931005_1793209376_e01_p000153",
+      "cohort": "train",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 80,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "f62ea38c1b7bc8411224607cf3779dcf5bffed41303d13c224bcd00b57a01b7a"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000055",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 58,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "4f399bbd6836926ed6cb0934c3b6971808d3a480c59f7c24fc13463361a7186d"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000057",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 38,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "70d703085a4b273e69969fe749dc9b7ff963ab6ce75317635e47cfcc0ebe1350"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000067",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 55,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "71110dd36a9a9a01110333b96a03b8b733a4f9a3ebd41a29d8dd308621ba4c4b"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000121",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 51,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "93f7a058a149820cc1e47c12526183783a7e8602082b97f93382cbb4cfac4a32"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000128",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 71,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "8e444634314d16ec37b4bfa5547419195d458bbf02bb04fa0ef90f95081941fd"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000138",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 43,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "d512bd2dc0ecb84b915ccab242f360245227bb7d88349994875629d0d3ee5941"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000162",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 112,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "1cb161e6af1ba843ef847e924adc61bd9f7512298238da1a99d696a12a89ee7e"
+    },
+    {
+      "identity": "r931005_1793209376_e00_p000164",
+      "cohort": "validation",
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "lift": false,
+      "native_subgoals": 0,
+      "first_subgoal_tick": null,
+      "first_object_contact_tick": 92,
+      "reset_actor_equal_expert": true,
+      "submitted_and_actuator_targets_exact": true,
+      "trace_sha256": "8add6665deb4748f19417ae5c7f51febf8fbeca041805071196d5d958b7928dd"
+    }
+  ],
+  "video_files": 15,
+  "all_video_hashes_and_prior_full_decodes_valid": true,
+  "owner_exit": {
+    "utc": 1793652310.2469974,
+    "owned_children_exited": true
+  },
+  "status": {
+    "state": "position_study_finished",
+    "utc": 1793652309.8322816,
+    "research_success": false,
+    "image": {
+      "state": "not_started",
+      "reason": "Fewer than two complete native successes on a complete preregistered eight-ID validation cohort"
+    }
+  },
+  "image_status": {
+    "state": "not_started",
+    "reason": "Fewer than two complete native successes on a complete preregistered eight-ID validation cohort"
+  },
+  "resource_summary": {
+    "pid": 1427126,
+    "latest": {
+      "pid": 1427126,
+      "utc_epoch": 1793652310.207141,
+      "elapsed_s": 13799.25302785798,
+      "gpu_util_percent": 1.0,
+      "gpu_used_mib": 1342.0,
+      "gpu_free_mib": 22742.0,
+      "ram_available_bytes": 32064692224,
+      "process_rss_bytes": 12423168,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 43.11469550608696
+    },
+    "samples": 12422,
+    "gpu_time_weighted_mean_percent": 37.86561074702207,
+    "max_complete_60s_mean_percent": 57.2717954699959,
+    "missing_samples": 0,
+    "missing_seconds": 1376.6315265371231,
+    "max_sample_gap_s": 911.347120400751,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 14637.0,
+    "peak_process_rss_bytes": 14368768,
+    "min_ram_available_bytes": 17964859392,
+    "thresholds": {
+      "gpu_free_mib": 6144,
+      "ram_available_bytes": 12884901888,
+      "max_gpu_mean_percent": null,
+      "gpu_admission_mean_percent": null
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+  },
+  "original400_manifest_sha256": "f4562c18c51a7f7e40bc0a587b7e58aae4889dc5a06dfce4521a1e9e0f003b28",
+  "new_optimizer_updates_in_review": 0,
+  "new_trajectories_in_review": 0,
+  "selected_trace_aggregates": {
+    "reset_arm_rmse": 0.0175883862345169,
+    "reset_hand_rmse": 0.05120419369389614,
+    "chunk_boundary_command_jump_rms": 0.07008319286008675,
+    "within_chunk_command_jump_rms": 0.023434834089130163,
+    "tracking_arm_rmse_rad": 0.013350807673608264,
+    "tracking_hand_rmse_rad": 0.058155844608942665,
+    "trials": 12,
+    "scope": "Arithmetic means over the twelve complete selected position student traces; units rad",
+    "hand_rmse_over_0p1_before_expert_first_contact": 12,
+    "target_over_1mrad_at_tick0": 12,
+    "joint_over_1mrad_at_post_action_tick0": 12
+  },
+  "startup_recoveries": {
+    "kit_startup_02": {
+      "utc": 1793638554.9554138,
+      "stage": "kit_startup_02",
+      "deadline": 1793724910.1698925,
+      "reason": "pre-scene FileThread/omniClientFreeContent SIGSEGV",
+      "evidence": {
+        "native_stack_available": true,
+        "confirmed_sigabrt": false,
+        "confirmed_sigsegv": true,
+        "classification": "pre-scene FileThread/omniClientFreeContent SIGSEGV"
+      },
+      "original_log_sha256": "5b2dbca4bfdb695c420c117b23d31061f5de22054f790537843041d0be41e01b",
+      "same_seed_and_job": true,
+      "new_controlled_trajectories": 0,
+      "maximum_per_stage": 2,
+      "maximum_per_session": 12
+    },
+    "native_h32_selected_single_05": {
+      "utc": 1793641830.3230867,
+      "stage": "native_h32_selected_single_05",
+      "deadline": 1793724910.1698925,
+      "reason": "pre-scene system_error/Invalid argument abort; native stack missing",
+      "evidence": {
+        "native_stack_available": false,
+        "confirmed_sigabrt": true,
+        "confirmed_sigsegv": false,
+        "classification": "pre-scene system_error/Invalid argument abort; native stack missing"
+      },
+      "original_log_sha256": "6567bca67862c4f1d08604972adc7abeb5e806e8ea421c0d6642ed343b1c0f35",
+      "same_seed_and_job": true,
+      "new_controlled_trajectories": 0,
+      "maximum_per_stage": 2,
+      "maximum_per_session": 12
+    },
+    "position_h32_validation_1000_single_01": {
+      "utc": 1793643380.678207,
+      "stage": "position_h32_validation_1000_single_01",
+      "deadline": 1793724910.1698925,
+      "reason": "pre-scene FileThread abort",
+      "evidence": {
+        "native_stack_available": true,
+        "confirmed_sigabrt": true,
+        "confirmed_sigsegv": false,
+        "classification": "pre-scene FileThread abort"
+      },
+      "original_log_sha256": "6dacf773a77fd58980c397392f825ffc333d4415f76e491d217a8b3272364c45",
+      "same_seed_and_job": true,
+      "new_controlled_trajectories": 0,
+      "maximum_per_stage": 2,
+      "maximum_per_session": 12
+    }
+  },
+  "unrecovered_startup": {
+    "stage": "position_h32_validation_6000_single_02",
+    "exit_code": -6,
+    "lifecycle": {
+      "state": "launching",
+      "utc": 1793646622.4595745
+    },
+    "attempt_files": [
+      "lifecycle.json",
+      "runtime_before.json",
+      "runtime_controls.json"
+    ],
+    "log_sha256": "1cce09d854aeb57d36916ff8292be23019eabed9ea3d46ac7f107d42cdb935b5",
+    "fatal_stack_symbols": [
+      "libnrend.so",
+      "operator new(unsigned long)",
+      "omniClientFreeContent",
+      "provider_file::FileThread"
+    ],
+    "std_system_error_signature_present": false,
+    "native_outcome": null,
+    "root_cause": "not uniquely established"
+  },
+  "tests": {
+    "prior_passed": 89,
+    "rerun_in_this_review": false,
+    "reason": "Runtime source unchanged; documentation and evidence review only"
+  },
+  "publication_omissions": [
+    {
+      "file": "research_docs/evidence/position_20261103/results/native_h32_train_1000.json",
+      "sha256": "429d6ba64584936d4ec48fbf1fd8ac8efee0729c15a57386f36d1d06eec8a24a",
+      "reason": "redundant cumulative training snapshot",
+      "original_run_artifact_preserved": true
+    },
+    {
+      "file": "research_docs/evidence/position_20261103/results/position_h32_train_1000.json",
+      "sha256": "a428b8e5ac461aed045c57d3c2e689872f4b9fca47a5109d69aef994942c79a3",
+      "reason": "redundant cumulative training snapshot",
+      "original_run_artifact_preserved": true
+    },
+    {
+      "file": "research_docs/evidence/position_20261103/results/position_h32_train_3000.json",
+      "sha256": "4c5dd7eac668540ec05f43eea00c4fc13d8d22e7390c902dec41060f7810c9c1",
+      "reason": "redundant cumulative training snapshot",
+      "original_run_artifact_preserved": true
+    },
+    {
+      "file": "research_docs/evidence/position_20261103/results/position_h32_train_6000.json",
+      "sha256": "4b92cb3cc3fee3584f8843de677a8fdcd3beed04504fafa98325844c7d439a2d",
+      "reason": "redundant cumulative training snapshot",
+      "original_run_artifact_preserved": true
+    },
+    {
+      "file": "research_docs/evidence/position_20261103/results/position_h32_train_10000.json",
+      "sha256": "045ee0537ae073b51990f1989fb26856335fb7f9fd9c29191f8625b0fb576865",
+      "reason": "redundant cumulative training snapshot",
+      "original_run_artifact_preserved": true
+    },
+    {
+      "file": "research_docs/evidence/position_20261103/results/position_h32_train_19000.json",
+      "sha256": "cf1d22e355b2e0718d705caa3c00f4cda093cd58e56c07a1cb282370ed382999",
+      "reason": "redundant cumulative training snapshot",
+      "original_run_artifact_preserved": true
+    },
+    {
+      "file": "research_docs/evidence/position_20261103/results/learning_curves.png",
+      "sha256": "d8a733e13e376ce50971720157b53bdbcb471a92f2770ec94f78aaceafabaab4",
+      "reason": "generic chart labels position error as Native RMSE; use position_curves.png",
+      "original_run_artifact_preserved": true
+    }
+  ]
+}

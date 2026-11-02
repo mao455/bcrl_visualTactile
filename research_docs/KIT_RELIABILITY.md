@@ -1,5 +1,24 @@
 # Kit生命周期与有界恢复
 
+## 最终运行结果（2026-11-03 04:45 UTC+8已停止）
+
+受控隔离退出缓解了关闭崩溃，未根治启动问题。本轮记录3次启动恢复：预检kit_startup_02，
+以及native_h32_selected_single_05和position_h32_validation_1000_single_01，恢复后均完成。
+正式学生阶段这两次分别为截断system_error/Invalid argument和FileThread启动abort。
+
+position_h32_validation_6000_single_02仍在launching时exit-6，只有runtime_controls、
+runtime_before及lifecycle，无场景/动作。Fatal stack经过libnrend.so、operator new、
+libomniclient.so!omniClientFreeContent和provider_file::FileThread，缺少恢复分类器所要求的
+std::system_error签名，未自动重试；不能仅凭operator new推断OOM或FileThread推断inotify耗尽。
+该8条cohort为0/7已完成+1未知；随后独立评价继续，最终选定模型12条全部有原生结果。
+因此服务完成不代表所有里程碑均无软件故障，也不能用此启动缺失解释最终学生0/12。
+原始失败log/attempt保留，收尾无新启动；所有自有worker、owner、monitor已退出。
+见[收尾核验](evidence/position_20261103/completed_review.json)和
+[6000验证结果](evidence/position_20261103/results/position_h32_validation_6000.json)。
+
+## 启动与关闭专项审计
+
+
 当前证据不能把FileThread堆栈唯一归因为inotify耗尽，也不能宣称问题已经修好。
 首次专项检查时系统max_user_watches=524288；用户VSCode两个主要进程约440384/34324 watches，
 接近限额，但没有捕获本轮ENOSPC。未终止或修改这些进程，未更改系统限制及共享安装。
@@ -10,7 +29,7 @@
 OmniClient setter的机器码经精确匹配后只读其存储标志，App就绪后仍为false。
 因此watches关闭已生效，但不能排除SDK自身线程/关闭顺序问题。
 
-当前对照只改进程生命周期：AppLauncher显式`fast_shutdown=False`，保留完整扩展清理；
+专项对照只改进程生命周期：AppLauncher显式`fast_shutdown=False`，保留完整扩展清理；
 启动前、App就绪、关闭前记录自身fds/threads/inotify、rlimit；明确launching、environment_ready、
 results_committed、closing、closed。位置/原生物理和任务不因此改变。
 4次新对照在原3小时Gate窗口内执行，保留原4次记录，不重置deadline。
@@ -36,8 +55,8 @@ nofile软限从1024由Kit升至2450、硬限1048576。没有观察到此进程fd
 父进程wait/reap，再核查`/proc/PID`和nvidia-smi中均无该PID，才保存closed证据。
 这避开已测SDK关闭故障，属于显式进程隔离/内核资源回收，不等于SDK graceful shutdown修复。
 异常或未完成结果不能进入这条成功退出路径，原始启动崩溃仍按有界规则处理。
-当前实际场景、专家和位置回放继续由同一服务验收；4个短probe不是长期可靠性证明。
+后续场景、专家和位置回放已由同一服务验收；4个短probe不是长期可靠性证明。
 
 之后freeze、2条在线专家、2条位置重放均完成并正常受控退出；位置foundation已通过。
 原生完整成功2/2与回放2/2，14字段exact，细节见POSITION_ACTION_CONTRACT。
-后续初态控制/学生评价仍逐条保留进程错误。长期运行可靠性需以最终全部stage统计为准。
+初态控制/学生评价逐条保留进程错误；最终仍有1条启动缺失，详见顶部结论。

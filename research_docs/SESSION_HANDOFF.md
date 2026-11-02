@@ -1,23 +1,30 @@
 # 当前会话交接：视觉—触觉研究
 
-## 2026-11-03 H32直接位置：基础Gate通过，分阶段DP服务已启动
+## 2026-11-03 H32位置：服务结束，最终学生0/12
 
-Worktreebc+rl_RSS_native_v2 / feature/native-dp-training-v2，基准f1953c7。
-最新用户附件f676d446：禁新BC，H32/commit12、直接29D target_after弧度、原执行器和任务。
-原400/81894labels已核验；专家2/2，位置重放2/2（168/153步），14fields exact，执行器目标误差0。
-Kit fast关闭postresultabort，graceful closing SIGSEGV；明确os._exit受控独立worker退出后，
-父进程确认PID/GPU释放，4/4probe通过。是隔离修复，不是SDK根因解决。
-89回归测试通过；stage运行source全部冻结。第三次源码修订仅修trainer变量覆盖group，
-在零optimizer更新时发生，已完成expert轨迹跳过、不重置24h/21h/3h时限。
-rootposition_20261103_01，服务position-state-20261103-01。当前先完成学习初态expert对照，
-再nativeH32<=1000与positionH32分阶段<=19000，所有GPU阶段单worker内存/近期负载保护。
-8个预注册合法validation至少2完整成功自动启两组Image（各300/1000/3000），否则不启动。
-原400、全部best和milestone保留；逻辑重复last4+旧cache1已删，释放2.512GB，清单有SHA。
-STATE_TRAINING_RESULTS去重为核心当前报告，旧详细快照在Gitf1953c7及旧小证据。
-普通owner负责训练/评估/报告，不用对话轮询；真实进度以status/progress/result为准。
-最新核验：学习初态专家12/12，native_h32控制1000更新完成/覆盖320，闭环阶段已启动；
-位置StateDP更新0，Image未触发。短对照loss1.019161→.216421仅为离线指标。
-下文State旧10000/19000和服务停止均属于旧root，不是本轮新训练结果。
+Worktree `bc+rl_RSS_native_v2` / `feature/native-dp-training-v2`。
+`position_20261103_01`于04:45:10UTC+8结束，服务inactive，全部自有owner/worker/monitor退出。
+NativeH32短对照1000、PositionH32 StateDP19000完成train320/val40，分别选1000/19000，
+冻结后offline test40各一次。两者最终闭环均train0/4、validation0/8，没有最终缺失条目。
+位置结果10timeout+2fall，2lift、1train首子目标及alignment；仍无完整学生任务成功。
+Image未启动（validation0/8不足预注册2/8成功Gate），H24未执行，没有新BC训练。
+位置validation arm/hand=.020641/.110750rad，test=.022406/.112744；hold基线arm更好。
+位置best SHA5ecc930ffd52af166e00904b0515159193d8527d9f5726908bf57967c445a416。
+
+原400/81894labels核验，fresh专家2/2、位置重放2/2/14fields exact，学习专家12/12。
+12条selected学生resetActor均同专家，提交/真实执行器target完全相同，但第0步即偏离专家；
+全部手部误差在对应专家首次接触前超过.1rad。不能把执行接口通过当作策略成功。
+Kit关闭隔离4/4probe通过；启动仍不稳定：6k validation单条pre-scene SIGABRT，
+0/7已完成+1缺失，后续独立条目继续；这不是最终selected12的缺失或原生任务失败。
+
+本次只读复核170源码hash、119stagehash、2best和15已解码视频hash；原400manifest未变。
+未新增训练/仿真，源码未改；先前89回归测试通过，不重复跑测试。
+整卡均值37.8656%、最大60秒57.2718%，1376.63秒监测间隔，不声称全覆盖/零干扰。
+保留全部best/milestone和原400；先前清理2.512GB逻辑重复last/可重建cache不扩大删除。
+只提交复核报告/去重小JSON/曲线，原权重、数据、NPZ、MP4不上传。
+阅读STATE_TRAINING_RESULTS、KIT_RELIABILITY和evidence/position_20261103/completed_review.json。
+本轮已结束，不自动追加更新/重试/H24/新轨迹/Image。旧blocked.json为已解决修订快照。
+下文旧root或运行中快照不能用作当前状态。
 
 
 ## 2026-11-03 00:19UTC+8 — training finished, evaluation incomplete, service stopped

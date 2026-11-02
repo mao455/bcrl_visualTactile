@@ -1,6 +1,26 @@
 # Play2Perfect visual–tactile imitation research
 
-## Current override — 2026-11-03 direct-position StateDP
+## Completed — 2026-11-03 H32 position StateDP
+
+position_20261103_01 ended at 04:45:10 UTC+8; the service is inactive and all owned
+workers/monitor exited. NativeH32 control 1000 and PositionH32 StateDP 19000 updates
+completed on train320/val40; validation selected 1000/19000, offline test40 once each.
+Both selected models scored 0/12 (train 0/4, val 0/8). Position had 2 lift/falls and
+1 train first subgoal/alignment, no complete native success; 10 timeouts/2 falls.
+Image did not start: zero of 8 validation complete successes. H24 was not run.
+Learning experts 12/12, fresh 2/2 and position replay 2/2 with 14 exact fields;
+all 12 selected student reset Actors match experts and submitted/actuator targets
+are exact. Errors start at tick 0, before contact; the learning cause is not unique.
+Kit isolation mitigates closing faults but 6k validation retains 1 pre-scene SIGABRT
+missing (0/7 completed); final selected 12 complete. Missing startup is not task failure.
+Read STATE_TRAINING_RESULTS/KIT_RELIABILITY and completed_review.json: 170 source hashes,
+119 stage hashes, 2 best hashes, 15 decoded video hashes checked; prior 89 tests pass.
+No automatic extra updates/trials/retries/H24/Image. Original400/bests/milestones intact.
+Whole-card mean 37.8656%, max60s 57.2718%, 1376.63s gaps; no fixed utilization cap or
+zero-interference claim. This completed evidence supersedes running snapshots below.
+Reviewed small results push authorized.
+
+## Authorization — 2026-11-03 direct-position StateDP (completed above)
 
 Latest user attachment f676d446 authorizes existing V2 H32 direct recorded absolute
 29D joint targets, commit12 at native60Hz/physics120Hz, retained Actor141/robot178/
