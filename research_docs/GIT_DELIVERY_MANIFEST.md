@@ -12,7 +12,9 @@
 
 运行服务`position-state-20261103-01.service`；普通owner自行推进Gate→nativeH32→positionH32→条件Image。
 每次启动/源码修订均落盘，同一会话不重置时限。当前提交只包含已复核代码、测试、文档和小JSON；
-权重、原400、MP4/HDF5/NPZ和outputs链接不上传。代码提交身份见本节后续核验记录。
+权重、原400、MP4/HDF5/NPZ和outputs链接不上传。代码实现已push：`c7fcbb0e2d27e21fa5c818171014413d2b067d0a`，origin/feature/native-dp-training-v2核对同SHA。
+启动交付快照：新增学习初态专家已完成11/11成功，第12条运行中；新optimizer更新尚未开始，Image未启动。
+这不是训练完成或学生任务成功。快照见evidence/position_20261103/startup_delivery.json。
 
 
 ## 2026-11-02 full State execution delivery

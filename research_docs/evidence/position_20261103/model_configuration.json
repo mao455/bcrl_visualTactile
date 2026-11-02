@@ -1,0 +1,77 @@
+[
+  {
+    "group": "S-PositionDP",
+    "parameters": 72047005,
+    "trainable_parameters": 72047005,
+    "contract": {
+      "version": 3,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 32,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "actor141_robot178_geometry85_v2",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+      "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+      "geometry_hz": 60,
+      "action_contract": "position_rad_v1"
+    },
+    "dino_backbone_excluded": false
+  },
+  {
+    "group": "I-OfficialDP",
+    "parameters": 82811613,
+    "trainable_parameters": 82811613,
+    "contract": {
+      "version": 3,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 32,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "I-OfficialDP_robot178_rgbd_no_privileged_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1"
+    },
+    "dino_backbone_excluded": false
+  },
+  {
+    "group": "I-HistoryDP",
+    "parameters": 72770109,
+    "trainable_parameters": 72770109,
+    "contract": {
+      "version": 3,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 32,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "I-HistoryDP_robot178_rgbd_no_privileged_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1"
+    },
+    "dino_backbone_excluded": true
+  }
+]
