@@ -1,6 +1,6 @@
 # State observation/history repair — actual results
 
-## 2026-11-03：H32直接位置研究，训练尚未开始
+## 2026-11-03：位置Gate通过，H32原生命令短对照1000完成
 
 新root `position_20261103_01`，基准f1953c7，最高优先级StateDP，停止新StateBC。
 400/81,894直接位置标签核验通过；新鲜专家2/2成功，位置重放2/2成功，基础Gate已通过。
@@ -15,6 +15,12 @@
 原始train/validation各一条共310tick经过在线特征路径，robot178最大差3.58e-7，
 Actor/geometry/位置目标差0；这是教师强制接口核验，不是学生成功，见[input_parity.json](evidence/position_20261103/input_parity.json)。
 位置合同见POSITION_ACTION_CONTRACT；启动证据见KIT_RELIABILITY。
+
+最新已核验：学习初态专家12/12完整成功；native_h32对照已完成1000updates，覆盖train320、validation40，
+前/后25步平均loss1.019161→0.216421，ownGRU非零梯度，正在闭环。位置StateDP尚未开始optimizer更新，
+不能把这1000次原生命令对照称作位置训练。真实闭环结果由普通服务继续记录。
+[native_h32_1000_review.json](evidence/position_20261103/native_h32_1000_review.json) /
+[短对照曲线](evidence/position_20261103/native_h32_1000_curves.png)。
 
 预注册：H32 native-command控制最多1000 updates，H32 position最多19000，
 分1000/3000/6000/10000/19000里程碑；相同19000 cosine horizon，train320/val40，test40只在选择冻结后。

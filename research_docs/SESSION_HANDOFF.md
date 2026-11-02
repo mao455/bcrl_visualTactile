@@ -15,6 +15,8 @@ rootposition_20261103_01，服务position-state-20261103-01。当前先完成学
 原400、全部best和milestone保留；逻辑重复last4+旧cache1已删，释放2.512GB，清单有SHA。
 STATE_TRAINING_RESULTS去重为核心当前报告，旧详细快照在Gitf1953c7及旧小证据。
 普通owner负责训练/评估/报告，不用对话轮询；真实进度以status/progress/result为准。
+最新核验：学习初态专家12/12，native_h32控制1000更新完成/覆盖320，闭环阶段已启动；
+位置StateDP更新0，Image未触发。短对照loss1.019161→.216421仅为离线指标。
 下文State旧10000/19000和服务停止均属于旧root，不是本轮新训练结果。
 
 
