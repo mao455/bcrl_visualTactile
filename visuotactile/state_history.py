@@ -23,8 +23,13 @@ STATE_CONTRACT = dict(CONTRACT, version=2, observation='actor141_robot178_geomet
 
 
 class PersistentState(NativePolicy):
-    def __init__(self, kind='dp'):
-        super().__init__('S-NativeDP')
+    def __init__(self, kind='dp', action_contract=None):
+        self.contract = STATE_CONTRACT if action_contract is None else action_contract
+        if self.contract != STATE_CONTRACT:
+            from .position_control import contract, POSITION_ACTION
+            if kind != 'dp' or self.contract != contract(self.contract['horizon'], self.contract['action']==POSITION_ACTION):
+                raise ValueError('Only explicit short-horizon DP contracts supported')
+        super().__init__('S-NativeDP',horizon=self.contract['horizon'])
         if kind not in ('bc', 'dp'):
             raise ValueError('State-only BC or DP required')
         self.kind = kind
@@ -116,7 +121,7 @@ def short_windows(record, anchors, model):
     return pack(robots, robot_indices), pack(geos, geo_indices)
 
 
-def load_records(source, identities):
+def load_records(source, identities, action_contract=None):
     source = Path(source)
     records = {}
     for identity in identities:
@@ -137,6 +142,12 @@ def load_records(source, identities):
                 raise ValueError('Incomplete episode prefix')
             if not torch.equal(record['command'], torch.from_numpy(group['transition/command_clipped_pre_delay'][:])):
                 raise ValueError('Supervision source mismatch')
+            if action_contract and action_contract['action']=='absolute_joint_position_target_rad':
+                from .position_control import position_robot_history
+                target = torch.from_numpy(group['transition/target_after_rad'][:])
+                record['robot'] = position_robot_history(record,target)
+                record['command'] = target
+                record['joint_limits'] = torch.tensor(metadata['joint_limits_rad'][0])
         records[identity] = record
     return records
 
@@ -172,10 +183,14 @@ class HistoryBank:
 
 class HistoryController:
     def __init__(self, saved, metadata, device='cuda:0'):
-        if saved.get('contract') != STATE_CONTRACT or saved.get('updates', 0) < 1:
+        stored_contract = saved.get('contract')
+        from .position_control import contract, POSITION_ACTION
+        allowed = [STATE_CONTRACT]+[contract(h,p) for h in (24,32) for p in (False,True)]
+        if stored_contract not in allowed or saved.get('updates', 0) < 1:
             raise ValueError('Trained persistent State v2 checkpoint required')
+        self.position_mode = stored_contract['action']==POSITION_ACTION
         with torch.random.fork_rng(devices=[]):
-            self.model = PersistentState(saved['kind']).to(device)
+            self.model = PersistentState(saved['kind'],stored_contract).to(device)
         self.model.load_state_dict(saved['ema']); self.model.eval()
         self.device = device
         self.dimensions = object_dimensions(metadata)
@@ -190,11 +205,18 @@ class HistoryController:
         stamp = packet['time_s'][0].cpu()
         if episode != self.episode:
             self.execution = ExecutionHistory(1); self.started = stamp; self.episode = episode
-        history = self.execution.context(packet)
-        past = torch.cat((history['previous_issued_command'][0], history['previous_delayed_command'][0],
-            torch.stack((stamp-history['previous_command_time_s'][0], stamp-history['previous_delayed_time_s'][0])).float(),
-            history['action_history_valid'][0, None].float()))
-        past = torch.where(history['action_history_valid'][0], past, 0.)
+            self.position_previous = None
+        if self.position_mode:
+            past = torch.zeros(61)
+            if self.position_previous is not None:
+                requested,applied,last_stamp = self.position_previous
+                past = torch.cat((requested,applied,(stamp-last_stamp).float().repeat(2),torch.ones(1)))
+        else:
+            history = self.execution.context(packet)
+            past = torch.cat((history['previous_issued_command'][0], history['previous_delayed_command'][0],
+                torch.stack((stamp-history['previous_command_time_s'][0], stamp-history['previous_delayed_time_s'][0])).float(),
+                history['action_history_valid'][0, None].float()))
+            past = torch.where(history['action_history_valid'][0], past, 0.)
         proprio = proprio_radians(packet['proprio'][0].cpu(), self.limits)
         robot = robot_rows(proprio[:29], proprio[29:], packet['actuator_target_rad'][0].cpu(), past, stamp-self.started)
         geo = geometry(diagnostics, self.dimensions)[0]
@@ -204,9 +226,45 @@ class HistoryController:
         if condition is not None:
             self.last_condition = condition
             self.plan = self.model.predict(condition, self.generator).cpu()
-        self.command = self.plan[:, tick % 12].clamp(-1, 1)
+        if self.position_mode:
+            from .position_control import bounded_targets
+            self.command = bounded_targets(self.plan[:,tick%12],self.limits)
+        else:
+            self.command = self.plan[:, tick % 12].clamp(-1, 1)
         self.last_packet = packet
         return self.command
 
     def observe_execution(self, transition):
-        self.execution.observe(transition, self.command, self.last_packet['episode_id'], self.last_packet['step_id'])
+        if self.position_mode:
+            self.position_previous=(self.command[0].clone(),transition['position_applied_rad'][0].cpu().clone(),self.last_packet['time_s'][0].cpu())
+        else:
+            self.execution.observe(transition, self.command, self.last_packet['episode_id'], self.last_packet['step_id'])
+
+
+class PersistentImage(NativePolicy):
+    """Existing visual architectures under the shared V2 trainer; no State branch."""
+    def __init__(self, group, action_contract):
+        from collections import OrderedDict
+        from .position_control import image_contract
+        if action_contract != image_contract(group,action_contract['horizon']):
+            raise ValueError('Image position contract mismatch')
+        super().__init__(group,action_contract['horizon'])
+        self.contract=action_contract
+        self._episodes=OrderedDict()
+
+    def encode(self, record, start=0, stop=None):
+        from .models.native_dp import encode_segment
+        allowed={'robot','command','time','joint_limits','identity','source_root'}
+        if set(record)!=allowed:
+            raise ValueError('Image record contains non-allowlisted fields')
+        key=record['identity']
+        if key not in self._episodes:
+            episode=Episode(record['source_root'],key,self.group)
+            # Keep only image acquisition metadata, never State/Actor arrays.
+            episode.record={k:episode.record[k] for k in ('camera_time','camera_valid')}
+            self._episodes[key]=episode
+            while len(self._episodes)>2:self._episodes.popitem(last=False)
+        episode=self._episodes[key]
+        # Episode.frame uses camera timestamps; encoder consumes robot/time only.
+        episode.record.update(robot=record['robot'],time=record['time'])
+        return encode_segment(self,episode,start,len(record['time']) if stop is None else stop)

@@ -274,3 +274,13 @@ StateBC先有实际能力证据才推进大DP；不直接19000updates，不测�
 单worker和近期负载调速。要求小pilot后实际train320的recurrent BC/DP、冻结验证选择后的test和
 真实完整任务闭环。小4轨迹零成功不能否决full320。保留原任务、数据、旧权重与全部失败证据，
 必要源码/测试/统计/报告commit并push feature分支，不上传大型产物。
+
+## 2026-11-03：H32绝对位置StateDP，成功后自动ImageDP
+
+用户明确停止全部新StateBC训练，要求在现有V2改为直接记录的29D target_after弧度标签，
+通过真实位置执行器、专家位置重放和Kit可靠性Gate后，再做H32短预算及分阶段训练。
+保留Actor、本体、几何、持续GRU、原物理和任务判据。H32原生命令作短预算对照。
+至少8个事先登记合法validation起点、其中至少2个不同起点完整成功，自动启动两组视觉DP。
+允许依赖核查后清理无价值重复产物，保留原400、最小复现证据和必要checkpoint。
+共享GPU单worker、内存余量和近期负载调节，无固定利用率否决；代码报告push到origin功能分支。
+科学结果以POSITION_ACTION_CONTRACT、KIT_RELIABILITY、STATE_TRAINING_RESULTS实测为准。

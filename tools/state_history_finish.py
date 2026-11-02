@@ -41,7 +41,7 @@ def finish(root, output, document):
         for cohort, counts in values.get('cohorts', {}).items():
             rows.append(f"|{stage}|{cohort}|{counts['attempted']}|{counts['legal']}|{counts['successes']}|{counts['lifts']}|{counts['subgoals']}|")
     rows += ['\n|组|updates|train arm/hand RMSE|validation arm/hand RMSE|', '|---|---:|---|---|']
-    for kind in ('bc', 'dp'):
+    for kind in sorted(p.name[:-6] for p in root.glob('*_train') if (p/'metrics.json').exists()):
         path = root/(kind+'_train')/'metrics.json'
         if path.exists():
             for row in json.loads(path.read_text()):

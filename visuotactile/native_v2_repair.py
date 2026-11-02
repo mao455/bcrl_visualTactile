@@ -104,7 +104,10 @@ class RepairRunner:
                                                     worker_pid=self.worker.pid, utc=time.time()))
             while self.worker.poll() is None:
                 self.check(); time.sleep(2)
-            code = self.worker.returncode; self.worker = None
+            code = self.worker.returncode
+            atomic_json(self.root/(name+'_process_exit.json'),dict(pid=self.worker.pid,
+                code=code,utc=time.time(),reaped=True))
+            self.worker = None
         if code != 0 or not (output/'result.json').exists():
             raise RuntimeError(f'{name} failed: exit={code}')
         result = json.loads((output/'result.json').read_text())

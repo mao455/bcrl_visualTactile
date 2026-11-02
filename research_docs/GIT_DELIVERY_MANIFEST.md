@@ -1,5 +1,20 @@
 # Git delivery manifest
 
+## 2026-11-03 H32位置动作与有界V2流水线
+
+基准f1953c7，沿用feature/native-dp-training-v2；新增position_control单个动作合同/数据审计模块，
+训练、控制、评估、owner和自动报告均扩展原V2文件。无新的服务包装框架，无BC更新。
+89项针对性及相关控制回归测试通过；当前真实Kit/专家/位置回放状态见STATE_TRAINING_RESULTS与KIT_RELIABILITY。
+依赖审计删除5个冗余载荷，共2,512,265,377bytes；所有best/milestone、原400及必要失败trace保留。
+逐文件原SHA、保留bestSHA、内部成员对照摘要、文档去重记录在evidence/position_20261103/cleanup.json。
+当前核心文档为POSITION_ACTION_CONTRACT、KIT_RELIABILITY、STATE_TRAINING_RESULTS、本交付清单；
+若Image触发，其表/曲线加入同一结果报告，不再新增重复MD。历史明细保留在Git与旧小证据。
+
+运行服务`position-state-20261103-01.service`；普通owner自行推进Gate→nativeH32→positionH32→条件Image。
+每次启动/源码修订均落盘，同一会话不重置时限。当前提交只包含已复核代码、测试、文档和小JSON；
+权重、原400、MP4/HDF5/NPZ和outputs链接不上传。代码提交身份见本节后续核验记录。
+
+
 ## 2026-11-02 full State execution delivery
 
 Implementation `c2e9895e4b17259f08648074417f531b19f474c2` is pushed and matched to

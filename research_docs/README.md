@@ -1,5 +1,9 @@
 # 视觉与触觉模仿学习研究工程
 
+当前H32直接位置工作从[动作合同](POSITION_ACTION_CONTRACT.md)、[Kit实测](KIT_RELIABILITY.md)、
+[State与条件Image结果](STATE_TRAINING_RESULTS.md)、[清理和Git交付](GIT_DELIVERY_MANIFEST.md)进入。
+下面较早阶段的“当前”只表示其记录日期。
+
 ## State完整Actor输入与持续历史 — 2026-11-02
 
 [输入逐字段对照](EXPERT_STATE_INPUT_PARITY.md)、[持续历史/结构与论文对照](STATE_PERSISTENT_HISTORY.md)、

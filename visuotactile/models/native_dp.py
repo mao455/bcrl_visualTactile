@@ -90,11 +90,14 @@ class HistoryVision(nn.Module):
 
 
 class NativePolicy(nn.Module):
-    def __init__(self, group):
+    def __init__(self, group, horizon=64):
         super().__init__()
         if group not in GROUPS:
             raise ValueError('Unknown native policy group')
         self.group = group
+        if horizon not in (24,32,64):
+            raise ValueError('Unsupported prediction horizon')
+        self.horizon = horizon
         self.robot_encoder = mlp(13*(ROBOT_DIM+2), 256)
         if group == 'S-NativeDP':
             self.state_encoder = mlp(3*(GEOMETRY_DIM+2), 256)
@@ -187,6 +190,8 @@ class NativePolicy(nn.Module):
         return self.condition_projection(torch.cat(parts, -1))
 
     def loss(self, condition, command, valid, generator=None):
+        if command.shape[1:] != (self.horizon,29):
+            raise ValueError('Loss horizon differs from checkpoint contract')
         target = torch.where(valid[..., None], command*self.action_scale+self.action_offset, 0.)
         noise = torch.randn(target.shape, device=target.device, generator=generator)
         timestep = torch.randint(100, (len(target),), device=target.device, generator=generator)
@@ -195,7 +200,7 @@ class NativePolicy(nn.Module):
 
     @torch.no_grad()
     def predict(self, condition, generator):
-        sample = torch.randn((len(condition), 64, 29), device=condition.device, generator=generator)
+        sample = torch.randn((len(condition), self.horizon, 29), device=condition.device, generator=generator)
         self.sampler.set_timesteps(16, device=condition.device)
         for timestep in self.sampler.timesteps:
             prediction = self.denoiser(sample, timestep, global_cond=condition)
@@ -221,8 +226,12 @@ def encode_segment(model, episode, start, stop):
 
 
 def load_policy(payload, device='cpu', ema=True):
-    if payload.get('contract') != CONTRACT or payload.get('group') not in GROUPS:
+    stored=payload.get('contract');group=payload.get('group')
+    from ..position_control import image_contract
+    allowed=[CONTRACT]+[image_contract(g,h) for g in ('I-OfficialDP','I-HistoryDP') for h in (24,32)]
+    if stored not in allowed or group not in GROUPS or (stored != CONTRACT and stored!=image_contract(group,stored['horizon'])):
         raise ValueError('Not a native-command v1 checkpoint; old weights cannot be reinterpreted')
-    model = NativePolicy(payload['group']).to(device)
+    model = NativePolicy(group,stored['horizon']).to(device)
+    model.contract=stored
     model.load_state_dict(payload['ema'] if ema else payload['model'])
     return model.eval()

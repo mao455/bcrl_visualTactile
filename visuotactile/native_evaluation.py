@@ -2,6 +2,9 @@
 import argparse
 import ctypes
 import json
+import os
+import resource
+import sys
 from pathlib import Path
 import time
 
@@ -20,17 +23,79 @@ from .training_resources import atomic_json
 EXPERT_SOURCE = Path('outputs/visuotactile/run/t0_control_replay_20261031_01/fresh')
 
 
+_watch_client = None
+
+
 def disable_omniclient_watches():
+    global _watch_client
     import isaacsim
     library = Path(isaacsim.__file__).parent/'kit'/'extscore'/'omni.client.lib'/'bin'/'libomniclient.so'
     if not library.is_file():
         raise RuntimeError('OmniClient library not found: '+str(library))
     client = ctypes.CDLL(str(library))
+    _watch_client = client  # Keep the explicitly loaded provider alive for Kit's lifetime.
     setter = client.testSetWatchesEnabled
     setter.argtypes = [ctypes.c_bool]
     setter.restype = None
     setter(False)
-    return dict(library=str(library.resolve()), symbol='testSetWatchesEnabled', enabled=False)
+    return dict(library=str(library.resolve()), symbol='testSetWatchesEnabled', enabled=False,
+        flag_readback=omniclient_watch_state())
+
+
+def omniclient_watch_state():
+    """Read back this build's setter storage only if its exact instruction matches."""
+    if _watch_client is None:
+        return None
+    address=ctypes.cast(_watch_client.testSetWatchesEnabled,ctypes.c_void_p).value
+    opcode=ctypes.string_at(address,8)
+    if opcode[:3]!=b'\x40\x88\x3d' or opcode[-1:]!=b'\xc3':
+        return dict(available=False,reason='Unknown setter machine code; no guessed memory access')
+    offset=int.from_bytes(opcode[3:7],'little',signed=True)
+    return dict(available=True,enabled=bool(ctypes.c_ubyte.from_address(address+7+offset).value))
+
+
+def kit_process_snapshot():
+    """Read-only process-local resource census; never changes shared limits."""
+    proc = Path('/proc/self')
+    watches = instances = 0
+    for entry in (proc/'fdinfo').iterdir():
+        try:
+            lines = entry.read_text().splitlines()
+        except OSError:
+            continue
+        count = sum(line.startswith('inotify wd:') for line in lines)
+        watches += count
+        instances += bool(count)
+    return dict(pid=os.getpid(), utc=time.time(), fds=len(list((proc/'fd').iterdir())),
+        threads=len(list((proc/'task').iterdir())), inotify_watches=watches,
+        inotify_instances_with_watches=instances,
+        inotify_limits={name: int((Path('/proc/sys/fs/inotify')/name).read_text())
+            for name in ('max_user_watches','max_user_instances','max_queued_events')},
+        rlimit_nofile=list(resource.getrlimit(resource.RLIMIT_NOFILE)),
+        rlimit_nproc=list(resource.getrlimit(resource.RLIMIT_NPROC)))
+
+
+def exit_completed_kit_worker(output):
+    """Isolated-worker OS cleanup after durable results, not SDK shutdown success.
+
+    Native crashes before this point remain nonzero exits. Parent must reap and
+    verify this PID is absent from both /proc and the GPU process census.
+    """
+    output = Path(output)
+    value = json.loads((output/'result.json').read_text())
+    if value.get('software_complete') is not True or (output/'worker_error.json').exists():
+        raise RuntimeError('Cannot cleanly exit an incomplete worker')
+    atomic_json(output/'process_exit_requested.json', dict(pid=os.getpid(), utc=time.time(),
+        result_sha256=sha256(output/'result.json'), method='os._exit after closed writers and fsync',
+        sdk_graceful_shutdown=False, reason='Measured FileThread abort/segfault in Kit shutdown'))
+    # HDF5/video writers have been closed by trial's finally block. Flush only
+    # this worker's output files; never global sync or external process changes.
+    for path in output.rglob('*'):
+        if path.is_file() and not path.is_symlink():
+            with path.open('rb') as stream:
+                os.fsync(stream.fileno())
+    sys.stdout.flush(); sys.stderr.flush()
+    os._exit(0)
 
 
 def stable_grasp(arrays, initial_height):

@@ -1,5 +1,30 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-11-03 direct-position StateDP
+
+Latest user attachment f676d446 authorizes existing V2 H32 direct recorded absolute
+29D joint targets, commit12 at native60Hz/physics120Hz, retained Actor141/robot178/
+geometry85/GRU256/U-Net/DDIM. No new StateBC updates, including pilots. Native
+H32 short control isolates horizon. All400 target_after labels audited81894ticks;
+actual position replay and Kit lifecycle Gates must pass before any training.
+Measured: expert2/2 and position replay2/2 (168/153ticks),14fields exact; submitted
+and actuator target error0. Four isolated exits passed parent PID/GPU release check.
+This is control acceptance, not learned State success.89 relevant tests pass.
+Read POSITION_ACTION_CONTRACT, KIT_RELIABILITY and STATE_TRAINING_RESULTS.
+New rootposition_20261103_01 has a fixed24h/21h/3h session/training/Gate window.
+Original fast-shutdown probes exposed an after-result FileThread abort; not solved
+by watches=false. Graceful lifecycle also segfaulted atclosing; explicit durable isolated-process exit
+mitigates cleanup without claiming SDK root cause fixed. Never infer pass from files
+without process exit. Old state_full root stays immutable except dependency-audited
+redundant payload cleanup with hashes and retained equivalents. Preserve original400.
+State validation must finish preregistered>=8 legal IDs with>=2 distinct complete
+native successes before automatically starting both ImageDPs; no extra permission.
+One owned GPU worker, memory admission/recent-load pacing, protect unrelated jobs.
+Source changes are explicitly amended before stages, no deadline reset. Ordinary
+services own transitions; verify startup once and yield, no conversational polling.
+Cleanup and reviewed origin feature push authorized; no raw data/weights/videos.
+
+
 ## Current override — 2026-11-02 full recurrent State learning
 
 Nov3 00:19UTC+8 review: BC10000/DP19000 complete train320, selectedBC0/12,

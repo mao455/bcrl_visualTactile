@@ -69,6 +69,8 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self.research_packet = None
         self.last_transition = None
         self._research_ready = False
+        self.action_control_mode = 'native_command_clipped_pre_delay'
+        self._actuator_target_samples = None
         super().__init__(cfg, **kwargs)
         self._camera_pose_annotators = []
         if self.camera_rig['version'] >= 3:
@@ -392,6 +394,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     def _pre_physics_step(self, actions):
         if actions.shape != (self.num_envs, 29) or not torch.isfinite(actions).all():
             raise ValueError("Expected finite (num_envs,29) canonical actions")
+        position_mode = self.action_control_mode == 'absolute_joint_position_target_rad'
+        if self.action_control_mode not in ('native_command_clipped_pre_delay','absolute_joint_position_target_rad'):
+            raise ValueError('Unknown action control mode')
         self.last_transition = {
             "episode_id": self.research_episode.clone(),
             "step_id": self.research_step.clone(),
@@ -404,7 +409,21 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "target_before_rad": self._prev_targets[:, self._perm_lab_to_canon].clone(),
         }
         self._wrench_samples = []
-        super()._pre_physics_step(actions.clamp(-1, 1))
+        self._actuator_target_samples = []
+        if position_mode:
+            from visuotactile.position_control import apply_position_targets
+            from isaacsimenvs.tasks.play.utils.action_utils import apply_wrench_dr
+            applied, event_draw = apply_position_targets(self, actions)
+            # Old command aliases are deliberately absent in the new unit contract.
+            del self.last_transition['command_clipped_pre_delay'], self.last_transition['executed_action']
+            self.last_transition.update(position_requested_rad=actions.clone(),position_applied_rad=applied.clone(),
+                unused_delay_rng_draw=event_draw,position_clip_mask=actions!=applied)
+            self.last_transition['control_trace'] = dict(valid=torch.ones(self.num_envs,dtype=torch.bool,device=self.device),
+                applied_position_target_rad=applied.clone(), delay_enabled=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device),
+                delay_index=torch.zeros(self.num_envs,dtype=torch.long,device=self.device))
+            apply_wrench_dr(self)
+        else:
+            super()._pre_physics_step(actions.clamp(-1, 1))
         if "control_trace" not in self.last_transition:
             raise RuntimeError("Replay target bypass has no native command trace; unsupported research capture")
         # These are the values selected by the native wrench randomizer after
@@ -433,6 +452,11 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self.research_step += 1
         self.research_tick += 1
 
+    def _apply_action(self):
+        super()._apply_action()
+        if self._actuator_target_samples is not None:
+            self._actuator_target_samples.append(self.robot.data.joint_pos_target[:,self._perm_lab_to_canon].clone())
+
     def _get_rewards(self):
         reward = super()._get_rewards()
         for name, expected in self._kinematic_reset_poses.items():
@@ -446,6 +470,10 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "time_after_s": torch.full((self.num_envs,),self.research_tick*self.step_dt,dtype=torch.float64,device=self.device),
             "termination_reasons": {name: value.clone() for name, value in self._termination_reasons.items()},
         })
+        if len(self._actuator_target_samples) != self.cfg.decimation:
+            raise RuntimeError('Missing actual actuator target submission')
+        self.last_transition['actuator_substep_target_rad'] = torch.stack(self._actuator_target_samples,1)
+        self._actuator_target_samples = None
         if len(self._wrench_samples) != self.cfg.decimation:
             raise RuntimeError("Expected one observed PhysX wrench submission per physics substep")
         self.last_transition["applied_wrench"] = {
@@ -495,6 +523,10 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def research_metadata(self):
         metadata = {
+            'action_control_mode': self.action_control_mode,
+            'position_control': dict(unit='rad', order='canonical', delay_applied=False,
+                smoothing_applied=False, unused_delay_rng_draw=True)
+                if self.action_control_mode == 'absolute_joint_position_target_rad' else None,
             "wrench_frame_mode": self.wrench_frame_mode,
             "initial_offset": self.initial_offset_record,
             "wrench_trace_version": 3,

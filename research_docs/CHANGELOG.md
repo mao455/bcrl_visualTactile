@@ -1,5 +1,27 @@
 # Engineering change and verification log
 
+## 2026-11-03 — explicit H32 position action, Kit isolation, staged DP-only pipeline
+
+- position_control audits all400/81894 directly recorded target_after radians and RGB-D timestamps;
+  canonical→Lab, true limits, original actuator direct targets, no delay/smoothing. Unused delay RNG draw
+  preserves later exogenous event call order; original command path stays unchanged. Each physical substep
+  records actual joint_pos_target. New position history and incompatible H32 checkpoint identity.
+- Existing native/state models, trainer and controller use real H24/H32 noise/labels/masks; retained State
+  Actor141+robot178+geometry85+GRU256. NativeH32 control shares19000 LR horizon with positionH32.
+  Position statistics/history frozen by SHA; no newBC authorized. Staged real validation/closed-loop checks,
+  test only after selection, conditional ImageOfficial/History with input allowlists and8-ID/2-success Gate.
+- Lifecycle probes exposed one post-result abort and graceful closing SIGSEGV; watches=false readback
+  did not prevent them. Explicit durable worker exit plus parent process/GPU release verification passed4/4
+  short probes. This is isolation mitigation, not proven SDK root-cause repair. Bounded startup recovery,
+  per-trial missing evidence and continuation, no repeated completed trajectories or deadline reset.
+-89 targeted/related tests pass (real H32 backward/GRU gradients, native-clock parity, masks/history, input isolation,
+  unique legal validation admission, process exit verification, per-trial recovery). Foundation now actually passes: expert2/2 and position replay2/2 at168/153ticks,14fields exact,
+  zero submitted/actuator target error. Trainer group-variable fix reviewed before any newupdate.
+  Real learning results must still come from saved artifacts, not test pass.
+- Reclaimed2,512,265,377bytes: four logically duplicate last checkpoints (every internal member SHA equal
+  to retainedbest) and a regenerable old cache. Original400 manifest/bests unchanged; allmilestones retained.
+  STATE_TRAINING_RESULTS consolidated; superseded snapshots remain atf1953c7. Cleanup JSON records hashes.
+
 ## 2026-11-03 — completed training and incomplete selected DP evaluation
 
 - Read-only review: BC10000/DP19000 complete on train320/validation40, all320 sampled;

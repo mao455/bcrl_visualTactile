@@ -15,7 +15,7 @@ from .evaluate_baselines import RolloutVideo
 from .evaluate_training_initials import restore_observable_state
 from .initial_geometry import inspect, boxes as object_boxes
 from .native_data import CAMERAS
-from .native_evaluation import disable_omniclient_watches, make_env
+from .native_evaluation import disable_omniclient_watches, make_env, kit_process_snapshot, exit_completed_kit_worker
 from .native_v2_expert import create_expert, environment_identity, export_initial
 from .state_resources import lease_for
 from .native_v2_state import StateController
@@ -128,12 +128,14 @@ def prepare(env, isolated, spec, source, output):
 
 
 @torch.no_grad()
-def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False):
+def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False):
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
     with lease.block():
+        env.action_control_mode = 'native_command_clipped_pre_delay'
         teacher, legal = prepare(env, isolated, spec, source, output)
+        env.action_control_mode = 'absolute_joint_position_target_rad' if position else 'native_command_clipped_pre_delay'
         if not legal['legal']:
             result = dict(**spec, software_complete=True, legal=False, success=False,
                 not_started=True, reason='pre-action collision rejection; no replacement by outcome')
@@ -145,7 +147,15 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         player.reset()
         torch.save(export_initial(env, player), output/'initial_export.pt')
         torch.save(isolated.stream.state, output/'environment_rng_initial.pt')
-        controller = None if saved is None else (HistoryController(saved, metadata) if 'kind' in saved else StateController(saved, metadata))
+        if saved is not None and saved.get('group','').startswith('I-'):
+            from .native_controller import NativeController
+            dino=None
+            if saved['group']=='I-HistoryDP':
+                from .models.native_vision import NativeDinoSpatial
+                dino=NativeDinoSpatial().to('cuda:0').eval()
+            controller=NativeController(saved,metadata,dino=dino)
+        else:
+            controller = None if saved is None else (HistoryController(saved, metadata) if 'kind' in saved else StateController(saved, metadata))
     rows = []; plans = []; numeric = h5py.File(output/'numeric.h5', 'w')
     numeric.attrs['metadata_json'] = json.dumps(metadata, default=str)
     group = numeric.create_group('episode')
@@ -177,7 +187,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     actual = controller.model.actor_input(actor.to(controller.device))[:, :140].cpu()
                     actor_parity = max(actor_parity, float((expected-actual).abs().max()))
                 else:
-                    command = controller.act(packet, env._diagnostics())
+                    command = controller.act(packet) if saved.get('group','').startswith('I-') else controller.act(packet, env._diagnostics())
                 if controller is not None and tick % 12 == 0:
                     plans.append(controller.plan[0].cpu().numpy())
                 before_rng = isolated.stream.state[2].clone()
@@ -194,8 +204,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 def take(value):
                     return value[0].cpu().numpy().copy()
                 rows.append(dict(actor=take(actor), command=take(command), expert_shadow=take(expert_command),
-                    delayed=take(transition['control_trace']['delayed_command']), delay_index=take(transition['control_trace']['delay_index']),
+                    delayed=take(transition['control_trace'].get('delayed_command',transition.get('position_applied_rad'))), delay_index=take(transition['control_trace']['delay_index']),
                     target=take(transition['target_after_rad']), joint=take(after['joint_position_rad']),
+                    actuator_targets=take(transition['actuator_substep_target_rad']),
                     velocity=take(after['joint_velocity_rad_s']), object=take(after['object_pose_w']),
                     contact=take(transition['contact_substeps_after_w_N']), object_contact=take(transition['object_contact_force_w']),
                     force=take(transition['applied_wrench']['force_w_N']), torque=take(transition['applied_wrench']['torque_w_Nm']),
@@ -216,6 +227,11 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             actor_normalization_max_error=actor_parity, environment_sha256=config_hash,
             checkpoint_sha256=sha256(checkpoint), action_exhausted=not any(reasons.values()),
             simulation_step_hz=60, physics_hz=120, plan_hz=5 if saved is not None else 60)
+        result['action_control_mode']=env.action_control_mode
+        result['actuator_target_max_error']=float(np.abs(arrays['actuator_targets']-arrays['target'][:,None,:]).max())
+        result['tracking_rmse_rad']=float(np.sqrt(np.mean((arrays['joint']-arrays['target'])**2)))
+        if position:
+            result['submitted_target_max_error']=float(np.abs(arrays['command']-arrays['target']).max())
         if movie:
             movie.close(complete=True)
         atomic_json(output/'result.json', result)
@@ -232,13 +248,23 @@ def run(root, output, mode, job=None):
     source = json.loads((Path(session['source_root'])/'data.json').read_text())
     lease = lease_for(root, deadline=session['deadline'])
     atomic_json(output/'runtime_controls.json', disable_omniclient_watches())
+    atomic_json(output/'runtime_before.json', kit_process_snapshot())
+    atomic_json(output/'lifecycle.json',dict(state='launching',utc=time.time()))
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
-        app = AppLauncher(headless=True, enable_cameras=True, device='cpu', kit_args=(
+        app = AppLauncher(headless=True, enable_cameras=True, device='cpu', fast_shutdown=False, kit_args=(
             '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
             '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
     env = None
     try:
+        from .native_evaluation import omniclient_watch_state
+        atomic_json(output/'app_ready.json',dict(utc=time.time(),watch_state=omniclient_watch_state()))
+        atomic_json(output/'runtime_ready.json', kit_process_snapshot())
+        if mode=='startup':
+            for _ in range(10):app.update()
+            atomic_json(output/'result.json',dict(software_complete=True,mode=mode,watch_state=omniclient_watch_state(),trials=[]))
+            atomic_json(output/'lifecycle.json',dict(state='results_committed',utc=time.time()))
+            return
         import isaacsimenvs
         env = make_env(True, lease, scene_queries=True)
         with lease.block():
@@ -246,6 +272,7 @@ def run(root, output, mode, job=None):
         atomic_json(output/'actor_configuration.json', config)
         env_config, digest = environment_identity(env)
         atomic_json(output/'environment.json', dict(config=env_config, sha256=digest))
+        atomic_json(output/'lifecycle.json',dict(state='environment_ready',utc=time.time()))
         trials = []; saved = None; checkpoint = session['expert_checkpoint']
         if mode == 'freeze':
             specs = []
@@ -267,7 +294,13 @@ def run(root, output, mode, job=None):
                 if not legal['legal']:
                     raise RuntimeError('Registered saved initialization illegal: '+spec['identity'])
                 specs.append(spec)
-            if len(specs) != session['fresh_count']+len(session['saved_specs']):
+            for spec in session.get('validation_candidates',[]):
+                directory=output/spec['identity'];directory.mkdir()
+                with lease.block():
+                    _,legal=prepare(env,IsolatedEnvironment(env,spec['seed']),spec,source,directory)
+                if legal['legal']:specs.append(spec)
+                if sum(s['cohort']=='validation' for s in specs)==session['validation_count']:break
+            if len(specs) != session['fresh_count']+len(session['saved_specs'])+session.get('validation_count',0):
                 raise RuntimeError('Predeclared candidate pool lacks enough legal starts')
             atomic_json(output/'benchmark.json', dict(specs=specs, configuration_sha256=digest,
                 outcome_selected=False, frozen_before_expert=True))
@@ -284,35 +317,42 @@ def run(root, output, mode, job=None):
                 saved = torch.load(checkpoint, map_location='cpu', weights_only=False)
             if job_data:
                 specs = job_data.get('specs', specs)
-            if mode == 'replay':
+            if mode in ('replay','position_replay'):
                 specs = specs[:2]
             for i, spec in enumerate(specs):
                 replay = None
-                if mode == 'replay':
-                    replay = np.load(root/'expert'/spec['identity']/'trace.npz')['command']
+                if mode in ('replay','position_replay'):
+                    replay = np.load(root/'expert'/spec['identity']/'trace.npz')['target' if mode=='position_replay' else 'command']
+                position=mode=='position_replay' or (saved is not None and saved.get('contract',{}).get('action')=='absolute_joint_position_target_rad')
                 result = trial(env, lease, output/spec['identity'], spec, source, player, checkpoint,
-                    saved=saved, replay=replay, video=(job_data.get('video', i == 0) if job_data else i == 0) and mode != 'replay')
-                if mode == 'replay' and result.get('legal'):
+                    saved=saved, replay=replay,position=position, video=(job_data.get('video', i == 0) if job_data else i == 0) and mode not in ('replay','position_replay'))
+                if mode in ('replay','position_replay') and result.get('legal'):
                     with np.load(root/'expert'/spec['identity']/'trace.npz') as original, np.load(output/spec['identity']/'trace.npz') as current:
                         result['bytewise_fields'] = {key: original[key].shape == current[key].shape and
                             original[key].dtype == current[key].dtype and original[key].tobytes() == current[key].tobytes()
-                            for key in original.files if key != 'expert_shadow'}
+                            for key in original.files if key not in (('expert_shadow','command','delayed','delay_index') if position else ('expert_shadow',))}
                 trials.append(result)
                 atomic_json(output/'progress.json', dict(completed=len(trials), trials=trials))
         atomic_json(output/'result.json', dict(software_complete=True, mode=mode, trials=trials))
+        atomic_json(output/'lifecycle.json',dict(state='results_committed',utc=time.time()))
     except BaseException as error:
         atomic_json(output/'worker_error.json', dict(error=repr(error), traceback=traceback.format_exc()))
         raise
     finally:
+        atomic_json(output/'lifecycle.json',dict(state='closing',utc=time.time()))
+        atomic_json(output/'runtime_closing.json', kit_process_snapshot())
+        if session.get('kit_gate',{}).get('shutdown') == 'isolated_process_exit' and (output/'result.json').exists() and not (output/'worker_error.json').exists():
+            exit_completed_kit_worker(output)
         if env is not None:
             env.close()
         app.close()
+        atomic_json(output/'closed.json',dict(utc=time.time()))
 
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(); p.add_argument('--root', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
-    p.add_argument('--mode', choices=['freeze', 'expert', 'replay', 'old', 'bc', 'dp'], required=True)
+    p.add_argument('--mode', choices=['freeze', 'expert', 'replay', 'position_replay','startup', 'old', 'bc', 'dp'], required=True)
     p.add_argument('--job', type=Path)
     a = p.parse_args(); torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32 = False; torch.backends.cudnn.allow_tf32 = False

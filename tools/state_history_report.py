@@ -51,14 +51,16 @@ def summarize(root, output):
                 lifts=sum(r['cohort'] == cohort and r.get('native_lift', False) for r in value['trials']),
                 subgoals=sum(r['cohort'] == cohort and r.get('native_subgoals', 0) > 0 for r in value['trials']))
                 for cohort in sorted({r['cohort'] for r in value['trials']})}
-    for stage in [s for s in stages if s.startswith(('old', 'bc', 'dp')) and 'train' not in s and 'offline' not in s]:
+    for stage in [s for s in stages if s.startswith(('old', 'bc', 'dp','native_h32','position_h32','image_')) and 'train' not in s and 'offline' not in s]:
         for path in sorted((root/stage).glob('*/trace.npz')):
             identity = path.parent.name; reference = root/('expert_formal' if stage.endswith('_formal') else 'expert')/identity/'trace.npz'
+            if not reference.exists():reference=root/'expert_learning'/identity/'trace.npz'
             if not reference.exists():
                 continue
             with np.load(path) as actual, np.load(reference) as expert:
                 count = min(len(actual['command']), len(expert['command']))
-                error = actual['command'][:count]-expert['command'][:count]
+                position=stage.startswith(('position_h32','image_'))
+                error = actual['command'][:count]-expert['target' if position else 'command'][:count]
                 arm = np.sqrt(np.mean(error[:, :7]**2, -1)); hand = np.sqrt(np.mean(error[:, 7:]**2, -1))
                 joint = np.max(np.abs(actual['joint'][:count]-expert['joint'][:count]), -1)
                 target = np.max(np.abs(actual['target'][:count]-expert['target'][:count]), -1)
@@ -69,7 +71,7 @@ def summarize(root, output):
                 masks = dict(before_object_contact=np.cumsum(contact) == 0,
                     after_contact_before_lift=(np.cumsum(contact) > 0) & ~lift & (goals == 0),
                     lifted_before_subgoal=lift & (goals == 0), after_first_subgoal=goals > 0)
-                shadow = actual['command']-actual['expert_shadow']
+                shadow = None if position else actual['command']-actual['expert_shadow']
                 jumps = np.sqrt(np.mean(np.diff(actual['command'], axis=0)**2, axis=-1))
                 boundary = np.arange(1, len(actual['command'])) % 12 == 0
                 phase = {name: dict(ticks=int(mask.sum()), arm_rmse=float(np.sqrt(np.mean(arm[mask]**2))),
@@ -80,8 +82,11 @@ def summarize(root, output):
                     joint_first_over_1mrad=first(joint, .001), target_first_over_1mrad=first(target, .001),
                     object_first_over_1mm=first(obj, .001), reset_arm_rmse=float(arm[0]), reset_hand_rmse=float(hand[0]),
                     reset_actor_max=float(np.max(np.abs(actual['actor'][0]-expert['actor'][0]))),
-                    actual_trajectory_expert_shadow_arm_rmse=float(np.sqrt(np.mean(shadow[:, :7]**2))),
-                    actual_trajectory_expert_shadow_hand_rmse=float(np.sqrt(np.mean(shadow[:, 7:]**2))),
+                    action_unit='rad' if position else 'native_command',
+                    tracking_arm_rmse_rad=float(np.sqrt(np.mean((actual['joint'][:,:7]-actual['target'][:,:7])**2))),
+                    tracking_hand_rmse_rad=float(np.sqrt(np.mean((actual['joint'][:,7:]-actual['target'][:,7:])**2))),
+                    actual_trajectory_expert_shadow_arm_rmse=None if shadow is None else float(np.sqrt(np.mean(shadow[:, :7]**2))),
+                    actual_trajectory_expert_shadow_hand_rmse=None if shadow is None else float(np.sqrt(np.mean(shadow[:, 7:]**2))),
                     chunk_boundary_command_jump_rms=float(np.sqrt(np.mean(jumps[boundary]**2))) if boundary.any() else None,
                     within_chunk_command_jump_rms=float(np.sqrt(np.mean(jumps[~boundary]**2))) if (~boundary).any() else None,
                     phases=phase, trace_sha256=digest(path),
@@ -125,7 +130,7 @@ def resource_plot(root, output):
 
 
 def plot(root, output, summary):
-    kinds = ('bc', 'dp', 'bc_pilot', 'dp_pilot')
+    kinds = sorted(p.name[:-6] for p in root.glob('*_train') if (p/'metrics.json').exists())
     if not any((root/(kind+'_train')/'metrics.json').exists() for kind in kinds):
         return
     import matplotlib
@@ -145,6 +150,33 @@ def plot(root, output, summary):
         if ax.lines:
             ax.legend(fontsize=8)
     fig.tight_layout(); fig.savefig(output/'learning_curves.png', dpi=160); plt.close(fig)
+    if not any('h32' in kind for kind in kinds):return
+    fig,axes=plt.subplots(2,2,figsize=(12,8))
+    for kind in kinds:
+        rows=json.loads((root/(kind+'_train')/'metrics.json').read_text())
+        logs=root/(kind+'_train')/'train.jsonl'
+        if logs.exists():
+            updates=[json.loads(line) for line in logs.read_text().splitlines()]
+            if updates:
+                window=25
+                x=[r['update'] for r in updates]
+                y=np.convolve([r['loss'] for r in updates],np.ones(min(window,len(updates)))/min(window,len(updates)),mode='valid')
+                axes[0,0].plot(x[len(x)-len(y):],y,label=kind+' train')
+        axes[0,0].plot([r['update'] for r in rows],[r['validation'].get('loss',float('nan')) for r in rows],'o--',label=kind+' validation')
+    diagnostic=summary['trace_diagnostics']
+    for part in ('arm','hand'):
+        axes[0,1].plot(range(len(diagnostic)),[r['tracking_'+part+'_rmse_rad'] for r in diagnostic],'.',label=part)
+    cohorts=[(stage,cohort,counts) for stage,v in summary['stages'].items() for cohort,counts in v.get('cohorts',{}).items() if stage.startswith(('position_h32','native_h32','image_'))]
+    for field,label in [('successes','complete native success'),('lifts','native lift'),('subgoals','first subgoal')]:
+        axes[1,0].plot(range(len(cohorts)),[counts[field]/max(1,counts['legal']) for _,_,counts in cohorts],'o-',label=label)
+    axes[1,0].set_xticks(range(len(cohorts)),[s.replace('_h32','')+':'+c for s,c,_ in cohorts],rotation=90,fontsize=6)
+    for part in ('arm_rmse','hand_rmse'):
+        for kind in kinds:
+            rows=json.loads((root/(kind+'_train')/'metrics.json').read_text())
+            axes[1,1].plot([r['update'] for r in rows],[r['validation'][part] for r in rows],'o-',label=kind+' '+part)
+    for ax,title in zip(axes.flat,['Diffusion loss (25-update train mean)','Actual target tracking RMSE, rad','Completed legal trials only; missing listed in JSON','Validation first12 action error (units by profile)']):
+        ax.set_title(title,fontsize=9);ax.legend(fontsize=6);ax.grid(alpha=.2)
+    fig.tight_layout();fig.savefig(output/'position_curves.png',dpi=160);plt.close(fig)
 
 
 if __name__ == '__main__':

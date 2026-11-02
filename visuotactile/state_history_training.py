@@ -16,8 +16,8 @@ from .train_long import cpu_snapshot, save
 from .training_resources import atomic_json
 
 
-def labels(record, anchors):
-    indices = anchors[:, None]+torch.arange(64, device=anchors.device)
+def labels(record, anchors, horizon=64):
+    indices = anchors[:, None]+torch.arange(horizon, device=anchors.device)
     valid = indices < len(record['time'])
     commands = record['command'][indices.clamp_max(len(record['time'])-1)]
     return torch.where(valid[..., None], commands, 0.), valid
@@ -40,22 +40,36 @@ def require_foundation(root):
 
 @torch.no_grad()
 def evaluate(model, records, lease):
-    total = torch.zeros(2); count = 0; rows = []
+    total = torch.zeros(2); hold = torch.zeros(2); count = 0; rows = []; losses=[]
     for identity, record in records.items():
         generator = torch.Generator(device='cuda:0').manual_seed(7091)
         with lease.block():
             condition, anchors, _ = model.encode(record)
-            prediction = model.predict(condition, generator).clamp(-1, 1)
-            command, valid = labels(record, anchors)
+            prediction = model.predict(condition, generator)
+            if model.contract['action']=='absolute_joint_position_target_rad':
+                from .position_control import bounded_targets
+                prediction=bounded_targets(prediction.flatten(0,1),record['joint_limits']).reshape_as(prediction)
+            else:
+                prediction=prediction.clamp(-1,1)
+            command, valid = labels(record, anchors,model.horizon)
+            loss_generator=torch.Generator(device=condition.device).manual_seed(8091)
+            losses.append(float(model.loss(condition,command,valid,loss_generator)))
             error = prediction[:, :12]-command[:, :12]
             errors = torch.stack((error[..., :7].square().mean(-1), error[..., 7:].square().mean(-1)), -1)
             sums = (errors*valid[:, :12, None]).sum((0, 1)).cpu()
             total += sums; count += int(valid[:, :12].sum())
+            if model.contract['action']=='absolute_joint_position_target_rad':
+                # robot58:87 is the already applied target at the observation.
+                baseline=record['robot'][anchors,58:87,None].transpose(1,2)-command[:,:12]
+                errors_hold=torch.stack((baseline[...,:7].square().mean(-1),baseline[...,7:].square().mean(-1)),-1)
+                hold+=(errors_hold*valid[:,:12,None]).sum((0,1)).cpu()
             rows.append(dict(identity=identity, arm_rmse=float((sums[0]/valid[:, :12].sum().cpu()).sqrt()),
                 hand_rmse=float((sums[1]/valid[:, :12].sum().cpu()).sqrt()),
                 reset_arm_rmse=float(error[0, 0, :7].square().mean().sqrt()),
                 reset_hand_rmse=float(error[0, 0, 7:].square().mean().sqrt())))
     return dict(arm_rmse=float((total[0]/count).sqrt()), hand_rmse=float((total[1]/count).sqrt()),
+        loss=sum(losses)/len(losses), hold_arm_rmse=float((hold[0]/count).sqrt()),
+        hold_hand_rmse=float((hold[1]/count).sqrt()),
         selection_mse=float(total.mean()/count), episodes=rows, scope='Teacher-forced past execution, not autonomous success')
 
 

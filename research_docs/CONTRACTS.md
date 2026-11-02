@@ -1,5 +1,13 @@
 # Audited contracts
 
+## 2026-11-03 opt-in direct position study
+
+[POSITION_ACTION_CONTRACT](POSITION_ACTION_CONTRACT.md) defines canonical29 absolute
+radian target_after supervision, H32/commit12 and strictly past radian history.
+Native RL/old checkpoints retain original control. CPU tests are not replay acceptance.
+Fresh target replay and [Kit lifecycle](KIT_RELIABILITY.md) must pass before newDP training.
+No newBC. See STATE_TRAINING_RESULTS for actual outcomes and conditional ImageGate.
+
 ## 2026-11-02 reviewed runtime source compatibility
 
 Full State checkpoint/configuration bytes stay immutable when the owner or configuration
