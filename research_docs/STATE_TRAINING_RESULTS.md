@@ -1,5 +1,41 @@
 # State observation/history repair — actual results
 
+## 2026-11-02 22:43 UTC+8：BC完成，DP10000与启动崩溃
+
+StateBC与StateDP均已在train320/validation40完成10000updates，各覆盖全部320身份。
+BC预算已经完成，验证选择10000；最终诊断fresh0/4、train0/4、validation0/4，
+共0/12，全部601步timeout，无lift/alignment/子目标。不是完整任务成功。
+DP的1000/3000/6000里程碑各0/4；10000里程碑已完成0/3，
+其中train第一条native lift后第227步fall，另两条601timeout；均无子目标。
+第4条在场景建立前崩溃，未知任务结果，不能写成0/4。DP最终选择/12条诊断与test尚未完成。
+两组300update pilot及各自4条闭环已完成，均0/4；不与上述正式训练诊断混合。
+
+DP validation arm/hand RMSE从1000步0.870098/0.647178降到10000步0.798099/0.559021。
+6000→10000的selection MSE为0.552337→0.474733，改善14.05%，未触发既定早停。
+因此原预算允许从合法checkpoint继续至19000检查点，不能宣称DP全部训练已经结束。
+BC validation终值0.617104/0.491214；这些均为teacher-forced离线指标。
+
+已重读新模型逐步诊断：BC12条reset Actor最大误差均0，但第0步arm/hand命令已偏离专家；
+reset命令RMSE跨轨迹平均0.522935/0.424145。DP10000已完成3条同样reset Actor完全相同，
+第0步动作误差平均0.590561/0.319983。初始决策误差在学生历史累积之前存在，
+不能仅把失败归因历史恢复或闭环漂移。BC chunk边界/内部跳变量RMS跨轨迹平均
+0.182732/0.104591；DP为0.532526/0.175608，提示DP重规划不连续值得诊断，
+尚未证明它是唯一原因。专家12/12及fresh replay2/2证据仍有效；新旧模型最终对照尚缺。
+
+22:36:20 owner因`dp_loop_10000_single_03` exit=-11停止；owner/worker/monitor均退出。
+只有runtime_controls.json，无场景/轨迹文件；native fatal堆栈为
+`libomniclient.so!omniClientFreeContent`与`omniclient::provider_file::FileThread`。
+这说明启动软件故障位置，不是已证明的底层根因。此前分类只识别SIGABRT，未覆盖这次SIGSEGV。
+本次仅补充“明确exit=-11 + 完整特定堆栈 + 场景前”分类，并在恢复时记录具体未完成stage。
+三次启动重试已用尽，不扩量重试；该条保留为缺失评估，继续既定数值训练及其后新阶段。
+任何已开始的轨迹/控制错误仍阻断；存在deferred时正式test保持未启动。
+原模型/控制/数据/优化/截止不变；训练截止11月3日14:12:42、绝对截止17:12:42 UTC+8。
+9项针对性回归通过，包括未知崩溃拒绝、已建场景拒绝、耗尽重试预算的恢复不启动新attempt。
+
+本次停止时的资源报告含11997.15秒未监测间隔（含此前停机），不能把0 missing_samples
+解释为连续覆盖。整卡已采样峰值占用21022MiB；6GiB是准入阈值，不是全程硬预留。
+另一项目吞吐不可得，不声称全程资源无干扰。原始日志与收尾表均保留，恢复后以status.json为准。
+
 ## 2026-11-02 20:42 UTC+8：基础设施通过，BC首次真实学习
 
 新冻结cohort专家12/12合法完整成功（fresh4、train4、validation4）；
@@ -161,13 +197,36 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 
 
 
+
 ## 自动收尾实测表（待人工复核与Git提交）
 
 此表只读取普通owner结束后的产物，不新增训练或rollout。旧/前置失效样本不混入新分母。
 
 |组|cohort|已尝试|合法|完整成功|native lift|至少1子目标|
 |---|---|---:|---:|---:|---:|---:|
-|bc_pilot_loop|train|1|1|0|0|0|
+|bc|fresh|4|4|0|0|0|
+|bc|train|4|4|0|0|0|
+|bc|validation|4|4|0|0|0|
+|bc_loop_1000|train|2|2|0|0|0|
+|bc_loop_1000|validation|2|2|0|0|0|
+|bc_loop_10000|train|2|2|0|0|0|
+|bc_loop_10000|validation|2|2|0|0|0|
+|bc_loop_3000|train|2|2|0|1|0|
+|bc_loop_3000|validation|2|2|0|0|0|
+|bc_loop_6000|train|2|2|0|0|0|
+|bc_loop_6000|validation|2|2|0|0|0|
+|bc_pilot_loop|train|2|2|0|0|0|
+|bc_pilot_loop|validation|2|2|0|0|0|
+|dp_loop_1000|train|2|2|0|0|0|
+|dp_loop_1000|validation|2|2|0|0|0|
+|dp_loop_10000|train|2|2|0|1|0|
+|dp_loop_10000|validation|1|1|0|0|0|
+|dp_loop_3000|train|2|2|0|0|0|
+|dp_loop_3000|validation|2|2|0|0|0|
+|dp_loop_6000|train|2|2|0|0|0|
+|dp_loop_6000|validation|2|2|0|0|0|
+|dp_pilot_loop|train|2|2|0|0|0|
+|dp_pilot_loop|validation|2|2|0|0|0|
 |expert|fresh|4|4|4|2|4|
 |expert|train|4|4|4|2|4|
 |expert|validation|4|4|4|4|4|
@@ -175,8 +234,16 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 
 |组|updates|train arm/hand RMSE|validation arm/hand RMSE|
 |---|---:|---|---|
+|bc|1000|0.720295/0.581555|0.749026/0.573412|
+|bc|3000|0.617310/0.514808|0.661225/0.525105|
+|bc|6000|0.561306/0.479300|0.623675/0.498207|
+|bc|10000|0.540785/0.468841|0.617104/0.491214|
+|dp|1000|0.858414/0.639398|0.870098/0.647178|
+|dp|3000|0.848297/0.611395|0.866523/0.629899|
+|dp|6000|0.834543/0.583815|0.858557/0.606261|
+|dp|10000|0.744861/0.519100|0.798099/0.559021|
 
-最终owner状态：`{"state": "blocked", "reason": "RuntimeError('bc_pilot_loop_single_01 failed: exit=-6')", "utc": 1793620515.4241922}`。
+最终owner状态：`{"state": "blocked", "reason": "RuntimeError('dp_loop_10000_single_03 failed: exit=-11')", "utc": 1793630180.8501816}`。
 
 逐条reset误差、接触前后首差及阶段误差见公开`summary.json/trace_diagnostics`。
 这些观测不唯一证明网络失败机制；同输入/同命令验收与完整成功分开报告。

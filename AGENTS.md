@@ -2,6 +2,14 @@
 
 ## Current override — 2026-11-02 full recurrent State learning
 
+22:43UTC+8 review: fullBC10000/train320 complete, selected diagnostic0/12 no lift;
+DP10000 reached,10k milestone0/3 (one lift/fall227), fourth pre-scene SIGSEGV(-11).
+Known fatal FileThread/omniClientFreeContent stack plus confirmedexit-11 and sole
+runtime_controls file may use existing startup deferral. No new retries:3/session
+already exhausted. Preserve missing outcome, resume remaining authorizedDP budget
+from checkpoint, formaltest withheld on deferred loops. No model/control/deadline
+changes;9 focused tests pass. Read actual status, not this stopped-run snapshot.
+
 20:42UTC+8 review: expert12/12 legal complete successes, replay2/2 with16 exact fields,
 foundation passed. Recurrent BC pilot300 updates with nonzero GRU gradients; first
 autonomous trial601timeout/no lift. Second Kit abort has truncated system_error/

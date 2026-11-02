@@ -66,7 +66,7 @@ def should_stop(history, minimum=6000):
 
 
 def startup_failure_evidence(root, name):
-    """Classify an abort only before scene or trajectory artifacts exist."""
+    """Classify known native failures only before scene or trajectory artifacts."""
     root = Path(root); output = root/name; log = root/(name+'.log')
     if not output.is_dir() or not log.is_file():
         return None
@@ -78,21 +78,29 @@ def startup_failure_evidence(root, name):
         return None
     stack = all(signature in contents for signature in ('FileThread', 'std::system_error', 'abort'))
     exit_confirmed = False
+    segv_confirmed = False
     for path in (root/(name+'_exit.json'), root/'blocked.json'):
         if path.exists():
             value = json.loads(path.read_text())
             reason = value.get('error', value.get('reason', ''))
             exit_confirmed |= f'{name} failed: exit=-6' in reason
+            segv_confirmed |= f'{name} failed: exit=-11' in reason
     truncated = exit_confirmed and all(signature in contents for signature in (
         "terminate called after throwing an instance of 'std::system_error'", 'what():  Invalid argument'))
-    if not (stack or truncated):
+    filethread_segv = segv_confirmed and all(signature in contents for signature in (
+        '[Fatal] [carb.crashreporter-breakpad.plugin]',
+        'libomniclient.so!omniClientFreeContent', 'omniclient::provider_file::FileThread'))
+    if not (stack or truncated or filethread_segv):
         return None
-    return dict(native_stack_available=stack, confirmed_sigabrt=exit_confirmed,
-        classification='pre-scene FileThread abort' if stack else 'pre-scene system_error/Invalid argument abort; native stack missing')
+    classification = ('pre-scene FileThread/omniClientFreeContent SIGSEGV' if filethread_segv
+        else 'pre-scene FileThread abort' if stack
+        else 'pre-scene system_error/Invalid argument abort; native stack missing')
+    return dict(native_stack_available=stack or filethread_segv, confirmed_sigabrt=exit_confirmed,
+        confirmed_sigsegv=segv_confirmed, classification=classification)
 
 
 def recover_preaction_start(root, name, deadline):
-    """Retry one confirmed pre-scene abort, with a session-wide bound."""
+    """Retry one classified pre-scene failure, with a session-wide bound."""
     root = Path(root); output = root/name; log = root/(name+'.log')
     recoveries = root/'startup_recoveries'
     if time.time() >= deadline:
@@ -138,6 +146,10 @@ class Runner(RepairRunner):
                     self.root, name, self.session['deadline']):
                 pass
             else:
+                # A resumed owner has no live worker status for this preserved attempt.
+                # Identify it explicitly so learning deferral inspects this exact stage.
+                atomic_json(self.root/'status.json', dict(state='incomplete_attempt', stage=name,
+                    pid=os.getpid(), utc=time.time()))
                 raise RuntimeError('Incomplete simulation attempt preserved, no blind repeat: '+name)
         try:
             return super().stage(name, module, extra)

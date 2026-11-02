@@ -126,3 +126,52 @@ def test_startup_deferral_does_not_mask_control_errors(tmp_path, monkeypatch):
     (path/'started.json').write_text('{}')
     with pytest.raises(RuntimeError):
         runner.evaluate_learning('bc_loop', 'bc', checkpoint, [])
+
+
+def test_filethread_segv_requires_exact_stack_exit_and_pre_scene(tmp_path):
+    import json
+    path = tmp_path/'dp_loop_single_03'; path.mkdir()
+    (path/'runtime_controls.json').write_text('{}')
+    log = tmp_path/(path.name+'.log')
+    log.write_text('[Fatal] [carb.crashreporter-breakpad.plugin] '
+        'libomniclient.so!omniClientFreeContent omniclient::provider_file::FileThread')
+    assert startup_failure_evidence(tmp_path, path.name) is None
+    (tmp_path/(path.name+'_exit.json')).write_text(json.dumps(dict(error=f'{path.name} failed: exit=-11')))
+    evidence = startup_failure_evidence(tmp_path, path.name)
+    assert evidence['confirmed_sigsegv'] and evidence['native_stack_available']
+    assert not evidence['confirmed_sigabrt']
+    contents = log.read_text()
+    log.write_text(contents.replace('omniClientFreeContent', 'other_native_function'))
+    assert startup_failure_evidence(tmp_path, path.name) is None
+    log.write_text(contents+'\n[INFO]: Completed setting up the environment')
+    assert startup_failure_evidence(tmp_path, path.name) is None
+    log.write_text(contents)
+    (path/'started.json').write_text('{}')
+    assert startup_failure_evidence(tmp_path, path.name) is None
+
+
+def test_resumed_segv_defers_without_expanding_exhausted_retry_budget(tmp_path):
+    import json
+    import time
+    runner = object.__new__(Runner); runner.root = tmp_path
+    runner.session = dict(implementation_sha256={}, deadline=time.time()+60)
+    checkpoint = tmp_path/'model.pt'; checkpoint.write_bytes(b'fixed checkpoint')
+    (tmp_path/'foundation.json').write_text('{"passed": true}')
+    (tmp_path/'status.json').write_text('{"state": "blocked", "reason": "previous owner exited"}')
+    for i in range(3):
+        archive = tmp_path/'startup_recoveries'/str(i); archive.mkdir(parents=True)
+        (archive/'recovery.json').write_text('{}')
+    path = tmp_path/'dp_loop_single_00'; path.mkdir()
+    (path/'runtime_controls.json').write_text('{}')
+    log = tmp_path/(path.name+'.log')
+    contents = ('[Fatal] [carb.crashreporter-breakpad.plugin] '
+        'libomniclient.so!omniClientFreeContent omniclient::provider_file::FileThread')
+    log.write_text(contents)
+    (tmp_path/(path.name+'_exit.json')).write_text(json.dumps(dict(error=f'{path.name} failed: exit=-11')))
+    assert runner.evaluate_learning('dp_loop', 'dp', checkpoint, [dict(identity='fixed_start')]) is None
+    deferred = json.loads((tmp_path/'dp_loop_deferred.json').read_text())
+    assert deferred['failed_stage'] == path.name and deferred['native_outcome'] is None
+    assert not deferred['counted_as_success']
+    assert log.read_text() == contents and path.is_dir()
+    assert not (tmp_path/(path.name+'_launch.json')).exists()
+    assert len(list((tmp_path/'startup_recoveries').glob('*/recovery.json'))) == 3

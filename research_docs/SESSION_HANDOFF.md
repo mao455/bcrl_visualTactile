@@ -1,5 +1,18 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 22:43UTC+8 — BC10000 complete, DP10000, startup SIGSEGV
+
+BC fulltrain320/val40 complete10000; selected diagnostic0/12 all601timeout/no lift.
+DP fulltrain320 reached10000; milestone1k/3k/6k each0/4;10k0/3 with one lift then
+fall227, fourth pre-scene FileThread/omniClientFreeContent SIGSEGV(-11). No finalDP/test.
+Nine focused tests pass after narrow startup classification and resumed-stage status fix.
+Retry budget3/session remains exhausted; preserve missing evaluation and defer it,
+continue remaining authorizedDP budget without repeated updates/trajectories. Formal
+test withheld while any deferred loop remains. Runtime-only amendment preserves all
+model/control sources, root and Nov3 14:12/17:12UTC+8 deadlines. Read current status
+for actual resume; runtime_recovery_03 archives the stopped owner and prior session.
+Report/curves contain fullBC and partialDP evidence. No student task success yet.
+
 ## 2026-11-02 20:42UTC+8 — foundation passes, BC300, second startup interruption
 
 expert12/12 legal native complete, replay2/2 exact16fields; foundation passed.

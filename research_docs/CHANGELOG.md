@@ -1,5 +1,21 @@
 # Engineering change and verification log
 
+## 2026-11-02 — full State10000 evidence and classified startup SIGSEGV
+
+- BC10000 train320 complete, selected native diagnostic0/12 (all timeout, no lift).
+  DP10000 reached; milestone0/3 with one lift then fall227, fourth missing on startup.
+  Prior DP1k/3k/6k each0/4. No finalDP/test result or student full success.
+- state_full_run recognizes only confirmedexit-11 plus exact native FileThread/
+  omniClientFreeContent fatal stack before any scene/trajectory artifact. A resumed
+  incomplete attempt explicitly identifies its stage before learning deferral.
+  Existing3/session retry bound is exhausted and unchanged; no failed trial rerun.
+- Nine focused tests pass, including rejecting other stacks/started scenes and
+  deferring the preserved startup failure without launching or adding retries.
+  No model/training/control changes. Same deadline and legal10000 checkpoint resume.
+- STATE_TRAINING_RESULTS and small generated curves/statistics report actual counts,
+  reset command errors and chunk jumps; these do not prove task success or unique cause.
+  Resource evidence includes monitoring gaps and no external throughput measurement.
+
 ## 2026-11-02 — foundation passed and nonblocking pre-scene evaluation failures
 
 - Actual expert12/12 legal native successes, same-command replay2/2 exact16fields.
