@@ -1,5 +1,17 @@
 # Engineering change and verification log
 
+## 2026-11-02 — bounded pre-scene recovery and complete partial reports
+
+- Actual run stopped at17:19UTC+8: seven legal expert native successes, eighth Kit
+  FileThread SIGABRT before scene/action; recurrent BC/DP remain zero updates.
+- Owner permits one recognized pre-scene abort retry per stage, max3/session,
+  archives original output/log/launch; never retries an initiated trajectory or
+  changes deadline/seed/model/control. Source amendment is recorded explicitly.
+- Partial expert progress is included in summaries. Video completion uses installed
+  PyAV, fixing missing external ffmpeg without installing/upgrading dependencies.
+- Shared telemetry metadata now declares actual6GiB/12GiB admission and no utilization
+  veto; scheduling behavior unchanged.5 focused tests pass; real168frame MP4 decoded.
+
 ## 2026-11-02 — Shared-card full recurrent State execution
 
 - Fix state_benchmark query geometry: original USD boxes verified against URDF,

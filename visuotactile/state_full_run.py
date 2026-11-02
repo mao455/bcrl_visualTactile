@@ -65,6 +65,34 @@ def should_stop(history, minimum=6000):
     return min(r['validation']['selection_mse'] for r in history[-2:]) >= .99*earlier
 
 
+def recover_preaction_start(root, name, deadline):
+    """Retry one known pre-scene FileThread abort, with a session-wide bound."""
+    root = Path(root); output = root/name; log = root/(name+'.log')
+    recoveries = root/'startup_recoveries'
+    if time.time() >= deadline or not output.is_dir() or not log.is_file():
+        return False
+    if (recoveries/name).exists() or len(list(recoveries.glob('*/recovery.json'))) >= 3:
+        return False
+    files = {str(path.relative_to(output)) for path in output.rglob('*') if path.is_file()}
+    contents = log.read_text(errors='replace')
+    if files != {'runtime_controls.json'} or not all(
+        signature in contents for signature in ('FileThread', 'std::system_error', 'abort')):
+        return False
+    if '[INFO]: Completed setting up the environment' in contents or 'Traceback (most recent call last)' in contents:
+        return False
+    archive = recoveries/name; archive.mkdir(parents=True)
+    output.rename(archive/'attempt')
+    log.rename(archive/'worker.log')
+    launch = root/(name+'_launch.json')
+    if launch.exists():
+        launch.rename(archive/'launch.json')
+    atomic_json(archive/'recovery.json', dict(utc=time.time(), stage=name, deadline=deadline,
+        reason='Known native FileThread abort before scene/trajectory; only runtime_controls existed',
+        original_log_sha256=sha256(archive/'worker.log'), same_seed_and_job=True,
+        new_controlled_trajectories=0, maximum_per_stage=1, maximum_per_session=3))
+    return True
+
+
 class Runner(RepairRunner):
     def stage(self, name, module='visuotactile.state_benchmark', extra=None):
         output = self.root/name; marker = self.root/(name+'_committed.json')
@@ -84,11 +112,17 @@ class Runner(RepairRunner):
                 output.rename(self.root/(name+'_interrupted'))
                 atomic_json(self.root/(name+'_recovery.json'), dict(utc=time.time(),
                     checkpoint_sha256=sha256(directory/'last.pt'), deadline_unchanged=True))
+            elif module == 'visuotactile.state_benchmark' and recover_preaction_start(
+                    self.root, name, self.session['deadline']):
+                pass
             else:
                 raise RuntimeError('Incomplete simulation attempt preserved, no blind repeat: '+name)
         try:
             return super().stage(name, module, extra)
         except RuntimeError:
+            if module == 'visuotactile.state_benchmark' and recover_preaction_start(
+                    self.root, name, self.session['deadline']):
+                return self.stage(name, module, extra)
             if module != 'visuotactile.state_full_training' or (self.root/(name+'_recovery.json')).exists():
                 raise
             return self.stage(name, module, extra)

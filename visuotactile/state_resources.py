@@ -89,7 +89,8 @@ class SharedLease(Lease):
 
 
 def monitor(root):
-    guard = ResourceGuard(root/'resources', poll_s=1, cuda_metrics=False)
+    guard = ResourceGuard(root/'resources', poll_s=1, cuda_metrics=False,
+        min_gpu_free_mib=6144, min_ram_available_gib=12, max_gpu_mean_percent=None)
     restore_telemetry(guard)
     atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time()))
     window = deque(); previous = None

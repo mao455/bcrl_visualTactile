@@ -1,5 +1,14 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 19:40UTC+8 — stopped startup discovered, bounded recovery
+
+state_full_20261102_01 stopped17:19 on expert_single_07 FileThread SIGABRT(-6),
+before environment or action. Prior7 experts all legal/full success; BC/DP0updates.
+No resource pause. Runtime-only recovery retains root/deadline and skips all7 completed.
+Known FileThread pre-scene abort retry is bounded1/stage,3/session; no started trial retry.
+Missing ffmpeg also broke finish; fixed via installed PyAV,168frame video decode passed.
+Read runtime_recovery_01 and current status for actual restart, never assume completion.
+
 启动核验（2026-11-02 17:16 UTC+8）：`state-full-20261102-01.service` active，
 root `state_full_20261102_01`已推进到独立专家第4条；新学生训练尚未开始。
 代码 `c2e9895` 已push并核对origin同SHA。训练截止11月3日14:12:42，绝对截止17:12:42（UTC+8）。

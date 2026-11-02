@@ -33,11 +33,15 @@ def summarize(root, output):
         {p.parent.name for p in root.glob('*/result.json') if '_single_' not in p.parent.name})
     for stage in stages:
         path = root/stage/'result.json'
+        partial = not path.exists()
+        if partial:
+            path = root/stage/'progress.json'
         if not path.exists():
             result['stages'][stage] = dict(complete=False)
             continue
         value = json.loads(path.read_text()); write(output/(stage+'.json'), value)
-        result['stages'][stage] = dict(complete=value.get('software_complete', False), sha256=digest(path))
+        result['stages'][stage] = dict(complete=not partial and value.get('software_complete', False),
+            partial=partial, sha256=digest(path))
         if 'trials' in value and value['trials']:
             result['stages'][stage]['cohorts'] = {cohort: dict(
                 attempted=sum(r['cohort'] == cohort for r in value['trials']),

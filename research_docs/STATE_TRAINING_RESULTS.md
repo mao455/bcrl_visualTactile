@@ -1,5 +1,24 @@
 # State observation/history repair — actual results
 
+## 2026-11-02 19:40 UTC+8：真实中断与恢复
+
+17:19:29流水线在第8个Kit启动时停止，错误为OmniClient
+`provider_file::FileThread`/`std::system_error: Invalid argument`，SIGABRT(-6)。
+失败目录只有runtime_controls.json，无环境、轨迹或动作。已完成7/12登记专家：
+fresh4/4、train3/3，全部合法且原生完整成功，分别168/153/206/161/145/171/181步。
+尚余train1/validation4；新BC和DP均0updates、没有学生闭环结果。
+
+这次不是GPU准入阻塞：中断前全卡最近60s12.12%、最近5min15.33%，
+freeVRAM19.20GiB、availableRAM约30.67GiB，pause reasons为空。
+不能用7/7替代完整12条基础设施验收，更不能据此宣称学生学会。
+
+恢复仅改owner/资源报告/收尾，不改模型、控制、物理、数据、种子、预算和截止。
+保存原session/status/失败log；已完成7条跳过。已知动作前FileThread abort允许每stage一次、
+全session最多3次；任何started/result/轨迹文件都拒绝此自动恢复。
+这不是FileThread内部根因已修复的证据，重复崩溃达到界限会继续保留并停止。
+另修复报告丢失partial专家统计及PATH无ffmpeg导致收尾失败，改用已有PyAV完整解码。
+5项针对性回归通过；专家视频实际168帧全部解码成功。原截止11月3日17:12:42UTC+8不变。
+
 启动核验（2026-11-02 17:16 UTC+8）：`state-full-20261102-01.service` active，
 root `state_full_20261102_01`已推进到独立专家第4条；新学生训练尚未开始。
 代码 `c2e9895` 已push并核对origin同SHA。训练截止11月3日14:12:42，绝对截止17:12:42（UTC+8）。
@@ -109,17 +128,20 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 所以本轮当前交付是实现和数值验收，**真实合法专家基准、BC/DP学习及闭环目标尚未完成**。
 
 
+
 ## 自动收尾实测表（待人工复核与Git提交）
 
 此表只读取普通owner结束后的产物，不新增训练或rollout。旧/前置失效样本不混入新分母。
 
 |组|cohort|已尝试|合法|完整成功|native lift|至少1子目标|
 |---|---|---:|---:|---:|---:|---:|
+|expert|fresh|4|4|4|2|4|
+|expert|train|3|3|3|2|3|
 
 |组|updates|train arm/hand RMSE|validation arm/hand RMSE|
 |---|---:|---|---|
 
-最终owner状态：`{"state": "blocked", "reason": "RuntimeError('freeze failed: exit=0')", "utc": 1793606160.9447563}`。
+最终owner状态：`{"state": "blocked", "reason": "RuntimeError('expert_single_07 failed: exit=-6')", "utc": 1793611169.3465292}`。
 
 逐条reset误差、接触前后首差及阶段误差见公开`summary.json/trace_diagnostics`。
 这些观测不唯一证明网络失败机制；同输入/同命令验收与完整成功分开报告。

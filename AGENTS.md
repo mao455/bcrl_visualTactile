@@ -2,6 +2,13 @@
 
 ## Current override — 2026-11-02 full recurrent State learning
 
+19:40UTC+8 review found root01 stopped17:19 on expert_single_07 FileThread abort,
+before scene/trajectory, with prior7/7 native successes and0 student updates.
+Runtime-only recovery preserves the same root/deadline and completed stages; known
+pre-scene FileThread abort may retry once per stage, at most3 per session, only when
+runtime_controls.json is the sole attempt file. Never retry started trajectories.
+Original launch/session/failure archived; model/control/data hashes remain unchanged.
+
 Latest attachment147b678c explicitly authorizes recurrent BC/DP pilots then train320,
 validation40, frozen-selection test40 and native closed loops; no4episode-success veto.
 Read STATE_TRAINING_RESULTS. New rootstate_full_20261102_01 has an independent24h

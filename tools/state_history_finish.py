@@ -6,10 +6,24 @@ still require review; this program never commits or pushes automatically.
 import argparse
 import json
 from pathlib import Path
-import subprocess
 import time
 
 from state_history_report import summarize
+
+
+def decode_video(path):
+    """Use the installed recording codec library without an external executable."""
+    import av
+    count = 0
+    try:
+        with av.open(str(path)) as container:
+            for frame in container.decode(video=0):
+                frame.to_ndarray(format='rgb24')
+                count += 1
+        return dict(decoded_frames=count, exit_code=0 if count else 1,
+            error='' if count else 'No video frames', decoder='PyAV')
+    except Exception as error:
+        return dict(decoded_frames=count, exit_code=1, error=repr(error), decoder='PyAV')
 
 
 def finish(root, output, document):
@@ -44,10 +58,7 @@ def finish(root, output, document):
         path = Path(video['path'])
         if not (path.parent/'result.json').exists():
             continue
-        process = subprocess.run(['ffmpeg', '-v', 'error', '-threads', '1', '-i', str(path),
-            '-f', 'null', '-'], capture_output=True, text=True)
-        decode.append(dict(path=str(path), sha256=video['sha256'], exit_code=process.returncode,
-            error=process.stderr[-2000:]))
+        decode.append(dict(path=str(path), sha256=video['sha256'], **decode_video(path)))
     (output/'video_decode.json').write_text(json.dumps(decode, indent=2)+'\n')
     text = document.read_text().split('\n## 自动收尾实测表')[0]
     document.write_text(text+'\n'+'\n'.join(rows)+'\n')
