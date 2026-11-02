@@ -48,3 +48,9 @@ bash visuotactile/run_cpu.sh -m visuotactile.state_history_run run --root <fresh
 普通finish服务结束后只更新本地报告/小JSON，不未经审查自动提交。
 最终实验结果review/commit/push与远端一致性仍待本轮结果收尾，
 不将base commit冒充最终交付commit。所有实际launch保存source SHA，commit后的身份不会追溯覆盖运行时源码。
+
+## 已推送实现身份
+
+实现commit `89b933462f72e0ec46f2d3ab603ae27448126744` 已推送origin/feature/native-dp-training-v2，并核对远端SHA相同。
+当前实验仍因资源准入等待，尚未完成闭环研究交付；后续自动产物须人工复核后另行提交。
+本记录后的文档提交以Git历史为准；不把该实现commit称为最终实验完成commit。
