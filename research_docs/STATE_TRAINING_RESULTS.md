@@ -1,5 +1,45 @@
 # State observation/history repair — actual results
 
+## 2026-11-03 00:19 UTC+8：训练完成，评估不完整，尚无学生完整成功
+
+当前服务inactive，owner/全部自有worker/monitor于11月2日23:21:53退出。
+机器状态为`training_complete_evaluation_incomplete`，不是整个实验complete。
+StateBC完成10000updates，StateDP完成19000updates；两者均train320/validation40，
+覆盖全部320训练身份，按验证集选择10000/19000的EMA，未使用test选择。
+
+|模型/评估|完整成功/已完成|其他实测结果|缺失项|
+|---|---:|---|---|
+|BC所选10000|0/12|fresh0/4、train0/4、val0/4；全601timeout，无lift/子目标|无|
+|DP19000里程碑|0/4|train1条lift后254步fall；另3条601timeout；无子目标|无|
+|DP所选19000|0/5|fresh4条601timeout；train1条lift后273步fall；无子目标|第6条启动失败，后6条未启动|
+
+DP里程碑与所选模型诊断分开计数，不合并为9个独立起点。
+第6条`dp_single_05`在建立场景前发生FileThread/std::system_error SIGABRT(-6)，
+只有runtime_controls.json，无动作或轨迹；该条未知任务结果，不能记为任务失败或成功。
+另有DP10000里程碑第4条启动SIGSEGV缺失。三次自动Kit恢复已消耗，未追加重试。
+因为两项deferred未解决，旧State12条对照、新test40离线和各组正式20条均未开始。
+因此当前不能给出完整正式成功率或新旧State在同一新cohort上的最终改善幅度。
+
+最终validation前12步arm/hand RMSE：BC0.617104/0.491214，DP0.715060/0.500374。
+DP从10000步0.798099/0.559021继续下降，仍未形成完整成功。
+训练指标仅固定前16条：BC0.540785/0.468841，DP0.612155/0.436233；
+优化器实际使用全部train320，不能将16条指标当成全部训练分布指标。
+
+所选DP已完成5条的reset Actor与对应专家均逐字节相同，第0步arm/hand命令已偏离；
+reset动作RMSE跨轨迹平均0.619776/0.275060。chunk边界/内部跳变量RMS平均
+0.455739/0.188447，提示重规划不连续；尚无因果干预证明其为唯一原因。
+在线专家12/12成功与fresh replay2/2 exact16仍支持可运行场景下的控制基础设施。
+软件启动不稳定解释缺失评估，不能解释已经实际完成的学生闭环失败。
+
+只读收尾核验169源码哈希、88已提交stage结果、两份best权重SHA；
+复用14条视频完整解码结果并重新核对文件哈希，全部通过，未新增训练或仿真。
+资源报告含13279.81秒监测间隔（包括停机），整卡采样均值36.599%、最大完整60秒69.208%；
+当前协议无固定利用率上限，且无另一项目吞吐指标，不能据此声称零干扰或全时段覆盖。
+证据：[训练完成核验](evidence/state_shared_20261102/training_complete_review.json)、
+[学习曲线](evidence/state_shared_20261102/results/learning_curves.png)、
+[逐轨迹诊断](evidence/state_shared_20261102/results/summary.json)。
+以下启动状态均为历史快照；本节没有宣称原生任务已学会。
+
 **22:58:28 UTC+8实际恢复核验：** `state-full-20261102-01.service` active，
 owner1297238、worker1297395存活，当前`dp_train_19000`。
 resume.json确认从10000 checkpoint恢复optimizer/EMA/RNG/sampler；此时最新已提交进度仍10000，
@@ -224,6 +264,7 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 
 
 
+
 ## 自动收尾实测表（待人工复核与Git提交）
 
 此表只读取普通owner结束后的产物，不新增训练或rollout。旧/前置失效样本不混入新分母。
@@ -243,10 +284,14 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 |bc_loop_6000|validation|2|2|0|0|0|
 |bc_pilot_loop|train|2|2|0|0|0|
 |bc_pilot_loop|validation|2|2|0|0|0|
+|dp|fresh|4|4|0|0|0|
+|dp|train|1|1|0|1|0|
 |dp_loop_1000|train|2|2|0|0|0|
 |dp_loop_1000|validation|2|2|0|0|0|
 |dp_loop_10000|train|2|2|0|1|0|
 |dp_loop_10000|validation|1|1|0|0|0|
+|dp_loop_19000|train|2|2|0|1|0|
+|dp_loop_19000|validation|2|2|0|0|0|
 |dp_loop_3000|train|2|2|0|0|0|
 |dp_loop_3000|validation|2|2|0|0|0|
 |dp_loop_6000|train|2|2|0|0|0|
@@ -268,8 +313,9 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 |dp|3000|0.848297/0.611395|0.866523/0.629899|
 |dp|6000|0.834543/0.583815|0.858557/0.606261|
 |dp|10000|0.744861/0.519100|0.798099/0.559021|
+|dp|19000|0.612155/0.436233|0.715060/0.500374|
 
-最终owner状态：`{"state": "blocked", "reason": "RuntimeError('dp_train_19000 failed: exit=1')", "utc": 1793631118.3770657}`。
+最终owner状态：`{"state": "training_complete_evaluation_incomplete", "utc": 1793632912.7466462, "deferred": ["dp_deferred.json", "dp_loop_10000_deferred.json"], "formal_test_started": false, "reason": "Preserved startup failures need resolution; no success inferred"}`。
 
 逐条reset误差、接触前后首差及阶段误差见公开`summary.json/trace_diagnostics`。
 这些观测不唯一证明网络失败机制；同输入/同命令验收与完整成功分开报告。

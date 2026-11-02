@@ -1,5 +1,17 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03 00:19UTC+8 — training finished, evaluation incomplete, service stopped
+
+BC10000 andDP19000 complete train320/val40, all320 sampled; selectedEMA10000/19000.
+BCselected0/12 alltimeouts/no lift; DP19k milestone0/4 with lift/fall254, selectedDP0/5
+(fresh0/4timeouts, train0/1lift/fall273). Sixth startupFileThread SIGABRT before scene;
+six later selectedDP starts never launched. Prior10k fourth startup gap also remains.
+State training_complete_evaluation_incomplete; all owned processes exitedNov2 23:21:53.
+Old12/test40/formal20 cohorts not started. No automatic recovery expansion or new updates.
+Read-only review169sources/88stage hashes/2best checkpoints/14decodedvideo hashes passed.
+See STATE_TRAINING_RESULTS and training_complete_review.json. No student fullsuccess.
+Below active PIDs/stages are historical. Missing results cannot be counted as failures.
+
 22:58:28UTC+8 startup verified: serviceactive,owner1297238/worker1297395;
 dp_train_19000 with real resume.json from10000, exactoptimizer/EMA/RNG/sampler.
 Committed progress still10000 at that snapshot; no memory pause. Runtimefae5a04

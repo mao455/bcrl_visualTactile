@@ -170,7 +170,25 @@
       "sha256": "85512b77233f6913e0dbd4b42b0b9919f78a8efdb8c62c3194e99c6cd52392f7"
     },
     "dp": {
-      "complete": false
+      "complete": false,
+      "partial": true,
+      "sha256": "2ebadfc038cd4347984968d4c53a110f3109262c333a74a2f7b6b6dd8d26cc1b",
+      "cohorts": {
+        "fresh": {
+          "attempted": 4,
+          "legal": 4,
+          "successes": 0,
+          "lifts": 0,
+          "subgoals": 0
+        },
+        "train": {
+          "attempted": 1,
+          "legal": 1,
+          "successes": 0,
+          "lifts": 1,
+          "subgoals": 0
+        }
+      }
     },
     "dp_loop_1000": {
       "complete": true,
@@ -208,6 +226,27 @@
         "validation": {
           "attempted": 1,
           "legal": 1,
+          "successes": 0,
+          "lifts": 0,
+          "subgoals": 0
+        }
+      }
+    },
+    "dp_loop_19000": {
+      "complete": true,
+      "partial": false,
+      "sha256": "b45f75be01f06decf82442c7673448d6fcc92d8f81d758a9bcbc8484ee5d2ff7",
+      "cohorts": {
+        "train": {
+          "attempted": 2,
+          "legal": 2,
+          "successes": 0,
+          "lifts": 1,
+          "subgoals": 0
+        },
+        "validation": {
+          "attempted": 2,
+          "legal": 2,
           "successes": 0,
           "lifts": 0,
           "subgoals": 0
@@ -290,7 +329,7 @@
     "dp_train": {
       "complete": true,
       "partial": false,
-      "sha256": "399db25a8d1394658ef0317377b4fab1c56916deacec79f1d021dd62c48546d4"
+      "sha256": "c44b59214bffc81e21927023e5229e6f59d787704deb211f52aa5872139a0683"
     },
     "dp_train_1000": {
       "complete": true,
@@ -301,6 +340,11 @@
       "complete": true,
       "partial": false,
       "sha256": "399db25a8d1394658ef0317377b4fab1c56916deacec79f1d021dd62c48546d4"
+    },
+    "dp_train_19000": {
+      "complete": true,
+      "partial": false,
+      "sha256": "c44b59214bffc81e21927023e5229e6f59d787704deb211f52aa5872139a0683"
     },
     "dp_train_3000": {
       "complete": true,
@@ -1699,6 +1743,206 @@
       "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
     },
     {
+      "stage": "dp",
+      "identity": "fresh_982501",
+      "compared_ticks": 168,
+      "first_contact_expert": 83,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 79,
+      "reset_arm_rmse": 0.49915409088134766,
+      "reset_hand_rmse": 0.319198876619339,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.2846242189407349,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.7778435349464417,
+      "chunk_boundary_command_jump_rms": 0.4675901234149933,
+      "within_chunk_command_jump_rms": 0.16915003955364227,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 83,
+          "arm_rmse": 0.5793807506561279,
+          "hand_rmse": 0.3587414026260376
+        },
+        "after_contact_before_lift": {
+          "ticks": 56,
+          "arm_rmse": 1.0820918083190918,
+          "hand_rmse": 0.6784895062446594
+        },
+        "after_first_subgoal": {
+          "ticks": 29,
+          "arm_rmse": 1.389975905418396,
+          "hand_rmse": 1.0007879734039307
+        }
+      },
+      "trace_sha256": "79c872aad168518b42c6f72bfb20c069ec617d0fc122fa5f1ca03599e5093eaa",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp",
+      "identity": "fresh_982502",
+      "compared_ticks": 153,
+      "first_contact_expert": 46,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 46,
+      "reset_arm_rmse": 0.7990652322769165,
+      "reset_hand_rmse": 0.297561913728714,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.1860640048980713,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.8885807991027832,
+      "chunk_boundary_command_jump_rms": 0.5047459602355957,
+      "within_chunk_command_jump_rms": 0.20979711413383484,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 46,
+          "arm_rmse": 0.6034859418869019,
+          "hand_rmse": 0.4894416928291321
+        },
+        "after_contact_before_lift": {
+          "ticks": 67,
+          "arm_rmse": 0.8954953551292419,
+          "hand_rmse": 0.7048529386520386
+        },
+        "after_first_subgoal": {
+          "ticks": 40,
+          "arm_rmse": 1.2805308103561401,
+          "hand_rmse": 1.026577115058899
+        }
+      },
+      "trace_sha256": "2154b5d8e2c437fad633ec0b6991ebcefb76444435bb9453f6a6dd3713710494",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp",
+      "identity": "fresh_982503",
+      "compared_ticks": 206,
+      "first_contact_expert": 83,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 84,
+      "reset_arm_rmse": 0.7689995169639587,
+      "reset_hand_rmse": 0.17899060249328613,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.1838988065719604,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.8029986619949341,
+      "chunk_boundary_command_jump_rms": 0.42835164070129395,
+      "within_chunk_command_jump_rms": 0.1845974624156952,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 83,
+          "arm_rmse": 0.6786008477210999,
+          "hand_rmse": 0.5790385603904724
+        },
+        "after_contact_before_lift": {
+          "ticks": 51,
+          "arm_rmse": 1.4090250730514526,
+          "hand_rmse": 0.962032675743103
+        },
+        "lifted_before_subgoal": {
+          "ticks": 42,
+          "arm_rmse": 1.4083822965621948,
+          "hand_rmse": 1.084756851196289
+        },
+        "after_first_subgoal": {
+          "ticks": 30,
+          "arm_rmse": 1.2969162464141846,
+          "hand_rmse": 0.9757457971572876
+        }
+      },
+      "trace_sha256": "9ee45d20353b9863e317c9122859f1e4b48fa7354c38a3898255bd45dc295801",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp",
+      "identity": "fresh_982506",
+      "compared_ticks": 161,
+      "first_contact_expert": 37,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 38,
+      "reset_arm_rmse": 0.8619101643562317,
+      "reset_hand_rmse": 0.3225216865539551,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.2982401847839355,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.7982532978057861,
+      "chunk_boundary_command_jump_rms": 0.4658326506614685,
+      "within_chunk_command_jump_rms": 0.16500194370746613,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 37,
+          "arm_rmse": 0.7542946338653564,
+          "hand_rmse": 0.25914424657821655
+        },
+        "after_contact_before_lift": {
+          "ticks": 56,
+          "arm_rmse": 0.7246344089508057,
+          "hand_rmse": 0.7691804766654968
+        },
+        "lifted_before_subgoal": {
+          "ticks": 37,
+          "arm_rmse": 0.8932029604911804,
+          "hand_rmse": 0.733284056186676
+        },
+        "after_first_subgoal": {
+          "ticks": 31,
+          "arm_rmse": 1.2054953575134277,
+          "hand_rmse": 1.0081290006637573
+        }
+      },
+      "trace_sha256": "32f8847fb60ce9533ebbd2729427269ecf9544cde0f0e93e703dea3a469cf567",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp",
+      "identity": "r931005_1793209376_e00_p000000",
+      "compared_ticks": 145,
+      "first_contact_expert": 51,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 51,
+      "reset_arm_rmse": 0.16975060105323792,
+      "reset_hand_rmse": 0.2570284307003021,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 0.9212084412574768,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.7673808336257935,
+      "chunk_boundary_command_jump_rms": 0.4121735990047455,
+      "within_chunk_command_jump_rms": 0.21368969976902008,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 51,
+          "arm_rmse": 0.3673969805240631,
+          "hand_rmse": 0.3109438419342041
+        },
+        "after_contact_before_lift": {
+          "ticks": 28,
+          "arm_rmse": 0.5278838276863098,
+          "hand_rmse": 0.720088005065918
+        },
+        "lifted_before_subgoal": {
+          "ticks": 31,
+          "arm_rmse": 0.9075851440429688,
+          "hand_rmse": 0.7448808550834656
+        },
+        "after_first_subgoal": {
+          "ticks": 35,
+          "arm_rmse": 1.3061563968658447,
+          "hand_rmse": 1.0825320482254028
+        }
+      },
+      "trace_sha256": "1dbf6edca1eb6166aaa93befa27315352efd9059da2e2e601855f9c872eac576",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
       "stage": "dp_loop_1000",
       "identity": "r931005_1793209376_e00_p000000",
       "compared_ticks": 145,
@@ -1990,6 +2234,174 @@
         }
       },
       "trace_sha256": "37994c865aa10d2fdfd9f7ec66283698a937d30d9a50fcf9e48311f88777e52b",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp_loop_19000",
+      "identity": "r931005_1793209376_e00_p000000",
+      "compared_ticks": 145,
+      "first_contact_expert": 51,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 51,
+      "reset_arm_rmse": 0.1697499006986618,
+      "reset_hand_rmse": 0.2570284605026245,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 0.9876806735992432,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.8024768829345703,
+      "chunk_boundary_command_jump_rms": 0.4052736163139343,
+      "within_chunk_command_jump_rms": 0.2111511081457138,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 51,
+          "arm_rmse": 0.3673968017101288,
+          "hand_rmse": 0.31094372272491455
+        },
+        "after_contact_before_lift": {
+          "ticks": 28,
+          "arm_rmse": 0.5277064442634583,
+          "hand_rmse": 0.7201420664787292
+        },
+        "lifted_before_subgoal": {
+          "ticks": 31,
+          "arm_rmse": 0.8249011039733887,
+          "hand_rmse": 0.6910669207572937
+        },
+        "after_first_subgoal": {
+          "ticks": 35,
+          "arm_rmse": 1.3035855293273926,
+          "hand_rmse": 1.0742440223693848
+        }
+      },
+      "trace_sha256": "1d941d8340f80c22cbe694896f9e3d3c1459b07d758c009e166aaa68a1695f3b",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp_loop_19000",
+      "identity": "r931005_1793209376_e00_p000055",
+      "compared_ticks": 176,
+      "first_contact_expert": 66,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 64,
+      "reset_arm_rmse": 0.44541677832603455,
+      "reset_hand_rmse": 0.15981973707675934,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.2998921871185303,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.8554617166519165,
+      "chunk_boundary_command_jump_rms": 0.49536848068237305,
+      "within_chunk_command_jump_rms": 0.18605400621891022,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 66,
+          "arm_rmse": 0.9150559306144714,
+          "hand_rmse": 0.5242019891738892
+        },
+        "after_contact_before_lift": {
+          "ticks": 41,
+          "arm_rmse": 1.1152968406677246,
+          "hand_rmse": 0.9582459330558777
+        },
+        "lifted_before_subgoal": {
+          "ticks": 37,
+          "arm_rmse": 1.367319107055664,
+          "hand_rmse": 1.0620155334472656
+        },
+        "after_first_subgoal": {
+          "ticks": 32,
+          "arm_rmse": 1.4238816499710083,
+          "hand_rmse": 1.0183621644973755
+        }
+      },
+      "trace_sha256": "872bfeaa3c5b0612bab3de2c41e2431afb33763e4a5179a88d7b8e63047691c8",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp_loop_19000",
+      "identity": "r931005_1793209376_e01_p000156",
+      "compared_ticks": 142,
+      "first_contact_expert": 27,
+      "command_arm_first_over_0p1": 0,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 22,
+      "reset_arm_rmse": 0.37375304102897644,
+      "reset_hand_rmse": 0.4128289520740509,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.275327444076538,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.7038960456848145,
+      "chunk_boundary_command_jump_rms": 0.5965269207954407,
+      "within_chunk_command_jump_rms": 0.1946096420288086,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 27,
+          "arm_rmse": 0.8158844113349915,
+          "hand_rmse": 0.3752036988735199
+        },
+        "after_contact_before_lift": {
+          "ticks": 35,
+          "arm_rmse": 0.8822767734527588,
+          "hand_rmse": 0.9304562211036682
+        },
+        "lifted_before_subgoal": {
+          "ticks": 49,
+          "arm_rmse": 0.9853392839431763,
+          "hand_rmse": 1.0067914724349976
+        },
+        "after_first_subgoal": {
+          "ticks": 31,
+          "arm_rmse": 1.5266493558883667,
+          "hand_rmse": 1.0954667329788208
+        }
+      },
+      "trace_sha256": "811977ca1476b3682cd90f13cc6dc4ebd6599c552aa48ff39e821baa7468d26e",
+      "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
+    },
+    {
+      "stage": "dp_loop_19000",
+      "identity": "r931005_1793209376_e03_p000159",
+      "compared_ticks": 171,
+      "first_contact_expert": 63,
+      "command_arm_first_over_0p1": 1,
+      "command_hand_first_over_0p1": 0,
+      "joint_first_over_1mrad": 0,
+      "target_first_over_1mrad": 0,
+      "object_first_over_1mm": 64,
+      "reset_arm_rmse": 0.09284749627113342,
+      "reset_hand_rmse": 0.24588875472545624,
+      "reset_actor_max": 0.0,
+      "actual_trajectory_expert_shadow_arm_rmse": 1.2521264553070068,
+      "actual_trajectory_expert_shadow_hand_rmse": 0.8496190309524536,
+      "chunk_boundary_command_jump_rms": 0.4771781265735626,
+      "within_chunk_command_jump_rms": 0.1784719079732895,
+      "phases": {
+        "before_object_contact": {
+          "ticks": 63,
+          "arm_rmse": 0.6666163206100464,
+          "hand_rmse": 0.4485432505607605
+        },
+        "after_contact_before_lift": {
+          "ticks": 26,
+          "arm_rmse": 0.4887465238571167,
+          "hand_rmse": 0.6838342547416687
+        },
+        "lifted_before_subgoal": {
+          "ticks": 43,
+          "arm_rmse": 0.773934006690979,
+          "hand_rmse": 0.6455531716346741
+        },
+        "after_first_subgoal": {
+          "ticks": 39,
+          "arm_rmse": 1.4637889862060547,
+          "hand_rmse": 1.0353378057479858
+        }
+      },
+      "trace_sha256": "0f908ab2c273f9706e94283d528d9217a6b0737b98880a470759c1c29092a31f",
       "scope": "Expert reference phases; shadow has its own LSTM over actual student observations, never controls"
     },
     {
@@ -2529,6 +2941,11 @@
       "sha256": "1efbf713605c238e6163a4dac1092aca48b89c661d3201c662d7194ba01b3c5a"
     },
     {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_single_00/fresh_982501/rollout.mp4",
+      "bytes": 1365501,
+      "sha256": "b306159b3d1cbe84ce254504c03b36a9a2c4833d374961b3c9f0f44fde149fba"
+    },
+    {
       "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_loop_1000_single_00/r931005_1793209376_e00_p000000/rollout.mp4",
       "bytes": 2070905,
       "sha256": "c3d8f9db155b5771475f94aeeb6c377ed4a2025aadde561294c142122a593972"
@@ -2537,6 +2954,11 @@
       "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_loop_10000_single_00/r931005_1793209376_e00_p000000/rollout.mp4",
       "bytes": 980523,
       "sha256": "e4ed390a30f720e46ff0571dd0ca27e30a120617c2884f13e5297b0235a02f67"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_loop_19000_single_00/r931005_1793209376_e00_p000000/rollout.mp4",
+      "bytes": 1156518,
+      "sha256": "b9d70215cc8992b3b64e3e78e5a74780e666fb20f478f67342af4ad5ce626d18"
     },
     {
       "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_loop_3000_single_00/r931005_1793209376_e00_p000000/rollout.mp4",
@@ -2561,15 +2983,20 @@
   ],
   "resource_paused": false,
   "session.json": {
-    "sha256": "9a3f458746aea9aff3a0cd4295698b079c90b89f1c3a087f4dd56336dce254d4",
+    "sha256": "8bf59f74d3c95a0c8a1d483d5eebbc372f2a5b11e34c33f11662bfa0710f7622",
     "value": "registration copied"
   },
   "status.json": {
-    "sha256": "f7f8cb9bb85eff8ff4f8a867ba5715d87ea22d93217b18ce16b2f45ada2ee78f",
+    "sha256": "dc37681611ed9f2e2a0dfa69d0055f133b84003fe853d91e7fcabfb485d3c926",
     "value": {
-      "state": "blocked",
-      "reason": "RuntimeError('dp_train_19000 failed: exit=1')",
-      "utc": 1793631118.3770657
+      "state": "training_complete_evaluation_incomplete",
+      "utc": 1793632912.7466462,
+      "deferred": [
+        "dp_deferred.json",
+        "dp_loop_10000_deferred.json"
+      ],
+      "formal_test_started": false,
+      "reason": "Preserved startup failures need resolution; no success inferred"
     }
   },
   "foundation.json": {
@@ -2588,9 +3015,9 @@
     }
   },
   "owner_exit.json": {
-    "sha256": "42ee2baf906699c6ccb428d46a2010cd802b7b5098b9344eafb42c4665020933",
+    "sha256": "072d6959a2973c7ff1679c932b1df5ddb32ee1af9cf3a39f4d7de2c739331958",
     "value": {
-      "utc": 1793631118.8918717,
+      "utc": 1793632913.4115963,
       "owned_children_exited": true
     }
   }

@@ -1,0 +1,73 @@
+{
+  "utc": 1793636454.3181489,
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01",
+  "models": {
+    "bc": {
+      "updates": 10000,
+      "unique_train_episodes_seen": 320,
+      "selection": {
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/bc_train/best.pt",
+        "checkpoint_sha256": "0f84130fc702c6a8f7eb0a6280adad3d3f282492f81ee5e1b6525fa57983d907",
+        "selected_updates": 10000,
+        "criterion": "minimum validation40 teacher-forced prefix12 equal arm/hand MSE",
+        "test_used_for_selection": false,
+        "configuration_frozen": true
+      },
+      "train": {
+        "arm_rmse": 0.5407853722572327,
+        "hand_rmse": 0.468841016292572,
+        "selection_mse": 0.2561303377151489,
+        "scope": "Teacher-forced past execution, not autonomous success"
+      },
+      "validation": {
+        "arm_rmse": 0.6171039342880249,
+        "hand_rmse": 0.4912140965461731,
+        "selection_mse": 0.3110542595386505,
+        "scope": "Teacher-forced past execution, not autonomous success"
+      }
+    },
+    "dp": {
+      "updates": 19000,
+      "unique_train_episodes_seen": 320,
+      "selection": {
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_train/best.pt",
+        "checkpoint_sha256": "6c48275ffecdd290def3f55437b96d7bace55b48a212e18c5fb8828d953cf163",
+        "selected_updates": 19000,
+        "criterion": "minimum validation40 teacher-forced prefix12 equal arm/hand MSE",
+        "test_used_for_selection": false,
+        "configuration_frozen": true
+      },
+      "train": {
+        "arm_rmse": 0.6121549606323242,
+        "hand_rmse": 0.4362333118915558,
+        "selection_mse": 0.28251659870147705,
+        "scope": "Teacher-forced past execution, not autonomous success"
+      },
+      "validation": {
+        "arm_rmse": 0.7150601148605347,
+        "hand_rmse": 0.5003743767738342,
+        "selection_mse": 0.38084274530410767,
+        "scope": "Teacher-forced past execution, not autonomous success"
+      }
+    }
+  },
+  "source_hashes_checked": 169,
+  "completed_result_markers_checked": 88,
+  "owned_gpu_workers": [],
+  "prior_video_decodes_reused_and_hash_verified": 14,
+  "status": {
+    "state": "training_complete_evaluation_incomplete",
+    "utc": 1793632912.7466462,
+    "deferred": [
+      "dp_deferred.json",
+      "dp_loop_10000_deferred.json"
+    ],
+    "formal_test_started": false,
+    "reason": "Preserved startup failures need resolution; no success inferred"
+  },
+  "deferred": {
+    "dp_deferred.json": "dp_single_05",
+    "dp_loop_10000_deferred.json": "dp_loop_10000_single_03"
+  },
+  "scope": "Read-only final training/partial evaluation audit; no new updates, simulator starts or retry-budget changes"
+}

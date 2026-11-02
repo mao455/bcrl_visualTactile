@@ -2,6 +2,14 @@
 
 ## Current override — 2026-11-02 full recurrent State learning
 
+Nov3 00:19UTC+8 review: BC10000/DP19000 complete train320, selectedBC0/12,
+DP19k milestone0/4 (lift/fall254), selectedDP0/5 (fresh0/4,trainlift/fall273).
+SelectedDP sixth startupFileThread abort leaves one missing/six unstarted; prior10k
+gap also remains. All owned processes exitedNov2 23:21:53. Status is training_complete_
+evaluation_incomplete, not researchsuccess. Old12/test40/formal20 not started.
+Retry budget remains exhausted; read STATE_TRAINING_RESULTS for actual evidence.
+No new updates or starts in this read-only review; previous running snapshots stale.
+
 22:52UTC+8 follow-up: owner amendment hit frozen training source-map mismatch before
 updates. runtime_recovery_04 retains both empty attempts/consumed trainer retry. Exact
 reviewed config-SHA/source-before-after compatibility permits this runtime-only change;

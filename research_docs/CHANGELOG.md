@@ -1,5 +1,19 @@
 # Engineering change and verification log
 
+## 2026-11-03 — completed training and incomplete selected DP evaluation
+
+- Read-only review: BC10000/DP19000 complete on train320/validation40, all320 sampled;
+  validation selects10000/19000 EMA. Final validationarm/hand .617104/.491214 and
+  .715060/.500374. No test selection or formaltest execution.
+- BC selected0/12, all601timeouts/no lift; DP19000 milestone0/4 (one lift/fall254),
+  selectedDP0/5 (four freshtimeouts, one trainlift/fall273). Keep denominators separate.
+  Sixth selectedDP startupFileThread abort leaves one missing and six unstarted.
+- Owner/worker/monitor exitedNov2 23:21:53UTC+8; machine state explicitly training
+  complete/evaluation incomplete. Prior10k gap also remains; no new retries/updates.
+- Checked169 current source hashes,88 completed stage markers, both selectedweight
+  identities and14 existing decoded video hashes. No source change or repeated tests.
+  Reports/curves preserve missing outcomes, first-step errors and resource coverage gaps.
+
 ## 2026-11-02 — preserve frozen checkpoint identity across reviewed runtime changes
 
 - Startup classification resumed correctly, but DP19000 refused configuration drift:
