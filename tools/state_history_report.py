@@ -29,7 +29,9 @@ def summarize(root, output):
         if path.exists():
             value = json.loads(path.read_text()); write(output/name, value)
             result[name] = dict(sha256=digest(path), value=value if name != 'session.json' else 'registration copied')
-    for stage in ('preservation', 'parity', 'freeze', 'expert', 'replay', 'old', 'bc_train', 'bc', 'dp_train', 'dp'):
+    stages = sorted(set(('preservation', 'parity', 'freeze', 'expert', 'replay', 'old', 'bc_train', 'bc', 'dp_train', 'dp')) |
+        {p.parent.name for p in root.glob('*/result.json') if '_single_' not in p.parent.name})
+    for stage in stages:
         path = root/stage/'result.json'
         if not path.exists():
             result['stages'][stage] = dict(complete=False)
@@ -44,9 +46,9 @@ def summarize(root, output):
                 lifts=sum(r['cohort'] == cohort and r.get('native_lift', False) for r in value['trials']),
                 subgoals=sum(r['cohort'] == cohort and r.get('native_subgoals', 0) > 0 for r in value['trials']))
                 for cohort in sorted({r['cohort'] for r in value['trials']})}
-    for stage in ('old', 'bc', 'dp'):
+    for stage in [s for s in stages if s.startswith(('old', 'bc', 'dp')) and 'train' not in s and 'offline' not in s]:
         for path in sorted((root/stage).glob('*/trace.npz')):
-            identity = path.parent.name; reference = root/'expert'/identity/'trace.npz'
+            identity = path.parent.name; reference = root/('expert_formal' if stage.endswith('_formal') else 'expert')/identity/'trace.npz'
             if not reference.exists():
                 continue
             with np.load(path) as actual, np.load(reference) as expert:
@@ -63,6 +65,8 @@ def summarize(root, output):
                     after_contact_before_lift=(np.cumsum(contact) > 0) & ~lift & (goals == 0),
                     lifted_before_subgoal=lift & (goals == 0), after_first_subgoal=goals > 0)
                 shadow = actual['command']-actual['expert_shadow']
+                jumps = np.sqrt(np.mean(np.diff(actual['command'], axis=0)**2, axis=-1))
+                boundary = np.arange(1, len(actual['command'])) % 12 == 0
                 phase = {name: dict(ticks=int(mask.sum()), arm_rmse=float(np.sqrt(np.mean(arm[mask]**2))),
                     hand_rmse=float(np.sqrt(np.mean(hand[mask]**2)))) for name, mask in masks.items() if mask.any()}
                 row = dict(stage=stage, identity=identity, compared_ticks=count,
@@ -73,6 +77,8 @@ def summarize(root, output):
                     reset_actor_max=float(np.max(np.abs(actual['actor'][0]-expert['actor'][0]))),
                     actual_trajectory_expert_shadow_arm_rmse=float(np.sqrt(np.mean(shadow[:, :7]**2))),
                     actual_trajectory_expert_shadow_hand_rmse=float(np.sqrt(np.mean(shadow[:, 7:]**2))),
+                    chunk_boundary_command_jump_rms=float(np.sqrt(np.mean(jumps[boundary]**2))) if boundary.any() else None,
+                    within_chunk_command_jump_rms=float(np.sqrt(np.mean(jumps[~boundary]**2))) if (~boundary).any() else None,
                     phases=phase, trace_sha256=digest(path),
                     scope='Expert reference phases; shadow has its own LSTM over actual student observations, never controls')
                 result['trace_diagnostics'].append(row)
@@ -81,12 +87,36 @@ def summarize(root, output):
         value = json.loads(path.read_text()); legal.append(dict(identity=path.parent.name, **value))
     write(output/'initial_collision.json', legal)
     for path in sorted(root.glob('*/*/*.mp4')):
+        if '_single_' in path.parts[-3]:
+            continue
         result['videos'].append(dict(path=str(path.resolve()), bytes=path.stat().st_size, sha256=digest(path)))
     if (root/'resources/resources.json').exists():
         write(output/'resources.json', json.loads((root/'resources/resources.json').read_text()))
     write(output/'summary.json', result)
     plot(root, output, result)
+    resource_plot(root, output)
     return result
+
+
+def resource_plot(root, output):
+    source = root/'resources/shared.jsonl'
+    if not source.exists():
+        return
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    rows = [json.loads(line) for line in source.read_text().splitlines()]
+    if not rows:
+        return
+    time = [(r['utc_epoch']-rows[0]['utc_epoch'])/60 for r in rows]
+    fig, axes = plt.subplots(2, 1, figsize=(10, 5), sharex=True)
+    for key, name in [('gpu_util_percent', 'whole card'), ('rolling_60s_percent', 'recent1m'), ('rolling_300s_percent', 'recent5m')]:
+        axes[0].plot(time, [r.get(key) for r in rows], label=name, linewidth=1)
+    axes[0].set(ylabel='GPU core utilization %'); axes[0].legend()
+    axes[1].plot(time, [(r['gpu_free_mib'] or 0)/1024 for r in rows], label='free GPU GiB')
+    axes[1].plot(time, [r['ram_available_bytes']/1024**3 for r in rows], label='available RAM GiB')
+    axes[1].set(xlabel='minutes', ylabel='GiB'); axes[1].legend()
+    fig.tight_layout(); fig.savefig(output/'resource_curves.png', dpi=150); plt.close(fig)
 
 
 def plot(root, output, summary):

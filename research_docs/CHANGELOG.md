@@ -1,5 +1,23 @@
 # Engineering change and verification log
 
+## 2026-11-02 — Shared-card full recurrent State execution
+
+- Fix state_benchmark query geometry: original USD boxes verified against URDF,
+  queried at live PhysX pose. USD spawn-origin overlap falsely hit ground z0 while
+  live object centerz.619875848. Preserve old query hits and record both transforms.
+- Persistent post-rollout reset queries rejected3/12;9 executed experts all succeeded.
+  Independently isolated fresh982506 has identical saved observables, legal query and
+  native success161steps. New trial runner uses fresh Kit per trajectory; no task/
+  physics/controller/reset math or shared simulator changes. Exact replay remains gate.
+- state_resources adds opt-in memory admission/recent1m/5m pacing, no45/40/50 hard
+  utilization veto; owned one-worker concurrency, external PID/VRAM and wait logging.
+- state_full_training/state_full_run add train320/val40 milestones, numeric cache,
+  full current-weight prefix, resumable optimizer/EMA/RNG/sampler, validation early
+  stopping, frozen selection before test, per-stage native loops and old/expert controls.
+-11 focused tests pass; prior81894 Actor rows reused only with unchanged relevant hashes.
+  Initial experiments are preflight evidence, not completed new training or student success.
+
+
 ## 2026-11-02 — State Actor stream, persistent history and isolated environment RNG
 
 - New versioned State condition keeps robot178/geometry85 and original U-Net/H64/commit12,

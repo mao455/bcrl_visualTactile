@@ -1,5 +1,26 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — 2026-11-02 full recurrent State learning
+
+Latest attachment147b678c explicitly authorizes recurrent BC/DP pilots then train320,
+validation40, frozen-selection test40 and native closed loops; no4episode-success veto.
+Read STATE_TRAINING_RESULTS. New rootstate_full_20261102_01 has an independent24h
+window including waits, training<=21h. BC milestones1k/3k/6k/10k; DP1k/3k/6k/10k/19k,
+stop after two milestones without1% validation improvement once>=6k. Pilots300 each.
+Preserve every earlier root/deadline and all400/old weights. No visual training.
+New shared_recent_v1 removes45/40/50% hard utilization gates; one owned GPU worker,
+6GiB freeVRAM/12GiB availableRAM/12GB disk admission, recent1/5min contention pacing.
+Never modify unrelated jobs. No external throughput metrics means no no-interference claim.
+Live object boxes must match original USD collider dimensions/local offsets; query their
+actual PhysX pose. USD overlap_shape at spawn produced false ground collisions.
+Fresh Kit per controlled trial isolates observed post-rollout articulation-query staleness;
+no native physics/reset/control modifications, no per-step forcing. Exact shared replay
+and legal expert12 still required before training. Reuse unchanged92test/81894-row evidence.
+Ordinary services own transitions/checkpoint recovery; no conversation polling supervisor.
+User explicitly requests reviewed code/tests/reports/small evidence commit and origin feature
+push; never raw data, weights or videos. Startup/training completion is not task success.
+
+
 ## Current override — 2026-11-02 persistent State and reproducible benchmark
 
 The new explicit attachment authorizes Actor141 parity, independent own GRU history,

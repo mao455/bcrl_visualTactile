@@ -1,5 +1,18 @@
 # Audited contracts
 
+## 2026-11-02 full State execution and query correction
+
+Latest user authorizes full recurrent train320, validation40 and once-after-selection
+test40; no small4 closed-loop success veto. Model/normalizer/history/command contract
+unchanged. New24h root uses opt-in shared_recent_v1 memory admission and1m/5m pacing,
+not fixed whole-card utilization caps. Every controlled trajectory gets fresh Kit.
+Object queries use verified original box geometry at live PhysX pose; stale USD spawn
+transforms are diagnostic only. Exact same-command replay must still pass.
+Full training checkpoint restores optimizer/EMA count/all RNG/sampler exactly; no
+LR horizon reset between milestones. Source hashes and immutable split checked.
+See STATE_TRAINING_RESULTS for actual numbers and monitoring limitations.
+
+
 ## 2026-11-02 State persistent-history v2 (State only)
 
 New STATE_CONTRACT is incompatible with nativev1 weights. Actor141 is the actual native

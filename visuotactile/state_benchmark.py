@@ -13,11 +13,11 @@ from .compact import sha256
 from .environment_rng import IsolatedEnvironment, RandomStream
 from .evaluate_baselines import RolloutVideo
 from .evaluate_training_initials import restore_observable_state
-from .initial_geometry import inspect
+from .initial_geometry import inspect, boxes as object_boxes
 from .native_data import CAMERAS
 from .native_evaluation import disable_omniclient_watches, make_env
 from .native_v2_expert import create_expert, environment_identity, export_initial
-from .native_v2_resources import LeaseV2
+from .state_resources import lease_for
 from .native_v2_state import StateController
 from .replay_fresh import append_numeric
 from .state_history import HistoryController
@@ -37,10 +37,10 @@ def collision_evidence(env):
     shapes = [str(prim.GetPath()) for prim in stage.Traverse()
         if str(prim.GetPath()).startswith(root+'/') and prim.HasAPI(UsdPhysics.CollisionAPI)
         and UsdPhysics.CollisionAPI(prim).GetCollisionEnabledAttr().Get() is not False]
-    hits = []
+    usd_hits = []
     for shape in shapes:
         def report(hit):
-            hits.append(dict(shape=shape, collider=str(hit.collision), rigid_body=str(hit.rigid_body)))
+            usd_hits.append(dict(shape=shape, collider=str(hit.collision), rigid_body=str(hit.rigid_body)))
             return True
         encoded = PhysicsSchemaTools.encodeSdfPath(Sdf.Path(shape))
         get_physx_scene_query_interface().overlap_shape(*encoded, report, False)
@@ -56,12 +56,42 @@ def collision_evidence(env):
         carb.Float4(0., 0., 0., 1.), positive_hit, False)
     if root not in positive:
         raise RuntimeError('PhysX query positive control did not see the actual object')
-    external = [row for row in hits if not row['rigid_body'].startswith(root)]
+    from pxr import UsdGeom
     initial = {key: value[0].cpu().numpy() for key, value in env._diagnostics().items()}
     boxes = inspect(dict(config=dict(assets=env.cfg.assets.to_dict())), initial)
-    return dict(object_body=root, shapes=shapes, query_positive_control=positive, query_hits=hits, external_hits=external, boxes=boxes,
+    live_boxes = object_boxes(env.cfg.assets.object_urdf, initial['object_pose_w'])
+    if len(live_boxes) != len(shapes):
+        raise RuntimeError('Original object collider census changed')
+    live_hits = []; transforms = []
+    body = UsdGeom.Xformable(stage.GetPrimAtPath(root)).ComputeLocalToWorldTransform(0)
+    q = initial['object_pose_w'][3:]
+    for shape, (center, rotation, half) in zip(shapes, live_boxes):
+        prim = stage.GetPrimAtPath(shape)
+        if not prim.IsA(UsdGeom.Cube):
+            raise RuntimeError('Live pose query requires original box GPrim')
+        world = UsdGeom.Xformable(prim).ComputeLocalToWorldTransform(0)
+        local = world*body.GetInverse()
+        size = float(UsdGeom.Cube(prim).GetSizeAttr().Get())
+        usd_half = np.array([np.linalg.norm(np.array(local)[i, :3]) for i in range(3)])*size/2
+        if not np.allclose(usd_half, half, rtol=1e-5, atol=1e-7):
+            raise RuntimeError('USD/URDF object collider dimensions differ')
+        expected_center = np.asarray(initial['object_pose_w'][:3])+rotation@np.asarray(local.ExtractTranslation())
+        if not np.allclose(center, expected_center, rtol=0, atol=1e-6):
+            raise RuntimeError('USD/URDF object collider local positions differ')
+        transforms.append(dict(shape=shape, usd_world_center=list(world.ExtractTranslation()),
+            live_world_center=center.tolist(), half_extents=half.tolist()))
+        def live_report(hit):
+            live_hits.append(dict(shape=shape, collider=str(hit.collision), rigid_body=str(hit.rigid_body)))
+            return True
+        get_physx_scene_query_interface().overlap_box(carb.Float3(*half.tolist()), carb.Float3(*center.tolist()),
+            carb.Float4(float(q[1]), float(q[2]), float(q[3]), float(q[0])), live_report, False)
+        if not any(row['shape'] == shape and row['rigid_body'] == root for row in live_hits):
+            raise RuntimeError('Live object box query failed self-hit positive control')
+    external = [row for row in live_hits if row['rigid_body'] != root and not row['rigid_body'].startswith(root+'/')]
+    return dict(object_body=root, shapes=shapes, query_positive_control=positive,
+        usd_query_hits=usd_hits, collider_transforms=transforms, query_hits=live_hits, external_hits=external, boxes=boxes,
         legal=boxes['valid_box_initialization'] and not external,
-        definition='No initial object overlap with any external cooked PhysX shape; OBB check also passes',
+        definition='Original verified object boxes at live PhysX pose vs all scene shapes; OBB check also passes',
         limitation='Overlap query is conservative: touching may be rejected; not a signed penetration-depth oracle')
 
 
@@ -196,11 +226,11 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             movie.close()
 
 
-def run(root, output, mode):
+def run(root, output, mode, job=None):
     output.mkdir(parents=True, exist_ok=False)
     session = json.loads((root/'session.json').read_text())
     source = json.loads((Path(session['source_root'])/'data.json').read_text())
-    lease = LeaseV2(root, deadline=session['deadline'])
+    lease = lease_for(root, deadline=session['deadline'])
     atomic_json(output/'runtime_controls.json', disable_omniclient_watches())
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
@@ -246,10 +276,14 @@ def run(root, output, mode):
             if benchmark['configuration_sha256'] != digest:
                 raise ValueError('Frozen environment configuration changed')
             specs = benchmark['specs']
+            job_data = json.loads(job.read_text()) if job else None
             if mode in ('bc', 'dp', 'old'):
                 specs = [s for s in specs if s['cohort'] != 'fresh']
-                checkpoint = session['old_state_checkpoint'] if mode == 'old' else str(root/(mode+'_train')/'best.pt')
+                checkpoint = (job_data['checkpoint'] if job_data else
+                    session['old_state_checkpoint'] if mode == 'old' else str(root/(mode+'_train')/'best.pt'))
                 saved = torch.load(checkpoint, map_location='cpu', weights_only=False)
+            if job_data:
+                specs = job_data.get('specs', specs)
             if mode == 'replay':
                 specs = specs[:2]
             for i, spec in enumerate(specs):
@@ -257,7 +291,7 @@ def run(root, output, mode):
                 if mode == 'replay':
                     replay = np.load(root/'expert'/spec['identity']/'trace.npz')['command']
                 result = trial(env, lease, output/spec['identity'], spec, source, player, checkpoint,
-                    saved=saved, replay=replay, video=i == 0 and mode != 'replay')
+                    saved=saved, replay=replay, video=(job_data.get('video', i == 0) if job_data else i == 0) and mode != 'replay')
                 if mode == 'replay' and result.get('legal'):
                     with np.load(root/'expert'/spec['identity']/'trace.npz') as original, np.load(output/spec['identity']/'trace.npz') as current:
                         result['bytewise_fields'] = {key: original[key].shape == current[key].shape and
@@ -279,6 +313,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(); p.add_argument('--root', type=Path, required=True)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--mode', choices=['freeze', 'expert', 'replay', 'old', 'bc', 'dp'], required=True)
+    p.add_argument('--job', type=Path)
     a = p.parse_args(); torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32 = False; torch.backends.cudnn.allow_tf32 = False
-    run(a.root, a.output, a.mode)
+    run(a.root, a.output, a.mode, a.job)

@@ -1,5 +1,57 @@
 # State observation/history repair — actual results
 
+## 2026-11-02 最新任务：完整train320，新增独立窗口
+
+最新附件147b678c授权新root `outputs/visuotactile/native_dp_v2/state_full_20261102_01`，
+24小时绝对窗口含等待，前21小时训练、最后3小时收尾；旧root02和21:08UTC+8截止保留。
+以下旧「正在运行」段落是历史快照：旧服务均已退出，BC/DP均0updates，最终阻断在初态查询。
+
+已查明两个具体问题，并保存原证据：
+
+1. `overlap_shape`读取USD GPrim位姿，而本机CPU PhysX/Fabric没有同步USD变换。
+   fresh982501第一object box的USD中心是(0,0,0)，实际中心是
+   (0.049823787,−0.028697385,0.619875848)m，旧查询因而碰到ground。
+   新查询将原始两个box放到实际物体位姿，先验证USD/URDF半边长与局部偏移完全对应，
+   再查询全部场景shape且逐box要求self-hit。没有忽略ground/hand、修改碰撞或推进物理时间。
+2. 持久Kit先完成专家轨迹后，3/12重置初态的query返回手部overlap；其中fresh982506
+   的全部保存diagnostics与screen逐字段相同，单独新Kit则无重叠、专家161步完整成功。
+   这支持查询/场景状态受前序轨迹影响，尚未唯一定位PhysX内部缓存。新对照逐条新Kit，
+   保持原reset和控制，用统一初始化与相同命令replay验证，代价是额外启动时间。
+
+前置实测为12个登记初态、9条实际执行且9条成功、3条未执行；不能写成12/12。
+另一个独立Kit诊断fresh982506为1/1成功。两组不混入新冻结的专家12分母。
+小证据：`evidence/state_shared_20261102/collision_preflight.json`及两份preflight结果。
+
+### 调度与预算
+
+`state_resources.py`新opt-in策略不使用整卡45/50%准入或历史累计均值暂停。
+单GPU worker，freeVRAM≥6GiB、availableRAM≥12GiB、disk≥12GB，缺测/内存不足才等待。
+监控每秒记录整卡负载、进程PID/显存、自有CUDA峰值和工作/等待时间；最近1min/5min用于调速。
+存在其他GPU进程时sleep/work=.25；最近1min>85%为1；1min>92%且5min>85%为2；自动恢复。
+这些阈值只调节本任务节奏，不修改sim.dt，不宣称显存代表算力份额。
+观察到另一项目FingerEyeLab的短时cuRobo/rollout worker，PID随任务更替；只读查看，无信号/配置修改。
+没有稳定的外部吞吐接口，因此不能证明完全无干扰。原root02全卡max60s62.295%仍按旧规则记违规。
+
+### 固定学习与评价
+
+- 两种持续历史pilot各300updates、原train4/val4；检查有限loss、非零GRU梯度和下降。
+  小样本闭环0成功不阻止full320。原模型、LossB、AdamW、warmup500、EMA.75不变。
+- 完整BC320/val40里程碑1000/3000/6000/10000，完整DP320/val40里程碑
+  1000/3000/6000/10000/19000；≥6000后连续两里程碑无1%验证改善则停止。
+  每里程碑train2/val2自主闭环，最终best在fresh4/train4/val4闭环。
+- 训练指标使用固定前16train作为低成本曲线并明确标注；优化覆盖全部train320，
+  验证全部40。完整当前权重prefix重算+96tick TBPTT、batch两episode segment不变。
+  数值cache避免每步HDF5读取，没有缓存旧权重hidden或读取RGB。
+- 选择按validation40的prefix12 arm/hand等权命令MSE冻结EMA；BC/DP选择均冻结后，
+  test40各一次离线；sorted first20 test IDs对expert/old/BC/DP闭环，非法初态原样报告，不替换。
+  此test集曾用于历史实验，不能声称从未接触的全新外部测试集。
+- checkpoint包含model/EMA/EMA计数/AdamW/全局与独立RNG/采样顺序cursor/源码及配置hash；
+  完整更新边界每250保存，同里程碑恢复一次，已完成轨迹不重复。早停不是任务成功。
+
+11项针对性测试通过，包括优化器+EMA+采样/RNG恢复逐位一致；既有81894 Actor验收复用，
+不改变Actor/GRU/normalizer源码。新完整训练和闭环数值以新root结果为准，本段不预报成功。
+
+
 本轮新root `outputs/visuotactile/native_dp_v2/state_history_20261102_02`，base `ec84bd3`。
 这份文档区分已测事实和正在运行的阶段，不能用代码通过或离线拟合代替任务成功。
 
@@ -49,3 +101,19 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 `state-history-20261102-finish.service`在owner退出后生成实测表/首差/曲线和完整视频decode结果，
 保存至`evidence/state_history_20261102/results`，不自动提交未经审查的结果。
 所以本轮当前交付是实现和数值验收，**真实合法专家基准、BC/DP学习及闭环目标尚未完成**。
+
+
+## 自动收尾实测表（待人工复核与Git提交）
+
+此表只读取普通owner结束后的产物，不新增训练或rollout。旧/前置失效样本不混入新分母。
+
+|组|cohort|已尝试|合法|完整成功|native lift|至少1子目标|
+|---|---|---:|---:|---:|---:|---:|
+
+|组|updates|train arm/hand RMSE|validation arm/hand RMSE|
+|---|---:|---|---|
+
+最终owner状态：`{"state": "blocked", "reason": "RuntimeError('freeze failed: exit=0')", "utc": 1793606160.9447563}`。
+
+逐条reset误差、接触前后首差及阶段误差见公开`summary.json/trace_diagnostics`。
+这些观测不唯一证明网络失败机制；同输入/同命令验收与完整成功分开报告。

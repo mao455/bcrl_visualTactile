@@ -1,5 +1,15 @@
 # Environment reproducibility contract — State core v1
 
+2026-11-02 correction: `overlap_shape` evaluates USD geometry at its USD transform,
+which remained at spawn while PhysX/Fabric moved the actual body. The benchmark now
+verifies original USD/URDF box dimensions and offsets and uses explicit overlap_box
+at the live PhysX body pose. All external hits still reject; each box must self-hit.
+Post-rollout persistent reset query state was inconsistent with independently observed
+poses; every new controlled comparison runs in fresh Kit. No physics/reset change.
+The latest shared-card resource contract replaces the historical50% rules below;
+6GiB freeVRAM/12GiB availableRAM plus recent1/5min pacing. See STATE_TRAINING_RESULTS.
+
+
 本合同用于新State诊断，历史400及旧run保持原身份。CPU PhysX单lane、spacing8m、scene seed20261031；
 原4lane采集origin±4m、共享随机流及不可导出内部状态不被假设为single等价。
 修正后的core v1启用`sim.enable_scene_query_support=True`，只是查询支持，不改积分参数。

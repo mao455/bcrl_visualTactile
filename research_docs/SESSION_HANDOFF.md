@@ -1,5 +1,19 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 — shared GPU/full recurrent State authorization
+
+Latest attachment147b678c supersedes small-only and45/40/50 hardGPU gates. Read
+STATE_TRAINING_RESULTS. Old state_history root02 ended blocked, zero updates;
+new live-pose query identifies false ground hits from stale USD origin. Preflight
+persistent expert9 executed/9success,3query rejections; freshKit982506 succeeds161steps.
+Fresh Kit per controlled trial now isolates prior-scene query state. Original native
+physics/reset/controller unchanged. New rootstate_full_20261102_01 owns new24h window,
+pilots300each, train320 BC<=10k/DP<=19k with validation earlystop, test only after freeze.
+Single GPU worker,6GiB/12GiB memory admission, recent1/5min pacing; no external throughput
+claim.11 focused tests pass. Read machine status and result.json for actual updates;
+never infer learning/task success from service startup. Preserve every old attempt.
+
+
 ## 2026-11-02 — State persistent history repair in progress
 
 Latest explicit attachment authorizes new Actor parity, own persistent GRU, RNG-isolated
