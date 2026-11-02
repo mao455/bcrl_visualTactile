@@ -1,0 +1,62 @@
+{
+  "checked": "2026-11-02T22:52:03.159915+08:00",
+  "status": {
+    "state": "blocked",
+    "reason": "RuntimeError('dp_train_19000 failed: exit=1')",
+    "utc": 1793631118.3770657
+  },
+  "deferred": {
+    "utc": 1793631109.5557973,
+    "failed_stage": "dp_loop_10000_single_03",
+    "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_full_20261102_01/dp_train/milestone_10000.pt",
+    "checkpoint_sha256": "39ac5c74327de5746cbce9fa5968d50032d3c675f6fb3ce54728f5f79dc954ce",
+    "specs": [
+      {
+        "identity": "r931005_1793209376_e00_p000000",
+        "cohort": "train",
+        "seed": 982401
+      },
+      {
+        "identity": "r931005_1793209376_e03_p000159",
+        "cohort": "train",
+        "seed": 982402
+      },
+      {
+        "identity": "r931005_1793209376_e01_p000156",
+        "cohort": "validation",
+        "seed": 982405
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 982406
+      }
+    ],
+    "evidence": {
+      "native_stack_available": true,
+      "confirmed_sigabrt": false,
+      "confirmed_sigsegv": true,
+      "classification": "pre-scene FileThread/omniClientFreeContent SIGSEGV"
+    },
+    "reason": "Evaluation startup unavailable; validated numerical training can continue",
+    "native_outcome": null,
+    "counted_as_success": false
+  },
+  "dp_progress": {
+    "updates": 10000,
+    "target": 10000,
+    "seen_episodes": 320,
+    "updates_per_s": 26.27907156328577,
+    "utc": 1793629817.6502852
+  },
+  "resources": {
+    "utc_epoch": 1793631117.8729174,
+    "gpu_free_mib": 19496.0,
+    "ram_available_bytes": 29687398400,
+    "pause_reasons": [],
+    "pacing_ratio": 0.25,
+    "external_throughput_available": false
+  },
+  "worker_alive": false,
+  "retry_count": 3
+}

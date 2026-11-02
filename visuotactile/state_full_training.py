@@ -48,6 +48,29 @@ def restore_training(saved, model, averaged, optimizer, ema, generator, noise):
     torch.set_rng_state(saved['torch_rng']); torch.cuda.set_rng_state_all(saved['cuda_rng'])
 
 
+def validate_training_configuration(config, path, approvals=()):
+    """Keep checkpoint identity frozen; accept only explicitly reviewed hash pairs."""
+    frozen = json.loads(path.read_text())
+    if frozen == config:
+        return None
+    old_sources = frozen.get('source_sha256', {})
+    new_sources = config.get('source_sha256', {})
+    unchanged_recipe = dict(config, source_sha256=old_sources) == frozen
+    if not unchanged_recipe or old_sources.keys() != new_sources.keys():
+        raise ValueError('Training configuration drift')
+    changes = {p: dict(before=old_sources[p], after=new_sources[p])
+        for p in old_sources if old_sources[p] != new_sources[p]}
+    runtime_files = {'visuotactile/state_full_run.py', 'visuotactile/state_resources.py',
+        'visuotactile/state_full_training.py'}
+    if not changes or not set(changes) <= runtime_files:
+        raise ValueError('Unreviewed training source drift')
+    for approval in approvals:
+        if (approval.get('configuration_sha256') == sha256(path)
+                and approval.get('source_changes') == changes):
+            return approval
+    raise ValueError('Training source changes require exact reviewed hash pairs')
+
+
 def train(root, output, kind, target, pilot=False, final_test=False):
     require_foundation(root)
     output.mkdir(parents=True, exist_ok=True)
@@ -64,8 +87,10 @@ def train(root, output, kind, target, pilot=False, final_test=False):
         schedule='one fixed cosine horizon, never restarted at milestones', loss='B', seed=20261102,
         expert_normalizer_sha256=session['expert_sha256'], source_sha256=session['implementation_sha256'])
     if (directory/'configuration.json').exists():
-        if json.loads((directory/'configuration.json').read_text()) != config:
-            raise ValueError('Training configuration drift')
+        compatibility = validate_training_configuration(config, directory/'configuration.json',
+            session.get('training_runtime_compatibility', []))
+        if compatibility is not None:
+            atomic_json(output/'runtime_configuration_compatibility.json', compatibility)
     else:
         atomic_json(directory/'configuration.json', config)
     ids = train_ids+val_ids

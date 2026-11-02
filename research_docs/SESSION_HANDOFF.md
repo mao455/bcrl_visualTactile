@@ -1,5 +1,13 @@
 # 当前会话交接：视觉—触觉研究
 
+22:52UTC+8 follow-up: runtime amendment44e9424 was correctly deferred, but DP19000
+configuration guard rejected the changed owner source hash before any update.
+runtime_recovery_04 preserves both empty attempts and consumed automatic retry.
+New validation permits only reviewed exact config SHA/source-hash pairs while keeping
+all training recipe/model fields and original checkpoint/config bytes unchanged.
+Numerical trainer suffix unchanged;10tests pass; actual last checkpoint10000 verified.
+Read independent startup evidence/current status; service active alone is insufficient.
+
 ## 2026-11-02 22:43UTC+8 — BC10000 complete, DP10000, startup SIGSEGV
 
 BC fulltrain320/val40 complete10000; selected diagnostic0/12 all601timeout/no lift.

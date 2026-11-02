@@ -1,5 +1,21 @@
 # State observation/history repair — actual results
 
+## 2026-11-02 22:52 UTC+8：恢复校验发现运行代码与训练身份耦合
+
+`44e9424`恢复核验正确延期了场景前SIGSEGV，但DP19000在更新参数前报
+`Training configuration drift`。该版本训练配置冻结了全部Python文件哈希，
+包含此次只修改启动分类的state_full_run.py；因此保护检查阻断了数值配置未变的恢复。
+两次尝试均只有空stage目录，没有加载模型/优化器或新增更新；仍是DP10000。
+原日志、失败状态、自动恢复记录与空目录归档runtime_recovery_04，不把启动当完成。
+
+本次将兼容处理限定为显式登记的“旧配置SHA + 精确源码before/after SHA”对照。
+配置文件和checkpoint保持原字节；数据划分、网络合同、loss、优化参数仍逐字段严格相等。
+网络源码变化或未登记的新trainer哈希均拒绝。trainer仅新增这段配置验证，
+从数据加载到训练/EMA/RNG/sampler/保存的原实现逐字节不变，已实际核验。
+10项针对性回归通过，实际last.pt确认updates10000及原config SHA一致。
+此次是修正校验后的显式恢复；已消耗的自动训练恢复额度和3次Kit额度均保留，截止不变。
+后续能否运行以独立startup check为准，不能因systemd active就称训练进行中。
+
 ## 2026-11-02 22:43 UTC+8：BC完成，DP10000与启动崩溃
 
 StateBC与StateDP均已在train320/validation40完成10000updates，各覆盖全部320身份。
@@ -198,6 +214,7 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 
 
 
+
 ## 自动收尾实测表（待人工复核与Git提交）
 
 此表只读取普通owner结束后的产物，不新增训练或rollout。旧/前置失效样本不混入新分母。
@@ -243,7 +260,7 @@ fresh982501专家168步成功，fresh982502已开始后被停止；二者均不�
 |dp|6000|0.834543/0.583815|0.858557/0.606261|
 |dp|10000|0.744861/0.519100|0.798099/0.559021|
 
-最终owner状态：`{"state": "blocked", "reason": "RuntimeError('dp_loop_10000_single_03 failed: exit=-11')", "utc": 1793630180.8501816}`。
+最终owner状态：`{"state": "blocked", "reason": "RuntimeError('dp_train_19000 failed: exit=1')", "utc": 1793631118.3770657}`。
 
 逐条reset误差、接触前后首差及阶段误差见公开`summary.json/trace_diagnostics`。
 这些观测不唯一证明网络失败机制；同输入/同命令验收与完整成功分开报告。

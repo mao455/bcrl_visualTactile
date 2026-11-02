@@ -1,5 +1,18 @@
 # Engineering change and verification log
 
+## 2026-11-02 — preserve frozen checkpoint identity across reviewed runtime changes
+
+- Startup classification resumed correctly, but DP19000 refused configuration drift:
+  the frozen source map also included the changed owner. Both pre-update attempts
+  are preserved in runtime_recovery_04; no new updates or model/optimizer loads.
+- state_full_training validates an explicitly registered frozen-config SHA and exact
+  before/after source hashes for reviewed runtime files only. Every numerical recipe
+  field remains equal; original configuration/checkpoint files are never rewritten.
+  Training/data/EMA/RNG/sampler/serialization suffix verified bytewise unchanged.
+-10 tests pass, including rejecting changed loss/LR/model, unreviewed trainer hashes,
+  and wrong configuration identity. Actual checkpoint remains10000. Prior automatic
+  retry allowance remains consumed; same-budget manual resume follows this concrete fix.
+
 ## 2026-11-02 — full State10000 evidence and classified startup SIGSEGV
 
 - BC10000 train320 complete, selected native diagnostic0/12 (all timeout, no lift).

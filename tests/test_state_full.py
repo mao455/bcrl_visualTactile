@@ -3,7 +3,7 @@ import pytest
 import torch
 from visuotactile.models.vendor.ema_model import EMAModel
 from visuotactile.state_full_run import should_stop, recover_preaction_start, startup_failure_evidence, Runner
-from visuotactile.state_full_training import split_ids, training_state, restore_training
+from visuotactile.state_full_training import split_ids, training_state, restore_training, validate_training_configuration
 from visuotactile.state_resources import policy
 
 
@@ -175,3 +175,33 @@ def test_resumed_segv_defers_without_expanding_exhausted_retry_budget(tmp_path):
     assert log.read_text() == contents and path.is_dir()
     assert not (tmp_path/(path.name+'_launch.json')).exists()
     assert len(list((tmp_path/'startup_recoveries').glob('*/recovery.json'))) == 3
+
+
+def test_runtime_compatibility_preserves_recipe_and_exact_checkpoint_identity(tmp_path):
+    import json
+    from visuotactile.compact import sha256
+    runner = 'visuotactile/state_full_run.py'
+    trainer = 'visuotactile/state_full_training.py'
+    model = 'visuotactile/state_history.py'
+    frozen = dict(lr=.0001, loss='B', source_sha256={runner:'old runner',trainer:'old trainer',model:'unchanged'})
+    path = tmp_path/'configuration.json'; path.write_text(json.dumps(frozen))
+    digest = sha256(path)
+    assert validate_training_configuration(frozen, path) is None
+    current = copy.deepcopy(frozen)
+    current['source_sha256'].update({runner:'reviewed runner',trainer:'reviewed config validation'})
+    approval = dict(configuration_sha256=digest,source_changes={
+        p:dict(before=frozen['source_sha256'][p],after=current['source_sha256'][p]) for p in (runner,trainer)})
+    with pytest.raises(ValueError):
+        validate_training_configuration(current,path)
+    assert validate_training_configuration(current,path,[approval]) == approval
+    for field, value in [('lr',.001),('loss','A')]:
+        changed = dict(current,**{field:value})
+        with pytest.raises(ValueError):
+            validate_training_configuration(changed,path,[approval])
+    for source in (trainer,model):
+        changed = copy.deepcopy(current); changed['source_sha256'][source] = 'unreviewed change'
+        with pytest.raises(ValueError):
+            validate_training_configuration(changed,path,[approval])
+    with pytest.raises(ValueError):
+        validate_training_configuration(current,path,[dict(approval,configuration_sha256='wrong file')])
+    assert sha256(path) == digest

@@ -2,6 +2,12 @@
 
 ## Current override — 2026-11-02 full recurrent State learning
 
+22:52UTC+8 follow-up: owner amendment hit frozen training source-map mismatch before
+updates. runtime_recovery_04 retains both empty attempts/consumed trainer retry. Exact
+reviewed config-SHA/source-before-after compatibility permits this runtime-only change;
+original recipe/config/checkpoint and numerical trainer suffix unchanged,10tests pass.
+No blanket source bypass, extra automatic retry or budget/deadline reset. Verify startup.
+
 22:43UTC+8 review: fullBC10000/train320 complete, selected diagnostic0/12 no lift;
 DP10000 reached,10k milestone0/3 (one lift/fall227), fourth pre-scene SIGSEGV(-11).
 Known fatal FileThread/omniClientFreeContent stack plus confirmedexit-11 and sole

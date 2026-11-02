@@ -1,5 +1,14 @@
 # Audited contracts
 
+## 2026-11-02 reviewed runtime source compatibility
+
+Full State checkpoint/configuration bytes stay immutable when the owner or configuration
+validation changes. A session may explicitly register the frozen configuration SHA and
+exact reviewed before/after hashes for runtime files; no blanket source-ignore option.
+Every numerical recipe field must still match, model changes are rejected, and the
+owner checks current source hashes. Compatibility evidence is saved in each resumed
+stage. This does not reset update/LR/EMA/RNG budgets or allow automatic extra retries.
+
 ## 2026-11-02 full State execution and query correction
 
 Latest user authorizes full recurrent train320, validation40 and once-after-selection
