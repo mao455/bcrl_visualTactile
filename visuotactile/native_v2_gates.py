@@ -27,6 +27,57 @@ def replay_gate(data, trials, required_ids):
     return Gate('G0', infrastructure, None, dict(successes=successes, trials=len(trials), required=len(required_ids)), accepted, reason)
 
 
+def data_gate(data, control):
+    accepted = (data.get('infrastructure_passed') is True and control.get('passed') is True
+                and control.get('episodes') == 400 and not data.get('failures'))
+    return Gate('G0-A', accepted, None, None, accepted,
+                None if accepted else 'Original data, train-only statistics or native command audit failed')
+
+
+def online_expert_gate(trials, registered_ids, checkpoint_sha256, environment_sha256, minimum_successes=7):
+    identities = [row.get('identity') for row in trials]
+    integrity = (len(registered_ids) >= 8 and len(set(registered_ids)) == len(registered_ids)
+                 and len(identities) == len(set(identities)) and set(identities) == set(registered_ids)
+                 and 0 < minimum_successes <= len(registered_ids))
+    integrity &= all(row.get('software_complete') is True and row.get('native_termination') is True
+                     and row.get('policy') == 'released_online_expert'
+                     and row.get('checkpoint_sha256') == checkpoint_sha256
+                     and row.get('environment_sha256') == environment_sha256
+                     and row.get('fresh_native_reset') is True for row in trials)
+    successes = sum(row.get('success') is True for row in trials)
+    accepted = integrity and successes >= minimum_successes
+    return Gate('G0-B', bool(integrity), None,
+                dict(successes=successes, trials=len(trials), required=minimum_successes,
+                     checkpoint_sha256=checkpoint_sha256, environment_sha256=environment_sha256),
+                bool(accepted), None if accepted else 'Fresh online expert reliability or cohort provenance failed')
+
+
+def historical_replay_gate(data, trials, registered_ids):
+    legacy = replay_gate(data, trials, registered_ids)
+    metrics = dict(legacy.closed_loop_success, role='diagnostic_only', required_successes=None)
+    return Gate('G0-C', legacy.infrastructure_passed, None, metrics, legacy.infrastructure_passed,
+                None if legacy.infrastructure_passed else 'Historical cohort or numerical replay control mismatch')
+
+
+def infrastructure_gate(numeric, online):
+    accepted = (numeric.name == 'G0-A' and online.name == 'G0-B'
+                and numeric.acceptance_passed and online.acceptance_passed)
+    return Gate('G0', numeric.infrastructure_passed and online.infrastructure_passed, None,
+                online.closed_loop_success, bool(accepted),
+                None if accepted else 'Both G0-A numerical integrity and G0-B fresh expert reliability are required')
+
+
+def require_training_foundation(root):
+    numeric = Gate(**require_gate(root, 'G0-A'))
+    online = Gate(**require_gate(root, 'G0-B'))
+    combined = infrastructure_gate(numeric, online)
+    if not combined.acceptance_passed:
+        raise RuntimeError(combined.blocked_reason)
+    from .native_v2_foundation import verify_foundation_provenance
+    verify_foundation_provenance(root)
+    return combined
+
+
 def rollout_gate(name, trials, required_ids, minimum_successes=2):
     ids = [r['identity'] for r in trials]
     infrastructure = len(ids) == len(set(ids)) and set(ids) == set(required_ids)

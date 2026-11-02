@@ -1,5 +1,19 @@
 # Native DP V2 实验结果（2026-11-02，进行中）
 
+## 旧V2已结束，新归因实验独立登记
+
+`state_first_20261102_01`已完成28/28诊断并因旧G0停止：replay3/8，旧State train0/8、validation0/8，第二seed0/4。
+新增optimizer0，原服务退出。旧三路正式各19000updates，正式闭环各0/20，train诊断各0/4。
+旧V2整卡均值31.11%、最大完整60s44.60%、缺测0；旧三路最大60s60.54%，不能称整个历史资源合规。
+本轮新授权修正G0-A/B/C并运行online expert/StateBC对照，详见[NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)。
+下方“尚未执行”是旧启动快照；新实验的结果必须从repair根的真实产物读取。
+
+本轮原52条已完成：single expert6/8、four expert8/8、fresh replay2/2（15字段逐字节一致），
+源world历史1/2；旧State fresh0/8，StateBC1000/ActorBC1000 fresh各0/8，StateBC saved train/val各0/4。
+两BC各完成一次有界延长至4000updates，State训练arm/hand=.02365/.03965，验证=.98176/.71937；
+不是任务成功。最终补充闭环/资源/视频/commit以主报告为准，未启动新StateDP、视觉或test。
+fresh原生reset含single6/8、four3/8盒初始重叠；未删除或替换，不能把6/8称合法初态总体可靠率。
+
 当前完成的是**400条真实数据复核、原生控制数值审计和新流水线代码测试**。
 新闭环诊断尚不能写成功率；StateBC、新State训练、视觉重训及V2正式test均未执行。
 本文件不是“已解决State任务”的声明；机器状态及每条实际result优先于静态快照。

@@ -29,7 +29,7 @@ class NativeDiagnosticEnv(RecordedReplayEnv):
         forces = []
         for sensor in self.object_contacts:
             matrix = sensor.data.force_matrix_w
-            if matrix is None or matrix.shape != (1, 1, 1, 3):
+            if matrix is None or matrix.shape != (self.num_envs, 1, 1, 3):
                 raise RuntimeError('Object-specific contact matrix unavailable; no distance substitute')
             forces.append(matrix[:, 0, 0].clone())
         self.object_contact_samples = (self.object_contact_samples+[torch.stack(forces, 1)])[-2:]

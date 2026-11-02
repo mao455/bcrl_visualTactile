@@ -1,5 +1,29 @@
 # Native DP 失败分析：确认、假设与阻塞（2026-11-02）
 
+## 新证据与纠正
+
+旧三路正式闭环已全部完成，各0/20；旧V2共28条已完成，历史replay3/8、旧State train0/8、val0/8及第二seed0/4。
+旧G0把四lane历史开环8/8作为所有训练的绝对条件不合理；新用户授权的G0-A/B/C修正见
+[环境/学习归因报告](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)，旧结果保持不变。
+
+8条回放的命令/index/delayed/target均一致；q/qd实际首次非零误差在tick0，早于指端接触。
+4条失败是源动作耗尽删失、1条fall。不要把它们写成5条timeout或数据无效。
+冻结released expert实际含LSTM1024 hidden+cell，Actor140D经checkpoint running statistics，再将group50映射32D。
+原Actor不直接读critic的stage/success/reward。8条历史Actor序列完整递归复算，arm RMSE约4.81e-7–6.86e-7；
+只保留最近13tick输入的相同权重，anchor arm RMSE为.281–.619，最近25tick为.073–.315。
+这是记忆依赖的具体干预证据；仍不能证明其他无长记忆的最优策略不存在，更不能单独解释全部闭环失败。
+360条train/validation共6286anchors，实际StateController特征对缓存最大归一化差5.20e-5，来自proprio限位逆变换精度；
+此前只比较encode_segment不足以覆盖该边界。未发现时序错位，原始量与模型影响继续单列，不能先称根因已修复。
+
+本轮single fresh expert6/8、four8/8、fresh记录→新Kit2/2且15字段逐字节一致；历史原点处理能影响结果，
+但不是tick1 object z差的充分解释。旧State fresh0/8；tick0相同Actor观测上已与原expert动作明显不同。
+原生reset本身有盒初始重叠（single6/8、four3/8），合法起点总体可靠性仍需独立验收；
+无该重叠的两个fresh初态expert2/2而旧State/两BC均0/2，只作小样本描述。
+BC1000 train拟合不充分，预算对照至4000使State train arm/hand降至.02365/.03965，
+val反为.98176/.71937；不把小数据过拟合解释为成功或扩散模型必然失败。
+
+以下是旧实验启动时的历史假设与限制；新在线对照真实结果优先。
+
 目前不能宣布 State 的19000次更新无效。旧run仍在完成原定评估；新run先审计与冻结诊断，
 不抢先把fit权重的0/2当正式权重表现。参考旧快照 `NATIVE_DP_CURRENT_RESULTS_20261102.md`。
 

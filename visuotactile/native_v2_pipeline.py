@@ -167,6 +167,8 @@ class Runner:
         path=self.root/(label+'_job.json');atomic_json(path,dict(trials=trials));return path
 
     def run(self):
+        if self.session.get('protocol_version', 2) < 3:
+            raise RuntimeError('Historical protocol2 is frozen; use the registered G0-A/B/C repair experiment')
         try:
             # Persistent script owns the wait; no model polling or source edits in old worktree.
             while predecessor_alive(Path(self.session['source_root'])):
@@ -272,6 +274,9 @@ def main():
         from .native_v2_report import report
         report(a.root)
     else:
+        session=json.loads((a.root/'session.json').read_text())
+        if session.get('protocol_version',2)<3:
+            raise RuntimeError('Historical protocol2 is frozen; no run/resume or artifact mutation')
         with (a.root/'runner.lock').open('a') as lock:
             fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
             if a.command=='resume':

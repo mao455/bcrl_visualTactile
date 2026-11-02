@@ -1,5 +1,44 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — 2026-11-02 environment/learning repair
+
+Read NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR and latest SESSION_HANDOFF.
+Original52 plus budget-sensitivity8 primary trajectories all complete; both BCs1000+3000
+updates, no new DP/visual/test. Online expert single6/8,four8/8; fresh replay2/2 with
+15 recorded fields bytewise equal. Historical source-world1/2; old3/8 remains.
+Old State fresh0/8; StateBC1000/ActorBC1000 fresh0/8 each; StateBC1000 and4000 saved
+train0/4/val0/4, all601timeouts/no lift/subgoal. No student complete success established.
+Fresh reset box overlap single6/8/four3/8; no excluded/replaced seeds. G0-B admits
+bounded diagnostics, not a proven legal-initialization population reliability claim.
+One supplement pre-environment FileThread SIGSEGV preserved; one reviewed recovery
+completed without repeated updates/trajectories or deadline reset. All owned jobs and
+monitors exited12:01:30UTC+8. Whole-card mean28.37849%,max60s54.62724%,438.47688s
+recovery telemetry gaps plus initial13.015s; NOT full resource compliance. Reserves held.
+84 regressions,836 protected hashes,8 full video decodes pass; these are not task success.
+No automatic retries, more updates/starts, DP expansion or test; preserve all evidence.
+
+## Current override — 2026-11-02 environment/learning attribution repair
+
+The user explicitly authorizes real fresh online expert controls, original four-lane
+configuration comparison, fresh same-condition replay, historical first-divergence
+analysis, and bounded Actor-observation versus State BC diagnostics on this V2 branch.
+G0-A is original400 numerical integrity; G0-B is preregistered fresh online expert
+native task evidence; G0-C historical replay is diagnostic, never an 8/8 training veto.
+No changed native task/controller/success, trajectory forcing, test tuning or raw uploads.
+Read NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md and actual machine-readable evidence.
+New bounded root repair_20261102_01: eight-hour absolute window, at most52 primary
+starts, two BC diagnostics at most1000 updates each, no automatic full DP training.
+Ordinary persistent scripts own monitoring and transitions; all failures are preserved.
+The new user task requests actual result analysis and delivery, superseding the previous
+startup-only handoff. Resource dual50% caps and4GiB/10GiB reserves remain unchanged.
+Original state_first_20261102_01 remains frozen blocked evidence, never restarted.
+Evidence-based supplement is preregistered in the repair report: original1000-update
+BC has train arm/hand.260/.309 and fresh0/8, so one matched continuation of at most
+3000 additional updates per BC is allowed under the SAME original8h endpoint.
+Only if State train arm<=.05/hand<=.08, add train4/val4 closed loops once (total<=60
+primary starts across both roots). No retry, test, architecture/objective/frequency
+change or automatic DP. Preserve original52 results and register supplement separately.
+
 ## Current override — 2026-11-02 State-first training protocol V2
 
 The user explicitly requests the attached full training/data/control audit and

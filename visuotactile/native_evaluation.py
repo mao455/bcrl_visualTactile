@@ -61,14 +61,14 @@ def stable_grasp(arrays, initial_height):
         object_contact_threshold_N=.1, stable_window_s=.2, scope='filtered normal forces; not native success')
 
 
-def make_env(instrumented, lease):
+def make_env(instrumented, lease, *, num_envs=1, seed=20261031):
     from evaluation.eval_isaacsim import _load_env_cfg
     from .observations import TaskCommand
     from .sim.replay_environment import RecordedReplayEnv
     from .sim.native_diagnostics import NativeDiagnosticEnv
     cfg = _load_env_cfg('Isaacsimenvs-PreciseAssembly-Direct-v0')
-    cfg.seed = 20261031
-    cfg.scene.num_envs, cfg.scene.env_spacing = 1, 8.
+    cfg.seed = seed
+    cfg.scene.num_envs, cfg.scene.env_spacing = num_envs, 8.
     cfg.sim.device = 'cpu'
     cfg.precise_assembly.problem = 'tight_insertion'
     cfg.student_obs.image_modality, cfg.student_obs.camera_backend = 'rgbd', 'standard'

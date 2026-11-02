@@ -1,5 +1,13 @@
 # 视觉与触觉模仿学习研究工程
 
+## 环境/学习归因修复 — 2026-11-02
+
+[本轮预登记、首差表、输入审计与实测结果](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)。
+G0-A数据/原生命令、G0-B新鲜在线专家、G0-C历史重放分开；历史3/8不再否决全部训练。
+新鲜single专家6/8、four-lane8/8、同条件fresh replay2/2；旧State在fresh初态0/8。
+小预算State/Actor BC及一次有据预算对照独立保留，最终自主结果以实际产物为准；不自动重训19000步。
+下方各阶段均为对应历史快照。
+
 ## State-first Native DP V2 — 2026-11-02
 
 [训练设置/固定官方源码对照](NATIVE_DP_TRAINING_REFERENCE_AUDIT.md)、

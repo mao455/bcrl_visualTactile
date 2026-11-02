@@ -1,6 +1,22 @@
 # Audited contracts
 
-## Native training protocol V2 (2026-11-02)
+## 2026-11-02 G0 scientific repair and diagnostic ActorBC
+
+G0-A numerical original400 integrity and G0-B fresh online released expert native success jointly admit bounded learning.
+G0-C historical recorded-action replay remains a separate diagnostic; it does not certify or invalidate dataset success.
+Prior V2 root and old8/8 decisions are immutable historical evidence. New owner has distinct protocol3 identity.
+ActorBC reads recorded noisy/delayed141D Actor observations (140 actor fields plus constantgroup50),13 native rows,
+per-row age/valid,1859D total; same2×256Mish/H64/commit12/LossB as diagnostic2601DStateBC.
+Its train-only normalizer and diagnostic checkpoint contract are separate. Formal State/Image model inputs are unchanged.
+Original Actor itself has persistentLSTM1024hidden+1024cell and a learned32Dgroup embedding;
+ActorBC finite history is not claimed equivalent to that full expert decision state.
+NativeDiagnosticEnv object-specific matrix supportsN×1×1×3 without broadcasting lane0 or changing physics.
+No per-tick state forcing, target bypass, task/success/controller/timing changes; no test selection or dataset replacement.
+The optional registered fit-budget supplement restores original1000-update BC weights/AdamW/EMA counts,
+adds one3000-update LR segment at most, and does not relabel the original1000 run or reset its8h deadline.
+Only the fixed endpoint fit criterion permits at most8 extra saved-initial starts; offline fitting is never native success.
+
+## Historical native training protocol V2 (2026-11-02; G0 superseded above)
 
 Inference contract remains native-command v1: H64/commit12, real current controller
 state, strictly past issued/delayed feedback, state geometry only in S. New protocol2

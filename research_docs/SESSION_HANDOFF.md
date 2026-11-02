@@ -1,5 +1,27 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-02 12:01（UTC+8）— 环境/学习归因修复实际完成
+
+当前分支`feature/native-dp-training-v2`，独立worktree`bc+rl_RSS_native_v2`；原worktree保持干净。
+阅读[NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)及
+[公开证据索引](evidence/native_dp_repair_20261102/README.md)。G0-A/B/C已拆分，历史3/8不再否决400。
+新single专家6/8、four8/8，fresh replay2/2（15字段逐字节一致）；历史source-world1/2。
+新fresh reset含single6/8、four3/8盒重叠，全保留，不称合法分布可靠性验收；无重叠single2条expert2/2、学生均0/2。
+旧State fresh0/8；StateBC1000和ActorBC1000 fresh各0/8；StateBC1000 saved train/val各0/4。
+一次有据同结构预算延长至各4000updates，State train arm/hand=.02365/.03965但val=.98176/.71937；
+StateBC4000 saved train/val仍各0/4、全601timeout、无lift/子目标。没有学生完整任务成功。
+
+原52条root`repair_20261102_01`、补充8条`repair_fit_20261102_01`均diagnostics_complete；
+共同原始截止未改，全程1h17m55s。全部owner/Kit/trainer/monitor退出，三个systemd unit inactive/dead。
+补充阶段第一次初始化FileThread SIGSEGV发生在任何轨迹之前，原失败保留，一次审查恢复仅继续原8条，不重训。
+两BC各4000更新，无新DP/视觉/test；不要自动延长或重启这些cohort。
+全卡有测均值28.37849%、max完整60s54.62724%；恢复缺测438.47688s，启动到首采样13.015s；
+不能称全程资源合规。最低free VRAM11.50977GiB、available RAM24.32213GiB；其他任务未改动。
+84回归、836保护hash、8视频全解码通过。视频本地索引`outputs/visuotactile/native_dp_v2/repair_20261102_01/README.md`。
+公开只包含代码/文档/小统计/曲线，无原始HDF5、权重、NPZ或MP4。原400/旧正式各0/20不变，删除0。
+剩余科学缺口：历史4lane内部积分首差未唯一定位；State不含原Actor随机队列与persistentLSTM历史；
+BC训练平均误差掩盖reset残差、闭环仍失败。无证据支持直接重跑19000步DP。
+
 ## 2026-11-02 — State-first V2 audit and isolated implementation
 
 启动核验补充：服务native-dp-v2-state-first-20261102-01.service active/running，

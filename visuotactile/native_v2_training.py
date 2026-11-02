@@ -11,7 +11,7 @@ from .compact import sha256
 from .native_data import CONTRACT
 from .models.native_dp import NativePolicy
 from .models.vendor.ema_model import EMAModel
-from .native_v2_gates import require_gate
+from .native_v2_gates import require_training_foundation
 from .native_v2_resources import LeaseV2
 from .native_v2_state import BC_CONTRACT, StateBC, StateWindows, condition_windows, load_state_policy
 from .train_long import cpu_snapshot, save
@@ -61,7 +61,7 @@ def offline(model,windows,lease,seeds=(7091,17091,27091),batch_size=32):
 
 
 def train(root,output,kind,until,resume=False):
-    require_gate(root,'G0')
+    require_training_foundation(root)
     session=json.loads((root/'session.json').read_text());config=session['config']['state_training']
     source=Path(session['source_root']);data=json.loads((source/'data.json').read_text())
     identities=data['splits']['train'][:4] if kind=='bc' else data['splits']['train']

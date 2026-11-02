@@ -1,5 +1,14 @@
 # State-first Native DP protocol V2
 
+## 2026-11-02 修订：G0-A/B/C
+
+当前执行协议见[NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)。
+下文8/8历史开环门槛是已完成旧实验的冻结定义，已被用户明确修正，不能用于新的训练准入。
+新训练必须同时具有G0-A原400数值一致性及G0-B当前在线专家可靠性证据；G0-C保留历史轨迹诊断。
+新鲜expert8、4lane比较、fresh replay与ActorBC/StateBC小预算对照使用独立root与固定八小时端点。
+原协议2的run/resume拒绝直接重启；通过 `native_v2_repair` 查询/执行新注册实验。
+原生success、数据划分、三组模型输入、H64/commit12保持，6/8专家门槛不代表新State成功。
+
 授权来源为2026-11-02完整任务附件；不延长旧run02截止，不改变原400、划分、checkpoint或原生任务。
 新目录、独立worktree、独立服务。以下区分已实现、启动后才有的实验与尚被Gate锁住的工作。
 
