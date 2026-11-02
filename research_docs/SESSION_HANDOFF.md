@@ -1,5 +1,11 @@
 # 当前会话交接：视觉—触觉研究
 
+22:58:28UTC+8 startup verified: serviceactive,owner1297238/worker1297395;
+dp_train_19000 with real resume.json from10000, exactoptimizer/EMA/RNG/sampler.
+Committed progress still10000 at that snapshot; no memory pause. Runtimefae5a04
+pushed and remoteSHA verified. DP10k missing fourth evaluation remainsdeferred.
+No further model polling; ordinary service owns remaining stages/deadlines.
+
 22:52UTC+8 follow-up: runtime amendment44e9424 was correctly deferred, but DP19000
 configuration guard rejected the changed owner source hash before any update.
 runtime_recovery_04 preserves both empty attempts and consumed automatic retry.

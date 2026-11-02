@@ -1,5 +1,14 @@
 # State observation/history repair — actual results
 
+**22:58:28 UTC+8实际恢复核验：** `state-full-20261102-01.service` active，
+owner1297238、worker1297395存活，当前`dp_train_19000`。
+resume.json确认从10000 checkpoint恢复optimizer/EMA/RNG/sampler；此时最新已提交进度仍10000，
+不能把19000阶段已启动写成19000更新已完成。无资源暂停，freeVRAM18661MiB、availableRAM28.76GiB。
+运行源码`fae5a0497377668f36440fd9ffaaf6a0788592f5`已push并核对origin同SHA。
+原失败评估仍deferred，尚无学生完整成功。独立证据：
+[runtime_configuration_resume.json](evidence/state_shared_20261102/runtime_configuration_resume.json)。
+后续由普通服务推进，未使用对话持续轮询监督。
+
 ## 2026-11-02 22:52 UTC+8：恢复校验发现运行代码与训练身份耦合
 
 `44e9424`恢复核验正确延期了场景前SIGSEGV，但DP19000在更新参数前报
