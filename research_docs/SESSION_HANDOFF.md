@@ -1,5 +1,11 @@
 # 当前会话交接：视觉—触觉研究
 
+启动核验（2026-11-02 17:16 UTC+8）：`state-full-20261102-01.service` active，
+root `state_full_20261102_01`已推进到独立专家第4条；新学生训练尚未开始。
+代码 `c2e9895` 已push并核对origin同SHA。训练截止11月3日14:12:42，绝对截止17:12:42（UTC+8）。
+自有进程识别通过；外部worker当时约8.33GiB显存，整卡free14.27GiB、availableRAM35.25GiB，
+没有资源暂停。没有外部吞吐指标，不作零干扰承诺。后续阶段由普通脚本自动推进。
+
 ## 2026-11-02 — shared GPU/full recurrent State authorization
 
 Latest attachment147b678c supersedes small-only and45/40/50 hardGPU gates. Read

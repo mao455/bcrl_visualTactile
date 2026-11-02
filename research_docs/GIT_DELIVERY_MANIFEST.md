@@ -1,5 +1,29 @@
 # Git delivery manifest
 
+## 2026-11-02 full State execution delivery
+
+Implementation `c2e9895e4b17259f08648074417f531b19f474c2` is pushed and matched to
+origin/feature/native-dp-training-v2. Adds state_resources, state_full_training,
+state_full_run and targeted tests; extends shared benchmark/report without changing
+model/normalizer/native task. Prior failed root02 final small results are preserved.
+Current service: `state-full-20261102-01.service`; root `state_full_20261102_01`.
+Registered start17:12:42UTC+8; training cutoffNov3 14:12:42; absolute endpointNov3 17:12:42.
+The initial malformed systemd command failed argument parsing before a worker existed;
+its journal is retained. Corrected service uses the same root/deadline, no trial repeated.
+Initial verification: active owner, singleton expert stages advancing, telemetry owns
+one GPU worker and recognizes the other project separately. This is not new student success.
+
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.state_full_run run --root outputs/visuotactile/native_dp_v2/state_full_20261102_01
+```
+
+The run command locks the owner, verifies source/config hashes, skips completed stages,
+and permits one legal trainer checkpoint recovery. Do not re-initialize an existing root.
+The owner exports curves, first divergences and video decode results at completion into
+`evidence/state_shared_20261102/results` and updates STATE_TRAINING_RESULTS locally.
+Future generated results require review before a separate commit/push; weights/raw videos remain local.
+
+
 工作树：`bc+rl_RSS_native_v2`，branch `feature/native-dp-training-v2`，基线及启动时origin均
 `ec84bd3ac7283c79da068c19506ed8d7bb20a364`。原`bc+rl_RSS`工作树保持独立，不提交其文件。
 

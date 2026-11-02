@@ -1,5 +1,11 @@
 # State observation/history repair — actual results
 
+启动核验（2026-11-02 17:16 UTC+8）：`state-full-20261102-01.service` active，
+root `state_full_20261102_01`已推进到独立专家第4条；新学生训练尚未开始。
+代码 `c2e9895` 已push并核对origin同SHA。训练截止11月3日14:12:42，绝对截止17:12:42（UTC+8）。
+自有进程识别通过；外部worker当时约8.33GiB显存，整卡free14.27GiB、availableRAM35.25GiB，
+没有资源暂停。没有外部吞吐指标，不作零干扰承诺。后续阶段由普通脚本自动推进。
+
 ## 2026-11-02 最新任务：完整train320，新增独立窗口
 
 最新附件147b678c授权新root `outputs/visuotactile/native_dp_v2/state_full_20261102_01`，
