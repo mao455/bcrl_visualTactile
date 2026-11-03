@@ -1,5 +1,15 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03 20:32:28 UTC+8：恢复服务已实际接续
+
+`h24-comparison-20261103-01-recovery.service`已核验active/running、NRestarts0，
+owner2342844、worker2343565，阶段`epsilon_3000_loop_worker_00`；Epsilon完整离线评估已完成。
+Sample cohort按原预算完成记账：1实际完成（0成功）+2启动软件故障+9未启动，失败条目没有重试。
+新monitor在核验时0.04秒内有采样，旧179项冻结源码和训练状态不改；恢复launcher提交`884dc6d`。
+这只是恢复启动核验，不代表Epsilon闭环、选型或5k/8k/10k完成。后台继续既定阶段，
+后续读取机器status和结果；新统计不计软件故障为任务失败。公开证据：
+`evidence/h24_parameterization_20261103/recovery_startup_review.json`。
+
 ## 2026-11-03 20:27 UTC+8复核：两组3000已完成，Kit阻塞恢复
 
 Epsilon3000已完成并覆盖train320。两组实际updates/EMA、采样顺序/游标、train/val IDs、

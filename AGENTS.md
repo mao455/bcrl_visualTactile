@@ -7,7 +7,9 @@ two subsequent pre-scene FileThread SIGABRTs, second missing exception text bloc
 Use tools/h24_runtime_recovery and recovery service after registered evidence checks;
 never edit179 frozen sources, repeat failed attempts or reset deadline. Original cohort
 cap gives1completed+2software faults+9unstarted. Epsilon loop/selection/further milestones
-were unstarted at review; read actual status. Four targeted recovery tests pass.
+were unstarted at review. Recovery startup later verified active in epsilon3000
+loop worker00 after offline completion; no failed attempt repeated. Read actual
+status. Four targeted recovery tests pass.
 
 ## Current override — H24 Sample/Epsilon continuation, 2026-11-03
 
