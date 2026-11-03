@@ -34,18 +34,20 @@ def require_foundation(root):
     for path, digest in session['implementation_sha256'].items():
         if sha256(path) != digest:
             raise ValueError('Registered code changed: '+path)
+    for path,digest in session.get('dependency_sha256',{}).items():
+        if sha256(path)!=digest:raise ValueError('Registered dependency changed: '+path)
     if sha256(Path(session['source_root'])/'data.json') != session['data_sha256']:
         raise ValueError('Data identity changed')
 
 
 @torch.no_grad()
-def evaluate(model, records, lease):
+def evaluate(model, records, lease, sampling=None, motion=False):
     total = torch.zeros(2); hold = torch.zeros(2); count = 0; rows = []; losses=[]
     for identity, record in records.items():
         generator = torch.Generator(device='cuda:0').manual_seed(7091)
         with lease.block():
             condition, anchors, _ = model.encode(record)
-            prediction = model.predict(condition, generator)
+            prediction = model.predict(condition, generator, **(sampling or {}))
             if model.contract['action']=='absolute_joint_position_target_rad':
                 from .position_control import bounded_targets
                 prediction=bounded_targets(prediction.flatten(0,1),record['joint_limits']).reshape_as(prediction)
@@ -67,10 +69,23 @@ def evaluate(model, records, lease):
                 hand_rmse=float((sums[1]/valid[:, :12].sum().cpu()).sqrt()),
                 reset_arm_rmse=float(error[0, 0, :7].square().mean().sqrt()),
                 reset_hand_rmse=float(error[0, 0, 7:].square().mean().sqrt())))
-    return dict(arm_rmse=float((total[0]/count).sqrt()), hand_rmse=float((total[1]/count).sqrt()),
+            if motion:
+                from .state_motion import motion_metrics
+                metric=motion_metrics(prediction.cpu().numpy(),command.cpu().numpy(),valid.cpu().numpy(),
+                    record['robot'][anchors,58:87].cpu().numpy(),model.action_scale.cpu().numpy(),
+                    (prediction*model.action_scale+model.action_offset).cpu().numpy(),record['joint_limits'].cpu().numpy(),
+                    __import__('numpy').zeros(len(anchors),dtype=bool))
+                rows[-1].update({k:v for k,v in metric.items() if k.startswith('moving')})
+    result = dict(arm_rmse=float((total[0]/count).sqrt()), hand_rmse=float((total[1]/count).sqrt()),
         loss=sum(losses)/len(losses), hold_arm_rmse=float((hold[0]/count).sqrt()),
         hold_hand_rmse=float((hold[1]/count).sqrt()),
         selection_mse=float(total.mean()/count), episodes=rows, scope='Teacher-forced past execution, not autonomous success')
+    if motion:
+        import numpy as np
+        for key in ('moving_arm12_rmse_rad','moving12_amplitude_ratio','moving12_direction_cosine'):
+            values=[r[key] for r in rows if r.get(key) is not None]
+            result[key]=float(np.mean(values)) if values else None
+    return result
 
 
 def train(root, output, kind):

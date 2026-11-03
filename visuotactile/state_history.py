@@ -96,15 +96,18 @@ class PersistentState(NativePolicy):
 
     def loss(self, condition, command, valid, generator=None):
         if self.kind == 'dp':
-            return super().loss(condition, command, valid, generator)
+            return super().loss(condition, command, valid, generator,
+                temporal_weight=getattr(self, 'temporal_weight', 0.))
         from .dp_objectives import masked_objectives
         return masked_objectives(self.regressor(condition).reshape(-1, 64, 29),
             command*self.action_scale+self.action_offset, valid)['B']
 
     @torch.no_grad()
-    def predict(self, condition, generator=None):
+    def predict(self, condition, generator=None, **sampling):
         if self.kind == 'dp':
-            return super().predict(condition, generator)
+            return super().predict(condition, generator, **sampling)
+        if sampling:
+            raise ValueError('Diffusion settings cannot be applied to BC')
         return (self.regressor(condition).reshape(-1, 64, 29)-self.action_offset)/self.action_scale
 
 
@@ -182,7 +185,7 @@ class HistoryBank:
 
 
 class HistoryController:
-    def __init__(self, saved, metadata, device='cuda:0'):
+    def __init__(self, saved, metadata, device='cuda:0', inference=None):
         stored_contract = saved.get('contract')
         from .position_control import contract, POSITION_ACTION
         allowed = [STATE_CONTRACT]+[contract(h,p) for h in (24,32) for p in (False,True)]
@@ -198,6 +201,16 @@ class HistoryController:
         self.bank = HistoryBank(); self.execution = ExecutionHistory(1)
         self.episode = None
         self.generator = torch.Generator(device=device).manual_seed(7091)
+        self.inference = dict(inference or {})
+        allowed_settings = {'inference_steps', 'clip_sample', 'overlap_steps', 'sampler_seed'}
+        if not set(self.inference) <= allowed_settings:
+            raise ValueError('Unknown inference setting')
+        self.overlap_steps = self.inference.get('overlap_steps', 0)
+        if self.overlap_steps not in (0, 4) or (self.inference and not self.position_mode):
+            raise ValueError('Overlap ablation requires explicit position StateDP')
+        self.generator.manual_seed(self.inference.get('sampler_seed', 7091))
+        self.plan = None
+        self.plan_tick = None
 
     @torch.no_grad()
     def act(self, actor, packet, diagnostics):
@@ -206,6 +219,7 @@ class HistoryController:
         if episode != self.episode:
             self.execution = ExecutionHistory(1); self.started = stamp; self.episode = episode
             self.position_previous = None
+            self.plan = None; self.plan_tick = None
         if self.position_mode:
             past = torch.zeros(61)
             if self.position_previous is not None:
@@ -225,7 +239,13 @@ class HistoryController:
         self.last_inputs = dict(actor=actor[0].cpu(), robot=robot, geometry=geo.cpu())
         if condition is not None:
             self.last_condition = condition
-            self.plan = self.model.predict(condition, self.generator).cpu()
+            fresh = self.model.predict(condition, self.generator,
+                **{k:v for k,v in self.inference.items() if k in ('inference_steps','clip_sample')}).cpu()
+            self.raw_plan = fresh.clone()
+            from .position_control import overlap_transition
+            self.plan = overlap_transition(self.plan, fresh, tick-self.plan_tick if self.plan_tick is not None else 0,
+                self.overlap_steps)
+            self.plan_tick = tick
         if self.position_mode:
             from .position_control import bounded_targets
             self.command = bounded_targets(self.plan[:,tick%12],self.limits)

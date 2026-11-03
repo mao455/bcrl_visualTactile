@@ -1,5 +1,42 @@
 # State observation/history repair — actual results
 
+## 2026-11-03 StateDP运动根因对照：已实现，实测状态另读运行文件
+
+本轮使用当前`feature/native-dp-training-v2`，保留`7234bcf`及全部历史结果。
+唯一新root：`outputs/visuotactile/native_dp_v2/state_motion_20261103_01`。
+复用原H32/19000 best EMA（SHA `5ecc930ffd52af166e00904b0515159193d8527d9f5726908bf57967c445a416`），
+不重新解释sample权重，不改原400、320/40/40、train-only统计和绝对位置标签。
+当前实现/109项CPU回归已通过，不代表离线对照、闭环或新训练已经完成。
+
+预注册：validation按identity排序前16条，种子7091/7092/7093；DDIM16/32/100分别clip false/true。
+运动区间为完整有效前12（另报32）步的Arm7目标终点相对当前target RMS位移大于0.01rad。
+主指标为逐episode/seed配对的运动区间Arm7 RMSE（rad）：候选至少改善3%，整体Arm7/Hand22
+误差均不超过基准102%，方向cosine不降低超过0.02，包含12次native记忆更新的B1规划周期p95≤200ms。
+筛选至多两候选与A0在validation40确认，再选至多一个不同采样配置进入C1；C0保留原设置。
+超过时延的配置只作诊断，实际闭环额外测量完整controller.act（含输入构造/传输）。
+clip由已安装diffusers0.39.0真实DDIM实现，在预测x0的训练归一化坐标裁剪；随后反归一化成rad。
+保留默认use_clipped_model_output=False，不悄悄改变其它scheduler参数。
+
+C0/C1沿用原train4+validation8初态和环境seed，策略seed7091；K4仅在teacher-forced或on-policy
+边界/内部跳变RMS比>1.5时启动C2。无不同C1则只比较C0/C2。old[12]与new[0]时间一致，
+K4新目标权重1/4、1/2、3/4、1；不改变H32/A12或下层控制。同初态/seed不声称PhysX内部状态完全相同。
+至少2个validation完整成功且第二策略seed在相同两初态复现，先保留基线、扩8个validation身份；不强行训练E/F。
+
+若无可重复完整成功，单轨迹诊断在原best基础上、同架构，最多1000→3000 updates；仅用预注册第一train
+身份拟合，复用train320统计。继续E/F需train Arm≤0.005rad、Hand≤0.03rad、运动幅值比0.8–1.2。
+未过门槛只说明有限预算内未通过拟合验收，不证明网络容量不足。拟合后闭环失败则做12/24tick学生接管、
+持续更新hidden的真实专家恢复；恢复是原生命令模式，原delay queue未改，模式切换限制明确记录，不能计自主成功。
+E为H24，其余原设置；F为H32/Loss B加Arm7相邻x0差分，系数以首3个train段尺度校准
+`min(0.1,0.05*L_B/L_temporal)`一次后冻结。两者独立新初始化，保持原seed/AdamW/LR horizon19000/96tick×2采样。
+每阶段检查运动/整体误差和4条短cohort；连续两阶段无1%运动改善且过拟合或动作退化才早停。
+原H32同update历史指标并列；原采样访问审计单独保存，不混入采样策略改动。无ImageDP、StateBC或触觉训练。
+
+所有执行命令写入`*_launch.json`；机器状态为`status.json`，暂停本轮可创建`STOP`文件。
+启动：`bash visuotactile/run_cpu.sh -m visuotactile.state_full_run motion-init --root <root>`，
+随后同入口`run --root <root>`由独立服务运行。分析worker为`visuotactile.state_motion --root <root> --output <stage> --job <job.json>`；
+只读汇总用该模块`--report`。自动汇总更新本文件和小型JSON/CSV/PNG，Git仍需审查，不自动上传大产物。
+
+
 ## 2026-11-03：H32位置训练和最终评估结束，尚无完整自主成功
 
 `position_20261103_01`于 **04:45:10（UTC+8）**结束，服务inactive/dead，owner、worker和monitor均已退出。

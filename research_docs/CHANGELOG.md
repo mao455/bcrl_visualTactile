@@ -1,5 +1,23 @@
 # Engineering change and verification log
 
+## 2026-11-03 — StateDP采样、运动诊断和受控训练实验入口
+
+- models/native_dp、state_history：显式DDIM16/32/100和归一化x0 clip，保持sample/EMA/原default；
+  真实diffusers0.39.0实现已读，固定随机数下默认输出与旧循环逐字节一致。
+- position_control、state_benchmark：可选按原生时间对齐的K4重叠，raw/执行计划、同步规划耗时、
+  物体接触和抓持诊断、专家恢复区分；新增真实环境1tick smoke，保持原底层控制/物理。
+- state_motion：一份分析worker复用当前数据，Arm7/Hand22/29D rad与normalized、运动/接触前、
+  速度/终点/方向/FK/限位/seed方差、teacher-forced和on-policy重叠分开；小CSV/PNG/汇总。
+- state_full_run/training：复用原owner、隔离worker、checkpoint/RNG恢复和trainer；本轮source/dependency/hash
+  固定，最多2次已分类启动重试；先sampler对照，单轨迹拟合门槛后才H24和temporal分阶段训练。
+  dp_objectives辅助损失只用valid相邻Arm7 x0差分，真实尺度一次校准；原LossB各组50%不变。
+- state_resources：本轮可选50%目标的渐进pacing，短峰不作为硬利用率否决；原显存/RAM/disk余量不变。
+  native_v2_repair仅在父进程核实成功退出/显存释放后发布Kit committed marker。
+- 109项聚焦CPU测试通过：默认采样回归、裁剪坐标、尾部mask、真实时间重叠、辅助loss梯度、配对和时延选择，
+  以及原State/position/native恢复和控制测试。没有据此声称新GPU实验完成；真实状态需读新root。
+- 保留全部旧产物，无数据/权重/失败证据清理。公开内容限源代码、测试、配置证据、统计和曲线。
+
+
 ## 2026-11-03 — reviewed final H32 position results
 
 - STATE_TRAINING_RESULTS, SESSION_HANDOFF, AGENTS and KIT_RELIABILITY now report actual completion,

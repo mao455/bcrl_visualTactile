@@ -189,22 +189,33 @@ class NativePolicy(nn.Module):
             parts = (common, encoder(torch.stack(rows).flatten()[None]))
         return self.condition_projection(torch.cat(parts, -1))
 
-    def loss(self, condition, command, valid, generator=None):
+    def loss(self, condition, command, valid, generator=None, *, temporal_weight=0.):
         if command.shape[1:] != (self.horizon,29):
             raise ValueError('Loss horizon differs from checkpoint contract')
         target = torch.where(valid[..., None], command*self.action_scale+self.action_offset, 0.)
         noise = torch.randn(target.shape, device=target.device, generator=generator)
         timestep = torch.randint(100, (len(target),), device=target.device, generator=generator)
         prediction = self.denoiser(self.noise.add_noise(target, noise, timestep), timestep, global_cond=condition)
-        return masked_objectives(prediction, target, valid)['B']
+        base = masked_objectives(prediction, target, valid)['B']
+        if temporal_weight:
+            from ..dp_objectives import arm_temporal_objective
+            temporal = arm_temporal_objective(prediction, target, valid)
+            self.last_loss_components = dict(base=base.detach(), temporal=temporal.detach())
+            return base+temporal_weight*temporal
+        return base
 
     @torch.no_grad()
-    def predict(self, condition, generator):
+    def predict(self, condition, generator, *, inference_steps=16, clip_sample=False):
+        if inference_steps not in (16, 32, 100) or not isinstance(clip_sample, bool):
+            raise ValueError('Explicit registered DDIM sampling configuration required')
         sample = torch.randn((len(condition), self.horizon, 29), device=condition.device, generator=generator)
-        self.sampler.set_timesteps(16, device=condition.device)
-        for timestep in self.sampler.timesteps:
+        # Clip predicted x0 in train-normalized coordinates, before inverse affine.
+        # A fresh scheduler prevents one ablation leaking settings into another.
+        sampler = DDIMScheduler.from_config(self.noise.config, clip_sample=clip_sample)
+        sampler.set_timesteps(inference_steps, device=condition.device)
+        for timestep in sampler.timesteps:
             prediction = self.denoiser(sample, timestep, global_cond=condition)
-            sample = self.sampler.step(prediction, timestep, sample, eta=0.).prev_sample
+            sample = sampler.step(prediction, timestep, sample, eta=0.).prev_sample
         return (sample-self.action_offset)/self.action_scale
 
 

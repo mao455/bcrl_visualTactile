@@ -284,3 +284,11 @@ StateBC先有实际能力证据才推进大DP；不直接19000updates，不测�
 允许依赖核查后清理无价值重复产物，保留原400、最小复现证据和必要checkpoint。
 共享GPU单worker、内存余量和近期负载调节，无固定利用率否决；代码报告push到origin功能分支。
 科学结果以POSITION_ACTION_CONTRACT、KIT_RELIABILITY、STATE_TRAINING_RESULTS实测为准。
+
+## 2026-11-03：StateDP接近运动根因与受控改进
+
+附件af434a28要求立即复用H32/19000 EMA做DDIM采样、运动区间和重规划对照；只研究StateDP。
+相同数据/划分/动作/物理，单因素，validation选模且test只最终确认。采样/过渡无可重复成功后先
+单轨迹拟合与短学生接管/专家恢复，再有条件进行H24和时序差分辅助loss分阶段训练。
+用户明确授权普通后台owner自主按门槛推进、最多2次可恢复Kit启动重试、约50%整卡目标及 reviewed feature push。
+旧“无新H24/训练”只约束已完成旧run；本轮不训练BC/ImageDP/残差，不重启旧run、不隐去软件失败。

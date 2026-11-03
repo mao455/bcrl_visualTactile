@@ -1,5 +1,26 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current authorization — 2026-11-03 StateDP motion root-cause study
+
+Latest attachment af434a28 authorizes StateDP only on feature/native-dp-training-v2
+from7234bcf: reuse immutable H32/19000 EMA first, paired DDIM16/32/100×clip off/on
+validation16×3seeds then promising validation40, native paired C0/C1/C2 with optional
+K4 overlap; only after failed stable success and passed single-trajectory fit gate,
+staged H24 and H32 temporal-loss training (1k/3k/6k/10k/max19k). No BC/Image/residual.
+Test40 cannot select configurations; preserve original400, splits, targets, physics,
+checkpoints and failures. New run state_motion_20261103_01 has one fixed24h window,
+training21h; real Kit smoke before compute, at most2 classified pre-scene retries
+for the entire session. No arbitrary training/NaN/interface/hash retry. Reuse existing
+state_full_run owner, isolated state_benchmark workers and shared resource monitor.
+Target whole-card mean about50%, short bursts allowed, one owned GPU worker,
+6GiB freeVRAM/12GiB availableRAM/12GB disk; no unrelated process/system changes.
+Stop at fixed budgets or unresolved evidence; ordinary owner handles stages, no
+conversational polling. Read actual status/result files; implementation/tests do not
+prove a completed experiment or improved learning. Reviewed origin feature push
+is authorized; never weights/HDF5/NPZ/raw videos. Current implementation has109
+focused CPU tests passing; new GPU/Kit results are not yet claimed in this entry.
+
+
 ## Completed — 2026-11-03 H32 position StateDP
 
 position_20261103_01 ended at 04:45:10 UTC+8; the service is inactive and all owned

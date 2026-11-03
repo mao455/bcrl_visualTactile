@@ -39,3 +39,12 @@ actor、target、实际关节位置/速度、两个物理子步执行器目标�
 新接口没有第二次delay或平滑；实际跟踪RMSE为0.085416/0.106316rad，和原专家一致。
 证据为[foundation_review.json](evidence/position_20261103/foundation_review.json)。
 这是控制接口验收，不是新StateDP自主成功。
+
+## 2026-11-03 可选推理消融
+
+`position_rad_v1`、监督字段、原执行器与120/60Hz均不变。新实验job单独记录DDIM步数、
+归一化x0裁剪、策略seed和`overlap_steps`；旧checkpoint不修改、默认16/false/K0逐数值回归。
+K4在绝对位置计划上把上一条尚未执行的`[12:16]`与当前`[0:4]`按新计划权重
+1/4、1/2、3/4、1混合；cursor仍从0执行，没有额外等待、时间平移或重复执行旧命令。
+本轮是可关闭的过渡消融，不称为原版DP标准要求。raw和执行plan分别保存，实际请求/应用位置
+仍反馈进严格过去的历史；新future计划不作为已执行历史。数值测试不等于闭环收益。

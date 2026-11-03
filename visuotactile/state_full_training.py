@@ -81,6 +81,12 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
     study=session.get('profiles',{}).get(profile) if profile else None
     if profile and (study is None or kind!='dp' or pilot):
         raise ValueError('Unknown DP-only profile')
+    if study and 'train_ids' in study:
+        if not set(study['train_ids'])<=set(train_ids):raise ValueError('Training subset outside train320')
+        train_ids=list(study['train_ids'])
+    if study and 'validation_ids' in study:
+        if not set(study['validation_ids'])<=set(val_ids):raise ValueError('Validation subset outside validation40')
+        val_ids=list(study['validation_ids'])
     model_contract=study['contract'] if study else STATE_CONTRACT
     group=study.get('group','S-NativeDP') if study else 'S-NativeDP'
     image=group!='S-NativeDP'
@@ -106,6 +112,9 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
         schedule='one fixed cosine horizon, never restarted at milestones', loss='B', seed=20261102,
         expert_normalizer_sha256=session['expert_sha256'], source_sha256=session['implementation_sha256'])
     if study:config.update(group=group,optimizer_horizon=optimizer_horizon)
+    if session.get('motion_study'):
+        config.update(sampling=study.get('sampling',{}),selection_scope=study.get('selection_scope','validation'),temporal_rule=study.get('temporal_rule'),
+            initialization=study.get('initialization'),numeric_cache_sha256=study['numeric_cache_sha256'])
     ids = train_ids+val_ids
     if final_test:
         selection = json.loads((root/((profile or kind)+'_selection.json')).read_text())
@@ -113,13 +122,17 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
             raise ValueError('Selection must freeze before test')
         ids = data['splits']['test']
     cache = root/((profile+'_' if profile else '')+('numeric_test_cache.pt' if final_test else 'numeric_trainval_cache.pt'))
+    if study and study.get('numeric_cache') and not final_test:
+        cache=Path(study['numeric_cache'])
+        if sha256(cache)!=study['numeric_cache_sha256']:raise ValueError('Shared immutable numeric cache drift')
     if not cache.exists():
         records = load_records(source, ids if final_test else data['splits']['train']+data['splits']['validation'],model_contract)
         save(cache, dict(data_sha256=session['data_sha256'], contract=model_contract,records=records))
     cached = torch.load(cache, map_location='cpu', weights_only=False)
     if cached['data_sha256'] != session['data_sha256']:
         raise ValueError('Numeric cache source mismatch')
-    if study and cached.get('contract')!=model_contract:
+    if study and cached.get('contract')!=model_contract and not (session.get('motion_study')
+            and dict(cached.get('contract',{}),horizon=model_contract['horizon'])==model_contract):
         raise ValueError('Numeric cache action contract mismatch')
     records = {i: cached['records'][i] for i in ids}; del cached
     stats = torch.load(source/'statistics.pt', map_location='cpu', weights_only=False)
@@ -157,15 +170,37 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
             for key,value in stats.items():getattr(model,key).copy_(value)
         else:
             model = PersistentState(kind,model_contract); model.set_statistics(stats, expert)
+        if study and study.get('initialization'):
+            initial=study['initialization']
+            if sha256(initial['path'])!=initial['sha256']:raise ValueError('Initialization checkpoint drift')
+            model.load_state_dict(torch.load(initial['path'],map_location='cpu',weights_only=False)['ema'])
         model.cuda()
         averaged = copy.deepcopy(model).eval().requires_grad_(False); ema = EMAModel(averaged, power=.75)
         optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, betas=(.95, .999), weight_decay=1e-6)
         records = {i: {k: v.cuda() if torch.is_tensor(v) else v for k, v in r.items()} for i, r in records.items()}
     del expert
+    if study and study.get('temporal_rule'):
+        calibration=directory/'temporal_calibration.json'
+        if not calibration.exists():
+            values=[]
+            with torch.no_grad(), lease.block():
+                model.temporal_weight=1.
+                for identity in train_ids[:3]:
+                    rec=records[identity];cond,anchors,_=model.encode(rec,0,min(96,len(rec['time'])))
+                    commands,valid=labels(rec,anchors,model.horizon)
+                    model.loss(cond,commands,valid,torch.Generator(device='cuda:0').manual_seed(6193))
+                    values.append({k:float(v) for k,v in model.last_loss_components.items()})
+            base=sum(v['base'] for v in values)/len(values); temporal=sum(v['temporal'] for v in values)/len(values)
+            weight=min(.1,.05*base/max(temporal,1e-12))
+            atomic_json(calibration,dict(weight=weight,base=base,temporal=temporal,rows=values,
+                rule='min(0.1, 0.05*base/temporal) once on first3 train segments before updates; normalized x0 units',
+                train_ids=train_ids[:3]))
+        model.temporal_weight=json.loads(calibration.read_text())['weight']
+        averaged.temporal_weight=model.temporal_weight
     if final_test:
         saved = torch.load(directory/'best.pt', map_location='cpu', weights_only=False)
         averaged.load_state_dict(saved['ema'])
-        metrics = evaluate(averaged, records, lease)
+        metrics = evaluate(averaged, records, lease, sampling=(study or {}).get('sampling'),motion=session.get('motion_study',False))
         atomic_json(output/'result.json', dict(software_complete=True, test=metrics,
             checkpoint_sha256=selection['checkpoint_sha256'], selection_frozen=True, updates=saved['updates']))
         return
@@ -177,6 +212,9 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
         saved = torch.load(directory/'last.pt', map_location='cpu', weights_only=False)
         if saved['config_sha256'] != sha256(directory/'configuration.json'):
             raise ValueError('Resume provenance mismatch')
+        if getattr(model,'temporal_weight',0.) and (saved.get('temporal_weight')!=model.temporal_weight or
+                saved.get('temporal_calibration_sha256')!=sha256(directory/'temporal_calibration.json')):
+            raise ValueError('Temporal calibration drift')
         restore_training(saved, model, averaged, optimizer, ema, generator, noise)
         update = saved['updates']; cursor = saved['schedule_cursor']; order = saved['schedule_order']
         best = saved['best']; history = saved['history']; seen = set(saved['seen_ids'])
@@ -192,7 +230,9 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
         return training_state(model, averaged, optimizer, ema, generator, noise, kind=kind, group=group,
             updates=update, schedule_order=order, schedule_cursor=cursor, best=best, history=history,
             seen_ids=sorted(seen), train_ids=train_ids, validation_ids=val_ids,
-            config_sha256=sha256(directory/'configuration.json'))
+            config_sha256=sha256(directory/'configuration.json'),
+            **(dict(temporal_weight=model.temporal_weight,temporal_calibration_sha256=sha256(directory/'temporal_calibration.json'))
+                if getattr(model,'temporal_weight',0.) else {}))
     try:
         while update < target:
             pending_schedule = (order, cursor, generator.get_state())
@@ -227,20 +267,24 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
             with (directory/'train.jsonl').open('a') as stream:
                 stream.write(json.dumps(dict(update=update, loss=losses[-1], norm=float(norm), history_grad=history_grad,
                     lr=optimizer.param_groups[0]['lr'], elapsed_s=time.time()-began, utc=time.time(),
-                    seen_episodes=len(seen), work_s=lease.work_s, wait_s=lease.wait_s, pacing_s=lease.pacing_s))+'\n')
+                    seen_episodes=len(seen), work_s=lease.work_s, wait_s=lease.wait_s, pacing_s=lease.pacing_s,
+                    **(dict(temporal_weight=model.temporal_weight,
+                        loss_components={k:float(v) for k,v in model.last_loss_components.items()}) if getattr(model,'temporal_weight',0.) else {})))+'\n')
             if update % 250 == 0 or stop[0]:
                 save(directory/'last.pt', snapshot())
                 atomic_json(directory/'progress.json', dict(updates=update, target=target, seen_episodes=len(seen),
                     updates_per_s=(update-start_update)/(time.time()-began), utc=time.time()))
             if stop[0]:
                 raise InterruptedError('Checkpoint saved at complete optimizer boundary')
-        train_metrics = evaluate(averaged, {i: records[i] for i in train_ids[:16]}, lease)
+        eval_options=dict(sampling=(study or {}).get('sampling'),motion=session.get('motion_study',False))
+        train_metrics = evaluate(averaged, {i: records[i] for i in train_ids[:16]}, lease,**eval_options)
         metrics = dict(update=update, train=train_metrics, train_metric_scope='fixed first16 train (pilot4)',
-            validation=evaluate(averaged, {i: records[i] for i in val_ids}, lease))
+            validation=evaluate(averaged, {i: records[i] for i in val_ids}, lease,**eval_options))
         history = [row for row in history if row['update'] != update]+[metrics]
-        improved = metrics['validation']['selection_mse'] < best
+        selection_metrics=metrics['train'] if (study or {}).get('selection_scope')=='train_fit' else metrics['validation']
+        improved = selection_metrics['selection_mse'] < best
         if improved:
-            best = metrics['validation']['selection_mse']
+            best = selection_metrics['selection_mse']
         payload = snapshot(); save(directory/'last.pt', payload); save(directory/f'milestone_{update}.pt', payload)
         if improved:
             save(directory/'best.pt', payload)

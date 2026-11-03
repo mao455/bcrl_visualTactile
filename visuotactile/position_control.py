@@ -14,6 +14,24 @@ from .training_resources import atomic_json
 POSITION_ACTION = 'absolute_joint_position_target_rad'
 
 
+def overlap_transition(previous, current, elapsed, steps=4):
+    """Align targets by native ticks; linearly hand over to the new plan at K.
+
+    Uses only already generated future targets. No shifted cursor or extra delay.
+    K=4 weights for new targets are 1/4, 1/2, 3/4, 1. Old/default K=0 is exact.
+    """
+    if steps not in (0, 4):
+        raise ValueError('Only preregistered K=0/4 supported')
+    if previous is None or steps == 0:
+        return current
+    if elapsed != 12 or previous.shape != current.shape or elapsed+steps > current.shape[1]:
+        raise ValueError('Plan overlap must align at the next native tick12 anchor')
+    output = current.clone()
+    weight = torch.arange(1, steps+1, device=current.device, dtype=current.dtype)[None,:,None]/steps
+    output[:,:steps] = previous[:,elapsed:elapsed+steps]*(1-weight)+current[:,:steps]*weight
+    return output
+
+
 def contract(horizon=32, position=True):
     from .state_history import STATE_CONTRACT
     if horizon not in (24, 32):

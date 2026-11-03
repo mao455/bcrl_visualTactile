@@ -51,6 +51,7 @@ class SharedLease(Lease):
                 try:
                     row = json.loads((self.root/'shared_resources.json').read_text())
                     reasons, ratio = policy(row, time.time())
+                    ratio=max(ratio,float(row.get('target_pacing_ratio',0.)))
                 except (OSError, ValueError):
                     reasons, ratio = ['telemetry_not_ready'], 0.
                 if not reasons:
@@ -94,6 +95,8 @@ def monitor(root):
     restore_telemetry(guard)
     atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time()))
     window = deque(); previous = None
+    target=json.loads((root/'session.json').read_text()).get('resource_target_percent')
+    target_ratio=0.; last_adjustment=time.time()
     while not (root/'STOP_MONITOR').exists():
         began = time.monotonic(); row = guard.sample(); now = row['utc_epoch']
         window.append((now, row['gpu_util_percent']))
@@ -120,6 +123,13 @@ def monitor(root):
         row.update(gpu_processes=processes, external_gpu_processes=[p for p in processes if not p['owned']],
             process_telemetry_errors=errors, external_throughput_available=False)
         reasons, ratio = policy(row, time.time())
+        if target is not None and now-last_adjustment>=5:
+            recent=row.get('rolling_60s_percent')
+            if recent is not None:
+                target_ratio=max(0.,min(4.,target_ratio+(.15 if recent>target+2 else -.1 if recent<target-2 else 0.)))
+            last_adjustment=now
+        row['target_pacing_ratio']=target_ratio
+        ratio=max(ratio,target_ratio)
         row.update(pause_reasons=reasons, pacing_ratio=ratio)
         atomic_json(root/'shared_resources.json', row)
         with (root/'resources/shared.jsonl').open('a') as stream:

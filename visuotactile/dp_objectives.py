@@ -21,3 +21,9 @@ def recorded_objective(configuration):
     if objective not in ('A', 'B'):
         raise ValueError('Unknown stored DP loss identity')
     return objective
+def arm_temporal_objective(prediction, target, valid):
+    """Sample/x0 neighboring differences in normalized action units, Arm7 only."""
+    pairs = valid[:, 1:] & valid[:, :-1]
+    difference = ((prediction[:, 1:, :7]-prediction[:, :-1, :7])
+                  -(target[:, 1:, :7]-target[:, :-1, :7]))
+    return (difference.square()*pairs[..., None]).sum()/(pairs.sum().clamp_min(1)*7)

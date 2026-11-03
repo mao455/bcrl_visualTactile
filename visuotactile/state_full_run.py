@@ -177,6 +177,90 @@ def recover_preaction_start(root, name, deadline):
     return True
 
 
+def initialize_motion(root):
+    """Register one bounded continuation; never restart any predecessor session."""
+    from .position_control import contract
+    from .state_motion import SAMPLERS, SEEDS, MOVEMENT_RAD
+    import torch
+    import inspect
+    import diffusers
+    from diffusers import DDIMScheduler
+    previous=Path('outputs/visuotactile/native_dp_v2/position_20261103_01').resolve()
+    old=json.loads((previous/'session.json').read_text())
+    checkpoint=previous/'position_h32_train/best.pt'
+    expected='5ecc930ffd52af166e00904b0515159193d8527d9f5726908bf57967c445a416'
+    if sha256(checkpoint)!=expected:raise ValueError('Original best identity differs from reviewed result')
+    if root.exists():raise ValueError('Motion session directory already exists; no deadline reset')
+    data=json.loads((Path(old['source_root'])/'data.json').read_text())
+    if sha256(Path(old['source_root'])/'data.json')!=old['data_sha256']:raise ValueError('Data identity drift')
+    cache=previous/'position_h32_numeric_trainval_cache.pt'
+    cache_sha=sha256(cache);began=time.time();root.mkdir(parents=True)
+    specs=json.loads((previous/'freeze/benchmark.json').read_text())['specs']
+    specs=[s for s in specs if s['cohort'] in ('train','validation')]
+    training_ids=data['splits']['train']
+    single=[s['identity'] for s in specs if s['cohort']=='train'][:1]
+    common=dict(updates=19000,optimizer_horizon=19000,numeric_cache=str(cache),numeric_cache_sha256=cache_sha,
+        sampling=SAMPLERS['A0'])
+    session=dict(old,motion_study=True,previous_root=str(previous),started_epoch=began,
+        deadline=began+24*3600,training_deadline=began+21*3600,gate_deadline=began+3*3600,
+        source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+        implementation_sha256={str(p):sha256(p) for p in list(Path('visuotactile').rglob('*.py'))+list(Path('isaacsimenvs/tasks').rglob('*.py'))},
+        kit_retries_per_stage=2,kit_retries_total=2,maximum_controlled_trajectories=160,
+        motion_checkpoint=str(checkpoint),motion_checkpoint_sha256=expected,
+        motion_specs=specs,motion_validation16=sorted(data['splits']['validation'])[:16],
+        motion_validation40=sorted(data['splits']['validation']),motion_seeds=list(SEEDS),
+        motion_samplers=SAMPLERS,motion_threshold_rms_rad=MOVEMENT_RAD,
+        motion_primary='episode/seed paired moving Arm7 prefix12 RMSE radians; >=3% improvement, Arm/Hand overall <=102% baseline, direction no worse by .02, cycle p95<=.2s',
+        profiles={'single_fit':dict(common,contract=contract(32),updates=3000,optimizer_horizon=3000,
+            train_ids=single,validation_ids=sorted(data['splits']['validation'])[:8],selection_scope='train_fit',
+            initialization=dict(path=str(checkpoint),sha256=expected)),
+            'h24':dict(common,contract=contract(24)),
+            'temporal_h32':dict(common,contract=contract(32),temporal_rule='min(.1,.05*base/temporal), first3 train segments before updates, then frozen')},
+        motion_continuation='single-fit Arm<=.005rad, Hand<=.03rad and moving amplitude .8..1.2 required; E/F max19k each, stages1k3k6k10k19k',
+        test_calls=1,automatic_expansion=False,bc_training_authorized=False,
+        resource_target_percent=50.,runtime_amendments=[],training_runtime_compatibility=[])
+    dependency=inspect.getfile(DDIMScheduler)
+    session['dependency_sha256']={dependency:sha256(dependency)}
+    session['diffusers_version']=diffusers.__version__
+    atomic_json(root/'session.json',session)
+    for name in ('position_audit','freeze'):
+        (root/name).symlink_to(previous/name,target_is_directory=True)
+    # Immutable train320 statistics; do not refit on the one-trajectory subset.
+    (root/'position_train_statistics.pt').symlink_to(previous/'position_train_statistics.pt')
+    preserved={str(previous/p):sha256(previous/p) for p in
+        ('position_h32_train/best.pt','position_train_statistics.pt','position_audit/result.json',
+         'expert_learning/result.json','position_replay/result.json','freeze/benchmark.json')}
+    atomic_json(root/'preserved.json',preserved)
+    # Recreate original shuffled segment sampling exactly, without training.
+    records=torch.load(cache,map_location='cpu',weights_only=False)['records']
+    schedule=[(i,start) for i in training_ids for start in range(0,len(records[i]['time']),96)]
+    generator=torch.Generator().manual_seed(20261102);order=[];cursor=0;counts={k:0 for k in schedule}
+    for _ in range(19000*2):
+        if cursor==len(order):order=torch.randperm(len(schedule),generator=generator).tolist();cursor=0
+        counts[schedule[order[cursor]]]+=1;cursor+=1
+    atomic_json(root/'sampling_audit.json',dict(updates=19000,segments_per_update=2,tbptt_ticks=96,
+        complete_prefix_recomputed=True,shuffle_without_replacement=True,
+        rows=[dict(identity=i,start_tick=start,visits=n,plan_anchors=list(range(start,min(start+96,len(records[i]['time'])),12)))
+              for (i,start),n in counts.items()],policy_unchanged=True))
+    atomic_json(root/'status.json',dict(state='registered',new_updates=0))
+
+
+def motion_sampler_candidates(result, limit=2):
+    """Pre-registered diagnostic shortlist; test results can never enter it."""
+    def metric(name,key):return result['summary'][name][key]['mean']
+    baseline=result['summary']['A0'];eligible=[]
+    for name in result['summary']:
+        if name=='A0':continue
+        latency=result['planning_cycle_latency_s'][name]['p95']
+        if (latency is not None and latency<=.2
+                and metric(name,'moving_arm12_rmse_rad')<=.97*metric('A0','moving_arm12_rmse_rad')
+                and metric(name,'arm12_rmse_rad')<=1.02*metric('A0','arm12_rmse_rad')
+                and metric(name,'hand12_rmse_rad')<=1.02*metric('A0','hand12_rmse_rad')
+                and metric(name,'moving12_direction_cosine')>=metric('A0','moving12_direction_cosine')-.02):
+            eligible.append(name)
+    return sorted(eligible,key=lambda n:metric(n,'moving_arm12_rmse_rad'))[:limit]
+
+
 class Runner(RepairRunner):
     def check(self):
         super().check()
@@ -227,6 +311,10 @@ class Runner(RepairRunner):
             if module == 'visuotactile.state_benchmark' and recover_preaction_start(
                     self.root, name, self.session['deadline']):
                 return self.stage(name, module, extra)
+            if self.session.get('motion_study'):
+                # A worker exit may represent NaN/interface/data failures; only
+                # explicitly classified Kit initialization gets an automatic retry.
+                raise
             if module != 'visuotactile.state_full_training' or (self.root/(name+'_recovery.json')).exists():
                 raise
             return self.stage(name, module, extra)
@@ -248,7 +336,7 @@ class Runner(RepairRunner):
             time.sleep(1)
         raise RuntimeError('Worker resources not released: '+name)
 
-    def evaluate(self, name, mode, checkpoint=None, specs=None, continue_errors=False):
+    def evaluate(self, name, mode, checkpoint=None, specs=None, continue_errors=False, inference=None, takeover_steps=None):
         if specs is None:
             specs = json.loads((self.root/'freeze/benchmark.json').read_text())['specs']
         output = self.root/name; output.mkdir(exist_ok=True)
@@ -257,6 +345,8 @@ class Runner(RepairRunner):
             child = f'{name}_single_{ordinal:02d}'
             job = self.root/(child+'_job.json')
             values = dict(specs=[spec], video=ordinal == 0)
+            if inference is not None: values['inference']=inference
+            if takeover_steps is not None: values['takeover_steps']=takeover_steps
             if checkpoint is not None:
                 values.update(checkpoint=str(checkpoint), checkpoint_sha256=sha256(checkpoint))
             if job.exists() and json.loads(job.read_text()) != values:
@@ -442,6 +532,176 @@ class Runner(RepairRunner):
                     ['--kind','dp','--profile',profile,'--target',str(selection['updates']),'--final-test'])
         atomic_json(self.root/'image_status.json',dict(state='finished',utc=time.time()))
 
+    def motion_analysis(self,name,checkpoint,identities,samplers,split='validation',timing=True,overlap_steps=0):
+        job=self.root/(name+'_job.json')
+        values=dict(checkpoint=str(checkpoint),checkpoint_sha256=sha256(checkpoint),identities=identities,
+            samplers=samplers,seeds=self.session['motion_seeds'],split=split,timing=timing,overlap_steps=overlap_steps)
+        if job.exists() and json.loads(job.read_text())!=values:raise ValueError('Frozen motion job drift')
+        atomic_json(job,values)
+        return self.stage(name,'visuotactile.state_motion',['--job',str(job)])
+
+    def run_motion(self):
+        """Reuse isolated workers, leases, checkpoints and the fixed stage owner."""
+        from .state_motion import SAMPLERS
+        try:
+            (self.root/'STOP_MONITOR').unlink(missing_ok=True)
+            with (self.root/'monitor.log').open('a') as log:
+                self.monitor=subprocess.Popen(['bash','visuotactile/run_cpu.sh','-m','visuotactile.state_resources',
+                    '--root',str(self.root)],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            for path,digest in json.loads((self.root/'preserved.json').read_text()).items():
+                if sha256(path)!=digest:raise ValueError('Protected predecessor changed: '+path)
+            self.stage('motion_smoke',extra=['--mode','smoke'])
+            if not (self.root/'foundation.json').exists():
+                old=Path(self.session['previous_root'])
+                expert=json.loads((old/'expert_learning/result.json').read_text())
+                replay=json.loads((old/'position_replay/result.json').read_text())
+                if not (all(t['success'] and t['legal'] for t in expert['trials'])
+                        and all(t['success'] and all(t['bytewise_fields'].values()) for t in replay['trials'])):
+                    raise ValueError('Preserved control acceptance is invalid')
+                evidence=['motion_smoke/result.json','motion_smoke/closed.json','preserved.json',
+                    'position_audit/result.json','freeze/benchmark.json']
+                atomic_json(self.root/'foundation.json',dict(passed=True,source='previous audited control plus current real one-step smoke',
+                    evidence_sha256={p:sha256(self.root/p) for p in evidence}))
+            checkpoint=Path(self.session['motion_checkpoint'])
+            screen=self.motion_analysis('sampling16',checkpoint,self.session['motion_validation16'],SAMPLERS)
+            shortlist=motion_sampler_candidates(screen)
+            full=self.motion_analysis('sampling40',checkpoint,self.session['motion_validation40'],
+                {n:SAMPLERS[n] for n in ['A0']+shortlist})
+            selected=(motion_sampler_candidates(full,1) or ['A0'])[0]
+            atomic_json(self.root/'sampling_selection.json',dict(selected=selected,shortlist=shortlist,
+                selected_on='validation40 paired moving Arm7 prefix12 + overall errors + direction + p95 latency',test_used=False))
+            specs=self.session['motion_specs'];train=[s for s in specs if s['cohort']=='train'];val=[s for s in specs if s['cohort']=='validation']
+            baseline=dict(SAMPLERS['A0'],overlap_steps=0,sampler_seed=7091)
+            candidate=dict(SAMPLERS[selected],overlap_steps=0,sampler_seed=7091)
+            groups={}
+            groups['Original']=dict(stage='C0',checkpoint=str(checkpoint),inference=baseline,
+                offline_stage='sampling40',offline_name='A0',
+                result=self.evaluate('C0','dp',checkpoint,specs,inference=baseline))
+            if selected!='A0':
+                groups['Sampling adjusted']=dict(stage='C1',checkpoint=str(checkpoint),inference=candidate,
+                    offline_stage='sampling40',offline_name=selected,
+                    result=self.evaluate('C1','dp',checkpoint,specs,inference=candidate))
+                groups['Sampling adjusted']['deployable']=all(t['planning_latency_s']['p95']<=.2
+                    for t in groups['Sampling adjusted']['result']['trials'])
+                if not groups['Sampling adjusted']['deployable']:
+                    candidate=baseline
+                    selected='A0'
+            base_group=groups.get('Sampling adjusted',groups['Original'])
+            if not base_group.get('deployable',True):base_group=groups['Original']
+            # Both teacher forcing and on-policy evidence stay separately reported.
+            teacher=full['summary'][selected]
+            ratios=[t.get('plan_consistency',{}).get('arm_boundary_jump_rms_rad',0)/
+                    max(t.get('plan_consistency',{}).get('arm_internal_jump_rms_rad',0),1e-12)
+                    for t in base_group['result']['trials']]
+            discontinuity=(teacher['arm_boundary_jump_rms_rad']['mean']>
+                1.5*teacher['arm_internal_jump_rms_rad']['mean'] or (ratios and sum(ratios)/len(ratios)>1.5))
+            atomic_json(self.root/'overlap_decision.json',dict(run=bool(discontinuity),
+                threshold='boundary/internal RMS ratio >1.5 in teacher-forced or on-policy condition',on_policy_ratios=ratios))
+            if discontinuity:
+                transition=dict(candidate,overlap_steps=4)
+                groups['Overlap transition']=dict(stage='C2',checkpoint=str(checkpoint),inference=transition,
+                    offline_stage='overlap_offline',offline_name=selected,
+                    result=self.evaluate('C2','dp',checkpoint,specs,inference=transition))
+                self.motion_analysis('overlap_offline',checkpoint,self.session['motion_validation40'],
+                    {selected:SAMPLERS[selected]},overlap_steps=4)
+            def successes(group):
+                return {t['identity'] for t in group['result']['trials'] if t['cohort']=='validation' and t.get('success') and t.get('legal')}
+            stable=False
+            for label,group in list(groups.items()):
+                if not group.get('deployable',True):continue
+                if len(successes(group))>=2:
+                    repeated=self.evaluate(group['stage']+'_repeat','dp',Path(group['checkpoint']),val,
+                        inference=dict(group['inference'],sampler_seed=7092))
+                    repeated_ids={t['identity'] for t in repeated['trials'] if t.get('success') and t.get('legal')}
+                    if len(successes(group)&repeated_ids)>=2:
+                        stable=True
+                        data=json.loads((Path(self.session['source_root'])/'data.json').read_text())
+                        extra=[i for i in sorted(data['splits']['validation']) if i not in {s['identity'] for s in val}][:8]
+                        expanded=[dict(identity=i,cohort='validation',seed=985101+n) for n,i in enumerate(extra)]
+                        self.evaluate(group['stage']+'_expanded','dp',Path(group['checkpoint']),expanded,inference=group['inference'])
+                        atomic_json(self.root/'repeated_success.json',dict(group=label,identities=sorted(successes(group)&repeated_ids),
+                            limitation='Paired observable initial states and isolated RNG; internal PhysX state not claimed exact'))
+                        break
+            if not stable:
+                single=self.session['profiles']['single_fit'];fit=None
+                for update in (1000,3000):
+                    fit=self.stage('single_fit_'+str(update),'visuotactile.state_full_training',
+                        ['--kind','dp','--profile','single_fit','--target',str(update)])
+                    metrics=fit['history'][-1]['train']
+                    fitted=(metrics['arm_rmse']<=.005 and metrics['hand_rmse']<=.03
+                        and .8<=metrics.get('moving12_amplitude_ratio',0)<=1.2)
+                    atomic_json(self.root/'single_fit_gate.json',dict(passed=fitted,updates=update,train=metrics,
+                        thresholds=dict(arm_rmse_rad=.005,hand_rmse_rad=.03,amplitude_ratio=[.8,1.2]),
+                        finite_budget_not_proof_of_architectural_impossibility=True))
+                    if fitted:break
+                if fitted:
+                    single_ckpt=self.root/'single_fit_train'/f'milestone_{update}.pt'
+                    single_spec=[s for s in train if s['identity']==single['train_ids'][0]]
+                    one=self.evaluate('single_fit_loop','dp',single_ckpt,single_spec,inference=baseline)
+                    if not all(t['success'] for t in one['trials']):
+                        for ticks in (12,24):
+                            self.evaluate('single_takeover_'+str(ticks),'dp',single_ckpt,single_spec,
+                                inference=baseline,takeover_steps=ticks)
+                    for profile,label in [('h24','H24'),('temporal_h32','Temporal-loss')]:
+                        directory=self.root/(profile+'_train')
+                        for update in (1000,3000,6000,10000,19000):
+                            result=self.stage(profile+'_'+str(update),'visuotactile.state_full_training',
+                                ['--kind','dp','--profile',profile,'--target',str(update)])
+                            self.evaluate(profile+'_loop_'+str(update),'dp',directory/f'milestone_{update}.pt',
+                                train[:2]+val[:2],inference=baseline)
+                            history=result['history']
+                            if len(history)>=3 and update>=6000:
+                                old=min(r['validation']['moving_arm12_rmse_rad'] for r in history[:-2])
+                                stale=all(r['validation']['moving_arm12_rmse_rad']>=.99*old for r in history[-2:])
+                                overfit=(history[-1]['train']['selection_mse']<.9*history[-3]['train']['selection_mse']
+                                    or history[-1]['validation']['arm_rmse']>1.1*history[-3]['validation']['arm_rmse'])
+                                if stale and overfit:
+                                    atomic_json(self.root/(profile+'_early_stop.json'),dict(updates=update,reason='Two motion plateaus with overfit or action degradation'))
+                                    break
+                        chosen=directory/'best.pt'
+                        self.motion_analysis(profile+'_offline',chosen,self.session['motion_validation40'],{'A0':SAMPLERS['A0']})
+                        groups[label]=dict(stage=profile+'_selected',checkpoint=str(chosen),inference=baseline,
+                            offline_stage=profile+'_offline',offline_name='A0',
+                            result=self.evaluate(profile+'_selected','dp',chosen,specs,inference=baseline))
+                else:
+                    atomic_json(self.root/'training_withheld.json',dict(reason='Single-trajectory fitting did not pass the fixed offline gate within 3000 updates; inspect fit/data before train320 E/F'))
+            atomic_json(self.root/'motion_groups.json',groups)
+            # Complete validation successes first, then the preregistered motion metric.
+            def rank(item):
+                label,g=item
+                if not g.get('deployable',True):return (float('inf'),float('inf'))
+                name=g['offline_name']
+                source=json.loads((self.root/g['offline_stage']/'result.json').read_text())
+                return (-len(successes(g)),source['summary'][name]['moving_arm12_rmse_rad']['mean'])
+            label,chosen=min(groups.items(),key=rank)
+            sampler={k:v for k,v in chosen['inference'].items() if k in ('inference_steps','clip_sample')}
+            selection=dict(group=label,checkpoint=chosen['checkpoint'],checkpoint_sha256=sha256(chosen['checkpoint']),
+                sampler=sampler,inference=chosen['inference'],criterion='complete validation successes first, paired moving arm error second',test_used=False)
+            atomic_json(self.root/'motion_selection.json',selection)
+            data=json.loads((Path(self.session['source_root'])/'data.json').read_text())
+            if label!='Original':
+                self.motion_analysis('final_test',Path(chosen['checkpoint']),sorted(data['splits']['test']),{'selected':sampler},
+                    split='test',timing=False,overlap_steps=chosen['inference']['overlap_steps'])
+            else:
+                atomic_json(self.root/'test_reused.json',dict(reason='Original configuration already has frozen predecessor test40; no redundant test call',
+                    source=str(Path(self.session['previous_root'])/'position_h32_offline_test/result.json')))
+            atomic_json(self.root/'status.json',dict(state='motion_study_finished',utc=time.time(),
+                selected=label,repeated_complete_success=stable,training_groups_run=[k for k in groups if k in ('H24','Temporal-loss')]))
+        except BaseException as error:
+            import traceback
+            atomic_json(self.root/'blocked.json',dict(reason=repr(error),utc=time.time(),traceback=traceback.format_exc()))
+            atomic_json(self.root/'status.json',dict(state='blocked',reason=repr(error),utc=time.time()))
+        finally:
+            if self.worker is not None and self.worker.poll() is None:
+                os.killpg(self.worker.pid,signal.SIGTERM)
+                try:self.worker.wait(timeout=45)
+                except subprocess.TimeoutExpired:os.killpg(self.worker.pid,signal.SIGKILL);self.worker.wait()
+            if self.monitor is not None:
+                (self.root/'STOP_MONITOR').touch();self.monitor.wait(timeout=20)
+            atomic_json(self.root/'owner_exit.json',dict(utc=time.time(),owned_children_exited=True))
+            subprocess.run(['bash','visuotactile/run_cpu.sh','-m','visuotactile.state_motion',
+                '--root',str(self.root),'--output',str(self.root/'report'),'--report'],check=False)
+
     def run_position(self, gates_only=False):
         try:
             (self.root/'STOP_MONITOR').unlink(missing_ok=True)
@@ -555,10 +815,12 @@ class Runner(RepairRunner):
 
 
 if __name__ == '__main__':
-    p = argparse.ArgumentParser(); p.add_argument('command', choices=['initialize', 'run','position-init','position-gates'])
+    p = argparse.ArgumentParser(); p.add_argument('command', choices=['initialize', 'run','position-init','position-gates','motion-init'])
     p.add_argument('--root', type=Path, required=True); p.add_argument('--preflight', type=Path)
     a = p.parse_args()
-    if a.command == 'position-init':
+    if a.command == 'motion-init':
+        initialize_motion(a.root.resolve())
+    elif a.command == 'position-init':
         initialize_position(a.root.resolve())
     elif a.command == 'initialize':
         initialize(a.root.resolve(), a.preflight.resolve())
@@ -566,5 +828,6 @@ if __name__ == '__main__':
         with (a.root/'owner.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
             runner=Runner(a.root.resolve())
-            if runner.session.get('position_study'):runner.run_position(gates_only=a.command=='position-gates')
+            if runner.session.get('motion_study'):runner.run_motion()
+            elif runner.session.get('position_study'):runner.run_position(gates_only=a.command=='position-gates')
             else:runner.run()

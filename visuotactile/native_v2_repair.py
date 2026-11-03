@@ -113,6 +113,8 @@ class RepairRunner:
         result = json.loads((output/'result.json').read_text())
         if result.get('software_complete') is not True:
             raise RuntimeError(name+' incomplete software stage')
+        if module=='visuotactile.state_benchmark' and self.session.get('position_study'):
+            self.verify_worker_exit(name)
         atomic_json(marker, dict(sha256=sha256(output/'result.json'), utc=time.time()))
         return result
 
