@@ -1,8 +1,8 @@
 {
   "status": {
     "state": "blocked",
-    "reason": "RuntimeError('single_takeover_24_single_00 failed: exit=-6')",
-    "utc": 1793686577.2915425
+    "reason": "RuntimeError('h24_loop_3000_single_01 failed: exit=-6')",
+    "utc": 1793687986.8806925
   },
   "run_root": "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
   "source_commit": "14ecedf0d989182e175d2b6bff8206012928de5d",
@@ -2005,7 +2005,115 @@
       "checkpoint_sha256": "5ecc930ffd52af166e00904b0515159193d8527d9f5726908bf57967c445a416"
     },
     "H24": {
-      "status": "not run"
+      "status": "training_partial_evaluation_incomplete",
+      "updates": 3000,
+      "selected_cohort": "not started",
+      "milestone_cohorts": {
+        "1000": {
+          "registered": 4,
+          "completed": 4,
+          "successes": 0,
+          "software_missing": 0,
+          "not_started": 0,
+          "trials": [
+            {
+              "identity": "r931005_1793209376_e00_p000000",
+              "cohort": "train",
+              "seed": 982401,
+              "success": false,
+              "steps": 601,
+              "native_lift": false,
+              "native_subgoals": 0,
+              "reasons": {
+                "fall": false,
+                "max_successes": false,
+                "hand_far": false,
+                "dropped": false,
+                "timeout": true
+              },
+              "checkpoint_sha256": "57d6291db50f6d344c71847a9913909d256b6fd97c9a5289d93ecb1652e0a4c5"
+            },
+            {
+              "identity": "r931005_1793209376_e03_p000159",
+              "cohort": "train",
+              "seed": 982402,
+              "success": false,
+              "steps": 601,
+              "native_lift": false,
+              "native_subgoals": 0,
+              "reasons": {
+                "fall": false,
+                "max_successes": false,
+                "hand_far": false,
+                "dropped": false,
+                "timeout": true
+              },
+              "checkpoint_sha256": "57d6291db50f6d344c71847a9913909d256b6fd97c9a5289d93ecb1652e0a4c5"
+            },
+            {
+              "identity": "r931005_1793209376_e00_p000055",
+              "cohort": "validation",
+              "seed": 984101,
+              "success": false,
+              "steps": 601,
+              "native_lift": false,
+              "native_subgoals": 0,
+              "reasons": {
+                "fall": false,
+                "max_successes": false,
+                "hand_far": false,
+                "dropped": false,
+                "timeout": true
+              },
+              "checkpoint_sha256": "57d6291db50f6d344c71847a9913909d256b6fd97c9a5289d93ecb1652e0a4c5"
+            },
+            {
+              "identity": "r931005_1793209376_e00_p000057",
+              "cohort": "validation",
+              "seed": 984102,
+              "success": false,
+              "steps": 601,
+              "native_lift": false,
+              "native_subgoals": 0,
+              "reasons": {
+                "fall": false,
+                "max_successes": false,
+                "hand_far": false,
+                "dropped": false,
+                "timeout": true
+              },
+              "checkpoint_sha256": "57d6291db50f6d344c71847a9913909d256b6fd97c9a5289d93ecb1652e0a4c5"
+            }
+          ]
+        },
+        "3000": {
+          "registered": 4,
+          "completed": 1,
+          "successes": 0,
+          "software_missing": 1,
+          "not_started": 2,
+          "trials": [
+            {
+              "identity": "r931005_1793209376_e00_p000000",
+              "cohort": "train",
+              "seed": 982401,
+              "success": false,
+              "steps": 364,
+              "native_lift": true,
+              "native_subgoals": 0,
+              "reasons": {
+                "fall": true,
+                "max_successes": false,
+                "hand_far": false,
+                "dropped": false,
+                "timeout": false
+              },
+              "checkpoint_sha256": "70783fcf67344f91a68ff9dec66e42bb0125b87e8dca5192c827c49dd29b25c0"
+            }
+          ]
+        }
+      },
+      "review": "h24_partial_review.json"
     },
     "Temporal-loss": {
       "status": "not run"
@@ -20026,6 +20134,21 @@
       "--job",
       "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/C2_single_02_job.json"
     ],
+    "h24_loop_1000_single_03_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "tools.state_motion_recovery",
+      "benchmark",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_03",
+      "--mode",
+      "dp",
+      "--job",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_03_job.json"
+    ],
     "motion_smoke_launch.json": [
       "bash",
       "visuotactile/run_cpu.sh",
@@ -20078,6 +20201,21 @@
       "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/sampling16",
       "--job",
       "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/sampling16_job.json"
+    ],
+    "h24_loop_3000_single_01_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "tools.state_motion_recovery",
+      "benchmark",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_3000_single_01",
+      "--mode",
+      "dp",
+      "--job",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_3000_single_01_job.json"
     ],
     "C0_single_10_launch.json": [
       "bash",
@@ -20165,6 +20303,22 @@
       "--target",
       "1000"
     ],
+    "h24_3000_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "visuotactile.state_full_training",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_3000",
+      "--kind",
+      "dp",
+      "--profile",
+      "h24",
+      "--target",
+      "3000"
+    ],
     "C2_single_09_launch.json": [
       "bash",
       "visuotactile/run_cpu.sh",
@@ -20248,6 +20402,21 @@
       "dp",
       "--job",
       "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/C2_single_11_job.json"
+    ],
+    "h24_loop_1000_single_02_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "tools.state_motion_recovery",
+      "benchmark",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_02",
+      "--mode",
+      "dp",
+      "--job",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_02_job.json"
     ],
     "C2_single_08_launch.json": [
       "bash",
@@ -20387,6 +20556,21 @@
       "--job",
       "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/C0_single_11_job.json"
     ],
+    "h24_loop_3000_single_00_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "tools.state_motion_recovery",
+      "benchmark",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_3000_single_00",
+      "--mode",
+      "dp",
+      "--job",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_3000_single_00_job.json"
+    ],
     "C0_single_06_launch.json": [
       "bash",
       "visuotactile/run_cpu.sh",
@@ -20428,6 +20612,52 @@
       "dp",
       "--job",
       "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/C2_single_06_job.json"
+    ],
+    "h24_1000_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "visuotactile.state_full_training",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_1000",
+      "--kind",
+      "dp",
+      "--profile",
+      "h24",
+      "--target",
+      "1000"
+    ],
+    "h24_loop_1000_single_00_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "tools.state_motion_recovery",
+      "benchmark",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_00",
+      "--mode",
+      "dp",
+      "--job",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_00_job.json"
+    ],
+    "h24_loop_1000_single_01_launch.json": [
+      "bash",
+      "visuotactile/run_cpu.sh",
+      "-m",
+      "tools.state_motion_recovery",
+      "benchmark",
+      "--root",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+      "--output",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_01",
+      "--mode",
+      "dp",
+      "--job",
+      "outputs/visuotactile/native_dp_v2/state_motion_20261103_01/h24_loop_1000_single_01_job.json"
     ],
     "sampling40_launch.json": [
       "bash",
@@ -20484,6 +20714,64 @@
           "moving_arm12_rmse_rad": 0.057673503179103136,
           "moving12_amplitude_ratio": 2.501450836658478,
           "moving12_direction_cosine": 0.23901989683508873
+        }
+      }
+    ],
+    "h24": [
+      {
+        "update": 1000,
+        "train": {
+          "arm_rmse": 0.038624539971351624,
+          "hand_rmse": 0.14806115627288818,
+          "loss": 0.02358625316992402,
+          "hold_arm_rmse": 0.015709953382611275,
+          "hold_hand_rmse": 0.20148473978042603,
+          "selection_mse": 0.01170697994530201,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.037537154159508646,
+          "moving12_amplitude_ratio": 1.5899505093693733,
+          "moving12_direction_cosine": 0.48583611100912094
+        },
+        "train_metric_scope": "fixed first16 train (pilot4)",
+        "validation": {
+          "arm_rmse": 0.04331231117248535,
+          "hand_rmse": 0.16036103665828705,
+          "loss": 0.025570429931394755,
+          "hold_arm_rmse": 0.015537548810243607,
+          "hold_hand_rmse": 0.19648206233978271,
+          "selection_mse": 0.01379580982029438,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.04159458000212908,
+          "moving12_amplitude_ratio": 1.6971681773662568,
+          "moving12_direction_cosine": 0.40003136117011306
+        }
+      },
+      {
+        "update": 3000,
+        "train": {
+          "arm_rmse": 0.022400224581360817,
+          "hand_rmse": 0.10598637908697128,
+          "loss": 0.00926018157042563,
+          "hold_arm_rmse": 0.015709953382611275,
+          "hold_hand_rmse": 0.20148473978042603,
+          "selection_mse": 0.005867441184818745,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.021873402409255505,
+          "moving12_amplitude_ratio": 1.2039722986519337,
+          "moving12_direction_cosine": 0.6705440618097782
+        },
+        "train_metric_scope": "fixed first16 train (pilot4)",
+        "validation": {
+          "arm_rmse": 0.028268540278077126,
+          "hand_rmse": 0.12911707162857056,
+          "loss": 0.012003881472628564,
+          "hold_arm_rmse": 0.015537548810243607,
+          "hold_hand_rmse": 0.19648206233978271,
+          "selection_mse": 0.008735164068639278,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.027064304891973735,
+          "moving12_amplitude_ratio": 1.3257555648684503,
+          "moving12_direction_cosine": 0.5569232344627381
         }
       }
     ]
@@ -32081,37 +32369,37 @@
     "policy_unchanged": true
   },
   "blocked": {
-    "reason": "RuntimeError('single_takeover_24_single_00 failed: exit=-6')",
-    "utc": 1793686577.290514,
-    "traceback": "Traceback (most recent call last):\n  File \"./visuotactile/state_full_run.py\", line 643, in run_motion\n    self.evaluate('single_takeover_'+str(ticks),'dp',single_ckpt,single_spec,\n  File \"./tools/state_motion_recovery.py\", line 123, in evaluate\n    return super().evaluate(name, mode, checkpoint, specs, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"./visuotactile/state_full_run.py\", line 360, in evaluate\n    result = self.stage(child, extra=['--mode', mode, '--job', str(job)])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"./tools/state_motion_recovery.py\", line 181, in stage\n    raise RuntimeError(f'{name} failed: exit={code}')\nRuntimeError: single_takeover_24_single_00 failed: exit=-6\n"
+    "reason": "RuntimeError('h24_loop_3000_single_01 failed: exit=-6')",
+    "utc": 1793687986.879827,
+    "traceback": "Traceback (most recent call last):\n  File \"./visuotactile/state_full_run.py\", line 650, in run_motion\n    self.evaluate(profile+'_loop_'+str(update),'dp',directory/f'milestone_{update}.pt',\n  File \"./tools/state_motion_recovery.py\", line 125, in evaluate\n    return super().evaluate(name, mode, checkpoint, specs, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"./visuotactile/state_full_run.py\", line 360, in evaluate\n    result = self.stage(child, extra=['--mode', mode, '--job', str(job)])\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"./tools/state_motion_recovery.py\", line 216, in stage\n    raise RuntimeError(f'{name} failed: exit={code}')\nRuntimeError: h24_loop_3000_single_01 failed: exit=-6\n"
   },
   "monitor_exit": {
-    "pid": 2088308,
-    "ended": 1793686578.257025,
+    "pid": 2093930,
+    "ended": 1793687987.529875,
     "summary": {
-      "pid": 2088308,
+      "pid": 2093930,
       "latest": {
-        "pid": 2088308,
-        "utc_epoch": 1793686578.2566466,
-        "elapsed_s": 18252.640090425266,
-        "gpu_util_percent": 4.0,
-        "gpu_used_mib": 491.0,
-        "gpu_free_mib": 23593.0,
-        "ram_available_bytes": 35347283968,
-        "process_rss_bytes": 14815232,
+        "pid": 2093930,
+        "utc_epoch": 1793687987.529397,
+        "elapsed_s": 19661.912841539248,
+        "gpu_util_percent": 2.0,
+        "gpu_used_mib": 8074.0,
+        "gpu_free_mib": 16010.0,
+        "ram_available_bytes": 33954013184,
+        "process_rss_bytes": 14147584,
         "cuda_allocated_bytes": null,
         "cuda_reserved_bytes": null,
-        "rolling_60s_percent": 28.00103522798939
+        "rolling_60s_percent": 37.938881699628354
       },
-      "samples": 17843,
-      "gpu_time_weighted_mean_percent": 25.60088147019098,
+      "samples": 18897,
+      "gpu_time_weighted_mean_percent": 26.58209084262197,
       "max_complete_60s_mean_percent": 67.23102527071218,
       "missing_samples": 0,
-      "missing_seconds": 408.18262509536,
+      "missing_seconds": 764.1132959764218,
       "max_sample_gap_s": 408.18262509536,
       "wait_seconds": 0.0,
       "peak_gpu_used_mib": 21061.0,
-      "peak_process_rss_bytes": 14815232,
+      "peak_process_rss_bytes": 14958592,
       "min_ram_available_bytes": 19392339968,
       "thresholds": {
         "gpu_free_mib": 6144,
@@ -32123,29 +32411,29 @@
     }
   },
   "resources": {
-    "pid": 2088308,
+    "pid": 2093930,
     "latest": {
-      "pid": 2088308,
-      "utc_epoch": 1793686578.2566466,
-      "elapsed_s": 18252.640090425266,
-      "gpu_util_percent": 4.0,
-      "gpu_used_mib": 491.0,
-      "gpu_free_mib": 23593.0,
-      "ram_available_bytes": 35347283968,
-      "process_rss_bytes": 14815232,
+      "pid": 2093930,
+      "utc_epoch": 1793687987.529397,
+      "elapsed_s": 19661.912841539248,
+      "gpu_util_percent": 2.0,
+      "gpu_used_mib": 8074.0,
+      "gpu_free_mib": 16010.0,
+      "ram_available_bytes": 33954013184,
+      "process_rss_bytes": 14147584,
       "cuda_allocated_bytes": null,
       "cuda_reserved_bytes": null,
-      "rolling_60s_percent": 28.00103522798939
+      "rolling_60s_percent": 37.938881699628354
     },
-    "samples": 17843,
-    "gpu_time_weighted_mean_percent": 25.60088147019098,
+    "samples": 18897,
+    "gpu_time_weighted_mean_percent": 26.58209084262197,
     "max_complete_60s_mean_percent": 67.23102527071218,
     "missing_samples": 0,
-    "missing_seconds": 408.18262509536,
+    "missing_seconds": 764.1132959764218,
     "max_sample_gap_s": 408.18262509536,
     "wait_seconds": 0.0,
     "peak_gpu_used_mib": 21061.0,
-    "peak_process_rss_bytes": 14815232,
+    "peak_process_rss_bytes": 14958592,
     "min_ram_available_bytes": 19392339968,
     "thresholds": {
       "gpu_free_mib": 6144,

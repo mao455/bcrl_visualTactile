@@ -3,7 +3,7 @@
 <!-- state-motion-20261103:start -->
 ## StateDP运动根因对照：自动汇总，待人工审查
 
-14:16 UTC+8退出快照：`blocked`；后续恢复启动见下节。结果按原分母保留；not run不补造结果。
+17:29 UTC+8人工复核：`blocked`，服务已于14:39:53退出。结果按原分母保留；not run不补造结果。
 [小型证据、实际命令、曲线与checkpoint身份](evidence/state_motion_20261103/summary.json)。
 
 |模型|H/A|完成状态|train成功|validation成功|
@@ -11,12 +11,55 @@
 |Original|32/12|complete|0/4（完成4）|0/8（完成8）|
 |Sampling adjusted|32/12|not run|not run|not run|
 |Overlap transition|32/12|complete|0/4（完成4）|0/8（完成8）|
-|H24|24/12|not run|not run|not run|
+|H24|24/12|训练3000；阶段评估不完整，最终选型未运行|1k:0/2；3k:0/1完成，另1缺失|1k:0/2；3k:2条未开始|
 |Temporal-loss|32/12|not run|not run|not run|
 
 原400无物体专属接触：离线接触前用指尖力代理；闭环用物体过滤力。
 相同可观测初态和环境随机流不代表完整PhysX内部状态逐位一致。离线误差不等于任务成功。
 <!-- state-motion-20261103:end -->
+
+## 2026-11-03 17:29 UTC+8：H24已训练3000，评估启动故障使服务退出
+
+不是仍停在250updates。后台继续完成H24的1000和3000阶段，所有320个训练episode已访问，
+验证40条；随后在`h24_loop_3000_single_01`启动时，Omniverse
+`provider_file::FileThread`抛system_error并SIGABRT，父进程回收exit−6。
+该目录只有3个runtime/lifecycle文件、状态launching，没有scene/trajectory/动作。
+owner和monitor于14:39:47退出，service于14:39:53结束，当前inactive。
+之前的两次启动重试额度已耗尽，故按已登记“新仿真故障仍停止”处理；本次只读复核，
+没有追加重试、optimizer更新、Kit启动、test推理或deadline重置。
+
+|H24 updates|val40 Arm RMSE(rad)|val40 Hand RMSE(rad)|运动prefix12 Arm RMSE(rad)|实际闭环|
+|---|---:|---:|---:|---|
+|1000|.043312|.160361|.041595|0/4，train2/val2，全部601tick timeout，无lift/首子目标|
+|3000|.028269|.129117|.027064|仅完成train第一条0/1，lift后364tick fall，无首子目标；第2条软件缺失，2条val未开始|
+
+Arm验证误差较1k降低34.73%，但**没有完整任务成功，也没有足够证据认定H24优于H32**。
+历史H32同3000更新的Arm/Hand为.030114/.146135rad，不过原总horizon误差包含不同的未来长度；
+严格的同prefix运动/闭环比较尚未完成，不能仅据该表宣称控制变量收益。
+H24 6000阶段、temporal及FK训练未开始；最终selected队列和新test均未执行。
+两条接管诊断仍missing，之前的最终选型/test封锁保留。
+
+复用已验证原URDF/link7 FK，只计算现有5条完成轨迹，实际q对实际专家q，不与target FK混用。
+按专家物体过滤接触>0.1N之前统计、匹配可观测初态，不宣称PhysX内部状态逐位相同：
+
+|完成cohort|接触前tick|Student末端RMSE(mm)|Hold末端RMSE(mm)|Student姿态RMS(degree)|Hold姿态RMS(degree)|
+|---|---:|---:|---:|---:|---:|
+|H24 1k，4条|222|36.75|96.60|9.77|14.86|
+|H24 3k，仅1条|51|37.85|46.05|5.54|13.50|
+
+两个cohort不同，不能从36.75→37.85判定训练趋势。Hold为固定初始q的反事实几何基线，
+没有执行Hold rollout或赋予成功率。逐关节/XYZ、姿态、专家方向投影、接触前后指标在
+[部分结果核验](evidence/state_motion_20261103/h24_partial_review.json)；
+[逐tick末端误差与物体/初始目标距离](evidence/state_motion_20261103/h24_partial_fk_curves.csv)。
+初始goal距离不追踪后续子目标重采样。图使用同一个首条train ID已有轨迹，非完整配对成功率证据。
+
+![H24已有闭环轨迹的末端误差与物体距离](evidence/state_motion_20261103/h24_partial_fk.png)
+
+171冻结源码、37committed结果hash、4个H24checkpoint以及旧保护产物核验通过，
+42个已登记自有PID均不在/proc及GPU进程表中。最新资源汇总整卡均值26.58%，
+最大完整60秒67.23%，累计监测间隔764.11秒；不宣称全程无缺口或资源硬隔离。
+更新现有曲线和报告；原outputs/权重/数据/失败attempt不改，34项测试仍指上次实现验证。
+
 
 ## 2026-11-03 记录器/异常退出恢复：冻结训练保持原身份
 
@@ -73,7 +116,7 @@ prefix12幅值比.997913、方向cosine.999839；原train1拟合成功不等于v
 公开JSON仅清除本机绝对路径、CSV仅统一LF，原outputs不动。
 单轨迹训练只有一个记录milestone，训练图加可见点标记，不伪造下降曲线。
 
-![单轨迹实测训练/验证点](evidence/state_motion_20261103/training_curves.png)
+![单轨迹及H24已记录训练/验证点，后续复核更新](evidence/state_motion_20261103/training_curves.png)
 ![C0接触前实际Arm与link7运动](evidence/state_motion_20261103/C0_closed_loop.png)
 ![原采样对照的运动曲线](evidence/state_motion_20261103/sampling16_motion_curves.png)
 

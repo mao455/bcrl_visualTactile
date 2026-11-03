@@ -1,5 +1,17 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03 17:29 UTC+8复核：H24到3000，服务已停止
+
+recovery2于14:39:53退出。H24完成1000/3000updates、覆盖320训练轨迹，val40 Arm
+.043312→.028269rad、Hand .160361→.129117rad。1k闭环0/4全部601timeout；3k
+第一条0/1、lift后364tick fall；第二条scene前FileThread SIGABRT(exit−6)，另外两条未启动。
+不把缺失/未启动计作失败；2次启动重试此前耗尽，此次不增加重试或重置原deadline。
+H24 6k、temporal、FK训练、最终选型和新test均未开始。当前没有本轮自有训练/Kit/monitor。
+只读核验171冻结源码、37committed结果、4H24checkpoint、42历史自有PID均已退出。
+新5条已有trace末端误差：1k四条接触前RMSE36.75mm，3k一条37.85mm；不能跨cohort认定改善。
+已更新现有State报告及h24_partial_review/FK曲线；原数据、权重、失败文件和运行源码未改。
+34测试为上次实现验证，本次报告复核不重跑。读取本节，不再用下方运行快照推断存活。
+
 ## 2026-11-03 记录器与异常退出恢复
 
 原single_takeover_12在位置→native字段切换tick12报KeyError，随后Kit closing挂住。

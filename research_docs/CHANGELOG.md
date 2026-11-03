@@ -1,5 +1,17 @@
 # Engineering change and verification log
 
+## 2026-11-03 — H24到3000的只读状态、退出和空间误差复核
+
+- recovery2于14:39:53UTC+8停止：H24 3k第二条评估scene前FileThread SIGABRT，exit−6。
+  原重试2/2耗尽，没有重启、改deadline、训练源码或新增Kit/test；保留missing和未开始条目。
+- 实际1000/3000updates覆盖train320；val40 Arm .043312→.028269rad。1k闭环0/4；
+  3k仅0/1完成(lift/fall364)、1软件缺失、2未开始；无完整任务成功。temporal/FK未开始。
+- 171冻结源码/37stage/4H24checkpoint hashes、42历史自有PID释放核验通过。
+  复用tools/state_fk_audit的已验证FK/error函数分析5条已有trace，接触前末端36.75/37.85mm，
+  cohort不同不可当趋势；CSV保留位置/姿态误差和物体/初始目标距离，报告分开实际q与target。
+- 修正自动汇总把未启动最终selected误写成H24未训练的呈现；更新原State报告/交接/小证据/曲线。
+  公开JSON路径去标识、CSV仅LF换行、单milestone图保留点标记；原outputs不改，无源码变更/重跑测试。
+
 ## 2026-11-03 — 继续未完成StateDP：记录器schema与异常关闭恢复
 
 - 原12tick学生→专家切换出现post-action HDF5 KeyError，worker_error落盘后Kit关闭阻塞。

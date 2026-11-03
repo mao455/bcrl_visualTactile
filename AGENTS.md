@@ -1,5 +1,19 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest review — 2026-11-03 H24 partial, evaluation startup blocked
+
+Read STATE_TRAINING_RESULTS and h24_partial_review.json. Recovery2 exited14:39:53
+UTC+8 after h24_loop_3000_single_01 pre-scene FileThread SIGABRT, exit-6; no action.
+H24 completed1000/3000 updates, all320train IDs. 1k diagnostics0/4 alltimeouts;
+3k one completed0/1, lift then fall364, second missing and two unstarted. No final
+H24 cohort,6k,temporal,FK training or new test. Original2startup retries exhausted;
+do not reset deadline or automatically relaunch this unresolved stage.
+Read-only review171frozen sources/37committed hashes/4H24checkpoint hashes and42owned
+PIDs absent from proc/GPU passed. Existing five traces FK precontact36.75mm at1k
+(4trials),37.85mm at3k(1trial); different cohorts, no improvement comparison.
+34tests are previous implementation evidence, not newly rerun. Latest state is
+blocked/inactive; the14:23 running snapshot below is historical.
+
 ## Latest recovery — 2026-11-03 recorder error and failed Kit shutdown
 
 User asks to continue after the stalled evaluation. No trainer was active.

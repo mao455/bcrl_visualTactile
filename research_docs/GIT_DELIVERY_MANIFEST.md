@@ -1,5 +1,13 @@
 # Git delivery manifest
 
+## 2026-11-03 H24部分结果复核
+
+在9a503ad之后核验：H24完成3000updates，1k闭环0/4，3k一条完成0/1、第二条启动故障、
+两条未开始，recovery2已退出。交付现有报告/交接与h24_partial_review.json、5条已有轨迹
+FK小CSV/PNG及自动生成的训练/资源曲线，修正H24“not run”与实际部分训练的区别。
+所有计算只读CPU，171冻结源码和checkpoint不改；无新增训练、Kit或test。
+公开summary去除本机绝对路径，原CSV换行恢复LF，原运行产物保持原样。
+
 ## 2026-11-03 StateDP恢复与已有运动证据
 
 当前feature/native-dp-training-v2基准739ad84。新增tools/state_motion_recovery.py和
