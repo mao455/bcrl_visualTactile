@@ -1,0 +1,200 @@
+{
+  "run_id": "state_image_20261104_01",
+  "state": "blocked",
+  "base_commit": "2dc8b58533bba24be5e8f1905279f9fa3372669b",
+  "kit_starts": 0,
+  "new_optimizer_updates": 0,
+  "supervised_updates": 0,
+  "coordinator_installed": false,
+  "training_implementation_ready": false,
+  "tests": {
+    "command": "OMP_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 .venv_isaacsim/bin/python -m pytest -q tests/test_kit_resource_preflight.py",
+    "passed": 5
+  },
+  "preflights": [
+    {
+      "name": "01_before.json",
+      "utc": 1793730277.7959604,
+      "state": "blocked",
+      "limits": {
+        "max_user_watches": 524288,
+        "max_user_instances": 4096,
+        "max_queued_events": 65536
+      },
+      "watch_fd_references": 524190,
+      "instance_fd_references": 86,
+      "unreadable_pid_count": 3,
+      "counting": "FD-reference upper bound among readable same-UID processes; inherited/shared descriptions may duplicate, denied PIDs may hide usage",
+      "top_watchers": [
+        {
+          "pid": 2539563,
+          "comm": "code",
+          "watch_references": 489435,
+          "fd_references": 3,
+          "fds": 50,
+          "threads": 22,
+          "rss_kib": 8669316
+        },
+        {
+          "pid": 2305957,
+          "comm": "code",
+          "watch_references": 34332,
+          "fd_references": 3,
+          "fds": 50,
+          "threads": 23,
+          "rss_kib": 187060
+        }
+      ],
+      "probe": {
+        "requested": 256,
+        "allocated": 0,
+        "errno": 28,
+        "error": "No space left on device",
+        "cleanup_complete": true,
+        "phase": "inotify_add_watch"
+      },
+      "rlimit_nofile": [
+        1048576,
+        1048576
+      ],
+      "rlimit_nproc": [
+        254785,
+        254785
+      ],
+      "available_ram_bytes": 25881845760,
+      "free_disk_bytes": 445004447744,
+      "reasons": [
+        "inotify_watch_headroom_below_20_percent",
+        "bounded_inotify_allocation_failed"
+      ],
+      "original_file_sha256": "aac58b6c2cc6d8b63c3525ba32406ac23de8478fd45ade7981180e8e222728fc"
+    },
+    {
+      "name": "02_project_exclusions.json",
+      "utc": 1793730355.4533944,
+      "state": "blocked",
+      "limits": {
+        "max_user_watches": 524288,
+        "max_user_instances": 4096,
+        "max_queued_events": 65536
+      },
+      "watch_fd_references": 524190,
+      "instance_fd_references": 86,
+      "unreadable_pid_count": 3,
+      "counting": "FD-reference upper bound among readable same-UID processes; inherited/shared descriptions may duplicate, denied PIDs may hide usage",
+      "top_watchers": [
+        {
+          "pid": 2539563,
+          "comm": "code",
+          "watch_references": 489436,
+          "fd_references": 3,
+          "fds": 50,
+          "threads": 22,
+          "rss_kib": 8670616
+        },
+        {
+          "pid": 2305957,
+          "comm": "code",
+          "watch_references": 34331,
+          "fd_references": 3,
+          "fds": 50,
+          "threads": 23,
+          "rss_kib": 187604
+        }
+      ],
+      "probe": {
+        "requested": 256,
+        "allocated": 0,
+        "errno": 28,
+        "error": "No space left on device",
+        "cleanup_complete": true,
+        "phase": "inotify_add_watch"
+      },
+      "rlimit_nofile": [
+        1048576,
+        1048576
+      ],
+      "rlimit_nproc": [
+        254785,
+        254785
+      ],
+      "available_ram_bytes": 25921794048,
+      "free_disk_bytes": 445002625024,
+      "reasons": [
+        "inotify_watch_headroom_below_20_percent",
+        "bounded_inotify_allocation_failed"
+      ],
+      "original_file_sha256": "e15bd4b077c4ebf7b27cf6349511189cca9fe8ea32d3261dd8ca0b8a89fa69d0"
+    }
+  ],
+  "protected_checkpoints": {
+    "utc": 1793730354.8540258,
+    "checkpoints": {
+      "sample/milestone_8000.pt": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_resume/h24_train/milestone_8000.pt",
+        "sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "bytes": 1153477633,
+        "configuration_sha256": "672cb32659e7ab60e43b31b817b5ea8b93aff04ce702c4bb9d8dad6769d95157",
+        "observed_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "verified": true
+      },
+      "sample/milestone_10000.pt": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_resume/h24_train/milestone_10000.pt",
+        "sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "bytes": 1153579343,
+        "configuration_sha256": "672cb32659e7ab60e43b31b817b5ea8b93aff04ce702c4bb9d8dad6769d95157",
+        "observed_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "verified": true
+      },
+      "epsilon/milestone_3000.pt": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/h24_epsilon_train/milestone_3000.pt",
+        "sha256": "48236f836b23e74ccbc4f078f8806089f8f08bd71fc70c2184ec4f9cb704e44e",
+        "bytes": 1153275969,
+        "configuration_sha256": "ecfafc517e0ad9fdb24922b67c6bc241cad651f5accafacd953917068aa5d20f",
+        "observed_sha256": "48236f836b23e74ccbc4f078f8806089f8f08bd71fc70c2184ec4f9cb704e44e",
+        "verified": true
+      }
+    },
+    "all_verified": true
+  },
+  "editor_local_changes": {
+    "utc": 1793730318.371192,
+    "changes": [
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/.vscode/settings.json",
+        "existed": true,
+        "before_sha256": "7542206c5e8e0f84b2f36b4030807d2496b54d1cb2d0f81fafbf7d423ce47832",
+        "after_sha256": "a8d55fb312cafbf23edd9918e13f1836bbcb138cb7e1650d8bb5db0140154c63",
+        "scope": "only this repository worktree editor; no parent/other-project changes"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/.vscode/settings.json",
+        "existed": false,
+        "before_sha256": null,
+        "after_sha256": "b78e6a8d8e7b4c21c3510f96f4b324bf8e7ad14a0cbe15fa100617e292094faf",
+        "scope": "only this repository worktree editor; no parent/other-project changes"
+      }
+    ]
+  },
+  "external_editor_proposal": {
+    "state": "awaiting_user_scope_confirmation",
+    "file": "/home/CNS2025331827/docs/.vscode/settings.json",
+    "merge": {
+      "files.watcherExclude": {
+        "**/IsaacLab_DexAssemble-sharpa/deliverables": true,
+        "**/IsaacLab_DexAssemble-sharpa/deliverables/**": true
+      }
+    },
+    "affects": "Editor recursive notification subscription only; no files removed and no process signals",
+    "evidence": {
+      "watcher_pid": 2539563,
+      "matched_deliverables_directories": 254736,
+      "matched_other_project_outputs_directories": 15727
+    },
+    "no_global_sysctl": true
+  },
+  "public_source_sha256": {
+    "tools/kit_resource_preflight.py": "bfb1d493e074e6a7203535e4b1bf6aac50685c3da854e0eda1ce1a421cc66801",
+    "tests/test_kit_resource_preflight.py": "ef1b7be24bb869727860c2ee315645dab6521fc30c118dacec5e7306e551cd50"
+  }
+}

@@ -1,5 +1,16 @@
 # Kit生命周期与有界恢复
 
+## 2026-11-04 新 State/Image 队列：资源预检明确失败
+
+两次实际inotify探针均在第一个目录返回ENOSPC（0/256）；可读取同UID watch FD引用
+524190/524288，不能因少量未占用的估计值就认为有真实余量。实例FD引用86/4096。
+主要是其他VSCode父docs工作区的递归监视，本项目排除修改后仍失败。
+新工具kit_resource_preflight记录FD/线程/RSS/权限缺口、实际分配和清理；5项CPU测试通过。
+没有启动Kit（预算0/5）或训练；没有改全局限制、共享SDK或其他进程。
+待跨工作区排除确认和资源释放后，还须>=3连续独立完整专家/学生episode及退出验证。
+当前证明inotify耗尽，未证明所有历史FileThread崩溃的唯一原因。
+见[新队列阻塞报告](STATE_IMAGE_DP_IMPROVEMENT.md)。
+
 ## 2026-11-03 StateDP运动实验的当前smoke证据
 
 新root`state_motion_20261103_01`使用同一已验证的独立worker模式，真实创建环境、reset、

@@ -1,5 +1,20 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-04 StateDP/ImageDP request: blocked at resource preflight
+
+Worktree bc+rl_RSS_native_v2, branch feature/native-dp-training-v2, starting2dc8b58.
+Read STATE_IMAGE_DP_IMPROVEMENT. Newroot outputs/visuotactile/native_dp_v2/state_image_20261104_01
+contains preflight01/02, protected_checkpoints, editor backups, queue_intent and status.
+Actual two private256-watch probes allocate0: ENOSPC. Readable watch reference count
+524190/524288, mainly anotherVSCode whole-docs workspace; do not call it unique kernel count.
+Only own-repository editor exclusions changed; other-project deliverables exclusion in
+parentdocs is a concrete pending scope question. No process killed/global changes.
+0/5Kitstarts,0trainingupdates,0/200supervised; no service/owner. CPUtests5passed and
+three old required checkpointSHAs verified. Queue intent is not implementation or readiness.
+Resume by resolving watch pressure then new no-overwrite preflight, <=5Kitstarts with
+>=3consecutive full expert/student lifecycle successes. Only then implement/test/calibrate
+newlosses and sequentialS thenI training; oldH24 already hasGRU256. Do not restart oldruns.
+
 ## 2026-11-04 H24诊断后台结束
 
 本轮后台已退出，状态`software_missing`；8个attempt软件完成，软件缺失/故障记录1条（单列，不计任务失败）。

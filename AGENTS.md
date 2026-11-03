@@ -1,5 +1,28 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current — 2026-11-04 StateDP + ImageDP improvement, preflight BLOCKED
+
+Latest user authorizes a NEW baseline S-H24-Improved then I-HistoryDP-00,
+H24/commit12/sample/DDIM16/position29, train320/val40, fresh1000/3000/6000/10000,
+train-only calibrated geometric/continuity losses, no01/10/11 or nominal redesign.
+Read STATE_IMAGE_DP_IMPROVEMENT and actual state_image_20261104_01/status.json.
+Kit resource admission is currently blocked: both real256-watch probes allocate0,
+inotify_add_watch ENOSPC; readable UID watch references524190/524288 (not unique).
+No Kit starts(0/5), no parameter updates, no supervised200-update acceptance,
+no training coordinator installed. Do not claim that queued intent is runnable.
+Repository editor exclusions applied/backed up but did not release the external
+whole-docs window watches. User scope confirmation is pending for excluding only
+another project's deliverables in the parent docs workspace; do not assume approval.
+No global sysctl/driver/sharedSDK changes or unrelated process signals.
+After resource resolution, >=3 consecutive independent complete Kit episodes/exits
+including expert+student within5starts must pass before training; no in-process reuse.
+Each model needs >=200 real updates/3 monitoring cycles/validation/checkpoint recovery/
+full rollout before handoff. Image follows State regardless of task success, provided
+shared infrastructure/contracts pass; old success-dependent gate needs explicit new
+identity, not fabricated evidence. Original three required weights freshlySHA-verified.
+This authorization supersedes old no-training clauses only for the new run; it is
+not evidence of implementation, Kit reliability, training readiness or task success.
+
 ## 2026-11-04 H24诊断后台结束
 
 本轮后台已退出，状态`software_missing`；8个attempt软件完成，软件缺失/故障记录1条（单列，不计任务失败）。

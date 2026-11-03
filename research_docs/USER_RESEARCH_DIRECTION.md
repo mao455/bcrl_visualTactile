@@ -334,3 +334,15 @@ teacher-forced/自主/控制追踪分列、少量真实expert-prefix student tak
 无训练/权重/模型/物理/控制/超参数修改，不使用test40选择；独立Kit，连续两次同类启动故障停止。
 失败重现全部保留，8000原生成功录像不能由旧统计冒充；数值重建须清晰标注。
 交付本地MP4/清单/获取方式及报告、小图表和origin feature提交。详见H24_CLOSED_LOOP_DIAGNOSIS。
+
+
+### 2026-11-04 baseline State/Image 改进授权及真实前置阻塞
+
+最新附件d2391bbd授权新S-H24-Improved和I-HistoryDP-00严格串行，从头各10000updates，
+H24/commit12/sample/DDIM16/原post-delay位置29D；Loss B保留，train-only校准FK位置/姿态/
+指尖及合法连续性损失，已有GRU不重复添加。本轮是baseline，00无触觉无Correction；
+01/10/11与nominal设计不启动。每组需200updates/3监测周期/恢复/验证/Kit完整rollout监督。
+无论State任务成功率如何，训练/控制与共享基础设施通过后继续Image；不得复用旧成功率门槛。
+实际本轮两次资源探针0/256、ENOSPC，故Kit0/5、训练0updates；项目监视排除修改无效，
+父docs工作区的其他项目生成目录排除待用户确认。参见STATE_IMAGE_DP_IMPROVEMENT；
+保留全部旧模型/原400/失败诊断，不把授权或计划当作已实现和通过验收。

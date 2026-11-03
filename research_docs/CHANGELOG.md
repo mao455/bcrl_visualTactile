@@ -1,5 +1,18 @@
 # Engineering change and verification log
 
+## 2026-11-04 — State/Image queue blocked before Kit by confirmed inotify ENOSPC
+
+Added tools/kit_resource_preflight.py and5focused tests: read-only same-UID FD/threads/RSS/
+inotify census plus <=1024 private watch allocations, cleanup and no-overwrite evidence.
+Two real256-watch probes both fail at first directory witherrno28; measured readable
+watch references524190/524288, 86instanceFDs, 3unreadablePIDs. Never call these unique counts.
+Local project editor exclusion changes were backed up but did not free the external
+whole-docs watcher. Requested narrowly scoped parent-workspace confirmation; not applied.
+New state_image_20261104_01 is blocked,0Kitstarts/0updates; intent saved, no runnable
+coordinator/model changes or supervised acceptance. Required8000/10000/Epsilon3000 SHA
+rechecked intact; old evidence retained. STATE_IMAGE_DP_IMPROVEMENT records planned work,
+actualGRU/image architecture and unresolved prerequisites. No GPU/Kit/sysctl/driver/signals.
+
 ## 2026-11-04 H24诊断后台结束
 
 本轮后台已退出，状态`software_missing`；8个attempt软件完成，软件缺失/故障记录1条（单列，不计任务失败）。
