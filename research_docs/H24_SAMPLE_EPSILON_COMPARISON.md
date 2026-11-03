@@ -1,5 +1,35 @@
 # H24 Sample / Epsilon 对照
 
+## 2026-11-03 20:27 UTC+8复核：两组3000已完成，Kit阻塞恢复
+
+Epsilon3000已完成并覆盖train320。两组实际updates/EMA、采样顺序/游标、train/val IDs、
+noise/schedule RNG和3000步LR轨迹全通过公平性检查；不比较两种diffusion loss绝对值。
+
+|val40 / clean action / prefix12|Sample3000|Epsilon3000|
+|---|---:|---:|
+|Arm RMSE(rad)|0.028269|0.135959|
+|Hand RMSE(rad)|0.129117|0.465200|
+|Motion cosine|0.556923|0.106870|
+|Motion amplitude ratio|1.325756|4.482187|
+
+Sample的这些离线指标更好；完整闭环优势未建立。Sample仅完成train首条0/1，
+接触/抬升后364tick fall，无首子目标/alignment。随后两条均在scene/action前SIGABRT。
+第2次缺少std::system_error文本但有FileThread/omniClientFreeContent/abort栈，旧分类器未识别，
+owner于19:52:19停止，之后没有训练；截至本次复核Epsilon闭环/选型/5000均未开始。
+这不是模型数值发散，亦不证明inotify或SDK根因已修复。
+
+修复限于独立`tools/h24_runtime_recovery.py`：保留179项冻结源码、配置、plan/session/deadline；
+只在exit−6、父进程已回收、lifecycle=launching、无scene/trajectory及明确FileThread栈时
+识别软件故障。不重试旧两条、不扩大预算，按原两次连续失败规则把Sample其余9条记未启动，
+合计1完成+2启动故障+9未启动。旧部分汇总（曾漏列首个软件故障）及失败文件原样归档，
+重新生成完整分母。接着执行原本未开始的Epsilon离线/闭环及后续暂定选型和里程碑。
+
+恢复服务`h24-comparison-20261103-01-recovery.service`，同一owner锁/单GPU/原截止时间；
+原失败服务停用自动启动防止重复。注册记录launcher/service/失败证据/checkpoint SHA。
+已验收3000公平性复用其冻结checkpoint和结果，后续Sample日志超过3000不再误判为公平性失败。
+4项新的故障分类/禁止重试/分母恢复CPU回归通过，原模型/数据/batch测试不重复。
+本节恢复安排不代表恢复启动已通过，实际以startup记录及status为准。
+
 ## 2026-11-03 19:47:08 UTC+8：H24 Epsilon 真正开始训练
 
 持久服务`h24-comparison-20261103-01.service` active/running，owner2311842、worker2311883，
@@ -102,10 +132,22 @@ GitHub 仅代码、Markdown、小 JSON/CSV/PNG；数据、视频、权重、大�
 本次恢复不删除任何已有实验产物。后台只写报告，不自动提交/推送未经复核的未来结果。
 
 <!-- h24-results:start -->
-当前后台状态：`running`。此自动区块待结果复核。
+当前后台状态：`blocked`。此自动区块待结果复核。
 
 |组/累计updates|val40 Arm(rad)|val40 Hand(rad)|已完成闭环成功|软件缺失|
 |---|---:|---:|---|---:|
+|sample_3000|0.028269|0.129117|0/1完成（注册12）|1|
+
+以下为同一 val40/seed7091 的 episode 均值；FK 为目标关节的末端误差，实际闭环 FK 另存。
+
+|组|接触前目标FK(mm)|Motion cosine|Amplitude ratio|Arm边界跳变(rad)|Hand边界跳变(rad)|
+|---|---:|---:|---:|---:|---:|
+|sample_3000|21.05591|0.55692|1.32576|0.02620|0.14229|
+
+|组/初态|完成/注册|完整成功|接触|抬升|首子目标|alignment|fall|timeout|
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+|sample_3000/train|1/4|0|1|1|0|0|1|0|
+|sample_3000/validation|0/8|0|0|0|0|0|0|0|
 
 实际接触/lift/首子目标/alignment/fall/timeout及逐条结果见[summary](evidence/h24_parameterization_20261103/summary.json)。
 <!-- h24-results:end -->

@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-11-03 — H24前场景故障分类恢复
+
+- Epsilon累计3000及真实公平性检查完成；Sample闭环首条lift后fall，两次Kit启动故障。
+- 新tools/h24_runtime_recovery及独立service只补齐明确FileThread SIGABRT分类、复用已验证3000公平性；
+  原179冻结源码、训练配方、checkpoint、deadline均不改。保留旧失败/部分汇总，按原两次连续故障上限记缺失，不重试旧条目。
+- 新tests/test_h24_runtime_recovery.py四项CPU测试通过，包含无场景/动作限制、拒绝未知/Python异常和1+11完整分母；
+  无新模型测试/batch审计/Kit Gate。后续恢复启动及真实结果读取当前交接。
+
 ## 2026-11-03 — 接续 H24 Sample/Epsilon，冻结前补齐恢复
 
 - 恢复8ef2a16工作树内上次未提交的NativePolicy/position_control/state_history Epsilon身份、

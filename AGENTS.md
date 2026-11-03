@@ -1,5 +1,14 @@
 # Play2Perfect visual–tactile imitation research
 
+## H24 recovery review — 2026-11-03 20:27 UTC+8
+
+Epsilon3000 and actual paired training fairness passed. Sample first loop0/1 lift/fall;
+two subsequent pre-scene FileThread SIGABRTs, second missing exception text blocked owner.
+Use tools/h24_runtime_recovery and recovery service after registered evidence checks;
+never edit179 frozen sources, repeat failed attempts or reset deadline. Original cohort
+cap gives1completed+2software faults+9unstarted. Epsilon loop/selection/further milestones
+were unstarted at review; read actual status. Four targeted recovery tests pass.
+
 ## Current override — H24 Sample/Epsilon continuation, 2026-11-03
 
 Read H24_SAMPLE_EPSILON_COMPARISON and newest SESSION_HANDOFF. User authorizes
