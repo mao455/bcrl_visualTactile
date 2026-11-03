@@ -1,5 +1,18 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — H24 Sample/Epsilon, 2026-11-03
+
+Run h24_parameterization_20261103_01 ended21:51:21UTC+8; all owned processes exited,
+completed services disabled. Epsilon3000, selected Sample5k/8k/10k complete; status
+software_missing means evaluation gaps, not pending training. 60registered=44completed,
+7pre-scene faults,9unstarted. Sample8k has one native full success at train seed982403,
+342ticks/subgoals2/alignment; validation8k/10k each0/8, Sample10k overall0/11+1missing.
+No stable success/generalization established. Common7validation actual precontact FK
+5k/8k/10k46.86/45.89/46.23mm despite improved offline fit. Read final H24 report/handoff.
+Final179sources/61stagehash/6checkpoint checks passed; original data/weights/failures
+preserved. No new tests/training/Kit or artifact deletion in final review. No automatic
+extra updates or missing-trial reruns. Historical instructions below are snapshots.
+
 ## H24 recovery review — 2026-11-03 20:27 UTC+8
 
 Epsilon3000 and actual paired training fairness passed. Sample first loop0/1 lift/fall;

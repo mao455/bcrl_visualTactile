@@ -1,5 +1,20 @@
 # Engineering change and verification log
 
+## 2026-11-03 H24对照最终：Sample到10000，train一次成功，validation全无成功
+
+21:51:21UTC+8 owner/monitor退出，service inactive/exit0，最终software_missing（训练complete）。
+Epsilon3000、暂定Sample连续5k/8k/10k全部完成，公平性与恢复状态通过；不再追加训练/重试。
+Sample3k0/1完成+11缺失；Epsilon3k0/11+1缺失；Sample5k0/10+2缺失；8k1/11+1缺失；10k0/11+1缺失。
+唯一成功来自8k train seed982403，342tick原生max_successes=true/subgoals2/alignment；validation8k/10k均0/8。
+10k同可观测train初态208tick fall，不能称稳定成功/泛化。60注册=44完成+7启动故障+9未启动，无failed重试。
+Sample valArm/Hand3k .028269/.129117→10k .020862/.109865rad；目标FK21.06→17.33mm，
+但同7validation实际接触前FK5k/8k/10k为46.86/45.89/46.23mm，闭环进展未明显改善。
+最终只读核验179冻结源码、61stagehash、6checkpoint/optimizer/EMA、连续LR日志、原Sample3000保护hash。
+所有自有进程退出，完成service已disable自启；原数据/权重/失败证据全部保留，无删除/新Kit/训练。
+资源采样均值29.2521%、最大完整60s64.8483%，累计监控间隔4606.47s，不称全程连续/硬50%合规。
+完整结论、曲线、缺失分母、SHA见H24_SAMPLE_EPSILON_COMPARISON与evidence/h24_parameterization_20261103/completed_review.json。
+后续旧running/PID/授权段落仅为历史，不自动重启本轮或扩展实验。
+
 ## 2026-11-03 — H24前场景故障分类恢复
 
 - Epsilon累计3000及真实公平性检查完成；Sample闭环首条lift后fall，两次Kit启动故障。
