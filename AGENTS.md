@@ -1,5 +1,23 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest addition — 2026-11-03 read-only StateDP FK/data/delay audit
+
+User requires preserving every running training job and frozen source/config/hash.
+CPU reporting tools outside the 171-file runtime inventory audited all400 controls
+and163788 actual-q FK poses, train320/val40 coverage, val40 target-FK and existing
+C0 trajectories. No GPU/Kit/optimizer/test inference added. Read the newest
+STATE_TRAINING_RESULTS section and evidence/state_motion_20261103/fk_readonly.
+Position target FK approach RMSE18.06mm vs Hold22.09mm; actual C0 precontact39.07mm.
+C0/C2 each0/12, yet all12 C0 reach the approach proxy and object contact: do not
+claim a proved approach-failure cause. Native target reconstruction exact81894ticks.
+Post-delay PositionDP needs no second delay; Native1000 vs Position19000 is unequal.
+Current run remains under its existing owner/deadlines; final analysis snapshot
+single_takeover_12_single_00 running. No hot edits or schedule replacement. FK loss is only a
+train-only gradient probe and conditional future single-factor H32/Loss B plan;
+no FK runtime loss/training implemented. After the frozen session ends, review
+evidence and available unstarted auxiliary budget before any new training; no
+unconditional extra19000updates or H24/temporal mixing. Preserve original results.
+
 ## Current authorization — 2026-11-03 StateDP motion root-cause study
 
 Latest attachment af434a28 authorizes StateDP only on feature/native-dp-training-v2

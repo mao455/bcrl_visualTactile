@@ -1,5 +1,20 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03：追加只读FK、数据和原生延迟审计
+
+没有中断当前state-motion服务或改动171项冻结运行源码/配置；CPU诊断见
+[State结果首节](STATE_TRAINING_RESULTS.md)及其fk_readonly证据目录。
+all400/81894控制目标重建完全一致；实际q FK163788姿态最大.001719mm。
+train320/val40完整H32窗口没有静止主导证据；val40目标FK接近18.06mm（Hold22.09mm）。
+已有C0自主0/12、专家12/12，实际接触前偏差39.07mm；全部C0达到接近代理和过滤接触，
+不能声称已证明接近失败或唯一学习原因。C2完成0/12；中途读到single_fit_1000，
+最终保存快照为single_takeover_12_single_00运行，
+之后仍由普通owner推进，读取实际status，禁止根据此快照重启/改deadline。
+FK只读train3梯度探针完成，参数未更新；没有运行时FK loss或FK训练。
+当前源码冻结结束后再评审单因素H32+FK，优先替代仍未开始的弱辅助组，不能无条件追加预算。
+已有Native/Position专家注入各2/2精确回放复用，不新增Kit；两合法控制合同不可重复加delay。
+新的公开内容仅tools报告/测试、文档和小统计/PNG/aggregate CSV，原数据/权重/trace留本机。
+
 ## 2026-11-03 09:12 UTC+8：StateDP运动根因实验已实际启动
 
 工作树`bc+rl_RSS_native_v2`、分支`feature/native-dp-training-v2`；实现`14ecedf`。

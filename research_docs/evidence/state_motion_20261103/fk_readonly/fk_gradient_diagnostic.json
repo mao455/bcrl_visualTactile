@@ -1,0 +1,121 @@
+{
+  "rows": [
+    {
+      "identity": "r931004_1793208943_e00_p000004",
+      "anchors": [
+        0,
+        12,
+        24,
+        36,
+        48,
+        60,
+        72,
+        84
+      ],
+      "timesteps": [
+        15,
+        76,
+        47,
+        97,
+        88,
+        58,
+        71,
+        37
+      ],
+      "valid_labels": 256,
+      "loss_B": 0.002220617374405265,
+      "loss_EE_m2": 0.0001469392009312287,
+      "denoiser_grad_B": 0.04440235985266635,
+      "denoiser_grad_FK": 0.02270766999554938,
+      "output_arm_grad_B": 0.0006522454787045717,
+      "output_arm_grad_FK": 0.00046294223284348845,
+      "output_hand_grad_FK": 0.0,
+      "padded_output_grad_FK": 0.0,
+      "finite": true
+    },
+    {
+      "identity": "r931004_1793208943_e02_p000000",
+      "anchors": [
+        0,
+        12,
+        24,
+        36,
+        48,
+        60,
+        72,
+        84
+      ],
+      "timesteps": [
+        15,
+        76,
+        47,
+        97,
+        88,
+        58,
+        71,
+        37
+      ],
+      "valid_labels": 256,
+      "loss_B": 0.0014679578598588705,
+      "loss_EE_m2": 7.492761506000534e-05,
+      "denoiser_grad_B": 0.028743109675937555,
+      "denoiser_grad_FK": 0.007028069590888953,
+      "output_arm_grad_B": 0.0005558921257033944,
+      "output_arm_grad_FK": 0.00033087958581745625,
+      "output_hand_grad_FK": 0.0,
+      "padded_output_grad_FK": 0.0,
+      "finite": true
+    },
+    {
+      "identity": "r931004_1793208943_e03_p000000",
+      "anchors": [
+        0,
+        12,
+        24,
+        36,
+        48,
+        60,
+        72,
+        84
+      ],
+      "timesteps": [
+        15,
+        76,
+        47,
+        97,
+        88,
+        58,
+        71,
+        37
+      ],
+      "valid_labels": 256,
+      "loss_B": 0.0022032929118722677,
+      "loss_EE_m2": 9.370737097924575e-05,
+      "denoiser_grad_B": 0.046174084986520196,
+      "denoiser_grad_FK": 0.01653257606792449,
+      "output_arm_grad_B": 0.0005440235254354775,
+      "output_arm_grad_FK": 0.0003775504301302135,
+      "output_hand_grad_FK": 0.0,
+      "padded_output_grad_FK": 0.0,
+      "finite": true
+    }
+  ],
+  "optimizer_updates": 0,
+  "scope": "original EMA, first96 ticks of sorted first3 train IDs, CPU float32 denoiser, no optimizer; preliminary candidate, not trained",
+  "formula": "q=(predicted_clean_x0-action_offset)/action_scale; mean_valid ||FK(q)-FK(expert_target)||^2 in m^2",
+  "gradient_scope": "all denoiser parameters; conditioning detached; also normalized-x0 Arm7 output",
+  "candidate_lambda_per_m2": 0.19553903972256534,
+  "selection_rule": "min(0.10/max_train_denoiser_FK_to_B_ratio, 0.20/max_train_arm_output_FK_to_B_ratio)",
+  "weighted_denoiser_ratio": [
+    0.1,
+    0.047811875416397934,
+    0.07001251999700643
+  ],
+  "weighted_arm_output_ratio": [
+    0.13878713247200233,
+    0.1163892659797582,
+    0.13570341189824037
+  ],
+  "deployment_unchanged": true,
+  "recalibration_required_at_independent_training_initialization": true
+}

@@ -181,6 +181,12 @@ def plot(root, output, summary):
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(); p.add_argument('--root', type=Path, required=True)
-    p.add_argument('--output', type=Path, required=True); a = p.parse_args()
-    report = summarize(a.root, a.output)
-    print(json.dumps(report['stages'], indent=2))
+    p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--fk-data-audit', choices=('all', 'data', 'offline', 'closed', 'gradient'))
+    a = p.parse_args()
+    if a.fk_data_audit:
+        from tools.state_fk_audit import run
+        run(a.root, a.output, a.fk_data_audit)
+    else:
+        report = summarize(a.root, a.output)
+        print(json.dumps(report['stages'], indent=2))

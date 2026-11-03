@@ -1,5 +1,27 @@
 # 29D绝对关节位置动作合同
 
+2026-11-03追加只读审计：两个合法接口明确分列，不在线改动当前冻结训练。
+
+|合同|标签与历史|当前tick执行链|
+|---|---|---|
+|A Post-delay PositionDP|target_after_rad；严格过去请求/应用target|观测t→预测处理后target[t]→限位→原执行器，不再次delay或EMA|
+|B Pre-delay Native-command DP|command_clipped_pre_delay；严格过去issued/delayed command|观测t→command[t]→原delay queue→原Arm增量/Hand绝对映射→EMA/限位→原执行器|
+
+obs.time_s=time_before_s；obs actuator target=target_before[t]=target_after[t−1]。
+当前target_after[t]在[t,t+1]两个物理子步施加，label第0项就是观察t之后即将发出的目标；
+延迟选择的command来自max(0,t−index)，其有效age在启动填队列时可小于index。
+原player已clip网络mu，raw_action是submitted别名，旧executed_action也是pre-delay别名；
+只有control_trace.delayed_command明确表示真实队列输出。不要把raw误写为未裁剪logit。
+
+400/81894步逐值重建2,374,926个最终目标全部一致，index/effective lag/timestamps验收通过。
+lag0/1/2计数27324/27558/27012，均值16.603ms、最长33.333ms。
+两个合同都有现存fresh专家注入2/2成功、168/153ticks精确物理字段证据；详见
+[只读FK/控制研究结果](STATE_TRAINING_RESULTS.md)和旧foundation_review。
+这不保证学习后的目标分布相同：原生Arm目标步幅最大.002500057rad，
+C0有6662/6663步至少一关节超过.002501rad，最大.204428rad。
+不得直接给A再套原延迟；新的限速/平滑也会改变合同，必须另立对照。
+Native1000和Position19000训练预算不同，不能作为动作表示优劣结论。
+
 本轮在现有V2实现，不新增一套训练框架。默认H32（未来0.5333秒），可选H24，
 每12个60Hz控制步重新规划（5Hz），物理120Hz。预测长度、执行长度与观察历史分开定义。
 State保留Actor141、本体178、几何85、自己的持续GRU256、U-Net和DDIM16；未再训练BC。

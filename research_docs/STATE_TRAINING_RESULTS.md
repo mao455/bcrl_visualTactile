@@ -1,5 +1,212 @@
 # State observation/history repair — actual results
 
+## 2026-11-03 追加只读审计：数据覆盖、末端空间误差、延迟合同
+
+**没有中断当前训练，也没有改动冻结源码、session或调度。** 本次只在现有report工具增加
+CPU分析入口，分析源码在冻结清单之外；171项运行源码、原best EMA和数据索引保持一致。
+在本次审计中的机器快照，C0/C2均已完成0/12，A0保留、C1未启动，owner已进入
+`single_fit_1000`，最后保存的快照为`single_takeover_12_single_00`；
+这不是整轮训练完成的声明。原固定deadline不变。
+没有启动新Kit、采集、GPU worker、FK训练或新test推理。证据目录为
+[fk_readonly](evidence/state_motion_20261103/fk_readonly/)，原H32/19000保持独立基线。
+
+### 数据有效性与覆盖：没有发现静止窗口主导，但320条充分性尚未证明
+
+分析train320和validation40的完整数值轨迹；test40仅参与原400控制/FK完整性审计，
+不用于覆盖结论、超参数或模型选择。物体/目标坐标均转入机器人基座，排除四环境world平移。
+
+|指标|train320|validation40|
+|---|---:|---:|
+|原生60Hz时间步|64,825|8,670|
+|长度均值 / 中位数 / p95（tick）|202.58 / 195.5 / 277|216.75 / 202.5 / 370.35|
+|长度最大（tick）|509|539|
+|Arm7实际全轨迹关节范围均值（rad，依关节1–7）|.2428,.2025,.2887,.2427,.2309,.2401,.3320|.2452,.1901,.2803,.2633,.2394,.2553,.3198|
+|初始物体XYZ均值（m，base frame）|(.00066,−.80418,.63352)|(.00515,−.80519,.63224)|
+|初始目标XYZ均值（m，base frame）|(−.00012,−.80476,.71604)|(.00994,−.78368,.71637)|
+|完整H32窗口 / 所有12tick anchor|4,730 / 5,547|638 / 739|
+|完整H32目标Arm7范围RMS中位数（rad）|.06482|.06364|
+|完整H32目标或实际Arm范围RMS<.01rad比例|0% / 0%|0% / 0%|
+|完整prefix12实际Arm范围RMS<.01rad比例|0.2664%|0.4255%|
+|64点时间归一化Arm轨迹最近train邻居RMS均值（rad）|.08710（排除自身）|.09022|
+
+静止定义是各关节窗口峰峰值的Arm7 RMS，包含anchor之前已应用目标；另外报告.001/.005/.01rad
+三种阈值及Hand22。完整12/32/96窗口的目标Arm和Arm+Hand静止比例均0；不足长度的末尾窗口
+没有冒充完整窗口，但其有效标签保留在阶段覆盖统计。H32末尾不完整anchor为train817、val101。
+这些数值不支持“多数静止窗口压倒运动监督”，也不等于每个关节每时刻都在运动。
+
+初始Arm7 train/val均值依次：
+`[-1.41025,1.41460,.01803,1.25236,-.01203,1.34165,1.17433]` /
+`[-1.39401,1.43197,-.00620,1.23903,.03004,1.36754,1.19070]` rad。
+逐关节初始分布最大KS=.14688；物体XYZ最大KS=.19063；目标XYZ最大KS=.24375，
+对应目标Y的均值差+21.08mm、Wasserstein21.32mm。长度均值差14.17tick，验证尾部更长。
+初始Arm有4个坐标观测超出train逐维范围，物体X有1个，不能把逐维覆盖当作联合空间覆盖。
+最近邻距离使用64点线性重采样、绝对Arm7姿态，无平移配准或DTW；近邻距离非零不证明样本独立。
+结论是可用于当前受控拟合诊断，**不能据此宣布320条已足够泛化，也没有证据直接扩数据**。
+
+原数据没有object-filtered contact。以下“接近/首次接触/抓持”只能分别用首次有效聚合指尖
+>0.1N之前、首次触发后6tick、至少两指连续6tick接触的代理；可能含桌面接触，
+不能命名为真实首次物体接触或稳定抓持。native lift和首子目标优先覆盖代理。
+
+|阶段|train步数占比|val步数占比|train anchor占比|val anchor占比|train H32有效标签占比|val H32有效标签占比|
+|---|---:|---:|---:|---:|---:|---:|
+|接近代理|33.535%|31.615%|35.569%|33.424%|30.265%|28.546%|
+|首次接触代理|2.933%|2.745%|2.542%|2.977%|2.991%|2.712%|
+|其余接触后|15.693%|17.855%|15.071%|18.268%|16.423%|18.686%|
+|持续多指代理|21.452%|18.847%|21.309%|17.321%|22.571%|19.747%|
+|native lift|5.368%|6.298%|5.246%|6.225%|5.656%|6.590%|
+|首子目标后|21.020%|22.641%|20.263%|21.786%|22.094%|23.720%|
+
+H32标签占比包含相邻计划重叠和有效尾部，不等于优化器梯度占比（Loss B仍按段内有效标签归一化）。
+已有采样审计重建832个96tick段、38,000次访问，每段45–46次，无段级异常重复。
+逐维分位数、KS/Wasserstein、逐episode阶段数和邻居保存在
+[data_coverage.json](evidence/state_motion_20261103/fk_readonly/data_coverage.json)、
+[逐轨迹数据](evidence/state_motion_20261103/fk_readonly/data_episodes.csv)和
+[最近邻](evidence/state_motion_20261103/fk_readonly/trajectory_neighbours.csv)。
+
+![初始化、长度、运动范围](evidence/state_motion_20261103/fk_readonly/data_distributions.png)
+![阶段覆盖](evidence/state_motion_20261103/fk_readonly/phase_coverage.png)
+![轨迹近邻及初始化分布差异](evidence/state_motion_20261103/fk_readonly/trajectory_similarity.png)
+
+### FK验证和空间误差：目标与实际运动严格分开
+
+使用原资产`assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf`，
+SHA `3c36492da57eb4326068a0b97b2d064034035d9037c07e345a1317ead195fb71`。
+关节顺序由每条metadata的canonical29核对，前7为`iiwa14_joint_1…7`；
+根为`iiwa14_link_0`，记录字段`palm_body_pose_w`实际指`iiwa14_link_7`。
+它是link/actor frame，不是COM、指尖接触点或末端fixed link_ee（后者额外偏移45mm）。
+完整root quaternion以wxyz解释，应用base→world旋转和平移，没有拟合标定偏置。
+源码：`scene_utils.PALM_BODY_NAME`、`sim/environment.py::_diagnostics`、
+`kinematics.EncoderKinematics`；实际导入的IsaacLab_DexAssemble-sharpa
+`articulation_data.body_state_w`也明确其pose来自body_link_pose_w。
+以实际q对照记录的body pose，不用动作target验证资产。
+
+全部400条before+after共163,788姿态：位置RMSE **.000565mm**、最大**.001719mm**；
+姿态RMSE **.00002081°**、最大**.00006369°**，通过预设.1mm/.05°核验。
+[完整FK验收](evidence/state_motion_20261103/fk_readonly/fk_validation.json)。
+
+原H32/19000 EMA在完整validation40做只读CPU FP32推理，DDIM16/clipFalse，每episode seed7091，
+严格重建原生60Hz历史，计每12tick计划的有效前12目标，共8,670项。CPU与CUDA的随机流
+不逐位一致，新增结果不能冒充原GPU采样结果或原test指标。
+Student与Expert均对各自目标关节做FK；Hold保持该anchor观测到的已应用目标。
+
+|阶段|Student末端XYZ RMSE（mm）|Student三维RMSE（mm）|Hold三维RMSE（mm）|Student姿态RMS / Hold（°）|Student沿专家方向误差均值 / RMS（mm）|
+|---|---|---:|---:|---|---|
+|全部8,670步|12.77 / 7.75 / 8.14|17.01|19.83|2.902 / 2.752|−3.87 / 11.78|
+|接近代理2,741步|13.76 / 8.14 / 8.41|18.06|22.09|3.007 / 3.087|−3.73 / 12.71|
+|其余5,929步|12.28 / 7.56 / 8.01|16.50|18.70|2.852 / 2.582|−3.94 / 11.32|
+
+Expert自身参考误差为0。沿专家方向取`FK(expert_target)-FK(anchor_previous_target)`单位向量，
+仅计专家位移>1mm，负值表示沿该方向落后；不把零位移强行定义方向。
+
+|Arm关节|Student全部RMSE（rad）|Student接近RMSE（rad）|Hold接近RMSE（rad）|
+|---|---:|---:|---:|
+|1|.017488|.018206|.016347|
+|2|.012604|.013155|.016481|
+|3|.023059|.022717|.016444|
+|4|.018497|.017706|.016297|
+|5|.022612|.023849|.016783|
+|6|.018098|.016595|.015756|
+|7|.028379|.028992|.015747|
+
+关节MSE劣于Hold不等于空间误差一定更差：这里Student接近末端三维RMSE比Hold低18.24%。
+仍有厘米级误差，但不能声称FK loss已经必要或已带来收益。
+按episode配对的接近RMSE差Student−Hold均值−3.666mm，
+固定seed的5,000次episode bootstrap 95%区间[−5.779,−1.430]mm；这不是成功率置信区间。
+[逐episode/阶段数值](evidence/state_motion_20261103/fk_readonly/offline_fk.json)含episode bootstrap差异，
+[带样本/episode分母的时间曲线](evidence/state_motion_20261103/fk_readonly/offline_fk_aggregate_curves.csv)。
+图中距离是link7参考点到**对应观察时刻**物体中心/任务goal位置，单位mm；
+不等于指尖间隙或碰撞距离，晚时段样本数较少，不补零、不延长已结束轨迹。
+
+![目标FK误差与物体/目标距离](evidence/state_motion_20261103/fk_readonly/offline_fk.png)
+
+独立复核现有C0原12条闭环：Student **0/12**（train0/4、val0/8），在线Expert **12/12**。
+12条均满足已有approach_proxy且均有过滤物体接触；2条lift、1条首子目标，仍无完整成功。
+所以本cohort没有“未达到接近代理”的对照，不能估计末端误差与接近失败的统计相关性，
+更不能把全任务失败唯一归因为接近失败。C2也0/12，12条接近代理、11条过滤物体接触。
+相同可观测初态，按专家首次物体接触之前的810个等时tick对比：
+**实际q FK**的Student三维RMSE39.07mm，Hold固定初始q为116.33mm；
+**Student目标FK与专家目标FK**另算40.47mm。接触后实际q FK为68.96mm。
+实际轨迹离线空间偏差大于teacher-forced目标误差，符合闭环分布偏移假说，
+但相同可观测初态不代表PhysX内部状态完全相同。Hold只是几何反事实，没有新Hold闭环成功率。
+[闭环逐条证据](evidence/state_motion_20261103/fk_readonly/closed_loop_fk.json)。
+
+![实际运动FK；目标监督统计另列](evidence/state_motion_20261103/fk_readonly/closed_loop_fk.png)
+
+### 延迟与控制等价性：处理后位置不能再加一次延迟
+
+全部400/81,894步精确核验：raw_action=submitted_action，clamp后等于pre-delay command；
+旧`executed_action`也是pre-delay别名，真正delayed command位于control_trace。
+原player确定性mu先clamp/rescale，当前记录没有保存未裁剪mu，因此“raw”不是网络logit。
+队列初始化填当前command→roll→新command入slot0→均匀抽index0/1/2→选择延迟command。
+然后Arm增量`prev+1.5×dt×command`→限位→.1/.9 EMA→再次限位；
+Hand先按限位把[-1,1]映射绝对位置→.1/.9 EMA→限位→更新target buffer→两个120Hz子步执行。
+完整canonical/Lab映射和时序关系见[动作合同](POSITION_ACTION_CONTRACT.md)。
+
+delay index计数0/1/2为27,063/27,568/27,263；有效lag为27,324/27,558/27,012，
+平均16.603ms、p95/max33.333ms。388步index≠effective lag源于启动队列填充；
+54,554步delayed command不同于当前command。2,374,926个目标标量全部逐值一致，
+before=obs target、after[t]=before[t+1]、selected timestamp误差0；
+time_after−time_before−dt最大浮点误差5.60e−14s。
+[全量审计](evidence/state_motion_20261103/fk_readonly/delay_audit.json)。
+
+合法合同A：当前观察→预测处理后target→直接执行，不重复delay/平滑；
+合法合同B：当前观察→预测pre-delay command→完整原生queue/增量/EMA/执行器。
+只在相同目标序列、外生事件及初始内部状态条件下，A/B可产生同一物理轨迹。
+已有fresh_982501/982502注入证据：A回放2/2、168/153tick、14字段精确；
+B回放2/2、同样168/153tick、16字段精确。本次复用并核验旧证据，不新增Kit尝试，
+也不推广成历史四环境全部可精确重放。
+
+**闭环动作分布确有差异。** 专家原生Arm每关节每tick最大变化.002500057rad；
+现有C0中6,662/6,663tick至少一关节超过.002501rad，35,158/46,641关节步超出，
+最大.204428rad。A只限关节范围，不限制原生delta/EMA能产生的变化速度。
+这说明目标序列支持集不同，不能据此把A合同判成bug，也不能直接在线增加队列/限速。
+当前不公平的Native1000 vs Position19000不用于表示优劣结论。
+后续若比较A/B，必须同320/40/40、同初始化规则/19000update预算、相同60/120Hz和预登记初态；
+现有注入验收仅解决控制合同，不解决学习难度和闭环状态分布。
+
+### FK辅助项：完成只读梯度诊断，独立训练等待当前冻结会话结束
+
+参考[Ma等，CVPR2024 HDP，§4.3](https://arxiv.org/html/2403.03890v1#S4.SS3)的可微FK
+将关节轨迹约束到末端空间的思想。论文还包含双扩散器、层级next-best pose和inpainting；
+这里不引入这些架构，也不把简单监督FK项称为完整HDP复现。
+
+候选保持29D、原Loss B、H32/A12/GRU/U-Net全不变，仅：
+`L=L_B+lambda*mean_valid ||FK((x0_hat-offset)/scale)-FK(q_expert_target)||²`。
+当前prediction_type=sample，denoiser输出就是归一化clean x0；FK输入反归一化弧度，
+输出米，辅助项单位m²，不对噪声xt、归一化关节或实际到达姿态计算此监督。
+与原horizon标签共用valid mask，不在loss前detach或转换numpy；不会覆盖原Loss B。
+
+原EMA、排序前3个train身份首96tick、固定noise6193的CPU梯度探针共768有效H32标签，
+没有optimizer.step。测量denoiser全部参数梯度及归一化x0 Arm7梯度；
+手部输出与padding FK梯度为0，autograd/有限差分通过。
+以`min(.10/max denoiser FK:B gradient ratio, .20/max Arm7-output FK:B ratio)`校准，
+候选lambda=.195539 m⁻²：三段参数梯度比例10.00%/4.78%/7.00%，
+Arm输出比例13.88%/11.64%/13.57%。若用mm²，同项系数必须除1e6。
+[梯度证据](evidence/state_motion_20261103/fk_readonly/fk_gradient_diagnostic.json)。
+这是已训练EMA上的可行性探针，condition detached；正式新初始化还需全网络梯度复核，
+不能把此数直接当作最终训练权重。
+
+**本次未实现运行时FK loss或启动FK训练。** 接近误差已有厘米级证据，但本cohort全有接近/接触，
+尚不能建立“空间误差→接近失败”关系。先保留这个结论和H32基线。当前owner已开始single-fit，
+不热改代码/hash/调度，也不为新要求无条件再追加19000updates。
+冻结会话结束后优先复核训练/接管轨迹的空间错误；若需要独立FK训练，只替代届时仍未开始且证据较弱
+的辅助组预算，已开始组不打断。新身份沿用原H32 seed/初始化、AdamW、96tick×2、
+train320-only统计、19000上限/相同milestones与选模规则，校准后冻结lambda；
+不得混H24、temporal、额外delay、采样变更。原H32及等update里程碑保留，
+相同12初态/策略seed报告末端误差、接触/抬升及完整闭环成功分母，test仍只最终一次。
+如预算已用完，只记录候选，不自动扩时或开新长训练。
+
+复现（CPU，两线程，指定空闲核；输出只写ignored report目录）：
+
+```bash
+CUDA_VISIBLE_DEVICES='' RESEARCH_CPUS=20,21 bash visuotactile/run_cpu.sh -m tools.state_history_report \
+  --root outputs/visuotactile/native_dp_v2/state_motion_20261103_01 \
+  --output outputs/visuotactile/native_dp_v2/state_motion_20261103_01/report/fk_readonly --fk-data-audit all
+# 同入口 --fk-data-audit gradient 是单独的3段只读梯度探针。
+```
+
+21项相关CPU测试通过；原运行源码与资产未编辑，统计/图片和少量CSV公开，HDF5/NPZ/权重不上传。
+
 ## 2026-11-03 StateDP运动根因对照：已实现，实测状态另读运行文件
 
 本轮使用当前`feature/native-dp-training-v2`，保留`7234bcf`及全部历史结果。

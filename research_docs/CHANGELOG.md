@@ -1,5 +1,24 @@
 # Engineering change and verification log
 
+## 2026-11-03 — 冻结StateDP上的只读数据、FK与delay审计
+
+- 用户追加优先级：接近空间诊断→原延迟语义→独立FK训练→超参数搜索；本轮不改已启动训练。
+- tools/state_history_report.py增加可选--fk-data-audit，默认导出不变；
+  tools/state_fk_audit.py为现有报告的CPU companion，读取原HDF5/EMA/C0，只写report目录。
+  没有修改visuotactile/或isaacsimenvs/冻结源码/资产、session、调度或目标数据。
+- all400/81894ticks队列、时间、最终目标重建一致；163788真实q FK最大.001719mm；
+  train320/val40初始化/范围/长度/阶段及近邻统计、H32静止窗口0，未证明数据已充分泛化。
+- val40目标末端接近RMSE18.06mm，Hold22.09mm；既有C0实际接触前39.07mm、0/12完整成功。
+  C0全部达到接近代理/物体接触，拒绝唯一根因或接近失败因果断言；C2已有0/12。
+- train-only3段clean-x0 FK梯度诊断、米单位/逆仿射/有效mask和保守比例校准；
+  无optimizer.step，无运行时FK loss、无新GPU/Kit/test推理。
+- tests/test_state_fk_audit.py覆盖旋转/坐标系、目标与实际分离、可微FK有限差分及mask、
+  接触代理和延迟启动/限位/EMA顺序；与state_motion/position_control共21项CPU测试通过。
+- 结论、出处和单因素后续预算计划写回STATE_TRAINING_RESULTS/POSITION_ACTION_CONTRACT/
+  SESSION_HANDOFF/USER_RESEARCH_DIRECTION及AGENTS；公开证据只用聚合JSON/CSV/PNG，
+  raw HDF5/NPZ/checkpoints不上传。最终single_takeover_12_single_00快照不代表完成；
+  owner与deadline保持不变。
+
 ## 2026-11-03 — StateDP采样、运动诊断和受控训练实验入口
 
 - 实现14ecedf已推送origin功能分支。新root09:11:57UTC+8注册，固定24h端点；一次有界
