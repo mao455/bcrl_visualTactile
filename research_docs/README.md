@@ -1,5 +1,9 @@
 # 视觉与触觉模仿学习研究工程
 
+当前接续实验：[H24 Sample / Epsilon 对照](H24_SAMPLE_EPSILON_COMPARISON.md)。
+恢复原 Sample3000 与既有 Epsilon 实现，固定 train4/validation8 配对后仅一组到累计10000；
+实时进度读取本轮机器状态，下面较早快照不表示正在运行。
+
 当前H32直接位置工作从[动作合同](POSITION_ACTION_CONTRACT.md)、[Kit实测](KIT_RELIABILITY.md)、
 [State与条件Image结果](STATE_TRAINING_RESULTS.md)、[清理和Git交付](GIT_DELIVERY_MANIFEST.md)进入。
 下面较早阶段的“当前”只表示其记录日期。

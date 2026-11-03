@@ -32,11 +32,13 @@ def overlap_transition(previous, current, elapsed, steps=4):
     return output
 
 
-def contract(horizon=32, position=True):
+def contract(horizon=32, position=True, prediction_type='sample'):
     from .state_history import STATE_CONTRACT
     if horizon not in (24, 32):
         raise ValueError('Short-horizon study requires H24 or H32')
-    return dict(STATE_CONTRACT, version=3, horizon=horizon,
+    if prediction_type not in ('sample', 'epsilon') or (prediction_type=='epsilon' and (horizon!=24 or not position)):
+        raise ValueError('Epsilon comparison is restricted to position H24')
+    return dict(STATE_CONTRACT, version=3, horizon=horizon, prediction_type=prediction_type,
         action=POSITION_ACTION if position else STATE_CONTRACT['action'],
         action_contract='position_rad_v1' if position else 'native_command_h32_control_v1',
         history_source=('past_requested_and_applied_position_rad; teacher_forced_in_training'

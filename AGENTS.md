@@ -1,5 +1,22 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current override — H24 Sample/Epsilon continuation, 2026-11-03
+
+Read H24_SAMPLE_EPSILON_COMPARISON and newest SESSION_HANDOFF. User authorizes
+recovering h24_parameterization_20261103_01, Epsilon3000 paired with immutable
+Sample3000, same train4/validation8, selected only cumulative5000/8000/10000.
+Reuse completed39 numerical tests and batch audit; no redundant Gate/Kit reuse.
+Sample continuation must use clean bc+rl_RSS_h24_sample_pin at8ef2a16 and exact
+optimizer/EMA/RNG/sampler; original data/checkpoints unchanged. No Temporal/FK
+loss/new architecture/test selection. Same batch and cosine19000. Zero successes
+alone do not stop milestones. Fixed existing endpoints Nov3 21:02:12 Gate,
+Nov4 05:02:12 training, Nov4 07:02:12 total UTC+8; no deadline reset.
+One persistent owner/monitor/GPU worker, classified bounded recovery, isolated
+Kit per episode. Read status/progress/checkpoints before asserting any progress;
+recovery inspection found gate_completed and no Epsilon trainer/checkpoint yet.
+Reviewed code/docs/small statistics push to origin feature/native-dp-training-v2
+is authorized. Do not modify frozen runtime after setup; no raw artifacts pushed.
+
 ## Latest review — 2026-11-03 H24 partial, evaluation startup blocked
 
 Read STATE_TRAINING_RESULTS and h24_partial_review.json. Recovery2 exited14:39:53

@@ -1,5 +1,16 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03：H24 Sample/Epsilon 恢复准备
+
+工作在bc+rl_RSS_native_v2 / feature/native-dp-training-v2，恢复前HEAD8ef2a16。
+用户本轮明确授权接续，覆盖下方旧run不自动新训练的限制；原root和旧实验不重启。
+h24_parameterization_20261103_01现场gate_completed、4/4专家成功、复用轨迹不一致；
+无本轮存活进程、无Epsilon训练目录/setup_complete。上次修改仍在未提交工作树。
+Sample3000 CPU读取验证optimizer/EMA/RNG/sampler完整，SHA70783fcf…29b25c0。
+沿用39项数值测试和batch审计，仅新增owner断点/幂等/日志恢复回归，不重跑Kit Gate。
+新流水线采用独立Kit、固定12初态配对、暂定选型后累计5k/8k/10k；未来结果读本轮status，
+不能把本节准备快照当启动或完成。报告入口H24_SAMPLE_EPSILON_COMPARISON。
+
 ## 2026-11-03 17:29 UTC+8复核：H24到3000，服务已停止
 
 recovery2于14:39:53退出。H24完成1000/3000updates、覆盖320训练轨迹，val40 Arm
@@ -920,3 +931,5 @@ suite is 50 passed with one existing requests warning.
 A formal 50-epoch run has not yet completed. New runs must use separate output
 folders, `--batch-size 2 --amp bf16`, and are complete only when `report.json`
 exists. No closed-loop or success-rate claim follows from these checks.
+
+本次恢复新增12项owner/选型/报告回归通过（CPU，0新Kit）；原39项数值验证沿用。

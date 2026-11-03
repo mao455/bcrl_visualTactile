@@ -392,6 +392,13 @@ def run(root, output, mode, job=None):
     finally:
         atomic_json(output/'lifecycle.json',dict(state='closing',utc=time.time()))
         atomic_json(output/'runtime_closing.json', kit_process_snapshot())
+        if session.get('kit_gate',{}).get('exit_on_error') and (output/'worker_error.json').exists():
+            import os
+            import sys
+            atomic_json(output/'failed_exit_requested.json', dict(pid=os.getpid(), utc=time.time(),
+                reason='Durable worker error; process isolation replaces known hanging SDK cleanup'))
+            sys.stdout.flush(); sys.stderr.flush()
+            os._exit(1)
         if session.get('kit_gate',{}).get('shutdown') == 'isolated_process_exit' and (output/'result.json').exists() and not (output/'worker_error.json').exists():
             exit_completed_kit_worker(output)
         if env is not None:

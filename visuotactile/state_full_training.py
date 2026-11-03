@@ -132,7 +132,8 @@ def train(root, output, kind, target, pilot=False, final_test=False, profile=Non
     if cached['data_sha256'] != session['data_sha256']:
         raise ValueError('Numeric cache source mismatch')
     if study and cached.get('contract')!=model_contract and not (session.get('motion_study')
-            and dict(cached.get('contract',{}),horizon=model_contract['horizon'])==model_contract):
+            and dict(cached.get('contract',{}),horizon=model_contract['horizon'],
+                prediction_type=model_contract['prediction_type'])==model_contract):
         raise ValueError('Numeric cache action contract mismatch')
     records = {i: cached['records'][i] for i in ids}; del cached
     stats = torch.load(source/'statistics.pt', map_location='cpu', weights_only=False)

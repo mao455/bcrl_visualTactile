@@ -1,5 +1,15 @@
 # Audited contracts
 
+## 2026-11-03 H24 prediction parameterization
+
+Only the new H24 absolute-position contract permits `prediction_type=epsilon`.
+Sample defaults, old checkpoints, 29D target_after units, causal State history and
+train-only normalizers remain unchanged. Epsilon supervises noise under the same
+valid mask/Loss B; DDIM reconstructs clean actions before physical-unit metrics.
+No temporal/FK loss is authorized in this comparison. Sample continuation runs its
+original frozen source tree; no checkpoint contract toggle or optimizer reset.
+See [H24 comparison](H24_SAMPLE_EPSILON_COMPARISON.md) for budgets and actual evidence.
+
 ## 2026-11-03 opt-in direct position study
 
 [POSITION_ACTION_CONTRACT](POSITION_ACTION_CONTRACT.md) defines canonical29 absolute

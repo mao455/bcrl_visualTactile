@@ -95,7 +95,9 @@ def monitor(root):
     restore_telemetry(guard)
     atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time()))
     window = deque(); previous = None
-    target=json.loads((root/'session.json').read_text()).get('resource_target_percent')
+    session=json.loads((root/'session.json').read_text())
+    target=session.get('resource_target_percent')
+    owned_roots={root.resolve(),*(Path(path).resolve() for path in session.get('owned_worker_roots',[]))}
     target_ratio=0.; last_adjustment=time.time()
     while not (root/'STOP_MONITOR').exists():
         began = time.monotonic(); row = guard.sample(); now = row['utc_epoch']
@@ -114,7 +116,7 @@ def monitor(root):
                 pid, name, memory = [v.strip() for v in line.split(',', 2)]
                 try:
                     command = Path('/proc', pid, 'cmdline').read_bytes().decode().split('\0')
-                    owned = '--root' in command and Path(command[command.index('--root')+1]).resolve() == root.resolve()
+                    owned = '--root' in command and Path(command[command.index('--root')+1]).resolve() in owned_roots
                 except (OSError, IndexError):
                     owned = False
                 processes.append(dict(pid=int(pid), name=name, vram_mib=int(memory), owned=owned))

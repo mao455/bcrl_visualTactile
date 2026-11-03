@@ -27,9 +27,10 @@ class PersistentState(NativePolicy):
         self.contract = STATE_CONTRACT if action_contract is None else action_contract
         if self.contract != STATE_CONTRACT:
             from .position_control import contract, POSITION_ACTION
-            if kind != 'dp' or self.contract != contract(self.contract['horizon'], self.contract['action']==POSITION_ACTION):
+            if kind != 'dp' or self.contract != contract(self.contract['horizon'], self.contract['action']==POSITION_ACTION,
+                    self.contract.get('prediction_type','sample')):
                 raise ValueError('Only explicit short-horizon DP contracts supported')
-        super().__init__('S-NativeDP',horizon=self.contract['horizon'])
+        super().__init__('S-NativeDP',horizon=self.contract['horizon'],prediction_type=self.contract['prediction_type'])
         if kind not in ('bc', 'dp'):
             raise ValueError('State-only BC or DP required')
         self.kind = kind
@@ -188,7 +189,7 @@ class HistoryController:
     def __init__(self, saved, metadata, device='cuda:0', inference=None):
         stored_contract = saved.get('contract')
         from .position_control import contract, POSITION_ACTION
-        allowed = [STATE_CONTRACT]+[contract(h,p) for h in (24,32) for p in (False,True)]
+        allowed = [STATE_CONTRACT]+[contract(h,p) for h in (24,32) for p in (False,True)]+[contract(24,True,'epsilon')]
         if stored_contract not in allowed or saved.get('updates', 0) < 1:
             raise ValueError('Trained persistent State v2 checkpoint required')
         self.position_mode = stored_contract['action']==POSITION_ACTION

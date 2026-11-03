@@ -90,7 +90,7 @@ class HistoryVision(nn.Module):
 
 
 class NativePolicy(nn.Module):
-    def __init__(self, group, horizon=64):
+    def __init__(self, group, horizon=64, prediction_type='sample'):
         super().__init__()
         if group not in GROUPS:
             raise ValueError('Unknown native policy group')
@@ -98,6 +98,8 @@ class NativePolicy(nn.Module):
         if horizon not in (24,32,64):
             raise ValueError('Unsupported prediction horizon')
         self.horizon = horizon
+        if prediction_type not in ('sample', 'epsilon'):
+            raise ValueError('Unsupported diffusion prediction identity')
         self.robot_encoder = mlp(13*(ROBOT_DIM+2), 256)
         if group == 'S-NativeDP':
             self.state_encoder = mlp(3*(GEOMETRY_DIM+2), 256)
@@ -117,7 +119,7 @@ class NativePolicy(nn.Module):
             diffusion_step_embed_dim=128, down_dims=(256, 512, 1024), kernel_size=5,
             n_groups=8, cond_predict_scale=True)
         self.noise = DDPMScheduler(num_train_timesteps=100, beta_schedule='squaredcos_cap_v2',
-                                   clip_sample=False, prediction_type='sample')
+                                   clip_sample=False, prediction_type=prediction_type)
         self.sampler = DDIMScheduler.from_config(self.noise.config)
         for name, width in (('robot', ROBOT_DIM), ('geometry', GEOMETRY_DIM)):
             self.register_buffer(name+'_mean', torch.zeros(width))
@@ -196,8 +198,11 @@ class NativePolicy(nn.Module):
         noise = torch.randn(target.shape, device=target.device, generator=generator)
         timestep = torch.randint(100, (len(target),), device=target.device, generator=generator)
         prediction = self.denoiser(self.noise.add_noise(target, noise, timestep), timestep, global_cond=condition)
-        base = masked_objectives(prediction, target, valid)['B']
+        objective = noise if self.noise.config.prediction_type == 'epsilon' else target
+        base = masked_objectives(prediction, objective, valid)['B']
         if temporal_weight:
+            if self.noise.config.prediction_type != 'sample':
+                raise ValueError('Temporal objective requires clean action predictions')
             from ..dp_objectives import arm_temporal_objective
             temporal = arm_temporal_objective(prediction, target, valid)
             self.last_loss_components = dict(base=base.detach(), temporal=temporal.detach())

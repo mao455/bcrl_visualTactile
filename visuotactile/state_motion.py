@@ -75,6 +75,7 @@ def motion_metrics(pred, gt, valid, before, scale, raw, limits, contact_anchor, 
     result = {}
     for width in (12, p.shape[1]):
         tag = str(width)
+        result['valid'+tag+'_positions'] = int(mask[:, :width].sum())
         good = mask[:, :width].all(1)
         expert_delta = y[:, width-1, :7]-base[:, :7]
         student_delta = p[:, width-1, :7]-base[:, :7]
@@ -254,6 +255,10 @@ def run(root, output, job_path):
         if identity==identities[0]:
             np.savez_compressed(output/'representative_plans.npz',anchors=anchors_cpu,truth=truth_cpu,valid=valid_cpu,
                 before=before,contact=contact[anchors_cpu],**per_config)
+        if job.get('save_numeric_plans'):
+            (output/'numeric_plans').mkdir(exist_ok=True)
+            np.savez_compressed(output/'numeric_plans'/(identity+'.npz'),anchors=anchors_cpu,
+                truth=truth_cpu,valid=valid_cpu,before=before,**per_config)
         atomic_json(output/'progress.json',dict(episodes_complete=len({r['identity'] for r in rows}),episodes_total=len(identities),rows=rows))
     summary={name:rows_summary([r for r in rows if r['configuration']==name]) for name in job['samplers']}
     result=dict(software_complete=True,split=split,episodes=len(identities),seeds=job['seeds'],updates=0,

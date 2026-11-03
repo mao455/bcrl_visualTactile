@@ -1,5 +1,18 @@
 # Engineering change and verification log
 
+## 2026-11-03 — 接续 H24 Sample/Epsilon，冻结前补齐恢复
+
+- 恢复8ef2a16工作树内上次未提交的NativePolicy/position_control/state_history Epsilon身份、
+  state_full_training缓存合同、state_motion有效数/数字plan、state_benchmark错误退出及资源归属。
+  保留已完成39项数值/回归和batch审计证据，不重跑模型/Kit Gate，不改训练配方。
+- tools/h24_comparison_run/report/audit、h24_selection和已有测试保存为版本化实现；
+  owner新增一次有界完整checkpoint恢复、失败目录/日志归档、完成标记幂等及配对初态检查。
+  Sample恢复仍用8ef2a16原冻结源码，不改原checkpoint/config；新shell入口规避变量展开错误。
+- 报告汇总valid-position加权原单位RMSE、train/validation闭环分母、阶段计数、空间/动作曲线、
+  milestone/config/source SHA；不比较不同diffusion目标loss，不声称小样本显著优势。
+- H24_SAMPLE_EPSILON_COMPARISON、CONTRACTS、方向/交接/AGENTS登记本轮授权及固定端点。
+  恢复时实测Epsilon尚未开始，Sample完整3000；新增恢复回归结果及实际启动见最新交接。
+
 ## 2026-11-03 — H24到3000的只读状态、退出和空间误差复核
 
 - recovery2于14:39:53UTC+8停止：H24 3k第二条评估scene前FileThread SIGABRT，exit−6。
@@ -1349,3 +1362,5 @@ Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and 
   remains **50 passed**.  No Isaac Sim process or correction/RL training was
   started by this change.  Runtime checkpoint and metric paths are recorded in
   the current session handoff after the background jobs start.
+
+本次恢复新增12项owner/选型/报告回归通过（CPU，0新Kit）；原39项数值验证沿用。

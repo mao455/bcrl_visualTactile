@@ -306,3 +306,15 @@ B pre-delay command全原生队列都是合法合同；不可对target再加一�
 不混H24/temporal，保持预算/初态/评估一致，保留原H32。预算已满则先离线诊断，
 可替代尚未启动且证据弱的辅助组，不无条件追加长训练。成果写回现有报告并push origin功能分支。
 实际完成与条件性后续安排见STATE_TRAINING_RESULTS，不以本授权文字替代结果。
+
+## 2026-11-03：连接中断后接续 H24 Sample/Epsilon
+
+用户明确要求复用上次已通过39项验证的实现和batch审计，不重新设计、不重启旧实验。
+先核对真实Git/后台/checkpoint；Epsilon到3000，同一train4+validation8初态配对，
+仅暂定胜出的一组从3000继续5000/8000/10000；原LR horizon19000及所有超参数不变。
+恢复optimizer/EMA/RNG/sampler，Sample只用原兼容冻结工作树，保留两组3000与失败证据。
+不因5000零成功停训，不追加Temporal/FK/Image/BC/残差，不将离线拟合作闭环成功。
+真实基础设施不足则独立记录software_missing，禁止无限Kit重试或未经验证的进程复用。
+所有正式工作由持久后台服务推进；启动后一次实测核验即可交回前台，不能只报告命令发出。
+授权 reviewed origin feature push 代码/Markdown/小图表，不上传原始数据/视频/权重/大日志。
+本轮沿用19:02:12注册的12h总端点，未重置Gate/训练/总deadline。
