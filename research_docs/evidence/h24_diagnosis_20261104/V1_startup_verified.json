@@ -1,0 +1,95 @@
+{
+  "video": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V1_clean.mp4",
+    "bytes": 1440270,
+    "sha256": "dd046d022723da413fa33cbd5b7f3713e66ab5a5aa69d7147baa70445f16e5c3",
+    "duration_s": 5.7,
+    "decoded_frames": 171,
+    "stream": {
+      "codec_name": "h264",
+      "width": 1280,
+      "height": 720,
+      "avg_frame_rate": "30/1",
+      "nb_frames": "171"
+    }
+  },
+  "events": {
+    "contact_tick": 54,
+    "lift_tick": 93,
+    "subgoal_tick": 114,
+    "alignment_tick": 114,
+    "fall_tick": null,
+    "success_tick": 341
+  },
+  "original_behavior_bytewise_equal": {
+    "actor": true,
+    "command": true,
+    "target": true,
+    "joint": true,
+    "velocity": true,
+    "object": true,
+    "contact": true,
+    "object_contact": true,
+    "force": true,
+    "torque": true,
+    "lifted": true,
+    "subgoals": true,
+    "alignment": true
+  },
+  "scope": "V1 only: real342tick native success; other videos/takeovers remain background work",
+  "screenshot_frame": 46,
+  "verification_epoch": 1793723742.393142,
+  "native_result": {
+    "identity": "r931005_1793209376_e02_p000059",
+    "cohort": "train",
+    "seed": 982403,
+    "software_complete": true,
+    "legal": true,
+    "success": true,
+    "reasons": {
+      "fall": false,
+      "max_successes": true,
+      "hand_far": false,
+      "dropped": false,
+      "timeout": false
+    },
+    "steps": 342,
+    "native_lift": true,
+    "native_subgoals": 2,
+    "native_alignment": true,
+    "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+    "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+    "actor_normalization_max_error": 0.0,
+    "simulation_step_hz": 60,
+    "physics_hz": 120,
+    "plan_hz": 5,
+    "inference": {
+      "inference_steps": 16,
+      "clip_sample": false,
+      "overlap_steps": 0,
+      "sampler_seed": 7091
+    },
+    "expert_prefix_ticks": 0,
+    "student_ticks": 342,
+    "prefix_validation": null,
+    "autonomous": true,
+    "action_control_mode": "absolute_joint_position_target_rad",
+    "actuator_target_max_error": 0.0,
+    "submitted_target_max_error": 0.0,
+    "contact": {
+      "object_contact": true,
+      "max_fingers": 4,
+      "two_finger_continuous_s": 1.0666666666666667,
+      "stable_grasp_diagnostic": true,
+      "object_contact_threshold_N": 0.1,
+      "stable_window_s": 0.2,
+      "scope": "filtered normal forces; not native success"
+    },
+    "video": {
+      "fps": 30,
+      "frames": 171,
+      "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+    },
+    "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+  }
+}
