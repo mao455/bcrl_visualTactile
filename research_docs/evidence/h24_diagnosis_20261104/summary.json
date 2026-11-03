@@ -1,0 +1,3728 @@
+{
+  "thresholds": {
+    "ee_divergence_mm": 5.0,
+    "arm_divergence_rad": 0.01,
+    "hand_divergence_rad": 0.05,
+    "object_divergence_mm": 5.0,
+    "object_rotation_deg": 5.0,
+    "consecutive_ticks": 3,
+    "object_contact_N": 0.1,
+    "prefix_joint_tolerance_rad": 1e-06,
+    "prefix_object_tolerance": 1e-06,
+    "clipping_tolerance_rad": 1e-06,
+    "movement_arm_rms_rad": 0.01
+  },
+  "registration_sha256": "2cc5364cf80d9a08a7b07d97f955ad07391ff0ea7a43be033fcbfd7b3e988881",
+  "new_optimizer_updates": 0,
+  "source_commit": "a57626cb22ef536bcad7b78f8068c80737ba5a69",
+  "historical": {
+    "historical_train_expert": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e02_p000059",
+      "steps": 181,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 181,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.09385891258716583
+      },
+      "events": {
+        "contact_tick": 55,
+        "lift_tick": null,
+        "subgoal_tick": 133,
+        "alignment_tick": 133,
+        "fall_tick": null,
+        "success_tick": 180
+      },
+      "target_actual_arm_rmse_rad": 0.008214789442718029,
+      "target_actual_hand_rmse_rad": 0.10766171663999557,
+      "target_actual_fk_mm": 12.251966614820816,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": null,
+      "clipping_max_rad": null,
+      "clipped_joint_ticks": null,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.0023826926480978727,
+        "arm_internal_jump_rms_rad": 0.0023683994077146053,
+        "arm_acceleration_rms_rad_s2": 4.257238388061523,
+        "arm_boundary_acceleration_rms_rad_s2": 3.8297536373138428,
+        "arm_internal_acceleration_rms_rad_s2": 4.335025310516357,
+        "arm_speed_rms_rad_s": 0.14217561576515436,
+        "hand_boundary_jump_rms_rad": 0.040079858154058456,
+        "hand_internal_jump_rms_rad": 0.039768606424331665,
+        "hand_acceleration_rms_rad_s2": 89.42684173583984,
+        "hand_boundary_acceleration_rms_rad_s2": 67.70653533935547,
+        "hand_internal_acceleration_rms_rad_s2": 93.04302215576172,
+        "hand_speed_rms_rad_s": 2.387678101658821
+      },
+      "precontact": {
+        "ticks": 55,
+        "arm_tracking_rmse_rad": 0.006864247843623161,
+        "hand_tracking_rmse_rad": 0.05586893483996391,
+        "target_actual_fk_mm": 10.382366787413092
+      },
+      "postcontact": {
+        "ticks": 126,
+        "arm_tracking_rmse_rad": 0.008739118464291096,
+        "hand_tracking_rmse_rad": 0.12364521622657776,
+        "target_actual_fk_mm": 12.983930681133653
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 181,
+        "actual_expert_fk_mm": 0.0,
+        "target_expert_target_fk_mm": 0.0,
+        "target_expert_arm_rmse_rad": 0.0,
+        "target_expert_hand_rmse_rad": 0.0,
+        "actual_expert_arm_rmse_rad": 0.0,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 0.0
+      }
+    },
+    "historical_train_8000": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_8000_loop/r931005_1793209376_e02_p000059",
+      "steps": 342,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 342,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.06420858949422836,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.0666666666666667,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.022894829511642456,
+          "arm_internal_jump_rms_rad": 0.011694920249283314,
+          "arm_acceleration_rms_rad_s2": 80.3710708618164,
+          "arm_boundary_acceleration_rms_rad_s2": 91.11483001708984,
+          "arm_internal_acceleration_rms_rad_s2": 78.12641143798828,
+          "arm_speed_rms_rad_s": 0.7777612656354904,
+          "hand_boundary_jump_rms_rad": 0.08774134516716003,
+          "hand_internal_jump_rms_rad": 0.03139658644795418,
+          "hand_acceleration_rms_rad_s2": 200.6688690185547,
+          "hand_boundary_acceleration_rms_rad_s2": 365.4391784667969,
+          "hand_internal_acceleration_rms_rad_s2": 149.18356323242188,
+          "hand_speed_rms_rad_s": 2.34492726624012,
+          "arm_overlap_rms_rad": 0.02687516249716282,
+          "arm_aligned_first_rms_rad": 0.028569793328642845,
+          "hand_overlap_rms_rad": 0.09128782898187637,
+          "hand_aligned_first_rms_rad": 0.07780817896127701
+        },
+        "planning_latency_s": {
+          "count": 29,
+          "mean": 0.13898254035779373,
+          "p05": 0.09098035865463316,
+          "p50": 0.09640848101116717,
+          "p95": 0.31899392812047156,
+          "max": 0.48507282801438123
+        },
+        "native_history_latency_s": {
+          "count": 313,
+          "mean": 0.006828196730595618,
+          "p05": 0.003749973978847265,
+          "p50": 0.004329724004492164,
+          "p95": 0.01792930015362799,
+          "max": 0.02137877489440143
+        }
+      },
+      "events": {
+        "contact_tick": 54,
+        "lift_tick": 93,
+        "subgoal_tick": 114,
+        "alignment_tick": 114,
+        "fall_tick": null,
+        "success_tick": 341
+      },
+      "target_actual_arm_rmse_rad": 0.011198488064110279,
+      "target_actual_hand_rmse_rad": 0.07344809919595718,
+      "target_actual_fk_mm": 10.89533805408971,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.11590957641601562,
+      "clipped_joint_ticks": 809,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.022894829511642456,
+        "arm_internal_jump_rms_rad": 0.011628002859652042,
+        "arm_acceleration_rms_rad_s2": 79.95588684082031,
+        "arm_boundary_acceleration_rms_rad_s2": 91.11483001708984,
+        "arm_internal_acceleration_rms_rad_s2": 77.5662841796875,
+        "arm_speed_rms_rad_s": 0.7757161930203438,
+        "hand_boundary_jump_rms_rad": 0.08525598794221878,
+        "hand_internal_jump_rms_rad": 0.03037473000586033,
+        "hand_acceleration_rms_rad_s2": 190.37734985351562,
+        "hand_boundary_acceleration_rms_rad_s2": 351.6568298339844,
+        "hand_internal_acceleration_rms_rad_s2": 137.8621826171875,
+        "hand_speed_rms_rad_s": 2.2797632217407227
+      },
+      "clipping_detail": {
+        "maximum_tick": 123,
+        "joint": "left_thumb_IP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.11590957641601562,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          66,
+          7,
+          3,
+          36,
+          2,
+          5,
+          13,
+          15,
+          16,
+          49,
+          6,
+          39,
+          205,
+          78,
+          111,
+          31,
+          23,
+          18,
+          42,
+          23,
+          20
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 54,
+        "arm_tracking_rmse_rad": 0.00990536529570818,
+        "hand_tracking_rmse_rad": 0.06215386465191841,
+        "target_actual_fk_mm": 14.375033591776788
+      },
+      "postcontact": {
+        "ticks": 288,
+        "arm_tracking_rmse_rad": 0.011424665339291096,
+        "hand_tracking_rmse_rad": 0.07537760585546494,
+        "target_actual_fk_mm": 10.1104360151123
+      },
+      "native_lift": {
+        "ticks": 249,
+        "arm_tracking_rmse_rad": 0.011699781753122807,
+        "hand_tracking_rmse_rad": 0.06446518003940582,
+        "target_actual_fk_mm": 9.937999400734801
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 181,
+        "actual_expert_fk_mm": 47.811071741047506,
+        "target_expert_target_fk_mm": 47.08189635342037,
+        "target_expert_arm_rmse_rad": 0.059253886342048645,
+        "target_expert_hand_rmse_rad": 0.2533065676689148,
+        "actual_expert_arm_rmse_rad": 0.05732470750808716,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 39.45596140384663
+      },
+      "object_palm_motion_p95_mm_per_tick": 8.088666715186829
+    },
+    "historical_train_10000": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_10000_loop/r931005_1793209376_e02_p000059",
+      "steps": 208,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 208,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.08236826956272125,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.5333333333333334,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.023791637271642685,
+          "arm_internal_jump_rms_rad": 0.007133707869797945,
+          "arm_acceleration_rms_rad_s2": 55.919158935546875,
+          "arm_boundary_acceleration_rms_rad_s2": 93.1810531616211,
+          "arm_internal_acceleration_rms_rad_s2": 45.5799446105957,
+          "arm_speed_rms_rad_s": 0.5743186734616756,
+          "hand_boundary_jump_rms_rad": 0.07543422281742096,
+          "hand_internal_jump_rms_rad": 0.03298892825841904,
+          "hand_acceleration_rms_rad_s2": 145.0957794189453,
+          "hand_boundary_acceleration_rms_rad_s2": 268.44830322265625,
+          "hand_internal_acceleration_rms_rad_s2": 106.85150146484375,
+          "hand_speed_rms_rad_s": 2.2864269465208054,
+          "arm_overlap_rms_rad": 0.02229885198175907,
+          "arm_aligned_first_rms_rad": 0.02309216745197773,
+          "hand_overlap_rms_rad": 0.10985865443944931,
+          "hand_aligned_first_rms_rad": 0.0696033164858818
+        },
+        "planning_latency_s": {
+          "count": 18,
+          "mean": 0.11648116794337209,
+          "p05": 0.09142964953789487,
+          "p50": 0.09441263199551031,
+          "p95": 0.15854489227058313,
+          "max": 0.48005790391471237
+        },
+        "native_history_latency_s": {
+          "count": 190,
+          "mean": 0.005181256643079809,
+          "p05": 0.003830427723005414,
+          "p50": 0.004277763015124947,
+          "p95": 0.008612170297419652,
+          "max": 0.009223603061400354
+        }
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 207,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.011754089035093784,
+      "target_actual_hand_rmse_rad": 0.09433603286743164,
+      "target_actual_fk_mm": 13.576390932657143,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.14135849475860596,
+      "clipped_joint_ticks": 680,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.023791637271642685,
+        "arm_internal_jump_rms_rad": 0.0067929658107459545,
+        "arm_acceleration_rms_rad_s2": 54.24840545654297,
+        "arm_boundary_acceleration_rms_rad_s2": 93.1810531616211,
+        "arm_internal_acceleration_rms_rad_s2": 42.523807525634766,
+        "arm_speed_rms_rad_s": 0.5655339919030666,
+        "hand_boundary_jump_rms_rad": 0.07209651172161102,
+        "hand_internal_jump_rms_rad": 0.0325520783662796,
+        "hand_acceleration_rms_rad_s2": 134.44667053222656,
+        "hand_boundary_acceleration_rms_rad_s2": 253.40579223632812,
+        "hand_internal_acceleration_rms_rad_s2": 94.63345336914062,
+        "hand_speed_rms_rad_s": 2.244590073823929
+      },
+      "clipping_detail": {
+        "maximum_tick": 188,
+        "joint": "left_1_thumb_CMC_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.14135849475860596,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          34,
+          3,
+          8,
+          3,
+          25,
+          8,
+          12,
+          10,
+          13,
+          4,
+          61,
+          16,
+          41,
+          104,
+          98,
+          70,
+          44,
+          18,
+          9,
+          49,
+          25,
+          25
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 51,
+        "arm_tracking_rmse_rad": 0.009422541595995426,
+        "hand_tracking_rmse_rad": 0.06017979606986046,
+        "target_actual_fk_mm": 13.928197656499206
+      },
+      "postcontact": {
+        "ticks": 157,
+        "arm_tracking_rmse_rad": 0.01241762563586235,
+        "hand_tracking_rmse_rad": 0.10302277654409409,
+        "target_actual_fk_mm": 13.460131289389532
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 181,
+        "actual_expert_fk_mm": 41.447891792230664,
+        "target_expert_target_fk_mm": 41.4944085743189,
+        "target_expert_arm_rmse_rad": 0.06468569487333298,
+        "target_expert_hand_rmse_rad": 0.2138233780860901,
+        "actual_expert_arm_rmse_rad": 0.06316594034433365,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 32.161132193303075
+      },
+      "object_palm_motion_p95_mm_per_tick": 27.99628436559637
+    },
+    "historical_validation_expert": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e00_p000055",
+      "steps": 182,
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 182,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.08938032388687134
+      },
+      "events": {
+        "contact_tick": 68,
+        "lift_tick": 104,
+        "subgoal_tick": 142,
+        "alignment_tick": 142,
+        "fall_tick": null,
+        "success_tick": 181
+      },
+      "target_actual_arm_rmse_rad": 0.009065324440598488,
+      "target_actual_hand_rmse_rad": 0.10249194502830505,
+      "target_actual_fk_mm": 15.346126426541728,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": null,
+      "clipping_max_rad": null,
+      "clipped_joint_ticks": null,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.002381038386374712,
+        "arm_internal_jump_rms_rad": 0.0023818640038371086,
+        "arm_acceleration_rms_rad_s2": 3.5929365158081055,
+        "arm_boundary_acceleration_rms_rad_s2": 4.316491603851318,
+        "arm_internal_acceleration_rms_rad_s2": 3.429957866668701,
+        "arm_speed_rms_rad_s": 0.14290773309767246,
+        "hand_boundary_jump_rms_rad": 0.03284367918968201,
+        "hand_internal_jump_rms_rad": 0.03568496182560921,
+        "hand_acceleration_rms_rad_s2": 76.75096893310547,
+        "hand_boundary_acceleration_rms_rad_s2": 81.86532592773438,
+        "hand_internal_acceleration_rms_rad_s2": 75.6866455078125,
+        "hand_speed_rms_rad_s": 2.127488851547241
+      },
+      "precontact": {
+        "ticks": 65,
+        "arm_tracking_rmse_rad": 0.005534233991056681,
+        "hand_tracking_rmse_rad": 0.04074771702289581,
+        "target_actual_fk_mm": 8.798683965430701
+      },
+      "postcontact": {
+        "ticks": 117,
+        "arm_tracking_rmse_rad": 0.01052712183445692,
+        "hand_tracking_rmse_rad": 0.12416946142911911,
+        "target_actual_fk_mm": 17.98136736419118
+      },
+      "native_lift": {
+        "ticks": 78,
+        "arm_tracking_rmse_rad": 0.010809908621013165,
+        "hand_tracking_rmse_rad": 0.12585514783859253,
+        "target_actual_fk_mm": 18.609372238761484
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e00_p000055",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 182,
+        "actual_expert_fk_mm": 0.0,
+        "target_expert_target_fk_mm": 0.0,
+        "target_expert_arm_rmse_rad": 0.0,
+        "target_expert_hand_rmse_rad": 0.0,
+        "actual_expert_arm_rmse_rad": 0.0,
+        "expert_precontact_ticks": 65,
+        "actual_expert_precontact_fk_mm": 0.0
+      }
+    },
+    "historical_validation_8000": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_8000_loop/r931005_1793209376_e00_p000055",
+      "steps": 601,
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.043347377330064774,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 2,
+          "two_finger_continuous_s": 0.03333333333333333,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.02295174077153206,
+          "arm_internal_jump_rms_rad": 0.01043387595564127,
+          "arm_acceleration_rms_rad_s2": 75.54523468017578,
+          "arm_boundary_acceleration_rms_rad_s2": 104.8839340209961,
+          "arm_internal_acceleration_rms_rad_s2": 68.3310317993164,
+          "arm_speed_rms_rad_s": 0.7176591083407402,
+          "hand_boundary_jump_rms_rad": 0.083833247423172,
+          "hand_internal_jump_rms_rad": 0.03012201562523842,
+          "hand_acceleration_rms_rad_s2": 189.38099670410156,
+          "hand_boundary_acceleration_rms_rad_s2": 328.2828369140625,
+          "hand_internal_acceleration_rms_rad_s2": 147.53387451171875,
+          "hand_speed_rms_rad_s": 2.251567170023918,
+          "arm_overlap_rms_rad": 0.023859253153204918,
+          "arm_aligned_first_rms_rad": 0.021162018179893494,
+          "hand_overlap_rms_rad": 0.11489954590797424,
+          "hand_aligned_first_rms_rad": 0.0824708491563797
+        },
+        "planning_latency_s": {
+          "count": 51,
+          "mean": 0.13254283685191517,
+          "p05": 0.09131981752580032,
+          "p50": 0.09439084492623806,
+          "p95": 0.319187308952678,
+          "max": 0.46605789207387716
+        },
+        "native_history_latency_s": {
+          "count": 550,
+          "mean": 0.006761546719353646,
+          "p05": 0.0037868014827836306,
+          "p50": 0.004322759574279189,
+          "p95": 0.01794104246073402,
+          "max": 0.022406903910450637
+        }
+      },
+      "events": {
+        "contact_tick": 68,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.012191512621939182,
+      "target_actual_hand_rmse_rad": 0.04929061233997345,
+      "target_actual_fk_mm": 20.56274182449076,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.23345696926116943,
+      "clipped_joint_ticks": 1836,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.02295174077153206,
+        "arm_internal_jump_rms_rad": 0.010357135906815529,
+        "arm_acceleration_rms_rad_s2": 75.18079376220703,
+        "arm_boundary_acceleration_rms_rad_s2": 104.99561309814453,
+        "arm_internal_acceleration_rms_rad_s2": 67.73854064941406,
+        "arm_speed_rms_rad_s": 0.7155602797865868,
+        "hand_boundary_jump_rms_rad": 0.07953621447086334,
+        "hand_internal_jump_rms_rad": 0.028261644765734673,
+        "hand_acceleration_rms_rad_s2": 172.81248474121094,
+        "hand_boundary_acceleration_rms_rad_s2": 308.7548828125,
+        "hand_internal_acceleration_rms_rad_s2": 130.0076904296875,
+        "hand_speed_rms_rad_s": 2.129220888018608
+      },
+      "clipping_detail": {
+        "maximum_tick": 581,
+        "joint": "left_thumb_MCP_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.23345696926116943,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          20,
+          0,
+          38,
+          177,
+          12,
+          0,
+          45,
+          115,
+          6,
+          0,
+          169,
+          9,
+          68,
+          420,
+          98,
+          297,
+          51,
+          57,
+          2,
+          167,
+          37,
+          48
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 68,
+        "arm_tracking_rmse_rad": 0.006447370629757643,
+        "hand_tracking_rmse_rad": 0.04069799929857254,
+        "target_actual_fk_mm": 8.88078725762814
+      },
+      "postcontact": {
+        "ticks": 533,
+        "arm_tracking_rmse_rad": 0.012739395722746849,
+        "hand_tracking_rmse_rad": 0.0502813495695591,
+        "target_actual_fk_mm": 21.6034353444884
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e00_p000055",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 182,
+        "actual_expert_fk_mm": 43.0393911907917,
+        "target_expert_target_fk_mm": 41.82263881261643,
+        "target_expert_arm_rmse_rad": 0.08134642988443375,
+        "target_expert_hand_rmse_rad": 0.38286760449409485,
+        "actual_expert_arm_rmse_rad": 0.07948952168226242,
+        "expert_precontact_ticks": 65,
+        "actual_expert_precontact_fk_mm": 27.974900396749913
+      },
+      "object_palm_motion_p95_mm_per_tick": 3.9802112034914763
+    },
+    "historical_validation_10000": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_10000_loop/r931005_1793209376_e00_p000055",
+      "steps": 601,
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.03429768234491348,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 1,
+          "two_finger_continuous_s": 0.0,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.029089607298374176,
+          "arm_internal_jump_rms_rad": 0.01479942724108696,
+          "arm_acceleration_rms_rad_s2": 109.95861053466797,
+          "arm_boundary_acceleration_rms_rad_s2": 145.24961853027344,
+          "arm_internal_acceleration_rms_rad_s2": 101.61153411865234,
+          "arm_speed_rms_rad_s": 0.9865343570709229,
+          "hand_boundary_jump_rms_rad": 0.07867627590894699,
+          "hand_internal_jump_rms_rad": 0.0297271516174078,
+          "hand_acceleration_rms_rad_s2": 209.9114532470703,
+          "hand_boundary_acceleration_rms_rad_s2": 342.70306396484375,
+          "hand_internal_acceleration_rms_rad_s2": 172.2616729736328,
+          "hand_speed_rms_rad_s": 2.1781986951828003,
+          "arm_overlap_rms_rad": 0.02072838693857193,
+          "arm_aligned_first_rms_rad": 0.023386117070913315,
+          "hand_overlap_rms_rad": 0.07570258527994156,
+          "hand_aligned_first_rms_rad": 0.07301083207130432
+        },
+        "planning_latency_s": {
+          "count": 51,
+          "mean": 0.111780789792629,
+          "p05": 0.0916071129613556,
+          "p50": 0.09990340599324554,
+          "p95": 0.12657443148782477,
+          "max": 0.5097474339418113
+        },
+        "native_history_latency_s": {
+          "count": 550,
+          "mean": 0.006001413049472665,
+          "p05": 0.0038195124885533004,
+          "p50": 0.004448597494047135,
+          "p95": 0.012007283867569584,
+          "max": 0.02134264400228858
+        }
+      },
+      "events": {
+        "contact_tick": 60,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.013505886308848858,
+      "target_actual_hand_rmse_rad": 0.038633909076452255,
+      "target_actual_fk_mm": 22.28790081568378,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.19760754704475403,
+      "clipped_joint_ticks": 2697,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.029089607298374176,
+        "arm_internal_jump_rms_rad": 0.014720672741532326,
+        "arm_acceleration_rms_rad_s2": 109.5279541015625,
+        "arm_boundary_acceleration_rms_rad_s2": 144.88287353515625,
+        "arm_internal_acceleration_rms_rad_s2": 101.07139587402344,
+        "arm_speed_rms_rad_s": 0.9843605384230614,
+        "hand_boundary_jump_rms_rad": 0.07181918621063232,
+        "hand_internal_jump_rms_rad": 0.02550492249429226,
+        "hand_acceleration_rms_rad_s2": 175.71641540527344,
+        "hand_boundary_acceleration_rms_rad_s2": 306.4734802246094,
+        "hand_internal_acceleration_rms_rad_s2": 135.61863708496094,
+        "hand_speed_rms_rad_s": 1.9219916313886642
+      },
+      "clipping_detail": {
+        "maximum_tick": 145,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.19760754704475403,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          92,
+          0,
+          0,
+          31,
+          5,
+          2,
+          21,
+          434,
+          21,
+          0,
+          176,
+          16,
+          179,
+          336,
+          401,
+          386,
+          152,
+          34,
+          13,
+          330,
+          54,
+          14
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 60,
+        "arm_tracking_rmse_rad": 0.0065473103895783424,
+        "hand_tracking_rmse_rad": 0.04490111395716667,
+        "target_actual_fk_mm": 8.38278369789122
+      },
+      "postcontact": {
+        "ticks": 541,
+        "arm_tracking_rmse_rad": 0.014067158102989197,
+        "hand_tracking_rmse_rad": 0.037875011563301086,
+        "target_actual_fk_mm": 23.324869532182184
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning/r931005_1793209376_e00_p000055",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 182,
+        "actual_expert_fk_mm": 40.86469863154112,
+        "target_expert_target_fk_mm": 39.81521448574534,
+        "target_expert_arm_rmse_rad": 0.16452021896839142,
+        "target_expert_hand_rmse_rad": 0.3739147484302521,
+        "actual_expert_arm_rmse_rad": 0.16258038580417633,
+        "expert_precontact_ticks": 65,
+        "actual_expert_precontact_fk_mm": 18.584397783286562
+      },
+      "object_palm_motion_p95_mm_per_tick": 4.974339798020445
+    }
+  },
+  "new": {
+    "V1_software_attempt1": {
+      "state": "failed",
+      "mode": "dp",
+      "updates": 8000,
+      "cohort": "train",
+      "code": 1,
+      "evidence": null,
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V1",
+      "native_outcome": null
+    },
+    "V1": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V1_recording_recovery/r931005_1793209376_e02_p000059",
+      "steps": 342,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 342,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 342,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.0666666666666667,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 171,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 54,
+        "lift_tick": 93,
+        "subgoal_tick": 114,
+        "alignment_tick": 114,
+        "fall_tick": null,
+        "success_tick": 341
+      },
+      "target_actual_arm_rmse_rad": 0.011198488064110279,
+      "target_actual_hand_rmse_rad": 0.07344809919595718,
+      "target_actual_fk_mm": 10.89533805408971,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.11590957641601562,
+      "clipped_joint_ticks": 809,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.022894829511642456,
+        "arm_internal_jump_rms_rad": 0.011628002859652042,
+        "arm_acceleration_rms_rad_s2": 79.95588684082031,
+        "arm_boundary_acceleration_rms_rad_s2": 91.11483001708984,
+        "arm_internal_acceleration_rms_rad_s2": 77.5662841796875,
+        "arm_speed_rms_rad_s": 0.7757161930203438,
+        "hand_boundary_jump_rms_rad": 0.08525598794221878,
+        "hand_internal_jump_rms_rad": 0.03037473000586033,
+        "hand_acceleration_rms_rad_s2": 190.37734985351562,
+        "hand_boundary_acceleration_rms_rad_s2": 351.6568298339844,
+        "hand_internal_acceleration_rms_rad_s2": 137.8621826171875,
+        "hand_speed_rms_rad_s": 2.2797632217407227
+      },
+      "clipping_detail": {
+        "maximum_tick": 123,
+        "joint": "left_thumb_IP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.11590957641601562,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          66,
+          7,
+          3,
+          36,
+          2,
+          5,
+          13,
+          15,
+          16,
+          49,
+          6,
+          39,
+          205,
+          78,
+          111,
+          31,
+          23,
+          18,
+          42,
+          23,
+          20
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 54,
+        "arm_tracking_rmse_rad": 0.00990536529570818,
+        "hand_tracking_rmse_rad": 0.06215386465191841,
+        "target_actual_fk_mm": 14.375033591776788
+      },
+      "postcontact": {
+        "ticks": 288,
+        "arm_tracking_rmse_rad": 0.011424665339291096,
+        "hand_tracking_rmse_rad": 0.07537760585546494,
+        "target_actual_fk_mm": 10.1104360151123
+      },
+      "native_lift": {
+        "ticks": 249,
+        "arm_tracking_rmse_rad": 0.011699781753122807,
+        "hand_tracking_rmse_rad": 0.06446518003940582,
+        "target_actual_fk_mm": 9.937999400734801
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 181,
+        "actual_expert_fk_mm": 47.811071741047506,
+        "target_expert_target_fk_mm": 47.08189635342037,
+        "target_expert_arm_rmse_rad": 0.059253886342048645,
+        "target_expert_hand_rmse_rad": 0.2533065676689148,
+        "actual_expert_arm_rmse_rad": 0.05732470750808716,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 39.45596140384663
+      },
+      "object_palm_motion_p95_mm_per_tick": 8.088666715186829,
+      "historical_reproduction": {
+        "command": true,
+        "target": true,
+        "joint": true,
+        "velocity": true,
+        "object": true,
+        "contact": true,
+        "object_contact": true,
+        "lifted": true,
+        "subgoals": true,
+        "alignment": true
+      }
+    },
+    "V2": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V2/r931005_1793209376_e02_p000059",
+      "steps": 208,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 208,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 208,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.5333333333333334,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 104,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 207,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.011754089035093784,
+      "target_actual_hand_rmse_rad": 0.09433603286743164,
+      "target_actual_fk_mm": 13.576390932657143,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.14135849475860596,
+      "clipped_joint_ticks": 680,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.023791637271642685,
+        "arm_internal_jump_rms_rad": 0.0067929658107459545,
+        "arm_acceleration_rms_rad_s2": 54.24840545654297,
+        "arm_boundary_acceleration_rms_rad_s2": 93.1810531616211,
+        "arm_internal_acceleration_rms_rad_s2": 42.523807525634766,
+        "arm_speed_rms_rad_s": 0.5655339919030666,
+        "hand_boundary_jump_rms_rad": 0.07209651172161102,
+        "hand_internal_jump_rms_rad": 0.0325520783662796,
+        "hand_acceleration_rms_rad_s2": 134.44667053222656,
+        "hand_boundary_acceleration_rms_rad_s2": 253.40579223632812,
+        "hand_internal_acceleration_rms_rad_s2": 94.63345336914062,
+        "hand_speed_rms_rad_s": 2.244590073823929
+      },
+      "clipping_detail": {
+        "maximum_tick": 188,
+        "joint": "left_1_thumb_CMC_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.14135849475860596,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          34,
+          3,
+          8,
+          3,
+          25,
+          8,
+          12,
+          10,
+          13,
+          4,
+          61,
+          16,
+          41,
+          104,
+          98,
+          70,
+          44,
+          18,
+          9,
+          49,
+          25,
+          25
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 51,
+        "arm_tracking_rmse_rad": 0.009422541595995426,
+        "hand_tracking_rmse_rad": 0.06017979606986046,
+        "target_actual_fk_mm": 13.928197656499206
+      },
+      "postcontact": {
+        "ticks": 157,
+        "arm_tracking_rmse_rad": 0.01241762563586235,
+        "hand_tracking_rmse_rad": 0.10302277654409409,
+        "target_actual_fk_mm": 13.460131289389532
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 181,
+        "actual_expert_fk_mm": 41.447891792230664,
+        "target_expert_target_fk_mm": 41.4944085743189,
+        "target_expert_arm_rmse_rad": 0.06468569487333298,
+        "target_expert_hand_rmse_rad": 0.2138233780860901,
+        "actual_expert_arm_rmse_rad": 0.06316594034433365,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 32.161132193303075
+      },
+      "object_palm_motion_p95_mm_per_tick": 27.99628436559637,
+      "historical_reproduction": {
+        "command": true,
+        "target": true,
+        "joint": true,
+        "velocity": true,
+        "object": true,
+        "contact": true,
+        "object_contact": true,
+        "lifted": true,
+        "subgoals": true,
+        "alignment": true
+      }
+    },
+    "V3": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+      "steps": 181,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 181,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "inference": null,
+        "expert_prefix_ticks": 0,
+        "student_ticks": 0,
+        "prefix_validation": null,
+        "autonomous": false,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": null,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.325,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 91,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 55,
+        "lift_tick": null,
+        "subgoal_tick": 133,
+        "alignment_tick": 133,
+        "fall_tick": null,
+        "success_tick": 180
+      },
+      "target_actual_arm_rmse_rad": 0.008214789442718029,
+      "target_actual_hand_rmse_rad": 0.10766171663999557,
+      "target_actual_fk_mm": 12.251966614820816,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": null,
+      "clipping_max_rad": null,
+      "clipped_joint_ticks": null,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.0023826926480978727,
+        "arm_internal_jump_rms_rad": 0.0023683994077146053,
+        "arm_acceleration_rms_rad_s2": 4.257238388061523,
+        "arm_boundary_acceleration_rms_rad_s2": 3.8297536373138428,
+        "arm_internal_acceleration_rms_rad_s2": 4.335025310516357,
+        "arm_speed_rms_rad_s": 0.14217561576515436,
+        "hand_boundary_jump_rms_rad": 0.040079858154058456,
+        "hand_internal_jump_rms_rad": 0.039768606424331665,
+        "hand_acceleration_rms_rad_s2": 89.42684173583984,
+        "hand_boundary_acceleration_rms_rad_s2": 67.70653533935547,
+        "hand_internal_acceleration_rms_rad_s2": 93.04302215576172,
+        "hand_speed_rms_rad_s": 2.387678101658821
+      },
+      "precontact": {
+        "ticks": 55,
+        "arm_tracking_rmse_rad": 0.006864247843623161,
+        "hand_tracking_rmse_rad": 0.05586893483996391,
+        "target_actual_fk_mm": 10.382366787413092
+      },
+      "postcontact": {
+        "ticks": 126,
+        "arm_tracking_rmse_rad": 0.008739118464291096,
+        "hand_tracking_rmse_rad": 0.12364521622657776,
+        "target_actual_fk_mm": 12.983930681133653
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 181,
+        "actual_expert_fk_mm": 0.0,
+        "target_expert_target_fk_mm": 0.0,
+        "target_expert_arm_rmse_rad": 0.0,
+        "target_expert_hand_rmse_rad": 0.0,
+        "actual_expert_arm_rmse_rad": 0.0,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 0.0
+      },
+      "object_palm_motion_p95_mm_per_tick": 7.5127830433339655
+    },
+    "V4": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V4/r931005_1793209376_e00_p000055",
+      "steps": 601,
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 601,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 2,
+          "two_finger_continuous_s": 0.03333333333333333,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 301,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 68,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.012191512621939182,
+      "target_actual_hand_rmse_rad": 0.04929061233997345,
+      "target_actual_fk_mm": 20.56274182449076,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.23345696926116943,
+      "clipped_joint_ticks": 1836,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.02295174077153206,
+        "arm_internal_jump_rms_rad": 0.010357135906815529,
+        "arm_acceleration_rms_rad_s2": 75.18079376220703,
+        "arm_boundary_acceleration_rms_rad_s2": 104.99561309814453,
+        "arm_internal_acceleration_rms_rad_s2": 67.73854064941406,
+        "arm_speed_rms_rad_s": 0.7155602797865868,
+        "hand_boundary_jump_rms_rad": 0.07953621447086334,
+        "hand_internal_jump_rms_rad": 0.028261644765734673,
+        "hand_acceleration_rms_rad_s2": 172.81248474121094,
+        "hand_boundary_acceleration_rms_rad_s2": 308.7548828125,
+        "hand_internal_acceleration_rms_rad_s2": 130.0076904296875,
+        "hand_speed_rms_rad_s": 2.129220888018608
+      },
+      "clipping_detail": {
+        "maximum_tick": 581,
+        "joint": "left_thumb_MCP_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.23345696926116943,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          20,
+          0,
+          38,
+          177,
+          12,
+          0,
+          45,
+          115,
+          6,
+          0,
+          169,
+          9,
+          68,
+          420,
+          98,
+          297,
+          51,
+          57,
+          2,
+          167,
+          37,
+          48
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 68,
+        "arm_tracking_rmse_rad": 0.006447370629757643,
+        "hand_tracking_rmse_rad": 0.04069799929857254,
+        "target_actual_fk_mm": 8.88078725762814
+      },
+      "postcontact": {
+        "ticks": 533,
+        "arm_tracking_rmse_rad": 0.012739395722746849,
+        "hand_tracking_rmse_rad": 0.0502813495695591,
+        "target_actual_fk_mm": 21.6034353444884
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V6/r931005_1793209376_e00_p000055",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 182,
+        "actual_expert_fk_mm": 43.0393911907917,
+        "target_expert_target_fk_mm": 41.82263881261643,
+        "target_expert_arm_rmse_rad": 0.08134642988443375,
+        "target_expert_hand_rmse_rad": 0.38286760449409485,
+        "actual_expert_arm_rmse_rad": 0.07948952168226242,
+        "expert_precontact_ticks": 65,
+        "actual_expert_precontact_fk_mm": 27.974900396749913
+      },
+      "object_palm_motion_p95_mm_per_tick": 3.9802112034914763,
+      "historical_reproduction": {
+        "command": true,
+        "target": true,
+        "joint": true,
+        "velocity": true,
+        "object": true,
+        "contact": true,
+        "object_contact": true,
+        "lifted": true,
+        "subgoals": true,
+        "alignment": true
+      }
+    },
+    "V5": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V5/r931005_1793209376_e00_p000055",
+      "steps": 601,
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 601,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 1,
+          "two_finger_continuous_s": 0.0,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 301,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 60,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.014076326973736286,
+      "target_actual_hand_rmse_rad": 0.03888105973601341,
+      "target_actual_fk_mm": 24.04492226782748,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.2022171914577484,
+      "clipped_joint_ticks": 2876,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.02850516326725483,
+        "arm_internal_jump_rms_rad": 0.014870483428239822,
+        "arm_acceleration_rms_rad_s2": 109.67652130126953,
+        "arm_boundary_acceleration_rms_rad_s2": 141.1129608154297,
+        "arm_internal_acceleration_rms_rad_s2": 102.31285858154297,
+        "arm_speed_rms_rad_s": 0.9866593033075333,
+        "hand_boundary_jump_rms_rad": 0.07059089839458466,
+        "hand_internal_jump_rms_rad": 0.024671446532011032,
+        "hand_acceleration_rms_rad_s2": 169.2384033203125,
+        "hand_boundary_acceleration_rms_rad_s2": 303.0805358886719,
+        "hand_internal_acceleration_rms_rad_s2": 126.98360443115234,
+        "hand_speed_rms_rad_s": 1.8717819079756737
+      },
+      "clipping_detail": {
+        "maximum_tick": 145,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.2022171914577484,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          125,
+          0,
+          0,
+          33,
+          0,
+          4,
+          23,
+          438,
+          21,
+          0,
+          202,
+          16,
+          234,
+          335,
+          428,
+          424,
+          151,
+          35,
+          13,
+          331,
+          54,
+          9
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 60,
+        "arm_tracking_rmse_rad": 0.006547301542013884,
+        "hand_tracking_rmse_rad": 0.04490111395716667,
+        "target_actual_fk_mm": 8.382778610816104
+      },
+      "postcontact": {
+        "ticks": 541,
+        "arm_tracking_rmse_rad": 0.014675282873213291,
+        "hand_tracking_rmse_rad": 0.03815493360161781,
+        "target_actual_fk_mm": 25.189003548445516
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V6/r931005_1793209376_e00_p000055",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 182,
+        "actual_expert_fk_mm": 42.29449851959399,
+        "target_expert_target_fk_mm": 41.54224764880576,
+        "target_expert_arm_rmse_rad": 0.15949539840221405,
+        "target_expert_hand_rmse_rad": 0.3765260577201843,
+        "actual_expert_arm_rmse_rad": 0.15744443237781525,
+        "expert_precontact_ticks": 65,
+        "actual_expert_precontact_fk_mm": 18.58469492383066
+      },
+      "object_palm_motion_p95_mm_per_tick": 5.19037405503611,
+      "historical_reproduction": {
+        "command": false,
+        "target": false,
+        "joint": false,
+        "velocity": false,
+        "object": false,
+        "contact": false,
+        "object_contact": false,
+        "lifted": true,
+        "subgoals": true,
+        "alignment": true
+      }
+    },
+    "V6": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V6/r931005_1793209376_e00_p000055",
+      "steps": 182,
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 182,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "inference": null,
+        "expert_prefix_ticks": 0,
+        "student_ticks": 0,
+        "prefix_validation": null,
+        "autonomous": false,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": null,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 3,
+          "two_finger_continuous_s": 0.675,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 91,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 68,
+        "lift_tick": 104,
+        "subgoal_tick": 142,
+        "alignment_tick": 142,
+        "fall_tick": null,
+        "success_tick": 181
+      },
+      "target_actual_arm_rmse_rad": 0.009065324440598488,
+      "target_actual_hand_rmse_rad": 0.10249194502830505,
+      "target_actual_fk_mm": 15.346126426541728,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": null,
+      "clipping_max_rad": null,
+      "clipped_joint_ticks": null,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.002381038386374712,
+        "arm_internal_jump_rms_rad": 0.0023818640038371086,
+        "arm_acceleration_rms_rad_s2": 3.5929365158081055,
+        "arm_boundary_acceleration_rms_rad_s2": 4.316491603851318,
+        "arm_internal_acceleration_rms_rad_s2": 3.429957866668701,
+        "arm_speed_rms_rad_s": 0.14290773309767246,
+        "hand_boundary_jump_rms_rad": 0.03284367918968201,
+        "hand_internal_jump_rms_rad": 0.03568496182560921,
+        "hand_acceleration_rms_rad_s2": 76.75096893310547,
+        "hand_boundary_acceleration_rms_rad_s2": 81.86532592773438,
+        "hand_internal_acceleration_rms_rad_s2": 75.6866455078125,
+        "hand_speed_rms_rad_s": 2.127488851547241
+      },
+      "precontact": {
+        "ticks": 65,
+        "arm_tracking_rmse_rad": 0.005534233991056681,
+        "hand_tracking_rmse_rad": 0.04074771702289581,
+        "target_actual_fk_mm": 8.798683965430701
+      },
+      "postcontact": {
+        "ticks": 117,
+        "arm_tracking_rmse_rad": 0.01052712183445692,
+        "hand_tracking_rmse_rad": 0.12416946142911911,
+        "target_actual_fk_mm": 17.98136736419118
+      },
+      "native_lift": {
+        "ticks": 78,
+        "arm_tracking_rmse_rad": 0.010809908621013165,
+        "hand_tracking_rmse_rad": 0.12585514783859253,
+        "target_actual_fk_mm": 18.609372238761484
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V6/r931005_1793209376_e00_p000055",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 182,
+        "actual_expert_fk_mm": 0.0,
+        "target_expert_target_fk_mm": 0.0,
+        "target_expert_arm_rmse_rad": 0.0,
+        "target_expert_hand_rmse_rad": 0.0,
+        "actual_expert_arm_rmse_rad": 0.0,
+        "expert_precontact_ticks": 65,
+        "actual_expert_precontact_fk_mm": 0.0
+      },
+      "object_palm_motion_p95_mm_per_tick": 6.813113626222526
+    },
+    "T_train_10000_precontact": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/T_train_10000_precontact/r931005_1793209376_e02_p000059",
+      "steps": 128,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 128,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 48,
+        "student_ticks": 80,
+        "prefix_validation": {
+          "passed": true,
+          "ticks": 48,
+          "maximum_absolute_errors": {
+            "command": 0.0,
+            "target": 0.0,
+            "joint": 0.0,
+            "velocity": 0.0,
+            "object": 0.0,
+            "contact": 0.0,
+            "object_contact": 0.0
+          },
+          "missing": "PhysX solver/contact warm-start is not serialized; observable prefix parity only"
+        },
+        "autonomous": false,
+        "action_control_mode": "position_rad_after_native_expert_prefix",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 3,
+          "two_finger_continuous_s": 0.375,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 64,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 127,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.008525358512997627,
+      "target_actual_hand_rmse_rad": 0.08059469610452652,
+      "target_actual_fk_mm": 10.177590534824894,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.089015431702137,
+      "clipped_joint_ticks": 332,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.017627844586968422,
+        "arm_internal_jump_rms_rad": 0.005372010637074709,
+        "arm_acceleration_rms_rad_s2": 40.11966323852539,
+        "arm_boundary_acceleration_rms_rad_s2": 69.32490539550781,
+        "arm_internal_acceleration_rms_rad_s2": 31.725406646728516,
+        "arm_speed_rms_rad_s": 0.4287123307585716,
+        "hand_boundary_jump_rms_rad": 0.0685468539595604,
+        "hand_internal_jump_rms_rad": 0.03366468846797943,
+        "hand_acceleration_rms_rad_s2": 107.46540832519531,
+        "hand_boundary_acceleration_rms_rad_s2": 200.73455810546875,
+        "hand_internal_acceleration_rms_rad_s2": 78.26316833496094,
+        "hand_speed_rms_rad_s": 2.256229966878891
+      },
+      "clipping_detail": {
+        "maximum_tick": 48,
+        "joint": "left_middle_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.089015431702137,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          18,
+          0,
+          5,
+          16,
+          2,
+          0,
+          50,
+          8,
+          10,
+          57,
+          47,
+          16,
+          35,
+          15,
+          7,
+          39,
+          0,
+          2
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 51,
+        "arm_tracking_rmse_rad": 0.007204912602901459,
+        "hand_tracking_rmse_rad": 0.05825082212686539,
+        "target_actual_fk_mm": 10.762804838590633
+      },
+      "postcontact": {
+        "ticks": 77,
+        "arm_tracking_rmse_rad": 0.0092972656711936,
+        "hand_tracking_rmse_rad": 0.09246785938739777,
+        "target_actual_fk_mm": 9.77070383647632
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 128,
+        "actual_expert_fk_mm": 23.68375288790749,
+        "target_expert_target_fk_mm": 22.96617610037293,
+        "target_expert_arm_rmse_rad": 0.0320613868534565,
+        "target_expert_hand_rmse_rad": 0.20328210294246674,
+        "actual_expert_arm_rmse_rad": 0.030609983950853348,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 2.443477686831445
+      },
+      "object_palm_motion_p95_mm_per_tick": 39.24284546559998
+    },
+    "T_train_8000_precontact": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/T_train_8000_precontact/r931005_1793209376_e02_p000059",
+      "steps": 162,
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 162,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 48,
+        "student_ticks": 114,
+        "prefix_validation": {
+          "passed": true,
+          "ticks": 48,
+          "maximum_absolute_errors": {
+            "command": 0.0,
+            "target": 0.0,
+            "joint": 0.0,
+            "velocity": 0.0,
+            "object": 0.0,
+            "contact": 0.0,
+            "object_contact": 0.0
+          },
+          "missing": "PhysX solver/contact warm-start is not serialized; observable prefix parity only"
+        },
+        "autonomous": false,
+        "action_control_mode": "position_rad_after_native_expert_prefix",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 3,
+          "two_finger_continuous_s": 0.38333333333333336,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 81,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 161,
+        "success_tick": null
+      },
+      "target_actual_arm_rmse_rad": 0.010367526672780514,
+      "target_actual_hand_rmse_rad": 0.07238519191741943,
+      "target_actual_fk_mm": 10.099785423800746,
+      "actuator_target_max_error_rad": 0.0,
+      "position_request_applied_max_error_rad": 0.0,
+      "clipping_max_rad": 0.13217343389987946,
+      "clipped_joint_ticks": 433,
+      "command_units": "position radians only where command_is_position; expert native command dimensionless",
+      "contact_points_available": false,
+      "tangential_slip_force_available": false,
+      "continuity": {
+        "arm_boundary_jump_rms_rad": 0.030357247218489647,
+        "arm_internal_jump_rms_rad": 0.006920638959854841,
+        "arm_acceleration_rms_rad_s2": 63.39882278442383,
+        "arm_boundary_acceleration_rms_rad_s2": 120.7607650756836,
+        "arm_internal_acceleration_rms_rad_s2": 44.38161087036133,
+        "arm_speed_rms_rad_s": 0.6529803201556206,
+        "hand_boundary_jump_rms_rad": 0.06797843426465988,
+        "hand_internal_jump_rms_rad": 0.030418625101447105,
+        "hand_acceleration_rms_rad_s2": 121.49909210205078,
+        "hand_boundary_acceleration_rms_rad_s2": 221.99118041992188,
+        "hand_internal_acceleration_rms_rad_s2": 89.80254364013672,
+        "hand_speed_rms_rad_s": 2.0988933742046356
+      },
+      "clipping_detail": {
+        "maximum_tick": 48,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.13217343389987946,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          11,
+          0,
+          1,
+          0,
+          45,
+          0,
+          1,
+          7,
+          4,
+          0,
+          41,
+          8,
+          8,
+          95,
+          67,
+          21,
+          28,
+          17,
+          0,
+          63,
+          0,
+          16
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "precontact": {
+        "ticks": 51,
+        "arm_tracking_rmse_rad": 0.007118484005331993,
+        "hand_tracking_rmse_rad": 0.05821375176310539,
+        "target_actual_fk_mm": 10.456240605830068
+      },
+      "postcontact": {
+        "ticks": 111,
+        "arm_tracking_rmse_rad": 0.011558061465620995,
+        "hand_tracking_rmse_rad": 0.0780382752418518,
+        "target_actual_fk_mm": 9.931720263404209
+      },
+      "native_lift": {
+        "ticks": 0,
+        "arm_tracking_rmse_rad": null,
+        "hand_tracking_rmse_rad": null,
+        "target_actual_fk_mm": null
+      },
+      "reference": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+        "alignment": "same control tick, common prefix only; no time warping",
+        "ticks": 162,
+        "actual_expert_fk_mm": 27.832732187345695,
+        "target_expert_target_fk_mm": 31.62330216729803,
+        "target_expert_arm_rmse_rad": 0.05795249715447426,
+        "target_expert_hand_rmse_rad": 0.21045267581939697,
+        "actual_expert_arm_rmse_rad": 0.05409935489296913,
+        "expert_precontact_ticks": 55,
+        "actual_expert_precontact_fk_mm": 2.1054735798478803
+      },
+      "object_palm_motion_p95_mm_per_tick": 28.79619916908891
+    }
+  },
+  "pairs": {
+    "train": {
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "compared_ticks": 208,
+      "first_sustained_divergence": {
+        "ee_mm": 16,
+        "arm_rad": 19,
+        "hand_rad": 37,
+        "object_mm": 51,
+        "object_rotation_deg": 52
+      },
+      "thresholds": {
+        "ee_mm": 5.0,
+        "arm_rad": 0.01,
+        "hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_command_difference_tick": 0,
+      "first_raw_target_difference_tick": 0,
+      "initial_raw_target_arm_difference_rad": 0.004393887706100941,
+      "initial_raw_target_hand_difference_rad": 0.02382713370025158
+    },
+    "validation": {
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "compared_ticks": 601,
+      "first_sustained_divergence": {
+        "ee_mm": 18,
+        "arm_rad": 17,
+        "hand_rad": 27,
+        "object_mm": 68,
+        "object_rotation_deg": 82
+      },
+      "thresholds": {
+        "ee_mm": 5.0,
+        "arm_rad": 0.01,
+        "hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_command_difference_tick": 0,
+      "first_raw_target_difference_tick": 0,
+      "initial_raw_target_arm_difference_rad": 0.003789614886045456,
+      "initial_raw_target_hand_difference_rad": 0.018618155270814896
+    }
+  },
+  "offline": {
+    "8000": {
+      "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_8000_offline/numeric_plans/r931005_1793209376_e00_p000055.npz",
+      "sha256": "f96f2ea6e2207d0bef3ba59bf6a8de7d434c645cac222224240e6c2376f26bfd",
+      "configuration": "A0",
+      "valid_positions": 180,
+      "arm_rmse_rad": 0.017861394211649895,
+      "hand_rmse_rad": 0.08990447223186493,
+      "target_fk_rmse_mm": 13.184329190666979,
+      "conditions": "original recorded expert history; existing batch offline prediction, seed7091; no new inference",
+      "source_demonstration_actual_target_tracking_fk_mm": 14.583673010326166,
+      "existing_motion_metrics": [
+        {
+          "moving12_anchors": 15,
+          "arm12_velocity_rmse_rad_s": 0.41280803084373474,
+          "moving_arm12_velocity_rmse_rad_s": 0.41280803084373474,
+          "precontact_arm12_velocity_rmse_rad_s": 0.35571932792663574,
+          "moving12_expert_displacement_rad": 0.06288351118564606,
+          "moving12_student_displacement_rad": 0.06209193542599678,
+          "moving12_amplitude_ratio": 0.9898558855056763,
+          "moving12_direction_cosine": 0.6940698027610779,
+          "moving12_endpoint_rmse_rad": 0.019588042050600052,
+          "arm24_velocity_rmse_rad_s": 0.4169570803642273,
+          "moving_arm24_velocity_rmse_rad_s": 0.41331610083580017,
+          "precontact_arm24_velocity_rmse_rad_s": 0.3555549085140228,
+          "moving24_amplitude_ratio": 0.8545228838920593,
+          "moving24_direction_cosine": 0.8191843032836914
+        }
+      ],
+      "same_source_autonomous": {
+        "ticks": 180,
+        "target_expert_target_fk_mm": 41.93737985693847,
+        "actual_expert_actual_fk_mm": 44.17264282179075,
+        "target_actual_fk_mm": 16.984770042352007,
+        "limitation": "Common episode identity and tick, not exact historical four-environment hidden state; no subtraction of aggregate RMSEs"
+      }
+    },
+    "10000": {
+      "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_10000_offline/numeric_plans/r931005_1793209376_e00_p000055.npz",
+      "sha256": "b97a21b69ca3d3dc1291f851ef60cb96967e98da8870f165de06f68e5aa30a58",
+      "configuration": "A0",
+      "valid_positions": 180,
+      "arm_rmse_rad": 0.016177941113710403,
+      "hand_rmse_rad": 0.084651418030262,
+      "target_fk_rmse_mm": 12.22787607458146,
+      "conditions": "original recorded expert history; existing batch offline prediction, seed7091; no new inference",
+      "source_demonstration_actual_target_tracking_fk_mm": 14.583673010326166,
+      "existing_motion_metrics": [
+        {
+          "moving12_anchors": 15,
+          "arm12_velocity_rmse_rad_s": 0.3702472150325775,
+          "moving_arm12_velocity_rmse_rad_s": 0.3702472150325775,
+          "precontact_arm12_velocity_rmse_rad_s": 0.3110024333000183,
+          "moving12_expert_displacement_rad": 0.06288351118564606,
+          "moving12_student_displacement_rad": 0.05982578173279762,
+          "moving12_amplitude_ratio": 0.9550104737281799,
+          "moving12_direction_cosine": 0.7432070374488831,
+          "moving12_endpoint_rmse_rad": 0.017807280644774437,
+          "arm24_velocity_rmse_rad_s": 0.3747304081916809,
+          "moving_arm24_velocity_rmse_rad_s": 0.37205833196640015,
+          "precontact_arm24_velocity_rmse_rad_s": 0.31664934754371643,
+          "moving24_amplitude_ratio": 0.86883544921875,
+          "moving24_direction_cosine": 0.8455506563186646
+        }
+      ],
+      "same_source_autonomous": {
+        "ticks": 180,
+        "target_expert_target_fk_mm": 42.00906428342543,
+        "actual_expert_actual_fk_mm": 43.0837269531698,
+        "target_actual_fk_mm": 22.21650925240549,
+        "limitation": "Common episode identity and tick, not exact historical four-environment hidden state; no subtraction of aggregate RMSEs"
+      }
+    }
+  },
+  "videos": {
+    "V1": {
+      "record": {
+        "state": "completed",
+        "mode": "dp",
+        "updates": 8000,
+        "cohort": "train",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V1_recording_recovery/r931005_1793209376_e02_p000059",
+        "result": {
+          "identity": "r931005_1793209376_e02_p000059",
+          "cohort": "train",
+          "seed": 982403,
+          "software_complete": true,
+          "legal": true,
+          "success": true,
+          "reasons": {
+            "fall": false,
+            "max_successes": true,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": false
+          },
+          "steps": 342,
+          "native_lift": true,
+          "native_subgoals": 2,
+          "native_alignment": true,
+          "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 5,
+          "inference": {
+            "inference_steps": 16,
+            "clip_sample": false,
+            "overlap_steps": 0,
+            "sampler_seed": 7091
+          },
+          "expert_prefix_ticks": 0,
+          "student_ticks": 342,
+          "prefix_validation": null,
+          "autonomous": true,
+          "action_control_mode": "absolute_joint_position_target_rad",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": 0.0,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 4,
+            "two_finger_continuous_s": 1.0666666666666667,
+            "stable_grasp_diagnostic": true,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 171,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "ba14b56d4925741062d789f51f0e5986b2feff0c4197af313b78f20f573197ed"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 342,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 342,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.0666666666666667,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 171,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 54,
+        "lift_tick": 93,
+        "subgoal_tick": 114,
+        "alignment_tick": 114,
+        "fall_tick": null,
+        "success_tick": 341
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V1_clean.mp4",
+        "bytes": 1440270,
+        "sha256": "dd046d022723da413fa33cbd5b7f3713e66ab5a5aa69d7147baa70445f16e5c3",
+        "duration_s": 5.7,
+        "decoded_frames": 171,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "171"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V1_diagnostic.mp4",
+        "bytes": 1493949,
+        "sha256": "b49f58f69f166977a95cf795aeb3f4a2acd1d2060a73490cc4cf91e55d244512",
+        "duration_s": 5.7,
+        "decoded_frames": 171,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "171"
+        }
+      }
+    },
+    "V2": {
+      "record": {
+        "state": "completed",
+        "mode": "dp",
+        "updates": 10000,
+        "cohort": "train",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V2/r931005_1793209376_e02_p000059",
+        "result": {
+          "identity": "r931005_1793209376_e02_p000059",
+          "cohort": "train",
+          "seed": 982403,
+          "software_complete": true,
+          "legal": true,
+          "success": false,
+          "reasons": {
+            "fall": true,
+            "max_successes": false,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": false
+          },
+          "steps": 208,
+          "native_lift": false,
+          "native_subgoals": 0,
+          "native_alignment": false,
+          "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 5,
+          "inference": {
+            "inference_steps": 16,
+            "clip_sample": false,
+            "overlap_steps": 0,
+            "sampler_seed": 7091
+          },
+          "expert_prefix_ticks": 0,
+          "student_ticks": 208,
+          "prefix_validation": null,
+          "autonomous": true,
+          "action_control_mode": "absolute_joint_position_target_rad",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": 0.0,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 4,
+            "two_finger_continuous_s": 1.5333333333333334,
+            "stable_grasp_diagnostic": true,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 104,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "939b4c24c5b0d77546a7a74c85c2d720238e872386657f71c60a7d4e538c2ebc"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 208,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 208,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.5333333333333334,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 104,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 207,
+        "success_tick": null
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V2_clean.mp4",
+        "bytes": 1034849,
+        "sha256": "cafbec0b58199b9138962b262d817b1909330562d1249f489acde708a9353c6f",
+        "duration_s": 3.466667,
+        "decoded_frames": 104,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "104"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V2_diagnostic.mp4",
+        "bytes": 1078387,
+        "sha256": "28d7a21bcfe8d3cfc16bd1eb589ef30adb4580b78bb0068405431ac46971d896",
+        "duration_s": 3.466667,
+        "decoded_frames": 104,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "104"
+        }
+      }
+    },
+    "V3": {
+      "record": {
+        "state": "completed",
+        "mode": "expert",
+        "updates": null,
+        "cohort": "train",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V3/r931005_1793209376_e02_p000059",
+        "result": {
+          "identity": "r931005_1793209376_e02_p000059",
+          "cohort": "train",
+          "seed": 982403,
+          "software_complete": true,
+          "legal": true,
+          "success": true,
+          "reasons": {
+            "fall": false,
+            "max_successes": true,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": false
+          },
+          "steps": 181,
+          "native_lift": false,
+          "native_subgoals": 2,
+          "native_alignment": true,
+          "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 60,
+          "inference": null,
+          "expert_prefix_ticks": 0,
+          "student_ticks": 0,
+          "prefix_validation": null,
+          "autonomous": false,
+          "action_control_mode": "native_command_clipped_pre_delay",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": null,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 4,
+            "two_finger_continuous_s": 1.325,
+            "stable_grasp_diagnostic": true,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 91,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "1958ec1e19e7edeed4cf5660ef806ed240c7573ffe4f17f52a310ae39e2201a1"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 181,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "inference": null,
+        "expert_prefix_ticks": 0,
+        "student_ticks": 0,
+        "prefix_validation": null,
+        "autonomous": false,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": null,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 4,
+          "two_finger_continuous_s": 1.325,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 91,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 55,
+        "lift_tick": null,
+        "subgoal_tick": 133,
+        "alignment_tick": 133,
+        "fall_tick": null,
+        "success_tick": 180
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V3_clean.mp4",
+        "bytes": 886504,
+        "sha256": "5830a13ba2ba5e2e3a77851a2e4a9c7d70b7fa06970e327ae565611ef9801e14",
+        "duration_s": 3.033333,
+        "decoded_frames": 91,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "91"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V3_diagnostic.mp4",
+        "bytes": 932455,
+        "sha256": "424f69cbe27dd3d774e6033abea9f42e95257055e4df2e91b697b7aa7eef0433",
+        "duration_s": 3.033333,
+        "decoded_frames": 91,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "91"
+        }
+      }
+    },
+    "V4": {
+      "record": {
+        "state": "completed",
+        "mode": "dp",
+        "updates": 8000,
+        "cohort": "validation",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V4/r931005_1793209376_e00_p000055",
+        "result": {
+          "identity": "r931005_1793209376_e00_p000055",
+          "cohort": "validation",
+          "seed": 984101,
+          "software_complete": true,
+          "legal": true,
+          "success": false,
+          "reasons": {
+            "fall": false,
+            "max_successes": false,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": true
+          },
+          "steps": 601,
+          "native_lift": false,
+          "native_subgoals": 0,
+          "native_alignment": false,
+          "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 5,
+          "inference": {
+            "inference_steps": 16,
+            "clip_sample": false,
+            "overlap_steps": 0,
+            "sampler_seed": 7091
+          },
+          "expert_prefix_ticks": 0,
+          "student_ticks": 601,
+          "prefix_validation": null,
+          "autonomous": true,
+          "action_control_mode": "absolute_joint_position_target_rad",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": 0.0,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 2,
+            "two_finger_continuous_s": 0.03333333333333333,
+            "stable_grasp_diagnostic": false,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 301,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "abbc8c4bd86c376a2d0757f14deea5965a5591ce4c131b1dcf04a9d0d8a36155"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 601,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 2,
+          "two_finger_continuous_s": 0.03333333333333333,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 301,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 68,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V4_clean.mp4",
+        "bytes": 2298326,
+        "sha256": "b87d3585a04b11cab12c6253eaacfa9b0f57a73c0b6402b0e93600648a260eb6",
+        "duration_s": 10.033333,
+        "decoded_frames": 301,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "301"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V4_diagnostic.mp4",
+        "bytes": 2427628,
+        "sha256": "3c2a7135074821d27d5b9492fd9c0142bba4c8819f7c7d1a9bf2ac49dccc24e2",
+        "duration_s": 10.033333,
+        "decoded_frames": 301,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "301"
+        }
+      }
+    },
+    "V5": {
+      "record": {
+        "state": "completed",
+        "mode": "dp",
+        "updates": 10000,
+        "cohort": "validation",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V5/r931005_1793209376_e00_p000055",
+        "result": {
+          "identity": "r931005_1793209376_e00_p000055",
+          "cohort": "validation",
+          "seed": 984101,
+          "software_complete": true,
+          "legal": true,
+          "success": false,
+          "reasons": {
+            "fall": false,
+            "max_successes": false,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": true
+          },
+          "steps": 601,
+          "native_lift": false,
+          "native_subgoals": 0,
+          "native_alignment": false,
+          "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 5,
+          "inference": {
+            "inference_steps": 16,
+            "clip_sample": false,
+            "overlap_steps": 0,
+            "sampler_seed": 7091
+          },
+          "expert_prefix_ticks": 0,
+          "student_ticks": 601,
+          "prefix_validation": null,
+          "autonomous": true,
+          "action_control_mode": "absolute_joint_position_target_rad",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": 0.0,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 1,
+            "two_finger_continuous_s": 0.0,
+            "stable_grasp_diagnostic": false,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 301,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "ae726ca9aa761ec1bd4933bbbf96086f20f4ca74d51dafb5e80de0a71bafcf22"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 0,
+        "student_ticks": 601,
+        "prefix_validation": null,
+        "autonomous": true,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 1,
+          "two_finger_continuous_s": 0.0,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 301,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 60,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V5_clean.mp4",
+        "bytes": 2173562,
+        "sha256": "b3c6319e2f8a6a6bf96f43ac31a35282f1335ab585199f657a9401f693a8f14a",
+        "duration_s": 10.033333,
+        "decoded_frames": 301,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "301"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V5_diagnostic.mp4",
+        "bytes": 2279691,
+        "sha256": "a8cd190f22e06e04208c7c2ef10860a859e4b78cc580cf83037091525e059663",
+        "duration_s": 10.033333,
+        "decoded_frames": 301,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "301"
+        }
+      }
+    },
+    "V6": {
+      "record": {
+        "state": "completed",
+        "mode": "expert",
+        "updates": null,
+        "cohort": "validation",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/V6/r931005_1793209376_e00_p000055",
+        "result": {
+          "identity": "r931005_1793209376_e00_p000055",
+          "cohort": "validation",
+          "seed": 984101,
+          "software_complete": true,
+          "legal": true,
+          "success": true,
+          "reasons": {
+            "fall": false,
+            "max_successes": true,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": false
+          },
+          "steps": 182,
+          "native_lift": true,
+          "native_subgoals": 2,
+          "native_alignment": true,
+          "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 60,
+          "inference": null,
+          "expert_prefix_ticks": 0,
+          "student_ticks": 0,
+          "prefix_validation": null,
+          "autonomous": false,
+          "action_control_mode": "native_command_clipped_pre_delay",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": null,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 3,
+            "two_finger_continuous_s": 0.675,
+            "stable_grasp_diagnostic": true,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 91,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "6698dcf6460a7cf54cbade43ac123ab9a4034f812cbf43bf5aa64eb296011967"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 182,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "inference": null,
+        "expert_prefix_ticks": 0,
+        "student_ticks": 0,
+        "prefix_validation": null,
+        "autonomous": false,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": null,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 3,
+          "two_finger_continuous_s": 0.675,
+          "stable_grasp_diagnostic": true,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 91,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 68,
+        "lift_tick": 104,
+        "subgoal_tick": 142,
+        "alignment_tick": 142,
+        "fall_tick": null,
+        "success_tick": 181
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V6_clean.mp4",
+        "bytes": 928214,
+        "sha256": "3a047771089fcafbe2e8ea9ff5284d8bff779fad94fd2b7ac622c0eeed2f9b64",
+        "duration_s": 3.033333,
+        "decoded_frames": 91,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "91"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/V6_diagnostic.mp4",
+        "bytes": 977049,
+        "sha256": "7cc893f8a7e4951bf9564e397c93e74ff974caee9ca72a8f1c88d0993cb170bb",
+        "duration_s": 3.033333,
+        "decoded_frames": 91,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "91"
+        }
+      }
+    },
+    "T_train_10000_precontact": {
+      "record": {
+        "state": "completed",
+        "mode": "dp",
+        "updates": 10000,
+        "cohort": "train",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/T_train_10000_precontact/r931005_1793209376_e02_p000059",
+        "result": {
+          "identity": "r931005_1793209376_e02_p000059",
+          "cohort": "train",
+          "seed": 982403,
+          "software_complete": true,
+          "legal": true,
+          "success": false,
+          "reasons": {
+            "fall": true,
+            "max_successes": false,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": false
+          },
+          "steps": 128,
+          "native_lift": false,
+          "native_subgoals": 0,
+          "native_alignment": false,
+          "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 5,
+          "inference": {
+            "inference_steps": 16,
+            "clip_sample": false,
+            "overlap_steps": 0,
+            "sampler_seed": 7091
+          },
+          "expert_prefix_ticks": 48,
+          "student_ticks": 80,
+          "prefix_validation": {
+            "passed": true,
+            "ticks": 48,
+            "maximum_absolute_errors": {
+              "command": 0.0,
+              "target": 0.0,
+              "joint": 0.0,
+              "velocity": 0.0,
+              "object": 0.0,
+              "contact": 0.0,
+              "object_contact": 0.0
+            },
+            "missing": "PhysX solver/contact warm-start is not serialized; observable prefix parity only"
+          },
+          "autonomous": false,
+          "action_control_mode": "position_rad_after_native_expert_prefix",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": 0.0,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 3,
+            "two_finger_continuous_s": 0.375,
+            "stable_grasp_diagnostic": false,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 64,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "af5dee1a3b561d576a16a39661966b6e2baa36b25c167488fc0e151db388adf3"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 128,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 48,
+        "student_ticks": 80,
+        "prefix_validation": {
+          "passed": true,
+          "ticks": 48,
+          "maximum_absolute_errors": {
+            "command": 0.0,
+            "target": 0.0,
+            "joint": 0.0,
+            "velocity": 0.0,
+            "object": 0.0,
+            "contact": 0.0,
+            "object_contact": 0.0
+          },
+          "missing": "PhysX solver/contact warm-start is not serialized; observable prefix parity only"
+        },
+        "autonomous": false,
+        "action_control_mode": "position_rad_after_native_expert_prefix",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 3,
+          "two_finger_continuous_s": 0.375,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 64,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 127,
+        "success_tick": null
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/T_train_10000_precontact_clean.mp4",
+        "bytes": 676739,
+        "sha256": "0f0395956aefdcee8dd101c79f09400060f297eea42f61899f327803e2ad88a1",
+        "duration_s": 2.133333,
+        "decoded_frames": 64,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "64"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/T_train_10000_precontact_diagnostic.mp4",
+        "bytes": 713029,
+        "sha256": "faa7d5b9a94d32970bbf61624cd9eb5a328e303c11ab05e3f53e07482178fcf5",
+        "duration_s": 2.133333,
+        "decoded_frames": 64,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "64"
+        }
+      }
+    },
+    "T_train_8000_precontact": {
+      "record": {
+        "state": "completed",
+        "mode": "dp",
+        "updates": 8000,
+        "cohort": "train",
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/stages/T_train_8000_precontact/r931005_1793209376_e02_p000059",
+        "result": {
+          "identity": "r931005_1793209376_e02_p000059",
+          "cohort": "train",
+          "seed": 982403,
+          "software_complete": true,
+          "legal": true,
+          "success": false,
+          "reasons": {
+            "fall": true,
+            "max_successes": false,
+            "hand_far": false,
+            "dropped": false,
+            "timeout": false
+          },
+          "steps": 162,
+          "native_lift": false,
+          "native_subgoals": 0,
+          "native_alignment": false,
+          "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+          "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+          "actor_normalization_max_error": 0.0,
+          "simulation_step_hz": 60,
+          "physics_hz": 120,
+          "plan_hz": 5,
+          "inference": {
+            "inference_steps": 16,
+            "clip_sample": false,
+            "overlap_steps": 0,
+            "sampler_seed": 7091
+          },
+          "expert_prefix_ticks": 48,
+          "student_ticks": 114,
+          "prefix_validation": {
+            "passed": true,
+            "ticks": 48,
+            "maximum_absolute_errors": {
+              "command": 0.0,
+              "target": 0.0,
+              "joint": 0.0,
+              "velocity": 0.0,
+              "object": 0.0,
+              "contact": 0.0,
+              "object_contact": 0.0
+            },
+            "missing": "PhysX solver/contact warm-start is not serialized; observable prefix parity only"
+          },
+          "autonomous": false,
+          "action_control_mode": "position_rad_after_native_expert_prefix",
+          "actuator_target_max_error": 0.0,
+          "submitted_target_max_error": 0.0,
+          "contact": {
+            "object_contact": true,
+            "max_fingers": 3,
+            "two_finger_continuous_s": 0.38333333333333336,
+            "stable_grasp_diagnostic": false,
+            "object_contact_threshold_N": 0.1,
+            "stable_window_s": 0.2,
+            "scope": "filtered normal forces; not native success"
+          },
+          "video": {
+            "fps": 30,
+            "frames": 81,
+            "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+          },
+          "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+        },
+        "result_sha256": "c3feeb100828bebb779dad9cb6a744f2294882ee6ec4f12e5ec30d9b37b60b64"
+      },
+      "result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 162,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "checkpoint_sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "actor_normalization_max_error": 0.0,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "overlap_steps": 0,
+          "sampler_seed": 7091
+        },
+        "expert_prefix_ticks": 48,
+        "student_ticks": 114,
+        "prefix_validation": {
+          "passed": true,
+          "ticks": 48,
+          "maximum_absolute_errors": {
+            "command": 0.0,
+            "target": 0.0,
+            "joint": 0.0,
+            "velocity": 0.0,
+            "object": 0.0,
+            "contact": 0.0,
+            "object_contact": 0.0
+          },
+          "missing": "PhysX solver/contact warm-start is not serialized; observable prefix parity only"
+        },
+        "autonomous": false,
+        "action_control_mode": "position_rad_after_native_expert_prefix",
+        "actuator_target_max_error": 0.0,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 3,
+          "two_finger_continuous_s": 0.38333333333333336,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "video": {
+          "fps": 30,
+          "frames": 81,
+          "source": "unaltered 448x252 sensors, CPU mosaic upscale; pre-action even ticks; terminal reset frame excluded"
+        },
+        "limitation": "Observable reset only; no PhysX internal-state identity claim. Fingertip frames and normal forces do not identify contact points or tangential slip."
+      },
+      "events": {
+        "contact_tick": 51,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 161,
+        "success_tick": null
+      },
+      "clean": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/T_train_8000_precontact_clean.mp4",
+        "bytes": 762433,
+        "sha256": "eaf5a529c29a4794084ef5bd58d04a4473a3ea683486965f0829080cc5e77a7c",
+        "duration_s": 2.7,
+        "decoded_frames": 81,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "81"
+        }
+      },
+      "diagnostic": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/videos/T_train_8000_precontact_diagnostic.mp4",
+        "bytes": 802900,
+        "sha256": "905f1d89aa0c503ca3f2247104bda61095b061a00d808e74e88e8c8971d36679",
+        "duration_s": 2.7,
+        "decoded_frames": 81,
+        "stream": {
+          "codec_name": "h264",
+          "width": 1280,
+          "height": 720,
+          "avg_frame_rate": "30/1",
+          "nb_frames": "81"
+        }
+      }
+    }
+  },
+  "missing_videos": [],
+  "reproduced_success_videos": [
+    "V1"
+  ],
+  "takeover_expansion": {
+    "probes": [
+      {
+        "name": "T_train_10000_precontact",
+        "baseline_error_rad": 0.1622815877199173,
+        "prefix_error_rad": 0.21337313950061798,
+        "compared_ticks": 24,
+        "stage_gain": false,
+        "informative": false
+      },
+      {
+        "name": "T_train_8000_precontact",
+        "baseline_error_rad": 0.120416559278965,
+        "prefix_error_rad": 0.20611479878425598,
+        "compared_ticks": 24,
+        "stage_gain": false,
+        "informative": false
+      }
+    ],
+    "expand": false,
+    "rule": "Two train precontact probes first; require observable-prefix parity and a stage gain or >=20% lower target joint RMSE against the same online expert over first24 post-switch ticks before further train/lift or validation probes.",
+    "causal_root_proven": false
+  },
+  "history_input_shift": {
+    "V4": {
+      "robot_standardized_rms": 0.9578247666358948,
+      "robot_tick0_standardized_rms": 2.977956000904669e-06,
+      "geometry_standardized_rms": 0.5609560012817383,
+      "geometry_tick0_standardized_rms": 6.470094376709312e-05,
+      "compared_ticks": 180,
+      "reference": "original expert recording; same episode identity/tick",
+      "interpretation": "Observed feature-history difference, not independent proof of a distribution-shift causal mechanism"
+    },
+    "V5": {
+      "robot_standardized_rms": 0.981630802154541,
+      "robot_tick0_standardized_rms": 2.977956000904669e-06,
+      "geometry_standardized_rms": 0.6092828512191772,
+      "geometry_tick0_standardized_rms": 6.470094376709312e-05,
+      "compared_ticks": 180,
+      "reference": "original expert recording; same episode identity/tick",
+      "interpretation": "Observed feature-history difference, not independent proof of a distribution-shift causal mechanism"
+    }
+  },
+  "resource_summary": {
+    "pid": 2534958,
+    "ended": 1793725147.630091,
+    "summary": {
+      "pid": 2534958,
+      "latest": {
+        "pid": 2534958,
+        "utc_epoch": 1793725147.6297107,
+        "elapsed_s": 2062.4251544582658,
+        "gpu_util_percent": 0.0,
+        "gpu_used_mib": 498.0,
+        "gpu_free_mib": 23585.0,
+        "ram_available_bytes": 29970784256,
+        "process_rss_bytes": 14839808,
+        "cuda_allocated_bytes": null,
+        "cuda_reserved_bytes": null,
+        "rolling_60s_percent": 13.718169733817922
+      },
+      "samples": 1785,
+      "gpu_time_weighted_mean_percent": 33.838563314453765,
+      "max_complete_60s_mean_percent": 54.40815388452805,
+      "missing_samples": 0,
+      "missing_seconds": 278.9613739833003,
+      "max_sample_gap_s": 278.9613739833003,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 21011.0,
+      "peak_process_rss_bytes": 14839808,
+      "min_ram_available_bytes": 13759090688,
+      "thresholds": {
+        "gpu_free_mib": 6144,
+        "ram_available_bytes": 12884901888,
+        "max_gpu_mean_percent": null,
+        "gpu_admission_mean_percent": null
+      },
+      "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+    }
+  }
+}

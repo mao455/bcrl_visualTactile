@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-11-04 H24诊断后台结束
+
+本轮后台已退出，状态`software_missing`；8个attempt软件完成，软件缺失/故障记录1条（单列，不计任务失败）。
+已核验录像组：T_train_10000_precontact, T_train_8000_precontact, V1, V2, V3, V4, V5, V6；8000真实原生成功录像：V1；指定六段缺失：无。
+原始七个受保护checkpoint最终SHA全部匹配；无参数更新。原deadline/启动预算未重置。
+本轮首动作前记录器错误及恢复保留，恢复源码`fe99624195d9f9fc9c8521c1617ccf473fe471f1`；详细结果与视频索引见H24_CLOSED_LOOP_DIAGNOSIS和evidence/h24_diagnosis_20261104/completion.json。
+不自动重启已完成诊断或追加训练/录像。
+
 ## 2026-11-04 — V1真实成功录像与持久交付
 
 恢复后V1真实完成342ticks，native max_successes=true/subgoals2/alignment，非离线重建。
