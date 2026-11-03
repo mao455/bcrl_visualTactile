@@ -326,3 +326,11 @@ B pre-delay command全原生队列都是合法合同；不可对target再加一�
 原Sample checkpoint、原始数据和仍有研究价值的权重不删。
 实际执行41文件/6.6655 GiB，详见CLEANUP_AUDIT及逐文件SHA清单。
 此条记录本次已执行清理，不授权未来无人审计的循环删除或重建实验。
+
+## 2026-11-04：H24闭环失败诊断与实际录像
+
+用户附件明确授权六段8000/10000/Expert训练与验证初态视频、旧成功首差诊断、
+teacher-forced/自主/控制追踪分列、少量真实expert-prefix student takeover和只读记录。
+无训练/权重/模型/物理/控制/超参数修改，不使用test40选择；独立Kit，连续两次同类启动故障停止。
+失败重现全部保留，8000原生成功录像不能由旧统计冒充；数值重建须清晰标注。
+交付本地MP4/清单/获取方式及报告、小图表和origin feature提交。详见H24_CLOSED_LOOP_DIAGNOSIS。

@@ -1,5 +1,14 @@
 # Engineering change and verification log
 
+## 2026-11-04 — H24只读诊断与视频入口
+
+新增独立common/worker/run/report脚本及service，不修改原179冻结源码/权重/控制链。
+直接记录最终DDIM归一化样本、raw位置计划、实际输入/执行器目标/运动与GRU输入/状态/RNG；
+三路原相机CPU720p拼接，六段primary和最多8个条件性expert-prefix接管，最多15次独立Kit/4h。
+四项CPU测试验证持续阈值、真实前缀反馈、前缀不一致拒绝及记录hook/RNG中性。
+已有轨迹只读分析发现train首命令差异tick0、实际末端持续5mm分歧tick16，724导出字段相同；
+未声称PhysX隐藏状态相同，未重跑原数学/batch审计。此条不代表新视频/接管已完成。
+
 ## 2026-11-03 — 清理已分类旧失败录像及重复权重
 
 用户授权节省旧失败产物空间后，逐文件核验并删除6个重复last.pt与35条失败MP4，

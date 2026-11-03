@@ -1,5 +1,8 @@
 # 视觉与触觉模仿学习研究工程
 
+2026-11-04新只读任务：[H24闭环诊断与视频](H24_CLOSED_LOOP_DIAGNOSIS.md)。
+先查新任务机器状态；实现/启动/完成分别记录，不重启旧训练。
+
 已完成训练、闭环存在软件缺失：[H24 Sample / Epsilon 对照](H24_SAMPLE_EPSILON_COMPARISON.md)。
 Epsilon3000与Sample累计10000完成；Sample8000在train初态一次完整成功，validation仍无成功。
 后台已退出，缺失条目不计任务失败；详见最终报告。

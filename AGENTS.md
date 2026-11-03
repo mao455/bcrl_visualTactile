@@ -1,5 +1,24 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current — H24 closed-loop diagnosis/videos, 2026-11-04
+
+User authorizes a new read-only bounded diagnosis, six videos and finite expert-prefix
+student takeovers on feature/native-dp-training-v2. Read H24_CLOSED_LOOP_DIAGNOSIS.
+No training, policy/weights/control/physics/hyperparameter changes or test40 selection.
+Root h24_diagnosis_20261104_01; service h24-diagnosis-20261104-01.service. Verify actual
+machine status before asserting startup/completion. Six primary singleton recordings,
+at most one additional V1 native-outcome attempt and eight conditional takeovers,
+15Kit starts total, one4h deadline including waits. Two consecutive identical pre-scene
+faults stop the batch. Preserve every attempt; never revive old experiment owners.
+Student GRU observes actual expert prefix every native tick, receives true postprocessed
+target history; no state injection/reset. Freeze selection/thresholds before execution.
+Original successes and hidden-state limitations remain; reconstructed numerical video
+must never be presented as original successful camera footage. MP4/raw/weights stay local.
+Ordinary persistent scripts run stages, monitor, render reports and check integrity.
+Verify startup once; no conversational polling. Reviewed public code/docs/small figures
+may be committed/pushed to current origin feature branch. This task overrides prior
+completed-stage no-new-start clauses solely for the new registered diagnosis.
+
 ## Completed — pre-H24 cleanup, 2026-11-03
 
 User requested pruning older failed artifacts. Deleted41 classified files,

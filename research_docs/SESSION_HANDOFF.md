@@ -1,5 +1,14 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-04：H24诊断与录像新任务
+
+新增tools/h24_diagnosis_{common,worker,run,report}和独立service；原训练/控制/模型源码未改。
+先六段train成功初态/固定validation的8000、10000、Expert视频，再有界真实expert-prefix接管。
+四项新增CPU测试通过；已有数学和batch测试不重跑。初步历史只读分析见H24_CLOSED_LOOP_DIAGNOSIS。
+新root h24_diagnosis_20261104_01、总15starts/4h/两次连续同类启动故障停止；
+本段为实现准备记录，实际启动和结果必须读status/worker/视频文件，不能推测已完成。
+后续由持久owner自动生成图、视频清单和完整性校验；不运行旧owner或继续参数训练。
+
 ## 2026-11-03：旧失败产物清理已完成
 
 按用户最新要求删除41个已分类旧文件，释放7,157,032,011 bytes（6.6655 GiB）：
