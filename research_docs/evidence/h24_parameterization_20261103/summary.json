@@ -1,0 +1,929 @@
+{
+  "status": {
+    "state": "running",
+    "stage": "h24_epsilon_1000",
+    "pid": 2311842,
+    "worker_pid": 2311883,
+    "updates": 1000,
+    "episodes_complete": null,
+    "utc": 1793706459.6016448
+  },
+  "plan": {
+    "started_epoch": 1793703732.1074426,
+    "deadline": 1793746932.1074426,
+    "training_deadline": 1793739732.1074426,
+    "gate_deadline": 1793710932.1074426,
+    "scope": "H24 Epsilon3000 vs immutable Sample3000; selected only cumulative5000/8000/10000; no temporal/FK/Image/BC/residual",
+    "kit_gate": {
+      "maximum_startups": 4,
+      "complete_expert_episodes": 2,
+      "required_successful_startups": 2,
+      "automatic_retries": 0,
+      "strategy": "Trace baseline syscalls, process-local mitigation only with evidence, retain isolated per-episode lifecycle unless reset parity proven"
+    },
+    "formal_cohort": [
+      {
+        "identity": "r931005_1793209376_e00_p000000",
+        "cohort": "train",
+        "seed": 982401
+      },
+      {
+        "identity": "r931005_1793209376_e03_p000159",
+        "cohort": "train",
+        "seed": 982402
+      },
+      {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403
+      },
+      {
+        "identity": "r931005_1793209376_e01_p000153",
+        "cohort": "train",
+        "seed": 982404
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000055",
+        "cohort": "validation",
+        "seed": 984101
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000057",
+        "cohort": "validation",
+        "seed": 984102
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000067",
+        "cohort": "validation",
+        "seed": 984103
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000121",
+        "cohort": "validation",
+        "seed": 984104
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000128",
+        "cohort": "validation",
+        "seed": 984105
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000138",
+        "cohort": "validation",
+        "seed": 984106
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000162",
+        "cohort": "validation",
+        "seed": 984107
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000164",
+        "cohort": "validation",
+        "seed": 984108
+      }
+    ],
+    "policy_seed": 7091,
+    "training_seed": 20261102,
+    "schedule_horizon": 19000,
+    "maximum_cumulative_updates": 10000,
+    "evaluation_attempts_per_model_milestone": 12,
+    "maximum_consecutive_startup_faults": 2,
+    "selection": {
+      "rule": "Paired complete native successes; if fewer than two paired success differences or no repeat evidence, tentative multi-metric rank",
+      "tie_break_order": [
+        "validation_native_success_count",
+        "validation_first_subgoal_then_lift",
+        "validation_approach_FK_mm",
+        "validation_balanced_prefix12_MSE",
+        "boundary_jump_rad",
+        "planning_latency_p95_s"
+      ],
+      "degradation_guard": "If arm or hand prefix12 RMSE >1.2x competitor or boundary jump >1.5x, require at least2 more validation successes; otherwise prefer nondegraded; ambiguous tie lexicographic sample",
+      "repeatability": "Only independent milestone outcomes; no additional success-repeat cohort",
+      "missing": "No fabricated outcomes; paired rank only completed common IDs; if unavailable use offline tentative rank; Kit failure never loses trained checkpoints"
+    },
+    "old_root": "<home>/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_motion_20261103_01",
+    "sample_checkpoint_sha256": "70783fcf67344f91a68ff9dec66e42bb0125b87e8dca5192c827c49dd29b25c0",
+    "sample_pinned_commit": "8ef2a1646c54c47d695b0ca92ec7830f0b4abd03",
+    "sample_pinned_worktree": "<home>/docs/bc+rl_RSS_h24_sample_pin",
+    "no_test_selection": true,
+    "cleanup": "No deletion of unclassified artifacts; same data/cache referenced"
+  },
+  "plan_sha256": "c874da7689ae6e67a7fc37cac5cb33b3fb1887eb42c5fe8a8298e10f4f270896",
+  "groups": {},
+  "training": {
+    "sample": [
+      {
+        "update": 1000,
+        "train": {
+          "arm_rmse": 0.038624539971351624,
+          "hand_rmse": 0.14806115627288818,
+          "loss": 0.02358625316992402,
+          "hold_arm_rmse": 0.015709953382611275,
+          "hold_hand_rmse": 0.20148473978042603,
+          "selection_mse": 0.01170697994530201,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.037537154159508646,
+          "moving12_amplitude_ratio": 1.5899505093693733,
+          "moving12_direction_cosine": 0.48583611100912094
+        },
+        "train_metric_scope": "fixed first16 train (pilot4)",
+        "validation": {
+          "arm_rmse": 0.04331231117248535,
+          "hand_rmse": 0.16036103665828705,
+          "loss": 0.025570429931394755,
+          "hold_arm_rmse": 0.015537548810243607,
+          "hold_hand_rmse": 0.19648206233978271,
+          "selection_mse": 0.01379580982029438,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.04159458000212908,
+          "moving12_amplitude_ratio": 1.6971681773662568,
+          "moving12_direction_cosine": 0.40003136117011306
+        }
+      },
+      {
+        "update": 3000,
+        "train": {
+          "arm_rmse": 0.022400224581360817,
+          "hand_rmse": 0.10598637908697128,
+          "loss": 0.00926018157042563,
+          "hold_arm_rmse": 0.015709953382611275,
+          "hold_hand_rmse": 0.20148473978042603,
+          "selection_mse": 0.005867441184818745,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.021873402409255505,
+          "moving12_amplitude_ratio": 1.2039722986519337,
+          "moving12_direction_cosine": 0.6705440618097782
+        },
+        "train_metric_scope": "fixed first16 train (pilot4)",
+        "validation": {
+          "arm_rmse": 0.028268540278077126,
+          "hand_rmse": 0.12911707162857056,
+          "loss": 0.012003881472628564,
+          "hold_arm_rmse": 0.015537548810243607,
+          "hold_hand_rmse": 0.19648206233978271,
+          "selection_mse": 0.008735164068639278,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.027064304891973735,
+          "moving12_amplitude_ratio": 1.3257555648684503,
+          "moving12_direction_cosine": 0.5569232344627381
+        }
+      }
+    ],
+    "epsilon": [
+      {
+        "update": 1000,
+        "train": {
+          "arm_rmse": 0.5846983790397644,
+          "hand_rmse": 0.8071202039718628,
+          "loss": 0.19825625885277987,
+          "hold_arm_rmse": 0.015709953382611275,
+          "hold_hand_rmse": 0.20148473978042603,
+          "selection_mse": 0.4966576397418976,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.588518038392067,
+          "moving12_amplitude_ratio": 20.207265973091125,
+          "moving12_direction_cosine": 0.00798348756507039
+        },
+        "train_metric_scope": "fixed first16 train (pilot4)",
+        "validation": {
+          "arm_rmse": 0.5790008902549744,
+          "hand_rmse": 0.804972231388092,
+          "loss": 0.19648988991975785,
+          "hold_arm_rmse": 0.015537548810243607,
+          "hold_hand_rmse": 0.19648206233978271,
+          "selection_mse": 0.491611123085022,
+          "scope": "Teacher-forced past execution, not autonomous success",
+          "moving_arm12_rmse_rad": 0.5838533788919449,
+          "moving12_amplitude_ratio": 20.342554092407227,
+          "moving12_direction_cosine": -0.0009396664943778887
+        }
+      }
+    ]
+  },
+  "updated_epoch": 1793706466.6097023,
+  "batch_audit": {
+    "passed": true,
+    "optimizer_updates": 0,
+    "cuda_initialized": false,
+    "sample_checkpoint_sha256": "70783fcf67344f91a68ff9dec66e42bb0125b87e8dca5192c827c49dd29b25c0",
+    "checkpoint_updates": 3000,
+    "ema_optimization_step": 3000,
+    "optimizer_state_count": 176,
+    "optimizer_lr": 9.55614245194068e-05,
+    "scheduler_horizon": 19000,
+    "schedule_segments": 832,
+    "schedule_order_and_cursor_and_rng_match": true,
+    "cursor": 176,
+    "train_episodes": 320,
+    "validation_episodes": 40,
+    "anchors_per_update": {
+      "mean": 13.326666666666666,
+      "counts": {
+        "16": 1338,
+        "12": 215,
+        "15": 207,
+        "10": 211,
+        "11": 186,
+        "6": 36,
+        "8": 57,
+        "13": 198,
+        "7": 37,
+        "9": 248,
+        "14": 193,
+        "5": 28,
+        "4": 23,
+        "2": 9,
+        "3": 14
+      }
+    },
+    "independent_episode_counts": {
+      "2": 2993,
+      "1": 7
+    },
+    "adjacent_full_windows_overlap": {
+      "action_ticks": 12,
+      "fraction": 0.5,
+      "stride": 12,
+      "horizon": 24
+    },
+    "first_update_segments": [
+      {
+        "identity": "r931005_1793209376_e01_p000010",
+        "start": 0,
+        "stop": 96,
+        "actor_shape": [
+          96,
+          141
+        ],
+        "robot_shape": [
+          96,
+          178
+        ],
+        "geometry_shape": [
+          96,
+          85
+        ],
+        "condition_shape": [
+          8,
+          512
+        ],
+        "command_shape": [
+          8,
+          24,
+          29
+        ],
+        "mask_shape": [
+          8,
+          24
+        ],
+        "valid_positions": 192,
+        "anchors": [
+          0,
+          12,
+          24,
+          36,
+          48,
+          60,
+          72,
+          84
+        ]
+      },
+      {
+        "identity": "r931005_1793209376_e00_p000165",
+        "start": 0,
+        "stop": 96,
+        "actor_shape": [
+          96,
+          141
+        ],
+        "robot_shape": [
+          96,
+          178
+        ],
+        "geometry_shape": [
+          96,
+          85
+        ],
+        "condition_shape": [
+          8,
+          512
+        ],
+        "command_shape": [
+          8,
+          24,
+          29
+        ],
+        "mask_shape": [
+          8,
+          24
+        ],
+        "valid_positions": 192,
+        "anchors": [
+          0,
+          12,
+          24,
+          36,
+          48,
+          60,
+          72,
+          84
+        ]
+      }
+    ],
+    "batch_condition_shape": [
+      16,
+      512
+    ],
+    "batch_action_shape": [
+      16,
+      24,
+      29
+    ],
+    "mask_shape": [
+      16,
+      24
+    ],
+    "valid_positions": 384,
+    "diffusion_timesteps": [
+      61,
+      2,
+      40,
+      82,
+      85,
+      17,
+      21,
+      45,
+      35,
+      81,
+      2,
+      56,
+      24,
+      27,
+      72,
+      23
+    ],
+    "independent_noise_rows": true,
+    "noise_shape": [
+      16,
+      24,
+      29
+    ],
+    "segment_condition_gradient_norms": [
+      0.016709089279174805,
+      0.014638825319707394
+    ],
+    "padded_output_gradient_nonzero": 0,
+    "loss": 0.614471435546875,
+    "arm": 0.23386098444461823,
+    "hand": 0.9950818419456482,
+    "aggregation": "0.5*(mean(valid squared error over Arm7)+mean(valid squared error over Hand22)); one backward/update; no division by segments/anchors beyond valid-position denominator",
+    "initial_model_sha256": "9f3518e20ec51407c0c07db4e6d663ea2d4cbf78be668ea122f669b4fae529bd",
+    "parameters": 72047005,
+    "padding_scope": "Masked output positions do not contribute objective; padded noisy input can influence valid outputs through convolutions, unchanged from Sample",
+    "real_tail_probe": {
+      "identity": "r931005_1793209376_e00_p000000",
+      "start": 96,
+      "anchors": [
+        96,
+        108,
+        120,
+        132,
+        144
+      ],
+      "action_shape": [
+        5,
+        24,
+        29
+      ],
+      "valid_mask": [
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        [
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      ],
+      "padded_positions": 28,
+      "padded_output_gradient_nonzero": 0,
+      "valid_output_gradient_norm": 0.035903871059417725
+    },
+    "sample_lr_logged_updates": 3000,
+    "sample_lr_formula_max_error": 0.0
+  },
+  "kit_acceptance": {
+    "passed": true,
+    "successful_full_episodes": 4,
+    "persistent_reset_parity_passed": false,
+    "pairs": [
+      {
+        "identity": "r931005_1793209376_e00_p000000",
+        "initial_equal": true,
+        "fields": {
+          "actor": false,
+          "command": false,
+          "target": false,
+          "joint": false,
+          "object": false,
+          "lifted": false,
+          "subgoals": false,
+          "alignment": false
+        }
+      },
+      {
+        "identity": "r931005_1793209376_e03_p000159",
+        "initial_equal": true,
+        "fields": {
+          "actor": false,
+          "command": false,
+          "target": false,
+          "joint": false,
+          "object": false,
+          "lifted": false,
+          "subgoals": false,
+          "alignment": false
+        }
+      }
+    ],
+    "evaluation_mode": "isolated_singleton",
+    "sdk_root_cause_fixed": false,
+    "remaining_risk": "Shared inotify ENOSPC observed; successful finite probes do not prove long-run reliability",
+    "startup_attempts": 4,
+    "failed_launches": 1,
+    "automatic_retries": 0,
+    "utc": 1793704238.371543
+  },
+  "setup_complete": {
+    "plan_sha256": "c874da7689ae6e67a7fc37cac5cb33b3fb1887eb42c5fe8a8298e10f4f270896",
+    "session_sha256": "befabfe479fd02d276353c6c27ead62a2b72130439302b553af35058ed3c785b",
+    "sample_configuration_sha256": "672cb32659e7ab60e43b31b817b5ea8b93aff04ce702c4bb9d8dad6769d95157",
+    "sample_milestone_sha256": "70783fcf67344f91a68ff9dec66e42bb0125b87e8dca5192c827c49dd29b25c0",
+    "sample_runtime": "<home>/docs/bc+rl_RSS_h24_sample_pin",
+    "training_budget_enforced_by_owner": 10000,
+    "utc": 1793706386.0618079
+  },
+  "fairness": {
+    "passed": true,
+    "scope": "pretraining; actual 3000 comparison pending",
+    "pinned_sample": {
+      "initial_model_sha256": "9f3518e20ec51407c0c07db4e6d663ea2d4cbf78be668ea122f669b4fae529bd",
+      "loss": 109.45321655273438,
+      "gradient_sha256": "61897e9b27a949a01504d77dddfc4c0e013235aa1c7632b0bb60ce512346aff1",
+      "predicted_sha256": "16d99586d0472517989260d3c7ccc6757a880ee4c3e694ddebc4959781135a2f",
+      "contract": {
+        "version": 3,
+        "action": "absolute_joint_position_target_rad",
+        "horizon": 24,
+        "commit": 12,
+        "native_history": 13,
+        "visual_history": 3,
+        "native_hz": 60,
+        "physics_hz": 120,
+        "observation": "actor141_robot178_geometry85_v2",
+        "prediction_type": "sample",
+        "loss": "B",
+        "train_noise_steps": 100,
+        "inference_steps": 16,
+        "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+        "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+        "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+        "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+        "geometry_hz": 60,
+        "action_contract": "position_rad_v1"
+      },
+      "noise_prediction_type": "sample",
+      "sampler_prediction_type": "sample",
+      "parameters": 72047005
+    },
+    "epsilon_initial": {
+      "initial_model_sha256": "9f3518e20ec51407c0c07db4e6d663ea2d4cbf78be668ea122f669b4fae529bd",
+      "loss": 1.1371064186096191,
+      "gradient_sha256": "e373d8a10a742cc2e949d77042c537e4164943df081b6577353ec63021e78eb4",
+      "predicted_sha256": "86280a3bde9c5e90bc19261cf420e933f9f690ee0084f285113d4592716fc9b2",
+      "contract": {
+        "version": 3,
+        "action": "absolute_joint_position_target_rad",
+        "horizon": 24,
+        "commit": 12,
+        "native_history": 13,
+        "visual_history": 3,
+        "native_hz": 60,
+        "physics_hz": 120,
+        "observation": "actor141_robot178_geometry85_v2",
+        "prediction_type": "epsilon",
+        "loss": "B",
+        "train_noise_steps": 100,
+        "inference_steps": 16,
+        "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+        "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+        "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+        "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+        "geometry_hz": 60,
+        "action_contract": "position_rad_v1"
+      },
+      "noise_prediction_type": "epsilon",
+      "sampler_prediction_type": "epsilon",
+      "parameters": 72047005
+    },
+    "pinned_sample_forward_gradient_prediction_exact": true,
+    "plan_sha256": "c874da7689ae6e67a7fc37cac5cb33b3fb1887eb42c5fe8a8298e10f4f270896"
+  },
+  "recovery_review": {
+    "utc": 1793706364.2730312,
+    "observed_state_before_recovery": "gate_completed",
+    "epsilon_training_started": false,
+    "owned_workers_at_inspection": [],
+    "sample_checkpoint_updates": 3000,
+    "sample_optimizer_steps": [
+      3000
+    ],
+    "sample_ema_steps": 3000,
+    "sample_sampler_cursor": 176,
+    "sample_complete_resume_state": true,
+    "sample_checkpoint_sha256": "70783fcf67344f91a68ff9dec66e42bb0125b87e8dca5192c827c49dd29b25c0",
+    "previous_head": "8ef2a1646c54c47d695b0ca92ec7830f0b4abd03",
+    "existing_epsilon_checks": "39 prior numerical/regression checks reused, not rerun",
+    "new_recovery_checks": "12 passed; tests/test_h24_recovery.py and tests/test_h24_selection.py",
+    "batch_reaudited": false,
+    "new_kit_starts": 0,
+    "original_deadlines_unchanged": true,
+    "existing_evidence_sha256": {
+      "run_plan.json": "c874da7689ae6e67a7fc37cac5cb33b3fb1887eb42c5fe8a8298e10f4f270896",
+      "batch_audit.json": "30353164c22e0ddc35f572d3bfd9d81eda61da68d8998cf6b0bfcd98461fe0ed",
+      "kit_acceptance.json": "6ec890200350a20b61529440ff8efe42941e53faa5b6cf2850c0732e5dd74ef7",
+      "pinned_sample_signature.json": "0dc3a9ede88c51745c46a6791ae1175581630ac62cfd604a59d1a575d4ddcace",
+      "sample_signature.json": "0dc3a9ede88c51745c46a6791ae1175581630ac62cfd604a59d1a575d4ddcace",
+      "epsilon_signature.json": "ae4f65add27937ff2eaad9b55aecf307f02bf610494fb8b9c14165e7c76a7587",
+      "report_smoke.json": "f7140580b7cb4a57831efb0cd4915e4b9308f8f1c076cf68a5109cc76aa87b5d"
+    }
+  },
+  "resources": {
+    "pid": 2311847,
+    "latest": {
+      "pid": 2311847,
+      "utc_epoch": 1793706465.791321,
+      "elapsed_s": 2733.599436931312,
+      "gpu_util_percent": 1.0,
+      "gpu_used_mib": 766.0,
+      "gpu_free_mib": 23318.0,
+      "ram_available_bytes": 39813193728,
+      "process_rss_bytes": 14094336,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 62.87003152302156
+    },
+    "samples": 495,
+    "gpu_time_weighted_mean_percent": 20.969026903568103,
+    "max_complete_60s_mean_percent": 64.84833765059787,
+    "missing_samples": 0,
+    "missing_seconds": 2242.463225664338,
+    "max_sample_gap_s": 2158.417708019493,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 6613.0,
+    "peak_process_rss_bytes": 14348288,
+    "min_ram_available_bytes": 22368239616,
+    "thresholds": {
+      "gpu_free_mib": 6144,
+      "ram_available_bytes": 12884901888,
+      "max_gpu_mean_percent": null,
+      "gpu_admission_mean_percent": null
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+  },
+  "source_commit": "9b1edd8c8a23dd94bd6b65ed7380bc2a7b9d4f58",
+  "runtime_source_sha256": {
+    "visuotactile/validate_long.py": "8001aaefaf400082b65e3824da5c8179bbd2d9219502225bad91aa1407181a3f",
+    "visuotactile/compact.py": "4a7335955bacae8291b7d454c4e034710a13755787ef40e4bbc9bc3b60cd13ba",
+    "visuotactile/state_history_training.py": "b205aff098bd90495b4904b38e2a9976bf630b579b66ee3f58ac0f8664daf2d8",
+    "visuotactile/native_v2_expert.py": "f33d4ea5c9b4652c3e6f9257e0896f891ecb697e859dd0ddd6f11c836dd4ccc7",
+    "visuotactile/dataset.py": "792c1069554fbb9092f8e4503e22c66bbb1bbf610994d39da868e10d29854b44",
+    "visuotactile/native_v2_forensics.py": "4a0704a9879905f502a2967fc885ecfb9d515aa469ec9365333ae92d68ed016b",
+    "visuotactile/regression.py": "62bb7fc460a0bb4f3a511b06f2e7f95e2fd8145a5835b93abe761e1a84c4d49d",
+    "visuotactile/run_long.py": "b4c5615a87610a194cbeee8dfc4d1997af00938a9cc5bf5c777cb4475c82d92a",
+    "visuotactile/observations.py": "459ccc55a9f4af27110ccc442759cce33e10e639f5ef7bebae036b1d34d88f23",
+    "visuotactile/native_v2_phase_metrics.py": "ee8488240406d1daab2e7c8872c9037879e956c4ae7bd07aa2129a8252a78508",
+    "visuotactile/native_training.py": "0cd73f210d0dd896558556ea29ec026057e05c01016c7975b39b20b9152e4fe7",
+    "visuotactile/residual_session.py": "047db60dabe47fb4288c6b3f98c0164320e0f45d45e12ce09e84997acd866801",
+    "visuotactile/state_benchmark.py": "518e2db2ce931582ff5b3a1412b8f3edc4f8e63f3f6ee8101ea4acac81363d83",
+    "visuotactile/correction.py": "7481c57f260074a007473ddb67f48baa4b92f5b280b709ac6dd516b33b571e2b",
+    "visuotactile/state_motion.py": "2e5f983a818724811725694864e22e165901e109c621e002b8feaca0a335a700",
+    "visuotactile/native_v2_repair_report.py": "3cea64cec58e042b8f9c818b495ef52e6b910b30efb0b7888571d4468fd2fabc",
+    "visuotactile/residual_controller.py": "44147e0cf0752bc6f84b76554ab209a63f8f5944092ef8d68dd1a0247a558c64",
+    "visuotactile/storage_audit.py": "9ca8e17b2a11ac57451babf8a7297765ea33bb8856b8985aacf8f01b31e77050",
+    "visuotactile/evaluate_study.py": "1fc5114e9cb7470b67f6a29208a55da108c7e2ef2794070abf67f3bd49bd3848",
+    "visuotactile/audit_replay_control.py": "e2f5c3c75ccbe81ec9646448bb9fbbd010b9c53f60198e0ff4e9c7772d70e59c",
+    "visuotactile/state_history_audit.py": "4ffd6b76d61f4e94f7f3ba28dc48efb5b237d8ad26496f4c63b0c4173f3970fe",
+    "visuotactile/native_controller.py": "710c97ecc5c24ed84315dccc9927b64551109f230eed1747decc4bda1a92599c",
+    "visuotactile/collect_success_batch.py": "c053bb502c127f237ef23989292bc77cfedd47df2a0bedda156eb10a7b60ec66",
+    "visuotactile/native_pipeline.py": "7acb82fea2b2dac715f61b0d279e74278452c06894fa52cdb610a1a593838303",
+    "visuotactile/trial_utils.py": "bf9fc68cf158feea6eb4e479b8efe858adec1040d609ca5e8a8a2ab3c6264f87",
+    "visuotactile/study_metrics.py": "c7c724980ed7a14fc02d83d5cc25bfadae8484e1adf6b93a9765a51c39610da0",
+    "visuotactile/native_v2_gates.py": "147e72e57a50ea16c33c87ec7a6e668f4f4ed6d8acfa8af2a20876c784382e3b",
+    "visuotactile/train_transformer_residual.py": "63176d4bb6eefd907faf475dcf895f1591aad4b2d6a5560349290e46b574b554",
+    "visuotactile/viewing_report.py": "28b8831ff05d1b86af3a882f0315b1f199d6cb21bdb267e5b32f074eeac5fa31",
+    "visuotactile/evaluate_residual.py": "9f74f25c2eee2f26bc4e1216e601756a8bf5209a4b872d186959d63a215d0599",
+    "visuotactile/state_history_run.py": "8cedb683ef5ee3f0d79e9977316a7216917ae59b9c1cb13846c8fef396f49a71",
+    "visuotactile/evaluate.py": "f00fccea0ee272042550a5f049e72e8dd76e2d1ba4dc58a6ccb7c517f90a8f14",
+    "visuotactile/audit_training_initials.py": "473fe8399123783899aa24b339bedd779b363788ee2310061ceed7d768c4e6c1",
+    "visuotactile/contracts.py": "1a25019fbc72119cb28dbafa47311aba3ee389a2880dbdfcdb90435ce211f253",
+    "visuotactile/position_control.py": "6fc477c7004cd73d68ad171216b67044b87969da9a712d4dabd35044193d2b34",
+    "visuotactile/native_evaluation.py": "70fddd42dfa06a68ceecc534828ce26f0c86e6664a577108b02c27e9eb94f943",
+    "visuotactile/recording.py": "1f4638b45f7a6d4827568ccf4fe4d2619ed1f3c38bd106dd1f1547db7579a815",
+    "visuotactile/native_v2_fit_extension.py": "c2357ed6ed7db7a5644a11471e5b55eb8cf35dd6b5672e1f6de129902b1a935d",
+    "visuotactile/native_v2_bc_compare.py": "4c1c83b495a48d39016ee05c73179941132ef86e3c313dc1b3dc6e59638b3971",
+    "visuotactile/native_v2_audit.py": "26e6da143c9809c7605e42ddfe5c7d0798235a48bb939115aa392a9529c36a3b",
+    "visuotactile/native_v2_repair.py": "08cc34097e1f59bd4af5c4ebc809e6f64f04c6e6510e0c742a20a8b5d25766d3",
+    "visuotactile/camera_diagnostics.py": "560eb5b956cb5fb6a098237798e28627caf3167e7a7e95ad1d3049e0910a346e",
+    "visuotactile/camera_review.py": "a8ae47d063b9b8dce5cd1684f400223c49686f9c15291f7f2ede2dd41f54e5d1",
+    "visuotactile/long_data.py": "ecafec8295af7a5baab2a5e09975dec5fb575cbf898ad465684823dbea1c8228",
+    "visuotactile/run_loss_study.py": "04cb2c44f84a4d6498cdde967a436214561ce919ce168a866bb98c920c636c7a",
+    "visuotactile/expert_reference.py": "2aa7247e99d0ff9bc48ffccf98e23bf7df030e6d9c4c3bf033ec72b3d40578c4",
+    "visuotactile/replay_fresh.py": "774addd73793e920f489ea23f53ed8dd156f42938cb7747742c5f9a43a8dc8a4",
+    "visuotactile/analyze_insertion_dataset.py": "3d9a321030cc7bcfe5089a5784ebd138481ece45ce82a61fc32bdab7ea5b72bf",
+    "visuotactile/native_v2_preservation.py": "b8ca5d0bc9e9e1e6bfda5f879b1bcb543c8a5333a1ef5d979d58d8d18cdd0962",
+    "visuotactile/train_dp.py": "bf82237c2db01cb64e2e79538d3dd1353d63b697e152ecd03edb28476522e9dc",
+    "visuotactile/training_resources.py": "cc6612e5b485bc9f4d361742bc88331a31a2c6504cf807b5fe3a810f98780999",
+    "visuotactile/long_controller.py": "562091b44abb35d9f66059b918b2a517df2d8d56a8b37e445583bfeb5d38301c",
+    "visuotactile/kinematics.py": "2403948c7427c81d84b76f8f7e1818dae073e101545b545add2277fc4283a341",
+    "visuotactile/evaluate_baselines.py": "f9c05202d3665600f8fb2f1f8174bb8140d08aea01be0de3fb523b406d5cde71",
+    "visuotactile/cleanup_long.py": "eea984ebbfb8932b73e4984f28c27e8ef000f02cea1e88aa88f6c1abe7fb206f",
+    "visuotactile/state_full_run.py": "e3f25730243f9f7699003e87cdaf01e664d3e2befb0eeeec4b94573b56c7a917",
+    "visuotactile/validate_residual.py": "561a5f618bcfabf89b4119ac60db98536c97d1d793e24af14fd4ce4011d8c388",
+    "visuotactile/run_rl_trials.py": "ec07f67ac2297dc859d4e421b7ab060f6a8ae22927434eae35f78eb263b8e02d",
+    "visuotactile/manifest.py": "95783445b255e7cc44aadf307808431b67d2d49dee5a0698aa55493f66d64bd2",
+    "visuotactile/native_v2_fit_report.py": "354b92199c3c9c252c3b14512eb9e5daa7204c4535246a06814db29c7a8545bd",
+    "visuotactile/check_camera_interfaces.py": "922c638d16aea31381d22d820b9e364c4357d67b2f0d5c25f2536e9f69500364",
+    "visuotactile/native_v2_pipeline.py": "bea9fb021117c2c0e517ded5e6db1f551e454639c0d3265a2567b4d6e14b9e6c",
+    "visuotactile/diagnostic_recording.py": "2c1759b8b3951c32a5cb38a925d6eb2a4f3d52905feb6cd965794557cea9b8d4",
+    "visuotactile/native_v2_training.py": "dbccec057a40c67b0dc7f96168a6dec44bb5f0638e1dcff128fdba48ed48df17",
+    "visuotactile/transformer_data.py": "80e9c577bda090611a700cb968df61cfc1af89acf3cd35eb4ef2b4ddbac2194d",
+    "visuotactile/__init__.py": "5a735e709bbc20eb3cfb1d67c6a4e04fb861bdf1ca689dece1790ee18b6edadc",
+    "visuotactile/audit_system.py": "4330390e8d97542ebd726491a6ca05d1775b86529114a4072d3f8d445fddfedc",
+    "visuotactile/history.py": "9442e643afc1c1de4288fce6e21166839fd24305affaada9a3b00b374e37d703",
+    "visuotactile/initialization_report.py": "428014638d17fa3642d389e770d0d6ad97ae24eebd971116e307da742395d065",
+    "visuotactile/action_reference.py": "97a9dd772b1399edafbd0f17c74db9ae887ef2ea986ca6bd027f00085b099c6c",
+    "visuotactile/native_v2_foundation.py": "ac655603ac9029b2b15352544241843129b7075791616744925ffa40041a59e3",
+    "visuotactile/native_v2_repair_export.py": "fc746c764a4f4579e0e737b0f70f1e6d819bd54e320cd744f89819521d5c2e46",
+    "visuotactile/probe_history.py": "1742204d8886611215244924e2804c45cde6b72798a43829b428adcc840ec296",
+    "visuotactile/probe_perception.py": "1ee58155afaaf1b4c48e8f21b7843eea4601814a83dee2cc2779bb43ab543881",
+    "visuotactile/review_delivery.py": "04bcc2bb4db603db1fded3717ed61763bce7f0673426771a193a18585c49e39a",
+    "visuotactile/state_full_training.py": "4ff3103303617a8d4d4d26d4064c04fb83130eddc7c3c58d6cc00e137e15411d",
+    "visuotactile/train_residual.py": "e52600fc4dbc04d03ba4ca1274f2394f892009d95077a7eae797432d7e4cbe63",
+    "visuotactile/train.py": "c83d66140d729cc1efc14f859c2a080c97e591b635593842d1d0a728ee76ebe7",
+    "visuotactile/evaluate_long.py": "bf55f93f213daae68d0e20a7fb4c35bad657efd848b49ac04849123423aa28f8",
+    "visuotactile/train_loss_study.py": "2d011f8b6d8fc0a55f38c2ea89b6875085dbfa5cf8741524840b10f46c09edaf",
+    "visuotactile/rollout.py": "8bf2f6a26224adfd92a59bc91b1c8f84da8856e937b059f230dad5d6008554e2",
+    "visuotactile/inspect_long.py": "55f17463c2b9b31090ff033f0c4273bae9621e22797f4733afdcff45390cdf11",
+    "visuotactile/native_v2_history_audit.py": "cb7929742f36a4a3072f86774ab1c3f80bd3498f7ca71871f6f561470886dc87",
+    "visuotactile/h24_selection.py": "ab7bfff8ebcadb5bb728dc0e22d5af014034de3a4641b9cb707b9252196166b7",
+    "visuotactile/run_baselines.py": "0e92ed46fd0fa3dcbb2e529a62cb6a2292e6cb45ac5ac5f250a135a4babade6a",
+    "visuotactile/audit_network.py": "8322f03f408c3d235994c056e8184bbf6791bbc2a920344ce37f23cda881d4f4",
+    "visuotactile/native_v2_report.py": "9be16cff4303e86ac3e8de1941969375f8ebe6a94a2a1d97c91a35264644c0c5",
+    "visuotactile/replay_events.py": "1ea23404cc6045d47d3acda835b3836f84cce93f28a4b0ad83a721070891c3e2",
+    "visuotactile/check_dataset.py": "62d0e448cdab62aff9e6c209bc4be8a0e49b00f914041a03f6d4a4d6215fe2b1",
+    "visuotactile/initial_geometry.py": "c86894fd02f72329eef9fe1be8d4a49d794e06fb7ec85cc356efb3c0a8d76c48",
+    "visuotactile/run_insertion_dataset.py": "f16f1360f28d9b37dc45b452deda887f480f1feed6d911a4b5273a60020e337b",
+    "visuotactile/transformer_controller.py": "b5a399cdb8dcdc7fb5d7e5caa9e378656ccb116a6b0fee9493af22d69b6cc59e",
+    "visuotactile/analyze_recorded_replay.py": "55d044f40e61a21d43aab6e7a753433930d7904c06fe9db9c5fa45e4fb217854",
+    "visuotactile/native_v2_control_audit.py": "47ae6104fec11fc535b353f98e7e85416b9e32ac8b4163a1661d2d3deb9fe38b",
+    "visuotactile/command_metrics.py": "926baee51f4a29b8f432a67c71892a5a24ad95f9603f4cd84420c2559585cd65",
+    "visuotactile/native_v2_state.py": "878893ca8562018b3f652f7b1d0fec2fabeefaa1140eb22829c5dac884f55660",
+    "visuotactile/probe_action_history.py": "57a28265ed140cfefaedb0adb029e8054eeefa278c187447bf9f84cbb812e9ad",
+    "visuotactile/validate_command_training.py": "23435d2e501c4b5f0301381a12c7d12225b2b0c7299fd1333cc8da100b1c6894",
+    "visuotactile/environment_rng.py": "4e407b513c0d8c60c3f74c76b9672eaa1cafd136a3e76b40cabf953e46043aeb",
+    "visuotactile/collection_resources.py": "d93b1d6b7b29aae5432ec7064304238e75d7a428ce5caa40f16465fb2c7243fb",
+    "visuotactile/train_long.py": "6a8968b2328a9bde1ff957276bcabea127d8a5a2582a2a7d36210b693721d19d",
+    "visuotactile/long_resources.py": "5bea749b392d0649916983033d180797ae89b73d3ed6f3e8c567230f547ffb0a",
+    "visuotactile/native_data.py": "7f5784ad6aa4e3ca670787046929e2f37ce1099cc410ecf2ae7d50c4fbbc41a1",
+    "visuotactile/native_v2_resources.py": "cfcbe09de4ca408d859fbf97215a9751db1cb31f990b669e93ce7cf24b55a067",
+    "visuotactile/native_v2_actor_audit.py": "07a7e4dbe211f0f3b6bedc5617b405f1901e205fa8dd2fd7b4c552465f9e2a3c",
+    "visuotactile/native_v2_evaluation.py": "8699cc8e6503e59334b525adef7259e3701e56e41be687e4f82b4f5cd1cdb826",
+    "visuotactile/audit_loss_study.py": "49f2bfb542f8112dc832660144b5f969a0ee6355c1f4df42f38083ebdd49c427",
+    "visuotactile/plot_network_audit.py": "3efbb10c7916472546e470951c87c345f8981ac14b591e1fa239bd11aea2ee77",
+    "visuotactile/state_resources.py": "e1e169b5a30ed9862b501b70896ba9ba9330d21f58cfaf840bac1462208bdaad",
+    "visuotactile/audit_distribution.py": "b925e71b4785e8cc2fe33f817233b96c24875c0deb2af6e4319c94ec15673c63",
+    "visuotactile/finalize_collection.py": "54c467e66615daf47346f876fb8cc7e1b42bf7e01b50a83537d59d75df254510",
+    "visuotactile/dp_objectives.py": "7dcf7f2ba9147cd2d400a2ecaa9426805761e5eecf860c93282d50dfb43becc6",
+    "visuotactile/collect.py": "69cf9bb14585f29e33fd5f0de4f9226b56a81919ff7f2a9ded278f576496a7d0",
+    "visuotactile/study_resources.py": "34f9279ee6e696c20eb956e77aff8066476e7f77fcf522e6e248cb5c4803a1b3",
+    "visuotactile/action_history.py": "a1436401bbf86e7a90a72e9c3b163313e44e43d1c436910ac81bddac44be726b",
+    "visuotactile/residual_report.py": "31e6d95c566e39407b0c3b26f4c6f1d06664c06ec316beda275facd612d7174c",
+    "visuotactile/private_history.py": "00622e505fe4130737c033ef8aaa4fc6f76f651705c676197987b84d13e7bcf7",
+    "visuotactile/evaluate_training_initials.py": "29907ddb73ff6ea529d81ca6fdf064479de2092d0d3105d4d3fd8ba1ef71ed74",
+    "visuotactile/evaluate_recorded_replay.py": "26f11423bf855cbb185dc716753f05d1605815eac5223d60064fb4865148e5b5",
+    "visuotactile/state_history.py": "9b5b4bf98bede6abe6e28a687501f67182e4e364d13c99dd52d22ef78c8363df",
+    "visuotactile/policy_census.py": "968443da7da0b33f85894659c9c42954e47bbc91c6ddc0a7b2a2a390c95b62ef",
+    "visuotactile/plot_loss_study.py": "df2a23ecb0fb6f0bcc2dcc927b381a6f7fa0af6bed0ba19cdbfe0671c7157304",
+    "visuotactile/camera_rigs.py": "36c8b7264cd04bf3aaa7fbe2ebe5d668e6afe863562850d79d81eb2aff3c4b2c",
+    "visuotactile/native_sources.py": "64d59b8e218ceef3f11f9ebce8484e4bfa9bb528ab01949bf56dc09598892737",
+    "visuotactile/native_v2_deployment_audit.py": "726e5279d4d15a4d4b615ae2479e9a1bbb4911ea4dc2c5e25b93a9f023bc2492",
+    "visuotactile/probe_correction.py": "3cbf2141059d84d6a338aaa12876f52d992fe160376534016009cf7bf125252f",
+    "visuotactile/residual_data.py": "15d733ea7a816c2527e04c9293c6cf9c1065ac3da8fd4f8d91ecf27630266979",
+    "visuotactile/native_v2_closed_loop_audit.py": "9c00bfcad408afa35d10b7e070594e88056ec9d9617392003e7fa3e3495da2d2",
+    "visuotactile/analyze_rl_trials.py": "39e3535216f4ecf70ed2a3d1a43ba2b5f80eb5c42d1b354609c91a939bf569d5",
+    "visuotactile/study_audit.py": "326572621b925863a09cc68b07a316ae3a42ffb6ad9fa91f6254dc90d1db4101",
+    "visuotactile/native_resources.py": "fac51f952144c036b663cd044a2edf510b91a65dd30ec47d53c684057781aa59",
+    "visuotactile/audit_baselines.py": "b01689838c0497296188fc0cebc869bcabd32cf8d747e4f53317ef1db133e5f3",
+    "visuotactile/sim/environment.py": "24a4be2df4f3d0ed5f968aec3ae954bf6a08ae0cb6e47714e7268b35e02ec6e3",
+    "visuotactile/sim/__init__.py": "63cdecdcc2893131dd45472ae44703d761402d07f95a73fc2f695b89293b571e",
+    "visuotactile/sim/native_diagnostics.py": "8efd7b61d126f7ba8d3de646f1c0a8d33d052c4e75ec70bffc3122f4478b7526",
+    "visuotactile/sim/replay_environment.py": "047578eaf72c64ca417ae1cb951fbec49d4815685cafb3f91c7e8a092951176e",
+    "visuotactile/models/tactile_dp.py": "5e12d504ec17f2266a10bae14d7471d1813168a1bb0d91f460bde1ac68b04d82",
+    "visuotactile/models/correction.py": "f9c2c320b3d122506c521dd602571fb81544c65926149b3917cd6732ba0dfe6b",
+    "visuotactile/models/tactile.py": "50d04b5967d8aa22036211e391427ecf8734208a52e00212341f2a54555c1cce",
+    "visuotactile/models/long_horizon.py": "5a0fd5cb670561d11ce71490257d91b48bd9a86d713535760ce51475e8dae7e5",
+    "visuotactile/models/residual.py": "822b70c4bc7479e1b9eebf3705586a2e8d6c6da701ebe7373bcb394da0aa443b",
+    "visuotactile/models/vision.py": "47c034c562f929b574e31ab3ad39fba7733dc51fa1241a26e7b0f0da6fe9306e",
+    "visuotactile/models/__init__.py": "6eef10f160f5a03ea1262f4f1f55bf0ed62b75841130fb224760e2797e44e396",
+    "visuotactile/models/native_vision.py": "d95b39322e2188ebc9e4e5ba566afeaebb72bda897e1849d8207c247644913fc",
+    "visuotactile/models/transformer_residual.py": "ab5befab7292d709c0233696d63fb51d1c558f81d8cefdcdabb2bcc50f584a61",
+    "visuotactile/models/native_dp.py": "970d38894eb0c5624095b2887dd674d0104913d5c499971ff8600d0493e2c374",
+    "visuotactile/models/nominal.py": "d10f20ca596b04c276b7553f51e15459af83b7d0e1ef22daa216144d66e25c2c",
+    "visuotactile/models/vendor/conditional_unet1d.py": "7cef53c66b731fbc4fdd796ad6cc313b4ff9556d2e3ebe26d88462a01a07da2c",
+    "visuotactile/models/vendor/__init__.py": "96223a2f2664daa2bc2924314ddca976b926e595c778f46d9c291391a14811c4",
+    "visuotactile/models/vendor/conv1d_components.py": "ea2aa10e297cf253bc1a1919ba47fe6ae32049b5eaaab292ed9cc145d8d2adc0",
+    "visuotactile/models/vendor/ema_model.py": "c6ffb2bd1bf9428fa518596d10cd587d64d08825f8a568cf9ebbf8372767fccf",
+    "visuotactile/models/vendor/positional_embedding.py": "2266c75ecc9c9ac8ca126839d39a7bafbdd7af8800d6de903f66815e64cc366c",
+    "isaacsimenvs/tasks/__init__.py": "8b7e8bd8ed59988ef0cf3457138dedc74ebd4cf0357d07b68b9caf19c945d6ea",
+    "isaacsimenvs/tasks/play/pose_viewer.py": "3ba51faa9d10729b712461d64d020197e7fc6ab6b6fca0191350fdc3f77b4d07",
+    "isaacsimenvs/tasks/play/play_env.py": "cb662949c715a4c07c014ea38659ffcb6e5345e556b92919790e08cf39065300",
+    "isaacsimenvs/tasks/play/__init__.py": "928cc880fe1c1edb0019158bbf761fbae0ab4d5bd514c746b12e68d0372b31e7",
+    "isaacsimenvs/tasks/play/play_env_cfg.py": "05bfbc1ccde2c77882be4dab787fa25c3e59dac7bd80e8a259323c8e5b04cf7b",
+    "isaacsimenvs/tasks/play/utils/scene_utils.py": "1099fcdd5718415b1f9d59034c76945ec33f25c9152023b4d0f41c6061937d97",
+    "isaacsimenvs/tasks/play/utils/goal_sampling.py": "cede8986d4847aa0d1d9bae99d9333d191ce413c90fe1b44e7b30980994369f4",
+    "isaacsimenvs/tasks/play/utils/generate_objects.py": "08c03641e56daf06e9f8a720b517e52fe5176c8d997b2f7722fa7997a0aec2cd",
+    "isaacsimenvs/tasks/play/utils/reward_utils.py": "86a0a779bca7093a25a75ab646619a4cb88877005fd4718793e8411a9ca25e6d",
+    "isaacsimenvs/tasks/play/utils/reset_utils.py": "3b845d20189e508a07de68b7396fc7823437259805349230901c4a5a1906515e",
+    "isaacsimenvs/tasks/play/utils/__init__.py": "911fff80db44b5585db333ed3488ddb73599575ecb7a25025325acf79998144b",
+    "isaacsimenvs/tasks/play/utils/logging_utils.py": "cd9f507ae2351cf463a4bee1bef1708cf13c1aa460d4e9950ccfd1cb1c8b95b3",
+    "isaacsimenvs/tasks/play/utils/action_utils.py": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3",
+    "isaacsimenvs/tasks/play/utils/obs_utils.py": "bb7fa980f16d643d5e7c137e0a159ac7bc20933d2934958a350ad26c72dd68a5",
+    "isaacsimenvs/tasks/play/utils/object_size_distributions.py": "abadce824623e00acc1be2dd2d5ecd9d10145b03148ac758080c02fa866266a5",
+    "isaacsimenvs/tasks/play/utils/termination_utils.py": "19f161e890f84f389856223be83550533e26e9ae2abb736ac840d71c10b62075",
+    "isaacsimenvs/tasks/precise_assembly/scene_utils.py": "0ea81bea44eb050123470ea9ded3dfe11c3e2b3234bcdcc9057cb22512c83146",
+    "isaacsimenvs/tasks/precise_assembly/__init__.py": "02e54ebcc1cad223117ded1c6de33af55b0cba9f4e930db0828e5b59fe353ad3",
+    "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py": "2c55d9fe77e50125e46bfadbf5be1fc59b115405c389de0d607f433a39ccdbe0",
+    "isaacsimenvs/tasks/precise_assembly/precise_assembly_env_cfg.py": "32e48d2d1cb3295cff710a7101c1df1708663eb0f350c75f47b0cf5a3ac8a8c0",
+    "tools/h24_comparison_audit.py": "af18ed6be536f20b6110209420500d6e2f5cb5fe0276da5fd974f7732c2a0940",
+    "tools/h24_comparison_run.py": "b784de2d5956fff0b14691a1680a4e333273d5b2668578f1fec63f8c38b14459",
+    "tools/h24_comparison_report.py": "a3b61ea74810955f3f0884e28f0c0075c08d59aa9efc91d60970ba6364a229bc",
+    "tools/run_h24_comparison.sh": "d358d5a2039497ef3459377843a66054eb6df463edb48ff35d4eccc373599cb0",
+    "tools/h24-comparison-20261103-01.service": "afbe8e8b00aa4f9dcbc0f1bba019bcc24cb1c695d60e635291eae4f22e9bd2ba",
+    "tools/state_fk_audit.py": "2ffe8216f758f0606763af52f8561a4639ef0dffd27447048b07857e91f8e1f7",
+    "research_docs/evidence/state_motion_20261103/fk_readonly/fk_validation.json": "9d67681e631380d97126105316d0dba28157cc83663557bd8a82c0db1bcf9c17"
+  },
+  "fk_validation_sha256": "9d67681e631380d97126105316d0dba28157cc83663557bd8a82c0db1bcf9c17",
+  "stage_artifacts": {
+    "kit_gate_03_committed": {
+      "sha256": "280b5b2e67514e50cfd6c011fc0ec550d23aab03ba20c13323c1df5849268290",
+      "utc": 1793704238.3635886
+    },
+    "kit_gate_02_committed": {
+      "sha256": "30dad4d673550446e5572a5acb60eea421c0ccfeef1307e01d8229c3396ccf73",
+      "utc": 1793704160.3059037
+    },
+    "h24_epsilon_1000_committed": {
+      "sha256": "c91557bd7cd5ff600931266f163ae51bde8a49456ad5c52e28be70193d32da33",
+      "utc": 1793706466.6055512
+    }
+  },
+  "checkpoints": {
+    "sample/milestone_3000.pt": {
+      "path": "outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/sample_resume/h24_train/milestone_3000.pt",
+      "sha256": "70783fcf67344f91a68ff9dec66e42bb0125b87e8dca5192c827c49dd29b25c0",
+      "bytes": 1153275969,
+      "configuration_sha256": "672cb32659e7ab60e43b31b817b5ea8b93aff04ce702c4bb9d8dad6769d95157"
+    },
+    "epsilon/milestone_1000.pt": {
+      "path": "outputs/visuotactile/native_dp_v2/h24_parameterization_20261103_01/h24_epsilon_train/milestone_1000.pt",
+      "sha256": "fb5f832483857b23c471e3cffe32347d91b1d74899dd0e01fcb355afc18b502b",
+      "bytes": 1153164545,
+      "configuration_sha256": "ecfafc517e0ad9fdb24922b67c6bc241cad651f5accafacd953917068aa5d20f"
+    }
+  }
+}

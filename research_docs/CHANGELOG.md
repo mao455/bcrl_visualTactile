@@ -11,7 +11,8 @@
 - 报告汇总valid-position加权原单位RMSE、train/validation闭环分母、阶段计数、空间/动作曲线、
   milestone/config/source SHA；不比较不同diffusion目标loss，不声称小样本显著优势。
 - H24_SAMPLE_EPSILON_COMPARISON、CONTRACTS、方向/交接/AGENTS登记本轮授权及固定端点。
-  恢复时实测Epsilon尚未开始，Sample完整3000；新增恢复回归结果及实际启动见最新交接。
+  恢复时实测Epsilon尚未开始，Sample完整3000；随后12项恢复回归通过，持久服务19:47核验
+  durable250/日志500updates、320轨迹已访问；9b1edd8运行源码冻结并推送，详见最新交接。
 
 ## 2026-11-03 — H24到3000的只读状态、退出和空间误差复核
 

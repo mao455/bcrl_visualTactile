@@ -1,5 +1,22 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03 19:47:08 UTC+8：H24 Epsilon 真正开始训练
+
+持久服务`h24-comparison-20261103-01.service` active/running，owner2311842、worker2311883，
+NRestarts=0，用户linger=yes；运行源码commit`9b1edd8`已推送。
+一次启动核验观察到durable250 checkpoint、实际日志500updates、320轨迹已访问，loss有限。
+原Sample3000保持，新增Epsilon实际configuration除prediction_type/source/10000上限外与Sample一致，
+optimizer_horizon仍19000；运行源码/plan/session/foundation/dependency SHA检查通过。
+整卡可用显存18644MiB、RAM35.593GB，无内存等待；这不是完整会话资源合规结论。
+39项原数值检查沿用，恢复/幂等/统计12项测试通过，本次无重复Kit Gate/模型检查/batch审计。
+后台负责Epsilon3000→同12初态配对→暂定选型→累计5k/8k/10k及同口径评估；不依赖Codex连接。
+目前不声称3000对照/选型/后续训练完成；读status而非历史PID。证据：
+`evidence/h24_parameterization_20261103/startup_review.json`，报告`H24_SAMPLE_EPSILON_COMPARISON.md`。
+当前GitHub仅启动时审核快照，未来后台产物仍需复核后推送；不自动提交未经审核结果。
+
+后台随后已提交 Epsilon1000 checkpoint（SHA `fb5f832483857b23c471e3cffe32347d91b1d74899dd0e01fcb355afc18b502b`），val40 clean-action Arm/Hand RMSE为 0.579001/0.804972 rad；这是首里程碑观测，尚不是3000公平比较或选型结论。
+
+
 ## 2026-11-03：H24 Sample/Epsilon 恢复准备
 
 工作在bc+rl_RSS_native_v2 / feature/native-dp-training-v2，恢复前HEAD8ef2a16。

@@ -1,5 +1,22 @@
 # H24 Sample / Epsilon 对照
 
+## 2026-11-03 19:47:08 UTC+8：H24 Epsilon 真正开始训练
+
+持久服务`h24-comparison-20261103-01.service` active/running，owner2311842、worker2311883，
+NRestarts=0，用户linger=yes；运行源码commit`9b1edd8`已推送。
+一次启动核验观察到durable250 checkpoint、实际日志500updates、320轨迹已访问，loss有限。
+原Sample3000保持，新增Epsilon实际configuration除prediction_type/source/10000上限外与Sample一致，
+optimizer_horizon仍19000；运行源码/plan/session/foundation/dependency SHA检查通过。
+整卡可用显存18644MiB、RAM35.593GB，无内存等待；这不是完整会话资源合规结论。
+39项原数值检查沿用，恢复/幂等/统计12项测试通过，本次无重复Kit Gate/模型检查/batch审计。
+后台负责Epsilon3000→同12初态配对→暂定选型→累计5k/8k/10k及同口径评估；不依赖Codex连接。
+目前不声称3000对照/选型/后续训练完成；读status而非历史PID。证据：
+`evidence/h24_parameterization_20261103/startup_review.json`，报告`H24_SAMPLE_EPSILON_COMPARISON.md`。
+当前GitHub仅启动时审核快照，未来后台产物仍需复核后推送；不自动提交未经审核结果。
+
+后台随后已提交 Epsilon1000 checkpoint（SHA `fb5f832483857b23c471e3cffe32347d91b1d74899dd0e01fcb355afc18b502b`），val40 clean-action Arm/Hand RMSE为 0.579001/0.804972 rad；这是首里程碑观测，尚不是3000公平比较或选型结论。
+
+
 ## 真实恢复现场（2026-11-03，北京时间）
 
 本轮恢复已有 `h24_parameterization_20261103_01`，没有新建替代实验。
@@ -85,7 +102,12 @@ GitHub 仅代码、Markdown、小 JSON/CSV/PNG；数据、视频、权重、大�
 本次恢复不删除任何已有实验产物。后台只写报告，不自动提交/推送未经复核的未来结果。
 
 <!-- h24-results:start -->
-当前恢复前状态：`gate_completed`。Epsilon 尚未开始，配对比较和后续里程碑待执行。
+当前后台状态：`running`。此自动区块待结果复核。
+
+|组/累计updates|val40 Arm(rad)|val40 Hand(rad)|已完成闭环成功|软件缺失|
+|---|---:|---:|---|---:|
+
+实际接触/lift/首子目标/alignment/fall/timeout及逐条结果见[summary](evidence/h24_parameterization_20261103/summary.json)。
 <!-- h24-results:end -->
 
 本次恢复新增12项owner/选型/报告回归通过（CPU，0新Kit）；原39项数值验证沿用。
