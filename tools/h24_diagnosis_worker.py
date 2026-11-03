@@ -16,6 +16,19 @@ from visuotactile.training_resources import atomic_json
 
 JOB = {}
 
+def append_policy_inputs(group, values, step):
+    """Flat policy fields live directly in the group, without an empty parent."""
+    for name, value in values.items():
+        array = value.detach().cpu().numpy()[0]
+        if step == 0:
+            group.create_dataset(name, shape=(0,*array.shape), maxshape=(None,*array.shape),
+                dtype=array.dtype, chunks=(1,*array.shape), compression='lzf')
+        dataset = group[name]
+        if len(dataset) != step:
+            raise ValueError('Policy history recorder skipped/repeated a tick')
+        dataset.resize(step+1, axis=0)
+        dataset[step] = array
+
 class CleanVideo:
     """Three unchanged sensor views, 30 fps; CPU upscale, no renderer change."""
     def __init__(self, path):
@@ -142,7 +155,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                         planning=torch.tensor([[tick % 12 == 0]]),
                         candidate_requested_position=student_action.cpu(),
                         raw_position=controller.raw_plan[:, tick % 12])
-                    base.append_numeric(input_group, values, tick)
+                    append_policy_inputs(input_group, values, tick)
                     if tick % 12 == 0:
                         assert controller.normalized_plan is not None
                         plan_rows.append(controller.raw_plan[0].numpy().copy())

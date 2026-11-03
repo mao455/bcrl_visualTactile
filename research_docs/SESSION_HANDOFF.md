@@ -1,5 +1,13 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-04：H24新诊断记录器有界修复
+
+原V1首次Kit成功进入场景；新增flat policy HDF5字段用了nested writer，首动作前empty-group错误。
+原失败/partial/初态保留，未计任务失败；旧7checkpoint和其余冻结源码仍通过完整性核验。
+只修新worker写入，5项CPU测试通过；tools/h24_diagnosis_recovery与独立recovery service
+在原4h截止/15start预算继续。原失败计V1第1次，恢复是第2次，不另加V1_attempt2。
+原owner结果、报告及源码归档于recorder_recovery_01，未删除旧失败；运行状态查看新root/status。
+
 ## 2026-11-04：H24诊断与录像新任务
 
 新增tools/h24_diagnosis_{common,worker,run,report}和独立service；原训练/控制/模型源码未改。

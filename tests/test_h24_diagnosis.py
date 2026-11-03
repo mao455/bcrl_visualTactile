@@ -3,7 +3,7 @@ import numpy as np
 import torch
 
 from tools.h24_diagnosis_common import first_sustained, prefix_comparison, prefix_feedback
-from tools.h24_diagnosis_worker import CapturedController
+from tools.h24_diagnosis_worker import CapturedController, append_policy_inputs
 from visuotactile.state_history import HistoryController
 
 
@@ -57,3 +57,22 @@ def test_capture_returns_same_output_preserves_rng_and_restores_scheduler(monkey
     assert torch.equal(rng, torch.get_rng_state())
     assert torch.equal(holder.rng_before, holder.rng_after)
     assert DDIMScheduler.step is original
+
+
+def test_actual_flat_policy_schema_roundtrip(tmp_path):
+    import h5py
+    import pytest
+    path = tmp_path/'inputs.h5'
+    with h5py.File(path, 'w') as stream:
+        group = stream.create_group('episode')
+        values = dict(actor=torch.arange(141.)[None],robot=torch.arange(178.)[None],
+            geometry=torch.arange(85.)[None], hidden_before=torch.zeros(1,1,256),
+            hidden_after=torch.ones(1,1,256), condition=torch.zeros(1,512),
+            sampler_rng_before=torch.arange(16,dtype=torch.uint8)[None],
+            sampler_rng_after=torch.arange(16,dtype=torch.uint8)[None],
+            planning=torch.tensor([[True]]),candidate_requested_position=torch.zeros(1,29),raw_position=torch.ones(1,29))
+        for tick in range(2):append_policy_inputs(group,values,tick)
+        with pytest.raises(ValueError):append_policy_inputs(group,values,3)
+    with h5py.File(path) as stream:
+        for name,value in values.items():
+            assert np.array_equal(stream['episode'][name][:],np.stack([value.numpy()[0]]*2))

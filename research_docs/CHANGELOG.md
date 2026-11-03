@@ -1,5 +1,14 @@
 # Engineering change and verification log
 
+## 2026-11-04 — H24诊断首动作前记录器修复
+
+首个V1已进入场景，但flat policy字段传给旧nested HDF5 writer，empty parent导致首个env.step前退出。
+原attempt无trace/progress，未计任务失败；日志、partial MP4、初态、旧源码/报告均原样留存。
+仅将新增policy_inputs写入改为flat dataset，新增实际字段两tick HDF5读回/跳tick拒绝测试，5项通过。
+独立recovery按白名单核验新worker SHA与其余原冻结源码，恢复六视频及条件takeover。
+不改旧策略/物理或原plan/session/deadline；此软件start占总15及V1两次预算，故不再额外V1重现。
+所有7个旧checkpoint故障后SHA仍匹配。后续真实进度必须读取root状态，不以本条声称恢复成功。
+
 ## 2026-11-04 — H24只读诊断与视频入口
 
 新增独立common/worker/run/report脚本及service，不修改原179冻结源码/权重/控制链。

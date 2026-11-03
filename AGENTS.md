@@ -2,6 +2,12 @@
 
 ## Current — H24 closed-loop diagnosis/videos, 2026-11-04
 
+First V1 reached scene but failed before env.step on flat HDF5 empty-parent recording.
+Evidence/partial video preserved; no native outcome. Recorder-only repair and5CPU tests
+are documented; h24-diagnosis-20261104-01-recovery.service uses explicit source override,
+same root/plan/session/deadline/15start budget. Failed start counts as first V1 attempt,
+so recovery is its second and final start. Read actual status, never assume recovery ran.
+
 User authorizes a new read-only bounded diagnosis, six videos and finite expert-prefix
 student takeovers on feature/native-dp-training-v2. Read H24_CLOSED_LOOP_DIAGNOSIS.
 No training, policy/weights/control/physics/hyperparameter changes or test40 selection.
