@@ -1,5 +1,15 @@
 # Kit生命周期与有界恢复
 
+## 2026-11-03 StateDP运动实验的当前smoke证据
+
+新root`state_motion_20261103_01`使用同一已验证的独立worker模式，真实创建环境、reset、
+执行1个专家控制步，有限值检查通过；父进程wait/reap后核实PID及nvidia-smi中均无该worker，
+随后才发布committed marker。见[实际退出证据](evidence/state_motion_20261103/startup_review.json)。
+本次smoke无重试；一个短probe不证明长期Kit稳定，也不代表FileThread根因被修复。
+本轮最多2次已分类pre-scene启动重试（整个session共享），NaN/接口/数据/hash失败不自动重试。
+SDK graceful shutdown仍未修复；新实验继续显式durable独立进程退出，未更改系统inotify或共享环境。
+
+
 ## 最终运行结果（2026-11-03 04:45 UTC+8已停止）
 
 受控隔离退出缓解了关闭崩溃，未根治启动问题。本轮记录3次启动恢复：预检kit_startup_02，

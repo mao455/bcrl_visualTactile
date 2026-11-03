@@ -1,5 +1,20 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03 09:12 UTC+8：StateDP运动根因实验已实际启动
+
+工作树`bc+rl_RSS_native_v2`、分支`feature/native-dp-training-v2`；实现`14ecedf`。
+唯一新root`outputs/visuotactile/native_dp_v2/state_motion_20261103_01`，普通systemd owner
+`state-motion-20261103-01.service`，一次启动核验active/running，当前sampling16。
+真实Kit环境1tick smoke及父进程PID/GPU回收通过；原best/统计精确一致，109项CPU回归通过。
+此快照没有新完整闭环结果或优化器更新，不能把后台启动当根因定位或学习成功。
+六组采样×3seed→validation40筛选→原12初态C0/C1/C2→必要单轨迹拟合→有条件H24/temporal阶段，
+均由同一owner按预注册门槛推进。无BC/Image/残差。原400和所有已完成run不改、不重启。
+固定Gate11月3日12:11:57、训练11月4日06:11:57、总11月4日09:11:57（UTC+8）。
+实际读status/blocked、各stage result、source/config/checkpoint hashes；不要根据历史PID推断存活。
+STOP文件只停止本轮；不需要前台模型轮询。后台收尾输出state_motion_20261103小证据和更新State结果文档，
+随后需审查结果、进程退出和公开文件，再提交推送；脚本本身不自动commit/push、不声称能唤醒Codex。
+
+
 ## 2026-11-03 H32位置：服务结束，最终学生0/12
 
 Worktree `bc+rl_RSS_native_v2` / `feature/native-dp-training-v2`。

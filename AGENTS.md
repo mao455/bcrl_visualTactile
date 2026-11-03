@@ -17,8 +17,13 @@ Target whole-card mean about50%, short bursts allowed, one owned GPU worker,
 Stop at fixed budgets or unresolved evidence; ordinary owner handles stages, no
 conversational polling. Read actual status/result files; implementation/tests do not
 prove a completed experiment or improved learning. Reviewed origin feature push
-is authorized; never weights/HDF5/NPZ/raw videos. Current implementation has109
-focused CPU tests passing; new GPU/Kit results are not yet claimed in this entry.
+is authorized; never weights/HDF5/NPZ/raw videos. Implementation14ecedf has109 focused CPU tests passing. Real one-step Kit smoke
+passed with parent-verified PID/GPU release. At09:12UTC+8 the service
+state-motion-20261103-01.service was active in sampling16 (six samplers × three
+seeds); no new optimizer updates or closed-loop results yet in this snapshot.
+Fixed endpoints: GateNov3 12:11:57, trainingNov4 06:11:57, totalNov4 09:11:57 UTC+8.
+Read actual machine status after this snapshot; do not reset deadlines or restart
+completed predecessors. Ordinary owner continues; later results need review.
 
 
 ## Completed — 2026-11-03 H32 position StateDP

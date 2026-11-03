@@ -6,7 +6,11 @@
 唯一新root：`outputs/visuotactile/native_dp_v2/state_motion_20261103_01`。
 复用原H32/19000 best EMA（SHA `5ecc930ffd52af166e00904b0515159193d8527d9f5726908bf57967c445a416`），
 不重新解释sample权重，不改原400、320/40/40、train-only统计和绝对位置标签。
-当前实现/109项CPU回归已通过，不代表离线对照、闭环或新训练已经完成。
+实现`14ecedf`及109项CPU回归已通过。09:12（UTC+8）一次启动核验：真实Kit单步通过、
+父进程确认PID/GPU释放；服务`state-motion-20261103-01.service` active，已进入`sampling16`。
+这只确认实际离线计算启动，不代表六组对照、闭环或新训练完成。
+[启动实证](evidence/state_motion_20261103/startup_review.json)、[冻结配置](evidence/state_motion_20261103/preregistration.json)。
+本轮起点11月3日09:11:57，Gate截止12:11:57，训练截止11月4日06:11:57，总截止09:11:57（均UTC+8）。
 
 预注册：validation按identity排序前16条，种子7091/7092/7093；DDIM16/32/100分别clip false/true。
 运动区间为完整有效前12（另报32）步的Arm7目标终点相对当前target RMS位移大于0.01rad。
@@ -29,7 +33,9 @@ K4新目标权重1/4、1/2、3/4、1；不改变H32/A12或下层控制。同初�
 E为H24，其余原设置；F为H32/Loss B加Arm7相邻x0差分，系数以首3个train段尺度校准
 `min(0.1,0.05*L_B/L_temporal)`一次后冻结。两者独立新初始化，保持原seed/AdamW/LR horizon19000/96tick×2采样。
 每阶段检查运动/整体误差和4条短cohort；连续两阶段无1%运动改善且过拟合或动作退化才早停。
-原H32同update历史指标并列；原采样访问审计单独保存，不混入采样策略改动。无ImageDP、StateBC或触觉训练。
+原H32同update历史指标并列；[原采样访问审计](evidence/state_motion_20261103/sampling_audit_summary.json)
+实测重建320身份、832段、38000段访问，每段45–46次，每episode90–274次（长度差异导致）。
+未发现段级异常重复；这是重建原采样顺序，不是新训练覆盖。没有混入采样策略改动。无ImageDP、StateBC或触觉训练。
 
 所有执行命令写入`*_launch.json`；机器状态为`status.json`，暂停本轮可创建`STOP`文件。
 启动：`bash visuotactile/run_cpu.sh -m visuotactile.state_full_run motion-init --root <root>`，

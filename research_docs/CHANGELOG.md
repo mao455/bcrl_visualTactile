@@ -2,6 +2,11 @@
 
 ## 2026-11-03 — StateDP采样、运动诊断和受控训练实验入口
 
+- 实现14ecedf已推送origin功能分支。新root09:11:57UTC+8注册，固定24h端点；一次有界
+  启动核验确认Kit真实单步/父进程回收通过，服务active并进入sampling16；尚不宣称对照完成。
+- 新公开preregistration/startup_review/sampling_audit_summary小证据。原320/832段的38000次
+  重建访问为每段45–46次；没有采样策略改动，无清理原始产物。
+
 - models/native_dp、state_history：显式DDIM16/32/100和归一化x0 clip，保持sample/EMA/原default；
   真实diffusers0.39.0实现已读，固定随机数下默认输出与旧循环逐字节一致。
 - position_control、state_benchmark：可选按原生时间对齐的K4重叠，raw/执行计划、同步规划耗时、
