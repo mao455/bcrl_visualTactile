@@ -1,5 +1,13 @@
 # Engineering change and verification log
 
+## 2026-11-04 — V1真实成功录像与持久交付
+
+恢复后V1真实完成342ticks，native max_successes=true/subgoals2/alignment，非离线重建。
+clean MP4为171帧/30fps/1280×720；后台随后进入V2。其余指定视频/接管尚不能据此称完成。
+新增独立publication service等owner退出，核验当前轮最终7checkpoint完整性、全部视频身份/SHA/解码帧数、
+公开summary一致性、分支/远端及严格轻量文件白名单后提交/推送；有未授权变更或失败则保留blocked证据。
+不上传MP4/原始轨迹/权重/大日志，不依赖Codex前台存活。实际发布以publication.json及远端SHA为准。
+
 ## 2026-11-04 — H24诊断首动作前记录器修复
 
 首个V1已进入场景，但flat policy字段传给旧nested HDF5 writer，empty parent导致首个env.step前退出。

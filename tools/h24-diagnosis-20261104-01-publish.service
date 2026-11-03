@@ -1,0 +1,16 @@
+[Unit]
+Description=Publish checked small H24 diagnosis artifacts after owner completion
+
+[Service]
+Type=simple
+WorkingDirectory=%h/docs/bc+rl_RSS_native_v2
+ExecStart=/usr/bin/bash %h/docs/bc+rl_RSS_native_v2/visuotactile/run_cpu.sh -m tools.h24_diagnosis_publish --root %h/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01
+StandardOutput=append:%h/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/h24_diagnosis_20261104_01/publication.log
+StandardError=inherit
+Restart=no
+CPUWeight=10
+IOWeight=10
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target

@@ -1,5 +1,13 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-04：恢复已实测，V1原生成功录像已生成
+
+recovery service active，owner2534924，NRestarts0；V1_recording_recovery实际342ticks成功，
+subgoals2/alignment，完整171帧MP4已存在；V2在启动检查时运行中。此PID仅是本次核验快照。
+初次软件失败完整保留并计预算；未改checkpoint或控制语义。
+持久owner继续六视频和条件takeover/报告；独立publisher在最终完整性/媒体/白名单检查后发布轻量成果。
+先读root/status.json、results.json、publication.json，避免再启动同一批。
+
 ## 2026-11-04：H24新诊断记录器有界修复
 
 原V1首次Kit成功进入场景；新增flat policy HDF5字段用了nested writer，首动作前empty-group错误。
