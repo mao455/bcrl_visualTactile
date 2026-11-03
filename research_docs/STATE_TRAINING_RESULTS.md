@@ -456,7 +456,8 @@ Kit关闭故障经显式独立worker退出得到缓解，4/4隔离probe通过父
 
 本地代表视频（不上传）：
 [对应专家成功145帧](../outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_00/r931005_1793209376_e00_p000000/rollout.mp4) /
-[位置学生lift后fall339帧](../outputs/visuotactile/native_dp_v2/position_20261103_01/position_h32_selected_single_00/r931005_1793209376_e00_p000000/rollout.mp4)。
+位置学生lift后fall339帧录像已于2026-11-03按用户要求清理；其完整numeric trace及结果仍保留。
+旧视频解码清单仅记录删除前验收，当前可用性见[CLEANUP_AUDIT](CLEANUP_AUDIT.md)。
 达到首子目标的另一条只有完整numeric trace，没有录像，不能用这条fall视频冒充。
 
 ## 2026-11-03 00:19 UTC+8：训练完成，评估不完整，尚无学生完整成功

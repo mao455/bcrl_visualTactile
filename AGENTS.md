@@ -1,5 +1,16 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — pre-H24 cleanup, 2026-11-03
+
+User requested pruning older failed artifacts. Deleted41 classified files,
+7,157,032,011 bytes: six last.pt archives whose complete contents match retained
+best.pt, plus35 failed-rollout MP4s with numeric traces/results retained.
+Read CLEANUP_AUDIT and evidence/pre_h24_cleanup_20261103.json for removed paths,
+retained checkpoint mappings and SHA. Old video references are historical.
+Entire current H24 root, original Sample h24_train, all other checkpoints/data,
+caches, numeric traces, software-fault logs and demos remain intact.
+No automatic repeat cleanup or experiment restart; deletion notices are local.
+
 ## Completed — H24 Sample/Epsilon, 2026-11-03
 
 Run h24_parameterization_20261103_01 ended21:51:21UTC+8; all owned processes exited,

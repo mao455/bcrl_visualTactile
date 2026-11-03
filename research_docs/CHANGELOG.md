@@ -1,5 +1,16 @@
 # Engineering change and verification log
 
+## 2026-11-03 — 清理已分类旧失败录像及重复权重
+
+用户授权节省旧失败产物空间后，逐文件核验并删除6个重复last.pt与35条失败MP4，
+释放7,157,032,011 bytes（6.6655 GiB）。checkpoint ZIP全部记录长度/SHA与保留best一致；
+每条录像都有success=false结果和完整可读trace。记录删除文件及保留文件SHA，
+核查当前H24引用和历史文档引用；17,983个保留文件metadata无变化。
+本轮H24、原Sample h24_train、原始数据、数值/故障证据、缓存及其余权重未改。
+更新CLEANUP_AUDIT、handoff、AGENTS、用户方向与旧视频可用性提示；
+evidence/pre_h24_cleanup_20261103.json为实际执行清单，原目录有删除说明。
+无模型代码/合同变化，无训练、Kit或重复实验测试。
+
 ## 2026-11-03 H24对照最终：Sample到10000，train一次成功，validation全无成功
 
 21:51:21UTC+8 owner/monitor退出，service inactive/exit0，最终software_missing（训练complete）。

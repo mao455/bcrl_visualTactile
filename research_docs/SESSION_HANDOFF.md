@@ -1,5 +1,16 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03：旧失败产物清理已完成
+
+按用户最新要求删除41个已分类旧文件，释放7,157,032,011 bytes（6.6655 GiB）：
+6个完整归档内容与保留best逐记录SHA相同的last副本，以及35条已确认失败的旧MP4。
+本轮H24及原Sample h24_train完全保留；全部数值轨迹、输入HDF5、结果/崩溃日志、
+原始数据、缓存和其余权重保留。17,983个保留文件metadata核验无变化。
+旧录像链接可能已标记删除，不能按历史解码表声称文件仍在。
+详见CLEANUP_AUDIT和evidence/pre_h24_cleanup_20261103.json；各删除目录有说明。
+本地执行脚本/压缩基线在outputs/visuotactile/tmp/pre_h24_cleanup_20261103。
+本次没有训练、Kit启动或修改实验结果；不要自动重建删除文件或重启已完成实验。
+
 ## 2026-11-03 H24对照最终：Sample到10000，train一次成功，validation全无成功
 
 21:51:21UTC+8 owner/monitor退出，service inactive/exit0，最终software_missing（训练complete）。
