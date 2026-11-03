@@ -1,5 +1,24 @@
 # Engineering change and verification log
 
+## 2026-11-03 — 继续未完成StateDP：记录器schema与异常关闭恢复
+
+- 原12tick学生→专家切换出现post-action HDF5 KeyError，worker_error落盘后Kit关闭阻塞。
+  只释放已失败benchmark，父进程回收exit−9；未中断训练。原失败19文件/hash完整保留，无重跑。
+- 新tools/state_motion_recovery.py包装现有Runner/benchmark，原171项源码/session/训练配置/
+  checkpoint全不变。新launcher和注册hash明确记录，历史checkpoint不会冒用新源码身份。
+- 新模式切换记录用字段有效mask与command单位mask，不能把缺失填充值当实际动作；
+  位置提交误差只比较位置段。parent有界回收durable error/closing，正常运行/资源等待不受影响。
+- 12tick缺失不再阻塞独立未开始阶段；原24tick接管→原H24/temporal预算继续，无新增重试、
+  训练配方、物理/控制改动或deadline延长。31项focused CPU测试通过。
+- 启动核验发现24tick首次attempt在scene前system_error/Invalid argument、exit−6。
+  已有两次重试消耗完，不重试；原launcher/registration和两失败29文件hash保留。
+  recovery02让独立H24按原预算开始，接管缺失阻止最终选型/test；新仿真错误仍停止。
+  新增pre-scene缺失分类/拒绝post-action吞错、选型阻断、提前结束单位mask测试，合计34项通过。
+- 更新AGENTS/STATE_TRAINING_RESULTS/SESSION_HANDOFF；普通service recovery2承担后续推进。
+- 14:23UTC+8核验真实H24进度250/1000、281episodes，monitor与唯一自有GPU worker正常。
+  公开recovery_startup_review及已有C0/C2、sampling/overlap统计和曲线；JSON路径去标识、
+  CSV换行统一、单milestone训练图加点，均记录导出变换，不改原outputs。
+
 ## 2026-11-03 — 冻结StateDP上的只读数据、FK与delay审计
 
 - 用户追加优先级：接近空间诊断→原延迟语义→独立FK训练→超参数搜索；本轮不改已启动训练。

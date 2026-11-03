@@ -1,5 +1,19 @@
 # Git delivery manifest
 
+## 2026-11-03 StateDP恢复与已有运动证据
+
+当前feature/native-dp-training-v2基准739ad84。新增tools/state_motion_recovery.py和
+tests/test_state_motion_recovery.py；171项冻结训练/runtime源码及checkpoint身份保持不变。
+34项CPU测试通过，实际启动核验H24首阶段250/1000updates；不声称后续训练完成。
+12tick记录器错误及24tick场景前中止均保留为missing；没有追加启动重试或延长deadline。
+
+同步现有AGENTS/STATE_TRAINING_RESULTS/SESSION_HANDOFF/CHANGELOG，不另建研究框架。
+evidence/state_motion_20261103新增recovery_startup_review.json、已完成C0/C2及sampling/
+overlap聚合CSV/PNG/summary、资源曲线和单milestone训练点。summary为14:16停止快照，
+后续14:23运行核验单列；公开路径去标识、LF换行及单点marker变换有hash记录。
+只交付小型报告/源码；所有权重、HDF5、NPZ、视频、失败attempt与本机注册留原位置。
+后台后续自动输出不自动提交，必须下次核验实际状态和产物后再发布。
+
 ## 2026-11-03 H32位置：最终证据交付
 
 基准f1953c7，沿用feature/native-dp-training-v2。实现提交

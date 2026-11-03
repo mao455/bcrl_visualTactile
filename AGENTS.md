@@ -1,5 +1,31 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest recovery — 2026-11-03 recorder error and failed Kit shutdown
+
+User asks to continue after the stalled evaluation. No trainer was active.
+Failed single_takeover_12 at tick12 hit missing command_clipped_pre_delay because
+position/native transitions have different fields, then hung in Kit closing.
+Only that already-failed worker was killed; parent reaped exit-9 and owner/monitor
+exited. Original19 files and failure hashes remain runtime_recovery_01, no rerun.
+tools/state_motion_recovery.py wraps the unchanged owner/benchmark; per-field HDF5
+validity masks preserve missing semantics and mixed command units, parent watchdog
+only for durable errors/closing. Frozen171 sources/session/training configs/weights
+remain bytewise unchanged. Original12tick attempt is missing, never success/failure
+of the task. First recovery attempted the originally unstarted24tick diagnostic;
+H24/temporal retain original budgets, no FK training or deadline extension. Service
+state-motion-20261103-01-recovery stopped14:16UTC+8: first24tick attempt aborted
+before scene with system_error/Invalid argument, no trajectory; both startup retries
+were already consumed earlier. Preserve it as missing, no further retry. Recovery02
+registration preserves the first launcher/hash and29 failed files. New ordinary service
+state-motion-20261103-01-recovery2 continues the independent unstarted H24 stage,
+then original conditional temporal budget. No frozen code/session/weight/deadline change.
+Final selection and held-out test are withheld while takeover diagnostics are missing.
+New simulation faults remain fail-closed.34 focused CPU tests pass; read actual startup
+evidence, since tests/service launch alone are not live acceptance.
+14:23UTC+8 bounded verification: actual h24_1000 progress250/1000,281train episodes,
+monitor live with1owned GPU worker. See recovery_startup_review.json. Yield to the
+ordinary service; no ongoing model polling. This snapshot is not training completion.
+
 ## Latest addition — 2026-11-03 read-only StateDP FK/data/delay audit
 
 User requires preserving every running training job and frozen source/config/hash.

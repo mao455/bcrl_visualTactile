@@ -1,5 +1,84 @@
 # State observation/history repair — actual results
 
+<!-- state-motion-20261103:start -->
+## StateDP运动根因对照：自动汇总，待人工审查
+
+14:16 UTC+8退出快照：`blocked`；后续恢复启动见下节。结果按原分母保留；not run不补造结果。
+[小型证据、实际命令、曲线与checkpoint身份](evidence/state_motion_20261103/summary.json)。
+
+|模型|H/A|完成状态|train成功|validation成功|
+|---|---|---|---|---|
+|Original|32/12|complete|0/4（完成4）|0/8（完成8）|
+|Sampling adjusted|32/12|not run|not run|not run|
+|Overlap transition|32/12|complete|0/4（完成4）|0/8（完成8）|
+|H24|24/12|not run|not run|not run|
+|Temporal-loss|32/12|not run|not run|not run|
+
+原400无物体专属接触：离线接触前用指尖力代理；闭环用物体过滤力。
+相同可观测初态和环境随机流不代表完整PhysX内部状态逐位一致。离线误差不等于任务成功。
+<!-- state-motion-20261103:end -->
+
+## 2026-11-03 记录器/异常退出恢复：冻结训练保持原身份
+
+用户追问为何不继续后，已推进实际恢复。10:26起的`single_takeover_12_single_00`不是
+仍在训练：在位置模式切换原生专家命令时，HDF5首tick固定schema不含
+`command_clipped_pre_delay`，tick12写入抛KeyError；异常进入Kit关闭后未退出，
+owner仍等待worker，导致running状态长期不更新。没有参数训练处于运行状态。
+只终止已报错的isolated benchmark PID1890506；原owner回收exit−9并退出，monitor退出，
+显卡PID消失。失败19文件逐项hash保留在本地`runtime_recovery_01`，原12tick轨迹不重跑，
+记为软件缺失，不计任务成功或失败，不清理partial视频/HDF5。
+
+单轨迹原EMA继续1000updates已通过拟合Gate：Arm .00050050rad、Hand .00149603rad、
+prefix12幅值比.997913、方向cosine.999839；原train1拟合成功不等于validation泛化。
+该checkpoint validation8 Arm .057193rad，明显差于本组Hold .015972rad；
+自主train1闭环0/1，230tick fall，有lift/首子目标和多指接触代理。C0/C2仍各0/12。
+
+本次不编辑171项冻结runtime源码，也不改session、模型、训练配置、checkpoint或deadline。
+在`tools/state_motion_recovery.py`显式包装原owner和benchmark，注册独立launcher SHA：
+
+- 记录器保留各模式真实字段，晚出现字段及消失字段用`recorded_field_valid/<原字段路径>`
+  逐tick标记；浮点缺失填NaN、整数/bool填0，仅作存储占位，绝不当观测/命令。
+- takeover trace新增`command_is_position`，标明rad与原生命令单位；submitted target误差
+  仅在位置前缀计算，原先跨单位比较不再作为验收指标。环境目标/队列/物理计算不变。
+- 父进程只在已落盘worker_error超过5秒、或closing超过30秒时终止该worker并回收；
+  不对正常训练、计算或资源等待设置这个超时。普通故障继续阻塞，原已授权启动重试上限不增加。
+- 12tick失败明确记missing，不伪造committed成功；只执行原定尚未启动的24tick接管，
+  然后由原`run_motion`条件顺序继续H24/temporal。没有新增FK组、采样或额外预算。
+
+首次恢复service于14:16:18（UTC+8）退出：原定24tick接管的第一次启动在scene前
+抛`std::system_error / Invalid argument`，父进程回收exit−6。只落盘5个runtime/lifecycle文件，
+没有trajectory或控制动作；无完整FileThread堆栈，不把其具体根因说成已确定。
+本轮两次Kit启动重试早已由C0和single_fit_loop使用，**不追加第三次、不重试24tick**。
+该attempt也保留为软件缺失。源码修复没有机会在真实模式切换上验收，不能声称live acceptance。
+
+原附件要求无法合理解决时“停止该阶段”；新`runtime_recovery_02`因此保留两个missing接管，
+让已通过真实控制/单轨迹拟合门槛的独立H24训练按原阶段预算开始，然后仍执行原temporal条件流程。
+34项CPU测试通过，新增pre-scene缺失分类、拒绝吞掉post-action错误、最终选型阻断和提前结束mask。
+原launcher及其registration完整保存，两个失败共29文件逐项hash验证；没有扩展启动重试预算。
+新service为`state-motion-20261103-01-recovery2.service`。**最终选型和held-out test因接管缺失而封锁**，
+不能把后续训练完成包装成整项研究完成；后续新仿真故障仍使owner停止，不自动无限跳过。
+训练截止仍11月4日06:11:57，总截止09:11:57（UTC+8）。本页开头自动汇总的blocked为
+首个recovery退出时快照，当前状态必须读service和status.json；启动核验另存小证据。
+
+14:23 UTC+8有界核验：`recovery2` active，owner2093886、worker2094890，
+真实`h24_train/progress.json`为**250/1000 updates、281个已访问训练episode**。
+监控只有1个自有GPU worker，空闲显存19421MiB、可用RAM32.52GB，60秒整卡均值48.06%，
+没有资源暂停。此后由普通owner推进，启动快照不是最终训练/闭环结果。
+171源码、11保护产物和29失败文件hash核验通过，原session/hash和deadline不变。
+[恢复核验及公开变换记录](evidence/state_motion_20261103/recovery_startup_review.json)。
+
+原自动汇总14:16资源快照整卡均值25.60%、最大完整60秒67.23%，408.18秒监测间隔；
+本轮允许短峰、目标约50%，不能声称全程监控无缺口或未干扰其他任务。
+本次补交已有sampling16/40和overlap的聚合CSV、joint/motion曲线、C0/C2闭环图；
+公开JSON仅清除本机绝对路径、CSV仅统一LF，原outputs不动。
+单轨迹训练只有一个记录milestone，训练图加可见点标记，不伪造下降曲线。
+
+![单轨迹实测训练/验证点](evidence/state_motion_20261103/training_curves.png)
+![C0接触前实际Arm与link7运动](evidence/state_motion_20261103/C0_closed_loop.png)
+![原采样对照的运动曲线](evidence/state_motion_20261103/sampling16_motion_curves.png)
+
+
+
 ## 2026-11-03 追加只读审计：数据覆盖、末端空间误差、延迟合同
 
 **没有中断当前训练，也没有改动冻结源码、session或调度。** 本次只在现有report工具增加

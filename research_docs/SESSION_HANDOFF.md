@@ -1,5 +1,23 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-03 记录器与异常退出恢复
+
+原single_takeover_12在位置→native字段切换tick12报KeyError，随后Kit closing挂住。
+用户要求继续后，仅释放已失败benchmark；原owner/monitor退出，未中断训练。
+失败保留并记missing，不重跑；tools/state_motion_recovery包装原owner/benchmark，
+171冻结源码/session/训练配置/checkpoint不改，registration在原root/runtime_recovery_01。
+首个recovery service于14:16UTC+8退出：24tick首次启动在场景前system_error/Invalid argument
+导致exit−6，没有动作；原两次启动重试已被C0和single_fit_loop消耗，不追加重试。
+runtime_recovery_02保留原launcher、两条失败29文件hash；新service
+state-motion-20261103-01-recovery2继续独立未开始H24，再按原门槛/预算执行temporal。
+两条接管保持missing，阻止最终选型/test，不伪造成功；新仿真故障仍阻塞。
+34项CPU测试通过；实际startup_review与status优先，不把启动当完成。期限原样保留。
+14:23UTC+8有界核验：owner2093886/worker2094890，h24_1000真实进度250updates，
+281训练episode已访问；monitor正常/1自有GPU worker。详见recovery_startup_review.json。
+后续由普通service推进，不前台持续轮询。运行中产物的自动汇总仍需下次审查。
+原single-fit1000通过拟合但自主0/1（230tick fall、lift/首子目标），C0/C2各0/12。
+源码和结果详见STATE_TRAINING_RESULTS新节；不新增FK训练，不把失败partial当成功证据。
+
 ## 2026-11-03：追加只读FK、数据和原生延迟审计
 
 没有中断当前state-motion服务或改动171项冻结运行源码/配置；CPU诊断见
