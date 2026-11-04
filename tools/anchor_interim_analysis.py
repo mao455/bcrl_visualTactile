@@ -10,11 +10,11 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-from tools.state_image_queue import CODE, read, write, sha
+from tools.runtime import CODE, read, write, sha
 from tools.anchor_interim_eval import counts
-from tools.h24_diagnosis_report import describe, compare_initial
+from tools.trajectory_metrics import describe, compare_initial
 from tools.h24_diagnosis_common import first_sustained
-from tools.grasp_diagnosis_analysis import tick_metrics, window_summary
+from tools.trajectory_metrics import tick_metrics, window_summary
 
 PUBLIC=CODE/'research_docs/evidence/state_dp'
 REPORT=CODE/'research_docs/STATE_DP_RESULTS.md'
@@ -72,9 +72,13 @@ def aggregate_windows(rows):
 
 def offline_assessment(root):
     """Read-only common EMA/DDIM/noise protocol on train320 and validation40; resumable per checkpoint."""
+    if (root/'offline/comparison.json').exists():
+        completed=read(root/'offline/comparison.json')
+        assert completed['state']=='completed'
+        return completed['checkpoints']
     import torch
     from visuotactile.state_image_offline import setup, no_kit
-    from visuotactile.state_history_training import labels
+    from visuotactile.anchor_sampling import labels
     from visuotactile.position_control import bounded_targets
     from visuotactile.state_motion import metadata_and_contact
     s=read(root/'session.json');parent=Path(s['parent_root'])
@@ -187,11 +191,31 @@ def analyze(root):
     for name in ('monitor_exit.json','parent_pause.json','owner_error.json'):
         if (root/name).exists():payload[name.removesuffix('.json')]=read(root/name)
     offline=read(root/'offline/comparison.json')['checkpoints'] if (root/'offline/comparison.json').exists() else []
+    prior_path=root.parent/'anchor_interim_20261105_01/summary.json'
+    prior100=read(prior_path) if prior_path.exists() else None
+    if prior100:
+        prior_ids={x['result']['trials'][0]['identity'] for x in prior100['rows']}
+        expected={x['identity'] for x in s['specs'] if x['cohort']=='validation'}
+        assert prior_ids=={s['specs'][i]['identity'] for i in (4,5,6,7)} and prior_ids<=expected
+        payload['validation100']=prior100['new']
     write(PUBLIC/'closed_loop.json',payload)
     if offline:
         compact=[dict(**{k:v for k,v in item.items() if k!='cohorts'},
             cohorts={name:{k:v for k,v in value.items() if k!='rows'} for name,value in item['cohorts'].items()}) for item in offline]
         write(PUBLIC/'offline.json',compact)
+        fig,axes=plt.subplots(2,3,figsize=(12,7))
+        for cohort in ('train','validation'):
+            for ax,key in zip(axes.flat,('loss','arm_rmse_rad','hand_rmse_rad','ee_rmse_mm','first12_delta','first12_direction')):
+                values=[]
+                for item in offline:
+                    value=item['cohorts'][cohort]
+                    values.append(value['loss']['loss'] if key=='loss' else
+                        value['windows']['first12']['arm_delta_rmse_rad'] if key=='first12_delta' else
+                        value['windows']['first12']['arm_motion']['cosine'] if key=='first12_direction' else
+                        value['windows']['full'][key])
+                ax.plot([item['update'] for item in offline],values,'o-',label=cohort+('320' if cohort=='train' else '40'))
+                ax.set_title(key);ax.set_xlabel('Optimizer updates');ax.grid(alpha=.2);ax.legend(fontsize=8)
+        fig.tight_layout();fig.savefig(PUBLIC/'endpoints.png',dpi=140);plt.close(fig)
     keys=['contact','lift','first_subgoal','success'];labels=['Contact diagnostic','Native lift','First subgoal','Full task success']
     fig,axes=plt.subplots(1,2,figsize=(12,4));x=np.arange(4);width=.36
     for ax,(cohort,values) in zip(axes,cohorts.items()):
@@ -221,7 +245,7 @@ def analyze(root):
         for line in stream:
             try:training.append(json.loads(line))
             except json.JSONDecodeError:pass
-    write(PUBLIC/'training_curve.json',dict(history=history,updates=[{k:v for k,v in r.items() if k in ('update','continuation_update','lr','gradient_norm','grad_norm','cumulative_anchor_epochs','loss')} for r in training[::20]],
+    write(PUBLIC/'training_curve.json',dict(history=[{k:({a:b for a,b in v.items() if a!='episodes'} if isinstance(v,dict) else v) for k,v in r.items()} for r in history],updates=[{k:v for k,v in r.items() if k in ('update','continuation_update','lr','gradient_norm','grad_norm','cumulative_anchor_epochs','loss')} for r in training[::20]],
         scope='Historical train16 / validation40 EMA curves; common endpoint assessment additionally uses all train320'))
     fig,axes=plt.subplots(2,3,figsize=(13,7));updates=[r['update'] for r in history]
     for cohort,color in [('train','tab:blue'),('validation','tab:orange')]:
@@ -236,7 +260,10 @@ def analyze(root):
     lines=['# StateDP 150 anchor等效epoch：训练、闭环与清理','',
         '|模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|','|---|---|---:|---:|---:|---:|---:|']
     for cohort,value in cohorts.items():
-        for label,c in [('10000',value['old']),(str(s['expected_updates']),value['new'])]:
+        comparison=[('10000',value['old'])]
+        if cohort=='validation' and prior100:comparison.append(('16584 (100 epoch)',prior100['new']))
+        comparison.append((str(s['expected_updates']),value['new']))
+        for label,c in comparison:
             lines.append(f"|StateDP {label}|{cohort}|{c['success']}/{c['valid']}|{c['contact']}|{c['lift']}|{c['first_subgoal']}|{c['timeout']}|")
     lines += ['',f"计划{planned}初态，实际启动{len(attempts)}，有效{len(rows)}，软件缺失{payload['software_missing']}，验收失败{payload['acceptance_failed']}，待执行/待获得有效结果{payload['pending']}。最多{s['kit_maximum_starts']}次启动。训练初态只作拟合诊断，不并入validation或test。原StateDP/ImageDP正式0/12不变，Image未新训。",
         '原生环境没有离散稳定抓持判据，保持N/A；contact是已有力诊断，不作为稳定抓取。异常关闭与任务失败分开；SDK fast exit不称完整正常关闭。','',
@@ -252,7 +279,8 @@ def analyze(root):
         for cohort,value in item['cohorts'].items():
             w=value['windows']['full'];m=w['arm_motion']
             lines.append(f"|{item['update']}|{item['cumulative_anchor_epochs']:.4f}|{cohort}|{value['loss']['loss']:.7g}|{w['arm_rmse_rad']:.6g}|{w['hand_rmse_rad']:.6g}|{w['ee_rmse_mm']:.5g}|{w['arm_delta_rmse_rad']:.6g}|{m['cosine']:.5g}|{m['amplitude_ratio']:.5g}|")
-    if not offline:lines+=['','同口径端点离线比较尚未完成，不提前给出150 epoch结论。']
+    if offline:lines+=['','![统一端点对比](evidence/state_dp/endpoints.png)']
+    else:lines+=['','同口径端点离线比较尚未完成，不提前给出150 epoch结论。']
     lines += ['','|更新|cohort|时段|Arm rad|增量rad/tick|hold基线rad|方向cos|幅值比|FK mm|EE积分误差mm·s|','|---:|---|---|---:|---:|---:|---:|---:|---:|---:|']
     for item in offline:
         for cohort,value in item['cohorts'].items():

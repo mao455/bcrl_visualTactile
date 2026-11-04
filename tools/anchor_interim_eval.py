@@ -1,8 +1,8 @@
 """Bounded evaluation between complete training stages, without editing the trainer.
 
 Only the verified training owner is suspended. Its current child finishes normally;
-the monitor keeps running. A separate systemd service evaluates four frozen initial
-states, then resumes that exact owner. ExecStopPost also invokes resume on failure.
+the monitor keeps running. Cohorts and post-evaluation hold are explicit. A ready
+checkpoint can also be assessed independently once its training worker has exited.
 """
 import argparse
 import fcntl
@@ -15,8 +15,8 @@ import time
 import traceback
 
 from tools.anchor_continue_queue import Owner
-from tools.state_image_queue import CODE, RUN, read, write, sha, kill_owned
-from tools.state_image_kit_gate import proc, descendants, gpu_pids
+from tools.runtime import CODE, RUN, read, write, sha, kill_owned
+from tools.runtime import proc, descendants, gpu_pids
 
 
 def same_process(record):
@@ -59,12 +59,17 @@ def resume(root, force=False):
         state='released', evaluation_root=str(root), resume=record))
 
 
-def prepare(root, parent, epoch=100, ordinals=None, hold_parent=False, boundary_seconds=3600):
+def prepare(root, parent, epoch=100, ordinals=None, hold_parent=False, boundary_seconds=3600, checkpoint=None):
     parent = parent.resolve()
     status = read(parent/'status.json')
-    assert status['state'] == 'running' and status['stage'] == f'state_train_epoch_{epoch}'
-    owner, worker = proc(status['pid']), proc(status['worker_pid'])
-    assert owner and worker and worker['ppid'] == owner['pid'] and owner['state'] not in ('T', 't')
+    owner=worker=None
+    if checkpoint is None:
+        assert status['state'] == 'running' and status['stage'] == f'state_train_epoch_{epoch}'
+        owner, worker = proc(status['pid']), proc(status['worker_pid'])
+        assert owner and worker and worker['ppid'] == owner['pid'] and owner['state'] not in ('T', 't')
+    else:
+        assert not hold_parent and checkpoint.is_file()
+        assert not status.get('worker_pid'), 'Standalone evaluation cannot overlap a parent worker'
     root.mkdir(parents=True, exist_ok=False)
     session = read(parent/'session.json')
     ordinals = [4,5,6,7] if ordinals is None else ordinals
@@ -77,6 +82,7 @@ def prepare(root, parent, epoch=100, ordinals=None, hold_parent=False, boundary_
         owned_worker_roots=[str(root)], kit_maximum_starts=len(ordinals)+1, kit_recovery_limit=1,
         evaluation_only=True, expected_updates=expected_updates, closed_loop_ordinals=ordinals,
         epoch=epoch, boundary_seconds=boundary_seconds, hold_parent_for_decision=hold_parent,
+        standalone=checkpoint is not None,
         expected_stage=status['stage'], parent_owner=owner, parent_worker=worker,
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'], cwd=CODE, text=True).strip())
     write(root/'session.json', session)
@@ -87,6 +93,15 @@ def prepare(root, parent, epoch=100, ordinals=None, hold_parent=False, boundary_
     write(root/'status.json', dict(state='pending',stage=f'wait_complete_{epoch}_epoch_checkpoint',pid=None))
     # Both queues use the same GPU lease even though the parent owner is suspended.
     (root/'gpu.lock').symlink_to(parent/'gpu.lock')
+    if checkpoint is not None:
+        import torch
+        saved=torch.load(checkpoint,map_location='cpu',weights_only=False)
+        assert saved['updates']==expected_updates and saved['contract']['horizon']==24
+        assert saved['contract']['action']=='absolute_joint_position_target_rad'
+        os.link(checkpoint,root/'checkpoint.pt')
+        write(root/'checkpoint.json',dict(path=str(root/'checkpoint.pt'),original=str(checkpoint),
+            sha256=sha(checkpoint),updates=expected_updates,
+            cumulative_anchor_epochs=saved['cumulative_sampled_anchors']/session['anchor_population']))
 
 
 class Interim(Owner):
@@ -179,7 +194,10 @@ class Interim(Owner):
             for path,digest in read(root/'runtime_freeze.json').items():
                 assert sha(CODE/path)==digest, 'Frozen source drift: '+path
             try:
-                self.pause_and_wait()
+                if not self.s.get('standalone'):self.pause_and_wait()
+                else:
+                    checkpoint=read(root/'checkpoint.json')
+                    assert sha(checkpoint['path'])==checkpoint['sha256']
                 with (root/'monitor.log').open('a') as log:
                     self.monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],
                         cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
@@ -216,9 +234,10 @@ if __name__=='__main__':
     p.add_argument('--parent',type=Path);p.add_argument('--epoch',type=int,default=100)
     p.add_argument('--ordinals',type=int,nargs='+');p.add_argument('--hold-parent',action='store_true')
     p.add_argument('--boundary-seconds',type=int,default=3600)
+    p.add_argument('--checkpoint',type=Path)
     p.add_argument('mode',choices=['prepare','run','resume','release','report'])
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='prepare':prepare(root,a.parent,a.epoch,a.ordinals,a.hold_parent,a.boundary_seconds)
+    if a.mode=='prepare':prepare(root,a.parent,a.epoch,a.ordinals,a.hold_parent,a.boundary_seconds,a.checkpoint)
     elif a.mode in ('resume','release'):resume(root,force=a.mode=='release')
     elif a.mode=='report':Interim(root).report()
     else:Interim(root).run()

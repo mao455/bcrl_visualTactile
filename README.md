@@ -1,4 +1,6 @@
-> 视觉—触觉研究最新入口：[完整系统与实验审计](research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、[文件地图](research_docs/PROJECT_FILE_MAP.md)、[有效性矩阵](research_docs/EXPERIMENT_VALIDITY_MATRIX.md)、[实际状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
+> 当前 StateDP/ImageDP 研究入口、真实结果与清理记录：[research_docs/README.md](research_docs/README.md)。以下保留原项目说明。
+
+> 视觉—触觉研究最新入口：[完整系统与实验审计](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、[文件地图](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/PROJECT_FILE_MAP.md)、[有效性矩阵](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/EXPERIMENT_VALIDITY_MATRIX.md)、[实际状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
 
 # Play2Perfect
 
@@ -54,7 +56,7 @@ play2perfect/
 
 ## Local visual–tactile research extension
 
-Latest bounded expert-data milestone: [insertion dataset report](research_docs/INSERTION_DATASET.md)
+Latest bounded expert-data milestone: [insertion dataset report](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/INSERTION_DATASET.md)
 and [session handoff](research_docs/SESSION_HANDOFF.md). Lossless dual-view records,
 manifest replay and zero-update checks are implemented; collection stopped on
 invalid initializations and a simulator startup crash. No training or robustness
@@ -63,7 +65,7 @@ claim is made. Raw data, weights and videos remain local.
 Current research adds persistent episode memory, explicit command/delay/target provenance,
 and per-control-step HDF5 recording with optional episode PKL export. Read
 [the user's research directions](research_docs/USER_RESEARCH_DIRECTION.md) and
-[history, timing and trace contracts](research_docs/HISTORY_AND_TRACE.md).
+[history, timing and trace contracts](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/HISTORY_AND_TRACE.md).
 This milestone performs no parameter training; Correction remains Shadow only.
 
 The independent `visuotactile/` package adds audited trajectory recording, nominal

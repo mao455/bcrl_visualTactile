@@ -16,12 +16,10 @@ import torch
 from .compact import sha256
 from .models.vendor.ema_model import EMAModel
 from .position_control import bounded_targets, contract, image_contract
-from .state_full_training import restore_training, training_state
 from .state_history import PersistentState, PersistentImage, HistoryBank
-from .state_history_training import labels
+from .anchor_sampling import labels
 from .state_image_loss import GeometryObjective, COMPONENTS, LOSS_ID, calibrated_weights
 from .state_resources import lease_for
-from .train_long import save
 from .training_resources import atomic_json
 
 
@@ -109,7 +107,7 @@ def audit(root,job,output):
     if job=='image':
         from .models.native_vision import NativeDinoSpatial
         from .native_data import Episode
-        from .long_data import depth_grid
+        from .native_data import depth_grid
         with lease.block():dino=NativeDinoSpatial().cuda().eval()
         vision=[]
         for identity in train_ids[:2]:
@@ -188,92 +186,3 @@ def evaluate(model,records,identities,objective,lease):
         ee_rotation_mean_deg=float(angle.mean()),ee_rotation_p95_deg=float(angle.quantile(.95)),
         fingertip_rmse_mm=finger.square().mean(0).sqrt().tolist(),motion_mean_cosine_amplitude=torch.cat(motion).mean(0).tolist() if motion else None,
         continuity={k:float(np.mean([r[k] for r in continuity if r.get(k) is not None])) for k in continuity[0] if any(r.get(k) is not None for r in continuity)})
-
-
-def train(root,job,target,output):
-    gate=root/(job+'_audit');assert read(gate/'result.json')['passed']
-    assert read(gate/'result.json')['calibration_sha256']==sha256(gate/'calibration.json')
-    session,data,train_ids,val_ids,records,model,objective,lease,metadata=setup(root,job)
-    directory=root/(job+'_train');directory.mkdir(exist_ok=True)
-    objective.weights=read(gate/'calibration.json')['weights']
-    config=dict(identity=session['run_id']+'/'+job,loss_id=LOSS_ID,contract=model.contract,train_ids=train_ids,validation_ids=val_ids,
-        seed=20261102,maximum_updates=10000,optimizer_horizon=10000,batch_segments=2,segment_ticks=96,lr=1e-4,warmup=500,
-        betas=[.95,.999],weight_decay=1e-6,loss_weights=objective.weights,calibration_sha256=sha256(gate/'calibration.json'),
-        statistics_sha256=sha256(session['position_statistics']),offline_freeze_sha256=sha256(root/'offline_freeze.json'))
-    config_path=directory/'configuration.json'
-    if config_path.exists():assert read(config_path)==config
-    else:atomic_json(config_path,config)
-    with lease.block():
-        averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
-        optimizer=torch.optim.AdamW(model.parameters(),lr=1e-4,betas=(.95,.999),weight_decay=1e-6)
-    generator=torch.Generator().manual_seed(20261102);noise=torch.Generator(device='cuda').manual_seed(20261102)
-    schedule=[(i,s) for i in train_ids for s in range(0,len(records[i]['time']),96)]
-    assert len(schedule)==832
-    order=[];cursor=update=0;history=[];best=math.inf;seen=set()
-    if (directory/'last.pt').exists():
-        saved=torch.load(directory/'last.pt',map_location='cpu',weights_only=False)
-        assert saved['config_sha256']==sha256(config_path) and saved['loss_id']==LOSS_ID
-        restore_training(saved,model,averaged,optimizer,ema,generator,noise)
-        update=saved['updates'];cursor=saved['schedule_cursor'];order=saved['schedule_order'];history=saved['history'];best=saved['best'];seen=set(saved['seen_ids'])
-        assert update<=target
-        assert torch.equal(generator.get_state(),saved['schedule_rng']) and torch.equal(noise.get_state(),saved['noise_rng'])
-        assert ema.optimization_step==saved['ema_optimization_step']
-        assert all(torch.equal(v.detach().cpu(),saved['model'][k]) for k,v in model.state_dict().items())
-        atomic_json(output/'resume.json',dict(from_updates=update,optimizer_ema_rng_sampler_restored=True,model_tensors_exact=True,checkpoint_sha256=sha256(directory/'last.pt')))
-        del saved
-    start_update=update;began=time.time();stop=[False]
-    signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
-    def snapshot():
-        return training_state(model,averaged,optimizer,ema,generator,noise,kind='dp',group=model.group,updates=update,
-            schedule_order=order,schedule_cursor=cursor,best=best,history=history,seen_ids=sorted(seen),train_ids=train_ids,validation_ids=val_ids,
-            config_sha256=sha256(config_path),loss_id=LOSS_ID,configuration=config,job=job)
-    while update<target:
-        # Check before advancing the sampler, so interruption has exact committed state.
-        with lease.block():
-            selected=[]
-            for _ in range(2):
-                if cursor==len(order):order=torch.randperm(len(schedule),generator=generator).tolist();cursor=0
-                selected.append(schedule[order[cursor]]);cursor+=1
-            model.train();optimizer.zero_grad(set_to_none=True)
-            condition,command,valid=batch(model,records,selected)
-            loss,parts,_=objective.forward(model,condition,command,valid,noise)
-            if not torch.isfinite(loss):raise FloatingPointError('Nonfinite loss')
-            loss.backward();branch=model.history.weight_hh_l0 if job=='state' else model.native_gru.weight_hh
-            history_grad=float(branch.grad.norm());norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
-            if not torch.isfinite(norm) or not math.isfinite(history_grad):raise FloatingPointError('Nonfinite gradient')
-            step=update+1;lr=1e-4*min(1.,step/500)*.5*(1+math.cos(math.pi*max(0,step-500)/9500))
-            for g in optimizer.param_groups:g['lr']=lr
-            optimizer.step();ema.step(model);update=step;seen.update(i for i,s in selected)
-        row=dict(update=update,loss=float(loss.detach()),gradient_norm=float(norm),history_grad=history_grad,lr=lr,
-            components={k:float(v.detach()) for k,v in parts.items()},utc=time.time(),elapsed_s=time.time()-began,
-            seen_episodes=len(seen),work_s=lease.work_s,wait_s=lease.wait_s,pacing_s=lease.pacing_s,**lease.memory())
-        with (directory/'train.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
-        if update%10==0:atomic_json(directory/'progress.json',dict(state='supervised' if update<=200 else 'running',updates=update,target=target,utc=time.time(),pid=os.getpid(),**no_kit()))
-        if update%50==0 or stop[0]:save(directory/'last.pt',snapshot())
-        if stop[0]:raise InterruptedError('Saved complete optimizer boundary')
-    metrics=dict(update=update,train=evaluate(averaged,records,train_ids[:4 if update<=200 else 16],objective,lease),
-        validation=evaluate(averaged,records,val_ids[:4] if update<=200 else val_ids,objective,lease))
-    history=[r for r in history if r['update']!=update]+[metrics]
-    best=min(best,metrics['validation']['selection_mse'])
-    save(directory/'last.pt',snapshot())
-    milestone=directory/f'milestone_{update}.pt'
-    if milestone.exists():raise FileExistsError('Never replace committed milestone')
-    os.link(directory/'last.pt',milestone)
-    saved=torch.load(milestone,map_location='cpu',weights_only=False)
-    assert saved['updates']==update and saved['ema_optimization_step']==ema.optimization_step
-    assert saved['optimizer']['state'] and saved['schedule_cursor']==cursor
-    checkpoint_sha=sha256(milestone)
-    atomic_json(directory/'metrics.json',history)
-    atomic_json(output/'result.json',dict(software_complete=True,job=job,updates=update,from_updates=start_update,metrics=metrics,
-        checkpoint=str(milestone.resolve()),checkpoint_sha256=checkpoint_sha,checkpoint_readback=True,
-        elapsed_s=time.time()-began,kit_dependency=no_kit(),parameters=sum(p.numel() for p in model.parameters()),test_used=False))
-    atomic_json(directory/'progress.json',dict(state='completed_stage',updates=update,target=target,pid=None,utc=time.time()))
-
-
-if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['audit','train']);p.add_argument('--root',type=Path,required=True)
-    p.add_argument('--job',choices=['state','image'],required=True);p.add_argument('--target',type=int);p.add_argument('--output',type=Path,required=True)
-    a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False);torch.set_num_threads(2)
-    torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
-    if a.mode=='audit':audit(a.root,a.job,a.output)
-    else:train(a.root,a.job,a.target,a.output)

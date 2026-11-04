@@ -6,7 +6,7 @@ import pytest
 import torch
 
 from visuotactile.position_control import bounded_targets,apply_position_targets,position_robot_history,contract
-from visuotactile.state_history_training import labels
+from visuotactile.anchor_sampling import labels
 from visuotactile.state_history import PersistentState
 
 
@@ -93,50 +93,3 @@ def test_image_contract_and_privileged_input_rejection():
         with pytest.raises(ValueError,match='allowlisted'):
             model.encode(dict(robot=None,actor=None,geometry=None))
         with pytest.raises(ValueError):PersistentImage(group,contract())
-
-
-def test_image_success_needs_eight_unique_complete_legal_validation_ids():
-    from visuotactile.state_full_run import image_success_gate
-    validation=[dict(identity=str(i)) for i in range(8)]
-    rows=[dict(identity=str(i),cohort='validation',legal=True,software_complete=True,success=i<2) for i in range(8)]
-    cohort=dict(software_complete=True,trials=rows)
-    assert image_success_gate(cohort,validation)['passed']
-    assert not image_success_gate(dict(cohort,software_complete=False),validation)['passed']
-    for field,value in [('identity','0'),('legal',False),('software_complete',False)]:
-        altered=copy.deepcopy(cohort);altered['trials'][-1][field]=value
-        assert not image_success_gate(altered,validation)['passed']
-    cohort['trials'][1]['success']=False
-    assert not image_success_gate(cohort,validation)['passed']
-
-
-def test_isolated_worker_parent_requires_reaped_matching_exit(tmp_path,monkeypatch):
-    from visuotactile.state_full_run import Runner
-    from visuotactile.compact import sha256
-    runner=object.__new__(Runner);runner.root=tmp_path
-    out=tmp_path/'probe';out.mkdir();(out/'result.json').write_text('{"software_complete":true}')
-    (out/'process_exit_requested.json').write_text(json.dumps(dict(pid=99999999,result_sha256=sha256(out/'result.json'))))
-    exited=tmp_path/'probe_process_exit.json'
-    exited.write_text(json.dumps(dict(pid=99999999,code=-6,reaped=True)))
-    with pytest.raises(RuntimeError):runner.verify_worker_exit('probe')
-    exited.write_text(json.dumps(dict(pid=99999999,code=0,reaped=True)))
-    monkeypatch.setattr('subprocess.check_output',lambda *a,**k:'')
-    runner.verify_worker_exit('probe')
-    assert json.loads((out/'closed.json').read_text())['gpu_process_absent']
-
-
-def test_position_cohort_continues_independent_missing_trial(tmp_path,monkeypatch):
-    from visuotactile.state_full_run import Runner
-    runner=object.__new__(Runner);runner.root=tmp_path
-    runner.session=dict(position_study=True,maximum_controlled_trajectories=160)
-    checkpoint=tmp_path/'checkpoint.pt';checkpoint.write_bytes(b'fixed')
-    specs=[dict(identity=str(i),cohort='validation',seed=100+i) for i in range(3)]
-    calls=[]
-    def stage(name,**kwargs):
-        calls.append(name)
-        if name.endswith('01'):raise RuntimeError('process fault')
-        index=int(name[-2:]);(tmp_path/name/str(index)).mkdir(parents=True)
-        return dict(trials=[dict(**specs[index],success=True,legal=True)])
-    monkeypatch.setattr(runner,'stage',stage)
-    result=runner.evaluate_learning('diagnostic','dp',checkpoint,specs)
-    assert len(calls)==3 and len(result['trials'])==2 and len(result['missing'])==1
-    assert result['missing'][0]['native_outcome'] is None and not result['software_complete']

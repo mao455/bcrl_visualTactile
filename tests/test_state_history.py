@@ -100,7 +100,7 @@ def test_unknown_actor_group_and_old_contract_rejected(model):
 
 
 def test_diffusion_path_keeps_horizon_and_trains_history():
-    from visuotactile.state_history_training import labels
+    from visuotactile.anchor_sampling import labels
     model = PersistentState('dp').train()
     values = record(13); values['command'] = torch.zeros(13, 29)
     condition, anchors, _ = model.encode(values, 0, 12)

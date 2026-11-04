@@ -58,7 +58,7 @@ def test_coverage_does_not_call_sampled_windows_full_segment_or_episode_epochs()
 
 def test_status_uses_actual_progress_not_stale_zero(tmp_path):
     from tools.anchor_continue_queue import Owner
-    from tools.state_image_queue import write,read
+    from tools.runtime import write,read
     write(tmp_path/'session.json',{})
     write(tmp_path/'status.json',dict(state='running',training_updates=0))
     write(tmp_path/'state_train/progress.json',dict(update=10050,continuation_update=50))
@@ -71,7 +71,7 @@ def test_status_uses_actual_progress_not_stale_zero(tmp_path):
 
 def test_committed_worker_result_recovers_without_new_process(tmp_path,monkeypatch):
     from tools.anchor_continue_queue import Owner
-    from tools.state_image_queue import write,read
+    from tools.runtime import write,read
     write(tmp_path/'session.json',{});write(tmp_path/'status.json',{})
     output=tmp_path/'stages/state_contract/attempt_1/output';result=dict(passed=True,optimizer_updates=0)
     write(output/'result.json',result)

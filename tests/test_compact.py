@@ -7,7 +7,6 @@ import pytest
 
 from visuotactile.compact import EpisodeFile, convert_episode, rgb_u8
 from visuotactile.recording import EpisodeReader, flatten
-from visuotactile.run_rl_trials import validate_completion, prior_attempt
 
 
 def fixture(path, terminal, views=2):
@@ -69,19 +68,6 @@ def test_optional_viewing_videos_keep_lossless_hdf5(tmp_path):
         assert f['episodes/test']['obs/image'].shape==(3,3,4,6,8)
 
 
-def test_fresh_and_resume_share_result_identity_gate(tmp_path):
-    path=tmp_path/'trial';path.mkdir()
-    result={'steps':3,'started_episodes':1,'successful_episodes':0,'externally_censored':False}
-    (path/'result.json').write_text(json.dumps(result))
-    trial=dict(summary=dict(audit_errors=[],control_steps=3,outcome='failure'),metadata=dict(seed=10,condition='original'))
-    with patch('visuotactile.run_rl_trials.load_trial',return_value=trial):
-        assert validate_completion(path,{'seed':10}) is trial
-        with pytest.raises(RuntimeError,match='identity'):validate_completion(path,{'seed':11})
-        (tmp_path/'trial.status.json').write_text(json.dumps(dict(returncode=0,episode_started=True,audit_errors=[])))
-        assert prior_attempt(tmp_path,'trial',{'seed':10})[1] is trial
-        (path/'FAILED.txt').write_text('Kit returned zero after exception')
-        with pytest.raises(RuntimeError):validate_completion(path)
-        with pytest.raises(RuntimeError):prior_attempt(tmp_path,'trial',{'seed':10})
 
 
 def test_compact_repeated_reversed_and_empty_indices(tmp_path):

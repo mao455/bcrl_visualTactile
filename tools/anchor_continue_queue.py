@@ -9,8 +9,8 @@ import subprocess
 import time
 import traceback
 
-from tools.state_image_queue import CODE,RUN,read,write,sha,kill_owned
-from tools.state_image_kit_gate import proc,descendants,gpu_pids
+from tools.runtime import CODE,RUN,read,write,sha,kill_owned
+from tools.runtime import proc,descendants,gpu_pids
 
 
 class Owner:
@@ -26,7 +26,9 @@ class Owner:
             state['model_progress'][job]=read(path) if path.exists() else dict(update=10000,continuation_update=0,state='pending')
         state.update(kw);write(self.root/'status.json',state)
     def report(self):
-        subprocess.run(RUN+['-m','tools.anchor_continue_report','--root',str(self.root)],cwd=CODE,check=True)
+        write(self.root/'queue_summary.json', dict(status=read(self.root/'status.json'),
+            models={job:read(self.root/(job+'_train')/'best.json') if (self.root/(job+'_train')/'best.json').exists() else None
+                for job in ('state','image')}, report='research_docs/STATE_DP_RESULTS.md'))
     def stage(self,name,module,args,kit=False):
         root=self.root;committed=root/'stages'/name/'committed.json'
         if committed.exists():return read(committed)
@@ -91,7 +93,7 @@ class Owner:
                 write(committed,record);self.report();return record
             if kit:
                 # A cold-cache timeout is retained, never blindly retried.
-                from tools.final_dp_eval import classify
+                from tools.runtime import classify
                 record['classification']=classify(output,code,bool(reason),(folder/'worker.log').read_text(errors='replace'),False)
                 write(root/'attempts.json',self.attempts)
                 recent=[x for x in self.attempts if x['kit']][-2:]
@@ -109,8 +111,8 @@ class Owner:
         raise RuntimeError('Offline retries exhausted')
     def validate_kit(self,record):
         import numpy as np
-        from tools.final_dp_video import verify_video
-        from tools.h24_diagnosis_report import compare_initial,describe
+        from visuotactile.video import verify_video
+        from tools.trajectory_metrics import compare_initial,describe
         result=record['result'];assert len(result['trials'])==1;trial=result['trials'][0]
         assert trial['legal'] and not trial['action_exhausted']
         assert trial['actuator_target_max_error']==trial['submitted_target_max_error']==0
@@ -215,7 +217,7 @@ class Owner:
                 except subprocess.TimeoutExpired:kill_owned(self.monitor)
                 self.status(pid=None,worker_pid=None,finished=time.time())
                 write(root/'owner_exit.json',read(root/'status.json'));self.report()
-                subprocess.run(RUN+['-m','tools.anchor_continue_report','--root',str(root),'--publish'],cwd=CODE)
+                write(root/'publication.json',dict(state='pending_review',reason='Publish reviewed consolidated report with code'))
 
 
 if __name__=='__main__':

@@ -293,3 +293,15 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def append_numeric(group, values, step):
+    for name,value in flatten(numpy_tree(values)).items():
+        array=np.asarray(value)[0]
+        if step==0:
+            parent,_,leaf=name.rpartition('/')
+            group.require_group(parent).create_dataset(leaf,shape=(0,*array.shape),maxshape=(None,*array.shape),
+                dtype=array.dtype,chunks=(1,*array.shape),compression='lzf')
+        dataset=group[name]
+        dataset.resize(step+1,axis=0)
+        dataset[step]=array

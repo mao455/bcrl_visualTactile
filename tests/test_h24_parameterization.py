@@ -96,7 +96,7 @@ def test_balanced_weight_and_padding_gradient():
 
 def test_saved_epsilon_contract_roundtrip_rejects_sample_restore(monkeypatch):
     from visuotactile.models.vendor.ema_model import EMAModel
-    from visuotactile.state_full_training import training_state, restore_training
+    from visuotactile.checkpointing import training_state, restore_training
     monkeypatch.setattr(torch.cuda, 'get_rng_state_all', lambda: [])
     monkeypatch.setattr(torch.cuda, 'set_rng_state_all', lambda state: None)
     model=torch.nn.Linear(3,2);model.contract=contract(24,True,'epsilon')

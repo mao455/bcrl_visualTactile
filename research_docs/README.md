@@ -1,185 +1,41 @@
-# H24多轨迹anchor续训
+# 当前 StateDP / ImageDP 实验系统
 
-[100 anchor等效epoch的新闭环评估](STATE_DP_INTERIM_RESULTS.md)：StateDP16584更新，固定validation4，与旧模型相同初态比较；逐条实测结果、阶段图和视频位置。
+当前结果与训练决策：[STATE_DP_RESULTS.md](STATE_DP_RESULTS.md)。清理、保留项和回归：[CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)。接口与训练配置以 [CONTRACTS.md](CONTRACTS.md) 为准；历史实验只读摘要见 [RESEARCH_HISTORY.md](RESEARCH_HISTORY.md)。
 
-[最新报告与实际进度](ANCHOR_BATCH_CONTINUATION.md)：从两个10000 checkpoint续训，先State，Image受闭环进展与严格输入配对门槛约束。
+## 当前入口
 
-# 最终10000模型闭环
+|功能|唯一维护入口|说明|
+|---|---|---|
+|可恢复 State/Image 训练|`visuotactile.anchor_continue`|`--job state/image`；恢复完整状态，参数和数据合同不变|
+|串行队列及里程碑|`tools.anchor_continue_queue`|一个owner；按已提交stage恢复，禁止重复任务|
+|里程碑闭环评估|`tools.anchor_interim_eval`|epoch/cohort由配置给出；等待当前trainer自然完成，独立Kit worker，持有后续训练直到证据审查|
+|独立Kit模型worker|`tools.anchor_continue_worker`|历史/执行审计、视频、生命周期记录和可选Image严格输入捕获|
+|统一结果分析|`tools.anchor_interim_analysis`|train/validation分列；三checkpoint端点、接触前增量、曲线、视频位置|
+|不可变数据与模型|`visuotactile.native_data`、`state_history`、`models.native_dp`、`models.native_vision`|State/Image参数独立；共享合法基础组件|
+|共享工具|`checkpointing`、`state_resources`、`video`、`tools.runtime`、`tools.trajectory_metrics`|恢复、资源、进程、视频和统计不再借用旧实验runner|
+|依赖与清理|`tools.project_maintenance`|sources→reviewed plan→apply；保护路径、打开文件、SHA、硬链接计数|
 
-最新：[抓取失败归因诊断](GRASP_FAILURE_DIAGNOSIS.md)。正式State/Image均0/12已完成；
-复用专家target严格回放，审计最终EMA完整轨迹和24条配对失败，有限单因素推理对照，无重训。
+命令使用本仓库 `bash visuotactile/run_cpu.sh`，它进入现有Isaac/PyTorch环境并限制CPU线程。离线训练不加载Kit；真实仿真由独立进程执行。原环境入口 `evaluation/eval_isaacsim.py` 和 `isaacsimenvs/` 保持原项目用途。
 
-[直接查看实测成功率与阶段图](../EVALUATION_SUMMARY.md)。State/Image均已完成训练，当前最终模型配对评估以前四条监督结果为起点继续；实际状态见新报告。
+首先只读检查已有服务和状态：
 
-# 视觉与触觉模仿学习研究工程
+```bash
+systemctl --user status anchor-continuation-20261104-01.service anchor-assessment-20261105-01.service anchor-assessment-analysis-20261105-01.service
+cat outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01/state_train/progress.json
+cat outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/status.json
+```
 
-## StateDP + ImageDP 改进队列 — 2026-11-04
+评估配置在run的`session.json`；checkpoint、实际PID、SHA、阶段结果均在run内。不能照抄历史启动命令重开训练。当前150 epoch之后需要结果决策，不能仅执行`release`就继续训练。`--hold-parent`是明确的证据审查保持状态。
 
-[当前报告与接续入口](STATE_IMAGE_DP_IMPROVEMENT.md)：最新用户已将离线训练与Kit退出解耦。
-新root `state_image_20261104_02` 已通过State50/100/200监督、checkpoint恢复及validation；
-持久队列继续State到10000，再Image同样监督和10000，随后统一执行固定里程碑闭环。
-旧01依然blocked并保留全部证据。关闭异常不会冒充正常退出，也不再无条件阻塞离线训练。
-请读取新root/status.json，不从旧PID或本文历史数字推测当前进度。
+```bash
+# 清理后CPU回归（不启动Kit、不做正式优化）
+bash visuotactile/run_cpu.sh -m pytest -q tests
+# 仅重新生成已有结果的报告
+bash visuotactile/run_cpu.sh -m tools.anchor_interim_analysis --root outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01
+```
 
-2026-11-04新只读任务：[H24闭环诊断与视频](H24_CLOSED_LOOP_DIAGNOSIS.md)。
-先查新任务机器状态；实现/启动/完成分别记录，不重启旧训练。
+## 本地数据
 
-已完成训练、闭环存在软件缺失：[H24 Sample / Epsilon 对照](H24_SAMPLE_EPSILON_COMPARISON.md)。
-Epsilon3000与Sample累计10000完成；Sample8000在train初态一次完整成功，validation仍无成功。
-后台已退出，缺失条目不计任务失败；详见最终报告。
+400条原始成功记录在`outputs/visuotactile/data/close_v4`。当前split和视觉索引仍在`native_dp_3way/native_20261101_02`；数值缓存仍在`native_dp_v2/position_20261103_01`；DINO缓存仍在`run/long_horizon_20261030_v2/cache`；位置统计仍在`native_dp_v2/h24_parameterization_20261103_01`。这些旧名字是保留依赖，不表示旧训练仍有效，禁止整目录按日期清理。具体保护理由和清单见清理报告。
 
-当前H32直接位置工作从[动作合同](POSITION_ACTION_CONTRACT.md)、[Kit实测](KIT_RELIABILITY.md)、
-[State与条件Image结果](STATE_TRAINING_RESULTS.md)、[清理和Git交付](GIT_DELIVERY_MANIFEST.md)进入。
-下面较早阶段的“当前”只表示其记录日期。
-
-## State完整Actor输入与持续历史 — 2026-11-02
-
-[输入逐字段对照](EXPERT_STATE_INPUT_PARITY.md)、[持续历史/结构与论文对照](STATE_PERSISTENT_HISTORY.md)、
-[冻结环境合同](ENVIRONMENT_REPRODUCIBILITY_CONTRACT.md)、[实际学习/闭环结果](STATE_TRAINING_RESULTS.md)、
-[交付文件清单](GIT_DELIVERY_MANIFEST.md)。新State身份只扩展condition，保留U-Net/H64/commit12。
-原400Actor数值验收已通过；新合法基准及有界学习的实际状态以结果文档为准。
-
-## 环境/学习归因修复 — 2026-11-02
-
-[本轮预登记、首差表、输入审计与实测结果](NATIVE_DP_ENVIRONMENT_LEARNING_REPAIR.md)。
-G0-A数据/原生命令、G0-B新鲜在线专家、G0-C历史重放分开；历史3/8不再否决全部训练。
-新鲜single专家6/8、four-lane8/8、同条件fresh replay2/2；旧State在fresh初态0/8。
-小预算State/Actor BC及一次有据预算对照独立保留，最终自主结果以实际产物为准；不自动重训19000步。
-下方各阶段均为对应历史快照。
-
-## State-first Native DP V2 — 2026-11-02
-
-[训练设置/固定官方源码对照](NATIVE_DP_TRAINING_REFERENCE_AUDIT.md)、
-[失败机制与证据边界](NATIVE_DP_TRAINING_FAILURE_ANALYSIS.md)、
-[协议、Gate、配置和运行入口](NATIVE_DP_TRAINING_PROTOCOL_V2.md)、
-[实际结果与待执行项](NATIVE_DP_EXPERIMENT_RESULTS_V2.md)。
-独立worktree保护旧run；400数据与原native控制数值链已复核，物理replay与新闭环尚须实际验收。
-G0未过禁止新更新；G4未过禁止大规模视觉训练。不是再次无条件三组各19000updates。
-
-## 当前实施 — 三组Native-command DP
-
-[结果与运行状态](NATIVE_DP_THREE_WAY_RESULTS.md)、[历史网络与tensor](HISTORY_AND_OBSERVATION_ARCHITECTURE.md)、
-[控制合同](NATIVE_COMMAND_CONTROL_CONTRACT.md)、[11方法固定源码对照](OPEN_SOURCE_DP_COMPARISON.md)、
-[中文代码交接与命令](CODE_WALKTHROUGH_AND_HANDOFF_ZH.md)、[产物索引](ARTIFACT_MANIFEST.md)、[清理审计](CLEANUP_AUDIT.md)。
-新模型/Gate/后台24小时流水线独立于历史实验；未验收结果不得视为已完成训练。
-
-## 最新完成 — 2026-10-31 T0真实重放与DP控制验证
-
-[完整报告、逐轨迹表及复现命令](T0_REPLAY_AND_DP_CONTROL_FIX.md)、[去敏证据索引](evidence/t0_replay_20261031/README.md)。
-历史四条控制链修复后一致，fixed1/4、源world坐标2/4仅为结果重现，历史精确轨迹仍未通过。
-新专家样本经外力坐标往返修复，在新Kit中220步成功且所有比较字段逐字节一致。
-DP语义无新增接口错误；旧G00-B/G10-B在固定事件/正常随机下各0/4，16条全601timeout，无lift/子目标。
-无重训或额外延迟层；35个starts和所有自有进程已结束，31项测试及真实输入/plan核验通过。
-整卡均值20.6873%、完整60秒最大26.8527%、缺测/事件0，原400/权重/正式0/50保持。
-下方“最新”“未启动Kit”等属于对应历史阶段快照。
-
-## 最新系统与实验审计 — 2026-10-31
-
-[完整系统说明与控制链审计](SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、
-[逐文件地图](PROJECT_FILE_MAP.md)、[实验有效性矩阵](EXPERIMENT_VALIDITY_MATRIX.md)
-是本轮审阅入口。400条/81,894步数值链重读、147条既有评估队列核验、T0源RNG重建均已完成。
-原生控制仅有只读hook；近似T0不能否定原示范成功。文档首版`6022330`已推送，随后Loss B默认与诊断record2修复完成，
-26项定向CPU测试通过。未启动新GPU实验；记录器尚无新Kit验收，完整物理精确重放仍未解决。
-
-## 最新完成 — 2026-10-31网络核验与近似训练初态诊断
-
-[中文核心结论与完整逐层说明](NETWORK_ARCHITECTURE_EXACT.md)包含真实checkpoint的594行模块审计、
-743行参数/optimizer、5张网络结构图、Force同权重干预、400条分布和12条T0/T1诊断。
-[所有关键训练曲线直接阅读](evidence/dp_loss_trt_20261031/README.md)。无新参数训练；自有GPU进程已退出。
-T0记录命令未复现成功，T1近似初态G00-B/G10-B各0/4；不将其称为精确训练环境失败或泛化差。
-Force确实响应连续力，但未证明收益；五遍未证明收敛。下方“当前”段落为历史阶段记录。
-
-## 当前新候选 — 2026-10-30
-
-[G00-new/G10-new长预测训练记录](LONG_HORIZON_20261030.md)：新授权实现、训练、有限闭环与产物清理。
-5Hz/H64、冻结DINOv2-S/14、显式两秒历史、60Hz持续记忆、绝对参考转原生命令。
-下方已完成阶段的“不再训练”等是历史范围；原B0/B1/A/B/C实验身份和结果不改写。
-
-## 实验组录像与精确参数统计 — 2026-10-30
-
-[完整对照报告](EXPERIMENT_GROUPS_AND_PARAMETERS_20261030.md)汇总B0/B1/A/B/C的数据、best更新数、
-各类离线/闭环分母、逐模块参数和官方生效配置；[可核查小统计](evidence/parameter_census_20261030.json)
-包含57个实际导入上游文件的固定revision SHA核验。原始视频保留本机ignored demos，未上传公开仓库。
-本轮仅观看重跑与CPU核算，不重新训练；原400数据、正式0/50和旧12次诊断保持不变。
-6条新视频已完成并与旧4条全部解码核验，均601步timeout，无子目标/抬升；全部自有进程退出。
-观看索引在本机`outputs/visuotactile/demos/residual_20261030_01/README.md`。
-整卡均值27.9960%，完整60秒最大60.3794%，四段超限已记录，不能称本次全程满足50%资源限制。
-
-## 当前独立残差Correction阶段 — 2026-10-30
-
-本轮已授权真实Correction训练、固定最多12条诊断和feature发布，覆盖下方历史限制。
-[Correction训练与执行报告](CORRECTION_TRAINING.md)记录实际版本、输入权限、冻结、pilot学习及运行预算。
-[官方方法独立比较](POLICY_COMPARISON_20261030.md)区分固定源码配置、部署override、论文描述与未知实现。
-正式B0保持冻结、B1不充当nominal；原400条、best与各0/50保持不变。
-本轮已完成并退出：5完整epoch、一次test40，B/C各7,875更新；12个诊断分配中11条自然timeout、
-1条交接校验中止。自主各0/2；唯一完整匹配的局部三联也失败，无首子目标/抬升。
-离线误差下降不等于触觉收益或RL。详见[去敏统计](evidence/residual_20261030.json)，不自动扩量或重启。
-
-## 最新独立审查 — 2026-10-30
-
-本轮用户授权审查、真实行动历史实现、小拟合/诊断闭环与功能分支推送，覆盖下面观看阶段限制。
-详见[独立审查与A–F核查](INDEPENDENT_AUDIT_20261030.md)、[输入契约](CONTRACTS.md)、
-[复现命令](RUNBOOK.md)。旧best和正式B0/B1各0/50不变；没有完整重训、重采或再做100条评估。
-新v3 `action_history_mode=issued`训练取过去专家已执行命令teacher forcing，部署取学生真实执行反馈；
-旧v2默认none。历史接口已实现，收益仍需实证，不能把小前缀loss下降称任务改善。
-GPU整卡时间加权与完整60秒均值<=50%、内存/显存余量和原控制器只读继续有效。
-以下“仅视频”“不新增模型”是先前阶段快照，不覆盖本轮授权。
-
-## 最新结果 — 2026-10-30
-
-B0/B1各50epoch已完成；验证选epoch49。50组配对各0/50，全部601步原生超时、未完成第一子目标。
-服务已退出，不再按旧ETA视为仍在训练。详见[训练与正式评估结果](BASELINE_TRAINING.md)和
-[最终小统计](evidence/baseline_final_20261030.json)。用户本次要求各2条真实视频，并恢复整卡
-GPU时间加权批次与完整60秒均值<=50%；保留主存/显存余量，不启动追加训练。
-4条视频已完成，目录为 `outputs/visuotactile/demos/baselines_20261030/`（目录内README为观看入口）。
-每条601帧/60fps约10秒；录制GPU均值29.50%、完整60秒最大38.15%，service已退出。
-
-下文均为按日期保留的先前阶段记录；“正在训练”“不限GPU”及旧ETA不覆盖上述最新状态。
-
-
-> **当前工作（2026-10-29下午）：** 400条生产数据保持不变，用户已授权B0/B1普通命令DP各50epoch训练和50组配对评估，全部GPU算力可用，仍保护RAM/VRAM。两模型在后台独立并行训练，尚未完成正式评估。入口见 [BASELINE_TRAINING.md](BASELINE_TRAINING.md)、[RUNBOOK.md](RUNBOOK.md) 和交接顶部；下方“不训练”属于采集/感知阶段历史。
-
-> **当前交付（2026-10-29）：** 四环境、8m、v4三相机生产批次已完成 **400/400 条审计通过的自然成功轨迹**，采集器已退出。最终统计见 [`NIGHT_COLLECTION.md`](NIGHT_COLLECTION.md) 和 [`SESSION_HANDOFF.md`](SESSION_HANDOFF.md)；读取正式数据时使用 `outputs/visuotactile/data/close_v4/manifest.json` 并显式指定 `stage="production"`。本轮未训练。
-
-> **历史快照（已被上方最终交付覆盖）：** [NIGHT_COLLECTION.md](NIGHT_COLLECTION.md)记录了四环境＋8m生产过程、原1.2m邻居入镜排除和运行证据；下面旧快照不可当作当前状态。
-
-> **历史状态（已完成）：** 2026-10-29 00:05时曾是2/400并遇到启动错误；该快照后来恢复生产并已被400条最终交付覆盖。一次受限strace确认底层inotify_add_watch ENOSPC；未改系统/其他进程。
-
-> **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
-
-
-**Objective:** a tactile-free nominal Diffusion Policy for geometry and an independently learned tactile correction controller for contact execution, integrated with the original Play2Perfect assets/control/tasks.
-
-## Reading order
-0. `USER_RESEARCH_DIRECTION.md` 与 `HISTORY_AND_TRACE.md`: 用户方向与当前历史/数据合约。
-1. `CONTRACTS.md`: audited control, observation provenance, timing and reset contracts.
-2. `ARCHITECTURE.md`: proposed components, information boundaries, phases and acceptance gates.
-3. `RESEARCH.md`: primary literature/code, licensing and choices (written as reviewed).
-4. `CHANGELOG.md`: append-only implementation/test evidence.
-5. `RUNBOOK.md`: 可复制的低资源命令与实际结果。
-6. `PERCEPTION.md`: 双视角/逐指编码、来源实现与当前验证。
-7. `AUDIT.md`: 原任务调用链、物理参数、本机 CPU/渲染限制和图像审计。
-
-**最新相机阶段（2026-10-28晚）：** [三视角验收与400条协议](CAMERA_VALIDATION.md)。已验证两个固定＋腕部相机、同步动态标定、原专家配对、三路存储/模型接口；400批次真实状态见 [SESSION_HANDOFF](SESSION_HANDOFF.md)。以下有限实验结果为历史，不能当作新批次数量。
-
-## 当前状态 — 2026-10-27（持续历史 / trace2）
-
-**2026-10-28 最新入口：[有限插入数据集报告](INSERTION_DATASET.md)、[会话交接](SESSION_HANDOFF.md)。** 本轮20次尝试，17条有效成功记录（验收4＋扫描13），两次动作前非法初始化、一次Kit启动SIGSEGV后停止。无参数训练。新storage1三文件、manifest顺序读取、逐字段无损转换及真实411步零更新检查通过；35项测试通过。扫描只有一个有效起点且零外力曝光，不能声称方向鲁棒性。旧pilot20/40有初始box重叠，不能直接外推旧75%。报告区分现有读取链与尚待接通的正式训练。
-
-2026-10-28补充：[原专家配对扰动实验](RL_EXPERT_TRIALS.md)记录本轮无训练采集、验收/pilot、实际外力提交与本机composer限制。新增`run_rl_trials`/`analyze_rl_trials`，保持原感知/模型/动作接口；精确结果和错误数量以该实验报告为准，不能用下面的历史检查替代本轮验收。
-
-- 先读 [用户研究方向](USER_RESEARCH_DIRECTION.md)：用户明确要求、开放问题、Codex暂定决策和已测事实分别记录，方向变更追加历史。
-- [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md) 是当前记忆/动作/频率合约。Nominal每60Hz观察更新持续128D状态，每6步才重规划；Correction保留视觉、运动、计划和五指状态，触觉每120Hz样本更新。只在真实episode reset清空对应环境。
-- 双固定RGB-D、空间编码、五指聚合法向力/FK仍使用perception2。新增memory2与trace2独立版本；旧checkpoint缺memory版本按1解释。过去专家命令可独立作为teacher-forcing历史，绝不冒充Nominal预测；默认Nominal仍只读自己的预测上下文。
-- HDF5逐控制步追加/flush，明确submitted/clipped/delayed command、实际delay、target、post-state、计划来源与缺失终止图。提供逐步reader与单episode PKL导出；不公开轨迹或权重。
-- **23项单元测试通过**；真实480步记录审计、225步完整/分块/逐步回放通过（Nominal最大差4.66e−7，Correction分块/逐步一致）；真实接触前缀双相机RGB/Depth、触觉、motion与intent梯度及权重/状态恢复检查通过。原渲染环境32步15字段逐位一致。证据见 [causal_history.json](evidence/causal_history.json)。
-- **本轮0次参数更新，Correction始终Shadow**。保持原物理/控制数学；原action helper仅增加可选只读trace hook。近期双相机真实图与覆盖限制仍见 [PERCEPTION.md](PERCEPTION.md)。固定维度记忆不是无损轨迹，也未验证长期任务效用。
-- 未来训练入口支持整episode顺序TBPTT，当前没有执行；memory2验证loss尚未接入，恢复从episode边界开始。去预加载、Correction目标、目标估计、异步传感器和实时控制仍未解决。当前双核2env完整旁路中位约99.5ms/步，不能满足60Hz墙钟期限。
-
-### 本机兼容性的重要限制
-
-CPU 无渲染原路径在第一步后把运动学桌子、孔座、目标移回了初始原点。这解释了之前回归的巨大坐标差异；不能归因于普通随机噪声。补上与相机路径一致的渲染调用后，原环境与新接口在 32 步内所有被测字段逐位相同，包含物体/孔座/目标、奖励、观测和 RNG。完整证据见 `AUDIT.md`。此前无渲染 CPU 的 0/3 评估不能再用于判断专家质量。
-
-当前采用 CPU physics + GPU 小分辨率渲染，保持 120 Hz 物理和 60 Hz 原生动作处理；nominal 以每 6 步重规划实现约 10 Hz 的模拟更新节奏。真实时间截止期未保证，后台 GPU 任务始终受保护。
-
-Work proceeds through audit → sensor/recording vertical slice → leakage-safe dataset/history → nominal diffusion training/reload/rollout → correction interface and justified learning experiments. A completed software smoke test is not evidence of assembly success or contact improvement.
+raw数据、权重、视频仅本地；Git保留代码、精简数值、图与来源SHA。旧实现与完整旧报告可从[清理前版本](https://github.com/mao455/bcrl_visualTactile/tree/48a3516)读取。

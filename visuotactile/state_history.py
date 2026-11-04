@@ -11,7 +11,7 @@ import torch
 from torch import nn
 
 from .action_history import ExecutionHistory
-from .long_data import proprio_radians
+from .native_data import proprio_radians
 from .native_data import CONTRACT, Episode, geometry, object_dimensions, robot_rows
 from .models.native_dp import NativePolicy, mlp
 

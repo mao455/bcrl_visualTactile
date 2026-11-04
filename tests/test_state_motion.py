@@ -6,8 +6,7 @@ from diffusers import DDIMScheduler, DDPMScheduler
 from visuotactile.dp_objectives import arm_temporal_objective
 from visuotactile.models.native_dp import NativePolicy
 from visuotactile.position_control import overlap_transition
-from visuotactile.state_motion import motion_metrics, plan_metrics, paired_differences
-from visuotactile.state_full_run import motion_sampler_candidates
+from visuotactile.state_motion import plan_metrics
 
 
 def small_sampler():
@@ -61,21 +60,6 @@ def test_temporal_loss_is_not_position_mse_and_masks_invalid_pairs_and_hand():
     assert pred.grad[:,:,7:].abs().sum()==0 and pred.grad[:,20:].abs().sum()==0
 
 
-def test_moving_masks_tail_hold_baseline_and_contact_horizon():
-    y=np.zeros((3,32,29),dtype=np.float32);y[:2,:,:7]=np.arange(32)[None,:,None]*.01
-    valid=np.ones((3,32),bool);valid[1,5:]=False
-    contact=np.zeros((3,32),bool);contact[:,6:]=True
-    limits=np.stack([np.full(29,-3.),np.full(29,3.)],axis=-1)
-    pred=np.zeros_like(y)
-    result=motion_metrics(pred,y,valid,np.zeros((3,29)),np.ones(29),pred,limits,contact)
-    assert result['moving12_anchors']==1 and result['moving32_anchors']==1
-    assert result['moving12_amplitude_ratio']==0 and result['moving12_direction_cosine']==0
-    assert result['moving_arm12_rmse_rad']==pytest.approx(result['moving_arm12_hold_rmse_rad'])
-    assert result['precontact_arm12_rmse_rad']<result['arm12_rmse_rad']
-    perfect=motion_metrics(y,y,valid,np.zeros((3,29)),np.ones(29),y,limits,contact)
-    assert perfect['moving_arm12_rmse_rad']==0
-    assert perfect['moving12_amplitude_ratio']==pytest.approx(1.)
-    assert perfect['moving12_direction_cosine']==pytest.approx(1.)
 
 
 def test_overlap_metrics_distinguish_continuous_plan_and_boundary_jump():
@@ -86,15 +70,3 @@ def test_overlap_metrics_distinguish_continuous_plan_and_boundary_jump():
     assert result['arm_acceleration_rms_rad_s2']==0
     plans[1]+=2
     assert plan_metrics(plans)['arm_overlap_rms_rad']>0
-
-
-def test_pairs_match_identity_seed_and_latency_blocks_diagnostic_only_sampler():
-    rows=[dict(configuration='A0',identity='a',seed=1,error=10.),dict(configuration='A1',identity='a',seed=1,error=8.),
-          dict(configuration='A1',identity='b',seed=1,error=100.)]
-    assert paired_differences(rows)['A1']['error']['mean']==-2.
-    keys=['moving_arm12_rmse_rad','arm12_rmse_rad','hand12_rmse_rad','moving12_direction_cosine']
-    base={k:dict(mean=v) for k,v in zip(keys,[.1,.1,.2,.8])}
-    improved={k:dict(mean=v) for k,v in zip(keys,[.08,.09,.2,.9])}
-    result=dict(summary={'A0':base,'A1':improved,'A4':improved},
-        planning_cycle_latency_s={'A0':dict(p95=.08),'A1':dict(p95=.09),'A4':dict(p95=.25)})
-    assert motion_sampler_candidates(result)==['A1']

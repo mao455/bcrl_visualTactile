@@ -1,18 +1,138 @@
-"""Read-only live input capture for strict ImageDP pairing; ordinary inference retained."""
+"""Independent Kit rollout, lifecycle/execution audit, video and optional Image input capture."""
 import argparse
 import os
+import json
+import time
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from tools.state_image_queue import read,write
+from tools.runtime import read,write,sha
+from visuotactile.training_resources import atomic_json
 
+
+def run_lifecycle(root, output, job_path):
+    job=json.loads(job_path.read_text());case=job.get('lifecycle',{})
+    from isaaclab import app as launcher
+    original_launcher=launcher.AppLauncher
+    fast=case.get('fast_shutdown',True)
+    def tracked_launcher(*args,**kwargs):
+        kwargs['fast_shutdown']=fast
+        launched=original_launcher(*args,**kwargs);close=launched.app.close
+        def closing(*a,**kw):
+            atomic_json(output/'shutdown_phase.json',dict(phase='app_close_entered',fast_shutdown=fast,utc=time.time()))
+            close(*a,**kw)
+            atomic_json(output/'shutdown_phase.json',dict(phase='app_close_returned',fast_shutdown=fast,utc=time.time()))
+        launched.app.close=closing
+        return launched
+    launcher.AppLauncher=tracked_launcher
+    from visuotactile import state_benchmark as base
+    original_make=base.make_env
+    def make_env(*args,**kwargs):
+        env=original_make(*args,**kwargs);close=env.close
+        def closing():
+            atomic_json(output/'shutdown_phase.json',dict(phase='env_close_entered',utc=time.time()))
+            if case.get('disarm_stop',True):
+                sim=env.sim
+                sim._disable_app_control_on_stop_handle=True
+                handle=sim._app_control_on_stop_handle
+                if handle is not None:handle.unsubscribe();sim._app_control_on_stop_handle=None
+            # No timed faulthandler or other added in-process diagnostic thread.
+            close()
+            atomic_json(output/'shutdown_phase.json',dict(phase='env_close_returned',utc=time.time()))
+        env.close=closing
+        return env
+    base.make_env=make_env
+    # Match State's registered latent seed while retaining the original image
+    # observer/action path and parameter tensors.
+    from visuotactile import native_controller
+    original_image=native_controller.NativeController
+    class SeededImage(original_image):
+        def __init__(self,*args,**kwargs):
+            super().__init__(*args,**kwargs)
+            self.generator.manual_seed(job.get('inference',{}).get('sampler_seed',7091))
+    native_controller.NativeController=SeededImage
+    base.run(root,output,job.get('mode','dp'),job_path)
+
+def run_audited_episode(root, output, job_path):
+    import torch
+    from isaaclab import app as launcher
+    from visuotactile import state_benchmark as base, native_controller
+    job = read(job_path)
+    assert job['mode'] == 'dp' and len(job['specs']) == 1
+    assert not any(k in job for k in ('takeover_steps', 'replay'))
+    session = read(root/'session.json')
+    original_launcher = launcher.AppLauncher
+
+    def isolated_launcher(*args, **kwargs):
+        # Preserve the exact prior persistent values, but never write shared paths.
+        # Fresh simulator processes share only this run's seeded shader cache.
+        # No physical/environment/controller state is reused between workers.
+        private = root/'private_runtime'
+        private.mkdir(parents=True, exist_ok=True)
+        kwargs['kit_args'] = kwargs.get('kit_args', '') + (
+            f' --portable-root {private}'
+            f' --/app/userConfigPath={root / "freeze/user.config.json"}'
+            ' --/app/settings/persistent=false')
+        app = original_launcher(*args, **kwargs)
+        import carb.tokens
+        tokens = carb.tokens.get_tokens_interface()
+        write(output/'isolated_paths.json', dict(
+            tokens={k:tokens.resolve('${'+k+'}') for k in ('data', 'cache', 'logs')},
+            copied_user_config_sha256=sha(root/'freeze/user.config.json')))
+        return app
+    launcher.AppLauncher = isolated_launcher
+    audit = dict(model=job['model'], updates=job.get('updates',10000), checkpoint_sha256=job['checkpoint_sha256'],
+        act_calls=0, execution_acks=0, episode_ids=[], ticks=[], model_output_only=True,
+        teacher_forcing=False, expert_takeover=False, created_utc=time.time())
+
+    def instrument(cls, state):
+        original_act, original_ack = cls.act, cls.observe_execution
+        def act(self, *args, **kwargs):
+            packet = args[1] if state else args[0]
+            tick, episode = int(packet['step_id'][0]), int(packet['episode_id'][0])
+            if not audit['act_calls']:
+                assert tick == 0 and self.episode is None
+                assert self.plan is None
+                audit['history_initially_empty'] = True
+                audit['model_class'] = type(self.model).__name__
+                audit['model_contract'] = self.model.contract
+            assert tick == audit['act_calls'], 'Skipped/duplicated native controller tick'
+            if episode not in audit['episode_ids']: audit['episode_ids'].append(episode)
+            assert len(audit['episode_ids']) == 1, 'Unexpected episode reset'
+            result = original_act(self, *args, **kwargs)
+            assert torch.isfinite(result).all()
+            audit['act_calls'] += 1
+            if tick % 100 == 0: write(output/'controller_audit.json', audit)
+            return result
+        def ack(self, *args, **kwargs):
+            result = original_ack(self, *args, **kwargs)
+            audit['execution_acks'] += 1
+            return result
+        cls.act, cls.observe_execution = act, ack
+    instrument(base.HistoryController, True)
+    instrument(native_controller.NativeController, False)
+    original_trial = base.trial
+    def trial(*args, **kwargs):
+        result = original_trial(*args, **kwargs)
+        audit['completed'] = bool(result.get('legal') and audit['act_calls'] == result['steps']
+            and audit['execution_acks'] == result['steps'])
+        write(output/'controller_audit.json', audit)
+        assert audit['completed'], 'Controller execution/history audit incomplete'
+        return result
+    base.trial = trial
+    original_video = base.RolloutVideo
+    class Video(original_video):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.title = f"{job['model']} | updates {job.get('updates',10000)} | {job['specs'][0]['identity']} | autonomous"
+    base.RolloutVideo = Video
+    run_lifecycle(root, output, job_path)
 
 def run(root,output,path):
     job=read(path);capture=job.get('capture_pair',False);rows={}
     from visuotactile import native_controller,state_benchmark as base
-    from tools.final_dp_worker import run as evaluate
     cls=native_controller.NativeController;old_init,old_act=cls.__init__,cls.act
     def stash(key,value):
         if torch.is_tensor(value):rows[key]=value.detach().cpu().numpy().copy()
@@ -60,7 +180,7 @@ def run(root,output,path):
             write(output/'image_pair_capture.json',dict(complete=True,fields=list(rows),ticks=12,read_only=True,expert_takeover=False))
         return result
     cls.__init__,cls.act=init,act
-    evaluate(root,output,path)
+    run_audited_episode(root,output,path)
 
 
 if __name__=='__main__':

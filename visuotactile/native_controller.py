@@ -2,7 +2,7 @@
 import torch
 
 from .action_history import ExecutionHistory
-from .long_data import depth_grid, proprio_radians
+from .native_data import depth_grid, proprio_radians
 from .native_data import geometry, object_dimensions, robot_rows
 from .models.native_dp import load_policy
 

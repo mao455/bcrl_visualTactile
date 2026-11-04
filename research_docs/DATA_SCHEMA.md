@@ -26,7 +26,7 @@ manifest入口为`action_history_mode=issued`。原HDF5 schema2、trace2、camer
 这些是过去专家执行的teacher forcing，不是专家当前监督或学生预测；部署用实际学生执行记录生成同字段。
 训练批次轴B,T后加上述维度；checkpoint版本3/history1显式声明来源。原版本2模型不读取新增字段。
 
-> **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](PROJECT_GUIDE_ZH.md)。
+> **2026-10-28 最新纠正：** v4近高位三视角已完成seed17/920101两条真实验收（220/214步），与各自v3参考128个非图像字段逐位相同；143字段无损转换和三路模型接口检查通过，零训练。此前“零v4成功/资源保护已完整”的文字为当时快照：上一提交的容量统计仅单root、v4仍有两处版本漏判，本轮已修正。实际背景批次看最新SESSION_HANDOFF/status；不要把下面历史状态当实时。源码通俗说明见[PROJECT_GUIDE_ZH.md](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/PROJECT_GUIDE_ZH.md)。
 
 
 HDF5 `schema_version=2`, `metadata.perception_version=2`. The current
@@ -98,7 +98,7 @@ Existing `target_before/after_rad`, post physical diagnostics, two world-force s
 
 `EpisodeSequenceDataset.chunks` returns ordered `obs` `(1,L,...)`, `action_target` `(L,H,29)`, `action_valid` `(L,H)`, and **separate** `expert_history` `(L,29)+valid+source`. Past actual expert commands are legal labeled history; current/future targets are not inputs. Default Nominal encoder never consumes expert_history. `CorrectionSequenceDataset` yields ordered one-step inputs with2physical samples and separate current expert supervision; actual model predictions/config/memory/hash are required. Success filtering selects episodes offline, never injects a future success flag into policies.
 
-`EpisodeReader.read(episode,index)` and `.steps(episode)` return all raw nested arrays. `.export_pickle` preserves metadata/group attrs, schema/trace/export versions and all arrays with the native-step leading axis; atomic no-overwrite publication after fsync. It loads a whole episode, so HDF5 remains canonical for random slices/large RGB-D. PKL preference and alternatives are discussed in [HISTORY_AND_TRACE.md](HISTORY_AND_TRACE.md); only load trusted exports. HDF5/PKL/raw data are ignored by Git.
+`EpisodeReader.read(episode,index)` and `.steps(episode)` return all raw nested arrays. `.export_pickle` preserves metadata/group attrs, schema/trace/export versions and all arrays with the native-step leading axis; atomic no-overwrite publication after fsync. It loads a whole episode, so HDF5 remains canonical for random slices/large RGB-D. PKL preference and alternatives are discussed in [HISTORY_AND_TRACE.md](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/HISTORY_AND_TRACE.md); only load trusted exports. HDF5/PKL/raw data are ignored by Git.
 
 ## Historical schema v1
 
@@ -177,11 +177,11 @@ Correction receives 12 consecutive 60-Hz motion/previous-command samples and 24 
 
 metadata新增condition、pair_id、原/应用force_scale、teacher推理模式/group embedding、checkpoint SHA256、code_identity（base commit、working tree、源码hash）、原timeout、外部预算、初始RNG hash。新采集器`result.steps`是实际控制tick，`step_budget`另存；完成/删失episode分别列出。独立trial的启动失败由外层`.status.json`保留，未产生HDF5不等于机器人失败。
 
-详细原生公式、world→body composer限制、统计与缺失说明见[RL_EXPERT_TRIALS.md](RL_EXPERT_TRIALS.md)。所有新增真值/RNG/扰动仅供数据审计，不进入Nominal或Correction模型输入。
+详细原生公式、world→body composer限制、统计与缺失说明见[RL_EXPERT_TRIALS.md](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/RL_EXPERT_TRIALS.md)。所有新增真值/RNG/扰动仅供数据审计，不进入Nominal或Correction模型输入。
 
 ## 2026-10-28：storage_version1 / 三主文件，不改变感知版本
 
-详见[INSERTION_DATASET.md](INSERTION_DATASET.md)。旧HDF5无storage_version按0，新文件显式1；schema/perception2、memory2、trace2、wrench_trace3语义不变。单episode包含`data.h5`、`camera_0.mp4`、`camera_1.mp4`，视频只是H264观看副本，训练图像从H5精确重建。
+详见[INSERTION_DATASET.md](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/INSERTION_DATASET.md)。旧HDF5无storage_version按0，新文件显式1；schema/perception2、memory2、trace2、wrench_trace3语义不变。单episode包含`data.h5`、`camera_0.mp4`、`camera_1.mp4`，视频只是H264观看副本，训练图像从H5精确重建。
 
 `episodes/<name>/frames/`：当前 `rgb_u8=(F,V,3,252,448)` uint8，
 `depth_m=(F,V,1,252,448)` float32米，`depth_valid`同形bool；旧双视角

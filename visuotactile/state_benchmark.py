@@ -11,15 +11,14 @@ import torch
 
 from .compact import sha256
 from .environment_rng import IsolatedEnvironment, RandomStream
-from .evaluate_baselines import RolloutVideo
-from .evaluate_training_initials import restore_observable_state
+from .video import RolloutVideo
+from .expert import restore_observable_state
 from .initial_geometry import inspect, boxes as object_boxes
 from .native_data import CAMERAS
 from .native_evaluation import disable_omniclient_watches, make_env, kit_process_snapshot, exit_completed_kit_worker
-from .native_v2_expert import create_expert, environment_identity, export_initial
+from .expert import create_expert, environment_identity, export_initial
 from .state_resources import lease_for
-from .native_v2_state import StateController
-from .replay_fresh import append_numeric
+from .recording import append_numeric
 from .state_history import HistoryController
 from .training_resources import atomic_json
 
@@ -156,7 +155,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 dino=NativeDinoSpatial().to('cuda:0').eval()
             controller=NativeController(saved,metadata,dino=dino)
         else:
-            controller = None if saved is None else (HistoryController(saved, metadata, inference=inference) if 'kind' in saved else StateController(saved, metadata))
+            controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
     rows = []; plans = []; raw_plans = []; timings = []; numeric = h5py.File(output/'numeric.h5', 'w')
     numeric.attrs['metadata_json'] = json.dumps(metadata, default=str)
     group = numeric.create_group('episode')

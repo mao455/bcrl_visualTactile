@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from visuotactile.long_resources import update_pacing
+from visuotactile.state_resources import update_pacing
 
 
 def sample(stamp, utilization, rolling=40.):

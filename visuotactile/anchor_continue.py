@@ -13,9 +13,9 @@ import torch
 from .anchor_sampling import AnchorSampler,anchor_batch,mask_totals,weighted_parts,continuation_lr
 from .compact import sha256
 from .models.vendor.ema_model import EMAModel
-from .state_full_training import restore_training,training_state
+from .checkpointing import restore_training,training_state
 from .state_image_offline import setup,evaluate,no_kit,read
-from .train_long import save
+from .checkpointing import save
 from .training_resources import atomic_json
 
 
@@ -111,7 +111,7 @@ def deterministic_loss(model,records,ids,obj,lease):
         for identity in ids:
             with lease.block():
                 c,a,_=model.encode(records[identity]);a=a.to(records[identity]['command'].device)
-                from .state_history_training import labels
+                from .anchor_sampling import labels
                 y,m=labels(records[identity],a,24)
                 loss,parts,_=obj.forward(model,c,y,m,torch.Generator(device='cuda').manual_seed(8091))
                 values.append(dict(loss=float(loss),**{k:float(v) for k,v in parts.items()}))
