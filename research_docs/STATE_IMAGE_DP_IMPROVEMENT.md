@@ -1,5 +1,51 @@
 # StateDP + ImageDP baseline 改进
 
+<!-- offline-v2-start -->
+## 当前版本：离线训练与 Kit 生命周期解耦
+
+Run `state_image_20261104_02`；真实状态 **running**，State **1000** updates，
+Image00 **0** updates。原 `state_image_20261104_01` 保持 blocked，不改历史结果。
+最新用户明确取消三次连续正常退出作为离线训练前提。本版本先完成离线两组全部里程碑，
+保存每个 checkpoint，再串行执行各 milestone 的固定 train4+validation8 闭环；无训练与Kit并行。
+
+|项目|新验收与实际实现|
+|---|---|
+|离线依赖|PyTorch/HDF5/既有DINO缓存/URDF FK；实际worker检查omni/carb/isaacsim/isaaclab未加载|
+|模型|原State GRU及I-HistoryDP视觉/双GRU/U-Net；无新网络、无触觉/Correction；原29D post-delay标签|
+|损失|Loss B + FK位置/旋转弦距/五指link位置/相邻差分；第一批4个train片段按损失和输出梯度校准|
+|权重|每项辅助在所有校准片段不超过base数值及x0梯度范数的5%，合计上界20%；不看validation/test|
+|连续性限制|chunk内专家动作差分，尚未实现跨重规划一致性，不能声称边界跳变已解决|
+|监督|50、100、200各有验证、真实保存和新进程恢复；State=True，Image=False|
+|计划|各从头1000/3000/6000/10000；固定warmup500/cosine10000；Image不依赖State任务成功率|
+|Kit|六个有界诊断：最小应用full/fast、基础环境callback/disarmed、完整专家无诊断线程full/fast|
+|评估|独立进程、固化checkpoint和初态；运行结果/SDK关闭/进程回收分开，异常退出不记正常关闭|
+|恢复|冻结源码/数据/配置SHA；单owner锁；已完成阶段不重复；完整checkpoint边界恢复；原记录保留|
+
+4项新loss CPU测试通过（mask、姿态端点与梯度、手指FK梯度、校准界）；实际模型前缀/在线一致性、
+12步独立小样本拟合和视觉首尾缓存对照见机器证据，未通过前不启动对应正式模型。
+短拟合更新不进入正式训练累计；正式模型保持初始化种子20261102，batch2段×96ticks及原归一化。
+完整旧数据审计与Epsilon回归未重复。模型输入合同沿用原版本，新训练身份和loss_id单独冻结。
+
+![离线训练曲线](evidence/state_image_20261104_02/curves.png)
+
+[逐关节CSV](evidence/state_image_20261104_02/joint_metrics.csv) ·
+[监督/离线/闭环机器证据](evidence/state_image_20261104_02/summary.json)。
+200之前小验证为validation4；正式里程碑为validation40，不能把两种范围混作连续同口径趋势。
+当前Kit诊断已记录0项，闭环已记录0/96项；空缺不是任务失败。
+
+NVIDIA 5.1文档区分完整close和跳过cleanup；fast_shutdown是启动配置，并非env.close成功证据。
+本机5.1源码close实际走shutdown_and_release_framework，6.0公开发行说明明确记录该路径的GIL死锁修复。
+这提供排查线索，不能证明本机SIGSEGV唯一根因；不升级或修改共享SDK。
+来源：[5.1 SimulationApp](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/py/source/extensions/isaacsim.simulation_app/docs/index.html)、
+[6.0 release notes](https://docs.isaacsim.omniverse.nvidia.com/6.0.0/overview/release_notes.html)、
+[IsaacLab lifecycle issue4630](https://github.com/isaac-sim/IsaacLab/issues/4630)（公开问题报告，不等于本机复现）。
+
+状态命令：`cat outputs/visuotactile/native_dp_v2/state_image_20261104_02/status.json`。
+正式训练checkpoint完整保留本地；只发布代码、Markdown、小CSV/PNG/JSON。
+<!-- offline-v2-end -->
+
+## 以下为旧 blocked 版本的保留证据
+
 ## 最新结果：Kit 关闭门控失败，训练队列 blocked
 
 `state_image_20261104_01` 已停止，资源预检通过，**Kit 可靠性未通过**。
