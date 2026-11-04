@@ -34,12 +34,19 @@ def counts(items):
         timeout=sum(bool(t['reasons'].get('timeout')) for t in items))
 
 
-def resume(root):
+def resume(root, force=False):
     path = root/'parent_pause.json'
     if not path.exists():
         return
     record = read(path)
     if record.get('resumed'):
+        return
+    session = read(root/'session.json') if (root/'session.json').exists() else {}
+    if session.get('hold_parent_for_decision') and not force:
+        write(Path(record['parent_root'])/'evaluation_interlude.json', dict(
+            state='held_for_evidence_review', evaluation_root=str(root),
+            reason='User requires 150-epoch offline and closed-loop decision before more training',
+            parent_owner_suspended=True, utc=time.time()))
         return
     current = same_process(record)
     if current:
@@ -52,19 +59,24 @@ def resume(root):
         state='released', evaluation_root=str(root), resume=record))
 
 
-def prepare(root, parent):
+def prepare(root, parent, epoch=100, ordinals=None, hold_parent=False, boundary_seconds=3600):
     parent = parent.resolve()
     status = read(parent/'status.json')
-    assert status['state'] == 'running' and status['stage'] == 'state_train_epoch_100'
+    assert status['state'] == 'running' and status['stage'] == f'state_train_epoch_{epoch}'
     owner, worker = proc(status['pid']), proc(status['worker_pid'])
     assert owner and worker and worker['ppid'] == owner['pid'] and owner['state'] not in ('T', 't')
     root.mkdir(parents=True, exist_ok=False)
     session = read(parent/'session.json')
+    ordinals = [4,5,6,7] if ordinals is None else ordinals
+    assert ordinals and len(set(ordinals)) == len(ordinals)
+    assert all(session['specs'][i]['cohort'] in ('train','validation') for i in ordinals)
+    expected_updates = 10000 + session['targets']['state'][str(epoch)]
     now = time.time()
     session.update(run_id=root.name, parent_root=str(parent), started_epoch=now,
-        deadline=min(session['deadline'], now+4*3600), training_deadline=session['deadline'],
-        owned_worker_roots=[str(root)], kit_maximum_starts=5, kit_recovery_limit=1,
-        evaluation_only=True, expected_updates=16584, closed_loop_ordinals=[4,5,6,7],
+        deadline=min(session['deadline'], now+boundary_seconds+4*3600), training_deadline=session['deadline'],
+        owned_worker_roots=[str(root)], kit_maximum_starts=len(ordinals)+1, kit_recovery_limit=1,
+        evaluation_only=True, expected_updates=expected_updates, closed_loop_ordinals=ordinals,
+        epoch=epoch, boundary_seconds=boundary_seconds, hold_parent_for_decision=hold_parent,
         expected_stage=status['stage'], parent_owner=owner, parent_worker=worker,
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'], cwd=CODE, text=True).strip())
     write(root/'session.json', session)
@@ -72,7 +84,7 @@ def prepare(root, parent):
     frozen=read(parent/'runtime_freeze.json')
     frozen['tools/anchor_interim_eval.py']=sha(CODE/'tools/anchor_interim_eval.py')
     write(root/'runtime_freeze.json', frozen)
-    write(root/'status.json', dict(state='pending',stage='wait_complete_100_epoch_checkpoint',pid=None))
+    write(root/'status.json', dict(state='pending',stage=f'wait_complete_{epoch}_epoch_checkpoint',pid=None))
     # Both queues use the same GPU lease even though the parent owner is suspended.
     (root/'gpu.lock').symlink_to(parent/'gpu.lock')
 
@@ -90,27 +102,34 @@ class Interim(Owner):
         return super().stage(name,module,args,kit=kit)
 
     def report(self):
-        rows=[x for x in self.attempts if x.get('native_outcome_valid')]
+        attempts=[read(self.root/'stages'/x['name']/'committed.json')
+            if (self.root/'stages'/x['name']/'committed.json').exists() else x for x in self.attempts]
+        rows=[x for x in attempts if x.get('native_outcome_valid')]
         completed=[x for x in self.attempts if 'exit_code' in x]
         trials=[x['result']['trials'][0] for x in rows]
         originals=[x for x in read(Path(self.s['baseline_root'])/'attempts.json')
             if x.get('valid') and x['model']=='StateDP' and x['ordinal'] in self.s['closed_loop_ordinals']]
         old=[x['trial'] for x in originals]
-        summary=dict(state=read(self.root/'status.json'),planned_episodes=4,maximum_starts=5,
+        planned=len(self.s['closed_loop_ordinals'])
+        by_cohort={cohort:counts([x['result']['trials'][0] for x in rows
+            if any(spec['identity']==x['result']['trials'][0]['identity'] and spec['cohort']==cohort
+                for spec in self.s['specs'])]) for cohort in ('train','validation')}
+        summary=dict(state=read(self.root/'status.json'),planned_episodes=planned,maximum_starts=self.s['kit_maximum_starts'],
             actual_starts=len(self.attempts),software_missing=sum(not x.get('valid') for x in completed),
             acceptance_failed=sum(x.get('valid',False) and not x.get('native_outcome_valid',False) for x in completed),
-            pending_initials=4-len(rows),old=counts(old),new=counts(trials),rows=rows,
+            pending_initials=planned-len(rows),old=counts(old),new=counts(trials),by_cohort=by_cohort,rows=rows,
             stable_grasp='N/A: no native discrete stable-grasp criterion',test40_used=False,
             training_checkpoint_unchanged=True,source_commit=self.s['source_commit'])
         if (self.root/'checkpoint.json').exists(): summary['checkpoint']=read(self.root/'checkpoint.json')
         write(self.root/'summary.json',summary)
-        lines=['# StateDP 100-anchor-epoch interim evaluation','',
-            'Four preregistered validation initial states (ordinals4–7); old10000 reference reused, no test40.',
+        lines=[f"# StateDP {self.s.get('epoch',100)}-anchor-epoch evaluation",'',
+            'Preregistered initial states; train fitting diagnostics and validation remain separate. No test40.',
             'Autonomous unchanged H24/commit12 absolute-position controller. No expert takeover, smoothing or loss change.','',
             '|Model|Success/valid|Contact|Native lift|First subgoal|','|---|---:|---:|---:|---:|']
-        for name,c in [('StateDP10000',summary['old']),('StateDP16584',summary['new'])]:
+        for name,c in [('StateDP10000 reference (all selected cohorts)',summary['old']),
+            *[(f"StateDP{self.s['expected_updates']} {cohort}",values) for cohort,values in by_cohort.items()]]:
             lines.append(f"|{name}|{c['success']}/{c['valid']}|{c['contact']}|{c['lift']}|{c['first_subgoal']}|")
-        lines += ['', f"Planned4; starts{summary['actual_starts']}/5; software missing{summary['software_missing']}; acceptance failed{summary['acceptance_failed']}; pending{summary['pending_initials']}.",
+        lines += ['', f"Planned{planned}; starts{summary['actual_starts']}/{summary['maximum_starts']}; software missing{summary['software_missing']}; acceptance failed{summary['acceptance_failed']}; pending{summary['pending_initials']}.",
             'Stable grasp N/A. Contact is the existing force diagnostic, not a native stable-grasp success.',
             'Task outcome and SDK shutdown are separate; SDK fast exit is not graceful full teardown.','',
             '|Seed|Steps|Native outcome|Video|','|---|---:|---|---|']
@@ -134,8 +153,8 @@ class Interim(Owner):
         while True:
             worker=same_process(self.s['parent_worker'])
             if not worker or worker['state']=='Z':break
-            if time.time()>min(self.s['deadline'],self.s['started_epoch']+3600):
-                raise TimeoutError('Training boundary not reached within one hour; resume original owner')
+            if time.time()>min(self.s['deadline'],self.s['started_epoch']+self.s.get('boundary_seconds',3600)):
+                raise TimeoutError('Training boundary wait budget exhausted; checkpoint preserved')
             self.status(state='waiting_training_boundary',stage=self.s['expected_stage'])
             time.sleep(2)
         worker_pid=self.s['parent_worker']['pid']
@@ -175,7 +194,7 @@ class Interim(Owner):
                         inference=dict(inference_steps=16,clip_sample=False,sampler_seed=7091,overlap_steps=0),
                         lifecycle=dict(fast_shutdown=True,disarm_stop=True))
                     self.kit(f'state_interim_{ordinal:02d}',payload)
-                self.status(state='completed',stage='four_validation_episodes',worker_pid=None)
+                self.status(state='completed',stage='frozen_cohorts_completed',worker_pid=None)
             except BaseException:
                 write(root/'owner_error.json',dict(error=traceback.format_exc(),utc=time.time()))
                 self.status(state='blocked',worker_pid=None)
@@ -194,9 +213,12 @@ class Interim(Owner):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True)
-    p.add_argument('--parent',type=Path);p.add_argument('mode',choices=['prepare','run','resume','report'])
+    p.add_argument('--parent',type=Path);p.add_argument('--epoch',type=int,default=100)
+    p.add_argument('--ordinals',type=int,nargs='+');p.add_argument('--hold-parent',action='store_true')
+    p.add_argument('--boundary-seconds',type=int,default=3600)
+    p.add_argument('mode',choices=['prepare','run','resume','release','report'])
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='prepare':prepare(root,a.parent)
-    elif a.mode=='resume':resume(root)
+    if a.mode=='prepare':prepare(root,a.parent,a.epoch,a.ordinals,a.hold_parent,a.boundary_seconds)
+    elif a.mode in ('resume','release'):resume(root,force=a.mode=='release')
     elif a.mode=='report':Interim(root).report()
     else:Interim(root).run()

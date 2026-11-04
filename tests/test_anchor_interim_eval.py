@@ -30,3 +30,14 @@ def test_resume_is_idempotent(tmp_path):
     (tmp_path/'parent_pause.json').write_text(json.dumps(dict(resumed=True)))
     with patch('tools.anchor_interim_eval.os.kill') as kill:
         resume(tmp_path);kill.assert_not_called()
+
+
+def test_evidence_review_hold_never_resumes_training_implicitly(tmp_path):
+    parent=tmp_path/'parent';parent.mkdir()
+    record=dict(pid=42,start_ticks=100,parent_root=str(parent),resumed=False)
+    (tmp_path/'parent_pause.json').write_text(json.dumps(record))
+    (tmp_path/'session.json').write_text(json.dumps(dict(hold_parent_for_decision=True)))
+    with patch('tools.anchor_interim_eval.os.kill') as kill:
+        resume(tmp_path);kill.assert_not_called()
+    assert not json.loads((tmp_path/'parent_pause.json').read_text())['resumed']
+    assert json.loads((parent/'evaluation_interlude.json').read_text())['state']=='held_for_evidence_review'

@@ -1661,3 +1661,7 @@ Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and 
   the current session handoff after the background jobs start.
 
 本次恢复新增12项owner/选型/报告回归通过（CPU，0新Kit）；原39项数值验证沿用。
+
+## 2026-11-05 — parameterized 150-epoch evaluation and cleanup preparation
+
+`tools/anchor_interim_eval.py` now takes milestone/cohort/boundary budget and explicit review hold. The running trainer is unchanged; only its verified owner can be suspended, and the worker must finish its checkpoint before evaluation. Eight frozen train/validation diagnostics are separated, at most nine Kit starts. Four owner/counting tests pass. Training remains active; no 150-epoch outcome or cleanup completion is claimed. See STATE_DP_RESULTS.md.
