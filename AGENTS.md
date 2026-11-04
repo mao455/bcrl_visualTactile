@@ -1,37 +1,37 @@
 # Play2Perfect visual–tactile imitation research
 
-## Latest — approved editor scope, Kit resource admission restored
+## Latest — State/Image Kit gate blocked after approved resource fix
 
-User explicitly approved parentdocs deliverables-only watcher exclusion; applied.
-New preflight03 has256/256 allocations and34756watch references. Do not ask again.
-state_image_20261104_01 now proceeds to new bounded independentKit lifecycle gate:
-expert,Sample8000,repeatexpert,<=5starts,>=3consecutive full episodes, realSDKclose,
-exit0/closed/PID/GPU release and control/trajectory checks. Two newCPU tests pass.
-Read actual kit_gate/status.json; resource admission alone is not reliability success.
-No new optimizer updates yet; original State/Image sequential authorization remains.
+Read STATE_IMAGE_DP_IMPROVEMENT and state_image_20261104_01/status.json.
+User approved parentdocs deliverables-only watcher exclusion; applied, do not ask again.
+Current real probe256/256, readable watch FD references34756, resource admission passes.
+Gate stopped at3/5starts with0 accepted full SDK lifecycles: monitor permission error,
+expert success then shutdown timeout, expert success then SIGSEGV during app shutdown.
+Both completed experts181ticks,17 observed trajectory arrays equal originalV3;
+student unstarted. Remaining2starts cannot meet3consecutive normal-exit requirement.
+Do not reset this root, add attempts or start training automatically. All owned workers,
+monitor and service exited; MainPID0/cgroup empty. Preserve all original failure evidence.
+4 focused gate tests pass;182sources/3protectedweights/data manifest SHA verified.
+Whole-card observed mean17.6173%,max complete60s30.0196%;325.8816s gaps between repairs
+remain unknown. Do not claim continuous monitoring or full-session resource compliance.
+S-H24-Improved and I-HistoryDP-00 remain0updates/0supervised; no runnable training owner.
 
-## Current — 2026-11-04 StateDP + ImageDP improvement, preflight BLOCKED
+## Authorized State/Image plan — pending the unresolved reliability gate
 
-Latest user authorizes a NEW baseline S-H24-Improved then I-HistoryDP-00,
-H24/commit12/sample/DDIM16/position29, train320/val40, fresh1000/3000/6000/10000,
-train-only calibrated geometric/continuity losses, no01/10/11 or nominal redesign.
-Read STATE_IMAGE_DP_IMPROVEMENT and actual state_image_20261104_01/status.json.
-Kit resource admission is currently blocked: both real256-watch probes allocate0,
-inotify_add_watch ENOSPC; readable UID watch references524190/524288 (not unique).
-No Kit starts(0/5), no parameter updates, no supervised200-update acceptance,
-no training coordinator installed. Do not claim that queued intent is runnable.
-Repository editor exclusions applied/backed up but did not release the external
-whole-docs window watches. User scope confirmation is pending for excluding only
-another project's deliverables in the parent docs workspace; do not assume approval.
-No global sysctl/driver/sharedSDK changes or unrelated process signals.
-After resource resolution, >=3 consecutive independent complete Kit episodes/exits
-including expert+student within5starts must pass before training; no in-process reuse.
-Each model needs >=200 real updates/3 monitoring cycles/validation/checkpoint recovery/
-full rollout before handoff. Image follows State regardless of task success, provided
-shared infrastructure/contracts pass; old success-dependent gate needs explicit new
-identity, not fabricated evidence. Original three required weights freshlySHA-verified.
-This authorization supersedes old no-training clauses only for the new run; it is
-not evidence of implementation, Kit reliability, training readiness or task success.
+Latest attachment authorizes NEW S-H24-Improved then I-HistoryDP-00 serial training,
+H24/commit12/sample/DDIM16/post-delay absolute29, original320/40/40 andbatch2x96,
+fresh1000/3000/6000/10000, LossB plus train-only calibrated geometry/continuity.
+Existing StateGRU must not be duplicated. No01/10/11 or nominal-action redesign.
+>=3consecutive independent full expert/student episodes and normalSDKexit within5starts
+are mandatory before formal training; current run failed, no in-process reuse.
+Each model needs>=200realupdates/3monitorcycles/validation/checkpoint recovery/fullrollout
+before background handoff. Image follows State regardless of task success if shared
+infrastructure/contracts pass; old success-dependent gate needs a new explicit identity.
+Newlosses/configuration/training coordinator not implemented; queue_intent is not runnable.
+No global sysctl/driver/sharedSDK changes or unrelated process signals. Preserve old400,
+Sample8000/10000 andEpsilon3000 plus diagnostics. Further live validation needs a reviewed
+SDK lifecycle repair and explicitly renewed bounded authorization; no automatic reruns.
+Reviewed code/docs/small statistics/plots may be pushed to origin feature only.
 
 ## 2026-11-04 H24诊断后台结束
 

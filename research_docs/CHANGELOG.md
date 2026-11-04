@@ -1,5 +1,20 @@
 # Engineering change and verification log
 
+## 2026-11-04 最终：inotify恢复，SDK关闭仍阻塞，训练0updates
+
+用户批准的父docs deliverables-only watcher排除已应用；恢复及最终探针256/256，
+watch FD引用34756（非唯一内核计数）。Kit实际3/5starts、正常完整生命周期0：
+01监控helper FD权限错误，02专家181ticks成功但关闭超时exit−9，
+03专家181ticks成功、env.close返回后应用释放framework阶段SIGSEGV−11。
+两次专家17个共同轨迹字段与原V3逐字节一致；无学生覆盖，不能冒充门控通过。
+剩余2starts无法满足3次连续正常退出；停止blocked，不自动重启/加预算/训练。
+两组新模型0updates、监督0/200，新损失/训练coordinator尚未实现。
+4项门控CPU测试通过；182源码、3旧checkpoint及数据清单SHA一致。
+服务inactive/MainPID0/cgroup空，自有worker/helper/monitor均退出；失败记录全部保留。
+已观测整卡均值17.6173%、完整60s最高30.0196%，但人工修复间有325.8816s监测缺口，
+不能声称连续监控/全程资源合规。详见STATE_IMAGE_DP_IMPROVEMENT及最终kit_gate_review.json。
+以下“待验收/待批准/运行中”段落均是历史快照，由本结果覆盖。
+
 ## SDK关闭超时后的局部关闭候选（尚待真实验收）
 
 第2个start的expert完整成功181ticks，17个共同控制/物理字段与原V3逐字节相同，

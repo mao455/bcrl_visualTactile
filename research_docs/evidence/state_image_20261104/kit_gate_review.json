@@ -1,0 +1,298 @@
+{
+  "run_id": "state_image_20261104_01",
+  "review_utc": 1793756995.5062358,
+  "state": "blocked",
+  "resource_preflight": "passed",
+  "kit_reliability_passed": false,
+  "starts_consumed": 3,
+  "maximum_starts": 5,
+  "required_consecutive_lifecycles": 3,
+  "accepted_lifecycles": 0,
+  "remaining_starts": 2,
+  "can_pass_with_remaining_starts": false,
+  "student_coverage": false,
+  "expert_complete_tasks": 2,
+  "expert_native_successes": 2,
+  "task_failed_episodes": 0,
+  "software_failed_attempts": 3,
+  "new_optimizer_updates": 0,
+  "supervised_updates": 0,
+  "training_coordinator_installed": false,
+  "model_implementation_ready": false,
+  "automatic_restart_allowed": false,
+  "attempts": [
+    {
+      "attempt": "01_expert",
+      "mode": "expert",
+      "exit_code": -15,
+      "classification": "software_missing",
+      "reason": "monitor_permission_error_before_scene",
+      "lifecycle_accepted": false,
+      "closed_marker": false,
+      "task_result": null,
+      "main_peak_rss_mib": 2314.609375,
+      "main_peak_threads": 108,
+      "main_peak_fds": 209,
+      "process_samples": 4,
+      "unreadable_helper_sample_count": 0
+    },
+    {
+      "attempt": "02_expert_recovery",
+      "mode": "expert",
+      "exit_code": -9,
+      "classification": "software_missing",
+      "reason": "sdk_shutdown_timeout_60s_then_owned_kill",
+      "lifecycle_accepted": false,
+      "closed_marker": false,
+      "task_result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 181,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.09385891258716583
+      },
+      "main_peak_rss_mib": 5143.54296875,
+      "main_peak_threads": 127,
+      "main_peak_fds": 317,
+      "process_samples": 54,
+      "unreadable_helper_sample_count": 49
+    },
+    {
+      "attempt": "03_expert_shutdown",
+      "mode": "expert",
+      "exit_code": -11,
+      "classification": "software_missing",
+      "reason": "sigsegv_after_env_close_during_app_close",
+      "lifecycle_accepted": false,
+      "closed_marker": false,
+      "task_result": {
+        "identity": "r931005_1793209376_e02_p000059",
+        "cohort": "train",
+        "seed": 982403,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 181,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.09385891258716583
+      },
+      "main_peak_rss_mib": 5168.0,
+      "main_peak_threads": 128,
+      "main_peak_fds": 321,
+      "process_samples": 25,
+      "unreadable_helper_sample_count": 20
+    }
+  ],
+  "trajectory_parity": {
+    "comparisons": {
+      "02_expert_recovery": {
+        "actor": true,
+        "command": true,
+        "delayed": true,
+        "delay_index": true,
+        "target": true,
+        "joint": true,
+        "actuator_targets": true,
+        "velocity": true,
+        "object": true,
+        "contact": true,
+        "object_contact": true,
+        "force": true,
+        "torque": true,
+        "lifted": true,
+        "subgoals": true,
+        "retract": true,
+        "alignment": true
+      },
+      "03_expert_shutdown": {
+        "actor": true,
+        "command": true,
+        "delayed": true,
+        "delay_index": true,
+        "target": true,
+        "joint": true,
+        "actuator_targets": true,
+        "velocity": true,
+        "object": true,
+        "contact": true,
+        "object_contact": true,
+        "force": true,
+        "torque": true,
+        "lifted": true,
+        "subgoals": true,
+        "retract": true,
+        "alignment": true
+      }
+    },
+    "all_equal": true,
+    "scope": "Native task trajectories only, both SDK lifecycles failed"
+  },
+  "latest_inotify": {
+    "watch_fd_references": 34756,
+    "instance_fd_references": 86,
+    "probe": {
+      "requested": 256,
+      "allocated": 256,
+      "errno": null,
+      "error": null,
+      "cleanup_complete": true
+    },
+    "counts_are_unique_kernel_usage": false
+  },
+  "source_commit": "314b640fae0e2144d28550b3d7ff2cfd084b9fd9",
+  "session_sha256": "2e838db594b89c2734ac484b82f8269a867059dfab393360fe5d79a34be0ab66",
+  "session_deadline": 1793763284.415968,
+  "deadline_reset": false,
+  "source_hashes_verified": 182,
+  "source_drift": [],
+  "gate_source_sha256": {
+    "tools/state_image_kit_gate.py": "e4741f9019c5d7ccdf7bbf122c588a6c289a852d8eca43090d3c6e8bf7921106",
+    "tools/kit_resource_preflight.py": "bfb1d493e074e6a7203535e4b1bf6aac50685c3da854e0eda1ce1a421cc66801",
+    "tools/state_image_kit_worker.py": "36b09aff31a271f33581dfe5dac72be874c3d36b8b0b5915bcc003c3344d680a"
+  },
+  "data_manifest_sha256": "abe7a725ae1be6af6fefba9d3a92809e0667d95137da565447afeeb22576ca64",
+  "expert_checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+  "protected_checkpoints": {
+    "sample/milestone_8000.pt": {
+      "sha256": "00783c7db01b8b269746718a3322238beb9906a88eac1fa8e9adc58bfc5b4399",
+      "bytes": 1153477633,
+      "verified": true
+    },
+    "sample/milestone_10000.pt": {
+      "sha256": "9a7cc8c6123563f93b77256104e61e6b357bb38303ede4231fe19fddeb0e17ca",
+      "bytes": 1153579343,
+      "verified": true
+    },
+    "epsilon/milestone_3000.pt": {
+      "sha256": "48236f836b23e74ccbc4f078f8806089f8f08bd71fc70c2184ec4f9cb704e44e",
+      "bytes": 1153275969,
+      "verified": true
+    }
+  },
+  "service": {
+    "MainPID": "0",
+    "NRestarts": "0",
+    "ControlGroup": "",
+    "ActiveState": "inactive",
+    "SubState": "dead"
+  },
+  "observed_worker_or_helper_pids": [
+    2894383,
+    2895773,
+    2896100,
+    2898801,
+    2899156
+  ],
+  "remaining_observed_worker_or_helper_pids": [],
+  "sdk_log_archives": [
+    {
+      "attempt": "01_expert",
+      "file": "kit_gate/sdk_logs/01_expert_kit_20261104_093453.log",
+      "bytes": 640573,
+      "sha256": "cc9c97fc8017d78495c49d61faefa056e834b37379d94402776f3ee7e6ecaec1"
+    },
+    {
+      "attempt": "02_expert_recovery",
+      "file": "kit_gate/sdk_logs/02_expert_recovery_kit_20261104_093749.log",
+      "bytes": 1170014,
+      "sha256": "df72ea00d8245614c008d040a5ea27e1979579bef82b2a04c756ce81670b2faa"
+    },
+    {
+      "attempt": "02_expert_recovery",
+      "file": "kit_gate/sdk_logs/02_expert_recovery_isaaclab_2026-11-04_09-38-03.log",
+      "bytes": 50063,
+      "sha256": "2a5c6991187104d2963ee991a1c345e1a4c2c3d69abf3342ba23b13ca3e5943e"
+    },
+    {
+      "attempt": "03_expert_shutdown",
+      "file": "kit_gate/sdk_logs/03_expert_shutdown_kit_20261104_094231.log",
+      "bytes": 1184795,
+      "sha256": "c2e7ae6f418d36b29e8a53453ab9faa124568f6bfdda717ed4165e54cdf87bf3"
+    },
+    {
+      "attempt": "03_expert_shutdown",
+      "file": "kit_gate/sdk_logs/03_expert_shutdown_isaaclab_2026-11-04_09-42-42.log",
+      "bytes": 50063,
+      "sha256": "fd614d5cb1a57112d91c85453311e46dbc267f67a0a9665caedc51ba6cce8739"
+    }
+  ],
+  "resource_monitor": {
+    "samples": 187,
+    "observed_time_weighted_gpu_percent": 17.617330372135527,
+    "maximum_observed_complete_60s_gpu_percent": 30.019636467756936,
+    "missing_samples": 0,
+    "missing_seconds": 325.8816408650018,
+    "maximum_sample_gap_s": 166.47886489506345,
+    "minimum_observed_gpu_free_mib": 16438.0,
+    "minimum_observed_available_ram_gib": 19.84323501586914,
+    "continuous_session_compliance_proven": false,
+    "limitation": "Monitor stopped between the three explicit owner invocations; missing time remains unknown. Observed means do not prove full-session compliance."
+  },
+  "shutdown_findings": {
+    "env_close_returned": true,
+    "last_sdk_log_phase": "Stage closed; shutting down app and releasing framework",
+    "app_close_returned": false,
+    "native_signal": "SIGSEGV",
+    "complete_native_backtrace_available": false,
+    "main_python_stack_truncated": true,
+    "periodic_faulthandler_concurrent": true,
+    "unique_fault_cause_established": false,
+    "filethread_signature_established": false
+  },
+  "focused_cpu_tests": {
+    "kit_gate": 4,
+    "resource_preflight": 5,
+    "legacy_math_batch_tests_repeated": false
+  },
+  "preservation": "Original data/checkpoints and all three failed attempt records retained; no artifact deletion in this gate",
+  "observed_owner_monitor_pids": [
+    2894364,
+    2894368,
+    2895765,
+    2895767,
+    2898792,
+    2898795
+  ],
+  "remaining_observed_owner_monitor_pids": [],
+  "remaining_owned_gpu_pids": []
+}

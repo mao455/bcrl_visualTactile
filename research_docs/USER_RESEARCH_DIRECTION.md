@@ -346,3 +346,11 @@ H24/commit12/sample/DDIM16/原post-delay位置29D；Loss B保留，train-only校
 实际本轮两次资源探针0/256、ENOSPC，故Kit0/5、训练0updates；项目监视排除修改无效，
 父docs工作区的其他项目生成目录排除待用户确认。参见STATE_IMAGE_DP_IMPROVEMENT；
 保留全部旧模型/原400/失败诊断，不把授权或计划当作已实现和通过验收。
+
+### 2026-11-04 用户批准父工作区排除后的实际门控结论
+
+用户明确允许仅排除IsaacLab_DexAssemble-sharpa/deliverables生成目录的编辑器递归监视，已应用。
+恢复及最终inotify探针256/256；不能将跨会话全部计数下降唯一归因于配置。
+本轮Kit3/5starts均未正常完成SDK生命周期；两次专家任务成功后分别关闭超时和SIGSEGV。
+剩余两次无法满足连续三次，按用户硬门槛停止blocked，训练两组均0updates，无学生覆盖。
+不擅自放宽正常退出判定、重置本root或新增启动预算。保留失败记录，提交已有诊断结果。
