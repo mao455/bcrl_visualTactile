@@ -124,6 +124,19 @@ def train(root,job,target,output):
     started=step;began=time.time();stop=[False];row=None
     signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
     initial=next(model.denoiser.parameters()).detach().clone()
+    if step==target and (directory/f'continued_{step}.pt').exists():
+        # Complete stage result was lost after checkpoint commit: emit a truthful
+        # readback result without optimizing or replacing the immutable milestone.
+        milestone=directory/f'continued_{step}.pt'
+        prior=torch.load(milestone,map_location='cpu',weights_only=False)
+        assert prior['updates']==10000+step and prior['config_sha256']==sha256(directory/'configuration.json')
+        assert all(torch.equal(v.cpu(),prior['model'][k]) for k,v in model.state_dict().items())
+        metrics=next(x for x in prior['continuation_history'] if x['continuation_update']==step)
+        atomic_json(output/'result.json',dict(passed=True,job=job,from_update=10000+step,update=10000+step,
+            continuation_updates=step,recovered_completed_stage=True,new_optimizer_updates=0,effective_batch=s['effective_batch'],
+            parameter_max_change=0.,cumulative_anchor_epochs=metrics['cumulative_anchor_epochs'],checkpoint_readback=True,
+            checkpoint=str(milestone.resolve()),checkpoint_sha256=sha256(milestone),metrics=metrics,coverage=sampler.coverage(),kit_dependency=no_kit()))
+        return
     def snapshot():
         return training_state(model,averaged,opt,ema,sampler.generator,noise,kind='dp',group=model.group,
             updates=10000+step,continuation_updates=step,anchor_sampler=sampler.state_dict(),

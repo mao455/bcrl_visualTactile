@@ -18,12 +18,27 @@ class Owner:
         self.root=root.resolve();self.s=read(root/'session.json');self.worker=None;self.monitor=None
         self.attempts=read(root/'attempts.json') if (root/'attempts.json').exists() else []
     def status(self,**kw):
-        state=read(self.root/'status.json');state.update(pid=os.getpid(),heartbeat=time.time());state.update(kw);write(self.root/'status.json',state)
+        state=read(self.root/'status.json');state.pop('training_updates',None)
+        state.update(pid=os.getpid(),heartbeat=time.time())
+        state['model_progress']={}
+        for job in ('state','image'):
+            path=self.root/(job+'_train')/'progress.json'
+            state['model_progress'][job]=read(path) if path.exists() else dict(update=10000,continuation_update=0,state='pending')
+        state.update(kw);write(self.root/'status.json',state)
     def report(self):
         subprocess.run(RUN+['-m','tools.anchor_continue_report','--root',str(self.root)],cwd=CODE,check=True)
     def stage(self,name,module,args,kit=False):
         root=self.root;committed=root/'stages'/name/'committed.json'
         if committed.exists():return read(committed)
+        # Reconcile a durable exit/result if the owner stopped between validation
+        # and its stage commit. Never rerun a completed optimizer budget or rollout.
+        for previous in reversed(self.attempts):
+            if previous['name']!=name or not previous.get('valid') or not previous.get('resources_released'):continue
+            result=read(Path(previous['output'])/'result.json')
+            assert result==previous['result']
+            if not kit and 'checkpoint' in result:assert sha(result['checkpoint'])==result['checkpoint_sha256']
+            if kit:self.validate_kit(previous)
+            write(committed,previous);return previous
         for recovery in range(1 if kit else 3):
             number=1+sum(x['name']==name for x in self.attempts)
             if number>(2 if kit else 3):raise RuntimeError('Bounded recovery exhausted: '+name)

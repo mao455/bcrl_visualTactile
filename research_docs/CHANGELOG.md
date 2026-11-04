@@ -1,3 +1,19 @@
+## 2026-11-04 continuation supervision passed; resume at10050
+
+State source b27384f completed actual10005/10015/10050 with three fresh-process restores,
+model/EMA/RNG/AdamW step checks, nonzero updates and finite gradients. Batch64 distinct
+trajectories, microbatch4,3200unique new anchors, eachtrain episode selected10times.
+Current-weight random-anchor/full/online condition max9.54e-7; future intervention and
+cross-episode contamination0. Kit imports0. Peak allocatedCUDA1.78GiB/RSS1.92GiB;
+median74.15anchors/s. Finalsmoke loss.0035317,gradnorm.029469,LR9.64824e-6.
+Six focusedtests pass. Supervision accepted in SUPERVISION_ACCEPTED.json, no newKit yet.
+Controlled owner-only maintenance at committed10050 fixed stale rootupdate0 display and
+idempotent completed-stage recovery; old ownerfailed/STOP logs and source remain archived
+in supervision_boundary. No optimizer resets or repeated5/15/50 stages. New owner resumes
+same sampler/optimizer/EMA/RNG at10050 and targets12250(total50anchor epochs) first.
+Read actualprogress for later counts; source/session72hdeadline unchanged. Public startup
+report is not a claim of full continuation or better closed-loop success.
+
 ## Current — H24 anchor-batch continuation authorized, 2026-11-04
 
 Latest user attachment authorizes actual sampling/budget/LR changes and continuation from

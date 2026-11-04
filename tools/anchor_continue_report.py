@@ -114,7 +114,9 @@ def report(root):
         if thin:
             axes[1,0].plot([x['cumulative_anchor_epochs'] for x in thin],[x['loss'] for x in thin],label=job)
             axes[1,1].plot([x['cumulative_anchor_epochs'] for x in thin],[x['lr'] for x in thin],label=job)
-    for ax in axes.flat:ax.grid(alpha=.3);ax.legend()
+    for ax in axes.flat:
+        ax.grid(alpha=.3)
+        if ax.get_legend_handles_labels()[0]:ax.legend()
     axes[1,0].set_ylabel('Actual training objective');axes[1,1].set_ylabel('Learning rate')
     for ax in axes[1]:ax.set_xlabel('Cumulative anchor-equivalent epochs')
     fig.tight_layout();fig.savefig(PUBLIC/'curves.png',dpi=130);plt.close(fig)
