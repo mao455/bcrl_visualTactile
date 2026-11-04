@@ -1,0 +1,105 @@
+{
+  "status": {
+    "state": "blocked",
+    "pid": null,
+    "heartbeat": null,
+    "stage": "StateDP_00_attempt_1",
+    "reason": "Non-startup fault requires targeted repair: startup_or_runtime_software_missing",
+    "completed": 0,
+    "planned": 24,
+    "worker_pid": null,
+    "finished": 1793784035.860814
+  },
+  "models": {
+    "StateDP": {
+      "valid": 0,
+      "success": 0,
+      "rate": null,
+      "attempts": 1,
+      "planned": 12,
+      "attempts_without_result": 1,
+      "software_faults": 1,
+      "shutdown_faults": 0,
+      "pending": 12,
+      "stages": {
+        "native_lift": 0,
+        "native_subgoals": 0,
+        "native_alignment": 0,
+        "success": 0
+      },
+      "diagnostics": {
+        "approach": 0,
+        "contact": 0,
+        "stable_grasp": 0
+      },
+      "reasons": {}
+    },
+    "ImageDP": {
+      "valid": 0,
+      "success": 0,
+      "rate": null,
+      "attempts": 0,
+      "planned": 12,
+      "attempts_without_result": 0,
+      "software_faults": 0,
+      "shutdown_faults": 0,
+      "pending": 12,
+      "stages": {
+        "native_lift": 0,
+        "native_subgoals": 0,
+        "native_alignment": 0,
+        "success": 0
+      },
+      "diagnostics": {
+        "approach": 0,
+        "contact": 0,
+        "stable_grasp": 0
+      },
+      "reasons": {}
+    }
+  },
+  "attempts": [
+    {
+      "id": "StateDP_00_attempt_1",
+      "model": "StateDP",
+      "ordinal": 0,
+      "number": 1,
+      "output": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_00_attempt_1/output",
+      "started": 1793783553.5597415,
+      "pid": 3261841,
+      "finished": 1793784033.7443788,
+      "exit_code": -15,
+      "timeout": null,
+      "remaining_owned_pids": [],
+      "remaining_owned_gpu_pids": [],
+      "unexpected_cgroup_pids": [],
+      "resources_released": true,
+      "reaped": true,
+      "valid": false,
+      "classification": "startup_or_runtime_software_missing"
+    }
+  ],
+  "pairs": [],
+  "planned_model_episodes": 24,
+  "maximum_starts": 30,
+  "checkpoints": {
+    "StateDP": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/state_train/milestone_10000.pt",
+      "sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+      "updates": 10000,
+      "cpu_strict_load_passed": true,
+      "all_ema_finite": true,
+      "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
+    },
+    "ImageDP": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/image_train/milestone_10000.pt",
+      "sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+      "updates": 10000,
+      "cpu_strict_load_passed": true,
+      "all_ema_finite": true,
+      "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
+    }
+  },
+  "source_commit": "c6ce92165cf8181d712097c65b560be714b82363",
+  "updated": 1793784035.896055
+}
