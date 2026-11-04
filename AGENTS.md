@@ -1,5 +1,17 @@
 # Play2Perfect visual–tactile imitation research
 
+## 2026-11-05 requested interim State evaluation
+
+User requests new closed-loop evidence during continuation. Read
+STATE_DP_INTERIM_EVALUATION and anchor_interim_20261105_01/status.json.
+At the current100-anchor-epoch boundary, evaluate the complete16584-update EMA
+on frozen validation ordinals4–7; maximum5starts/one recovery,4h including waits.
+Only the identity-verified training owner is suspended while its child finishes;
+monitor remains live. Independent evaluation releases all workers then resumes
+the original owner, including on failure. No trainer/source/optimizer reset,
+original72hdeadline extension, Image retraining or test40. Preserve all evidence.
+Three focused orchestration tests pass; actual episodes remain pending until recorded.
+
 ## 2026-11-04 continuation supervision passed; resume at10050
 
 State source b27384f completed actual10005/10015/10050 with three fresh-process restores,

@@ -1,3 +1,14 @@
+## 2026-11-05 user-requested interim State evaluation
+
+Added tools/anchor_interim_eval.py and research_docs/STATE_DP_INTERIM_EVALUATION.md.
+Previously closed loop waited until the full continuation stopping decision; this
+separate bounded service inserts frozen validation4 after the already-running100
+anchor-epoch milestone, then restores the original owner. No active training code,
+model/controller or scheduler changed. Per-attempt outputs, checkpoint SHA, initial
+exports, video and native results remain distinct from software failure/SDK exit.
+Three focused CPU tests pass for structured contact/timeout counts, recycled-PID
+protection and idempotent resume. Actual Kit results are pending, not inferred.
+
 ## 2026-11-04 continuation supervision passed; resume at10050
 
 State source b27384f completed actual10005/10015/10050 with three fresh-process restores,
