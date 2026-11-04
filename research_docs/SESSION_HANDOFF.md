@@ -1,5 +1,20 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-04 offline v2已通过State200监督，真实后台续训
+
+用户最新解除Kit三次正常退出对离线训练的前置阻塞。新root state_image_20261104_02，
+旧01全部证据不改。训练代码d0f0ca7；state-image-offline-20261104-02.service已真实启动。
+State CPU4tests+GPU前缀/在线/12步短拟合通过，实际omni/carb/isaacsim/isaaclab均未加载。
+正式50/100/200三周期通过，optimizer/EMA/RNG/sampler在新进程恢复、checkpoint读回、val4均成功；
+监督末loss0.113625，val4Arm/Hand0.085311/0.265980rad，FK58.1327mm。不是闭环成功。
+最近一次人工查看State730updates且向1000推进；该数字是历史快照，后续读取status/progress。
+后续独立脚本S到10000→Image同样监督及10000→六个区分生命周期的诊断→各模型四milestone
+固定train4+validation8共96闭环。Kit关闭异常不掩盖、不自动阻止已验证离线训练。
+持续monitor贯穿所有worker，不再在普通阶段切换间退出；旧01监测缺口仍保留。
+CPU-only后处理服务校验train320+validation40视觉缓存SHA，最终逐29关节/空间/阶段/视频汇总；
+不启动任何Kit、不读test40。报告自动发布仅允许生成的小文件，遇额外工作树改动会停止发布。
+不要重复启动本队列或改正在运行的冻结训练源码。模型新checkpoint须按loss_id/configSHA恢复。
+
 ## 2026-11-04 最终：inotify恢复，SDK关闭仍阻塞，训练0updates
 
 用户批准的父docs deliverables-only watcher排除已应用；恢复及最终探针256/256，

@@ -1,5 +1,16 @@
 # Engineering change and verification log
 
+## 2026-11-04 — measured State200 supervision and independent CPU final analysis
+
+state_image_20261104_02 passed actualState50/100/200 stages and fresh-process optimizer/
+EMA/RNG/sampler recovery. Kit import census empty; validation4 Arm/Hand0.085311/0.265980,
+FK58.1327mm at200. Disposable fit0.698507→0.039289; no claim of autonomous success.
+Added separate state_image_analysis/service, outside immutable running training source:
+verify360perception hashes and tails, then wait for owned queue exit; compute29joint actual/
+target errors, original-expert common-prefix FK/rotation/fingers, clipping/continuity/phase,
+compare expert diagnostic traces against preserved01, decode final videos, publish small
+JSON/CSV/heatmap only. No additional simulator starts or parameter updates from analysis.
+
 ## 2026-11-04 — offline State/Image v2, independent of Kit shutdown
 
 Latest user replaces three-graceful-exit prerequisite. Old blocked root preserved.
