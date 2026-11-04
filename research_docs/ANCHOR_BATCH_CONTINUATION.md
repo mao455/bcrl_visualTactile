@@ -1,6 +1,8 @@
 # H24 StateDP / ImageDP：多轨迹anchor续训
 
-当前状态：**running**，阶段 `state_train_epoch_50`。本报告只记录已完成结果；后台任务启动不等于训练或闭环成功。
+新增中途闭环：用户于2026-11-05要求提前评估，100 anchor等效epoch / 16584更新已完成；独立validation4正在执行。训练owner暂让出GPU，结束后继续原队列。见[实时阶段结果](STATE_DP_INTERIM_RESULTS.md)，原队列下方闭环表不混入这批额外诊断。
+
+当前状态：**running**，阶段 `state_train_epoch_100`。本报告只记录已完成结果；后台任务启动不等于训练或闭环成功。
 
 原正式 StateDP-10000 / ImageDP-10000 均0/12。新任务从这两个checkpoint的原始训练权重、EMA、AdamW moments/step及RNG续接，不从随机权重训练。原模型、标签、拆分和结果保留。
 
@@ -50,7 +52,7 @@ microbatch按整个64-anchor batch的有效目标数归一化base/FK/姿态/指�
 
 |模型|累计updates|累计anchor epoch|最新LR|best验证Arm/Hand rad|阶段|
 |---|---:|---:|---:|---|---|
-|state|10081|24.975|1.385427135678392e-05|0.020662 / 0.111931|running|
+|state|16584|100.005|2.5454317800143762e-05|0.019328 / 0.107981|completed_stage|
 |image|10000|24.041|未启动|0.018416 / 0.113876|pending|
 
 原模型选择分数保留为best初值；只有完整validation40改善才替换best。每100新增更新保存可恢复last；阶段checkpoint独立保留。每1000新增更新及各里程碑固定seed验证。

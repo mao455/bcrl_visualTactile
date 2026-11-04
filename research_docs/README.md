@@ -1,5 +1,7 @@
 # H24多轨迹anchor续训
 
+[100 anchor等效epoch的新闭环评估](STATE_DP_INTERIM_RESULTS.md)：StateDP16584更新，固定validation4，与旧模型相同初态比较；逐条实测结果、阶段图和视频位置。
+
 [最新报告与实际进度](ANCHOR_BATCH_CONTINUATION.md)：从两个10000 checkpoint续训，先State，Image受闭环进展与严格输入配对门槛约束。
 
 # 最终10000模型闭环

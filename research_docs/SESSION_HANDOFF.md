@@ -1,3 +1,27 @@
+## 2026-11-05 State100-anchor-epoch interim evaluation
+
+User requested new closed-loop evidence before continuation finishes. State reached
+16584 total updates /100.0054 anchor epochs with full recoverable milestone6584;
+SHA fd56aa6ffd84131195d3c6dd05da5082aeccaf59facb13cb5f329ee3416dbaba.
+Validation40 Arm.01932799,Hand.10798149,EE16.46663mm; train16 .00369609/.01414492.
+Independent anchor-interim-20261105-01.service evaluates fixedvalidation ordinals4–7
+using that EMA, originalcontroller/seed/physics, four planned/maxfive starts. First
+two accepted native results are601ticktimeouts,contact2/2,lift/subgoal/success0/2.
+First video601frames decoded;724initial-exportfields match old plus eventRNG;
+target/actuator errors0. SDKfast exit0 is NOT graceful teardown. Sourcef9ed9d6.
+Do not infer final4count: read anchor_interim_20261105_01/status.json and summary.json.
+Read STATE_DP_INTERIM_RESULTS and STATE_DP_INTERIM_EVALUATION for separate results.
+
+Original training owner3506571 is intentionally suspended by PID/start-time identity
+while completed child3547214 is reaped later; originalmonitor continues. Interim
+service automatically resumes exact parent after worker release, including failure
+and ExecStopPost. No trainerrestart/optimizerreset or deadline extension. Separate
+CPU anchor-interim-analysis service publishes new plots/results after completion.
+Do not start a second queue or signal unrelated GPU jobs. Parent's actual interlude
+is recorded under evaluation_interlude.json; this paragraph is a timestamped snapshot.
+Report-only contact-dictionary fix413ae27 preserves original freeze manifests in
+report_amendments; model/training/controller/worker sources remain unchanged.
+
 ## 2026-11-04 continuation supervision passed; resume at10050
 
 State source b27384f completed actual10005/10015/10050 with three fresh-process restores,
