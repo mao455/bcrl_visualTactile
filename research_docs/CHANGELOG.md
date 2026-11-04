@@ -1,5 +1,26 @@
 # Engineering change and verification log
 
+## 2026-11-04 — offline State/Image v2, independent of Kit shutdown
+
+Latest user replaces three-graceful-exit prerequisite. Old blocked root preserved.
+Added state_image_loss/offline and queue/report/isolated lifecycle diagnostic modules;
+no old model/controller/native physics or sharedSDK edits. New loss keeps LossB plus
+base-frame FK position, smooth SO3 chord, five fingertip-link positions, normalized
+within-chunk demonstrated differences. Fixed train4 calibration bounds each auxiliary
+value and output-gradient norm to5%base; no cross-replan guarantee or test tuning.
+4 focused CPU tests pass. New worker has actual no-Kit import assertion, prefix/online
+history, disposable12-update fit; Image additionally checks real RGB-D/cache first/tail.
+Formal jobs keep seed20261102, original batch/split/statistics,10000 LR horizon, serial
+50/100/200 supervision then1000/3000/6000/10000. Runtime results still pending at commit.
+Each stage is durable, source/config frozen, atomic checkpoints restore optimizer/EMA/
+all RNG and sampler, validation metrics include29joints/FK/rotation/fingers/continuity.
+Evaluation is deferred until both offline jobs finish, using saved milestone weights and
+fixedtrain4+validation8; six distinct diagnostic cases,96evaluationstarts,no Kit retries.
+SDK runtime/close/resource-release recorded separately; no false graceful-exit claims.
+Official5.1 SimulationApp and6.0 release notes plusIsaacLab4630 consulted; later SDK
+framework GIL deadlock fix is a hypothesis for local diagnosis, not proof or shared patch.
+Source code tests do not establish actual200updates, recovery or training success.
+
 ## 2026-11-04 最终：inotify恢复，SDK关闭仍阻塞，训练0updates
 
 用户批准的父docs deliverables-only watcher排除已应用；恢复及最终探针256/256，

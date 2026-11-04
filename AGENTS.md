@@ -1,5 +1,22 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest override — decoupled offline State/Image training, 2026-11-04
+
+User explicitly replaces the repeated three-normal-SDK-exit prerequisite. Preserve
+state_image_20261104_01 blocked evidence unchanged. New version may train offline
+without Kit once data/loss/history/restore contracts pass; audit actual imports.
+Implement planned LossB+train-only calibrated geometry/continuity, unchanged models,
+H24/commit12/sample/original batch, new10000-update horizon, serial State thenImage00.
+Supervise50/100/200 realupdates with finite gradients/resources/validation/checkpoint
+reload, then milestones1000/3000/6000/10000; Image is not gated on State task success.
+Keep evaluation separately isolated with real runtime/shutdown/resource-release status;
+shutdown faults cannot be marked graceful or invalidate otherwise verified training.
+Investigate minimalKit/baseenv/expert, STOP callbacks, diagnostic threads and SDK fast
+shutdown against NVIDIA official docs/public bugs. No shared SDK modification, reuse,
+old-run budget reset, unrelated process changes or test-set tuning. New bounded probes
+are diagnostic, never another three-consecutive-exit gate. Publish reviewed small results
+and automatically retain/evaluate milestone checkpoints in the new persistent queue.
+
 ## Latest — State/Image Kit gate blocked after approved resource fix
 
 Read STATE_IMAGE_DP_IMPROVEMENT and state_image_20261104_01/status.json.

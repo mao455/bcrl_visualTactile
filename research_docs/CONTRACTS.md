@@ -1,3 +1,15 @@
+## 2026-11-04 offline improvement identity
+
+New `position_geometry_sample_v1` objective is recorded in training configuration and
+checkpoint loss_id under a new root; existing inference tensor/action contracts remain
+unchanged. Formal initialization is fresh, original old weights cannot be resumed into
+this loss identity. Model/task data signatures and loss calibration SHA must match on
+resume. No simulator import is required for training; SDK shutdown admission belongs
+only to isolated evaluation and is reported independently from native task outcomes.
+Geometry supervises future clean target labels only. No new input channel is added to
+Image00; current/future expert actions and privileged geometry remain forbidden inputs.
+Within-chunk temporal differences do not establish replan overlap consistency.
+
 # Audited contracts
 
 ## 2026-11-03 H24 prediction parameterization

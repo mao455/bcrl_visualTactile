@@ -1,0 +1,15 @@
+[Unit]
+Description=Serial Kit-independent State and Image training with isolated evaluation
+
+[Service]
+Type=simple
+WorkingDirectory=%h/docs/bc+rl_RSS_native_v2
+ExecStart=/usr/bin/bash %h/docs/bc+rl_RSS_native_v2/visuotactile/run_cpu.sh -m tools.state_image_queue run --root %h/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02
+StandardOutput=append:%h/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/owner.log
+StandardError=inherit
+Restart=no
+KillMode=control-group
+TimeoutStopSec=90
+CPUWeight=10
+IOWeight=10
+Environment=PYTHONUNBUFFERED=1
