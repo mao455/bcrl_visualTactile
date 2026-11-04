@@ -1,49 +1,49 @@
 {
   "status": {
-    "state": "blocked",
-    "pid": null,
-    "heartbeat": null,
-    "stage": "StateDP_00_attempt_1",
-    "reason": "Non-startup fault requires targeted repair: startup_or_runtime_software_missing",
-    "completed": 0,
-    "planned": 24,
-    "worker_pid": null,
-    "finished": 1793784035.860814
+    "state": "awaiting_supervised_review",
+    "pid": 3268619,
+    "heartbeat": 1793784520.2963183,
+    "stage": "first_four_complete",
+    "completed": 4,
+    "planned": 24
   },
   "models": {
     "StateDP": {
-      "valid": 0,
+      "valid": 2,
       "success": 0,
-      "rate": null,
-      "attempts": 1,
+      "rate": 0.0,
+      "attempts": 3,
       "planned": 12,
       "attempts_without_result": 1,
       "software_faults": 1,
       "shutdown_faults": 0,
-      "pending": 12,
+      "pending": 10,
       "stages": {
-        "native_lift": 0,
+        "native_lift": 1,
         "native_subgoals": 0,
         "native_alignment": 0,
         "success": 0
       },
       "diagnostics": {
-        "approach": 0,
-        "contact": 0,
+        "approach": 2,
+        "contact": 2,
         "stable_grasp": 0
       },
-      "reasons": {}
+      "reasons": {
+        "fall": 1,
+        "timeout": 1
+      }
     },
     "ImageDP": {
-      "valid": 0,
+      "valid": 2,
       "success": 0,
-      "rate": null,
-      "attempts": 0,
+      "rate": 0.0,
+      "attempts": 2,
       "planned": 12,
       "attempts_without_result": 0,
       "software_faults": 0,
       "shutdown_faults": 0,
-      "pending": 12,
+      "pending": 10,
       "stages": {
         "native_lift": 0,
         "native_subgoals": 0,
@@ -51,11 +51,13 @@
         "success": 0
       },
       "diagnostics": {
-        "approach": 0,
+        "approach": 2,
         "contact": 0,
         "stable_grasp": 0
       },
-      "reasons": {}
+      "reasons": {
+        "timeout": 2
+      }
     }
   },
   "attempts": [
@@ -77,9 +79,622 @@
       "reaped": true,
       "valid": false,
       "classification": "startup_or_runtime_software_missing"
+    },
+    {
+      "id": "StateDP_00_attempt_2",
+      "model": "StateDP",
+      "ordinal": 0,
+      "number": 2,
+      "output": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_00_attempt_2/output",
+      "started": 1793784110.331702,
+      "pid": 3268637,
+      "finished": 1793784166.723183,
+      "exit_code": 0,
+      "timeout": null,
+      "remaining_owned_pids": [],
+      "remaining_owned_gpu_pids": [],
+      "unexpected_cgroup_pids": [],
+      "resources_released": true,
+      "reaped": true,
+      "valid": true,
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000000",
+        "cohort": "train",
+        "seed": 982401,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 223,
+        "native_lift": true,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.06044318899512291,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 2,
+          "two_finger_continuous_s": 0.18333333333333332,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.01868584379553795,
+          "arm_internal_jump_rms_rad": 0.013183566741645336,
+          "arm_acceleration_rms_rad_s2": 88.82324981689453,
+          "arm_boundary_acceleration_rms_rad_s2": 76.52101135253906,
+          "arm_internal_acceleration_rms_rad_s2": 90.96691131591797,
+          "arm_speed_rms_rad_s": 0.8220463804900646,
+          "hand_boundary_jump_rms_rad": 0.0826621949672699,
+          "hand_internal_jump_rms_rad": 0.03051880933344364,
+          "hand_acceleration_rms_rad_s2": 184.6380157470703,
+          "hand_boundary_acceleration_rms_rad_s2": 333.2084655761719,
+          "hand_internal_acceleration_rms_rad_s2": 139.6915283203125,
+          "hand_speed_rms_rad_s": 2.2444885969161987,
+          "arm_overlap_rms_rad": 0.022754250094294548,
+          "arm_aligned_first_rms_rad": 0.023523466661572456,
+          "hand_overlap_rms_rad": 0.12445911020040512,
+          "hand_aligned_first_rms_rad": 0.07899891585111618
+        },
+        "planning_latency_s": {
+          "count": 19,
+          "mean": 0.12585758847356038,
+          "p05": 0.09198244409635663,
+          "p50": 0.09316763503011316,
+          "p95": 0.1783043871168036,
+          "max": 0.6529545419616625
+        },
+        "native_history_latency_s": {
+          "count": 204,
+          "mean": 0.0047214572037131905,
+          "p05": 0.003847049979958683,
+          "p50": 0.004091212467756122,
+          "p95": 0.008190346579067406,
+          "max": 0.02309911896008998
+        }
+      },
+      "trace_sha256": "a9a58d66fe6fa82388da1cecadeb16a862b9f95afa863075cba40d04c4d1dad5",
+      "controller_audit": {
+        "model": "StateDP",
+        "updates": 10000,
+        "checkpoint_sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+        "act_calls": 223,
+        "execution_acks": 223,
+        "episode_ids": [
+          0
+        ],
+        "ticks": [],
+        "model_output_only": true,
+        "teacher_forcing": false,
+        "expert_takeover": false,
+        "created_utc": 1793784112.607041,
+        "history_initially_empty": true,
+        "model_class": "PersistentState",
+        "model_contract": {
+          "version": 3,
+          "action": "absolute_joint_position_target_rad",
+          "horizon": 24,
+          "commit": 12,
+          "native_history": 13,
+          "visual_history": 3,
+          "native_hz": 60,
+          "physics_hz": 120,
+          "observation": "actor141_robot178_geometry85_v2",
+          "prediction_type": "sample",
+          "loss": "B",
+          "train_noise_steps": 100,
+          "inference_steps": 16,
+          "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+          "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+          "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+          "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+          "geometry_hz": 60,
+          "action_contract": "position_rad_v1"
+        },
+        "completed": true
+      },
+      "video": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_00_attempt_2/output/r931005_1793209376_e00_p000000/rollout.mp4",
+        "sha256": "170afaed566bf78a20b5f4fb603d9da9ee49fec1cf4be5fb78a7a990392bfee3",
+        "decoded_frames": 223,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "result_sha256": "f12ea2300175da043482fb9f82b807922f554758c60466989364d8ad21f2559e",
+      "classification": "sdk_fast_exit_zero"
+    },
+    {
+      "id": "ImageDP_00_attempt_1",
+      "model": "ImageDP",
+      "ordinal": 0,
+      "number": 1,
+      "output": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_00_attempt_1/output",
+      "started": 1793784171.150417,
+      "pid": 3270298,
+      "finished": 1793784273.8867779,
+      "exit_code": 0,
+      "timeout": null,
+      "remaining_owned_pids": [],
+      "remaining_owned_gpu_pids": [],
+      "unexpected_cgroup_pids": [],
+      "resources_released": true,
+      "reaped": true,
+      "valid": true,
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000000",
+        "cohort": "train",
+        "seed": 982401,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.03967437148094177,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": false,
+          "max_fingers": 0,
+          "two_finger_continuous_s": 0.0,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.02140836790204048,
+          "arm_internal_jump_rms_rad": 0.01408859807997942,
+          "arm_acceleration_rms_rad_s2": 96.16200256347656,
+          "arm_boundary_acceleration_rms_rad_s2": 98.61438751220703,
+          "arm_internal_acceleration_rms_rad_s2": 95.67377471923828,
+          "arm_speed_rms_rad_s": 0.8894405700266361,
+          "hand_boundary_jump_rms_rad": 0.08934187889099121,
+          "hand_internal_jump_rms_rad": 0.03185758739709854,
+          "hand_acceleration_rms_rad_s2": 219.2903289794922,
+          "hand_boundary_acceleration_rms_rad_s2": 359.2923278808594,
+          "hand_internal_acceleration_rms_rad_s2": 179.45851135253906,
+          "hand_speed_rms_rad_s": 2.3887552320957184,
+          "arm_overlap_rms_rad": 0.028675606474280357,
+          "arm_aligned_first_rms_rad": 0.022144988179206848,
+          "hand_overlap_rms_rad": 0.11391182243824005,
+          "hand_aligned_first_rms_rad": 0.0847272202372551
+        },
+        "planning_latency_s": {
+          "count": 0,
+          "mean": null,
+          "p05": null,
+          "p50": null,
+          "p95": null,
+          "max": null
+        },
+        "native_history_latency_s": {
+          "count": 0,
+          "mean": null,
+          "p05": null,
+          "p50": null,
+          "p95": null,
+          "max": null
+        }
+      },
+      "trace_sha256": "115cac83be129587071d98561ef5a124eb0e1372a6a9dbb21b211c50466bd93f",
+      "controller_audit": {
+        "model": "ImageDP",
+        "updates": 10000,
+        "checkpoint_sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+        "act_calls": 601,
+        "execution_acks": 601,
+        "episode_ids": [
+          0
+        ],
+        "ticks": [],
+        "model_output_only": true,
+        "teacher_forcing": false,
+        "expert_takeover": false,
+        "created_utc": 1793784173.3478522,
+        "history_initially_empty": true,
+        "model_class": "NativePolicy",
+        "model_contract": {
+          "version": 3,
+          "action": "absolute_joint_position_target_rad",
+          "horizon": 24,
+          "commit": 12,
+          "native_history": 13,
+          "visual_history": 3,
+          "native_hz": 60,
+          "physics_hz": 120,
+          "observation": "I-HistoryDP_robot178_rgbd_no_privileged_v1",
+          "prediction_type": "sample",
+          "loss": "B",
+          "train_noise_steps": 100,
+          "inference_steps": 16,
+          "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+          "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+          "action_contract": "position_rad_v1"
+        },
+        "completed": true
+      },
+      "video": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_00_attempt_1/output/r931005_1793209376_e00_p000000/rollout.mp4",
+        "sha256": "8c5737ce35a722093920eb47d2bdf63d10bed09bac0ca843dd006af41f54ccf4",
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "result_sha256": "b6dafeebac66a9fff715e4b7eff2b5f5b071f1623eeb1e58e3afba4694dd8b6d",
+      "classification": "sdk_fast_exit_zero"
+    },
+    {
+      "id": "StateDP_01_attempt_1",
+      "model": "StateDP",
+      "ordinal": 1,
+      "number": 1,
+      "output": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_01_attempt_1/output",
+      "started": 1793784276.5547264,
+      "pid": 3273410,
+      "finished": 1793784397.6026258,
+      "exit_code": 0,
+      "timeout": null,
+      "remaining_owned_pids": [],
+      "remaining_owned_gpu_pids": [],
+      "unexpected_cgroup_pids": [],
+      "resources_released": true,
+      "reaped": true,
+      "valid": true,
+      "trial": {
+        "identity": "r931005_1793209376_e03_p000159",
+        "cohort": "train",
+        "seed": 982402,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.031344082206487656,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": true,
+          "max_fingers": 1,
+          "two_finger_continuous_s": 0.0,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.026735275983810425,
+          "arm_internal_jump_rms_rad": 0.01183199044317007,
+          "arm_acceleration_rms_rad_s2": 87.60296630859375,
+          "arm_boundary_acceleration_rms_rad_s2": 120.38180541992188,
+          "arm_internal_acceleration_rms_rad_s2": 79.60850524902344,
+          "arm_speed_rms_rad_s": 0.8205576986074448,
+          "hand_boundary_jump_rms_rad": 0.07943089306354523,
+          "hand_internal_jump_rms_rad": 0.02626177854835987,
+          "hand_acceleration_rms_rad_s2": 185.67312622070312,
+          "hand_boundary_acceleration_rms_rad_s2": 322.4356994628906,
+          "hand_internal_acceleration_rms_rad_s2": 144.39169311523438,
+          "hand_speed_rms_rad_s": 2.0342999696731567,
+          "arm_overlap_rms_rad": 0.021633168682456017,
+          "arm_aligned_first_rms_rad": 0.02461157739162445,
+          "hand_overlap_rms_rad": 0.11115388572216034,
+          "hand_aligned_first_rms_rad": 0.08654025942087173
+        },
+        "planning_latency_s": {
+          "count": 51,
+          "mean": 0.1367916907275132,
+          "p05": 0.09262259351089597,
+          "p50": 0.09697376610711217,
+          "p95": 0.3236488740076311,
+          "max": 0.5106764710508287
+        },
+        "native_history_latency_s": {
+          "count": 550,
+          "mean": 0.005864957818253474,
+          "p05": 0.0038668504683300855,
+          "p50": 0.004259521432686597,
+          "p95": 0.018184899364132433,
+          "max": 0.03166631399653852
+        }
+      },
+      "trace_sha256": "fb3fd69fa8b6c34459d8b566e4997651dac55c5842d87f0b067afbcf3965d117",
+      "controller_audit": {
+        "model": "StateDP",
+        "updates": 10000,
+        "checkpoint_sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+        "act_calls": 601,
+        "execution_acks": 601,
+        "episode_ids": [
+          0
+        ],
+        "ticks": [],
+        "model_output_only": true,
+        "teacher_forcing": false,
+        "expert_takeover": false,
+        "created_utc": 1793784278.7650642,
+        "history_initially_empty": true,
+        "model_class": "PersistentState",
+        "model_contract": {
+          "version": 3,
+          "action": "absolute_joint_position_target_rad",
+          "horizon": 24,
+          "commit": 12,
+          "native_history": 13,
+          "visual_history": 3,
+          "native_hz": 60,
+          "physics_hz": 120,
+          "observation": "actor141_robot178_geometry85_v2",
+          "prediction_type": "sample",
+          "loss": "B",
+          "train_noise_steps": 100,
+          "inference_steps": 16,
+          "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+          "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+          "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+          "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+          "geometry_hz": 60,
+          "action_contract": "position_rad_v1"
+        },
+        "completed": true
+      },
+      "video": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_01_attempt_1/output/r931005_1793209376_e03_p000159/rollout.mp4",
+        "sha256": "5ed9c97835db1f9b31b916eb08eec8009e98789e35b18ecfd4634f4c83ef5617",
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "result_sha256": "2fc35b5d13ae2be8ad17123fe4f90eb1c20884d573c3a9fcf9f7512103dcf9ad",
+      "classification": "sdk_fast_exit_zero"
+    },
+    {
+      "id": "ImageDP_01_attempt_1",
+      "model": "ImageDP",
+      "ordinal": 1,
+      "number": 1,
+      "output": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_01_attempt_1/output",
+      "started": 1793784400.2775767,
+      "pid": 3277381,
+      "finished": 1793784519.4257061,
+      "exit_code": 0,
+      "timeout": null,
+      "remaining_owned_pids": [],
+      "remaining_owned_gpu_pids": [],
+      "unexpected_cgroup_pids": [],
+      "resources_released": true,
+      "reaped": true,
+      "valid": true,
+      "trial": {
+        "identity": "r931005_1793209376_e03_p000159",
+        "cohort": "train",
+        "seed": 982402,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "steps": 601,
+        "native_lift": false,
+        "native_subgoals": 0,
+        "native_alignment": false,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "096975371c28190008563d052b133d00c9529c541913d87dd96b5023b40fcfcb",
+        "checkpoint_sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 5,
+        "action_control_mode": "absolute_joint_position_target_rad",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.05167257785797119,
+        "submitted_target_max_error": 0.0,
+        "contact": {
+          "object_contact": false,
+          "max_fingers": 0,
+          "two_finger_continuous_s": 0.0,
+          "stable_grasp_diagnostic": false,
+          "object_contact_threshold_N": 0.1,
+          "stable_window_s": 0.2,
+          "scope": "filtered normal forces; not native success"
+        },
+        "approach_proxy": true,
+        "inference": {
+          "inference_steps": 16,
+          "clip_sample": false,
+          "sampler_seed": 7091
+        },
+        "plan_consistency": {
+          "arm_boundary_jump_rms_rad": 0.026168501004576683,
+          "arm_internal_jump_rms_rad": 0.011056283488869667,
+          "arm_acceleration_rms_rad_s2": 78.8886489868164,
+          "arm_boundary_acceleration_rms_rad_s2": 106.33920288085938,
+          "arm_internal_acceleration_rms_rad_s2": 72.29409790039062,
+          "arm_speed_rms_rad_s": 0.7783286087214947,
+          "hand_boundary_jump_rms_rad": 0.07652801275253296,
+          "hand_internal_jump_rms_rad": 0.032921865582466125,
+          "hand_acceleration_rms_rad_s2": 178.26060485839844,
+          "hand_boundary_acceleration_rms_rad_s2": 278.0962829589844,
+          "hand_internal_acceleration_rms_rad_s2": 151.14024353027344,
+          "hand_speed_rms_rad_s": 2.3038852214813232,
+          "arm_overlap_rms_rad": 0.025012286379933357,
+          "arm_aligned_first_rms_rad": 0.025932956486940384,
+          "hand_overlap_rms_rad": 0.10245285928249359,
+          "hand_aligned_first_rms_rad": 0.07094354927539825
+        },
+        "planning_latency_s": {
+          "count": 0,
+          "mean": null,
+          "p05": null,
+          "p50": null,
+          "p95": null,
+          "max": null
+        },
+        "native_history_latency_s": {
+          "count": 0,
+          "mean": null,
+          "p05": null,
+          "p50": null,
+          "p95": null,
+          "max": null
+        }
+      },
+      "trace_sha256": "ca53457d3baba9726d24aa739f241c0e1fb966278ce7531ac8c6eeff49241964",
+      "controller_audit": {
+        "model": "ImageDP",
+        "updates": 10000,
+        "checkpoint_sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+        "act_calls": 601,
+        "execution_acks": 601,
+        "episode_ids": [
+          0
+        ],
+        "ticks": [],
+        "model_output_only": true,
+        "teacher_forcing": false,
+        "expert_takeover": false,
+        "created_utc": 1793784402.5775054,
+        "history_initially_empty": true,
+        "model_class": "NativePolicy",
+        "model_contract": {
+          "version": 3,
+          "action": "absolute_joint_position_target_rad",
+          "horizon": 24,
+          "commit": 12,
+          "native_history": 13,
+          "visual_history": 3,
+          "native_hz": 60,
+          "physics_hz": 120,
+          "observation": "I-HistoryDP_robot178_rgbd_no_privileged_v1",
+          "prediction_type": "sample",
+          "loss": "B",
+          "train_noise_steps": 100,
+          "inference_steps": 16,
+          "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+          "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+          "action_contract": "position_rad_v1"
+        },
+        "completed": true
+      },
+      "video": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_01_attempt_1/output/r931005_1793209376_e03_p000159/rollout.mp4",
+        "sha256": "decee41d74a0a92ffa7e2a25e22bcc56c5ffef1e34404c43cbb198ec14b0a8d5",
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "result_sha256": "2223a707e33de73e27f352c67feab8571d4749f5bd3e9a6e6744db7bccb4ee01",
+      "classification": "sdk_fast_exit_zero"
     }
   ],
-  "pairs": [],
+  "pairs": [
+    {
+      "ordinal": 0,
+      "passed": true,
+      "observable_equal": true,
+      "environment_rng_equal": true,
+      "initial_export_equal": true
+    },
+    {
+      "ordinal": 1,
+      "passed": true,
+      "observable_equal": true,
+      "environment_rng_equal": true,
+      "initial_export_equal": true
+    }
+  ],
   "planned_model_episodes": 24,
   "maximum_starts": 30,
   "checkpoints": {
@@ -100,6 +715,6 @@
       "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
     }
   },
-  "source_commit": "c6ce92165cf8181d712097c65b560be714b82363",
-  "updated": 1793784035.896055
+  "source_commit": "7802ab253d284f537fbbf5e645009b96c12ec7cc",
+  "updated": 1793784587.2841687
 }
