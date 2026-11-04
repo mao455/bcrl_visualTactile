@@ -1,5 +1,27 @@
 # Play2Perfect visual–tactile imitation research
 
+## Current — H24 anchor-batch continuation authorized, 2026-11-04
+
+Latest user attachment authorizes actual sampling/budget/LR changes and continuation from
+existing StateDP/ImageDP10000, superseding the completed diagnosis no-training clause.
+Read ANCHOR_BATCH_CONTINUATION and anchor_continue_20261104_01/status.json. H24/commit12,
+29D absolute targets, model/history, original data/split/statistics, controller and frozen
+Loss B plus calibrated auxiliary weights remain unchanged. No BC/residual/new collection.
+Old checkpoint sampler replay exactly confirms133354anchors/5547=24.04074anchor epochs,
+20000segments/832=24.03846segment epochs, finalLR0. New batch64 distinctepisodes, one
+native anchor each; per-episode shuffled anchor decks, current-weight complete causal
+prefix and unchanged96tick TBPTT boundaries. Accumulate4x16 with separate valid-target
+and temporal-pair denominators. Preserve model/EMA/AdamW moments/step/RNG; new sampler
+schema and200step warmup3e-6→3e-5 thencosine to3e-6 at cumulative300anchor epochs.
+First supervise5/15/50 actual continuation updates/reloads, then background50/100/150/
+200/300 cumulativeanchor milestones. Statefirst; validation40 with preservedbest and
+bounded regression/plateau decisions. Stateclosedloop fixedvalidation4, expandfrozen12
+only on nativeprogress. Image waits for Stateprogress AND strict liveinput duplicate
+pair includingRGB-D/DINO/history/condition/diffusionRNG. No test40 or relaxed pair gate.
+Newroot has72h safetydeadline, serialGPU, independentKit,max28starts/2recoveries; preserve
+all originals and diagnostics. Four focusedCPU sampler/gradient/LR tests pass; actual
+GPU contracts/smoke remain pending until new machine evidence. No duplicate owners.
+
 ## Completed — final grasp diagnosis, 2026-11-04
 
 Read research_docs/GRASP_FAILURE_DIAGNOSIS and execution_manifest. Original StateDP/ImageDP

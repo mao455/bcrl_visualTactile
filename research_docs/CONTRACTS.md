@@ -368,3 +368,14 @@ memory2在线不保留未使用的原图滑窗时，仍按episode/step验证连�
 原生阶段上限实测601步，子目标会重置计数；外部2400不裁短2子目标＋撤手的保守1803步允许量。
 关键执行NPZ为诊断记录，不伪装成完整训练轨迹；未保存的原始图像不能从特征宣称可还原。
 实测与限制见BASELINE_TRAINING末尾，训练未因本次修改重新开始。
+
+## 2026-11-04 Anchor continuation sampler v1
+
+Checkpoint action/model contract unchanged (H24,position_rad_v1). New training config stores
+episode-balanced one-anchor-per-episode batch64, microbatch4, per-episode anchor deck state
+and counts, scheduler local continuation step, cumulative optimizer/EMA steps and old anchor
+exposure. New sampler starts with the saved old sampler RNG; its old segment permutation
+is archived, not reinterpreted. Prefix recomputation and96tick detach boundaries are
+unchanged. Separate valid-target and valid-adjacent-pair denominators preserve frozen
+loss under accumulation. New schedule never inherits the zero terminal LR. No inference
+precision/overlap changes: old/new comparison uses the same original controller.

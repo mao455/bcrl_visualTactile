@@ -35,7 +35,7 @@ def run(root, output, job_path):
             copied_user_config_sha256=sha(root/'freeze/user.config.json')))
         return app
     launcher.AppLauncher = isolated_launcher
-    audit = dict(model=job['model'], updates=10000, checkpoint_sha256=job['checkpoint_sha256'],
+    audit = dict(model=job['model'], updates=job.get('updates',10000), checkpoint_sha256=job['checkpoint_sha256'],
         act_calls=0, execution_acks=0, episode_ids=[], ticks=[], model_output_only=True,
         teacher_forcing=False, expert_takeover=False, created_utc=time.time())
 
@@ -78,7 +78,7 @@ def run(root, output, job_path):
     class Video(original_video):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.title = f"{job['model']} | updates 10000 | {job['specs'][0]['identity']} | autonomous"
+            self.title = f"{job['model']} | updates {job.get('updates',10000)} | {job['specs'][0]['identity']} | autonomous"
     base.RolloutVideo = Video
     evaluate(root, output, job_path)
 

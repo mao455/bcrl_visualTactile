@@ -370,3 +370,7 @@ H24/commit12/sample/DDIM16/原post-delay位置29D；Loss B保留，train-only校
 ### 2026-11-04追加：先解释最终0/12，不盲目重训
 
 用户要求专家post-delay29D target经当前DP接口严格回放（等价旧证据可复用），完整离线/在线输入与历史一致性，24条失败和配对专家同口径手指/接触分析；通过后少量单因素推理消融。不得直接重训两组10000，若接口bug先修并评估旧权重；原结果/失败保留，代码小报告push当前origin功能分支。新身份grasp_diagnosis_20261104_01，具体冻结预算、数值阈值、实际PASS/FAIL见GRASP_FAILURE_DIAGNOSIS，不将建议当新训练授权。
+
+### 2026-11-04：采样与预算实际改进，基于10000继续
+
+用户明确授权batch64（必要时32/累积）、采样器、学习率/调度、预算/缓存/恢复改进；不得从随机初始化、换H24/29D绝对动作、模型/GRU/几何loss或原控制/数据。先精确核算anchor曝光与片段/轨迹区别，完成正确前缀/累积梯度/恢复合同和监督，再State累计150–300anchor等效epoch，验证和小闭环后决定Image；Image先解决严格live输入配对问题。原模型/数据/结果保留，训练与Kit独立，允许 reviewed code/docs/小图表 push origin feature。

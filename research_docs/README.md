@@ -1,3 +1,7 @@
+# H24多轨迹anchor续训
+
+[最新报告与实际进度](ANCHOR_BATCH_CONTINUATION.md)：从两个10000 checkpoint续训，先State，Image受闭环进展与严格输入配对门槛约束。
+
 # 最终10000模型闭环
 
 最新：[抓取失败归因诊断](GRASP_FAILURE_DIAGNOSIS.md)。正式State/Image均0/12已完成；
