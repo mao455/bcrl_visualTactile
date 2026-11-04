@@ -1,3 +1,15 @@
+# 2026-11-04 opt-in diagnostic encoder precision and plan overlap
+
+Only new grasp_diagnosis_20261104_01 workers may reconstruct current canonical encoderq
+as existing obs.actuator_target_rad - obs.tracking_error_rad, avoiding normalized-proprio
+inverse rounding. This uses current measured robot information, no new privileged/tactile
+inputs. Original live/controller source remains unchanged; checkpoint tensors untouched.
+Raw decode failed normalized2e-5 threshold; new fulltrajectory finalEMA check passed without
+changing tolerance. This is numerical parity evidence, not proof of performance causality.
+K4 uses prior future[12:16] andnew[0:4] atweights.25/.5/.75/1, retainscursor andDDIM draws.
+Precision-only andprecision+K4 eachrunexacttwofixedinitials/model, first12ticks mustmatch.
+No expert teacherforcing in simulation; offline numerical parity explicitly uses expertpast.
+
 ## 2026-11-04 — Final10000 evaluation accounting
 
 Valid outcome requires original legal initialization, native full termination, finite durable trace, checkpoint/environment SHA match, unchanged actuator targets and completed policy/history audit. Nonzero shutdown can retain verified outcome while remaining a software fault. Startup missing never enters task-success denominator; planned24coverage and all softwareattempts are shown. Native approach/stable-grasp booleans do not exist; existing diagnostics remain explicitly distinct. Exact saved observables/event RNG/physical exports are compared; full hidden PhysX replay is not claimed.

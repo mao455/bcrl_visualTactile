@@ -1,0 +1,4734 @@
+{
+  "replay": {
+    "passed": true,
+    "reused": true,
+    "new_kit_starts": 0,
+    "original_source": "c7fcbb0",
+    "unchanged_execution_function_AST": {
+      "bounded_targets": true,
+      "apply_position_targets": true
+    },
+    "unchanged_core_file_SHA": {
+      "visuotactile/sim/environment.py": true,
+      "isaacsimenvs/tasks/play/play_env.py": true,
+      "isaacsimenvs/tasks/play/utils/action_utils.py": true
+    },
+    "rows": [
+      {
+        "identity": "fresh_982501",
+        "steps": 168,
+        "success": true,
+        "mode": "absolute_joint_position_target_rad",
+        "bytewise_fields": {
+          "actor": true,
+          "target": true,
+          "joint": true,
+          "actuator_targets": true,
+          "velocity": true,
+          "object": true,
+          "contact": true,
+          "object_contact": true,
+          "force": true,
+          "torque": true,
+          "lifted": true,
+          "subgoals": true,
+          "retract": true,
+          "alignment": true
+        },
+        "submitted_target_max_rad": 0.0,
+        "actuator_target_max_rad": 0.0,
+        "tracking_rms_rad": 0.08541621267795563,
+        "reference": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_single_00/fresh_982501",
+        "replay": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/position_replay_single_00/fresh_982501",
+        "reference_trace_sha256": "719d2196c363fc6d45b196756e97a039194ccbf645c7e39c93a5efaed79b8a4c",
+        "replay_trace_sha256": "873ade05188522861cf5013a58bb63ad8e23a5c40eea6c2bf892dbb3af1b5fae",
+        "passed": true
+      },
+      {
+        "identity": "fresh_982502",
+        "steps": 153,
+        "success": true,
+        "mode": "absolute_joint_position_target_rad",
+        "bytewise_fields": {
+          "actor": true,
+          "target": true,
+          "joint": true,
+          "actuator_targets": true,
+          "velocity": true,
+          "object": true,
+          "contact": true,
+          "object_contact": true,
+          "force": true,
+          "torque": true,
+          "lifted": true,
+          "subgoals": true,
+          "retract": true,
+          "alignment": true
+        },
+        "submitted_target_max_rad": 0.0,
+        "actuator_target_max_rad": 0.0,
+        "tracking_rms_rad": 0.10631556063890457,
+        "reference": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_single_01/fresh_982502",
+        "replay": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/position_replay_single_01/fresh_982502",
+        "reference_trace_sha256": "c752bad993a7dc2deb7d29f16087de397a3cfbf1f6a65ed66d7388a7e17d1496",
+        "replay_trace_sha256": "cc40749e288b3780c5652866422b1625312d2f88733514a7d3944af64f939800",
+        "passed": true
+      }
+    ],
+    "scope": "Recorded post-delay/EMA target radians replayed through current DP absolute interface; not native-command replay. Only saved physical fields claim bytewise equality."
+  },
+  "rows": [
+    {
+      "model": "StateDP",
+      "ordinal": 0,
+      "identity": "r931005_1793209376_e00_p000000",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_00_attempt_2/output/r931005_1793209376_e00_p000000",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_00/r931005_1793209376_e00_p000000",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 145,
+      "expert_steps": 145,
+      "student_steps": 223,
+      "expert_events": {
+        "contact_tick": 51,
+        "lift_tick": 79,
+        "subgoal_tick": 110,
+        "alignment_tick": 110,
+        "fall_tick": null,
+        "success_tick": 144
+      },
+      "student_events": {
+        "contact_tick": 46,
+        "lift_tick": 85,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 222,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 9,
+        "actual_arm_rad": 13,
+        "actual_hand_rad": 17,
+        "target_arm_rad": 2,
+        "target_hand_rad": 15,
+        "object_mm": 47,
+        "object_rotation_deg": 51
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.016250651329755783,
+        "arm_jump_internal_rms_rad": 0.008637390099465847,
+        "hand_jump_boundary_rms_rad": 0.06065937504172325,
+        "hand_jump_internal_rms_rad": 0.03081810101866722,
+        "arm_tracking_rms_rad": 0.009746488183736801,
+        "hand_tracking_rms_rad": 0.0808989480137825
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023918822407722473,
+        "arm_jump_internal_rms_rad": 0.002418806776404381,
+        "hand_jump_boundary_rms_rad": 0.033076491206884384,
+        "hand_jump_internal_rms_rad": 0.037814874202013016,
+        "arm_tracking_rms_rad": 0.008269628509879112,
+        "hand_tracking_rms_rad": 0.10312467813491821
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.01868584379553795,
+        "arm_jump_internal_rms_rad": 0.013154436834156513,
+        "hand_jump_boundary_rms_rad": 0.08141598105430603,
+        "hand_jump_internal_rms_rad": 0.029094111174345016,
+        "arm_tracking_rms_rad": 0.011247108690440655,
+        "hand_tracking_rms_rad": 0.06910548359155655
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023918822407722473,
+        "arm_jump_internal_rms_rad": 0.002418806776404381,
+        "hand_jump_boundary_rms_rad": 0.033076491206884384,
+        "hand_jump_internal_rms_rad": 0.037814874202013016,
+        "arm_tracking_rms_rad": 0.008269628509879112,
+        "hand_tracking_rms_rad": 0.10312467813491821
+      },
+      "clip": {
+        "maximum_tick": 133,
+        "joint": "left_pinky_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.11824167519807816,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          7,
+          10,
+          1,
+          0,
+          20,
+          9,
+          28,
+          0,
+          43,
+          37,
+          33,
+          140,
+          33,
+          48,
+          6,
+          10,
+          6,
+          31,
+          150,
+          13
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 625,
+      "expert_post_delay_target_at_limits_joint_ticks": 101,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 95,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.054264530539512634,
+          "max_hand_tracking_rad": 0.084793321788311,
+          "max_clipping_rad": 0.04738190770149231
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 131,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.07388998568058014,
+          "max_hand_tracking_rad": 0.14110270142555237,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 9.49983185927516,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_00_attempt_2/output/r931005_1793209376_e00_p000000/trace.npz": "a9a58d66fe6fa82388da1cecadeb16a862b9f95afa863075cba40d04c4d1dad5",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_00_attempt_2/output/r931005_1793209376_e00_p000000/plans.npz": "4c3e5fbeaacfcc429c7b3c38f77f0140e96584b36e957714df8ab4018d00d315",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_00/r931005_1793209376_e00_p000000/trace.npz": "af178a9fcc9c393ea68bd7707d69af387cae86916a1478cde194df757145b884"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 0,
+      "identity": "r931005_1793209376_e00_p000000",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_00_attempt_1/output/r931005_1793209376_e00_p000000",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_00/r931005_1793209376_e00_p000000",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 145,
+      "expert_steps": 145,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 51,
+        "lift_tick": 79,
+        "subgoal_tick": 110,
+        "alignment_tick": 110,
+        "fall_tick": null,
+        "success_tick": 144
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 6,
+        "actual_arm_rad": 6,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 4,
+        "target_hand_rad": 2,
+        "object_mm": 50,
+        "object_rotation_deg": 60
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.01949872262775898,
+        "arm_jump_internal_rms_rad": 0.010354959405958652,
+        "hand_jump_boundary_rms_rad": 0.06094162166118622,
+        "hand_jump_internal_rms_rad": 0.031059276312589645,
+        "arm_tracking_rms_rad": 0.010212784633040428,
+        "hand_tracking_rms_rad": 0.057892367243766785
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023918822407722473,
+        "arm_jump_internal_rms_rad": 0.002418806776404381,
+        "hand_jump_boundary_rms_rad": 0.033076491206884384,
+        "hand_jump_internal_rms_rad": 0.037814874202013016,
+        "arm_tracking_rms_rad": 0.008269628509879112,
+        "hand_tracking_rms_rad": 0.10312467813491821
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.02140836790204048,
+        "arm_jump_internal_rms_rad": 0.014036151580512524,
+        "hand_jump_boundary_rms_rad": 0.0776112973690033,
+        "hand_jump_internal_rms_rad": 0.02809957042336464,
+        "arm_tracking_rms_rad": 0.013351278379559517,
+        "hand_tracking_rms_rad": 0.044924087822437286
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023918822407722473,
+        "arm_jump_internal_rms_rad": 0.002418806776404381,
+        "hand_jump_boundary_rms_rad": 0.033076491206884384,
+        "hand_jump_internal_rms_rad": 0.037814874202013016,
+        "arm_tracking_rms_rad": 0.008269628509879112,
+        "hand_tracking_rms_rad": 0.10312467813491821
+      },
+      "clip": {
+        "maximum_tick": 287,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.19085630774497986,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          16,
+          94,
+          50,
+          288,
+          139,
+          0,
+          36,
+          212,
+          58,
+          0,
+          60,
+          8,
+          75,
+          482,
+          143,
+          308,
+          24,
+          328,
+          2,
+          75,
+          34,
+          47
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2479,
+      "expert_post_delay_target_at_limits_joint_ticks": 101,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 131,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.07388998568058014,
+          "max_hand_tracking_rad": 0.14110270142555237,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 50.427574854542186,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_00_attempt_1/output/r931005_1793209376_e00_p000000/trace.npz": "115cac83be129587071d98561ef5a124eb0e1372a6a9dbb21b211c50466bd93f",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_00_attempt_1/output/r931005_1793209376_e00_p000000/plans.npz": "2c909abc6f26134466a2fcf587beb934587844ba15b0297058952deb9193d923",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_00/r931005_1793209376_e00_p000000/trace.npz": "af178a9fcc9c393ea68bd7707d69af387cae86916a1478cde194df757145b884"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 1,
+      "identity": "r931005_1793209376_e03_p000159",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_01_attempt_1/output/r931005_1793209376_e03_p000159",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_01/r931005_1793209376_e03_p000159",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 171,
+      "expert_steps": 171,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 63,
+        "lift_tick": 89,
+        "subgoal_tick": 132,
+        "alignment_tick": 132,
+        "fall_tick": null,
+        "success_tick": 170
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 3,
+        "actual_arm_rad": 8,
+        "actual_hand_rad": 6,
+        "target_arm_rad": 0,
+        "target_hand_rad": 3,
+        "object_mm": 67,
+        "object_rotation_deg": 70
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.02697988972067833,
+        "arm_jump_internal_rms_rad": 0.007641270291060209,
+        "hand_jump_boundary_rms_rad": 0.06303436309099197,
+        "hand_jump_internal_rms_rad": 0.024894757196307182,
+        "arm_tracking_rms_rad": 0.011558102443814278,
+        "hand_tracking_rms_rad": 0.04582970589399338
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002464943565428257,
+        "arm_jump_internal_rms_rad": 0.002423320896923542,
+        "hand_jump_boundary_rms_rad": 0.030579684302210808,
+        "hand_jump_internal_rms_rad": 0.03418179601430893,
+        "arm_tracking_rms_rad": 0.008863319642841816,
+        "hand_tracking_rms_rad": 0.1013447567820549
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.026735275983810425,
+        "arm_jump_internal_rms_rad": 0.011813378892838955,
+        "hand_jump_boundary_rms_rad": 0.07216428965330124,
+        "hand_jump_internal_rms_rad": 0.025655295699834824,
+        "arm_tracking_rms_rad": 0.01014688890427351,
+        "hand_tracking_rms_rad": 0.035528723150491714
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002464943565428257,
+        "arm_jump_internal_rms_rad": 0.002423320896923542,
+        "hand_jump_boundary_rms_rad": 0.030579684302210808,
+        "hand_jump_internal_rms_rad": 0.03418179601430893,
+        "arm_tracking_rms_rad": 0.008863319642841816,
+        "hand_tracking_rms_rad": 0.1013447567820549
+      },
+      "clip": {
+        "maximum_tick": 240,
+        "joint": "left_pinky_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.18583868443965912,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          48,
+          0,
+          3,
+          435,
+          20,
+          34,
+          0,
+          58,
+          25,
+          14,
+          109,
+          49,
+          72,
+          68,
+          10,
+          16,
+          48,
+          382,
+          0
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 1406,
+      "expert_post_delay_target_at_limits_joint_ticks": 229,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 160,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05404479429125786,
+          "max_hand_tracking_rad": 0.10994765162467957,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 29.884857650077198,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_01_attempt_1/output/r931005_1793209376_e03_p000159/trace.npz": "fb3fd69fa8b6c34459d8b566e4997651dac55c5842d87f0b067afbcf3965d117",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_01_attempt_1/output/r931005_1793209376_e03_p000159/plans.npz": "5e77b64c311ca2f36f6cdff762168aeb4751f75847222e6a0a08148fb5dc50a4",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_01/r931005_1793209376_e03_p000159/trace.npz": "9a3aba5d094f4714c76bd41d6f2df9c034df1953f8200e8fbf861b650a9eddc2"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 1,
+      "identity": "r931005_1793209376_e03_p000159",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_01_attempt_1/output/r931005_1793209376_e03_p000159",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_01/r931005_1793209376_e03_p000159",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 171,
+      "expert_steps": 171,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 63,
+        "lift_tick": 89,
+        "subgoal_tick": 132,
+        "alignment_tick": 132,
+        "fall_tick": null,
+        "success_tick": 170
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 13,
+        "actual_arm_rad": 11,
+        "actual_hand_rad": 5,
+        "target_arm_rad": 9,
+        "target_hand_rad": 2,
+        "object_mm": 64,
+        "object_rotation_deg": 69
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.014247315004467964,
+        "arm_jump_internal_rms_rad": 0.006553479004651308,
+        "hand_jump_boundary_rms_rad": 0.053279951214790344,
+        "hand_jump_internal_rms_rad": 0.030062271282076836,
+        "arm_tracking_rms_rad": 0.009308500215411186,
+        "hand_tracking_rms_rad": 0.05652445927262306
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002464943565428257,
+        "arm_jump_internal_rms_rad": 0.002423320896923542,
+        "hand_jump_boundary_rms_rad": 0.030579684302210808,
+        "hand_jump_internal_rms_rad": 0.03418179601430893,
+        "arm_tracking_rms_rad": 0.008863319642841816,
+        "hand_tracking_rms_rad": 0.1013447567820549
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.026168499141931534,
+        "arm_jump_internal_rms_rad": 0.010971969924867153,
+        "hand_jump_boundary_rms_rad": 0.0738920047879219,
+        "hand_jump_internal_rms_rad": 0.03167381510138512,
+        "arm_tracking_rms_rad": 0.015625236555933952,
+        "hand_tracking_rms_rad": 0.05866800993680954
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002464943565428257,
+        "arm_jump_internal_rms_rad": 0.002423320896923542,
+        "hand_jump_boundary_rms_rad": 0.030579684302210808,
+        "hand_jump_internal_rms_rad": 0.03418179601430893,
+        "arm_tracking_rms_rad": 0.008863319642841816,
+        "hand_tracking_rms_rad": 0.1013447567820549
+      },
+      "clip": {
+        "maximum_tick": 530,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.18861939013004303,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          50,
+          0,
+          37,
+          31,
+          0,
+          77,
+          56,
+          75,
+          24,
+          143,
+          16,
+          130,
+          261,
+          120,
+          257,
+          133,
+          112,
+          1,
+          137,
+          241,
+          114
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2016,
+      "expert_post_delay_target_at_limits_joint_ticks": 229,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 160,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05404479429125786,
+          "max_hand_tracking_rad": 0.10994765162467957,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 29.67921011267307,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_01_attempt_1/output/r931005_1793209376_e03_p000159/trace.npz": "ca53457d3baba9726d24aa739f241c0e1fb966278ce7531ac8c6eeff49241964",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_01_attempt_1/output/r931005_1793209376_e03_p000159/plans.npz": "f3f11242671c213e55f82bbf32bf29d7f8fdb79fb0e1272fa73cef548079360f",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_01/r931005_1793209376_e03_p000159/trace.npz": "9a3aba5d094f4714c76bd41d6f2df9c034df1953f8200e8fbf861b650a9eddc2"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 2,
+      "identity": "r931005_1793209376_e02_p000059",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_02_attempt_1/output/r931005_1793209376_e02_p000059",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_02/r931005_1793209376_e02_p000059",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 181,
+      "expert_steps": 181,
+      "student_steps": 294,
+      "expert_events": {
+        "contact_tick": 55,
+        "lift_tick": null,
+        "subgoal_tick": 133,
+        "alignment_tick": 133,
+        "fall_tick": null,
+        "success_tick": 180
+      },
+      "student_events": {
+        "contact_tick": 50,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": 293,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 10,
+        "actual_arm_rad": 12,
+        "actual_hand_rad": 15,
+        "target_arm_rad": 8,
+        "target_hand_rad": 2,
+        "object_mm": 51,
+        "object_rotation_deg": 52
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "before_expert_sustained_contact"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.013957790099084377,
+        "arm_jump_internal_rms_rad": 0.0070986878126859665,
+        "hand_jump_boundary_rms_rad": 0.05554253235459328,
+        "hand_jump_internal_rms_rad": 0.033819399774074554,
+        "arm_tracking_rms_rad": 0.010038905777037144,
+        "hand_tracking_rms_rad": 0.10419201105833054
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023826926480978727,
+        "arm_jump_internal_rms_rad": 0.0023683991748839617,
+        "hand_jump_boundary_rms_rad": 0.040079858154058456,
+        "hand_jump_internal_rms_rad": 0.039768606424331665,
+        "arm_tracking_rms_rad": 0.008214789442718029,
+        "hand_tracking_rms_rad": 0.10766172409057617
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.027472516521811485,
+        "arm_jump_internal_rms_rad": 0.010478714480996132,
+        "hand_jump_boundary_rms_rad": 0.06709356606006622,
+        "hand_jump_internal_rms_rad": 0.03215230628848076,
+        "arm_tracking_rms_rad": 0.014530238695442677,
+        "hand_tracking_rms_rad": 0.0889415517449379
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023826926480978727,
+        "arm_jump_internal_rms_rad": 0.0023683991748839617,
+        "hand_jump_boundary_rms_rad": 0.040079858154058456,
+        "hand_jump_internal_rms_rad": 0.039768606424331665,
+        "arm_tracking_rms_rad": 0.008214789442718029,
+        "hand_tracking_rms_rad": 0.10766172409057617
+      },
+      "clip": {
+        "maximum_tick": 212,
+        "joint": "left_1_thumb_CMC_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.19878137111663818,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          36,
+          12,
+          43,
+          15,
+          64,
+          0,
+          12,
+          7,
+          9,
+          51,
+          36,
+          35,
+          52,
+          198,
+          136,
+          111,
+          52,
+          79,
+          27,
+          108,
+          32,
+          43
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 1158,
+      "expert_post_delay_target_at_limits_joint_ticks": 236,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 188,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.03561735525727272,
+          "max_hand_tracking_rad": 0.1115390732884407,
+          "max_clipping_rad": 0.07082419097423553
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 177,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.03385649621486664,
+          "max_hand_tracking_rad": 0.07297109812498093,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 19.129170408200185,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_02_attempt_1/output/r931005_1793209376_e02_p000059/trace.npz": "7d8b7208f0ef1b3e0ba5dafc328cebdc630c1ba2e075d87c7c69ead53fc5aed5",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_02_attempt_1/output/r931005_1793209376_e02_p000059/plans.npz": "6c8b10544be720e6b242fc1517735d223baee1a30e638e0439062e50823ce481",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_02/r931005_1793209376_e02_p000059/trace.npz": "e46974f99a368438ebadce0095886e296f890682058478599b84289b59ad5834"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 2,
+      "identity": "r931005_1793209376_e02_p000059",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_02_attempt_1/output/r931005_1793209376_e02_p000059",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_02/r931005_1793209376_e02_p000059",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 181,
+      "expert_steps": 181,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 55,
+        "lift_tick": null,
+        "subgoal_tick": 133,
+        "alignment_tick": 133,
+        "fall_tick": null,
+        "success_tick": 180
+      },
+      "student_events": {
+        "contact_tick": 61,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 6,
+        "actual_arm_rad": 9,
+        "actual_hand_rad": 3,
+        "target_arm_rad": 5,
+        "target_hand_rad": 0,
+        "object_mm": 56,
+        "object_rotation_deg": 63
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.01656511425971985,
+        "arm_jump_internal_rms_rad": 0.007506424095481634,
+        "hand_jump_boundary_rms_rad": 0.05306396633386612,
+        "hand_jump_internal_rms_rad": 0.03238444775342941,
+        "arm_tracking_rms_rad": 0.010102919302880764,
+        "hand_tracking_rms_rad": 0.06292963027954102
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023826926480978727,
+        "arm_jump_internal_rms_rad": 0.0023683991748839617,
+        "hand_jump_boundary_rms_rad": 0.040079858154058456,
+        "hand_jump_internal_rms_rad": 0.039768606424331665,
+        "arm_tracking_rms_rad": 0.008214789442718029,
+        "hand_tracking_rms_rad": 0.10766172409057617
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.017889633774757385,
+        "arm_jump_internal_rms_rad": 0.011440114118158817,
+        "hand_jump_boundary_rms_rad": 0.0668020024895668,
+        "hand_jump_internal_rms_rad": 0.03062891773879528,
+        "arm_tracking_rms_rad": 0.010949186980724335,
+        "hand_tracking_rms_rad": 0.053140267729759216
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023826926480978727,
+        "arm_jump_internal_rms_rad": 0.0023683991748839617,
+        "hand_jump_boundary_rms_rad": 0.040079858154058456,
+        "hand_jump_internal_rms_rad": 0.039768606424331665,
+        "arm_tracking_rms_rad": 0.008214789442718029,
+        "hand_tracking_rms_rad": 0.10766172409057617
+      },
+      "clip": {
+        "maximum_tick": 485,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.2223169505596161,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          9,
+          66,
+          2,
+          26,
+          98,
+          26,
+          45,
+          117,
+          54,
+          21,
+          170,
+          67,
+          140,
+          396,
+          266,
+          275,
+          72,
+          93,
+          34,
+          228,
+          29,
+          184
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2418,
+      "expert_post_delay_target_at_limits_joint_ticks": 236,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 67,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.0422176830470562,
+          "max_hand_tracking_rad": 0.06967547535896301,
+          "max_clipping_rad": 0.009120679460465908
+        },
+        {
+          "tick": 202,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.046852756291627884,
+          "max_hand_tracking_rad": 0.04023212194442749,
+          "max_clipping_rad": 0.05717198923230171
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 177,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.03385649621486664,
+          "max_hand_tracking_rad": 0.07297109812498093,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 65.72924791326474,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_02_attempt_1/output/r931005_1793209376_e02_p000059/trace.npz": "732577be55340d96acc353bcc37e6286239c16ad7933316a32196d554c59619c",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_02_attempt_1/output/r931005_1793209376_e02_p000059/plans.npz": "0d8dcefe0918e805758cfa0b26640992a09c78dcdacab0d981e314b2a6b532bd",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_02/r931005_1793209376_e02_p000059/trace.npz": "e46974f99a368438ebadce0095886e296f890682058478599b84289b59ad5834"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 3,
+      "identity": "r931005_1793209376_e01_p000153",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_03_attempt_1/output/r931005_1793209376_e01_p000153",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_03/r931005_1793209376_e01_p000153",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 238,
+      "expert_steps": 238,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 88,
+        "lift_tick": null,
+        "subgoal_tick": 201,
+        "alignment_tick": 201,
+        "fall_tick": null,
+        "success_tick": 237
+      },
+      "student_events": {
+        "contact_tick": 75,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 6,
+        "actual_arm_rad": 13,
+        "actual_hand_rad": 14,
+        "target_arm_rad": 11,
+        "target_hand_rad": 12,
+        "object_mm": 77,
+        "object_rotation_deg": 93
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.02211747318506241,
+        "arm_jump_internal_rms_rad": 0.009784853085875511,
+        "hand_jump_boundary_rms_rad": 0.07195261865854263,
+        "hand_jump_internal_rms_rad": 0.031389132142066956,
+        "arm_tracking_rms_rad": 0.013394368812441826,
+        "hand_tracking_rms_rad": 0.07747308909893036
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023484944831579924,
+        "arm_jump_internal_rms_rad": 0.002362553495913744,
+        "hand_jump_boundary_rms_rad": 0.03609388321638107,
+        "hand_jump_internal_rms_rad": 0.036948349326848984,
+        "arm_tracking_rms_rad": 0.010794403031468391,
+        "hand_tracking_rms_rad": 0.12230642884969711
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.028631865978240967,
+        "arm_jump_internal_rms_rad": 0.015143780037760735,
+        "hand_jump_boundary_rms_rad": 0.08896394073963165,
+        "hand_jump_internal_rms_rad": 0.03141766041517258,
+        "arm_tracking_rms_rad": 0.01285521313548088,
+        "hand_tracking_rms_rad": 0.058653172105550766
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023484944831579924,
+        "arm_jump_internal_rms_rad": 0.002362553495913744,
+        "hand_jump_boundary_rms_rad": 0.03609388321638107,
+        "hand_jump_internal_rms_rad": 0.036948349326848984,
+        "arm_tracking_rms_rad": 0.010794403031468391,
+        "hand_tracking_rms_rad": 0.12230642884969711
+      },
+      "clip": {
+        "maximum_tick": 62,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.2316279411315918,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          72,
+          14,
+          1,
+          27,
+          17,
+          11,
+          86,
+          22,
+          20,
+          0,
+          89,
+          89,
+          19,
+          188,
+          131,
+          136,
+          51,
+          296,
+          35,
+          80,
+          85,
+          37
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 1506,
+      "expert_post_delay_target_at_limits_joint_ticks": 414,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 81,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.07839268445968628,
+          "max_hand_tracking_rad": 0.1550835222005844,
+          "max_clipping_rad": 0.07832431048154831
+        },
+        {
+          "tick": 132,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.09151872992515564,
+          "max_hand_tracking_rad": 0.17970210313796997,
+          "max_clipping_rad": 0.03561806678771973
+        },
+        {
+          "tick": 535,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.0485672652721405,
+          "max_hand_tracking_rad": 0.04462408274412155,
+          "max_clipping_rad": 0.06141841411590576
+        },
+        {
+          "tick": 544,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.04352107271552086,
+          "max_hand_tracking_rad": 0.03947015851736069,
+          "max_clipping_rad": 0.05578052997589111
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 93,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.05779474973678589,
+          "max_hand_tracking_rad": 0.18682681024074554,
+          "max_clipping_rad": null
+        },
+        {
+          "tick": 222,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05899561196565628,
+          "max_hand_tracking_rad": 0.11005695909261703,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 20.23130146039067,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_03_attempt_1/output/r931005_1793209376_e01_p000153/trace.npz": "45da1f2f9cf01203a768aae6ebd2ce99599c055a294d0ebcb0665a30e365c3d4",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_03_attempt_1/output/r931005_1793209376_e01_p000153/plans.npz": "4a6f47001df8e03f1a6ea43bbd36a2b1640f8d2382657565668f8efa0375b039",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_03/r931005_1793209376_e01_p000153/trace.npz": "6c370fb1ede04d85cdbce1dd25649ec0ac0e090952c05fdf275e3f095945e902"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 3,
+      "identity": "r931005_1793209376_e01_p000153",
+      "cohort": "train",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_03_attempt_1/output/r931005_1793209376_e01_p000153",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_03/r931005_1793209376_e01_p000153",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 238,
+      "expert_steps": 238,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 88,
+        "lift_tick": null,
+        "subgoal_tick": 201,
+        "alignment_tick": 201,
+        "fall_tick": null,
+        "success_tick": 237
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 4,
+        "actual_arm_rad": 6,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 0,
+        "target_hand_rad": 1,
+        "object_mm": 89,
+        "object_rotation_deg": 92
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.01929020881652832,
+        "arm_jump_internal_rms_rad": 0.007737939711660147,
+        "hand_jump_boundary_rms_rad": 0.06295202672481537,
+        "hand_jump_internal_rms_rad": 0.029842153191566467,
+        "arm_tracking_rms_rad": 0.012285849079489708,
+        "hand_tracking_rms_rad": 0.06758510321378708
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023484944831579924,
+        "arm_jump_internal_rms_rad": 0.002362553495913744,
+        "hand_jump_boundary_rms_rad": 0.03609388321638107,
+        "hand_jump_internal_rms_rad": 0.036948349326848984,
+        "arm_tracking_rms_rad": 0.010794403031468391,
+        "hand_tracking_rms_rad": 0.12230642884969711
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.021497473120689392,
+        "arm_jump_internal_rms_rad": 0.01118547935038805,
+        "hand_jump_boundary_rms_rad": 0.065545953810215,
+        "hand_jump_internal_rms_rad": 0.03034079074859619,
+        "arm_tracking_rms_rad": 0.01140966173261404,
+        "hand_tracking_rms_rad": 0.04860035330057144
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023484944831579924,
+        "arm_jump_internal_rms_rad": 0.002362553495913744,
+        "hand_jump_boundary_rms_rad": 0.03609388321638107,
+        "hand_jump_internal_rms_rad": 0.036948349326848984,
+        "arm_tracking_rms_rad": 0.010794403031468391,
+        "hand_tracking_rms_rad": 0.12230642884969711
+      },
+      "clip": {
+        "maximum_tick": 537,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.3072667419910431,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          22,
+          46,
+          0,
+          6,
+          71,
+          46,
+          54,
+          5,
+          44,
+          75,
+          118,
+          37,
+          370,
+          222,
+          77,
+          364,
+          63,
+          321,
+          16,
+          136,
+          93,
+          57
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2243,
+      "expert_post_delay_target_at_limits_joint_ticks": 414,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 93,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.05779474973678589,
+          "max_hand_tracking_rad": 0.18682681024074554,
+          "max_clipping_rad": null
+        },
+        {
+          "tick": 222,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05899561196565628,
+          "max_hand_tracking_rad": 0.11005695909261703,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 42.237170169748225,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_03_attempt_1/output/r931005_1793209376_e01_p000153/trace.npz": "225695a12578b2e04f07dd455dae0af62eab85415e90d8b15c3a955868c6f567",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_03_attempt_1/output/r931005_1793209376_e01_p000153/plans.npz": "b128c997018278502776343c056cc475bf1022c69018c7554822eefe449844e5",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_03/r931005_1793209376_e01_p000153/trace.npz": "6c370fb1ede04d85cdbce1dd25649ec0ac0e090952c05fdf275e3f095945e902"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 4,
+      "identity": "r931005_1793209376_e00_p000055",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_04_attempt_1/output/r931005_1793209376_e00_p000055",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_04/r931005_1793209376_e00_p000055",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 182,
+      "expert_steps": 182,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 68,
+        "lift_tick": 104,
+        "subgoal_tick": 142,
+        "alignment_tick": 142,
+        "fall_tick": null,
+        "success_tick": 181
+      },
+      "student_events": {
+        "contact_tick": 75,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 3,
+        "actual_arm_rad": 3,
+        "actual_hand_rad": 7,
+        "target_arm_rad": 0,
+        "target_hand_rad": 4,
+        "object_mm": 67,
+        "object_rotation_deg": 68
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.021391602233052254,
+        "arm_jump_internal_rms_rad": 0.008711406029760838,
+        "hand_jump_boundary_rms_rad": 0.07168194651603699,
+        "hand_jump_internal_rms_rad": 0.028518851846456528,
+        "arm_tracking_rms_rad": 0.013882461003959179,
+        "hand_tracking_rms_rad": 0.05709424242377281
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002381038386374712,
+        "arm_jump_internal_rms_rad": 0.0023818640038371086,
+        "hand_jump_boundary_rms_rad": 0.03284367918968201,
+        "hand_jump_internal_rms_rad": 0.03568496182560921,
+        "arm_tracking_rms_rad": 0.009065324440598488,
+        "hand_tracking_rms_rad": 0.10249194502830505
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.026105981320142746,
+        "arm_jump_internal_rms_rad": 0.011094271205365658,
+        "hand_jump_boundary_rms_rad": 0.08170510083436966,
+        "hand_jump_internal_rms_rad": 0.029424428939819336,
+        "arm_tracking_rms_rad": 0.014503014273941517,
+        "hand_tracking_rms_rad": 0.047658395022153854
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002381038386374712,
+        "arm_jump_internal_rms_rad": 0.0023818640038371086,
+        "hand_jump_boundary_rms_rad": 0.03284367918968201,
+        "hand_jump_internal_rms_rad": 0.03568496182560921,
+        "arm_tracking_rms_rad": 0.009065324440598488,
+        "hand_tracking_rms_rad": 0.10249194502830505
+      },
+      "clip": {
+        "maximum_tick": 170,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.2340969294309616,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          5,
+          0,
+          43,
+          18,
+          45,
+          65,
+          355,
+          14,
+          7,
+          176,
+          30,
+          45,
+          406,
+          150,
+          290,
+          183,
+          53,
+          0,
+          138,
+          64,
+          389
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2476,
+      "expert_post_delay_target_at_limits_joint_ticks": 217,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 91,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05601455643773079,
+          "max_hand_tracking_rad": 0.11883187294006348,
+          "max_clipping_rad": 0.08492333441972733
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 174,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.04165089502930641,
+          "max_hand_tracking_rad": 0.13339504599571228,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 26.387704023632427,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_04_attempt_1/output/r931005_1793209376_e00_p000055/trace.npz": "6b72086f569f0b778d769e1e16640d4200318bafa16618058b1d65c185759399",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_04_attempt_1/output/r931005_1793209376_e00_p000055/plans.npz": "9372d250b82e1f9843f1589d9c3e8aef82a9da2f9cc86d5967adc19d9482d2f1",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_04/r931005_1793209376_e00_p000055/trace.npz": "3016ae7591002e17bc5ff51aa1bffc3786726cbcf16e9ea4106992f792ad8dc2"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 4,
+      "identity": "r931005_1793209376_e00_p000055",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_04_attempt_1/output/r931005_1793209376_e00_p000055",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_04/r931005_1793209376_e00_p000055",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 182,
+      "expert_steps": 182,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 68,
+        "lift_tick": 104,
+        "subgoal_tick": 142,
+        "alignment_tick": 142,
+        "fall_tick": null,
+        "success_tick": 181
+      },
+      "student_events": {
+        "contact_tick": 55,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 3,
+        "actual_arm_rad": 3,
+        "actual_hand_rad": 5,
+        "target_arm_rad": 0,
+        "target_hand_rad": 2,
+        "object_mm": 59,
+        "object_rotation_deg": 61
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "before_expert_sustained_contact"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.01910918578505516,
+        "arm_jump_internal_rms_rad": 0.007813174277544022,
+        "hand_jump_boundary_rms_rad": 0.06176773086190224,
+        "hand_jump_internal_rms_rad": 0.032046493142843246,
+        "arm_tracking_rms_rad": 0.010776146315038204,
+        "hand_tracking_rms_rad": 0.06726857274770737
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002381038386374712,
+        "arm_jump_internal_rms_rad": 0.0023818640038371086,
+        "hand_jump_boundary_rms_rad": 0.03284367918968201,
+        "hand_jump_internal_rms_rad": 0.03568496182560921,
+        "arm_tracking_rms_rad": 0.009065324440598488,
+        "hand_tracking_rms_rad": 0.10249194502830505
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.019854892045259476,
+        "arm_jump_internal_rms_rad": 0.012334972620010376,
+        "hand_jump_boundary_rms_rad": 0.06878458708524704,
+        "hand_jump_internal_rms_rad": 0.0288785919547081,
+        "arm_tracking_rms_rad": 0.010976055637001991,
+        "hand_tracking_rms_rad": 0.053178466856479645
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002381038386374712,
+        "arm_jump_internal_rms_rad": 0.0023818640038371086,
+        "hand_jump_boundary_rms_rad": 0.03284367918968201,
+        "hand_jump_internal_rms_rad": 0.03568496182560921,
+        "arm_tracking_rms_rad": 0.009065324440598488,
+        "hand_tracking_rms_rad": 0.10249194502830505
+      },
+      "clip": {
+        "maximum_tick": 287,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.2099718600511551,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          16,
+          146,
+          7,
+          94,
+          182,
+          0,
+          18,
+          162,
+          31,
+          58,
+          115,
+          43,
+          61,
+          438,
+          284,
+          281,
+          95,
+          163,
+          1,
+          128,
+          66,
+          148
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2537,
+      "expert_post_delay_target_at_limits_joint_ticks": 217,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 62,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.0831277146935463,
+          "max_hand_tracking_rad": 0.15886449813842773,
+          "max_clipping_rad": 0.04331371933221817
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 174,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.04165089502930641,
+          "max_hand_tracking_rad": 0.13339504599571228,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 25.09306592566821,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_04_attempt_1/output/r931005_1793209376_e00_p000055/trace.npz": "d3a48a96157ade62f0ab8b6bcc107c3d51c7df5d45a1daf8b3a9a9bef317c6f7",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_04_attempt_1/output/r931005_1793209376_e00_p000055/plans.npz": "d7afdc8f6f1e2c2038ab08414c29661cd4cedd9c17bbd1fe006339ea5dd41b13",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_04/r931005_1793209376_e00_p000055/trace.npz": "3016ae7591002e17bc5ff51aa1bffc3786726cbcf16e9ea4106992f792ad8dc2"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 5,
+      "identity": "r931005_1793209376_e00_p000057",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_05_attempt_1/output/r931005_1793209376_e00_p000057",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_05/r931005_1793209376_e00_p000057",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 178,
+      "expert_steps": 178,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 43,
+        "lift_tick": null,
+        "subgoal_tick": 132,
+        "alignment_tick": 132,
+        "fall_tick": null,
+        "success_tick": 177
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 6,
+        "actual_arm_rad": 7,
+        "actual_hand_rad": 7,
+        "target_arm_rad": 1,
+        "target_hand_rad": 0,
+        "object_mm": 44,
+        "object_rotation_deg": 46
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.020314546301960945,
+        "arm_jump_internal_rms_rad": 0.012034201994538307,
+        "hand_jump_boundary_rms_rad": 0.07032986730337143,
+        "hand_jump_internal_rms_rad": 0.02945493720471859,
+        "arm_tracking_rms_rad": 0.010827482677996159,
+        "hand_tracking_rms_rad": 0.053833622485399246
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002402041805908084,
+        "arm_jump_internal_rms_rad": 0.0024241041392087936,
+        "hand_jump_boundary_rms_rad": 0.039689935743808746,
+        "hand_jump_internal_rms_rad": 0.037431757897138596,
+        "arm_tracking_rms_rad": 0.009514863602817059,
+        "hand_tracking_rms_rad": 0.10323014855384827
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.01975790411233902,
+        "arm_jump_internal_rms_rad": 0.01283373311161995,
+        "hand_jump_boundary_rms_rad": 0.07696138322353363,
+        "hand_jump_internal_rms_rad": 0.030388686805963516,
+        "arm_tracking_rms_rad": 0.010728317312896252,
+        "hand_tracking_rms_rad": 0.045487020164728165
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002402041805908084,
+        "arm_jump_internal_rms_rad": 0.0024241041392087936,
+        "hand_jump_boundary_rms_rad": 0.039689935743808746,
+        "hand_jump_internal_rms_rad": 0.037431757897138596,
+        "arm_tracking_rms_rad": 0.009514863602817059,
+        "hand_tracking_rms_rad": 0.10323014855384827
+      },
+      "clip": {
+        "maximum_tick": 420,
+        "joint": "left_pinky_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.17016243934631348,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          10,
+          0,
+          8,
+          243,
+          0,
+          17,
+          47,
+          27,
+          7,
+          399,
+          18,
+          36,
+          467,
+          519,
+          450,
+          493,
+          92,
+          0,
+          438,
+          19,
+          294
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 3584,
+      "expert_post_delay_target_at_limits_joint_ticks": 243,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 171,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.04420728236436844,
+          "max_hand_tracking_rad": 0.11595085263252258,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 13.71447041142419,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_05_attempt_1/output/r931005_1793209376_e00_p000057/trace.npz": "4cf8a74577176aee7ec446792a6bae8ac561f4bcb61bf74eb356c09ae9c4cec6",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_05_attempt_1/output/r931005_1793209376_e00_p000057/plans.npz": "ea8c0c8c2e68ea9985f6265b276e159dafa415474dfd80113575a70004afe462",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_05/r931005_1793209376_e00_p000057/trace.npz": "b6d9561d90e6c9085599a33f6cf4c37b2908a1edc3447ad16d534fe05142fd14"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 5,
+      "identity": "r931005_1793209376_e00_p000057",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_05_attempt_1/output/r931005_1793209376_e00_p000057",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_05/r931005_1793209376_e00_p000057",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 178,
+      "expert_steps": 178,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 43,
+        "lift_tick": null,
+        "subgoal_tick": 132,
+        "alignment_tick": 132,
+        "fall_tick": null,
+        "success_tick": 177
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 5,
+        "actual_arm_rad": 5,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 0,
+        "target_hand_rad": 2,
+        "object_mm": 45,
+        "object_rotation_deg": 46
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.018564021214842796,
+        "arm_jump_internal_rms_rad": 0.006751761771738529,
+        "hand_jump_boundary_rms_rad": 0.05485154688358307,
+        "hand_jump_internal_rms_rad": 0.03211424499750137,
+        "arm_tracking_rms_rad": 0.010914159007370472,
+        "hand_tracking_rms_rad": 0.06162472441792488
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002402041805908084,
+        "arm_jump_internal_rms_rad": 0.0024241041392087936,
+        "hand_jump_boundary_rms_rad": 0.039689935743808746,
+        "hand_jump_internal_rms_rad": 0.037431757897138596,
+        "arm_tracking_rms_rad": 0.009514863602817059,
+        "hand_tracking_rms_rad": 0.10323014855384827
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.021842671558260918,
+        "arm_jump_internal_rms_rad": 0.010935028083622456,
+        "hand_jump_boundary_rms_rad": 0.06383007764816284,
+        "hand_jump_internal_rms_rad": 0.03689076006412506,
+        "arm_tracking_rms_rad": 0.011608853004872799,
+        "hand_tracking_rms_rad": 0.048973649740219116
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002402041805908084,
+        "arm_jump_internal_rms_rad": 0.0024241041392087936,
+        "hand_jump_boundary_rms_rad": 0.039689935743808746,
+        "hand_jump_internal_rms_rad": 0.037431757897138596,
+        "arm_tracking_rms_rad": 0.009514863602817059,
+        "hand_tracking_rms_rad": 0.10323014855384827
+      },
+      "clip": {
+        "maximum_tick": 487,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.332742303609848,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          15,
+          31,
+          0,
+          9,
+          46,
+          0,
+          38,
+          7,
+          3,
+          4,
+          281,
+          21,
+          369,
+          245,
+          96,
+          386,
+          176,
+          174,
+          19,
+          94,
+          339,
+          13
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2366,
+      "expert_post_delay_target_at_limits_joint_ticks": 243,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 171,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.04420728236436844,
+          "max_hand_tracking_rad": 0.11595085263252258,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 28.053243932051068,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_05_attempt_1/output/r931005_1793209376_e00_p000057/trace.npz": "7324f42577cae697cfb052eb46de6d4d70ddb065b4a65a29531e9fce0da04b13",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_05_attempt_1/output/r931005_1793209376_e00_p000057/plans.npz": "ed87cf8d1eebaf9fa27e86fa37541dfec82a4a10221bbb65f2c608029c088439",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_05/r931005_1793209376_e00_p000057/trace.npz": "b6d9561d90e6c9085599a33f6cf4c37b2908a1edc3447ad16d534fe05142fd14"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 6,
+      "identity": "r931005_1793209376_e00_p000067",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_06_attempt_1/output/r931005_1793209376_e00_p000067",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_06/r931005_1793209376_e00_p000067",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 168,
+      "expert_steps": 168,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 46,
+        "lift_tick": 80,
+        "subgoal_tick": 123,
+        "alignment_tick": 123,
+        "fall_tick": null,
+        "success_tick": 167
+      },
+      "student_events": {
+        "contact_tick": 40,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 7,
+        "actual_arm_rad": 2,
+        "actual_hand_rad": 5,
+        "target_arm_rad": 0,
+        "target_hand_rad": 0,
+        "object_mm": 43,
+        "object_rotation_deg": 41
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "before_expert_sustained_contact"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.018304746598005295,
+        "arm_jump_internal_rms_rad": 0.008620187640190125,
+        "hand_jump_boundary_rms_rad": 0.05782780796289444,
+        "hand_jump_internal_rms_rad": 0.031511761248111725,
+        "arm_tracking_rms_rad": 0.011467717587947845,
+        "hand_tracking_rms_rad": 0.07893772423267365
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023948776070028543,
+        "arm_jump_internal_rms_rad": 0.002346418332308531,
+        "hand_jump_boundary_rms_rad": 0.03883204609155655,
+        "hand_jump_internal_rms_rad": 0.03887317329645157,
+        "arm_tracking_rms_rad": 0.008602360263466835,
+        "hand_tracking_rms_rad": 0.11517894268035889
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.01609639823436737,
+        "arm_jump_internal_rms_rad": 0.008485805243253708,
+        "hand_jump_boundary_rms_rad": 0.06875277310609818,
+        "hand_jump_internal_rms_rad": 0.03165275976061821,
+        "arm_tracking_rms_rad": 0.008859623223543167,
+        "hand_tracking_rms_rad": 0.0644097700715065
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023948776070028543,
+        "arm_jump_internal_rms_rad": 0.002346418332308531,
+        "hand_jump_boundary_rms_rad": 0.03883204609155655,
+        "hand_jump_internal_rms_rad": 0.03887317329645157,
+        "arm_tracking_rms_rad": 0.008602360263466835,
+        "hand_tracking_rms_rad": 0.11517894268035889
+      },
+      "clip": {
+        "maximum_tick": 36,
+        "joint": "left_3_middle_MCP_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.12678435444831848,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          13,
+          0,
+          0,
+          28,
+          41,
+          0,
+          237,
+          4,
+          60,
+          49,
+          358,
+          5,
+          197,
+          64,
+          152,
+          462,
+          82,
+          43,
+          12,
+          132,
+          450,
+          0
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2389,
+      "expert_post_delay_target_at_limits_joint_ticks": 141,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 78,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.06234441697597504,
+          "max_hand_tracking_rad": 0.23845404386520386,
+          "max_clipping_rad": 0.0032168328762054443
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 145,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.05405183136463165,
+          "max_hand_tracking_rad": 0.11746422201395035,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 12.797986755027773,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_06_attempt_1/output/r931005_1793209376_e00_p000067/trace.npz": "c0258ea2a12b6d9aae14dc67db7383c3084dc60b103b13eb70c8de12aab4fb72",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_06_attempt_1/output/r931005_1793209376_e00_p000067/plans.npz": "c4751da79cdc918ae88406b555ac38265ad1e4c0d7e22790bc551d3a7523abbe",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_06/r931005_1793209376_e00_p000067/trace.npz": "65eb594b82fcd03ad79f1a783631bf18e759fa56a54d76e4ee16089f26eab004"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 6,
+      "identity": "r931005_1793209376_e00_p000067",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_06_attempt_1/output/r931005_1793209376_e00_p000067",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_06/r931005_1793209376_e00_p000067",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 168,
+      "expert_steps": 168,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 46,
+        "lift_tick": 80,
+        "subgoal_tick": 123,
+        "alignment_tick": 123,
+        "fall_tick": null,
+        "success_tick": 167
+      },
+      "student_events": {
+        "contact_tick": 48,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 8,
+        "actual_arm_rad": 2,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 0,
+        "target_hand_rad": 0,
+        "object_mm": 47,
+        "object_rotation_deg": 47
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.018147913739085197,
+        "arm_jump_internal_rms_rad": 0.007688211742788553,
+        "hand_jump_boundary_rms_rad": 0.06098904833197594,
+        "hand_jump_internal_rms_rad": 0.03167295083403587,
+        "arm_tracking_rms_rad": 0.010956658981740475,
+        "hand_tracking_rms_rad": 0.06280377507209778
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023948776070028543,
+        "arm_jump_internal_rms_rad": 0.002346418332308531,
+        "hand_jump_boundary_rms_rad": 0.03883204609155655,
+        "hand_jump_internal_rms_rad": 0.03887317329645157,
+        "arm_tracking_rms_rad": 0.008602360263466835,
+        "hand_tracking_rms_rad": 0.11517894268035889
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.025275008752942085,
+        "arm_jump_internal_rms_rad": 0.013383667916059494,
+        "hand_jump_boundary_rms_rad": 0.07174386829137802,
+        "hand_jump_internal_rms_rad": 0.03230609744787216,
+        "arm_tracking_rms_rad": 0.01290762610733509,
+        "hand_tracking_rms_rad": 0.05122624710202217
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0023948776070028543,
+        "arm_jump_internal_rms_rad": 0.002346418332308531,
+        "hand_jump_boundary_rms_rad": 0.03883204609155655,
+        "hand_jump_internal_rms_rad": 0.03887317329645157,
+        "arm_tracking_rms_rad": 0.008602360263466835,
+        "hand_tracking_rms_rad": 0.11517894268035889
+      },
+      "clip": {
+        "maximum_tick": 584,
+        "joint": "left_2_index_MCP_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.1519005298614502,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          87,
+          93,
+          0,
+          22,
+          32,
+          39,
+          71,
+          41,
+          65,
+          17,
+          125,
+          12,
+          66,
+          119,
+          73,
+          119,
+          93,
+          68,
+          42,
+          84,
+          211,
+          24
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 1503,
+      "expert_post_delay_target_at_limits_joint_ticks": 141,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 52,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.02831536903977394,
+          "max_hand_tracking_rad": 0.060066115111112595,
+          "max_clipping_rad": 0.11509773135185242
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 145,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.05405183136463165,
+          "max_hand_tracking_rad": 0.11746422201395035,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 14.904765250371499,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_06_attempt_1/output/r931005_1793209376_e00_p000067/trace.npz": "52d833d16499884bdeab2fa48275a78c29a23592244c22a74046259d6b099019",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_06_attempt_1/output/r931005_1793209376_e00_p000067/plans.npz": "1c74e322a6f7eddf154b0bd305244dde54e340a2b9bdd77a439b38df24bcb8e3",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_06/r931005_1793209376_e00_p000067/trace.npz": "65eb594b82fcd03ad79f1a783631bf18e759fa56a54d76e4ee16089f26eab004"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 7,
+      "identity": "r931005_1793209376_e00_p000121",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_07_attempt_1/output/r931005_1793209376_e00_p000121",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_07/r931005_1793209376_e00_p000121",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 190,
+      "expert_steps": 190,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 65,
+        "lift_tick": null,
+        "subgoal_tick": 159,
+        "alignment_tick": 159,
+        "fall_tick": null,
+        "success_tick": 189
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 4,
+        "actual_arm_rad": 4,
+        "actual_hand_rad": 5,
+        "target_arm_rad": 0,
+        "target_hand_rad": 2,
+        "object_mm": 67,
+        "object_rotation_deg": 102
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.025053538382053375,
+        "arm_jump_internal_rms_rad": 0.01196695864200592,
+        "hand_jump_boundary_rms_rad": 0.06726982444524765,
+        "hand_jump_internal_rms_rad": 0.02804136462509632,
+        "arm_tracking_rms_rad": 0.01227014884352684,
+        "hand_tracking_rms_rad": 0.04717380553483963
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002401389181613922,
+        "arm_jump_internal_rms_rad": 0.0024259488563984632,
+        "hand_jump_boundary_rms_rad": 0.03650999069213867,
+        "hand_jump_internal_rms_rad": 0.03389884531497955,
+        "arm_tracking_rms_rad": 0.010339944623410702,
+        "hand_tracking_rms_rad": 0.09220627695322037
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.02331104874610901,
+        "arm_jump_internal_rms_rad": 0.01480950228869915,
+        "hand_jump_boundary_rms_rad": 0.06873556226491928,
+        "hand_jump_internal_rms_rad": 0.025966757908463478,
+        "arm_tracking_rms_rad": 0.011607754975557327,
+        "hand_tracking_rms_rad": 0.03516969457268715
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002401389181613922,
+        "arm_jump_internal_rms_rad": 0.0024259488563984632,
+        "hand_jump_boundary_rms_rad": 0.03650999069213867,
+        "hand_jump_internal_rms_rad": 0.03389884531497955,
+        "arm_tracking_rms_rad": 0.010339944623410702,
+        "hand_tracking_rms_rad": 0.09220627695322037
+      },
+      "clip": {
+        "maximum_tick": 523,
+        "joint": "left_pinky_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.23358391225337982,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          4,
+          66,
+          5,
+          8,
+          0,
+          50,
+          9,
+          4,
+          0,
+          67,
+          37,
+          20,
+          400,
+          76,
+          423,
+          29,
+          298,
+          10,
+          92,
+          410,
+          484
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2492,
+      "expert_post_delay_target_at_limits_joint_ticks": 254,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 68,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05492401868104935,
+          "max_hand_tracking_rad": 0.1040729209780693,
+          "max_clipping_rad": null
+        },
+        {
+          "tick": 181,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.07756038755178452,
+          "max_hand_tracking_rad": 0.1500546783208847,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 44.020694397921254,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_07_attempt_1/output/r931005_1793209376_e00_p000121/trace.npz": "b83fd5a3ea9eaa98584b0b72e91ab26ffa53e03ee998146d8b7aaffb636a4209",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_07_attempt_1/output/r931005_1793209376_e00_p000121/plans.npz": "023a97bc9199eb22f88c8cd331197aa7c468928b07583f37c5584e663ed84a8a",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_07/r931005_1793209376_e00_p000121/trace.npz": "829d97a51dca39466fd17037cbe4604cc3f6888eb090460addebd410b6bbe03c"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 7,
+      "identity": "r931005_1793209376_e00_p000121",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_07_attempt_1/output/r931005_1793209376_e00_p000121",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_07/r931005_1793209376_e00_p000121",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 190,
+      "expert_steps": 190,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 65,
+        "lift_tick": null,
+        "subgoal_tick": 159,
+        "alignment_tick": 159,
+        "fall_tick": null,
+        "success_tick": 189
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 7,
+        "actual_arm_rad": 8,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 5,
+        "target_hand_rad": 1,
+        "object_mm": 67,
+        "object_rotation_deg": 102
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.014078373089432716,
+        "arm_jump_internal_rms_rad": 0.008600953035056591,
+        "hand_jump_boundary_rms_rad": 0.06575611978769302,
+        "hand_jump_internal_rms_rad": 0.03099578060209751,
+        "arm_tracking_rms_rad": 0.010524451732635498,
+        "hand_tracking_rms_rad": 0.059022337198257446
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.002401389181613922,
+        "arm_jump_internal_rms_rad": 0.0024259488563984632,
+        "hand_jump_boundary_rms_rad": 0.03650999069213867,
+        "hand_jump_internal_rms_rad": 0.03389884531497955,
+        "arm_tracking_rms_rad": 0.010339944623410702,
+        "hand_tracking_rms_rad": 0.09220627695322037
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.02229396440088749,
+        "arm_jump_internal_rms_rad": 0.011123125441372395,
+        "hand_jump_boundary_rms_rad": 0.06401100009679794,
+        "hand_jump_internal_rms_rad": 0.03639958053827286,
+        "arm_tracking_rms_rad": 0.011564076878130436,
+        "hand_tracking_rms_rad": 0.04754232242703438
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.002401389181613922,
+        "arm_jump_internal_rms_rad": 0.0024259488563984632,
+        "hand_jump_boundary_rms_rad": 0.03650999069213867,
+        "hand_jump_internal_rms_rad": 0.03389884531497955,
+        "arm_tracking_rms_rad": 0.010339944623410702,
+        "hand_tracking_rms_rad": 0.09220627695322037
+      },
+      "clip": {
+        "maximum_tick": 487,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.3665633797645569,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          78,
+          0,
+          0,
+          52,
+          0,
+          64,
+          11,
+          53,
+          17,
+          268,
+          23,
+          302,
+          216,
+          99,
+          380,
+          95,
+          130,
+          4,
+          142,
+          342,
+          30
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2307,
+      "expert_post_delay_target_at_limits_joint_ticks": 254,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 68,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05492401868104935,
+          "max_hand_tracking_rad": 0.1040729209780693,
+          "max_clipping_rad": null
+        },
+        {
+          "tick": 181,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.07756038755178452,
+          "max_hand_tracking_rad": 0.1500546783208847,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 72.23081184485174,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_07_attempt_1/output/r931005_1793209376_e00_p000121/trace.npz": "85768e4e4afc5f6de4f7f0822faaf10e6f92599dd594dc807cc2c440b7343e31",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_07_attempt_1/output/r931005_1793209376_e00_p000121/plans.npz": "601166d56372a6e4232c5ee65dd2dc1295337785a691e060a94927579cba3a26",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_07/r931005_1793209376_e00_p000121/trace.npz": "829d97a51dca39466fd17037cbe4604cc3f6888eb090460addebd410b6bbe03c"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 8,
+      "identity": "r931005_1793209376_e00_p000128",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_08_attempt_1/output/r931005_1793209376_e00_p000128",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_08/r931005_1793209376_e00_p000128",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 173,
+      "expert_steps": 173,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 78,
+        "lift_tick": null,
+        "subgoal_tick": 140,
+        "alignment_tick": 140,
+        "fall_tick": null,
+        "success_tick": 172
+      },
+      "student_events": {
+        "contact_tick": 67,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 4,
+        "actual_arm_rad": 3,
+        "actual_hand_rad": 15,
+        "target_arm_rad": 0,
+        "target_hand_rad": 12,
+        "object_mm": 71,
+        "object_rotation_deg": 81
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.03081807866692543,
+        "arm_jump_internal_rms_rad": 0.007867349311709404,
+        "hand_jump_boundary_rms_rad": 0.06996671110391617,
+        "hand_jump_internal_rms_rad": 0.027441224083304405,
+        "arm_tracking_rms_rad": 0.011874005198478699,
+        "hand_tracking_rms_rad": 0.049774009734392166
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.00246793613769114,
+        "arm_jump_internal_rms_rad": 0.0024261840153485537,
+        "hand_jump_boundary_rms_rad": 0.035364486277103424,
+        "hand_jump_internal_rms_rad": 0.035572655498981476,
+        "arm_tracking_rms_rad": 0.008199243806302547,
+        "hand_tracking_rms_rad": 0.10242648422718048
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.03828158602118492,
+        "arm_jump_internal_rms_rad": 0.010112092830240726,
+        "hand_jump_boundary_rms_rad": 0.09777023643255234,
+        "hand_jump_internal_rms_rad": 0.029163487255573273,
+        "arm_tracking_rms_rad": 0.011809330433607101,
+        "hand_tracking_rms_rad": 0.04504212737083435
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.00246793613769114,
+        "arm_jump_internal_rms_rad": 0.0024261840153485537,
+        "hand_jump_boundary_rms_rad": 0.035364486277103424,
+        "hand_jump_internal_rms_rad": 0.035572655498981476,
+        "arm_tracking_rms_rad": 0.008199243806302547,
+        "hand_tracking_rms_rad": 0.10242648422718048
+      },
+      "clip": {
+        "maximum_tick": 63,
+        "joint": "left_1_thumb_CMC_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.13032948970794678,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          24,
+          70,
+          0,
+          39,
+          0,
+          0,
+          366,
+          0,
+          5,
+          9,
+          315,
+          75,
+          8,
+          42,
+          304,
+          29,
+          385,
+          280,
+          30,
+          360,
+          44,
+          6
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2391,
+      "expert_post_delay_target_at_limits_joint_ticks": 262,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 72,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.050946976989507675,
+          "max_hand_tracking_rad": 0.07791347801685333,
+          "max_clipping_rad": 0.04128466546535492
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 166,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.06731851398944855,
+          "max_hand_tracking_rad": 0.14694933593273163,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 39.085885168157375,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_08_attempt_1/output/r931005_1793209376_e00_p000128/trace.npz": "2667ad0fcd5385243f1b4d6566f986ddc054dd85d437c3b01b4a618d843795c4",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_08_attempt_1/output/r931005_1793209376_e00_p000128/plans.npz": "e66717011783533eec55e10c0b3aa5f9fe9b86d64c1c61e123209a94ce735287",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_08/r931005_1793209376_e00_p000128/trace.npz": "b2cd1c0c8d104a4ad91979281fe8ed38901e576c1c3a48b77cd0a5093a1293c5"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 8,
+      "identity": "r931005_1793209376_e00_p000128",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_08_attempt_1/output/r931005_1793209376_e00_p000128",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_08/r931005_1793209376_e00_p000128",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 173,
+      "expert_steps": 173,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 78,
+        "lift_tick": null,
+        "subgoal_tick": 140,
+        "alignment_tick": 140,
+        "fall_tick": null,
+        "success_tick": 172
+      },
+      "student_events": {
+        "contact_tick": 198,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 6,
+        "actual_arm_rad": 3,
+        "actual_hand_rad": 5,
+        "target_arm_rad": 0,
+        "target_hand_rad": 2,
+        "object_mm": 80,
+        "object_rotation_deg": 82
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.01730280928313732,
+        "arm_jump_internal_rms_rad": 0.0075174905359745026,
+        "hand_jump_boundary_rms_rad": 0.052014485001564026,
+        "hand_jump_internal_rms_rad": 0.027390195056796074,
+        "arm_tracking_rms_rad": 0.009124374948441982,
+        "hand_tracking_rms_rad": 0.05158734694123268
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.00246793613769114,
+        "arm_jump_internal_rms_rad": 0.0024261840153485537,
+        "hand_jump_boundary_rms_rad": 0.035364486277103424,
+        "hand_jump_internal_rms_rad": 0.035572655498981476,
+        "arm_tracking_rms_rad": 0.008199243806302547,
+        "hand_tracking_rms_rad": 0.10242648422718048
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.019830310717225075,
+        "arm_jump_internal_rms_rad": 0.011077194474637508,
+        "hand_jump_boundary_rms_rad": 0.07213746011257172,
+        "hand_jump_internal_rms_rad": 0.02911226823925972,
+        "arm_tracking_rms_rad": 0.011213678866624832,
+        "hand_tracking_rms_rad": 0.05303102359175682
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.00246793613769114,
+        "arm_jump_internal_rms_rad": 0.0024261840153485537,
+        "hand_jump_boundary_rms_rad": 0.035364486277103424,
+        "hand_jump_internal_rms_rad": 0.035572655498981476,
+        "arm_tracking_rms_rad": 0.008199243806302547,
+        "hand_tracking_rms_rad": 0.10242648422718048
+      },
+      "clip": {
+        "maximum_tick": 275,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.2417517453432083,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          12,
+          81,
+          0,
+          32,
+          60,
+          0,
+          30,
+          124,
+          40,
+          59,
+          108,
+          131,
+          115,
+          395,
+          254,
+          279,
+          104,
+          37,
+          73,
+          138,
+          86,
+          193
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2351,
+      "expert_post_delay_target_at_limits_joint_ticks": 262,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 270,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.036239996552467346,
+          "max_hand_tracking_rad": 0.04738755524158478,
+          "max_clipping_rad": 0.24088197946548462
+        },
+        {
+          "tick": 277,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.0693649873137474,
+          "max_hand_tracking_rad": 0.05823764204978943,
+          "max_clipping_rad": 0.2417517453432083
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 166,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.06731851398944855,
+          "max_hand_tracking_rad": 0.14694933593273163,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 26.52411861690607,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_08_attempt_1/output/r931005_1793209376_e00_p000128/trace.npz": "fc59b24bece239c7be581e5a71debd3ebd1b67b11d7ca87102599354a60836f3",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_08_attempt_1/output/r931005_1793209376_e00_p000128/plans.npz": "3424c59d2d583b3b04d802f4103cff5c23198ce30c0a127e2e082e1ba7390390",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_08/r931005_1793209376_e00_p000128/trace.npz": "b2cd1c0c8d104a4ad91979281fe8ed38901e576c1c3a48b77cd0a5093a1293c5"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 9,
+      "identity": "r931005_1793209376_e00_p000138",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_09_attempt_1/output/r931005_1793209376_e00_p000138",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_09/r931005_1793209376_e00_p000138",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 196,
+      "expert_steps": 196,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 79,
+        "lift_tick": 138,
+        "subgoal_tick": 163,
+        "alignment_tick": 163,
+        "fall_tick": null,
+        "success_tick": 195
+      },
+      "student_events": {
+        "contact_tick": 52,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 4,
+        "actual_arm_rad": 0,
+        "actual_hand_rad": 2,
+        "target_arm_rad": 0,
+        "target_hand_rad": 0,
+        "object_mm": 55,
+        "object_rotation_deg": 77
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "before_expert_sustained_contact",
+        "object_rotation_deg": "before_expert_sustained_contact"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.02200990356504917,
+        "arm_jump_internal_rms_rad": 0.009339302778244019,
+        "hand_jump_boundary_rms_rad": 0.07743185758590698,
+        "hand_jump_internal_rms_rad": 0.03289967030286789,
+        "arm_tracking_rms_rad": 0.012591961771249771,
+        "hand_tracking_rms_rad": 0.07226536422967911
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024511930532753468,
+        "arm_jump_internal_rms_rad": 0.0024281763471663,
+        "hand_jump_boundary_rms_rad": 0.03328048065304756,
+        "hand_jump_internal_rms_rad": 0.03727619722485542,
+        "arm_tracking_rms_rad": 0.008483922109007835,
+        "hand_tracking_rms_rad": 0.0957065001130104
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.02567766048014164,
+        "arm_jump_internal_rms_rad": 0.014194980263710022,
+        "hand_jump_boundary_rms_rad": 0.06882213801145554,
+        "hand_jump_internal_rms_rad": 0.029756247997283936,
+        "arm_tracking_rms_rad": 0.011860157363116741,
+        "hand_tracking_rms_rad": 0.04822126030921936
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024511930532753468,
+        "arm_jump_internal_rms_rad": 0.0024281763471663,
+        "hand_jump_boundary_rms_rad": 0.03328048065304756,
+        "hand_jump_internal_rms_rad": 0.03727619722485542,
+        "arm_tracking_rms_rad": 0.008483922109007835,
+        "hand_tracking_rms_rad": 0.0957065001130104
+      },
+      "clip": {
+        "maximum_tick": 14,
+        "joint": "left_pinky_MCP_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.19279912114143372,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          3,
+          0,
+          324,
+          0,
+          91,
+          0,
+          50,
+          8,
+          186,
+          18,
+          74,
+          353,
+          212,
+          13,
+          33,
+          213,
+          36,
+          113,
+          525,
+          13
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2267,
+      "expert_post_delay_target_at_limits_joint_ticks": 358,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 60,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.08835253119468689,
+          "max_hand_tracking_rad": 0.11518368124961853,
+          "max_clipping_rad": 0.09749054163694382
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 187,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.0502556636929512,
+          "max_hand_tracking_rad": 0.14586831629276276,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 43.921093922083436,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_09_attempt_1/output/r931005_1793209376_e00_p000138/trace.npz": "a2718276f95ae4eb7a7ae596f59a2614cd9b2f3e65f96f3ef1e3716757f8ef00",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_09_attempt_1/output/r931005_1793209376_e00_p000138/plans.npz": "6c25ad8d5594bd6fcf02be203b88db2bc7fa571795f9209de6bc840bee656e4f",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_09/r931005_1793209376_e00_p000138/trace.npz": "69635de35d8e42b6155070607222f306b10cbb854dae1e57c8a4d7613cfa3662"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 9,
+      "identity": "r931005_1793209376_e00_p000138",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_09_attempt_1/output/r931005_1793209376_e00_p000138",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_09/r931005_1793209376_e00_p000138",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 196,
+      "expert_steps": 196,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 79,
+        "lift_tick": 138,
+        "subgoal_tick": 163,
+        "alignment_tick": 163,
+        "fall_tick": null,
+        "success_tick": 195
+      },
+      "student_events": {
+        "contact_tick": 299,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 5,
+        "actual_arm_rad": 4,
+        "actual_hand_rad": 2,
+        "target_arm_rad": 0,
+        "target_hand_rad": 0,
+        "object_mm": 80,
+        "object_rotation_deg": 82
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.019161369651556015,
+        "arm_jump_internal_rms_rad": 0.0081940907984972,
+        "hand_jump_boundary_rms_rad": 0.0657876655459404,
+        "hand_jump_internal_rms_rad": 0.028689906001091003,
+        "arm_tracking_rms_rad": 0.009298433549702168,
+        "hand_tracking_rms_rad": 0.054469671100378036
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024511930532753468,
+        "arm_jump_internal_rms_rad": 0.0024281763471663,
+        "hand_jump_boundary_rms_rad": 0.03328048065304756,
+        "hand_jump_internal_rms_rad": 0.03727619722485542,
+        "arm_tracking_rms_rad": 0.008483922109007835,
+        "hand_tracking_rms_rad": 0.0957065001130104
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.020159749314188957,
+        "arm_jump_internal_rms_rad": 0.010743704624474049,
+        "hand_jump_boundary_rms_rad": 0.07144906371831894,
+        "hand_jump_internal_rms_rad": 0.029321294277906418,
+        "arm_tracking_rms_rad": 0.010381868109107018,
+        "hand_tracking_rms_rad": 0.060697782784700394
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024511930532753468,
+        "arm_jump_internal_rms_rad": 0.0024281763471663,
+        "hand_jump_boundary_rms_rad": 0.03328048065304756,
+        "hand_jump_internal_rms_rad": 0.03727619722485542,
+        "arm_tracking_rms_rad": 0.008483922109007835,
+        "hand_tracking_rms_rad": 0.0957065001130104
+      },
+      "clip": {
+        "maximum_tick": 263,
+        "joint": "left_index_PIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.22306331992149353,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          6,
+          18,
+          108,
+          139,
+          1,
+          62,
+          117,
+          91,
+          1,
+          123,
+          22,
+          56,
+          445,
+          286,
+          387,
+          221,
+          124,
+          0,
+          172,
+          42,
+          91
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2513,
+      "expert_post_delay_target_at_limits_joint_ticks": 358,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [
+        {
+          "tick": 369,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.06620956212282181,
+          "max_hand_tracking_rad": 0.2522639334201813,
+          "max_clipping_rad": 0.1560802310705185
+        }
+      ],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 187,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.0502556636929512,
+          "max_hand_tracking_rad": 0.14586831629276276,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 29.076507761694145,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_09_attempt_1/output/r931005_1793209376_e00_p000138/trace.npz": "7a7720f14d1b774dd1de8d74167bab03a065cafeaf4b62e57d7f1bd9f20a7207",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_09_attempt_1/output/r931005_1793209376_e00_p000138/plans.npz": "d511cef393e672c92c8b2161fb65abe0112cbcf95bbdb14871862216abd02a7a",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_09/r931005_1793209376_e00_p000138/trace.npz": "69635de35d8e42b6155070607222f306b10cbb854dae1e57c8a4d7613cfa3662"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 10,
+      "identity": "r931005_1793209376_e00_p000162",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_10_attempt_1/output/r931005_1793209376_e00_p000162",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_10/r931005_1793209376_e00_p000162",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 243,
+      "expert_steps": 243,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 97,
+        "lift_tick": 164,
+        "subgoal_tick": 208,
+        "alignment_tick": 208,
+        "fall_tick": null,
+        "success_tick": 242
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 2,
+        "actual_arm_rad": 1,
+        "actual_hand_rad": 9,
+        "target_arm_rad": 0,
+        "target_hand_rad": 8,
+        "object_mm": 99,
+        "object_rotation_deg": 100
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.02305218018591404,
+        "arm_jump_internal_rms_rad": 0.008386406116187572,
+        "hand_jump_boundary_rms_rad": 0.0525423027575016,
+        "hand_jump_internal_rms_rad": 0.023480169475078583,
+        "arm_tracking_rms_rad": 0.01050275843590498,
+        "hand_tracking_rms_rad": 0.04157973453402519
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024198461323976517,
+        "arm_jump_internal_rms_rad": 0.0023958738893270493,
+        "hand_jump_boundary_rms_rad": 0.029969969764351845,
+        "hand_jump_internal_rms_rad": 0.03095211833715439,
+        "arm_tracking_rms_rad": 0.008788851089775562,
+        "hand_tracking_rms_rad": 0.09059576690196991
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.026172712445259094,
+        "arm_jump_internal_rms_rad": 0.010547523386776447,
+        "hand_jump_boundary_rms_rad": 0.06410740315914154,
+        "hand_jump_internal_rms_rad": 0.02597269043326378,
+        "arm_tracking_rms_rad": 0.012451362796127796,
+        "hand_tracking_rms_rad": 0.039297547191381454
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024198461323976517,
+        "arm_jump_internal_rms_rad": 0.0023958738893270493,
+        "hand_jump_boundary_rms_rad": 0.029969969764351845,
+        "hand_jump_internal_rms_rad": 0.03095211833715439,
+        "arm_tracking_rms_rad": 0.008788851089775562,
+        "hand_tracking_rms_rad": 0.09059576690196991
+      },
+      "clip": {
+        "maximum_tick": 421,
+        "joint": "left_pinky_MCP_FE",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.14285492897033691,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          12,
+          29,
+          6,
+          60,
+          40,
+          0,
+          19,
+          319,
+          23,
+          12,
+          94,
+          182,
+          7,
+          425,
+          159,
+          543,
+          143,
+          194,
+          193,
+          136,
+          3,
+          50
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2649,
+      "expert_post_delay_target_at_limits_joint_ticks": 703,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 231,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.049432236701250076,
+          "max_hand_tracking_rad": 0.11889570951461792,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 58.103015864280906,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_10_attempt_1/output/r931005_1793209376_e00_p000162/trace.npz": "3216275dfda26ee102e4e87a807e8ecf4d5affc3a0e140f67f73ac8b49f60ccb",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_10_attempt_1/output/r931005_1793209376_e00_p000162/plans.npz": "9a14705c76249915143e6d97bfc42c16ddf02f99ed78d43fb55b970bcbd681f4",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_10/r931005_1793209376_e00_p000162/trace.npz": "f3163466edc4bda41cecb2f4441ec923ab4bbf259afbc6f398e279a3acbe5462"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 10,
+      "identity": "r931005_1793209376_e00_p000162",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_10_attempt_1/output/r931005_1793209376_e00_p000162",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_10/r931005_1793209376_e00_p000162",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 243,
+      "expert_steps": 243,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 97,
+        "lift_tick": 164,
+        "subgoal_tick": 208,
+        "alignment_tick": 208,
+        "fall_tick": null,
+        "success_tick": 242
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 12,
+        "actual_arm_rad": 6,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 0,
+        "target_hand_rad": 2,
+        "object_mm": 99,
+        "object_rotation_deg": 100
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.015458603389561176,
+        "arm_jump_internal_rms_rad": 0.007705005817115307,
+        "hand_jump_boundary_rms_rad": 0.05108608677983284,
+        "hand_jump_internal_rms_rad": 0.028029875829815865,
+        "arm_tracking_rms_rad": 0.00933749694377184,
+        "hand_tracking_rms_rad": 0.0506376251578331
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024198461323976517,
+        "arm_jump_internal_rms_rad": 0.0023958738893270493,
+        "hand_jump_boundary_rms_rad": 0.029969969764351845,
+        "hand_jump_internal_rms_rad": 0.03095211833715439,
+        "arm_tracking_rms_rad": 0.008788851089775562,
+        "hand_tracking_rms_rad": 0.09059576690196991
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.020164551213383675,
+        "arm_jump_internal_rms_rad": 0.010142720304429531,
+        "hand_jump_boundary_rms_rad": 0.06496558338403702,
+        "hand_jump_internal_rms_rad": 0.03403342887759209,
+        "arm_tracking_rms_rad": 0.01127313356846571,
+        "hand_tracking_rms_rad": 0.049622323364019394
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024198461323976517,
+        "arm_jump_internal_rms_rad": 0.0023958738893270493,
+        "hand_jump_boundary_rms_rad": 0.029969969764351845,
+        "hand_jump_internal_rms_rad": 0.03095211833715439,
+        "arm_tracking_rms_rad": 0.008788851089775562,
+        "hand_tracking_rms_rad": 0.09059576690196991
+      },
+      "clip": {
+        "maximum_tick": 595,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.3006928265094757,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          95,
+          0,
+          4,
+          6,
+          65,
+          97,
+          23,
+          32,
+          102,
+          310,
+          37,
+          180,
+          164,
+          240,
+          170,
+          217,
+          84,
+          10,
+          225,
+          354,
+          81
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 2496,
+      "expert_post_delay_target_at_limits_joint_ticks": 703,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 231,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": true,
+          "max_hand_jump_rad": 0.049432236701250076,
+          "max_hand_tracking_rad": 0.11889570951461792,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 37.46141897968283,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_10_attempt_1/output/r931005_1793209376_e00_p000162/trace.npz": "abc13413bc9d44c219962e1326e0abd5123975b4da33d9578714fa459641e3bc",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_10_attempt_1/output/r931005_1793209376_e00_p000162/plans.npz": "77fa2cbc8633710e86bcb3560ddabac7232893d049b04ffd004697e87c5e0e56",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_10/r931005_1793209376_e00_p000162/trace.npz": "f3163466edc4bda41cecb2f4441ec923ab4bbf259afbc6f398e279a3acbe5462"
+      }
+    },
+    {
+      "model": "StateDP",
+      "ordinal": 11,
+      "identity": "r931005_1793209376_e00_p000164",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_11_attempt_2/output/r931005_1793209376_e00_p000164",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_11/r931005_1793209376_e00_p000164",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 169,
+      "expert_steps": 169,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 80,
+        "lift_tick": null,
+        "subgoal_tick": 139,
+        "alignment_tick": 139,
+        "fall_tick": null,
+        "success_tick": 168
+      },
+      "student_events": {
+        "contact_tick": 92,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 5,
+        "actual_arm_rad": 6,
+        "actual_hand_rad": 5,
+        "target_arm_rad": 1,
+        "target_hand_rad": 3,
+        "object_mm": 81,
+        "object_rotation_deg": 85
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.02128531038761139,
+        "arm_jump_internal_rms_rad": 0.008087662979960442,
+        "hand_jump_boundary_rms_rad": 0.05420958623290062,
+        "hand_jump_internal_rms_rad": 0.029016587883234024,
+        "arm_tracking_rms_rad": 0.0096241794526577,
+        "hand_tracking_rms_rad": 0.05283229798078537
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024085287004709244,
+        "arm_jump_internal_rms_rad": 0.0024227993562817574,
+        "hand_jump_boundary_rms_rad": 0.04006326198577881,
+        "hand_jump_internal_rms_rad": 0.03841650113463402,
+        "arm_tracking_rms_rad": 0.007922614924609661,
+        "hand_tracking_rms_rad": 0.09807515144348145
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.02010563388466835,
+        "arm_jump_internal_rms_rad": 0.010183724574744701,
+        "hand_jump_boundary_rms_rad": 0.07531867176294327,
+        "hand_jump_internal_rms_rad": 0.026500031352043152,
+        "arm_tracking_rms_rad": 0.008991233073174953,
+        "hand_tracking_rms_rad": 0.03976735845208168
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024085287004709244,
+        "arm_jump_internal_rms_rad": 0.0024227993562817574,
+        "hand_jump_boundary_rms_rad": 0.04006326198577881,
+        "hand_jump_internal_rms_rad": 0.03841650113463402,
+        "arm_tracking_rms_rad": 0.007922614924609661,
+        "hand_tracking_rms_rad": 0.09807515144348145
+      },
+      "clip": {
+        "maximum_tick": 550,
+        "joint": "left_index_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.18547587096691132,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          16,
+          0,
+          37,
+          28,
+          8,
+          0,
+          11,
+          95,
+          110,
+          0,
+          258,
+          17,
+          97,
+          439,
+          382,
+          62,
+          47,
+          66,
+          0,
+          106,
+          56,
+          132
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 1967,
+      "expert_post_delay_target_at_limits_joint_ticks": 86,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 163,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05450594052672386,
+          "max_hand_tracking_rad": 0.13208162784576416,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 65.62789084111198,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_11_attempt_2/output/r931005_1793209376_e00_p000164/trace.npz": "d5b928212d44e1b1da65fee7d010a19bd1ddad2145c3f666074405256660c280",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/StateDP_11_attempt_2/output/r931005_1793209376_e00_p000164/plans.npz": "6d450e0626c8ac6d82a3a1e3cab7897af1dbb0520ce52a2719808510ac6baaa1",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_11/r931005_1793209376_e00_p000164/trace.npz": "97f6bdcbada4ef514caa07f99eba67f1e23fd5f8378a0d25c76bd2ca65341f38"
+      }
+    },
+    {
+      "model": "ImageDP",
+      "ordinal": 11,
+      "identity": "r931005_1793209376_e00_p000164",
+      "cohort": "validation",
+      "success": false,
+      "termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_11_attempt_2/output/r931005_1793209376_e00_p000164",
+      "expert": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_11/r931005_1793209376_e00_p000164",
+      "expert_success": true,
+      "initial": {
+        "observable_max_errors": {
+          "joint_position_rad": 0.0,
+          "joint_velocity_rad_s": 0.0,
+          "object_pose_w": 0.0,
+          "goal_pose_w": 0.0,
+          "hole_pose_w": 0.0,
+          "table_pose_w": 0.0,
+          "successes": 0.0,
+          "retract_phase": 0.0,
+          "retract_succeeded": 0.0,
+          "max_goals": 0.0,
+          "lifted_object": 0.0,
+          "object_initial_z_m": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0,
+          "base_pose_w": 0.0,
+          "palm_body_pose_w": 0.0,
+          "native_stage_step": 0.0,
+          "is_random_goal": 0.0,
+          "finger_position_w": 0.0,
+          "finger_quat_wxyz": 0.0,
+          "fk_position_error_m": 0.0
+        },
+        "observable_equal": true,
+        "exported_fields_checked": 724,
+        "exported_differences": [],
+        "environment_rng_equal": true,
+        "missing": "PhysX solver/contact warm-start, broadphase and other unsaved internal state; matching observations/seeds do not prove identical simulator state"
+      },
+      "common_ticks": 169,
+      "expert_steps": 169,
+      "student_steps": 601,
+      "expert_events": {
+        "contact_tick": 80,
+        "lift_tick": null,
+        "subgoal_tick": 139,
+        "alignment_tick": 139,
+        "fall_tick": null,
+        "success_tick": 168
+      },
+      "student_events": {
+        "contact_tick": null,
+        "lift_tick": null,
+        "subgoal_tick": null,
+        "alignment_tick": null,
+        "fall_tick": null,
+        "success_tick": null
+      },
+      "first_sustained_divergence": {
+        "actual_ee_mm": 6,
+        "actual_arm_rad": 5,
+        "actual_hand_rad": 4,
+        "target_arm_rad": 0,
+        "target_hand_rad": 1,
+        "object_mm": 81,
+        "object_rotation_deg": 85
+      },
+      "first_divergence_phase": {
+        "actual_ee_mm": "before_expert_sustained_contact",
+        "actual_arm_rad": "before_expert_sustained_contact",
+        "actual_hand_rad": "before_expert_sustained_contact",
+        "target_arm_rad": "before_expert_sustained_contact",
+        "target_hand_rad": "before_expert_sustained_contact",
+        "object_mm": "after_expert_contact_before_native_lift",
+        "object_rotation_deg": "after_expert_contact_before_native_lift"
+      },
+      "thresholds": {
+        "actual_ee_mm": 5.0,
+        "actual_arm_rad": 0.01,
+        "actual_hand_rad": 0.05,
+        "target_arm_rad": 0.01,
+        "target_hand_rad": 0.05,
+        "object_mm": 5.0,
+        "object_rotation_deg": 5.0
+      },
+      "consecutive_ticks": 3,
+      "first_target_difference": 0,
+      "same_prefix_student": {
+        "arm_jump_boundary_rms_rad": 0.0141059048473835,
+        "arm_jump_internal_rms_rad": 0.006517206318676472,
+        "hand_jump_boundary_rms_rad": 0.04754525423049927,
+        "hand_jump_internal_rms_rad": 0.03081820346415043,
+        "arm_tracking_rms_rad": 0.009516965597867966,
+        "hand_tracking_rms_rad": 0.05832965672016144
+      },
+      "same_prefix_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024085287004709244,
+        "arm_jump_internal_rms_rad": 0.0024227993562817574,
+        "hand_jump_boundary_rms_rad": 0.04006326198577881,
+        "hand_jump_internal_rms_rad": 0.03841650113463402,
+        "arm_tracking_rms_rad": 0.007922614924609661,
+        "hand_tracking_rms_rad": 0.09807515144348145
+      },
+      "full_student": {
+        "arm_jump_boundary_rms_rad": 0.024907737970352173,
+        "arm_jump_internal_rms_rad": 0.011309240944683552,
+        "hand_jump_boundary_rms_rad": 0.06784160435199738,
+        "hand_jump_internal_rms_rad": 0.03176438808441162,
+        "arm_tracking_rms_rad": 0.012638590298593044,
+        "hand_tracking_rms_rad": 0.053524188697338104
+      },
+      "full_expert": {
+        "arm_jump_boundary_rms_rad": 0.0024085287004709244,
+        "arm_jump_internal_rms_rad": 0.0024227993562817574,
+        "hand_jump_boundary_rms_rad": 0.04006326198577881,
+        "hand_jump_internal_rms_rad": 0.03841650113463402,
+        "arm_tracking_rms_rad": 0.007922614924609661,
+        "hand_tracking_rms_rad": 0.09807515144348145
+      },
+      "clip": {
+        "maximum_tick": 595,
+        "joint": "left_middle_DIP",
+        "arm_max_rad": 0.0,
+        "hand_max_rad": 0.23916640877723694,
+        "per_joint_clipped_tick_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          9,
+          60,
+          0,
+          0,
+          50,
+          0,
+          73,
+          21,
+          12,
+          49,
+          116,
+          2,
+          107,
+          229,
+          135,
+          118,
+          102,
+          71,
+          2,
+          116,
+          194,
+          92
+        ],
+        "definition": "raw denormalized sample vs actual submitted bounded position; physical joint limits remain enabled even though DDIM clip_sample=False"
+      },
+      "clipped_joint_ticks": 1558,
+      "expert_post_delay_target_at_limits_joint_ticks": 86,
+      "expert_post_limit_target_clipping_zero_by_definition": true,
+      "student_contact_loss_windows": [],
+      "expert_contact_loss_windows": [
+        {
+          "tick": 163,
+          "window": "[-3,+3] native ticks",
+          "replan_in_window": false,
+          "max_hand_jump_rad": 0.05450594052672386,
+          "max_hand_tracking_rad": 0.13208162784576416,
+          "max_clipping_rad": null
+        }
+      ],
+      "actual_expert_precontact_ee_mean_mm": 58.592184259532715,
+      "actuator_target_error_rad": 0.0,
+      "source_hashes": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_11_attempt_2/output/r931005_1793209376_e00_p000164/trace.npz": "1c378fbeeae7220adb5d81813f87b5ee642172e73feede61546113ac346284d4",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/final_dp_20261104_01/stages/ImageDP_11_attempt_2/output/r931005_1793209376_e00_p000164/plans.npz": "c346db9b3f62ad71fc8d0acd0346524f3f334a7b3551683c1dd18049ca40e24c",
+        "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/outputs/visuotactile/native_dp_v2/position_20261103_01/expert_learning_single_11/r931005_1793209376_e00_p000164/trace.npz": "97f6bdcbada4ef514caa07f99eba67f1e23fd5f8378a0d25c76bd2ca65341f38"
+      }
+    }
+  ],
+  "passed_interfaces": true,
+  "identical_recorded_initials": true,
+  "limitations": [
+    "Same control tick, common prefix; no time warping or hidden PhysX identity claim.",
+    "Expert post-limit target has zero additional position-interface clipping by construction; cannot infer upstream native clamp magnitude.",
+    "Contact event uses three consecutive ticks above frozen 0.1N; cohort contact counts use any tick.",
+    "Event coincidence is descriptive, not a causal test."
+  ]
+}

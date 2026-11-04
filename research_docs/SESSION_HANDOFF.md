@@ -1,3 +1,15 @@
+# 2026-11-04 grasp diagnosis after completed final0/12
+
+Worktree bc+rl_RSS_native_v2,feature/native-dp-training-v2. Final evaluation completed
+24valid/27starts at18:06;commit3d77dc3 already pushed. Never restart that owner.
+Newroot outputs/visuotactile/native_dp_v2/grasp_diagnosis_20261104_01. Read
+GRASP_FAILURE_DIAGNOSIS and actualstatus. CPUanalysis24complete; original full-trajectory
+numericparity FAIL due proprio floatroundtrip,precision-only parity PASS under same thresholds.
+Both originals preserved. No training. Next bounded persistent queue: fourprecision-only
+andfourprecision-K4, fixedtrain0/validation4, two10000EMA, independentKit,10totalstarts.
+Source freeze and jobs are new; private warmcache copy, no sharedSDK/cache changes.
+Remaining required: actual ablation results, final resource release, reviewed report/code push.
+
 ## 2026-11-04 — Final10000前四条监督完成，继续固定配对闭环
 
 final_dp_20261104_01前2对/4有效episode已完成，State0/2、Image0/2；5次启动含1次冷缓存编译等待被监督终止（exit−15，0动作，完整保留）。后续使用私有兼容缓存副本，4有效worker exit0/SDK fast exit，不能称graceful close。两对observable/event RNG/物理initial_export逐项相同；GRU初始空、逐tick执行ack、完整终止、目标一致、MP4全解码均通过。原02与两个10000checkpoint SHA不变。final-dp-evaluation-20261104-01.service单owner继续剩余10对；读status.json与顶层EVALUATION_SUMMARY.md实时结果。最多30starts/6软件恢复、每初态最多2次、原12hdeadline不重置，不训练不补低milestone、不用test40。每条即时报告，结束后自动推送轻量结果。视频索引在新root/VIDEOS.md，专家复用V3成功参考。

@@ -1,5 +1,22 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest — final-checkpoint grasp diagnosis, 2026-11-04
+
+User authorizes read-only expert-target replay evidence, complete data/deployment parity,
+24 existing rollout analyses, then bounded single-factor inference diagnostics; no training.
+Read research_docs/GRASP_FAILURE_DIAGNOSIS and grasp_diagnosis_20261104_01/status.json.
+Final formal models remain0/12 each; all24 resolved,27starts,3software-missing attempts.
+Reuse original absolute-target replay2/2 (168/153ticks,14bytewise fields), not native-command
+replay. Twelve successful online expert references have matching recorded initial exports.
+Raw proprio roundtrip fails strict normalized-input2e-5 by5.09e-5; preserve FAIL. Opt-in
+current target-minus-tracking encoder reconstruction passes unchanged complete-trajectory
+thresholds with finalEMA. No SDK/control/weights/shared-controller-file edits.
+New diagnostic root retains initial4hdeadline; before firstKit start, plan amended to
+4precision-only +4precision-K4 episodes (State/Image,train0/validation4),max10starts and
+2software recoveries. Two consecutive identical startup faults stop. K4 vs precision-only
+must match first12control/physical recorded ticks. No test40, new optimization or old-owner
+restart. Separate persistent workers/monitor; keep every attempt and publish small evidence.
+
 ## Measured final10000 supervision
 
 final_dp_20261104_01 completed first2paired starts/4valid outcomes:State0/2,Image0/2.

@@ -1,3 +1,21 @@
+# 2026-11-04 final-checkpoint grasp diagnosis
+
+New tools/grasp_diagnosis_{analysis,parity,precision,worker,run,report}.py and four focused
+tests. No original policy, simulator, loss, checkpoint or final24 artifact modified.
+Absolute expert target replay2/2 is reused after actual runtime-source SHA/AST comparison;
+12matched successful online experts compare with24 existing model traces. Every model
+crosses5mm/3ticks before expert sustained contact;22/24 precede firstreplan. Common-prefix
+expert hand tracking RMS exceeds model, so tracking error alone is not a root cause.
+Final EMA end-to-end audit uses raw recorded packets/RGB through actual controllers,
+teacher feedback only in offline numerical test, zero optimizer updates. Original normalized
+proprio roundtrip fails strict2e-5 (5.09e-5); opt-in current target-minus-tracking reconstruction
+passes unchanged threshold, plan error<8.4e-7rad. Original FAIL preserved; not a proven cause.
+Preregistered inference sequence: four precision-only then four precision+K4, same two
+initials/models;max10starts/2software recoveries/original4h deadline. Only K4 differs in
+the latter comparison; prefix12must agree. Actual progress/readiness is in new root/status.
+CPU report lookup of stale initialcommit and lease deadline errors retained/repaired before
+Kit starts. Four newtests pass; existing Epsilon/batch/SDKclose gates not repeated.
+
 ## 2026-11-04 — Final10000实际四条监督验收
 
 已实际完成State/Image各2次自主闭环；4有效结果全视频解码、控制/历史调用核对、模型SHA/原环境SHA一致、2对初态/事件RNG/物理导出完全相同，所有worker回收。任务成功均0/2，这只通过评估流程监督，不是模型性能验收。最初1次cold-cache启动被终止保留软件缺失；私有缓存恢复与PyAV修复后没有重跑有效轨迹。新源码7802ab2，监督小JSON随EVALUATION_SUMMARY推送。正式剩余队列按同一计划放行。

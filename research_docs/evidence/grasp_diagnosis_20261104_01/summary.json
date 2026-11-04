@@ -1,0 +1,138 @@
+{
+  "original_formal_results": "StateDP0/12;ImageDP0/12;unchanged",
+  "analysis_statistics": {
+    "StateDP": {
+      "before_contact": 12,
+      "before_first_replan": 12,
+      "ee_first_ticks": [
+        9,
+        3,
+        10,
+        6,
+        3,
+        6,
+        7,
+        4,
+        4,
+        4,
+        2,
+        5
+      ],
+      "hand_boundary": 0.06515209376811981,
+      "expert_hand_boundary": 0.03572918474674225,
+      "hand_internal": 0.029235762543976307,
+      "expert_hand_internal": 0.0371122732758522,
+      "hand_tracking": 0.05546393245458603,
+      "expert_hand_tracking": 0.10245921462774277,
+      "max_hand_clipping": 0.2340969294309616
+    },
+    "ImageDP": {
+      "before_contact": 12,
+      "before_first_replan": 10,
+      "ee_first_ticks": [
+        6,
+        13,
+        6,
+        4,
+        3,
+        5,
+        8,
+        7,
+        6,
+        5,
+        12,
+        6
+      ],
+      "hand_boundary": 0.057896584272384644,
+      "expert_hand_boundary": 0.03572918474674225,
+      "hand_internal": 0.03090699203312397,
+      "expert_hand_internal": 0.0371122732758522,
+      "hand_tracking": 0.05867599695920944,
+      "expert_hand_tracking": 0.10245921462774277,
+      "max_hand_clipping": 0.3665633797645569
+    }
+  },
+  "original_numerical_parity_passed": false,
+  "precision_parity_passed": true,
+  "ablations": [
+    {
+      "variant": "precision_only",
+      "model": "StateDP",
+      "planned": 2,
+      "valid": 0,
+      "success": 0,
+      "contact": 0,
+      "lift": 0,
+      "subgoal": 0,
+      "hand_boundary_median": null,
+      "attempts": 0,
+      "software_missing": 0
+    },
+    {
+      "variant": "precision_only",
+      "model": "ImageDP",
+      "planned": 2,
+      "valid": 0,
+      "success": 0,
+      "contact": 0,
+      "lift": 0,
+      "subgoal": 0,
+      "hand_boundary_median": null,
+      "attempts": 0,
+      "software_missing": 0
+    },
+    {
+      "variant": "precision_K4",
+      "model": "StateDP",
+      "planned": 2,
+      "valid": 0,
+      "success": 0,
+      "contact": 0,
+      "lift": 0,
+      "subgoal": 0,
+      "hand_boundary_median": null,
+      "attempts": 0,
+      "software_missing": 0
+    },
+    {
+      "variant": "precision_K4",
+      "model": "ImageDP",
+      "planned": 2,
+      "valid": 0,
+      "success": 0,
+      "contact": 0,
+      "lift": 0,
+      "subgoal": 0,
+      "hand_boundary_median": null,
+      "attempts": 0,
+      "software_missing": 0
+    }
+  ],
+  "attempts": [],
+  "checkpoint_hashes": {
+    "StateDP": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/state_train/milestone_10000.pt",
+      "sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+      "updates": 10000,
+      "cpu_strict_load_passed": true,
+      "all_ema_finite": true,
+      "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
+    },
+    "ImageDP": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/image_train/milestone_10000.pt",
+      "sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+      "updates": 10000,
+      "cpu_strict_load_passed": true,
+      "all_ema_finite": true,
+      "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
+    }
+  },
+  "no_training": true,
+  "no_test40": true,
+  "root": "outputs/visuotactile/native_dp_v2/grasp_diagnosis_20261104_01",
+  "state": {
+    "state": "prepared",
+    "stage": "bounded_ablations",
+    "training_updates": 0
+  }
+}
