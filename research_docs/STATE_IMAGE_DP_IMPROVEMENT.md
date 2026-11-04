@@ -209,3 +209,20 @@ cat outputs/visuotactile/native_dp_v2/state_image_20261104_01/status.json
 
 本轮已停止；此命令只读，不会重新启动门控。旧清理已在CLEANUP_AUDIT记录，本轮不删除唯一失败证据。
 只发布代码、测试、报告、CSV和轻量PNG；SDK日志、权重、原始数据及MP4全部保留本地。
+<!-- offline-v2-final-analysis -->
+
+## 闭环与逐关节最终分析
+
+分母仅包含完整合法原生结果，关闭异常另列；不足12条不能称完整配对验收。
+与原始专家的实际轨迹误差按共同native tick计算，不声称隐藏物理状态严格回放。
+
+|模型|updates|原生成功/完整结果|缺失或非法初态|有结果但非零退出|
+|---|---|---|---|---|
+|state|1000|0/11|1|0|
+|state|3000|0/11|1|0|
+|state|6000|0/8|4|0|
+
+[完整阶段/29关节/空间指标](evidence/state_image_20261104_02/closed_loop_metrics.json) ·
+[闭环CSV](evidence/state_image_20261104_02/closed_loop_summary.csv)。
+
+![29关节验证误差](evidence/state_image_20261104_02/joint_rmse_heatmap.png)
