@@ -40,5 +40,11 @@ Other project processes are never signalled. Parent control state is recorded in
 
 Implementation: `tools/anchor_interim_eval.py`; three focused CPU tests passed
 for contact/timeout counting, PID-reuse protection and idempotent recovery.
-Existing training/runtime sources are unchanged. Raw weights, traces and videos
-remain local. Small reviewed results will be published after actual evaluation.
+Training/controller/worker sources are unchanged. A separate CPU report-only fix
+extracts `contact.object_contact` instead of summing contact dictionaries (which
+would fail when the main continuation first obtained a rollout). The regression
+case covers a populated no-contact dictionary. Both original freeze manifests and
+the before/after report SHA are retained under each root's `report_amendments`.
+Raw weights, traces and videos remain local. Small reviewed results are generated
+by `tools/anchor_interim_analysis.py` after every accepted result and published by
+the independent CPU service at completion; see [results](STATE_DP_INTERIM_RESULTS.md).

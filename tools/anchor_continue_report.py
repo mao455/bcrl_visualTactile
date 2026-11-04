@@ -10,6 +10,11 @@ PUBLIC=CODE/'research_docs/evidence/anchor_continue_20261104_01'
 REPORT=CODE/'research_docs/ANCHOR_BATCH_CONTINUATION.md'
 
 
+def contact_count(trials):
+    # Contact is a structured diagnostic; a non-empty dict is not a contact hit.
+    return sum(bool(t['contact']['object_contact']) for t in trials)
+
+
 def report(root):
     s=read(root/'session.json');status=read(root/'status.json');PUBLIC.mkdir(parents=True,exist_ok=True)
     payload=dict(status=status,source_commit=s['source_commit'],base_commit='a477622',new_training_recipe=dict(
@@ -87,7 +92,7 @@ def report(root):
     for job in ('state','image'):
         records=[x for x in attempts if x['name'].startswith(job+'_evaluation_')]
         trials=[x['result']['trials'][0] for x in records if x.get('valid')]
-        lines.append(f"|{job}|{sum(t['success'] for t in trials)}/{len(trials)}|{sum(t['contact'] for t in trials)}|{sum(t['native_lift'] for t in trials)}|{sum(bool(t['native_subgoals']) for t in trials)}|{sum(not x.get('valid',False) and 'exit_code' in x for x in records)}|{'实测' if trials else '尚未执行'}|")
+        lines.append(f"|{job}|{sum(t['success'] for t in trials)}/{len(trials)}|{contact_count(trials)}|{sum(t['native_lift'] for t in trials)}|{sum(bool(t['native_subgoals']) for t in trials)}|{sum(not x.get('valid',False) and 'exit_code' in x for x in records)}|{'实测' if trials else '尚未执行'}|")
         for record in records:
             if not record.get('valid'):continue
             t=record['result']['trials'][0];video=Path(record['output'])/t['identity']/'rollout.mp4'

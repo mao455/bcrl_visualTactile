@@ -9,6 +9,14 @@ exports, video and native results remain distinct from software failure/SDK exit
 Three focused CPU tests pass for structured contact/timeout counts, recycled-PID
 protection and idempotent resume. Actual Kit results are pending, not inferred.
 
+Added tools/anchor_interim_analysis.py for same-initial old/new/expert comparisons,
+the existing5mm/3tick divergence diagnostic, stage/trajectory plots and allowlisted
+publication. Found and repaired tools/anchor_continue_report.py summing contact
+dictionaries; it now counts the existing object_contact boolean. The no-contact
+dict regression passes. Report-only SHA amendments archive both old runtime
+manifests; all200/201 other identity checks and all training/worker sources remain
+unchanged. The running owner imports no new training code.
+
 ## 2026-11-04 continuation supervision passed; resume at10050
 
 State source b27384f completed actual10005/10015/10050 with three fresh-process restores,

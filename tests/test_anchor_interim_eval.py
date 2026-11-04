@@ -2,6 +2,7 @@ import json
 from unittest.mock import patch
 
 from tools.anchor_interim_eval import counts, same_process, resume
+from tools.anchor_continue_report import contact_count
 
 
 def test_contact_dictionary_and_native_timeout_are_not_truthiness_counts():
@@ -10,6 +11,7 @@ def test_contact_dictionary_and_native_timeout_are_not_truthiness_counts():
     result=counts(trials)
     assert result['contact']==1 and result['valid']==2 and result['timeout']==2
     assert result['success']==result['lift']==0
+    assert contact_count(trials)==1
 
 
 def test_pid_reuse_never_signals_new_process(tmp_path):
