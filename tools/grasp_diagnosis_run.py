@@ -22,64 +22,74 @@ def run_ablations(root,monitor):
     assert read(root/'analysis.json')['identical_recorded_initials']
     assert read(root/'parity_precision.json')['passed']
     for p,digest in read(root/'source_freeze_ablations.json').items():assert sha(CODE/p)==digest,p
+    if session.get('prefix_recovery') and not (root/'deterministic_check.json').exists():
+        for number in (1,2):
+            result=stage(root,monitor,f'deterministic_check_{number}','tools.grasp_deterministic_check',
+                ['--output',str(root/f'deterministic_{number}.npz')],300)
+            assert result['exit_code']==0,'Deterministic GPU forward failed before Kit'
+        with np.load(root/'deterministic_1.npz') as a,np.load(root/'deterministic_2.npz') as b:
+            equality={k:np.array_equal(a[k],b[k]) for k in a.files}
+            differences={k:float(np.abs(a[k]-b[k]).max()) for k in a.files}
+        write(root/'deterministic_check.json',dict(passed=all(equality.values()),equal=equality,max_abs=differences))
+        assert all(equality.values()),'Independent process inference is not bitwise reproducible'
     baseline=[x for x in read(Path(session['baseline_root'])/'attempts.json') if x.get('valid')]
     attempts=read(root/'ablation_attempts.json') if (root/'ablation_attempts.json').exists() else []
     failures=[]
-    for variant in ('precision_only','precision_K4'):
-        for ordinal in (0,4):
-            spec=session['specs'][ordinal]
-            for model in ('StateDP','ImageDP'):
-                for number in (1,2):
-                    if any(x.get('valid') and x['variant']==variant and x['ordinal']==ordinal and x['model']==model for x in attempts):break
-                    assert len(attempts)<10,'Total bounded startup budget exhausted'
-                    if number==2 and sum(x['number']==2 for x in attempts)>=2:raise RuntimeError('Two recoveries exhausted')
-                    cp=session['checkpoints'][model];assert sha(cp['path'])==cp['sha256']
-                    tag=f'{variant}_{model}_{ordinal:02d}_attempt_{number}'
-                    preflight=inspect(256,root);write(root/'preflights'/(tag+'.json'),preflight)
-                    assert preflight['resource_admitted'],preflight['reasons']
-                    job=dict(model=model+' '+variant,mode='dp',specs=[spec],checkpoint=cp['path'],checkpoint_sha256=cp['sha256'],
-                        video=True,inference=dict(inference_steps=16,clip_sample=False,sampler_seed=7091,overlap_steps=0),
-                        ablation=variant,lifecycle=dict(fast_shutdown=True,disarm_stop=True))
-                    path=root/'jobs'/(tag+'.json');write(path,job);output=root/'stages'/tag/'output'
-                    record=dict(variant=variant,model=model,ordinal=ordinal,number=number,tag=tag,output=str(output),
-                        started=time.time(),valid=False)
-                    attempts.append(record);write(root/'ablation_attempts.json',attempts)
-                    exit_result=stage(root,monitor,tag,'tools.grasp_diagnosis_worker',['--output',str(output),'--job',str(path)])
-                    record.update(exit_result)
-                    result=read(output/'result.json') if (output/'result.json').exists() else {}
-                    if result.get('software_complete') and not (output/'worker_error.json').exists():
-                        assert len(result['trials'])==1;trial=result['trials'][0];folder=output/trial['identity']
-                        assert trial['legal'] and not trial['action_exhausted'] and trial['checkpoint_sha256']==cp['sha256']
-                        assert trial['environment_sha256']==read(root/'freeze/benchmark.json')['configuration_sha256']
-                        assert trial['actuator_target_max_error']==trial['submitted_target_max_error']==0.
-                        audit=read(output/'controller_audit.json');assert audit['completed'] and audit['act_calls']==trial['steps']
-                        with np.load(folder/'trace.npz') as trace:assert all(np.isfinite(trace[k]).all() for k in trace.files)
-                        original=next(x for x in baseline if x['ordinal']==ordinal and x['model']==model)
-                        initial=compare_initial(folder,Path(original['output'])/trial['identity'])
-                        assert initial['observable_equal'] and initial['environment_rng_equal'] and not initial['exported_differences']
-                        video=verify_video(folder/'rollout.mp4',trial['steps'])
-                        summary,_,_=describe(folder)
-                        record.update(valid=True,trial=trial,initial=initial,video=video,metrics=summary,
-                            trace_sha256=sha(folder/'trace.npz'),ablation_plans_sha256=sha(folder/'ablation_plans.npz'))
-                        if variant=='precision_K4':
-                            ref=next(x for x in attempts if x.get('valid') and x['variant']=='precision_only' and x['ordinal']==ordinal and x['model']==model)
-                            with np.load(Path(ref['output'])/trial['identity']/'trace.npz') as a,np.load(folder/'trace.npz') as b:
-                                prefix={k:np.array_equal(a[k][:12],b[k][:12]) for k in ('command','target','joint','object','actor','object_contact')}
-                            record['unchanged_first12_prefix']=prefix
-                            assert all(prefix.values()),'Single-factor pre-intervention prefix mismatch'
-                    record['classification']=classify(output,record['exit_code'],record['timeout'],
-                        (output.parent/'worker.log').read_text(errors='replace'),record['valid'])
-                    write(root/'ablation_attempts.json',attempts);write(output.parent/'committed.json',record)
-                    from tools.grasp_diagnosis_report import report
-                    report(root)
-                    if record['valid']:
-                        failures=[];break
-                    failures.append(record['classification'])
-                    if len(failures)>=2 and failures[-1]==failures[-2]:raise RuntimeError('Two consecutive same-stage crashes; no blind restart')
-                    if record['classification']!='startup_FileThread_before_scene':raise RuntimeError('Diagnostic worker fault; inspect evidence')
-                if not any(x.get('valid') and x['variant']==variant and x['ordinal']==ordinal and x['model']==model for x in attempts):
-                    raise RuntimeError('Per-condition recovery exhausted')
-    write(root/'ablation_complete.json',dict(valid=sum(x.get('valid',False) for x in attempts),planned=8,attempts=len(attempts),training_updates=0))
+    schedule=session.get('ablation_schedule') or [dict(variant=v,ordinal=o,model=m) for v in ('precision_only','precision_K4') for o in (0,4) for m in ('StateDP','ImageDP')]
+    for item in schedule:
+        variant,ordinal,model=item['variant'],item['ordinal'],item['model']
+        spec=session['specs'][ordinal]
+        for number in (1,2):
+            if any(x.get('valid') and x['variant']==variant and x['ordinal']==ordinal and x['model']==model for x in attempts):break
+            assert len(attempts)<10,'Total bounded startup budget exhausted'
+            if number==2 and sum(x['number']==2 for x in attempts)>=2:raise RuntimeError('Two recoveries exhausted')
+            cp=session['checkpoints'][model];assert sha(cp['path'])==cp['sha256']
+            tag=f'{variant}_{model}_{ordinal:02d}_attempt_{number}'
+            preflight=inspect(256,root);write(root/'preflights'/(tag+'.json'),preflight)
+            assert preflight['resource_admitted'],preflight['reasons']
+            job=dict(model=model+' '+variant,mode='dp',specs=[spec],checkpoint=cp['path'],checkpoint_sha256=cp['sha256'],
+                video=True,inference=dict(inference_steps=16,clip_sample=False,sampler_seed=7091,overlap_steps=0),
+                ablation=variant,lifecycle=dict(fast_shutdown=True,disarm_stop=True))
+            path=root/'jobs'/(tag+'.json');write(path,job);output=root/'stages'/tag/'output'
+            record=dict(variant=variant,model=model,ordinal=ordinal,number=number,tag=tag,output=str(output),
+                started=time.time(),valid=False)
+            attempts.append(record);write(root/'ablation_attempts.json',attempts)
+            exit_result=stage(root,monitor,tag,'tools.grasp_diagnosis_worker',['--output',str(output),'--job',str(path)])
+            record.update(exit_result)
+            result=read(output/'result.json') if (output/'result.json').exists() else {}
+            if result.get('software_complete') and not (output/'worker_error.json').exists():
+                assert len(result['trials'])==1;trial=result['trials'][0];folder=output/trial['identity']
+                assert trial['legal'] and not trial['action_exhausted'] and trial['checkpoint_sha256']==cp['sha256']
+                assert trial['environment_sha256']==read(root/'freeze/benchmark.json')['configuration_sha256']
+                assert trial['actuator_target_max_error']==trial['submitted_target_max_error']==0.
+                audit=read(output/'controller_audit.json');assert audit['completed'] and audit['act_calls']==trial['steps']
+                with np.load(folder/'trace.npz') as trace:assert all(np.isfinite(trace[k]).all() for k in trace.files)
+                original=next(x for x in baseline if x['ordinal']==ordinal and x['model']==model)
+                initial=compare_initial(folder,Path(original['output'])/trial['identity'])
+                assert initial['observable_equal'] and initial['environment_rng_equal'] and not initial['exported_differences']
+                video=verify_video(folder/'rollout.mp4',trial['steps'])
+                summary,_,_=describe(folder)
+                record.update(valid=True,trial=trial,initial=initial,video=video,metrics=summary,
+                    trace_sha256=sha(folder/'trace.npz'),ablation_plans_sha256=sha(folder/'ablation_plans.npz'))
+                if variant.endswith('_K4'):
+                    ref=next(x for x in attempts if x.get('valid') and x['variant']==variant.replace('_K4','_only') and x['ordinal']==ordinal and x['model']==model)
+                    with np.load(Path(ref['output'])/trial['identity']/'trace.npz') as a,np.load(folder/'trace.npz') as b:
+                        prefix={k:np.array_equal(a[k][:12],b[k][:12]) for k in ('command','target','joint','object','actor','object_contact')}
+                    record['unchanged_first12_prefix']=prefix
+                    assert all(prefix.values()),'Single-factor pre-intervention prefix mismatch'
+            record['classification']=classify(output,record['exit_code'],record['timeout'],
+                (output.parent/'worker.log').read_text(errors='replace'),record['valid'])
+            write(root/'ablation_attempts.json',attempts);write(output.parent/'committed.json',record)
+            from tools.grasp_diagnosis_report import report
+            report(root)
+            if record['valid']:
+                failures=[];break
+            failures.append(record['classification'])
+            if len(failures)>=2 and failures[-1]==failures[-2]:raise RuntimeError('Two consecutive same-stage crashes; no blind restart')
+            if record['classification']!='startup_FileThread_before_scene':raise RuntimeError('Diagnostic worker fault; inspect evidence')
+        if not any(x.get('valid') and x['variant']==variant and x['ordinal']==ordinal and x['model']==model for x in attempts):
+            raise RuntimeError('Per-condition recovery exhausted')
+    write(root/'ablation_complete.json',dict(valid=sum(x.get('valid',False) for x in attempts),planned=session['planned_ablation_rollouts'],attempts=len(attempts),training_updates=0))
     return 'completed'
 
 

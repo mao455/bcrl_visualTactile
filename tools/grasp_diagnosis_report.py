@@ -28,10 +28,11 @@ def report(root):
             expert_hand_tracking=median(r,'hand_tracking_rms_rad','same_prefix_expert'),
             max_hand_clipping=max(x['clip']['hand_max_rad'] for x in r))
     summaries=[]
-    for variant in ('precision_only','precision_K4'):
+    for variant in ('precision_only','precision_K4','deterministic_precision_only','deterministic_precision_K4'):
         for m in ('StateDP','ImageDP'):
             r=[x for x in valid if x['variant']==variant and x['model']==m]
-            summaries.append(dict(variant=variant,model=m,planned=2,valid=len(r),success=sum(x['trial']['success'] for x in r),
+            planned=(2 if variant=='precision_only' else (1 if m=='StateDP' else 0) if variant=='precision_K4' else 1)
+            summaries.append(dict(variant=variant,model=m,planned=planned,causal_pair_invalid=sum(x.get('causal_pair_valid') is False for x in r),valid=len(r),success=sum(x['trial']['success'] for x in r),
                 contact=sum(x['trial']['contact']['object_contact'] for x in r),lift=sum(x['trial']['native_lift'] for x in r),
                 subgoal=sum(x['trial']['native_subgoals']>0 for x in r),
                 hand_boundary_median=statistics.median(x['metrics']['continuity']['hand_boundary_jump_rms_rad'] for x in r) if r else None,
@@ -74,7 +75,7 @@ def report(root):
         '## 有界、单因素实测','',
         '先只修复proprio浮点重构并复评旧checkpoint，再在同一修复版本上只加K4拼接。固定train ordinal0和validation ordinal4、两个模型；旧K0对照直接复用已完成结果。',
         'K4只把旧计划尚未执行的[12:16]和新计划[0:4]按1/4、1/2、3/4、1融合；没有新延迟/限速、参数更新、expert takeover或控制器增益修改。',
-        '计划8条新episode、最多10次启动/2次软件恢复；两次连续同阶段故障停止；沿用本轮最初4小时截止，不重置。',
+        '修订计划9条新episode、最多10次启动/2次软件恢复；两次连续同阶段故障停止；沿用本轮最初4小时截止，不重置。',
         '原先4条K4计划在发现严格一致性FAIL后、任何新Kit启动之前扩展为4条精度修复对照+4条K4；两次变化分开比较。','',
         '|版本|模型|成功/有效|计划|接触|lift|首子目标|软件缺失|','|---|---|---:|---:|---:|---:|---:|---:|']
     for s in summaries:lines.append(f"|{s['variant']}|{s['model']}|{s['success']}/{s['valid']}|{s['planned']}|{s['contact']}|{s['lift']}|{s['subgoal']}|{s['software_missing']}|")

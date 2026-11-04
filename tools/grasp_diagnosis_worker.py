@@ -1,5 +1,6 @@
 """One-factor K4 plan-overlap diagnostic on unchanged final EMA controllers."""
 import argparse
+import os
 from pathlib import Path
 
 import numpy as np
@@ -28,7 +29,7 @@ def run(root,output,job):
     from visuotactile import state_benchmark as base,native_controller
     from tools.final_dp_worker import run as evaluate
     config=read(job)
-    assert config['ablation'] in ('precision_only','precision_K4')
+    assert config['ablation'] in ('precision_only','precision_K4','deterministic_precision_only','deterministic_precision_K4')
     from tools.grasp_diagnosis_precision import install
     install()
     assert config['inference'].get('overlap_steps',0)==0,'No double blending'
@@ -36,8 +37,14 @@ def run(root,output,job):
     def instrument(cls,state):
         original_init,original_act=cls.__init__,cls.act
         def init(self,*a,**kw):
+            if config['ablation'].startswith('deterministic_'):
+                torch.use_deterministic_algorithms(True)
+                torch.backends.cudnn.deterministic=True
+                torch.backends.cudnn.benchmark=False
+                torch.backends.cuda.matmul.allow_tf32=False
+                torch.backends.cudnn.allow_tf32=False
             original_init(self,*a,**kw)
-            self.diagnostic_predictor=OverlapPredictor(self.model.predict,4 if config['ablation']=='precision_K4' else 0)
+            self.diagnostic_predictor=OverlapPredictor(self.model.predict,4 if config['ablation'].endswith('_K4') else 0)
             self.model.predict=self.diagnostic_predictor
         def act(self,*a,**kw):
             command=original_act(self,*a,**kw)
@@ -62,5 +69,7 @@ def run(root,output,job):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--job',type=Path,required=True);a=p.parse_args()
+    if read(a.job)['ablation'].startswith('deterministic_'):
+        os.environ['CUBLAS_WORKSPACE_CONFIG']=':4096:8'
     torch.set_num_threads(2);torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
     run(a.root,a.output,a.job)
