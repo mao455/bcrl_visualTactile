@@ -19,7 +19,9 @@ def run(root, output, job_path):
 
     def isolated_launcher(*args, **kwargs):
         # Preserve the exact prior persistent values, but never write shared paths.
-        private = root/'kit_runtime'/job['id']
+        # Fresh simulator processes share only this run's seeded shader cache.
+        # No physical/environment/controller state is reused between workers.
+        private = root/'private_runtime'
         private.mkdir(parents=True, exist_ok=True)
         kwargs['kit_args'] = kwargs.get('kit_args', '') + (
             f' --portable-root {private}'

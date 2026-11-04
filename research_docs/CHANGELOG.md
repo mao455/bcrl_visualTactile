@@ -1,3 +1,17 @@
+## 2026-11-04 — final evaluation startup and video-reader correction
+
+First final-only worker reached shader compilation but not scene/robot action after
+7+minutes in a fresh portable cache. Supervisor sent SIGTERM to that owned worker;
+exit and resources were retained, software missing, zero robot outcomes. Private
+cache now seeds a copy of existing compatible SDK cache (read-only source), reused
+serially within this run, never simulator/process reuse. Original persistent config
+remains pinned. Original attempt, budget and12hdeadline are not reset.
+System ffmpeg/ffprobe are absent; existing PyAV fully decodes videos instead. Actual
+expert reference decoded91frames/30fps for181native ticks. Added common-tick expert
+reference, failure phase, final30tick contact/height/jumps and hand reversals to CPU
+analysis; checked on an existing1000trace without starting a simulator. No policy,
+checkpoint, controller or shared installation changes.
+
 ## 2026-11-04 — Final10000-only isolated evaluation recovery
 
 Added tools/final_dp_eval, final_dp_worker, final_dp_report and focused accounting tests. New persistent owner evaluates State/Image alternately on frozen12initials; first4supervised,30starts maximum/6recoveries/12h. Per-attempt resource/process/FD/inotify records, strict trajectory/controller/video checks, paired initial/RNG export checks and immediate reports. Kit portable data/cache/log isolation preserves copied persistent settings; no shared SDK or controller/model changes. Both actual10000 EMA checkpoints CPU strict-loaded and all finite. Original02 evidence preserved. Actual new rollouts are pending until machine status records them.

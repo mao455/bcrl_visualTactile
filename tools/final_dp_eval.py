@@ -121,7 +121,13 @@ class Owner:
                 snapshots=[]
                 for pid in {self.worker.pid,*descendants(self.worker.pid)}:
                     p=proc(pid)
-                    if p:observed[pid]=p['start_ticks'];snapshots.append(p)
+                    if p:
+                        observed[pid]=p['start_ticks']
+                        try:
+                            fields=Path('/proc',str(pid),'stat').read_text().rsplit(')',1)[1].split()
+                            p['cpu_user_ticks']=int(fields[11]);p['cpu_system_ticks']=int(fields[12])
+                        except (OSError,ValueError):pass
+                        snapshots.append(p)
                 samples.write(__import__('json').dumps(dict(utc=time.time(),processes=snapshots))+'\n');samples.flush()
                 phase=read(output/'shutdown_phase.json') if (output/'shutdown_phase.json').exists() else {}
                 self.status('supervised' if not (root/'supervision_accepted.json').exists() else 'evaluating',stage=tag,
@@ -160,14 +166,13 @@ class Owner:
                     assert len(z['joint'])==trial['steps'] and all(np.isfinite(z[k]).all() for k in z.files)
                 video=folder/'rollout.mp4'
                 # Decode every frame, not just inspect the container header.
-                subprocess.run(['ffmpeg','-v','error','-xerror','-threads','2','-i',str(video),'-f','null','-'],check=True,stdout=subprocess.DEVNULL,stderr=subprocess.PIPE)
-                frames=int(subprocess.check_output(['ffprobe','-v','error','-count_frames','-select_streams','v:0','-show_entries','stream=nb_read_frames','-of','default=nw=1:nk=1',str(video)],text=True))
-                assert frames==trial['steps']
+                from tools.final_dp_video import verify_video
+                decoded=verify_video(video,trial['steps'])
                 for file in folder.iterdir():
                     if file.is_file():
                         with file.open('rb') as stream:os.fsync(stream.fileno())
                 record.update(valid=True,trace_sha256=sha(trace),controller_audit=audit,
-                    video=dict(path=str(video),sha256=sha(video),decoded_frames=frames),result_sha256=sha(output/'result.json'))
+                    video=dict(path=str(video),sha256=sha(video),**decoded),result_sha256=sha(output/'result.json'))
         record['classification']=classify(output,code,timeout,(parent/'worker.log').read_text(errors='replace'),record['valid'])
         write(parent/'committed.json',record);write(root/'attempts.json',self.attempts)
         if record['valid']:self.analyze_one(record)
@@ -189,17 +194,9 @@ class Owner:
         write(self.root/'pairs.json',pairs)
         if any(not p['passed'] for p in pairs):raise RuntimeError('Paired initial-state contract mismatch; preserve both traces')
     def analyze_one(self,record):
-        import numpy as np
-        from tools.h24_diagnosis_report import describe
-        folder=Path(record['output'])/record['trial']['identity']
-        summary,series,trace=describe(folder)
+        from tools.final_dp_details import details as analyze
         details=read(self.root/'failure_analysis.json') if (self.root/'failure_analysis.json').exists() else []
-        details.append(dict(model=record['model'],ordinal=record['ordinal'],cohort=record['trial']['cohort'],
-            success=record['trial']['success'],reasons=record['trial']['reasons'],metrics=summary,
-            before_termination=dict(last_ticks=min(30,len(trace['joint'])),
-                object_z_m=trace['object'][-30:,2].tolist(),contact_force_N=series['object_contact_N'][-30:].tolist(),
-                hand_target_jump_rad=series['hand_jump_rad'][-30:].tolist(),arm_target_jump_rad=series['arm_jump_rad'][-30:].tolist()),
-            maximum_hand_jump=dict(tick=int(np.argmax(series['hand_jump_rad'])),rad=float(np.max(series['hand_jump_rad'])))))
+        details.append(analyze(self.root,record))
         write(self.root/'failure_analysis.json',details)
     def run(self):
         root=self.root
