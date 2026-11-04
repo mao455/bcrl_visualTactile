@@ -16,6 +16,16 @@
 两项新增生命周期判定测试通过，正式模型仍0updates；实际Kit进展读取kit_gate/status.json。
 此门控本身不启动训练；只有真实通过后才继续新损失实现和监督验收。
 
+## Kit监控器权限缺口修复（首个start仍计入预算）
+
+首个expert在场景就绪前被owner终止：监控读取Kit辅助进程/proc/PID/fd返回PermissionError，
+不是已证实的FileThread崩溃。原日志、exit−15、launching状态和owner traceback保留。
+只修新监控：不可读FD/inotify计数记null及permission缺失，仍跟踪PID/starttime；
+退出时再检查整个专用systemd cgroup，不能遗漏被重父化的子进程。
+3项针对性测试通过。显式恢复登记只允许这个已识别的pre-scene监控错误，旧SDK/模型/物理不改。
+原start计数1/5和原session deadline不变；后续expert/student/expert使用全新attempt目录，
+不自动无限恢复，也不把已失败首次start覆盖成成功。
+
 ## 首次预检历史快照，2026-11-04（已由下述恢复状态更新）
 
 新运行身份 `state_image_20261104_01`，基础提交 `2dc8b58533bba24be5e8f1905279f9fa3372669b`，

@@ -45,16 +45,22 @@ def proc(pid):
         fields = (p/'stat').read_text().rsplit(')', 1)[1].split()
         status = dict(line.split(':', 1) for line in (p/'status').read_text().splitlines() if ':' in line)
         watches = instances = 0
-        fds = list((p/'fd').iterdir())
+        missing=[]
+        try: fds = list((p/'fd').iterdir())
+        except PermissionError:
+            fds=[];missing.append('fd_directory_permission_denied')
         for fd in fds:
             try:
                 if 'inotify' in os.readlink(fd):
                     instances += 1
                     watches += sum(s.startswith('inotify wd:') for s in (p/'fdinfo'/fd.name).read_text().splitlines())
             except (FileNotFoundError, ProcessLookupError): pass
+            except PermissionError: missing.append('fdinfo_permission_denied')
         return dict(pid=pid, ppid=int(fields[1]), process_group=int(fields[2]), start_ticks=int(fields[19]),
             state=fields[0], rss_kib=int(status.get('VmRSS', '0 kB').split()[0]),
-            threads=int(status['Threads']), fds=len(fds), watches=watches, inotify_instances=instances)
+            threads=int(status['Threads']), fds=None if missing else len(fds),
+            watches=None if missing else watches, inotify_instances=None if missing else instances,
+            telemetry_missing=missing)
     except (FileNotFoundError, ProcessLookupError):
         return None
 
@@ -66,10 +72,21 @@ def descendants(pid):
         parent = pending.pop()
         for task in Path('/proc', str(parent), 'task').glob('*'):
             try: children = [int(x) for x in (task/'children').read_text().split()]
-            except (FileNotFoundError, ProcessLookupError): continue
+            except (FileNotFoundError, ProcessLookupError, PermissionError): continue
             for child in children:
                 if child not in found: found.add(child); pending.append(child)
     return found
+
+
+def service_members():
+    """Unit cgroup also finds reparented children or unreadable task child lists."""
+    line=next(s for s in Path('/proc/self/cgroup').read_text().splitlines() if s.startswith('0::'))
+    relative=line.split('::',1)[1]
+    if not relative.endswith('/state-image-kit-20261104-01.service'):
+        raise RuntimeError('Gate must run in its dedicated systemd cgroup')
+    group=Path('/sys/fs/cgroup')/relative.lstrip('/')
+    return {int(pid) for file in [group/'cgroup.procs',*group.glob('**/cgroup.procs')]
+        for pid in file.read_text().split()}
 
 
 def gpu_pids():
@@ -134,12 +151,49 @@ def stop_owned(worker):
             os.killpg(worker.pid,signal.SIGKILL); worker.wait(timeout=15)
 
 
+def register_reader_repair(root):
+    """One explicit, audited recovery of the pre-scene proc-reader failure."""
+    gate=root.resolve()/'kit_gate'; plan=read(gate/'plan.json'); attempts=read(gate/'attempts.json')
+    error=read(gate/'owner_error.json'); exit_record=read(gate/'owner_exit.json')
+    if (len(attempts)!=1 or exit_record['state']!='blocked'
+            or error['error']!="PermissionError(13, 'Permission denied')"
+            or "fds = list((p/'fd').iterdir())" not in error['traceback']
+            or read(gate/'stages/01_expert/lifecycle.json')['state']!='launching'
+            or (gate/'stages/01_expert/result.json').exists()):
+        raise RuntimeError('Not the one registered pre-scene proc reader bug')
+    archive=gate/'proc_reader_repair';archive.mkdir(exist_ok=False)
+    changed=[]
+    for name,digest in plan['source_sha256'].items():
+        current=sha(CODE/name)
+        if current!=digest:
+            if name!='tools/state_image_kit_gate.py':raise ValueError('Unrelated source drift: '+name)
+            changed.append(dict(path=name,before=digest,after=current))
+    if len(changed)!=1:raise ValueError('Expected only the proc reader/registered recovery change')
+    original=subprocess.check_output(['git','show',plan['source_commit']+':tools/state_image_kit_gate.py'],cwd=CODE)
+    (archive/'original_gate.py').write_bytes(original)
+    if sha(archive/'original_gate.py')!=changed[0]['before']:raise ValueError('Original source mismatch')
+    for name in ('plan.json','owner_exit.json','owner_error.json','status.json','STOP_MONITOR'):
+        (gate/name).rename(archive/name)
+    plan['source_sha256']['tools/state_image_kit_gate.py']=changed[0]['after']
+    plan['source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip()
+    plan['stages']=[dict(name='02_expert_recovery',mode='expert'),dict(name='03_sample8000',mode='dp'),dict(name='04_expert_repeat',mode='expert')]
+    plan['recovery']=dict(archive=str(archive),changed=changed,prior_starts=1,deadline_reset=False)
+    for stage,previous in zip(plan['stages'],('01_expert','02_sample8000','03_expert_repeat')):
+        write(gate/'jobs'/(stage['name']+'.json'),read(gate/'jobs'/(previous+'.json')))
+    write(archive/'failed_inventory.json',{str(p.relative_to(gate)):sha(p)
+        for p in (gate/'stages').rglob('*') if p.is_file()})
+    write(gate/'plan.json',plan)
+    write(gate/'status.json',dict(state='pending',starts=1,passed=False,utc=time.time(),reason='Registered proc-reader repair; unchanged five-start cap and session deadline'))
+
+
 def run(root):
     from tools.kit_resource_preflight import inspect
     root = root.resolve(); gate = root/'kit_gate'; plan=read(gate/'plan.json')
     owner_lock=(gate/'owner.lock').open('a'); fcntl.flock(owner_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     if (gate/'owner_exit.json').exists(): raise RuntimeError('Completed or blocked gate cannot silently restart')
-    monitor = worker = None; rows=[]; failure=None
+    monitor = worker = None
+    rows=read(gate/'attempts.json') if (gate/'attempts.json').exists() else []
+    failure=None
     def status(state, **values):
         record=dict(state=state, owner_pid=os.getpid(), starts=len(rows), passed=False, utc=time.time(), **values)
         write(gate/'status.json',record)
@@ -152,7 +206,7 @@ def run(root):
         for name,digest in plan['source_sha256'].items():
             if sha(CODE/name)!=digest: raise ValueError('Frozen gate source drift: '+name)
         if sha(gate/'session.json')!=plan['session_sha256']: raise ValueError('Gate session drift')
-        with (gate/'monitor.log').open('x') as log:
+        with (gate/('monitor_'+str(len(rows)+1)+'.log')).open('x') as log:
             monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(gate)],cwd=CODE,
                 stdout=log,stderr=subprocess.STDOUT,stdin=subprocess.DEVNULL,start_new_session=True)
         for stage in plan['stages']:
@@ -188,18 +242,19 @@ def run(root):
                 worker.wait(); code=worker.returncode
             still=[pid for pid,start in observed.items() if (p:=proc(pid)) is not None and p['start_ticks']==start]
             remaining_gpu=sorted(set(observed)&gpu_pids())
-            released=not still and not remaining_gpu
+            unexpected_cgroup=sorted(service_members()-{os.getpid(),monitor.pid,*descendants(monitor.pid)})
+            released=not still and not remaining_gpu and not unexpected_cgroup
             passed=graceful_acceptance(output,code,released)
             launch.update(exit_code=code,reaped=True,remaining_owned_pids=still,remaining_owned_gpu_pids=remaining_gpu,
-                passed=passed,elapsed_s=time.time()-began,completed_utc=time.time())
+                unexpected_cgroup_pids=unexpected_cgroup,passed=passed,elapsed_s=time.time()-began,completed_utc=time.time())
             write(gate/'attempts.json',rows); worker=None
             post=inspect(256,gate); write(gate/(name+'_after.json'),post)
             if not passed: raise RuntimeError('Kit full lifecycle gate failed: '+name)
             if not post['resource_admitted']: raise RuntimeError('Post-exit resource pressure')
         import numpy as np
-        identity=plan['spec']['identity']; first=gate/'stages/01_expert'/identity
+        identity=plan['spec']['identity']; first=gate/'stages'/plan['stages'][0]['name']/identity
         comparisons={}
-        for name,path in [('repeat',gate/'stages/03_expert_repeat'/identity),('historical',Path(plan['original_reference']))]:
+        for name,path in [('repeat',gate/'stages'/plan['stages'][-1]['name']/identity),('historical',Path(plan['original_reference']))]:
             with np.load(first/'trace.npz') as a, np.load(path/'trace.npz') as b:
                 comparisons[name]={key:a[key].shape==b[key].shape and a[key].dtype==b[key].dtype and a[key].tobytes()==b[key].tobytes()
                     for key in a.files if key in b.files and key!='expert_shadow'}
@@ -208,7 +263,9 @@ def run(root):
         write(gate/'parity.json',dict(fields=comparisons,passed=True,hidden_sim_state_identity_claimed=False))
         final=inspect(256,gate); write(gate/'final_preflight.json',final)
         if not final['resource_admitted']: raise RuntimeError('Final resource admission failed')
-        write(gate/'result.json',dict(passed=True,consecutive=len(rows),required=3,maximum_starts=5,
+        if len(rows)<3 or not all(row.get('passed') for row in rows[-3:]):
+            raise RuntimeError('Fewer than three consecutive accepted episodes')
+        write(gate/'result.json',dict(passed=True,consecutive=3,starts=len(rows),required=3,maximum_starts=5,
             graceful_sdk_exit=True,expert_and_student=True,parity=True,new_optimizer_updates=0,utc=time.time()))
         status('completed')
     except BaseException as error:
@@ -234,6 +291,6 @@ def run(root):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('mode',choices=['prepare','run'])
+    parser=argparse.ArgumentParser();parser.add_argument('mode',choices=['prepare','run','register-reader-repair'])
     parser.add_argument('--root',type=Path,required=True);args=parser.parse_args()
-    (prepare if args.mode=='prepare' else run)(args.root)
+    {'prepare':prepare,'run':run,'register-reader-repair':register_reader_repair}[args.mode](args.root)
