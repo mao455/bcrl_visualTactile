@@ -1,3 +1,7 @@
+## 2026-11-04 — Final10000 evaluation accounting
+
+Valid outcome requires original legal initialization, native full termination, finite durable trace, checkpoint/environment SHA match, unchanged actuator targets and completed policy/history audit. Nonzero shutdown can retain verified outcome while remaining a software fault. Startup missing never enters task-success denominator; planned24coverage and all softwareattempts are shown. Native approach/stable-grasp booleans do not exist; existing diagnostics remain explicitly distinct. Exact saved observables/event RNG/physical exports are compared; full hidden PhysX replay is not claimed.
+
 ## 2026-11-04 offline improvement identity
 
 New `position_geometry_sample_v1` objective is recorded in training configuration and

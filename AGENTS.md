@@ -1,5 +1,19 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest — final StateDP/ImageDP10000 closed-loop recovery, 2026-11-04
+
+User explicitly authorizes new final-only evaluation after old02 stopped. Both trained
+10000 checkpoints are complete and immutable. Read EVALUATION_SUMMARY.md and actual
+final_dp_20261104_01/status.json. No training, lower-milestone catch-up, test40 tuning,
+expert takeover or SDK/global changes. One new owner/service, alternating identical
+train4+validation8 starts. First two each require supervised review before remaining
+queue admission.24planned episodes,at most30starts/6software recoveries,one per initial;
+12h total window. Two consecutive same-stage startup faults require targeted repair.
+Keep all old evidence and every new failed attempt. SDK fast exit is not graceful close.
+New per-worker portable paths copy original persistent config, do not clear shared cache.
+Report native success separately from pre-existing approach/contact/grasp diagnostics;
+no native discrete approach/stable-grasp criterion exists. Publish reviewed small reports.
+
 ## Running — offline State/Image v2 passed State200 supervision
 
 Newroot state_image_20261104_02, state-image-offline-20261104-02.service is the sole

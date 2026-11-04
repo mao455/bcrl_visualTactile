@@ -1,3 +1,7 @@
+## 2026-11-04 — Final10000 evaluation recovery authorized
+
+Old02 finished State/Image10000 and stopped after34lower-milestone attempts (30valid,4softwaremissing); do not revive its owner. New final_dp_20261104_01 will run final models only, alternating2+2supervised then fixed12each. Read root/status.json and EVALUATION_SUMMARY.md; do not infer startup from this preparation entry. No training or shared SDK change. Existing successful181tick expert video V3 is reused as reference.
+
 # 当前会话交接：视觉—触觉研究
 
 ## 2026-11-04 offline v2已通过State200监督，真实后台续训

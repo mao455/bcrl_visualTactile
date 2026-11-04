@@ -1,3 +1,7 @@
+## 2026-11-04 — Final10000-only isolated evaluation recovery
+
+Added tools/final_dp_eval, final_dp_worker, final_dp_report and focused accounting tests. New persistent owner evaluates State/Image alternately on frozen12initials; first4supervised,30starts maximum/6recoveries/12h. Per-attempt resource/process/FD/inotify records, strict trajectory/controller/video checks, paired initial/RNG export checks and immediate reports. Kit portable data/cache/log isolation preserves copied persistent settings; no shared SDK or controller/model changes. Both actual10000 EMA checkpoints CPU strict-loaded and all finite. Original02 evidence preserved. Actual new rollouts are pending until machine status records them.
+
 # Engineering change and verification log
 
 ## 2026-11-04 — measured State200 supervision and independent CPU final analysis
