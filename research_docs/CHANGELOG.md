@@ -1,3 +1,7 @@
+## 2026-11-04 — Final10000实际四条监督验收
+
+已实际完成State/Image各2次自主闭环；4有效结果全视频解码、控制/历史调用核对、模型SHA/原环境SHA一致、2对初态/事件RNG/物理导出完全相同，所有worker回收。任务成功均0/2，这只通过评估流程监督，不是模型性能验收。最初1次cold-cache启动被终止保留软件缺失；私有缓存恢复与PyAV修复后没有重跑有效轨迹。新源码7802ab2，监督小JSON随EVALUATION_SUMMARY推送。正式剩余队列按同一计划放行。
+
 ## 2026-11-04 — final evaluation startup and video-reader correction
 
 First final-only worker reached shader compilation but not scene/robot action after

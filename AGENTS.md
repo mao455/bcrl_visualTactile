@@ -1,5 +1,14 @@
 # Play2Perfect visual–tactile imitation research
 
+## Measured final10000 supervision
+
+final_dp_20261104_01 completed first2paired starts/4valid outcomes:State0/2,Image0/2.
+Five starts include one controlled pre-scene cold-cache termination; retained as missing.
+Actual pair observable/eventRNG/physical export, controller/history,video decode andworker
+release checks passed. Source7802ab2. Admission may continue remaining10pairs; never
+infer all24complete from this note. Read root/status.json and EVALUATION_SUMMARY.md.
+
+
 ## Latest — final StateDP/ImageDP10000 closed-loop recovery, 2026-11-04
 
 User explicitly authorizes new final-only evaluation after old02 stopped. Both trained
