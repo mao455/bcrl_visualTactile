@@ -186,6 +186,42 @@ def register_reader_repair(root):
     write(gate/'status.json',dict(state='pending',starts=1,passed=False,utc=time.time(),reason='Registered proc-reader repair; unchanged five-start cap and session deadline'))
 
 
+def register_shutdown_repair(root):
+    gate=root.resolve()/'kit_gate';plan=read(gate/'plan.json');attempts=read(gate/'attempts.json')
+    error=read(gate/'owner_error.json')
+    result=read(gate/'stages/02_expert_recovery/result.json')
+    if (len(attempts)!=2 or error['error']!="TimeoutError('SDK shutdown did not finish within60s')"
+            or not result['software_complete'] or result['trials'][0]['steps']!=181
+            or not read(gate/'expert_02_reference_parity.json')['passed']):
+        raise RuntimeError('Not the registered post-episode SDK shutdown stall')
+    archive=gate/'shutdown_repair';archive.mkdir(exist_ok=False)
+    changed=[]
+    for name,digest in plan['source_sha256'].items():
+        current=sha(CODE/name)
+        if current!=digest:
+            if name!='tools/state_image_kit_gate.py':raise ValueError('Unrelated gate source changed: '+name)
+            changed.append(dict(path=name,before=digest,after=current))
+    if len(changed)!=1:raise ValueError('Expected explicit gate registration change')
+    original=subprocess.check_output(['git','show',plan['source_commit']+':tools/state_image_kit_gate.py'],cwd=CODE)
+    (archive/'original_gate.py').write_bytes(original)
+    if sha(archive/'original_gate.py')!=changed[0]['before']:raise ValueError('Original source mismatch')
+    for name in ('plan.json','owner_exit.json','owner_error.json','status.json','STOP_MONITOR'):
+        (gate/name).rename(archive/name)
+    plan['source_sha256']['tools/state_image_kit_gate.py']=changed[0]['after']
+    plan['source_sha256']['tools/state_image_kit_worker.py']=sha(CODE/'tools/state_image_kit_worker.py')
+    plan['source_commit']=subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip()
+    plan['stages']=[dict(name='03_expert_shutdown',mode='expert'),dict(name='04_sample8000',mode='dp'),dict(name='05_expert_repeat',mode='expert')]
+    plan['worker_module']='tools.state_image_kit_worker'
+    plan['shutdown_recovery']=dict(archive=str(archive),changed=changed,prior_starts=2,deadline_reset=False,
+        patch_scope='Disarm installed Lab STOP render-loop subscriber after all control and recording; SDK cleanup still required')
+    for stage,previous in zip(plan['stages'],('01_expert','02_sample8000','03_expert_repeat')):
+        write(gate/'jobs'/(stage['name']+'.json'),read(gate/'jobs'/(previous+'.json')))
+    write(archive/'failed_inventory.json',{str(p.relative_to(gate)):sha(p)
+        for p in (gate/'stages').rglob('*') if p.is_file()})
+    write(gate/'plan.json',plan)
+    write(gate/'status.json',dict(state='pending',starts=2,passed=False,utc=time.time(),reason='Last three attempts under original five-start cap'))
+
+
 def run(root):
     from tools.kit_resource_preflight import inspect
     root = root.resolve(); gate = root/'kit_gate'; plan=read(gate/'plan.json')
@@ -216,7 +252,7 @@ def run(root):
             if not resource['resource_admitted']: raise RuntimeError('Resource admission no longer safe')
             name=stage['name']; output=gate/'stages'/name; output.parent.mkdir(exist_ok=True)
             if output.exists(): raise RuntimeError('Attempt directory already exists')
-            command=RUN+['-m','visuotactile.state_benchmark','--root',str(gate),'--output',str(output),
+            command=RUN+['-m',plan.get('worker_module','visuotactile.state_benchmark'),'--root',str(gate),'--output',str(output),
                 '--mode',stage['mode'],'--job',str(gate/'jobs'/(name+'.json'))]
             began=time.time(); observed={}; launch=dict(name=name,mode=stage['mode'],command=command,utc=began)
             rows.append(launch); write(gate/'attempts.json',rows)
@@ -291,6 +327,7 @@ def run(root):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('mode',choices=['prepare','run','register-reader-repair'])
+    parser=argparse.ArgumentParser();parser.add_argument('mode',choices=['prepare','run','register-reader-repair','register-shutdown-repair'])
     parser.add_argument('--root',type=Path,required=True);args=parser.parse_args()
-    {'prepare':prepare,'run':run,'register-reader-repair':register_reader_repair}[args.mode](args.root)
+    {'prepare':prepare,'run':run,'register-reader-repair':register_reader_repair,
+        'register-shutdown-repair':register_shutdown_repair}[args.mode](args.root)

@@ -45,3 +45,16 @@ def test_task_failure_can_pass_lifecycle_but_incomplete_episode_cannot(tmp_path)
     data['trials'][0]['action_exhausted']=True
     (tmp_path/'result.json').write_text(json.dumps(data))
     assert not graceful_acceptance(tmp_path,0,True)
+
+
+def test_post_episode_stop_subscriber_is_disarmed_without_sim_step():
+    from types import SimpleNamespace
+    from tools.state_image_kit_worker import disarm_stop_render_loop
+    events=[]
+    sim=SimpleNamespace(_disable_app_control_on_stop_handle=False,
+        _app_control_on_stop_handle=SimpleNamespace(unsubscribe=lambda:events.append('unsubscribe')))
+    result=disarm_stop_render_loop(sim)
+    assert events==['unsubscribe']
+    assert sim._disable_app_control_on_stop_handle is True
+    assert sim._app_control_on_stop_handle is None
+    assert result['active_rollout_changed'] is False

@@ -26,6 +26,17 @@
 原start计数1/5和原session deadline不变；后续expert/student/expert使用全新attempt目录，
 不自动无限恢复，也不把已失败首次start覆盖成成功。
 
+## SDK关闭超时后的局部关闭候选（尚待真实验收）
+
+第2个start的expert完整成功181ticks，17个共同控制/物理字段与原V3逐字节相同，
+但SDK关闭超过60s，原PID最终exit−9。未记为策略失败，也未算生命周期通过。
+本机实际导入的Lab SimulationContext STOP回调含“停止后持续render直到再次play”的循环；
+新增独立worker仅在全部episode和writer结束后，提前解除该回调，再调用原env.close/app.close。
+未修改共享SDK、活跃期物理/控制/随机流。新增10秒周期关闭堆栈、env/app关闭阶段记录。
+这只是针对已知关闭风险的候选修复，不能先宣布唯一根因或已修复。
+4项生命周期CPU测试通过。前两次记录/source/plan均存档，原deadline和5starts不变；
+剩余3次必须全部连续完成，任何再失败都会使本预算下的门控无法通过，不额外补预算。
+
 ## 首次预检历史快照，2026-11-04（已由下述恢复状态更新）
 
 新运行身份 `state_image_20261104_01`，基础提交 `2dc8b58533bba24be5e8f1905279f9fa3372669b`，
