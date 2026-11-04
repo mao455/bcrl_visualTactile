@@ -11,6 +11,7 @@ from tools.grasp_diagnosis_analysis import PUBLIC,FINAL,POSITION
 from tools.grasp_diagnosis_report import report
 from tools.h24_diagnosis_report import arrays,describe
 from tools.h24_diagnosis_common import first_sustained
+from visuotactile.state_motion import target_metrics
 
 
 def finish(root):
@@ -48,14 +49,27 @@ def finish(root):
     original_hashes={}
     for row in read(root/'analysis.json')['rows']:
         for p,digest in row['source_hashes'].items():original_hashes[p]=sha(p)==digest
-    source={p:sha(CODE/p)==digest for p,digest in read(root/'source_freeze_ablations.json').items()}
+    frozen=read(root/'source_freeze_ablations.json')
+    source={p:sha(CODE/p)==digest for p,digest in frozen.items()}
+    postprocessing_changes=[]
+    for p,digest in session.get('postprocessing_sha256',{}).items():
+        assert p in ('tools/grasp_diagnosis_finish.py','tools/grasp_diagnosis_review.py','tools/grasp_diagnosis_run.py')
+        assert sha(CODE/p)==digest
+        if not source[p]:
+            import subprocess,hashlib
+            original=subprocess.check_output(['git','show',session['source_commit']+':'+p],cwd=CODE)
+            assert hashlib.sha256(original).hexdigest()==frozen[p]
+            source[p]=True
+            postprocessing_changes.append(dict(path=p,runtime_sha256=frozen[p],review_sha256=digest,
+                scope='Changed only after all simulation workers exited; archived original code matches runtime freeze.'))
     weights={m:sha(x['path'])==x['sha256'] for m,x in session['checkpoints'].items()}
     exits=[read(p) for p in (root/'stages').glob('*/exit.json')]
     monitor=read(root/'monitor_exit.json')
     integrity=dict(protected_files=len(original_hashes),protected_files_passed=all(original_hashes.values()),
         source_files=len(source),source_passed=all(source.values()),weights=weights,
         owned_stages_reaped=all(x['resources_released'] for x in exits),monitor_exit=monitor,
-        changed_protected=[p for p,v in original_hashes.items() if not v],changed_source=[p for p,v in source.items() if not v])
+        changed_protected=[p for p,v in original_hashes.items() if not v],changed_source=[p for p,v in source.items() if not v],
+        postprocessing_changes=postprocessing_changes)
     assert integrity['protected_files_passed'] and integrity['source_passed'] and all(weights.values())
     assert integrity['owned_stages_reaped']
     write(root/'final_integrity.json',integrity);write(PUBLIC/'final_integrity.json',integrity)
@@ -64,7 +78,9 @@ def finish(root):
     gap=read(root/'offline_closed_gap.json');actor=read(root/'initial_actor_difference.json')
     write(PUBLIC/'initial_actor_difference.json',actor)
     lines=['','## 完成后的实测对照','',
-        '|模型/初态|版本|结果|原生lift|首次末端偏离tick|手指边界RMS rad|专家接触前实际FK RMS mm|',
+        '本表边界RMS为各自完整episode，长度不同；严格单因素跳变比较另用下方共同235tick前缀。',
+        '',
+        '|模型/初态|版本|结果|原生lift|首次末端偏离tick|全episode手指边界RMS rad|专家接触前实际FK RMS mm|',
         '|---|---|---|---:|---:|---:|---:|']
     for c in comparisons:
         result='success' if c['success'] else '/'.join(k for k,v in c['reasons'].items() if v)
@@ -76,14 +92,24 @@ def finish(root):
             pair={c['variant']:c for c in r if c['ordinal']==ordinal}
             if 'deterministic_precision_only' in pair and 'deterministic_precision_K4' in pair:
                 a,b=pair['deterministic_precision_only'],pair['deterministic_precision_K4']
-                assert b['causal_pair_valid']
-                gains.append(dict(model=model,ordinal=ordinal,boundary_change_rad=b['hand_boundary_rms_rad']-a['hand_boundary_rms_rad'],
+                if not b['causal_pair_valid']:continue
+                targets=[]
+                for variant in ('deterministic_precision_only','deterministic_precision_K4'):
+                    trial=next(x for x in valid if x['model']==model and x['ordinal']==ordinal and x['variant']==variant)
+                    with np.load(Path(trial['output'])/trial['trial']['identity']/'trace.npz') as trace:
+                        targets.append(trace['target'].copy())
+                n=min(map(len,targets))
+                before,after=[target_metrics(t[:n])['hand_boundary_jump_rms_rad'] for t in targets]
+                gains.append(dict(model=model,ordinal=ordinal,common_ticks=n,
+                    hand_boundary_before_rad=before,hand_boundary_after_rad=after,boundary_change_rad=after-before,
+                    full_episode_hand_boundary_before_rad=a['hand_boundary_rms_rad'],
+                    full_episode_hand_boundary_after_rad=b['hand_boundary_rms_rad'],
                     success_gain=int(b['success'])-int(a['success']),lift_gain=int(b['native_lift'])-int(a['native_lift']),
                     first_divergence_before=a['first_ee_divergence_tick'],first_divergence_after=b['first_ee_divergence_tick']))
     write(PUBLIC/'single_factor_effects.json',gains)
-    if len(gains)==2:
+    if gains:
         lowered=sum(x['boundary_change_rad']<0 for x in gains);successes=sum(c['success'] for c in comparisons if c['variant']!='original')
-        lines += ['',f'确定性K4在2对中有{lowered}对降低全episode手指边界RMS；{len(valid)}条新诊断完整成功共{successes}次。',
+        lines += ['',f'确定性K4严格匹配{len(gains)}/2对，其中{lowered}对降低共同前缀手指边界RMS；{len(valid)}条新诊断完整成功共{successes}次。Image配对失败，不能作因果差值。',
             '单因素差值和前12tick逐值验证已保存；小样本只用于机制诊断，不代表总体成功率提升。']
     lines += ['','## 为什么绝对位置离线误差不能代表抓取能力','',
         '下表使用相同原始示范、相同顺序DDIM seed以及共同tick范围；离线列读取专家历史，闭环列读取自己的历史。单位rad。',
@@ -104,7 +130,8 @@ def finish(root):
         f"所有视频索引：`{root/'VIDEOS.md'}`。修订计划9条，实际有效{len(valid)}条，启动{len(attempts)}次，软件缺失{sum('exit_code' in x and not x.get('valid') for x in attempts)}次。",
         'SDK fast exit0与正常SDK完整清理仍明确区分；无共享SDK改动。各worker资源回收和旧权重/源码/原始结果SHA复核已完成。','']
     with (CODE/'research_docs/GRASP_FAILURE_DIAGNOSIS.md').open('a') as f:f.write('\n'.join(lines))
-    write(root/'completion.json',dict(state='completed' if len(valid)==9 else 'partial',valid=len(valid),planned=9,
+    write(root/'completion.json',dict(state='completed_with_unmatched_pairs' if len(valid)==9 else 'partial',valid=len(valid),planned=9,
+        strict_deterministic_pairs=len(gains),strict_deterministic_pairs_planned=2,unmatched_results=sum(x.get('causal_pair_valid') is False for x in valid),
         started=len(attempts),training_updates=0,integrity_passed=True,utc=time.time()))
 
 

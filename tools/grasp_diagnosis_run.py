@@ -11,6 +11,16 @@ from tools.state_image_queue import CODE, RUN, read, write, kill_owned, sha
 from tools.state_image_kit_gate import proc, descendants, gpu_pids
 
 
+def persist_prefix(root,attempts,record,prefix):
+    """A failed pairing gate must never hide an already validated native result."""
+    record['unchanged_first12_prefix']=prefix
+    record['causal_pair_valid']=all(prefix.values())
+    write(root/'ablation_attempts.json',attempts)
+    write(Path(record['output']).parent/'committed.json',record)
+    if not record['causal_pair_valid']:
+        raise RuntimeError('Single-factor pre-intervention prefix mismatch; complete native result retained')
+
+
 def run_ablations(root,monitor):
     import numpy as np
     from tools.kit_resource_preflight import inspect
@@ -75,8 +85,9 @@ def run_ablations(root,monitor):
                     ref=next(x for x in attempts if x.get('valid') and x['variant']==variant.replace('_K4','_only') and x['ordinal']==ordinal and x['model']==model)
                     with np.load(Path(ref['output'])/trial['identity']/'trace.npz') as a,np.load(folder/'trace.npz') as b:
                         prefix={k:np.array_equal(a[k][:12],b[k][:12]) for k in ('command','target','joint','object','actor','object_contact')}
-                    record['unchanged_first12_prefix']=prefix
-                    assert all(prefix.values()),'Single-factor pre-intervention prefix mismatch'
+                    record['classification']=classify(output,record['exit_code'],record['timeout'],
+                        (output.parent/'worker.log').read_text(errors='replace'),True)
+                    persist_prefix(root,attempts,record,prefix)
             record['classification']=classify(output,record['exit_code'],record['timeout'],
                 (output.parent/'worker.log').read_text(errors='replace'),record['valid'])
             write(root/'ablation_attempts.json',attempts);write(output.parent/'committed.json',record)

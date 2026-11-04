@@ -1,0 +1,73 @@
+{
+  "conclusions": {
+    "StateDP": {
+      "arm_worse_than_hold_episodes": 37,
+      "hand_better_than_hold_episodes": 40,
+      "validation_episodes": 40,
+      "arm_model": 0.020662371069192886,
+      "arm_hold": 0.015537549741566181,
+      "hand_model": 0.11193090677261353,
+      "hand_hold": 0.19648203253746033,
+      "arm_direction_cosine": 0.6540417671203613,
+      "arm_amplitude_ratio": 1.1703335046768188,
+      "precision_only_success": 0,
+      "precision_K4_success": 0,
+      "deterministic_baseline_success": 0
+    },
+    "ImageDP": {
+      "arm_worse_than_hold_episodes": 29,
+      "hand_better_than_hold_episodes": 40,
+      "validation_episodes": 40,
+      "arm_model": 0.01841629669070244,
+      "arm_hold": 0.015537549741566181,
+      "hand_model": 0.11387597024440765,
+      "hand_hold": 0.19648203253746033,
+      "arm_direction_cosine": 0.6815959215164185,
+      "arm_amplitude_ratio": 1.1092417240142822,
+      "precision_only_success": 0,
+      "precision_K4_success": 0,
+      "deterministic_baseline_success": 0
+    }
+  },
+  "contact_loss_association": {
+    "StateDP": {
+      "student": {
+        "count": 10,
+        "near_replan": 5,
+        "with_clipping": 10
+      },
+      "expert": {
+        "count": 14,
+        "near_replan": 8,
+        "with_clipping": 0
+      }
+    },
+    "ImageDP": {
+      "student": {
+        "count": 7,
+        "near_replan": 4,
+        "with_clipping": 7
+      },
+      "expert": {
+        "count": 14,
+        "near_replan": 8,
+        "with_clipping": 0
+      }
+    }
+  },
+  "confidence": {
+    "absolute_execution_interface_valid": "high",
+    "early_precontact_motion_error": "high",
+    "arm_offline_fit_insufficient_against_hold": "high",
+    "autonomous_error_accumulation": "medium",
+    "boundary_jump_unique_cause": "unsupported",
+    "precision_rounding_main_cause": "unsupported"
+  },
+  "retraining_authorized": false,
+  "new_optimizer_updates": 0,
+  "network_or_loss_changed": false,
+  "next_experiment": "Fixed two-initial first12-tick current-target-anchored motion diagnostic, then matched fresh-expert observation vs off-trajectory expert shadow; only propose targeted continuation if movement fit/recovery deficit is demonstrated.",
+  "no_test40": true,
+  "valid_new_rollouts": 9,
+  "planned_new_rollouts": 9
+}

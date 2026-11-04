@@ -47,3 +47,15 @@ def test_precision_reads_only_current_robot_feedback_and_preserves_inputs():
     assert torch.equal(result,target[0]-tracking[0])
     assert torch.equal(target,torch.linspace(-1,1,29)[None])
     with pytest.raises(KeyError):current_position({'actuator_target_rad':target})
+
+
+def test_failed_pairing_keeps_native_result_durable(tmp_path):
+    import json
+    from tools.grasp_diagnosis_run import persist_prefix
+    record={'output':str(tmp_path/'stage/output'),'valid':True,'trial':{'success':False,'steps':601},'exit_code':0}
+    with pytest.raises(RuntimeError,match='native result retained'):
+        persist_prefix(tmp_path,[record],record,{'command':False,'object':True})
+    saved=json.loads((tmp_path/'ablation_attempts.json').read_text())[0]
+    assert saved['valid'] and not saved['causal_pair_valid']
+    assert saved['trial']=={'success':False,'steps':601} and saved['exit_code']==0
+    assert json.loads((tmp_path/'stage/committed.json').read_text())==saved

@@ -1,0 +1,124 @@
+{
+  "run_id": "grasp_diagnosis_20261104_01",
+  "runtime_commits": [
+    "72c060d0822a8babe20817f690b8a6bc6f643134",
+    "5e73c8a7dde837978ffe3052e5c5b9e70004537b"
+  ],
+  "final_evaluation_commit": "3d77dc3d02859ab17d12a59ea3269bf456fcdeea",
+  "checkpoints": {
+    "StateDP": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/state_train/milestone_10000.pt",
+      "sha256": "5b9552ee6afd1b897fd987b2a4945f2a0a93518d3ed320dea3d270d955e42228",
+      "updates": 10000,
+      "cpu_strict_load_passed": true,
+      "all_ema_finite": true,
+      "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
+    },
+    "ImageDP": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_image_20261104_02/image_train/milestone_10000.pt",
+      "sha256": "fd495b6d9bddaa8b40650c47e9832a3fa71e8e8d0f13b7200705671a8593abee",
+      "updates": 10000,
+      "cpu_strict_load_passed": true,
+      "all_ema_finite": true,
+      "evidence": "2026-11-04 supervised CPU torch.load and strict model.load_state_dict; both all keys matched"
+    }
+  },
+  "session_sha256": "462b475a183af5b39ce5c2994f397047f2221f560e548860634ff5efa736e328",
+  "source_freeze_sha256": "0274478e073fa203567c02c1f63a0e2139127e926ac070873e5ce3f7116156c0",
+  "freeze_file_count": 203,
+  "post_run_maintenance": [
+    {
+      "path": "tools/grasp_diagnosis_finish.py",
+      "runtime_sha256": "63a6bcf98469a03ad448e3eaf3e436027992f39608eda0070c592eedddb7c5d2",
+      "review_sha256": "88bd5b589acffb141b57fc5764c7f9c9fd16a51b40690a1957ebc59a2860ff6e",
+      "scope": "Changed only after all simulation workers exited; archived original code matches runtime freeze."
+    },
+    {
+      "path": "tools/grasp_diagnosis_review.py",
+      "runtime_sha256": "861287c818c60372096e0fc36cde2b3706a1e4fa945f02d07a1c3cb95a18428c",
+      "review_sha256": "cd318163a629416b5e7fdcdae4fa7f119b8061cade48ab9b2ef93b961b297c67",
+      "scope": "Changed only after all simulation workers exited; archived original code matches runtime freeze."
+    },
+    {
+      "path": "tools/grasp_diagnosis_run.py",
+      "runtime_sha256": "511b138a27b5c1bbf1ae6fc3bdf1316048e1f297fa1113d7f001c9e0bd8fb8a6",
+      "review_sha256": "24fe3faa2e10b3d236ce07c78ba33663fa8105853bd88c95d4fa91c6d5b96a7c",
+      "scope": "Changed only after all simulation workers exited; archived original code matches runtime freeze."
+    }
+  ],
+  "immutable_deadline": 1793802274.4046566,
+  "effective_start_budget": 10,
+  "effective_software_recovery_budget": 2,
+  "revised_planned_episodes": 9,
+  "actual_starts": 9,
+  "valid_native_results": 9,
+  "complete_successes": 0,
+  "software_missing": 0,
+  "unmatched_native_results": 2,
+  "strict_deterministic_pairs": {
+    "StateDP": "PASS",
+    "ImageDP": "FAIL"
+  },
+  "cancelled_unstarted": [
+    {
+      "variant": "precision_K4",
+      "model": "ImageDP",
+      "ordinal": 0
+    },
+    {
+      "variant": "precision_K4",
+      "model": "StateDP",
+      "ordinal": 4
+    },
+    {
+      "variant": "precision_K4",
+      "model": "ImageDP",
+      "ordinal": 4
+    }
+  ],
+  "new_optimizer_updates": 0,
+  "test40_used": false,
+  "services": {
+    "grasp-diagnosis-deterministic-20261104-01": {
+      "MainPID": "0",
+      "ActiveState": "failed",
+      "SubState": "failed"
+    },
+    "grasp-diagnosis-finish-20261104-02": {
+      "MainPID": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    },
+    "grasp-diagnosis-review-20261104-02": {
+      "MainPID": "0",
+      "ActiveState": "inactive",
+      "SubState": "dead"
+    }
+  },
+  "owner_exit_preserved": {
+    "pid": 3388213,
+    "finished": 1793789972.3688161,
+    "monitor_exit": 0,
+    "state": "blocked"
+  },
+  "final_reconciliation_status": {
+    "state": "completed_with_unmatched_pairs",
+    "stage": "final_review",
+    "valid_native": 9,
+    "planned_native": 9,
+    "started": 9,
+    "maximum_starts": 10,
+    "strict_deterministic_pairs_passed": 1,
+    "strict_deterministic_pairs_planned": 2,
+    "unmatched_native_results": 2,
+    "training_updates": 0,
+    "pid": null,
+    "worker_pid": null,
+    "finished": 1793790237.202422,
+    "original_owner_state": "blocked_on_strict_prefix; original owner_exit and error retained",
+    "cancelled_unstarted": 3
+  },
+  "telemetry_limitation": "Segment transitions leave 975.166 seconds of gaps (maximum gap446.924s) in concatenated monitoring. Sampled complete60s maximum41.199%, not a full-session compliance claim.",
+  "lifecycle": "All new simulation workers exit0 using SDK fast shutdown and release owned process resources; this is not graceful full SDK teardown.",
+  "video_index": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/grasp_diagnosis_20261104_01/VIDEOS.md"
+}

@@ -1,3 +1,32 @@
+## Completed — final grasp diagnosis, 2026-11-04
+
+Read research_docs/GRASP_FAILURE_DIAGNOSIS and execution_manifest. Original StateDP/ImageDP
+formal results remain0/12 each. This bounded diagnostic run completed9/9native episodes,
+0success,9starts of maximum10,0Kit software-missing outcomes; no new training/test40.
+Two K4native results failed strict pairing and remain unmatched, never deleted or counted
+as causal evidence. Deterministic StateK0/K4 PASS: same235ticks handboundary.07588→.03025rad,
+fall235→timeout601,still0subgoals. ImagepairFAIL: firstplan differs.0032769rad beforeK4;
+fixed-input deterministic forward PASS, liveRGB-D/features were not retained for localization.
+Expert absolute-target replay2/2 and corrected complete-trajectory numerical parity PASS.
+Validation40 holdArm.01554 beats State.02066/Image.01842;24/24 diverge beforeexpertcontact,
+22/24beforefirstreplan. No unique root cause or architecture/loss remedy established.
+All owned workers exited; ownerfailed status/error retained, CPU reconciliation completed
+with unmatched pairs. Monitor gaps975.17s remain disclosed; no full-session compliance claim.
+Five focused tests passed; post-run result bookkeeping repair preserves valid native outcomes
+before raising a failed prefix gate. Reviewed postprocessing SHA is separate from runtimeSHA.
+Do not restart this queue, fill unusedstart budget, retrain or silently relax pair thresholds.
+
+# 2026-11-04 grasp diagnosis: deterministic prefix amendment
+
+Fullvalidation40 target-hold counterfactual uses same8670validticks, no newmodelinference.
+Armhold.01554rad beats State.02066/Image.01842; modelHandbeats hold.19648. Added standalone
+gap/hold/finalization/review tools. FirstK4 valid513tickfall fails strictfirst12bitwise,
+maxcommand7.45e-7rad, no object/contact difference. Preserve originalfailedacceptance and
+complete task result separately; no relaxedthreshold. Cancel3unstartedoldK4 and allocate
+remaining5startbudget to4deterministicK0/K4 train0episodes(two models). Same CUDAflags within
+each pair; first two fresh-process one-anchor checks precede Kit. Maximum10starts and
+initial4hdeadline unchanged. Four focusedtests pass after this orchestration change.
+
 # 2026-11-04 final-checkpoint grasp diagnosis
 
 New tools/grasp_diagnosis_{analysis,parity,precision,worker,run,report}.py and four focused

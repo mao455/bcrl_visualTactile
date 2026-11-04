@@ -1,5 +1,35 @@
 # Play2Perfect visual–tactile imitation research
 
+## Completed — final grasp diagnosis, 2026-11-04
+
+Read research_docs/GRASP_FAILURE_DIAGNOSIS and execution_manifest. Original StateDP/ImageDP
+formal results remain0/12 each. This bounded diagnostic run completed9/9native episodes,
+0success,9starts of maximum10,0Kit software-missing outcomes; no new training/test40.
+Two K4native results failed strict pairing and remain unmatched, never deleted or counted
+as causal evidence. Deterministic StateK0/K4 PASS: same235ticks handboundary.07588→.03025rad,
+fall235→timeout601,still0subgoals. ImagepairFAIL: firstplan differs.0032769rad beforeK4;
+fixed-input deterministic forward PASS, liveRGB-D/features were not retained for localization.
+Expert absolute-target replay2/2 and corrected complete-trajectory numerical parity PASS.
+Validation40 holdArm.01554 beats State.02066/Image.01842;24/24 diverge beforeexpertcontact,
+22/24beforefirstreplan. No unique root cause or architecture/loss remedy established.
+All owned workers exited; ownerfailed status/error retained, CPU reconciliation completed
+with unmatched pairs. Monitor gaps975.17s remain disclosed; no full-session compliance claim.
+Five focused tests passed; post-run result bookkeeping repair preserves valid native outcomes
+before raising a failed prefix gate. Reviewed postprocessing SHA is separate from runtimeSHA.
+Do not restart this queue, fill unusedstart budget, retrain or silently relax pair thresholds.
+
+## Diagnostic amendment — unchanged10starts/4h budget
+
+First4 precision-only episodes finished0success. FirstK4 completed513tickfall but strict
+pre-intervention prefixFAILED (targetmax7.45e-7rad); preserve its native result as unmatched,
+not a causal pass. Cancel unstarted3oldK4. Remainingbudget runs two finalmodels at train0,
+deterministicK0/K4 each:4newstarts,9planned native episodes total,max10unchanged. Both pair
+members use same deterministic CUDA settings; no relaxed prefix threshold. New source5e73c8a;
+service grasp-diagnosis-deterministic-20261104-01. Read actualstatus before claims.
+Validation40 zero-motion holdArmRMSE.01554 beats both finalmodels.02066/.01842; Handmodels
+beat hold.19648. No new training; prioritize earlymotion fitting before attributing allfailure
+to off-policy drift. See saved validation_hold_baseline and finalreview.
+
 ## Latest — final-checkpoint grasp diagnosis, 2026-11-04
 
 User authorizes read-only expert-target replay evidence, complete data/deployment parity,

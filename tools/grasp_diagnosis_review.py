@@ -60,8 +60,12 @@ def review(root):
     for model,c in conclusions.items():
         lead.append(f"- {model}：仅精度修复 {c['precision_only_success']}/2 完整成功；确定性K0 {c['deterministic_baseline_success']}/1、K4 {c['precision_K4_success']}/1。具体有效覆盖率和软件故障见下表，缺失不能算失败。")
     if len(valid)==9 and not any(x['trial']['success'] for x in valid):
-        lead += ['','9条新诊断均无完整成功，其中1条K4前缀不匹配，单列为非严格因果结果。舍入修复已通过严格数值合同，但未解决闭环；K4即使降低跳变，也没有恢复稳定任务能力。',
+        lead += ['','9条新诊断均无完整成功，其中2条K4前缀不匹配，单列为非严格因果结果。舍入修复已通过严格数值合同，但未解决闭环；K4即使降低跳变，也没有恢复稳定任务能力。',
             '因此不把这一小数值修复或K4默认推广为“抓取修复”，旧默认和权重继续保留。']
+    effect=next(x for x in read(PUBLIC/'single_factor_effects.json') if x['model']=='StateDP')
+    lead += ['', f"**严格消融验收：StateDP PASS，ImageDP FAIL。** State确定性K0/K4前12tick六类字段逐值相同；共同{effect['common_ticks']}tick内手指边界RMS从{effect['hand_boundary_before_rad']:.5f}降至{effect['hand_boundary_after_rad']:.5f}rad，235tick fall变601tick timeout，仍无首子目标或完整成功。",
+        'Image的固定输入独立进程前向/DINO检查逐值相同，但真实Kit首计划已差0.0032769rad（早于K4）；初始Actor/物理导出一致。原始live RGB-D/在线DINO/condition没有保存，无法唯一定位到渲染或网络运行期计算。',
+        '保留Image原生timeout结果，不把它作为K4收益。停止新增Kit，不用剩余单次启动去凑严格一对。Image下一轮优先记录并逐值对照原始图像、DINO、condition及随机流；不得直接用本次未匹配结果调参。']
     lead += ['', '持续接触丢失靠近重规划（±3tick）的次数：State 5/10，Image 4/7，成功专家8/14；约7/12的控制tick天然处于这种邻域。仅凭时间邻近无法证明因果。',
         '模型接触丢失窗口均有部分joint-limit clipping，但这是常见现象；专家比较的是post-limit target，不能把它的零额外clipping当作未发生上游限位的证据。',
         '**是否改网络/损失：当前均不改，也不重训。** 下一轮最有价值的是固定前12tick、只改变当前target锚定/动作增量连续性的诊断，并比较匹配新鲜专家观测下的学生动作与离轨后的专家shadow纠正。',

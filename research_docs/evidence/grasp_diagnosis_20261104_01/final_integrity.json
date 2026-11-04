@@ -1,0 +1,70 @@
+{
+  "protected_files": 60,
+  "protected_files_passed": true,
+  "source_files": 203,
+  "source_passed": true,
+  "weights": {
+    "StateDP": true,
+    "ImageDP": true
+  },
+  "owned_stages_reaped": true,
+  "monitor_exit": {
+    "pid": 3388226,
+    "ended": 1793789972.3370445,
+    "summary": {
+      "pid": 3388226,
+      "latest": {
+        "pid": 3388226,
+        "utc_epoch": 1793789972.3366532,
+        "elapsed_s": 1929.5300371741178,
+        "gpu_util_percent": 3.0,
+        "gpu_used_mib": 493.0,
+        "gpu_free_mib": 23591.0,
+        "ram_available_bytes": 34211778560,
+        "process_rss_bytes": 14381056,
+        "cuda_allocated_bytes": null,
+        "cuda_reserved_bytes": null,
+        "rolling_60s_percent": 33.3540346125102
+      },
+      "samples": 959,
+      "gpu_time_weighted_mean_percent": 28.25222838227879,
+      "max_complete_60s_mean_percent": 41.19864660525345,
+      "missing_samples": 0,
+      "missing_seconds": 975.1662916751811,
+      "max_sample_gap_s": 446.9239255175926,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 12706.0,
+      "peak_process_rss_bytes": 14381056,
+      "min_ram_available_bytes": 26015703040,
+      "thresholds": {
+        "gpu_free_mib": 6144,
+        "ram_available_bytes": 12884901888,
+        "max_gpu_mean_percent": null,
+        "gpu_admission_mean_percent": null
+      },
+      "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+    }
+  },
+  "changed_protected": [],
+  "changed_source": [],
+  "postprocessing_changes": [
+    {
+      "path": "tools/grasp_diagnosis_finish.py",
+      "runtime_sha256": "63a6bcf98469a03ad448e3eaf3e436027992f39608eda0070c592eedddb7c5d2",
+      "review_sha256": "88bd5b589acffb141b57fc5764c7f9c9fd16a51b40690a1957ebc59a2860ff6e",
+      "scope": "Changed only after all simulation workers exited; archived original code matches runtime freeze."
+    },
+    {
+      "path": "tools/grasp_diagnosis_review.py",
+      "runtime_sha256": "861287c818c60372096e0fc36cde2b3706a1e4fa945f02d07a1c3cb95a18428c",
+      "review_sha256": "cd318163a629416b5e7fdcdae4fa7f119b8061cade48ab9b2ef93b961b297c67",
+      "scope": "Changed only after all simulation workers exited; archived original code matches runtime freeze."
+    },
+    {
+      "path": "tools/grasp_diagnosis_run.py",
+      "runtime_sha256": "511b138a27b5c1bbf1ae6fc3bdf1316048e1f297fa1113d7f001c9e0bd8fb8a6",
+      "review_sha256": "24fe3faa2e10b3d236ce07c78ba33663fa8105853bd88c95d4fa91c6d5b96a7c",
+      "scope": "Changed only after all simulation workers exited; archived original code matches runtime freeze."
+    }
+  ]
+}
