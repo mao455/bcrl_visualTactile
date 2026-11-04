@@ -5,20 +5,23 @@ User requested new closed-loop evidence before continuation finishes. State reac
 SHA fd56aa6ffd84131195d3c6dd05da5082aeccaf59facb13cb5f329ee3416dbaba.
 Validation40 Arm.01932799,Hand.10798149,EE16.46663mm; train16 .00369609/.01414492.
 Independent anchor-interim-20261105-01.service evaluates fixedvalidation ordinals4–7
-using that EMA, originalcontroller/seed/physics, four planned/maxfive starts. First
-two accepted native results are601ticktimeouts,contact2/2,lift/subgoal/success0/2.
-First video601frames decoded;724initial-exportfields match old plus eventRNG;
+using that EMA, originalcontroller/seed/physics, four planned/maxfive starts.
+Completed4/4valid,4actualstarts,0softwaremissing,0acceptancefailures; all601timeouts,
+contact4/4,lift/subgoal/success0/4. Oldsame4contact3/4,otherprogressalso0.
+All four videos601frames decoded;724initial-exportfields match old plus eventRNG;
 target/actuator errors0. SDKfast exit0 is NOT graceful teardown. Sourcef9ed9d6.
-Do not infer final4count: read anchor_interim_20261105_01/status.json and summary.json.
+Newfirst5mm/3tick EE divergences[3,5,7,5],old[3,6,7,4],allbeforeexpertcontact.
 Read STATE_DP_INTERIM_RESULTS and STATE_DP_INTERIM_EVALUATION for separate results.
 
-Original training owner3506571 is intentionally suspended by PID/start-time identity
-while completed child3547214 is reaped later; originalmonitor continues. Interim
-service automatically resumes exact parent after worker release, including failure
-and ExecStopPost. No trainerrestart/optimizerreset or deadline extension. Separate
-CPU anchor-interim-analysis service publishes new plots/results after completion.
-Do not start a second queue or signal unrelated GPU jobs. Parent's actual interlude
-is recorded under evaluation_interlude.json; this paragraph is a timestamped snapshot.
+Interim evaluation andCPUanalysis services exited successfully; all ownedKit workers
+released. Originalowner3506571 resumed02:40:53+08, new150-epoch worker3768007 restores
+from16584 with model/EMA/EMAstep/samplerRNG/noiseRNG/optimizerstep checks alltrue and
+already advances beyond16600. No optimizerreset or deadline extension. Read actual
+status/progress instead of assuming these PIDs remainlive. Parentinterlude resume
+evidence is in evaluation_interlude.json; do not start duplicate queues. Newplots,
+results and videosindex are public (initialresultcommit3998d6d, laterreview follows).
+Evaluationwindow GPUmean18.89%,maxcomplete60s26.67%,missing0; earliertrainingresource
+violations remain, not erased by this separatelymeasured window.
 Report-only contact-dictionary fix413ae27 preserves original freeze manifests in
 report_amendments; model/training/controller/worker sources remain unchanged.
 

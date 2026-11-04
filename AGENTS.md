@@ -10,7 +10,12 @@ Only the identity-verified training owner is suspended while its child finishes;
 monitor remains live. Independent evaluation releases all workers then resumes
 the original owner, including on failure. No trainer/source/optimizer reset,
 original72hdeadline extension, Image retraining or test40. Preserve all evidence.
-Three focused orchestration tests pass; actual episodes remain pending until recorded.
+Three focused orchestration tests pass. Interim completed4/4 valid,4starts,0software
+missing:0success,4contact,0lift/subgoal,all601timeouts. Oldsame4:0success,3contact.
+All videos/initial exports/targets pass; fast SDKexit0 is not graceful teardown.
+Original owner resumed from16584 with all restore checks passing and advances150.
+Do not rerun the completed16584 cohort; later checkpoint evaluations follow the
+original continuation queue. Read STATE_DP_INTERIM_RESULTS for actual evidence.
 
 ## 2026-11-04 continuation supervision passed; resume at10050
 

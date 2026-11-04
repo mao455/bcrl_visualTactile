@@ -1,5 +1,15 @@
 ## 2026-11-05 user-requested interim State evaluation
 
+Completed: State16584 EMA fixedvalidation4 returns0/4success,4/4contact,0lift/subgoal,
+four601timeouts,4actualstarts,0softwaremissing/acceptancefailures. Oldsame4:0/4success,
+3/4contact. Four videos decoded601frames each;initial exports/eventRNG and target/
+actuator checks pass. NativefirstEEdivergence[3,5,7,5] beforeexpertcontact, no demonstrated
+grasp improvement. Same-prefix expert/old/new boundary/tracking comparisons added to
+the CPU report without new rollouts. Sourcef9ed9d6; checkpointfd56aa6ffd84… remains.
+Interim worker/monitor/services exited; originalowner resumed at16584, all restore
+checks pass and the150-anchor-epoch worker advances. Read STATE_DP_INTERIM_RESULTS.
+Measured eval GPUmean18.89%,max60s26.67%,missing0; not a claim about earliertraining.
+
 Added tools/anchor_interim_eval.py and research_docs/STATE_DP_INTERIM_EVALUATION.md.
 Previously closed loop waited until the full continuation stopping decision; this
 separate bounded service inserts frozen validation4 after the already-running100

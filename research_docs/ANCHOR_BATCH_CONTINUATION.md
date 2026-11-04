@@ -1,7 +1,5 @@
 # H24 StateDP / ImageDP：多轨迹anchor续训
 
-新增中途闭环：用户于2026-11-05要求提前评估，100 anchor等效epoch / 16584更新已完成；独立validation4正在执行。训练owner暂让出GPU，结束后继续原队列。见[实时阶段结果](STATE_DP_INTERIM_RESULTS.md)，原队列下方闭环表不混入这批额外诊断。
-
 当前状态：**running**，阶段 `state_train_epoch_100`。本报告只记录已完成结果；后台任务启动不等于训练或闭环成功。
 
 原正式 StateDP-10000 / ImageDP-10000 均0/12。新任务从这两个checkpoint的原始训练权重、EMA、AdamW moments/step及RNG续接，不从随机权重训练。原模型、标签、拆分和结果保留。
