@@ -1,13 +1,35 @@
-# StateDP 150 anchor-equivalent epoch assessment and cleanup
+# StateDP 150 anchor等效epoch：训练、闭环与清理
 
-Status: the existing continuation is still training toward update 20918 (150 anchor-equivalent epochs). No 150-epoch result is claimed yet. The original 10000 and 16584 checkpoints remain protected until the common-protocol comparison is complete.
+|模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|
+|---|---|---:|---:|---:|---:|---:|
+|StateDP 10000|train|0/0|0|0|0|0|
+|StateDP 20918|train|0/0|0|0|0|0|
+|StateDP 10000|validation|0/0|0|0|0|0|
+|StateDP 20918|validation|0/0|0|0|0|0|
 
-The existing `tools.anchor_interim_eval` entry now accepts the milestone and frozen ordinals as configuration. It pauses only the verified queue owner while its current trainer finishes normally, evaluates the resulting full checkpoint, and holds further training for evidence review. Model, loss, sampling, H24/commit12, absolute 29D targets, controller and data split are unchanged. No new trainer or reset is introduced.
+计划8初态，实际启动0，有效0，软件缺失0，验收失败0，待执行/待获得有效结果8。最多9次启动。训练初态只作拟合诊断，不并入validation或test。原StateDP/ImageDP正式0/12不变，Image未新训。
+原生环境没有离散稳定抓持判据，保持N/A；contact是已有力诊断，不作为稳定抓取。异常关闭与任务失败分开；SDK fast exit不称完整正常关闭。
 
-The cohort is the previous validation4 (ordinals 4–7, seeds 984101–984104), followed by train4 (ordinals 0–3, seeds 982401–982404). Train results are fitting diagnostics, never pooled into validation or test success rates. Eight valid episodes are planned, with at most nine starts and one replacement; startup/shutdown failures remain separate. Stable grasp remains N/A because the environment has no native discrete criterion. No test40 is used.
+![阶段对比](evidence/state_dp/stages.png)
 
-Current evidence: at 16584, validation4 had 0/4 full success, 4/4 contact diagnostics, no native lift or subgoal, all 601-tick timeouts. First sustained 5 mm end-effector deviation from paired experts occurred at ticks 3, 5, 7, 5, before expert contact and before the first replan. This does not establish boundary discontinuity as the first cause. See the [interim results](STATE_DP_INTERIM_RESULTS.md) until consolidation is complete.
+|seed|cohort|首次5mm连续3tick偏离：旧/新|专家接触tick|终止|视频|
+|---|---|---|---:|---|---|
 
-The requested cleanup starts with import, entrypoint and artifact dependency inventories. The 400 original successes, 320/40/40 split, current numeric cache, old-directory image caches still used by current training, train-only statistics, active process files and complete recovery checkpoints are protected. Obsolete weights and duplicated runtime caches will be removed only from a recorded, revalidated deletion plan. Active frozen source changes wait for a complete training boundary. Current and unknown dependencies are not deleted on age alone.
+![训练曲线](evidence/state_dp/training.png)
 
-Validation so far: four owner-isolation tests pass, including PID reuse protection, idempotent release, native contact counting, and the new explicit evidence-review hold. Full post-cleanup regression and 150-epoch offline/closed-loop outcomes are pending.
+历史曲线固定train16 / validation40，EMA、H24执行前12。以下端点重算使用完整train320 / validation40，三个checkpoint、归一化、DDIM16/eta0/clipFalse seed7091、loss noise8091和辅助权重相同。Train总loss与Validation总loss可比较；它们不是完整任务成功率。
+
+|更新|anchor等效epoch|cohort|总loss|Arm rad|Hand rad|FK mm|delta Arm rad/tick|动作方向cos|幅值比|
+|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|
+
+同口径端点离线比较尚未完成，不提前给出150 epoch结论。
+
+|更新|cohort|时段|Arm rad|增量rad/tick|hold基线rad|方向cos|幅值比|FK mm|EE积分误差mm·s|
+|---:|---|---|---:|---:|---:|---:|---:|---:|---:|
+
+逐关节位置/增量误差、末端方向/幅值、静态tick数量、Train/Validation gap及checkpoint SHA见[端点数值](evidence/state_dp/offline.json)。运动方向只排除专家增量≤1e-6rad或1e-6m的tick；这些tick仍计入RMSE。幅值和cos按episode宏平均，不把微小分母比值池化成任务成功。
+原400记录缺少物体过滤的接触力，离线precontact使用现有任一指尖子步力>0.1N的首次诊断事件；闭环专家接触沿用物体过滤力连续3tick的既有定义。二者不混用，不称稳定抓持。
+分析使用专家历史观测，明确为teacher-forced离线诊断；闭环始终为模型自主动作，没有专家接管、平滑或控制器修改。
+评估source commit `23d250801a4d14433912dfc897529f8eec5a4c38`；运行目录 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01`。训练150 epoch后保持证据审查暂停；本次不会自动增加至200–300或启动Image训练。
+
+清理及回归结果见 [CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)。仍在使用的旧目录缓存与checkpoint不按日期删除。

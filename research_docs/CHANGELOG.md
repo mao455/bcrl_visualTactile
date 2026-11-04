@@ -1665,3 +1665,7 @@ Second real backgroundsuccess s930016 (226steps,145,407,980bytes) committed and 
 ## 2026-11-05 — parameterized 150-epoch evaluation and cleanup preparation
 
 `tools/anchor_interim_eval.py` now takes milestone/cohort/boundary budget and explicit review hold. The running trainer is unchanged; only its verified owner can be suspended, and the worker must finish its checkpoint before evaluation. Eight frozen train/validation diagnostics are separated, at most nine Kit starts. Four owner/counting tests pass. Training remains active; no 150-epoch outcome or cleanup completion is claimed. See STATE_DP_RESULTS.md.
+
+## 2026-11-05 — common endpoint motion assessment and classified cleanup
+
+The existing interim analysis now supports configurable milestones/cohorts and read-only train320/validation40 endpoint comparisons, including first12/24/precontact increments, hold baseline, FK motion and integrated error. A single reusable `tools.project_maintenance` inventories AST dependencies and performs identity/SHA/open-file/protected-path checked deletions with hardlink-aware storage accounting. Ten focused tests pass; pending GPU assessment is not represented as complete. The original 150-epoch trainer remains unchanged.
