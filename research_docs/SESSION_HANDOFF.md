@@ -1,5 +1,13 @@
 # 当前会话交接：视觉—触觉研究
 
+## 2026-11-04 approved resource fix, new Kit gate
+
+Parentdocs exclusion approved and applied. preflight03:256/256,34756watch references,
+resource admitted. New state_image_kit_gate module/service requires realSDKclose and
+three consecutive complete independent expert/student episodes,<=5starts. No training.
+Read actualroot/kit_gate/status.json and attempts.json; new2CPU acceptance tests pass.
+Old blocked/resource and pending-permission paragraphs below are historical snapshots.
+
 ## 2026-11-04 StateDP/ImageDP request: blocked at resource preflight
 
 Worktree bc+rl_RSS_native_v2, branch feature/native-dp-training-v2, starting2dc8b58.

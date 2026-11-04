@@ -1,5 +1,15 @@
 # Play2Perfect visual–tactile imitation research
 
+## Latest — approved editor scope, Kit resource admission restored
+
+User explicitly approved parentdocs deliverables-only watcher exclusion; applied.
+New preflight03 has256/256 allocations and34756watch references. Do not ask again.
+state_image_20261104_01 now proceeds to new bounded independentKit lifecycle gate:
+expert,Sample8000,repeatexpert,<=5starts,>=3consecutive full episodes, realSDKclose,
+exit0/closed/PID/GPU release and control/trajectory checks. Two newCPU tests pass.
+Read actual kit_gate/status.json; resource admission alone is not reliability success.
+No new optimizer updates yet; original State/Image sequential authorization remains.
+
 ## Current — 2026-11-04 StateDP + ImageDP improvement, preflight BLOCKED
 
 Latest user authorizes a NEW baseline S-H24-Improved then I-HistoryDP-00,

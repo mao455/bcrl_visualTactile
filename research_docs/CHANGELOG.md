@@ -1,5 +1,15 @@
 # Engineering change and verification log
 
+## 2026-11-04 — approved watch exclusion and full-lifecycle Kit gate
+
+Parentdocs workspace deliverables-only exclusion explicitly approved/applied; new256-watch
+probe fully passes,34756readable watch references. No attribution of entire cross-session
+count drop to configuration. New tools/state_image_kit_gate and userunit run serial fresh
+expert/student/expert, preserve each attempt, monitor phases/resources/owned descendants,
+require trueSDKclose/exit0 and native termination, compare observable trajectories.
+Two focused lifecycle acceptance tests pass; old models/control/Kit source unchanged.
+Source/session pinned before actual launches; <=5starts, no automatic retries or training.
+
 ## 2026-11-04 — State/Image queue blocked before Kit by confirmed inotify ENOSPC
 
 Added tools/kit_resource_preflight.py and5focused tests: read-only same-UID FD/threads/RSS/

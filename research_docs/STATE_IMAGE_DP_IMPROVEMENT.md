@@ -1,6 +1,22 @@
-# StateDP + ImageDP baseline 改进：当前阻塞于 Kit 资源预检
+# StateDP + ImageDP baseline 改进
 
-## 实际状态，2026-11-04
+## 用户批准后恢复：资源预检通过，完整Kit门控待执行
+
+用户已明确批准父docs工作区的deliverables-only监视排除；两项配置已合并保存，未修改其他设置。
+新的真实探针256/256成功，可读取watch FD引用34756/524288，资源预检通过。
+会话间隔内其他进程状态也可能变化，缺少紧邻配置修改前的census，不能将全部下降归因于配置。
+见[恢复资源证据](evidence/state_image_20261104/resource_resolution.json)。
+
+新增持久独立Kit门控入口 `tools/state_image_kit_gate.py` 和用户service：
+预定expert→Sample8000→重复expert，各为新Kit，最多5starts，当前登记3次、无自动重试。
+采用真正env.close/app.close及closed marker，要求exit0、父进程回收、无存活自有子进程/GPU记录；
+明确拒绝仅有result、关闭崩溃或os._exit的假通过。每2秒记录阶段/线程/FD/RSS/inotify，
+每个episode前后再资源预检，独立连续整卡监控。60s关闭上限/15min单worker上限只约束本门控。
+重复专家与原专家参照比较控制及物理字段；不声称未保存的PhysX隐藏状态完全一致。
+两项新增生命周期判定测试通过，正式模型仍0updates；实际Kit进展读取kit_gate/status.json。
+此门控本身不启动训练；只有真实通过后才继续新损失实现和监督验收。
+
+## 首次预检历史快照，2026-11-04（已由下述恢复状态更新）
 
 新运行身份 `state_image_20261104_01`，基础提交 `2dc8b58533bba24be5e8f1905279f9fa3372669b`，
 分支 `feature/native-dp-training-v2`。**当前 blocked；尚未启动 Kit 或训练。**
