@@ -1,6 +1,6 @@
 # H24 StateDP / ImageDP：多轨迹anchor续训
 
-当前状态：**preparing**，阶段 `sampling_contract`。本报告只记录已完成结果；后台任务启动不等于训练或闭环成功。
+当前状态：**blocked**，阶段 `state50_waiting_review`。本报告只记录已完成结果；后台任务启动不等于训练或闭环成功。
 
 原正式 StateDP-10000 / ImageDP-10000 均0/12。新任务从这两个checkpoint的原始训练权重、EMA、AdamW moments/step及RNG续接，不从随机权重训练。原模型、标签、拆分和结果保留。
 
@@ -50,7 +50,7 @@ microbatch按整个64-anchor batch的有效目标数归一化base/FK/姿态/指�
 
 |模型|累计updates|累计anchor epoch|最新LR|best验证Arm/Hand rad|阶段|
 |---|---:|---:|---:|---|---|
-|state|10000|24.041|未启动|0.020662 / 0.111931|pending|
+|state|10050|24.618|9.648241206030152e-06|0.020662 / 0.111931|completed_stage|
 |image|10000|24.041|未启动|0.018416 / 0.113876|pending|
 
 原模型选择分数保留为best初值；只有完整validation40改善才替换best。每100新增更新保存可恢复last；阶段checkpoint独立保留。每1000新增更新及各里程碑固定seed验证。
@@ -72,7 +72,7 @@ State先用固定validation ordinal4–7各一次，与原同初态结果比较�
 
 ## 可靠性、路径与结论边界
 
-运行根目录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01`；实际源码提交：`a4776229d41c393bdc3a24121e9b2823263c81b1`。新旧checkpoint路径/SHA与采样、指标见[机器报告](evidence/anchor_continue_20261104_01/summary.json)。
+运行根目录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01`；实际源码提交：`b27384f044ce987ea9d6dce0c80a78aaf3e043d3`。新旧checkpoint路径/SHA与采样、指标见[机器报告](evidence/anchor_continue_20261104_01/summary.json)。
 独立systemd单owner、连续资源监测、串行GPU worker；仅完整checkpoint边界可恢复，最多两次恢复。Kit最多28次启动（含最多两次恢复），连续同阶段故障停止；无需三次正常退出门控。原始结果、权重和视频只留本地。
 视频索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01/VIDEOS.md`。退出状态和任务结果分别记录，SDK fast exit不称正常完整析构。
 **是否解决训练不足：尚须实测训练曲线与闭环共同回答。** 增加曝光并不自动证明充分收敛，离线误差下降也不等于抓取成功；不自动修改网络、动作表示或损失。
