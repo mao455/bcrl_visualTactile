@@ -1,5 +1,18 @@
 # Kit生命周期与有界恢复
 
+## 2026-11-04 最新验收策略：离线训练与仿真生命周期分离
+
+用户明确取消重复三次正常退出门控。State/Image offline真实worker不加载Kit，State200已验收；
+旧01的三次失败保留。新02只在离线模型全部训练结束后串行六个区分因素的诊断及96个固定闭环，
+不让Kit关闭故障破坏训练checkpoint，不改共享SDK/原控制器/资产/任务判据。
+最小应用为相同AppLauncher配置但不创建环境，基础环境smoke为原环境1个专家步，完整专家181tick
+是否复现由新记录判断；无诊断线程full/fast与旧01的timed faulthandler分开比较，不强称唯一因果。
+SDK配置fast_shutdown与close(skip_cleanup)不是同一参数；本轮保留原close调用，分别记录请求模式、
+真实退出码、是否返回closed marker、结果完整性与父进程资源回收。fast退出零也不等于完整SDKcleanup。
+NVIDIA6.0 release notes记录shutdown_and_release_framework的GIL死锁修复，属于官方排查线索，
+本机5.1SIGSEGV根因尚未证实；不会通过自行升级/改共享SDK伪造修复。
+官方来源和各case结果见STATE_IMAGE_DP_IMPROVEMENT新版区块及新root机器状态。
+
 ## 2026-11-04 最终：inotify恢复，SDK关闭仍阻塞，训练0updates
 
 用户批准的父docs deliverables-only watcher排除已应用；恢复及最终探针256/256，

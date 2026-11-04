@@ -2,10 +2,11 @@
 
 ## StateDP + ImageDP 改进队列 — 2026-11-04
 
-[当前报告与接续入口](STATE_IMAGE_DP_IMPROVEMENT.md)：父工作区排除已批准应用，
-inotify探针256/256通过；Kit实际3/5starts、正常完整退出0，关闭超时/SIGSEGV仍阻塞。
-剩余2次不足以满足连续3次门控，不自动补预算。两组训练均0updates，服务已退出；
-专家两次任务成功不能当作SDK验收或学生成绩。最终JSON、CSV与资源图已归档。
+[当前报告与接续入口](STATE_IMAGE_DP_IMPROVEMENT.md)：最新用户已将离线训练与Kit退出解耦。
+新root `state_image_20261104_02` 已通过State50/100/200监督、checkpoint恢复及validation；
+持久队列继续State到10000，再Image同样监督和10000，随后统一执行固定里程碑闭环。
+旧01依然blocked并保留全部证据。关闭异常不会冒充正常退出，也不再无条件阻塞离线训练。
+请读取新root/status.json，不从旧PID或本文历史数字推测当前进度。
 
 2026-11-04新只读任务：[H24闭环诊断与视频](H24_CLOSED_LOOP_DIAGNOSIS.md)。
 先查新任务机器状态；实现/启动/完成分别记录，不重启旧训练。

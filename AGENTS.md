@@ -1,5 +1,18 @@
 # Play2Perfect visual–tactile imitation research
 
+## Running — offline State/Image v2 passed State200 supervision
+
+Newroot state_image_20261104_02, state-image-offline-20261104-02.service is the sole
+training/evaluation owner. Source d0f0ca7; actualState50/100/200 supervision passed,
+checkpoint recovery/readback andvalidation4 complete. Follow real status/progress;
+no conversational polling or duplicate starts. Newloss/network contract tests4passed.
+State milestone worker continues1000/3000/6000/10000; thenImage audit/supervision/formal
+under identical acceptance. Six lifecycle probes and96fixedmilestone evaluations run
+serially after offline jobs; shutdown faults stay distinct from native outcomes.
+IndependentCPU state-image-analysis-20261104-02.service verifies360visual cache hashes,
+waits for owner exit, computes full metrics/videos and publishes allowlisted artifacts.
+Keep active training code frozen; report generation does not mutate source or old01.
+
 ## Latest override — decoupled offline State/Image training, 2026-11-04
 
 User explicitly replaces the repeated three-normal-SDK-exit prerequisite. Preserve
