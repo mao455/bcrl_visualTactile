@@ -1,5 +1,13 @@
 # 维护变更
 
+## 2026-11-06 — 隔离的有限条件化StateDP后续
+
+- 新`tools.narrow_followup`在原owner正常完成、进程退出和锁释放后才启动；原活跃工作树/运行目录/截止只读。独立8h预算，最多一次完整状态续训、一次260–296总量扩采、一次随机新StateDP；最终独立16不进入决策，无自动重试或第二轮扩增。
+- `visuotactile.narrow_decision`保留验证趋势、Arm/FK、早期方向/幅度/hold和泛化差距的决策证据；合同/控制审查先于扩采。32新家族按训练初态几何覆盖选择并冻结24/4/4，所有数据真实重采，合并cache/train统计重新验收。
+- `anchor_continue fresh-*`仅在新runtime显式配置时完整恢复旧checkpoint且保留原LR日程/floor，或以独立seed随机新训练；增加确定性train8/validation loss及平台提前停。既有网络、损失、H24/commit12和控制不改。
+- `tools.narrow_delivery`生成主MD更新、一个轻量JSON/曲线；所有GPU退出后校验HEAD/人工正文/工作树，普通非force push到origin同feature。没有上传原始数据、权重或日志。
+- 51项决策/家族隔离/停止/恢复日程/原数据保护及既有checkpoint、历史等CPU回归通过。真实200条best/last在5735更新完整读回，原源码SHA未变；已记录学生tick0/12/95的读取/本体恢复误差2.38419e-7。未额外启动GPU/Kit。实际新worker启动/持续状态另在交接和机器文件核验。授权与单测不代表真实闭环成功。
+
 ## 2026-11-05 — 直接窄域与自动新StateDP流水线
 
 - 复现SDK scene-query在rollout后reset误报；`live_collision`使用实际碰撞网格与实时link pose的保守OBB，未更改SDK/physics。实际碰撞几何离线核对34网格最小间隔108.62mm，live新入口已完成60家族准入与4条完整成功轨迹的重复reset验收；生产已恢复，启动快照7/7成功，data_ready=false/正式0更新。

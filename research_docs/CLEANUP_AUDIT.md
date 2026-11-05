@@ -1,5 +1,9 @@
 # 清理与回归验收
 
+## 2026-11-06 后续准备
+
+新代码仅在隔离worktree修改，原训练/采集源码、200条和原400数据、best/last与原失败证据只读。新扩充manifest引用原200路径，不复制18GB数据；需要合并训练统计的numeric cache属于有效依赖。新正式checkpoint与可能续训的完整状态均保留，尚无可确认废弃的新模型可删，本次释放0bytes。原启动阶段2.148GiB及更早126.673GiB不重复计入。
+
 ## 2026-11-05当前清理
 
 已删除旧窄域一次性CPU smoke及本轮已验收GPU smoke checkpoint共2份，实际释放2306101248分配字节（2.148GiB）。旧ledger保存路径、inode、大小、SHA和完成的smoke引用。重新核实同UID句柄，当前不可读者均为已识别的systemd/sd-pam/ssh-agent session daemon；没有跳过全部清理，也没有强删未知占用文件。原400、专家、隔离轨迹、仍引用的checkpoint/cache及未知文件保留。

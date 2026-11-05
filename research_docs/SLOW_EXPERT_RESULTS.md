@@ -1,5 +1,11 @@
 # 冻结专家与窄分布StateDP数据
 
+## 2026-11-06 更新
+
+原直接窄域v2已达到200条完整成功（201次尝试，1次真实任务失败）、60家族44/8/8、43,621个控制步、17,972,841,587bytes，DATA_READY通过并已进入正式StateDP训练。下文7/7、DATA_READY=false是历史启动证据。
+
+用户新授权一次条件化扩充，须等原闭环完成、训练曲线支持平台/泛化差距且数据/执行审核通过，才由独立root执行。新32家族目标、24/4/4预分割、最多96次真实速度轨迹，总量260–296；不改变窄域范围、不插值旧传感器、不将旧test家族加入train。原200和原400均保留。是否实际启动、增加数量和效果以新root机器状态和[State结果](STATE_DP_RESULTS.md)为准。
+
 ## 当前运行：直接窄域 v2（短监督通过，后台生产运行中）
 
 最新用户授权已扩展到新数据验收后的自动随机StateDP训练和有界闭环。新root为`outputs/visuotactile/run/narrow_state_20261105_02`，当前生产服务`narrow-state-data-20261105-02-production.service`（第一阶段服务已在完整边界退出）；准备commit与实际运行commit分别记录在session.json及launch_revision.json，所有运行Python源码另存完整SHA清单。**短监督已通过；最新启动核验7/7条完整成功，DATA_READY=false，正式训练0更新。后台继续运行，数量以status.json为准。**

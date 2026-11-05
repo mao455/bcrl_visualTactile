@@ -247,18 +247,24 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     records={i:cached['records'][i] for i in ids+vals};del cached
     stats=torch.load(data_root/'statistics.pt',map_location='cpu',weights_only=False)
     if not ids or (not smoke and not vals):raise ValueError('Nonempty train/validation required')
-    device=smoke_device if smoke else 'cuda:0';torch.manual_seed(20261105)
+    runtime=read(root/'session.json') if (root/'session.json').exists() else {}
+    continuation=runtime.get('continuation')
+    seed=continuation['configuration']['seed'] if continuation else runtime.get('random_seed',20261105)
+    device=smoke_device if smoke else 'cuda:0';torch.manual_seed(seed)
     model=PersistentState('dp',contract(24,True))
     expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
     model.set_statistics(stats,expert);del expert
     with h5py.File(data['entries'][ids[0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
     objective=GeometryObjective(metadata);objective.weights=session['loss_weights']
     config=dict(version='fresh_narrow_state_v1',initialization='random_model_fresh_optimizer_ema_schedule_counters',
-        seed=20261105,data_sha256=sha256(data_root/'data.json'),statistics_sha256=sha256(data_root/'statistics.pt'),
+        seed=seed,data_sha256=sha256(data_root/'data.json'),statistics_sha256=sha256(data_root/'statistics.pt'),
         contract=contract(24,True),loss_id=LOSS_ID,loss_weights=objective.weights,target=target,
         effective_batch=64,microbatch=4,lr_peak=3e-5,lr_floor=3e-6,warmup=min(200,max(1,target//10)),
         sampler='episode_balanced_shuffled_decks_short_tail_no_drop',smoke=smoke,device=device,
         source_sha256={str(p):sha256(p) for p in sorted(Path('visuotactile').rglob('*.py'))})
+    if continuation:
+        config.update(initialization='complete_checkpoint_continuation_original_schedule_clamped_at_floor',
+                      continuation=continuation)
     root.mkdir(parents=True,exist_ok=True)
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
@@ -287,13 +293,38 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             model.to(device);records={i:{k:v.to(device) for k,v in r.items()} for i,r in records.items()}
             averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
             opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
-            generator=torch.Generator().manual_seed(20261105);noise=torch.Generator(device=device).manual_seed(20261106)
+            generator=torch.Generator().manual_seed(seed);noise=torch.Generator(device=device).manual_seed(seed+1)
             sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,64)
             if (root/'last.pt').exists():
                 old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
                 assert old['config_sha256']==sha256(cp)
                 restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])
                 step=old['updates'];best=old['best'];del old
+            elif continuation:
+                source=Path(continuation['path'])
+                assert sha256(source)==continuation['sha256'],'Continuation source changed'
+                old=torch.load(source,map_location='cpu',weights_only=False)
+                for key in ('contract','data_sha256','statistics_sha256','loss_id','loss_weights','effective_batch','microbatch','sampler'):
+                    assert old['configuration'][key]==config[key],('Continuation contract mismatch',key)
+                restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])
+                step=old['updates'];best=old['best']
+                assert step==ema.optimization_step and all(int(v['step'])==step for v in opt.state.values())
+                checks=dict(model=all(torch.equal(v.cpu(),old['model'][k]) for k,v in model.state_dict().items()),
+                    ema=all(torch.equal(v.cpu(),old['ema'][k]) for k,v in averaged.state_dict().items()),
+                    sampling_rng=torch.equal(generator.get_state(),old['schedule_rng']),
+                    noise_rng=torch.equal(noise.get_state(),old['noise_rng']),
+                    torch_rng=torch.equal(torch.get_rng_state(),old['torch_rng']),
+                    cuda_rng=all(torch.equal(a,b) for a,b in zip(torch.cuda.get_rng_state_all(),old['cuda_rng'])),
+                    lr=opt.param_groups[0]['lr']==old['optimizer']['param_groups'][0]['lr'])
+                current=opt.state_dict()
+                checks['optimizer_groups']=current['param_groups']==old['optimizer']['param_groups']
+                checks['optimizer_moments']=all(torch.equal(value.cpu(),old['optimizer']['state'][i][key])
+                    if torch.is_tensor(value) else value==old['optimizer']['state'][i][key]
+                    for i,state in current['state'].items() for key,value in state.items())
+                assert all(checks.values())
+                atomic_json(output/'restore.json',dict(passed=True,checks=checks,from_update=step,
+                    source_sha256=continuation['sha256'],optimizer_and_ema_preserved=True,scheduler_replaced=False))
+                checkpoint();del old
         if smoke:
             with torch.no_grad():
                 identity=ids[0];rec=records[identity];model.eval();full,anchors,_=model.encode(rec)
@@ -312,7 +343,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             atomic_json(output/'history_check.json',dict(passed=True,online_max_abs=maximum,tail_valid=int(m.sum()),future_leakage=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
         training_started=time.time();initial_step=step
-        interval=session.get('validation_interval',500)
+        interval=runtime.get('validation_interval',session.get('validation_interval',500));stop_reason='update_budget'
         while step<target:
             if (root/'STOP').exists():checkpoint();raise InterruptedError('Stopped at optimizer boundary')
             if not smoke and lease and time.time()>=lease.deadline-600:
@@ -331,11 +362,15 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
                 assert torch.isfinite(norm)
                 step+=1
-                lr=3e-6 if target==1 else continuation_lr(step,target,config['warmup'],3e-5,3e-6)
+                if continuation:
+                    from .narrow_decision import continuation_rate
+                    lr=continuation_rate(step,continuation['configuration'])
+                else:lr=3e-6 if target==1 else continuation_lr(step,target,config['warmup'],3e-5,3e-6)
                 for group in opt.param_groups:group['lr']=lr
                 opt.step();ema.step(model)
             progress=dict(update=step,target=target,loss=loss_sum,lr=lr,actual_batch=len(selected),
                 sampled_anchors=sampler.draws,formal_updates=0 if smoke else step,
+                stage_updates=step-initial_step,restored_updates=initial_step,
                 updates_per_hour=(step-initial_step)*3600/max(1,time.time()-training_started),utc=time.time(),**no_kit())
             atomic_json(root/'progress.json',progress)
             with (root/'training.jsonl').open('a') as f:f.write(json.dumps(progress)+'\n')
@@ -349,9 +384,17 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 if metrics['selection_mse']<best:
                     best=metrics['selection_mse'];checkpoint();save(root/'best.pt',torch.load(root/'last.pt',map_location='cpu',weights_only=False))
                 report=dict(update=step,metrics=metrics,train8=train_metrics,early=early,utc=time.time())
+                if runtime.get('deterministic_validation_loss'):
+                    report['validation_loss']=deterministic_loss(averaged,records,vals,objective,lease)
+                    report['train8_loss']=deterministic_loss(averaged,records,ids[:min(8,len(ids))],objective,lease)
                 atomic_json(root/'validation.json',report)
                 with (root/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
                 fresh_curves(root)
+                if runtime.get('early_stop_minimum_update'):
+                    from .narrow_decision import early_stop
+                    rows=[json.loads(line) for line in (root/'validation.jsonl').read_text().splitlines()]
+                    if early_stop(rows,runtime['early_stop_minimum_update']):
+                        stop_reason='validation_plateau_or_overfit';checkpoint();break
             if bounded_end:break
         saved=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
         restore_training(saved,model,averaged,opt,ema,generator,noise)
@@ -360,9 +403,11 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         assert all(torch.equal(v.cpu(),saved['model'][k]) for k,v in model.state_dict().items())
         assert all(torch.equal(v.cpu(),saved['ema'][k]) for k,v in averaged.state_dict().items())
         atomic_json(output/'result.json',dict(passed=True,updates=step,disposable=smoke,formal_updates=0 if smoke else step,
-            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=False,**no_kit()))
+            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=bool(continuation),
+            stage_updates=step-initial_step,restored_updates=initial_step,**no_kit()))
         if not smoke:atomic_json(root/'finished.json',dict(updates=step,target_updates=target,target_reached=step==target,
-            stop_reason='update_budget' if step==target else 'fixed_wall_budget',best_checkpoint=str(root/'best.pt'),utc=time.time()))
+            stop_reason=stop_reason if step==target or stop_reason!='update_budget' else 'fixed_wall_budget',
+            best_checkpoint=str(root/'best.pt'),utc=time.time()))
     except (TimeoutError,InterruptedError):
         if 'before_batch' in locals() and step==before_batch[0]:
             sampler.load_state_dict(before_batch[1]);generator.set_state(before_batch[2]);noise.set_state(before_batch[3])

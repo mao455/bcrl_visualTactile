@@ -1,4 +1,38 @@
-# Current task — direct narrow StateDP pipeline (2026-11-05)
+# Current task — bounded conditional StateDP follow-up (2026-11-06)
+
+Latest user authorizes ONE bounded continuation when supported by validation and
+closed-loop evidence, then at most ONE expansion from200 to260–296 total real
+successes and ONE independently initialized StateDP comparison. No architecture,
+H24/commit12,29D position, loss/weights/history/control/physics change. Original400
+and new200, original checkpoints, source and original13:57:39 deadline are immutable.
+
+The predecessor narrow_state_20261105_02 must complete normally and release all
+workers/monitor/owner lock before new GPU work. Isolated source worktree is
+bc+rl_RSS_narrow_followup (detached reviewed commits published only to origin's
+feature/narrow-state-data); never edit the still-active narrow_state worktree.
+New root narrow_state_followup_20261106_01 has its own fixed8h execution window,
+including all stage/resource waits; dependency wait ends at original deadline+15min.
+One worker start per stage, no automatic retry or second owner/recovery. At most
+96 new capture attempts,52 student starts,45GiB added files,60GiB free disk,
+6GiB VRAM/12GiB RAM admission and existing shared_recent_v1 target40%.
+
+Read SESSION_HANDOFF, CONTRACTS and STATE_DP_RESULTS. tools.narrow_followup audits
+data/cache/statistics and recorded deployed control/history before decisions.
+If extending, restore original last model/AdamW moments/EMA/RNG/anchor decks and
+continue the ORIGINAL schedule at its existing floor, no rewarm or reset. New
+expanded training has a separate seed and fresh states; only data changes.
+New32 families selected by geometry-only coverage relative to original TRAIN
+families, within same domain; freeze24/4/4 split before expert outcomes. Old test8
+families remain test. New16 final unseen seeds are frozen at prepare, tested once,
+never fed back to scheduling; original unseen12 is explicitly development evidence.
+
+Ordinary scripts handle waiting, stage transitions, safety stops and final lightweight
+publication to the same origin feature branch. Publication refuses intervening HEAD,
+unreviewed worktree/staged changes or edits outside generated report blocks. No raw
+data/checkpoints/logs pushed. Short startup verification then yield; no LLM polling.
+Authorization/queued stages are NOT completion or success. Machine status is primary.
+
+## Predecessor authorization and startup snapshot (historical)
 
 The latest user explicitly authorizes fixing initialization admission, a NEW bounded
 run, direct narrow initial sampling, frozen-expert continuous-speed capture, then
