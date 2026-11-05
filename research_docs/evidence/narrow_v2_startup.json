@@ -636,5 +636,64 @@
     "completed_pilot_attempts_preserved": 4,
     "all_phaseA_families_and_split_unchanged": true
   },
-  "gpu_smoke_checkpoint_retired": true
+  "gpu_smoke_checkpoint_retired": true,
+  "production_startup_snapshot": {
+    "state": "running",
+    "stage": "collection",
+    "attempts": 7,
+    "successes": 7,
+    "data_ready": false,
+    "formal_updates": 0,
+    "worker_pid": 738567,
+    "owned_workers_exited": false,
+    "utc": 1793888517.3080232,
+    "families": 60,
+    "task_failures": 0,
+    "initial_rejections": 0,
+    "total_control_steps": 1736,
+    "bytes": 710418010,
+    "collection_wall_s": 1457.986738204956,
+    "episodes_per_hour": 17.284107811693655,
+    "last_error": null
+  },
+  "production_launch_revision": {
+    "running_commit": "b1194709640367a41e6dcfac3ecea7589b5ea130",
+    "frozen_inventory_sha256": "98e5282dded9e5fd776e4aa33416ae6de1988831e127edee849b5bf5da0cec3b",
+    "prior": "maintenance/production_cutover/launch_revision.json",
+    "absolute_deadline_unchanged": true
+  },
+  "production_sample_profiles": [
+    {
+      "identity": "family_067_mid_b",
+      "success": true,
+      "steps": 179,
+      "alpha": 0.880109466994974,
+      "wall_s": 36.31180810928345,
+      "wall_profile": {
+        "expert_inference_s": 1.6884860967984423,
+        "environment_step_render_s": 14.877710327738896,
+        "numeric_write_s": 4.253604777157307,
+        "compact_append_s": 4.468734186375514,
+        "finalize_verify_s": 3.9034095499664545,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "data_sha256": "3f203d84b369b2dd66761480e69ecd1541a842debc8c984723fb961138d63d63"
+    },
+    {
+      "identity": "family_000_slow",
+      "success": true,
+      "steps": 233,
+      "alpha": 0.597242993709617,
+      "wall_s": 58.04941964149475,
+      "wall_profile": {
+        "expert_inference_s": 1.2670669385697693,
+        "environment_step_render_s": 19.270727201830596,
+        "numeric_write_s": 5.47911410627421,
+        "compact_append_s": 5.803505566087551,
+        "finalize_verify_s": 5.156955469981767,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "data_sha256": "e9d6bac91a64cafed68f16a6f0467802993591c72dfd4454f0affe7e09f6521f"
+    }
+  ]
 }

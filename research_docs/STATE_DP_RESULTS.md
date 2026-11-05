@@ -2,7 +2,7 @@
 
 ## 当前新运行（2026-11-05，尚未正式更新）
 
-`narrow_state_20261105_02`在新数据验收后自动从随机StateDP参数、全新AdamW/EMA/调度器训练。当前正式更新0；4条真实采集与一次性GPU保存恢复通过，DATA_READY仍为false，尚无新闭环结果。预算与合同见[CONTRACTS](CONTRACTS.md)，实时进度见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)所列机器入口。新窄分布与下方原宽分布不是直接可比成功率。
+`narrow_state_20261105_02`在新数据验收后自动从随机StateDP参数、全新AdamW/EMA/调度器训练。当前正式更新0；首4条监督验收及生产继续通过，最新7/7真实采集成功；一次性GPU保存恢复通过，DATA_READY仍为false，尚无新闭环结果。预算与合同见[CONTRACTS](CONTRACTS.md)，实时进度见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)所列机器入口。新窄分布与下方原宽分布不是直接可比成功率。
 
 数据实际ready后才计算100 anchor等效epoch/最多12000更新；每500更新报告train8/validation同口径指标及首12tick方向/幅值、FK、hold基线。仅validation选best，最终train4诊断与12个预注册未见初态闭环分别报告，无结果择seed或自动扩展。
 

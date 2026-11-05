@@ -2,7 +2,7 @@
 
 ## 2026-11-05 — 直接窄域与自动新StateDP流水线
 
-- 复现SDK scene-query在rollout后reset误报；`live_collision`使用实际碰撞网格与实时link pose的保守OBB，未更改SDK/physics。实际碰撞几何离线核对34网格最小间隔108.62mm，live新入口已完成60家族准入与4条完整成功轨迹的重复reset验收。
+- 复现SDK scene-query在rollout后reset误报；`live_collision`使用实际碰撞网格与实时link pose的保守OBB，未更改SDK/physics。实际碰撞几何离线核对34网格最小间隔108.62mm，live新入口已完成60家族准入与4条完整成功轨迹的重复reset验收；生产已恢复，启动快照7/7成功，data_ready=false/正式0更新。
 - `narrow_data`直接采样相对位姿、20°旋转、较窄native关节/速度/桌高；`narrow_collection`替代旧宽分布拒绝采样，固定family/split和普通后台data→fresh State→闭环阶段转换。旧root不可进入v2。
 - `anchor_continue fresh-*`保留模型/loss/历史，增加GPU一次性验收、明确训练截止、完整同run恢复、每500更新验证与首12tick指标/曲线。一次性GPU优化/完整恢复通过、正式训练仍0，不能把授权当完成。
 - 按4条实测墙钟与共享负载，在不改原16h绝对截止前提下将生产阶段预算分配为6h采集/最多9h训练/末1h评估；达到最低数据及覆盖才能提前结束采集。增加真实调用耗时分类和预算结束后保存已验证模型再评估。

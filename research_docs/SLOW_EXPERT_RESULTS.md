@@ -1,8 +1,8 @@
 # 冻结专家与窄分布StateDP数据
 
-## 当前运行：直接窄域 v2（短监督通过，生产待恢复）
+## 当前运行：直接窄域 v2（短监督通过，后台生产运行中）
 
-最新用户授权已扩展到新数据验收后的自动随机StateDP训练和有界闭环。新root为`outputs/visuotactile/run/narrow_state_20261105_02`，服务`narrow-state-data-20261105-02.service`；准备commit与实际运行commit分别记录在session.json及launch_revision.json，所有运行Python源码另存完整SHA清单。**短监督已通过；当前4条完整成功记录，DATA_READY=false，正式训练0更新。**
+最新用户授权已扩展到新数据验收后的自动随机StateDP训练和有界闭环。新root为`outputs/visuotactile/run/narrow_state_20261105_02`，当前生产服务`narrow-state-data-20261105-02-production.service`（第一阶段服务已在完整边界退出）；准备commit与实际运行commit分别记录在session.json及launch_revision.json，所有运行Python源码另存完整SHA清单。**短监督已通过；最新启动核验7/7条完整成功，DATA_READY=false，正式训练0更新。后台继续运行，数量以status.json为准。**
 
 实际60/68候选准入（88.24%，8个保守机器人网格包围盒拒绝，均非任务失败），split44/8/8；4条pilot共1075控制步、436,376,287bytes，199/157原速与455/264慢速全部成功，154字段hash验收、两物理子步target误差0、同家族初态8组误差0。一个慢速初态旧query仍错误命中1项，新几何准入一致通过。实测时长比2.2864/1.6815，中位1.9840。
 

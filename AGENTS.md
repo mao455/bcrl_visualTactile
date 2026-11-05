@@ -31,3 +31,15 @@ Startup is not DATA_READY, DATA_READY is not trained, trained is not task succes
 machine JSON for actual state. Preserve partial/quarantined records and error denominators.
 Commit/push reviewed code/docs/small reports to origin feature only; no raw artifacts,
 weights/videos, unrelated worktree changes, upstream or force push.
+
+## Verified startup
+
+Production code b119470 is running in native single-lane persistent Kit under
+narrow-state-data-20261105-02-production.service, root narrow_state_20261105_02.
+60/68 direct candidates,44/8/8;4/4 pilots plus2/2 first production episodes passed.
+One disposable CUDA update/save/restore passed; DATA_READY=false and formal updates0
+at startup. Read actual machine status later; do not infer final success from this.
+Within the unchanged16h absolute window, stage allocation was reviewed at the completed
+pilot boundary: collection6h, training at most9h, final1h evaluation. Absolute deadline
+2026-11-06 13:57:39 UTC+8. Old v1 quarantine remains. Do not restart this live service
+or spend model calls polling it; ordinary owner handles transitions and bounded stops.
