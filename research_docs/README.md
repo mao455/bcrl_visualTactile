@@ -1,5 +1,7 @@
 # 当前 StateDP / ImageDP 实验系统
 
+新独立专家执行研究见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)。本工作树`feature/expert-slow-execution`只在原State200完成后启动新Kit；原实验实际进度仍在`bc+rl_RSS_native_v2`及其独立输出根。统一入口增加`expert-speed-prepare`，之后仍用`run/report`，不重开训练。
+
 当前结果与训练决策：[STATE_DP_RESULTS.md](STATE_DP_RESULTS.md)。清理、保留项和回归：[CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)。接口与训练配置以 [CONTRACTS.md](CONTRACTS.md) 为准；历史实验只读摘要见 [RESEARCH_HISTORY.md](RESEARCH_HISTORY.md)。
 
 ## 当前入口

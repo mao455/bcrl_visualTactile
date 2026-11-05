@@ -67,7 +67,7 @@ def run_audited_episode(root, output, job_path):
     from isaaclab import app as launcher
     from visuotactile import state_benchmark as base, native_controller
     job = read(job_path)
-    assert job['mode'] in ('dp','expert') and len(job['specs']) == 1
+    assert job['mode'] in ('dp','expert','expert_slow','expert_retime') and len(job['specs']) == 1
     assert not any(k in job for k in ('takeover_steps', 'replay'))
     session = read(root/'session.json')
     original_launcher = launcher.AppLauncher
@@ -123,9 +123,10 @@ def run_audited_episode(root, output, job_path):
     original_trial = base.trial
     def trial(*args, **kwargs):
         result = original_trial(*args, **kwargs)
-        if job['mode']=='expert':
+        if job['mode'] in ('expert','expert_slow','expert_retime'):
             audit.update(model_output_only=False,expert_reference=True)
-            audit['completed']=bool(result.get('legal') and result.get('software_complete'))
+            audit['completed']=bool(result.get('software_complete') and (result.get('legal') or result.get('not_started')))
+            audit['initialization_rejected']=bool(result.get('not_started'))
         elif not result.get('legal'):
             audit['completed']=audit['act_calls']==audit['execution_acks']==0
             audit['initialization_rejected']=True
@@ -140,7 +141,9 @@ def run_audited_episode(root, output, job_path):
     class Video(original_video):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
-            self.title = f"{job['model']} | updates {job.get('updates',10000)} | {job['specs'][0]['identity']} | autonomous"
+            execution='open-loop retimed targets' if job['mode']=='expert_retime' else 'autonomous'
+            weights='frozen released RL' if job['mode'].startswith('expert') else f"updates {job.get('updates',10000)}"
+            self.title = f"{job['model']} | {weights} | {job['specs'][0]['identity']} | {execution}"
     base.RolloutVideo = Video
     run_lifecycle(root, output, job_path)
 

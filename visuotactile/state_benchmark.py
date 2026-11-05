@@ -129,7 +129,7 @@ def prepare(env, isolated, spec, source, output):
 
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
-          inference=None, takeover_steps=None):
+          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False):
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
@@ -143,6 +143,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             atomic_json(output/'result.json', result)
             return result
         metadata = env.research_metadata(); metadata['config'] = env.cfg.to_dict()
+        if expert_speed is not None:
+            metadata['expert_speed']=expert_speed
+            metadata['supervision_contract']='transition/target_after_rad: actual issued actuator target, not measured joint position'
         config, config_hash = environment_identity(env)
         atomic_json(output/'metadata.json', json.loads(json.dumps(metadata, default=str)))
         player.reset()
@@ -161,12 +164,22 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
     numeric = h5py.File(output/'numeric.h5', 'w')
     numeric.attrs['metadata_json'] = json.dumps(metadata, default=str)
     group = numeric.create_group('episode')
+    stream=None
+    if capture_dataset:
+        from .recording import CompactEpisodeStream,flatten,numpy_tree,verify_stream_fields
+        stream=CompactEpisodeStream(output/'demonstration',metadata,spec['identity'])
+        stream.group.attrs['action_source']='recorded_position_retime' if expert_speed and expert_speed['kind']=='recorded_retime' else 'frozen_expert_slow_execution'
     movie = RolloutVideo(output/'rollout.mp4', 'expert' if saved is None else saved.get('kind', 'oldState'),
         spec['seed'], 0, CAMERAS) if video else None
     actor_parity = 0.
+    raw_policy={};raw_handle=None
+    if saved is None:
+        def capture_raw_mean(module,inputs,result):
+            raw_policy['mean']=result['mus'].detach().clone()
+        raw_handle=player.model.register_forward_hook(capture_raw_mean)
     try:
         bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
-        if replay is not None:
+        if replay is not None and expert_speed is None:
             bound = len(replay)
         for tick in range(bound):
             packet = env.research_packet
@@ -178,9 +191,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 # it never executes and its RNG is outside the environment stream.
                 expert_command = player.get_action(actor, is_deterministic=True).clamp(-1, 1)
                 if replay is not None:
-                    command = torch.from_numpy(replay[tick:tick+1])
+                    index=min(tick,len(replay)-1)
+                    command = torch.from_numpy(replay[index:index+1])
                     # Deliberately perturb policy RNG in this second runner.
-                    torch.rand(37+tick % 17)
+                    if expert_speed is None:torch.rand(37+tick % 17)
                 elif controller is None:
                     command = expert_command
                 elif takeover_steps is not None and tick >= takeover_steps:
@@ -213,11 +227,17 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 transition = env.last_transition
                 transition.update(expert_actor_input_diagnostic=actor.clone(),
                     torch_rng_before_step=before_rng[None], expert_shadow_command=expert_command.clone())
+                if raw_handle is not None:
+                    transition['expert_raw_policy_mean_before_clip']=raw_policy['mean']
                 if controller is not None and (takeover_steps is None or tick < takeover_steps):
                     controller.observe_execution(transition)
                 before_packet = {k: v for k, v in packet.items() if torch.is_tensor(v)
                     and k not in ('image', 'depth_m', 'depth_valid')}
                 append_numeric(group, dict(obs=before_packet, transition=transition), tick)
+                if stream is not None:
+                    row=flatten(numpy_tree(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
+                        transition=transition,terminated=terminated,truncated=truncated)))
+                    stream.append({k:v[0] for k,v in row.items()})
                 after = transition['diagnostics_after']
                 # Read the pre-reset native outcome captured by _get_rewards;
                 # never inspect an auto-reset scene to decide the prior result.
@@ -264,6 +284,12 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         result['action_control_mode']=env.action_control_mode
         result['actuator_target_max_error']=float(np.abs(arrays['actuator_targets']-arrays['target'][:,None,:]).max())
         result['tracking_rmse_rad']=float(np.sqrt(np.mean((arrays['joint']-arrays['target'])**2)))
+        if expert_speed is not None:
+            result['expert_speed']=expert_speed
+            result['rl_observation_source']='actual current simulator observations every 60Hz tick'
+            result['replay_sequence_ticks']=len(replay) if replay is not None else None
+            result['replay_final_hold_ticks']=max(0,len(rows)-len(replay)) if replay is not None else 0
+            result['trajectory_retiming_is_not_state_retiming']=True
         if position:
             result['submitted_target_max_error']=float(np.abs(arrays['command']-arrays['target']).max())
         if inference is not None:
@@ -281,10 +307,17 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 limitation='Direct position to original native expert mode; original delay queue resumes unchanged. Not autonomous success.')
         if movie:
             movie.close(complete=True)
+        if stream is not None:
+            stream.finish(result)
+            count=verify_stream_fields(output/'demonstration/data.h5')
+            result['dataset_capture']=dict(path=str(output/'demonstration/data.h5'),verified_source_fields=count,
+                accepted_success=bool(result['success']),checkpoint_sha256=result['checkpoint_sha256'])
         atomic_json(output/'result.json', result)
         return result
     finally:
         numeric.close()
+        if raw_handle is not None:raw_handle.remove()
+        if stream is not None and stream.file.id.valid:stream.file.close()
         if movie:
             movie.close()
 
@@ -292,6 +325,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
 def run(root, output, mode, job=None):
     output.mkdir(parents=True, exist_ok=False)
     session = json.loads((root/'session.json').read_text())
+    job_data = json.loads(job.read_text()) if job else None
+    speed_config=job_data.get('expert_speed') if job_data else None
     source = json.loads((Path(session['source_root'])/'data.json').read_text())
     lease = lease_for(root, deadline=session['deadline'])
     atomic_json(output/'runtime_controls.json', client_startup_controls(session.get('kit_gate',{}).get('omniclient_startup')))
@@ -313,9 +348,14 @@ def run(root, output, mode, job=None):
             atomic_json(output/'lifecycle.json',dict(state='results_committed',utc=time.time()))
             return
         import isaacsimenvs
-        env = make_env(True, lease, scene_queries=True)
+        env = make_env(True, lease, scene_queries=True,
+            **({'expert_speed':speed_config} if speed_config and speed_config['kind']=='closed_loop' else {}))
         with lease.block():
             player, config = create_expert(env, session['expert_checkpoint'])
+        expert_fingerprint=None
+        if mode in ('expert','expert_slow','expert_retime'):
+            from .recording import model_fingerprint
+            expert_fingerprint=model_fingerprint(player.model)
         atomic_json(output/'actor_configuration.json', config)
         env_config, digest = environment_identity(env)
         atomic_json(output/'environment.json', dict(config=env_config, sha256=digest))
@@ -367,7 +407,6 @@ def run(root, output, mode, job=None):
             if benchmark['configuration_sha256'] != digest:
                 raise ValueError('Frozen environment configuration changed')
             specs = benchmark['specs']
-            job_data = json.loads(job.read_text()) if job else None
             if mode in ('bc', 'dp', 'old'):
                 specs = [s for s in specs if s['cohort'] != 'fresh']
                 checkpoint = (job_data['checkpoint'] if job_data else
@@ -381,13 +420,26 @@ def run(root, output, mode, job=None):
                 specs = specs[:2]
             for i, spec in enumerate(specs):
                 replay = None
+                if mode=='expert_retime':
+                    from .expert_speed import retime_targets
+                    assert speed_config['kind']=='recorded_retime'
+                    entry=source['entries'].get(spec['identity'])
+                    path=job_data['replay_numeric'] if job_data.get('replay_numeric') else entry['path']
+                    speed_config=dict(speed_config,replay_source_path=str(path),replay_source_sha256=sha256(path),
+                        source_target_time='q(k/stretch), q(0)=initial target; each interpolated command is physically reexecuted',
+                        expert_shadow_is_not_executed=True)
+                    with h5py.File(path) as f:
+                        g=f['episode'] if job_data.get('replay_numeric') else f['episodes'][entry['episode']]
+                        replay=retime_targets(g['transition/target_before_rad'][0],
+                            g['transition/target_after_rad'][:],speed_config['stretch'])
                 if mode in ('replay','position_replay'):
                     replay = np.load(root/'expert'/spec['identity']/'trace.npz')['target' if mode=='position_replay' else 'command']
-                position=mode=='position_replay' or (saved is not None and saved.get('contract',{}).get('action')=='absolute_joint_position_target_rad')
+                position=mode in ('position_replay','expert_retime') or (saved is not None and saved.get('contract',{}).get('action')=='absolute_joint_position_target_rad')
                 result = trial(env, lease, output/spec['identity'], spec, source, player, checkpoint,
                     saved=saved, replay=replay,position=position, video=(job_data.get('video', i == 0) if job_data else i == 0) and mode not in ('replay','position_replay'),
                     inference=job_data.get('inference') if job_data else None,
-                    takeover_steps=job_data.get('takeover_steps') if job_data else None)
+                    takeover_steps=job_data.get('takeover_steps') if job_data else None,
+                    expert_speed=speed_config,capture_dataset=bool(job_data and job_data.get('capture_dataset')))
                 if mode in ('replay','position_replay') and result.get('legal'):
                     with np.load(root/'expert'/spec['identity']/'trace.npz') as original, np.load(output/spec['identity']/'trace.npz') as current:
                         result['bytewise_fields'] = {key: original[key].shape == current[key].shape and
@@ -395,6 +447,11 @@ def run(root, output, mode, job=None):
                             for key in original.files if key not in (('expert_shadow','command','delayed','delay_index') if position else ('expert_shadow',))}
                 trials.append(result)
                 atomic_json(output/'progress.json', dict(completed=len(trials), trials=trials))
+        if expert_fingerprint is not None:
+            after_fingerprint=model_fingerprint(player.model)
+            assert expert_fingerprint==after_fingerprint,'Expert parameters/buffers changed during inference'
+            atomic_json(output/'expert_weight_audit.json',dict(before=expert_fingerprint,after=after_fingerprint,
+                passed=True,optimizer_updates=0,raw_mean_recorded_before_player_clipping=True))
         atomic_json(output/'result.json', dict(software_complete=True, mode=mode, trials=trials))
         atomic_json(output/'lifecycle.json',dict(state='results_committed',utc=time.time()))
     except BaseException as error:

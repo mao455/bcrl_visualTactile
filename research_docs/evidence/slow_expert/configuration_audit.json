@@ -1,0 +1,663 @@
+{
+  "state": "static_and_existing_runtime_audit_complete_new_baseline_pending",
+  "official_repo": "https://github.com/kushal2000/play2perfect",
+  "official_base": "ff2fc62873f6c6cd93164123c8358e9ce2d65c9b",
+  "official_latest": "621459224dd3618456de273871e507e380d4dedb",
+  "paper": "https://arxiv.org/html/2606.26428v1",
+  "checkpoint": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/pretrained_assembly/tight_insertion/model.pth",
+    "sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+    "bytes": 217700467,
+    "official_hf_revision": "91537ffa9584dbe74548623f2cc88e0922e9cbe3",
+    "official_metadata_url": "https://huggingface.co/api/models/Kushal20/play2perfect-checkpoints/tree/91537ffa9584dbe74548623f2cc88e0922e9cbe3/tight_insertion",
+    "official_lfs_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+    "assembly_not_play": true
+  },
+  "source": {
+    "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf": {
+      "local_sha256": "3c36492da57eb4326068a0b97b2d064034035d9037c07e345a1317ead195fb71",
+      "official_base_sha256": "3c36492da57eb4326068a0b97b2d064034035d9037c07e345a1317ead195fb71",
+      "official_latest_sha256": "3c36492da57eb4326068a0b97b2d064034035d9037c07e345a1317ead195fb71",
+      "equal_to_official_base": true,
+      "equal_to_official_latest": true
+    },
+    "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf": {
+      "local_sha256": "f5a7ba576e235d5f5326140f36075658a03bbe6ee57a84cb1cecf27f799071f3",
+      "official_base_sha256": "f5a7ba576e235d5f5326140f36075658a03bbe6ee57a84cb1cecf27f799071f3",
+      "official_latest_sha256": "f5a7ba576e235d5f5326140f36075658a03bbe6ee57a84cb1cecf27f799071f3",
+      "equal_to_official_base": true,
+      "equal_to_official_latest": true
+    },
+    "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf": {
+      "local_sha256": "6848b2d756a84b0b1b1d6ea56227c2322ef3ef06546abc48433cd036e6e650bc",
+      "official_base_sha256": "6848b2d756a84b0b1b1d6ea56227c2322ef3ef06546abc48433cd036e6e650bc",
+      "official_latest_sha256": "6848b2d756a84b0b1b1d6ea56227c2322ef3ef06546abc48433cd036e6e650bc",
+      "equal_to_official_base": true,
+      "equal_to_official_latest": true
+    },
+    "isaacsimenvs/tasks/play/utils/action_utils.py": {
+      "local_sha256": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3",
+      "official_base_sha256": "2e38294d4555062c6a022c46d1d9cd48b4074df4c80c0adc0b2006b7bed723d6",
+      "official_latest_sha256": "2e38294d4555062c6a022c46d1d9cd48b4074df4c80c0adc0b2006b7bed723d6",
+      "equal_to_official_base": false,
+      "equal_to_official_latest": false
+    },
+    "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py": {
+      "local_sha256": "2c55d9fe77e50125e46bfadbf5be1fc59b115405c389de0d607f433a39ccdbe0",
+      "official_base_sha256": "2c55d9fe77e50125e46bfadbf5be1fc59b115405c389de0d607f433a39ccdbe0",
+      "official_latest_sha256": "2d7d646616b61288ad99180ffbdc0dbdb7f412ae598527b068d9d885b5c2bb2a",
+      "equal_to_official_base": true,
+      "equal_to_official_latest": false
+    },
+    "evaluation/eval_isaacsim.py": {
+      "local_sha256": "b79d1e1ed17f61ddb881d71e32c6241dba6e06f8c808027a2a2853d17759dcb5",
+      "official_base_sha256": "b79d1e1ed17f61ddb881d71e32c6241dba6e06f8c808027a2a2853d17759dcb5",
+      "official_latest_sha256": "2e61b1c0d0b734f85f9596ee11ab8eaf00a448f19cc4eadd0c1a595661b5ac28",
+      "equal_to_official_base": true,
+      "equal_to_official_latest": false
+    },
+    "evaluation/eval_offline.py": {
+      "local_sha256": "40478a6ecbff14cd493609214255f1f31570c5908e9f28c2fc71abaff6f014cf",
+      "official_base_sha256": "40478a6ecbff14cd493609214255f1f31570c5908e9f28c2fc71abaff6f014cf",
+      "official_latest_sha256": "3a22d07f0505d43375992055acf10f2b074c522558ba7c3fd6f82229c172e1d7",
+      "equal_to_official_base": true,
+      "equal_to_official_latest": false
+    }
+  },
+  "local_native_changes_since_official_base": [
+    "isaacsimenvs/tasks/play/utils/action_utils.py"
+  ],
+  "runtime_configuration": {
+    "assets": {
+      "robot_urdf": "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf",
+      "table_urdf": "assets/urdf/table_narrow.urdf",
+      "table_scale_range_x": [
+        1.0,
+        1.0
+      ],
+      "table_scale_range_y": [
+        1.0,
+        1.0
+      ],
+      "table_scale_num_variants": 1,
+      "object_name": "lpeg_matchedmass",
+      "handle_head_types": [
+        "hammer",
+        "screwdriver",
+        "marker",
+        "spatula",
+        "eraser",
+        "brush"
+      ],
+      "num_assets_per_type": 1,
+      "shuffle_assets": true,
+      "modify_asset_frictions": true,
+      "robot_friction": 0.5,
+      "finger_tip_friction": 1.5,
+      "object_friction": 0.5,
+      "table_friction": 0.5,
+      "object_urdf": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf",
+      "receptive_urdf": "/home/CNS2025331827/docs/bc+rl_RSS_native_v2/assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf",
+      "object_scale": [
+        6.25,
+        0.75,
+        0.5
+      ]
+    },
+    "action": {
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "dof_speed_scale": 1.5
+    },
+    "termination": {
+      "episode_length": 600,
+      "success_tolerance": 0.075,
+      "target_success_tolerance": 0.01,
+      "eval_success_tolerance": null,
+      "success_steps": 10,
+      "max_consecutive_successes": 2,
+      "force_consecutive_near_goal_steps": false,
+      "tolerance_curriculum_increment": 0.9,
+      "tolerance_curriculum_interval": 3000,
+      "tolerance_curriculum_success_threshold": 3.0
+    },
+    "precise_assembly": {
+      "problem": "tight_insertion",
+      "goal_mode": "preInsertAndFinal",
+      "hole_x_range": [
+        -0.1875,
+        0.1875
+      ],
+      "hole_y_range": [
+        -0.1,
+        0.1
+      ],
+      "hole_yaw_range_deg": 0.0,
+      "goal_xy_obs_noise": 0.002,
+      "goal_yaw_obs_noise_deg": 0.0,
+      "random_goal_fraction": 0.0,
+      "random_goal_max_successes": 5,
+      "random_goal_curriculum_success_threshold": 2.0,
+      "lift_bonus_fade_threshold": 2.0,
+      "insertion_success_tolerance": 0.01,
+      "enable_retract": true,
+      "retract_reward_scale": 1.0,
+      "retract_distance_threshold": 0.1,
+      "retract_success_bonus": 1000.0,
+      "retract_success_tolerance": 0.005,
+      "force_lift_reward_active": false,
+      "enable_dropped_on_table_term": false,
+      "dropped_on_table_z_margin": 0.05,
+      "dropped_on_table_ft_distance": 0.15
+    },
+    "domain_randomization": {
+      "use_obs_delay": true,
+      "obs_delay_max": 3,
+      "use_action_delay": true,
+      "action_delay_max": 3,
+      "use_object_state_delay_noise": true,
+      "object_state_delay_max": 10,
+      "object_state_xyz_noise_std": 0.01,
+      "object_state_rotation_noise_degrees": 5.0,
+      "object_scale_noise_multiplier_range": [
+        1.0,
+        1.0
+      ],
+      "joint_velocity_obs_noise_std": 0.1,
+      "force_scale": 20.0,
+      "force_prob_range": [
+        0.001,
+        0.1
+      ],
+      "force_decay": 0.0,
+      "force_decay_interval": 0.08,
+      "force_only_when_lifted": true,
+      "torque_scale": 2.0,
+      "torque_prob_range": [
+        0.001,
+        0.1
+      ],
+      "torque_decay": 0.0,
+      "torque_decay_interval": 0.08,
+      "torque_only_when_lifted": true,
+      "object_friction_scale_range": [
+        1.0,
+        1.0
+      ],
+      "fingertip_friction_scale_range": [
+        1.0,
+        1.0
+      ],
+      "friction_n_buckets": 16
+    },
+    "sim": {
+      "physics_prim_path": "/physicsScene",
+      "device": "cpu",
+      "dt": 0.00833333333,
+      "render_interval": 2,
+      "gravity": [
+        0.0,
+        0.0,
+        -9.81
+      ],
+      "enable_scene_query_support": true,
+      "use_fabric": true,
+      "physx": {
+        "solver_type": 1,
+        "solve_articulation_contact_last": false,
+        "min_position_iteration_count": 1,
+        "max_position_iteration_count": 192,
+        "min_velocity_iteration_count": 0,
+        "max_velocity_iteration_count": 1,
+        "enable_ccd": false,
+        "enable_stabilization": false,
+        "enable_external_forces_every_iteration": false,
+        "enable_enhanced_determinism": false,
+        "bounce_threshold_velocity": 0.02,
+        "friction_offset_threshold": 0.01,
+        "friction_correlation_distance": 0.0005,
+        "gpu_max_rigid_contact_count": 8388608,
+        "gpu_max_rigid_patch_count": 8388608,
+        "gpu_found_lost_pairs_capacity": 2097152,
+        "gpu_found_lost_aggregate_pairs_capacity": 4194304,
+        "gpu_total_aggregate_pairs_capacity": 8388608,
+        "gpu_collision_stack_size": 2147483648,
+        "gpu_heap_capacity": 67108864,
+        "gpu_temp_buffer_capacity": 16777216,
+        "gpu_max_num_partitions": 8,
+        "gpu_max_soft_body_contacts": 1048576,
+        "gpu_max_particle_contacts": 1048576
+      },
+      "physics_material": {
+        "func": "isaaclab.sim.spawners.materials.physics_materials:spawn_rigid_body_material",
+        "static_friction": 0.5,
+        "dynamic_friction": 0.5,
+        "restitution": 0.0,
+        "friction_combine_mode": "average",
+        "restitution_combine_mode": "average",
+        "compliant_contact_stiffness": 0.0,
+        "compliant_contact_damping": 0.0
+      },
+      "render": {
+        "enable_translucency": null,
+        "enable_reflections": null,
+        "enable_global_illumination": null,
+        "antialiasing_mode": "Off",
+        "enable_dlssg": null,
+        "enable_dl_denoiser": null,
+        "dlss_mode": null,
+        "enable_direct_lighting": null,
+        "samples_per_pixel": null,
+        "enable_shadows": null,
+        "enable_ambient_occlusion": null,
+        "dome_light_upper_lower_strategy": null,
+        "carb_settings": null,
+        "rendering_mode": "quality"
+      },
+      "create_stage_in_memory": false,
+      "logging_level": "WARNING",
+      "save_logs_to_file": true,
+      "log_dir": null
+    },
+    "decimation": 2
+  },
+  "actuator_configuration": {
+    "canonical_order": true,
+    "values": {
+      "joint_stiffness": [
+        [
+          600.0,
+          600.0,
+          500.0,
+          400.0,
+          200.0,
+          200.0,
+          200.0,
+          6.949999809265137,
+          13.199999809265137,
+          4.760000228881836,
+          6.619999885559082,
+          0.8999999761581421,
+          4.760000228881836,
+          6.619999885559082,
+          0.8999999761581421,
+          0.8999999761581421,
+          4.760000228881836,
+          6.619999885559082,
+          0.8999999761581421,
+          0.8999999761581421,
+          4.760000228881836,
+          6.619999885559082,
+          0.8999999761581421,
+          0.8999999761581421,
+          1.3799999952316284,
+          4.760000228881836,
+          6.619999885559082,
+          0.8999999761581421,
+          0.8999999761581421
+        ]
+      ],
+      "joint_damping": [
+        [
+          27.027027130126953,
+          27.027027130126953,
+          24.67218589782715,
+          22.067474365234375,
+          9.752537727355957,
+          9.147747039794922,
+          9.147747039794922,
+          0.28676843643188477,
+          0.4084510803222656,
+          0.20394082367420197,
+          0.2404443472623825,
+          0.04190722852945328,
+          0.20859232544898987,
+          0.24595531821250916,
+          0.042431849986314774,
+          0.03504461050033569,
+          0.20859229564666748,
+          0.24595531821250916,
+          0.042431849986314774,
+          0.03504461050033569,
+          0.2085922658443451,
+          0.24595527350902557,
+          0.04243183135986328,
+          0.0350445993244648,
+          0.027823450043797493,
+          0.20859229564666748,
+          0.24595527350902557,
+          0.04243183135986328,
+          0.0350445993244648
+        ]
+      ],
+      "joint_effort_limits": [
+        [
+          300.0,
+          300.0,
+          300.0,
+          300.0,
+          300.0,
+          300.0,
+          300.0,
+          3.299999952316284,
+          3.299999952316284,
+          1.8639999628067017,
+          1.8639999628067017,
+          0.6380000114440918,
+          1.8639999628067017,
+          1.8639999628067017,
+          0.6380000114440918,
+          0.18936899304389954,
+          1.8639999628067017,
+          1.8639999628067017,
+          0.6380000114440918,
+          0.18936899304389954,
+          1.8639999628067017,
+          1.8639999628067017,
+          0.6380000114440918,
+          0.18936899304389954,
+          0.5285000205039978,
+          1.8639999628067017,
+          1.8639999628067017,
+          0.6380000114440918,
+          0.18936899304389954
+        ]
+      ],
+      "joint_vel_limits": [
+        [
+          9.999999046325684,
+          9.999999046325684,
+          9.999999046325684,
+          9.999999046325684,
+          9.999999046325684,
+          9.999999046325684,
+          9.999999046325684,
+          11.840766906738281,
+          11.840766906738281,
+          16.076927185058594,
+          16.076927185058594,
+          11.618314743041992,
+          16.076927185058594,
+          16.076927185058594,
+          11.618314743041992,
+          14.665946960449219,
+          16.076927185058594,
+          16.076927185058594,
+          11.618314743041992,
+          14.665946960449219,
+          16.076927185058594,
+          16.076927185058594,
+          11.618314743041992,
+          14.665946960449219,
+          35.07415771484375,
+          16.076927185058594,
+          16.076927185058594,
+          11.618314743041992,
+          14.665946960449219
+        ]
+      ],
+      "joint_armature": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0031999999191612005,
+          0.0031999999191612005,
+          0.0026499999221414328,
+          0.0026499999221414328,
+          0.0006000000284984708,
+          0.0026499999221414328,
+          0.0026499999221414328,
+          0.0006000000284984708,
+          0.0004199999966658652,
+          0.0026499999221414328,
+          0.0026499999221414328,
+          0.0006000000284984708,
+          0.0004199999966658652,
+          0.0026499999221414328,
+          0.0026499999221414328,
+          0.0006000000284984708,
+          0.0004199999966658652,
+          0.00011999999696854502,
+          0.0026499999221414328,
+          0.0026499999221414328,
+          0.0006000000284984708,
+          0.0004199999966658652
+        ]
+      ],
+      "joint_friction_coeff": [
+        [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      ]
+    },
+    "physics_dt": 0.00833333333,
+    "control_dt": 0.01666666666,
+    "decimation": 2,
+    "missing_values_are_not_inferred": true
+  },
+  "actor_network": {
+    "name": "actor_critic",
+    "separate": false,
+    "space": {
+      "continuous": {
+        "mu_activation": "None",
+        "sigma_activation": "None",
+        "mu_init": {
+          "name": "default"
+        },
+        "sigma_init": {
+          "name": "const_initializer",
+          "val": 0
+        },
+        "fixed_sigma": "coef_cond"
+      }
+    },
+    "mlp": {
+      "units": [
+        1024,
+        1024,
+        512,
+        512
+      ],
+      "activation": "elu",
+      "d2rl": false,
+      "initializer": {
+        "name": "default"
+      },
+      "regularizer": {
+        "name": "None"
+      }
+    },
+    "rnn": {
+      "name": "lstm",
+      "units": 1024,
+      "layers": 1,
+      "before_mlp": true,
+      "layer_norm": true
+    }
+  },
+  "observation_normalization": "Released checkpoint running_mean_std; deterministic actor, actions clipped[-1,1], intrinsic coefficient50",
+  "geometries": {
+    "assets/urdf/kuka_sharpa_description/iiwa14_left_sharpa_adjusted_restricted.urdf": {
+      "collision_boxes": [],
+      "sdf_markers": 0,
+      "mass_kg": [
+        5.0,
+        5.76,
+        6.35,
+        3.5,
+        3.5,
+        3.5,
+        1.8,
+        1.2,
+        0.05,
+        0.72045,
+        1e-06,
+        0.116,
+        1e-06,
+        0.04955,
+        0.003886,
+        0.0021,
+        1e-06,
+        1e-06,
+        0.04138,
+        0.02509,
+        0.003002,
+        0.0011,
+        1e-06,
+        1e-06,
+        0.04138,
+        0.02509,
+        0.003002,
+        0.0011,
+        1e-06,
+        1e-06,
+        0.04138,
+        0.02509,
+        0.003002,
+        0.0011,
+        1e-06,
+        0.12541,
+        1e-06,
+        0.04138,
+        0.02509,
+        0.003002,
+        0.0011,
+        1e-06
+      ]
+    },
+    "assets/urdf/peg_in_hole/lpeg_matchedmass/lpeg_matchedmass.urdf": {
+      "collision_boxes": [
+        {
+          "size": "0.250000 0.030000 0.020000",
+          "origin": "0.000000 0.000000 0.000000"
+        },
+        {
+          "size": "0.020000 0.080000 0.020000",
+          "origin": "0.115000 0.025000 0.000000"
+        }
+      ],
+      "sdf_markers": 0,
+      "mass_kg": [
+        0.0578
+      ]
+    },
+    "assets/urdf/peg_in_hole/holes/hole_tol0p5mm/hole_tol0p5mm.urdf": {
+      "collision_boxes": [
+        {
+          "size": "0.080000 0.080000 0.010000",
+          "origin": "0.000000 0.000000 0.005000"
+        },
+        {
+          "size": "0.029500 0.080000 0.050000",
+          "origin": "0.025250 0.000000 0.035000"
+        },
+        {
+          "size": "0.029500 0.080000 0.050000",
+          "origin": "-0.025250 0.000000 0.035000"
+        },
+        {
+          "size": "0.021000 0.024500 0.050000",
+          "origin": "0.000000 0.027750 0.035000"
+        },
+        {
+          "size": "0.021000 0.024500 0.050000",
+          "origin": "0.000000 -0.027750 0.035000"
+        }
+      ],
+      "sdf_markers": 0,
+      "mass_kg": [
+        10.0
+      ]
+    }
+  },
+  "clearance": {
+    "nominal_per_side_m": 0.0005,
+    "slot_cross_section_m": [
+      0.021000000000000005,
+      0.031
+    ],
+    "peg_cross_section_m": [
+      0.02,
+      0.03
+    ],
+    "object_primary_box_m": [
+      0.25,
+      0.03,
+      0.02
+    ],
+    "object_secondary_box_m": [
+      0.02,
+      0.08,
+      0.02
+    ],
+    "sdf_for_this_pair": false,
+    "scale_6_25_0_75_0_5": "Geometry descriptor scaled by25; not a25x USD collider scale",
+    "paper_total_dimension_difference_m": 0.001,
+    "filename": "tol0p5mm denotes per-side margin; not the paper0.5mm total-clearance row",
+    "computed_total_clearance_m": [
+      0.0010000000000000044,
+      0.0010000000000000009
+    ]
+  },
+  "existing400_time_sim_s": {
+    "n": 400,
+    "mean": 3.4122499986351,
+    "min": 1.98333333254,
+    "p05": 2.34999999906,
+    "p25": 2.86666666552,
+    "median": 3.26666666536,
+    "p75": 3.76666666516,
+    "p95": 4.834166664732999,
+    "p99": 6.29366666414919,
+    "max": 8.983333329739999
+  },
+  "existing400_verified": 400,
+  "proven_differences": [
+    "Official eval defaults disable action/observation delay and external wrenches; current production keeps native DR",
+    "Released tol0p5mm asset has1mm total cross-section difference, whereas paper defines clearance as total difference",
+    "Current wrapper uses explicit world_hold wrench frames in this installed Lab; not a bitwise claim against bare official SDK behavior",
+    "CPU physics single lane for new tests versus source collection four lanes; historical hidden PhysX state cannot be fully reconstructed",
+    "Paper describes final1cm/palm0.2m; released native code uses ordered goals and7.5mm/fingertipmean0.1m. Keep released native metric",
+    "Paper real-world uses FoundationPose30Hz; simulation reads native state with configured noise/delay"
+  ],
+  "unknowns": [
+    "No official typical simulation completion-time distribution found",
+    "Hardware-specific PD gains, safety speed filters and exact timing exclusions are not released in minimal deployment reference",
+    "Current release mass57.8g matches our assets; exact asset/mass used to train checkpoint is not established by release comments",
+    "Measured3.412s is conditional on400 successes, not an unconditional completion-time expectation"
+  ]
+}

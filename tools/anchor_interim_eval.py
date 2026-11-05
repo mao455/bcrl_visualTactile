@@ -558,12 +558,24 @@ if __name__=='__main__':
     p.add_argument('--boundary-seconds',type=int,default=3600)
     p.add_argument('--checkpoint',type=Path)
     p.add_argument('--sampling-seed',type=int,default=20261105)
-    p.add_argument('mode',choices=['prepare','random-prepare','run','resume','release','report'])
+    p.add_argument('mode',choices=['prepare','random-prepare','expert-speed-prepare','run','resume','release','report'])
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='prepare':prepare(root,a.parent,a.epoch,a.ordinals,a.hold_parent,a.boundary_seconds,a.checkpoint)
     elif a.mode=='random-prepare':prepare_random(root,a.parent,a.sampling_seed)
-    elif a.mode in ('resume','release'):resume(root,force=a.mode=='release')
+    elif a.mode=='expert-speed-prepare':
+        from tools.expert_speed_eval import prepare as prepare_speed
+        prepare_speed(root,a.parent)
+    elif a.mode in ('resume','release'):
+        if read(root/'session.json').get('evaluation_kind')=='expert_speed':
+            if a.mode=='release':raise ValueError('Expert speed study has no training-release operation')
+            from tools.expert_speed_eval import ExpertSpeedEvaluation
+            ExpertSpeedEvaluation(root).run()
+        else:resume(root,force=a.mode=='release')
     else:
-        owner=RandomEvaluation(root) if read(root/'session.json').get('evaluation_kind')=='random_state150' else Interim(root)
+        kind=read(root/'session.json').get('evaluation_kind')
+        if kind=='expert_speed':
+            from tools.expert_speed_eval import ExpertSpeedEvaluation
+            owner=ExpertSpeedEvaluation(root)
+        else:owner=RandomEvaluation(root) if kind=='random_state150' else Interim(root)
         if a.mode=='report':owner.report()
         else:owner.run()

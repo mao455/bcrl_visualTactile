@@ -1,5 +1,9 @@
 # 当前交接
 
+## 当前新增：冻结专家速度研究
+
+本工作树仅用于feature/expert-slow-execution，不是正在运行State200的bc+rl_RSS_native_v2。读取SLOW_EXPERT_RESULTS和expert_speed_20261105_01的实际status；新owner在原200完成和资源回收之前只有CPU等待，不启动Kit。新工作不改变旧队列/源码/发布服务。官方checkpoint SHA匹配、动作链CPU对照通过；间隙资产为单边0.5mm/总差1mm，不能与论文0.5mm行直接等同。物理成功、可靠减速、新数据和微调必须分别等待真实证据。
+
 ## 新授权：成功判定审核与历史100/全新100
 
 原生判定独立重构：4条train与400专家全部与原记录逐tick一致；但train982402在tick168–186连续19tick满足最终7.5mm几何与撤手条件，前置预插入仅5/10tick导致原生顺序状态机不终止。严格原生仍0/4，终点诊断1/4，绝不能混计。报告含时序图；用户现已明确确认：保留原生顺序为主指标，终点满足另列诊断。运行记录USER_SUCCESS_CRITERIA_CONFIRMATION.json保存原回复；与已执行队列一致，无需重跑或重分类。

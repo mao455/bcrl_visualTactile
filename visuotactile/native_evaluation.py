@@ -122,7 +122,7 @@ def stable_grasp(arrays, initial_height):
         object_contact_threshold_N=.1, stable_window_s=.2, scope='filtered normal forces; not native success')
 
 
-def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False):
+def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False, expert_speed=None):
     from evaluation.eval_isaacsim import _load_env_cfg
     from .observations import TaskCommand
     from .sim.replay_environment import RecordedReplayEnv
@@ -141,6 +141,12 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
     cfg.student_obs.image_width = cfg.student_obs.image_input_width = 448
     cfg.student_obs.image_height = cfg.student_obs.image_input_height = 252
     cfg.sim.render.rendering_mode, cfg.sim.render.antialiasing_mode = 'quality', 'Off'
+    env_class=NativeDiagnosticEnv if instrumented else RecordedReplayEnv
+    extra={}
+    if expert_speed is not None:
+        assert instrumented
+        from .sim.expert_speed_environment import SpeedLimitedDiagnosticEnv
+        env_class=SpeedLimitedDiagnosticEnv;extra['speed_config']=expert_speed
     with lease.block():
-        return (NativeDiagnosticEnv if instrumented else RecordedReplayEnv)(cfg, perception_version=2,
+        return env_class(cfg, perception_version=2, **extra,
             task_command=TaskCommand('tight_insertion'), wrench_frame_mode='world_hold', camera_rig='wrist_bracket_close')
