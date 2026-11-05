@@ -1,6 +1,6 @@
 # 当前训练与执行合同
 
-2026-11-05新授权：仅收窄分布、冻结RL闭环新采集和一次性微型StateDP验收；采集完成后停止，不自动正式训练。原State143条探索评估继续暂停。当前阶段配置见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)。历史320/40/40及旧权重续训只描述旧实验，不约束新数据数量，也不授权恢复旧任务。
+2026-11-05最新授权：新独立窄域数据验收后，自动从随机参数训练StateDP，并执行train4诊断和12个预注册未见初态闭环。旧State143探索队列保持暂停，旧隔离root不恢复。旧400及其split不改，新数量由实际数据决定。
 
 本合同描述实际H24 position版本，不把旧H32/H64或原生command checkpoint当作兼容模型。旧实现见Git历史；此次整理没有改变已训练参数、监督、DDIM或底层控制。
 
@@ -22,7 +22,7 @@ robot178中116:145为严格过去请求位置、145:174为过去应用位置，1
 
 专家处理后target经此接口独立回放2/2完整成功（168/153ticks），14类控制/物理字段逐字节相同，提交/执行器目标误差0。该证据是接口验收，不是DP成功；历史四lane任意重建的PhysX内部状态仍不可精确恢复。
 
-## 现有续训配置
+## 历史续训配置（本轮已替代，不再运行）
 
 原State/Image10000各采样133354 anchors，即24.04074 anchor等效epoch。全集5547 anchors，832旧片段。当前有效batch64个不同episode各一个anchor、microbatch4×累积16；episode deck与各episode的anchor deck无放回洗牌。它是episode均衡，不是全局anchor等概率，也不是64个统计独立样本。
 
@@ -56,25 +56,18 @@ EMA，固定同数据、标准化和DDIM种子；端点10000/16584/20918统一tr
 
 只在expert_speed显式任务启用。A保持60Hz原生RL和一次delay/EMA/limit，在后处理目标上按Arm/Hand独立系数推进，并将执行目标写回原历史；原控制默认不变。B对已处理位置目标在60Hz重参数化，仅走position_rad_v1，不再次滤波。状态/图像只能来自真实重新仿真；新数据监督仍为target_after_rad。原生顺序成功、120Hz物理与阶段超时不变；新慢速数据与400原始数据独立，未通过数据合同前不续训。
 
-## 新窄分布数据与随机初始化入口
+## 当前直接窄域与新随机StateDP
 
-选择只使用初态局部位置、物体—孔座相对位置、SO(3)旋转角距和手臂初态RMS；
-不读取学生结果。保留原手指初态、初速、桌高、观测噪声、延迟、EMA和外力分布。
-摩擦及物体尺度原配置为固定倍率1，本轮不新增随机化。原旧轨迹不作为新原速轨迹复用：
-单lane事件流、历史可观察恢复与原四lane隐藏状态不等同，所有速度均重新闭环采集。
-历史初态只有可观察字段恢复，不声称完整PhysX精确重放。
+新root `narrow_state_20261105_02`：全新60家族目标，最多80个直接候选，至少50家族；先按初态准入并冻结split，再展开速度。8 validation、8 test，其余train。同家族所有速度同split。
 
-速度alpha每episode固定；一次native delay/EMA之后的目标推进只作用于专家采集。
-StateDP标签仍是实际执行target_after_rad；学生position接口不会获得这个减速器。
-完整三路448×252 RGB-D、五指120Hz力/FK、实际状态和命令保存；终止后自动reset图像
-通过available mask排除。compact所有源字段逐字节hash验收，原400不写入。
+物体XY围绕已存密集初态中心±25mm；孔−物体XY围绕同一中心±35mm，并直接与原孔范围求交。SO(3)旋转球半径20°；桌原点z∈[.376,.384]m，物体高于桌原点[.244,.256]m。原arm/hand随机joint-limit lerp由.1收窄至.03，速度由±.5至±.15rad/s。每家族采样配置传给原native reset写入，不修改原reset函数或物理。原延迟、噪声、外力和固定摩擦保持。
 
-StateDP仍使用PersistentState、sample/x0、Loss B及既定四个辅助权重；不重新标定loss。
-新train统计沿原mean/std(clamp1e-4)和min/max affine算法；专家RMS与group embedding
-保留冻结预处理。`anchor_continue fresh-smoke/fresh-train`复用当前模型、目标、采样和恢复工具。
-正式新run从随机模型/全新AdamW、EMA、计数和schedule起步；只允许同一新run按配置hash恢复。
-采集程序没有调用正式训练入口。
+新准入`live_collision_mesh_bounds_v1`：实际CollisionAPI下所有网格顶点的保守包围盒，以实时body_link_pose变换，额外1mm边界；物体/桌/孔仍用原box SAT。近边界可能保守拒绝，不放过网格包围盒相交。旧scene-query在相同实时位姿下产生11个错误命中，新运行只把它作为诊断保存。不增加物理积分或预动作，不用视觉网格或USD世界位姿判定。
 
-当前准入矛盾构成停止条件：相同q/qd与物体/孔/桌/手掌/指尖位姿不能出现不同碰撞准入后继续筛选。
-新root已quarantined；没有data-ready/COMPLETE，不允许正式训练。查询缓存陈旧仅为假设。
-新统计沿用robot逐tick、geometry每12tick采样mean/std及target min/max affine；State历史仍每60Hz更新。
+每episode冻结一个alpha，原native command/delay/EMA后做真实目标推进。两train原速/.58校准，唯一允许上调到.65；后续连续区间与原速约220次计划，目标200条成功，最低150且train≥32、val/test各≥6家族。保留所有失败、软件中断和部分文件，不按结果更换家族。RGB-D、触觉、状态、目标/实际运动和120/60Hz时钟全部真实重录。成功校准数据按同合同计入，旧3条仍隔离。
+
+H24/commit12、PersistentState、sample/x0、DDIM16、Loss B及既定四辅助权重保持。新train重新拟合robot逐tick及geometry每12tick统计，State历史每60Hz更新，target min/max affine不变。随机参数、全新AdamW/EMA/调度器/计数，只允许同一新run恢复。CPU/GPU可丢弃smoke与正式更新分开。
+
+普通owner自动执行数据验收→GPU一次性前后向/恢复→正式训练→最终闭环。训练按接受数据的anchor数预算100 anchor等效epoch、最多12000更新；每500更新验证并记录train8对照及首12tick方向/幅值/hold/FK，最优checkpoint只按validation选择。测试不进入训练或选权；最终train4与12个预先冻结未见初态分列，保留原生完整成功。60–70%仅为愿望，不是验收阈值或续跑理由。
+
+新运行固定16h（等待计入），采集3h、训练最多12h并预留末1h评估；每阶段最多2次经审查启动，无自动retry。6GiB VRAM/12GiB RAM、shared_recent_v1目标40%、60GiB磁盘余量、75GiB新产物上限。只在实际数据完整验收后写DATA_READY；正式更新和成功率以机器状态为准。

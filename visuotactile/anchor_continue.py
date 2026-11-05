@@ -222,11 +222,11 @@ def train(root,job,target,output):
     atomic_json(directory/'progress.json',dict(state='completed_stage',update=10000+step,continuation_update=step,target=target,pid=None,utc=time.time()))
 
 
-def fresh(root, data_root, output, target, smoke=False):
+def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     """Same H24 model/objective/anchor algorithm, new dataset and random run.
 
     A disposable one-update CPU check exercises the same save/resume path. Formal
-    use is an explicit later invocation, never a collection stage transition.
+    use starts only after the independently accepted dataset gate.
     """
     import subprocess
     from contextlib import nullcontext
@@ -247,7 +247,7 @@ def fresh(root, data_root, output, target, smoke=False):
     records={i:cached['records'][i] for i in ids+vals};del cached
     stats=torch.load(data_root/'statistics.pt',map_location='cpu',weights_only=False)
     if not ids or (not smoke and not vals):raise ValueError('Nonempty train/validation required')
-    device='cpu' if smoke else 'cuda:0';torch.manual_seed(20261105)
+    device=smoke_device if smoke else 'cuda:0';torch.manual_seed(20261105)
     model=PersistentState('dp',contract(24,True))
     expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
     model.set_statistics(stats,expert);del expert
@@ -257,20 +257,24 @@ def fresh(root, data_root, output, target, smoke=False):
         seed=20261105,data_sha256=sha256(data_root/'data.json'),statistics_sha256=sha256(data_root/'statistics.pt'),
         contract=contract(24,True),loss_id=LOSS_ID,loss_weights=objective.weights,target=target,
         effective_batch=64,microbatch=4,lr_peak=3e-5,lr_floor=3e-6,warmup=min(200,max(1,target//10)),
-        sampler='episode_balanced_shuffled_decks_short_tail_no_drop',smoke=smoke,
+        sampler='episode_balanced_shuffled_decks_short_tail_no_drop',smoke=smoke,device=device,
         source_sha256={str(p):sha256(p) for p in sorted(Path('visuotactile').rglob('*.py'))})
     root.mkdir(parents=True,exist_ok=True)
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
     else:atomic_json(cp,config)
     step=0;best=float('inf');monitor=None;lease=None
-    if not smoke:
+    if device!='cpu':
         if not (root/'session.json').exists():atomic_json(root/'session.json',dict(resource_policy='shared_recent_v1',resource_target_percent=40.,
-            training_deadline=time.time()+24*3600,deadline=time.time()+24*3600))
-        (root/'STOP_MONITOR').unlink(missing_ok=True)
-        log=(root/'monitor.log').open('a')
-        monitor=subprocess.Popen(['bash','visuotactile/run_cpu.sh','-m','visuotactile.state_resources','--root',str(root)],stdout=log,stderr=subprocess.STDOUT)
-        lease=lease_for(root)
+            training_deadline=session['deadline'],external_monitor_root=str(collection)))
+        runtime=read(root/'session.json')
+        if runtime.get('external_monitor_root'):
+            lease=lease_for(Path(runtime['external_monitor_root']),deadline=runtime['training_deadline'])
+        else:
+            (root/'STOP_MONITOR').unlink(missing_ok=True)
+            log=(root/'monitor.log').open('a')
+            monitor=subprocess.Popen(['bash','visuotactile/run_cpu.sh','-m','visuotactile.state_resources','--root',str(root)],stdout=log,stderr=subprocess.STDOUT)
+            lease=lease_for(root)
     block=lambda: lease.block() if lease else nullcontext()
     def checkpoint():
         save(root/'last.pt',training_state(model,averaged,opt,ema,generator,noise,kind='dp',group=model.group,
@@ -307,7 +311,12 @@ def fresh(root, data_root, output, target, smoke=False):
                 b=anchor_batch(model,{identity:changed},[(identity,12)])[0];assert torch.equal(a,b)
             atomic_json(output/'history_check.json',dict(passed=True,online_max_abs=maximum,tail_valid=int(m.sum()),future_leakage=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
+        training_started=time.time();initial_step=step
+        interval=session.get('validation_interval',500)
         while step<target:
+            if (root/'STOP').exists():checkpoint();raise InterruptedError('Stopped at optimizer boundary')
+            if lease and time.time()>=lease.deadline-60:checkpoint();raise TimeoutError('Training deadline; last complete update saved')
+            before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all())
             selected=sampler.draw();totals=mask_totals(sampler.lengths,selected);model.train();opt.zero_grad(set_to_none=True);loss_sum=0.
             for start in range(0,len(selected),4):
                 with block():
@@ -322,15 +331,23 @@ def fresh(root, data_root, output, target, smoke=False):
                 lr=3e-6 if target==1 else continuation_lr(step,target,config['warmup'],3e-5,3e-6)
                 for group in opt.param_groups:group['lr']=lr
                 opt.step();ema.step(model)
-            atomic_json(root/'progress.json',dict(update=step,target=target,loss=loss_sum,lr=lr,actual_batch=len(selected),
-                sampled_anchors=sampler.draws,formal_updates=0 if smoke else step,**no_kit()))
-            if step%100==0 or step==target or stop[0]:checkpoint()
+            progress=dict(update=step,target=target,loss=loss_sum,lr=lr,actual_batch=len(selected),
+                sampled_anchors=sampler.draws,formal_updates=0 if smoke else step,
+                updates_per_hour=(step-initial_step)*3600/max(1,time.time()-training_started),utc=time.time(),**no_kit())
+            atomic_json(root/'progress.json',progress)
+            with (root/'training.jsonl').open('a') as f:f.write(json.dumps(progress)+'\n')
+            if step%100==0 or step==target or stop[0] or step==1:checkpoint()
             if stop[0]:raise InterruptedError('Saved at optimizer boundary')
-            if not smoke and (step%1000==0 or step==target):
+            if not smoke and (step%interval==0 or step==target):
                 metrics=evaluate(averaged,records,vals,objective,lease)
+                train_metrics=evaluate(averaged,records,ids[:min(8,len(ids))],objective,lease)
+                early=fresh_early_metrics(averaged,records,dict(train=ids[:min(8,len(ids))],validation=vals),objective,lease)
                 if metrics['selection_mse']<best:
                     best=metrics['selection_mse'];checkpoint();save(root/'best.pt',torch.load(root/'last.pt',map_location='cpu',weights_only=False))
-                atomic_json(root/'validation.json',dict(update=step,metrics=metrics))
+                report=dict(update=step,metrics=metrics,train8=train_metrics,early=early,utc=time.time())
+                atomic_json(root/'validation.json',report)
+                with (root/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
+                fresh_curves(root)
         saved=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
         restore_training(saved,model,averaged,opt,ema,generator,noise)
         assert saved['updates']==step==ema.optimization_step
@@ -339,19 +356,64 @@ def fresh(root, data_root, output, target, smoke=False):
         assert all(torch.equal(v.cpu(),saved['ema'][k]) for k,v in averaged.state_dict().items())
         atomic_json(output/'result.json',dict(passed=True,updates=step,disposable=smoke,formal_updates=0 if smoke else step,
             complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=False,**no_kit()))
+        if not smoke:atomic_json(root/'finished.json',dict(updates=step,best_checkpoint=str(root/'best.pt'),utc=time.time()))
+    except (TimeoutError,InterruptedError):
+        if 'before_batch' in locals() and step==before_batch[0]:
+            sampler.load_state_dict(before_batch[1]);generator.set_state(before_batch[2]);noise.set_state(before_batch[3])
+            torch.set_rng_state(before_batch[4]);torch.cuda.set_rng_state_all(before_batch[5])
+        if 'opt' in locals():checkpoint()
+        raise
     finally:
         if monitor is not None:
             (root/'STOP_MONITOR').touch();monitor.wait(timeout=15);log.close()
 
 
+@torch.no_grad()
+def fresh_early_metrics(model,records,cohorts,objective,lease):
+    """First committed chunk: motion accuracy vs holding the current target."""
+    from .position_control import bounded_targets
+    report={}
+    for cohort,ids in cohorts.items():
+        rows=[]
+        for identity in ids:
+            rec=records[identity]
+            with lease.block():
+                cond,_,_=model.encode(rec,stop=1)
+                prediction=bounded_targets(model.predict(cond,torch.Generator(device='cuda').manual_seed(7091))[0,:12],rec['joint_limits'])
+                truth=rec['command'][:12];n=len(truth);prediction=prediction[:n];before=rec['robot'][0,58:87]
+                pred_delta=prediction[:,:7]-before[:7];true_delta=truth[:,:7]-before[:7]
+                moving=true_delta.norm(dim=-1)>1e-6
+                p,_=objective.fk(prediction);q,_=objective.fk(truth)
+                rows.append(dict(identity=identity,arm_rmse_rad=float((prediction[:,:7]-truth[:,:7]).square().mean().sqrt()),
+                    hold_arm_rmse_rad=float(true_delta.square().mean().sqrt()),fk_mm=float((p[:,0]-q[:,0]).square().sum(-1).mean().sqrt()*1000),
+                    direction_cos=float(torch.nn.functional.cosine_similarity(pred_delta[moving],true_delta[moving]).mean()) if moving.any() else None,
+                    amplitude_ratio=float((pred_delta[moving].norm(dim=-1)/true_delta[moving].norm(dim=-1)).mean()) if moving.any() else None))
+        report[cohort]=rows
+    return report
+
+
+def fresh_curves(root):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    rows=[json.loads(line) for line in (root/'validation.jsonl').read_text().splitlines()]
+    fig,axes=plt.subplots(1,2,figsize=(9,3.5))
+    for key,label in [('train8','train8'),('metrics','validation')]:
+        axes[0].plot([r['update'] for r in rows],[r[key]['selection_mse'] for r in rows],label=label)
+        axes[1].plot([r['update'] for r in rows],[r[key]['arm_rmse'] for r in rows],label=label)
+    for ax,title in zip(axes,['Equal arm/hand MSE','Arm RMSE (rad)']):ax.set_title(title);ax.set_xlabel('Fresh optimizer updates');ax.legend();ax.grid(alpha=.3)
+    fig.tight_layout();fig.savefig(root/'curves.png',dpi=150);plt.close(fig)
+
+
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('mode',choices=['contract','train','fresh-smoke','fresh-train']);p.add_argument('--root',type=Path,required=True)
     p.add_argument('--data',type=Path)
+    p.add_argument('--smoke-device',choices=['cpu','cuda:0'],default='cpu')
     p.add_argument('--job',choices=['state','image'],required=True);p.add_argument('--target',type=int);p.add_argument('--output',type=Path,required=True)
     a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False);torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
     if a.mode.startswith('fresh-'):
         if a.job!='state' or a.data is None:p.error('Fresh entry requires --job state and --data')
-        fresh(a.root,a.data,a.output,a.target,smoke=a.mode=='fresh-smoke')
+        fresh(a.root,a.data,a.output,a.target,smoke=a.mode=='fresh-smoke',smoke_device=a.smoke_device)
     elif a.mode=='contract':contract_check(a.root,a.job,a.output)
     else:train(a.root,a.job,a.target,a.output)

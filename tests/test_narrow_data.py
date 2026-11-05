@@ -6,6 +6,36 @@ from visuotactile.narrow_data import inside, near, angle, admission_conflict
 from visuotactile.recording import post_observation
 
 
+def test_direct_relative_domain_preserves_variation_without_wide_reset_rejection():
+    import numpy as np
+    from visuotactile.narrow_data import direct_configuration
+    center=dict(object_xyz=[-.035542,-.009880,.616962],relative_xyz=[.067669,-.024071,-.082286],
+        quaternion=np.array([.153762,.896514,-.370529,.187958]))
+    center['quaternion']/=np.linalg.norm(center['quaternion'])
+    rows=[direct_configuration(dict(center=center),25110000+i) for i in range(80)]
+    for i,row in enumerate(rows):
+        assert row==direct_configuration(dict(center=center),25110000+i)
+        obj=np.array(row['fixed_start_pose']);hole=np.array([row['hole_x_range'][0],row['hole_y_range'][0]])
+        assert np.all(abs(obj[:2]-center['object_xyz'][:2])<=.025)
+        assert np.all(abs(hole-obj[:2]-center['relative_xyz'][:2])<=.035)
+        assert abs(hole[0])<=.1875 and abs(hole[1])<=.1
+        assert angle(obj[3:],center['quaternion'])<=20.00001
+    assert np.ptp([r['table_reset_z'] for r in rows])>.007
+    assert np.ptp([r['fixed_start_pose'][0] for r in rows])>.045
+
+
+def test_live_collision_bounds_reject_overlap_and_allow_separation_under_rotation():
+    import numpy as np
+    from visuotactile.live_collision import separation
+    from visuotactile.initial_geometry import rotation
+    a=(np.zeros(3),np.eye(3),np.array([.125,.015,.01]))
+    assert separation(a,a)<0
+    b=(np.array([.2,0,0]),np.eye(3),np.array([.02,.02,.02]))
+    assert abs(separation(a,b)-.055)<1e-10
+    r=rotation(np.array([np.cos(.4),0,0,np.sin(.4)]))
+    assert abs(separation((r@a[0],r@a[1],a[2]),(r@b[0],r@b[1],b[2]))-.055)<1e-10
+
+
 def test_nondivisible_deck_visits_each_episode_without_replication_or_drop():
     sampler=AnchorSampler({str(i):25+i for i in range(15)},torch.Generator().manual_seed(5),8)
     first,tail=sampler.draw(),sampler.draw()

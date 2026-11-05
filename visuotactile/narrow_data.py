@@ -22,6 +22,39 @@ def read(path):
     return json.loads(Path(path).read_text())
 
 
+def direct_configuration(domain, seed):
+    """One joint relative-pose draw; native reset remains the only state writer.
+
+    A separately seeded generator makes a family reproducible without consuming
+    another lane's RNG. Native observation/action/force draws are unchanged.
+    """
+    rng=np.random.default_rng(seed)
+    center=domain['center']
+    table=float(rng.uniform(.376,.384))
+    xy=np.asarray(center['object_xyz'][:2])+rng.uniform(-.025,.025,2)
+    relative_center=np.asarray(center['relative_xyz'][:2])
+    # Sample directly inside the intersection with original hole bounds.
+    relative=rng.uniform(np.maximum(relative_center-.035,[-.1875,-.1]-xy),
+        np.minimum(relative_center+.035,[.1875,.1]-xy))
+    hole=xy+relative
+    axis=rng.normal(size=3);axis/=np.linalg.norm(axis)
+    theta=np.deg2rad(20)*rng.random()**(1/3)
+    a=np.r_[np.cos(theta/2),axis*np.sin(theta/2)];b=np.asarray(center['quaternion'])
+    q=np.r_[a[0]*b[0]-a[1:]@b[1:],a[0]*b[1:]+b[0]*a[1:]+np.cross(a[1:],b[1:])]
+    assert np.all(np.abs(xy)<=.1) and abs(hole[0])<=.1875 and abs(hole[1])<=.1
+    return dict(fixed_start_pose=[*xy,table+.25+float(rng.uniform(-.006,.006)),*q],
+        table_reset_z=table,table_reset_z_range=0.,
+        reset_dof_pos_random_interval_arm=.03,reset_dof_pos_random_interval_fingers=.03,
+        reset_dof_vel_random_interval=.15,hole_x_range=[float(hole[0])]*2,hole_y_range=[float(hole[1])]*2)
+
+
+def configure_direct_reset(env, configuration):
+    """Opt-in per-family native reset parameters, used identically by all speeds."""
+    if env.num_envs!=1:raise ValueError('Direct reset v1 is single-lane; no shared per-lane configuration')
+    for key,value in configuration.items():
+        setattr(env.cfg.precise_assembly if key.startswith('hole_') else env.cfg.reset,key,value)
+
+
 def initial_row(identity, diagnostics, origin):
     d = {k: np.asarray(v) for k,v in diagnostics.items()}
     origin = np.asarray(origin)

@@ -98,6 +98,9 @@ def collision_evidence(env):
 def prepare(env, isolated, spec, source, output):
     """One reset and optional observable initialization, never trajectory forcing."""
     env.clear_recorded_events()
+    if 'narrow_reset' in spec:
+        from .narrow_data import configure_direct_reset
+        configure_direct_reset(env,spec['narrow_reset'])
     teacher, _ = isolated.reset(spec['seed'])
     restoration = dict(kind='fresh_native_reset')
     if spec['cohort'] != 'fresh':
@@ -120,7 +123,14 @@ def prepare(env, isolated, spec, source, output):
         isolated.stream = RandomStream(spec['seed']+100000)
         restoration['event_stream_seed'] = spec['seed']+100000
         restoration['historical_physics_exact'] = False
-    legal = collision_evidence(env)
+    if spec.get('collision_gate')=='live_collision_mesh_bounds_v1':
+        from .live_collision import clearance
+        legal=clearance(env)
+        # Retain the demonstrated unreliable query as diagnostic evidence only.
+        if env.cfg.sim.enable_scene_query_support:
+            atomic_json(output/'scene_query_diagnostic.json',collision_evidence(env))
+    else:
+        legal = collision_evidence(env)
     atomic_json(output/'initial_collision.json', legal)
     atomic_json(output/'restoration.json', restoration)
     atomic_json(output/'initial_observable.json', {k: v.cpu().tolist() for k, v in env._diagnostics().items()})

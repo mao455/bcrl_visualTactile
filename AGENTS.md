@@ -1,43 +1,33 @@
-# Current task — narrow StateDP data collection (2026-11-05)
+# Current task — direct narrow StateDP pipeline (2026-11-05)
 
-The user authorizes initial-state analysis, a coherent narrowed distribution, frozen-expert
-closed-loop speed augmentation, minimal real acceptance, bounded independent collection,
-focused cleanup, and reviewed commits/pushes to origin feature/narrow-state-data.
-Read research_docs/CONTRACTS.md, SLOW_EXPERT_RESULTS.md, SESSION_HANDOFF.md first.
+The latest user explicitly authorizes fixing initialization admission, a NEW bounded
+run, direct narrow initial sampling, frozen-expert continuous-speed capture, then
+AUTOMATIC random-initialized StateDP training and bounded unseen closed-loop evaluation.
+Work only in feature/narrow-state-data. Original400/expert/assets/native control,
+physics/success/120Hz/60Hz remain protected. Old quarantined narrow_state_20261105_01
+is immutable and never resumed; old State evaluation remains paused.
 
-This worktree is bc+rl_RSS_narrow_state, based on expert-speed commit84cbb98.
-Preserve other worktrees and their changes. Old State random evaluation remains paused
-at143 valid; old expert capture is blocked by a missing post-observation field. Do not
-resume either. Original400, assets, expert, SDK and original control/reset/physics remain
-read-only. The new initial distribution is conditional native sampling, not a physics edit.
+Read SESSION_HANDOFF, SLOW_EXPERT_RESULTS, STATE_DP_RESULTS and CONTRACTS. The installed
+CPU scene-query overlap gives contradictory articulated-shape hits after rollouts despite
+identical live link poses. New admission uses actual collision-mesh conservative OBBs
+at live link poses, with1mm envelope, plus original static box checks; no physics step,
+SDK patch or per-step state forcing. Native reset parameters directly define new families.
 
-H24 predicts24 native60Hz target ticks; execute12/replan5Hz. Labels remain29D canonical
-transition/target_after_rad, distinct from actual q. Keep model, objective/weights, persistent
-GRU/history and position execution mapping. Only new train families fit numeric statistics.
-All velocity variants of a family share one split. No Image, DINO cache, tactile training,
-formal State training or automatic large evaluation. A disposable single optimizer update
-is allowed for data/gradient/checkpoint acceptance; future formal State starts from random
-parameters and fresh optimizer/EMA/scheduler/counters, never old DP checkpoints.
+New pipeline:60 target fresh families (minimum50), split before speed outcomes; about220
+bounded planned speed attempts, target200/minimum150 successful full sensor trajectories.
+Only new train families fit statistics. H24/commit12/29D target, model, Loss B and fixed
+auxiliary weights,60Hz continuous history and native position execution remain unchanged.
+Fresh random policy/optimizer/EMA/scheduler; no old DP weights. Final train4 diagnostic
+and12 preregistered unseen starts are separate; no outcome-based seed replacement.
 
-Use one persistent Kit, frozen source inventory, bounded attempts/deadline/disk and ordinary
-process monitoring. Latest shared_recent_v1 resource policy:6GiB free VRAM/12GiB available
-RAM, recent-load pacing and40% target, no obsolete hard50% veto. Protect unrelated jobs.
-Check actual run JSON; startup is not dataset readiness. After multiple real episodes and
-State smoke acceptance, release the independent service and end model polling. No model
-sleep loop. Failure stops with evidence; do not widen distribution or repeat failed tasks
-to fill counts. Preserve incomplete payloads; do not delete unknown or referenced files.
+An ordinary owner transitions family/data validation -> disposable GPU update -> formal
+training -> final evaluation. New run fixed16h including waits: collection3h, training up
+to12h while reserving1h for evaluation. Each stage at most2 reviewed starts, no automatic
+retry; no old deadline reset.6GiB VRAM/12GiB RAM admission, shared_recent_v1 target40%,
+60GiB disk reserve and75GiB run budget. Protect unrelated processes.
 
-Update current docs in place and commit only reviewed code/tests/light statistics. Never
-push raw data, weights, credentials, videos, upstream, unrelated changes, or force push.
-Historical authorizations/results remain in prior branches and RESEARCH_HISTORY.md.
-
-## Actual stop — 2026-11-05
-
-Run narrow_state_20261105_01 is blocked/quarantined after two worker starts. Three
-real successful captures exist (171/210 native,366 at alpha.58), but identical
-observable geometry produced contradictory live collision queries after reset.
-All owned processes exited; no production release, no data-ready marker, no formal
-training. Do not automatically restart, extend the4h deadline/start budget, or
-reclassify query rejections as proven penetration. Read admission_conflict.json and
-current SLOW_EXPERT_RESULTS. One disposable CPU optimizer update passed; original400
-remain intact. Cleanup released0bytes after unreadable-process protection declined it.
+Verify multiple actual episode/save/reset transitions once, then yield without LLM polling.
+Startup is not DATA_READY, DATA_READY is not trained, trained is not task success. Read
+machine JSON for actual state. Preserve partial/quarantined records and error denominators.
+Commit/push reviewed code/docs/small reports to origin feature only; no raw artifacts,
+weights/videos, unrelated worktree changes, upstream or force push.

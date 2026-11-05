@@ -1,5 +1,14 @@
 # 维护变更
 
+## 2026-11-05 — 直接窄域与自动新StateDP流水线
+
+- 复现SDK scene-query在rollout后reset误报；`live_collision`使用实际碰撞网格与实时link pose的保守OBB，未更改SDK/physics。实际碰撞几何离线核对34网格最小间隔108.62mm，live新入口待启动验收。
+- `narrow_data`直接采样相对位姿、20°旋转、较窄native关节/速度/桌高；`narrow_collection`替代旧宽分布拒绝采样，固定family/split和普通后台data→fresh State→闭环阶段转换。旧root不可进入v2。
+- `anchor_continue fresh-*`保留模型/loss/历史，增加GPU一次性验收、明确训练截止、完整同run恢复、每500更新验证与首12tick指标/曲线。正式训练仍0，不能把授权当完成。
+- 46项CPU回归通过；保留初始化探针的3次软件诊断错误及4条成功native轨迹，不混入新训练数据。
+- 清理一次性checkpoint实际释放1,153,052,672bytes；未改原IDE工作树文档。
+
+
 ## 2026-11-05 — 窄分布采集准备（尚未声称live通过）
 
 - 独立feature/narrow-state-data从84cbb98实施，不覆盖IDE两处既有文档改动或旧暂停任务。
