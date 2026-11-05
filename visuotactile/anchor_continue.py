@@ -222,10 +222,133 @@ def train(root,job,target,output):
     atomic_json(directory/'progress.json',dict(state='completed_stage',update=10000+step,continuation_update=step,target=target,pid=None,utc=time.time()))
 
 
+def fresh(root, data_root, output, target, smoke=False):
+    """Same H24 model/objective/anchor algorithm, new dataset and random run.
+
+    A disposable one-update CPU check exercises the same save/resume path. Formal
+    use is an explicit later invocation, never a collection stage transition.
+    """
+    import subprocess
+    from contextlib import nullcontext
+    from .state_history import PersistentState, HistoryBank
+    from .position_control import contract
+    from .state_image_loss import GeometryObjective, LOSS_ID
+    from .state_resources import lease_for
+    from .narrow_data import read as read_data
+    import h5py
+    data_root=data_root.resolve();root=root.resolve()
+    data=read_data(data_root/'data.json');collection=data_root.parent
+    if not smoke and not (collection/'COMPLETE.json').exists():raise ValueError('Dataset not ready')
+    if target is None or target<1 or (smoke and target!=1):raise ValueError('Explicit positive update budget; smoke exactly one')
+    session=read_data(collection/'session.json');cached=torch.load(data_root/'numeric.pt',map_location='cpu',weights_only=False)
+    assert cached['data_sha256']==sha256(data_root/'data.json') and cached['contract']==contract(24,True)
+    ids=data['splits']['train'];vals=data['splits']['validation']
+    # Never load test trajectories into the optimizer or validation worker.
+    records={i:cached['records'][i] for i in ids+vals};del cached
+    stats=torch.load(data_root/'statistics.pt',map_location='cpu',weights_only=False)
+    if not ids or (not smoke and not vals):raise ValueError('Nonempty train/validation required')
+    device='cpu' if smoke else 'cuda:0';torch.manual_seed(20261105)
+    model=PersistentState('dp',contract(24,True))
+    expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
+    model.set_statistics(stats,expert);del expert
+    with h5py.File(data['entries'][ids[0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
+    objective=GeometryObjective(metadata);objective.weights=session['loss_weights']
+    config=dict(version='fresh_narrow_state_v1',initialization='random_model_fresh_optimizer_ema_schedule_counters',
+        seed=20261105,data_sha256=sha256(data_root/'data.json'),statistics_sha256=sha256(data_root/'statistics.pt'),
+        contract=contract(24,True),loss_id=LOSS_ID,loss_weights=objective.weights,target=target,
+        effective_batch=64,microbatch=4,lr_peak=3e-5,lr_floor=3e-6,warmup=min(200,max(1,target//10)),
+        sampler='episode_balanced_shuffled_decks_short_tail_no_drop',smoke=smoke,
+        source_sha256={str(p):sha256(p) for p in sorted(Path('visuotactile').rglob('*.py'))})
+    root.mkdir(parents=True,exist_ok=True)
+    cp=root/'configuration.json'
+    if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
+    else:atomic_json(cp,config)
+    model.to(device);records={i:{k:v.to(device) for k,v in r.items()} for i,r in records.items()}
+    averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
+    opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
+    generator=torch.Generator().manual_seed(20261105);noise=torch.Generator(device=device).manual_seed(20261106)
+    sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,64)
+    step=0;best=float('inf');monitor=None;lease=None
+    if (root/'last.pt').exists():
+        old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
+        assert old['config_sha256']==sha256(cp)
+        restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])
+        step=old['updates'];best=old['best'];del old
+    if not smoke:
+        if not (root/'session.json').exists():atomic_json(root/'session.json',dict(resource_policy='shared_recent_v1',resource_target_percent=40.,
+            training_deadline=time.time()+24*3600,deadline=time.time()+24*3600))
+        (root/'STOP_MONITOR').unlink(missing_ok=True)
+        log=(root/'monitor.log').open('a')
+        monitor=subprocess.Popen(['bash','visuotactile/run_cpu.sh','-m','visuotactile.state_resources','--root',str(root)],stdout=log,stderr=subprocess.STDOUT)
+        lease=lease_for(root)
+    block=lambda: lease.block() if lease else nullcontext()
+    def checkpoint():
+        save(root/'last.pt',training_state(model,averaged,opt,ema,generator,noise,kind='dp',group=model.group,
+            updates=step,anchor_sampler=sampler.state_dict(),best=best,config_sha256=sha256(cp),configuration=config,
+            loss_id=LOSS_ID,train_ids=ids,validation_ids=vals))
+    try:
+        if smoke:
+            with torch.no_grad():
+                identity=ids[0];rec=records[identity];model.eval();full,anchors,_=model.encode(rec)
+                bank=HistoryBank();maximum=0.
+                for t in range(len(rec['time'])):
+                    c=bank.observe(0,1,t,model,rec['actor'][t],rec['robot'][t],rec['geometry'][t],rec['time'][t])
+                    if c is not None:maximum=max(maximum,float((c-full[t//12:t//12+1]).abs().max()))
+                assert maximum<2e-5
+                # Full-prefix anchor at a padded tail and independent lane/reset.
+                tick=int(anchors[-1]);c,y,m=anchor_batch(model,records,[(identity,tick)])
+                assert int(m.sum())==len(rec['time'])-tick and torch.equal(y[0][m[0]],rec['command'][tick:])
+                changed={k:v.clone() for k,v in rec.items()}
+                for key in ('actor','robot','geometry'):changed[key][13:]+=1
+                a=anchor_batch(model,records,[(identity,12)])[0]
+                b=anchor_batch(model,{identity:changed},[(identity,12)])[0];assert torch.equal(a,b)
+            atomic_json(output/'history_check.json',dict(passed=True,online_max_abs=maximum,tail_valid=int(m.sum()),future_leakage=False))
+        stop=[False];signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
+        while step<target:
+            selected=sampler.draw();totals=mask_totals(sampler.lengths,selected);model.train();opt.zero_grad(set_to_none=True);loss_sum=0.
+            for start in range(0,len(selected),4):
+                with block():
+                    c,y,m=anchor_batch(model,records,selected[start:start+4]);_,parts,_=objective.forward(model,c,y,m,noise)
+                    loss,_=weighted_parts(parts,m,totals,objective.weights)
+                    if not torch.isfinite(loss):raise FloatingPointError('Nonfinite loss')
+                    loss.backward();loss_sum+=float(loss.detach())
+            with block():
+                norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+                assert torch.isfinite(norm)
+                step+=1
+                lr=3e-6 if target==1 else continuation_lr(step,target,config['warmup'],3e-5,3e-6)
+                for group in opt.param_groups:group['lr']=lr
+                opt.step();ema.step(model)
+            atomic_json(root/'progress.json',dict(update=step,target=target,loss=loss_sum,lr=lr,actual_batch=len(selected),
+                sampled_anchors=sampler.draws,formal_updates=0 if smoke else step,**no_kit()))
+            if step%100==0 or step==target or stop[0]:checkpoint()
+            if stop[0]:raise InterruptedError('Saved at optimizer boundary')
+            if not smoke and (step%1000==0 or step==target):
+                metrics=evaluate(averaged,records,vals,objective,lease)
+                if metrics['selection_mse']<best:
+                    best=metrics['selection_mse'];checkpoint();save(root/'best.pt',torch.load(root/'last.pt',map_location='cpu',weights_only=False))
+                atomic_json(root/'validation.json',dict(update=step,metrics=metrics))
+        saved=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
+        restore_training(saved,model,averaged,opt,ema,generator,noise)
+        assert saved['updates']==step==ema.optimization_step
+        assert all(int(v['step'])==step for v in opt.state.values())
+        assert all(torch.equal(v.cpu(),saved['model'][k]) for k,v in model.state_dict().items())
+        assert all(torch.equal(v.cpu(),saved['ema'][k]) for k,v in averaged.state_dict().items())
+        atomic_json(output/'result.json',dict(passed=True,updates=step,disposable=smoke,formal_updates=0 if smoke else step,
+            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=False,**no_kit()))
+    finally:
+        if monitor is not None:
+            (root/'STOP_MONITOR').touch();monitor.wait(timeout=15);log.close()
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['contract','train']);p.add_argument('--root',type=Path,required=True)
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['contract','train','fresh-smoke','fresh-train']);p.add_argument('--root',type=Path,required=True)
+    p.add_argument('--data',type=Path)
     p.add_argument('--job',choices=['state','image'],required=True);p.add_argument('--target',type=int);p.add_argument('--output',type=Path,required=True)
     a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False);torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
-    if a.mode=='contract':contract_check(a.root,a.job,a.output)
+    if a.mode.startswith('fresh-'):
+        if a.job!='state' or a.data is None:p.error('Fresh entry requires --job state and --data')
+        fresh(a.root,a.data,a.output,a.target,smoke=a.mode=='fresh-smoke')
+    elif a.mode=='contract':contract_check(a.root,a.job,a.output)
     else:train(a.root,a.job,a.target,a.output)

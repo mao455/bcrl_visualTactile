@@ -1,4 +1,76 @@
-# 冻结Play2Perfect专家：慢速执行与真实示范
+# 冻结专家与窄分布StateDP数据
+
+## 当前阶段（2026-11-05）：准备完成，等待真实采集验收
+
+当前工作树`bc+rl_RSS_narrow_state`，分支`feature/narrow-state-data`，来源`84cbb98`。
+本轮只采集与最小验收，不正式训练。旧State评估暂停在143有效，旧专家采集在首条
+完整RGB-D记录因缺少`observation_after/available`阻断；原日志/失败文件保留，不恢复旧root。
+旧速度研究实际native10/10、A0609/10；独立合法初态native20/20、A06018/20，
+成功配对时长中位倍率1.55和1.44。alpha不是时长倒数，不承诺恰好两倍。
+
+### 范围、家族与速度
+
+先读400份HDF5低维初态，世界位置减各自env origin。只用初态确定密集中心：
+`r931005_1793209376_e03_p000054`，物体XY=(-.035542,-.009880)m，孔—物体XY=(.067669,-.024071)m。
+使用一个连贯条件域：物体XY中心±8cm，相对XY中心±(12,10)cm，物体旋转距中心≤75°，
+7轴手臂初态RMS距中心≤.22rad，且必须通过原合法性检查；始终与原reset范围取交集。
+旋转按SO(3)角距、q/-q等价处理，L形物体不额外假定对称。关节RMS约束保留关联，
+不是29个独立窄框相乘。手指初态、速度、桌高、噪声、外力、延迟等保留原分布。
+
+原400中选中15真实家族（12train/1validation/2test），旧家族split保持。
+计划再从同一条件native reset分布补9个初态（4/3/2），在任何动作/成功结果之前接受，
+总24家族（16/4/4）。每个补充家族固定seed序列、最多500次reset draw；不放宽范围补数。
+近重复检查为物体/孔各<1cm、旋转<5°、全部arm差<.02rad；同家族变速不跨split。
+这些小样本不足以预言60%–70%成功率，也不代表原宽分布。后续未见初态使用同一
+`domain`及native条件采样，保留合法性筛选，不能从学生成功结果挑seed。
+
+原400物体XY实测约[-.100,.100]m；所选15约X[-.0893,.0412]、Y[-.0798,.0500]m。
+物体—孔座和旋转/关节的min/p10/median/p90/max见轻量[选择统计](evidence/narrow_selection.json)。
+原孔yaw=0；物体初始线/角速度为0，关节初速实际非零；摩擦与尺度倍率[1,1]并未随机。
+原动作延迟3槽、观测延迟与物体状态噪声/外力实际链保持，不把配置字段都称作已覆盖随机量。
+
+先用2个固定train家族做原速及alpha=.58短校准；若慢速不全成功，仅允许一次alpha=.60替代。
+生产每家族原速1条、连续Uniform(lower,.95)1条，约2/3家族另取Uniform(lower,lower+.06)1条，
+上端不超过.64，约64次生产尝试；校准独立标记，除兼容原速参考外不计生产。
+不重试合法任务失败，不要求每个家族3条成功；连续3次失败停止。初态、split、seed和
+速度列表在生产前落盘冻结。每tick真实专家反馈、真实物理/传感器，未插值旧图像或状态。
+原旧轨迹不混入新manifest；历史初态仅恢复可观察状态，缺失PhysX内部状态明确披露。
+
+### 实现、预算与入口
+
+复用当前`state_benchmark.trial`、CompactEpisodeStream、SharedLease和systemd；
+单Kit/单lane循环，多次真实reset、每条专家LSTM清零。新owner只做启动/监控/有限停止，
+没有训练阶段。数据label仍target_after_rad；post-observation与terminal mask接线修复，
+终止图像不可用如实标记。原模型、loss/四辅助权重、H24/commit12、持续历史及学生控制不变。
+新采样器允许任意episode数量与短尾批；数据按新train重拟统计，不创建DINO缓存。
+
+上限4小时（从首次run含等待，不因恢复重置）、50GiB新产物、剩余磁盘60GiB；
+最多2次Kit worker启动，无自动重试。启动前实际空闲约288GiB，当前无必须删除的明确废弃依赖，
+本轮清理释放0bytes；旧未明文件和必要证据保留。最终数量按实际成功/覆盖验收。
+资源使用最新shared_recent_v1：6GiB VRAM/12GiB RAM准入、最近负载pacing及40%目标，
+不是旧50%硬否决，也不保证外部突发下整卡上限。运行源码hash冻结，停止后才能修代码。
+
+在本工作树运行（root以下简写为R）：
+```bash
+R=outputs/visuotactile/run/narrow_state_20261105_01
+bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root "$R"
+bash visuotactile/run_cpu.sh -m tools.narrow_collection stop --root "$R" # 当前episode完整保存后停
+# 手动恢复只允许原deadline/启动预算内，已提交数据不重做；不自动重试未知partial
+bash visuotactile/run_cpu.sh -m tools.narrow_collection resume --root "$R"
+```
+日志`R/workers/attempt_*/worker.log`，状态`status.json`、`heartbeat.json`，尝试记录
+`episodes/*/result.json`、`reset_draws.jsonl`；生产`manifest.json`，最终只在验收后写`COMPLETE.json`。
+下一阶段须另获指令后手动运行，同一入口通过fresh-smoke验证后才声明可用：
+```bash
+bash visuotactile/run_cpu.sh -m visuotactile.anchor_continue fresh-train \
+  --job state --data "$R/state_data" --root outputs/visuotactile/run/narrow_state_train_01 \
+  --target 1000 --output outputs/visuotactile/run/narrow_state_train_01/launch
+```
+1000只是明确的下一阶段预算示例，不是当前授权或已确定训练量。新随机参数/AdamW/EMA/
+scheduler/counters；只允许同一新run恢复last.pt。不能将旧DP checkpoint当起点。
+
+## 历史冻结专家实验（保留实测，不代表本轮采集已完成）
+
 
 本轮是独立的专家执行研究。原State150随机评估已按用户新指令在完整rollout边界提前暂停：143有效/原计划200，历史2/100、新初态0/43，32动作前碰撞拒绝；源码、checkpoint、随机清单、全部结果和恢复位置保留；[原评估报告](https://github.com/mao455/bcrl_visualTactile/blob/feature/native-dp-training-v2/research_docs/STATE_DP_RESULTS.md)仍在原feature分支逐次更新。新工作在唯一独立工作树`bc+rl_RSS_expert_speed`和分支`feature/expert-slow-execution`，复用现有环境/数据，不按尝试复制源码。
 
@@ -128,128 +200,3 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 本地原始记录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01`。首次成功与正式终止、阶段时刻、运动统计及视频见[机器结果](evidence/slow_expert/results.json)。
 成功耗时仅对成功样本统计，不能忽略失败或据此声称固定倍率。无训练更新；Image未启动。
 <!-- SLOW_EXPERT_RESULTS_END -->
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -6,15 +6,18 @@ import torch
 class AnchorSampler:
     """One anchor per distinct episode; shuffled episode and per-episode anchor decks.
 
-    Each 320 selections visits every training episode once. Each episode's native
+    Each cohort-sized deck visits every training episode once, including a short
+    final batch without dropping or copying episodes. Each episode's native
     12-tick anchors are exhausted before its anchor deck is reshuffled. Thus this
     is episode-balanced, not uniform over all anchors when episodes differ in length.
     An anchor-equivalent epoch is an exposure count, not independent new data.
     """
     def __init__(self, lengths, generator, batch_size=64):
         self.ids=list(lengths);self.lengths=dict(lengths);self.generator=generator
-        if batch_size not in (32,64) or len(self.ids)%batch_size:
-            raise ValueError('Batch32/64 must divide the frozen episode cohort')
+        if not self.ids or not isinstance(batch_size, int) or batch_size < 1:
+            raise ValueError('Positive batch and nonempty episode cohort required')
+        if any(n < 1 for n in lengths.values()):
+            raise ValueError('Empty episodes are not training examples')
         self.batch_size=batch_size
         self.order=[];self.cursor=0;self.decks={};self.positions={}
         self.counts={i:[0]*math.ceil(n/12) for i,n in lengths.items()}
@@ -33,7 +36,7 @@ class AnchorSampler:
             tick=anchor*12;self.counts[identity][anchor]+=1
             self.prefix_ticks+=tick+1;self.gradient_ticks+=tick%96+1
             selected.append((identity,tick))
-        assert len(selected)==self.batch_size and len({i for i,t in selected})==self.batch_size
+        assert 0 < len(selected) <= self.batch_size and len({i for i,t in selected})==len(selected)
         self.draws+=len(selected)
         return selected
 

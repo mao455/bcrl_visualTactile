@@ -143,6 +143,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             atomic_json(output/'result.json', result)
             return result
         metadata = env.research_metadata(); metadata['config'] = env.cfg.to_dict()
+        metadata['env_origins_w'] = env.scene.env_origins.cpu().tolist()
+        metadata['expert_model_sha256'] = sha256(checkpoint)
+        metadata['initial_family'] = spec.get('family', spec['identity'])
+        metadata['dataset_split'] = spec.get('split', spec['cohort'])
         if expert_speed is not None:
             metadata['expert_speed']=expert_speed
             metadata['supervision_contract']='transition/target_after_rad: actual issued actuator target, not measured joint position'
@@ -235,6 +239,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     and k not in ('image', 'depth_m', 'depth_valid')}
                 append_numeric(group, dict(obs=before_packet, transition=transition), tick)
                 if stream is not None:
+                    from .recording import post_observation
+                    # The compact writer deduplicates real adjacent camera frames;
+                    # automatic-reset images must be masked on the terminal tick.
+                    transition['observation_after'] = post_observation(env.research_packet, terminated | truncated)
                     row=flatten(numpy_tree(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
                         transition=transition,terminated=terminated,truncated=truncated)))
                     stream.append({k:v[0] for k,v in row.items()})

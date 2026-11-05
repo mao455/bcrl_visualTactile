@@ -1,13 +1,13 @@
 # 当前训练与执行合同
 
-最新用户优先级：旧State200在完整rollout边界提前暂停，143有效/175尝试，原结果为探索性提前停止；并非完成200。独立专家小样本筛选不再依赖旧200，资源/证据验收后接续。24h只从实际执行阶段开始，恢复不重置。3例筛选的自适应停选不改变10/20的正式可靠性门槛；数据合同通过前不训练。视觉—触觉修正优先于新增几百次旧模型评估。下面冲突的旧State100前置要求不再适用，但strict live Image配对仍须通过。
+2026-11-05新授权：仅收窄分布、冻结RL闭环新采集和一次性微型StateDP验收；采集完成后停止，不自动正式训练。原State143条探索评估继续暂停。当前阶段配置见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)。历史320/40/40及旧权重续训只描述旧实验，不约束新数据数量，也不授权恢复旧任务。
 
 本合同描述实际H24 position版本，不把旧H32/H64或原生command checkpoint当作兼容模型。旧实现见Git历史；此次整理没有改变已训练参数、监督、DDIM或底层控制。
 
 ## 模型与数据
 
 - State：`PersistentState`，声明的Actor141、本体178、几何85及持续历史GRU；Image：`PersistentImage(I-HistoryDP)`，三视角448×252 RGB-D、冻结且固定revision的DINOv2-S/14及持续历史，不读特权物体几何或触觉。
-- 原始400条成功专家记录，固定train320 / validation40 / test40。归一化仅train320。State/Image参数独立，H24、每12个60Hz tick重规划并执行12、原物理120Hz。
+- 历史原400维持320/40/40不变。新采集按真实初态家族先划分、再扩速度；数量动态、尾批不丢不复制，归一化只用新train家族。H24、每12个60Hz tick重规划并执行12、原物理120Hz。
 - `position_rad_v1`、合同version3。29D canonical位置弧度，标签`transition/target_after_rad[t]`。观测t在动作之前，`obs.actuator_target_rad[t]=target_before[t]=target_after[t-1]`。padding只屏蔽无效损失，不能复制成有效监督。
 - 训练GRU从真实episode开头用当前权重前向，原96tick TBPTT边界保持；每native tick更新，replan/chunk不清零。训练严格过去专家位置历史是teacher forcing，部署使用自身实际请求/应用反馈。current/future标签不是输入。
 - DINO revision `7764ea0f912e53c92e82eb78a2a1631e92725fc8`；实际权重/缓存/统计SHA记录在data.json及checkpoint。RGB uint8 roundtrip、depth validity、相机时钟和固定batch规则保持。
@@ -55,3 +55,22 @@ EMA，固定同数据、标准化和DDIM种子；端点10000/16584/20918统一tr
 ## 独立慢速专家实验
 
 只在expert_speed显式任务启用。A保持60Hz原生RL和一次delay/EMA/limit，在后处理目标上按Arm/Hand独立系数推进，并将执行目标写回原历史；原控制默认不变。B对已处理位置目标在60Hz重参数化，仅走position_rad_v1，不再次滤波。状态/图像只能来自真实重新仿真；新数据监督仍为target_after_rad。原生顺序成功、120Hz物理与阶段超时不变；新慢速数据与400原始数据独立，未通过数据合同前不续训。
+
+## 新窄分布数据与随机初始化入口
+
+选择只使用初态局部位置、物体—孔座相对位置、SO(3)旋转角距和手臂初态RMS；
+不读取学生结果。保留原手指初态、初速、桌高、观测噪声、延迟、EMA和外力分布。
+摩擦及物体尺度原配置为固定倍率1，本轮不新增随机化。原旧轨迹不作为新原速轨迹复用：
+单lane事件流、历史可观察恢复与原四lane隐藏状态不等同，所有速度均重新闭环采集。
+历史初态只有可观察字段恢复，不声称完整PhysX精确重放。
+
+速度alpha每episode固定；一次native delay/EMA之后的目标推进只作用于专家采集。
+StateDP标签仍是实际执行target_after_rad；学生position接口不会获得这个减速器。
+完整三路448×252 RGB-D、五指120Hz力/FK、实际状态和命令保存；终止后自动reset图像
+通过available mask排除。compact所有源字段逐字节hash验收，原400不写入。
+
+StateDP仍使用PersistentState、sample/x0、Loss B及既定四个辅助权重；不重新标定loss。
+新train统计沿原mean/std(clamp1e-4)和min/max affine算法；专家RMS与group embedding
+保留冻结预处理。`anchor_continue fresh-smoke/fresh-train`复用当前模型、目标、采样和恢复工具。
+正式新run从随机模型/全新AdamW、EMA、计数和schedule起步；只允许同一新run按配置hash恢复。
+采集程序没有调用正式训练入口。

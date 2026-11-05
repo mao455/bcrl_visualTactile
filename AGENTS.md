@@ -1,31 +1,32 @@
-# StateDP / ImageDP research — current instructions
+# Current task — narrow StateDP data collection (2026-11-05)
 
-## Latest override — Priority change and bounded screening
+The user authorizes initial-state analysis, a coherent narrowed distribution, frozen-expert
+closed-loop speed augmentation, minimal real acceptance, bounded independent collection,
+focused cleanup, and reviewed commits/pushes to origin feature/narrow-state-data.
+Read research_docs/CONTRACTS.md, SLOW_EXPERT_RESULTS.md, SESSION_HANDOFF.md first.
 
-User explicitly pauses old State200 at a durable rollout boundary; retain all results/checkpoint/seeds and resume position, label early_stopped_exploratory. Frozen old code stays unchanged. New expert root may proceed after pause_receipt resource/evidence checks, without200 completion. Execution budget24h begins after dependency release once; waiting does not count and resumption never resets it. First3 duration-stratified paired cases screen candidates; a single A060 bracket is allowed only after3/3 A067 below5s and3/3 A050 above7s. Random20 uses at most40 frozen seeds, replacing pre-action illegal states only, never legal task failures; stop after2 consecutive native failures without first subgoal. At most1 promising candidate expands to10; original10/20 reliability gates still apply. No new hundreds-trial State evaluations or Image training. Read current SLOW_EXPERT_RESULTS and actual status. This overrides conflicting earlier waiting/complete200/budget text below.
+This worktree is bc+rl_RSS_narrow_state, based on expert-speed commit84cbb98.
+Preserve other worktrees and their changes. Old State random evaluation remains paused
+at143 valid; old expert capture is blocked by a missing post-observation field. Do not
+resume either. Original400, assets, expert, SDK and original control/reset/physics remain
+read-only. The new initial distribution is conditional native sampling, not a physics edit.
 
-## Latest override — Frozen expert speed study
+H24 predicts24 native60Hz target ticks; execute12/replan5Hz. Labels remain29D canonical
+transition/target_after_rad, distinct from actual q. Keep model, objective/weights, persistent
+GRU/history and position execution mapping. Only new train families fit numeric statistics.
+All velocity variants of a family share one split. No Image, DINO cache, tactile training,
+formal State training or automatic large evaluation. A disposable single optimizer update
+is allowed for data/gradient/checkpoint acceptance; future formal State starts from random
+parameters and fresh optimizer/EMA/scheduler/counters, never old DP checkpoints.
 
-User authorizes execution-only slowdown A/B and conditional C, paired10 then gated random20, and real sensor recapture only after reliability. No RL weights/reward changes; State H24/commit12/29D and original150checkpoint stay fixed. This single isolated worktree uses feature/expert-slow-execution, unified anchor_interim_eval/worker and one new root. Do not edit the original bc+rl_RSS_native_v2 source or its running200 queue. New Kit waits for that queue to finish and release resources. Either200 valid or the specifically audited exhaustion of all120 fresh initializations may release the independent study; the latter leaves the original blocked/incomplete with its true denominator. Missing results, software/acceptance faults or resource leaks still block. Read SLOW_EXPERT_RESULTS.md and actual run status. Native ordered success stays primary. No automatic claim that interpolated targets are demonstrations; accepted data must be real simulated successes. Six recapture pilots require actual offline/live data-contract review and independent split coverage before fine-tuning. Preserve both feature branches and raw evidence; reviewed small artifacts may be pushed to origin feature/expert-slow-execution.
+Use one persistent Kit, frozen source inventory, bounded attempts/deadline/disk and ordinary
+process monitoring. Latest shared_recent_v1 resource policy:6GiB free VRAM/12GiB available
+RAM, recent-load pacing and40% target, no obsolete hard50% veto. Protect unrelated jobs.
+Check actual run JSON; startup is not dataset readiness. After multiple real episodes and
+State smoke acceptance, release the independent service and end model polling. No model
+sleep loop. Failure stops with evidence; do not widen distribution or repeat failed tasks
+to fill counts. Preserve incomplete payloads; do not delete unknown or referenced files.
 
-## Current override — State150 native-success audit and random evaluation
-
-The latest user authorizes a read-only audit of the four train videos and native expert success/time records, a proven-bug-only success/termination repair without threshold changes, new independent State150 historical100 + fresh100 evaluation after supervised runtime acceptance, and reviewed origin feature commits/pushes. No new training or network/loss/H24/commit12/29D-interface changes. Preserve original results; test40 is excluded. Fresh initializations use the original reset/DR distribution. One independent Kit worker per episode; do not enable parallel/reset reuse without equivalence evidence. Record first success and termination ticks, software/initialization/teardown failures separately, and stop at native complete success. A completed, fsynced result plus verified OS resource reclamation is acceptable without pretending SDK teardown was graceful. Old blocked roots remain untouched. Image may be proposed on credible unseen ~10% success, but strict live Image pairing is still required.
-
-Read `research_docs/README.md`, `CONTRACTS.md`, `STATE_DP_RESULTS.md`, `CLEANUP_AUDIT.md` and `SESSION_HANDOFF.md` before work. This is the existing `feature/native-dp-training-v2` feature branch, not a new project.
-
-The latest user authorizes completing the existing StateDP continuation at update20918 /150 anchor-equivalent epochs, common-protocol 10000/16584/20918 offline assessment, fixed validation4 plus train4 fitting diagnostics, dependency-based deletion of obsolete source/artifacts/docs, actual regression, and reviewed commits/pushes to origin. Historical preserve-every-artifact clauses are superseded for classified obsolete material. No architecture/loss/H24/commit12/29D-target/split/controller change or fresh training is authorized by cleanup.
-
-Current random evaluation uses `outputs/visuotactile/native_dp_v2/state_random_20261105_02`, frozen source100d71e and four passed full smokes; read its status/summary for actual progress. Root01 is preserved blocked with two software failures. Native ordered success remains primary; final-pose plus fingers-clear is a separate diagnostic. Do not edit active frozen source or reset the deadline. The CPU delivery service may publish only its reviewed light output scope after owner exit; verify its delivery_status rather than assuming publication.
-
-Read actual machine status under `outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01` and `anchor_assessment_20261105_01`. Never infer liveness from old PIDs. Keep one owner and verify PID/start_ticks before signals. At the150 milestone the existing owner is held for evidence review; do not automatically release it into200–300 or Image training. Ordinary durable scripts handle waits and bounded recovery. Image continuation still needs meaningful State closed-loop improvement and the unresolved strict live Image input pairing gate.
-
-Protect original400 successful trajectories, train320/validation40/test40 split, current feature/numeric caches and train-only statistics, current/latest/best complete model+EMA+AdamW+RNG+sampler state, unfinished comparisons and necessary traces/videos. No test40 tuning. Train initial-state diagnostics and validation success rates remain separate. Contact proxies never imply stable grasp. Distinguish software failure, task failure and SDK teardown.
-
-No shared SDK/driver/other-project edits. Original RL assets/control/physics/reset/DR/reward/timeout and research simulation wrapper remain read-only. Preserve native120Hz physics/60Hz control. Model histories use strict past issued/applied targets; observations/future labels cannot leak. State has its declared state geometry; Image has no privileged geometry/tactile input. No untrained correction or expert takeover in autonomous trials.
-
-Use a recorded dependency/deletion plan before pruning, verify file identity and open-process references, account for symlinks/hardlinks, retain unknowns with reasons. No large backup copies. Active frozen source changes wait until all relevant workers exit. The isolated temporary cleanup worktree must be removed after reviewed cutover.
-
-Protect unrelated productive processes; current memory admission reserves6GiB VRAM/12GiB RAM. Keep continuous telemetry, disclose actual whole-card utilization and gaps; a pacing policy is not a hard GPU quota. Resource violations remain evidence, not erased by cleanup.
-
-One maintained training implementation (`visuotactile.anchor_continue`) and configurable evaluation (`tools.anchor_interim_eval`, `tools.anchor_continue_worker`). Shared utilities must not import retired training entrypoints. Update the consolidated report and changelog; do not create another dated trainer/report for every iteration. Commit code/docs/light figures to origin feature only; never raw data/weights/videos, upstream or force push.
+Update current docs in place and commit only reviewed code/tests/light statistics. Never
+push raw data, weights, credentials, videos, upstream, unrelated changes, or force push.
+Historical authorizations/results remain in prior branches and RESEARCH_HISTORY.md.

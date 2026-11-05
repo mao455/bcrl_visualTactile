@@ -1,5 +1,16 @@
 # 维护变更
 
+## 2026-11-05 — 窄分布采集准备（尚未声称live通过）
+
+- 独立feature/narrow-state-data从84cbb98实施，不覆盖IDE两处既有文档改动或旧暂停任务。
+- `narrow_data`读取原400低维，固定相对位姿/旋转/关节条件域与15个旧家族；补9个native初态只按合法性与覆盖。
+- `tools.narrow_collection`复用一个Kit和现有trial/记录器/资源工具，明确尝试、固定预算、原子manifest、手动边界停止与无自动训练。
+- 修复capture遗漏post-observation/terminal mask；旧错误保留。`anchor_sampling`支持动态数量及短尾批。
+- `anchor_continue`增加同一模型/目标的fresh入口，旧checkpoint续训路径保持；新统计仅新train，正式训练未运行。
+- 已通过30项相关CPU回归；新增history/目标回归与真实采集验收另记，不把准备当数据就绪。
+- 清理只读核对既有依赖和占用；前次126.673GiB清理不重复计入，本轮释放0bytes。
+
+
 完整旧阶段记录保存在[48a3516 CHANGELOG](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/CHANGELOG.md)。此处只保留当前变更，不复制历史巨型日志。
 
 ## 2026-11-05 — StateDP150评估与整理
