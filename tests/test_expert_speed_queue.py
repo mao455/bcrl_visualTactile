@@ -1,6 +1,6 @@
 import json
 import pytest
-from tools.expert_speed_eval import ExpertSpeedEvaluation,report_body_hash,dependency_outcome,bracket_needed,candidate_after_native
+from tools.expert_speed_eval import ExpertSpeedEvaluation,report_body_hash,dependency_outcome,bracket_needed,candidate_after_native,select_promising
 from tools.runtime import write,read
 
 
@@ -171,3 +171,12 @@ def test_new_initial_reserve_does_not_select_away_native_task_failures():
     assert not candidate_after_native(dict(legal=False,success=False),'A060')
     assert not candidate_after_native(dict(legal=True,success=False),'B150')
     assert candidate_after_native(dict(legal=True,success=True),'B150')
+
+
+def test_select_goal_band_candidate_without_relaxing_screen_gate():
+    screens=dict(A067=dict(passed=True,success=3,median_success_s=4.25),
+        A060=dict(passed=True,success=2,median_success_s=6.24),
+        B100=dict(passed=True,success=3,median_success_s=6.0))
+    assert select_promising(screens)==['A060']
+    screens['A060']['passed']=False
+    assert select_promising(screens)==['A067']

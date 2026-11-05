@@ -38,6 +38,12 @@ def candidate_after_native(trial,factor):
     return bool(trial.get('legal')) and (not factor.startswith('B') or bool(trial.get('success')))
 
 
+def select_promising(screens):
+    eligible=[f for f,g in screens.items() if g['passed'] and f!='B100']
+    return sorted(eligible,key=lambda f:(not 5<=screens[f]['median_success_s']<=7,
+        -screens[f]['success'],abs(screens[f]['median_success_s']-6),f))[:1]
+
+
 def prepare(root,reference):
     from tools.expert_speed_audit import audit
     reference=reference.resolve();evidence=audit(reference)
@@ -399,8 +405,9 @@ class ExpertSpeedEvaluation(Owner):
                     for factor in ('B125','B150','B200'):screens[factor]=self.screen_factor(factor,self.s['specs'][:3],baseline)
                 if all(screens[f]['success']<2 for f in ('A080','A067','A050')):
                     screens['C067']=self.screen_factor('C067',self.s['specs'][:3],baseline)
-                promising=sorted([f for f,g in screens.items() if g['passed'] and f!='B100'],key=lambda f:(-screens[f]['success'],abs(screens[f]['median_success_s']-6),f))[:1]
-                write(root/'screening_selection.json',dict(screens=screens,selected=promising,adaptive=True,maximum=1))
+                promising=select_promising(screens)
+                write(root/'screening_selection.json',dict(screens=screens,selected=promising,adaptive=True,maximum=1,
+                    rule='Among screening-qualified candidates prioritize median5–7s, then success count and distance to6s; no claim of superior success probability from3 trials; formal8/10 and17/20 gates unchanged'))
                 if not promising:
                     self.status(state='completed_diagnostic',stage='small_paired_screen_no_promising_slow_candidate');return
                 for i,spec in enumerate(self.s['specs'][3:],3):baseline.append(self.execute(f'pilot_native_{i:02d}',spec,'native'))
