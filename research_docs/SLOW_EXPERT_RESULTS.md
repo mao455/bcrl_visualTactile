@@ -86,7 +86,7 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 <!-- SLOW_EXPERT_RESULTS_START -->
 ## 实测进度
 
-状态：`ready`，阶段`A060_target_band_selected_resume`；已尝试23/155。软件缺失0，验收失败0，非法初态0。
+状态：`completed_diagnostic`，阶段`native_baseline_unreliable_no_slow_expansion`；已尝试23/155。软件缺失0，验收失败0，非法初态0。
 
 |阶段|配置|原生成功/有效|95% Wilson区间|成功均值/中位(s)|fall/timeout|
 |---|---|---:|---|---|---|
@@ -120,3 +120,8 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 本地原始记录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01`。首次成功与正式终止、阶段时刻、运动统计及视频见[机器结果](evidence/slow_expert/results.json)。
 成功耗时仅对成功样本统计，不能忽略失败或据此声称固定倍率。无训练更新；Image未启动。
 <!-- SLOW_EXPERT_RESULTS_END -->
+
+
+
+
+
