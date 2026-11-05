@@ -1,5 +1,17 @@
 # 当前交接
 
+## 新授权：成功判定审核与历史100/全新100
+
+原生判定独立重构：4条train与400专家全部与原记录逐tick一致；但train982402在tick168–186连续19tick满足最终7.5mm几何与撤手条件，前置预插入仅5/10tick导致原生顺序状态机不终止。严格原生仍0/4，终点诊断1/4，绝不能混计。报告含时序图；用户关于主判据的澄清待回复，默认保留原生顺序。
+
+代码`8dc3d43`已推送，150 checkpoint不变。新根`outputs/visuotactile/native_dp_v2/state_random_20261105_01`，owner服务`state-random-20261105-01.service`已实际运行，首个smoke在新私有缓存RTX管线编译阶段，尚无本轮有效rollout，正式200未放行。实际进度必须读status/attempts；30项CPU回归通过不代表Kit验收。固定seed20261105，历史100=91train+9validation，fresh100独立，另各20仅作动作前非法初态备用。全部单环境独立进程，无并行或复用等价声称。
+
+原生阈值、checkpoint、网络、H24、执行12和控制器不变。首次完整成功/正式终止tick已显式记录；完整成功后禁止额外动作。新Kit资源回收方式为durable结果后的进程隔离退出，不称SDK优雅关闭。旧blocked根与失败日志保持。
+
+为补充每次新rollout的终点几何诊断，临时只读开发worktree在`outputs/visuotactile/tmp/state_success_review`，不得将其修改写入仍有活跃worker的冻结源码。需在worker退出后的明确切换点审查和迁移冻结manifest，不重跑已有效的smoke或重置期限。
+
+## 此前阶段（历史结果）
+
 StateDP150训练与正式评估完成；源码/产物清理已完成。完整结果见[统一报告](STATE_DP_RESULTS.md)，清理与未通过项见[清理报告](CLEANUP_AUDIT.md)。
 
 - 当前分支`feature/native-dp-training-v2`，源码目录`bc+rl_RSS_native_v2`；共享outputs真实目录属于原bc+rl_RSS项目，原IDE工作树的用户修改未覆盖。

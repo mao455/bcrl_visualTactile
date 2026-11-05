@@ -45,3 +45,7 @@ EMA，固定同数据、标准化和DDIM种子；端点10000/16584/20918统一tr
 闭环每初态独立Kit；真实成功、native lift/subgoal/fall/timeout与软件缺失分别计数。稳定抓持无native离散定义，N/A。相同可观察初态、导出状态和事件RNG不等于证明PhysX所有隐藏状态完全相等。SDK fast exit即使code0，也不能称完整正常关闭。
 
 一个owner、有限启动预算、持久日志和逐episode提交。恢复必须验证model、EMA、EMAstep、AdamW moments/step、Python/Torch/CUDA和采样RNG、sampler进度、学习率配置。冻结manifest可因审查后的纯组织迁移更新，但保留旧manifest和每项before/after SHA，不伪造旧源码匹配。
+
+## 本轮随机评估补充
+
+最新授权使用固定State150 checkpoint进行historical100（train320+validation40联合池均匀无放回抽样）及fresh100原reset分布。预注册seed20261105，历史主清单实际91train+9validation，后分层报告；test40排除。原生完整成功仍需两个插入子目标按顺序累计10个合格tick、最终7.5mm几何和撤手距离>0.1m。最终位姿/撤手在未完成前置阶段时仅作独立诊断，不增加原生成功分子。Kit门控针对完整运行、第一plan一致性、可靠落盘和资源回收，不要求重复三次SDK优雅退出。
