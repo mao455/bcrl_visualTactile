@@ -86,16 +86,17 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 <!-- SLOW_EXPERT_RESULTS_START -->
 ## 实测进度
 
-状态：`blocked`，阶段`pilot_B100_02`；已尝试16/155。软件缺失0，验收失败0，非法初态0。
+状态：`blocked`，阶段`pilot_native_06`；已尝试23/155。软件缺失0，验收失败0，非法初态0。
 
 |阶段|配置|原生成功/有效|95% Wilson区间|成功均值/中位(s)|fall/timeout|
 |---|---|---:|---|---|---|
-|pilot|native|3/3|43.9%–100.0%|3.050/3.067|0/0|
+|pilot|native|7/7|64.6%–100.0%|3.002/3.067|0/0|
 |pilot|identity|1/1|20.7%–100.0%|2.317/2.317|0/0|
 |pilot|A080|3/3|43.9%–100.0%|3.689/3.567|0/0|
 |pilot|A067|3/3|43.9%–100.0%|4.400/4.250|0/0|
 |pilot|A050|3/3|43.9%–100.0%|10.011/9.400|0/0|
 |pilot|B100|1/3|6.1%–79.2%|3.350/3.350|1/1|
+|pilot|A060|2/3|20.8%–93.9%|6.242/6.242|1/0|
 
 ![原生成功与真实完成时间](evidence/slow_expert/speed_comparison.png)
 - [pilot_native_00：成功，139ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_native_00/attempt_1/output/r931005_1793209376_e02_p000132/rollout.mp4)
@@ -110,9 +111,43 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 - [pilot_B100_00：失败，243ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_B100_00/attempt_1/output/r931005_1793209376_e02_p000132/rollout.mp4)
 - [pilot_B100_01：成功，201ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_B100_01/attempt_1/output/r931005_1793209376_e00_p000063/rollout.mp4)
 - [pilot_B100_02：失败，601ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_B100_02/attempt_1/output/r931005_1793209376_e00_p000040/rollout.mp4)
+- [pilot_A060_00：失败，384ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_A060_00/attempt_1/output/r931005_1793209376_e02_p000132/rollout.mp4)
+- [pilot_A060_01：成功，384ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_A060_01/attempt_1/output/r931005_1793209376_e00_p000063/rollout.mp4)
+- [pilot_A060_02：成功，365ticks](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_A060_02/attempt_1/output/r931005_1793209376_e00_p000040/rollout.mp4)
 
 旧State评估按用户要求提前暂停：有效143/原计划200，未完成57；属于探索性提前停止，原checkpoint与恢复位置保留，资源回收后独立接续本研究。
 
 本地原始记录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01`。首次成功与正式终止、阶段时刻、运动统计及视频见[机器结果](evidence/slow_expert/results.json)。
 成功耗时仅对成功样本统计，不能忽略失败或据此声称固定倍率。无训练更新；Image未启动。
 <!-- SLOW_EXPERT_RESULTS_END -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

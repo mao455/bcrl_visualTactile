@@ -1,22 +1,24 @@
 {
   "status": {
-    "state": "ready",
-    "stage": "adaptive_A060_resume_prepared",
+    "state": "blocked",
+    "stage": "pilot_native_06",
     "pid": null,
-    "worker_pid": null
+    "worker_pid": null,
+    "heartbeat": 1793865736.78227,
+    "finished": 1793865736.782095
   },
   "rows": [
     {
       "phase": "pilot",
       "factor": "native",
-      "valid": 3,
-      "success": 3,
+      "valid": 7,
+      "success": 7,
       "rate": 1.0,
       "ci95": [
-        0.4385029682449546,
+        0.6456695649333126,
         1.0
       ],
-      "mean_success_sim_s": 3.04999999878,
+      "mean_success_sim_s": 3.00238095118,
       "median_success_sim_s": 3.0666666654399997,
       "fall": 0,
       "timeout": 0
@@ -95,15 +97,30 @@
       "median_success_sim_s": 3.34999999866,
       "fall": 1,
       "timeout": 1
+    },
+    {
+      "phase": "pilot",
+      "factor": "A060",
+      "valid": 3,
+      "success": 2,
+      "rate": 0.6666666666666666,
+      "ci95": [
+        0.2076596008020477,
+        0.9385080552796037
+      ],
+      "mean_success_sim_s": 6.241666664169999,
+      "median_success_sim_s": 6.241666664169999,
+      "fall": 1,
+      "timeout": 0
     }
   ],
   "maximum_starts": 155,
-  "actual_starts": 16,
+  "actual_starts": 23,
   "software_missing": 0,
   "acceptance_failed": 0,
   "initialization_rejections": 0,
   "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
-  "source_commit": "c9756c5efa071857a7483d36526bf128fe80a3da",
+  "source_commit": "abcc13dc2be6c3bfcaa47f64d6d64fd5623ebfa6",
   "planned_pilot_specs": 10,
   "planned_expansion_specs": 20,
   "planned_capture_specs": 6,
@@ -141,6 +158,16 @@
     "authorization": "User explicitly excludes dependency waiting; first execution start only, no reset on resume"
   },
   "screening": {
+    "A060": {
+      "factor": "A060",
+      "valid": 3,
+      "success": 2,
+      "median_success_s": 6.241666664169999,
+      "paired_ratio": 1.8510003847633707,
+      "passed": true,
+      "rule": "3 paired starts; stop after2 consecutive native failures with no first subgoal; require2 successes. Slow candidates additionally median4\u20138s and paired ratio>=1.2. Exploratory screening, not final reliability.",
+      "stopped_early": false
+    },
     "B100": {
       "factor": "B100",
       "valid": 3,
@@ -183,29 +210,29 @@
     }
   },
   "resources": {
-    "pid": 398167,
+    "pid": 426934,
     "latest": {
-      "pid": 398167,
-      "utc_epoch": 1793864998.6173446,
-      "elapsed_s": 963.4095868440345,
-      "gpu_util_percent": 3.0,
-      "gpu_used_mib": 493.0,
-      "gpu_free_mib": 23591.0,
-      "ram_available_bytes": 35046649856,
-      "process_rss_bytes": 14954496,
+      "pid": 426934,
+      "utc_epoch": 1793865736.7669337,
+      "elapsed_s": 1701.5386223734822,
+      "gpu_util_percent": 2.0,
+      "gpu_used_mib": 492.0,
+      "gpu_free_mib": 23592.0,
+      "ram_available_bytes": 35032207360,
+      "process_rss_bytes": 14614528,
       "cuda_allocated_bytes": null,
       "cuda_reserved_bytes": null,
-      "rolling_60s_percent": 15.1956359631867
+      "rolling_60s_percent": 11.185373626773556
     },
-    "samples": 964,
-    "gpu_time_weighted_mean_percent": 13.945103741236185,
+    "samples": 1363,
+    "gpu_time_weighted_mean_percent": 13.395610585439998,
     "max_complete_60s_mean_percent": 21.792831740980425,
     "missing_samples": 0,
-    "missing_seconds": 0.0,
-    "max_sample_gap_s": 1.4092342820949852,
+    "missing_seconds": 339.9400729794288,
+    "max_sample_gap_s": 339.9400729794288,
     "wait_seconds": 0.0,
-    "peak_gpu_used_mib": 7340.0,
-    "peak_process_rss_bytes": 14995456,
+    "peak_gpu_used_mib": 8354.0,
+    "peak_process_rss_bytes": 14614528,
     "min_ram_available_bytes": 23094980608,
     "thresholds": {
       "gpu_free_mib": 6144,
@@ -4753,6 +4780,1961 @@
         "changes_physics_or_rng": false
       },
       "video": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_B100_02/attempt_1/output/r931005_1793209376_e00_p000040/rollout.mp4"
+    },
+    {
+      "name": "pilot_A060_00",
+      "factor": "A060",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e02_p000132",
+        "cohort": "train",
+        "seed": 23010001,
+        "selection_index": 0,
+        "source_duration_sim_s": 2.3333333324,
+        "software_complete": true,
+        "legal": true,
+        "success": false,
+        "reasons": {
+          "fall": true,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 384,
+        "native_lift": false,
+        "native_subgoals": 1,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": false,
+        "first_success_tick": null,
+        "termination_tick": 384,
+        "duration_sim_s": 6.39999999744,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.09192688018083572,
+        "expert_speed": {
+          "kind": "closed_loop",
+          "arm": 0.6,
+          "hand": 0.6,
+          "phase": "all"
+        },
+        "rl_observation_source": "actual current simulator observations every 60Hz tick",
+        "replay_sequence_ticks": null,
+        "replay_final_hold_ticks": 0,
+        "trajectory_retiming_is_not_state_retiming": true
+      },
+      "events": {
+        "ticks": 384,
+        "duration_sim_s": 6.39999999744,
+        "first_contact_tick": 48,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": null,
+        "first_subgoal_tick": 218,
+        "all_insertion_goals_tick": null,
+        "first_complete_tick": null,
+        "first_native_success_tick": null,
+        "termination_tick": 384,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": false,
+        "native_success": false,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 12.933011166751385,
+        "near_goal_ticks": 10,
+        "recorded_keypoint_max_difference_m": 6.332993507385254e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": true,
+          "hand_far": false,
+          "max_successes": false,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 0.79999999968,
+          "lift": null,
+          "first_subgoal": 3.63333333188,
+          "all_insertion_goals": null,
+          "complete": null
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": false,
+          "first_tick": null,
+          "satisfied_ticks": 0,
+          "longest_consecutive_ticks": 0,
+          "minimum_final_keypoint_distance_mm": 53.41072753071785,
+          "closest_final_tick": 209,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 1.1920928955078125e-07
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 2688,
+          "mean": 0.07664666808395418,
+          "min": 0.00017076951917260885,
+          "p05": 0.008605343708768486,
+          "p25": 0.047445403411984444,
+          "median": 0.07576863840222359,
+          "p75": 0.09511950984597206,
+          "p95": 0.15184576287865645,
+          "p99": 0.24521480828523656,
+          "max": 1.0484800338745117
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 2688,
+          "mean": 1.0665201832374849,
+          "min": 6.61611557006836e-05,
+          "p05": 0.03433249890804291,
+          "p25": 0.1625407338142395,
+          "median": 0.4605821967124939,
+          "p75": 1.0281655490398407,
+          "p95": 3.3461759686470045,
+          "p99": 10.801921949386607,
+          "max": 97.3139419555664
+        },
+        "arm_target_rate_rad_s": {
+          "n": 2688,
+          "mean": 0.08426108421142653,
+          "min": 0.00027179718017578125,
+          "p05": 0.03540650010108948,
+          "p25": 0.08999995142221451,
+          "median": 0.09000062197446823,
+          "p75": 0.09000062197446823,
+          "p95": 0.09000062197446823,
+          "p99": 0.09000062197446823,
+          "max": 0.09000062197446823
+        },
+        "arm_tracking_rad": {
+          "n": 2688,
+          "mean": 0.007614806073130846,
+          "min": 9.059906005859375e-06,
+          "p05": 0.0008119583129882812,
+          "p25": 0.0028618276119232178,
+          "median": 0.0044105164706707,
+          "p75": 0.008523046970367432,
+          "p95": 0.02919939160346987,
+          "p99": 0.03702623903751374,
+          "max": 0.041191160678863525
+        },
+        "hand_speed_rad_s": {
+          "n": 8448,
+          "mean": 0.7210555485944126,
+          "min": 6.488676262961235e-09,
+          "p05": 9.403226758877285e-05,
+          "p25": 0.030066585633903742,
+          "median": 0.31489036977291107,
+          "p75": 1.0788123607635498,
+          "p95": 2.7363568544387817,
+          "p99": 3.851801710128792,
+          "max": 14.665955543518066
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 8448,
+          "mean": 14.252016805974202,
+          "min": 1.4205168952230451e-07,
+          "p05": 0.009663787810131911,
+          "p25": 0.4252684563398361,
+          "median": 4.1534223556518555,
+          "p75": 18.21816110610962,
+          "p95": 60.112453460693324,
+          "p99": 104.89782264709531,
+          "max": 428.70892333984375
+        },
+        "hand_target_rate_rad_s": {
+          "n": 8448,
+          "mean": 0.8745751445114126,
+          "min": 0.0,
+          "p05": 0.00013634562492370605,
+          "p25": 0.025513715110719204,
+          "median": 0.333442360162735,
+          "p75": 1.3145366609096527,
+          "p95": 3.4675395369529722,
+          "p99": 4.809338169097913,
+          "max": 6.828696250915527
+        },
+        "hand_tracking_rad": {
+          "n": 8448,
+          "mean": 0.05066499492537454,
+          "min": 1.4901161193847656e-08,
+          "p05": 8.338000625371934e-05,
+          "p25": 0.001432257704436779,
+          "median": 0.016404472291469574,
+          "p75": 0.06119116395711899,
+          "p95": 0.19454032927751538,
+          "p99": 0.5166554003953936,
+          "max": 0.9451004266738892
+        },
+        "fingertip_contact_N": {
+          "n": 3840,
+          "mean": 2.6997682999158616,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 2.322035491466522,
+          "p95": 16.63158235549925,
+          "p99": 23.689703769683838,
+          "max": 33.026023864746094
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.18869313597679138,
+          "p95": 1.0094909936189647,
+          "maximum": 2.9837067127227783
+        },
+        "object_angular_speed_rad_s": {
+          "median": 2.412156343460083,
+          "p95": 10.314672088623034,
+          "maximum": 21.473539352416992
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.09931060671806335,
+          "p95": 0.20687999576330185,
+          "maximum": 0.2977270781993866
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865345.3551278,
+        "finished": 1793865410.4394827,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 10.627027582959272,
+            "max_s": 10.627027582959272
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.700308057945222,
+            "max_s": 5.700308057945222
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.5157007729867473,
+            "max_s": 0.5157007729867473
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.4812103449366987,
+            "max_s": 0.4812103449366987
+          },
+          "video_encode": {
+            "calls": 384,
+            "wall_s": 5.82127628440503,
+            "max_s": 0.05650082905776799
+          },
+          "rl_inference_cpu": {
+            "calls": 384,
+            "wall_s": 4.194632915547118,
+            "max_s": 0.05329213594086468
+          },
+          "physics_render_sensors": {
+            "calls": 384,
+            "wall_s": 26.87750368565321,
+            "max_s": 0.1319536219816655
+          },
+          "numeric_recording": {
+            "calls": 384,
+            "wall_s": 9.529685170040466,
+            "max_s": 0.05177619191817939
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.16282450198195875,
+            "max_s": 0.16282177297398448
+          }
+        },
+        "resource_wait_s": 0.5438960818573833,
+        "resource_pacing_s": 0.0005988985067233443,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_A060_00/attempt_1/output/r931005_1793209376_e02_p000132/rollout.mp4"
+    },
+    {
+      "name": "pilot_A060_01",
+      "factor": "A060",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000063",
+        "cohort": "train",
+        "seed": 23010006,
+        "selection_index": 5,
+        "source_duration_sim_s": 3.34999999866,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 384,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 384,
+        "termination_tick": 384,
+        "duration_sim_s": 6.39999999744,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.08132150769233704,
+        "expert_speed": {
+          "kind": "closed_loop",
+          "arm": 0.6,
+          "hand": 0.6,
+          "phase": "all"
+        },
+        "rl_observation_source": "actual current simulator observations every 60Hz tick",
+        "replay_sequence_ticks": null,
+        "replay_final_hold_ticks": 0,
+        "trajectory_retiming_is_not_state_retiming": true
+      },
+      "events": {
+        "ticks": 384,
+        "duration_sim_s": 6.39999999744,
+        "first_contact_tick": 3,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": null,
+        "first_subgoal_tick": 247,
+        "all_insertion_goals_tick": 384,
+        "first_complete_tick": 384,
+        "first_native_success_tick": 384,
+        "termination_tick": 384,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 1.6315837856382132,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 8.940696716308594e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 0.04999999998,
+          "lift": null,
+          "first_subgoal": 4.1166666650199994,
+          "all_insertion_goals": 6.39999999744,
+          "complete": 6.39999999744
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 376,
+          "satisfied_ticks": 9,
+          "longest_consecutive_ticks": 9,
+          "minimum_final_keypoint_distance_mm": 1.631580526009202,
+          "closest_final_tick": 382,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 6.332993507385254e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 2688,
+          "mean": 0.07386042353365545,
+          "min": 0.00026012700982391834,
+          "p05": 0.009717205259948968,
+          "p25": 0.05042428057640791,
+          "median": 0.07770318537950516,
+          "p75": 0.0921237412840128,
+          "p95": 0.1258861839771271,
+          "p99": 0.16974514082074169,
+          "max": 2.0805916786193848
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 2688,
+          "mean": 0.903415092430058,
+          "min": 0.0002887844748329371,
+          "p05": 0.0239447932690382,
+          "p25": 0.13042710721492767,
+          "median": 0.35677914321422577,
+          "p75": 0.8984522521495819,
+          "p95": 2.6343219518661503,
+          "p99": 5.924769639968878,
+          "max": 207.702392578125
+        },
+        "arm_target_rate_rad_s": {
+          "n": 2688,
+          "mean": 0.08255074034594231,
+          "min": 0.0002789497375488281,
+          "p05": 0.027068136259913445,
+          "p25": 0.0899997279047966,
+          "median": 0.09000062197446823,
+          "p75": 0.09000062197446823,
+          "p95": 0.09000062197446823,
+          "p99": 0.09000062197446823,
+          "max": 0.09000062197446823
+        },
+        "arm_tracking_rad": {
+          "n": 2688,
+          "mean": 0.004827849240860988,
+          "min": 8.344650268554688e-07,
+          "p05": 0.0004923224449157714,
+          "p25": 0.0025500357151031494,
+          "median": 0.0036751627922058105,
+          "p75": 0.006088584661483765,
+          "p95": 0.012662178277969362,
+          "p99": 0.018097708225250246,
+          "max": 0.021512508392333984
+        },
+        "hand_speed_rad_s": {
+          "n": 8448,
+          "mean": 0.6321415218979233,
+          "min": 1.204526256515237e-09,
+          "p05": 3.1786559884494646e-05,
+          "p25": 0.008849893463775516,
+          "median": 0.19538996368646622,
+          "p75": 0.893485501408577,
+          "p95": 2.763906621932983,
+          "p99": 3.750158152580261,
+          "max": 5.949402809143066
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 8448,
+          "mean": 10.29041319289536,
+          "min": 4.699813516140239e-08,
+          "p05": 0.0031306594610214238,
+          "p25": 0.1736086681485176,
+          "median": 2.135535478591919,
+          "p75": 11.34248423576355,
+          "p95": 49.541622924804685,
+          "p99": 87.15922172546391,
+          "max": 274.05242919921875
+        },
+        "hand_target_rate_rad_s": {
+          "n": 8448,
+          "mean": 0.7527815403585326,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.004220293485559523,
+          "median": 0.20654438436031342,
+          "p75": 1.0294050872325897,
+          "p95": 3.2895367145538326,
+          "p99": 4.768840551376347,
+          "max": 6.092859268188477
+        },
+        "hand_tracking_rad": {
+          "n": 8448,
+          "mean": 0.04809683540899669,
+          "min": 3.725290298461914e-09,
+          "p05": 1.4733523130416872e-05,
+          "p25": 0.0007811015238985419,
+          "median": 0.014982461929321289,
+          "p75": 0.06486721336841583,
+          "p95": 0.19828415811061859,
+          "p99": 0.4409739458560958,
+          "max": 0.5655540823936462
+        },
+        "fingertip_contact_N": {
+          "n": 3840,
+          "mean": 2.674021966466777,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 0.0,
+          "p95": 19.092415237426735,
+          "p99": 27.037378845214846,
+          "max": 33.92150115966797
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.06308925151824951,
+          "p95": 0.3210454419255255,
+          "maximum": 0.8569957613945007
+        },
+        "object_angular_speed_rad_s": {
+          "median": 0.6450513005256653,
+          "p95": 7.28908483982086,
+          "maximum": 15.560157775878906
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.09819186478853226,
+          "p95": 0.1776072785258293,
+          "maximum": 0.2689846158027649
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865415.9003592,
+        "finished": 1793865480.9104393,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 10.229236077982932,
+            "max_s": 10.229236077982932
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.71961231995374,
+            "max_s": 5.71961231995374
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.5084702359745279,
+            "max_s": 0.5084702359745279
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.4188391490606591,
+            "max_s": 0.4188391490606591
+          },
+          "video_encode": {
+            "calls": 384,
+            "wall_s": 5.487768349703401,
+            "max_s": 0.050430969102308154
+          },
+          "rl_inference_cpu": {
+            "calls": 384,
+            "wall_s": 4.630713395541534,
+            "max_s": 0.05276592401787639
+          },
+          "physics_render_sensors": {
+            "calls": 384,
+            "wall_s": 26.811689528403804,
+            "max_s": 0.1271030300995335
+          },
+          "numeric_recording": {
+            "calls": 384,
+            "wall_s": 9.740339756361209,
+            "max_s": 0.047666018013842404
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.16058491508010775,
+            "max_s": 0.16058285906910896
+          }
+        },
+        "resource_wait_s": 0.5401709805009887,
+        "resource_pacing_s": 0.0006043317262083292,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_A060_01/attempt_1/output/r931005_1793209376_e00_p000063/rollout.mp4"
+    },
+    {
+      "name": "pilot_A060_02",
+      "factor": "A060",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000040",
+        "cohort": "train",
+        "seed": 23010010,
+        "selection_index": 9,
+        "source_duration_sim_s": 4.616666664819999,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 365,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 365,
+        "termination_tick": 365,
+        "duration_sim_s": 6.0833333308999995,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.07774177938699722,
+        "expert_speed": {
+          "kind": "closed_loop",
+          "arm": 0.6,
+          "hand": 0.6,
+          "phase": "all"
+        },
+        "rl_observation_source": "actual current simulator observations every 60Hz tick",
+        "replay_sequence_ticks": null,
+        "replay_final_hold_ticks": 0,
+        "trajectory_retiming_is_not_state_retiming": true
+      },
+      "events": {
+        "ticks": 365,
+        "duration_sim_s": 6.0833333308999995,
+        "first_contact_tick": 143,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": null,
+        "first_subgoal_tick": 324,
+        "all_insertion_goals_tick": 359,
+        "first_complete_tick": 365,
+        "first_native_success_tick": 365,
+        "termination_tick": 365,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 1.0218073148280382,
+        "near_goal_ticks": 26,
+        "recorded_keypoint_max_difference_m": 6.332993507385254e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 2.38333333238,
+          "lift": null,
+          "first_subgoal": 5.39999999784,
+          "all_insertion_goals": 5.98333333094,
+          "complete": 6.0833333308999995
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 365,
+          "satisfied_ticks": 1,
+          "longest_consecutive_ticks": 1,
+          "minimum_final_keypoint_distance_mm": 1.0218098759651184,
+          "closest_final_tick": 361,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 6.332993507385254e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 2555,
+          "mean": 0.07904254191068918,
+          "min": 0.00015872198855504394,
+          "p05": 0.012272179499268532,
+          "p25": 0.05804443545639515,
+          "median": 0.08224260061979294,
+          "p75": 0.0935194231569767,
+          "p95": 0.13542022109031673,
+          "p99": 0.189634490609169,
+          "max": 1.9272541999816895
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 2555,
+          "mean": 0.8000721236453663,
+          "min": 0.0002217292640125379,
+          "p05": 0.01364381518214941,
+          "p25": 0.09261219948530197,
+          "median": 0.30505385994911194,
+          "p75": 0.7668273746967316,
+          "p95": 2.0150765180587755,
+          "p99": 5.025999059677139,
+          "max": 111.14501190185547
+        },
+        "arm_target_rate_rad_s": {
+          "n": 2555,
+          "mean": 0.08382254868647614,
+          "min": 0.0002932548231910914,
+          "p05": 0.034259676933288574,
+          "p25": 0.09000062197446823,
+          "median": 0.09000062197446823,
+          "p75": 0.09000062197446823,
+          "p95": 0.09000062197446823,
+          "p99": 0.09000062197446823,
+          "max": 0.09000062197446823
+        },
+        "arm_tracking_rad": {
+          "n": 2555,
+          "mean": 0.004339706489484604,
+          "min": 2.6226043701171875e-06,
+          "p05": 0.0006013825535774231,
+          "p25": 0.002664700150489807,
+          "median": 0.0037233829498291016,
+          "p75": 0.005049228668212891,
+          "p95": 0.01086319684982299,
+          "p99": 0.01649487018585206,
+          "max": 0.023869991302490234
+        },
+        "hand_speed_rad_s": {
+          "n": 8030,
+          "mean": 0.6446763821190595,
+          "min": 1.3951790833743871e-09,
+          "p05": 9.713163808555697e-06,
+          "p25": 0.012607769342139363,
+          "median": 0.2078952193260193,
+          "p75": 0.9190288633108139,
+          "p95": 2.7271794915199252,
+          "p99": 4.027332797050477,
+          "max": 7.27965784072876
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 8030,
+          "mean": 10.394781991709968,
+          "min": 9.026378755550013e-09,
+          "p05": 0.0011400150251574816,
+          "p25": 0.14140579849481583,
+          "median": 1.9114287495613098,
+          "p75": 10.891791820526123,
+          "p95": 49.192131805419855,
+          "p99": 91.3441056060791,
+          "max": 364.7908935546875
+        },
+        "hand_target_rate_rad_s": {
+          "n": 8030,
+          "mean": 0.7581233966650388,
+          "min": 0.0,
+          "p05": 4.6931487531765015e-06,
+          "p25": 0.009513515047729015,
+          "median": 0.1982089728116989,
+          "p75": 1.1006301641464233,
+          "p95": 3.356795966625213,
+          "p99": 4.872266674041748,
+          "max": 6.265141487121582
+        },
+        "hand_tracking_rad": {
+          "n": 8030,
+          "mean": 0.04316250107003064,
+          "min": 3.6434357753023505e-09,
+          "p05": 1.3967975974082952e-05,
+          "p25": 0.0006065082270652056,
+          "median": 0.010316341184079647,
+          "p75": 0.054458633065223694,
+          "p95": 0.16944006234407422,
+          "p99": 0.4565574985742569,
+          "max": 0.5890027284622192
+        },
+        "fingertip_contact_N": {
+          "n": 3650,
+          "mean": 2.1672437717484896,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 0.710350513458252,
+          "p95": 13.480492115020738,
+          "p99": 19.40723676681517,
+          "max": 34.24972915649414
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.05732124671339989,
+          "p95": 0.3921697139739991,
+          "maximum": 1.1360281705856323
+        },
+        "object_angular_speed_rad_s": {
+          "median": 0.728640079498291,
+          "p95": 7.815511798858643,
+          "maximum": 15.754687309265137
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.099092498421669,
+          "p95": 0.20722488537430758,
+          "maximum": 0.24608682096004486
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865487.9063663,
+        "finished": 1793865555.4802818,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 10.800703038927168,
+            "max_s": 10.800703038927168
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 7.174261078936979,
+            "max_s": 7.174261078936979
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.4718185570091009,
+            "max_s": 0.4718185570091009
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.36637318902648985,
+            "max_s": 0.36637318902648985
+          },
+          "video_encode": {
+            "calls": 365,
+            "wall_s": 5.251870856271125,
+            "max_s": 0.05955229001119733
+          },
+          "rl_inference_cpu": {
+            "calls": 365,
+            "wall_s": 4.199005581322126,
+            "max_s": 0.05179214396048337
+          },
+          "physics_render_sensors": {
+            "calls": 365,
+            "wall_s": 23.951928873895667,
+            "max_s": 0.13709837198257446
+          },
+          "numeric_recording": {
+            "calls": 365,
+            "wall_s": 8.459525577607565,
+            "max_s": 0.0676448259036988
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.1504299141233787,
+            "max_s": 0.15042784402612597
+          }
+        },
+        "resource_wait_s": 0.45889306848403066,
+        "resource_pacing_s": 5.6347736158641055,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01/stages/pilot_A060_02/attempt_1/output/r931005_1793209376_e00_p000040/rollout.mp4"
+    },
+    {
+      "name": "pilot_native_03",
+      "factor": "native",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000178",
+        "cohort": "train",
+        "seed": 23010002,
+        "selection_index": 1,
+        "source_duration_sim_s": 2.63333333228,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 155,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 155,
+        "termination_tick": 155,
+        "duration_sim_s": 2.5833333323,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.08951761573553085
+      },
+      "events": {
+        "ticks": 155,
+        "duration_sim_s": 2.5833333323,
+        "first_contact_tick": 63,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": null,
+        "first_subgoal_tick": 123,
+        "all_insertion_goals_tick": 155,
+        "first_complete_tick": 155,
+        "first_native_success_tick": 155,
+        "termination_tick": 155,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 1.5517253195866942,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 8.940696716308594e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 1.04999999958,
+          "lift": null,
+          "first_subgoal": 2.0499999991799998,
+          "all_insertion_goals": 2.5833333323,
+          "complete": 2.5833333323
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 152,
+          "satisfied_ticks": 4,
+          "longest_consecutive_ticks": 4,
+          "minimum_final_keypoint_distance_mm": 1.551734865643084,
+          "closest_final_tick": 155,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 5.960464477539063e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 1085,
+          "mean": 0.12077467938432307,
+          "min": 0.0001898700138553977,
+          "p05": 0.013868332654237748,
+          "p25": 0.07927601039409637,
+          "median": 0.12796267867088318,
+          "p75": 0.15730325877666473,
+          "p95": 0.20626780092716215,
+          "p99": 0.28366173624992375,
+          "max": 0.8205298781394958
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 1085,
+          "mean": 1.3949328854927108,
+          "min": 0.00033885237644426525,
+          "p05": 0.027702925726771358,
+          "p25": 0.19232510030269623,
+          "median": 0.5773316025733948,
+          "p75": 1.4805113077163696,
+          "p95": 4.565122890472411,
+          "p99": 17.137814941406294,
+          "max": 37.994380950927734
+        },
+        "arm_target_rate_rad_s": {
+          "n": 1085,
+          "mean": 0.1423173003012426,
+          "min": 0.0005006790161132812,
+          "p05": 0.08015584200620651,
+          "p25": 0.14999626576900482,
+          "median": 0.14999984204769135,
+          "p75": 0.15000341832637787,
+          "p95": 0.15000341832637787,
+          "p99": 0.15000341832637787,
+          "max": 0.15000341832637787
+        },
+        "arm_tracking_rad": {
+          "n": 1085,
+          "mean": 0.007243330628624023,
+          "min": 5.626678466796875e-05,
+          "p05": 0.0008528411388397217,
+          "p25": 0.004008650779724121,
+          "median": 0.005984485149383545,
+          "p75": 0.009484320878982544,
+          "p95": 0.01735541820526123,
+          "p99": 0.022238140106201176,
+          "max": 0.025788307189941406
+        },
+        "hand_speed_rad_s": {
+          "n": 3410,
+          "mean": 0.9063540661198094,
+          "min": 7.928235845611198e-11,
+          "p05": 0.00011401445553929083,
+          "p25": 0.01905769295990467,
+          "median": 0.22309888899326324,
+          "p75": 1.2137218713760376,
+          "p95": 4.093905138969418,
+          "p99": 5.861838870048523,
+          "max": 8.954599380493164
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 3410,
+          "mean": 18.077782210965033,
+          "min": 4.942840519106539e-07,
+          "p05": 0.00794147695414722,
+          "p25": 0.3446882292628288,
+          "median": 4.2749176025390625,
+          "p75": 20.055575847625732,
+          "p95": 87.50741043090818,
+          "p99": 150.28296035766542,
+          "max": 477.5152893066406
+        },
+        "hand_target_rate_rad_s": {
+          "n": 3410,
+          "mean": 1.154951075526227,
+          "min": 0.0,
+          "p05": 2.6822087875189027e-06,
+          "p25": 0.013191735139116645,
+          "median": 0.2652193456888199,
+          "p75": 1.4213609993457794,
+          "p95": 5.684016990661615,
+          "p99": 8.113428869247429,
+          "max": 10.471480369567871
+        },
+        "hand_tracking_rad": {
+          "n": 3410,
+          "mean": 0.053336048620739644,
+          "min": 2.9802322387695312e-08,
+          "p05": 3.593002766137943e-05,
+          "p25": 0.0009875430550891906,
+          "median": 0.013605251908302307,
+          "p75": 0.06889146380126476,
+          "p95": 0.22840098291635513,
+          "p99": 0.41036063671111994,
+          "max": 0.7281320691108704
+        },
+        "fingertip_contact_N": {
+          "n": 1550,
+          "mean": 2.5934798981103624,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 1.6121755242347717,
+          "p95": 15.383371019363398,
+          "p99": 25.674237880706787,
+          "max": 35.037513732910156
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.09186612814664841,
+          "p95": 0.5353096842765808,
+          "maximum": 0.8333825469017029
+        },
+        "object_angular_speed_rad_s": {
+          "median": 1.1303184032440186,
+          "p95": 8.713868522644042,
+          "maximum": 14.5706787109375
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.17573410272598267,
+          "p95": 0.26017836630344393,
+          "maximum": 0.34467199444770813
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865561.4507844,
+        "finished": 1793865596.7930772,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 8.75747891003266,
+            "max_s": 8.75747891003266
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.50578099291306,
+            "max_s": 5.50578099291306
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.343823128961958,
+            "max_s": 0.343823128961958
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.26823347294703126,
+            "max_s": 0.26823347294703126
+          },
+          "video_encode": {
+            "calls": 155,
+            "wall_s": 2.0951408657711,
+            "max_s": 0.045325559098273516
+          },
+          "rl_inference_cpu": {
+            "calls": 155,
+            "wall_s": 1.4966795779764652,
+            "max_s": 0.04893147700931877
+          },
+          "physics_render_sensors": {
+            "calls": 155,
+            "wall_s": 10.32145608740393,
+            "max_s": 0.2184358590748161
+          },
+          "numeric_recording": {
+            "calls": 155,
+            "wall_s": 3.5966137290233746,
+            "max_s": 0.04341033997479826
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.16740365815348923,
+            "max_s": 0.16740162507630885
+          }
+        },
+        "resource_wait_s": 0.19944210909307003,
+        "resource_pacing_s": 2.189764110953547,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": null
+    },
+    {
+      "name": "pilot_native_04",
+      "factor": "native",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e01_p000075",
+        "cohort": "train",
+        "seed": 23010003,
+        "selection_index": 2,
+        "source_duration_sim_s": 2.84999999886,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 166,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 166,
+        "termination_tick": 166,
+        "duration_sim_s": 2.76666666556,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.10282284021377563
+      },
+      "events": {
+        "ticks": 166,
+        "duration_sim_s": 2.76666666556,
+        "first_contact_tick": 26,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": 109,
+        "first_subgoal_tick": 131,
+        "all_insertion_goals_tick": 166,
+        "first_complete_tick": 166,
+        "first_native_success_tick": 166,
+        "termination_tick": 166,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 1.204396947287023,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 5.21540641784668e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 0.43333333316,
+          "lift": 1.81666666594,
+          "first_subgoal": 2.1833333324599997,
+          "all_insertion_goals": 2.76666666556,
+          "complete": 2.76666666556
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 159,
+          "satisfied_ticks": 8,
+          "longest_consecutive_ticks": 8,
+          "minimum_final_keypoint_distance_mm": 1.204396947287023,
+          "closest_final_tick": 166,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 5.960464477539063e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 1162,
+          "mean": 0.13850039456461646,
+          "min": 0.0008371741278097034,
+          "p05": 0.03182347472757101,
+          "p25": 0.10040878690779209,
+          "median": 0.13684187829494476,
+          "p75": 0.17291982471942902,
+          "p95": 0.257367579638958,
+          "p99": 0.3210854023694996,
+          "max": 0.6173756122589111
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 1162,
+          "mean": 1.3648340695080856,
+          "min": 0.00020295380090828985,
+          "p05": 0.03915153071284294,
+          "p25": 0.23384837806224823,
+          "median": 0.6399982571601868,
+          "p75": 1.5694127082824707,
+          "p95": 4.221400642395021,
+          "p99": 10.875296316146976,
+          "max": 37.9438591003418
+        },
+        "arm_target_rate_rad_s": {
+          "n": 1162,
+          "mean": 0.14223389064730024,
+          "min": 0.001791268470697105,
+          "p05": 0.08170365542173386,
+          "p25": 0.14999626576900482,
+          "median": 0.14999984204769135,
+          "p75": 0.15000341832637787,
+          "p95": 0.15000341832637787,
+          "p99": 0.15000341832637787,
+          "max": 0.15000341832637787
+        },
+        "arm_tracking_rad": {
+          "n": 1162,
+          "mean": 0.00799742603807577,
+          "min": 5.066394805908203e-05,
+          "p05": 0.0009289776906371117,
+          "p25": 0.0038937568315304816,
+          "median": 0.00612960010766983,
+          "p75": 0.009889006614685059,
+          "p95": 0.02206946611404419,
+          "p99": 0.030356795787811423,
+          "max": 0.03626060485839844
+        },
+        "hand_speed_rad_s": {
+          "n": 3652,
+          "mean": 1.0424893070831496,
+          "min": 5.8549787240735895e-09,
+          "p05": 1.3907032143833938e-05,
+          "p25": 0.022448258940130472,
+          "median": 0.34080927073955536,
+          "p75": 1.5767605900764465,
+          "p95": 4.215669035911558,
+          "p99": 6.1176323556900005,
+          "max": 7.909369468688965
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 3652,
+          "mean": 19.182789048675442,
+          "min": 1.2309282055866788e-06,
+          "p05": 0.0027024658513255424,
+          "p25": 0.521698072552681,
+          "median": 4.994417428970337,
+          "p75": 22.872661590576172,
+          "p95": 87.96026000976559,
+          "p99": 154.23719100952115,
+          "max": 316.73870849609375
+        },
+        "hand_target_rate_rad_s": {
+          "n": 3652,
+          "mean": 1.316972956772717,
+          "min": 0.0,
+          "p05": 3.576278322725557e-05,
+          "p25": 0.010175922885537148,
+          "median": 0.3652956038713455,
+          "p75": 1.8860258162021637,
+          "p95": 5.708304286003101,
+          "p99": 8.327614698410025,
+          "max": 10.693157196044922
+        },
+        "hand_tracking_rad": {
+          "n": 3652,
+          "mean": 0.06005017325457275,
+          "min": 1.4901161193847656e-08,
+          "p05": 2.9310397803783416e-05,
+          "p25": 0.001005665399134159,
+          "median": 0.014560054987668991,
+          "p75": 0.08123067021369934,
+          "p95": 0.25715864300727814,
+          "p99": 0.5249251955747591,
+          "max": 0.8726749420166016
+        },
+        "fingertip_contact_N": {
+          "n": 1660,
+          "mean": 2.9462918338663204,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 2.5992677807807922,
+          "p95": 15.824128437042235,
+          "p99": 27.20366720199593,
+          "max": 56.42741775512695
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.23337936401367188,
+          "p95": 0.5500394105911255,
+          "maximum": 0.7147536873817444
+        },
+        "object_angular_speed_rad_s": {
+          "median": 2.4236268997192383,
+          "p95": 12.822807312011719,
+          "maximum": 19.83316421508789
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.20992758870124817,
+          "p95": 0.3786323249340054,
+          "maximum": 0.44269436597824097
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865601.9414499,
+        "finished": 1793865640.3343477,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 9.52787521504797,
+            "max_s": 9.52787521504797
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 7.565627359086648,
+            "max_s": 7.565627359086648
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.40153591299895197,
+            "max_s": 0.40153591299895197
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.41123930597677827,
+            "max_s": 0.41123930597677827
+          },
+          "video_encode": {
+            "calls": 166,
+            "wall_s": 2.454968058504164,
+            "max_s": 0.05398753401823342
+          },
+          "rl_inference_cpu": {
+            "calls": 166,
+            "wall_s": 2.016669930308126,
+            "max_s": 0.051272365963086486
+          },
+          "physics_render_sensors": {
+            "calls": 166,
+            "wall_s": 11.395374110084958,
+            "max_s": 0.12684396503027529
+          },
+          "numeric_recording": {
+            "calls": 166,
+            "wall_s": 3.869948048959486,
+            "max_s": 0.043784896028228104
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.15453385398723185,
+            "max_s": 0.15453139797318727
+          }
+        },
+        "resource_wait_s": 0.2242411458864808,
+        "resource_pacing_s": 0.0002483690623193979,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": null
+    },
+    {
+      "name": "pilot_native_05",
+      "factor": "native",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000091",
+        "cohort": "train",
+        "seed": 23010004,
+        "selection_index": 3,
+        "source_duration_sim_s": 3.03333333212,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 201,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 201,
+        "termination_tick": 201,
+        "duration_sim_s": 3.34999999866,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.08859527111053467
+      },
+      "events": {
+        "ticks": 201,
+        "duration_sim_s": 3.34999999866,
+        "first_contact_tick": 81,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": null,
+        "first_subgoal_tick": 167,
+        "all_insertion_goals_tick": 201,
+        "first_complete_tick": 201,
+        "first_native_success_tick": 201,
+        "termination_tick": 201,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 2.0604259334504604,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 4.470348358154297e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 1.34999999946,
+          "lift": null,
+          "first_subgoal": 2.78333333222,
+          "all_insertion_goals": 3.34999999866,
+          "complete": 3.34999999866
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 198,
+          "satisfied_ticks": 4,
+          "longest_consecutive_ticks": 4,
+          "minimum_final_keypoint_distance_mm": 2.0603870507329702,
+          "closest_final_tick": 201,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 5.960464477539063e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 1407,
+          "mean": 0.1233010554321553,
+          "min": 0.0009390073246322572,
+          "p05": 0.02066880352795124,
+          "p25": 0.0903494618833065,
+          "median": 0.13153167068958282,
+          "p75": 0.15050271898508072,
+          "p95": 0.19800180196762088,
+          "p99": 0.27117861330509213,
+          "max": 1.0472016334533691
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 1407,
+          "mean": 1.233944861831365,
+          "min": 0.00023156403040047735,
+          "p05": 0.015548295620828866,
+          "p25": 0.12482329830527306,
+          "median": 0.44764748215675354,
+          "p75": 1.3096584677696228,
+          "p95": 4.222288084030152,
+          "p99": 10.839373130798348,
+          "max": 75.8995590209961
+        },
+        "arm_target_rate_rad_s": {
+          "n": 1407,
+          "mean": 0.14300268682913486,
+          "min": 0.00010438262688694522,
+          "p05": 0.0865405723452568,
+          "p25": 0.14999626576900482,
+          "median": 0.14999984204769135,
+          "p75": 0.15000341832637787,
+          "p95": 0.15000341832637787,
+          "p99": 0.15000341832637787,
+          "max": 0.15000341832637787
+        },
+        "arm_tracking_rad": {
+          "n": 1407,
+          "mean": 0.007561128932715267,
+          "min": 1.4185905456542969e-05,
+          "p05": 0.001519644260406494,
+          "p25": 0.00470203161239624,
+          "median": 0.006089869886636734,
+          "p75": 0.007890928536653519,
+          "p95": 0.020185823738575,
+          "p99": 0.031913952827453615,
+          "max": 0.03827792406082153
+        },
+        "hand_speed_rad_s": {
+          "n": 4422,
+          "mean": 0.8414935695635035,
+          "min": 5.884459142180276e-09,
+          "p05": 2.7279325968265768e-05,
+          "p25": 0.009827401721850038,
+          "median": 0.1737760454416275,
+          "p75": 1.0931820273399353,
+          "p95": 3.9573337674140876,
+          "p99": 5.803639154434204,
+          "max": 10.17569351196289
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 4422,
+          "mean": 17.637894779999733,
+          "min": 4.4037273028152413e-07,
+          "p05": 0.004899149853736162,
+          "p25": 0.19439638033509254,
+          "median": 2.7944599390029907,
+          "p75": 18.335670471191406,
+          "p95": 86.3647510528564,
+          "p99": 155.43454269409173,
+          "max": 369.8169860839844
+        },
+        "hand_target_rate_rad_s": {
+          "n": 4422,
+          "mean": 1.0769000731917,
+          "min": 0.0,
+          "p05": 8.401090312304407e-08,
+          "p25": 0.0024282929953187704,
+          "median": 0.14735610783100128,
+          "p75": 1.408767580986023,
+          "p95": 5.341869473457336,
+          "p99": 7.97371633529663,
+          "max": 10.452489852905273
+        },
+        "hand_tracking_rad": {
+          "n": 4422,
+          "mean": 0.048308745397871215,
+          "min": 0.0,
+          "p05": 2.757832407951356e-06,
+          "p25": 0.0003589065745472908,
+          "median": 0.007366335950791836,
+          "p75": 0.058410332538187504,
+          "p95": 0.22531842291355123,
+          "p99": 0.45557838320732097,
+          "max": 0.6898977756500244
+        },
+        "fingertip_contact_N": {
+          "n": 2010,
+          "mean": 2.5077881760858185,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 1.6172691881656647,
+          "p95": 13.208792543411247,
+          "p99": 21.44508451461795,
+          "max": 31.531766891479492
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.16368789970874786,
+          "p95": 0.6540516018867493,
+          "maximum": 0.9455780386924744
+        },
+        "object_angular_speed_rad_s": {
+          "median": 1.72018563747406,
+          "p95": 9.813645362854004,
+          "maximum": 18.34131622314453
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.1739705502986908,
+          "p95": 0.2660958558320999,
+          "maximum": 0.3258238434791565
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865645.9668324,
+        "finished": 1793865687.4893765,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 9.421620382927358,
+            "max_s": 9.421620382927358
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.009977227076888,
+            "max_s": 5.009977227076888
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.33705514296889305,
+            "max_s": 0.33705514296889305
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.36937399103771895,
+            "max_s": 0.36937399103771895
+          },
+          "video_encode": {
+            "calls": 201,
+            "wall_s": 3.0752103553386405,
+            "max_s": 0.049177506007254124
+          },
+          "rl_inference_cpu": {
+            "calls": 201,
+            "wall_s": 2.307898286380805,
+            "max_s": 0.04958821798209101
+          },
+          "physics_render_sensors": {
+            "calls": 201,
+            "wall_s": 13.703372820396908,
+            "max_s": 0.15976984007284045
+          },
+          "numeric_recording": {
+            "calls": 201,
+            "wall_s": 4.637961827800609,
+            "max_s": 0.04183252702932805
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.18301286385394633,
+            "max_s": 0.18301028991118073
+          }
+        },
+        "resource_wait_s": 0.27931462170090526,
+        "resource_pacing_s": 1.6094558937475085,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": null
+    },
+    {
+      "name": "pilot_native_06",
+      "factor": "native",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e02_p000159",
+        "cohort": "train",
+        "seed": 23010005,
+        "selection_index": 4,
+        "source_duration_sim_s": 3.19999999872,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 190,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 190,
+        "termination_tick": 190,
+        "duration_sim_s": 3.1666666653999997,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.09528845548629761
+      },
+      "events": {
+        "ticks": 190,
+        "duration_sim_s": 3.1666666653999997,
+        "first_contact_tick": 67,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": 106,
+        "first_subgoal_tick": 155,
+        "all_insertion_goals_tick": 190,
+        "first_complete_tick": 190,
+        "first_native_success_tick": 190,
+        "termination_tick": 190,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 1.5048965578898787,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 6.332993507385254e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 1.11666666622,
+          "lift": 1.7666666659599999,
+          "first_subgoal": 2.5833333323,
+          "all_insertion_goals": 3.1666666653999997,
+          "complete": 3.1666666653999997
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 184,
+          "satisfied_ticks": 7,
+          "longest_consecutive_ticks": 7,
+          "minimum_final_keypoint_distance_mm": 1.5048497589305043,
+          "closest_final_tick": 190,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 5.960464477539063e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 1330,
+          "mean": 0.12404464482727173,
+          "min": 0.00036114268004894257,
+          "p05": 0.02148549947887659,
+          "p25": 0.0864911638200283,
+          "median": 0.12914379686117172,
+          "p75": 0.15467650815844536,
+          "p95": 0.22139310687780375,
+          "p99": 0.2985750102996827,
+          "max": 0.5027740001678467
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 1330,
+          "mean": 1.2036102233406663,
+          "min": 0.0001233816146850586,
+          "p05": 0.035162754356861115,
+          "p25": 0.19536583125591278,
+          "median": 0.6255572438240051,
+          "p75": 1.4032995104789734,
+          "p95": 3.8837628245353675,
+          "p99": 10.279005594253551,
+          "max": 25.518592834472656
+        },
+        "arm_target_rate_rad_s": {
+          "n": 1330,
+          "mean": 0.1406140848467979,
+          "min": 0.00024318693613167852,
+          "p05": 0.061458390206098557,
+          "p25": 0.14999626576900482,
+          "median": 0.14999984204769135,
+          "p75": 0.15000341832637787,
+          "p95": 0.15000341832637787,
+          "p99": 0.15000341832637787,
+          "max": 0.15000341832637787
+        },
+        "arm_tracking_rad": {
+          "n": 1330,
+          "mean": 0.006876691405598382,
+          "min": 7.748603820800781e-06,
+          "p05": 0.0005975544452667237,
+          "p25": 0.003818035125732422,
+          "median": 0.005945935845375061,
+          "p75": 0.008377112448215485,
+          "p95": 0.01762338876724243,
+          "p99": 0.02177505612373352,
+          "max": 0.026317834854125977
+        },
+        "hand_speed_rad_s": {
+          "n": 4180,
+          "mean": 0.8897678799381821,
+          "min": 3.993031327809149e-08,
+          "p05": 0.0002352288996917197,
+          "p25": 0.01994265615940094,
+          "median": 0.25656987726688385,
+          "p75": 1.1483461558818817,
+          "p95": 4.1052589178085315,
+          "p99": 5.632743821144104,
+          "max": 9.832070350646973
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 4180,
+          "mean": 17.594823545402846,
+          "min": 1.1404457609387464e-06,
+          "p05": 0.01586378198117018,
+          "p25": 0.4088098704814911,
+          "median": 4.441385269165039,
+          "p75": 19.98578405380249,
+          "p95": 85.72140426635741,
+          "p99": 141.70366485595704,
+          "max": 421.8442077636719
+        },
+        "hand_target_rate_rad_s": {
+          "n": 4180,
+          "mean": 1.1085819604027976,
+          "min": 0.0,
+          "p05": 2.0004808845897097e-06,
+          "p25": 0.012271079234778881,
+          "median": 0.2754262089729309,
+          "p75": 1.4005644917488098,
+          "p95": 5.1513189077377275,
+          "p99": 7.940673661231996,
+          "max": 10.47007942199707
+        },
+        "hand_tracking_rad": {
+          "n": 4180,
+          "mean": 0.05704460200473938,
+          "min": 2.644956111907959e-07,
+          "p05": 4.2687759560067213e-05,
+          "p25": 0.0011592544615268707,
+          "median": 0.016519290395081043,
+          "p75": 0.0698202345520258,
+          "p95": 0.24548882171511613,
+          "p99": 0.4833645564317704,
+          "max": 0.6552335023880005
+        },
+        "fingertip_contact_N": {
+          "n": 1900,
+          "mean": 3.5062439225966995,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 2.0201476216316223,
+          "p95": 22.04919614791867,
+          "p99": 37.05963291168213,
+          "max": 51.88025665283203
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.137785866856575,
+          "p95": 0.5987799912691114,
+          "maximum": 0.8414419889450073
+        },
+        "object_angular_speed_rad_s": {
+          "median": 1.399202585220337,
+          "p95": 9.89662237167358,
+          "maximum": 19.036636352539062
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.15826156735420227,
+          "p95": 0.2635413229465485,
+          "maximum": 0.3012000322341919
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793865692.3874865,
+        "finished": 1793865733.393592,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 9.408049477031454,
+            "max_s": 9.408049477031454
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.775753868045285,
+            "max_s": 5.775753868045285
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.42807687900494784,
+            "max_s": 0.42807687900494784
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.3074871830176562,
+            "max_s": 0.3074871830176562
+          },
+          "video_encode": {
+            "calls": 190,
+            "wall_s": 2.7566622466547415,
+            "max_s": 0.052523071062751114
+          },
+          "rl_inference_cpu": {
+            "calls": 190,
+            "wall_s": 1.9649319933960214,
+            "max_s": 0.05107501894235611
+          },
+          "physics_render_sensors": {
+            "calls": 190,
+            "wall_s": 12.660987659008242,
+            "max_s": 0.14020681206602603
+          },
+          "numeric_recording": {
+            "calls": 190,
+            "wall_s": 4.443933657370508,
+            "max_s": 0.04543103091418743
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.17006825504358858,
+            "max_s": 0.1700659820344299
+          }
+        },
+        "resource_wait_s": 0.2542607185896486,
+        "resource_pacing_s": 2.3523710115114227,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": null
     }
   ]
 }
