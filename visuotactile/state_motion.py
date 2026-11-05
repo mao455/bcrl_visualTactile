@@ -3,6 +3,14 @@ import json
 import h5py
 import numpy as np
 
+def distribution(values):
+    a = np.asarray(values, dtype=float).reshape(-1)
+    a = a[np.isfinite(a)]
+    return dict(count=int(a.size), mean=float(a.mean()) if a.size else None,
+                **{k: float(np.quantile(a, q)) if a.size else None for k, q in
+                   [('p05', .05), ('p50', .5), ('p95', .95), ('max', 1.)]})
+
+
 def target_metrics(targets):
     x = np.asarray(targets)
     result = {}

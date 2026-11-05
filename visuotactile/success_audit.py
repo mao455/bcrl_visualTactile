@@ -11,7 +11,7 @@ import h5py
 import numpy as np
 import torch
 
-from .native_data import rotate
+from .native_data import rotate,multiply_quaternion
 from tools.runtime import read, write, sha
 
 
@@ -63,7 +63,33 @@ def reconstruct(distance, fingertip_mean, config, max_goals):
     return dict(subgoals=np.asarray(counts),complete=np.asarray(success),near_count=np.asarray(near_counts),retract=np.asarray(enter))
 
 
-def analyze(group, metadata, trace_output=None):
+def terminal_geometry(obj,hole,fingertips,goal_state,config):
+    """Final geometric/retraction predicate only; NEVER replaces native success.
+
+    Uses this environment's exported insertion pose sequence. In particular it
+    must not mistake the currently active pre-insertion goal for the final pose.
+    """
+    assert config['precise_assembly']['goal_mode']=='preInsertAndFinal'
+    assert goal_state['_insert_pos_rel'].shape==(2,3)
+    hole=torch.from_numpy(hole);q=hole[:,3:]
+    final=torch.cat((hole[:,:3]+rotate(q,goal_state['_insert_pos_rel'][-1].expand(len(hole),-1)),
+        multiply_quaternion(q,goal_state['_insert_quat_wxyz'][-1].expand(len(hole),-1))),-1).numpy()
+    distance=keypoint_distance(obj,final,config['reward'])
+    fingers=np.linalg.norm(fingertips-obj[:,None,:3],axis=-1).mean(-1)
+    p=config['precise_assembly'];limit=p['retract_success_tolerance']*config['reward']['keypoint_scale']
+    mask=(distance<=limit)&(fingers>p['retract_distance_threshold'])
+    longest=current=0
+    for value in mask:
+        current=current+1 if value else 0;longest=max(longest,current)
+    return dict(ever_satisfied=bool(mask.any()),first_tick=first(mask),satisfied_ticks=int(mask.sum()),
+        longest_consecutive_ticks=longest,minimum_final_keypoint_distance_mm=float(distance.min()*1000),
+        closest_final_tick=int(distance.argmin()+1),final_tolerance_m=limit,
+        fingertip_mean_threshold_m=p['retract_distance_threshold'],
+        scope='Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite',
+        changes_native_success_or_termination=False),distance,mask
+
+
+def analyze(group, metadata, trace_output=None, goal_state=None):
     tr=group['transition']; before=tr['diagnostics_before']; after=tr['diagnostics_after']
     cfg=metadata['config']; dt=float(metadata['control_dt']); assert abs(dt-1/60)<1e-9
     obj=after['object_pose_w'][:]; goal=before['goal_pose_w'][:]
@@ -108,9 +134,21 @@ def analyze(group, metadata, trace_output=None):
             samples[part+'_'+name]=np.abs(value[:,sl]).reshape(-1)
     samples['fingertip_contact_N']=np.linalg.norm(force,axis=-1).reshape(-1)
     result['motion']={k:distribution(v) for k,v in samples.items()}
+    extra={}
+    if goal_state is not None:
+        diagnosis,final_distance,terminal_mask=terminal_geometry(obj,before['hole_pose_w'][:],after['finger_position_w'][:],goal_state,cfg)
+        result['terminal_geometry']=diagnosis
+        final_stage=before['successes'][:]>=1
+        if final_stage.any():
+            # Both independent reconstructions refer to the same final goal once
+            # the native state machine advances; this checks frame/pose sequence.
+            delta=float(np.abs(final_distance[final_stage]-distance[final_stage]).max())
+            result['terminal_geometry']['native_final_stage_geometry_max_difference_m']=delta
+            assert delta<2e-6,'Exported final goal frame disagrees with active native final goal'
+        extra=dict(final_keypoint_distance_m=final_distance,terminal_geometry_only=terminal_mask)
     if trace_output:
         np.savez_compressed(trace_output,keypoint_distance_m=distance,fingertip_mean_m=ft,native_success=native,
-            native_subgoals=observed_subgoals,**reconstructed)
+            native_subgoals=observed_subgoals,**reconstructed,**extra)
     return result,samples
 
 

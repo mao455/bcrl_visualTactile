@@ -315,12 +315,13 @@ class RandomEvaluation(Owner):
         return record
 
     def status(self,**kw):
-        value=read(self.root/'status.json');value.update(pid=os.getpid(),heartbeat=time.time(),**kw)
+        value=read(self.root/'status.json');value.update(pid=os.getpid(),heartbeat=time.time());value.update(kw)
         write(self.root/'status.json',value)
 
     def validate_kit(self,record):
         import h5py
         import numpy as np
+        import torch
         from visuotactile.success_audit import analyze
         from visuotactile.video import verify_video
         result=record['result'];assert len(result['trials'])==1
@@ -346,7 +347,8 @@ class RandomEvaluation(Owner):
             assert audit['completed'] and audit['history_initially_empty'] and audit['model_output_only']
         with np.load(directory/'trace.npz') as z:assert all(np.isfinite(z[k]).all() for k in z.files)
         with h5py.File(directory/'numeric.h5') as f:
-            audit,_=analyze(f['episode'],metadata,directory/'success_audit.npz')
+            goal_state=torch.load(directory/'initial_export.pt',map_location='cpu',weights_only=False)['env_tensors']
+            audit,_=analyze(f['episode'],metadata,directory/'success_audit.npz',goal_state=goal_state)
         write(directory/'success_audit.json',audit)
         assert audit['passed'], 'Native success/termination audit disagreement'
         assert trial['first_success_tick']==audit['first_complete_tick']
@@ -392,15 +394,16 @@ class RandomEvaluation(Owner):
                 stable_grasp_diagnostic=sum(t.get('contact',{}).get('stable_grasp_diagnostic',False) for t in trials),
                 native_alignment=sum(t['native_alignment'] for t in trials),
                 ever_complete=sum(t['ever_complete_success'] for t in trials),
+                terminal_geometry_diagnostic=sum(x['success_audit'].get('terminal_geometry',{}).get('ever_satisfied',False) for x in selected),
                 other_failure=sum(not t['success'] and not any(t['reasons'].get(k) for k in ('fall','dropped','timeout')) for t in trials))
             rows.append(c)
         summary=dict(status=read(self.root/'status.json'),planned_valid=200,primary_planned_starts=200,
-            maximum_starts=self.s['kit_maximum_starts'],actual_starts=len(self.attempts),formal_attempts=len(formal),
+            maximum_starts=self.s['kit_maximum_starts'],actual_starts=len(self.attempts),formal_attempts=sum(x['name'].startswith('random_') for x in self.attempts),
             valid=len(valid),pending_valid=200-len(valid),software_missing=sum(not x.get('valid') for x in formal),
             acceptance_failed=sum(x.get('valid',False) and not x.get('native_outcome_valid',False) and not x.get('initialization_rejected') for x in formal),
             initialization_rejections=sum(x.get('initialization_rejected',False) for x in formal),
             shutdown_faults=sum(x.get('native_outcome_valid',False) and x['exit_code']!=0 for x in formal),
-            smoke_attempts=len(completed)-len(formal),smoke_valid=sum(x.get('native_outcome_valid',False) for x in completed if not x['name'].startswith('random_')),
+            smoke_attempts=sum(not x['name'].startswith('random_') for x in self.attempts),smoke_valid=sum(x.get('native_outcome_valid',False) for x in completed if not x['name'].startswith('random_')),
             smoke_software_missing=sum(not x.get('valid') for x in completed if not x['name'].startswith('random_')),
             smoke_acceptance_failed=sum(bool(x.get('acceptance_error')) for x in completed if not x['name'].startswith('random_')),
             groups=rows,checkpoint=read(self.root/'checkpoint.json'),sampling_seed=self.s['sampling_seed'],
@@ -416,9 +419,10 @@ class RandomEvaluation(Owner):
             ci='N/A' if r['ci95'] is None else '–'.join(f'{v:.1%}' for v in r['ci95'])
             rate='N/A' if r['success_rate'] is None else f"{r['success_rate']:.1%}"
             lines.append(f"|{r['group']}|{r['success']}/{r['valid']}|{rate}|{ci}|{r['contact']}|{r['stable_grasp_diagnostic']}|{r['lift']}|{r['first_subgoal']}|")
-        lines += ['',f"Planned valid 200; formal attempts {len(formal)}; valid {len(valid)}; pending {200-len(valid)}; software missing {summary['software_missing']}; initial rejections {summary['initialization_rejections']}; shutdown faults {summary['shutdown_faults']}.",
+        lines += ['',f"Planned valid 200; formal attempts {summary['formal_attempts']}; valid {len(valid)}; pending {200-len(valid)}; software missing {summary['software_missing']}; initial rejections {summary['initialization_rejections']}; shutdown faults {summary['shutdown_faults']}.",
             f"Acceptance failures {summary['acceptance_failed']}. Separate smoke attempts {summary['smoke_attempts']}, valid {summary['smoke_valid']}, software missing {summary['smoke_software_missing']}.",
             'Contact, approach and stable grasp are diagnostics, not native success. A legal task failure remains in the denominator.',
+            'Final-pose plus fingers-clear diagnostic (ordered native success unchanged): '+', '.join(f"{r['group']} {r['terminal_geometry_diagnostic']}/{r['valid']}" for r in rows)+'.',
             summary['limitation'],f"State: {summary['status'].get('state')}; stage: {summary['status'].get('stage')}."]
         (self.root/'EVALUATION_SUMMARY.md').write_text('\n'.join(lines)+'\n')
 
@@ -488,12 +492,14 @@ class RandomEvaluation(Owner):
             try:
                 smoke_jobs=[('smoke_state_0',self.s['smoke_specs'][0],False),
                     ('smoke_state_1',self.s['smoke_specs'][1],False),('smoke_expert',self.s['smoke_specs'][1],True)]
+                if self.s.get('smoke_fresh'):
+                    smoke_jobs.append(('smoke_fresh',self.s['smoke_fresh'],False))
                 for name,spec,expert in smoke_jobs:
                     record=self.kit(name,self.payload(spec,expert))
                     assert record.get('native_outcome_valid') and record['resources_released']
                     if expert:assert record['result']['trials'][0]['success'],'Expert success acceptance failed'
                     if not record.get('retained_video'):self.retain_video(record)
-                write(root/'smoke_gate.json',dict(passed=True,utc=time.time(),full_episodes=3,
+                write(root/'smoke_gate.json',dict(passed=True,utc=time.time(),full_episodes=len(smoke_jobs),
                     purpose='Runtime correctness, complete native expert success, frozen first-plan parity and OS resource reclamation',
                     sdk_graceful_shutdown_claimed=False,parallel_execution_used=False))
                 self.status(state='supervised_ready',stage='awaiting_recorded_smoke_review',worker_pid=None);self.report()

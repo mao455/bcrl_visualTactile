@@ -20,6 +20,7 @@ from .expert import create_expert, environment_identity, export_initial
 from .state_resources import lease_for
 from .recording import append_numeric
 from .state_history import HistoryController
+from .state_motion import plan_metrics, distribution
 from .training_resources import atomic_json
 
 
@@ -266,7 +267,6 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         if position:
             result['submitted_target_max_error']=float(np.abs(arrays['command']-arrays['target']).max())
         if inference is not None:
-            from .state_motion import plan_metrics, distribution
             from .native_evaluation import stable_grasp
             initial=json.loads((output/'initial_observable.json').read_text())
             result['contact']=stable_grasp(arrays,float(initial['object_pose_w'][0][2]))

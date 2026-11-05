@@ -4,7 +4,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from visuotactile.success_audit import reconstruct, keypoint_distance
+from visuotactile.success_audit import reconstruct, keypoint_distance,terminal_geometry
 from tools.anchor_interim_eval import random_specs, wilson, initial_signature
 
 
@@ -91,3 +91,34 @@ def test_missing_software_result_does_not_enter_task_denominator(tmp_path,monkey
     assert all(r['success_rate'] is None and r['ci95'] is None for r in report['groups'])
     text=(tmp_path/'research_docs/STATE_DP_RESULTS.md').read_text()
     assert text.count('<!-- RANDOM_EVALUATION_START -->')==1 and 'Prior evidence.' in text
+
+
+def test_final_pose_diagnostic_does_not_promote_skipped_native_stages():
+    c=config();obj=np.array([[0,0,.02,1,0,0,0]]*19,np.float32)
+    hole=np.array([[0,0,0,1,0,0,0]]*19,np.float32)
+    tips=np.repeat(obj[:,None,:3],5,axis=1);tips[:,:,0]+=.12
+    state=dict(_insert_pos_rel=torch.tensor([[0,0,.06],[0,0,.02]]),
+        _insert_quat_wxyz=torch.tensor([[1.,0,0,0],[1.,0,0,0]]))
+    diagnosis,_,mask=terminal_geometry(obj,hole,tips,state,c)
+    assert diagnosis['ever_satisfied'] and diagnosis['longest_consecutive_ticks']==19
+    assert diagnosis['first_tick']==1 and diagnosis['changes_native_success_or_termination'] is False
+    native=reconstruct(np.full(19,.04),np.full(19,.12),c,2)
+    assert not native['complete'].any() and native['subgoals'].max()==0
+    tips[:,:,0]=.05
+    assert not terminal_geometry(obj,hole,tips,state,c)[0]['ever_satisfied']
+
+
+def test_rollout_result_helpers_import_before_kit_and_keep_latency_schema():
+    from visuotactile.state_benchmark import distribution,plan_metrics
+    result=distribution([1.,3.,float('nan')])
+    assert result['count']==2 and result['p50']==result['mean']==2.
+    assert distribution([])['mean'] is None
+    assert plan_metrics(np.zeros((2,24,29),np.float32))['arm_overlap_rms_rad']==0
+
+
+def test_random_owner_clears_pid_on_real_exit(tmp_path):
+    from tools.anchor_interim_eval import RandomEvaluation
+    from tools.runtime import write,read
+    write(tmp_path/'session.json',{});write(tmp_path/'status.json',dict(pid=123,worker_pid=456))
+    RandomEvaluation(tmp_path).status(state='blocked',pid=None,worker_pid=None)
+    assert read(tmp_path/'status.json')['pid'] is None
