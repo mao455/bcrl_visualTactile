@@ -40,7 +40,7 @@ AdamW betas(.95,.999)、wd1e-6、EMA power.75沿用完整状态。新续训sched
 
 累计epoch=(旧133354+新实际抽样数)/5547；不把anchor曝光写成完整episode或96tick片段遍历。150后是否延长必须结合当前验证与闭环证据；旧queue的自动扩展规则受本轮明确review hold覆盖。Image仍需State实质进展及严格live Image输入配对通过。
 
-## 评估与恢复
+## 历史评估与恢复
 
 EMA，固定同数据、标准化和DDIM种子；端点10000/16584/20918统一train320与validation40，历史曲线train16明确标注。离线teacher-forced指标不能充当闭环成功。冻结validation seeds984101–984104；train拟合诊断982401–982404；不读test40、不改成功判据。
 
@@ -48,11 +48,11 @@ EMA，固定同数据、标准化和DDIM种子；端点10000/16584/20918统一tr
 
 一个owner、有限启动预算、持久日志和逐episode提交。恢复必须验证model、EMA、EMAstep、AdamW moments/step、Python/Torch/CUDA和采样RNG、sampler进度、学习率配置。冻结manifest可因审查后的纯组织迁移更新，但保留旧manifest和每项before/after SHA，不伪造旧源码匹配。
 
-## 本轮随机评估补充
+## 历史随机评估补充（已暂停）
 
 最新授权使用固定State150 checkpoint进行historical100（train320+validation40联合池均匀无放回抽样）及fresh100原reset分布。预注册seed20261105，历史主清单实际91train+9validation，后分层报告；test40排除。原生完整成功仍需两个插入子目标按顺序累计10个合格tick、最终7.5mm几何和撤手距离>0.1m。最终位姿/撤手在未完成前置阶段时仅作独立诊断，不增加原生成功分子。Kit门控针对完整运行、第一plan一致性、可靠落盘和资源回收，不要求重复三次SDK优雅退出。
 
-## 独立慢速专家实验
+## 历史独立慢速专家实验（已结束）
 
 只在expert_speed显式任务启用。A保持60Hz原生RL和一次delay/EMA/limit，在后处理目标上按Arm/Hand独立系数推进，并将执行目标写回原历史；原控制默认不变。B对已处理位置目标在60Hz重参数化，仅走position_rad_v1，不再次滤波。状态/图像只能来自真实重新仿真；新数据监督仍为target_after_rad。原生顺序成功、120Hz物理与阶段超时不变；新慢速数据与400原始数据独立，未通过数据合同前不续训。
 
@@ -70,4 +70,4 @@ H24/commit12、PersistentState、sample/x0、DDIM16、Loss B及既定四辅助�
 
 普通owner自动执行数据验收→GPU一次性前后向/恢复→正式训练→最终闭环。训练按接受数据的anchor数预算100 anchor等效epoch、最多12000更新；每500更新验证并记录train8对照及首12tick方向/幅值/hold/FK，最优checkpoint只按validation选择。测试不进入训练或选权；最终train4与12个预先冻结未见初态分列，保留原生完整成功。60–70%仅为愿望，不是验收阈值或续跑理由。
 
-新运行固定16h（等待计入），采集3h、训练最多12h并预留末1h评估；每阶段最多2次经审查启动，无自动retry。6GiB VRAM/12GiB RAM、shared_recent_v1目标40%、60GiB磁盘余量、75GiB新产物上限。只在实际数据完整验收后写DATA_READY；正式更新和成功率以机器状态为准。
+新运行固定16h（等待计入），采集6h、训练最多9h并预留末1h评估；每阶段最多2次经审查启动，无自动retry。6GiB VRAM/12GiB RAM、shared_recent_v1目标40%、60GiB磁盘余量、75GiB新产物上限。只在实际数据完整验收后写DATA_READY；正式更新和成功率以机器状态为准。

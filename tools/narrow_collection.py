@@ -33,7 +33,9 @@ def check_freeze(root):
 def prepare(root):
     from visuotactile.narrow_data import direct_configuration
     old=read(CODE/'outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01/session.json')
-    domain=read(CODE/'outputs/visuotactile/run/narrow_state_20261105_01/session.json')['domain']
+    center=read(CODE/'outputs/visuotactile/run/narrow_state_20261105_01/session.json')['domain']['center']
+    domain=dict(center=center,sampler='direct_native_reset_v2',object_xy_halfwidth=[.025,.025],
+        relative_xy_halfwidth=[.035,.035],rotation_radius_degrees=20.,native_joint_lerp=.03)
     root.mkdir(parents=True,exist_ok=False)
     candidates=[]
     for i in range(80):
@@ -48,7 +50,7 @@ def prepare(root):
         distribution=dict(object_xy_halfwidth_m=[.025,.025],relative_xy_halfwidth_m=[.035,.035],rotation_radius_deg=20.,
             object_height_above_table_origin_m=[.244,.256],table_z_m=[.376,.384],arm_hand_native_lerp=.03,joint_velocity_halfwidth=.15),
         resource_policy='shared_recent_v1',resource_target_percent=40.,reserve_bytes=60*1024**3,maximum_output_bytes=75*1024**3,
-        maximum_hours=16,collection_hours=3,training_hours=12,maximum_worker_starts=2,maximum_no_progress_s=600,
+        maximum_hours=16,collection_hours=6,training_hours=9,maximum_worker_starts=2,maximum_no_progress_s=600,
         target_families=60,minimum_families=50,target_successes=200,minimum_successes=150,maximum_collection_attempts=244,
         validation_interval=500,maximum_training_updates=12000,anchor_epochs=100,
         loss_weights=read(Path(old['old_root'])/'state_audit/calibration.json')['weights'],
@@ -69,8 +71,10 @@ def owner(root):
         if (root/'PIPELINE_COMPLETE.json').exists():raise RuntimeError('Pipeline already complete')
         if (root/'STOP').exists() or (root/'STOP_AFTER_EPISODE').exists():raise RuntimeError('Stop marker present; explicit resume required')
         if not (root/'budget.json').exists():
-            now=time.time();write(root/'budget.json',dict(started=now,deadline=now+16*3600,collection_deadline=now+3*3600));freeze(root)
-        budget=read(root/'budget.json');s.update(budget,training_deadline=budget['deadline']);write(root/'session.json',s)
+            now=time.time();write(root/'budget.json',dict(started=now,deadline=now+s['maximum_hours']*3600,
+                collection_deadline=now+s['collection_hours']*3600));freeze(root)
+        budget=read(root/'budget.json');s.update(budget,training_deadline=budget['deadline'],
+            owned_worker_roots=[str(root/'training'),str(root/'disposable_gpu'),str(root/'startup_gpu')]);write(root/'session.json',s)
         check_freeze(root)
         if time.time()>=s['deadline']:raise TimeoutError('Original pipeline deadline exhausted')
         (root/'STOP_MONITOR').unlink(missing_ok=True)
@@ -90,7 +94,7 @@ def owner(root):
             with (attempt/'worker.log').open('w') as log:
                 child=subprocess.Popen(RUN+args,cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             write(root/'owner.json',dict(owner=proc(os.getpid()),worker=proc(child.pid),monitor=proc(monitor.pid),stage=stage,attempt=str(attempt)))
-            status_update(root,state='running',stage=stage,worker_pid=child.pid,owned_workers_exited=False)
+            status_update(root,state='running',stage=stage,worker_pid=child.pid,owned_workers_exited=False,last_error=None)
             while child.poll() is None:
                 if monitor.poll() is not None:raise RuntimeError('Resource monitor exited')
                 if time.time()>deadline or (root/'STOP').exists():raise TimeoutError('Fixed deadline/STOP reached')
@@ -204,7 +208,7 @@ def worker(root):
             task_failures=sum(r.get('legal',False) and not r.get('success',False) for r in results.values()),
             initial_rejections=sum(not r.get('legal',False) for r in results.values()),data_ready=False,
             total_control_steps=sum(e['steps'] for e in accepted),bytes=sum(e['size'] for e in accepted),
-            collection_wall_s=time.time()-started,episodes_per_hour=len(results)*3600/max(1,time.time()-started))
+            collection_wall_s=time.time()-s['started'],episodes_per_hour=len(results)*3600/max(1,time.time()-s['started']))
         return accepted
     def one(f,tag,alpha):
         identity=f['identity']+'_'+tag
@@ -260,6 +264,14 @@ def worker(root):
         lease.check();beat('short_supervision');time.sleep(2)
     failures=0
     for job in read(root/'production_plan.json')['jobs']:
+        accepted=read(root/'manifest.json')['episodes']
+        covered={k:len({e['family'] for e in accepted if e['split']==k}) for k in ('train','validation','test')}
+        # Reserve final20min for the current bounded episode and complete cache
+        # audit. A soft count target never overrides the unchanged data gates.
+        if time.time()>s['collection_deadline']-1200:
+            if len(accepted)>=s['minimum_successes'] and covered['train']>=32 and min(covered['validation'],covered['test'])>=6:
+                write(root/'collection_budget_stop.json',dict(utc=time.time(),accepted=len(accepted),remaining_jobs_not_started=True));break
+            raise TimeoutError('Collection budget nearly exhausted without minimum coverage')
         r=one(byid[job['family']],job['tag'],job['alpha'])
         if r is None:return
         failures=0 if r['success'] else failures+1

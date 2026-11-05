@@ -175,7 +175,9 @@ def build_cache(root, *, partial=False):
     records={}; entries={}; splits={k:[] for k in ('train','validation','test')}; families={}
     for e in manifest['episodes']:
         if partial and e['split']!='train': continue
+        if sha256(e['path'])!=e['sha256']:raise ValueError('Accepted capture source hash changed: '+e['id'])
         key,meta,rec=record(e['path']); identity=e['id']; records[identity]=rec
+        assert meta['initial_family']==e['family'] and meta['dataset_split']==e['split'],'Capture family/split provenance mismatch'
         entries[identity]=dict(path=e['path'],episode=key,length=len(rec['time']),family=e['family'],source_sha256=e['sha256'])
         splits[e['split']].append(identity)
         old=families.setdefault(e['family'],e['split'])

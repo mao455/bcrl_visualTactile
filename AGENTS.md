@@ -21,8 +21,8 @@ Fresh random policy/optimizer/EMA/scheduler; no old DP weights. Final train4 dia
 and12 preregistered unseen starts are separate; no outcome-based seed replacement.
 
 An ordinary owner transitions family/data validation -> disposable GPU update -> formal
-training -> final evaluation. New run fixed16h including waits: collection3h, training up
-to12h while reserving1h for evaluation. Each stage at most2 reviewed starts, no automatic
+training -> final evaluation. New run fixed16h including waits: collection6h, training up
+to9h while reserving1h for evaluation. Each stage at most2 reviewed starts, no automatic
 retry; no old deadline reset.6GiB VRAM/12GiB RAM admission, shared_recent_v1 target40%,
 60GiB disk reserve and75GiB run budget. Protect unrelated processes.
 

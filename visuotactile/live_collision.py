@@ -1,7 +1,7 @@
 """Conservative initial clearance from collision meshes at live body poses.
 
-Scene-query pruners in the installed CPU tensor backend retain stale articulation
-shape transforms across resets. This opt-in gate uses no USD world pose, visual
+Scene queries in the installed CPU tensor backend report inconsistent articulation
+overlaps across resets. This opt-in gate uses no USD world pose, visual
 mesh, physics step or state mutation. Every collision mesh must be accounted for.
 """
 import numpy as np

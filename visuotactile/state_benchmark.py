@@ -175,6 +175,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         else:
             controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
     rows = []; plans = []; raw_plans = []; timings = []; first_success_tick = None
+    profile=dict(expert_inference_s=0.,environment_step_render_s=0.,numeric_write_s=0.,compact_append_s=0.,finalize_verify_s=0.)
     numeric = h5py.File(output/'numeric.h5', 'w')
     numeric.attrs['metadata_json'] = json.dumps(metadata, default=str)
     group = numeric.create_group('episode')
@@ -203,7 +204,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 actor = torch.cat((teacher['policy'], player.intr_reward_coef_embd), -1)
                 # Expert shadow follows the actual observed student trajectory;
                 # it never executes and its RNG is outside the environment stream.
+                measured=time.perf_counter()
                 expert_command = player.get_action(actor, is_deterministic=True).clamp(-1, 1)
+                profile['expert_inference_s']+=time.perf_counter()-measured
                 if replay is not None:
                     index=min(tick,len(replay)-1)
                     command = torch.from_numpy(replay[index:index+1])
@@ -237,7 +240,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 if not torch.isfinite(command).all():
                     raise FloatingPointError('Nonfinite policy output')
                 before_rng = isolated.stream.state[2].clone()
+                measured=time.perf_counter()
                 teacher, _, terminated, truncated, _ = isolated.step(command)
+                profile['environment_step_render_s']+=time.perf_counter()-measured
                 transition = env.last_transition
                 transition.update(expert_actor_input_diagnostic=actor.clone(),
                     torch_rng_before_step=before_rng[None], expert_shadow_command=expert_command.clone())
@@ -247,8 +252,11 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     controller.observe_execution(transition)
                 before_packet = {k: v for k, v in packet.items() if torch.is_tensor(v)
                     and k not in ('image', 'depth_m', 'depth_valid')}
+                measured=time.perf_counter()
                 append_numeric(group, dict(obs=before_packet, transition=transition), tick)
+                profile['numeric_write_s']+=time.perf_counter()-measured
                 if stream is not None:
+                    measured=time.perf_counter()
                     from .recording import post_observation
                     # The compact writer deduplicates real adjacent camera frames;
                     # automatic-reset images must be masked on the terminal tick.
@@ -256,6 +264,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     row=flatten(numpy_tree(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
                         transition=transition,terminated=terminated,truncated=truncated)))
                     stream.append({k:v[0] for k,v in row.items()})
+                    profile['compact_append_s']+=time.perf_counter()-measured
                 after = transition['diagnostics_after']
                 # Read the pre-reset native outcome captured by _get_rewards;
                 # never inspect an auto-reset scene to decide the prior result.
@@ -326,10 +335,13 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         if movie:
             movie.close(complete=True)
         if stream is not None:
+            measured=time.perf_counter()
             stream.finish(result)
             count=verify_stream_fields(output/'demonstration/data.h5')
+            profile['finalize_verify_s']+=time.perf_counter()-measured
             result['dataset_capture']=dict(path=str(output/'demonstration/data.h5'),verified_source_fields=count,
                 accepted_success=bool(result['success']),checkpoint_sha256=result['checkpoint_sha256'])
+            result['wall_profile']=dict(profile,scope='Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded')
         atomic_json(output/'result.json', result)
         return result
     finally:

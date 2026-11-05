@@ -1,46 +1,18 @@
-# 当前 StateDP / ImageDP 实验系统
+# Play2Perfect 当前StateDP实验
 
-当前窄分布StateDP采集因持久reset/碰撞准入矛盾停止、数据隔离；没有后台worker。详情见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)和[交接](SESSION_HANDOFF.md)。独立工作树`bc+rl_RSS_narrow_state`、分支`feature/narrow-state-data`；旧State评估保持暂停，不等待或恢复旧200队列。采集通过后只交付数据，不自动正式训练。
+当前任务是直接窄分布新数据→随机初始化StateDP→有界闭环，工作树`bc+rl_RSS_narrow_state`、分支`feature/narrow-state-data`。原400只读；旧State评估暂停；旧narrow v1三条数据隔离。以新root的机器状态为准，不把服务启动当作数据/训练完成。
 
-当前结果与训练决策：[STATE_DP_RESULTS.md](STATE_DP_RESULTS.md)。清理、保留项和回归：[CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)。接口与训练配置以 [CONTRACTS.md](CONTRACTS.md) 为准；历史实验只读摘要见 [RESEARCH_HISTORY.md](RESEARCH_HISTORY.md)。
+- [实验与真实采集结果](SLOW_EXPERT_RESULTS.md)：初始化query误报、直接采样范围、速度与新运行预算。
+- [训练/执行合同](CONTRACTS.md)：H24/commit12、train-only统计、持续历史、随机新训练及固定评估。
+- [StateDP结果](STATE_DP_RESULTS.md)：新运行与原宽分布结果分别标注。
+- [当前交接](SESSION_HANDOFF.md)、[清理](CLEANUP_AUDIT.md)、[变更](CHANGELOG.md)。
 
-## 当前入口
-
-|功能|唯一维护入口|说明|
-|---|---|---|
-|可恢复 State/Image 训练|`visuotactile.anchor_continue`|`--job state/image`；恢复完整状态，参数和数据合同不变|
-|串行队列及里程碑|`tools.anchor_continue_queue`|一个owner；按已提交stage恢复，禁止重复任务|
-|里程碑闭环评估|`tools.anchor_interim_eval`|epoch/cohort由配置给出；等待当前trainer自然完成，独立Kit worker，持有后续训练直到证据审查|
-|独立Kit模型worker|`tools.anchor_continue_worker`|历史/执行审计、视频、生命周期记录和可选Image严格输入捕获|
-|最终随机评估汇总发布|`tools.evaluation_delivery`|CPU后台等待唯一owner退出，按实际分母生成失败分类；锁定HEAD/正文，限制轻量产物发布|
-|统一结果分析|`tools.anchor_interim_analysis`|train/validation分列；三checkpoint端点、接触前增量、曲线、视频位置|
-|不可变数据与模型|`visuotactile.native_data`、`state_history`、`models.native_dp`、`models.native_vision`|State/Image参数独立；共享合法基础组件|
-|共享工具|`checkpointing`、`state_resources`、`video`、`tools.runtime`、`tools.trajectory_metrics`|恢复、资源、进程、视频和统计不再借用旧实验runner|
-|依赖与清理|`tools.project_maintenance`|sources→reviewed plan→apply；保护路径、打开文件、SHA、硬链接计数|
-
-命令使用本仓库 `bash visuotactile/run_cpu.sh`，它进入现有Isaac/PyTorch环境并限制CPU线程。离线训练不加载Kit；真实仿真由独立进程执行。原环境入口 `evaluation/eval_isaacsim.py` 和 `isaacsimenvs/` 保持原项目用途。
-
-当前只读状态（不恢复旧队列）：
+维护入口：`tools.narrow_collection`管理整个新流水线，`visuotactile.anchor_continue fresh-*`复用现有State模型训练，`state_benchmark`执行同一真实环境/记录器，`live_collision`只读初态碰撞网格。原生RL入口和assets不变。
 
 ```bash
-bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root outputs/visuotactile/run/narrow_state_20261105_01
-cat outputs/visuotactile/run/narrow_state_20261105_01/admission_conflict.json
+bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root outputs/visuotactile/run/narrow_state_20261105_02
 ```
 
-新入口`tools.narrow_collection`只采集，`anchor_continue fresh-smoke/fresh-train`用于新数据适配和显式新随机State训练。
-当前root隔离、两次启动预算耗尽，训练门槛拒绝启动。下面的旧训练/评估入口只作已存结果维护说明。
+具体stop/resume和日志位置见实验文档。旧anchor_continue_queue、anchor_interim_eval及evaluation_delivery仅维护历史结果，本轮不运行；旧150→200/300续训、固定三档速度及宽分布扩采方案已被新协议替代。
 
-评估配置在run的`session.json`；checkpoint、实际PID、SHA、阶段结果均在run内。不能照抄历史启动命令重开训练。当前150 epoch之后需要结果决策，不能仅执行`release`就继续训练。`--hold-parent`是明确的证据审查保持状态。
-
-```bash
-# 清理后CPU回归（不启动Kit、不做正式优化）
-bash visuotactile/run_cpu.sh -m pytest -q tests
-# 仅重新生成已有结果的报告
-bash visuotactile/run_cpu.sh -m tools.anchor_interim_analysis --root outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01
-```
-
-## 本地数据
-
-400条原始成功记录在`outputs/visuotactile/data/close_v4`。当前split和视觉索引仍在`native_dp_3way/native_20261101_02`；数值缓存仍在`native_dp_v2/position_20261103_01`；DINO缓存仍在`run/long_horizon_20261030_v2/cache`；位置统计仍在`native_dp_v2/h24_parameterization_20261103_01`。这些旧名字是保留依赖，不表示旧训练仍有效，禁止整目录按日期清理。具体保护理由和清单见清理报告。
-
-raw数据、权重、视频仅本地；Git保留代码、精简数值、图与来源SHA。旧实现与完整旧报告可从[清理前版本](https://github.com/mao455/bcrl_visualTactile/tree/48a3516)读取。
+原400在outputs/visuotactile/data/close_v4。旧native_dp_3way/native_20261101_02的索引及其他旧目录仍含必要依赖，不能按日期整目录删除。原始HDF5、权重、视频留本地；Git只含审查后的代码、精简统计和来源SHA。[历史索引](RESEARCH_HISTORY.md)。

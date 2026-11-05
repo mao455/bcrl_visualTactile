@@ -1,9 +1,11 @@
-# 当前交接：直接窄域新运行准备/启动验收
+# 当前交接：新窄域短监督通过，生产待恢复
 
-最新用户已授权数据就绪后自动随机初始化StateDP训练及有界闭环。工作树`bc+rl_RSS_narrow_state`，分支`feature/narrow-state-data`。新root`outputs/visuotactile/run/narrow_state_20261105_02`。实际启动与最新数字见该root的status.json；本段准备文字不代表DATA_READY或训练完成。
+分支`feature/narrow-state-data`，工作树`bc+rl_RSS_narrow_state`，root`outputs/visuotactile/run/narrow_state_20261105_02`。已准入60/68直接候选，44/8/8；4条真实pilot全部成功，199/157原速、455/264步alpha.58，实际时长比2.286/1.682。完整154字段hash/120–60Hz对齐及同家族初态一致通过。新几何准入使用34个实际碰撞网格包围盒和实时body pose，旧query误报继续留证。
 
-旧narrow_state_20261105_01的3条数据保持隔离，4h预算不延长；旧State143队列保持暂停。初始化查询矛盾已复现：q/qd及全部PhysX link poses相同，完成rollout后出现11个overlap命中；flush/kinematic/USD输出/同姿态root重写均无效。实际34个碰撞网格包围盒加1mm仍与物体相隔至少108.62mm。新版本使用实时碰撞网格包围盒保守准入，保留原query为诊断，不修改SDK或物理。
+一次性GPU随机模型优化1次、AdamW/EMA保存恢复、完整/在线历史与未来隔离通过；正式训练0更新，DATA_READY=false。最初GPU smoke在优化前的deadline参数错误保留，唯一补充检查通过。46项CPU回归通过。
 
-直接60家族目标、44/8/8预计split，约220真实多速度尝试、目标200/最低150成功。数据完整验收后自动GPU smoke→随机StateDP训练→train4+unseen12闭环。合同和预算详见CONTRACTS；结果见SLOW_EXPERT_RESULTS及STATE_DP_RESULTS。当前正式更新仍为0。
+普通owner将在生产结束且数据门控通过后自动GPU完整数据smoke→随机StateDP→train4/unseen12闭环。总截止2026-11-06 13:57:39 UTC+8不变；按实测共享负载在生产前重分配采集6h/训练最多9h/末1h评估。达到150–180条且覆盖合格可按预算结束，不无限补数。完整边界暂停/源码切换证据在maintenance/production_cutover；旧v1及旧State143队列不恢复。
 
-46项相关CPU回归通过。一次性CPU checkpoint已按原ledger核对身份/hash/打开句柄后删除，释放1,153,052,672分配字节；原400、冻结专家、旧隔离轨迹和未知文件保留。
+首worker整卡均值43.69%、最大完整60s52.64%，缺测0，最低RAM25.66GiB；不称满足旧50%硬门限。资源用shared_recent_v1目标40%、6GiB/12GiB准入。原400逐文件存在/大小和manifest SHA通过，仍70,186,972,525bytes。
+
+状态命令：`bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root outputs/visuotactile/run/narrow_state_20261105_02`。真实后台是否继续、目前条数/更新数以该JSON为准。实验设置和日志/stop/resume见SLOW_EXPERT_RESULTS，训练合同见CONTRACTS。

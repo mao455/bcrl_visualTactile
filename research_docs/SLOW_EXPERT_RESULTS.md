@@ -1,111 +1,52 @@
 # 冻结专家与窄分布StateDP数据
 
-## 当前阶段（2026-11-05）：采集准入阻断，数据未就绪
+## 当前运行：直接窄域 v2（短监督通过，生产待恢复）
 
-**实际结论：没有通过短监督，不存在继续生产的后台worker，未启动正式训练。**
-两次持久Kit启动已结束，冻结运行源码分别6a1a0aa/2e7ab94；后续诊断保护修改未重新跑Kit。
-`narrow-state-data-20261105-01.service`已退出，owner/worker/monitor均经/proc核实不存在。
-状态与原因：[机器证据](evidence/narrow_startup.json)，本地root为
-`outputs/visuotactile/run/narrow_state_20261105_01`。
+最新用户授权已扩展到新数据验收后的自动随机StateDP训练和有界闭环。新root为`outputs/visuotactile/run/narrow_state_20261105_02`，服务`narrow-state-data-20261105-02.service`；准备commit与实际运行commit分别记录在session.json及launch_revision.json，所有运行Python源码另存完整SHA清单。**短监督已通过；当前4条完整成功记录，DATA_READY=false，正式训练0更新。**
 
-|实际记录|结果|控制步/模拟时长|
-|---|---|---|
-|原速家族e01_p000144|原生完整成功、154字段hash验收|171 / 2.85s|
-|原速家族e00_p000094|原生完整成功、154字段hash验收|210 / 3.50s|
-|同家族e00_p000094、alpha=.58|原生完整成功、154字段hash验收|366 / 6.10s，实测1.743倍|
-|其余3次准入|动作前碰撞查询拒绝，0动作|不能当作3次任务失败|
+实际60/68候选准入（88.24%，8个保守机器人网格包围盒拒绝，均非任务失败），split44/8/8；4条pilot共1075控制步、436,376,287bytes，199/157原速与455/264慢速全部成功，154字段hash验收、两物理子步target误差0、同家族初态8组误差0。一个慢速初态旧query仍错误命中1项，新几何准入一致通过。实测时长比2.2864/1.6815，中位1.9840。
 
-**阻断证据：** e01_p000144的原速与cal058初态，joint q/qd、物体/孔/桌、手掌/指尖位姿
-8组字段最大差均为0；前者查询无外部碰撞，后者查询命中掌部/食指/中指。同样可观察几何
-出现不同准入结果，故“真实非法初态”并未被可靠证实。PhysX query/reset缓存陈旧只是待查假设，
-没有通过修改阈值、增加物理积分步或强制状态绕过。先前一次拇指拒绝同样保持“准入拒绝”分类。
+GPU一次性随机模型前后向/AdamW/EMA/保存恢复通过，正式0更新；在线/完整前缀条件误差9.53674e-7、尾部7个有效target、未来干预不影响过去。首次GPU smoke在优化前因deadline未显式传入的TypeError退出，证据保留；修复后唯一补充检查成功。46项CPU回归通过。
 
-360次无动作native reset中13次进入条件域、9次通过当时查询、4次拒绝；加15历史家族共24候选
-（16/4/4）。补齐live预检暂准入23（15/4/4），但上述一致性失败使这一准入结论也待复核。
-**全部3条新数据隔离保存，manifest.quarantined=true，不能作为已就绪生产训练集。**
-生产速度列表尚未冻结/放行；没有64条完成、没有新成功率结论。
+首worker实测含启动/家族门控29.74条/小时，4episode墙钟分别39.48/134.08/86.98/186.40s，受共享负载影响，不能保证200条。生产前在完整边界暂停并将原16h内的阶段额度改为采集6h/训练最多9h/末1h评估；首次开始21:57:39与绝对截止2026-11-06 13:57:39 UTC+8均不变。最低150及覆盖门槛不降低，临近采集截止预留20min完成当前episode和数据审核。
 
-StateDP数据接口在首条真实数据上完成一次可丢弃CPU随机初始化优化、EMA/AdamW/保存恢复，
-formal_updates=0、Kit未加载。持续历史在线/整段condition最大差1.90735e-6，尾部3个有效target，
-未来干预不影响过去。原生控制/模型/损失源码无变更；动作目标与两物理子步target误差0。
-44项不同的相关CPU测试通过（含实际矛盾证据回归）；最终新保护代码尚无新live验收。
+首worker整卡均值43.69%、最大完整60s52.64%、缺测0、最低可用RAM25.66GiB；执行的是shared_recent_v1而非旧50%硬门限，不称整卡始终≤50%。暂停修订和独立smoke另记监测窗口。[轻量机器证据](evidence/narrow_v2_startup.json)。
 
-原始400逐文件存在/大小核验及manifest SHA通过。清理释放0bytes：唯一候选为已完成的一次性
-smoke checkpoint（约1.074GiB）；现有清理工具因4个同UID进程句柄枚举不完整而拒绝删除，按用户要求跳过。
-本轮测得整卡均值14.18%、最大完整60秒19.56%，保留两worker间202.11s无采样间隔，不称全程连续监控。
-原4h截止2026-11-05 22:11:24 UTC+8未重置；50GiB产物上限、60GiB余量保留，两次启动额度已用完。
-下一步必须先解决并实测reset/query一致性；不得直接重启本root或进入正式训练。
+### 初始化矛盾与修复范围
 
+本机Isaac Lab2.3.2、Omni PhysX107.3.26。冷启动重复reset一致；完成真实rollout后恢复e01_p000144，q/qd、物体/桌/孔及全部机器人link位姿一致，overlap从0变为11个手部命中。flush_changes、update_articulations_kinematic、USD输出和同姿态root重写都未消除误报，不能把它们写成有效修复。
 
-当前工作树`bc+rl_RSS_narrow_state`，分支`feature/narrow-state-data`，来源`84cbb98`。
-本轮只采集与最小验收，不正式训练。旧State评估暂停在143有效，旧专家采集在首条
-完整RGB-D记录因缺少`observation_after/available`阻断；原日志/失败文件保留，不恢复旧root。
-旧速度研究实际native10/10、A0609/10；独立合法初态native20/20、A06018/20，
-成功配对时长中位倍率1.55和1.44。alpha不是时长倒数，不承诺恰好两倍。
+检查原始CollisionAPI对应的34个碰撞网格（包括Xform下的实际Mesh、fixed-joint合并及局部变换），用实时link pose变换其保守包围盒，额外膨胀1mm后仍至少相隔108.62mm。故该case的overlap命中与实际几何不符。新增`live_collision_mesh_bounds_v1`以这些包围盒和原object/table/hole box SAT作保守准入；有相交可能即拒绝。旧query继续保存为诊断，不再作为v2准入。没有改SDK、模型、实际碰撞几何或物理积分；这不宣称恢复旧四lane隐藏状态。
 
-### 已冻结的范围与家族；未放行的速度生产设计
+依据为本机安装源码及对应版本[PhysX Python API](https://docs.omniverse.nvidia.com/kit/docs/omni_physics/107.3/extensions/runtime/source/omni.physx/docs/api/python.html)。官方flush说明用于处理缓冲变更，并不承诺修复本例；本机forward实际更新kinematics/fabric。SDK内部具体pruner缺陷未作二进制定位，不把缓存实现假设冒称已修复SDK。真正修复的是研究准入对不可靠查询的依赖。
 
-先读400份HDF5低维初态，世界位置减各自env origin。只用初态确定密集中心：
-`r931005_1793209376_e03_p000054`，物体XY=(-.035542,-.009880)m，孔—物体XY=(.067669,-.024071)m。
-使用一个连贯条件域：物体XY中心±8cm，相对XY中心±(12,10)cm，物体旋转距中心≤75°，
-7轴手臂初态RMS距中心≤.22rad，且必须通过原合法性检查；始终与原reset范围取交集。
-旋转按SO(3)角距、q/-q等价处理，L形物体不额外假定对称。关节RMS约束保留关联，
-不是29个独立窄框相乘。手指初态、速度、桌高、噪声、外力、延迟等保留原分布。
+有界诊断保留3次前动作软件错误（布尔差值、Path序列化、Xform碰撞父节点未处理）及4条自然成功native轨迹；冷/重复reset与全部字段原始证据在narrow_reset_query_20261105_02–07，均已退出，不并入新数据或学生成功分母。新gate的live采集验收以下一段机器状态为准。
 
-原400中选中15真实家族（12train/1validation/2test），旧家族split保持。
-实际从同一条件native reset分布补9个候选初态（4/3/2），在任何动作/成功结果之前接受，
-总24家族（16/4/4）。每个补充家族固定seed序列、最多500次reset draw；不放宽范围补数。
-近重复检查为物体/孔各<1cm、旋转<5°、全部arm差<.02rad；同家族变速不跨split。
-这些小样本不足以预言60%–70%成功率，也不代表原宽分布。后续未见初态使用同一
-`domain`及native条件采样，保留合法性筛选，不能从学生成功结果挑seed。
+### 新分布、数量和阶段
 
-原400物体XY实测约[-.100,.100]m；所选15约X[-.0893,.0412]、Y[-.0798,.0500]m。
-物体—孔座和旋转/关节的min/p10/median/p90/max见轻量[选择统计](evidence/narrow_selection.json)。
-原孔yaw=0；物体初始线/角速度为0，关节初速实际非零；摩擦与尺度倍率[1,1]并未随机。
-原动作延迟3槽、观测延迟与物体状态噪声/外力实际链保持，不把配置字段都称作已覆盖随机量。
+直接采样全新60家族目标，最多80候选、至少50准入；不复用旧恢复初态，也不宽分布反复拒绝。沿既存密集中心：object XY±25mm，hole−object XY±35mm（与原孔范围直接求交），旋转球20°，table z[.376,.384]m，物体高于table原点[.244,.256]m；native arm/hand reset lerp .03、初速±.15rad/s。所有随机类别保留变化；摩擦原为固定，本轮不加随机化。实际范围与拒绝率由initial_coverage.json给出。
 
-先用2个固定train家族做原速及alpha=.58短校准；若慢速不全成功，仅允许一次alpha=.60替代。
-生产每家族原速1条、连续Uniform(lower,.95)1条，约2/3家族另取Uniform(lower,lower+.06)1条，
-上端不超过.64，约64次生产尝试；校准独立标记，除兼容原速参考外不计生产。
-不重试合法任务失败，不要求每个家族3条成功；连续3次失败停止。初态、split、seed和
-速度列表在生产前落盘冻结。每tick真实专家反馈、真实物理/传感器，未插值旧图像或状态。
-原旧轨迹不混入新manifest；历史初态仅恢复可观察状态，缺失PhysX内部状态明确披露。
+先冻结初态与split（预计44/8/8），同家族所有速度同split；两train原速/.58真实校准，唯一允许将慢端上调至.65。生产alpha每episode稳定，原速加连续中/慢区间，约220个预注册尝试，目标200/最低150条成功且覆盖门槛通过。alpha不是时间倒数，实际时长比另报。保留完整三路RGB-D、触觉、控制目标和真实运动；成功校准数据按同一合同计入，失败和部分文件单列。旧隔离3条始终不进入新manifest。
 
-### 实现、预算与入口
+普通owner自动转移：family→速度采集→数据/hash/时序/历史/split/train统计验收→一次性GPU前后向/恢复→新随机StateDP→train4及预注册unseen12闭环。H24/commit12及网络/loss不变。新固定16h含等待，采集6h，训练最多9h、保留最后1h闭环；75GiB产物上限、60GiB磁盘余量、6GiB VRAM/12GiB RAM准入、shared_recent_v1目标40%。每阶段最多2次审查后启动，无自动retry。没有重置旧4h预算。
 
-复用当前`state_benchmark.trial`、CompactEpisodeStream、SharedLease和systemd；
-单Kit/单lane循环，多次真实reset、每条专家LSTM清零。新owner只做启动/监控/有限停止，
-没有训练阶段。数据label仍target_after_rad；post-observation与terminal mask接线修复，
-终止图像不可用如实标记。原模型、loss/四辅助权重、H24/commit12、持续历史及学生控制不变。
-新采样器允许任意episode数量与短尾批；数据按新train重拟统计，不创建DINO缓存。
-
-上限4小时（从首次run含等待，不因恢复重置）、50GiB新产物、剩余磁盘60GiB；
-最多2次Kit worker启动，无自动重试。启动前实际空闲约288GiB，本轮清理保护检查未通过，
-释放0bytes；一次性checkpoint、旧未明文件和必要证据保留。最终数量按实际成功/覆盖验收。
-资源使用最新shared_recent_v1：6GiB VRAM/12GiB RAM准入、最近负载pacing及40%目标，
-不是旧50%硬否决，也不保证外部突发下整卡上限。运行源码hash冻结，停止后才能修代码。
-
-在本工作树运行（root以下简写为R）：
 ```bash
-R=outputs/visuotactile/run/narrow_state_20261105_01
+R=outputs/visuotactile/run/narrow_state_20261105_02
 bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root "$R"
-bash visuotactile/run_cpu.sh -m tools.narrow_collection stop --root "$R" # 当前episode完整保存后停
-# 当前root已隔离且启动额度耗尽，此恢复入口会拒绝；修复与新授权前不可执行
+bash visuotactile/run_cpu.sh -m tools.narrow_collection stop --root "$R"
+# 仅在审查阻断原因后使用；不清除预算或已有attempt
 bash visuotactile/run_cpu.sh -m tools.narrow_collection resume --root "$R"
 ```
-日志`R/workers/attempt_*/worker.log`，状态`status.json`、`heartbeat.json`，尝试记录
-`episodes/*/result.json`、`reset_draws.jsonl`；生产`manifest.json`，最终只在验收后写`COMPLETE.json`。
-下一阶段须数据重新验收且另获指令。相同fresh入口的CPU数据/前反向/保存恢复已通过，
-正式CUDA训练没有运行；下面命令当前会被COMPLETE/data-ready门槛拒绝：
-```bash
-bash visuotactile/run_cpu.sh -m visuotactile.anchor_continue fresh-train \
-  --job state --data "$R/state_data" --root outputs/visuotactile/run/narrow_state_train_01 \
-  --target 1000 --output outputs/visuotactile/run/narrow_state_train_01/launch
-```
-1000只是明确的下一阶段预算示例，不是当前授权或已确定训练量。新随机参数/AdamW/EMA/
-scheduler/counters；只允许同一新run恢复last.pt。不能将旧DP checkpoint当起点。
 
-## 历史冻结专家实验（保留实测，不代表本轮采集已完成）
+日志在R/workers/<stage>/attempt_*/worker.log；status/heartbeat/manifest记录真实进度；DATA_READY.json仅在完整验收后生成。训练R/training/{progress.json,training.jsonl,validation.jsonl,curves.png,last.pt,best.pt}，最终R/evaluation/result.json。短监督通过后由普通程序继续，不靠LLM长轮询。
+
+### 旧 v1 阻断事实（永久保留）
+
+narrow_state_20261105_01已退出、quarantined=true，原4h截止22:11:24及两次启动均不延长。15旧+9补充家族，360宽分布reset仅9通过；6次尝试中3次pre-action query拒绝（不能称真实穿透或任务失败）、3次完整成功（171/210原速、366ticks alpha.58，时长比1.743）。154字段hash、目标/两子步一致，仍因当时准入不可靠而隔离；无生产放行、无DATA_READY、正式0更新。一次性CPU smoke通过，不计正式训练。旧监测均值14.18%、最大完整60s19.56%，202.11s停机缺测保留。
+
+本轮已核对原删除ledger的文件身份、SHA、同UID打开句柄与已分类session daemon，删除完成的一次性CPU/GPU checkpoint共2份，实际释放2306101248bytes。原400及metadata、冻结专家、依赖缓存、未知引用和所有物理失败证据保留；未重复计入旧126.673GiB清理。
+
+## 历史冻结专家实验（以下方案已结束，不是当前启动指令）
 
 
 本轮是独立的专家执行研究。原State150随机评估已按用户新指令在完整rollout边界提前暂停：143有效/原计划200，历史2/100、新初态0/43，32动作前碰撞拒绝；源码、checkpoint、随机清单、全部结果和恢复位置保留；[原评估报告](https://github.com/mao455/bcrl_visualTactile/blob/feature/native-dp-training-v2/research_docs/STATE_DP_RESULTS.md)仍在原feature分支逐次更新。新工作在唯一独立工作树`bc+rl_RSS_expert_speed`和分支`feature/expert-slow-execution`，复用现有环境/数据，不按尝试复制源码。

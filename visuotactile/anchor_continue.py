@@ -274,7 +274,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             (root/'STOP_MONITOR').unlink(missing_ok=True)
             log=(root/'monitor.log').open('a')
             monitor=subprocess.Popen(['bash','visuotactile/run_cpu.sh','-m','visuotactile.state_resources','--root',str(root)],stdout=log,stderr=subprocess.STDOUT)
-            lease=lease_for(root)
+            lease=lease_for(root,deadline=runtime['training_deadline'])
     block=lambda: lease.block() if lease else nullcontext()
     def checkpoint():
         save(root/'last.pt',training_state(model,averaged,opt,ema,generator,noise,kind='dp',group=model.group,
@@ -315,7 +315,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         interval=session.get('validation_interval',500)
         while step<target:
             if (root/'STOP').exists():checkpoint();raise InterruptedError('Stopped at optimizer boundary')
-            if lease and time.time()>=lease.deadline-60:checkpoint();raise TimeoutError('Training deadline; last complete update saved')
+            if not smoke and lease and time.time()>=lease.deadline-600:
+                checkpoint()
+                if (root/'best.pt').exists():break
+                raise TimeoutError('Training deadline without validated checkpoint')
             before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all())
             selected=sampler.draw();totals=mask_totals(sampler.lengths,selected);model.train();opt.zero_grad(set_to_none=True);loss_sum=0.
             for start in range(0,len(selected),4):
@@ -336,9 +339,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 updates_per_hour=(step-initial_step)*3600/max(1,time.time()-training_started),utc=time.time(),**no_kit())
             atomic_json(root/'progress.json',progress)
             with (root/'training.jsonl').open('a') as f:f.write(json.dumps(progress)+'\n')
-            if step%100==0 or step==target or stop[0] or step==1:checkpoint()
+            bounded_end=step==target or (lease is not None and time.time()>=lease.deadline-600)
+            if step%100==0 or bounded_end or stop[0] or step==1:checkpoint()
             if stop[0]:raise InterruptedError('Saved at optimizer boundary')
-            if not smoke and (step%interval==0 or step==target):
+            if not smoke and (step%interval==0 or bounded_end):
                 metrics=evaluate(averaged,records,vals,objective,lease)
                 train_metrics=evaluate(averaged,records,ids[:min(8,len(ids))],objective,lease)
                 early=fresh_early_metrics(averaged,records,dict(train=ids[:min(8,len(ids))],validation=vals),objective,lease)
@@ -348,6 +352,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 atomic_json(root/'validation.json',report)
                 with (root/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
                 fresh_curves(root)
+            if bounded_end:break
         saved=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
         restore_training(saved,model,averaged,opt,ema,generator,noise)
         assert saved['updates']==step==ema.optimization_step
@@ -356,7 +361,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         assert all(torch.equal(v.cpu(),saved['ema'][k]) for k,v in averaged.state_dict().items())
         atomic_json(output/'result.json',dict(passed=True,updates=step,disposable=smoke,formal_updates=0 if smoke else step,
             complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=False,**no_kit()))
-        if not smoke:atomic_json(root/'finished.json',dict(updates=step,best_checkpoint=str(root/'best.pt'),utc=time.time()))
+        if not smoke:atomic_json(root/'finished.json',dict(updates=step,target_updates=target,target_reached=step==target,
+            stop_reason='update_budget' if step==target else 'fixed_wall_budget',best_checkpoint=str(root/'best.pt'),utc=time.time()))
     except (TimeoutError,InterruptedError):
         if 'before_batch' in locals() and step==before_batch[0]:
             sampler.load_state_dict(before_batch[1]);generator.set_state(before_batch[2]);noise.set_state(before_batch[3])
