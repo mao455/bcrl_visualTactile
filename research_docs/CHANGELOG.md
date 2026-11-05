@@ -30,3 +30,9 @@
 ## 2026-11-05 — OmniClient初始化的明确替代版本
 
 state_random_20261105_01第二启动为场景前SIGSEGV（−11），栈在OmniClient TickThread/FileThread/string操作；无ENOMEM或ENOSPC，256watch探针全通过，约33GiB RAM可用。旧root两个软件失败及第一条601tick轨迹全部保留。资源充足后，新版本仅停止预先ctypes加载OmniClient和调用未公开testSetWatchesEnabled，交还Kit自身生命周期初始化；不改SDK/驱动/物理。此项是有具体生命周期依据的受控假设，尚不宣称根因已证实。35项针对性CPU测试通过。替代root沿用原抽样清单、checkpoint、绝对截止时间和合计245启动上限，旧2次计入总软件尝试；不重置历史预算。
+
+## 2026-11-05 — 真实Kit验收通过，正式随机评估与最终交付
+
+替代版本100d71e已完成4条受监督完整smoke，首plan对清理前差7.28e-7rad，原生专家成功/终止均145tick、无成功后动作，进程资源回收通过；正式历史100→全新100已运行。旧2次软件失败、原始截止和全局启动上限保留，不重新训练或改变原生顺序判据。交接已从旧root/临时worktree更新为实际root02，历史未通过记录仍保留。
+
+新增独立CPU tools.evaluation_delivery：输入owner最终summary及锁定发布请求，输出既有报告的失败阶段/训练建议和轻量JSON；核查真实200分母，终点诊断不提升为原生成功，固定feature HEAD/人工正文/空暂存区后才提交并推送。运行中模型和Kit源码不改。4项针对汇总分母、Image建议、终点诊断隔离及正文保护的测试通过；原训练/批次/模型测试不重复。

@@ -10,6 +10,7 @@
 |串行队列及里程碑|`tools.anchor_continue_queue`|一个owner；按已提交stage恢复，禁止重复任务|
 |里程碑闭环评估|`tools.anchor_interim_eval`|epoch/cohort由配置给出；等待当前trainer自然完成，独立Kit worker，持有后续训练直到证据审查|
 |独立Kit模型worker|`tools.anchor_continue_worker`|历史/执行审计、视频、生命周期记录和可选Image严格输入捕获|
+|最终随机评估汇总发布|`tools.evaluation_delivery`|CPU后台等待唯一owner退出，按实际分母生成失败分类；锁定HEAD/正文，限制轻量产物发布|
 |统一结果分析|`tools.anchor_interim_analysis`|train/validation分列；三checkpoint端点、接触前增量、曲线、视频位置|
 |不可变数据与模型|`visuotactile.native_data`、`state_history`、`models.native_dp`、`models.native_vision`|State/Image参数独立；共享合法基础组件|
 |共享工具|`checkpointing`、`state_resources`、`video`、`tools.runtime`、`tools.trajectory_metrics`|恢复、资源、进程、视频和统计不再借用旧实验runner|
@@ -20,9 +21,10 @@
 首先只读检查已有服务和状态：
 
 ```bash
-systemctl --user status anchor-continuation-20261104-01.service anchor-assessment-20261105-01.service anchor-assessment-analysis-20261105-01.service
+systemctl --user status state-random-20261105-02.service state-random-delivery-20261105-02.service
 cat outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01/state_train/progress.json
-cat outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/status.json
+cat outputs/visuotactile/native_dp_v2/state_random_20261105_02/status.json
+cat outputs/visuotactile/native_dp_v2/state_random_20261105_02/summary.json
 ```
 
 评估配置在run的`session.json`；checkpoint、实际PID、SHA、阶段结果均在run内。不能照抄历史启动命令重开训练。当前150 epoch之后需要结果决策，不能仅执行`release`就继续训练。`--hold-parent`是明确的证据审查保持状态。

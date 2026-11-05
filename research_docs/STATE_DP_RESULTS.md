@@ -5,23 +5,33 @@
 
 |Cohort|Success / valid|Rate|95% Wilson CI|Contact|Grasp diagnostic|Lift|First subgoal|
 |---|---:|---:|---|---:|---:|---:|---:|
-|historical|0/0|N/A|N/A|0|0|0|0|
-|train|0/0|N/A|N/A|0|0|0|0|
-|validation|0/0|N/A|N/A|0|0|0|0|
+|historical|0/9|0.0%|0.0%–29.9%|9|5|1|0|
+|train|0/8|0.0%|0.0%–32.4%|8|5|1|0|
+|validation|0/1|0.0%|0.0%–79.3%|1|0|0|0|
 |fresh|0/0|N/A|N/A|0|0|0|0|
 
-Planned valid 200; formal attempts 0; valid 0; pending 200; software missing 0; initial rejections 0; shutdown faults 0.
-Acceptance failures 0. Separate smoke attempts 0, valid 0, software missing 0.
+Planned valid 200; formal attempts 9; valid 9; pending 191; software missing 0; initial rejections 0; shutdown faults 0.
+Acceptance failures 0. Separate smoke attempts 6, valid 4, software missing 2.
 Contact, approach and stable grasp are diagnostics, not native success. A legal task failure remains in the denominator.
+Final-pose plus fingers-clear diagnostic (ordered native success unchanged): historical 0/9, train 0/8, validation 0/1, fresh 0/0.
 Historical observable reconstruction, not exact hidden PhysX state. Wilson intervals describe conditional binomial uncertainty; historical pool sampled without replacement.
-State: pending; stage: supervised_smokes.
+State: evaluating; stage: random_historical_008.
 
 固定抽样seed `20261105`，历史池360中无放回随机抽取；前100为主清单，另20仅替换动作前非法初态。全新组同样预注册100+20。不得按成功/失败替换。
 每次独立单环境Kit；未采用并行或进程内reset复用，因此不声称已验证并行等价。所有模型动作来自150 epoch checkpoint。
-运行目录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_01`。冻结源码 `a68baee727334f9aa6c0777d94e172380642dadd`；checkpoint SHA `339fc3ddb8f0835f34d9857a4653dfa0ee706d3ec4901bb21b9069312399a15e`。
+运行目录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02`。冻结源码 `100d71edbc99ff0e02d3798308838c7cffdc446d`；checkpoint SHA `339fc3ddb8f0835f34d9857a4653dfa0ee706d3ec4901bb21b9069312399a15e`。
 [机器统计与每次结果](evidence/state_dp/random_evaluation.json)。软件故障、非法初始化和任务失败分别记录；未完成时不得据此声称100+100成功率。
-<!-- RANDOM_EVALUATION_END -->
 
+![随机闭环阶段对比](evidence/state_dp/random_stages.png)
+带*为既有诊断定义。Native lift不是完整任务的必要条件；原400成功中只有153条触发该抬升阈值。
+
+|类别|seed|结果|视频|
+|---|---:|---|---|
+|train|18028639|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_000/attempt_1/output/r931005_1793209376_e00_p000134/rollout.mp4)|
+|train|15408401|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_001/attempt_1/output/r931005_1793209376_e03_p000164/rollout.mp4)|
+|validation|16773667|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_002/attempt_1/output/r931005_1793209376_e00_p000162/rollout.mp4)|
+|train|18633221|fall|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_003/attempt_1/output/r931005_1793209376_e03_p000083/rollout.mp4)|
+<!-- RANDOM_EVALUATION_END -->
 |模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|
 |---|---|---:|---:|---:|---:|---:|
 |StateDP 10000|train|0/4|4|1|0|2|
@@ -119,9 +129,9 @@ State: pending; stage: supervised_smokes.
 
 成功专家的手指跟踪RMS本身更大，不能把目标/实际差直接称执行接口bug；边界跳变仍高于专家，但这里只是相关性证据。现有证据较强地支持训练/验证差距与接触前动作精度问题；闭环分布偏移、手指接触失稳的因果权重仍未分离。下一轮先保持checkpoint、网络、loss与控制不变，针对同一首12tick的实际在线观测和专家观测作输入差异归因，确认误差来源后再安排单因素有界对照。当前没有证据要求立即改网络或重新训练。
 
-## 整理后的执行验收
+## 整理后的执行验收（此前结果保留）
 
-尚未通过。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。 这是模型性能评估完成之后发生的独立验收，不解释或改变原8次闭环失败。
+此前未通过；本轮新版本验收见后文。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。 这是模型性能评估完成之后发生的独立验收，不解释或改变原8次闭环失败。
 
 8次正式闭环的整卡时间加权GPU均值19.03%，最大完整60秒均值32.84%，遥测缺失0；这是该闭环窗口的实测，不覆盖历史训练/其他会话。
 
@@ -185,6 +195,12 @@ State: pending; stage: supervised_smokes.
 
 此前修复后FileThread SIGABRT的进程RSS最后一次采样约4.38GiB，日志首行同时出现`LLVM ERROR: out of memory`；当时主机仍有约33GiB可用RAM，service MemoryMax18GiB，256个inotify探针通过。现有证据不能把它归因为真实RAM总量耗尽或inotify耗尽。[IsaacLab公开同类报告](https://github.com/isaac-sim/IsaacLab/issues/429)也记录了有空闲RAM时的LLVM报错，但不是本机根因证明。本轮仅采用新的私有缓存及失败系统调用记录，不修改驱动/SDK。SDK生命周期与关闭行为参照[官方5.1文档](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/python_scripting/manual_standalone_python.html)；持久结果后进程隔离回收不冒充完整SDK优雅关闭。
 
-正式200条必须先通过小规模轨迹、模型第一plan一致性、成功事件及进程资源回收验收。不是重新要求三次SDK正常关闭。当前新任务进度看本报告顶部实时区及run状态。软件失败不能写成机器人0/1，也不能减少计划分母。历史初态属于可观察状态重建，缺失的原始四lane PhysX内部状态仍未恢复。
+本轮前身`state_random_20261105_01`两次软件故障分别为：601tick运行后结果提交缺少distribution函数（已恢复原函数），以及OmniClient TickThread/FileThread场景前SIGSEGV。两次均保留，不计有效任务分母。第二次256watch探针全通过、系统调用无ENOMEM/ENOSPC；不支持将它们统一归因于资源耗尽。替代版本停止ctypes预加载与未公开test setter，交还Kit自身OmniClient初始化；这是有具体证据的受控初始化修正，不是全部历史崩溃根因已证实。官方生命周期参考：[OmniClient初始化API](https://docs.omniverse.nvidia.com/kit/docs/client_library/2.72.0/api/group__startup.html)。
+
+**新版本4条完整smoke验收通过，正式200已开始。** State历史验证601tick、历史训练200tick、原生专家145tick成功、全新初态601tick；视频全解码、数值有限、独立成功重构、初态/GRU及动力学合同、OS进程资源回收均通过。专家首次完整成功=终止=145tick，额外动作0；模型第一plan与清理前最大差7.28e-7rad，可观察初态724项一致。首次smoke附带strace，不能把其墙钟延迟当作无诊断开销的推理速度。
+
+运行根`state_random_20261105_02`冻结源码`100d71e`，保持原绝对截止时间和总启动预算。35项针对性CPU回归通过，真实Kit验收由上述4次完整运行证明；不是三次SDK优雅退出门控。正式逐条计数、95%区间和视频见顶部实时区。软件失败、初态拒绝、任务失败分别记录；未完成不得声称取得100+100结果。历史初态属于可观察状态重建，缺失的原始四lane PhysX内部状态仍未恢复。
+
+独立CPU交付脚本将在评估owner退出后根据实际200条或具体阻塞状态生成失败分类和训练建议，并推送审核范围内的代码外轻量结果。发布要求锁定feature HEAD、人工正文不变和暂存区无他人工作；不上传权重、视频或原始轨迹。正式队列与交付服务均不依赖Codex对话存活。
 
 是否启动Image等待全新随机100的实际证据：若未见初态有约10%真实完整成功，可建议进入Image baseline，不要求60–80%；严格live Image输入配对仍须先解决。仅train成功不得称泛化，近零成功则按新队列失败分布定位；本轮不自动重训或改网络/损失。
