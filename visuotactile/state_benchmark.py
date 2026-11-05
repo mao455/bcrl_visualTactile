@@ -15,7 +15,7 @@ from .video import RolloutVideo
 from .expert import restore_observable_state
 from .initial_geometry import inspect, boxes as object_boxes
 from .native_data import CAMERAS
-from .native_evaluation import disable_omniclient_watches, make_env, kit_process_snapshot, exit_completed_kit_worker
+from .native_evaluation import client_startup_controls, make_env, kit_process_snapshot, exit_completed_kit_worker
 from .expert import create_expert, environment_identity, export_initial
 from .state_resources import lease_for
 from .recording import append_numeric
@@ -294,7 +294,7 @@ def run(root, output, mode, job=None):
     session = json.loads((root/'session.json').read_text())
     source = json.loads((Path(session['source_root'])/'data.json').read_text())
     lease = lease_for(root, deadline=session['deadline'])
-    atomic_json(output/'runtime_controls.json', disable_omniclient_watches())
+    atomic_json(output/'runtime_controls.json', client_startup_controls(session.get('kit_gate',{}).get('omniclient_startup')))
     atomic_json(output/'runtime_before.json', kit_process_snapshot())
     atomic_json(output/'lifecycle.json',dict(state='launching',utc=time.time()))
     with lease.block(cuda=False):

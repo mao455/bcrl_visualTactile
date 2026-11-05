@@ -135,3 +135,14 @@ def test_distribution_accepts_only_byte_identical_asset_relocation(tmp_path):
     assert current['assets']['object_urdf']==str(live)
     live.write_text('<changed/>')
     with pytest.raises(AssertionError,match='Changed asset content'):compare_distribution(current,expected)
+
+
+def test_native_client_lifecycle_does_not_preload_or_call_test_symbols(monkeypatch):
+    import pytest
+    from visuotactile import native_evaluation
+    def forbidden():raise AssertionError('Unsupported native preload must not run')
+    monkeypatch.setattr(native_evaluation,'disable_omniclient_watches',forbidden)
+    assert native_evaluation.client_startup_controls('kit_managed')['ctypes_preload'] is False
+    with pytest.raises(ValueError):native_evaluation.client_startup_controls('typo')
+    monkeypatch.setattr(native_evaluation,'disable_omniclient_watches',lambda:dict(legacy=True))
+    assert native_evaluation.client_startup_controls()['legacy']

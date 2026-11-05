@@ -399,6 +399,7 @@ class RandomEvaluation(Owner):
         completed=[x for x in self.attempts if 'exit_code' in x]
         formal=[x for x in completed if x['name'].startswith('random_')]
         valid=[x for x in formal if x.get('native_outcome_valid')]
+        prior=int(self.s.get('prior_software_starts',0))
         rows=[]
         for group in ('historical','train','validation','fresh'):
             selected=[x for x in valid if (x['result']['trials'][0].get('evaluation_group')==group if group in ('historical','fresh')
@@ -413,13 +414,15 @@ class RandomEvaluation(Owner):
                 other_failure=sum(not t['success'] and not any(t['reasons'].get(k) for k in ('fall','dropped','timeout')) for t in trials))
             rows.append(c)
         summary=dict(status=read(self.root/'status.json'),planned_valid=200,primary_planned_starts=200,
-            maximum_starts=self.s['kit_maximum_starts'],actual_starts=len(self.attempts),formal_attempts=sum(x['name'].startswith('random_') for x in self.attempts),
+            maximum_starts=self.s['kit_maximum_starts']+prior,actual_starts=len(self.attempts)+prior,
+            current_run_starts=len(self.attempts),prior_software_starts=prior,predecessor=self.s.get('predecessor'),
+            formal_attempts=sum(x['name'].startswith('random_') for x in self.attempts),
             valid=len(valid),pending_valid=200-len(valid),software_missing=sum(not x.get('valid') for x in formal),
             acceptance_failed=sum(x.get('valid',False) and not x.get('native_outcome_valid',False) and not x.get('initialization_rejected') for x in formal),
             initialization_rejections=sum(x.get('initialization_rejected',False) for x in formal),
             shutdown_faults=sum(x.get('native_outcome_valid',False) and x['exit_code']!=0 for x in formal),
-            smoke_attempts=sum(not x['name'].startswith('random_') for x in self.attempts),smoke_valid=sum(x.get('native_outcome_valid',False) for x in completed if not x['name'].startswith('random_')),
-            smoke_software_missing=sum(not x.get('valid') for x in completed if not x['name'].startswith('random_')),
+            smoke_attempts=prior+sum(not x['name'].startswith('random_') for x in self.attempts),smoke_valid=sum(x.get('native_outcome_valid',False) for x in completed if not x['name'].startswith('random_')),
+            smoke_software_missing=prior+sum(not x.get('valid') for x in completed if not x['name'].startswith('random_')),
             smoke_acceptance_failed=sum(bool(x.get('acceptance_error')) for x in completed if not x['name'].startswith('random_')),
             groups=rows,checkpoint=read(self.root/'checkpoint.json'),sampling_seed=self.s['sampling_seed'],
             source_commit=self.s['source_commit'],num_envs=1,test40_used=False,

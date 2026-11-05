@@ -13,6 +13,15 @@ from .native_data import multiply_quaternion,rotate
 from .training_resources import atomic_json
 _watch_client=None
 
+def client_startup_controls(mode=None):
+    if mode=='kit_managed':
+        return dict(mode=mode,ctypes_preload=False,test_setter_called=False,
+            reason='Let Kit initialize OmniClient through its extension lifecycle; inotify admission remains required')
+    if mode not in (None,'legacy_preload_disabled'):
+        raise ValueError('Unknown OmniClient startup mode')
+    return disable_omniclient_watches()
+
+
 def disable_omniclient_watches():
     global _watch_client
     import isaacsim
