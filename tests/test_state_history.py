@@ -99,6 +99,23 @@ def test_unknown_actor_group_and_old_contract_rejected(model):
     assert STATE_CONTRACT != CONTRACT
 
 
+def test_live_controller_initialization_reads_real_asset_dimensions(model):
+    import json
+    from pathlib import Path
+    import h5py
+    from visuotactile.native_data import object_dimensions
+    from visuotactile.state_history import HistoryController
+    root=Path('outputs/visuotactile/native_dp_3way/native_20261101_02')
+    data=json.loads((root/'data.json').read_text());identity=data['splits']['train'][0]
+    with h5py.File(data['entries'][identity]['path'],'r') as stream:
+        metadata=json.loads(stream.attrs['metadata_json'])
+    cached=torch.load(root/'numeric'/(identity+'.pt'),map_location='cpu',weights_only=False)
+    controller=HistoryController(dict(kind='bc',updates=1,contract=STATE_CONTRACT,ema=model.state_dict()),metadata,device='cpu')
+    torch.testing.assert_close(controller.dimensions,cached['geometry'][0,-3:],rtol=0,atol=0)
+    assert torch.equal(object_dimensions(metadata),controller.dimensions)
+    assert controller.episode is None and controller.plan is None
+
+
 def test_diffusion_path_keeps_horizon_and_trains_history():
     from visuotactile.anchor_sampling import labels
     model = PersistentState('dp').train()
