@@ -302,7 +302,13 @@ def final_summary(root, request, stage):
     model_names=lambda p:bool(re.fullmatch(r'(?:(?:[bc]|b[01])_)?(?:best|last|diagnostic)\.pt|milestone_\d+\.pt|continued_\d+\.pt|checkpoint\.pt',Path(p).name))
     deleted_model_files=sum(model_names(x['path']) for x in rows)
     changes=request['reviewed_changes']
-    summary=dict(state='completed',deleted_files=sum(x['deleted_files'] for x in ledgers),
+    kit=stage['regression'].get('kit',{})
+    live_passed=isinstance(kit,dict) and kit.get('valid',0)>0
+    kit_text=(f"通过；首plan最大差{kit.get('first_plan_max_abs_rad')} rad" if live_passed else
+        '尚未通过。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。')
+    if not live_passed and not (isinstance(kit,dict) and kit.get('actual_starts')==2 and kit.get('first_failure')):
+        kit_text='未验证通过：'+str(kit)
+    summary=dict(state='completed' if live_passed else 'completed_cleanup_live_acceptance_blocked',deleted_files=sum(x['deleted_files'] for x in ledgers),
         deleted_model_checkpoint_paths=deleted_model_files,
         other_deleted_torch_artifacts=sum(Path(x['path']).suffix in ('.pt','.pth','.ckpt') and not model_names(x['path']) for x in rows),
         released_allocated_bytes=sum(x['released_blocks_bytes'] for x in ledgers),
@@ -312,6 +318,7 @@ def final_summary(root, request, stage):
         retired_documents=sum(v=='D' and p.endswith('.md') for p,v in changes.items()),
         review_commit=request['review_commit'],cutover_commit=stage['cutover_commit'],
         regression=stage['regression'],decision=decision,
+        live_acceptance_passed=live_passed,
         ledger_paths=[str(p) for p in maintenance.glob('artifact_ledger*.json')],
         retained_reasons=['original400 and split/index/statistics/current caches','latest/best/milestone complete resumable State and current Image10000',
             'paired final/interim/expert traces and necessary videos','single isolated Kit cache source',
@@ -325,7 +332,7 @@ def final_summary(root, request, stage):
         f"当前分支删除{summary['deleted_python_source_files']}个研究源码文件、{summary['retired_test_files']}个旧方案专属测试文件、{summary['retired_documents']}份重复/过时Markdown。Git历史保留旧代码；不是抹去失败结论。",'',
         '公共checkpoint/EMA/AdamW/RNG逻辑集中至`visuotactile.checkpointing`；进程与durable JSON至`tools.runtime`；视频至`visuotactile.video`；FK/轨迹统计至`tools.trajectory_metrics`。训练由anchor_continue按job配置，独立Kit worker统一为anchor_continue_worker，报告由anchor_interim_analysis维护。','',
         f"实际验证：{stage['regression']['tests_passed']}项保留测试全部通过；真实State16584/Image10000 CPU checkpoint、EMA/AdamW/采样状态一致，20个真实条件/预测/图像张量字段逐值一致；整理后当前State和Image的实际CUDA恢复与历史合同检查通过（0优化更新）；原控制/环境源码保护，视频真实编码/完整解码，Markdown本地链接检查通过。",
-        f"整理后额外闭环验收：{stage['regression'].get('kit','not_run')}。它是代码整理验收，单独记录，不加入150 epoch的train4/validation4分母。",'',
+        f"整理后额外闭环验收：{kit_text} 这些是代码整理验收，单独记录，不加入150 epoch的train4/validation4分母；原8次均有效、软件缺失0。",'',
         '保留400成功数据、当前320/40/40索引、现用numeric/DINO缓存及train统计；当前/最佳/150里程碑完整恢复状态、Image10000与本轮三阶段比较的精简数据。旧目录中的仍用缓存不能整目录清理。来源不明的data/checkpoints、小型upstream refs、未知符号链接和代表性崩溃证据保留。',
         '大视频、HDF5和权重留本地，不上传。必要视频与实测结果见[统一结果](STATE_DP_RESULTS.md)。原Kit关闭异常、Image live strict pairing未解决和历史资源违规均保持真实记录。','',
         f"源码审查commit `{request['review_commit']}`；切入commit `{stage['cutover_commit']}`。完整路径/大小/引用/删除理由、逐文件日志、before/after冻结SHA、CPU/CUDA结果在 `{maintenance}`。",'',
@@ -348,8 +355,20 @@ def final_summary(root, request, stage):
     else:
         text+='验证与任务阶段出现实际进展，可讨论在原scheduler和完整状态上作有界200epoch对照；当前仍停在完整150 checkpoint，不自动启动Image或更改网络/损失。四初态不足以宣布显著改进。\n'
     text+='\n训练初态仅恢复记录中的可观察初态与已导出状态，不能声称恢复原四lane的全部PhysX隐藏状态。清理和实际回归见[CLEANUP_AUDIT](CLEANUP_AUDIT.md)。\n'
+    window=new['cohorts']['validation']['windows']['first12']
+    motion=window['arm_motion']
+    text+=f"\n## 失败机制的证据边界\n\n验证首12tick的Arm位置误差比静止保持基线还高{100*(window['arm_rmse_rad']/window['arm_hold_rmse_rad']-1):.1f}%；动作增量误差为专家增量RMS的{window['arm_delta_rmse_rad']/motion['expert_increment_rms']:.2f}倍，方向cos={motion['cosine']:.3f}、幅值比={motion['amplitude_ratio']:.3f}。因此不能把较低的全程绝对位置RMSE解释为已经学会精确小幅连续运动，也不能简单称模型只输出静止动作。训练集首12tick方向和幅值确有改善，验证差距仍大。\n\n"
+    validation_rows=loop['cohorts']['validation']['rows']
+    text+=f"150验证初态首次持续5mm偏离tick为{[x['new']['first_ee_divergence_tick'] for x in validation_rows]}，均早于专家接触及首次tick12重规划。单独消除重规划边界跳变不能解释最早偏离。\n\n"
+    text+='|验证4公共专家前缀，episode宏平均，rad|原10000|150 epoch|配对专家|\n|---|---:|---:|---:|\n'
+    for key,label in [('arm_jump_boundary_rms_rad','Arm边界跳变RMS'),('hand_jump_boundary_rms_rad','Hand边界跳变RMS'),('hand_tracking_rms_rad','Hand目标/实际跟踪RMS')]:
+        values=[sum(x['common_prefix_metrics'][part][key] for x in validation_rows)/len(validation_rows) for part in ('old','new','expert')]
+        text+='|'+label+'|'+'|'.join(f'{v:.6f}' for v in values)+'|\n'
+    text+='\n成功专家的手指跟踪RMS本身更大，不能把目标/实际差直接称执行接口bug；边界跳变仍高于专家，但这里只是相关性证据。现有证据较强地支持训练/验证差距与接触前动作精度问题；闭环分布偏移、手指接触失稳的因果权重仍未分离。下一轮先保持checkpoint、网络、loss与控制不变，针对同一首12tick的实际在线观测和专家观测作输入差异归因，确认误差来源后再安排单因素有界对照。当前没有证据要求立即改网络或重新训练。\n'
+    text+=f"\n## 整理后的执行验收\n\n{kit_text} 这是模型性能评估完成之后发生的独立验收，不解释或改变原8次闭环失败。\n"
     report.write_text(text)
-    handoff=CODE/'research_docs/SESSION_HANDOFF.md';handoff.write_text(handoff.read_text()+f"\n最终自动验收：150训练、8初态与统一端点分析完成；清理切入及回归完成。建议`{decision['recommendation']}`，训练已安全停在20918，Image未新训。实际结果/最终commit看统一报告及评估root/maintenance/finalization.json。\n")
+    acceptance='整理后闭环回归通过' if live_passed else '整理后完整Kit回归仍未通过，失败证据保留；不自动重试'
+    handoff=CODE/'research_docs/SESSION_HANDOFF.md';handoff.write_text(handoff.read_text()+f"\n最终验收：150训练、8初态与统一端点分析完成；清理切入、CPU测试和CUDA恢复完成。{acceptance}。建议`{decision['recommendation']}`，训练已安全停在20918，Image未新训。实际结果/最终commit看统一报告及评估root/maintenance/finalization_recovery.json；原finalization.json保留初次blocked证据。\n")
     return summary
 
 

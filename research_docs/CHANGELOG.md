@@ -15,4 +15,4 @@
 
 150阶段20918更新、train4/validation4与统一train320/validation40端点比较已经完成。原8次均有效，0软件缺失，未混入额外验收。
 
-整理后的额外验收在模型首次动作前因`native_data.object_dimensions`缺少ElementTree导入失败，原日志及blocked状态保留。补回原导入；新增真实资产/缓存尺寸及在线Controller初始化回归。网络、损失、checkpoint、原生控制与已完成结果不变。只分配一次修复后的独立验收，不修改原失败计数或原评估期限；实际结果随后写统一报告。
+整理后的额外验收在模型首次动作前因`native_data.object_dimensions`缺少ElementTree导入失败，原日志及blocked状态保留。补回原导入；新增真实资产/缓存尺寸及在线Controller初始化回归。网络、损失、checkpoint、原生控制与已完成结果不变。只分配一次修复后的独立验收，不修改原失败计数或原评估期限；修复后78测试通过；唯一补充Kit启动在场景前FileThread SIGABRT（−6），保留且停止自动重试。实际回归与限制写统一报告。

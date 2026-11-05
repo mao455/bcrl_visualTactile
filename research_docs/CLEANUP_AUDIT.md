@@ -1,11 +1,19 @@
-# 当前清理与回归验收
+# 清理与回归验收
 
-本轮用户授权删除已淘汰的代码、权重与大型原始产物；旧保留全部失败文件的限制已被覆盖。历史数值结论仍见[精简历史](RESEARCH_HISTORY.md)。
+实际释放 **126.673 GiB**；删除20812文件、143模型checkpoint路径（含别名）、1922其他Torch缓存/初始状态文件。完整移除42个已淘汰实验/数据根目录，累计移除5886个空目录。硬链接只在最后一条链接移除时计算物理空间，不用逻辑大小冒充释放量。
 
-已完成两批清理：20,808个文件，139个旧模型checkpoint路径（含别名），1,922个其他Torch缓存/初态文件，实际释放122.3768 GiB分配块。删除前记录路径、大小、引用和理由，核验文件身份、SHA及当前进程引用；硬链接只计算最后一条链接释放的块。未建立大型备份。
+当前分支删除160个研究源码文件、26个旧方案专属测试文件、48份重复/过时Markdown。Git历史保留旧代码；不是抹去失败结论。
 
-保留原400成功轨迹、320/40/40索引、当前numeric/DINO缓存与train统计、State/Image10000和State100/150未完成对照所需权重、当前best/latest完整恢复状态、当前评估/专家证据和必要视频。未知data/checkpoints、符号链接、小型来源证据和代表性崩溃日志保留，不能按日期整目录删。
+公共checkpoint/EMA/AdamW/RNG逻辑集中至`visuotactile.checkpointing`；进程与durable JSON至`tools.runtime`；视频至`visuotactile.video`；FK/轨迹统计至`tools.trajectory_metrics`。训练由anchor_continue按job配置，独立Kit worker统一为anchor_continue_worker，报告由anchor_interim_analysis维护。
 
-源码整理在隔离worktree进行，正在运行的trainer和评估继续使用其冻结源码。原环境/执行源码21项逐字节保护；56个公共符号AST等价；真实State16584/Image10000的EMA/optimizer/采样状态和20个条件/预测/图像字段CPU对照逐值一致。整理后的77项测试通过；新增收尾保护及报告逻辑13项聚焦检查通过。CUDA恢复和整理后Kit验收仍待当前训练及8次评估完成，不能提前标成通过。
+实际验证：78项保留测试全部通过；真实State16584/Image10000 CPU checkpoint、EMA/AdamW/采样状态一致，20个真实条件/预测/图像张量字段逐值一致；整理后当前State和Image的实际CUDA恢复与历史合同检查通过（0优化更新）；原控制/环境源码保护，视频真实编码/完整解码，Markdown本地链接检查通过。
+整理后额外闭环验收：尚未通过。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。 这些是代码整理验收，单独记录，不加入150 epoch的train4/validation4分母；原8次均有效、软件缺失0。
 
-完整删除ledger、历史精简metadata、源码依赖图、迁移等价性与CPU对照在评估root `outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/maintenance`。最终切入后更新此文为实际回归、源码删除数量、最终保留权重SHA和发布结果。三端点结果见[STATE_DP_RESULTS](STATE_DP_RESULTS.md)。
+保留400成功数据、当前320/40/40索引、现用numeric/DINO缓存及train统计；当前/最佳/150里程碑完整恢复状态、Image10000与本轮三阶段比较的精简数据。旧目录中的仍用缓存不能整目录清理。来源不明的data/checkpoints、小型upstream refs、未知符号链接和代表性崩溃证据保留。
+大视频、HDF5和权重留本地，不上传。必要视频与实测结果见[统一结果](STATE_DP_RESULTS.md)。原Kit关闭异常、Image live strict pairing未解决和历史资源违规均保持真实记录。
+
+源码审查commit `0af9272fd444e30a1f7149bf3a5ae7b7c8e4c089`；切入commit `d5ea4f40c5efba354c6c6065aaa0c0641289b9c9`。完整路径/大小/引用/删除理由、逐文件日志、before/after冻结SHA、CPU/CUDA结果在 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/maintenance`。
+
+[精简机器摘要](evidence/cleanup_summary.json) · [当前入口](README.md) · [历史结论](RESEARCH_HISTORY.md)
+
+[实际回归与两次验收失败证据](evidence/cleanup_regression.json)。State10000/16584仍作为本轮同口径对照的可复核权重保留；State150 latest/best/里程碑为同一完整状态的硬链接，未重复占用模型空间。当前Image10000是未续训的唯一有效Image基线。临时源码审查worktree已移除。
