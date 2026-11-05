@@ -1,0 +1,179 @@
+{
+  "state": "paused",
+  "valid": 143,
+  "planned": 200,
+  "pending": 57,
+  "groups": [
+    {
+      "valid": 100,
+      "success": 2,
+      "contact": 95,
+      "lift": 27,
+      "first_subgoal": 5,
+      "fall": 35,
+      "dropped": 0,
+      "timeout": 63,
+      "group": "historical",
+      "success_rate": 0.02,
+      "ci95": [
+        0.00550196755016235,
+        0.07001179072854388
+      ],
+      "approach_diagnostic": 99,
+      "stable_grasp_diagnostic": 53,
+      "native_alignment": 5,
+      "ever_complete": 2,
+      "terminal_geometry_diagnostic": 5,
+      "other_failure": 0
+    },
+    {
+      "valid": 91,
+      "success": 2,
+      "contact": 90,
+      "lift": 27,
+      "first_subgoal": 5,
+      "fall": 35,
+      "dropped": 0,
+      "timeout": 54,
+      "group": "train",
+      "success_rate": 0.02197802197802198,
+      "ci95": [
+        0.006048006082981144,
+        0.0766316460248494
+      ],
+      "approach_diagnostic": 91,
+      "stable_grasp_diagnostic": 53,
+      "native_alignment": 5,
+      "ever_complete": 2,
+      "terminal_geometry_diagnostic": 5,
+      "other_failure": 0
+    },
+    {
+      "valid": 9,
+      "success": 0,
+      "contact": 5,
+      "lift": 0,
+      "first_subgoal": 0,
+      "fall": 0,
+      "dropped": 0,
+      "timeout": 9,
+      "group": "validation",
+      "success_rate": 0.0,
+      "ci95": [
+        0.0,
+        0.2991450484195441
+      ],
+      "approach_diagnostic": 8,
+      "stable_grasp_diagnostic": 0,
+      "native_alignment": 0,
+      "ever_complete": 0,
+      "terminal_geometry_diagnostic": 0,
+      "other_failure": 0
+    },
+    {
+      "valid": 43,
+      "success": 0,
+      "contact": 35,
+      "lift": 2,
+      "first_subgoal": 0,
+      "fall": 5,
+      "dropped": 0,
+      "timeout": 38,
+      "group": "fresh",
+      "success_rate": 0.0,
+      "ci95": [
+        0.0,
+        0.08200980322579117
+      ],
+      "approach_diagnostic": 40,
+      "stable_grasp_diagnostic": 7,
+      "native_alignment": 0,
+      "ever_complete": 0,
+      "terminal_geometry_diagnostic": 0,
+      "other_failure": 0
+    }
+  ],
+  "failure_flags": {
+    "train": {
+      "timeout": 54,
+      "fall": 35
+    },
+    "validation": {
+      "timeout": 9
+    },
+    "fresh": {
+      "timeout": 38,
+      "fall": 5
+    }
+  },
+  "observed_failure_stages": {
+    "train": {
+      "stable_grasp_diagnostic_without_first_subgoal": 45,
+      "contact_without_stable_grasp_diagnostic": 37,
+      "native_success": 2,
+      "terminal_geometry_without_ordered_success": 3,
+      "after_first_subgoal": 3,
+      "no_object_contact": 1
+    },
+    "validation": {
+      "contact_without_stable_grasp_diagnostic": 5,
+      "no_object_contact": 4
+    },
+    "fresh": {
+      "no_object_contact": 8,
+      "contact_without_stable_grasp_diagnostic": 28,
+      "stable_grasp_diagnostic_without_first_subgoal": 7
+    }
+  },
+  "formal_attempts": 175,
+  "actual_starts": 181,
+  "initialization_rejections": 32,
+  "decision": "\u5168\u65b0100\u5c1a\u672a\u5b8c\u6210\uff0c\u8bc1\u636e\u4e0d\u8db3\uff1b\u4e0d\u81ea\u52a8\u8bad\u7ec3Image\u6216\u91cd\u8badState\u3002",
+  "stages_are_diagnostics_not_causal_proof": true,
+  "formal_software_missing": 0,
+  "smoke_software_missing": 2,
+  "acceptance_failed": 0,
+  "shutdown_faults": 0,
+  "prior_software_starts": 2,
+  "checkpoint": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/checkpoint.pt",
+    "original": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01/state_train/continued_10918.pt",
+    "sha256": "339fc3ddb8f0835f34d9857a4653dfa0ee706d3ec4901bb21b9069312399a15e",
+    "updates": 20918,
+    "cumulative_anchor_epochs": 150.0100955471426
+  },
+  "evaluation_source_commit": "100d71edbc99ff0e02d3798308838c7cffdc446d",
+  "resources": {
+    "pid": 4107813,
+    "latest": {
+      "pid": 4107813,
+      "utc_epoch": 1793863529.906612,
+      "elapsed_s": 18743.265356799006,
+      "gpu_util_percent": 2.0,
+      "gpu_used_mib": 492.0,
+      "gpu_free_mib": 23592.0,
+      "ram_available_bytes": 34326097920,
+      "process_rss_bytes": 15699968,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 24.619331194724268
+    },
+    "samples": 18737,
+    "gpu_time_weighted_mean_percent": 28.617028408504975,
+    "max_complete_60s_mean_percent": 62.89126870814167,
+    "missing_samples": 0,
+    "missing_seconds": 0.0,
+    "max_sample_gap_s": 1.6739223329350352,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 17380.0,
+    "peak_process_rss_bytes": 15699968,
+    "min_ram_available_bytes": 20393283584,
+    "thresholds": {
+      "gpu_free_mib": 6144,
+      "ram_available_bytes": 12884901888,
+      "max_gpu_mean_percent": null,
+      "gpu_admission_mean_percent": null
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+  }
+}

@@ -5,17 +5,17 @@
 
 |Cohort|Success / valid|Rate|95% Wilson CI|Contact|Grasp diagnostic|Lift|First subgoal|
 |---|---:|---:|---|---:|---:|---:|---:|
-|historical|1/26|3.8%|0.7%–18.9%|25|15|7|2|
-|train|1/22|4.5%|0.8%–21.8%|22|15|7|2|
-|validation|0/4|0.0%|0.0%–49.0%|3|0|0|0|
-|fresh|0/0|N/A|N/A|0|0|0|0|
+|historical|2/100|2.0%|0.6%–7.0%|95|53|27|5|
+|train|2/91|2.2%|0.6%–7.7%|90|53|27|5|
+|validation|0/9|0.0%|0.0%–29.9%|5|0|0|0|
+|fresh|0/43|0.0%|0.0%–8.2%|35|7|2|0|
 
-Planned valid 200; formal attempts 26; valid 26; pending 174; software missing 0; initial rejections 0; shutdown faults 0.
+Planned valid 200; formal attempts 175; valid 143; pending 57; software missing 0; initial rejections 32; shutdown faults 0.
 Acceptance failures 0. Separate smoke attempts 6, valid 4, software missing 2.
 Contact, approach and stable grasp are diagnostics, not native success. A legal task failure remains in the denominator.
-Final-pose plus fingers-clear diagnostic (ordered native success unchanged): historical 2/26, train 2/22, validation 0/4, fresh 0/0.
+Final-pose plus fingers-clear diagnostic (ordered native success unchanged): historical 5/100, train 5/91, validation 0/9, fresh 0/43.
 Historical observable reconstruction, not exact hidden PhysX state. Wilson intervals describe conditional binomial uncertainty; historical pool sampled without replacement.
-State: evaluating; stage: random_historical_025.
+State: paused; stage: random_fresh_074.
 
 固定抽样seed `20261105`，历史池360中无放回随机抽取；前100为主清单，另20仅替换动作前非法初态。全新组同样预注册100+20。不得按成功/失败替换。
 每次独立单环境Kit；未采用并行或进程内reset复用，因此不声称已验证并行等价。所有模型动作来自150 epoch checkpoint。
@@ -32,6 +32,9 @@ State: evaluating; stage: random_historical_025.
 |validation|16773667|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_002/attempt_1/output/r931005_1793209376_e00_p000162/rollout.mp4)|
 |train|18633221|fall|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_003/attempt_1/output/r931005_1793209376_e03_p000083/rollout.mp4)|
 |train|20495772|完整成功|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_016/attempt_1/output/r931005_1793209376_e01_p000004/rollout.mp4)|
+|fresh|11646748|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_fresh_000/attempt_1/output/fresh_11646748/rollout.mp4)|
+|fresh|14594702|fall|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_fresh_021/attempt_1/output/fresh_14594702/rollout.mp4)|
+|fresh|20175544|fall|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_fresh_030/attempt_1/output/fresh_20175544/rollout.mp4)|
 <!-- RANDOM_EVALUATION_END -->
 |模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|
 |---|---|---:|---:|---:|---:|---:|
@@ -205,3 +208,34 @@ State: evaluating; stage: random_historical_025.
 独立CPU交付脚本将在评估owner退出后根据实际200条或具体阻塞状态生成失败分类和训练建议，并推送审核范围内的代码外轻量结果。发布要求锁定feature HEAD、人工正文不变和暂存区无他人工作；不上传权重、视频或原始轨迹。正式队列与交付服务均不依赖Codex对话存活。
 
 是否启动Image等待全新随机100的实际证据：若未见初态有约10%真实完整成功，可建议进入Image baseline，不要求60–80%；严格live Image输入配对仍须先解决。仅train成功不得称泛化，近零成功则按新队列失败分布定位；本轮不自动重训或改网络/损失。
+
+<!-- EVALUATION_DELIVERY_START -->
+## 随机评估交付状态
+
+状态：**paused**；有效143/计划200，尚未获得有效结果57。
+正式软件缺失0，smoke/此前版本软件缺失2；验收失败0，有效结果后的异常关闭0。这些均不当作机器人成功或失败。
+
+|类别|原生失败类型及次数|观测到的失败阶段|
+|---|---|---|
+|train|timeout: 54, fall: 35|稳定抓持诊断之后、首子目标之前: 45, 接触但无稳定抓持诊断: 37, 原生完整成功: 2, 终点条件成立但顺序未完成: 3, 首子目标之后: 3, 无物体接触: 1|
+|validation|timeout: 9|接触但无稳定抓持诊断: 5, 无物体接触: 4|
+|fresh|timeout: 38, fall: 5|无物体接触: 8, 接触但无稳定抓持诊断: 28, 稳定抓持诊断之后、首子目标之前: 7|
+
+全新100尚未完成，证据不足；不自动训练Image或重训State。
+失败阶段分类只是记录上的定位，不是网络误差/控制延迟的因果证明；终点诊断不替代原生顺序成功。
+本地完整结果：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02`；[最终机器摘要](evidence/state_dp/random_delivery.json)。
+本版本资源窗口：整卡时间加权GPU均值28.62%，最大完整60秒均值62.89%；遥测缺失0样本/0.0秒，最低主机可用RAM 18.99GiB。整卡读数包含其他进程，不代表本项目独占使用量；不覆盖此前失败版本窗口。
+[本轮原生RL专家完整成功视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/smoke_expert/attempt_1/output/r931005_1793209376_e00_p000000/rollout.mp4)；首次成功与终止tick均为145。
+<!-- EVALUATION_DELIVERY_END -->
+
+## 用户要求提前暂停：探索性结果，非200条完成
+
+2026-11-05原计划历史100+全新100已在random_fresh_074完整提交后暂停。正式175次尝试中143条有效、32次动作前碰撞拒绝，未获得有效结果57/200；旧根2次软件失败仍保留。本版本正式软件错误0。历史训练2/91、验证0/9，新初态0/43；原生成功与终点诊断未混合。因用户调整研究优先级而提前停止，结果是探索性观察，不宣称完成固定200样本。
+
+当前rollout没有被信号打断：仅预留下一attempt空目录阻断后续worker；原owner自然提交、清理监控后退出。原始边界FileExistsError归档，pause_receipt记录所有结果/采样/checkpoint SHA、无worker/GPU/打开写文件及锁释放；恢复位置random_fresh_075。checkpoint、全部随机种子和原始轨迹保留，后续恢复需要显式请求，不自动增加旧模型评估。
+
+旧实验窗口约5.76小时（含此前失败版本和资源等待）；本版本179个已结束启动含smoke平均102.28秒。App启动含等待13.85秒、场景与专家准备含等待8.53秒、DP推理146条均值7.75秒、退出回收1.60秒；176条资源日志的节流均值29.76秒，最长374.63秒。这些分项口径有重叠，不能相加；旧日志无法独立拆分物理/渲染与视频编码。整卡均值28.62%、最大完整60秒均值62.89%，遥测缺失0；不能称为全程满足50%上限，且包含其他进程。
+
+慢速专家研究已切换到独立[feature/expert-slow-execution报告](https://github.com/mao455/bcrl_visualTactile/blob/feature/expert-slow-execution/research_docs/SLOW_EXPERT_RESULTS.md)。24小时执行预算从旧资源释放后的首次执行开始，小样本筛选与失败候选早停优先，不继续盲目补齐旧200。当前没有新训练启动。
+
+[暂停与恢复证据](evidence/state_dp/priority_pause.json)；[墙钟耗时审核](evidence/state_dp/timing_audit.json)。
