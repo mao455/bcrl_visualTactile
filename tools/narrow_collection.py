@@ -142,7 +142,7 @@ def worker(root,attempt):
             '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
             '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
     import isaacsimenvs
-    from visuotactile.state_benchmark import trial,collision_evidence
+    from visuotactile.state_benchmark import trial,collision_evidence,prepare as prepare_initial
     env=make_env(True,lease,scene_queries=True,expert_speed=dict(kind='closed_loop',arm=1.,hand=1.,phase='all'))
     with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
     fingerprint=model_fingerprint(player.model)
@@ -186,6 +186,34 @@ def worker(root,attempt):
         if r.get('legal') and 'data_sha256' not in r:
             path=Path(r['dataset_capture']['path']);record(path)
             r['data_sha256']=sha(path);write(root/'episodes'/identity/'result.json',r)
+    # Historical collection checked object/table/hole boxes, not hand meshes.
+    # Admit every restored family before choosing calibration cases or generating
+    # any speed jobs. Exclusion is pre-action geometry, never task performance.
+    preflight=root/'family_preflight';preflight.mkdir(exist_ok=True)
+    eligible=[];excluded=[]
+    for f in families:
+        output=preflight/f['identity'];receipt=output/'admission.json'
+        if receipt.exists():admission=read(receipt)
+        else:
+            prior=results.get(f['identity']+'_native')
+            if prior is not None:
+                admission=dict(legal=prior['legal'],source='existing pre-action live collision evidence',
+                    evidence=str(root/'episodes'/(f['identity']+'_native')/'initial_collision.json'))
+                output.mkdir(exist_ok=True)
+            else:
+                output.mkdir(exist_ok=False);isolated=IsolatedEnvironment(env,f['seed'])
+                with lease.block():
+                    _,legal=prepare_initial(env,isolated,dict(identity=f['identity'],cohort='historical',seed=f['seed']),
+                        dict(entries=entries),output)
+                admission=dict(legal=legal['legal'],source='live restored PhysX collision before any action')
+            write(receipt,admission)
+        (eligible if admission['legal'] else excluded).append(f)
+        beat('family_preflight',family=f['identity'])
+    families=eligible
+    write(root/'eligible_families.json',dict(families=families,excluded=[f['identity'] for f in excluded],
+        rule='unchanged live collision check before actions; no outcome selection, no replacement families'))
+    if min(sum(f['split']==k for f in families) for k in ('train','validation','test'))<2:
+        raise RuntimeError('Insufficient legal families after mesh admission; no automatic supplementation')
     def publish(finished=False):
         episodes=[]
         for identity,r in results.items():
@@ -197,7 +225,8 @@ def worker(root,attempt):
         state=dict(state='collecting',attempts=len(results),successes=len(episodes),task_failures=sum(r.get('legal',False) and not r.get('success',False) for r in results.values()),
             illegal_initials=sum(not r.get('legal',False) for r in results.values()),data_ready=False,
             covered_families=len({e['family'] for e in episodes}),bytes=sum(e['size'] for e in episodes),
-            free_disk_bytes=shutil.disk_usage(root).free,utc=time.time(),worker_pid=os.getpid())
+            free_disk_bytes=shutil.disk_usage(root).free,utc=time.time(),worker_pid=os.getpid(),
+            admitted_families=len(families),excluded_initial_families=len(excluded))
         write(root/'status.json',state)
         return state
     def one(f,tag,alpha):
@@ -251,7 +280,8 @@ def worker(root,attempt):
         # Pilot successes are calibration evidence, excluded from production
         # except their native reference, which is precisely the same contract.
         write(root/'production_plan.json',dict(jobs=jobs,lower_alpha=lower,maximum_attempts=len(jobs)+4,
-            maximum_hours=s['maximum_hours'],families_sha256=sha(families_path),source_sha256=sha(root/'source_freeze.json')))
+            maximum_hours=s['maximum_hours'],families_sha256=sha(families_path),
+            eligible_families_sha256=sha(root/'eligible_families.json'),source_sha256=sha(root/'source_freeze.json')))
     beat('awaiting_short_supervision')
     write(root/'SHORT_SUPERVISION_READY.json',dict(**gate,manifest_sha256=sha(root/'manifest.json')))
     until=time.time()+180
