@@ -1,6 +1,6 @@
 import json
 import pytest
-from tools.expert_speed_eval import ExpertSpeedEvaluation,report_body_hash,dependency_outcome,bracket_needed,candidate_after_native,select_promising
+from tools.expert_speed_eval import ExpertSpeedEvaluation,report_body_hash,dependency_outcome,bracket_needed,candidate_after_native,select_promising,screening_rows
 from tools.runtime import write,read
 
 
@@ -180,3 +180,24 @@ def test_select_goal_band_candidate_without_relaxing_screen_gate():
     assert select_promising(screens)==['A060']
     screens['A060']['passed']=False
     assert select_promising(screens)==['A067']
+
+
+def test_resume_after_expansion_keeps_original_three_case_screen(tmp_path):
+    owner,_=setup_owner(tmp_path,{})
+    specs=[dict(identity=str(i)) for i in range(3)]
+    native=[dict(identity=str(i),success=True,duration_sim_s=3.) for i in range(10)]
+    candidate=[dict(identity=str(i),success=i<3,native_subgoals=2 if i<3 else 0,duration_sim_s=6.) for i in range(10)]
+    assert len(screening_rows(native,specs))==3
+    owner.execute=lambda *args:None  # stages were already committed before resume
+    owner.trials=lambda phase,factor:native if factor=='native' else candidate
+    result=owner.screen_factor('A060',specs,[None]*3)
+    assert result['valid']==3 and result['success']==3 and result['passed']
+    assert len(owner.trials('pilot','A060'))==10  # full reliability gate retains failures
+
+
+def test_committed_stage_is_returned_before_any_gpu_or_worker_operation(tmp_path,monkeypatch):
+    owner,_=setup_owner(tmp_path,{})
+    record=dict(name='pilot_native_00',native_outcome_valid=True,resources_released=True)
+    write(owner.root/'stages/pilot_native_00/committed.json',record)
+    monkeypatch.setattr('tools.anchor_continue_queue.subprocess.Popen',lambda *a,**kw:pytest.fail('Committed stage must not launch another worker'))
+    assert owner.stage('pilot_native_00','unused',[],kit=True)==record

@@ -44,6 +44,11 @@ def select_promising(screens):
         -screens[f]['success'],abs(screens[f]['median_success_s']-6),f))[:1]
 
 
+def screening_rows(rows,specs):
+    identities={s['identity'] for s in specs}
+    return [r for r in rows if r['identity'] in identities]
+
+
 def prepare(root,reference):
     from tools.expert_speed_audit import audit
     reference=reference.resolve();evidence=audit(reference)
@@ -356,9 +361,9 @@ class ExpertSpeedEvaluation(Owner):
         """Adaptive screening is exploratory, never an unbiased10-trial estimate."""
         for i,spec in enumerate(specs):
             self.execute(f'pilot_{factor}_{i:02d}',spec,factor,baseline[i])
-            rows=self.trials('pilot',factor)
+            rows=screening_rows(self.trials('pilot',factor),specs)
             if len(rows)>=2 and all(not t['success'] and not t['native_subgoals'] for t in rows[-2:]):break
-        rows=self.trials('pilot',factor);refs={t['identity']:t for t in self.trials('pilot','native') if t['success']}
+        rows=screening_rows(self.trials('pilot',factor),specs);refs={t['identity']:t for t in self.trials('pilot','native') if t['success']}
         ok=[t for t in rows if t['success']]
         import numpy as np
         ratios=[t['duration_sim_s']/refs[t['identity']]['duration_sim_s'] for t in ok if t['identity'] in refs]
@@ -390,7 +395,7 @@ class ExpertSpeedEvaluation(Owner):
                 for i,spec in enumerate(self.s['specs'][:3]):
                     baseline.append(self.execute(f'pilot_native_{i:02d}',spec,'native'))
                     if i==0:self.execute('pilot_identity_00',spec,'identity',baseline[0])
-                native=self.trials('pilot','native')
+                native=screening_rows(self.trials('pilot','native'),self.s['specs'][:3])
                 gate=dict(valid=len(native),success=sum(t['success'] for t in native),minimum_success=2,minimum_valid=3,scope='screening only')
                 gate['passed']=gate['valid']==3 and gate['success']>=2
                 write(root/'baseline_gate.json',gate)
