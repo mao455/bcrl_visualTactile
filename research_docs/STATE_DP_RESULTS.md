@@ -5,17 +5,17 @@
 
 |Cohort|Success / valid|Rate|95% Wilson CI|Contact|Grasp diagnostic|Lift|First subgoal|
 |---|---:|---:|---|---:|---:|---:|---:|
-|historical|0/9|0.0%|0.0%–29.9%|9|5|1|0|
-|train|0/8|0.0%|0.0%–32.4%|8|5|1|0|
-|validation|0/1|0.0%|0.0%–79.3%|1|0|0|0|
+|historical|1/26|3.8%|0.7%–18.9%|25|15|7|2|
+|train|1/22|4.5%|0.8%–21.8%|22|15|7|2|
+|validation|0/4|0.0%|0.0%–49.0%|3|0|0|0|
 |fresh|0/0|N/A|N/A|0|0|0|0|
 
-Planned valid 200; formal attempts 9; valid 9; pending 191; software missing 0; initial rejections 0; shutdown faults 0.
+Planned valid 200; formal attempts 26; valid 26; pending 174; software missing 0; initial rejections 0; shutdown faults 0.
 Acceptance failures 0. Separate smoke attempts 6, valid 4, software missing 2.
 Contact, approach and stable grasp are diagnostics, not native success. A legal task failure remains in the denominator.
-Final-pose plus fingers-clear diagnostic (ordered native success unchanged): historical 0/9, train 0/8, validation 0/1, fresh 0/0.
+Final-pose plus fingers-clear diagnostic (ordered native success unchanged): historical 2/26, train 2/22, validation 0/4, fresh 0/0.
 Historical observable reconstruction, not exact hidden PhysX state. Wilson intervals describe conditional binomial uncertainty; historical pool sampled without replacement.
-State: evaluating; stage: random_historical_008.
+State: evaluating; stage: random_historical_025.
 
 固定抽样seed `20261105`，历史池360中无放回随机抽取；前100为主清单，另20仅替换动作前非法初态。全新组同样预注册100+20。不得按成功/失败替换。
 每次独立单环境Kit；未采用并行或进程内reset复用，因此不声称已验证并行等价。所有模型动作来自150 epoch checkpoint。
@@ -31,6 +31,7 @@ State: evaluating; stage: random_historical_008.
 |train|15408401|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_001/attempt_1/output/r931005_1793209376_e03_p000164/rollout.mp4)|
 |validation|16773667|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_002/attempt_1/output/r931005_1793209376_e00_p000162/rollout.mp4)|
 |train|18633221|fall|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_003/attempt_1/output/r931005_1793209376_e03_p000083/rollout.mp4)|
+|train|20495772|完整成功|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_016/attempt_1/output/r931005_1793209376_e01_p000004/rollout.mp4)|
 <!-- RANDOM_EVALUATION_END -->
 |模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|
 |---|---|---:|---:|---:|---:|---:|
@@ -139,7 +140,7 @@ State: evaluating; stage: random_historical_008.
 
 **关键补充：用户看到的982402视频确实达到过严格终点几何与撤手条件，但前置阶段未通过，因此原生任务没有终止。** 最终插入位姿最小关键点误差1.022mm；tick168–186连续19tick（约0.317s）同时满足最终7.5mm阈值和指尖平均距离>0.1m，最近时指尖平均距离0.1211m。原生预插入计数只有5/10，始终未切换到最终目标、未进入retract_phase。该现象是顺序阶段门控阻止终点终止，**不是flag计算晚一tick，也不是纯粹视觉错觉**。
 
-额外终点诊断为train **1/4**；严格原生完整任务仍为 **0/4**。其余三条距最终位姿最小关键点误差52.05、63.37、279.77mm。按最终几何直接终止会取消原生前置子目标要求，属于任务定义变更，不能作为保持原判据的bug修复悄悄启用。本轮保留原生指标，并单列这类“终点成立但顺序未完成”诊断；未将其混成完整成功。若后续改为装配终态验收，应显式发布新判定合同，同时保留原生计数进行配对对照。
+额外终点诊断为train **1/4**；严格原生完整任务仍为 **0/4**。其余三条距最终位姿最小关键点误差52.05、63.37、279.77mm。按最终几何直接终止会取消原生前置子目标要求，属于任务定义变更，不能作为保持原判据的bug修复悄悄启用。本轮保留原生指标，并单列这类“终点成立但顺序未完成”诊断；未将其混成完整成功。用户已明确确认本口径，适用于全部历史100与全新100。若后续改为装配终态验收，应显式发布新判定合同，同时保留原生计数进行配对对照。
 
 ![前置阶段门控与终点几何](evidence/state_dp/success_gate_trace.png)
 
