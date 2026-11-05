@@ -1,6 +1,6 @@
 import json
 import pytest
-from tools.expert_speed_eval import ExpertSpeedEvaluation,report_body_hash,dependency_outcome
+from tools.expert_speed_eval import ExpertSpeedEvaluation,report_body_hash,dependency_outcome,bracket_needed,candidate_after_native
 from tools.runtime import write,read
 
 
@@ -154,3 +154,20 @@ def test_screen_requires_real_time_slowdown_before_expansion(tmp_path):
     owner.trials=lambda phase,factor:native if factor=='native' else attempts
     result=owner.screen_factor('A080',[dict(identity=str(i)) for i in range(3)],[None]*3)
     assert result['success']==3 and not result['passed'] and not result['stopped_early']
+
+
+def test_one_bracket_requires_successful_settings_on_both_sides_of_target():
+    screens=dict(A067=dict(valid=3,success=3,median_success_s=4.25),A050=dict(valid=3,success=3,median_success_s=9.4))
+    assert bracket_needed(screens)
+    screens['A050']['success']=2
+    assert not bracket_needed(screens)
+    screens['A050']['success']=3;screens['A067']['median_success_s']=5.1
+    assert not bracket_needed(screens)
+
+
+def test_new_initial_reserve_does_not_select_away_native_task_failures():
+    assert candidate_after_native(dict(legal=True,success=False),'A060')
+    assert candidate_after_native(dict(legal=True,success=True),'A060')
+    assert not candidate_after_native(dict(legal=False,success=False),'A060')
+    assert not candidate_after_native(dict(legal=True,success=False),'B150')
+    assert candidate_after_native(dict(legal=True,success=True),'B150')

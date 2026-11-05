@@ -22,7 +22,20 @@ from tools.anchor_interim_eval import compare_distribution,wilson
 FACTORS={'native':None,'identity':dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
     **{f'A{x}':dict(kind='closed_loop',arm=v,hand=v,phase='all') for x,v in [('080',.8),('067',.67),('050',.5)]},
     **{f'B{x}':dict(kind='recorded_retime',stretch=v) for x,v in [('100',1.),('125',1.25),('150',1.5),('200',2.)]},
-    'C067':dict(kind='closed_loop',arm=.67,hand=.67,phase='after_first_subgoal')}
+    'C067':dict(kind='closed_loop',arm=.67,hand=.67,phase='after_first_subgoal'),
+    'A060':dict(kind='closed_loop',arm=.6,hand=.6,phase='all')}
+
+
+def bracket_needed(screens):
+    fast,slow=screens['A067'],screens['A050']
+    return (fast['valid']==slow['valid']==3 and fast['success']==slow['success']==3
+        and fast['median_success_s']<5 and slow['median_success_s']>7)
+
+
+def candidate_after_native(trial,factor):
+    # Legal native task failures remain paired for A; only pre-action illegal
+    # states are replaced. B needs a successful source sequence, reported missing.
+    return bool(trial.get('legal')) and (not factor.startswith('B') or bool(trial.get('success')))
 
 
 def prepare(root,reference):
@@ -380,12 +393,14 @@ class ExpertSpeedEvaluation(Owner):
                 screens={}
                 for factor in ('A080','A067','A050','B100'):
                     screens[factor]=self.screen_factor(factor,self.s['specs'][:3],baseline)
+                if 'A060' in self.s['factors'] and bracket_needed(screens):
+                    screens['A060']=self.screen_factor('A060',self.s['specs'][:3],baseline)
                 if screens['B100']['passed']:
                     for factor in ('B125','B150','B200'):screens[factor]=self.screen_factor(factor,self.s['specs'][:3],baseline)
                 if all(screens[f]['success']<2 for f in ('A080','A067','A050')):
                     screens['C067']=self.screen_factor('C067',self.s['specs'][:3],baseline)
-                promising=sorted([f for f,g in screens.items() if g['passed'] and f!='B100'],key=lambda f:(-screens[f]['success'],abs(screens[f]['median_success_s']-6),f))[:2]
-                write(root/'screening_selection.json',dict(screens=screens,selected=promising,adaptive=True,maximum=2))
+                promising=sorted([f for f,g in screens.items() if g['passed'] and f!='B100'],key=lambda f:(-screens[f]['success'],abs(screens[f]['median_success_s']-6),f))[:1]
+                write(root/'screening_selection.json',dict(screens=screens,selected=promising,adaptive=True,maximum=1))
                 if not promising:
                     self.status(state='completed_diagnostic',stage='small_paired_screen_no_promising_slow_candidate');return
                 for i,spec in enumerate(self.s['specs'][3:],3):baseline.append(self.execute(f'pilot_native_{i:02d}',spec,'native'))
@@ -409,9 +424,12 @@ class ExpertSpeedEvaluation(Owner):
                 chosen=min(candidates,key=lambda f:(-gates[f]['success'],abs(gates[f]['median_success_s']-6.),f))
                 write(root/'selection.json',dict(factor=chosen,rule='success first, then median duration closest6s; prespecified, not test40',pilot=gates[chosen]))
                 for i,spec in enumerate(self.s['expansion_specs']):
+                    if len(self.trials('expansion','native'))>=20:break
                     base=self.execute(f'expansion_native_{i:02d}',spec,'native')
-                    if chosen.startswith('B') and not base['result']['trials'][0].get('success'):
-                        write(root/'missing_replay_sources'/spec['identity'],dict(reason='No successful native source; candidate not executed',spec=spec));continue
+                    native_trial=base['result']['trials'][0]
+                    if not candidate_after_native(native_trial,chosen):
+                        folder='rejected_expansion_initials' if not native_trial.get('legal') else 'missing_replay_sources'
+                        write(root/folder/spec['identity'],dict(reason='Pre-action illegal state' if not native_trial.get('legal') else 'No successful native replay source',spec=spec));continue
                     self.execute(f'expansion_{chosen}_{i:02d}',spec,chosen,base)
                     if sum(not t['success'] for t in self.trials('expansion',chosen))>=4:
                         write(root/'expansion_early_stop.json',dict(reason='Four failures make the preregistered17/20 threshold unattainable',at_index=i));break
