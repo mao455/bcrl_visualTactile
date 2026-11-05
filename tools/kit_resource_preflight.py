@@ -2,7 +2,7 @@
 
 Counts are FD-reference upper bounds, not deduplicated kernel instances. A small
 real allocation probe catches ENOSPC even when /proc is incomplete. Passing this
-resource check does NOT satisfy the three-complete-episode reliability gate.
+resource check does NOT certify simulator correctness or successful episodes.
 """
 import argparse
 import ctypes
@@ -102,7 +102,7 @@ def decision(snapshot, limits, probe):
         reasons.append('probe_cleanup_unverified')
     return dict(state='blocked' if reasons else 'preflight', resource_admitted=not reasons,
         kit_reliability_passed=False, reasons=reasons,
-        limitation='Resource admission only; still requires >=3 consecutive independent full episodes/normal exits including expert and student, <=5 starts total')
+        limitation='Resource admission only; the versioned evaluation must validate complete trajectories, durable outcomes and process reclamation; SDK teardown is separate')
 
 
 def inspect(probe_watches=256, parent=None):

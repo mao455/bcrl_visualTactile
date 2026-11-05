@@ -156,7 +156,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             controller=NativeController(saved,metadata,dino=dino)
         else:
             controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
-    rows = []; plans = []; raw_plans = []; timings = []; numeric = h5py.File(output/'numeric.h5', 'w')
+    rows = []; plans = []; raw_plans = []; timings = []; first_success_tick = None
+    numeric = h5py.File(output/'numeric.h5', 'w')
     numeric.attrs['metadata_json'] = json.dumps(metadata, default=str)
     group = numeric.create_group('episode')
     movie = RolloutVideo(output/'rollout.mp4', 'expert' if saved is None else saved.get('kind', 'oldState'),
@@ -217,6 +218,13 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     and k not in ('image', 'depth_m', 'depth_valid')}
                 append_numeric(group, dict(obs=before_packet, transition=transition), tick)
                 after = transition['diagnostics_after']
+                # Read the pre-reset native outcome captured by _get_rewards;
+                # never inspect an auto-reset scene to decide the prior result.
+                complete = bool(transition['termination_reasons']['max_successes'][0])
+                if complete and first_success_tick is None:
+                    first_success_tick = tick+1
+                if complete and not bool(terminated[0]):
+                    raise RuntimeError('Native complete-success/terminated disagreement; no next action allowed')
                 def take(value):
                     return value[0].cpu().numpy().copy()
                 rows.append(dict(actor=take(actor), command=take(command), expert_shadow=take(expert_command),
@@ -234,7 +242,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                         take(after['object_pose_w'])[:3],axis=-1).min()
             if tick % 100 == 0:
                 atomic_json(output/'progress.json', dict(tick=tick, utc=time.time()))
-            if bool((terminated | truncated)[0]):
+            if first_success_tick is not None or bool((terminated | truncated)[0]):
                 break
         arrays = {k: np.stack([row[k] for row in rows]) for k in rows[0]}
         np.savez_compressed(output/'trace.npz', **arrays)
@@ -248,6 +256,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             actor_normalization_max_error=actor_parity, environment_sha256=config_hash,
             checkpoint_sha256=sha256(checkpoint), action_exhausted=not any(reasons.values()),
             simulation_step_hz=60, physics_hz=120, plan_hz=5 if saved is not None else 60)
+        result.update(ever_complete_success=first_success_tick is not None,first_success_tick=first_success_tick,
+            termination_tick=len(rows) if any(reasons.values()) else None,
+            duration_sim_s=len(rows)*env.step_dt,tick_index='1-based completed control transitions',
+            post_success_actions=0 if first_success_tick is None else len(rows)-first_success_tick)
         result['action_control_mode']=env.action_control_mode
         result['actuator_target_max_error']=float(np.abs(arrays['actuator_targets']-arrays['target'][:,None,:]).max())
         result['tracking_rmse_rad']=float(np.sqrt(np.mean((arrays['joint']-arrays['target'])**2)))

@@ -1,5 +1,9 @@
 # StateDP / ImageDP research — current instructions
 
+## Current override — State150 native-success audit and random evaluation
+
+The latest user authorizes a read-only audit of the four train videos and native expert success/time records, a proven-bug-only success/termination repair without threshold changes, new independent State150 historical100 + fresh100 evaluation after supervised runtime acceptance, and reviewed origin feature commits/pushes. No new training or network/loss/H24/commit12/29D-interface changes. Preserve original results; test40 is excluded. Fresh initializations use the original reset/DR distribution. One independent Kit worker per episode; do not enable parallel/reset reuse without equivalence evidence. Record first success and termination ticks, software/initialization/teardown failures separately, and stop at native complete success. A completed, fsynced result plus verified OS resource reclamation is acceptable without pretending SDK teardown was graceful. Old blocked roots remain untouched. Image may be proposed on credible unseen ~10% success, but strict live Image pairing is still required.
+
 Read `research_docs/README.md`, `CONTRACTS.md`, `STATE_DP_RESULTS.md`, `CLEANUP_AUDIT.md` and `SESSION_HANDOFF.md` before work. This is the existing `feature/native-dp-training-v2` feature branch, not a new project.
 
 The latest user authorizes completing the existing StateDP continuation at update20918 /150 anchor-equivalent epochs, common-protocol 10000/16584/20918 offline assessment, fixed validation4 plus train4 fitting diagnostics, dependency-based deletion of obsolete source/artifacts/docs, actual regression, and reviewed commits/pushes to origin. Historical preserve-every-artifact clauses are superseded for classified obsolete material. No architecture/loss/H24/commit12/29D-target/split/controller change or fresh training is authorized by cleanup.

@@ -1,5 +1,27 @@
 # StateDP 150 anchor等效epoch：训练、闭环与清理
 
+<!-- RANDOM_EVALUATION_START -->
+## 本轮随机评估（实时保存）
+
+|Cohort|Success / valid|Rate|95% Wilson CI|Contact|Grasp diagnostic|Lift|First subgoal|
+|---|---:|---:|---|---:|---:|---:|---:|
+|historical|0/0|N/A|N/A|0|0|0|0|
+|train|0/0|N/A|N/A|0|0|0|0|
+|validation|0/0|N/A|N/A|0|0|0|0|
+|fresh|0/0|N/A|N/A|0|0|0|0|
+
+Planned valid 200; formal attempts 0; valid 0; pending 200; software missing 0; initial rejections 0; shutdown faults 0.
+Acceptance failures 0. Separate smoke attempts 0, valid 0, software missing 0.
+Contact, approach and stable grasp are diagnostics, not native success. A legal task failure remains in the denominator.
+Historical observable reconstruction, not exact hidden PhysX state. Wilson intervals describe conditional binomial uncertainty; historical pool sampled without replacement.
+State: pending; stage: supervised_smokes.
+
+固定抽样seed `20261105`，历史池360中无放回随机抽取；前100为主清单，另20仅替换动作前非法初态。全新组同样预注册100+20。不得按成功/失败替换。
+每次独立单环境Kit；未采用并行或进程内reset复用，因此不声称已验证并行等价。所有模型动作来自150 epoch checkpoint。
+运行目录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_01`。冻结源码 `a68baee727334f9aa6c0777d94e172380642dadd`；checkpoint SHA `339fc3ddb8f0835f34d9857a4653dfa0ee706d3ec4901bb21b9069312399a15e`。
+[机器统计与每次结果](evidence/state_dp/random_evaluation.json)。软件故障、非法初始化和任务失败分别记录；未完成时不得据此声称100+100成功率。
+<!-- RANDOM_EVALUATION_END -->
+
 |模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|
 |---|---|---:|---:|---:|---:|---:|
 |StateDP 10000|train|0/4|4|1|0|2|
@@ -102,3 +124,59 @@
 尚未通过。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。 这是模型性能评估完成之后发生的独立验收，不解释或改变原8次闭环失败。
 
 8次正式闭环的整卡时间加权GPU均值19.03%，最大完整60秒均值32.84%，遥测缺失0；这是该闭环窗口的实测，不覆盖历史训练/其他会话。
+
+## 原生成功与终止机制逐tick审核
+
+**PASS：未发现这4条训练轨迹的完整成功漏判；原0/4统计保持。** 独立用记录的物体/目标四个关键点、指尖位置及真实配置重建状态机；关键点距离与记录最大差6.15e-8m。目标在子目标完成的同一tick会切换，所以必须用动作前的goal与动作后的object计算，不能误用已经更新的下一目标。400条原生成功专家也全部通过，重建子目标与完整成功逐tick一致，首次完整成功=正式终止，额外动作0。
+
+|原train视频seed|最小关键点最大误差mm|首子目标合格tick累计|首子目标/完整成功|终止tick|
+|---|---:|---:|---|---:|
+|982401|12.944|7/10|均未达到|390，fall|
+|982402|7.974|5/10|均未达到|601，timeout|
+|982403|39.154|0/10|均未达到|528，fall|
+|982404|285.368|0/10|均未达到|601，timeout|
+
+原生配置为`preInsertAndFinal`两个顺序子目标。每个要求四关键点中的最大误差≤0.01×1.5=**15mm**，累计10个合格60Hz控制tick（`force_consecutive_near_goal_steps=False`，不是连续10tick）。达到后计数加一并切换目标、重置该阶段计时。两个插入目标完成后，仍要求关键点最大误差≤0.005×1.5=**7.5mm**且五个指尖到物体中心的平均距离>**0.1m**，才完成撤手并产生完整成功。无额外接触力或稳定抓持硬条件；指尖距离不是接触判据，也不能将插入过程中的接触/抬升当成功。
+
+原任务每次先推进两次120Hz物理步，再增加60Hz控制tick、计算`_get_dones`、奖励，然后自动reset及更新观测。子目标`_is_success`与完整成功`max_successes`不同；reward不是terminated。完整成功、fall、hand_far、启用时的dropped触发terminated，阶段计时超限触发truncated。研究wrapper在自动reset前保存终止原因和状态，runner在同次step返回后停止，未发现flag晚一tick。每个子目标的累计10tick是定义本身；物理子步之间短暂接近不等于已满足完整条件。现有601tick超时约10.0167秒，保持原生数值行为。
+
+本轮没有修改原生阈值、奖励或任务逻辑。仅增加明确的`first_success_tick`、`termination_tick`、`post_success_actions`及检查；若原生完整成功与terminated矛盾，记录软件错误并禁止下一动作。索引统一为1起始的已完成控制tick。原记录未被重写或重新计数。
+
+## 专家3秒动作与控制频率
+
+400条成功记录共有81894个控制tick。完成时间按原`control_dt=0.01666666666s`计算，与墙钟运行速度无关：均值**3.412s**、中位**3.267s**、P05/P95 **2.350/4.834s**、P99 **6.294s**、范围1.983–8.983s。因此“约3秒”确实是仿真物理时间。
+
+|事件绝对仿真时刻|可观测条数|均值s|中位s|P95 s|
+|---|---:|---:|---:|---:|
+|首次指尖力>0.1N诊断|400|1.127|1.117|1.901|
+|原生lift标志|153|2.147|2.033|3.237|
+|首子目标|400|2.692|2.633|3.652|
+|两个插入目标完成|400|3.411|3.267|4.834|
+|完整成功|400|3.412|3.267|4.834|
+
+原400只有未按物体过滤的指尖接触力，接触事件可能含桌面；不可据此精确划分稳定抓持起点。原生lift是物体相对初始升高约10cm的奖励标志，不是成功的必要条件，247条完整成功未触发该标志。388/400在最终插入目标完成的同一tick满足完整成功，剩余12条随后撤手；不得把以上指标画成必然单调的阶段漏斗。
+
+|绝对值，所有episode/关节/tick合并|Arm 中位/P95/最大|Hand 中位/P95/最大|
+|---|---|---|
+|实际速度rad/s|0.129 / 0.220 / 13.366|0.254 / 4.184 / 17.447|
+|控制tick差分加速度rad/s²|0.598 / 4.206 / 1310.401|3.825 / 89.067 / 1216.158|
+|目标变化率rad/s|0.150 / 0.150 / 0.150|0.239 / 5.489 / 11.654|
+|目标/实际跟踪误差rad|0.00608 / 0.01874 / 0.17002|0.01168 / 0.23030 / 1.19739|
+
+典型arm目标速度有限，不能将3秒直接解释为整段不现实高速动作；但存在值得调查的短时动力学尖峰。例如`r931005_1793209376_e01_p000171`第72tick的joint7速度从−8.474变到+13.366rad/s，而目标只改变−0.0025rad；`e03_p000004`第39tick ring_PIP速度17.447rad/s，目标近乎不变。它们是实际速度/接触求解器响应尖峰，不是同样幅度的专家目标跳变；还不能仅凭速度读数证明真实硬件可执行。
+
+原URDF arm速度限制10rad/s、effort300Nm；手指速度约11.62–35.07rad/s、effort0.189–3.3Nm。部分瞬时实际速度超过相应URDF数值，不能把URDF配置当作运行期严格无超调保证。名义arm stiffness为600/600/500/400/200/200/200，damping约9.15–27.03；hand stiffness0.9–13.2、damping约0.028–0.408，逐关节值见机器证据。原400缺少完整逐tick执行器力矩测量；新增记录的是SDK隐式执行器报告的effort估计，不冒充独立力矩传感器。指尖合力P95/P99/最大14.56/22.89/313.58N，未按物体过滤，尖峰原因需结合具体接触。
+
+专家和学生均为120Hz物理/60Hz目标执行，PD、碰撞、质量/摩擦及原生DR配置保持。专家每16.67ms重新输出native命令，并经过其原delay/EMA；DP每tick更新GRU，但每12tick才重规划一次，因此chunk内新接触反馈最多约11个tick（183ms；一般边界描述为<200ms）才影响新规划。当前DP直接提交已处理的29D位置目标，不重复加入专家delay/EMA。墙钟推理时间和资源等待不会推进模拟时间，不能当作额外仿真控制延迟。
+
+200ms覆盖10tick子目标累计窗口，且hand动作/接触可在更短时间变化，因此有理由在本轮完成后设计**同checkpoint、同初态、同DDIM噪声规则、仅commit12→6**的配对诊断；再以同一输出预算检查推理开销和历史因果性。当前并未运行或启用该消融；H24、执行12及baseline不变。现有最早偏离常发生于首12tick，增频也未必能修复初始预测误差。
+
+完整逐轨迹审核及分位数：[success_timing_audit.json](evidence/state_dp/success_timing_audit.json)。
+
+## 本轮基础设施边界与训练决策
+
+此前修复后FileThread SIGABRT的进程RSS最后一次采样约4.38GiB，日志首行同时出现`LLVM ERROR: out of memory`；当时主机仍有约33GiB可用RAM，service MemoryMax18GiB，256个inotify探针通过。现有证据不能把它归因为真实RAM总量耗尽或inotify耗尽。[IsaacLab公开同类报告](https://github.com/isaac-sim/IsaacLab/issues/429)也记录了有空闲RAM时的LLVM报错，但不是本机根因证明。本轮仅采用新的私有缓存及失败系统调用记录，不修改驱动/SDK。SDK生命周期与关闭行为参照[官方5.1文档](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/python_scripting/manual_standalone_python.html)；持久结果后进程隔离回收不冒充完整SDK优雅关闭。
+
+正式200条必须先通过小规模轨迹、模型第一plan一致性、成功事件及进程资源回收验收。不是重新要求三次SDK正常关闭。当前新任务进度看本报告顶部实时区及run状态。软件失败不能写成机器人0/1，也不能减少计划分母。历史初态属于可观察状态重建，缺失的原始四lane PhysX内部状态仍未恢复。
+
+是否启动Image等待全新随机100的实际证据：若未见初态有约10%真实完整成功，可建议进入Image baseline，不要求60–80%；严格live Image输入配对仍须先解决。仅train成功不得称泛化，近零成功则按新队列失败分布定位；本轮不自动重训或改网络/损失。

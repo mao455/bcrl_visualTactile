@@ -55,7 +55,11 @@ class Owner:
             record=dict(name=name,number=number,kit=kit,output=str(output),started=began,valid=False)
             self.attempts.append(record);write(root/'attempts.json',self.attempts)
             with (folder/'worker.log').open('x') as log,(folder/'process.jsonl').open('x') as samples:
-                self.worker=subprocess.Popen(RUN+['-m',module,'--root',str(root),'--output',str(output),*args],cwd=CODE,
+                command=RUN+['-m',module,'--root',str(root),'--output',str(output),*args]
+                if kit and name in self.s.get('syscall_diagnostic_stages',[]):
+                    command=['strace','-f','-tt','-e','trace=mmap,mremap,brk,inotify_init1,inotify_add_watch,openat',
+                        '-e','status=failed','-o',str(folder/'failed_syscalls.log'),*command]
+                self.worker=subprocess.Popen(command,cwd=CODE,
                     stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
                 record['pid']=self.worker.pid;write(root/'attempts.json',self.attempts)
                 try:
@@ -89,7 +93,13 @@ class Owner:
             record['valid']=bool(result.get('software_complete' if kit else 'passed')) and not (output/'worker_error.json').exists()
             record['result']=result;write(folder/'exit.json',record);write(root/'attempts.json',self.attempts)
             if record['valid']:
-                if kit:self.validate_kit(record)
+                if kit:
+                    try:self.validate_kit(record)
+                    except BaseException:
+                        record['native_outcome_valid']=False
+                        record['acceptance_error']=traceback.format_exc()
+                        write(folder/'exit.json',record);write(root/'attempts.json',self.attempts)
+                        raise
                 write(committed,record);self.report();return record
             if kit:
                 # A cold-cache timeout is retained, never blindly retried.
@@ -100,7 +110,7 @@ class Owner:
                 if len(recent)==2 and all(x.get('classification')==record['classification'] for x in recent):
                     raise RuntimeError('Two same-stage Kit failures; specific repair required')
                 recoveries=sum(x['kit'] and x['number']>1 for x in self.attempts)
-                if record['classification']=='startup_FileThread_before_scene' and recoveries<2 and number==1:
+                if self.s.get('kit_auto_retry',True) and record['classification']=='startup_FileThread_before_scene' and recoveries<2 and number==1:
                     return self.stage(name,module,args,kit=True)
                 raise RuntimeError('Kit result missing; retained '+str(folder))
             log=(folder/'worker.log').read_text(errors='replace')

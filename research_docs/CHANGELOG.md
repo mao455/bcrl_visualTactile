@@ -16,3 +16,7 @@
 150阶段20918更新、train4/validation4与统一train320/validation40端点比较已经完成。原8次均有效，0软件缺失，未混入额外验收。
 
 整理后的额外验收在模型首次动作前因`native_data.object_dimensions`缺少ElementTree导入失败，原日志及blocked状态保留。补回原导入；新增真实资产/缓存尺寸及在线Controller初始化回归。网络、损失、checkpoint、原生控制与已完成结果不变。只分配一次修复后的独立验收，不修改原失败计数或原评估期限；修复后78测试通过；唯一补充Kit启动在场景前FileThread SIGABRT（−6），保留且停止自动重试。实际回归与限制写统一报告。
+
+## 2026-11-05 — 原生成功审核与随机闭环队列
+
+新增只读success_audit，按物理tick重算两子目标累计计数和撤手条件；原train4与400专家均与原生事件一致，未发现成功漏判，未放宽阈值或改变原RL任务。state_benchmark明确保存首次成功/终止tick，并拒绝完整成功与terminated矛盾后的继续动作；NativeDiagnosticEnv仅增加读数（阈值/计数/实际effort）。现有anchor_interim_eval增加固定种子历史100+全新100和非法初始化专用预注册备用清单、Wilson区间、逐次验证和少量视频保留。独立Kit新缓存、失败系统调用诊断、单owner；旧失败根保留。30项针对成功重构、抽样、CI、位置接口和队列的CPU回归通过；真实Kit验收和200次统计以实时状态为准，尚未宣称通过。

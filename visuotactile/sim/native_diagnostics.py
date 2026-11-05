@@ -41,4 +41,12 @@ class NativeDiagnosticEnv(RecordedReplayEnv):
         self.last_transition['object_contact_force_w'] = torch.stack(self.object_contact_samples, 1)
         self.last_transition['native_keypoints_max_dist'] = self._keypoints_max_dist.clone()
         self.last_transition['native_alignment_condition'] = self._is_success.clone()
+        self.last_transition['native_success_diagnostic'] = dict(
+            near_goal=self._near_goal.clone(),near_goal_steps_after_goal_reset=self._near_goal_steps.clone(),
+            fingertip_mean_distance_m=self._curr_fingertip_distances.mean(-1).clone(),
+            insertion_tolerance_m=self._keypoint_success_tolerance_m().clone(),
+            complete=self._termination_reasons['max_successes'].clone())
+        # Implicit-actuator effort is the SDK's estimate, not an independent
+        # PhysX force-sensor measurement.
+        self.last_transition['actuator_reported_effort_Nm'] = self.robot.data.applied_torque[:,self._perm_lab_to_canon].clone()
         return reward

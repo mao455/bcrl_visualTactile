@@ -31,6 +31,13 @@ def run_lifecycle(root, output, job_path):
     original_make=base.make_env
     def make_env(*args,**kwargs):
         env=original_make(*args,**kwargs);close=env.close
+        dynamics={}
+        for name in ('joint_stiffness','joint_damping','joint_effort_limits','joint_vel_limits','joint_armature','joint_friction_coeff'):
+            value=getattr(env.robot.data,name,None)
+            dynamics[name]=value[:,env._perm_lab_to_canon].cpu().tolist() if torch.is_tensor(value) else None
+        write(output/'actuator_configuration.json',dict(canonical_order=True,values=dynamics,
+            physics_dt=env.physics_dt,control_dt=env.step_dt,decimation=env.cfg.decimation,
+            missing_values_are_not_inferred=True))
         def closing():
             atomic_json(output/'shutdown_phase.json',dict(phase='env_close_entered',utc=time.time()))
             if case.get('disarm_stop',True):
@@ -60,7 +67,7 @@ def run_audited_episode(root, output, job_path):
     from isaaclab import app as launcher
     from visuotactile import state_benchmark as base, native_controller
     job = read(job_path)
-    assert job['mode'] == 'dp' and len(job['specs']) == 1
+    assert job['mode'] in ('dp','expert') and len(job['specs']) == 1
     assert not any(k in job for k in ('takeover_steps', 'replay'))
     session = read(root/'session.json')
     original_launcher = launcher.AppLauncher
@@ -116,8 +123,15 @@ def run_audited_episode(root, output, job_path):
     original_trial = base.trial
     def trial(*args, **kwargs):
         result = original_trial(*args, **kwargs)
-        audit['completed'] = bool(result.get('legal') and audit['act_calls'] == result['steps']
-            and audit['execution_acks'] == result['steps'])
+        if job['mode']=='expert':
+            audit.update(model_output_only=False,expert_reference=True)
+            audit['completed']=bool(result.get('legal') and result.get('software_complete'))
+        elif not result.get('legal'):
+            audit['completed']=audit['act_calls']==audit['execution_acks']==0
+            audit['initialization_rejected']=True
+        else:
+            audit['completed'] = bool(audit['act_calls'] == result['steps']
+                and audit['execution_acks'] == result['steps'])
         write(output/'controller_audit.json', audit)
         assert audit['completed'], 'Controller execution/history audit incomplete'
         return result
