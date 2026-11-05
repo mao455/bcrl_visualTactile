@@ -260,6 +260,21 @@ def initial_signature(values):
     return hashlib.sha256(np.round(np.concatenate(pieces),6).astype('<f8').tobytes()).hexdigest()
 
 
+def compare_distribution(actual,expected):
+    import copy
+    normalized=copy.deepcopy(actual);relocated={}
+    for name,value in expected['assets'].items():
+        current=normalized['assets'].get(name)
+        if current!=value and name.endswith('_urdf'):
+            assert Path(current).is_file() and Path(value).is_file(), 'Missing relocated asset'
+            digest=sha(current)
+            assert digest==sha(value),'Changed asset content: '+name
+            relocated[name]=dict(live=current,source=value,sha256=digest)
+            normalized['assets'][name]=value
+    assert normalized==expected,'Environment initialization/dynamics contract changed'
+    return dict(passed=True,byte_identical_relocated_assets=relocated)
+
+
 def prepare_random(root, assessment, seed=20261105):
     """Freeze outcome-independent cohorts. Reserve entries replace only illegal starts."""
     import h5py
@@ -335,7 +350,7 @@ class RandomEvaluation(Owner):
         job=read(self.root/'jobs'/(record['name']+'.json'))
         cfg=metadata['config'];expected=read(self.root/'initialization_distribution.json')
         actual={k:cfg[k] for k in expected if k!='physics_dt'};actual['physics_dt']=cfg['sim']['dt']
-        assert actual==expected,'Environment initialization/dynamics contract changed'
+        record['distribution_contract']=compare_distribution(actual,expected)
         signature=initial_signature(read(directory/'initial_observable.json'))
         if trial['cohort']=='fresh':
             assert signature not in read(self.root/'original_initial_signatures.json')['signatures'].values(), 'Fresh initial state matches training/validation pool'

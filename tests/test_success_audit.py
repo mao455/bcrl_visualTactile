@@ -122,3 +122,16 @@ def test_random_owner_clears_pid_on_real_exit(tmp_path):
     write(tmp_path/'session.json',{});write(tmp_path/'status.json',dict(pid=123,worker_pid=456))
     RandomEvaluation(tmp_path).status(state='blocked',pid=None,worker_pid=None)
     assert read(tmp_path/'status.json')['pid'] is None
+
+
+def test_distribution_accepts_only_byte_identical_asset_relocation(tmp_path):
+    import pytest
+    from tools.anchor_interim_eval import compare_distribution
+    original=tmp_path/'old.urdf';live=tmp_path/'new.urdf'
+    original.write_text('<robot/>');live.write_text('<robot/>')
+    expected=dict(assets=dict(object_urdf=str(original)),physics_dt=1/120)
+    current=dict(assets=dict(object_urdf=str(live)),physics_dt=1/120)
+    assert compare_distribution(current,expected)['passed']
+    assert current['assets']['object_urdf']==str(live)
+    live.write_text('<changed/>')
+    with pytest.raises(AssertionError,match='Changed asset content'):compare_distribution(current,expected)
