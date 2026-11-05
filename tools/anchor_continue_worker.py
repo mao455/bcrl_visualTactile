@@ -14,12 +14,14 @@ from visuotactile.training_resources import atomic_json
 
 def run_lifecycle(root, output, job_path):
     job=json.loads(job_path.read_text());case=job.get('lifecycle',{})
+    from tools.rollout_timing import Profile
+    profile=Profile(output) if job.get('profile_timing') else None
     from isaaclab import app as launcher
     original_launcher=launcher.AppLauncher
     fast=case.get('fast_shutdown',True)
     def tracked_launcher(*args,**kwargs):
         kwargs['fast_shutdown']=fast
-        launched=original_launcher(*args,**kwargs);close=launched.app.close
+        launched=(profile.call('kit_startup',original_launcher,*args,**kwargs) if profile else original_launcher(*args,**kwargs));close=launched.app.close
         def closing(*a,**kw):
             atomic_json(output/'shutdown_phase.json',dict(phase='app_close_entered',fast_shutdown=fast,utc=time.time()))
             close(*a,**kw)
@@ -28,6 +30,7 @@ def run_lifecycle(root, output, job_path):
         return launched
     launcher.AppLauncher=tracked_launcher
     from visuotactile import state_benchmark as base
+    if profile:profile.patch(base)
     original_make=base.make_env
     def make_env(*args,**kwargs):
         env=original_make(*args,**kwargs);close=env.close

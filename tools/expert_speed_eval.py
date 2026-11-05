@@ -92,6 +92,18 @@ def dependency_outcome(parent):
         assert not attempt.get('acceptance_error'),'Parent acceptance failure'
     formal=[a for a in attempts if a['name'].startswith('random_')]
     valid=[a for a in formal if a.get('native_outcome_valid')]
+    if status['state']=='paused':
+        receipt=read(parent/'pause_receipt.json')
+        assert receipt['state']=='paused' and receipt['evaluation_class']=='early_stopped_exploratory'
+        assert receipt['resources_released'] and not receipt['owned_gpu_pids'] and not receipt['open_writers']
+        for filename,key in [('attempts.json','attempts_sha256'),('sampling_manifest.json','sampling_manifest_sha256'),('session.json','session_sha256')]:
+            assert sha(parent/filename)==receipt[key],'Paused parent evidence changed'
+        assert receipt['valid']==summary['valid']==len(valid)
+        assert read(parent/'PAUSE_AFTER_CURRENT.json')['next_stage']==receipt['next_stage']
+        return dict(reason='user_requested_early_stop',parent_state='paused',valid=len(valid),planned_valid=200,
+            missing_valid=200-len(valid),initialization_rejections=summary['initialization_rejections'],
+            checkpoint_sha256=receipt['checkpoint_sha256'],pause_receipt_sha256=sha(parent/'pause_receipt.json'),
+            limitation='Explicitly stopped exploratory evaluation; not the planned200; do not resume automatically')
     if status['state']=='completed':
         assert summary['valid']==len(valid)==200,'Completed parent has fewer than 200 valid trials'
         return dict(reason='completed_200',parent_state='completed',valid=200,planned_valid=200)
@@ -193,7 +205,7 @@ class ExpertSpeedEvaluation(Owner):
         job=dict(model='Frozen RL '+factor,updates=0,mode='expert' if speed is None else
             'expert_retime' if speed['kind']=='recorded_retime' else 'expert_slow',specs=[spec],
             checkpoint=self.s['expert_checkpoint'],checkpoint_sha256=self.s['expert_checkpoint_sha256'],
-            video=True,capture_pair=False,capture_dataset=capture,expert_speed=speed,
+            video=True,capture_pair=False,capture_dataset=capture,expert_speed=speed,profile_timing=True,
             lifecycle=dict(fast_shutdown=True,disarm_stop=True),factor=factor)
         if baseline:
             job['paired_baseline']=str(Path(baseline['output'])/spec['identity'])
@@ -201,6 +213,8 @@ class ExpertSpeedEvaluation(Owner):
             if speed and speed['kind']=='recorded_retime' and spec['cohort']=='fresh':
                 job['replay_numeric']=str(Path(job['paired_baseline'])/'numeric.h5')
         record=self.kit(name,job)
+        profile=Path(record['output'])/'wall_profile.json'
+        if profile.exists():record['wall_profile']=read(profile)
         # Persist the protocol identity before the next stage is launched.
         record['factor']=factor;record['phase']=name.split('_')[0]
         self.attempts=[record if x['name']==name and x['number']==record['number'] else x for x in self.attempts]
@@ -240,10 +254,12 @@ class ExpertSpeedEvaluation(Owner):
             gates={name:read(self.root/(name+'.json')) for name in ('baseline_gate','pilot_gates','selection','expansion_gate') if (self.root/(name+'.json')).exists()},
             train_optimizer_updates=0,slow_dataset=(read(self.root/'dataset_manifest.json') if (self.root/'dataset_manifest.json').exists() else None),
             dependency_release=(read(self.root/'dependency_release.json') if (self.root/'dependency_release.json').exists() else None),
+            execution_budget=(read(self.root/'execution_budget.json') if (self.root/'execution_budget.json').exists() else None),
+            screening={p.stem:read(p) for p in (self.root/'screening').glob('*.json')},
             resources=(read(self.root/'resources/resources.json') if (self.root/'resources/resources.json').exists() else None),
             trials=[dict(name=x['name'],factor=x.get('factor'),phase=x.get('phase'),trial=x['result']['trials'][0],
                 events={k:v for k,v in x['success_audit'].items() if k!='motion'},motion=x['success_audit'].get('motion'),
-                physical_motion=x.get('physical_motion'),video=x.get('retained_video'))
+                physical_motion=x.get('physical_motion'),wall_profile=x.get('wall_profile'),video=x.get('retained_video'))
                 for x in self.attempts if x.get('native_outcome_valid')])
         write(self.root/'summary.json',summary)
         public=CODE/'research_docs/evidence/slow_expert';write(public/'results.json',summary)
@@ -274,6 +290,8 @@ class ExpertSpeedEvaluation(Owner):
                 if row['video']:
                     t=row['trial'];lines.append(f"- [{row['name']}：{'成功' if t['success'] else '失败'}，{t['steps']}ticks]({row['video']})")
         release=summary['dependency_release']
+        if release and release['reason']=='user_requested_early_stop':
+            lines += ['',f"旧State评估按用户要求提前暂停：有效{release['valid']}/原计划200，未完成{release['missing_valid']}；属于探索性提前停止，原checkpoint与恢复位置保留，资源回收后独立接续本研究。"]
         if release and release['reason']=='fresh_legal_reserve_exhausted':
             lines += ['',f"原State评估固定名单耗尽，仍为blocked：有效{release['valid']}/200，缺额{release['missing_valid']}，动作前非法初态{release['initialization_rejections']}。原结果不重分类；本研究仅在资源完整回收后独立接续。"]
         lines += ['',f"本地原始记录：`{self.root}`。首次成功与正式终止、阶段时刻、运动统计及视频见[机器结果](evidence/slow_expert/results.json)。",
@@ -289,7 +307,7 @@ class ExpertSpeedEvaluation(Owner):
     def wait_dependency(self):
         parent=Path(self.s['dependency_root'])
         while True:
-            if time.time()>self.s['deadline'] or (self.root/'STOP').exists():raise RuntimeError('Fixed deadline/STOP while waiting for protected State evaluation')
+            if (self.root/'STOP').exists():raise RuntimeError('STOP while waiting for protected State evaluation')
             s=read(parent/'status.json')
             if (parent/'owner_exit.json').exists() and s.get('pid') is None:
                 release=dependency_outcome(parent)
@@ -305,6 +323,35 @@ class ExpertSpeedEvaluation(Owner):
                 break
             self.status(state='waiting_dependency',stage='existing_State150_200',worker_pid=None);self.report();time.sleep(30)
 
+    def start_execution_budget(self):
+        path=self.root/'execution_budget.json'
+        if not path.exists():
+            now=time.time()
+            write(path,dict(started=now,deadline=now+86400,execution_hours=24,
+                excluded_dependency_wait_s=now-self.s['started_epoch'],previous_deadline=self.s['deadline'],
+                authorization='User explicitly excludes dependency waiting; first execution start only, no reset on resume'))
+        budget=read(path);self.s.update(deadline=budget['deadline'],training_deadline=budget['deadline'])
+        write(self.root/'session.json',self.s)
+
+    def screen_factor(self,factor,specs,baseline):
+        """Adaptive screening is exploratory, never an unbiased10-trial estimate."""
+        for i,spec in enumerate(specs):
+            self.execute(f'pilot_{factor}_{i:02d}',spec,factor,baseline[i])
+            rows=self.trials('pilot',factor)
+            if len(rows)>=2 and all(not t['success'] and not t['native_subgoals'] for t in rows[-2:]):break
+        rows=self.trials('pilot',factor);refs={t['identity']:t for t in self.trials('pilot','native') if t['success']}
+        ok=[t for t in rows if t['success']]
+        import numpy as np
+        ratios=[t['duration_sim_s']/refs[t['identity']]['duration_sim_s'] for t in ok if t['identity'] in refs]
+        median=float(np.median([t['duration_sim_s'] for t in ok])) if ok else None
+        ratio=float(np.median(ratios)) if ratios else None
+        passed=len(rows)==3 and len(ok)>=2
+        if factor!='B100':passed=passed and median is not None and 4<=median<=8 and ratio is not None and ratio>=1.2
+        result=dict(factor=factor,valid=len(rows),success=len(ok),median_success_s=median,paired_ratio=ratio,passed=bool(passed),
+            rule='3 paired starts; stop after2 consecutive native failures with no first subgoal; require2 successes. Slow candidates additionally median4–8s and paired ratio>=1.2. Exploratory screening, not final reliability.',
+            stopped_early=len(rows)<3)
+        write(self.root/'screening'/(factor+'.json'),result);return result
+
     def run(self):
         from visuotactile.expert_speed import reliability
         root=self.root
@@ -314,29 +361,47 @@ class ExpertSpeedEvaluation(Owner):
                 for p,d in read(root/'runtime_freeze.json').items():assert sha(CODE/p)==d,'Source drift: '+p
                 assert sha(self.s['expert_checkpoint'])==self.s['expert_checkpoint_sha256']
                 self.wait_dependency()
+                self.start_execution_budget()
                 cache=root/'private_runtime/cache'
                 if not cache.exists():shutil.copytree(Path(self.s['dependency_root'])/'private_runtime/cache',cache,symlinks=True)
                 (root/'STOP_MONITOR').unlink(missing_ok=True)
                 with (root/'monitor.log').open('a') as log:
                     self.monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
                 baseline=[]
-                for i,spec in enumerate(self.s['specs']):
+                for i,spec in enumerate(self.s['specs'][:3]):
                     baseline.append(self.execute(f'pilot_native_{i:02d}',spec,'native'))
                     if i==0:self.execute('pilot_identity_00',spec,'identity',baseline[0])
                 native=self.trials('pilot','native')
-                gate=dict(valid=len(native),success=sum(t['success'] for t in native),minimum_success=8,minimum_valid=10)
-                gate['passed']=gate['valid']==10 and gate['success']>=8
+                gate=dict(valid=len(native),success=sum(t['success'] for t in native),minimum_success=2,minimum_valid=3,scope='screening only')
+                gate['passed']=gate['valid']==3 and gate['success']>=2
                 write(root/'baseline_gate.json',gate)
                 if not gate['passed']:
                     self.status(state='completed_diagnostic',stage='native_baseline_unreliable_no_slow_expansion');return
-                for factor in ('A080','A067','A050','B100','B125','B150','B200'):
-                    for i,spec in enumerate(self.s['specs']):self.execute(f'pilot_{factor}_{i:02d}',spec,factor,baseline[i])
-                if all(sum(t['success'] for t in self.trials('pilot',f))<8 for f in ('A080','A067','A050')):
-                    for i,spec in enumerate(self.s['specs']):self.execute(f'pilot_C067_{i:02d}',spec,'C067',baseline[i])
-                gates={f:reliability(self.trials('pilot',f),native) for f in ('A080','A067','A050','B125','B150','B200','C067')}
+                screens={}
+                for factor in ('A080','A067','A050','B100'):
+                    screens[factor]=self.screen_factor(factor,self.s['specs'][:3],baseline)
+                if screens['B100']['passed']:
+                    for factor in ('B125','B150','B200'):screens[factor]=self.screen_factor(factor,self.s['specs'][:3],baseline)
+                if all(screens[f]['success']<2 for f in ('A080','A067','A050')):
+                    screens['C067']=self.screen_factor('C067',self.s['specs'][:3],baseline)
+                promising=sorted([f for f,g in screens.items() if g['passed'] and f!='B100'],key=lambda f:(-screens[f]['success'],abs(screens[f]['median_success_s']-6),f))[:2]
+                write(root/'screening_selection.json',dict(screens=screens,selected=promising,adaptive=True,maximum=2))
+                if not promising:
+                    self.status(state='completed_diagnostic',stage='small_paired_screen_no_promising_slow_candidate');return
+                for i,spec in enumerate(self.s['specs'][3:],3):baseline.append(self.execute(f'pilot_native_{i:02d}',spec,'native'))
+                native=self.trials('pilot','native')
+                if len(native)!=10 or sum(t['success'] for t in native)<8:
+                    self.status(state='completed_diagnostic',stage='native10_not_reliable_no_expansion');return
+                extend=promising+(['B100'] if any(f.startswith('B') for f in promising) else [])
+                for factor in extend:
+                    for i,spec in enumerate(self.s['specs'][3:],3):
+                        self.execute(f'pilot_{factor}_{i:02d}',spec,factor,baseline[i])
+                        if sum(not t['success'] for t in self.trials('pilot',factor))>=3:break
+                gates={f:reliability(self.trials('pilot',f),native) for f in promising}
                 # Failed unscaled open-loop recovery cannot certify time warping.
                 if sum(t['success'] for t in self.trials('pilot','B100'))<8:
-                    for f in ('B125','B150','B200'):gates[f]['passed']=False;gates[f]['replay_reference_unreliable']=True
+                    for f in gates:
+                        if f.startswith('B'):gates[f]['passed']=False;gates[f]['replay_reference_unreliable']=True
                 write(root/'pilot_gates.json',gates)
                 candidates=[f for f,g in gates.items() if g['passed']]
                 if not candidates:
@@ -348,6 +413,8 @@ class ExpertSpeedEvaluation(Owner):
                     if chosen.startswith('B') and not base['result']['trials'][0].get('success'):
                         write(root/'missing_replay_sources'/spec['identity'],dict(reason='No successful native source; candidate not executed',spec=spec));continue
                     self.execute(f'expansion_{chosen}_{i:02d}',spec,chosen,base)
+                    if sum(not t['success'] for t in self.trials('expansion',chosen))>=4:
+                        write(root/'expansion_early_stop.json',dict(reason='Four failures make the preregistered17/20 threshold unattainable',at_index=i));break
                 gate=reliability(self.trials('expansion',chosen),self.trials('expansion','native'),minimum=20,success_floor=.85)
                 if sum(t['success'] for t in self.trials('expansion','native'))<16:gate['passed']=False;gate['native_baseline_unreliable']=True
                 write(root/'expansion_gate.json',gate)

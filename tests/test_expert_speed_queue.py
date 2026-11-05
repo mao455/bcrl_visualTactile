@@ -79,7 +79,7 @@ def test_exhausted_legal_reserve_releases_only_after_resource_checks(tmp_path,mo
 
 @pytest.mark.parametrize('damage,match',[
     ('software','software-failed'),('leak','resource release'),('unfinished','software-failed'),
-    ('uncommitted','durably committed'),('wrong_reason',''),('wrong_seed',''),
+    ('uncommitted','durably committed'),('wrong_reason',None),('wrong_seed',None),
     ('unresolved_reserve','Fresh reserve not fully resolved')])
 def test_reserve_exception_does_not_mask_missing_evidence_or_faults(tmp_path,damage,match):
     parent=tmp_path/'parent';exhausted_parent(parent)
@@ -107,3 +107,50 @@ def test_completed_200_dependency_still_requires_resource_release(tmp_path):
     assert dependency_outcome(parent)['reason']=='completed_200'
     attempts=read(parent/'attempts.json');attempts[0]['resources_released']=False;write(parent/'attempts.json',attempts)
     with pytest.raises(AssertionError,match='resource release'):dependency_outcome(parent)
+
+
+def test_explicit_user_pause_is_not_completed200(tmp_path):
+    from tools.runtime import sha
+    parent=tmp_path/'parent';exhausted_parent(parent)
+    state=dict(state='paused',pid=None,worker_pid=None)
+    write(parent/'status.json',state);write(parent/'owner_exit.json',state)
+    write(parent/'sampling_manifest.json',dict(seed=1234))
+    write(parent/'PAUSE_AFTER_CURRENT.json',dict(next_stage='random_fresh_120'))
+    receipt=dict(state='paused',evaluation_class='early_stopped_exploratory',resources_released=True,
+        owned_gpu_pids=[],open_writers=[],valid=160,next_stage='random_fresh_120',checkpoint_sha256='kept')
+    for filename,key in [('attempts.json','attempts_sha256'),('sampling_manifest.json','sampling_manifest_sha256'),('session.json','session_sha256')]:receipt[key]=sha(parent/filename)
+    write(parent/'pause_receipt.json',receipt)
+    result=dependency_outcome(parent)
+    assert result['parent_state']=='paused' and result['valid']==160 and result['missing_valid']==40
+    write(parent/'sampling_manifest.json',dict(seed=999))
+    with pytest.raises(AssertionError,match='evidence changed'):dependency_outcome(parent)
+
+
+def test_execution_budget_excludes_wait_and_does_not_reset_on_resume(tmp_path,monkeypatch):
+    owner,_=setup_owner(tmp_path,{})
+    owner.s.update(started_epoch=1000,deadline=5000)
+    monkeypatch.setattr('tools.expert_speed_eval.time.time',lambda:2000)
+    owner.start_execution_budget();assert owner.s['deadline']==88400
+    budget=read(owner.root/'execution_budget.json');assert budget['excluded_dependency_wait_s']==1000
+    monkeypatch.setattr('tools.expert_speed_eval.time.time',lambda:9000)
+    owner.start_execution_budget();assert read(owner.root/'execution_budget.json')==budget
+    assert owner.s['deadline']==88400
+
+
+def test_screen_stops_repeated_no_progress_failures_and_preserves_rows(tmp_path):
+    owner,_=setup_owner(tmp_path,{})
+    attempts=[]
+    def execute(name,spec,factor,baseline):attempts.append(dict(identity=spec['identity'],success=False,native_subgoals=0,duration_sim_s=10))
+    owner.execute=execute
+    owner.trials=lambda phase,factor:attempts if factor=='A050' else []
+    result=owner.screen_factor('A050',[dict(identity=str(i)) for i in range(3)],[None]*3)
+    assert len(attempts)==2 and result['stopped_early'] and not result['passed']
+
+
+def test_screen_requires_real_time_slowdown_before_expansion(tmp_path):
+    owner,_=setup_owner(tmp_path,{})
+    attempts=[];native=[dict(identity=str(i),success=True,duration_sim_s=3.) for i in range(3)]
+    owner.execute=lambda name,spec,factor,base:attempts.append(dict(identity=spec['identity'],success=True,native_subgoals=2,duration_sim_s=3.1))
+    owner.trials=lambda phase,factor:native if factor=='native' else attempts
+    result=owner.screen_factor('A080',[dict(identity=str(i)) for i in range(3)],[None]*3)
+    assert result['success']==3 and not result['passed'] and not result['stopped_early']

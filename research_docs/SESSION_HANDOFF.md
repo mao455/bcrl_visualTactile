@@ -1,5 +1,7 @@
 # 当前交接
 
+最新用户优先级调整：State随机评估已在random_fresh_074完整落盘后提前暂停，共175正式尝试、143有效、32非法初始化，历史2/100、新初态0/43；不是原200完成。pause_receipt.json记录checkpoint/采样/结果SHA、资源回收与下一个random_fresh_075。旧owner无边界钩子，预留空attempt目录阻止下一启动；原始控制边界异常归档，不冒充软件rollout故障。旧源码不变。新expert_speed先3初态筛选、失败候选早停、最多2组扩到10；24h从依赖释放后首次执行开始，旧等待不消耗预算。下面是此前快照，有冲突以本段与SLOW_EXPERT_RESULTS为准。
+
 ## 当前新增：冻结专家速度研究
 
 本工作树仅用于feature/expert-slow-execution，不是正在运行State200的bc+rl_RSS_native_v2。读取SLOW_EXPERT_RESULTS和expert_speed_20261105_01的实际status；新owner在原队列结束和资源回收之前只有CPU等待，不启动Kit。新工作不改变旧队列/源码/发布服务。14:47发现新初态动作前碰撞拒绝32条，已超过原20备用；原固定名单无法达到100有效。仅修正新owner依赖：原正常完成200，或历史100已完成、新120全部已提交且唯一失败原因为合法初态备用耗尽，完成资源审核后可以开始独立专家研究。原blocked和缺额保留，其他故障仍阻断；不修改旧队列、不重置新root截止。切换前新0次Kit、旧CPU等待证据保存在maintenance/dependency_release_v2。官方checkpoint SHA匹配、动作链CPU对照通过；间隙资产为单边0.5mm/总差1mm，不能与论文0.5mm行直接等同。物理成功、可靠减速、新数据和微调必须分别等待真实证据。
