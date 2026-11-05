@@ -1,23 +1,24 @@
 {
   "status": {
-    "state": "ready",
-    "stage": "resume_screen_scope_fixed_A060_selected",
-    "pid": null,
-    "worker_pid": null
+    "state": "evaluating",
+    "stage": "pilot_native_08",
+    "pid": 440013,
+    "worker_pid": 441212,
+    "heartbeat": 1793866316.4613934
   },
   "rows": [
     {
       "phase": "pilot",
       "factor": "native",
-      "valid": 7,
-      "success": 7,
+      "valid": 9,
+      "success": 9,
       "rate": 1.0,
       "ci95": [
-        0.6456695649333126,
+        0.7008549515804559,
         1.0
       ],
-      "mean_success_sim_s": 3.00238095118,
-      "median_success_sim_s": 3.0666666654399997,
+      "mean_success_sim_s": 3.272222220913333,
+      "median_success_sim_s": 3.1666666653999997,
       "fall": 0,
       "timeout": 0
     },
@@ -113,24 +114,24 @@
     }
   ],
   "maximum_starts": 155,
-  "actual_starts": 23,
+  "actual_starts": 25,
   "software_missing": 0,
   "acceptance_failed": 0,
   "initialization_rejections": 0,
   "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
-  "source_commit": "f0558526f13fb1c0a797185d525cb254a4e5c4ff",
+  "source_commit": "d9259fc01d83e812c7a92d52dae3a2b92489a60f",
   "planned_pilot_specs": 10,
   "planned_expansion_specs": 20,
   "planned_capture_specs": 6,
   "missing_successful_replay_sources": 0,
   "gates": {
     "baseline_gate": {
-      "valid": 7,
-      "success": 7,
+      "valid": 3,
+      "success": 3,
       "minimum_success": 2,
       "minimum_valid": 3,
       "scope": "screening only",
-      "passed": false
+      "passed": true
     }
   },
   "train_optimizer_updates": 0,
@@ -208,29 +209,29 @@
     }
   },
   "resources": {
-    "pid": 438220,
+    "pid": 440022,
     "latest": {
-      "pid": 438220,
-      "utc_epoch": 1793865924.3534122,
-      "elapsed_s": 1889.125100318808,
-      "gpu_util_percent": 6.0,
+      "pid": 440022,
+      "utc_epoch": 1793866318.5792549,
+      "elapsed_s": 2283.350942791556,
+      "gpu_util_percent": 4.0,
       "gpu_used_mib": 492.0,
       "gpu_free_mib": 23592.0,
-      "ram_available_bytes": 34389655552,
-      "process_rss_bytes": 15073280,
+      "ram_available_bytes": 32755286016,
+      "process_rss_bytes": 15007744,
       "cuda_allocated_bytes": null,
       "cuda_reserved_bytes": null,
-      "rolling_60s_percent": null
+      "rolling_60s_percent": 11.210746023864097
     },
-    "samples": 1365,
-    "gpu_time_weighted_mean_percent": 13.404165659327601,
+    "samples": 1476,
+    "gpu_time_weighted_mean_percent": 13.201186351841896,
     "max_complete_60s_mean_percent": 21.792831740980425,
     "missing_samples": 0,
-    "missing_seconds": 526.5220177428564,
+    "missing_seconds": 810.6911022375571,
     "max_sample_gap_s": 339.9400729794288,
     "wait_seconds": 0.0,
     "peak_gpu_used_mib": 8354.0,
-    "peak_process_rss_bytes": 15073280,
+    "peak_process_rss_bytes": 15007744,
     "min_ram_available_bytes": 23094980608,
     "thresholds": {
       "gpu_free_mib": 6144,
@@ -6729,6 +6730,556 @@
         },
         "resource_wait_s": 0.2542607185896486,
         "resource_pacing_s": 2.3523710115114227,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": null
+    },
+    {
+      "name": "pilot_native_07",
+      "factor": "native",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e00_p000197",
+        "cohort": "train",
+        "seed": 23010007,
+        "selection_index": 6,
+        "source_duration_sim_s": 3.5499999985799997,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 198,
+        "native_lift": true,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 198,
+        "termination_tick": 198,
+        "duration_sim_s": 3.2999999986799997,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.0826588049530983
+      },
+      "events": {
+        "ticks": 198,
+        "duration_sim_s": 3.2999999986799997,
+        "first_contact_tick": 112,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": 152,
+        "first_subgoal_tick": 169,
+        "all_insertion_goals_tick": 198,
+        "first_complete_tick": 198,
+        "first_native_success_tick": 198,
+        "termination_tick": 198,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 1.5816364903002977,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 5.960464477539063e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 1.86666666592,
+          "lift": 2.53333333232,
+          "first_subgoal": 2.8166666655399997,
+          "all_insertion_goals": 3.2999999986799997,
+          "complete": 3.2999999986799997
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 195,
+          "satisfied_ticks": 4,
+          "longest_consecutive_ticks": 4,
+          "minimum_final_keypoint_distance_mm": 1.5816475497558713,
+          "closest_final_tick": 197,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 5.960464477539063e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 1386,
+          "mean": 0.13269091839767713,
+          "min": 0.0007696105167269707,
+          "p05": 0.03001852985471487,
+          "p25": 0.11129852198064327,
+          "median": 0.14279314130544662,
+          "p75": 0.15462856739759445,
+          "p95": 0.20858065783977509,
+          "p99": 0.27269527167081836,
+          "max": 0.5472089052200317
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 1386,
+          "mean": 0.9626745331571652,
+          "min": 0.0004890561103820801,
+          "p05": 0.010279341600835323,
+          "p25": 0.06407618522644043,
+          "median": 0.3035147190093994,
+          "p75": 1.0223416984081268,
+          "p95": 3.3348084688186646,
+          "p99": 11.854914855957144,
+          "max": 31.5261173248291
+        },
+        "arm_target_rate_rad_s": {
+          "n": 1386,
+          "mean": 0.143710046578071,
+          "min": 0.00297903991304338,
+          "p05": 0.09337305277585983,
+          "p25": 0.14999626576900482,
+          "median": 0.14999984204769135,
+          "p75": 0.15000341832637787,
+          "p95": 0.15000341832637787,
+          "p99": 0.15000341832637787,
+          "max": 0.15000341832637787
+        },
+        "arm_tracking_rad": {
+          "n": 1386,
+          "mean": 0.00681507549366899,
+          "min": 1.975148916244507e-05,
+          "p05": 0.0011083334684371948,
+          "p25": 0.00489392876625061,
+          "median": 0.0060107409954071045,
+          "p75": 0.007445190101861954,
+          "p95": 0.0165860652923584,
+          "p99": 0.022837197780609136,
+          "max": 0.0264434814453125
+        },
+        "hand_speed_rad_s": {
+          "n": 4356,
+          "mean": 0.8723383444476466,
+          "min": 1.8295931436540513e-09,
+          "p05": 0.0001043278334691422,
+          "p25": 0.007244089734740555,
+          "median": 0.1882149651646614,
+          "p75": 1.1120500564575195,
+          "p95": 4.289222955703735,
+          "p99": 5.855229353904724,
+          "max": 8.402240753173828
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 4356,
+          "mean": 17.249025463996947,
+          "min": 2.489969688213023e-07,
+          "p05": 0.0027523644384928048,
+          "p25": 0.12120859883725643,
+          "median": 1.9010993242263794,
+          "p75": 18.057971477508545,
+          "p95": 87.72525215148926,
+          "p99": 160.47800903320308,
+          "max": 470.48834228515625
+        },
+        "hand_target_rate_rad_s": {
+          "n": 4356,
+          "mean": 1.0749665280057858,
+          "min": 2.2351740369686013e-07,
+          "p05": 1.072883515007561e-05,
+          "p25": 0.0038224828895181417,
+          "median": 0.16270236670970917,
+          "p75": 1.3176882565021515,
+          "p95": 5.2991111278533936,
+          "p99": 8.027225637435908,
+          "max": 10.471797943115234
+        },
+        "hand_tracking_rad": {
+          "n": 4356,
+          "mean": 0.04593196544287417,
+          "min": 1.6391823010053486e-08,
+          "p05": 7.669554634048836e-06,
+          "p25": 0.0003504287451505661,
+          "median": 0.007342230528593063,
+          "p75": 0.0526711568236351,
+          "p95": 0.2186700478196144,
+          "p99": 0.41572308242321004,
+          "max": 0.6310189962387085
+        },
+        "fingertip_contact_N": {
+          "n": 1980,
+          "mean": 2.1258405446724007,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 0.0,
+          "p95": 14.769930887222289,
+          "p99": 22.682919769287114,
+          "max": 34.90054702758789
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 3.796784221776761e-05,
+          "p95": 0.6567326545715332,
+          "maximum": 0.9344096183776855
+        },
+        "object_angular_speed_rad_s": {
+          "median": 0.001396379666402936,
+          "p95": 10.61869626045226,
+          "maximum": 19.102558135986328
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.22058115899562836,
+          "p95": 0.3131843984127044,
+          "maximum": 0.4361076056957245
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793866216.0053866,
+        "finished": 1793866256.5804706,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 10.085418959963135,
+            "max_s": 10.085418959963135
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.469570201006718,
+            "max_s": 5.469570201006718
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.4369827669579536,
+            "max_s": 0.4369827669579536
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.2925649320241064,
+            "max_s": 0.2925649320241064
+          },
+          "video_encode": {
+            "calls": 198,
+            "wall_s": 2.8795465022558346,
+            "max_s": 0.04349163791630417
+          },
+          "rl_inference_cpu": {
+            "calls": 198,
+            "wall_s": 2.0942285634810105,
+            "max_s": 0.0496313200565055
+          },
+          "physics_render_sensors": {
+            "calls": 198,
+            "wall_s": 13.676399578107521,
+            "max_s": 0.129064308013767
+          },
+          "numeric_recording": {
+            "calls": 198,
+            "wall_s": 4.708327877917327,
+            "max_s": 0.07477975205983967
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.15268355805892497,
+            "max_s": 0.15268115501385182
+          }
+        },
+        "resource_wait_s": 0.2802794527960941,
+        "resource_pacing_s": 0.0003799549303948879,
+        "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
+        "changes_physics_or_rng": false
+      },
+      "video": null
+    },
+    {
+      "name": "pilot_native_08",
+      "factor": "native",
+      "phase": "pilot",
+      "trial": {
+        "identity": "r931005_1793209376_e03_p000179",
+        "cohort": "train",
+        "seed": 23010008,
+        "selection_index": 7,
+        "source_duration_sim_s": 3.7499999985,
+        "software_complete": true,
+        "legal": true,
+        "success": true,
+        "reasons": {
+          "fall": false,
+          "max_successes": true,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": false
+        },
+        "steps": 308,
+        "native_lift": false,
+        "native_subgoals": 2,
+        "native_alignment": true,
+        "actor_normalization_max_error": 0.0,
+        "environment_sha256": "3444bc7d9052bc0131a195d809920b8e9e91ee695673b3bc3c5f47b17e37a40a",
+        "checkpoint_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+        "action_exhausted": false,
+        "simulation_step_hz": 60,
+        "physics_hz": 120,
+        "plan_hz": 60,
+        "ever_complete_success": true,
+        "first_success_tick": 308,
+        "termination_tick": 308,
+        "duration_sim_s": 5.133333331279999,
+        "tick_index": "1-based completed control transitions",
+        "post_success_actions": 0,
+        "action_control_mode": "native_command_clipped_pre_delay",
+        "actuator_target_max_error": 0.0,
+        "tracking_rmse_rad": 0.07291198521852493
+      },
+      "events": {
+        "ticks": 308,
+        "duration_sim_s": 5.133333331279999,
+        "first_contact_tick": 118,
+        "contact_scope": "object-filtered",
+        "first_lift_tick": null,
+        "first_subgoal_tick": 271,
+        "all_insertion_goals_tick": 308,
+        "first_complete_tick": 308,
+        "first_native_success_tick": 308,
+        "termination_tick": 308,
+        "continued_after_complete_ticks": 0,
+        "reconstructed_success": true,
+        "native_success": true,
+        "subgoal_mismatches": 0,
+        "success_mismatches": 0,
+        "min_keypoint_distance_mm": 3.3516446128487587,
+        "near_goal_ticks": 20,
+        "recorded_keypoint_max_difference_m": 5.960464477539063e-08,
+        "terminal_reasons": {
+          "dropped": false,
+          "fall": false,
+          "hand_far": false,
+          "max_successes": true,
+          "timeout": false
+        },
+        "tick_index": "1-based completed control transitions",
+        "phase_times_sim_s": {
+          "contact": 1.9666666658799998,
+          "lift": null,
+          "first_subgoal": 4.51666666486,
+          "all_insertion_goals": 5.133333331279999,
+          "complete": 5.133333331279999
+        },
+        "passed": true,
+        "terminal_geometry": {
+          "ever_satisfied": true,
+          "first_tick": 301,
+          "satisfied_ticks": 8,
+          "longest_consecutive_ticks": 8,
+          "minimum_final_keypoint_distance_mm": 3.351637627929449,
+          "closest_final_tick": 304,
+          "final_tolerance_m": 0.0075,
+          "fingertip_mean_threshold_m": 0.1,
+          "scope": "Diagnostic only: final native geometric and finger-clear predicates without the ordered subgoal prerequisite",
+          "changes_native_success_or_termination": false,
+          "native_final_stage_geometry_max_difference_m": 5.681067705154419e-08
+        }
+      },
+      "motion": {
+        "arm_speed_rad_s": {
+          "n": 2156,
+          "mean": 0.12401921479007415,
+          "min": 0.00018426775932312012,
+          "p05": 0.019702594727277756,
+          "p25": 0.08952904120087624,
+          "median": 0.12826838344335556,
+          "p75": 0.15531229600310326,
+          "p95": 0.21934523060917854,
+          "p99": 0.29690679907798745,
+          "max": 0.4747183322906494
+        },
+        "arm_acceleration_rad_s2": {
+          "n": 2156,
+          "mean": 1.1461070773732838,
+          "min": 0.00011488794552860782,
+          "p05": 0.023512689396739006,
+          "p25": 0.17053315788507462,
+          "median": 0.5314350128173828,
+          "p75": 1.2864776253700256,
+          "p95": 3.910760521888733,
+          "p99": 9.520756387710566,
+          "max": 30.26685333251953
+        },
+        "arm_target_rate_rad_s": {
+          "n": 2156,
+          "mean": 0.14154160233107962,
+          "min": 0.00037193295429460704,
+          "p05": 0.06973994895815849,
+          "p25": 0.14999626576900482,
+          "median": 0.14999984204769135,
+          "p75": 0.15000341832637787,
+          "p95": 0.15000341832637787,
+          "p99": 0.15000341832637787,
+          "max": 0.15000341832637787
+        },
+        "arm_tracking_rad": {
+          "n": 2156,
+          "mean": 0.007325066110561559,
+          "min": 7.62939453125e-06,
+          "p05": 0.0010406039655208588,
+          "p25": 0.004128161817789078,
+          "median": 0.0060403719544410706,
+          "p75": 0.008854269981384277,
+          "p95": 0.01784256100654602,
+          "p99": 0.02541300058364862,
+          "max": 0.033852338790893555
+        },
+        "hand_speed_rad_s": {
+          "n": 6776,
+          "mean": 0.729452707246511,
+          "min": 3.123834524387803e-10,
+          "p05": 1.7701945296266786e-06,
+          "p25": 0.003076309512834996,
+          "median": 0.06456936523318291,
+          "p75": 0.9384901821613312,
+          "p95": 3.562335193157196,
+          "p99": 5.640512824058533,
+          "max": 8.838435173034668
+        },
+        "hand_acceleration_rad_s2": {
+          "n": 6776,
+          "mean": 13.733919797036481,
+          "min": 9.820666235782483e-08,
+          "p05": 0.00011910780813195743,
+          "p25": 0.08119806833565235,
+          "median": 1.2965008616447449,
+          "p75": 13.507453441619873,
+          "p95": 68.92690658569336,
+          "p99": 137.48045349121094,
+          "max": 435.9236755371094
+        },
+        "hand_target_rate_rad_s": {
+          "n": 6776,
+          "mean": 0.8865917429403448,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 3.218650817871094e-05,
+          "median": 0.04556480422616005,
+          "p75": 1.1142882406711578,
+          "p95": 4.571216821670532,
+          "p99": 7.242546796798706,
+          "max": 10.452445983886719
+        },
+        "hand_tracking_rad": {
+          "n": 6776,
+          "mean": 0.038164477539387835,
+          "min": 0.0,
+          "p05": 1.9378862603502967e-07,
+          "p25": 0.00013741478323936462,
+          "median": 0.0025220467941835523,
+          "p75": 0.04560041893273592,
+          "p95": 0.17587727680802345,
+          "p99": 0.39984163641929626,
+          "max": 0.5750443935394287
+        },
+        "fingertip_contact_N": {
+          "n": 3080,
+          "mean": 1.6921269994797548,
+          "min": 0.0,
+          "p05": 0.0,
+          "p25": 0.0,
+          "median": 0.0,
+          "p75": 0.0,
+          "p95": 11.987356042861924,
+          "p99": 20.810139827728282,
+          "max": 44.13144302368164
+        }
+      },
+      "physical_motion": {
+        "object_linear_speed_m_s": {
+          "median": 0.08817863464355469,
+          "p95": 0.6391369104385376,
+          "maximum": 1.0562015771865845
+        },
+        "object_angular_speed_rad_s": {
+          "median": 1.0100570917129517,
+          "p95": 10.19434204101562,
+          "maximum": 19.07660484313965
+        },
+        "palm_step_speed_m_s": {
+          "median": 0.151079460978508,
+          "p95": 0.31286902427673335,
+          "maximum": 0.3568967580795288
+        },
+        "scope": "Actual physics samples at control boundaries; each trial separately summarized"
+      },
+      "wall_profile": {
+        "started": 1793866262.3961232,
+        "finished": 1793866316.2377567,
+        "categories": {
+          "kit_startup": {
+            "calls": 1,
+            "wall_s": 9.74952221591957,
+            "max_s": 9.74952221591957
+          },
+          "scene_construction": {
+            "calls": 1,
+            "wall_s": 5.088346034986898,
+            "max_s": 5.088346034986898
+          },
+          "expert_load": {
+            "calls": 1,
+            "wall_s": 0.42956770095042884,
+            "max_s": 0.42956770095042884
+          },
+          "reset_and_initial_state": {
+            "calls": 1,
+            "wall_s": 0.2676650380017236,
+            "max_s": 0.2676650380017236
+          },
+          "video_encode": {
+            "calls": 308,
+            "wall_s": 4.314812091644853,
+            "max_s": 0.042532891035079956
+          },
+          "rl_inference_cpu": {
+            "calls": 308,
+            "wall_s": 3.271276167477481,
+            "max_s": 0.05607932002749294
+          },
+          "physics_render_sensors": {
+            "calls": 308,
+            "wall_s": 19.892896302277222,
+            "max_s": 0.17216971702873707
+          },
+          "numeric_recording": {
+            "calls": 308,
+            "wall_s": 6.843632232397795,
+            "max_s": 0.05377556895837188
+          },
+          "video_flush": {
+            "calls": 2,
+            "wall_s": 0.16381840605754405,
+            "max_s": 0.16381620103493333
+          }
+        },
+        "resource_wait_s": 0.38129089563153684,
+        "resource_pacing_s": 2.8523952648974955,
         "scope": "Host elapsed; physics category includes rendering/sensors. Scene/reset exclude lease waits. RL runs on CPU. No extra synchronization or simulation calls. Fsync/reaping follows this timestamp.",
         "changes_physics_or_rng": false
       },

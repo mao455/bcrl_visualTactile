@@ -85,14 +85,16 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 
 每个新专家worker在推理前后校验模型全部参数/缓冲指纹，确认没有优化更新。`run/resume`复用已提交stage；`release`对本研究拒绝，不能误放行旧训练。
 
+最新受监督现场快照（2026-11-05T16:12:40.411388+08:00）：服务已实际运行到`pilot_native_09`，已启动26次、已验收25条；正式扩展选择`A060`。旧State保持paused。[机器快照](evidence/slow_expert/live_status.json)与[各执行版本范围](evidence/slow_expert/runtime_revisions.json)保留真实PID、预算、资源与source SHA。下方生成区是最近一次完整rollout落盘时的统计，不以发出启动命令代替运行验收。
+
 <!-- SLOW_EXPERT_RESULTS_START -->
 ## 实测进度
 
-状态：`ready`，阶段`resume_screen_scope_fixed_A060_selected`；已尝试23/155。软件缺失0，验收失败0，非法初态0。
+状态：`evaluating`，阶段`pilot_native_08`；已尝试25/155。软件缺失0，验收失败0，非法初态0。
 
 |阶段|配置|原生成功/有效|95% Wilson区间|成功均值/中位(s)|fall/timeout|
 |---|---|---:|---|---|---|
-|pilot|native|7/7|64.6%–100.0%|3.002/3.067|0/0|
+|pilot|native|9/9|70.1%–100.0%|3.272/3.167|0/0|
 |pilot|identity|1/1|20.7%–100.0%|2.317/2.317|0/0|
 |pilot|A080|3/3|43.9%–100.0%|3.689/3.567|0/0|
 |pilot|A067|3/3|43.9%–100.0%|4.400/4.250|0/0|
@@ -122,4 +124,3 @@ A067和A050都3/3成功，但中位分别低于5s、高于7s，故基于已有�
 本地原始记录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/expert_speed_20261105_01`。首次成功与正式终止、阶段时刻、运动统计及视频见[机器结果](evidence/slow_expert/results.json)。
 成功耗时仅对成功样本统计，不能忽略失败或据此声称固定倍率。无训练更新；Image未启动。
 <!-- SLOW_EXPERT_RESULTS_END -->
-
