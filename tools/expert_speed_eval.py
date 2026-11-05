@@ -1,7 +1,8 @@
 """Bounded expert study, dispatched by the existing anchor_interim_eval CLI.
 
 The original State150 owner/source is never modified. This CPU owner waits for
-its completed 200 trials before acquiring the shared simulation resource lease.
+its resource release. Exhausted illegal-start reserves remain incomplete results,
+but do not block an independent study after all preregistered attempts resolve.
 """
 import copy
 import fcntl
@@ -73,6 +74,55 @@ def report_body_hash(text):
     if start in text:
         a,b=text.split(start,1);_,c=b.split(end,1);text=a+c
     return hashlib.sha256('\n'.join(x.rstrip() for x in text.splitlines() if x.strip()).encode()).hexdigest()
+
+
+def dependency_outcome(parent):
+    """Read-only terminal audit; only the exact legal-reserve shortfall is exempt.
+
+    This neither edits nor completes the parent evaluation. Software failures,
+    incomplete attempts, missing evidence and uncollected resources still block.
+    """
+    status=read(parent/'status.json');summary=read(parent/'summary.json')
+    assert status.get('pid') is None and status.get('worker_pid') is None
+    assert read(parent/'owner_exit.json')==status,'Parent exit/status mismatch'
+    attempts=read(parent/'attempts.json')
+    for attempt in attempts:
+        assert 'exit_code' in attempt and attempt.get('valid'),'Unresolved or software-failed parent attempt'
+        assert attempt.get('resources_released') and not attempt.get('remaining_owned_pids') and not attempt.get('remaining_owned_gpu_pids'),'Parent resource release incomplete'
+        assert not attempt.get('acceptance_error'),'Parent acceptance failure'
+    formal=[a for a in attempts if a['name'].startswith('random_')]
+    valid=[a for a in formal if a.get('native_outcome_valid')]
+    if status['state']=='completed':
+        assert summary['valid']==len(valid)==200,'Completed parent has fewer than 200 valid trials'
+        return dict(reason='completed_200',parent_state='completed',valid=200,planned_valid=200)
+    assert status['state']=='blocked','Unexpected parent terminal state'
+    error=read(parent/'owner_error.json')['error'].strip()
+    assert error.splitlines()[-1]=='AssertionError: Preregistered legal-start reserve exhausted','Parent stopped for a different error'
+    assert summary['software_missing']==summary['acceptance_failed']==0
+    rejected=[a for a in formal if a.get('initialization_rejected')]
+    assert len(valid)+len(rejected)==len(formal) and not any(a in rejected for a in valid),'Unclassified parent results'
+    assert len(valid)==summary['valid'] and len(rejected)==summary['initialization_rejections']
+    assert len(formal)==summary['formal_attempts']
+    for attempt in rejected:
+        trial=attempt['result']['trials'][0]
+        assert trial['legal'] is False and trial['not_started'] is True
+        assert trial['reason']=='pre-action collision rejection; no replacement by outcome'
+    session=read(parent/'session.json')
+    assert session['cohort_targets']==dict(historical=100,fresh=100)
+    historical=[a for a in valid if a['result']['trials'][0]['evaluation_group']=='historical']
+    fresh=[a for a in formal if a['result']['trials'][0]['evaluation_group']=='fresh']
+    assert len(historical)==100,'Historical cohort incomplete; separate review required'
+    planned={f"random_fresh_{s['selection_index']:03d}":s for s in session['specs'] if s['evaluation_group']=='fresh'}
+    assert len(planned)==120 and len(fresh)==len(planned) and {a['name'] for a in fresh}==set(planned),'Fresh reserve not fully resolved'
+    for attempt in fresh:
+        trial=attempt['result']['trials'][0];spec=planned[attempt['name']]
+        assert all(trial[k]==spec[k] for k in ('identity','seed','selection_index','reserve','evaluation_group'))
+        assert read(parent/'stages'/attempt['name']/'committed.json')==attempt,'Parent attempt not durably committed'
+    assert 100<=len(valid)<200
+    return dict(reason='fresh_legal_reserve_exhausted',parent_state='blocked',valid=len(valid),planned_valid=200,
+        missing_valid=200-len(valid),fresh_attempted=len(fresh),initialization_rejections=len(rejected),
+        parent_error=error.splitlines()[-1],parent_summary_sha256=sha(parent/'summary.json'),
+        limitation='Parent remains incomplete/blocked; independent resource release is not completion of its scientific sample target')
 
 
 class ExpertSpeedEvaluation(Owner):
@@ -189,6 +239,7 @@ class ExpertSpeedEvaluation(Owner):
             missing_successful_replay_sources=len(list((self.root/'missing_replay_sources').glob('*'))),
             gates={name:read(self.root/(name+'.json')) for name in ('baseline_gate','pilot_gates','selection','expansion_gate') if (self.root/(name+'.json')).exists()},
             train_optimizer_updates=0,slow_dataset=(read(self.root/'dataset_manifest.json') if (self.root/'dataset_manifest.json').exists() else None),
+            dependency_release=(read(self.root/'dependency_release.json') if (self.root/'dependency_release.json').exists() else None),
             resources=(read(self.root/'resources/resources.json') if (self.root/'resources/resources.json').exists() else None),
             trials=[dict(name=x['name'],factor=x.get('factor'),phase=x.get('phase'),trial=x['result']['trials'][0],
                 events={k:v for k,v in x['success_audit'].items() if k!='motion'},motion=x['success_audit'].get('motion'),
@@ -222,6 +273,9 @@ class ExpertSpeedEvaluation(Owner):
             for row in summary['trials']:
                 if row['video']:
                     t=row['trial'];lines.append(f"- [{row['name']}：{'成功' if t['success'] else '失败'}，{t['steps']}ticks]({row['video']})")
+        release=summary['dependency_release']
+        if release and release['reason']=='fresh_legal_reserve_exhausted':
+            lines += ['',f"原State评估固定名单耗尽，仍为blocked：有效{release['valid']}/200，缺额{release['missing_valid']}，动作前非法初态{release['initialization_rejections']}。原结果不重分类；本研究仅在资源完整回收后独立接续。"]
         lines += ['',f"本地原始记录：`{self.root}`。首次成功与正式终止、阶段时刻、运动统计及视频见[机器结果](evidence/slow_expert/results.json)。",
             '成功耗时仅对成功样本统计，不能忽略失败或据此声称固定倍率。无训练更新；Image未启动。','<!-- SLOW_EXPERT_RESULTS_END -->','']
         report=CODE/'research_docs/SLOW_EXPERT_RESULTS.md'
@@ -238,10 +292,16 @@ class ExpertSpeedEvaluation(Owner):
             if time.time()>self.s['deadline'] or (self.root/'STOP').exists():raise RuntimeError('Fixed deadline/STOP while waiting for protected State evaluation')
             s=read(parent/'status.json')
             if (parent/'owner_exit.json').exists() and s.get('pid') is None:
-                assert s['state']=='completed' and read(parent/'summary.json')['valid']==200,'Protected queue stopped incomplete; inspect before new Kit work'
+                release=dependency_outcome(parent)
                 oldmonitor=read(parent/'monitor.json')['pid']
                 cmd=Path('/proc',str(oldmonitor),'cmdline')
                 assert not cmd.exists() or b'visuotactile.state_resources' not in cmd.read_bytes(),'Original monitor has not exited'
+                # The owner writes owner_exit just before leaving this lock. Never
+                # mistake that tiny finalization window for fully released work.
+                with (parent/'owner.lock').open('r') as old_lock:
+                    try:fcntl.flock(old_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+                    except BlockingIOError:time.sleep(2);continue
+                write(self.root/'dependency_release.json',dict(parent_root=str(parent),**release))
                 break
             self.status(state='waiting_dependency',stage='existing_State150_200',worker_pid=None);self.report();time.sleep(30)
 
