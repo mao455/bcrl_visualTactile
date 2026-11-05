@@ -263,17 +263,7 @@ def fresh(root, data_root, output, target, smoke=False):
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
     else:atomic_json(cp,config)
-    model.to(device);records={i:{k:v.to(device) for k,v in r.items()} for i,r in records.items()}
-    averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
-    opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
-    generator=torch.Generator().manual_seed(20261105);noise=torch.Generator(device=device).manual_seed(20261106)
-    sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,64)
     step=0;best=float('inf');monitor=None;lease=None
-    if (root/'last.pt').exists():
-        old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
-        assert old['config_sha256']==sha256(cp)
-        restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])
-        step=old['updates'];best=old['best'];del old
     if not smoke:
         if not (root/'session.json').exists():atomic_json(root/'session.json',dict(resource_policy='shared_recent_v1',resource_target_percent=40.,
             training_deadline=time.time()+24*3600,deadline=time.time()+24*3600))
@@ -287,6 +277,19 @@ def fresh(root, data_root, output, target, smoke=False):
             updates=step,anchor_sampler=sampler.state_dict(),best=best,config_sha256=sha256(cp),configuration=config,
             loss_id=LOSS_ID,train_ids=ids,validation_ids=vals))
     try:
+        # Admission and monitoring precede the first CUDA allocation, including
+        # model/EMA construction and same-run optimizer restoration.
+        with block():
+            model.to(device);records={i:{k:v.to(device) for k,v in r.items()} for i,r in records.items()}
+            averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
+            opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
+            generator=torch.Generator().manual_seed(20261105);noise=torch.Generator(device=device).manual_seed(20261106)
+            sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,64)
+            if (root/'last.pt').exists():
+                old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
+                assert old['config_sha256']==sha256(cp)
+                restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])
+                step=old['updates'];best=old['best'];del old
         if smoke:
             with torch.no_grad():
                 identity=ids[0];rec=records[identity];model.eval();full,anchors,_=model.encode(rec)

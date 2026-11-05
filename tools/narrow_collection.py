@@ -57,6 +57,8 @@ def owner(root):
     with (root/'owner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         if (root/'COMPLETE.json').exists(): raise RuntimeError('Already complete; no duplicate starts')
+        if (root/'manifest.json').exists() and read(root/'manifest.json').get('quarantined'):
+            raise RuntimeError('Quarantined admission conflict requires reviewed correction, not automatic resume')
         if (root/'STOP').exists(): raise RuntimeError('STOP present; explicit resume required')
         if not (root/'budget.json').exists():
             write(root/'budget.json',dict(started=time.time(),deadline=time.time()+session['maximum_hours']*3600))
@@ -103,6 +105,8 @@ def owner(root):
             if monitor is not None:
                 try:monitor.wait(timeout=15)
                 except subprocess.TimeoutExpired:kill_owned(monitor)
+            status=read(root/'status.json');status.update(worker_pid=None,owned_workers_exited=True)
+            write(root/'status.json',status)
 
 
 def snapshot_initial(env,path,stream):
@@ -243,6 +247,15 @@ def worker(root,attempt):
         spec=dict(identity=identity,family=f['identity'],split=f['split'],cohort='historical',seed=f['seed'],alpha=alpha)
         result=trial(env,lease,output,spec,dict(entries={identity:entries[f['identity']]}),player,s['expert_checkpoint'],
             expert_speed=speed,capture_dataset=True)
+        from visuotactile.narrow_data import admission_conflict
+        admission=read(preflight/f['identity']/'admission.json')
+        reference=(Path(admission['evidence']).parent if 'evidence' in admission else preflight/f['identity'])
+        conflict=admission_conflict(read(reference/'initial_observable.json'),read(output/'initial_observable.json'),
+            admission['legal'],result['legal'])
+        if conflict['conflict']:
+            results[identity]=result;publish()
+            write(output/'admission_conflict.json',conflict)
+            raise RuntimeError('Identical observable initial state has contradictory collision admission; stop before further attempts')
         if result.get('legal'):
             path=Path(result['dataset_capture']['path']);record(path)
             result['data_sha256']=sha(path);write(output/'result.json',result)

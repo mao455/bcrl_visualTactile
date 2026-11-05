@@ -74,3 +74,7 @@ StateDP仍使用PersistentState、sample/x0、Loss B及既定四个辅助权重�
 保留冻结预处理。`anchor_continue fresh-smoke/fresh-train`复用当前模型、目标、采样和恢复工具。
 正式新run从随机模型/全新AdamW、EMA、计数和schedule起步；只允许同一新run按配置hash恢复。
 采集程序没有调用正式训练入口。
+
+当前准入矛盾构成停止条件：相同q/qd与物体/孔/桌/手掌/指尖位姿不能出现不同碰撞准入后继续筛选。
+新root已quarantined；没有data-ready/COMPLETE，不允许正式训练。查询缓存陈旧仅为假设。
+新统计沿用robot逐tick、geometry每12tick采样mean/std及target min/max affine；State历史仍每60Hz更新。

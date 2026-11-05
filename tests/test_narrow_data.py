@@ -2,7 +2,7 @@ import copy
 import torch
 
 from visuotactile.anchor_sampling import AnchorSampler, labels, mask_totals
-from visuotactile.narrow_data import inside, near, angle
+from visuotactile.narrow_data import inside, near, angle, admission_conflict
 from visuotactile.recording import post_observation
 
 
@@ -45,3 +45,18 @@ def test_terminal_post_frame_mask_cannot_import_reset_images():
     assert post['available'].tolist()==[True,False]
     assert torch.equal(post['image'][0],packet['image'][0]) and post['image'][1].sum()==0
     assert not post['depth_valid'][1].any()
+
+
+def test_real_reset_query_contradiction_is_not_a_task_failure():
+    import json
+    from pathlib import Path
+    root=Path('outputs/visuotactile/run/narrow_state_20261105_01/episodes')
+    family='r931005_1793209376_e01_p000144'
+    if not root.exists():
+        import pytest
+        pytest.skip('Local physical evidence is intentionally not in Git')
+    first=json.loads((root/(family+'_native')/'initial_observable.json').read_text())
+    second=json.loads((root/(family+'_cal058')/'initial_observable.json').read_text())
+    report=admission_conflict(first,second,True,False)
+    assert report['conflict'] and max(report['observable_max_abs'].values())==0
+    assert not admission_conflict(first,second,True,True)['conflict']

@@ -1,6 +1,6 @@
 # 当前 StateDP / ImageDP 实验系统
 
-当前工作是窄分布StateDP数据采集，见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)和[交接](SESSION_HANDOFF.md)。独立工作树`bc+rl_RSS_narrow_state`、分支`feature/narrow-state-data`；旧State评估保持暂停，不等待或恢复旧200队列。采集通过后只交付数据，不自动正式训练。
+当前窄分布StateDP采集因持久reset/碰撞准入矛盾停止、数据隔离；没有后台worker。详情见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)和[交接](SESSION_HANDOFF.md)。独立工作树`bc+rl_RSS_narrow_state`、分支`feature/narrow-state-data`；旧State评估保持暂停，不等待或恢复旧200队列。采集通过后只交付数据，不自动正式训练。
 
 当前结果与训练决策：[STATE_DP_RESULTS.md](STATE_DP_RESULTS.md)。清理、保留项和回归：[CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)。接口与训练配置以 [CONTRACTS.md](CONTRACTS.md) 为准；历史实验只读摘要见 [RESEARCH_HISTORY.md](RESEARCH_HISTORY.md)。
 
@@ -20,14 +20,15 @@
 
 命令使用本仓库 `bash visuotactile/run_cpu.sh`，它进入现有Isaac/PyTorch环境并限制CPU线程。离线训练不加载Kit；真实仿真由独立进程执行。原环境入口 `evaluation/eval_isaacsim.py` 和 `isaacsimenvs/` 保持原项目用途。
 
-首先只读检查已有服务和状态：
+当前只读状态（不恢复旧队列）：
 
 ```bash
-systemctl --user status state-random-20261105-02.service state-random-delivery-20261105-02.service
-cat outputs/visuotactile/native_dp_v2/anchor_continue_20261104_01/state_train/progress.json
-cat outputs/visuotactile/native_dp_v2/state_random_20261105_02/status.json
-cat outputs/visuotactile/native_dp_v2/state_random_20261105_02/summary.json
+bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root outputs/visuotactile/run/narrow_state_20261105_01
+cat outputs/visuotactile/run/narrow_state_20261105_01/admission_conflict.json
 ```
+
+新入口`tools.narrow_collection`只采集，`anchor_continue fresh-smoke/fresh-train`用于新数据适配和显式新随机State训练。
+当前root隔离、两次启动预算耗尽，训练门槛拒绝启动。下面的旧训练/评估入口只作已存结果维护说明。
 
 评估配置在run的`session.json`；checkpoint、实际PID、SHA、阶段结果均在run内。不能照抄历史启动命令重开训练。当前150 epoch之后需要结果决策，不能仅执行`release`就继续训练。`--hold-parent`是明确的证据审查保持状态。
 

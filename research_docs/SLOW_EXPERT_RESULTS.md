@@ -1,6 +1,41 @@
 # 冻结专家与窄分布StateDP数据
 
-## 当前阶段（2026-11-05）：准备完成，等待真实采集验收
+## 当前阶段（2026-11-05）：采集准入阻断，数据未就绪
+
+**实际结论：没有通过短监督，不存在继续生产的后台worker，未启动正式训练。**
+两次持久Kit启动已结束，冻结运行源码分别6a1a0aa/2e7ab94；后续诊断保护修改未重新跑Kit。
+`narrow-state-data-20261105-01.service`已退出，owner/worker/monitor均经/proc核实不存在。
+状态与原因：[机器证据](evidence/narrow_startup.json)，本地root为
+`outputs/visuotactile/run/narrow_state_20261105_01`。
+
+|实际记录|结果|控制步/模拟时长|
+|---|---|---|
+|原速家族e01_p000144|原生完整成功、154字段hash验收|171 / 2.85s|
+|原速家族e00_p000094|原生完整成功、154字段hash验收|210 / 3.50s|
+|同家族e00_p000094、alpha=.58|原生完整成功、154字段hash验收|366 / 6.10s，实测1.743倍|
+|其余3次准入|动作前碰撞查询拒绝，0动作|不能当作3次任务失败|
+
+**阻断证据：** e01_p000144的原速与cal058初态，joint q/qd、物体/孔/桌、手掌/指尖位姿
+8组字段最大差均为0；前者查询无外部碰撞，后者查询命中掌部/食指/中指。同样可观察几何
+出现不同准入结果，故“真实非法初态”并未被可靠证实。PhysX query/reset缓存陈旧只是待查假设，
+没有通过修改阈值、增加物理积分步或强制状态绕过。先前一次拇指拒绝同样保持“准入拒绝”分类。
+
+360次无动作native reset中13次进入条件域、9次通过当时查询、4次拒绝；加15历史家族共24候选
+（16/4/4）。补齐live预检暂准入23（15/4/4），但上述一致性失败使这一准入结论也待复核。
+**全部3条新数据隔离保存，manifest.quarantined=true，不能作为已就绪生产训练集。**
+生产速度列表尚未冻结/放行；没有64条完成、没有新成功率结论。
+
+StateDP数据接口在首条真实数据上完成一次可丢弃CPU随机初始化优化、EMA/AdamW/保存恢复，
+formal_updates=0、Kit未加载。持续历史在线/整段condition最大差1.90735e-6，尾部3个有效target，
+未来干预不影响过去。原生控制/模型/损失源码无变更；动作目标与两物理子步target误差0。
+44项不同的相关CPU测试通过（含实际矛盾证据回归）；最终新保护代码尚无新live验收。
+
+原始400逐文件存在/大小核验及manifest SHA通过。清理释放0bytes：唯一候选为已完成的一次性
+smoke checkpoint（约1.074GiB）；现有清理工具因4个同UID进程句柄枚举不完整而拒绝删除，按用户要求跳过。
+本轮测得整卡均值14.18%、最大完整60秒19.56%，保留两worker间202.11s无采样间隔，不称全程连续监控。
+原4h截止2026-11-05 22:11:24 UTC+8未重置；50GiB产物上限、60GiB余量保留，两次启动额度已用完。
+下一步必须先解决并实测reset/query一致性；不得直接重启本root或进入正式训练。
+
 
 当前工作树`bc+rl_RSS_narrow_state`，分支`feature/narrow-state-data`，来源`84cbb98`。
 本轮只采集与最小验收，不正式训练。旧State评估暂停在143有效，旧专家采集在首条
@@ -8,7 +43,7 @@
 旧速度研究实际native10/10、A0609/10；独立合法初态native20/20、A06018/20，
 成功配对时长中位倍率1.55和1.44。alpha不是时长倒数，不承诺恰好两倍。
 
-### 范围、家族与速度
+### 已冻结的范围与家族；未放行的速度生产设计
 
 先读400份HDF5低维初态，世界位置减各自env origin。只用初态确定密集中心：
 `r931005_1793209376_e03_p000054`，物体XY=(-.035542,-.009880)m，孔—物体XY=(.067669,-.024071)m。
@@ -18,7 +53,7 @@
 不是29个独立窄框相乘。手指初态、速度、桌高、噪声、外力、延迟等保留原分布。
 
 原400中选中15真实家族（12train/1validation/2test），旧家族split保持。
-计划再从同一条件native reset分布补9个初态（4/3/2），在任何动作/成功结果之前接受，
+实际从同一条件native reset分布补9个候选初态（4/3/2），在任何动作/成功结果之前接受，
 总24家族（16/4/4）。每个补充家族固定seed序列、最多500次reset draw；不放宽范围补数。
 近重复检查为物体/孔各<1cm、旋转<5°、全部arm差<.02rad；同家族变速不跨split。
 这些小样本不足以预言60%–70%成功率，也不代表原宽分布。后续未见初态使用同一
@@ -45,8 +80,8 @@
 新采样器允许任意episode数量与短尾批；数据按新train重拟统计，不创建DINO缓存。
 
 上限4小时（从首次run含等待，不因恢复重置）、50GiB新产物、剩余磁盘60GiB；
-最多2次Kit worker启动，无自动重试。启动前实际空闲约288GiB，当前无必须删除的明确废弃依赖，
-本轮清理释放0bytes；旧未明文件和必要证据保留。最终数量按实际成功/覆盖验收。
+最多2次Kit worker启动，无自动重试。启动前实际空闲约288GiB，本轮清理保护检查未通过，
+释放0bytes；一次性checkpoint、旧未明文件和必要证据保留。最终数量按实际成功/覆盖验收。
 资源使用最新shared_recent_v1：6GiB VRAM/12GiB RAM准入、最近负载pacing及40%目标，
 不是旧50%硬否决，也不保证外部突发下整卡上限。运行源码hash冻结，停止后才能修代码。
 
@@ -55,12 +90,13 @@
 R=outputs/visuotactile/run/narrow_state_20261105_01
 bash visuotactile/run_cpu.sh -m tools.narrow_collection status --root "$R"
 bash visuotactile/run_cpu.sh -m tools.narrow_collection stop --root "$R" # 当前episode完整保存后停
-# 手动恢复只允许原deadline/启动预算内，已提交数据不重做；不自动重试未知partial
+# 当前root已隔离且启动额度耗尽，此恢复入口会拒绝；修复与新授权前不可执行
 bash visuotactile/run_cpu.sh -m tools.narrow_collection resume --root "$R"
 ```
 日志`R/workers/attempt_*/worker.log`，状态`status.json`、`heartbeat.json`，尝试记录
 `episodes/*/result.json`、`reset_draws.jsonl`；生产`manifest.json`，最终只在验收后写`COMPLETE.json`。
-下一阶段须另获指令后手动运行，同一入口通过fresh-smoke验证后才声明可用：
+下一阶段须数据重新验收且另获指令。相同fresh入口的CPU数据/前反向/保存恢复已通过，
+正式CUDA训练没有运行；下面命令当前会被COMPLETE/data-ready门槛拒绝：
 ```bash
 bash visuotactile/run_cpu.sh -m visuotactile.anchor_continue fresh-train \
   --job state --data "$R/state_data" --root outputs/visuotactile/run/narrow_state_train_01 \

@@ -30,3 +30,14 @@ to fill counts. Preserve incomplete payloads; do not delete unknown or reference
 Update current docs in place and commit only reviewed code/tests/light statistics. Never
 push raw data, weights, credentials, videos, upstream, unrelated changes, or force push.
 Historical authorizations/results remain in prior branches and RESEARCH_HISTORY.md.
+
+## Actual stop — 2026-11-05
+
+Run narrow_state_20261105_01 is blocked/quarantined after two worker starts. Three
+real successful captures exist (171/210 native,366 at alpha.58), but identical
+observable geometry produced contradictory live collision queries after reset.
+All owned processes exited; no production release, no data-ready marker, no formal
+training. Do not automatically restart, extend the4h deadline/start budget, or
+reclassify query rejections as proven penetration. Read admission_conflict.json and
+current SLOW_EXPERT_RESULTS. One disposable CPU optimizer update passed; original400
+remain intact. Cleanup released0bytes after unreadable-process protection declined it.

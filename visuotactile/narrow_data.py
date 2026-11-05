@@ -57,6 +57,15 @@ def near(a,b):
         and np.max(np.abs(np.array(a['arm'])-b['arm'])) < .02)
 
 
+def admission_conflict(first, second, first_legal, second_legal):
+    """Detect contradictory query results; never infer that the new hits are real."""
+    keys=('joint_position_rad','joint_velocity_rad_s','object_pose_w','hole_pose_w','table_pose_w',
+        'palm_body_pose_w','finger_position_w','finger_quat_wxyz')
+    errors={k:float(np.max(np.abs(np.asarray(first[k])-np.asarray(second[k])))) for k in keys}
+    return dict(conflict=bool(first_legal!=second_legal and max(errors.values())<=1e-6),
+        observable_max_abs=errors,cause='unresolved simulator scene-query/reset consistency')
+
+
 def quantiles(rows, center):
     out = {k: np.quantile([r[k] for r in rows],[0,.1,.5,.9,1],axis=0).tolist()
         for k in ('object_xyz','hole_xyz','relative_xyz','arm','hand','velocity','object_velocity','table_z')}
@@ -127,6 +136,7 @@ def record(path):
 
 def build_cache(root, *, partial=False):
     root=Path(root); manifest=read(root/'manifest.json')
+    if manifest.get('quarantined') and not partial: raise ValueError('Quarantined collision admission; data cannot be marked ready')
     if not partial and not manifest['collection_finished']: raise ValueError('Collection is not finished')
     out=root/('smoke_data' if partial else 'state_data'); out.mkdir(exist_ok=True)
     records={}; entries={}; splits={k:[] for k in ('train','validation','test')}; families={}
