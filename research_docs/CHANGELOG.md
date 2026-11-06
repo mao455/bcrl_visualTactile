@@ -1,3 +1,7 @@
+# 2026-11-06 审计CSV发布格式校正
+
+统一dataset_trust的3份CSV为LF换行，并固定发布器lineterminator；仅消除git whitespace检查的CRLF提示，数值、排序、hash字段和实验结果不变。无新仿真/训练。
+
 # 2026-11-06 数据可信度审计最终交付
 
 2026-11-06当前审计已完成：`dataset_trust_20261106_01/status.json` 为audit_complete/await_user_decision。全275/64663tick及全部RGB-D像素审核，State/触觉数值275、三视角75；旧200空白保留。主56+fresh4=60/60轨迹，所有GPU服务已退出，0训练/0学生rollout/0扩采；不要自动追加任何旧/新实验。原速专家15/15、来源慢速8/9，tick/H24主队列6/15及4/15，额外两来源fresh各两模式全成功且18字段逐位相同，不能混池或称历史T0精确恢复。275/277是筛选后采集频率，不是连续分布成功率；实际慢速配对中位1.231倍、5–7s仅21/275。275数据技术准入StateDP，是否重训/补数据由用户决定。代码未见网络/损失/原生控制暗改，但短尾batch/fresh训练/TF32有真实变化，早期三版门控源码无法完整追溯。原400/275及比较模型保护通过。详见SLOW_EXPERT_RESULTS、STATE_DP_RESULTS及evidence/dataset_trust；两阶段间231.662s无自有GPU任务的遥测断点明确保留，不宣称整段无缺口。

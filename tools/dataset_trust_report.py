@@ -27,7 +27,7 @@ def publish(root):
     assert len(rows)==275 and read(root/'static_summary.json')['passed']
     def table(name,values):
         with (out/name).open('w') as f:
-            writer=csv.DictWriter(f,fieldnames=list(values[0]));writer.writeheader();writer.writerows(values)
+            writer=csv.DictWriter(f,fieldnames=list(values[0]),lineterminator="\n");writer.writeheader();writer.writerows(values)
     table('episodes.csv',[dict(id=r['id'],family=r['family'],split=r['split'],origin=r['origin'],
         alpha=r['alpha'],steps=r['steps'],duration_s=r['duration_s'],sha256=r['sha256'],bytes=r['bytes'],
         state_valid=r['state_valid'],rgbd_valid=r['sensors']['rgbd_valid'],wrist_valid=r['sensors']['wrist_valid'],
