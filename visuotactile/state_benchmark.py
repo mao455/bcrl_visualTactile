@@ -139,7 +139,7 @@ def prepare(env, isolated, spec, source, output):
 
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
-          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False):
+          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None):
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
@@ -186,6 +186,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         stream.group.attrs['action_source']='recorded_position_retime' if expert_speed and expert_speed['kind']=='recorded_retime' else 'frozen_expert_slow_execution'
     movie = RolloutVideo(output/'rollout.mp4', 'expert' if saved is None else saved.get('kind', 'oldState'),
         spec['seed'], 0, CAMERAS) if video else None
+    if movie is not None and video_title is not None:
+        movie.title = video_title
     actor_parity = 0.
     raw_policy={};raw_handle=None
     if saved is None:

@@ -1,6 +1,6 @@
 # Play2Perfect 当前StateDP实验
 
-2026-11-06：200条数据已通过验收，原训练/闭环仍由原owner负责；独立`tools.narrow_followup`在其正常完成、进程与锁全部释放后条件化接续。新增工作最多一次续训、一次260–296总量扩采和一次随机新训练，最终独立16初态不参与调度。新源码隔离在`bc+rl_RSS_narrow_followup`，仍发布到`origin/feature/narrow-state-data`。实际状态使用：
+2026-11-06：200条训练已完成5735更新，正式train0/4、unseen0/10合法（另2次动作前拒绝）。条件化后续在GPU历史一致性审查处停止，没有续训或扩采；不自动重启。当前用户授权提交现有代码/记录并录制4个独立观看复跑，视频不并入正式计数。源码隔离在`bc+rl_RSS_narrow_followup`，发布到`origin/feature/narrow-state-data`。实际后续状态使用：
 
 ```bash
 bash visuotactile/run_cpu.sh -m tools.narrow_followup status --root outputs/visuotactile/run/narrow_state_followup_20261106_01
@@ -14,6 +14,8 @@ bash visuotactile/run_cpu.sh -m tools.narrow_followup status --root outputs/visu
 - [训练/执行合同](CONTRACTS.md)：H24/commit12、train-only统计、持续历史、随机新训练及固定评估。
 - [StateDP结果](STATE_DP_RESULTS.md)：新运行与原宽分布结果分别标注。
 - [当前交接](SESSION_HANDOFF.md)、[清理](CLEANUP_AUDIT.md)、[变更](CHANGELOG.md)。
+
+新增数据代码：[采集流水线](../tools/narrow_collection.py)、[初态/数据合同和缓存](../visuotactile/narrow_data.py)、[真实闭环慢速执行](../visuotactile/sim/expert_speed_environment.py)、[条件化单次扩采](../tools/narrow_followup.py)。前者已实际生成200条，后者仅实施、尚未执行扩采；不要混同。观看入口：[narrow_videos](../tools/narrow_videos.py)，结果见StateDP主文档。
 
 维护入口：`tools.narrow_collection`管理整个新流水线，`visuotactile.anchor_continue fresh-*`复用现有State模型训练，`state_benchmark`执行同一真实环境/记录器，`live_collision`只读初态碰撞网格。原生RL入口和assets不变。
 

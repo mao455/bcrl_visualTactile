@@ -1,3 +1,18 @@
+# Current task — four State200 failure viewing reruns (2026-11-06)
+
+User authorizes reviewed code/records push to origin feature/narrow-state-data,
+including the existing new-data generator, and several failure videos. Use
+`tools.narrow_videos`: four fixed original cases (train_family_000/004,
+unseen_00/04), best update5735, H24/commit12 unchanged, no expert takeover.
+Independent root narrow_failure_videos_20261106_01: one hour including waits,
+one Kit worker, four starts, no automatic retry, 4GiB output / 60GiB disk reserve.
+Keep shared_recent_v1 target40%, 6GiB VRAM/12GiB RAM admission and full telemetry.
+These are viewing reruns, not exact old playback or new formal tests. Fully decode
+all delivered videos and compare original observable starts/plans/outcomes.
+Do not restart the blocked follow-up, train, collect, or reset either old budget.
+Raw videos/data/weights stay local; publish code, concise records and lightweight
+video hashes/results only. Read latest SESSION_HANDOFF/STATE_DP_RESULTS.
+
 # Current task — bounded conditional StateDP follow-up (2026-11-06)
 
 ## Actual status — 2026-11-06 review

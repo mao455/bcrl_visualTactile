@@ -1,5 +1,12 @@
 # 当前交接：200条StateDP及条件化后续
 
+## 2026-11-06 新授权：提交与4个失败案例视频
+
+新增数据生成代码及200条最终记录已发布至origin/feature/narrow-state-data（b119470、fde65f2、26e0320）。新观看队列`tools.narrow_videos`固定train_family_000/004、unseen_00/04，使用实际best update5735、同一H24/commit12/推理参数，保留完整自然终止。原评估没有RGB视频，需要重新仿真；不声称历史精确回放，不按复跑结果换seed，不追加正式分母。
+
+独立root `outputs/visuotactile/run/narrow_failure_videos_20261106_01`，视频索引 `outputs/visuotactile/demos/narrow_failures_20261106_01/README.md`。新预算从prepare固定1h/单worker/4starts/4GiB新增/60GiB磁盘余量，沿用shared_recent_v1与连续监控；STOP安全退出、无自动重试。后台完成后全帧CPU解码、核对步数、记录原/新初态与动作差异及资源统计。此处为待启动说明，不是视频已完成证据。旧后续仍blocked，未训练/扩采，预算原封不动。
+
+
 ## 2026-11-06 09:29 UTC+8 实测：后续已停止
 
 原200条训练及闭环已完成：5735更新，train0/4；unseen0/10合法运行，另2次准入拒绝。后续服务于02:13接手后在GPU历史一致性断言失败处停止，所有自有进程已退出。未续训、未扩采、未重启；原门限和新截止10:13:16未改。CPU只读复核通过不能代替GPU验收。具体失败、证据和限制见[统一State结果](STATE_DP_RESULTS.md)及[evidence](evidence/narrow_followup.json)。下方为先前启动快照。
