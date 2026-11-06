@@ -1,6 +1,6 @@
 # Play2Perfect 当前StateDP实验
 
-2026-11-06：200条训练已完成5735更新，正式train0/4、unseen0/10合法（另2次动作前拒绝）。条件化后续在GPU历史一致性审查处停止，没有续训或扩采；不自动重启。当前用户授权提交现有代码/记录并录制4个独立观看复跑，视频不并入正式计数。源码隔离在`bc+rl_RSS_narrow_followup`，发布到`origin/feature/narrow-state-data`。实际后续状态使用：
+2026-11-06：200条训练已完成5735更新，正式train0/4、unseen0/10合法（另2次动作前拒绝）。条件化后续在GPU历史一致性审查处停止，没有续训或扩采；不自动重启。用户授权的4个独立观看复跑已完成，均超时；4个原三视角及4个腕部版本已全帧验证，视频不并入正式计数。额外发现200条新数据的两固定RGB首帧均空白，ImageDP须先修复并验收；详见StateDP结果及相机证据。源码隔离在`bc+rl_RSS_narrow_followup`，发布到`origin/feature/narrow-state-data`。实际后续状态使用：
 
 ```bash
 bash visuotactile/run_cpu.sh -m tools.narrow_followup status --root outputs/visuotactile/run/narrow_state_followup_20261106_01

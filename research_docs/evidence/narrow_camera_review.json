@@ -1,0 +1,259 @@
+{
+  "scope": "Read-only RGB first frame of all 200 formal new demonstrations; does not test all frames or depth correctness",
+  "episodes": 200,
+  "camera_ids": [
+    "fixed_high",
+    "fixed_side",
+    "wrist_rgbd"
+  ],
+  "spatially_constant_first_frames": [
+    200,
+    200,
+    0
+  ],
+  "constant_rgb_values": [
+    [
+      [
+        238,
+        238
+      ]
+    ],
+    [
+      [
+        238,
+        238
+      ]
+    ]
+  ],
+  "two_episode_spotcheck": {
+    "scope": "Read-only first/middle/last RGB frames of first and last manifest entries; no full-dataset validity claim",
+    "episodes": [
+      {
+        "identity": "family_001_cal058",
+        "split": "train",
+        "camera_rgb_stats": [
+          {
+            "tick": 0,
+            "cameras": [
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 1,
+                "max": 246,
+                "std": 63.117818060505876,
+                "channel_std": [
+                  62.88089597914512,
+                  62.82561498066303,
+                  63.64006731836065
+                ]
+              }
+            ]
+          },
+          {
+            "tick": 132,
+            "cameras": [
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 1,
+                "max": 239,
+                "std": 66.79419020743104,
+                "channel_std": [
+                  67.44921935970461,
+                  66.0813997437076,
+                  66.80781763187932
+                ]
+              }
+            ]
+          },
+          {
+            "tick": 263,
+            "cameras": [
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 2,
+                "max": 239,
+                "std": 63.399302200717365,
+                "channel_std": [
+                  65.33903512552823,
+                  61.80387930290772,
+                  62.58589884022098
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "identity": "family_052_mid_a",
+        "split": "validation",
+        "camera_rgb_stats": [
+          {
+            "tick": 0,
+            "cameras": [
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 1,
+                "max": 243,
+                "std": 56.80188353267224,
+                "channel_std": [
+                  56.48868286839347,
+                  56.56238268933574,
+                  57.30917092678881
+                ]
+              }
+            ]
+          },
+          {
+            "tick": 125,
+            "cameras": [
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 1,
+                "max": 241,
+                "std": 60.89222285012369,
+                "channel_std": [
+                  61.92885977679564,
+                  59.987322338361835,
+                  60.67300008446968
+                ]
+              }
+            ]
+          },
+          {
+            "tick": 249,
+            "cameras": [
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 238,
+                "max": 238,
+                "std": 0.0,
+                "channel_std": [
+                  0.0,
+                  0.0,
+                  0.0
+                ]
+              },
+              {
+                "min": 2,
+                "max": 240,
+                "std": 59.82657047101265,
+                "channel_std": [
+                  61.94329068428574,
+                  57.97730983302256,
+                  58.77122618552506
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "diagnosis": "Both fixed RGB views blank at all 200 first frames; wrist nonconstant. Cause unresolved; no active source/calibration change.",
+  "state_policy_reads_rgb": false,
+  "image_training_ready": false,
+  "source_manifest_sha256": "cd6c397ab3d6d0cba49ea822e2865eaa1ee8029e94988358fd15ae27b79960a6"
+}

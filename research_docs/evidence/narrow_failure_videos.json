@@ -1,0 +1,402 @@
+{
+  "complete": true,
+  "source_commit": "ade4f1f4a98a1a22618816a417522aeb20c17b2d",
+  "checkpoint_sha256": "9505194b4dce4d38c63808bdd114ecd60739b13f3e685a78c23909d350660d66",
+  "updates": 5735,
+  "inference": {
+    "inference_steps": 16,
+    "clip_sample": false,
+    "sampler_seed": 7091
+  },
+  "budget": {
+    "started": 1793930365.0002043,
+    "deadline": 1793933965.0002043,
+    "maximum_worker_starts": 1,
+    "maximum_episode_starts": 4,
+    "maximum_output_bytes": 4294967296,
+    "reserve_bytes": 64424509440,
+    "maximum_no_progress_s": 900,
+    "automatic_retries": false,
+    "training_updates": 0,
+    "data_captures": 0
+  },
+  "rows": [
+    {
+      "identity": "train_family_000",
+      "seed": 25110000,
+      "split": "train",
+      "legal": true,
+      "success": false,
+      "original_success": false,
+      "original_steps": 601,
+      "original_subgoals": 0,
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "video_sha256": "83d5708cddb675ddac84c59882f9101032154dd115f82410b13ac1a4139e257e",
+      "steps": 601,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 2,
+        "two_finger_continuous_s": 0.15,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "failure_stage": "grasp_or_lift_unresolved",
+      "initial_observable_max_abs": {
+        "joint_position_rad": 0.0,
+        "joint_velocity_rad_s": 0.0,
+        "object_pose_w": 0.0,
+        "hole_pose_w": 0.0,
+        "table_pose_w": 0.0,
+        "palm_body_pose_w": 0.0,
+        "finger_position_w": 0.0,
+        "finger_quat_wxyz": 0.0
+      },
+      "first_plan_max_abs": 0.0003142785280942917,
+      "common_prefix_trace_max_abs": {
+        "command": 0.8197609782218933,
+        "joint": 0.7399998307228088,
+        "object": 0.17462295293807983
+      }
+    },
+    {
+      "identity": "train_family_004",
+      "seed": 25110004,
+      "split": "train",
+      "legal": true,
+      "success": false,
+      "original_success": false,
+      "original_steps": 718,
+      "original_subgoals": 1,
+      "video": {
+        "decoded_frames": 824,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "video_sha256": "d8a0a9a33a3f2242eb50557d7a8942ed5d4230d3a05b74dd329113dae2510d49",
+      "steps": 824,
+      "native_subgoals": 1,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 2.5083333333333333,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "failure_stage": "second_insertion",
+      "initial_observable_max_abs": {
+        "joint_position_rad": 0.0,
+        "joint_velocity_rad_s": 0.0,
+        "object_pose_w": 0.0,
+        "hole_pose_w": 0.0,
+        "table_pose_w": 0.0,
+        "palm_body_pose_w": 0.0,
+        "finger_position_w": 0.0,
+        "finger_quat_wxyz": 0.0
+      },
+      "first_plan_max_abs": 0.0003115776926279068,
+      "common_prefix_trace_max_abs": {
+        "command": 1.4721111059188843,
+        "joint": 1.1324867010116577,
+        "object": 1.435699224472046
+      }
+    },
+    {
+      "identity": "unseen_00",
+      "seed": 25120000,
+      "split": "unseen",
+      "legal": true,
+      "success": false,
+      "original_success": false,
+      "original_steps": 601,
+      "original_subgoals": 0,
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "video_sha256": "2d0958ab3da03fe8856fc66b75d58ae70f278614c3b64096d86e2c8eeac99149",
+      "steps": 601,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.11666666666666667,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "failure_stage": "grasp_or_lift_unresolved",
+      "initial_observable_max_abs": {
+        "joint_position_rad": 0.0,
+        "joint_velocity_rad_s": 0.0,
+        "object_pose_w": 0.0,
+        "hole_pose_w": 0.0,
+        "table_pose_w": 0.0,
+        "palm_body_pose_w": 0.0,
+        "finger_position_w": 0.0,
+        "finger_quat_wxyz": 0.0
+      },
+      "first_plan_max_abs": 0.0003266334533691406,
+      "common_prefix_trace_max_abs": {
+        "command": 1.2955396175384521,
+        "joint": 1.3966907262802124,
+        "object": 0.35296258330345154
+      }
+    },
+    {
+      "identity": "unseen_04",
+      "seed": 25120004,
+      "split": "unseen",
+      "legal": true,
+      "success": false,
+      "original_success": false,
+      "original_steps": 601,
+      "original_subgoals": 0,
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      },
+      "video_sha256": "0ac1b0f6d228f004e978199a539fe586cdd671cb3f9f44636272593ff6292039",
+      "steps": 601,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 2.225,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "failure_stage": "grasp_or_lift_unresolved",
+      "initial_observable_max_abs": {
+        "joint_position_rad": 0.0,
+        "joint_velocity_rad_s": 0.0,
+        "object_pose_w": 0.0,
+        "hole_pose_w": 0.0,
+        "table_pose_w": 0.0,
+        "palm_body_pose_w": 0.0,
+        "finger_position_w": 0.0,
+        "finger_quat_wxyz": 0.0
+      },
+      "first_plan_max_abs": 0.00036722421646118164,
+      "common_prefix_trace_max_abs": {
+        "command": 0.7651216983795166,
+        "joint": 0.6916488409042358,
+        "object": 0.2978628873825073
+      }
+    }
+  ],
+  "formal_counts_unchanged": true,
+  "selection_allowed": false,
+  "exact_hidden_simulator_replay_claimed": false,
+  "training_updates": 0,
+  "data_captures": 0,
+  "resources": {
+    "pid": 1230486,
+    "latest": {
+      "pid": 1230486,
+      "utc_epoch": 1793930762.955309,
+      "elapsed_s": 384.18316378397867,
+      "gpu_util_percent": 3.0,
+      "gpu_used_mib": 493.0,
+      "gpu_free_mib": 23591.0,
+      "ram_available_bytes": 37522280448,
+      "process_rss_bytes": 14057472,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 17.47729564914868
+    },
+    "samples": 385,
+    "gpu_time_weighted_mean_percent": 17.17689001651194,
+    "max_complete_60s_mean_percent": 27.01344567667887,
+    "missing_samples": 0,
+    "missing_seconds": 0.0,
+    "max_sample_gap_s": 1.0892423629993573,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 8073.0,
+    "peak_process_rss_bytes": 14057472,
+    "min_ram_available_bytes": 20888956928,
+    "thresholds": {
+      "gpu_free_mib": 6144,
+      "ram_available_bytes": 12884901888,
+      "max_gpu_mean_percent": null,
+      "gpu_admission_mean_percent": null
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+  },
+  "worker_exit": {
+    "returncode": 0,
+    "utc": 1793930762.8629034,
+    "worker_absent": true
+  },
+  "protected_hashes_verified": true,
+  "wrist_exports": {
+    "version": 1,
+    "role": "wrist-only viewing derivative",
+    "source_crop_xyxy": [
+      896,
+      64,
+      1344,
+      316
+    ],
+    "source_size_wh": [
+      1344,
+      316
+    ],
+    "frames_added": 0,
+    "frames_removed": 0,
+    "playback_rate_hz": 60,
+    "implementation_sha256": "ce4b4657a820dbd2e37e1564ce22e8cf652ab7acac3cfd481d2076b2cadac321",
+    "limitation": "Two fixed views are blank in the originals; preserve them as evidence. Only crop the visible wrist image and replace the caption; no new simulation or sensor data.",
+    "entries": [
+      {
+        "identity": "train_family_000",
+        "source_file": "train_family_000.mp4",
+        "source_sha256": "83d5708cddb675ddac84c59882f9101032154dd115f82410b13ac1a4139e257e",
+        "file": "train_family_000_wrist.mp4",
+        "sha256": "29090684e01a746e5e0c6d49b0b79fe624ee6a4dc365baafe27cb4e461d27534",
+        "bytes": 1090661,
+        "verification": {
+          "decoded_frames": 601,
+          "frame_rate": 60.0,
+          "shape": [
+            316,
+            448,
+            3
+          ],
+          "backend": "PyAV full RGB decode"
+        }
+      },
+      {
+        "identity": "train_family_004",
+        "source_file": "train_family_004.mp4",
+        "source_sha256": "d8a0a9a33a3f2242eb50557d7a8942ed5d4230d3a05b74dd329113dae2510d49",
+        "file": "train_family_004_wrist.mp4",
+        "sha256": "9692235f5d42fdca7fea6790df5d844ec76e26d73c8a4c06706ba61b3e2d9a9b",
+        "bytes": 1366997,
+        "verification": {
+          "decoded_frames": 824,
+          "frame_rate": 60.0,
+          "shape": [
+            316,
+            448,
+            3
+          ],
+          "backend": "PyAV full RGB decode"
+        }
+      },
+      {
+        "identity": "unseen_00",
+        "source_file": "unseen_00.mp4",
+        "source_sha256": "2d0958ab3da03fe8856fc66b75d58ae70f278614c3b64096d86e2c8eeac99149",
+        "file": "unseen_00_wrist.mp4",
+        "sha256": "4b08647cd103ff3383d23f5963711683e47e9ad068b8a9e3f0cb45831c48d431",
+        "bytes": 930638,
+        "verification": {
+          "decoded_frames": 601,
+          "frame_rate": 60.0,
+          "shape": [
+            316,
+            448,
+            3
+          ],
+          "backend": "PyAV full RGB decode"
+        }
+      },
+      {
+        "identity": "unseen_04",
+        "source_file": "unseen_04.mp4",
+        "source_sha256": "0ac1b0f6d228f004e978199a539fe586cdd671cb3f9f44636272593ff6292039",
+        "file": "unseen_04_wrist.mp4",
+        "sha256": "854de4584e736971bf2772714cb9f9e97aab0e50bbcc1a68eb5975c7d38a7760",
+        "bytes": 1103542,
+        "verification": {
+          "decoded_frames": 601,
+          "frame_rate": 60.0,
+          "shape": [
+            316,
+            448,
+            3
+          ],
+          "backend": "PyAV full RGB decode"
+        }
+      }
+    ]
+  },
+  "local_viewing_index": "outputs/visuotactile/demos/narrow_failures_20261106_01/README.md",
+  "camera_review": "narrow_camera_review.json",
+  "owned_processes_exited": true,
+  "review_scope": "Fixed viewing reruns. Outcomes selected for explanation, not independent performance estimates. Original formal denominator unchanged.",
+  "worker_completion": {
+    "completed": 4,
+    "utc": 1793930761.4549015,
+    "teardown": "SDK fast exit after durable native outcomes; not normal SDK teardown"
+  },
+  "minimum_gpu_free_gib": 15.6357421875,
+  "minimum_ram_available_gib": 19.454357147216797,
+  "protected_hash_scope": "Original400/new200 manifests, State200 best/last, original aggregate and all16 per-attempt results, original budget, stopped follow-up budget/status. Full raw HDF5 hashes were not repeated in this viewing task; raw files were read-only."
+}

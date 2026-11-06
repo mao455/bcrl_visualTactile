@@ -1,5 +1,19 @@
 # StateDP结果：当前窄域新训练与历史宽分布
 
+## 2026-11-06 10:06 UTC+8：4个独立失败观看复跑完成
+
+|案例|原评估步数/子目标|视频步数/子目标|视频结果|
+|---|---:|---:|---|
+|train_family_000|601 / 0|601 / 0|超时，未完成首子目标|
+|train_family_004|718 / 1|824 / 1|首子目标后超时|
+|unseen_00|601 / 0|601 / 0|超时，未完成首子目标|
+|unseen_04|601 / 0|601 / 0|超时，未完成首子目标|
+
+使用实际200条best5735、H24/commit12、5Hz重规划/60Hz执行，不训练、不接管、不按结果替换。可观测初态字段均一致，但首plan已不同（最大3.67e-4rad），后续物理轨迹不一致；这是新观看复跑，正式train0/4、unseen0/10加2次动作前拒绝不变。独立1h预算在约6m40s内结束，自有进程全部退出。整卡均值17.177%、最大完整60s27.013%、缺测0；原数据manifest、best/last、预算和结果hash核验通过。[视频轻量证据](evidence/narrow_failure_videos.json)、[四例预览](evidence/narrow_failure_videos_preview.jpg)。
+
+本地 `outputs/visuotactile/demos/narrow_failures_20261106_01/README.md` 提供4个原三视角及4个腕部观看版本，全部帧通过解码/计数验证（601/824/601/601帧，60fps、1x）。两固定相机空白，因此腕部版本仅从原视频裁剪并更新字幕，不增删/插值帧，保留所有原视频。200条新数据首帧检查也发现两固定RGB各200/200均为空白常量，腕部非恒定；数值/存储验收不能代表视觉可用。StateDP无RGB输入，ImageDP需要先解决此问题。[相机抽查范围与证据](evidence/narrow_camera_review.json)。
+
+
 ## 2026-11-06 09:29 UTC+8 实测：原实验完成，后续审查阻断
 
 原200条StateDP完成5735更新，train4为0/4；unseen12尝试中10次合法、0/10成功，另2次动作前拒绝。14次合法运行全部超时；train有1次首子目标，unseen无首子目标，均未触发native lift（该阈值不是完整成功的必要条件）。没有完成新数据对照。
@@ -7,6 +21,8 @@
 独立后续于02:13:16接手，在GPU全序列/逐tick HistoryBank条件比较的`max_abs < 2e-5`断言失败后约02:13:35停止；worker、monitor和owner均退出。没有续训、扩采或新学生试验，正式新增更新0、轨迹0。失败日志未保存实际GPU误差大小，尚不能判定为历史语义错误或纯数值问题。没有降低门限、重启owner或重置计数/预算；新run原固定截止10:13:16，前序截止13:57:39均不变。
 
 本次仅CPU只读复核相同train/validation各1条：FP32最大差1.78814e-6/1.90735e-6，FP64为3.99680e-15/3.33067e-15，未初始化CUDA、无优化更新。CPU通过不代替GPU验收，也不证明原闭环失败的原因。当前不能宣布数据不足、State阶段成功或适合直接进入Image/触觉训练。
+
+[完整12个验证点及100更新分箱训练loss](evidence/narrow_state200_curves.json)、[原训练曲线](evidence/narrow_state200_curves.png)已保存为轻量记录。曲线中的train8/validation是同口径teacher-forced动作误差；优化batch loss含原训练目标与噪声采样，不与selection MSE直接作数值比较。
 
 [机器状态、原闭环与CPU复核](evidence/narrow_followup.json)。原400+200、best/last、原始失败和所有预算均保留。下方为此前实施/启动快照，不能据此认为后台仍在运行。
 

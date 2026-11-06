@@ -1,11 +1,12 @@
 # 当前交接：200条StateDP及条件化后续
 
-## 2026-11-06 新授权：提交与4个失败案例视频
+## 2026-11-06 10:06 UTC+8：代码已发布，4条失败视频完成
 
-新增数据生成代码及200条最终记录已发布至origin/feature/narrow-state-data（b119470、fde65f2、26e0320）。新观看队列`tools.narrow_videos`固定train_family_000/004、unseen_00/04，使用实际best update5735、同一H24/commit12/推理参数，保留完整自然终止。原评估没有RGB视频，需要重新仿真；不声称历史精确回放，不按复跑结果换seed，不追加正式分母。
+源码/新数据生成入口已推送至origin/feature/narrow-state-data（b119470、fde65f2、26e0320及观看脚本ade4f1f）。新观看队列独立固定1h/单worker/4starts，已正常完成，owner/worker/monitor均退出：train_family_000/004、unseen_00/04全部合法超时，步数601/824/601/601，仅004达到首子目标。实际best update5735、H24/commit12/推理参数未改，未训练或扩采；旧预算、原400+200的manifest、best/last和正式结果hash保持。
 
-独立root `outputs/visuotactile/run/narrow_failure_videos_20261106_01`，视频索引 `outputs/visuotactile/demos/narrow_failures_20261106_01/README.md`。新预算从prepare固定1h/单worker/4starts/4GiB新增/60GiB磁盘余量，沿用shared_recent_v1与连续监控；STOP安全退出、无自动重试。后台完成后全帧CPU解码、核对步数、记录原/新初态与动作差异及资源统计。此处为待启动说明，不是视频已完成证据。旧后续仍blocked，未训练/扩采，预算原封不动。
+本地索引 `outputs/visuotactile/demos/narrow_failures_20261106_01/README.md` 包含4个原三视角MP4和4个便于观看的腕部裁剪版本。均完整CPU解码、帧数一致、60fps/1x/自然终止。原可观测初态8组字段全等，首plan最大差约3.67e-4rad，物理轨迹不相同；004原718步、复跑824步，不称精确回放，不加入正式0/4和0/10分母。source ade4f1f，CPU裁剪代码及文件SHA另记。Kit worker在结果落盘后使用既有fast-exit(0)，不声称SDK常规析构已验证；进程确已回收。资源整卡均值17.177%、最大完整60s27.013%、缺测0。[完整轻量证据](evidence/narrow_failure_videos.json)、[预览](evidence/narrow_failure_videos_preview.jpg)。
 
+画面发现两固定相机空白；200条新示范首帧各200/200为RGB238常量，腕部200/200非恒定，另首尾两示范各首/中/尾也复核。未改相机/原始文件，未完成全帧和深度有效性审查、原因未定位。State不读RGB，但ImageDP前必须修复并验收。见[相机证据](evidence/narrow_camera_review.json)。原后续仍在GPU历史一致性审查处blocked，无自动重试或续训/扩采。
 
 ## 2026-11-06 09:29 UTC+8 实测：后续已停止
 

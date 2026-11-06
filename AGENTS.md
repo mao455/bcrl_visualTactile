@@ -1,4 +1,17 @@
-# Current task — four State200 failure viewing reruns (2026-11-06)
+# Completed — four State200 failure viewing reruns (2026-11-06)
+
+Completed10:06:05 UTC+8: four legal viewing reruns, all native timeouts,
+601/824/601/601 steps; only train_family_004 reached first subgoal. All four
+original and four wrist-cropped videos fully decoded; owner/worker/monitor exited.
+Original observable starts match exactly, first plans differ up to3.67e-4rad and
+physical trajectories diverge: NOT exact historical replay. Formal counts unchanged.
+Read evidence/narrow_failure_videos.json. Whole-card mean17.177%, max complete60s
+27.013%, missing0; protected manifests/model/result/budget hashes verified.
+Camera issue found: both fixed RGB views constant238 in all200 demonstration first
+frames (wrist nonconstant). Preserve data; ImageDP requires camera validity repair
+and acceptance. StateDP does not read RGB. No new starts/retries/training authorized
+by this completed viewing task. Existing stopped follow-up remains blocked.
+
 
 User authorizes reviewed code/records push to origin feature/narrow-state-data,
 including the existing new-data generator, and several failure videos. Use
