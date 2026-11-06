@@ -62,13 +62,16 @@ def physical_config(cfg):
     return result
 
 
-def worker(root,mode):
+def worker(root,mode,check_id=None):
     from tools.narrow_collection import environment
     from visuotactile.state_benchmark import trial
     from visuotactile.video import verify_video
     from visuotactile.recording import model_fingerprint
     s=read(root/'session.json');app,env,player,lease=environment(root,evaluation=mode=='replay')
-    fingerprint=model_fingerprint(player.model);jobs=read(root/'replay_plan.json')['jobs'];rows=[]
+    fingerprint=model_fingerprint(player.model);jobs=read(root/('fresh_pair_plan.json' if check_id else 'replay_plan.json'))['jobs'];rows=[]
+    if check_id:jobs=[j for j in jobs if j['identity']==check_id];assert len(jobs)==1
+    result_file=root/'fresh_results'/f'{check_id}.json' if check_id else root/(mode+'_results.json')
+    complete_file=root/'fresh_results'/f'{check_id}_complete.json' if check_id else root/(mode+'_complete.json')
     folder=root/'physical';folder.mkdir(exist_ok=True)
     for job in jobs:
         if (job['mode'].endswith('expert')) != (mode=='expert'):continue
@@ -103,9 +106,9 @@ def worker(root,mode):
                         early_native_termination=n<len(targets),h24_padding_executed=False)
                     assert err==0 and row['actuator_source_max_rad']==0,'Replay target contract error'
             if job['video']:row['video']=verify_video(out/'rollout.mp4',result['steps'])
-        rows.append(row);write(root/(mode+'_results.json'),rows)
+        rows.append(row);write(result_file,rows)
     assert model_fingerprint(player.model)==fingerprint,'Expert weights changed'
-    write(root/(mode+'_complete.json'),dict(complete=True,starts=len(rows),parameter_updates=0,expert_fingerprint=fingerprint))
+    write(complete_file,dict(complete=True,starts=len(rows),parameter_updates=0,expert_fingerprint=fingerprint))
 
 
 def run(root):
@@ -118,12 +121,41 @@ def run(root):
     status(root,state='physical_complete',stage='await_review',formal_updates=0,student_rollouts=0,formal_collection=0)
 
 
+def fresh_plan(root):
+    assert read(root/'status.json')['owned_workers_exited'] and (root/'replay_complete.json').exists()
+    assert not (root/'fresh_pair_plan.json').exists()
+    details=read(root/'physical_details.json');original=read(root/'replay_plan.json')['jobs'];chosen=[]
+    discordant=[p['source_id'] for p in details['replay_pairs'] if p['results'][0]['success']!=p['results'][1]['success']]
+    for origin in ('old200','new75'):
+        chosen.append(sorted(i for i in discordant if read(root/'episodes'/f'{i}.json')['origin']==origin)[0])
+    jobs=[]
+    for sid in chosen:
+        for mode in ('tick_replay','h24_replay'):
+            old=next(j for j in original if j['source_id']==sid and j['mode']==mode)
+            jobs.append(dict(old,identity=old['identity']+'__fresh_kit',video=True))
+    assert len(original)+len(jobs)<=read(root/'session.json')['maximum_kit_starts']
+    write(root/'fresh_pair_plan.json',dict(jobs=jobs,source_ids=chosen,original_starts=len(original),
+        maximum_total_starts=len(original)+len(jobs),deadline=read(root/'session.json')['deadline'],
+        selection='First sorted discordant source per old/new origin, after original56 completed; outcome-conditioned reproducibility diagnostic, never pooled success estimate.',
+        intervention='One new Kit per trajectory, same source targets/seed/config; no per-step forcing or cache edits.'))
+
+
+def fresh_run(root):
+    s=read(root/'session.json');plan=read(root/'fresh_pair_plan.json')
+    assert plan['deadline']==s['deadline'] and plan['maximum_total_starts']<=s['maximum_kit_starts']
+    def jobs(start):
+        for i,job in enumerate(plan['jobs']):
+            start(f'fresh_{i:02d}',['-m','tools.dataset_trust_replay','fresh-worker','--root',str(root),'--check-id',job['identity']],kit=True)
+    execute(root,'fresh_pair_check',jobs,s['deadline']);protected(root)
+    status(root,state='physical_complete',stage='await_review',formal_updates=0,student_rollouts=0,formal_collection=0)
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=('plan','run','expert','replay'));p.add_argument('--root',type=Path,required=True)
-    a=p.parse_args();root=a.root.resolve();kit=a.mode in ('expert','replay');code=0
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=('plan','run','expert','replay','fresh-plan','fresh-run','fresh-worker'));p.add_argument('--root',type=Path,required=True)
+    p.add_argument('--check-id');a=p.parse_args();root=a.root.resolve();kit=a.mode in ('expert','replay','fresh-worker');code=0
     try:
-        if kit:worker(root,a.mode)
-        else:globals()[a.mode](root)
+        if kit:worker(root,'replay' if a.mode=='fresh-worker' else a.mode,a.check_id)
+        else:globals()[a.mode.replace('-','_')](root)
     except BaseException:
         write(root/(a.mode+'_error.json'),dict(traceback=traceback.format_exc(),utc=time.time()));code=1
         if not kit:raise
