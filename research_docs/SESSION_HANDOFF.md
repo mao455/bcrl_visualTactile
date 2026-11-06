@@ -1,5 +1,10 @@
 # 当前交接：200条StateDP及条件化后续
 
+## 2026-11-06 09:29 UTC+8 实测：后续已停止
+
+原200条训练及闭环已完成：5735更新，train0/4；unseen0/10合法运行，另2次准入拒绝。后续服务于02:13接手后在GPU历史一致性断言失败处停止，所有自有进程已退出。未续训、未扩采、未重启；原门限和新截止10:13:16未改。CPU只读复核通过不能代替GPU验收。具体失败、证据和限制见[统一State结果](STATE_DP_RESULTS.md)及[evidence](evidence/narrow_followup.json)。下方为先前启动快照。
+
+
 2026-11-06：原run实际200/200成功、201尝试、43,621控制步、17,972,841,587bytes，60家族44/8/8。原服务已完成5,735/5,735更新并进入闭环；检查时前2条train均601tick超时，整体train4/unseen12尚未完成。best/last完整checkpoint已在CPU读回，EMA/176组AdamW step均5735、LR3e-6；不能把后续授权写成闭环完成。原绝对截止13:57:39 UTC+8不变。
 
 用户新授权的独立源码在`bc+rl_RSS_narrow_followup`，独立root为`outputs/visuotactile/run/narrow_state_followup_20261106_01`。`tools.narrow_followup run`只等待原run正常complete、自有进程全部退出和owner锁释放，再启动新monitor/数据和已记录控制审核；依据实际结果选择最多一次续训、一次新增约60–96条真实数据、一次独立随机训练或结束。新执行期固定8h，等待原任务不使用GPU且有原deadline+15min上限。停止方式为在新root创建STOP；不删除预算、attempt或失败证据，不自动重启。

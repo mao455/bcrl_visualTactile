@@ -1,5 +1,10 @@
 # Current task — bounded conditional StateDP follow-up (2026-11-06)
 
+## Actual status — 2026-11-06 review
+
+Predecessor completed5735 updates: train0/4, unseen0/10 legal plus2 pre-action rejections; all14 legal trials timeout. Follow-up started02:13:16 UTC+8 and stopped at its first GPU history-condition parity assertion (<2e-5); actual GPU maximum was not logged. All owned processes exited, new updates/captures/student starts0. CPU-only recheck passes at1.91e-6 FP32 /4e-15 FP64, which does not replace GPU acceptance or establish root cause. Preserve failure, threshold and fixed follow-up deadline10:13:16; no automatic retry or deadline reset. Read latest SESSION_HANDOFF and evidence/narrow_followup.json. Earlier startup snapshots are historical.
+
+
 Latest user authorizes ONE bounded continuation when supported by validation and
 closed-loop evidence, then at most ONE expansion from200 to260–296 total real
 successes and ONE independently initialized StateDP comparison. No architecture,

@@ -1,0 +1,102 @@
+{
+  "state": "blocked",
+  "stage": "audit",
+  "source_commit": "fde65f2a7fdf8e404b287317f673fc63f0dda8af",
+  "original": {
+    "complete": true,
+    "cohorts": {
+      "train": {
+        "attempts": 4,
+        "valid": 4,
+        "successes": 0,
+        "initial_rejections": 0
+      },
+      "unseen": {
+        "attempts": 12,
+        "valid": 10,
+        "successes": 0,
+        "initial_rejections": 2
+      }
+    },
+    "checkpoint_sha256": "9505194b4dce4d38c63808bdd114ecd60739b13f3e685a78c23909d350660d66",
+    "updates": 5735,
+    "success_definition": "unchanged ordered native full success",
+    "unseen_plan_sha256": "b7ac53bd9ec45c45071680a1f7e3cb347a0a5848707474ccd2c52dcb4c23d7ef"
+  },
+  "curve": {
+    "points": 4,
+    "span_updates": 1735,
+    "update": 5735,
+    "validation_gain": 0.005530655574993668,
+    "train_gain": 0.2740236779013109,
+    "arm_gain": 0.011742288826141171,
+    "fk_gain": 0.005362143831891504,
+    "gap": 18.7822291671532,
+    "first_gap": 13.711286052229703,
+    "train_early_hold_ratio": 0.3894418680524714,
+    "validation_early_hold_ratio": 1.5589247966588577,
+    "early_direction": 0.5725743633050185,
+    "early_amplitude": 3.1111163084323588,
+    "early_hold_regression": 0.0007554258850166473,
+    "latest_validation": 0.004728191066533327,
+    "latest_train8": 0.00025173748144879937,
+    "best_update": 5735
+  },
+  "followup_budget": {
+    "started": 1793902396.0226355,
+    "deadline": 1793931196.0226355,
+    "parent_deadline_unchanged": 1793944659.3211892
+  },
+  "audit_failure": "GPU full-sequence versus streaming HistoryBank condition max_abs assertion <2e-5 failed; actual GPU error not persisted",
+  "cpu_review": {
+    "scope": "CPU-only read-only diagnostic; not a restarted GPU audit or acceptance",
+    "cuda_initialized": false,
+    "utc": 1793928656.9828148,
+    "rows": [
+      {
+        "identity": "family_001_cal058",
+        "dtype": "torch.float32",
+        "max_abs": 1.7881393432617188e-06,
+        "worst_tick": 108,
+        "condition_max_abs": 3.650874137878418
+      },
+      {
+        "identity": "family_067_mid_b",
+        "dtype": "torch.float32",
+        "max_abs": 1.9073486328125e-06,
+        "worst_tick": 24,
+        "condition_max_abs": 3.7617413997650146
+      },
+      {
+        "identity": "family_001_cal058",
+        "dtype": "torch.float64",
+        "max_abs": 3.9968028886505635e-15,
+        "worst_tick": 84,
+        "condition_max_abs": 3.650874337472588
+      },
+      {
+        "identity": "family_067_mid_b",
+        "dtype": "torch.float64",
+        "max_abs": 3.3306690738754696e-15,
+        "worst_tick": 0,
+        "condition_max_abs": 3.761741011777638
+      }
+    ]
+  },
+  "new_training_updates": 0,
+  "new_episodes": 0,
+  "additional_student_starts": 0,
+  "owned_workers_exited": true,
+  "restarted": false,
+  "threshold_changed": false,
+  "failure_stages": {
+    "train": {
+      "grasp_or_lift_unresolved": 3,
+      "second_insertion": 1
+    },
+    "unseen": {
+      "illegal_initialization": 2,
+      "grasp_or_lift_unresolved": 10
+    }
+  }
+}
