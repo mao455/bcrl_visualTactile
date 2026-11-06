@@ -139,7 +139,9 @@ def prepare(env, isolated, spec, source, output):
 
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
-          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None):
+          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None):
+    if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
+        raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
@@ -212,6 +214,12 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 if replay is not None:
                     index=min(tick,len(replay)-1)
                     command = torch.from_numpy(replay[index:index+1])
+                    if replay_horizon is not None:
+                        if tick%12==0:
+                            from .position_control import recorded_target_plan
+                            oracle_plan=recorded_target_plan(replay,tick)
+                            plans.append(oracle_plan[0].numpy());raw_plans.append(oracle_plan[0].numpy())
+                        command=oracle_plan[:,tick%12]
                     # Deliberately perturb policy RNG in this second runner.
                     if expert_speed is None:torch.rand(37+tick % 17)
                 elif controller is None:
@@ -305,7 +313,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             native_subgoals=int(arrays['subgoals'].max()), native_alignment=bool(arrays['alignment'].any()),
             actor_normalization_max_error=actor_parity, environment_sha256=config_hash,
             checkpoint_sha256=sha256(checkpoint), action_exhausted=not any(reasons.values()),
-            simulation_step_hz=60, physics_hz=120, plan_hz=5 if saved is not None else 60)
+            simulation_step_hz=60, physics_hz=120, plan_hz=5 if saved is not None or replay_horizon is not None else 60)
+        if replay_horizon is not None:
+            result['oracle']=dict(horizon=24,commit=12,open_loop=True,final_padding_executed=False)
         result.update(ever_complete_success=first_success_tick is not None,first_success_tick=first_success_tick,
             termination_tick=len(rows) if any(reasons.values()) else None,
             duration_sim_s=len(rows)*env.step_dt,tick_index='1-based completed control transitions',

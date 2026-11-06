@@ -1,3 +1,23 @@
+# Current — bounded StateDP mechanism diagnosis (2026-11-06)
+
+Latest user explicitly authorizes CPU contract/data/sampler audit, real full-model
+microbatch gradient equivalence, five expert/target Oracle starts, ONE fresh
+single-training-trajectory overfit with diagnostic multi-window sampling, and
+fixed State275 best4500 overlap0/4 comparison. Read current CONTRACTS and
+SESSION_HANDOFF, then actual state_mechanism_20261106_01 status. No formal data
+collection, formal-model continuation, network/loss changes, Image/tactile or DAgger.
+New root has fixed4h INCLUDING waits from prepare,15 Kit starts (A5/B2/C8), tiny
+training<=4000 updates/90min,12GiB output/60GiB disk reserve. Same shared_recent_v1
+40% target/6GiB VRAM/12GiB RAM. One monitor/worker at a time, no automatic retry.
+Prior completed-run prohibitions below do not override this explicit new task.
+Preserve400+200+75, formal best/last and all failed evidence. B uses one5s TRAIN
+trajectory, full-prefix history/mask/loss and unchanged train-only normalizers;
+its16/9 shuffled anchor batches differ from formal64/64/64/15 episode sampling.
+A position replay is open loop; exact hidden physical replay is NOT a gate.
+C4 is diagnostic only; formal overlap remains0. Short real startup verification,
+then yield without LLM polling. Existing MD/one small result auto-publish only
+origin feature/narrow-state-data when reviewed HEAD/worktree guards pass.
+
 # Completed — camera/history repair and the single StateDP contrast (2026-11-06)
 
 Run narrow_repair_20261106_01 finished15:19:38 UTC+8, all owned processes exited.

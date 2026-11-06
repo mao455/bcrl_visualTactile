@@ -1,5 +1,20 @@
 # 维护变更
 
+<!-- STATE_MECHANISM_START -->
+## 2026-11-06：StateDP基础能力、采样与动作块诊断
+
+实测 `prepared` / `cpu_audit`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
+只读审查275条/64,663tick：全体均值3.919s、中位3.433s、p10–p90 2.640–5.517s，范围2.117–12.900s。新增75均值4.676s、中位4.4s；尚不符合多数5–7s的设计预期，没有补等待或改时间戳。State-valid275、Multi-view-valid75、旧固定视角无效200；触觉数值有限及有效标记通过，不等于硬件校准。所有成功标签只在末transition出现，275条原始数值与缓存完全相等，q_after[t]=q_before[t+1]。
+
+A/B/C尚未全部完成，不作机制结论；以已保存门控和错误为准。
+
+实际A/B/C、采样曝光及最新状态见[StateDP统一结果](STATE_DP_RESULTS.md)和[机器统计](evidence/state_mechanism.json)。
+<!-- STATE_MECHANISM_END -->
+
+## 2026-11-06 有界机制诊断实现
+
+新增tools/state_mechanism及audit/train/delivery普通后台入口，固定4h/15starts；只读275条全tick/自然成功/标签/缓存/split/hash审查和实际sampler状态曝光。B采用隔离的多窗口采样，正式AnchorSampler不改。state_benchmark仅增加显式replay_horizon=24的诊断Oracle入口，普通调用默认不变；目标分块不改物理/映射。A映射和真实梯度等价失败会阻止后续；C正式模型权重不变，overlap0/4独立记录。17项CPU测试通过，GPU与Kit实证按下方实时生成块报告，准备不等于已成功。整理四个原有主MD，移除过时启动指令，历史证据与5604249来源保持。
+
 ## 2026-11-06 收尾复核：完成不等于成功
 
 `tools/narrow_repair_pipeline.py`修正完成状态遗漏正式更新数的问题：原status一直保留启动时0，现从trainer finished读取；本轮依据真实receipt更正为5000，旧status另存。`tools/narrow_repair_delivery.py`将实际训练终点、validation最佳步、同一验证集误差和最终审查结论写入原有主MD及轻量JSON；不改算法、模型或实验结果。8项相关CPU回归通过，真实best4500/last5000和保护hash读回通过，无新GPU运行。

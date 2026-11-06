@@ -1,102 +1,47 @@
-# 当前训练与执行合同
+# 当前StateDP合同与机制诊断
 
-## 当前：视觉/历史修复后的单次慢速数据对照
+## 本轮授权和边界（2026-11-06）
 
-新root `narrow_repair_20261106_01`：2026-11-06 11:12:39 UTC+8开始，21:12:39截止；门控14:12:39、采集17:12:39，全部等待计入。原run、blocked后续及其预算只读。最大80采集尝试、32新家族、40学生启动（含1次零物理步软件失败）、50GiB新增/60GiB磁盘余量，shared_recent_v1目标40%，6GiB VRAM/12GiB RAM。各阶段单次owner，无自动重试；10h内一次扩采、一次新模型、无第二轮扩增。
+本轮在已完成的275条对照之后执行一次独立A/B/C机制诊断：只读数据/采样审查、少量专家目标Oracle、1条训练轨迹的随机初始化过拟合、固定275 best的overlap0/4对照。root为`state_mechanism_20261106_01`；4h总窗从prepare固定，包含等待；最多15次仿真启动（A5、B2、C8），B≤4000更新/90min。一次CPU审核后单owner顺序运行，独立后台监控，真实合同失败停止，无自动重试/扩大队列。12GiB新增上限、60GiB磁盘余量，保留shared_recent_v1目标40%、6GiB空闲VRAM/12GiB可用RAM和两CPU线程；不干预其他任务，不保证不可预测外部负载下整卡从不越线。
 
-光学修复为显式camera_content_validation入口：初始化传感器后、首次reset/render前调用既有固定相机配置；不修改rig/物理。camera_valid检查空间RGB纹理及正有限深度，metadata标识新语义。新增成功逐帧三视角RGB/depth/mask/时钟/frame递增/固定位姿检查，采样起/接触中/末目标投影和真实预览。旧200不改，State-valid200、Multi-view-valid0；视觉/触觉未来比较使用相同multi_view_valid子集与split，不能把数据量差异归因架构。
+原400、后来的200及新增75条正式示范、全部正式best/last和失败证据只读。无正式扩采，无旧模型续训，无新大模型训练、DAgger、结构/损失重构、Image或触觉训练。B诊断模型只证明极小集拟合/执行能力，不是正式基线或泛化证据。
 
-12:35生产停止的分类修复：真实掉落后物体出框属于任务失败，完整RGB-D/数值合同仍检查，失败轨迹不进入示范manifest；成功示范保持原目标可见性门槛。第50次失败及此前49成功、旧错误与计数快照全部保留，计数更正为50尝试/49成功/1掉落。经逐文件哈希和冻结计划前缀审查后，`continue-reviewed`仅允许在新阶段`reviewed_collection_completion`执行剩余26条；收据固定输入SHA，拒绝重排、重复、跳过已完成失败、已有新模型或重复阶段目录。所有原截止、预算、计划、split和速度区间不变。此为已查明软件分类错误的一次审查接续，不是自动重试策略。
+## 正式模型与输入
 
-统一FP32：CUDA matmul和CuDNN TF32都关闭，与原trainer一致；无AMP，无历史清空/截断/合同变更。GPU门控保留condition<2e-5，另记相同噪声前12目标<2e-5rad/FK<.02mm；实测远低于门限。旧默认算术复核单独标识。执行与历史仍原H24/commit12/29D绝对位置，无额外delay/EMA。
+StateDP为普通state-based diffusion policy：Actor141、本体robot178和特权geometry85，GRU256持续历史；不读取图像或触觉。固定物理120Hz、底层60Hz、规划5Hz；H24预测未来24个60Hz目标，每12tick重新规划并执行前12步。29D绝对关节位置弧度（7Arm+22Hand），不是XYZ、速度增量或geometric nominal监督。
 
-3个预选train家族alpha1/.55/.60/.65真实闭环试采；选连续相邻可靠端点区间，比较真实完成时间及接触阶段实际速度，不能只等待。32新家族由固定80合法候选对原train几何覆盖选择，生产前24/4/4；每个2速度版本，多数连续慢速并保留原速。最多76计划capture（硬上限80），包括已验收相机专家，不重复计数。至少60新成功、28新家族才ready；原test8及所有速度仍test。
+保持`position_rad_v1`/version3、sample/x0、Loss B及既有position/rotation/fingertip/temporal辅助权重，不改Arm/Hand权重。DDIM100训练噪声步、推理16步、eta0、clip_sample=false；正式overlap_steps=0。CUDA matmul/CuDNN TF32均关闭，与实际训练一致。Actor使用冻结专家RMS140 clip5和任务embedding32；robot逐tick、geometry每12tick按训练split拟合mean/std，动作每关节训练范围仿射归一化（常量维单独处理）。测试数据不拟合统计。
 
-新模型全新seed2026110603/参数/AdamW/EMA/日程。按原4000平台加500更新曝光余量、实际anchor及旧吞吐定预算，≤10000更新、≤3h，validation-only选best与有界早停。网络、损失及权重不改。最终旧新各train4+固定独立unseen12；已有unseen00/04只作开发复核，最终test不选择模型/数据。原8复核单元中1次软件失败保留，剩余7继续，不补齐为8个成功运行。阶段失败保存可恢复状态，不自动重试。下面为旧协议历史，不得恢复旧owner。
+原200正式train148/val26/test26条、60家族44/8/8。扩充275正式train207/val34/test34条、92家族68/12/12；速度版本随初态家族同split。275全部State-valid，只有新增75条Multi-view-valid，旧200固定相机空白不改写；触觉为实际记录，首tick无效及后续有效标记必须保留。未来Image/触觉公平比较只能用相同有效模态子集，不能把数据量差异当架构优势。
 
+## 标签、时间和执行
 
-## 2026-11-06 有限条件化后续
+观察t发生在动作前。标签`transition/target_after_rad[t]`是本tick实际送入执行器的处理后绝对目标；`obs.actuator_target_rad[t] == target_before_rad[t] == target_after_rad[t-1]`（t>0）。`q_before[t]`和`q_after[t]`是真实到达关节位置，与目标不同，不能用q_after冒充动作标签。全275条逐tick验证q_after[t]=q_before[t+1]，两物理子步执行器target都等于当tick标签。
 
-原200成功/201尝试、60家族44/8/8已通过数据门控。原run训练/闭环完成且所有自有进程、monitor、owner锁退出后，独立新run才启动GPU。原截止2026-11-06 13:57:39 UTC+8及统计、全部数据、best/last只读。新预算从实际接手开始固定8h（所有阶段和资源等待计入）；原任务等待上限为原截止+15min。新run45GiB文件上限、60GiB磁盘余量，沿用6GiB/12GiB和shared_recent_v1目标40%。每worker仅一次启动；软件/合同失败不自动重试。
+原生专家command经过原delay/Arm增量与Hand绝对映射/EMA/限位后产生target。StateDP已学习处理后的target，反归一化后按真实关节限位裁剪、canonical→Lab，仅写原目标缓冲；不能再次施加delay/EMA，不能强制真实q/物体状态。保留原delay随机抽样以保持后续环境随机流调用顺序，该抽样不再施加到位置目标。原动力学、资产、接触、成功/终止条件均不改。
 
-调度依据末4个相隔≥400更新的验证点、train8/validation误差、Arm/FK和早期方向/幅值/hold，以及train4/unseen12完整成功。>3%验证改善且Arm/FK改善、没有快速扩大的泛化差距时允许一次有界续训；平台且训练早期拟合良好、未见早期偏差和泛化差距明显时，只有数据/缓存/在线重算/执行目标审核全通过才允许一次覆盖扩采。约50%以上小诊断成功优先进入独立最终验证，避免为追逐百分比自动加数据。这些是研究费用调度规则，不是任务成功硬阈值或数据不足因果证明；证据不足则停止。
+robot178的116:145为严格过去请求位置，145:174为严格过去应用位置，174:176为age、176为valid；初态清零。训练使用明确标识的过去专家target teacher forcing；部署使用自身实际请求/应用反馈。current/future target仅作监督。每个真实60Hz观察更新GRU，replan不清空记忆，仅真实episode改变时reset；不得用子目标会重置的episode_length_buf判定新episode。
 
-续训从原last完整恢复model、AdamW moments/step/param groups、EMA/step、采样deck与Torch/CUDA/noise RNG；原cosine日程不拉伸、不重新warmup，到达原终点后维持原3e-6 floor。按实测吞吐/原更新数分配最多约半程新增更新及1h；保留原best，validation没有改善就不替换。平台/过拟合提前结束，最多一次train4+新开发unseen8检查。
+## 一次optimizer更新的真实含义
 
-扩采只一次：同一窄域直接采样80候选，合法且不重复者中对原train44做几何max-min选择32新家族；尺度仅原train拟合，选择不看学生结果。几何选择完成后固定24train/4val/4test，再展开每家族原速+两个连续随机alpha∈[.58,.95]（其中一部分在[.58,.65]）真实专家闭环。最多96次完整传感器采集；目标296总量，时间不足可在≥260且覆盖达标停止；28个以上新家族成功和≥60条新成功为最终门控。所有旧200只引用、不复制覆盖，旧test8及其速度版本仍test；真实任务失败、准入失败和软件失败单列。
+一个episode是一条完整变长轨迹，tick=1/60秒；候选anchor为0,12,24,…<长度。正式`AnchorSampler`先洗牌episode deck，每次最多64个不同episode，每episode从自己的无放回anchor deck取1个。275数据每轮实际batch64/64/64/15，平均51.75；200数据为64/64/20。尾batch不丢、不复制。它是episode-balanced，并非全体窗口等概率；较长episode的单anchor更少被抽到，某家族的速度版本越多则家族总权重越大。
 
-扩充后唯一新模型使用独立seed2026110601、随机参数/AdamW/EMA/调度器。H24、5Hz/60Hz、29D目标、网络、Loss B及辅助权重、DDIM和因果历史全部保持。train-only统计按合并数据重建。更新预算由原平台出现时anchor曝光、合并anchor数/平均batch和实测吞吐确定，不超过12000及2.5h；每500验证，达到足够曝光后的稳定平台/过拟合提前结束。仍只按validation选best。原26条validation与train8上的离线同口径比较另列，绝不读取test训练。
+每个anchor使用当前权重从真实episode开头重算历史：anchor所在96tick块之前no_grad得到hidden，此块至当前tick参与梯度；不是随机窗口零hidden，也不是固定长度96滑窗。短期robot13个native tick、geometry3个replan时刻与完整因果GRU共同形成condition[B,512]。
 
-原unseen12已用于决策，明确为开发诊断。独立最终16个初态在后续prepare时冻结；若扩采则原200与新模型在同一计划上各train4+unseen16，报告可观察初态差异，不声称隐藏物理状态严格配对。整个新run最多52学生starts（含可选续训12和最终40），非法初态不按结果补种子。最终测试结果仅报告、不触发第二轮训练/扩采。ImageDP仍需严格live输入配对；本轮不自动训练Image或触觉。
+target[B,24,29]、valid[B,24]；尾部不足24只零填充且mask无效。每4个anchor做一次前向/反向，按本完整batch的有效target总数加权base/FK/rotation/finger项，按有效相邻对总数加权temporal项；全部microbatch后才一次grad clip1、AdamW和EMA更新。不能把microbatch4等同于effective batch4。
 
-2026-11-05最新授权：新独立窄域数据验收后，自动从随机参数训练StateDP，并执行train4诊断和12个预注册未见初态闭环。旧State143探索队列保持暂停，旧隔离root不恢复。旧400及其split不改，新数量由实际数据决定。
+275 best4500累计232875次anchor抽样/4245=54.8587 anchor等效epoch，last5000累计258750/4245=60.9541；独立覆盖都是4245。原200 best5735累计282956/2829=100.0198。这些是重复曝光，不是新增样本数，也不是完整episode反传epoch。真实逐anchor访问、阶段和家族权重见state_mechanism轻量统计。
 
-本合同描述实际H24 position版本，不把旧H32/H64或原生command checkpoint当作兼容模型。旧实现见Git历史；此次整理没有改变已训练参数、监督、DDIM或底层控制。
+B诊断单独使用全anchor洗牌，多窗口可来自同一episode：family_066_repair_a055的25个anchor每轮16/9、micro4；完整因果历史、mask和损失保持。沿用275 train-only归一化及专家RMS/embedding，但参数、优化器、EMA和RNG全新。其checkpoint绝不替换正式275 best4500。
 
-## 模型与数据
+## A与C的诊断语义
 
-- State：`PersistentState`，声明的Actor141、本体178、几何85及持续历史GRU；Image：`PersistentImage(I-HistoryDP)`，三视角448×252 RGB-D、冻结且固定revision的DINOv2-S/14及持续历史，不读特权物体几何或触觉。
-- 历史原400维持320/40/40不变。新采集按真实初态家族先划分、再扩速度；数量动态、尾批不丢不复制，归一化只用新train家族。H24、每12个60Hz tick重规划并执行12、原物理120Hz。
-- `position_rad_v1`、合同version3。29D canonical位置弧度，标签`transition/target_after_rad[t]`。观测t在动作之前，`obs.actuator_target_rad[t]=target_before[t]=target_after[t-1]`。padding只屏蔽无效损失，不能复制成有效监督。
-- 训练GRU从真实episode开头用当前权重前向，原96tick TBPTT边界保持；每native tick更新，replan/chunk不清零。训练严格过去专家位置历史是teacher forcing，部署使用自身实际请求/应用反馈。current/future标签不是输入。
-- DINO revision `7764ea0f912e53c92e82eb78a2a1631e92725fc8`；实际权重/缓存/统计SHA记录在data.json及checkpoint。RGB uint8 roundtrip、depth validity、相机时钟和固定batch规则保持。
+A的native专家在线每tick反馈；H24/commit12 Oracle则回放该专家产生的处理后target，另回放一条已存慢速target。回放为开环，不冒称持续在线纠正；记录源target→请求→执行器→真实q及块边界。精确目标映射是门控，隐藏PhysX状态/轨迹是否完全相同不是门控；序列耗尽未成功记censored，不伪装原生timeout。只补足未执行的H24尾预测，不额外执行填充帧。
 
-## 动作与原控制
+C固定275 best4500，开发初态为两个TRAIN家族、两扩散seed，比较overlap0/4。overlap4在新plan前4目标中使用旧plan对齐的未来12:16，权重1/4、1/2、3/4、1，属于明确额外控制变化，不改正式默认。统计分别报告raw预测、实际请求/执行器target与真实关节速度；相同seed/可观测初态不等于隐藏物理轨迹严格配对。
 
-原生RL无量纲command先经过原delay，Arm增量/Hand绝对映射、EMA和限位。当前DP学习的是这个处理链之后的29D target。DP反归一化后仅按真实关节限位裁剪、canonical→Lab，写原目标缓冲，由原执行器施加。不能再次加delay/EMA，不能强制真实q/物体状态或用专家动作接管。
+## 已完成历史与来源
 
-保留一个不参与目标计算的原delay随机抽样，使其后随机流调用顺序保持。原资产、碰撞、摩擦、增益、120/60Hz、reset、DR、外力、reward/success/timeout和研究sim wrapper均未改。
+200→275的单次数据对照已于2026-11-06 15:19结束：旧/新train0/4、unseen0/10有效，各2初态拒绝；275模型5000步平台早停、best4500。旧200未续训，全部数据和模型保留。本轮新授权不重置任何旧deadline或统计。
 
-robot178中116:145为严格过去请求位置、145:174为过去应用位置，174:176为age，176为valid；初始清零。当前策略仍采用原proprio恢复路径；此前可选精度修复未暗中启用。
-
-专家处理后target经此接口独立回放2/2完整成功（168/153ticks），14类控制/物理字段逐字节相同，提交/执行器目标误差0。该证据是接口验收，不是DP成功；历史四lane任意重建的PhysX内部状态仍不可精确恢复。
-
-## 历史续训配置（本轮已替代，不再运行）
-
-原State/Image10000各采样133354 anchors，即24.04074 anchor等效epoch。全集5547 anchors，832旧片段。当前有效batch64个不同episode各一个anchor、microbatch4×累积16；episode deck与各episode的anchor deck无放回洗牌。它是episode均衡，不是全局anchor等概率，也不是64个统计独立样本。
-
-base/FK/rotation/fingertip按全batch有效目标数归一化，temporal按全batch有效邻接对数。当前Loss B及已经train-only校准的辅助权重保持，不增加新损失。DDIM16、eta0、clipFalse，sample/x0；不能把epsilon loss绝对值与sample loss比较。
-
-AdamW betas(.95,.999)、wd1e-6、EMA power.75沿用完整状态。新续训scheduler明确为3e-6→3e-5 warmup200，按新增23918 updates规划cosine到3e-6；不继承旧终点零LR，不重置optimizer/EMA。采样算法改变已有独立版本与审计，不是本次清理新增。
-
-|累计anchor等效epoch|新增update|累计update|
-|---:|---:|---:|
-|50|2250|12250|
-|100|6584|16584|
-|150|10918|20918|
-|200|15251|25251|
-|300|23918|33918|
-
-累计epoch=(旧133354+新实际抽样数)/5547；不把anchor曝光写成完整episode或96tick片段遍历。150后是否延长必须结合当前验证与闭环证据；旧queue的自动扩展规则受本轮明确review hold覆盖。Image仍需State实质进展及严格live Image输入配对通过。
-
-## 历史评估与恢复
-
-EMA，固定同数据、标准化和DDIM种子；端点10000/16584/20918统一train320与validation40，历史曲线train16明确标注。离线teacher-forced指标不能充当闭环成功。冻结validation seeds984101–984104；train拟合诊断982401–982404；不读test40、不改成功判据。
-
-闭环每初态独立Kit；真实成功、native lift/subgoal/fall/timeout与软件缺失分别计数。稳定抓持无native离散定义，N/A。相同可观察初态、导出状态和事件RNG不等于证明PhysX所有隐藏状态完全相等。SDK fast exit即使code0，也不能称完整正常关闭。
-
-一个owner、有限启动预算、持久日志和逐episode提交。恢复必须验证model、EMA、EMAstep、AdamW moments/step、Python/Torch/CUDA和采样RNG、sampler进度、学习率配置。冻结manifest可因审查后的纯组织迁移更新，但保留旧manifest和每项before/after SHA，不伪造旧源码匹配。
-
-## 历史随机评估补充（已暂停）
-
-最新授权使用固定State150 checkpoint进行historical100（train320+validation40联合池均匀无放回抽样）及fresh100原reset分布。预注册seed20261105，历史主清单实际91train+9validation，后分层报告；test40排除。原生完整成功仍需两个插入子目标按顺序累计10个合格tick、最终7.5mm几何和撤手距离>0.1m。最终位姿/撤手在未完成前置阶段时仅作独立诊断，不增加原生成功分子。Kit门控针对完整运行、第一plan一致性、可靠落盘和资源回收，不要求重复三次SDK优雅退出。
-
-## 历史独立慢速专家实验（已结束）
-
-只在expert_speed显式任务启用。A保持60Hz原生RL和一次delay/EMA/limit，在后处理目标上按Arm/Hand独立系数推进，并将执行目标写回原历史；原控制默认不变。B对已处理位置目标在60Hz重参数化，仅走position_rad_v1，不再次滤波。状态/图像只能来自真实重新仿真；新数据监督仍为target_after_rad。原生顺序成功、120Hz物理与阶段超时不变；新慢速数据与400原始数据独立，未通过数据合同前不续训。
-
-## 当前直接窄域与新随机StateDP
-
-新root `narrow_state_20261105_02`：全新60家族目标，最多80个直接候选，至少50家族；先按初态准入并冻结split，再展开速度。8 validation、8 test，其余train。同家族所有速度同split。
-
-物体XY围绕已存密集初态中心±25mm；孔−物体XY围绕同一中心±35mm，并直接与原孔范围求交。SO(3)旋转球半径20°；桌原点z∈[.376,.384]m，物体高于桌原点[.244,.256]m。原arm/hand随机joint-limit lerp由.1收窄至.03，速度由±.5至±.15rad/s。每家族采样配置传给原native reset写入，不修改原reset函数或物理。原延迟、噪声、外力和固定摩擦保持。
-
-新准入`live_collision_mesh_bounds_v1`：实际CollisionAPI下所有网格顶点的保守包围盒，以实时body_link_pose变换，额外1mm边界；物体/桌/孔仍用原box SAT。近边界可能保守拒绝，不放过网格包围盒相交。旧scene-query在相同实时位姿下产生11个错误命中，新运行只把它作为诊断保存。不增加物理积分或预动作，不用视觉网格或USD世界位姿判定。
-
-每episode冻结一个alpha，原native command/delay/EMA后做真实目标推进。两train原速/.58校准，唯一允许上调到.65；后续连续区间与原速约220次计划，目标200条成功，最低150且train≥32、val/test各≥6家族。保留所有失败、软件中断和部分文件，不按结果更换家族。RGB-D、触觉、状态、目标/实际运动和120/60Hz时钟全部真实重录。成功校准数据按同合同计入，旧3条仍隔离。
-
-H24/commit12、PersistentState、sample/x0、DDIM16、Loss B及既定四辅助权重保持。新train重新拟合robot逐tick及geometry每12tick统计，State历史每60Hz更新，target min/max affine不变。随机参数、全新AdamW/EMA/调度器/计数，只允许同一新run恢复。CPU/GPU可丢弃smoke与正式更新分开。
-
-普通owner自动执行数据验收→GPU一次性前后向/恢复→正式训练→最终闭环。训练按接受数据的anchor数预算100 anchor等效epoch、最多12000更新；每500更新验证并记录train8对照及首12tick方向/幅值/hold/FK，最优checkpoint只按validation选择。测试不进入训练或选权；最终train4与12个预先冻结未见初态分列，保留原生完整成功。60–70%仅为愿望，不是验收阈值或续跑理由。
-
-新运行固定16h（等待计入），采集6h、训练最多9h并预留末1h评估；每阶段最多2次经审查启动，无自动retry。6GiB VRAM/12GiB RAM、shared_recent_v1目标40%、60GiB磁盘余量、75GiB新产物上限。只在实际数据完整验收后写DATA_READY；正式更新和成功率以机器状态为准。
+旧H32/H64、400条320/40/40、150 anchor等效epoch、历史专家/位置接口验证、已停止的旧runner预算均为历史，不是当前执行入口；完整事实保留于[5604249时的合同](https://github.com/mao455/bcrl_visualTactile/blob/5604249/research_docs/CONTRACTS.md)及STATE_DP_RESULTS历史段落。不能通过改metadata给旧checkpoint切换合同。

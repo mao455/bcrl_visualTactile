@@ -1,5 +1,16 @@
 # 冻结专家与窄分布StateDP数据
 
+<!-- STATE_MECHANISM_START -->
+## 2026-11-06：StateDP基础能力、采样与动作块诊断
+
+实测 `prepared` / `cpu_audit`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
+只读审查275条/64,663tick：全体均值3.919s、中位3.433s、p10–p90 2.640–5.517s，范围2.117–12.900s。新增75均值4.676s、中位4.4s；尚不符合多数5–7s的设计预期，没有补等待或改时间戳。State-valid275、Multi-view-valid75、旧固定视角无效200；触觉数值有限及有效标记通过，不等于硬件校准。所有成功标签只在末transition出现，275条原始数值与缓存完全相等，q_after[t]=q_before[t+1]。
+
+A/B/C尚未全部完成，不作机制结论；以已保存门控和错误为准。
+
+实际A/B/C、采样曝光及最新状态见[StateDP统一结果](STATE_DP_RESULTS.md)和[机器统计](evidence/state_mechanism.json)。
+<!-- STATE_MECHANISM_END -->
+
 <!-- NARROW_REPAIR_START -->
 ## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
 
@@ -30,9 +41,9 @@ GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关
 
 用户新授权一次条件化扩充，须等原闭环完成、训练曲线支持平台/泛化差距且数据/执行审核通过，才由独立root执行。新32家族目标、24/4/4预分割、最多96次真实速度轨迹，总量260–296；不改变窄域范围、不插值旧传感器、不将旧test家族加入train。原200和原400均保留。是否实际启动、增加数量和效果以新root机器状态和[State结果](STATE_DP_RESULTS.md)为准。
 
-## 当前运行：直接窄域 v2（短监督通过，后台生产运行中）
+## 历史启动快照：直接窄域v2（该任务现已完成）
 
-最新用户授权已扩展到新数据验收后的自动随机StateDP训练和有界闭环。新root为`outputs/visuotactile/run/narrow_state_20261105_02`，当前生产服务`narrow-state-data-20261105-02-production.service`（第一阶段服务已在完整边界退出）；准备commit与实际运行commit分别记录在session.json及launch_revision.json，所有运行Python源码另存完整SHA清单。**短监督已通过；最新启动核验7/7条完整成功，DATA_READY=false，正式训练0更新。后台继续运行，数量以status.json为准。**
+最新用户授权已扩展到新数据验收后的自动随机StateDP训练和有界闭环。新root为`outputs/visuotactile/run/narrow_state_20261105_02`，当前生产服务`narrow-state-data-20261105-02-production.service`（第一阶段服务已在完整边界退出）；准备commit与实际运行commit分别记录在session.json及launch_revision.json，所有运行Python源码另存完整SHA清单。该段历史启动核验为7/7、DATA_READY=false、正式更新0；最终已完成200条和5735更新，不能据此恢复旧owner。
 
 实际60/68候选准入（88.24%，8个保守机器人网格包围盒拒绝，均非任务失败），split44/8/8；4条pilot共1075控制步、436,376,287bytes，199/157原速与455/264慢速全部成功，154字段hash验收、两物理子步target误差0、同家族初态8组误差0。一个慢速初态旧query仍错误命中1项，新几何准入一致通过。实测时长比2.2864/1.6815，中位1.9840。
 

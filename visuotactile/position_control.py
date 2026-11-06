@@ -14,6 +14,17 @@ from .training_resources import atomic_json
 POSITION_ACTION = 'absolute_joint_position_target_rad'
 
 
+def recorded_target_plan(targets, tick):
+    """Diagnostic H24 oracle; only commit12 before recorded sequence exhaustion."""
+    targets=torch.as_tensor(targets)
+    if targets.ndim!=2 or targets.shape[1]!=29 or tick%12 or not 0<=tick<len(targets):
+        raise ValueError('Recorded canonical targets and a valid12tick anchor required')
+    index=torch.arange(tick,tick+24,device=targets.device).clamp_max(len(targets)-1)
+    plan=targets[index]
+    if not torch.isfinite(plan).all():raise ValueError('Nonfinite oracle targets')
+    return plan.unsqueeze(0)
+
+
 def overlap_transition(previous, current, elapsed, steps=4):
     """Align targets by native ticks; linearly hand over to the new plan at K.
 

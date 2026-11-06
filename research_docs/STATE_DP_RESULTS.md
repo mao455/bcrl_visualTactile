@@ -1,5 +1,28 @@
 # StateDP结果：当前窄域新训练与历史宽分布
 
+<!-- STATE_MECHANISM_START -->
+## 2026-11-06：StateDP基础能力、采样与动作块诊断
+
+实测 `prepared` / `cpu_audit`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
+只读审查275条/64,663tick：全体均值3.919s、中位3.433s、p10–p90 2.640–5.517s，范围2.117–12.900s。新增75均值4.676s、中位4.4s；尚不符合多数5–7s的设计预期，没有补等待或改时间戳。State-valid275、Multi-view-valid75、旧固定视角无效200；触觉数值有限及有效标记通过，不等于硬件校准。所有成功标签只在末transition出现，275条原始数值与缓存完全相等，q_after[t]=q_before[t+1]。
+92个真实初态家族，68/12/12训练/验证/测试；速度版本不跨split。位置±25mm、相对位置±35mm、姿态20°球、关节初态及速度仍有变化；不是唯一起点。原200/201和扩充75/76是已准入家族上的采集结果，不代表整个连续分布100%成功。
+
+|模型|训练episode|实际batch分布|anchor数|抽样总数|anchor等效epoch|独立覆盖|
+|---|---:|---|---:|---:|---:|---:|
+|state200_best5735|148|{'64': 3824, '20': 1911}|2829|282956|100.020|2829|
+|state275_best4500|207|{'64': 3375, '15': 1125}|4245|232875|54.859|4245|
+|state275_last5000|207|{'64': 3750, '15': 1250}|4245|258750|60.954|4245|
+
+正式一次更新：最多64个不同episode各1个12tick anchor，microbatch4累积，所有microbatch之后才一次clip/AdamW/EMA；207条训练数据每轮64/64/64/15，平均51.75。输入Actor141、robot178、geometry85；从episode开头用当前权重重算历史，96tick边界前detach，非清零；条件[B,512]，目标[B,24,29]，mask[B,24]。不足24的目标零填充且无效；base/FK按有效目标数加权，temporal按有效相邻对数加权。
+episode均衡使长轨迹的单anchor曝光更少，家族权重与其速度版本数成正比；275 best各anchor访问17–103次。全部anchor已覆盖，但重复曝光不是独立新样本。阶段曝光及家族逐项权重见机器统计；阶段名称是接触/高度/native子目标代理，不能直接当作稳定抓取标签。
+Stanford上游[SequenceSampler](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/common/sampler.py)枚举窗口起点；均匀遍历这些索引时长episode权重更大，边界按配置重复端点。我们的stride12/episode均衡和显式mask是不同采样合同，并不单凭差异认定错误。ReplayBuffer按episode_ends保留轨迹边界。
+B仅选family_066_repair_a055（300tick、5s、alpha.55，train），由接近5s及ID固定选择。诊断多窗口采样在25个anchor上洗牌，batch16/9、micro4，允许同episode多个不同anchor；正式采样器不改。保持275 train-only统计、专家RMS/embedding及Loss B，从随机参数/AdamW/EMA开始；不使用test。
+
+A/B/C尚未全部完成，不作机制结论；以已保存门控和错误为准。
+
+[完整轻量统计、真实batch与阶段指标](evidence/state_mechanism.json)。原数据、checkpoint、数值轨迹和视频留本地。
+<!-- STATE_MECHANISM_END -->
+
 <!-- NARROW_REPAIR_START -->
 ## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
 
@@ -72,28 +95,16 @@ GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关
 [机器状态、原闭环与CPU复核](evidence/narrow_followup.json)。原400+200、best/last、原始失败和所有预算均保留。下方为此前实施/启动快照，不能据此认为后台仍在运行。
 
 
-## 2026-11-06 当前200条与待执行的条件化后续
+## 历史：200条初训与条件化后续（均已结束）
 
-200条成功/201尝试的数据门控已通过，60家族44/8/8，正式新训练已完成5,735/5,735更新；此处更新时train4/unseen12正在执行、尚无完整结果。最终validation selection MSE .00472819，Arm .0167138rad、Hand .0957968rad、FK12.8739mm，train8 MSE .000251737。best和last均5735，EMA/AdamW完整读回及原源码冻结SHA核验通过。
-
-3000→4500步验证selection MSE .00482130→.00475197（改善1.44%），train8 .00053065→.00030636（改善42.27%）；Arm .0172477→.0168357rad，Hand .0966702→.0960234rad，FK13.145→12.917mm。该段未见首块平均方向cos .569、幅值比3.113、相对hold RMSE比1.558；train8均明显更好。不能把离线拟合等同闭环成功，也不能据此断言继续训练或数据扩充一定有效。
-
-新授权后续在隔离源码/独立预算中等待原完整结束；按[合同](CONTRACTS.md)实施一次有条件续训或覆盖扩采+随机新训练。后续结果将由普通后台脚本更新本文件生成区和轻量统计；当前尚无新增续训/扩采/新模型结果。旧unseen12用于开发决策，新增最终16固定未见初态不参与模型选择。
-
-以下“尚未正式更新”为原启动快照，已被本节实时核验取代，保留其验收来源。
-
-## 当前新运行（2026-11-05，尚未正式更新）
-
-`narrow_state_20261105_02`在新数据验收后自动从随机StateDP参数、全新AdamW/EMA/调度器训练。当前正式更新0；首4条监督验收及生产继续通过，最新7/7真实采集成功；一次性GPU保存恢复通过，DATA_READY仍为false，尚无新闭环结果。预算与合同见[CONTRACTS](CONTRACTS.md)，实时进度见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)所列机器入口。新窄分布与下方原宽分布不是直接可比成功率。
-
-数据实际ready后才计算100 anchor等效epoch/最多12000更新；每500更新报告train8/validation同口径指标及首12tick方向/幅值、FK、hold基线。仅validation选best，最终train4诊断与12个预注册未见初态闭环分别报告，无结果择seed或自动扩展。
+200条完成5735更新、validation MSE .00472819，Arm .0167138rad、Hand .0957968rad、FK12.8739mm；60家族44/8/8、201尝试。早期7/7、DATA_READY=false和待扩采说明均是启动快照，不再作为操作指令。后续GPU精度修复及275条结果以上方已完成记录为准，旧deadline和失败未重置。[完整历史5604249](https://github.com/mao455/bcrl_visualTactile/blob/5604249/research_docs/STATE_DP_RESULTS.md)。
 
 ## 历史：原State150 anchor等效epoch（已停止，不再续训）
 
 旧随机评估最后实际143有效/175尝试，历史2/100、全新0/43、32次动作前query拒绝；旧query拒绝不能追认真实穿透。原队列暂停。下面保留原文阶段快照和已完成端点，表中的26是早期快照，不是当前运行计数；所有旧恢复指令仅为历史。
 
 <!-- RANDOM_EVALUATION_START -->
-## 本轮随机评估（实时保存）
+## 历史随机评估（已停止，保留原数值）
 
 |Cohort|Success / valid|Rate|95% Wilson CI|Contact|Grasp diagnostic|Lift|First subgoal|
 |---|---:|---:|---|---:|---:|---:|---:|
