@@ -1,12 +1,12 @@
 {
   "status": {
-    "state": "running",
-    "stage": "old_model_recheck",
+    "state": "blocked",
+    "stage": "slow_collection",
     "formal_updates": 0,
-    "owned_workers_exited": false,
+    "owned_workers_exited": true,
     "phase": "production_and_training",
-    "utc": 1793935831.3012052,
-    "error": null
+    "utc": 1793939731.1913426,
+    "error": "RuntimeError('slow_collection failed; no automatic retry')"
   },
   "budget": {
     "started": 1793934759.1514945,
@@ -524,6 +524,549 @@
     "counts_against_student_start_budget": true,
     "utc": 1793935300.7507367
   },
+  "recheck_complete": {
+    "passed": true,
+    "allocated": 8,
+    "software_failures": 1,
+    "completed": 7
+  },
+  "decision": {
+    "recheck_successes": {
+      "legacy_default": 0,
+      "unified_fp32": 1
+    },
+    "action": "one_slow_coverage_expansion",
+    "recheck_counts": {
+      "legacy_default": {
+        "train": {
+          "attempts": 2,
+          "valid": 1,
+          "successes": 0,
+          "software_failures": 1,
+          "initial_rejections": 0,
+          "failures": {
+            "grasp_or_lift_unresolved": 1
+          }
+        },
+        "unseen": {
+          "attempts": 2,
+          "valid": 2,
+          "successes": 0,
+          "software_failures": 0,
+          "initial_rejections": 0,
+          "failures": {
+            "grasp_or_lift_unresolved": 2
+          }
+        }
+      },
+      "unified_fp32": {
+        "train": {
+          "attempts": 2,
+          "valid": 2,
+          "successes": 1,
+          "software_failures": 0,
+          "initial_rejections": 0,
+          "failures": {
+            "grasp_or_lift_unresolved": 1
+          }
+        },
+        "unseen": {
+          "attempts": 2,
+          "valid": 2,
+          "successes": 0,
+          "software_failures": 0,
+          "initial_rejections": 0,
+          "failures": {
+            "grasp_or_lift_unresolved": 2
+          }
+        }
+      }
+    },
+    "rationale": "Precision improvement reviewed separately; otherwise measured validation plateau, fitted train motion and weak unseen motion justify one bounded data contrast, not proof of data insufficiency"
+  },
+  "speed_decision": {
+    "passed": true,
+    "selected": {
+      "interval": [
+        0.55,
+        0.6
+      ],
+      "successes": 6,
+      "attempts": 6,
+      "median_duration_s": 4.825,
+      "median_duration_ratio": 1.5206771562731691,
+      "median_contact_arm_speed_ratio": 0.6194854253529616,
+      "median_contact_duration_ratio": 1.04,
+      "scope": "Exploratory 3-family paired screen, not a population reliability estimate"
+    },
+    "candidates": [
+      {
+        "interval": [
+          0.55,
+          0.6
+        ],
+        "successes": 6,
+        "attempts": 6,
+        "median_duration_s": 4.825,
+        "median_duration_ratio": 1.5206771562731691,
+        "median_contact_arm_speed_ratio": 0.6194854253529616,
+        "median_contact_duration_ratio": 1.04,
+        "scope": "Exploratory 3-family paired screen, not a population reliability estimate"
+      }
+    ],
+    "policy": "One stable alpha per episode, continuous uniform between tested endpoints"
+  },
+  "collection_counts": {
+    "attempts": 49,
+    "successes": 49,
+    "total_successes": 249,
+    "task_failures": 0,
+    "initial_rejections": 0,
+    "software_failures": 0,
+    "new_multimodal_valid": 49,
+    "utc": 1793939714.2729692
+  },
+  "motion_diagnosis": {
+    "passed": true,
+    "reader_max_abs": 4.76837158203125e-07,
+    "execution_max_abs": 0.0,
+    "rows": [
+      {
+        "identity": "family_001_cal058",
+        "split": "train",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 63,
+            "arm_rmse_rad": 0.003217555582523346,
+            "hand_rmse_rad": 0.035150691866874695,
+            "fk_mm": 3.6460795402526855
+          },
+          "contact_low_object": {
+            "ticks": 46,
+            "arm_rmse_rad": 0.003054626751691103,
+            "hand_rmse_rad": 0.014147788286209106,
+            "fk_mm": 2.3493733406066895
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.0016589532606303692,
+            "hand_rmse_rad": 0.010233973152935505,
+            "fk_mm": 1.5933396816253662
+          },
+          "second_insertion": {
+            "ticks": 57,
+            "arm_rmse_rad": 0.0036757842171937227,
+            "hand_rmse_rad": 0.0186042170971632,
+            "fk_mm": 3.443127155303955
+          },
+          "transport_above_3cm": {
+            "ticks": 97,
+            "arm_rmse_rad": 0.003139016218483448,
+            "hand_rmse_rad": 0.014432001858949661,
+            "fk_mm": 2.828339099884033
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.00492898840457201,
+          "arm_internal_jump_rms_rad": 0.004294968210160732,
+          "arm_acceleration_rms_rad_s2": 26.141633987426758,
+          "arm_boundary_acceleration_rms_rad_s2": 28.260465621948242,
+          "arm_internal_acceleration_rms_rad_s2": 25.71729278564453,
+          "arm_speed_rms_rad_s": 0.26093943044543266,
+          "hand_boundary_jump_rms_rad": 0.03851647675037384,
+          "hand_internal_jump_rms_rad": 0.024474984034895897,
+          "hand_acceleration_rms_rad_s2": 104.94617462158203,
+          "hand_boundary_acceleration_rms_rad_s2": 163.00054931640625,
+          "hand_internal_acceleration_rms_rad_s2": 89.68844604492188,
+          "hand_speed_rms_rad_s": 1.5526555851101875,
+          "arm_overlap_rms_rad": 0.005092025268822908,
+          "arm_aligned_first_rms_rad": 0.004626554902642965,
+          "hand_overlap_rms_rad": 0.02642919309437275,
+          "hand_aligned_first_rms_rad": 0.03285742923617363
+        }
+      },
+      {
+        "identity": "family_001_native",
+        "split": "train",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 39,
+            "arm_rmse_rad": 0.0026910868473351,
+            "hand_rmse_rad": 0.01893126219511032,
+            "fk_mm": 3.368286609649658
+          },
+          "contact_low_object": {
+            "ticks": 22,
+            "arm_rmse_rad": 0.0030418599490076303,
+            "hand_rmse_rad": 0.01688380353152752,
+            "fk_mm": 2.2510650157928467
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.002638843609020114,
+            "hand_rmse_rad": 0.026740171015262604,
+            "fk_mm": 2.4491443634033203
+          },
+          "second_insertion": {
+            "ticks": 36,
+            "arm_rmse_rad": 0.0038918405771255493,
+            "hand_rmse_rad": 0.021270358934998512,
+            "fk_mm": 3.179929494857788
+          },
+          "transport_above_3cm": {
+            "ticks": 59,
+            "arm_rmse_rad": 0.002845525974407792,
+            "hand_rmse_rad": 0.015459192916750908,
+            "fk_mm": 2.5146138668060303
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.0050302729941904545,
+          "arm_internal_jump_rms_rad": 0.004408424720168114,
+          "arm_acceleration_rms_rad_s2": 24.187551498413086,
+          "arm_boundary_acceleration_rms_rad_s2": 23.146589279174805,
+          "arm_internal_acceleration_rms_rad_s2": 24.38264274597168,
+          "arm_speed_rms_rad_s": 0.26781334541738033,
+          "hand_boundary_jump_rms_rad": 0.04635791853070259,
+          "hand_internal_jump_rms_rad": 0.03457784652709961,
+          "hand_acceleration_rms_rad_s2": 104.29353332519531,
+          "hand_boundary_acceleration_rms_rad_s2": 128.2686767578125,
+          "hand_internal_acceleration_rms_rad_s2": 99.01963806152344,
+          "hand_speed_rms_rad_s": 2.1424955874681473,
+          "arm_overlap_rms_rad": 0.004308539908379316,
+          "arm_aligned_first_rms_rad": 0.004788756836205721,
+          "hand_overlap_rms_rad": 0.018597939983010292,
+          "hand_aligned_first_rms_rad": 0.024469396099448204
+        }
+      },
+      {
+        "identity": "family_000_cal058",
+        "split": "train",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 117,
+            "arm_rmse_rad": 0.0037916393484920263,
+            "hand_rmse_rad": 0.019950080662965775,
+            "fk_mm": 3.3889079093933105
+          },
+          "contact_low_object": {
+            "ticks": 58,
+            "arm_rmse_rad": 0.004311317577958107,
+            "hand_rmse_rad": 0.020166002213954926,
+            "fk_mm": 3.777998685836792
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.0028144828975200653,
+            "hand_rmse_rad": 0.017450619488954544,
+            "fk_mm": 2.9217147827148438
+          },
+          "second_insertion": {
+            "ticks": 184,
+            "arm_rmse_rad": 0.004250820260494947,
+            "hand_rmse_rad": 0.019371530041098595,
+            "fk_mm": 3.549299478530884
+          },
+          "transport_above_3cm": {
+            "ticks": 95,
+            "arm_rmse_rad": 0.004080563317984343,
+            "hand_rmse_rad": 0.019415397197008133,
+            "fk_mm": 3.51267409324646
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.006182123441249132,
+          "arm_internal_jump_rms_rad": 0.00547286681830883,
+          "arm_acceleration_rms_rad_s2": 34.185508728027344,
+          "arm_boundary_acceleration_rms_rad_s2": 34.132347106933594,
+          "arm_internal_acceleration_rms_rad_s2": 34.19587707519531,
+          "arm_speed_rms_rad_s": 0.33204437233507633,
+          "hand_boundary_jump_rms_rad": 0.034771598875522614,
+          "hand_internal_jump_rms_rad": 0.028007643297314644,
+          "hand_acceleration_rms_rad_s2": 120.85863494873047,
+          "hand_boundary_acceleration_rms_rad_s2": 143.15501403808594,
+          "hand_internal_acceleration_rms_rad_s2": 116.00627899169922,
+          "hand_speed_rms_rad_s": 1.717127189040184,
+          "arm_overlap_rms_rad": 0.005538506433367729,
+          "arm_aligned_first_rms_rad": 0.006397872231900692,
+          "hand_overlap_rms_rad": 0.02347523905336857,
+          "hand_aligned_first_rms_rad": 0.027131373062729836
+        }
+      },
+      {
+        "identity": "family_000_native",
+        "split": "train",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 88,
+            "arm_rmse_rad": 0.0036456738598644733,
+            "hand_rmse_rad": 0.028460072353482246,
+            "fk_mm": 3.4629743099212646
+          },
+          "contact_low_object": {
+            "ticks": 34,
+            "arm_rmse_rad": 0.0030106324702501297,
+            "hand_rmse_rad": 0.0177701935172081,
+            "fk_mm": 2.372835159301758
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.004003001376986504,
+            "hand_rmse_rad": 0.018534449860453606,
+            "fk_mm": 1.181103229522705
+          },
+          "second_insertion": {
+            "ticks": 50,
+            "arm_rmse_rad": 0.0036717362236231565,
+            "hand_rmse_rad": 0.02077227272093296,
+            "fk_mm": 2.939578056335449
+          },
+          "transport_above_3cm": {
+            "ticks": 26,
+            "arm_rmse_rad": 0.00333646172657609,
+            "hand_rmse_rad": 0.018578095361590385,
+            "fk_mm": 2.4265871047973633
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.005980356130748987,
+          "arm_internal_jump_rms_rad": 0.005026786122471094,
+          "arm_acceleration_rms_rad_s2": 29.553550720214844,
+          "arm_boundary_acceleration_rms_rad_s2": 33.29979705810547,
+          "arm_internal_acceleration_rms_rad_s2": 28.770586013793945,
+          "arm_speed_rms_rad_s": 0.30662725679576397,
+          "hand_boundary_jump_rms_rad": 0.0551789365708828,
+          "hand_internal_jump_rms_rad": 0.03802291676402092,
+          "hand_acceleration_rms_rad_s2": 118.26507568359375,
+          "hand_boundary_acceleration_rms_rad_s2": 156.21189880371094,
+          "hand_internal_acceleration_rms_rad_s2": 109.39216613769531,
+          "hand_speed_rms_rad_s": 2.3811399936676025,
+          "arm_overlap_rms_rad": 0.004927936475723982,
+          "arm_aligned_first_rms_rad": 0.005545315332710743,
+          "hand_overlap_rms_rad": 0.02502128854393959,
+          "hand_aligned_first_rms_rad": 0.028594182804226875
+        }
+      },
+      {
+        "identity": "family_067_mid_b",
+        "split": "validation",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 70,
+            "arm_rmse_rad": 0.013904054649174213,
+            "hand_rmse_rad": 0.09545163810253143,
+            "fk_mm": 10.163506507873535
+          },
+          "contact_low_object": {
+            "ticks": 41,
+            "arm_rmse_rad": 0.012165617197751999,
+            "hand_rmse_rad": 0.12656144797801971,
+            "fk_mm": 9.995393753051758
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.023905163630843163,
+            "hand_rmse_rad": 0.045392297208309174,
+            "fk_mm": 9.49488353729248
+          },
+          "second_insertion": {
+            "ticks": 33,
+            "arm_rmse_rad": 0.015064376406371593,
+            "hand_rmse_rad": 0.09321019053459167,
+            "fk_mm": 11.196907043457031
+          },
+          "transport_above_3cm": {
+            "ticks": 34,
+            "arm_rmse_rad": 0.01265257503837347,
+            "hand_rmse_rad": 0.0784217119216919,
+            "fk_mm": 7.719749450683594
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.017502978444099426,
+          "arm_internal_jump_rms_rad": 0.007118211593478918,
+          "arm_acceleration_rms_rad_s2": 49.80233383178711,
+          "arm_boundary_acceleration_rms_rad_s2": 71.11131286621094,
+          "arm_internal_acceleration_rms_rad_s2": 44.6776123046875,
+          "arm_speed_rms_rad_s": 0.5047816224396229,
+          "hand_boundary_jump_rms_rad": 0.14577098190784454,
+          "hand_internal_jump_rms_rad": 0.03595687448978424,
+          "hand_acceleration_rms_rad_s2": 236.24014282226562,
+          "hand_boundary_acceleration_rms_rad_s2": 523.2349853515625,
+          "hand_internal_acceleration_rms_rad_s2": 121.85834503173828,
+          "hand_speed_rms_rad_s": 3.2101356983184814,
+          "arm_overlap_rms_rad": 0.018816161900758743,
+          "arm_aligned_first_rms_rad": 0.016087938100099564,
+          "hand_overlap_rms_rad": 0.16206389665603638,
+          "hand_aligned_first_rms_rad": 0.14931602776050568
+        }
+      },
+      {
+        "identity": "family_018_slow",
+        "split": "validation",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 81,
+            "arm_rmse_rad": 0.017567522823810577,
+            "hand_rmse_rad": 0.04280100390315056,
+            "fk_mm": 7.570372104644775
+          },
+          "contact_low_object": {
+            "ticks": 42,
+            "arm_rmse_rad": 0.008959895931184292,
+            "hand_rmse_rad": 0.05563680827617645,
+            "fk_mm": 5.670725345611572
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.008170835673809052,
+            "hand_rmse_rad": 0.08034193515777588,
+            "fk_mm": 2.401515245437622
+          },
+          "second_insertion": {
+            "ticks": 58,
+            "arm_rmse_rad": 0.011034199967980385,
+            "hand_rmse_rad": 0.08890736848115921,
+            "fk_mm": 11.301912307739258
+          },
+          "transport_above_3cm": {
+            "ticks": 48,
+            "arm_rmse_rad": 0.010339374653995037,
+            "hand_rmse_rad": 0.060193389654159546,
+            "fk_mm": 8.934773445129395
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.013077407144010067,
+          "arm_internal_jump_rms_rad": 0.00594164477661252,
+          "arm_acceleration_rms_rad_s2": 40.486289978027344,
+          "arm_boundary_acceleration_rms_rad_s2": 54.01654052734375,
+          "arm_internal_acceleration_rms_rad_s2": 37.1942253112793,
+          "arm_speed_rms_rad_s": 0.4094241466373205,
+          "hand_boundary_jump_rms_rad": 0.06762892752885818,
+          "hand_internal_jump_rms_rad": 0.029570383951067924,
+          "hand_acceleration_rms_rad_s2": 139.36483764648438,
+          "hand_boundary_acceleration_rms_rad_s2": 256.4775695800781,
+          "hand_internal_acceleration_rms_rad_s2": 100.75177764892578,
+          "hand_speed_rms_rad_s": 2.0622318238019943,
+          "arm_overlap_rms_rad": 0.012762798927724361,
+          "arm_aligned_first_rms_rad": 0.013295902870595455,
+          "hand_overlap_rms_rad": 0.07195764034986496,
+          "hand_aligned_first_rms_rad": 0.06358207762241364
+        }
+      },
+      {
+        "identity": "family_021_native",
+        "split": "validation",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 47,
+            "arm_rmse_rad": 0.013727174140512943,
+            "hand_rmse_rad": 0.0839124321937561,
+            "fk_mm": 8.613542556762695
+          },
+          "contact_low_object": {
+            "ticks": 27,
+            "arm_rmse_rad": 0.020337097346782684,
+            "hand_rmse_rad": 0.14258797466754913,
+            "fk_mm": 16.44542121887207
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.008798095397651196,
+            "hand_rmse_rad": 0.1743597388267517,
+            "fk_mm": 8.968734741210938
+          },
+          "second_insertion": {
+            "ticks": 34,
+            "arm_rmse_rad": 0.010844500735402107,
+            "hand_rmse_rad": 0.08968226611614227,
+            "fk_mm": 9.040104866027832
+          },
+          "transport_above_3cm": {
+            "ticks": 42,
+            "arm_rmse_rad": 0.014965694397687912,
+            "hand_rmse_rad": 0.08871328830718994,
+            "fk_mm": 10.610766410827637
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.015890613198280334,
+          "arm_internal_jump_rms_rad": 0.006936186458915472,
+          "arm_acceleration_rms_rad_s2": 47.48717498779297,
+          "arm_boundary_acceleration_rms_rad_s2": 63.67824935913086,
+          "arm_internal_acceleration_rms_rad_s2": 43.697288513183594,
+          "arm_speed_rms_rad_s": 0.48173222690820694,
+          "hand_boundary_jump_rms_rad": 0.125152587890625,
+          "hand_internal_jump_rms_rad": 0.03771034628152847,
+          "hand_acceleration_rms_rad_s2": 214.29978942871094,
+          "hand_boundary_acceleration_rms_rad_s2": 449.2392272949219,
+          "hand_internal_acceleration_rms_rad_s2": 126.4643783569336,
+          "hand_speed_rms_rad_s": 3.036591410636902,
+          "arm_overlap_rms_rad": 0.01631757989525795,
+          "arm_aligned_first_rms_rad": 0.013865883462131023,
+          "hand_overlap_rms_rad": 0.13010968267917633,
+          "hand_aligned_first_rms_rad": 0.12548500299453735
+        }
+      },
+      {
+        "identity": "family_018_native",
+        "split": "validation",
+        "phases": {
+          "approach_no_object_contact": {
+            "ticks": 88,
+            "arm_rmse_rad": 0.02037551812827587,
+            "hand_rmse_rad": 0.11672795563936234,
+            "fk_mm": 17.441143035888672
+          },
+          "contact_low_object": {
+            "ticks": 32,
+            "arm_rmse_rad": 0.020354850217700005,
+            "hand_rmse_rad": 0.14644744992256165,
+            "fk_mm": 14.101419448852539
+          },
+          "native_alignment": {
+            "ticks": 1,
+            "arm_rmse_rad": 0.016057830303907394,
+            "hand_rmse_rad": 0.1531212478876114,
+            "fk_mm": 5.653576850891113
+          },
+          "second_insertion": {
+            "ticks": 29,
+            "arm_rmse_rad": 0.015307573601603508,
+            "hand_rmse_rad": 0.08331676572561264,
+            "fk_mm": 7.832143306732178
+          },
+          "transport_above_3cm": {
+            "ticks": 28,
+            "arm_rmse_rad": 0.021175991743803024,
+            "hand_rmse_rad": 0.12489686906337738,
+            "fk_mm": 13.963679313659668
+          }
+        },
+        "predicted_continuity": {
+          "arm_boundary_jump_rms_rad": 0.023926714435219765,
+          "arm_internal_jump_rms_rad": 0.00872662290930748,
+          "arm_acceleration_rms_rad_s2": 65.70723724365234,
+          "arm_boundary_acceleration_rms_rad_s2": 101.4549789428711,
+          "arm_internal_acceleration_rms_rad_s2": 56.45271301269531,
+          "arm_speed_rms_rad_s": 0.6445798091590405,
+          "hand_boundary_jump_rms_rad": 0.14857490360736847,
+          "hand_internal_jump_rms_rad": 0.03665434941649437,
+          "hand_acceleration_rms_rad_s2": 254.98963928222656,
+          "hand_boundary_acceleration_rms_rad_s2": 542.3153686523438,
+          "hand_internal_acceleration_rms_rad_s2": 147.23817443847656,
+          "hand_speed_rms_rad_s": 3.277163654565811,
+          "arm_overlap_rms_rad": 0.02374911494553089,
+          "arm_aligned_first_rms_rad": 0.023931285366415977,
+          "hand_overlap_rms_rad": 0.14977045357227325,
+          "hand_aligned_first_rms_rad": 0.1469486653804779
+        }
+      }
+    ],
+    "no_optimizer_updates": true,
+    "scope": "Teacher-forced observed trajectories, deterministic per-anchor noise; contact phases are proxies, not stable-grasp labels"
+  },
   "cleanup": {
     "deleted_files": 1,
     "deleted_bytes": 1153085440,
@@ -961,6 +1504,168 @@
         ],
         "backend": "PyAV full RGB decode"
       }
+    },
+    {
+      "identity": "unseen_00",
+      "split": "unseen",
+      "precision_name": "legacy_default",
+      "software_complete": true,
+      "legal": true,
+      "success": false,
+      "steps": 601,
+      "native_subgoals": 0,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
+    },
+    {
+      "identity": "unseen_04",
+      "split": "unseen",
+      "precision_name": "legacy_default",
+      "software_complete": true,
+      "legal": true,
+      "success": false,
+      "steps": 277,
+      "native_subgoals": 0,
+      "reasons": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "video": {
+        "decoded_frames": 277,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
+    },
+    {
+      "identity": "train_family_000",
+      "split": "train",
+      "precision_name": "unified_fp32",
+      "software_complete": true,
+      "legal": true,
+      "success": false,
+      "steps": 601,
+      "native_subgoals": 0,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
+    },
+    {
+      "identity": "train_family_004",
+      "split": "train",
+      "precision_name": "unified_fp32",
+      "software_complete": true,
+      "legal": true,
+      "success": true,
+      "steps": 163,
+      "native_subgoals": 2,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "video": {
+        "decoded_frames": 163,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
+    },
+    {
+      "identity": "unseen_00",
+      "split": "unseen",
+      "precision_name": "unified_fp32",
+      "software_complete": true,
+      "legal": true,
+      "success": false,
+      "steps": 601,
+      "native_subgoals": 0,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
+    },
+    {
+      "identity": "unseen_04",
+      "split": "unseen",
+      "precision_name": "unified_fp32",
+      "software_complete": true,
+      "legal": true,
+      "success": false,
+      "steps": 601,
+      "native_subgoals": 0,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
     }
   ],
   "phase_resources": {
@@ -989,6 +1694,39 @@
       "peak_gpu_used_mib": 2997.0,
       "peak_process_rss_bytes": 13950976,
       "min_ram_available_bytes": 30822719488,
+      "thresholds": {
+        "gpu_free_mib": 6144,
+        "ram_available_bytes": 12884901888,
+        "max_gpu_mean_percent": null,
+        "gpu_admission_mean_percent": null
+      },
+      "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+    },
+    "production_and_training": {
+      "pid": 1308255,
+      "latest": {
+        "pid": 1308255,
+        "utc_epoch": 1793939731.1756275,
+        "elapsed_s": 4927.420342029189,
+        "gpu_util_percent": 0.0,
+        "gpu_used_mib": 967.0,
+        "gpu_free_mib": 23117.0,
+        "ram_available_bytes": 35428577280,
+        "process_rss_bytes": 14684160,
+        "cuda_allocated_bytes": null,
+        "cuda_reserved_bytes": null,
+        "rolling_60s_percent": 14.34903616446536
+      },
+      "samples": 4009,
+      "gpu_time_weighted_mean_percent": 30.621250580046702,
+      "max_complete_60s_mean_percent": 49.056731178609574,
+      "missing_samples": 0,
+      "missing_seconds": 918.99716881325,
+      "max_sample_gap_s": 706.6781377813313,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 12105.0,
+      "peak_process_rss_bytes": 14684160,
+      "min_ram_available_bytes": 22085599232,
       "thresholds": {
         "gpu_free_mib": 6144,
         "ram_available_bytes": 12884901888,

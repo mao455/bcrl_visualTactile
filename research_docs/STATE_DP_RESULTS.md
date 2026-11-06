@@ -3,7 +3,7 @@
 <!-- NARROW_REPAIR_START -->
 ## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
 
-实测状态 `running` / `old_model_recheck`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
+实测状态 `blocked` / `slow_collection`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
 白屏已定位：direct fresh入口遗漏固定相机配置，两路停在默认相同位姿，RGB恒定/有效深度0；同初态配置前后物理读数完全相同，配置后三视角有真实内容。首条199帧专家成功，起/中/尾画面目视通过，全帧RGB-D、时钟、固定位姿和mask检查通过；单lane持久Kit，不声明多lane已验证。
 GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
 200条平均3.635s，中位3.2s；alpha≤.65仅38条、平均5.190s。best/last均5735且参数一致；末段验证改善0.55%，train8改善27.40%，误差比18.78，未见首块幅度比3.11。属于验证平台与闭环偏移证据，不能称可靠收敛。
@@ -11,6 +11,13 @@ GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关
 一次新编排错误把学生送入专家专用speed wrapper，在首次物理步前断言，0物理步/0完成rollout。原失败保留、计入40次学生启动预算；该legacy单元不重跑，正确环境继续其余7个固定复核单元。
 后续规则：先3个train家族原速/.55/.60/.65配对试采，按真实成功、接触运动和时长选择连续alpha区间；再32新家族预分24/4/4、每家族2速度版本，最多80采集尝试，至少60新增成功/28新增家族才训练。总量约260–276，未达门控则停止。
 新StateDP只随机初始化一次，H24/commit12/29D/5Hz/60Hz/损失/历史不变；按旧4000步平台曝光加500更新余量、实际anchor和吞吐定预算，≤10000更新/3h，validation选best与有界早停。最终旧/新各train4+预先冻结独立unseen12，最终结果不触发新训练。
+
+旧模型精度复核：{'legacy_default': {'train': {'attempts': 2, 'valid': 1, 'successes': 0, 'software_failures': 1, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 1}}, 'unseen': {'attempts': 2, 'valid': 2, 'successes': 0, 'software_failures': 0, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 2}}}, 'unified_fp32': {'train': {'attempts': 2, 'valid': 2, 'successes': 1, 'software_failures': 0, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 1}}, 'unseen': {'attempts': 2, 'valid': 2, 'successes': 0, 'software_failures': 0, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 2}}}}
+后续决定：one_slow_coverage_expansion。
+
+真实慢速筛选：{'passed': True, 'selected': {'interval': [0.55, 0.6], 'successes': 6, 'attempts': 6, 'median_duration_s': 4.825, 'median_duration_ratio': 1.5206771562731691, 'median_contact_arm_speed_ratio': 0.6194854253529616, 'median_contact_duration_ratio': 1.04, 'scope': 'Exploratory 3-family paired screen, not a population reliability estimate'}, 'candidates': [{'interval': [0.55, 0.6], 'successes': 6, 'attempts': 6, 'median_duration_s': 4.825, 'median_duration_ratio': 1.5206771562731691, 'median_contact_arm_speed_ratio': 0.6194854253529616, 'median_contact_duration_ratio': 1.04, 'scope': 'Exploratory 3-family paired screen, not a population reliability estimate'}], 'policy': 'One stable alpha per episode, continuous uniform between tested endpoints'}
+
+采集计数：{'attempts': 49, 'successes': 49, 'total_successes': 249, 'task_failures': 0, 'initial_rejections': 0, 'software_failures': 0, 'new_multimodal_valid': 49, 'utc': 1793939714.2729692}
 
 [轻量数值、门控与后台结果](evidence/narrow_repair.json) · [训练曲线](evidence/narrow_repair_curves.png)。原始数据、权重、视频留本地。
 <!-- NARROW_REPAIR_END -->
