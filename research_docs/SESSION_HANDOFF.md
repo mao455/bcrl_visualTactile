@@ -15,9 +15,9 @@
 
 隔离worktree：`bc+rl_RSS_narrow_followup`，仅推送origin/feature/narrow-state-data。新root：`outputs/visuotactile/run/state_mechanism_20261106_01`。读取status.json、heartbeat.json、data_audit.json、gradient_gate.json、oracle_result.json、tiny_training/progress.json及closed_loop_result.json判断进度，不能用旧PID或旧“当前训练”段落推测。
 
-后台服务：`state-mechanism-20261106-01.service`。只读查询用`systemctl --user show state-mechanism-20261106-01.service -p ActiveState -p MainPID -p Result`。启动入口为`bash visuotactile/run_cpu.sh -m tools.state_mechanism run --root outputs/visuotactile/run/state_mechanism_20261106_01`，只能首次使用；阶段目录/原deadline阻止重复owner和无审查重启。停止可写root/STOP；异常保留error/last，禁止直接重跑整个run。若需恢复，先审查完整checkpoint、已消费启动/更新预算和冻结源码，在同原截止内提出/实现一次明确的未完成后缀恢复；当前没有自动恢复命令。
+本轮已于19:39:53正常结束，服务`state-mechanism-20261106-01.service` inactive/success，全部15启动、800次tiny更新已完成。只读查询可用`systemctl --user show state-mechanism-20261106-01.service -p ActiveState -p MainPID -p Result`；不要重新执行run、重设23:00截止或消耗剩余预算。没有待恢复阶段。
 
-顺序：CPU数据与sampler审查→真实梯度等价门控→A专家与位置Oracle→C离线随机性→B单轨迹独立训练→B/C共10次闭环→停止并发布简洁结果。一次性4h含等待，A5+B2+C8=15 starts；B≤4000更新/90min。启动后短监督，后续由普通独立进程完成，不由LLM持续轮询。失败不放宽门限、换种子或增加尝试。
+A映射通过；B离线拟合通过但0/2闭环；C0/C4各0/4、各2次native lift、零子目标。下一研究建议仅为闭环偏离/误差放大定位，尚未授权自动进入新实验。初态/前缀误差、来源字段说明、资源超50%窗口及保护hash详见STATE_DP_RESULTS“20:11复核”和final_review.json。保留tiny best/last及全部8视频；当前没有应删除的废弃模型。
 
 ## 已完成事实（不恢复旧任务）
 

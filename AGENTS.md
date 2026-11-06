@@ -1,4 +1,24 @@
-# Current — bounded StateDP mechanism diagnosis (2026-11-06)
+# Completed — StateDP mechanism diagnosis (2026-11-06)
+
+state_mechanism_20261106_01 finished19:39:53 UTC+8; all15 starts resolved,
+all owned workers/monitor/owner exited. No automatic restarts or new GPU work.
+A native2/2, processed-target replay1/2, recorded-slow0/1(censored); requested,
+submitted and actuator targets match exactly, hidden physical state is not exact.
+B single5s train trajectory stopped800 updates after two fitting gates; Arm~.00199,
+Hand~.00735rad/FK~1.74mm but closed loop0/2, no lift/subgoal. C0/C4 each0/4,
+2/4 native lifts and zero subgoals; overlap4 reduces average arm boundary jump44%,
+without established task benefit. Tiny first observable/actor inputs match source;
+early error grows in closed loop. This supports error-amplification diagnosis,
+not a unique causal conclusion or permission for DAgger/retraining/recollection.
+Protected hashes and best800 optimizer/EMA readback pass. Legacy per-rollout
+checkpoint_sha256 is frozen expert/shadow provenance; actual student source SHA
+is separately documented in final_review.json; do not confuse these identities.
+Whole-card mean27.47%, max complete60s52.11%, missing0; do not claim <=50%
+throughout. Keep formal data/models, tiny best/last, traces and all8 videos.
+Read STATE_DP_RESULTS final review and SESSION_HANDOFF. The following authorizes
+this completed run and is historical, not another run.
+
+# Authorization — bounded StateDP mechanism diagnosis (2026-11-06)
 
 Latest user explicitly authorizes CPU contract/data/sampler audit, real full-model
 microbatch gradient equivalence, five expert/target Oracle starts, ONE fresh

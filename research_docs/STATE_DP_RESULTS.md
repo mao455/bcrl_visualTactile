@@ -31,6 +31,31 @@ B/C闭环：{"complete": true, "starts": 10, "groups": {"B_tiny": {"attempts": 2
 [完整轻量统计、真实batch与阶段指标](evidence/state_mechanism.json)。原数据、checkpoint、数值轨迹和视频留本地。
 <!-- STATE_MECHANISM_END -->
 
+## 2026-11-06 20:11复核：离线拟合通过，闭环能力仍未建立
+
+15次启动全部完成，19:39:53正常退出；后台执行22分14秒，含准备39分36秒。没有新增训练或重跑。原始400、窄200及新增75、正式best/last保护hash通过；tiny best800完整读回，模型更新/AdamW/EMA均为800。17项CPU测试及真实梯度门控证据保持。
+
+|实验|真实结果|含义与限制|
+|---|---|---|
+|A 原生专家|2/2成功|两个预定训练家族，非整体专家成功率|
+|A H24/commit12 target回放|1/2成功，另一次177tick动作耗尽|source→requested→submitted→actuator及12tick边界最大误差0；不是精确物理重放|
+|A 已记录慢轨迹回放|0/1，300tick动作耗尽|开环未成功不能单独证明映射错误|
+|B 单条5s示范|800更新、5分27秒后连续两次拟合门控通过；闭环0/2|3个DDIM种子Arm 0.001990–0.001993rad、Hand 0.007342–0.007354rad、FK 1.733–1.745mm；两次601tick超时，无native lift/子目标|
+|C0 / C4|各0/4，各2/4触发native lift，全部零子目标|各3次超时+1次掉落；抓取/抬升及抬升后对齐/丢失仍未解决|
+
+C4四条轨迹等权平均Arm边界跳变0.025291→0.014080rad（降低44.3%），Hand 0.080108→0.041664rad（降低48.0%）。轨迹后续已分叉，不能当作固定物理轨迹的因果配对；正式overlap仍为0。离线两条轨迹Arm重叠区分歧约0.007rad，边界跳变约0.0074rad，专家约0.0013rad。不同DDIM种子Arm标准差RMS为0.000625/0.000109rad、Hand为0.00765/0.000797rad；第一条的首12步Hand标准差0.01437rad，不能把采样随机性概括为无影响，也没有证据证明它是唯一瓶颈。
+
+B两次闭环的初始关节位置/速度、物体/孔座/桌面/机械臂/指尖几何、Actor141、proprio及执行器目标与源示范完全相等；相对时间一致，绝对仿真时钟不同。隐藏PhysX/接触/RNG状态仍未证明相等。seed7091首12步Arm RMSE 0.002250rad，与离线首块一致；前60/120/300tick累计误差扩大为0.003515/0.009059/0.055246rad。这不是固定接口错位的证据，但也不能仅凭低绝对RMSE称为精确动作拟合：首块动作方向cos约0.52、相对上一目标的一步幅度约专家2倍。
+
+当前唯一优先方向是**闭环偏离和误差放大的定位**：找出接触前后状态/历史及目标开始分叉的位置。它比直接扩充数据更有依据；尚不能排除非零拟合误差、隐藏物理状态及动作块不一致的共同作用。本轮不自动启动DAgger、新训练、扩采、ImageDP或触觉；StateDP完整任务基础能力仍未建立。
+
+记录修正：历史各trial的`checkpoint_sha256`来自冻结RL expert/shadow路径，并非学生模型。冻结运行源码明确加载B best800 EMA及C best4500 EMA；真实文件hash和证据边界写入`final_review.json`及公开轻量统计，原始结果不覆盖。后续记录入口增加独立`policy_checkpoint_sha256`/`frozen_expert_checkpoint_sha256`字段，仅为来源标注修复，不改变已完成实验。
+
+本轮监控整卡时间加权均值27.47%、完整60s最大52.11%，缺测0；空闲显存最低约10.38GiB、可用RAM最低18.98GiB。实际超过50%窗口，不声称全程合规，也不归因于特定进程。输出约2.32GiB；tiny best/last仍用于对照/恢复，无确认无用大文件需要删除。8段完整验证视频在本地`state_mechanism_20261106_01/{oracle,closed_loop}`，不上传权重/原数据/大量日志。
+
+复核机器证据：`outputs/visuotactile/run/state_mechanism_20261106_01/final_review.json`及[evidence/state_mechanism.json](evidence/state_mechanism.json)。运行源码3e4d679，自动结果6d123e7。
+
+
 <!-- NARROW_REPAIR_START -->
 ## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
 

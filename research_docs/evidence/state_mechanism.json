@@ -18681,5 +18681,221 @@
       "utc": 1793964406.7057385
     }
   ],
-  "runtime_source_commit": "3e4d6792099d83cff6a06a52d7deee4b88a71313"
+  "runtime_source_commit": "3e4d6792099d83cff6a06a52d7deee4b88a71313",
+  "final_review": {
+    "reviewed": 1793967076.1605153,
+    "no_new_gpu_or_kit": true,
+    "starts": 15,
+    "owned_workers_exited": true,
+    "source_commit": "3e4d6792099d83cff6a06a52d7deee4b88a71313",
+    "run_completed": 1793965193.7223954,
+    "runtime_seconds": 1333.5871024131775,
+    "prepare_to_complete_seconds": 2375.6884989738464,
+    "tiny_training": {
+      "complete": true,
+      "updates": 800,
+      "best_update": 800,
+      "stop_reason": "small_dataset_fit_gate_two_checks",
+      "elapsed_s": 327.10833740234375,
+      "best_sha256": "1638f93e0183c9e422113adf17bf75524031281f6b2a1ed09829295a56a83781",
+      "checkpoint_readback": true,
+      "normalization_unchanged": true,
+      "generalization_claim": false
+    },
+    "tiny_fit": {
+      "arm_rmse": [
+        0.001992963021621108,
+        0.0019925779197365046,
+        0.001990226563066244
+      ],
+      "hand_rmse": [
+        0.007354423403739929,
+        0.007341623771935701,
+        0.007347237318754196
+      ],
+      "fk_mm": [
+        1.7454112768173218,
+        1.7331465482711792,
+        1.7352969646453857
+      ]
+    },
+    "tiny_initial_and_prefix": [
+      {
+        "seed": 7091,
+        "first_observation_max_errors": {
+          "transition/diagnostics_before/joint_position_rad": 0.0,
+          "transition/diagnostics_before/joint_velocity_rad_s": 0.0,
+          "transition/diagnostics_before/object_pose_w": 0.0,
+          "transition/diagnostics_before/hole_pose_w": 0.0,
+          "transition/diagnostics_before/table_pose_w": 0.0,
+          "transition/diagnostics_before/base_pose_w": 0.0,
+          "transition/diagnostics_before/palm_body_pose_w": 0.0,
+          "transition/diagnostics_before/finger_position_w": 0.0,
+          "transition/diagnostics_before/finger_quat_wxyz": 0.0,
+          "transition/diagnostics_before/object_velocity_w_m_s_rad_s": 0.0,
+          "transition/diagnostics_before/goal_pose_w": 0.0,
+          "transition/expert_actor_input_diagnostic": 0.0,
+          "obs/proprio": 0.0,
+          "obs/actuator_target_rad": 0.0
+        },
+        "elapsed_timestamp_max_error_s": 1.9984014443252818e-15,
+        "prefix_errors": {
+          "1": {
+            "arm_rmse": 0.0018020686693489552,
+            "hand_rmse": 0.008326681330800056
+          },
+          "12": {
+            "arm_rmse": 0.0022501759231090546,
+            "hand_rmse": 0.007262500934302807
+          },
+          "24": {
+            "arm_rmse": 0.0026505899149924517,
+            "hand_rmse": 0.007655270863324404
+          },
+          "60": {
+            "arm_rmse": 0.003514871932566166,
+            "hand_rmse": 0.010280423797667027
+          },
+          "120": {
+            "arm_rmse": 0.009059307165443897,
+            "hand_rmse": 0.04334370046854019
+          },
+          "300": {
+            "arm_rmse": 0.055245671421289444,
+            "hand_rmse": 0.31553491950035095
+          }
+        },
+        "hidden_simulator_state_exact": false
+      },
+      {
+        "seed": 8091,
+        "first_observation_max_errors": {
+          "transition/diagnostics_before/joint_position_rad": 0.0,
+          "transition/diagnostics_before/joint_velocity_rad_s": 0.0,
+          "transition/diagnostics_before/object_pose_w": 0.0,
+          "transition/diagnostics_before/hole_pose_w": 0.0,
+          "transition/diagnostics_before/table_pose_w": 0.0,
+          "transition/diagnostics_before/base_pose_w": 0.0,
+          "transition/diagnostics_before/palm_body_pose_w": 0.0,
+          "transition/diagnostics_before/finger_position_w": 0.0,
+          "transition/diagnostics_before/finger_quat_wxyz": 0.0,
+          "transition/diagnostics_before/object_velocity_w_m_s_rad_s": 0.0,
+          "transition/diagnostics_before/goal_pose_w": 0.0,
+          "transition/expert_actor_input_diagnostic": 0.0,
+          "obs/proprio": 0.0,
+          "obs/actuator_target_rad": 0.0
+        },
+        "elapsed_timestamp_max_error_s": 3.552713678800501e-15,
+        "prefix_errors": {
+          "1": {
+            "arm_rmse": 0.0018112375400960445,
+            "hand_rmse": 0.008408764377236366
+          },
+          "12": {
+            "arm_rmse": 0.0022478317841887474,
+            "hand_rmse": 0.007164594251662493
+          },
+          "24": {
+            "arm_rmse": 0.0024428332690149546,
+            "hand_rmse": 0.007419612258672714
+          },
+          "60": {
+            "arm_rmse": 0.002994518494233489,
+            "hand_rmse": 0.009311295114457607
+          },
+          "120": {
+            "arm_rmse": 0.007721764035522938,
+            "hand_rmse": 0.034705374389886856
+          },
+          "300": {
+            "arm_rmse": 0.035649172961711884,
+            "hand_rmse": 0.21364007890224457
+          }
+        },
+        "hidden_simulator_state_exact": false
+      }
+    ],
+    "closed_loop": {
+      "B_tiny": {
+        "count": 2,
+        "successes": 0,
+        "native_lifts": 0,
+        "zero_subgoals": true,
+        "mean_boundary_arm_rad": 0.04740205407142639,
+        "mean_boundary_hand_rad": 0.1223270408809185
+      },
+      "C0": {
+        "count": 4,
+        "successes": 0,
+        "native_lifts": 2,
+        "zero_subgoals": true,
+        "mean_boundary_arm_rad": 0.02529070619493723,
+        "mean_boundary_hand_rad": 0.08010808750987053
+      },
+      "C4": {
+        "count": 4,
+        "successes": 0,
+        "native_lifts": 2,
+        "zero_subgoals": true,
+        "mean_boundary_arm_rad": 0.014080143067985773,
+        "mean_boundary_hand_rad": 0.041664415039122105
+      }
+    },
+    "noise_variation": {
+      "family_066_repair_a055": {
+        "arm_std_rms_rad": 0.000625045970082283,
+        "hand_std_rms_rad": 0.00765243312343955,
+        "first12_arm_std_rms_rad": 0.0013212645426392555,
+        "first12_hand_std_rms_rad": 0.014373919926583767
+      },
+      "repair_family_26_v0": {
+        "arm_std_rms_rad": 0.00010945232497761026,
+        "hand_std_rms_rad": 0.0007971075247041881,
+        "first12_arm_std_rms_rad": 0.0002170488005504012,
+        "first12_hand_std_rms_rad": 0.0016481932252645493
+      }
+    },
+    "resources": {
+      "pid": 1662700,
+      "latest": {
+        "pid": 1662700,
+        "utc_epoch": 1793965193.666139,
+        "elapsed_s": 1331.509891348076,
+        "gpu_util_percent": 75.0,
+        "gpu_used_mib": 3096.0,
+        "gpu_free_mib": 20988.0,
+        "ram_available_bytes": 34767212544,
+        "process_rss_bytes": 14680064,
+        "cuda_allocated_bytes": null,
+        "cuda_reserved_bytes": null,
+        "rolling_60s_percent": 30.477499552393176
+      },
+      "samples": 1332,
+      "gpu_time_weighted_mean_percent": 27.46926623515978,
+      "max_complete_60s_mean_percent": 52.10876541421361,
+      "missing_samples": 0,
+      "missing_seconds": 0.0,
+      "max_sample_gap_s": 1.4841379140270874,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 13455.0,
+      "peak_process_rss_bytes": 14680064,
+      "min_ram_available_bytes": 20383092736,
+      "thresholds": {
+        "gpu_free_mib": 6144,
+        "ram_available_bytes": 12884901888,
+        "max_gpu_mean_percent": null,
+        "gpu_admission_mean_percent": null
+      },
+      "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+    },
+    "output_bytes": 2494856275,
+    "checkpoint_provenance": {
+      "legacy_checkpoint_sha256_field": "Frozen expert/shadow checkpoint, not student policy; original receipts preserved",
+      "expert_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+      "B_tiny_policy_sha256": "1638f93e0183c9e422113adf17bf75524031281f6b2a1ed09829295a56a83781",
+      "C_policy_sha256": "8799b939a5819d4251ec897ac0d652fc32d73a5868e16ed05878bd372cda773c",
+      "evidence": "Frozen runtime source explicitly loads these files and HistoryController loads saved EMA; tiny readback model/optimizer/EMA all800. First-block offline/live RMSE agrees, but no separate runtime tensor fingerprint was stored."
+    },
+    "interpretation": "Tiny offline fit passed but task-level execution did not. First observable/actor/target inputs match and early errors grow; closed-loop deviation and error amplification is the single next diagnostic direction, not yet unique causal proof. Nonzero fitting errors, unobserved simulator state and target-block errors remain possible contributors. No new training/data/overlap/default change authorized by this review."
+  }
 }

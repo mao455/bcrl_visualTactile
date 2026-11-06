@@ -100,7 +100,7 @@ def closed_loop(root):
     results=[];initials={};folder=root/'closed_loop';folder.mkdir(exist_ok=False);saved=None;loaded=None
     for group,path,spec,seed,overlap in jobs:
         if loaded!=path:
-            saved=torch.load(path,map_location='cpu',weights_only=False);loaded=path
+            saved=torch.load(path,map_location='cpu',weights_only=False);loaded=path;policy_hash=sha(path)
         identity=f'{group}__{spec["family"]}__noise{seed}';out=folder/identity;beat(root,stage='closed_loop',identity=identity)
         r=trial(env,lease,out,spec,{},player,s['expert_checkpoint'],saved=saved,position=True,video=seed==7091,
             inference=dict(inference_steps=16,clip_sample=False,overlap_steps=overlap,sampler_seed=seed),
@@ -111,6 +111,7 @@ def closed_loop(root):
         pair=max(float(abs(np.asarray(initial[k])-initials[key][k]).max()) for k in ('joint_position_rad','object_pose_w','hole_pose_w')) if key in initials else None
         initials[key]=initial
         results.append(dict(r,experiment=group,noise_seed=seed,overlap_steps=overlap,model_update=saved['updates'],
+            policy_checkpoint_sha256=policy_hash,frozen_expert_checkpoint_sha256=s['expert_sha256'],
             motion=metrics,failure_stage=failure_stage(r),observable_pair_max=pair));write(root/'closed_loop_results.json',results)
     write(root/'closed_loop_result.json',dict(complete=True,starts=len(results),groups={g:dict(attempts=len(rr),
         legal=sum(r['legal'] for r in rr),successes=sum(r['success'] for r in rr)) for g in ('B_tiny','C0','C4') for rr in [[r for r in results if r['experiment']==g]]},

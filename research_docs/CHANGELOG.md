@@ -1,3 +1,10 @@
+# 2026-11-06：StateDP机制诊断完成复核
+
+- 真实A5/B2/C8全部完成，tiny800拟合通过但闭环0/2；C0/C4各0/4。补充初态精确可观测匹配、首块对齐及后续误差放大证据；保留隐藏状态不确定性。
+- tools/state_mechanism.py仅增加学生/冻结专家独立来源hash字段；历史checkpoint_sha256为expert/shadow，未覆盖原结果或更改控制。无新GPU/Kit/optimizer更新。
+- STATE_DP_RESULTS、SESSION_HANDOFF、AGENTS与同一轻量evidence/state_mechanism.json原位更新；保护hash、tiny模型/AdamW/EMA800读回及所有worker退出通过。整卡27.47%均值/52.11%最大完整60s，不能声称全程≤50%。既有17测试/真实梯度门控保持；本次来源字段修复做编译检查。
+- 运行源码3e4d679，自动结果6d123e7；原数据、正式模型、tiny best/last和8视频全部保留。下一建议仅闭环误差放大定位，不启动新研究。
+
 # 维护变更
 
 <!-- STATE_MECHANISM_START -->
