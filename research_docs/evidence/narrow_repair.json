@@ -1,12 +1,12 @@
 {
   "status": {
-    "state": "blocked",
-    "stage": "camera_worker",
+    "state": "running",
+    "stage": "old_model_recheck",
     "formal_updates": 0,
-    "owned_workers_exited": true,
-    "phase": "camera_and_recheck",
-    "utc": 1793935115.149013,
-    "error": "RuntimeError('camera_worker failed; no automatic retry')"
+    "owned_workers_exited": false,
+    "phase": "production_and_training",
+    "utc": 1793935831.3012052,
+    "error": null
   },
   "budget": {
     "started": 1793934759.1514945,
@@ -17,7 +17,7 @@
     "maximum_evaluation_starts": 40,
     "maximum_training_updates": 10000
   },
-  "source_commit": null,
+  "source_commit": "b0e1bd0739f5c4f8ea340cef5db99e765ad1dd4c",
   "original400_and200_preserved": true,
   "gpu_parity": {
     "checkpoint_sha256": "9505194b4dce4d38c63808bdd114ecd60739b13f3e685a78c23909d350660d66",
@@ -645,6 +645,25 @@
       },
       "per_anchor_probability_ratio_shortest_to_longest": 4.636363636363637,
       "explanation": "Each episode equally likely; an anchor in the longest receives fewer selections than one in the shortest. No sampler change."
+    },
+    "observed_motion_summary": {
+      "expert200": {
+        "arm_boundary_jump_rms_rad": 0.0020322022028267384,
+        "arm_internal_jump_rms_rad": 0.0020308622624725103,
+        "hand_boundary_jump_rms_rad": 0.033440444618463516,
+        "hand_internal_jump_rms_rad": 0.03378099203109741,
+        "arm_speed_rms_rad_s": 0.12189518893137574,
+        "hand_speed_rms_rad_s": 2.019917070865631
+      },
+      "student14": {
+        "arm_boundary_jump_rms_rad": 0.024287797510623932,
+        "arm_internal_jump_rms_rad": 0.01388376671820879,
+        "hand_boundary_jump_rms_rad": 0.09100109338760376,
+        "hand_internal_jump_rms_rad": 0.03937626630067825,
+        "arm_speed_rms_rad_s": 0.9044236689805984,
+        "hand_speed_rms_rad_s": 2.8450805693864822
+      },
+      "scope": "Median per-trajectory requested-target metrics, unmatched full trajectories with different outcomes/durations. Student boundary jumps and excessive target motion are observed; not a causal claim about physical joint speed or expert pacing."
     }
   },
   "camera_acceptance": {
@@ -903,6 +922,47 @@
     "frames_strictly_increase": true,
     "scope": "All RGB/depth pixels, all pre-action frames. Projection checks field of view, not occlusion; preview requires visual review."
   },
+  "recheck": [
+    {
+      "identity": "train_family_000",
+      "split": "train",
+      "precision_name": "legacy_default",
+      "software_complete": false,
+      "legal": true,
+      "success": false,
+      "steps": 0,
+      "native_subgoals": null,
+      "reasons": null,
+      "video": null
+    },
+    {
+      "identity": "train_family_004",
+      "split": "train",
+      "precision_name": "legacy_default",
+      "software_complete": true,
+      "legal": true,
+      "success": false,
+      "steps": 601,
+      "native_subgoals": 0,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "video": {
+        "decoded_frames": 601,
+        "frame_rate": 60.0,
+        "shape": [
+          316,
+          1344,
+          3
+        ],
+        "backend": "PyAV full RGB decode"
+      }
+    }
+  ],
   "phase_resources": {
     "audit": {
       "pid": 1296798,

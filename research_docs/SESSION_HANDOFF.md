@@ -3,12 +3,15 @@
 <!-- NARROW_REPAIR_START -->
 ## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
 
-实测状态 `blocked` / `camera_worker`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
+实测状态 `running` / `old_model_recheck`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
 白屏已定位：direct fresh入口遗漏固定相机配置，两路停在默认相同位姿，RGB恒定/有效深度0；同初态配置前后物理读数完全相同，配置后三视角有真实内容。首条199帧专家成功，起/中/尾画面目视通过，全帧RGB-D、时钟、固定位姿和mask检查通过；单lane持久Kit，不声明多lane已验证。
 GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
 
 实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。
 <!-- NARROW_REPAIR_END -->
+
+启动核验：b0e1bd0源码的production服务已运行，随机GPU smoke完成1次可丢弃更新并完整恢复model/AdamW/EMA，history最大1.073e-6；正式新训练仍0。一个199帧完整专家成功与后续学生复核均已实际落盘，owner/worker/monitor存活、记录持续推进；实际后续phase看机器status，慢速扩采/正式训练不提前声称完成。旧学生14条Arm重规划边界目标跳变RMS中位0.02429rad，专家200条0.00203rad，块内分别0.01388/0.00203；这是不同轨迹的描述统计，不是速度或失稳因果证明。新owner自动门控后续阶段，最终只更新生成区并推送轻量结果；不再LLM轮询。一次零物理步软件失败保持，新修复不重置原总预算。
+
 
 ## 2026-11-06 10:06 UTC+8：代码已发布，4条失败视频完成
 
