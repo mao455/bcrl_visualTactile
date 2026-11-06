@@ -1,5 +1,15 @@
 # 冻结专家与窄分布StateDP数据
 
+<!-- NARROW_REPAIR_START -->
+## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
+
+实测状态 `blocked` / `camera_worker`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
+白屏已定位：direct fresh入口遗漏固定相机配置，两路停在默认相同位姿，RGB恒定/有效深度0；同初态配置前后物理读数完全相同，配置后三视角有真实内容。首条199帧专家成功，起/中/尾画面目视通过，全帧RGB-D、时钟、固定位姿和mask检查通过；单lane持久Kit，不声明多lane已验证。
+GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
+
+实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。
+<!-- NARROW_REPAIR_END -->
+
 ## 2026-11-06 观看检查发现固定相机空白
 
 对200条正式新示范逐条只读检查首帧：fixed_high/fixed_side各200/200均为RGB(238,238,238)常量，腕部200/200非恒定；另对manifest首尾两条的首/中/尾共6帧复核，同样如此。新State200观看复跑中也出现两固定视角空白、腕部可见。此次只验证RGB抽样，未做全部帧/深度或原因定位，不能把既有存储/数值合同通过当作三视角视觉有效。原始文件保持不变，现有StateDP不读取RGB，原闭环分母不改；进入ImageDP前必须解决相机有效性。见[只读证据](evidence/narrow_camera_review.json)。

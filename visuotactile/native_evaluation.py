@@ -122,7 +122,8 @@ def stable_grasp(arrays, initial_height):
         object_contact_threshold_N=.1, stable_window_s=.2, scope='filtered normal forces; not native success')
 
 
-def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False, expert_speed=None):
+def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False, expert_speed=None,
+             camera_content_validation=False):
     from evaluation.eval_isaacsim import _load_env_cfg
     from .observations import TaskCommand
     from .sim.replay_environment import RecordedReplayEnv
@@ -148,5 +149,11 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
         from .sim.expert_speed_environment import SpeedLimitedDiagnosticEnv
         env_class=SpeedLimitedDiagnosticEnv;extra['speed_config']=expert_speed
     with lease.block():
-        return env_class(cfg, perception_version=2, **extra,
+        env = env_class(cfg, perception_version=2, **extra, camera_content_validation=camera_content_validation,
             task_command=TaskCommand('tight_insertion'), wrench_frame_mode='world_hold', camera_rig='wrist_bracket_close')
+        if camera_content_validation:
+            # Direct fresh reset never passed through restore_observable_state,
+            # which was historically the only caller setting fixed camera poses.
+            # Configure after sensor initialization and before the first reset/render.
+            env.configure_camera_views()
+        return env

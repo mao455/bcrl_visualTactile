@@ -1,5 +1,15 @@
 # 当前交接：200条StateDP及条件化后续
 
+<!-- NARROW_REPAIR_START -->
+## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
+
+实测状态 `blocked` / `camera_worker`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
+白屏已定位：direct fresh入口遗漏固定相机配置，两路停在默认相同位姿，RGB恒定/有效深度0；同初态配置前后物理读数完全相同，配置后三视角有真实内容。首条199帧专家成功，起/中/尾画面目视通过，全帧RGB-D、时钟、固定位姿和mask检查通过；单lane持久Kit，不声明多lane已验证。
+GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
+
+实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。
+<!-- NARROW_REPAIR_END -->
+
 ## 2026-11-06 10:06 UTC+8：代码已发布，4条失败视频完成
 
 源码/新数据生成入口已推送至origin/feature/narrow-state-data（b119470、fde65f2、26e0320及观看脚本ade4f1f）。新观看队列独立固定1h/单worker/4starts，已正常完成，owner/worker/monitor均退出：train_family_000/004、unseen_00/04全部合法超时，步数601/824/601/601，仅004达到首子目标。实际best update5735、H24/commit12/推理参数未改，未训练或扩采；旧预算、原400+200的manifest、best/last和正式结果hash保持。

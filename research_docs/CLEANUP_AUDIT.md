@@ -1,5 +1,10 @@
 # 清理与回归验收
 
+## 2026-11-06 本轮修复清理
+
+核查引用、原run完成状态、一次性GPU恢复验收receipt、checkpoint更新数及同UID打开文件后，仅删除原narrow_state_20261105_02/disposable_gpu/last.pt（1次可丢弃更新，正式更新0）。原best/last、全部400+200、有效缓存、专家/资产、初态和失败/partial证据保留。本次释放1,153,085,440bytes（约1.074GiB）。精确字节与SHA见新run cleanup.json/cleanup_ledger.json；不按日期/通配符删除目录，不将以前清理重复计数。后续正式模型和新数据仍保护。
+
+
 ## 2026-11-06 后续准备
 
 新代码仅在隔离worktree修改，原训练/采集源码、200条和原400数据、best/last与原失败证据只读。新扩充manifest引用原200路径，不复制18GB数据；需要合并训练统计的numeric cache属于有效依赖。新正式checkpoint与可能续训的完整状态均保留，尚无可确认废弃的新模型可删，本次释放0bytes。原启动阶段2.148GiB及更早126.673GiB不重复计入。

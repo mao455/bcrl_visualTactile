@@ -1,5 +1,15 @@
 # 维护变更
 
+<!-- NARROW_REPAIR_START -->
+## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
+
+实测状态 `blocked` / `camera_worker`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
+白屏已定位：direct fresh入口遗漏固定相机配置，两路停在默认相同位姿，RGB恒定/有效深度0；同初态配置前后物理读数完全相同，配置后三视角有真实内容。首条199帧专家成功，起/中/尾画面目视通过，全帧RGB-D、时钟、固定位姿和mask检查通过；单lane持久Kit，不声明多lane已验证。
+GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
+
+实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。
+<!-- NARROW_REPAIR_END -->
+
 ## 2026-11-06 — 失败视频交付及相机有效性发现
 
 ade4f1f实际完成4次合法观看复跑，601/824/601/601帧、全超时，仅train004有首子目标。原初态观测一致但首plan与物理轨迹不同，结果不并入正式分母。单独`narrow_video_export`在GPU owner完成后生成腕部观看裁剪；4原视频+4裁剪全帧验证，保留原图像/帧数/60fps，不改仿真。源报告、视频/代码SHA、资源统计和预览写入轻量evidence，原数据manifest、best/last、预算和正式结果hash不变；服务正常退出、全部自有PID消失。

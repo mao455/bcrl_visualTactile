@@ -1,3 +1,37 @@
+# Current — camera/history repair and one slower StateDP contrast (2026-11-06)
+
+Latest user explicitly authorizes camera content repair, measured GPU parity,
+existing-model diagnosis/recheck, true slow RL expert pilots, one bounded expansion
+and ONE independently random-initialized StateDP. Historical no-new-run clauses
+below apply to their completed roots, not this new authorization.
+Read STATE_DP_RESULTS/CONTRACTS/SESSION_HANDOFF and actual machine status.
+Root narrow_repair_20261106_01 has a fixed10h window including all waits;
+3h correctness gate,6h collection boundary, training<=3h and final1h reserved.
+80capture attempts,32 new families,40 student starts,<=10000 updates,50GiB output,
+60GiB disk reserve; shared_recent_v1 target40%,6GiB VRAM/12GiB RAM. No budget reset,
+automatic retry, second expansion, model redesign, Image or tactile training.
+Same H24/commit12/29D/5Hz/60Hz/120Hz/loss/history. Preserve400+200, best/last,
+expert/assets, old blocked follow-up and failure evidence. New model is fresh,
+not old200 fine-tuning. Old200 State-valid only, Multi-view-valid0. New captures
+require actual all-frame RGB-D content acceptance and exact numeric contracts.
+New32 families pre-split24/4/4; original test8 never training. Final12 independent
+seeds frozen at prepare, neither test outcomes nor new student success select data.
+
+GPU audit reproduced CuDNN TF32 default discrepancy; unified FP32 passes original
+2e-5 condition gate (max1.073e-6), prefix12 target1.132e-6rad/FK0.000229mm.
+Fixed camera missing configure_camera_views proved in same-initial-state A/B;
+first199-frame real expert success passes all-view content and visual review.
+One orchestration software failure used expert-only env for student, zero physics
+steps; retained/counts toward40. That legacy cell is NOT rerun. Corrected worker
+uses ordinary position-capable env for remaining7 diagnostic cells.
+Persistent ordinary tools.narrow_repair_pipeline handles remaining gates,
+collection, random training and final evaluation; per-stage source frozen.
+Do not edit active Python, launch second owner, or infer success from authorization.
+CPU publication updates existing MD/generated small evidence and pushes only
+origin feature/narrow-state-data when HEAD/docs/worktree checks pass. No raw uploads.
+Short startup supervision, then yield without long LLM polling. Later invocation
+reads actual results. Completed prior sections below are historical evidence.
+
 # Completed — four State200 failure viewing reruns (2026-11-06)
 
 Completed10:06:05 UTC+8: four legal viewing reruns, all native timeouts,

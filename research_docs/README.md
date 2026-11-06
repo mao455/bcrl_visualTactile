@@ -1,5 +1,7 @@
 # Play2Perfect 当前StateDP实验
 
+当前新授权：修复三视角与GPU历史一致性后，单次更慢真实专家扩采及随机StateDP对照。入口 `tools.narrow_repair_pipeline run`，独立root `outputs/visuotactile/run/narrow_repair_20261106_01`；状态读该root/status.json。GPU parity和首条全视角实测已通过，后续数据/训练尚未完成。见[当前State结果](STATE_DP_RESULTS.md)、[合同](CONTRACTS.md)与[交接](SESSION_HANDOFF.md)。以下旧队列状态仅为历史，不自动恢复。
+
 2026-11-06：200条训练已完成5735更新，正式train0/4、unseen0/10合法（另2次动作前拒绝）。条件化后续在GPU历史一致性审查处停止，没有续训或扩采；不自动重启。用户授权的4个独立观看复跑已完成，均超时；4个原三视角及4个腕部版本已全帧验证，视频不并入正式计数。额外发现200条新数据的两固定RGB首帧均空白，ImageDP须先修复并验收；详见StateDP结果及相机证据。源码隔离在`bc+rl_RSS_narrow_followup`，发布到`origin/feature/narrow-state-data`。实际后续状态使用：
 
 ```bash

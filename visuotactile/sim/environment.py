@@ -33,7 +33,8 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def __init__(self, cfg, *, perception_version=2, task_command=None,
                  initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", camera_rig="legacy_dual",
-                 reject_invalid_initializations=False, **kwargs):
+                 reject_invalid_initializations=False, camera_content_validation=False, **kwargs):
+        self.camera_content_validation = camera_content_validation
         self.reject_invalid_initializations = reject_invalid_initializations
         self.reset_events = []
         self.initial_by_env = {}
@@ -242,7 +243,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                     contact_substeps_local_N=rotate_force_to_link(force, rot))
 
     def _camera_packet(self):
-        images, depths, valid = [], [], []
+        images, depths, valid, content = [], [], [], []
         for camera in self.research_cameras:
             # The original global reader has already rendered this instant.
             # Local read consumes that same render, not another simulation step.
@@ -257,9 +258,13 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             images.append(torch.cat((rgb, metric), 1))
             depths.append(metric)
             valid.append(mask)
+            if self.camera_content_validation:
+                from visuotactile.camera_validity import content_valid
+                content.append(content_valid(rgb, metric, mask))
         result = dict(image=torch.stack(images, 1), depth_m=torch.stack(depths, 1),
                     depth_valid=torch.stack(valid, 1),
-                    camera_valid=torch.ones(self.num_envs, len(images), dtype=torch.bool, device=self.device),
+                    camera_valid=(torch.stack(content, 1) if self.camera_content_validation else
+                        torch.ones(self.num_envs, len(images), dtype=torch.bool, device=self.device)),
                     camera_time_s=torch.full((self.num_envs, len(images)), self.research_tick*self.step_dt,
                                              dtype=torch.float64, device=self.device),
                     camera_frame=torch.stack([c.frame.clone() for c in self.research_cameras], 1))
@@ -547,6 +552,8 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "task_context": "externally selected problem identity; no goal pose or success-driven stage",
         }
         metadata["perception_version"] = self.perception_version
+        metadata['camera_validity_contract'] = ('rgb_spatial_content_and_metric_depth_v1' if self.camera_content_validation
+            else 'legacy_presence_only_not_visual_acceptance')
         if self.perception_version == 2:
             metadata.update(task_command=self.task_command.metadata(), depth_encoding="metric_m_zero_invalid_with_mask",
                             fk_urdf_sha256=self._fk.sha256, fk_root=self._fk.root,

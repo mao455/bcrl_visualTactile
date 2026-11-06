@@ -145,11 +145,14 @@ def owner(root):
             status_update(root,worker_pid=None,owned_workers_exited=True)
 
 
-def environment(root,evaluation=False):
+def environment(root,evaluation=False,*,camera_content_validation=None):
     from visuotactile.native_evaluation import client_startup_controls,make_env
     from visuotactile.state_resources import lease_for
     from visuotactile.expert import create_expert
     s=read(root/'session.json');lease=lease_for(root,deadline=s['deadline'] if evaluation else s['collection_deadline'])
+    if s.get('precision_policy') == 'unified_fp32':
+        from visuotactile.precision import state_fp32
+        write(root/'precision.json',state_fp32())
     write(root/('eval_startup.json' if evaluation else 'startup.json'),client_startup_controls('kit_managed'))
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
@@ -157,7 +160,8 @@ def environment(root,evaluation=False):
             '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
             '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
     import isaacsimenvs
-    env=make_env(True,lease,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'))
+    env=make_env(True,lease,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
+        camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation))
     if sha(s['expert_checkpoint'])!=s['expert_sha256']:raise RuntimeError('Expert source drift')
     with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
     return app,env,player,lease
