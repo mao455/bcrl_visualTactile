@@ -1,0 +1,131 @@
+{
+  "passed": true,
+  "train_count": 207,
+  "statistics_max_errors": {
+    "robot_mean": 0.0,
+    "robot_std": 0.0,
+    "geometry_mean": 0.0,
+    "geometry_std": 0.0,
+    "action_scale": 0.0,
+    "action_offset": 0.0
+  },
+  "heldout_not_used": true,
+  "formal_models": [
+    {
+      "sha256": "8799b939a5819d4251ec897ac0d652fc32d73a5868e16ed05878bd372cda773c",
+      "updates": 4500,
+      "model_contract": {
+        "version": 3,
+        "action": "absolute_joint_position_target_rad",
+        "horizon": 24,
+        "commit": 12,
+        "native_history": 13,
+        "visual_history": 3,
+        "native_hz": 60,
+        "physics_hz": 120,
+        "observation": "actor141_robot178_geometry85_v2",
+        "prediction_type": "sample",
+        "loss": "B",
+        "train_noise_steps": 100,
+        "inference_steps": 16,
+        "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+        "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+        "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+        "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+        "geometry_hz": 60,
+        "action_contract": "position_rad_v1"
+      },
+      "config": {
+        "loss_id": "position_geometry_sample_v1",
+        "loss_weights": {
+          "position": 0.0012562150757415016,
+          "rotation": 0.05446417882965659,
+          "fingertip": 0.00019360590541844398,
+          "temporal": 0.02666911107342377
+        },
+        "seed": 2026110603,
+        "effective_batch": 64,
+        "microbatch": 4,
+        "lr_peak": 3e-05,
+        "lr_floor": 3e-06,
+        "warmup": 200,
+        "target": 6438,
+        "sampler": "episode_balanced_shuffled_decks_short_tail_no_drop"
+      },
+      "model_buffers": {
+        "action_scale": [
+          29
+        ],
+        "action_offset": [
+          29
+        ],
+        "robot_mean": [
+          178
+        ],
+        "geometry_mean": [
+          85
+        ]
+      },
+      "ema_step": 4500
+    },
+    {
+      "sha256": "9505194b4dce4d38c63808bdd114ecd60739b13f3e685a78c23909d350660d66",
+      "updates": 5735,
+      "model_contract": {
+        "version": 3,
+        "action": "absolute_joint_position_target_rad",
+        "horizon": 24,
+        "commit": 12,
+        "native_history": 13,
+        "visual_history": 3,
+        "native_hz": 60,
+        "physics_hz": 120,
+        "observation": "actor141_robot178_geometry85_v2",
+        "prediction_type": "sample",
+        "loss": "B",
+        "train_noise_steps": 100,
+        "inference_steps": 16,
+        "history_training": "current_weight_full_prefix_no_grad_then_96_tick_TBPTT",
+        "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+        "persistent_history": "own_GRU256_every_native_tick_true_episode_reset_only",
+        "actor_preprocess": "frozen_expert_RMS140_clip5_group_embedding32",
+        "geometry_hz": 60,
+        "action_contract": "position_rad_v1"
+      },
+      "config": {
+        "loss_id": "position_geometry_sample_v1",
+        "loss_weights": {
+          "position": 0.0012562150757415016,
+          "rotation": 0.05446417882965659,
+          "fingertip": 0.00019360590541844398,
+          "temporal": 0.02666911107342377
+        },
+        "seed": 20261105,
+        "effective_batch": 64,
+        "microbatch": 4,
+        "lr_peak": 3e-05,
+        "lr_floor": 3e-06,
+        "warmup": 200,
+        "target": 5735,
+        "sampler": "episode_balanced_shuffled_decks_short_tail_no_drop"
+      },
+      "model_buffers": {
+        "action_scale": [
+          29
+        ],
+        "action_offset": [
+          29
+        ],
+        "robot_mean": [
+          178
+        ],
+        "geometry_mean": [
+          85
+        ]
+      },
+      "ema_step": 5735
+    }
+  ],
+  "labels": "transition/target_after_rad",
+  "q_after_supervision": false
+}

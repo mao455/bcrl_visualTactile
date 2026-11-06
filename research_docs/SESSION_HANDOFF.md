@@ -1,3 +1,11 @@
+## 2026-11-06 当前授权：数据可信度与StateDP变更审计
+
+先重读研究目标与冻结历史，逐条审核275条原始数据全部模态、分布、减速、成功/失败及采样偏差；基点84cbb98至0c209b9做真实Git/AST/运行SHA核查。静态通过后独立分层专家/逐tick target/H24回放，root dataset_trust_20261106_01，固定3h含准备等待、最多60轨迹启动、8GiB新增/60GiB磁盘保留、共享目标35%及6GiB VRAM/12GiB RAM。仅CPU审核和冻结RL专家/记录命令，正式数据新增0、学生rollout0、optimizer更新0。所有原400/275、manifest、正式checkpoint和失败证据只读。审计报告和准入建议为终点，用户决定下一阶段；不自动扩采/重训/学生误差调参/Image/nominal/触觉。H24/12、5/60/120Hz、target_after_rad而非q_after、29D、网络/损失/归一化/历史/原生物理保持。新脚本独立，原始验收标记不改写。
+
+审计正在CPU全量验收，尚未启动本轮物理复现。读取新root的heartbeat/static_summary/source_audit/replay_plan及后续expert_results/replay_results，不运行旧owner。
+
+## 以下为已完成机制诊断历史
+
 # 当前交接：StateDP基础能力与动作块诊断
 
 <!-- STATE_MECHANISM_START -->
