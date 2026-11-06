@@ -3,7 +3,7 @@
 <!-- STATE_MECHANISM_START -->
 ## 2026-11-06：StateDP基础能力、采样与动作块诊断
 
-实测 `prepared` / `cpu_audit`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
+实测 `running` / `oracle`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
 只读审查275条/64,663tick：全体均值3.919s、中位3.433s、p10–p90 2.640–5.517s，范围2.117–12.900s。新增75均值4.676s、中位4.4s；尚不符合多数5–7s的设计预期，没有补等待或改时间戳。State-valid275、Multi-view-valid75、旧固定视角无效200；触觉数值有限及有效标记通过，不等于硬件校准。所有成功标签只在末transition出现，275条原始数值与缓存完全相等，q_after[t]=q_before[t+1]。
 92个真实初态家族，68/12/12训练/验证/测试；速度版本不跨split。位置±25mm、相对位置±35mm、姿态20°球、关节初态及速度仍有变化；不是唯一起点。原200/201和扩充75/76是已准入家族上的采集结果，不代表整个连续分布100%成功。
 
@@ -17,6 +17,8 @@
 episode均衡使长轨迹的单anchor曝光更少，家族权重与其速度版本数成正比；275 best各anchor访问17–103次。全部anchor已覆盖，但重复曝光不是独立新样本。阶段曝光及家族逐项权重见机器统计；阶段名称是接触/高度/native子目标代理，不能直接当作稳定抓取标签。
 Stanford上游[SequenceSampler](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/common/sampler.py)枚举窗口起点；均匀遍历这些索引时长episode权重更大，边界按配置重复端点。我们的stride12/episode均衡和显式mask是不同采样合同，并不单凭差异认定错误。ReplayBuffer按episode_ends保留轨迹边界。
 B仅选family_066_repair_a055（300tick、5s、alpha.55，train），由接近5s及ID固定选择。诊断多窗口采样在25个anchor上洗牌，batch16/9、micro4，允许同episode多个不同anchor；正式采样器不改。保持275 train-only统计、专家RMS/embedding及Loss B，从随机参数/AdamW/EMA开始；不使用test。
+
+真实GPU更新审查：从275 last5000完整采样状态取下一批64个episode，记录全部ID/anchor/shape/mask及累积梯度；诊断副本做1次micro累积更新和1次相同噪声的大batch参考更新。梯度相对L2差4.81e-06，参数更新最大差1.19e-07，passed=True。未改正式checkpoint。
 
 A/B/C尚未全部完成，不作机制结论；以已保存门控和错误为准。
 
