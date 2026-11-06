@@ -13,6 +13,11 @@ class SpeedLimitedDiagnosticEnv(NativeDiagnosticEnv):
     def _pre_physics_step(self,actions):
         previous=self._prev_targets[:,self._perm_lab_to_canon].clone()
         super()._pre_physics_step(actions)
+        if self.action_control_mode=='absolute_joint_position_target_rad':
+            # These are already processed targets. The shared native position
+            # path applied them above; a retained expert speed config must not
+            # apply alpha a second time during the position-interface gate.
+            return
         assert self.action_control_mode=='native_command_clipped_pre_delay'
         native=self._cur_targets[:,self._perm_lab_to_canon].clone()
         active=self.speed_config.get('phase','all')=='all' or bool((self._successes>=1).all())

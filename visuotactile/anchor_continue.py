@@ -241,6 +241,13 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if not smoke and not (collection/'COMPLETE.json').exists():raise ValueError('Dataset not ready')
     if target is None or target<1 or (smoke and target!=1):raise ValueError('Explicit positive update budget; smoke exactly one')
     session=read_data(collection/'session.json');cached=torch.load(data_root/'numeric.pt',map_location='cpu',weights_only=False)
+    if session.get('version')=='tight_state_foundation_v1' and not smoke:
+        from .tight_gate import validate_formal_manifest
+        validate_formal_manifest(read_data(collection/'manifest.json'),read_data(collection/'configuration.json'))
+        if data['manifest_sha256']!=sha256(collection/'manifest.json'):
+            raise ValueError('Frozen manifest changed after cache/statistics construction')
+        from .tight_gate import validate_training_gates
+        validate_training_gates(collection,data_root)
     assert cached['data_sha256']==sha256(data_root/'data.json') and cached['contract']==contract(24,True)
     ids=data['splits']['train'];vals=data['splits']['validation']
     # Never load test trajectories into the optimizer or validation worker.
@@ -265,6 +272,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if continuation:
         config.update(initialization='complete_checkpoint_continuation_original_schedule_clamped_at_floor',
                       continuation=continuation)
+    if session.get('version')=='tight_state_foundation_v1':
+        config['input_builder']='canonical_joint_state_v1'
     root.mkdir(parents=True,exist_ok=True)
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
@@ -344,10 +353,13 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         stop=[False];signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
         training_started=time.time();initial_step=step
         interval=runtime.get('validation_interval',session.get('validation_interval',500));stop_reason='update_budget'
-        while step<target:
+        stage_stop=runtime.get('stage_stop_update',target)
+        if not step<=stage_stop<=target:raise ValueError('Invalid finite stage boundary')
+        if stage_stop<target:stop_reason='stage_update_budget'
+        while step<stage_stop:
             if (root/'STOP').exists():checkpoint();raise InterruptedError('Stopped at optimizer boundary')
             if not smoke and lease and time.time()>=lease.deadline-600:
-                checkpoint()
+                stop_reason='fixed_wall_budget';checkpoint()
                 if (root/'best.pt').exists():break
                 raise TimeoutError('Training deadline without validated checkpoint')
             before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all())
@@ -374,7 +386,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 updates_per_hour=(step-initial_step)*3600/max(1,time.time()-training_started),utc=time.time(),**no_kit())
             atomic_json(root/'progress.json',progress)
             with (root/'training.jsonl').open('a') as f:f.write(json.dumps(progress)+'\n')
-            bounded_end=step==target or (lease is not None and time.time()>=lease.deadline-600)
+            bounded_end=step==stage_stop or (lease is not None and time.time()>=lease.deadline-600)
             if step%100==0 or bounded_end or stop[0] or step==1:checkpoint()
             if stop[0]:raise InterruptedError('Saved at optimizer boundary')
             if not smoke and (step%interval==0 or bounded_end):
@@ -395,7 +407,9 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                     rows=[json.loads(line) for line in (root/'validation.jsonl').read_text().splitlines()]
                     if early_stop(rows,runtime['early_stop_minimum_update']):
                         stop_reason='validation_plateau_or_overfit';checkpoint();break
-            if bounded_end:break
+            if bounded_end:
+                if step<stage_stop:stop_reason='fixed_wall_budget'
+                break
         saved=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
         restore_training(saved,model,averaged,opt,ema,generator,noise)
         assert saved['updates']==step==ema.optimization_step
@@ -406,7 +420,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=bool(continuation),
             stage_updates=step-initial_step,restored_updates=initial_step,**no_kit()))
         if not smoke:atomic_json(root/'finished.json',dict(updates=step,target_updates=target,target_reached=step==target,
-            stop_reason=stop_reason if step==target or stop_reason!='update_budget' else 'fixed_wall_budget',
+            stop_reason=stop_reason,
             best_checkpoint=str(root/'best.pt'),utc=time.time()))
     except (TimeoutError,InterruptedError):
         if 'before_batch' in locals() and step==before_batch[0]:

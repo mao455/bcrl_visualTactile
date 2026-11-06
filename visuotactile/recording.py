@@ -94,13 +94,15 @@ class CompactEpisodeStream:
     source hashes; the finalizer reconstructs and verifies them before the
     manifest publishes the episode. No duplicate raw HDF5/conversion pass.
     """
-    def __init__(self, directory, metadata, episode, block_size=8):
+    def __init__(self, directory, metadata, episode, block_size=8, compression='lzf'):
+        if compression not in ('lzf','gzip4_lossless_v1'):raise ValueError('Unknown lossless capture compression')
+        self.compression=compression
         self.directory=Path(directory);self.directory.mkdir(parents=True,exist_ok=False)
         self.path=self.directory/'data.h5.partial'
         self.file=h5py.File(self.path,'x')
         self.file.attrs.update(schema_version=2,trace_version=2,storage_version=2,
             metadata_json=json.dumps(metadata,default=str),stream_writer_version=1,
-            video_role='optional_viewing_derivative_not_training_RGB')
+            video_role='optional_viewing_derivative_not_training_RGB',lossless_compression=compression)
         self.group=self.file.create_group('episodes/'+episode)
         self.group.attrs.update(length=0,complete=False,action_source='released_rl_checkpoint',
                                 terminal_image_available=False)
@@ -146,8 +148,9 @@ class CompactEpisodeStream:
             # LZF is lossless; less CPU work than the former raw gzip plus
             # second gzip conversion. Exact metric depth is retained.
             chunks=(1,*values.shape[1:]) if key.startswith('frames/') and values.ndim>2 else (self.block_size,*values.shape[1:])
+            codec=dict(compression='gzip',compression_opts=4) if self.compression=='gzip4_lossless_v1' else dict(compression='lzf')
             self.group.create_dataset(key,shape=(0,*values.shape[1:]),maxshape=(None,*values.shape[1:]),
-                dtype=values.dtype,chunks=chunks,compression='lzf',shuffle=True)
+                dtype=values.dtype,chunks=chunks,shuffle=True,**codec)
         ds=self.group[key];start=len(ds);ds.resize(start+len(values),axis=0);ds[start:]=values
 
     def flush(self):

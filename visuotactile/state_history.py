@@ -185,6 +185,23 @@ class HistoryBank:
             encoded_actor, state['hidden'][0]), -1))
 
 
+def controller_proprio(packet, diagnostics, limits, source):
+    """Exact canonical encoder values for new runs; legacy weights retain I/O.
+
+    Inverting the packet's normalized float32 q discards bits before small train
+    standard deviations amplify the error. HDF5 labels/history use the canonical
+    observed q/qd directly, so the new online constructor must use the same values.
+    No object state, target or future observation is introduced into proprio.
+    """
+    if source=='legacy_packet_inverse_v1':
+        return proprio_radians(packet['proprio'][0].cpu(),limits)
+    if source!='canonical_joint_state_v1':raise ValueError('Unknown proprio input builder')
+    q=diagnostics['joint_position_rad'][0].cpu();qd=diagnostics['joint_velocity_rad_s'][0].cpu()
+    if q.shape!=(29,) or qd.shape!=(29,) or not torch.isfinite(q).all() or not torch.isfinite(qd).all():
+        raise ValueError('Finite canonical29D observed joint position/velocity required')
+    return torch.cat((q,qd))
+
+
 class HistoryController:
     def __init__(self, saved, metadata, device='cuda:0', inference=None):
         stored_contract = saved.get('contract')
@@ -199,6 +216,9 @@ class HistoryController:
         self.device = device
         self.dimensions = object_dimensions(metadata)
         self.limits = torch.tensor(metadata['joint_limits_rad'][0])
+        self.input_builder=saved.get('configuration',{}).get('input_builder','legacy_packet_inverse_v1')
+        if self.input_builder not in ('legacy_packet_inverse_v1','canonical_joint_state_v1'):
+            raise ValueError('Unknown checkpoint input builder')
         self.bank = HistoryBank(); self.execution = ExecutionHistory(1)
         self.episode = None
         self.generator = torch.Generator(device=device).manual_seed(7091)
@@ -232,7 +252,7 @@ class HistoryController:
                 torch.stack((stamp-history['previous_command_time_s'][0], stamp-history['previous_delayed_time_s'][0])).float(),
                 history['action_history_valid'][0, None].float()))
             past = torch.where(history['action_history_valid'][0], past, 0.)
-        proprio = proprio_radians(packet['proprio'][0].cpu(), self.limits)
+        proprio = controller_proprio(packet,diagnostics,self.limits,self.input_builder)
         robot = robot_rows(proprio[:29], proprio[29:], packet['actuator_target_rad'][0].cpu(), past, stamp-self.started)
         geo = geometry(diagnostics, self.dimensions)[0]
         condition = self.bank.observe(0, episode, tick, self.model, actor[0].to(self.device),

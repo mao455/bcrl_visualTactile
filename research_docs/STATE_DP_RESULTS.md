@@ -1,381 +1,60 @@
-# StateDP结果：当前窄域新训练与历史宽分布
+# Tight-Insertion StateDP 当前结果：正式数据门控阻断
 
-<!-- DATASET_TRUST_START -->
-<a id="dataset-trust-code-audit"></a>
-## 2026-11-06：冻结基点与StateDP实际代码审计
+本轮完成了入口整改、真实基础链路验收、21次专家开发采集和分类清理，**没有完成合格正式慢速数据集、正式训练或学生闭环评估**。阻断是当前减速方案不能同时满足原生任务成功和逐条1.5–3倍时长；不是旧MD的授权限制，也不能解读为充分训练后的方法失败。
 
-本轮只审计数据、baseline及冻结专家/目标回放；此前“下一轮继续学生偏移/动作块诊断”等为历史建议，已被当前用户明确暂停。标准StateDP监督真实处理后target_after_rad，不是nominal、不以q_after作标签；H24/commit12、5/60/120Hz、29D、连续历史和正式overlap0均保持。
+审查参照642f5a2。IDE原目录实际HEAD3e11d62且有既存改动；实际工作在干净642f5a2派生的`bc+rl_RSS_narrow_followup / feature/tight-state-foundation`。原工作树未覆盖，数据/checkpoint未上传，未改共享历史。[机器结果](evidence/tight_state_20261107.json)包含全部21条专家分母；本地root为`outputs/visuotactile/run/tight_state_20261107_01`。
 
-**结论范围：未发现网络/损失/原生控制/物理被本段Git变更暗改的证据；不能宣称200、275及前宽域实验全部训练语义/数值行为完全相同。** 下列真实变化必须进入实验身份，当前不作大规模回滚。完整数据结论和物理结果见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)。
+## 修复与真实验收
 
-基点：`84cbb981593e4c57cbbcb17283ae62cbf580fa85`是窄域采集首commit `6a1a0aa`之前最后tree；它已有可选expert_speed扩展。更早运行验证基点`100d71edbc99ff0e02d3798308838c7cffdc446d`由state_random_20261105_02的100文件runtime_freeze逐项100/100匹配。该“baseline正确”仅指明确合同和控制实现有记录，**不等于学生已具备高成功率**。
+|项目|结果与范围|
+|---|---|
+|旧减速错误放行|去除计算时长后无条件passed及1.35中位数放行；逐条实际[1.5,3]与三个阶段实测运动门控；旧混速生产入口退役|
+|相机与配置|当前构造器显式configure固定相机，强制真实RGB-D内容；cache重新检查真实payload，不接受旧camera_valid全True路径；direct_configuration实际读取所有采样范围|
+|依赖与阶段|当前配置不读取旧session/calibration/学生checkpoint；环境构造器移至当前入口；通过门控后自动进入下一阶段的分支有回归测试，失败拒绝继续；完整生产/训练阶段没有实跑|
+|275源数据数值链路|275/275、64663tick；HDF5/cache逐字段、joint order、时间/目标/过去历史、split、padding/mask、train-only统计通过；这不授予旧275完整慢速多模态资格|
+|真实GPU FP32在线一致性|完整510tick，原始及normalized Actor/robot/geometry最大差0；hidden3.055e−7、condition1.192e−6、固定噪声动作2.265e−6，均小于原2e−5门限|
+|发现并修复的误差|第一次normalized robot8.070e−5失败；原因是normalized q反算丢位。新checkpoint用canonical_joint_state_v1同源q/qd，旧checkpoint不静默变更；失败证据仍保留|
+|microbatch/EMA/恢复|真实4+3不等尾长梯度相对L2=5.478e−7；参数及EMA更新差2.263e−7；完整checkpoint、非空sampler deck、下一anchor/扩散噪声/Torch/CUDA随机数恢复通过。三个诊断共6次一次性optimizer更新，正式更新0|
+|实际执行器|H24/commit12共240tick，Speed wrapper仍保留alpha .55，提交及两个物理子步目标误差均0，没有第二次alpha/delay/EMA；开环任务未完成、动作耗尽，记删失而非timeout，不作为数据成功的必要条件|
+|传感器时序|21/21 capture逐条State/三路RGB-D内容/触觉验收通过；全部120Hz触觉前后时钟、有效位、上一transition→下一obs逐值通过|
+|回归与保护|维护测试168项全量通过；原400完整payload SHA、现275清理后payload SHA、专家与123个原生源码SHA通过；保留历史best4500清理后CPU model/EMA/optimizer/RNG读回通过|
 
-审核84cbb98..0c209b9所有21个commit：727个相关tracked代码/资产文件中702个blob不变，25个新增/修改；另5个新增测试文件。isaacsimenvs/evaluation/rl_games/assets无差异；未发现删除native文件。[逐文件blob/SHA、AST函数差异及运行冻结表](evidence/dataset_trust/source_audit.json)。
+formal训练入口还要求CPU/GPU/gradient receipts与当前data及statistics SHA一致；不能拿开发fixture或历史通过标记放行新数据。原架构、损失及权重、DDIM、H24/commit12、5/60/120Hz和overlap0保持。
 
-|文件/模块|原始版本→实际变化|行为与默认路径|审计结论/建议|
-|---|---|---|---|
-|state_history（HistoryBank/Controller、StateDP）、state_image_loss、native_data、action_history、checkpointing及vendor DP/EMA|84→0c逐字未改|GRU、HistoryBank reset、x0/LossB权重、归一化公式、网络及EMA数学保持|冻结保留，不借审计重构|
-|position_control.py|3e4d679只新增recorded_target_plan；全部原函数AST相等|仅显式replay_horizon=24的诊断调用；原位置映射/限位、无重复delay/EMA及默认overlap0不变|保留为隔离诊断，禁止把H24oracle结果当学生结果|
-|anchor_sampling.py|旧只允许32/64且整除320；6a1a0aa允许非空任意正batch和短尾|旧320连续160次抽样、state_dict和RNG逐次完全一致；新148实际64/64/20，新207为64/64/64/15。episode均衡仍非anchor均衡|这是正式采样行为扩展，不能写“采样完全未改”；既往新数据训练授权所需，本轮不改。若复现旧320，应使用旧合同；回滚会让新数据直接报错|
-|anchor_continue.py|旧train/contract等所有已有函数AST不变；新增fresh、early metrics、curves和CLI|新随机模型、AdamW、EMA、调度/seed、完整恢复及可选早停；维持原objective/history/microbatch权重。随机初训不等于旧checkpoint续训|用户曾明确要求新数据随机训练；配置须独立，不能据旧epoch概念混报。续训代码具备完整状态恢复，但旧200本轮未续训|
-|narrow_data.py|新增直接初态配置、逐HDF5适配与train-only统计|command=target_after_rad；真实q仅观察，过去target teacher forcing；geometry每12tick拟合统计、robot每tick。直接q与旧proprio逆变换可有≤2.38e-7rad舍入差|标签/公式合同保持，统计数值因数据变化；不能给旧权重替换新统计。207条及旧148条分别重算6组统计误差全0|
-|state_benchmark.prepare / live_collision|新增显式narrow_reset和live_collision_mesh_bounds_v1|原生reset数学未改，调用前cfg范围确实收窄；保守mesh OBB代替已证不可靠scene query。无标志仍走旧路径；同env配置会持续，不能把窄域env随后无spec调用当作原宽域|必要采集修复/分布变化，旧query证据保留；不作物理穿透深度承诺|
-|state_benchmark.trial|元数据、计时、视频标题、完整终止图像mask、可选H24回放|默认学生/专家控制循环不变；capture时终止后图像mask避免reset帧冒充末帧；完整成功只由原生pre-reset reason决定|必要记录修复与诊断，未改变成功阈值/timeout|
-|native_evaluation.make_env、sim/environment、camera_validity|b0e1bd0新增默认False的内容验收；打开时初始化固定相机位姿、RGB空间变化/有效深度判据|视觉修复是真实输入变化；默认False仍旧presence标志，不能掩盖旧200空白。State不读图像但新视觉数据身份不同|有明确视觉修复授权，保留开关/旧数据身份，不回填伪造旧图像|
-|precision.py及新runner入口|b0e1bd0将新在线CUDA matmul/CuDNN TF32关闭；旧训练已关闭|CuDNN旧在线默认与训练不一致，修复会改变数值，不能说全路径bitwise未变；既有condition误差2.525e-4→1.073e-6来自历史实测|授权的一致性修复，后续明确统一FP32；不“恢复”不一致数值路径|
-|tools/narrow_*、reset_query_probe|新增有界采集、条件化决策、修复/交付/视频owner|只选显式入口；预算、失败分类、随机新训练/扩采为当时授权；旧owner全部完成，不自动重启|实验工具不等于零行为影响，运行配置和SHA需同时审查|
-|tools/state_mechanism*|3e4d679后新增独立小集采样/拟合、oracle和overlap4诊断|仅显式新root；正式模型/默认overlap不替换；历史800 tiny更新不是275正式重训|此前诊断授权的隔离路径，本轮禁用，不外推baseline性能|
+## 实际开发数据与减速结果
 
-运行源码核对比“文档称未改”更严格：旧200 source_freeze183/183对应b119470；其正式training configuration中43个visuotactile SHA全部匹配。275 production_and_training及reviewed_collection_completion各121/121对应b0e1bd0/8eb30b4；正式275 configuration中的46个SHA全部匹配8eb30b4。[正式训练源码](evidence/dataset_trust/training_source.json)。因此正式两次训练可定位到实际运行实现，不仅是git HEAD。两模型也不是严格等曝光的纯数据量对照：200实际5735更新/约100 anchor等效epoch，275原预算6438、早停5000/约60.95等效epoch，初始化seed及余弦总长度不同。不能把二者差异唯一归因于200→275；本轮不通过补训练来抹平历史差异。
+6个原速参考全部成功。15个慢速attempt中12成功、3真实任务失败；其中仅6条同时通过全部个体准入。没有非法初态，没有通过重试替换失败。每条都有同家族同配置原速参考，初态和native config SHA对齐，不声称PhysX内部状态严格重放。
 
-**发现追溯缺口：** 较早repair的audit/camera_and_recheck门控在927eac5 HEAD上运行未提交工作区版本，分别3/7文件不同；多数hash可对应后来的b0e1bd0，但两版tools/narrow_repair.py以及一版camera_validity.py在84..0c中找不到逐字相同blob；进一步扫描Git对象库2501个小blob仍未恢复这三版。保留其运行SHA，不捏造其内容、不声称完整可复建。该缺口涉及前置owner/验收代码；正式生产/训练源码可匹配，全275原始内容本轮独立重审。建议以后先提交冻结脚本再启动，另外保存实际源码快照；本轮物理阶段已从已提交4ddb554启动。未据此无证据回滚模型或修改原数据。[逐阶段追溯](evidence/dataset_trust/runtime_commits.json)。
+|开发阶段|alpha|三个家族实际时长比|任务成功|逐条准入|
+|---|---:|---|---:|---:|
+|初始窄域|0.55|2.369048 / 2.200000 / 1.338983|3/3|2/3|
+|初始窄域|0.5|4.261905 / 2.243243 / 1.790960|3/3|2/3|
+|初始窄域|0.45|3.035714 / 1.578378 / 4.672316|2/3|1/3|
+|收窄域|0.55|1.379310 / 2.050000 / 4.605714|3/3|1/3|
+|最后中点|0.525|4.701149 / 1.462500 / 4.702857|1/3|0/3|
 
-验证：41项相关CPU测试通过，1项大型反向传播测试明确未跑；160次原320采样序列及RNG一致；已有官方动作处理对照100tick的target/queue/RNG测试通过。本轮optimizer更新0、学生rollout0；没有用通过测试冒充物理任务成功。所有关于新物理复现的结论只取本轮完成记录：主56次native15/15、source-slow8/9，tick6/15、H24 4/15；4个额外fresh Kit检查全部成功，两来源的tick/H24各18字段逐位相等。它们是专家/命令验收，学生新增rollout仍为0。详见SLOW报告，不能把开环耗尽解释为数据无效或H24必然有错。
+初态只收窄：从物体/相对孔位XY±8/10mm、6°缩至±2/3mm、1.5723103°；原生DR未改。收窄和最后.525各在执行前登记，同一固定deadline，最后候选明确不再追加。1.4625不能四舍五入为1.5，4.605714等也不能靠alpha解释成达标。
 
-准入建议：代码可作为明确版本的H24 StateDP实现冻结，数据可作为275条state-only窄域专家目标数据；仍需如实标注短尾batch、207 train-only统计、统一FP32和目标时长缺口。没有发现必须立即回滚的未经授权核心改动。缺失早期门控源码的历史追溯不确定性应保留，不能用“未发现”证明从未存在任何错误。审计通过本身不构成新一轮重训的科研收益证据，是否重训由用户决定，本轮不启动。
-<!-- DATASET_TRUST_END -->
+**正式集为0条，未冻结manifest、split、统计或训练cache。** 21条完整开发记录保留；6条个体合格慢速也未被凑成混速正式集。原400和现275源文件继续只读，旧200空白固定相机未补图且未准入；后来75条也未因相机有效自动准入。
 
-## 以下为已完成实验历史，不构成当前执行授权
+## 训练与学生闭环
 
+没有正式模型、optimizer、EMA、scheduler或计数续用旧学生；正式训练未启动，更新0，**不能称训练充分或收敛**。有限anchor预算、验证选择、改善续训和零成功早停已实现，但完整运行尚未验收。
 
-<!-- STATE_MECHANISM_START -->
-## 2026-11-06：StateDP基础能力、采样与动作块诊断
+|学生cohort|成功/实际执行|解释|
+|---|---:|---|
+|train家族|0/0|数据门控阻断，未评估|
+|validation|0/0|未评估，未做模型选择|
+|冻结后全新初态|0/0|未启动10例probe或100例扩展|
 
-实测 `complete` / `complete`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
-只读审查275条/64,663tick：全体均值3.919s、中位3.433s、p10–p90 2.640–5.517s，范围2.117–12.900s。新增75均值4.676s、中位4.4s；尚不符合多数5–7s的设计预期，没有补等待或改时间戳。State-valid275、Multi-view-valid75、旧固定视角无效200；触觉数值有限及有效标记通过，不等于硬件校准。所有成功标签只在末transition出现，275条原始数值与缓存完全相等，q_after[t]=q_before[t+1]。
-92个真实初态家族，68/12/12训练/验证/测试；速度版本不跨split。位置±25mm、相对位置±35mm、姿态20°球、关节初态及速度仍有变化；不是唯一起点。原200/201和扩充75/76是已准入家族上的采集结果，不代表整个连续分布100%成功。
+这不是学生0%成功率；分母0表示未执行。剩余研究问题是当前原生DR条件下，单一恒定减速方案的完整成功与时长稳定性。没有通过基础数据门控，不能把它归因为StateDP架构/损失/频率，也没有充分训练后的失败结论。
 
-|模型|训练episode|实际batch分布|anchor数|抽样总数|anchor等效epoch|独立覆盖|
-|---|---:|---|---:|---:|---:|---:|
-|state200_best5735|148|{'64': 3824, '20': 1911}|2829|282956|100.020|2829|
-|state275_best4500|207|{'64': 3375, '15': 1125}|4245|232875|54.859|4245|
-|state275_last5000|207|{'64': 3750, '15': 1250}|4245|258750|60.954|4245|
+## 清理与运行异常
 
-正式一次更新：最多64个不同episode各1个12tick anchor，microbatch4累积，所有microbatch之后才一次clip/AdamW/EMA；207条训练数据每轮64/64/64/15，平均51.75。输入Actor141、robot178、geometry85；从episode开头用当前权重重算历史，96tick边界前detach，非清零；条件[B,512]，目标[B,24,29]，mask[B,24]。不足24的目标零填充且无效；base/FK按有效目标数加权，temporal按有效相邻对数加权。
-episode均衡使长轨迹的单anchor曝光更少，家族权重与其速度版本数成正比；275 best各anchor访问17–103次。全部anchor已覆盖，但重复曝光不是独立新样本。阶段曝光及家族逐项权重见机器统计；阶段名称是接触/高度/native子目标代理，不能直接当作稳定抓取标签。
-Stanford上游[SequenceSampler](https://github.com/real-stanford/diffusion_policy/blob/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/common/sampler.py)枚举窗口起点；均匀遍历这些索引时长episode权重更大，边界按配置重复端点。我们的stride12/episode均衡和显式mask是不同采样合同，并不单凭差异认定错误。ReplayBuffer按episode_ends保留轨迹边界。
-B仅选family_066_repair_a055（300tick、5s、alpha.55，train），由接近5s及ID固定选择。诊断多窗口采样在25个anchor上洗牌，batch16/9、micro4，允许同episode多个不同anchor；正式采样器不改。保持275 train-only统计、专家RMS/embedding及Loss B，从随机参数/AdamW/EMA开始；不使用test。
+本轮实际删除5905个产物文件，释放24,418,177,024分配bytes（22.7412GiB）：5个废弃/一次性模型checkpoint、400个旧DINO特征cache、91个失败视频、5409个私有Kit临时文件；另删除2个废弃观看脚本和2份重复结果MD。失败分母与精简结果表保留，原400/275、专家、资产和有成功的历史模型保持。[清理明细](CLEANUP_AUDIT.md)。
 
-真实GPU更新审查：从275 last5000完整采样状态取下一批64个episode，记录全部ID/anchor/shape/mask及累积梯度；诊断副本做1次micro累积更新和1次相同噪声的大batch参考更新。梯度相对L2差4.81e-06，参数更新最大差1.19e-07，passed=True。未改正式checkpoint。
+一次错误解释器导致启动中断，发生在任何physical capture之前；不计任务失败、不补假初态。末轮监督进程工具返回143，退出原因未证明；三个物理结果已落盘但最终状态未写，人工复核进程与完整记录后停止遗留的本任务监控、恢复准确blocked状态，未重跑。之后增加SIGTERM触发finally清理的回归测试；没有声称该退出故障已有新的Kit实跑验收。
 
-A：{"passed": true, "comparisons": [{"identity": "family_066", "native_success": true, "open_loop_success": false, "censored": true, "ticks": 177, "source_to_requested_max_rad": 0.0, "submitted_to_actuator_max_rad": 0.0, "requested_to_submitted_max_rad": 0.0, "actual_joint_difference_max_rad": 0.1368221640586853, "boundary_max_rad": 0.0, "initial_observable_errors": {"joint_position_rad": 0.0, "joint_velocity_rad_s": 0.0, "object_pose_w": 0.0, "hole_pose_w": 0.0, "table_pose_w": 0.0, "palm_body_pose_w": 0.0, "finger_position_w": 0.0, "finger_quat_wxyz": 0.0}}, {"identity": "repair_family_26", "native_success": true, "open_loop_success": true, "censored": false, "ticks": 184, "source_to_requested_max_rad": 0.0, "submitted_to_actuator_max_rad": 0.0, "requested_to_submitted_max_rad": 0.0, "actual_joint_difference_max_rad": 0.11390954256057739, "boundary_max_rad": 0.0, "initial_observable_errors": {"joint_position_rad": 0.0, "joint_velocity_rad_s": 0.0, "object_pose_w": 0.0, "hole_pose_w": 0.0, "table_pose_w": 0.0, "palm_body_pose_w": 0.0, "finger_position_w": 0.0, "finger_quat_wxyz": 0.0}}], "recorded_slow": {"success": false, "censored": true, "target_max_rad": 0.0, "actuator_max_rad": 0.0, "submitted_max_rad": 0.0}, "starts": 5, "scope": "Native RL is closed loop; both H24 target cases are OPEN LOOP, not an online expert. Exact physical replay is not an acceptance requirement."}
+所有本任务worker/monitor已退出。已测整卡均值16.6392%、最大完整60s31.9574%；最少空闲VRAM11.709GiB、RAM22.395GiB。7个监控段内最大采样间隔1.459s；换段累计缺口522.474s，所以不称全session无缺测或硬GPU配额。外部作业未被干预。
 
-B：{"complete": true, "updates": 800, "best_update": 800, "stop_reason": "small_dataset_fit_gate_two_checks", "elapsed_s": 327.10833740234375, "best_sha256": "1638f93e0183c9e422113adf17bf75524031281f6b2a1ed09829295a56a83781", "checkpoint_readback": true, "normalization_unchanged": true, "generalization_claim": false}
-
-B/C闭环：{"complete": true, "starts": 10, "groups": {"B_tiny": {"attempts": 2, "legal": 2, "successes": 0}, "C0": {"attempts": 4, "legal": 4, "successes": 0}, "C4": {"attempts": 4, "legal": 4, "successes": 0}}, "generalization_claim": false, "formal_default_overlap": 0, "hidden_physics_exact": false}
-
-极小集离线拟合通过但对应初态仍未成功；精准目标回放接口检查已通过，优先研究执行后状态偏离teacher-forced训练轨迹这一机制。下一轮只做有限闭环分布偏移定位；本轮不自动DAgger或改方法。噪声/块跳变的因果归属仍受小样本限制。
-
-[完整轻量统计、真实batch与阶段指标](evidence/state_mechanism.json)。原数据、checkpoint、数值轨迹和视频留本地。
-<!-- STATE_MECHANISM_END -->
-
-## 2026-11-06 20:11复核：离线拟合通过，闭环能力仍未建立
-
-15次启动全部完成，19:39:53正常退出；后台执行22分14秒，含准备39分36秒。没有新增训练或重跑。原始400、窄200及新增75、正式best/last保护hash通过；tiny best800完整读回，模型更新/AdamW/EMA均为800。17项CPU测试及真实梯度门控证据保持。
-
-|实验|真实结果|含义与限制|
-|---|---|---|
-|A 原生专家|2/2成功|两个预定训练家族，非整体专家成功率|
-|A H24/commit12 target回放|1/2成功，另一次177tick动作耗尽|source→requested→submitted→actuator及12tick边界最大误差0；不是精确物理重放|
-|A 已记录慢轨迹回放|0/1，300tick动作耗尽|开环未成功不能单独证明映射错误|
-|B 单条5s示范|800更新、5分27秒后连续两次拟合门控通过；闭环0/2|3个DDIM种子Arm 0.001990–0.001993rad、Hand 0.007342–0.007354rad、FK 1.733–1.745mm；两次601tick超时，无native lift/子目标|
-|C0 / C4|各0/4，各2/4触发native lift，全部零子目标|各3次超时+1次掉落；抓取/抬升及抬升后对齐/丢失仍未解决|
-
-C4四条轨迹等权平均Arm边界跳变0.025291→0.014080rad（降低44.3%），Hand 0.080108→0.041664rad（降低48.0%）。轨迹后续已分叉，不能当作固定物理轨迹的因果配对；正式overlap仍为0。离线两条轨迹Arm重叠区分歧约0.007rad，边界跳变约0.0074rad，专家约0.0013rad。不同DDIM种子Arm标准差RMS为0.000625/0.000109rad、Hand为0.00765/0.000797rad；第一条的首12步Hand标准差0.01437rad，不能把采样随机性概括为无影响，也没有证据证明它是唯一瓶颈。
-
-B两次闭环的初始关节位置/速度、物体/孔座/桌面/机械臂/指尖几何、Actor141、proprio及执行器目标与源示范完全相等；相对时间一致，绝对仿真时钟不同。隐藏PhysX/接触/RNG状态仍未证明相等。seed7091首12步Arm RMSE 0.002250rad，与离线首块一致；前60/120/300tick累计误差扩大为0.003515/0.009059/0.055246rad。这不是固定接口错位的证据，但也不能仅凭低绝对RMSE称为精确动作拟合：首块动作方向cos约0.52、相对上一目标的一步幅度约专家2倍。
-
-当前唯一优先方向是**闭环偏离和误差放大的定位**：找出接触前后状态/历史及目标开始分叉的位置。它比直接扩充数据更有依据；尚不能排除非零拟合误差、隐藏物理状态及动作块不一致的共同作用。本轮不自动启动DAgger、新训练、扩采、ImageDP或触觉；StateDP完整任务基础能力仍未建立。
-
-记录修正：历史各trial的`checkpoint_sha256`来自冻结RL expert/shadow路径，并非学生模型。冻结运行源码明确加载B best800 EMA及C best4500 EMA；真实文件hash和证据边界写入`final_review.json`及公开轻量统计，原始结果不覆盖。后续记录入口增加独立`policy_checkpoint_sha256`/`frozen_expert_checkpoint_sha256`字段，仅为来源标注修复，不改变已完成实验。
-
-本轮监控整卡时间加权均值27.47%、完整60s最大52.11%，缺测0；空闲显存最低约10.38GiB、可用RAM最低18.98GiB。实际超过50%窗口，不声称全程合规，也不归因于特定进程。输出约2.32GiB；tiny best/last仍用于对照/恢复，无确认无用大文件需要删除。8段完整验证视频在本地`state_mechanism_20261106_01/{oracle,closed_loop}`，不上传权重/原数据/大量日志。
-
-复核机器证据：`outputs/visuotactile/run/state_mechanism_20261106_01/final_review.json`及[evidence/state_mechanism.json](evidence/state_mechanism.json)。运行源码3e4d679，自动结果6d123e7。
-
-
-<!-- NARROW_REPAIR_START -->
-## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
-
-实测状态 `complete` / `complete`；独立run `narrow_repair_20261106_01`，10h固定总窗，旧run预算和失败保持。代码和排队不代表训练完成。
-白屏已定位：direct fresh入口遗漏固定相机配置，两路停在默认相同位姿，RGB恒定/有效深度0；同初态配置前后物理读数完全相同，配置后三视角有真实内容。首条199帧专家成功，起/中/尾画面目视通过，全帧RGB-D、时钟、固定位姿和mask检查通过；单lane持久Kit，不声明多lane已验证。
-GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
-200条平均3.635s，中位3.2s；alpha≤.65仅38条、平均5.190s。best/last均5735且参数一致；末段验证改善0.55%，train8改善27.40%，误差比18.78，未见首块幅度比3.11。属于验证平台与闭环偏移证据，不能称可靠收敛。
-旧200只标State-valid，Multi-view-valid为0；新增成功必须全部真实RGB-D/触觉重采并通过画面内容验收。不会用新图像拼接旧状态。Image/触觉未来公平比较只用相同有效模态子集。
-一次新编排错误把学生送入专家专用speed wrapper，在首次物理步前断言，0物理步/0完成rollout。原失败保留、计入40次学生启动预算；该legacy单元不重跑，正确环境继续其余7个固定复核单元。
-后续规则：先3个train家族原速/.55/.60/.65配对试采，按真实成功、接触运动和时长选择连续alpha区间；再32新家族预分24/4/4、每家族2速度版本，最多80采集尝试，至少60新增成功/28新增家族才训练。总量约260–276，未达门控则停止。
-新StateDP只随机初始化一次，H24/commit12/29D/5Hz/60Hz/损失/历史不变；按旧4000步平台曝光加500更新余量、实际anchor和吞吐定预算，≤10000更新/3h，validation选best与有界早停。最终旧/新各train4+预先冻结独立unseen12，最终结果不触发新训练。
-
-旧模型精度复核：{'legacy_default': {'train': {'attempts': 2, 'valid': 1, 'successes': 0, 'software_failures': 1, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 1}}, 'unseen': {'attempts': 2, 'valid': 2, 'successes': 0, 'software_failures': 0, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 2}}}, 'unified_fp32': {'train': {'attempts': 2, 'valid': 2, 'successes': 1, 'software_failures': 0, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 1}}, 'unseen': {'attempts': 2, 'valid': 2, 'successes': 0, 'software_failures': 0, 'initial_rejections': 0, 'failures': {'grasp_or_lift_unresolved': 2}}}}
-后续决定：one_slow_coverage_expansion。
-
-真实慢速筛选：{'passed': True, 'selected': {'interval': [0.55, 0.6], 'successes': 6, 'attempts': 6, 'median_duration_s': 4.825, 'median_duration_ratio': 1.5206771562731691, 'median_contact_arm_speed_ratio': 0.6194854253529616, 'median_contact_duration_ratio': 1.04, 'scope': 'Exploratory 3-family paired screen, not a population reliability estimate'}, 'candidates': [{'interval': [0.55, 0.6], 'successes': 6, 'attempts': 6, 'median_duration_s': 4.825, 'median_duration_ratio': 1.5206771562731691, 'median_contact_arm_speed_ratio': 0.6194854253529616, 'median_contact_duration_ratio': 1.04, 'scope': 'Exploratory 3-family paired screen, not a population reliability estimate'}], 'policy': 'One stable alpha per episode, continuous uniform between tested endpoints'}
-
-采集计数：{'attempts': 76, 'successes': 75, 'total_successes': 275, 'task_failures': 1, 'initial_rejections': 0, 'software_failures': 0, 'new_multimodal_valid': 75, 'utc': 1793942624.0318265}
-
-12:35首次生产停止：第50条原速专家真实掉落，末帧物体离开侧视野；81帧RGB-D和数值合同通过。成功示范的目标可见性检查错误地先于任务失败分类，导致少记1次尝试/掉落。复核49条成功文件哈希后，保留原错误和计数快照，补记为50次/49成功/1任务失败，失败轨迹不入训练。修复仅分离自然任务失败与传感器错误，成功数据门槛不变；8项CPU测试通过。本次复核后的接续入口只运行原冻结清单剩余26条，不重跑已执行条目或门控，不重置计数、17:12采集/21:12总截止；独立阶段reviewed_collection_completion仍只允许一次新训练。实际接续进度以上方机器状态和当前计数为准。
-
-已完成一次扩充：75条新成功、32个新家族，合计275条State-valid；独立随机模型完成5000更新，因validation_plateau_or_overfit结束，validation选第4500步。最终完整成功：state200_fp32: train0/4，unseen0/10有效、2次初态拒绝；state_expanded_fp32: train0/4，unseen0/10有效、2次初态拒绝。这轮有限对照已结束，不自动再训练/扩采或启动Image/触觉训练。
-
-同一原26条validation的比较（不含test）：
-
-|模型|Arm RMSE(rad)|Hand RMSE(rad)|末端FK RMSE(mm)|
-|---|---:|---:|---:|
-|state200_fp32|0.016714|0.095797|12.874|
-|state_expanded_fp32|0.015016|0.091867|12.494|
-
-|模型|train完整成功|独立unseen完整成功|
-|---|---:|---:|
-|state200_fp32|0/4|0/10|
-|state_expanded_fp32|0/4|0/10|
-
-失败阶段：{'state200_fp32': {'train': {'grasp_or_lift_unresolved': 3, 'second_insertion': 1}, 'unseen': {'grasp_or_lift_unresolved': 8, 'illegal_initialization': 2, 'post_lift_alignment_or_loss': 2}}, 'state_expanded_fp32': {'train': {'grasp_or_lift_unresolved': 3, 'post_lift_alignment_or_loss': 1}, 'unseen': {'grasp_or_lift_unresolved': 7, 'illegal_initialization': 2, 'post_lift_alignment_or_loss': 2, 'second_insertion': 1}}}
-小样本诊断；未放宽成功标准或按结果替换初态。ImageDP仍需严格在线输入配对，触觉效益尚未验证；本轮不自动启动两者。
-
-原200验证已平台且泛化误差大，未追加旧模型训练。扩充后新模型3500–5000更新验证MSE仅改善约0.14%，train8改善约41.3%，因此5000步早停、保留4500步best。相同26条validation离线Arm/Hand/FK略改善，但旧/新最终均0/14合法完整成功；旧11/14、新10/14在抓取/抬升仍未解决，阶段分类仅诊断代理。各有1条达到首子目标而未完成全任务。此前精度复核train1/2是小样本单次成功，最终未复现，不能声称稳定性。可观测配对初态完全一致，隐藏PhysX状态并非严格复现。当前没有证据支持继续堆数据或无限续训；下一步应聚焦早期闭环动作幅度、块边界连续性和teacher-forcing/部署分布偏移的机制定位（研究假设，未证实原因），暂不作为成功基线推进Image/触觉训练。
-
-资源实测：累计已采样整卡时间加权均值30.81%，最大完整60s均值52.19%；因此不能声称全程≤50%。样本查询失败0，但三次monitor交接存在2518.41s无采样空档，均跨monitor身份，不称连续无缺测；未干预其他任务。最小空闲VRAM8002MiB、可用RAM18.90GiB。全体自有GPU进程已退出。
-
-[轻量数值、门控与后台结果](evidence/narrow_repair.json) · [训练曲线](evidence/narrow_repair_curves.png)。原始数据、权重、视频留本地。
-<!-- NARROW_REPAIR_END -->
-
-## 2026-11-06 10:06 UTC+8：4个独立失败观看复跑完成
-
-|案例|原评估步数/子目标|视频步数/子目标|视频结果|
-|---|---:|---:|---|
-|train_family_000|601 / 0|601 / 0|超时，未完成首子目标|
-|train_family_004|718 / 1|824 / 1|首子目标后超时|
-|unseen_00|601 / 0|601 / 0|超时，未完成首子目标|
-|unseen_04|601 / 0|601 / 0|超时，未完成首子目标|
-
-使用实际200条best5735、H24/commit12、5Hz重规划/60Hz执行，不训练、不接管、不按结果替换。可观测初态字段均一致，但首plan已不同（最大3.67e-4rad），后续物理轨迹不一致；这是新观看复跑，正式train0/4、unseen0/10加2次动作前拒绝不变。独立1h预算在约6m40s内结束，自有进程全部退出。整卡均值17.177%、最大完整60s27.013%、缺测0；原数据manifest、best/last、预算和结果hash核验通过。[视频轻量证据](evidence/narrow_failure_videos.json)、[四例预览](evidence/narrow_failure_videos_preview.jpg)。
-
-本地 `outputs/visuotactile/demos/narrow_failures_20261106_01/README.md` 提供4个原三视角及4个腕部观看版本，全部帧通过解码/计数验证（601/824/601/601帧，60fps、1x）。两固定相机空白，因此腕部版本仅从原视频裁剪并更新字幕，不增删/插值帧，保留所有原视频。200条新数据首帧检查也发现两固定RGB各200/200均为空白常量，腕部非恒定；数值/存储验收不能代表视觉可用。StateDP无RGB输入，ImageDP需要先解决此问题。[相机抽查范围与证据](evidence/narrow_camera_review.json)。
-
-
-## 2026-11-06 09:29 UTC+8 实测：原实验完成，后续审查阻断
-
-原200条StateDP完成5735更新，train4为0/4；unseen12尝试中10次合法、0/10成功，另2次动作前拒绝。14次合法运行全部超时；train有1次首子目标，unseen无首子目标，均未触发native lift（该阈值不是完整成功的必要条件）。没有完成新数据对照。
-
-独立后续于02:13:16接手，在GPU全序列/逐tick HistoryBank条件比较的`max_abs < 2e-5`断言失败后约02:13:35停止；worker、monitor和owner均退出。没有续训、扩采或新学生试验，正式新增更新0、轨迹0。失败日志未保存实际GPU误差大小，尚不能判定为历史语义错误或纯数值问题。没有降低门限、重启owner或重置计数/预算；新run原固定截止10:13:16，前序截止13:57:39均不变。
-
-本次仅CPU只读复核相同train/validation各1条：FP32最大差1.78814e-6/1.90735e-6，FP64为3.99680e-15/3.33067e-15，未初始化CUDA、无优化更新。CPU通过不代替GPU验收，也不证明原闭环失败的原因。当前不能宣布数据不足、State阶段成功或适合直接进入Image/触觉训练。
-
-[完整12个验证点及100更新分箱训练loss](evidence/narrow_state200_curves.json)、[原训练曲线](evidence/narrow_state200_curves.png)已保存为轻量记录。曲线中的train8/validation是同口径teacher-forced动作误差；优化batch loss含原训练目标与噪声采样，不与selection MSE直接作数值比较。
-
-[机器状态、原闭环与CPU复核](evidence/narrow_followup.json)。原400+200、best/last、原始失败和所有预算均保留。下方为此前实施/启动快照，不能据此认为后台仍在运行。
-
-
-## 历史：200条初训与条件化后续（均已结束）
-
-200条完成5735更新、validation MSE .00472819，Arm .0167138rad、Hand .0957968rad、FK12.8739mm；60家族44/8/8、201尝试。早期7/7、DATA_READY=false和待扩采说明均是启动快照，不再作为操作指令。后续GPU精度修复及275条结果以上方已完成记录为准，旧deadline和失败未重置。[完整历史5604249](https://github.com/mao455/bcrl_visualTactile/blob/5604249/research_docs/STATE_DP_RESULTS.md)。
-
-## 历史：原State150 anchor等效epoch（已停止，不再续训）
-
-旧随机评估最后实际143有效/175尝试，历史2/100、全新0/43、32次动作前query拒绝；旧query拒绝不能追认真实穿透。原队列暂停。下面保留原文阶段快照和已完成端点，表中的26是早期快照，不是当前运行计数；所有旧恢复指令仅为历史。
-
-<!-- RANDOM_EVALUATION_START -->
-## 历史随机评估（已停止，保留原数值）
-
-|Cohort|Success / valid|Rate|95% Wilson CI|Contact|Grasp diagnostic|Lift|First subgoal|
-|---|---:|---:|---|---:|---:|---:|---:|
-|historical|1/26|3.8%|0.7%–18.9%|25|15|7|2|
-|train|1/22|4.5%|0.8%–21.8%|22|15|7|2|
-|validation|0/4|0.0%|0.0%–49.0%|3|0|0|0|
-|fresh|0/0|N/A|N/A|0|0|0|0|
-
-Planned valid 200; formal attempts 26; valid 26; pending 174; software missing 0; initial rejections 0; shutdown faults 0.
-Acceptance failures 0. Separate smoke attempts 6, valid 4, software missing 2.
-Contact, approach and stable grasp are diagnostics, not native success. A legal task failure remains in the denominator.
-Final-pose plus fingers-clear diagnostic (ordered native success unchanged): historical 2/26, train 2/22, validation 0/4, fresh 0/0.
-Historical observable reconstruction, not exact hidden PhysX state. Wilson intervals describe conditional binomial uncertainty; historical pool sampled without replacement.
-State: evaluating; stage: random_historical_025.
-
-固定抽样seed `20261105`，历史池360中无放回随机抽取；前100为主清单，另20仅替换动作前非法初态。全新组同样预注册100+20。不得按成功/失败替换。
-每次独立单环境Kit；未采用并行或进程内reset复用，因此不声称已验证并行等价。所有模型动作来自150 epoch checkpoint。
-运行目录：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02`。冻结源码 `100d71edbc99ff0e02d3798308838c7cffdc446d`；checkpoint SHA `339fc3ddb8f0835f34d9857a4653dfa0ee706d3ec4901bb21b9069312399a15e`。
-[机器统计与每次结果](evidence/state_dp/random_evaluation.json)。软件故障、非法初始化和任务失败分别记录；未完成时不得据此声称100+100成功率。
-
-![随机闭环阶段对比](evidence/state_dp/random_stages.png)
-带*为既有诊断定义。Native lift不是完整任务的必要条件；原400成功中只有153条触发该抬升阈值。
-
-|类别|seed|结果|视频|
-|---|---:|---|---|
-|train|18028639|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_000/attempt_1/output/r931005_1793209376_e00_p000134/rollout.mp4)|
-|train|15408401|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_001/attempt_1/output/r931005_1793209376_e03_p000164/rollout.mp4)|
-|validation|16773667|timeout|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_002/attempt_1/output/r931005_1793209376_e00_p000162/rollout.mp4)|
-|train|18633221|fall|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_003/attempt_1/output/r931005_1793209376_e03_p000083/rollout.mp4)|
-|train|20495772|完整成功|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/state_random_20261105_02/stages/random_historical_016/attempt_1/output/r931005_1793209376_e01_p000004/rollout.mp4)|
-<!-- RANDOM_EVALUATION_END -->
-|模型|初态用途|成功/有效|接触诊断|原生抬升|首子目标|超时|
-|---|---|---:|---:|---:|---:|---:|
-|StateDP 10000|train|0/4|4|1|0|2|
-|StateDP 20918|train|0/4|4|2|0|2|
-|StateDP 10000|validation|0/4|3|0|0|4|
-|StateDP 16584 (100 epoch)|validation|0/4|4|0|0|4|
-|StateDP 20918|validation|0/4|4|0|0|4|
-
-计划8初态，实际启动8，有效8，软件缺失0，验收失败0，待执行/待获得有效结果0。最多9次启动。训练初态只作拟合诊断，不并入validation或test。原StateDP/ImageDP正式0/12不变，Image未新训。
-原生环境没有离散稳定抓持判据，保持N/A；contact是已有力诊断，不作为稳定抓取。异常关闭与任务失败分开；SDK fast exit不称完整正常关闭。
-
-![阶段对比](evidence/state_dp/stages.png)
-
-|seed|cohort|首次5mm连续3tick偏离：旧/新|专家接触tick|终止|视频|
-|---|---|---|---:|---|---|
-|984101|validation|3 / 3|68|{'fall': False, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': True}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_04/attempt_1/output/r931005_1793209376_e00_p000055/rollout.mp4)|
-|984102|validation|6 / 5|43|{'fall': False, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': True}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_05/attempt_1/output/r931005_1793209376_e00_p000057/rollout.mp4)|
-|984103|validation|7 / 7|46|{'fall': False, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': True}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_06/attempt_1/output/r931005_1793209376_e00_p000067/rollout.mp4)|
-|984104|validation|4 / 5|65|{'fall': False, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': True}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_07/attempt_1/output/r931005_1793209376_e00_p000121/rollout.mp4)|
-|982401|train|9 / 10|51|{'fall': True, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': False}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_00/attempt_1/output/r931005_1793209376_e00_p000000/rollout.mp4)|
-|982402|train|3 / 9|63|{'fall': False, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': True}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_01/attempt_1/output/r931005_1793209376_e03_p000159/rollout.mp4)|
-|982403|train|10 / 10|55|{'fall': True, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': False}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_02/attempt_1/output/r931005_1793209376_e02_p000059/rollout.mp4)|
-|982404|train|6 / 16|88|{'fall': False, 'max_successes': False, 'hand_far': False, 'dropped': False, 'timeout': True}|[本地视频](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_03/attempt_1/output/r931005_1793209376_e01_p000153/rollout.mp4)|
-
-![训练曲线](evidence/state_dp/training.png)
-
-历史曲线固定train16 / validation40，EMA、H24执行前12。以下端点重算使用完整train320 / validation40，三个checkpoint、归一化、DDIM16/eta0/clipFalse seed7091、loss noise8091和辅助权重相同。Train总loss与Validation总loss可比较；它们不是完整任务成功率。
-
-|更新|anchor等效epoch|cohort|总loss|Arm rad|Hand rad|FK mm|delta Arm rad/tick|动作方向cos|幅值比|
-|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|
-|10000|24.0407|train|0.002942336|0.0115009|0.0538956|9.529|0.00842606|0.24291|3.2354|
-|10000|24.0407|validation|0.009609138|0.0206615|0.111931|17.048|0.0100987|0.19904|3.5739|
-|16584|100.0054|train|0.0002465709|0.00374974|0.0139912|3.032|0.00407255|0.49558|1.7937|
-|16584|100.0054|validation|0.01833578|0.0193283|0.107983|16.47|0.00795393|0.32671|2.4888|
-|20918|150.0101|train|0.0001122768|0.00237603|0.00955311|1.9572|0.00295834|0.62639|1.4595|
-|20918|150.0101|validation|0.01997827|0.0192881|0.107426|16.366|0.00753911|0.38577|2.2159|
-
-![统一端点对比](evidence/state_dp/endpoints.png)
-
-|更新|cohort|时段|Arm rad|增量rad/tick|hold基线rad|方向cos|幅值比|FK mm|EE积分误差mm·s|
-|---:|---|---|---:|---:|---:|---:|---:|---:|---:|
-|10000|train|first12|0.011485|0.008143|0.016772|0.2415|3.2141|9.2229|1.631|
-|10000|train|first24|0.011462|0.0081986|0.032048|0.25797|3.1826|9.4507|3.3509|
-|10000|train|precontact|0.010786|0.0078554|0.10856|0.27742|3.217|8.7933|8.8194|
-|10000|validation|first12|0.022148|0.0097697|0.016573|0.19484|3.6081|16.929|3.0422|
-|10000|validation|first24|0.021511|0.010134|0.031965|0.21175|3.6725|18.104|6.4905|
-|10000|validation|precontact|0.020811|0.0095031|0.10498|0.22691|3.6306|17.344|18.129|
-|16584|train|first12|0.0034571|0.0038893|0.016772|0.5193|1.7715|2.6568|0.46054|
-|16584|train|first24|0.0033563|0.0037531|0.032048|0.53838|1.727|2.5955|0.90188|
-|16584|train|precontact|0.0034564|0.003579|0.10856|0.54823|1.7255|2.7133|2.6789|
-|16584|validation|first12|0.020542|0.0070677|0.016573|0.33471|2.3543|16.162|2.8797|
-|16584|validation|first24|0.019578|0.007649|0.031965|0.35906|2.4392|17.63|6.3289|
-|16584|validation|precontact|0.018803|0.0070801|0.10498|0.37172|2.4516|16.657|17.413|
-|20918|train|first12|0.0021967|0.0027915|0.016772|0.65286|1.4398|1.7269|0.29993|
-|20918|train|first24|0.002112|0.0026837|0.032048|0.67177|1.4138|1.6716|0.58237|
-|20918|train|precontact|0.002147|0.0025372|0.10856|0.67881|1.4093|1.724|1.6957|
-|20918|validation|first12|0.02026|0.0065016|0.016573|0.39595|2.061|15.953|2.8267|
-|20918|validation|first24|0.019372|0.0071099|0.031965|0.42556|2.1374|17.537|6.2629|
-|20918|validation|precontact|0.018709|0.0066362|0.10498|0.43029|2.1786|16.492|17.203|
-
-逐关节位置/增量误差、末端方向/幅值、静态tick数量、Train/Validation gap及checkpoint SHA见[端点数值](evidence/state_dp/offline.json)。运动方向只排除专家增量≤1e-6rad或1e-6m的tick；这些tick仍计入RMSE。幅值和cos按episode宏平均，不把微小分母比值池化成任务成功。
-原400记录缺少物体过滤的接触力，离线precontact使用现有任一指尖子步力>0.1N的首次诊断事件；闭环专家接触沿用物体过滤力连续3tick的既有定义。二者不混用，不称稳定抓持。
-分析使用专家历史观测，明确为teacher-forced离线诊断；闭环始终为模型自主动作，没有专家接管、平滑或控制器修改。
-评估source commit `23d250801a4d14433912dfc897529f8eec5a4c38`；运行目录 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01`。训练150 epoch后保持证据审查暂停；本次不会自动增加至200–300或启动Image训练。
-
-清理及回归结果见 [CLEANUP_AUDIT.md](CLEANUP_AUDIT.md)。仍在使用的旧目录缓存与checkpoint不按日期删除。
-
-![代表轨迹](evidence/state_dp/representative.png)
-
-## 150 epoch后的实测决策
-
-100→150端点validation selection MSE相对改善1.008%；Train总loss比值0.4554，Validation总loss比值1.0896。训练拟合初态成功0/4、验证成功0/4；两组分开，不声称统计显著。
-
-训练320首12tick：Arm位置RMSE 0.00345709→0.00219669 rad，增量RMSE 0.00388927→0.00279153 rad/tick；静止保持基线0.0167716 rad，专家增量RMS 0.00242323 rad/tick。末端误差2.6568→1.7269 mm，累积误差0.46054→0.29993 mm·s。这些量用于区分静态位置拟合与小幅连续运动，不能只看全局RMSE。
-
-验证40首12tick：Arm位置RMSE 0.0205416→0.0202595 rad，增量RMSE 0.00706771→0.00650157 rad/tick；静止保持基线0.0165734 rad，专家增量RMS 0.00241305 rad/tick。末端误差16.1624→15.9528 mm，累积误差2.8797→2.8267 mm·s。这些量用于区分静态位置拟合与小幅连续运动，不能只看全局RMSE。
-
-150端点Validation−Train gap：Arm 0.016912 rad，Hand 0.0978733 rad，FK 14.409 mm。训练loss继续下降而验证总loss未同步改善，支持当前泛化/监督到闭环之间存在瓶颈；不等于证明优化已完全收敛。
-
-当前证据支持停止单纯增加到200–300的训练量，保留150及最佳完整checkpoint。小样本闭环和当前验证曲线尚未支持继续消耗预算；Image保持未续训，也未绕过严格live输入配对问题。网络/损失不自动修改。下一步最有价值的是针对首12tick小幅动作、累计末端偏差与稳定接触做固定初态的有界因果比较，优先验证观测分布与动作精度，而不是再从头训练两个模型。
-
-训练初态仅恢复记录中的可观察初态与已导出状态，不能声称恢复原四lane的全部PhysX隐藏状态。清理和实际回归见[CLEANUP_AUDIT](CLEANUP_AUDIT.md)。
-
-## 失败机制的证据边界
-
-验证首12tick的Arm位置误差比静止保持基线还高22.2%；动作增量误差为专家增量RMS的2.69倍，方向cos=0.396、幅值比=2.061。因此不能把较低的全程绝对位置RMSE解释为已经学会精确小幅连续运动，也不能简单称模型只输出静止动作。训练集首12tick方向和幅值确有改善，验证差距仍大。
-
-150验证初态首次持续5mm偏离tick为[3, 5, 7, 5]，均早于专家接触及首次tick12重规划。单独消除重规划边界跳变不能解释最早偏离。
-
-|验证4公共专家前缀，episode宏平均，rad|原10000|150 epoch|配对专家|
-|---|---:|---:|---:|
-|Arm边界跳变RMS|0.021266|0.026789|0.002395|
-|Hand边界跳变RMS|0.066777|0.075873|0.036969|
-|Hand目标/实际跟踪RMS|0.059260|0.059731|0.103277|
-
-成功专家的手指跟踪RMS本身更大，不能把目标/实际差直接称执行接口bug；边界跳变仍高于专家，但这里只是相关性证据。现有证据较强地支持训练/验证差距与接触前动作精度问题；闭环分布偏移、手指接触失稳的因果权重仍未分离。下一轮先保持checkpoint、网络、loss与控制不变，针对同一首12tick的实际在线观测和专家观测作输入差异归因，确认误差来源后再安排单因素有界对照。当前没有证据要求立即改网络或重新训练。
-
-## 整理后的执行验收（此前结果保留）
-
-此前未通过；本轮新版本验收见后文。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。 这是模型性能评估完成之后发生的独立验收，不解释或改变原8次闭环失败。
-
-8次正式闭环的整卡时间加权GPU均值19.03%，最大完整60秒均值32.84%，遥测缺失0；这是该闭环窗口的实测，不覆盖历史训练/其他会话。
-
-## 原生成功与终止机制逐tick审核
-
-**关键补充：用户看到的982402视频确实达到过严格终点几何与撤手条件，但前置阶段未通过，因此原生任务没有终止。** 最终插入位姿最小关键点误差1.022mm；tick168–186连续19tick（约0.317s）同时满足最终7.5mm阈值和指尖平均距离>0.1m，最近时指尖平均距离0.1211m。原生预插入计数只有5/10，始终未切换到最终目标、未进入retract_phase。该现象是顺序阶段门控阻止终点终止，**不是flag计算晚一tick，也不是纯粹视觉错觉**。
-
-额外终点诊断为train **1/4**；严格原生完整任务仍为 **0/4**。其余三条距最终位姿最小关键点误差52.05、63.37、279.77mm。按最终几何直接终止会取消原生前置子目标要求，属于任务定义变更，不能作为保持原判据的bug修复悄悄启用。本轮保留原生指标，并单列这类“终点成立但顺序未完成”诊断；未将其混成完整成功。用户已明确确认本口径，适用于全部历史100与全新100。若后续改为装配终态验收，应显式发布新判定合同，同时保留原生计数进行配对对照。
-
-![前置阶段门控与终点几何](evidence/state_dp/success_gate_trace.png)
-
-[对应原视频，约2.80–3.10秒](/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/stages/state_interim_01/attempt_1/output/r931005_1793209376_e03_p000159/rollout.mp4)。
-
-**PASS：未发现这4条训练轨迹的完整成功漏判；原0/4统计保持。** 独立用记录的物体/目标四个关键点、指尖位置及真实配置重建状态机；关键点距离与记录最大差6.15e-8m。目标在子目标完成的同一tick会切换，所以必须用动作前的goal与动作后的object计算，不能误用已经更新的下一目标。400条原生成功专家也全部通过，重建子目标与完整成功逐tick一致，首次完整成功=正式终止，额外动作0。
-
-|原train视频seed|最小关键点最大误差mm|首子目标合格tick累计|首子目标/完整成功|终止tick|
-|---|---:|---:|---|---:|
-|982401|12.944|7/10|均未达到|390，fall|
-|982402|7.974|5/10|均未达到|601，timeout|
-|982403|39.154|0/10|均未达到|528，fall|
-|982404|285.368|0/10|均未达到|601，timeout|
-
-原生配置为`preInsertAndFinal`两个顺序子目标。每个要求四关键点中的最大误差≤0.01×1.5=**15mm**，累计10个合格60Hz控制tick（`force_consecutive_near_goal_steps=False`，不是连续10tick）。达到后计数加一并切换目标、重置该阶段计时。两个插入目标完成后，仍要求关键点最大误差≤0.005×1.5=**7.5mm**且五个指尖到物体中心的平均距离>**0.1m**，才完成撤手并产生完整成功。无额外接触力或稳定抓持硬条件；指尖距离不是接触判据，也不能将插入过程中的接触/抬升当成功。
-
-原任务每次先推进两次120Hz物理步，再增加60Hz控制tick、计算`_get_dones`、奖励，然后自动reset及更新观测。子目标`_is_success`与完整成功`max_successes`不同；reward不是terminated。完整成功、fall、hand_far、启用时的dropped触发terminated，阶段计时超限触发truncated。研究wrapper在自动reset前保存终止原因和状态，runner在同次step返回后停止，未发现flag晚一tick。每个子目标的累计10tick是定义本身；物理子步之间短暂接近不等于已满足完整条件。现有601tick超时约10.0167秒，保持原生数值行为。
-
-本轮没有修改原生阈值、奖励或任务逻辑。仅增加明确的`first_success_tick`、`termination_tick`、`post_success_actions`及检查；若原生完整成功与terminated矛盾，记录软件错误并禁止下一动作。索引统一为1起始的已完成控制tick。原记录未被重写或重新计数。
-
-## 专家3秒动作与控制频率
-
-400条成功记录共有81894个控制tick。完成时间按原`control_dt=0.01666666666s`计算，与墙钟运行速度无关：均值**3.412s**、中位**3.267s**、P05/P95 **2.350/4.834s**、P99 **6.294s**、范围1.983–8.983s。因此“约3秒”确实是仿真物理时间。
-
-|事件绝对仿真时刻|可观测条数|均值s|中位s|P95 s|
-|---|---:|---:|---:|---:|
-|首次指尖力>0.1N诊断|400|1.127|1.117|1.901|
-|原生lift标志|153|2.147|2.033|3.237|
-|首子目标|400|2.692|2.633|3.652|
-|两个插入目标完成|400|3.411|3.267|4.834|
-|完整成功|400|3.412|3.267|4.834|
-
-原400只有未按物体过滤的指尖接触力，接触事件可能含桌面；不可据此精确划分稳定抓持起点。原生lift是物体相对初始升高约10cm的奖励标志，不是成功的必要条件，247条完整成功未触发该标志。388/400在最终插入目标完成的同一tick满足完整成功，剩余12条随后撤手；不得把以上指标画成必然单调的阶段漏斗。
-
-|绝对值，所有episode/关节/tick合并|Arm 中位/P95/最大|Hand 中位/P95/最大|
-|---|---|---|
-|实际速度rad/s|0.129 / 0.220 / 13.366|0.254 / 4.184 / 17.447|
-|控制tick差分加速度rad/s²|0.598 / 4.206 / 1310.401|3.825 / 89.067 / 1216.158|
-|目标变化率rad/s|0.150 / 0.150 / 0.150|0.239 / 5.489 / 11.654|
-|目标/实际跟踪误差rad|0.00608 / 0.01874 / 0.17002|0.01168 / 0.23030 / 1.19739|
-
-典型arm目标速度有限，不能将3秒直接解释为整段不现实高速动作；但存在值得调查的短时动力学尖峰。例如`r931005_1793209376_e01_p000171`第72tick的joint7速度从−8.474变到+13.366rad/s，而目标只改变−0.0025rad；`e03_p000004`第39tick ring_PIP速度17.447rad/s，目标近乎不变。它们是实际速度/接触求解器响应尖峰，不是同样幅度的专家目标跳变；还不能仅凭速度读数证明真实硬件可执行。
-
-原URDF arm速度限制10rad/s、effort300Nm；手指速度约11.62–35.07rad/s、effort0.189–3.3Nm。部分瞬时实际速度超过相应URDF数值，不能把URDF配置当作运行期严格无超调保证。名义arm stiffness为600/600/500/400/200/200/200，damping约9.15–27.03；hand stiffness0.9–13.2、damping约0.028–0.408，逐关节值见机器证据。原400缺少完整逐tick执行器力矩测量；新增记录的是SDK隐式执行器报告的effort估计，不冒充独立力矩传感器。指尖合力P95/P99/最大14.56/22.89/313.58N，未按物体过滤，尖峰原因需结合具体接触。
-
-专家和学生均为120Hz物理/60Hz目标执行，PD、碰撞、质量/摩擦及原生DR配置保持。专家每16.67ms重新输出native命令，并经过其原delay/EMA；DP每tick更新GRU，但每12tick才重规划一次，因此chunk内新接触反馈最多约11个tick（183ms；一般边界描述为<200ms）才影响新规划。StateDP不直接读取接触力；接触影响通过关节/物体状态反馈，不能称它每200ms读取一次触觉。当前DP直接提交已处理的29D位置目标，不重复加入专家delay/EMA。墙钟推理时间和资源等待不会推进模拟时间，不能当作额外仿真控制延迟。
-
-200ms覆盖10tick子目标累计窗口，且hand动作/接触可在更短时间变化，因此有理由在本轮完成后设计**同checkpoint、同初态、同DDIM噪声规则、仅commit12→6**的配对诊断；再以同一输出预算检查推理开销和历史因果性。当前并未运行或启用该消融；H24、执行12及baseline不变。现有最早偏离常发生于首12tick，增频也未必能修复初始预测误差。
-
-完整逐轨迹审核及分位数：[success_timing_audit.json](evidence/state_dp/success_timing_audit.json)。
-
-## 本轮基础设施边界与训练决策
-
-此前修复后FileThread SIGABRT的进程RSS最后一次采样约4.38GiB，日志首行同时出现`LLVM ERROR: out of memory`；当时主机仍有约33GiB可用RAM，service MemoryMax18GiB，256个inotify探针通过。现有证据不能把它归因为真实RAM总量耗尽或inotify耗尽。[IsaacLab公开同类报告](https://github.com/isaac-sim/IsaacLab/issues/429)也记录了有空闲RAM时的LLVM报错，但不是本机根因证明。本轮仅采用新的私有缓存及失败系统调用记录，不修改驱动/SDK。SDK生命周期与关闭行为参照[官方5.1文档](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/python_scripting/manual_standalone_python.html)；持久结果后进程隔离回收不冒充完整SDK优雅关闭。
-
-本轮前身`state_random_20261105_01`两次软件故障分别为：601tick运行后结果提交缺少distribution函数（已恢复原函数），以及OmniClient TickThread/FileThread场景前SIGSEGV。两次均保留，不计有效任务分母。第二次256watch探针全通过、系统调用无ENOMEM/ENOSPC；不支持将它们统一归因于资源耗尽。替代版本停止ctypes预加载与未公开test setter，交还Kit自身OmniClient初始化；这是有具体证据的受控初始化修正，不是全部历史崩溃根因已证实。官方生命周期参考：[OmniClient初始化API](https://docs.omniverse.nvidia.com/kit/docs/client_library/2.72.0/api/group__startup.html)。
-
-**新版本4条完整smoke验收通过，正式200已开始。** State历史验证601tick、历史训练200tick、原生专家145tick成功、全新初态601tick；视频全解码、数值有限、独立成功重构、初态/GRU及动力学合同、OS进程资源回收均通过。专家首次完整成功=终止=145tick，额外动作0；模型第一plan与清理前最大差7.28e-7rad，可观察初态724项一致。首次smoke附带strace，不能把其墙钟延迟当作无诊断开销的推理速度。
-
-运行根`state_random_20261105_02`冻结源码`100d71e`，保持原绝对截止时间和总启动预算。35项针对性CPU回归通过，真实Kit验收由上述4次完整运行证明；不是三次SDK优雅退出门控。正式逐条计数、95%区间和视频见顶部实时区。软件失败、初态拒绝、任务失败分别记录；未完成不得声称取得100+100结果。历史初态属于可观察状态重建，缺失的原始四lane PhysX内部状态仍未恢复。
-
-独立CPU交付脚本将在评估owner退出后根据实际200条或具体阻塞状态生成失败分类和训练建议，并推送审核范围内的代码外轻量结果。发布要求锁定feature HEAD、人工正文不变和暂存区无他人工作；不上传权重、视频或原始轨迹。正式队列与交付服务均不依赖Codex对话存活。
-
-是否启动Image等待全新随机100的实际证据：若未见初态有约10%真实完整成功，可建议进入Image baseline，不要求60–80%；严格live Image输入配对仍须先解决。仅train成功不得称泛化，近零成功则按新队列失败分布定位；本轮不自动重训或改网络/损失。
+当前主入口：[README](README.md)；固定规则：[CONTRACTS](CONTRACTS.md)；历史失败分母：[RESEARCH_HISTORY](RESEARCH_HISTORY.md)。

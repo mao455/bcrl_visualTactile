@@ -1,20 +1,25 @@
-# 已结束研究阶段：精简证据索引
+# 已结束阶段的精简结果与失败分母
 
-以下是历史结果，不是当前待执行队列。旧代码与完整报告留在[清理前Git版本48a3516](https://github.com/mao455/bcrl_visualTactile/tree/48a3516/research_docs)。按2026-11-05明确授权，已淘汰的模型、冗余缓存和大批原始诊断载荷允许删除；原始400、当前依赖与必要证据保留。
+历史完整代码/文档由Git642f5a2及之前提交追溯。本表没有待执行队列；原始失败分母不因清理视频、缓存或废弃权重改变。机器证据仍在research_docs/evidence与本地run结果JSON。
 
-|阶段|关键条件与实测|结论边界/旧报告|
+|阶段|实际结果|边界|
 |---|---|---|
-|400示范采集|400自然成功，固定320/40/40，三视角448×252 RGB-D，原120/60Hz|不等于学生能力；原始数据全部保留；NIGHT_COLLECTION|
-|B0/B1 command基线|各50 epochs，validation选epoch49；50配对合法初态，各0/50，全部601tick timeout，无首子目标|没有触觉收益证据；BASELINE_TRAINING|
-|独立Correction|B/C各5 epochs；12分配启动，11有效timeout，1切换验收中断；自主各0/2|局部roll-in与自主分列，未建立RL/触觉因果收益；CORRECTION_TRAINING|
-|H64长时策略|G00/G10各40遍33280updates，各0/3；一条lift后fall|低离线误差未转化完整成功；LONG_HORIZON_20261030|
-|Loss A/B与Transformer correction|四DP线各9984新增updates；两个correction各3730；六组各0/3诊断|Loss B轻微离线改善，masked也有改善；不能宣称触觉收益；DP_LOSS_AND_TRANSFORMER_RESIDUAL_20261031|
-|历史T0/控制回放|历史四laneobservable可恢复但物理不精确；fresh seed17专家与native-request replay均220步成功，比较字段逐字节相同|不可把历史T0失败直接解释为泛化差；T0_REPLAY_AND_DP_CONTROL_FIX|
-|绝对29D位置接口|专家target独立回放2/2成功，168/153ticks，14类字段逐值一致，执行器误差0|通过DP同一位置接口，不用原生RL command回放冒充；保留foundation证据|
-|State/Image最终10000|原冻结train4+validation8各0/12；State接触10、lift1，Image接触5、lift0；软件错误另计|完整成功率均0%，contact不等于稳定抓持；EVALUATION历史记录|
-|抓取失败诊断|24/24在专家接触前偏离，22/24在首次replan12前；Image live严格配对未通过|单纯边界平滑不是已证实根因；保留GRASP_FAILURE_DIAGNOSIS与简明数值|
-|State100 anchor等效epoch|16584；validation4 0/4成功、4/4contact、0lift/子目标；偏离ticks3/5/7/5|与旧同4初态0/4、3/4contact比较，无实质任务进展；保留interim数值与必要视频|
+|原400正式专家数据|400自然成功，原320/40/40划分|全部源文件保留；不是学生成功|
+|B0/B1 command基线|各50 epochs，validation选49；各0/50合法评估|100条全部601tick timeout，无首子目标|
+|独立Correction|12分配启动，11有效timeout，1切换验收中断；自主各0/2|roll-in与自主不混池，无触觉因果收益|
+|H64长时DP|G00/G10各33280更新，各0/3|一条lift后fall，未完整成功|
+|DP Loss A/B与Transformer Correction|四DP各9984续训更新、两Correction各3730；六组各0/3|离线改善不等于任务改善|
+|T0历史回放|历史四lane内部状态不完整；fresh seed17专家与native-request replay均220步成功且比较字段相同|不能把历史开环失败解释为学生泛化差|
+|29D处理后目标接口|此前独立专家target回放2/2成功，执行器误差0|新数据准入不要求历史开环100%成功|
+|State/Image10000|原train4+validation8各0/12|离线拟合与接触不等于完整任务成功|
+|宽分布State20918随机队列|175尝试、143有效；历史2/100、新初态0/43、32动作前query拒绝|已停止，拒绝不能追认真实穿透；保留有成功模型完整状态|
+|窄域200数据|201采集尝试、200成功、1任务失败；两固定RGB空白，完整三模态0/200|200源文件只读，不补图|
+|State200|5735更新；train0/4、新初态0/10合法，另2初态拒绝|4观看复跑全失败不加入正式分母；另一次FP32开发复核1/2不代表稳定性能|
+|新增75数据|76采集尝试、75成功、1任务失败；75完整三视角有效|合并275仅State数值有效275，三视角75；275/277是筛选后采集频率|
+|State275|5000更新，best4500；train0/4、新初态0/10合法，另2初态拒绝|未建立任务改善|
+|机制诊断|15starts；native2/2，target replay1/2，recorded-slow0/1删失；tiny800更新闭环0/2；C0/C4各0/4|边界跳变减小不证明任务收益；tiny多窗口/overlap4非正式默认|
+|275可信度审计|275条64663tick；State/触觉275、三视角75；原速专家15/15、来源慢速8/9，60/60物理启动|实测配对时长中位1.231倍；不是本轮1.5–3慢速集|
 
-Kit的ENOSPC、启动FileThread SIGABRT和关闭SIGSEGV分别记录。当前独立worker隔离与有限恢复不是修好共享SDK或证明graceful shutdown；未改共享SDK。旧资源违规仍成立：部分历史session完整60s整卡均值超过50%，不能用新窗口或删除大日志抹去。各历史报告原文、SHA和精简证据可由Git链接与本地maintenance/history_retention.json追溯。
+历史资源超限保留：部分session完整60s整卡均值超过50%；旧遥测间隙不改写。FileThread启动SIGABRT、SDK退出故障和真实任务失败分别记录。不以清理载荷删除失败历史，也不从旧“当前运行”段落推断今天的状态。
 
-当前150评估结果仅见[统一结果](STATE_DP_RESULTS.md)，不从旧状态文本推断进度。后续不自动扩展训练或试验。
+当前只看[合同](CONTRACTS.md)、[结果](STATE_DP_RESULTS.md)与[入口](README.md)。

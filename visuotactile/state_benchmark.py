@@ -139,7 +139,8 @@ def prepare(env, isolated, spec, source, output):
 
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
-          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None):
+          inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
+          capture_compression='lzf'):
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     output.mkdir(parents=True, exist_ok=False)
@@ -184,7 +185,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
     stream=None
     if capture_dataset:
         from .recording import CompactEpisodeStream,flatten,numpy_tree,verify_stream_fields
-        stream=CompactEpisodeStream(output/'demonstration',metadata,spec['identity'])
+        stream=CompactEpisodeStream(output/'demonstration',metadata,spec['identity'],compression=capture_compression)
         stream.group.attrs['action_source']='recorded_position_retime' if expert_speed and expert_speed['kind']=='recorded_retime' else 'frozen_expert_slow_execution'
     movie = RolloutVideo(output/'rollout.mp4', 'expert' if saved is None else saved.get('kind', 'oldState'),
         spec['seed'], 0, CAMERAS) if video else None

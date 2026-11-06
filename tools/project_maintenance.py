@@ -95,6 +95,11 @@ def restricted_system_process(pid):
     """These nondumpable session daemons cannot be experiment workers; document them."""
     p=Path('/proc')/str(pid)
     try:
+        # Linux has released an exited task's file table before it becomes a
+        # zombie. Renderer helper zombies can have unreadable /proc/PID/fd; they
+        # cannot retain an open artifact. Do not exempt live helper processes.
+        state=(p/'stat').read_text().rsplit(')',1)[1].split()[0]
+        if state=='Z':return dict(pid=pid,reason='Kernel-confirmed exited zombie; file table released')
         command=(p/'cmdline').read_bytes().replace(b'\0',b' ').decode().strip()
         group=(p/'cgroup').read_text().strip();name=(p/'comm').read_text().strip()
         accepted=(group.endswith('/init.scope') and name in ('systemd','(sd-pam)') and

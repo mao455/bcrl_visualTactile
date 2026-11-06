@@ -1,43 +1,21 @@
-# 清理与回归验收
+# 本轮实际清理与清理后检查
 
-## 2026-11-06 最终收尾
+当前run `tight_state_20261107_01`。以下只计本轮，历史126.673GiB及其他清理不重复累计。全部删除前检查已完成run、依赖、原始保护目录、同UID打开句柄、inode/mtime/size与必要SHA；不建巨型备份、不删除未知partial。
 
-`narrow_repair_20261106_01`于15:19:38结束后，CPU读回正式best4500/last5000、验证部署hash及原400+200保护清单。新增75条成功、1条真实失败、全部正式模型/缓存/视频均保留；6条最终三视角视频有全帧解码记录，当前文件SHA已记录。无新增CUDA初始化或GPU任务。
+|ledger|实际文件数|释放分配bytes|内容|
+|---|---:|---:|---|
+|cleanup_runtime_ledger.json|5409|9,021,136,896|两个已结束旧run的私有Kit临时文件；未知symlink保留|
+|cleanup_unused_ledger.json|491|9,631,641,600|400个退休DINO特征cache＋91个已失败观看视频；不是400个模型|
+|cleanup_checkpoint_ledger.json|3|3,459,284,992|tiny失败模型best/last及旧275非选中last；best4500保留|
+|cleanup_diagnostic_ledger.json|2|2,306,113,536|本轮一次性GPU验收checkpoint；完整恢复receipt和失败诊断保留|
+|合计|5905|24,418,177,024|22.741199GiB，按最后硬链接的allocated blocks计数|
 
-仅删除本轮`startup_gpu/last.pt`与`disposable_gpu/last.pt`：均为1步一次性smoke、完整恢复验收通过、正式更新0，已确认正式模型不依赖它们且无打开句柄。实际释放2,306,195,456分配bytes（约2.148GiB），与下方此前1.074GiB分开记录。每个文件的inode/大小/SHA、删除前审查和完成状态保留在现有cleanup_ledger；未知或失败证据不删除。
+账本和每文件删除journal保存在当前root。91条失败视频对应的精简结果、seed、真实分母、终止原因、numeric trace和模型SHA保留于retained_failure_table.json与原结果JSON。旧checkpoint配置/SHA/计数在retired_checkpoint_metadata.json；有成功历史模型与复现配置保留。当前没有正式模型，因而没有可合并的本轮last/best；一次性诊断不冒称正式权重。
 
-## 2026-11-06 本轮修复清理
+源码删除tools/narrow_video_export.py、tools/narrow_videos.py；重复结果文档SLOW_EXPERT_RESULTS.md、GRASP_FAILURE_DIAGNOSIS.md合并入当前结果/历史表。旧全文仍在Git642f5a2，不重写共享历史。其他schema/环境/初始化附录改为当前解释，清除旧阶段待办和冲突授权。
 
-核查引用、原run完成状态、一次性GPU恢复验收receipt、checkpoint更新数及同UID打开文件后，仅删除原narrow_state_20261105_02/disposable_gpu/last.pt（1次可丢弃更新，正式更新0）。原best/last、全部400+200、有效缓存、专家/资产、初态和失败/partial证据保留。本次释放1,153,085,440bytes（约1.074GiB）。精确字节与SHA见新run cleanup.json/cleanup_ledger.json；不按日期/通配符删除目录，不将以前清理重复计数。后续正式模型和新数据仍保护。
+清理后检查：原400全部payload SHA及现275全部payload SHA通过；专家和123个原生Python源码SHA未变；独立入口、坏输入拒绝、自动阶段分支、SIGTERM清理、Markdown链接及依赖检查见机器证据。历史best4500真实model/EMA/optimizer/schedule RNG的CPU读回通过，0优化更新。新随机诊断的完整GPU恢复及下一随机计算通过后，才删除其一次性权重。正式训练/学生闭环没有运行，不宣称这些阶段完成。
 
+首次清理因不可读renderer zombie句柄目录被拒绝，尚未删除文件；仅增加Linux确认Z状态的已退出进程豁免后执行。活进程不豁免，真实zombie/live回归已覆盖。没有对外部进程发信号。
 
-## 2026-11-06 后续准备
-
-新代码仅在隔离worktree修改，原训练/采集源码、200条和原400数据、best/last与原失败证据只读。新扩充manifest引用原200路径，不复制18GB数据；需要合并训练统计的numeric cache属于有效依赖。新正式checkpoint与可能续训的完整状态均保留，尚无可确认废弃的新模型可删，本次释放0bytes。原启动阶段2.148GiB及更早126.673GiB不重复计入。
-
-## 2026-11-05当前清理
-
-已删除旧窄域一次性CPU smoke及本轮已验收GPU smoke checkpoint共2份，实际释放2306101248分配字节（2.148GiB）。旧ledger保存路径、inode、大小、SHA和完成的smoke引用。重新核实同UID句柄，当前不可读者均为已识别的systemd/sd-pam/ssh-agent session daemon；没有跳过全部清理，也没有强删未知占用文件。原400、专家、隔离轨迹、仍引用的checkpoint/cache及未知文件保留。
-
-当前46项相关CPU回归通过。新物理/训练验收结果另见SLOW_EXPERT_RESULTS，不能由CPU测试推出。
-
-## 此前清理（不重复计入本轮）
-
-
-实际释放 **126.673 GiB**；删除20812文件、143模型checkpoint路径（含别名）、1922其他Torch缓存/初始状态文件。完整移除42个已淘汰实验/数据根目录，累计移除5886个空目录。硬链接只在最后一条链接移除时计算物理空间，不用逻辑大小冒充释放量。
-
-当前分支删除160个研究源码文件、26个旧方案专属测试文件、48份重复/过时Markdown。Git历史保留旧代码；不是抹去失败结论。
-
-公共checkpoint/EMA/AdamW/RNG逻辑集中至`visuotactile.checkpointing`；进程与durable JSON至`tools.runtime`；视频至`visuotactile.video`；FK/轨迹统计至`tools.trajectory_metrics`。训练由anchor_continue按job配置，独立Kit worker统一为anchor_continue_worker，报告由anchor_interim_analysis维护。
-
-实际验证：78项保留测试全部通过；真实State16584/Image10000 CPU checkpoint、EMA/AdamW/采样状态一致，20个真实条件/预测/图像张量字段逐值一致；整理后当前State和Image的实际CUDA恢复与历史合同检查通过（0优化更新）；原控制/环境源码保护，视频真实编码/完整解码，Markdown本地链接检查通过。
-整理后额外闭环验收：尚未通过。额外2次启动均未取得有效episode：首次为整理引入的ElementTree漏导入（首次模型动作前失败，已修复并通过真实资产初始化测试）；修复后的唯一补充启动在场景创建前FileThread SIGABRT（exit−6）。全部进程/GPU资源已回收，停止自动重试。两次原始日志与状态保留。 这些是代码整理验收，单独记录，不加入150 epoch的train4/validation4分母；原8次均有效、软件缺失0。
-
-保留400成功数据、当前320/40/40索引、现用numeric/DINO缓存及train统计；当前/最佳/150里程碑完整恢复状态、Image10000与本轮三阶段比较的精简数据。旧目录中的仍用缓存不能整目录清理。来源不明的data/checkpoints、小型upstream refs、未知符号链接和代表性崩溃证据保留。
-大视频、HDF5和权重留本地，不上传。必要视频与实测结果见[统一结果](STATE_DP_RESULTS.md)。原Kit关闭异常、Image live strict pairing未解决和历史资源违规均保持真实记录。
-
-源码审查commit `0af9272fd444e30a1f7149bf3a5ae7b7c8e4c089`；切入commit `d5ea4f40c5efba354c6c6065aaa0c0641289b9c9`。完整路径/大小/引用/删除理由、逐文件日志、before/after冻结SHA、CPU/CUDA结果在 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/native_dp_v2/anchor_assessment_20261105_01/maintenance`。
-
-[精简机器摘要](evidence/cleanup_summary.json) · [当前入口](README.md) · [历史结论](RESEARCH_HISTORY.md)
-
-[实际回归与两次验收失败证据](evidence/cleanup_regression.json)。State10000/16584仍作为本轮同口径对照的可复核权重保留；State150 latest/best/里程碑为同一完整状态的硬链接，未重复占用模型空间。当前Image10000是未续训的唯一有效Image基线。临时源码审查worktree已移除。
+[当前结果](STATE_DP_RESULTS.md) · [精简机器结果](evidence/tight_state_20261107.json)

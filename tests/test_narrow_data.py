@@ -12,9 +12,11 @@ def test_direct_relative_domain_preserves_variation_without_wide_reset_rejection
     center=dict(object_xyz=[-.035542,-.009880,.616962],relative_xyz=[.067669,-.024071,-.082286],
         quaternion=np.array([.153762,.896514,-.370529,.187958]))
     center['quaternion']/=np.linalg.norm(center['quaternion'])
-    rows=[direct_configuration(dict(center=center),25110000+i) for i in range(80)]
+    domain=dict(center=center,object_xy_halfwidth=[.025,.025],relative_xy_halfwidth=[.035,.035],
+        rotation_radius_degrees=20.,native_joint_lerp=.03)
+    rows=[direct_configuration(domain,25110000+i) for i in range(80)]
     for i,row in enumerate(rows):
-        assert row==direct_configuration(dict(center=center),25110000+i)
+        assert row==direct_configuration(domain,25110000+i)
         obj=np.array(row['fixed_start_pose']);hole=np.array([row['hole_x_range'][0],row['hole_y_range'][0]])
         assert np.all(abs(obj[:2]-center['object_xyz'][:2])<=.025)
         assert np.all(abs(hole-obj[:2]-center['relative_xyz'][:2])<=.035)

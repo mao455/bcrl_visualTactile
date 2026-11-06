@@ -1,18 +1,9 @@
-# 感知与数据来源
+# 当前模态与历史边界
 
-## 2026-11-06 数据模态有效性修订
+StateDP保持Actor141/robot178/geometry85，不读取RGB-D或触觉，不把仿真几何冒称视觉估计。三路RGB-D与五指触觉用于逐条数据准入；ImageDP/触觉模型本轮未训练。
 
-原400条与新200条必须区分。200条直接窄域采集的固定RGB首帧各200/200为空白，保留低维State用途，Multi-view-valid计0，不可用于完整三视角Image训练。本轮已用真实同初态A/B定位direct入口遗漏固定相机configure；修复新入口和camera_valid内容判据。首条199帧RGB-D三视角全过程验收及开头/接触中/末目视通过；后续新数据仍逐条门控。单lane持久Kit避免未验证的并行相机状态串扰，不声称多lane已验收。
+当前显式配置fixed_high、fixed_side、wrist_rgbd三路448×252 RGB-D。验收真实逐帧像素、深度/有效位、frame counter与时钟；camera_valid全True不足以放行。触觉为120Hz每控制tick两子步，首tick无效，其后观测等于上一transition末完成的两子步。
 
-[修复后三视角起/中/末预览](evidence/narrow_repair_camera.jpg)。
+原400源数据只读。旧窄域200条两固定RGB为空白，完整三模态有效数0/200，不补假图；后来75条三视角有效，但都不能仅凭模态有效进入当前1.5–3倍慢速集。本轮21条开发capture的State、三路RGB-D与触觉验收通过；慢速/任务准入是独立门控，仍未过关。
 
-以下原400说明不覆盖新200；实际后续可用集合以manifest的state_valid/multi_view_valid及视觉验收SHA为准。State/Image/触觉比较须披露不同集合或限定同一有效子集。
-
-
-当前训练使用原400自然成功记录的三视角RGB-D：fixed_high、fixed_side、wrist_rgbd，448×252，原60Hz控制/120Hz物理。记录布局、内外参、joint_order与URDF SHA由每个HDF5 metadata给出；不能把旧双相机224×126配置冒充当前数据。
-
-ImageDP每12ticks读取固定缓存的三视角DINOv2-S/14空间特征与显式depth validity，native tick持续更新历史；离线Episode reader与在线NativeDinoSpatial使用冻结revision和批量算术规则。DINO pretrained权重不训练，Image不读state privileged geometry/tactile。
-
-StateDP使用已声明的Actor141/robot178/geometry85，不声称这些几何状态来自真实视觉估计器。触觉与物体状态只按合同作数据/诊断，不暗中增加模型输入。
-
-当前合同见[CONTRACTS](CONTRACTS.md)。原有图像精度、时间和live配对证据边界见[抓取诊断](GRASP_FAILURE_DIAGNOSIS.md)；历史相机布局完整验收见[48a3516 CAMERA_VALIDATION](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/CAMERA_VALIDATION.md)。
+实际规则见[合同](CONTRACTS.md)，逐条结果见[当前结果](STATE_DP_RESULTS.md)。历史图像模型和相机布局文档留在Git642f5a2。

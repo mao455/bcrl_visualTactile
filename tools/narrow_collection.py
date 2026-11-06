@@ -145,26 +145,11 @@ def owner(root):
             status_update(root,worker_pid=None,owned_workers_exited=True)
 
 
-def environment(root,evaluation=False,*,camera_content_validation=None):
-    from visuotactile.native_evaluation import client_startup_controls,make_env
-    from visuotactile.state_resources import lease_for
-    from visuotactile.expert import create_expert
-    s=read(root/'session.json');lease=lease_for(root,deadline=s['deadline'] if evaluation else s['collection_deadline'])
-    if s.get('precision_policy') == 'unified_fp32':
-        from visuotactile.precision import state_fp32
-        write(root/'precision.json',state_fp32())
-    write(root/('eval_startup.json' if evaluation else 'startup.json'),client_startup_controls('kit_managed'))
-    with lease.block(cuda=False):
-        from isaaclab.app import AppLauncher
-        app=AppLauncher(headless=True,enable_cameras=True,device='cpu',fast_shutdown=False,kit_args=(
-            '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
-            '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
-    import isaacsimenvs
-    env=make_env(True,lease,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
-        camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation))
-    if sha(s['expert_checkpoint'])!=s['expert_sha256']:raise RuntimeError('Expert source drift')
-    with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
-    return app,env,player,lease
+def environment(root, evaluation=False, *, camera_content_validation=None):
+    # Legacy callers share the current constructor; no current entry imports a
+    # retired run/session loader from this historical pipeline.
+    from tools.tight_state import environment as current_environment
+    return current_environment(root, evaluation, camera_content_validation=camera_content_validation)
 
 
 def worker(root):
@@ -248,7 +233,10 @@ def worker(root):
             if r is None:return
             if not r['success']:raise RuntimeError('Single bounded slow endpoint adjustment failed')
     ratios=[results[f['identity']+('_cal058' if lower==.58 else '_cal065')]['steps']/results[f['identity']+'_native']['steps'] for f in pilots]
-    write(root/'calibration.json',dict(lower_alpha=lower,duration_ratios=ratios,passed=True))
+    passed=all(math.isfinite(r) and 1.5<=r<=3. for r in ratios)
+    write(root/'calibration.json',dict(lower_alpha=lower,duration_ratios=ratios,passed=passed))
+    if not passed:raise RuntimeError('Every measured slow/reference duration must be within1.5–3; alpha is not evidence')
+    raise RuntimeError('Historical mixed-speed production retired; use tools.tight_state with per-episode admission')
     if not (root/'production_plan.json').exists():
         rng=np.random.default_rng(20261106);jobs=[]
         for i,f in enumerate(families):

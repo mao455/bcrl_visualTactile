@@ -7,6 +7,24 @@ import pytest
 from tools import project_maintenance as maintenance
 
 
+def test_only_exited_zombie_is_exempt_from_unreadable_open_file_inventory():
+    import os
+    import subprocess
+    import sys
+    import time
+    assert maintenance.restricted_system_process(os.getpid()) is None
+    child=subprocess.Popen([sys.executable,'-c','import os; os._exit(0)'])
+    try:
+        deadline=time.monotonic()+2
+        while time.monotonic()<deadline:
+            state=Path('/proc',str(child.pid),'stat').read_text().rsplit(')',1)[1].split()[0]
+            if state=='Z':break
+            time.sleep(.01)
+        assert state=='Z'
+        assert 'zombie' in maintenance.restricted_system_process(child.pid)['reason']
+    finally:child.wait(timeout=2)
+
+
 def make_plan(tmp_path):
     root=tmp_path/'artifacts';root.mkdir()
     keep=root/'current.pt';keep.write_bytes(b'protected')

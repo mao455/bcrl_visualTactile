@@ -24,6 +24,21 @@ def sha(p):
     return h.hexdigest()
 
 
+def supervised_owner(function):
+    """Turn supervisor SIGTERM into a normal exception so owned cleanup runs."""
+    from functools import wraps
+    @wraps(function)
+    def wrapped(*args, **kwargs):
+        previous=signal.getsignal(signal.SIGTERM)
+        def terminate(signum, frame):
+            signal.signal(signal.SIGTERM,signal.SIG_IGN)
+            raise InterruptedError('Owner received SIGTERM; preserve evidence and stop owned workers')
+        signal.signal(signal.SIGTERM,terminate)
+        try:return function(*args, **kwargs)
+        finally:signal.signal(signal.SIGTERM,previous)
+    return wrapped
+
+
 def kill_owned(worker):
     if worker.poll() is None:
         os.killpg(worker.pid,signal.SIGTERM)

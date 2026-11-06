@@ -1,0 +1,118 @@
+{
+  "version": "tight_state_foundation_v1",
+  "reference_commit": "642f5a272e9df1c8646fde0e7d4ad456b74972e1",
+  "expert_checkpoint": "pretrained_assembly/tight_insertion/model.pth",
+  "expert_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+  "loss_weights": {
+    "position": 0.0012562150757415016,
+    "rotation": 0.05446417882965659,
+    "fingertip": 0.00019360590541844398,
+    "temporal": 0.02666911107342377
+  },
+  "precision_policy": "unified_fp32",
+  "camera_content_validation": true,
+  "domain": {
+    "center": {
+      "object_xyz": [
+        -0.03232575998365054,
+        -0.01103706849990168,
+        0.63250910599455
+      ],
+      "relative_xyz": [
+        0.07399514386507924,
+        -0.02830284561436696,
+        -0.08228570222854614
+      ],
+      "quaternion": [
+        0.12416211631086395,
+        0.8920265731875647,
+        -0.38029772696726616,
+        0.2103475944481774
+      ]
+    },
+    "object_xy_halfwidth": [
+      0.002,
+      0.002
+    ],
+    "relative_xy_halfwidth": [
+      0.003,
+      0.003
+    ],
+    "rotation_radius_degrees": 1.5723102967361697,
+    "native_joint_lerp": 0.0075,
+    "table_z_m": [
+      0.379,
+      0.381
+    ],
+    "object_height_above_table_origin_m": [
+      0.248,
+      0.252
+    ],
+    "joint_velocity_halfwidth": 0.03
+  },
+  "development": {
+    "seeds": [
+      27111001,
+      27111002,
+      27111003
+    ],
+    "alphas": [
+      0.55
+    ],
+    "minimum_duration_ratio": 1.5,
+    "maximum_duration_ratio": 3.0,
+    "maximum_phase_speed_ratio": 0.98
+  },
+  "collection": {
+    "families": 55,
+    "variations_per_family": 4,
+    "seed_start": 27120000,
+    "event_seed_start": 27130000,
+    "split_seed": 2026110701,
+    "train_families": 41,
+    "validation_families": 7,
+    "test_families": 7,
+    "minimum_accepted_families": 40,
+    "minimum_accepted_episodes": 150,
+    "maximum_attempts": 275,
+    "maximum_consecutive_task_failures": 5
+  },
+  "training": {
+    "random_seed": 2026110702,
+    "initial_anchor_epochs": 120,
+    "maximum_anchor_epochs": 200,
+    "minimum_anchor_epochs": 80,
+    "validation_interval": 500,
+    "extension_anchor_epochs": 40,
+    "plateau_relative_improvement": 0.01,
+    "plateau_validations": 4,
+    "effective_batch": 64,
+    "microbatch": 4
+  },
+  "evaluation": {
+    "train_families": 10,
+    "validation_families": 7,
+    "new_seed_start": 27140000,
+    "new_initial_attempts": 100,
+    "zero_success_stop_at": 50,
+    "initial_probe": 10,
+    "sampler_seed": 7091,
+    "overlap_steps": 0
+  },
+  "resources": {
+    "resource_policy": "shared_recent_v1",
+    "resource_target_percent": 35.0,
+    "reserve_bytes": 64424509440,
+    "maximum_hours": 36,
+    "development_hours": 3,
+    "collection_hours": 18,
+    "training_hours": 12
+  },
+  "source_protection": [
+    "outputs/visuotactile/data/close_v4/manifest.json",
+    "outputs/visuotactile/run/narrow_state_20261105_02/manifest.json",
+    "outputs/visuotactile/run/narrow_repair_20261106_01/manifest.json"
+  ],
+  "capture_compression": "gzip4_lossless_v1",
+  "development_revision": 2
+}

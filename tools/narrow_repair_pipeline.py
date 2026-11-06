@@ -35,7 +35,7 @@ def select_speed(rows):
                 if a and b and b['arm_actual_speed_rms']>1e-4:
                     speed_ratios.append(a['arm_actual_speed_rms']/b['arm_actual_speed_rms'])
                     contact_ratios.append(a['seconds']/b['seconds'])
-        if np.median(ratios)<1.35 or not speed_ratios or np.median(speed_ratios)>.95:continue
+        if not all(np.isfinite(r) and 1.5<=r<=3. for r in ratios) or not speed_ratios or np.median(speed_ratios)>.95:continue
         candidates.append(dict(interval=[low,high],successes=6,attempts=6,
             median_duration_s=float(np.median([r['duration_s'] for r in chosen])),
             median_duration_ratio=float(np.median(ratios)),median_contact_arm_speed_ratio=float(np.median(speed_ratios)),

@@ -30,22 +30,39 @@ def direct_configuration(domain, seed):
     """
     rng=np.random.default_rng(seed)
     center=domain['center']
-    table=float(rng.uniform(.376,.384))
-    xy=np.asarray(center['object_xyz'][:2])+rng.uniform(-.025,.025,2)
+    def bounds(key, default=None, size=2):
+        value=np.asarray(domain[key] if key in domain else default,dtype=float)
+        if value.shape!=(size,) or not np.isfinite(value).all():
+            raise ValueError('Missing or invalid sampling range: '+key)
+        return value
+    xy_width=bounds('object_xy_halfwidth');relative_width=bounds('relative_xy_halfwidth')
+    table_range=bounds('table_z_m',[.376,.384])
+    height_range=bounds('object_height_above_table_origin_m',[.244,.256])
+    rotation=float(domain['rotation_radius_degrees'])
+    lerp=float(domain['native_joint_lerp']);velocity=float(domain.get('joint_velocity_halfwidth',.15))
+    if (np.any(xy_width<0) or np.any(relative_width<0) or table_range[0]>table_range[1]
+        or height_range[0]>height_range[1] or not np.isfinite([rotation,lerp,velocity]).all()
+        or not 0<=rotation<=180 or not 0<=lerp<=1 or velocity<0):
+        raise ValueError('Invalid direct reset sampling bounds')
+    table=float(rng.uniform(*table_range))
+    xy=np.asarray(center['object_xyz'][:2])+rng.uniform(-xy_width,xy_width)
     relative_center=np.asarray(center['relative_xyz'][:2])
     # Sample directly inside the intersection with original hole bounds.
-    relative=rng.uniform(np.maximum(relative_center-.035,[-.1875,-.1]-xy),
-        np.minimum(relative_center+.035,[.1875,.1]-xy))
+    lower=np.maximum(relative_center-relative_width,[-.1875,-.1]-xy)
+    upper=np.minimum(relative_center+relative_width,[.1875,.1]-xy)
+    if np.any(lower>upper) or not np.all(np.abs(xy)<=.1):
+        raise ValueError('Configured domain exceeds native initial bounds')
+    relative=rng.uniform(lower,upper)
     hole=xy+relative
     axis=rng.normal(size=3);axis/=np.linalg.norm(axis)
-    theta=np.deg2rad(20)*rng.random()**(1/3)
+    theta=np.deg2rad(rotation)*rng.random()**(1/3)
     a=np.r_[np.cos(theta/2),axis*np.sin(theta/2)];b=np.asarray(center['quaternion'])
     q=np.r_[a[0]*b[0]-a[1:]@b[1:],a[0]*b[1:]+b[0]*a[1:]+np.cross(a[1:],b[1:])]
     assert np.all(np.abs(xy)<=.1) and abs(hole[0])<=.1875 and abs(hole[1])<=.1
-    return dict(fixed_start_pose=[*xy,table+.25+float(rng.uniform(-.006,.006)),*q],
+    return dict(fixed_start_pose=[*xy,table+float(rng.uniform(*height_range)),*q],
         table_reset_z=table,table_reset_z_range=0.,
-        reset_dof_pos_random_interval_arm=.03,reset_dof_pos_random_interval_fingers=.03,
-        reset_dof_vel_random_interval=.15,hole_x_range=[float(hole[0])]*2,hole_y_range=[float(hole[1])]*2)
+        reset_dof_pos_random_interval_arm=lerp,reset_dof_pos_random_interval_fingers=lerp,
+        reset_dof_vel_random_interval=velocity,hole_x_range=[float(hole[0])]*2,hole_y_range=[float(hole[1])]*2)
 
 
 def configure_direct_reset(env, configuration):
@@ -169,6 +186,11 @@ def record(path):
 
 def build_cache(root, *, partial=False):
     root=Path(root); manifest=read(root/'manifest.json')
+    current=(root/'configuration.json').exists() and read(root/'configuration.json').get('version')=='tight_state_foundation_v1'
+    if current:
+        from .tight_gate import validate_formal_manifest
+        if partial:raise ValueError('Current formal dataset cannot be frozen from a partial subset')
+        validate_formal_manifest(manifest,read(root/'configuration.json'))
     if manifest.get('quarantined') and not partial: raise ValueError('Quarantined collision admission; data cannot be marked ready')
     if not partial and not manifest['collection_finished']: raise ValueError('Collection is not finished')
     out=root/('smoke_data' if partial else 'state_data'); out.mkdir(exist_ok=True)
@@ -176,7 +198,14 @@ def build_cache(root, *, partial=False):
     for e in manifest['episodes']:
         if partial and e['split']!='train': continue
         if sha256(e['path'])!=e['sha256']:raise ValueError('Accepted capture source hash changed: '+e['id'])
-        key,meta,rec=record(e['path']); identity=e['id']; records[identity]=rec
+        if current:
+            from .camera_validity import inspect_capture
+            from .tight_gate import numeric_admission,require
+            require(inspect_capture(e['path'])['passed'],'Actual RGB-D content failed despite manifest flags')
+            key,meta,rec,actual=numeric_admission(e['path'])
+            require(actual['success'],'Formal slow capture did not complete native task')
+        else:key,meta,rec=record(e['path'])
+        identity=e['id']; records[identity]=rec
         assert meta['initial_family']==e['family'] and meta['dataset_split']==e['split'],'Capture family/split provenance mismatch'
         entries[identity]=dict(path=e['path'],episode=key,length=len(rec['time']),family=e['family'],source_sha256=e['sha256'])
         splits[e['split']].append(identity)
