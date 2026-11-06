@@ -25,6 +25,11 @@ def snapshot(root):
     for name in ('gpu_parity','camera_probe','camera_visual_review','reviewed_preaction_failure','recheck_complete','decision','speed_decision',
         'collection_counts','DATA_READY','motion_diagnosis','offline_comparison','FINAL_REPORT','cleanup'):
         if (root/(name+'.json')).exists():public[name]=read(root/(name+'.json'))
+    if (root/'reviewed_collection_resume.json').exists():
+        receipt=read(root/'reviewed_collection_resume.json')
+        public['reviewed_collection_resume']={k:v for k,v in receipt.items() if k!='input_sha256'}
+        public['reviewed_collection_resume']['verified_input_files']=len(receipt['input_sha256'])
+    public['phase_source_commits']={p.parent.name:read(p)['source_commit'] for p in (root/'phases').glob('*/budget.json')}
     if (root/'data_diagnosis.json').exists():
         public['data_diagnosis']={k:v for k,v in read(root/'data_diagnosis.json').items() if k not in ('rows','original_student_motion')}
     if (root/'camera_expert.json').exists():public['camera_acceptance']=read(root/'camera_expert.json')['visual']
@@ -55,6 +60,15 @@ def snapshot(root):
     if 'decision' in public:lines += ['','旧模型精度复核：'+str(public['decision'].get('recheck_counts',{})), '后续决定：'+public['decision']['action']+'。']
     if 'speed_decision' in public:lines += ['','真实慢速筛选：'+str(public['speed_decision'])]
     if 'collection_counts' in public:lines += ['','采集计数：'+str(public['collection_counts'])]
+    continuation=''
+    if 'reviewed_collection_resume' in public:
+        continuation=('12:35首次生产停止：第50条原速专家真实掉落，末帧物体离开侧视野；81帧RGB-D和数值合同通过。'
+            '成功示范的目标可见性检查错误地先于任务失败分类，导致少记1次尝试/掉落。复核49条成功文件哈希后，'
+            '保留原错误和计数快照，补记为50次/49成功/1任务失败，失败轨迹不入训练。'
+            '修复仅分离自然任务失败与传感器错误，成功数据门槛不变；8项CPU测试通过。'
+            '本次复核后的接续入口只运行原冻结清单剩余26条，不重跑已执行条目或门控，不重置计数、17:12采集/21:12总截止；'
+            '独立阶段reviewed_collection_completion仍只允许一次新训练。实际接续进度以上方机器状态和当前计数为准。')
+        lines+=['',continuation]
     final=public.get('FINAL_REPORT')
     if final:
         lines+=['','|模型|train完整成功|独立unseen完整成功|','|---|---:|---:|']
@@ -65,7 +79,7 @@ def snapshot(root):
     lines+=['','[轻量数值、门控与后台结果](evidence/narrow_repair.json) · [训练曲线](evidence/narrow_repair_curves.png)。原始数据、权重、视频留本地。']
     for p in DOCS:
         body='\n'.join(lines if p.endswith('STATE_DP_RESULTS.md') else [lines[0],'',lines[2],lines[3],lines[4],'',
-            '实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。'])
+            continuation,'', '实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。'])
         (CODE/p).write_text(publication.replace((CODE/p).read_text(),body))
     import matplotlib
     matplotlib.use('Agg')

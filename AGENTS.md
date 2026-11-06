@@ -5,6 +5,14 @@ existing-model diagnosis/recheck, true slow RL expert pilots, one bounded expans
 and ONE independently random-initialized StateDP. Historical no-new-run clauses
 below apply to their completed roots, not this new authorization.
 Read STATE_DP_RESULTS/CONTRACTS/SESSION_HANDOFF and actual machine status.
+Production stopped12:35 after50 captures:49 accepted successes, one native fall
+incorrectly classified as fixed-view failure after the falling object left frame.
+All81 failed-capture RGB-D frames and numeric contracts pass; failure stays out of
+training. Reviewed classification fix preserves successful-data thresholds and old
+errors/counter snapshots. continue-reviewed permits ONLY the frozen26 unexecuted
+jobs in reviewed_collection_completion; no failed-attempt replay, no gate rerun or
+budget reset. Check actual status/service narrow-repair-20261106-01-completion;
+this review receipt is not evidence that the continuation has started/completed.
 Root narrow_repair_20261106_01 has a fixed10h window including all waits;
 3h correctness gate,6h collection boundary, training<=3h and final1h reserved.
 80capture attempts,32 new families,40 student starts,<=10000 updates,50GiB output,

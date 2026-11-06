@@ -54,7 +54,33 @@ def cohort_results(rows):
         for split in ('train','unseen') for rr in [[r for r in rows if r['split']==split]]}
 
 
-def collect(root):
+def capture_classification(result, visual):
+    """Sensor correctness and natural task outcome are separate gates.
+
+    A falling object may leave a camera. Keep that failed trajectory as failure
+    evidence, never as a successful demonstration, without calling it a broken
+    sensor. Successful demonstrations retain the same target-visibility gate.
+    """
+    if not result['software_complete'] or not result['legal']:
+        raise RuntimeError('Incomplete capture or initial rejection requires review')
+    if not visual['passed']:
+        raise RuntimeError('RGB-D content gate failed: '+result['identity'])
+    visible=all(all(v['in_frame']) for sample in visual['sampled_target_projection'] for v in sample['views'][:2])
+    if result['success'] and not visible:
+        raise RuntimeError('Successful capture target region left fixed frame: '+result['identity'])
+    return dict(task_failure=not result['success'],fixed_target_visible=visible,
+        successful_demonstration=result['success'],sensor_content_passed=True)
+
+
+def pending_production(jobs, results):
+    """Continue exactly the unexecuted suffix, including failures in the prefix."""
+    planned=[j['identity'] for j in jobs]
+    done=[r['identity'] for r in results if r['identity'] in set(planned)]
+    if done!=planned[:len(done)]:raise ValueError('Production results are not the frozen plan prefix')
+    return jobs[len(done):]
+
+
+def collect(root, resume=False):
     import numpy as np
     from tools.narrow_collection import environment
     from tools.narrow_followup import dataset_union
@@ -70,21 +96,25 @@ def collect(root):
     original=[dict(e,state_valid=True,multi_view_valid=False,
         modality_reason='Preserved200: fixed RGB blank; low-dimensional State acceptance only') for e in read(parent/'manifest.json')['episodes']]
     accepted=[];results=[];pilot=[]
+    if resume:
+        receipt=read(root/'reviewed_collection_resume.json')
+        for p,h in receipt['input_sha256'].items():
+            if sha(p)!=h:raise RuntimeError('Reviewed continuation input changed: '+p)
+        accepted=[e for e in read(root/'manifest.json')['episodes'] if e.get('multi_view_valid')]
+        results=read(root/'collection_results.json');pilot=read(root/'pilot_results.json')
     def ingest(spec,out,result):
         if not result['legal']:raise RuntimeError('Frozen admitted family rejected; no outcome replacement')
         path=Path(result['dataset_capture']['path'])
         visual=inspect_capture(path,preview=out/'three_view_review.jpg' if len(results)<12 else None)
-        if not visual['passed']:raise RuntimeError('RGB-D content gate failed: '+spec['identity'])
+        classification=capture_classification(result,visual)
         key,meta,rec=record(path)
-        if not all(all(v['in_frame']) for sample in visual['sampled_target_projection'] for v in sample['views'][:2]):
-            raise RuntimeError('Fixed camera target region left frame: '+spec['identity'])
         source=parent/'initials'/spec['family']/'initial_observable.json'
         if not source.exists():source=root/'initials'/spec['family']/'initial_observable.json'
         difference=admission_conflict(read(source),read(out/'initial_observable.json'),True,True)
         if max(difference['observable_max_abs'].values())>1e-5:raise RuntimeError('Frozen family initial state differs')
         with h5py.File(path) as f:metrics=motion(f['episodes'][key])
         row=dict(identity=spec['identity'],family=spec['family'],alpha=spec['alpha'],success=result['success'],
-            duration_s=result['steps']/60,motion=metrics,visual_passed=True)
+            duration_s=result['steps']/60,motion=metrics,visual_passed=True,classification=classification)
         results.append(row)
         if result['success']:
             accepted.append(dict(id=spec['identity'],family=spec['family'],split=spec['split'],alpha=spec['alpha'],
@@ -98,54 +128,66 @@ def collect(root):
             new_multimodal_valid=len(accepted),utc=time.time()))
         write(root/'collection_results.json',results)
         return row
-    # Count the actual camera-acceptance expert once; do not simulate it again.
-    first=read(root/'camera_expert.json')['result'];first_spec=read(Path(first['dataset_capture']['path']).parents[1]/'started.json')['spec']
-    pilot.append(ingest(first_spec,Path(first['dataset_capture']['path']).parents[1],first))
-    for alpha in plan['alphas']:
-        for f in plan['pilot_families']:
-            if alpha==1. and f['identity']==plan['pilot_families'][0]['identity']:continue
-            spec=dict(f['spec'],identity=f['identity']+f'_repair_a{round(alpha*100):03}',family=f['identity'],alpha=alpha,split=f['split'])
-            speed=dict(kind='closed_loop',arm=alpha,hand=alpha,phase='all');env.speed_config=speed
-            out=root/'episodes'/spec['identity'];beat(root,stage='slow_pilot',identity=spec['identity'])
-            r=trial(env,lease,out,spec,{},player,s['expert_checkpoint'],expert_speed=speed,capture_dataset=True,
-                video=alpha==.60,video_title=f"Frozen RL expert | alpha={alpha} | {f['identity']} | 1x")
-            pilot.append(ingest(spec,out,r));write(root/'pilot_results.json',pilot)
-    decision=select_speed(pilot);write(root/'speed_decision.json',decision)
-    if not decision['passed']:raise RuntimeError(decision['reason'])
-    # Initial states, geometry selection, and split are fixed before production
-    # outcomes, and no student/test result is used to choose coverage.
-    old=read(parent/'families.json');pool=[];initials=root/'initials';initials.mkdir();rejections=0
-    for spec in plan['candidates']:
-        if time.time()>s['collection_deadline']-900:raise TimeoutError('No time for new coverage')
-        out=initials/spec['identity'];out.mkdir()
-        with lease.block():
-            _,legal=prepare(env,IsolatedEnvironment(env,spec['seed']),spec,{},out)
-            row=initial_row(spec['identity'],{k:v[0].cpu().numpy() for k,v in env._diagnostics().items()},env.scene.env_origins[0].cpu().numpy())
-        duplicate=any(near(row,f) for f in old+pool)
-        if legal['legal'] and not duplicate:pool.append(dict(row,spec=spec))
-        else:rejections+=1
-        beat(root,stage='family_admission',accepted=len(pool),rejected=rejections)
-    if len(pool)<32:raise RuntimeError('Fewer than32 new legal distinct families, no widening')
-    keys=('object_xyz','relative_xyz','quaternion','arm','hand','velocity')
-    old_train=[f for f in old if f['split']=='train']
-    scales={k:np.maximum(np.std([f[k] for f in old_train],axis=0),1e-3) for k in keys}
-    def feature(f):return np.concatenate([np.asarray(f[k])/scales[k]/math.sqrt(len(f[k])) for k in keys])
-    ref=np.stack([feature(f) for f in old_train]);chosen=[]
-    while len(chosen)<32:
-        j=int(np.argmax([np.linalg.norm(ref-feature(f),axis=1).min() for f in pool]));f=pool.pop(j)
-        chosen.append(f);ref=np.vstack([ref,feature(f)])
-    rng=np.random.default_rng(2026110604)
-    for j,i in enumerate(rng.permutation(32)):chosen[int(i)]['split']='validation' if j<4 else 'test' if j<8 else 'train'
-    write(root/'families.json',old+chosen)
-    write(root/'coverage.json',dict(new_families=32,new_splits=dict(Counter(f['split'] for f in chosen)),
-        candidate_initial_rejections=rejections,selection='geometry max-min from fixed80 within same narrow domain',
-        new_quantiles=quantiles(chosen,s['domain']['center'])))
-    jobs=[];low,high=decision['selected']['interval']
-    for wave in range(2):
-        for i in rng.permutation(32):
-            f=chosen[int(i)];alpha=1. if wave==1 and int(i)%4==0 else float(rng.uniform(low,high))
-            jobs.append(dict(family=f['identity'],identity=f['identity']+f'_v{wave}',alpha=alpha,split=f['split']))
-    write(root/'production_plan.json',jobs);byid={f['identity']:f for f in chosen};consecutive=0
+    if resume:
+        old_ids={f['identity'] for f in read(parent/'families.json')}
+        chosen=[f for f in read(root/'families.json') if f['identity'] not in old_ids]
+        jobs=read(root/'production_plan.json')
+        if not read(root/'speed_decision.json')['passed']:raise RuntimeError('Original speed gate not passed')
+    else:
+        # Count the actual camera-acceptance expert once; do not simulate it again.
+        first=read(root/'camera_expert.json')['result'];first_spec=read(Path(first['dataset_capture']['path']).parents[1]/'started.json')['spec']
+        pilot.append(ingest(first_spec,Path(first['dataset_capture']['path']).parents[1],first))
+        for alpha in plan['alphas']:
+            for f in plan['pilot_families']:
+                if alpha==1. and f['identity']==plan['pilot_families'][0]['identity']:continue
+                spec=dict(f['spec'],identity=f['identity']+f'_repair_a{round(alpha*100):03}',family=f['identity'],alpha=alpha,split=f['split'])
+                speed=dict(kind='closed_loop',arm=alpha,hand=alpha,phase='all');env.speed_config=speed
+                out=root/'episodes'/spec['identity'];beat(root,stage='slow_pilot',identity=spec['identity'])
+                r=trial(env,lease,out,spec,{},player,s['expert_checkpoint'],expert_speed=speed,capture_dataset=True,
+                    video=alpha==.60,video_title=f"Frozen RL expert | alpha={alpha} | {f['identity']} | 1x")
+                pilot.append(ingest(spec,out,r));write(root/'pilot_results.json',pilot)
+        decision=select_speed(pilot);write(root/'speed_decision.json',decision)
+        if not decision['passed']:raise RuntimeError(decision['reason'])
+        # Initial states, geometry selection, and split are fixed before production
+        # outcomes, and no student/test result is used to choose coverage.
+        old=read(parent/'families.json');pool=[];initials=root/'initials';initials.mkdir();rejections=0
+        for spec in plan['candidates']:
+            if time.time()>s['collection_deadline']-900:raise TimeoutError('No time for new coverage')
+            out=initials/spec['identity'];out.mkdir()
+            with lease.block():
+                _,legal=prepare(env,IsolatedEnvironment(env,spec['seed']),spec,{},out)
+                row=initial_row(spec['identity'],{k:v[0].cpu().numpy() for k,v in env._diagnostics().items()},env.scene.env_origins[0].cpu().numpy())
+            duplicate=any(near(row,f) for f in old+pool)
+            if legal['legal'] and not duplicate:pool.append(dict(row,spec=spec))
+            else:rejections+=1
+            beat(root,stage='family_admission',accepted=len(pool),rejected=rejections)
+        if len(pool)<32:raise RuntimeError('Fewer than32 new legal distinct families, no widening')
+        keys=('object_xyz','relative_xyz','quaternion','arm','hand','velocity')
+        old_train=[f for f in old if f['split']=='train']
+        scales={k:np.maximum(np.std([f[k] for f in old_train],axis=0),1e-3) for k in keys}
+        def feature(f):return np.concatenate([np.asarray(f[k])/scales[k]/math.sqrt(len(f[k])) for k in keys])
+        ref=np.stack([feature(f) for f in old_train]);chosen=[]
+        while len(chosen)<32:
+            j=int(np.argmax([np.linalg.norm(ref-feature(f),axis=1).min() for f in pool]));f=pool.pop(j)
+            chosen.append(f);ref=np.vstack([ref,feature(f)])
+        rng=np.random.default_rng(2026110604)
+        for j,i in enumerate(rng.permutation(32)):chosen[int(i)]['split']='validation' if j<4 else 'test' if j<8 else 'train'
+        write(root/'families.json',old+chosen)
+        write(root/'coverage.json',dict(new_families=32,new_splits=dict(Counter(f['split'] for f in chosen)),
+            candidate_initial_rejections=rejections,selection='geometry max-min from fixed80 within same narrow domain',
+            new_quantiles=quantiles(chosen,s['domain']['center'])))
+        jobs=[];low,high=decision['selected']['interval']
+        for wave in range(2):
+            for i in rng.permutation(32):
+                f=chosen[int(i)];alpha=1. if wave==1 and int(i)%4==0 else float(rng.uniform(low,high))
+                jobs.append(dict(family=f['identity'],identity=f['identity']+f'_v{wave}',alpha=alpha,split=f['split']))
+        write(root/'production_plan.json',jobs)
+    byid={f['identity']:f for f in chosen}
+    jobs=pending_production(jobs,results)
+    consecutive=0
+    for row in reversed(results):
+        if row['success']:break
+        consecutive+=1
     for job in jobs:
         if len(results)>=s['maximum_capture_attempts']:raise RuntimeError('Capture attempt cap')
         if (root/'STOP_AFTER_EPISODE').exists():raise InterruptedError('Stopped at complete episode boundary')
@@ -266,20 +308,31 @@ def evaluate(root):
         final_test=True,selection_allowed=False,observable_pair_max_errors=pairs,hidden_physics_exact=False))
 
 
-def queue(root):
+def queue(root, resume=False):
     from tools.narrow_followup import train_session
     s=read(root/'session.json');parent=Path(s['parent']);plan=read(root/'plan.json')
     assert read(root/'gpu_parity.json')['passed'] and read(root/'camera_expert.json')['visual']['passed']
     review=read(root/'camera_visual_review.json')
     assert review['accepted'] and review['camera_expert_sha256']==sha(root/'camera_expert.json')
+    if resume:
+        receipt=read(root/'reviewed_collection_resume.json')
+        assert read(root/'status.json')['owned_workers_exited']
+        assert receipt['completed_physical_attempts']==50 and receipt['pending_production_attempts']==26
+        assert receipt['automatic_retry'] is False and time.time()<s['collection_deadline']-600
+        for p,h in receipt['input_sha256'].items():
+            if sha(p)!=h:raise RuntimeError('Reviewed continuation input changed: '+p)
+        assert not (root/'expanded_training').exists(),'Only before the one fresh training'
     def model(name,p):return dict(name=name,checkpoint=str(p),sha256=sha(p))
     models=[model('state200_fp32',parent/'training/best.pt')]
     def jobs(run):
-        write(root/'startup_gpu/session.json',dict(resource_policy='shared_recent_v1',resource_target_percent=40.,
-            training_deadline=s['gate_deadline'],external_monitor_root=str(root),random_seed=s['fresh_seed']))
-        run('startup_gpu_smoke',['-m','visuotactile.anchor_continue','fresh-smoke','--smoke-device','cuda:0','--job','state',
-            '--data',str(parent/'state_data'),'--root',str(root/'startup_gpu'),'--target','1','--output',str(root/'startup_gpu/check')],limit=s['gate_deadline'])
-        run('old_model_recheck',['-m','tools.narrow_repair','recheck-worker','--root',str(root)],limit=s['gate_deadline'],kit=True)
+        if not resume:
+            write(root/'startup_gpu/session.json',dict(resource_policy='shared_recent_v1',resource_target_percent=40.,
+                training_deadline=s['gate_deadline'],external_monitor_root=str(root),random_seed=s['fresh_seed']))
+            run('startup_gpu_smoke',['-m','visuotactile.anchor_continue','fresh-smoke','--smoke-device','cuda:0','--job','state',
+                '--data',str(parent/'state_data'),'--root',str(root/'startup_gpu'),'--target','1','--output',str(root/'startup_gpu/check')],limit=s['gate_deadline'])
+            run('old_model_recheck',['-m','tools.narrow_repair','recheck-worker','--root',str(root)],limit=s['gate_deadline'],kit=True)
+        else:
+            assert read(root/'startup_gpu/check/result.json')['passed'] and read(root/'motion_diagnosis.json')['passed']
         assert read(root/'recheck_complete.json')['passed']
         recheck=read(root/'recheck_results.json')
         counts={mode:sum(r['success'] for r in recheck if r['precision_name']==mode) for mode in ('legacy_default','unified_fp32')}
@@ -287,10 +340,13 @@ def queue(root):
         decision=dict(recheck_successes=counts,action='independent_old_model_validation' if improved else 'one_slow_coverage_expansion',
             recheck_counts={mode:cohort_results([r for r in recheck if r['precision_name']==mode]) for mode in counts},
             rationale='Precision improvement reviewed separately; otherwise measured validation plateau, fitted train motion and weak unseen motion justify one bounded data contrast, not proof of data insufficiency')
-        write(root/'decision.json',decision)
-        run('motion_audit',['-m','tools.narrow_repair_pipeline','diagnose','--root',str(root)],limit=s['gate_deadline'])
+        if resume:
+            assert decision==read(root/'decision.json'),'Do not change the original research decision'
+        else:
+            write(root/'decision.json',decision)
+            run('motion_audit',['-m','tools.narrow_repair_pipeline','diagnose','--root',str(root)],limit=s['gate_deadline'])
         if not improved:
-            run('slow_collection',['-m','tools.narrow_repair_pipeline','collect','--root',str(root)],limit=s['collection_deadline'],kit=True)
+            run('slow_collection',['-m','tools.narrow_repair_pipeline','collect-remaining' if resume else 'collect','--root',str(root)],limit=s['collection_deadline'],kit=True)
             data=read(root/'state_data/data.json');ids=data['splits']['train'];anchors=sum(math.ceil(data['entries'][i]['length']/12) for i in ids)
             average=len(ids)/math.ceil(len(ids)/64);old_budget=read(parent/'training/budget.json');rate=read(parent/'training/progress.json')['updates_per_hour']
             # Plateau starts around4000 in the original curve; allow500-update
@@ -318,15 +374,15 @@ def queue(root):
             training=read(root/'expanded_training/finished.json') if (root/'expanded_training/finished.json').exists() else None,
             final_evaluation=read(root/'final_evaluation/result.json'),old200_preserved=True,
             automatic_second_expansion=False,automatic_image_or_tactile_training=False))
-    execute(root,'production_and_training',jobs,s['deadline'])
+    execute(root,'reviewed_collection_completion' if resume else 'production_and_training',jobs,s['deadline'])
     status(root,state='complete',stage='complete')
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=('run','collect','diagnose','evaluate','offline'));p.add_argument('--root',type=Path,required=True)
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=('run','continue-reviewed','collect','collect-remaining','diagnose','evaluate','offline'));p.add_argument('--root',type=Path,required=True)
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='run':
-        try:queue(root)
+    if a.mode in ('run','continue-reviewed'):
+        try:queue(root,resume=a.mode=='continue-reviewed')
         finally:
             # All owned GPU processes are released by execute before publication.
             # Conflicts retain results locally and never force-push or overwrite.
@@ -337,9 +393,9 @@ def main():
                 except BaseException:
                     write(root/'publication_error.json',dict(traceback=traceback.format_exc(),utc=time.time()))
         return
-    kit=a.mode in ('collect','evaluate');code=0
+    kit=a.mode in ('collect','collect-remaining','evaluate');code=0
     try:
-        if a.mode=='collect':collect(root)
+        if a.mode in ('collect','collect-remaining'):collect(root,resume=a.mode=='collect-remaining')
         elif a.mode=='diagnose':diagnose(root)
         elif a.mode=='evaluate':evaluate(root)
         else:

@@ -17,7 +17,9 @@ GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关
 
 真实慢速筛选：{'passed': True, 'selected': {'interval': [0.55, 0.6], 'successes': 6, 'attempts': 6, 'median_duration_s': 4.825, 'median_duration_ratio': 1.5206771562731691, 'median_contact_arm_speed_ratio': 0.6194854253529616, 'median_contact_duration_ratio': 1.04, 'scope': 'Exploratory 3-family paired screen, not a population reliability estimate'}, 'candidates': [{'interval': [0.55, 0.6], 'successes': 6, 'attempts': 6, 'median_duration_s': 4.825, 'median_duration_ratio': 1.5206771562731691, 'median_contact_arm_speed_ratio': 0.6194854253529616, 'median_contact_duration_ratio': 1.04, 'scope': 'Exploratory 3-family paired screen, not a population reliability estimate'}], 'policy': 'One stable alpha per episode, continuous uniform between tested endpoints'}
 
-采集计数：{'attempts': 49, 'successes': 49, 'total_successes': 249, 'task_failures': 0, 'initial_rejections': 0, 'software_failures': 0, 'new_multimodal_valid': 49, 'utc': 1793939714.2729692}
+采集计数：{'attempts': 50, 'successes': 49, 'total_successes': 249, 'task_failures': 1, 'initial_rejections': 0, 'software_failures': 0, 'new_multimodal_valid': 49, 'utc': 1793941092.736351}
+
+12:35首次生产停止：第50条原速专家真实掉落，末帧物体离开侧视野；81帧RGB-D和数值合同通过。成功示范的目标可见性检查错误地先于任务失败分类，导致少记1次尝试/掉落。复核49条成功文件哈希后，保留原错误和计数快照，补记为50次/49成功/1任务失败，失败轨迹不入训练。修复仅分离自然任务失败与传感器错误，成功数据门槛不变；8项CPU测试通过。本次复核后的接续入口只运行原冻结清单剩余26条，不重跑已执行条目或门控，不重置计数、17:12采集/21:12总截止；独立阶段reviewed_collection_completion仍只允许一次新训练。实际接续进度以上方机器状态和当前计数为准。
 
 [轻量数值、门控与后台结果](evidence/narrow_repair.json) · [训练曲线](evidence/narrow_repair_curves.png)。原始数据、权重、视频留本地。
 <!-- NARROW_REPAIR_END -->
