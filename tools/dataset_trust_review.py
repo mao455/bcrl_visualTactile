@@ -150,6 +150,135 @@ def coverage(root):
     write(root/'coverage.json',report)
 
 
+def details(root):
+    r=root;parent=Path(read(r/'session.json')['parent']);rows=[];exports=[]
+    for e in read(parent/'manifest.json')['episodes']:
+     with h5py.File(e['path']) as h:
+      g=next(iter(h['episodes'].values()));tr=g['transition'];before=tr['diagnostics_before'];after=tr['diagnostics_after']
+      q=after['joint_position_rad'][:];q0=before['joint_position_rad'][:];v=abs(q-q0)*60
+      palm=np.linalg.norm(after['palm_body_pose_w'][:,:3]-before['palm_body_pose_w'][:,:3],axis=-1)*60
+      obj=np.linalg.norm(after['object_pose_w'][:,:3]-before['object_pose_w'][:,:3],axis=-1)*60
+      rows.append(dict(id=e['id'],family=e['family'],alpha=e['alpha'],duration_s=len(q)/60,arm_actual_velocity_p95=float(np.quantile(v[:,:7],.95)),hand_actual_velocity_p95=float(np.quantile(v[:,7:],.95)),palm_velocity_p95=float(np.quantile(palm,.95)),object_velocity_p95=float(np.quantile(obj,.95)),low_motion_fraction=float(((v[:,:7].max(-1)<.01)&(v[:,7:].max(-1)<.02)&(palm<.005)).mean()),arm_motion_rad=float(abs(q-q0)[:,:7].sum()),hand_motion_rad=float(abs(q-q0)[:,7:].sum()),palm_path_m=float(palm.sum()/60),object_path_m=float(obj.sum()/60)))
+     p=Path(e['path']).parents[1]/'initial_export.pt'
+     x=torch.load(p,map_location='cpu',weights_only=False);env=x.get('env_tensors',{})
+     fields={k:v.tolist() if torch.is_tensor(v) else v for k,v in env.items() if any(w in k for w in ('noise','force','torque','delay','mass','friction'))}
+     exports.append(dict(id=e['id'],sha256=sha(p),top_keys=list(x),missing=x.get('missing'),fields=fields))
+    lookup={x['id']:x for x in rows};pairs=[]
+    for p in read(r/'pairs.json'):
+     a=lookup[p['id']];ratios={}
+     for k in ('arm_actual_velocity_p95','hand_actual_velocity_p95','palm_velocity_p95','object_velocity_p95','palm_path_m','object_path_m','low_motion_fraction'):
+      base=np.median([lookup[i][k] for i in p['native_ids']]);ratios[k]=float(a[k]/base) if base else None
+     pairs.append(dict(id=p['id'],alpha=p['alpha'],duration_ratio=p['median_reference_ratio'],ratios=ratios))
+    write(r/'motion.json',dict(rows=rows,pairs=pairs,paired_ratio_summary={k:distribution([p['ratios'][k] for p in pairs if p['ratios'][k] is not None]) for k in pairs[0]['ratios']},low_motion_definition='all arm <.01rad/s, all hand <.02rad/s, palm <.005m/s, finite-difference actual movement per native tick; not task-stage label'))
+    write(r/'initial_exports.json',exports)
+    ledger=[];speed=CODE/'outputs/visuotactile/native_dp_v2/expert_speed_20261105_01'
+    attempts=read(speed/'attempts.json');print('SPEED_ATTEMPTS_TYPE',type(attempts).__name__,list(attempts)[:3] if isinstance(attempts,dict) else len(attempts))
+    for p in speed.glob('stages/*/attempt_*/output/result.json'):
+     d=read(p)
+     for a in d.get('trials',[]):
+      ledger.append(dict(stage=p.parents[2].name,identity=a['identity'],legal=a['legal'],success=a['success'],reasons=a.get('reasons'),steps=a.get('steps'),sha256=sha(p)))
+    write(r/'historical_attempt_ledger.json',dict(speed_attempts=attempts,speed_numeric_results=ledger,result_counts=dict(Counter('illegal' if not a['legal'] else 'success' if a['success'] else 'task_failure' for a in ledger)),
+     v1_results=[dict(path=str(p.relative_to(CODE)),sha256=sha(p),result=read(p)) for p in (CODE/'outputs/visuotactile/run/narrow_state_20261105_01/episodes').glob('*/result.json')],
+     v1_selection=read(CODE/'outputs/visuotactile/run/narrow_state_20261105_01/selection.json')))
+    # Verify every source SHA against the revision recorded by each actual repair phase.
+    receipts=[]
+    for p in (parent/'phases').glob('*/source.json'):
+     budget=read(p.parent/'budget.json');commit=budget['source_commit'];bad=[];count=0
+     for name,digest in read(p).items():
+      rel=next((name[name.index(tag):] for tag in ('visuotactile/','tools/','isaacsimenvs/','evaluation/') if tag in name),None)
+      if rel is None:continue
+      q=subprocess.run(['git','show',commit+':'+rel],cwd=CODE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL);count+=1
+      if q.returncode or hashlib.sha256(q.stdout).hexdigest()!=digest:bad.append(rel)
+     receipts.append(dict(phase=p.parent.name,commit=commit,files=count,mismatches=bad))
+    write(r/'runtime_commits.json',receipts)
+    print('DONE',len(rows),len(exports),len(ledger),receipts)
+    # Earlier gates ran dirty source trees; resolve hashes rather than trusting HEAD.
+    commits=git('rev-list','84cbb98..0c209b9').splitlines()
+    for receipt in receipts:
+        receipt['resolved_runtime_mismatches']=[]
+        freeze=read(parent/'phases'/receipt['phase']/'source.json')
+        for rel in receipt['mismatches']:
+            digest=next(h for p,h in freeze.items() if p.endswith('/'+rel));matches=[]
+            for revision in reversed(commits):
+                q=subprocess.run(['git','show',revision+':'+rel],cwd=CODE,stdout=subprocess.PIPE,stderr=subprocess.DEVNULL)
+                if q.returncode==0 and hashlib.sha256(q.stdout).hexdigest()==digest:matches.append(revision)
+            receipt['resolved_runtime_mismatches'].append(dict(path=rel,sha256=digest,
+                first_matching_commit=matches[0] if matches else None,current_equal=sha(CODE/rel)==digest))
+    write(root/'runtime_commits.json',receipts)
+
+
+def physics(root):
+    r=root;es=read(Path(read(r/'session.json')['parent'])/'manifest.json')['episodes'];values=defaultdict(list);families=defaultdict(list);per=[]
+    for e in es:
+     x=torch.load(Path(e['path']).parents[1]/'initial_export.pt',map_location='cpu',weights_only=False);v={}
+     for body,fields in x['physics'].items():
+      for k,a in fields.items():
+       if k=='root_state_w':continue
+       a=a.numpy();key=body+'/'+k;values[key].append(a);v[key]=hashlib.sha256(a.tobytes()).hexdigest()
+     fields=x['env_tensors'];v['cpu_rng_torch']=hashlib.sha256(x['cpu_rng'][2].numpy().tobytes()).hexdigest()
+     for k in ('goal_pos_obs_noise','goal_yaw_obs_noise','_random_force_prob','_random_torque_prob','_object_scale_multiplier'):
+      values[k].append(fields[k].numpy());v[k]=hashlib.sha256(fields[k].numpy().tobytes()).hexdigest()
+     per.append(dict(id=e['id'],family=e['family'],fields=v));families[e['family']].append(v)
+    summary={k:dict(shape=list(a[0].shape),unique_values=len({v.tobytes() for v in a}),min=float(np.min(a)),max=float(np.max(a)),quantiles=np.quantile(np.stack(a),[0,.1,.5,.9,1],axis=0).tolist()) for k,a in values.items()}
+    write(r/'physics_dr.json',dict(per_episode=per,summary=summary,family_reset_mismatches={f:[k for k in v[0] if len({x[k] for x in v})>1] for f,v in families.items() if any(len({x[k] for x in v})>1 for k in v[0])},hidden_state_missing='PhysX contact/solver/broadphase internal state'))
+    print({k:{a:b for a,b in v.items() if a!='quantiles'} for k,v in summary.items()});print('FAMILY_MISMATCHES',read(r/'physics_dr.json')['family_reset_mismatches'])
+
+
+def physical(root):
+    from visuotactile.narrow_data import angle
+    from visuotactile.position_control import recorded_target_plan
+    r=root
+    assert (r/'phases/physical_acceptance/complete.json').exists() and read(r/'status.json')['owned_workers_exited']
+    plan={x['identity']:x for x in read(r/'replay_plan.json')['jobs']};results=read(r/'expert_results.json')+read(r/'replay_results.json');details=[]
+    for row in results:
+     job=plan[row['identity']];out=r/'physical'/row['identity'];item=dict(identity=row['identity'],source_id=job['source_id'],mode=row['mode'],source_alpha=job['alpha'],source_success=job['source_success'],trace_sha256=sha(out/'trace.npz'),numeric_sha256=sha(out/'numeric.h5'))
+     old=torch.load(Path(job['source']).parents[1]/'initial_export.pt',map_location='cpu',weights_only=False);new=torch.load(out/'initial_export.pt',map_location='cpu',weights_only=False)
+     physical={};env={}
+     for body,fields in old['physics'].items():
+      for k,a in fields.items():physical[body+'/'+k]=float(abs(a-new['physics'][body][k]).max())
+     for k,a in old['env_tensors'].items():
+      if k in new['env_tensors'] and torch.is_tensor(a) and a.shape==new['env_tensors'][k].shape:
+       env[k]=float(abs(a.to(torch.float64)-new['env_tensors'][k].to(torch.float64)).max())
+     item['saved_physical_max_errors']=physical;item['saved_env_differences']={k:v for k,v in env.items() if v}
+     item['source_controls_comparable']=job['mode']!='native_expert' or job['alpha']==1
+     with h5py.File(job['source']) as h,h5py.File(out/'numeric.h5') as n:
+      numeric=n['episode'];meta=json.loads(n.attrs['metadata_json']);item['success_reconstruction'],_=analyze(numeric,meta);assert item['success_reconstruction']['passed']
+      a=next(iter(h['episodes'].values()))['transition'];b=n['episode/transition'];length=min(a['target_after_rad'].shape[0],b['target_after_rad'].shape[0]);errs={}
+      for name in ('joint_position_rad','joint_velocity_rad_s','object_pose_w','hole_pose_w','palm_body_pose_w','finger_position_w'):
+       source=a['diagnostics_after/'+name][:length];actual=b['diagnostics_after/'+name][:length];delta=abs(source-actual).reshape(length,-1).max(-1);nonzero=np.flatnonzero(delta)
+       errs[name]=dict(first_nonzero_tick=int(nonzero[0])+1 if len(nonzero) else None,first_tick_max=float(delta[0]),maximum=float(delta.max()),ticks_over_1e_6=int((delta>1e-6).sum()))
+      item['actual_state_errors']=errs
+      d=np.linalg.norm(a['diagnostics_after/object_pose_w'][:length,:3]-b['diagnostics_after/object_pose_w'][:length,:3],axis=-1);item['object_position_max_mm']=float(d.max()*1000)
+      item['object_orientation_max_deg']=max(0. if np.array_equal(x,y) else angle(x.astype(np.float64)/np.linalg.norm(x.astype(np.float64)),y.astype(np.float64)/np.linalg.norm(y.astype(np.float64))) for x,y in zip(a['diagnostics_after/object_pose_w'][:length,3:],b['diagnostics_after/object_pose_w'][:length,3:]))
+      if row['mode']=='h24_replay':
+       targets=a['target_after_rad'][:];plans=np.load(out/'plans.npz')['plans'];expected=np.stack([recorded_target_plan(targets,t)[0].numpy() for t in range(0,row['result']['steps'],12)]);assert np.array_equal(plans,expected)
+       item['all_h24_plans_exact']=True
+     if (out/'rollout.mp4').exists():item['video_sha256']=sha(out/'rollout.mp4')
+     details.append(item)
+    paired=[]
+    for sid in read(r/'replay_plan.json')['source_ids']:
+     names=[sid+'__'+mode for mode in ('tick_replay','h24_replay')];traces=[np.load(r/'physical'/n/'trace.npz') for n in names];length=min(len(t['joint']) for t in traces)
+     paired.append(dict(source_id=sid,ticks_common=length,target_exact=np.array_equal(traces[0]['target'][:length],traces[1]['target'][:length]),actual_joint_max=float(abs(traces[0]['joint'][:length]-traces[1]['joint'][:length]).max()),object_pose_max=float(abs(traces[0]['object'][:length]-traces[1]['object'][:length]).max()),results=[next(x['result'] for x in results if x['identity']==n) for n in names]))
+    write(r/'physical_details.json',dict(rows=details,replay_pairs=paired,missing='PhysX contact/solver/broadphase internal state is not exported or forced. World/body composer internal caches are not complete snapshots.'))
+    print('PHYSICAL_DETAILS',len(details),'pairs',len(paired),'pair_outcome_disagreements',sum(x['results'][0]['success']!=x['results'][1]['success'] for x in paired))
+
+
+def finalize(root):
+    import shutil
+    from tools.narrow_repair import protected
+    from tools.runtime import proc
+    r=root;s=read(r/'session.json');parent=Path(s['parent']);entries=read(parent/'manifest.json')['episodes'];before=time.time()
+    assert (r/'phases/fresh_pair_check/complete.json').exists() and read(r/'status.json')['owned_workers_exited']
+    for e in entries:assert sha(e['path'])==e['sha256'] and Path(e['path']).stat().st_size==e['size']
+    protected(r)
+    original=CODE/'outputs/visuotactile/data/close_v4';old=read(original/'manifest.json')['episodes'];paths=[original/e['directory']/'data.h5' for e in old];assert len(paths)==400 and all(p.exists() for p in paths)
+    rows=[json.loads(x) for x in (r/'resources/shared.jsonl').read_text().splitlines()];work=[json.loads(x) for x in (r/'work.jsonl').read_text().splitlines()];pids=sorted({x['pid'] for x in work});assert all(proc(p) is None for p in pids)
+    summary=read(r/'monitor_exit.json')['summary'];size=sum(p.stat().st_size for p in r.rglob('*') if p.is_file());assert size<s['maximum_output_bytes'];free=shutil.disk_usage(r).free;assert free>s['reserve_bytes']
+    report=dict(completed=time.time(),started=s['started'],deadline=s['deadline'],deadline_reset=False,actual_trajectory_starts=60,primary_starts=56,targeted_fresh_starts=4,formal_updates=0,student_rollouts=0,formal_collection=0,source_commits=['4ddb554','f6d36a8'],protected_artifacts=len(read(r/'protected.json')),all275_final_sha_match=True,original400_files_present=True,owned_gpu_workers=pids,owned_gpu_workers_absent=True,services_exit_code=0,output_bytes=size,current_free_disk_bytes=free,resource_summary=summary,minimum_free_vram_gib=min(x['gpu_free_mib'] for x in rows)/1024,minimum_available_ram_gib=min(x['ram_available_bytes'] for x in rows)/1024**3,cpu_audit_reader_fixes=4,cpu_postprocess_observer_initial_exit=143,cpu_postprocess_independent_recheck_exit=0,resource_gap_explanation='231.662s between completed primary phase and fresh-check phase; no owned Kit during CPU review/registration. Not continuous session telemetry.',admission='275 State/recorded tactile numerical-time-valid;75 three-view-valid. No automatic recollection or training. Fresh comparisons verify current tick/H24 parity on two outcome-selected sources, not exact historical-state reconstruction.')
+    write(r/'final_audit.json',report);status=read(r/'status.json');status.update(state='audit_complete',stage='await_user_decision',owned_workers_exited=True,finished=time.time(),actual_trajectory_starts=60);write(r/'status.json',status)
+    print('FINAL',report['actual_trajectory_starts'],round(size/1024**3,3),round(report['minimum_free_vram_gib'],3),round(report['minimum_available_ram_gib'],3),'hash_seconds',time.time()-before)
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=('source','attempts','coverage'));p.add_argument('--root',type=Path,required=True)
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=('source','attempts','coverage','details','physics','physical','finalize'));p.add_argument('--root',type=Path,required=True)
     a=p.parse_args();globals()[a.mode](a.root.resolve())

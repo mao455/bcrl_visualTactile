@@ -1,6 +1,8 @@
-# 当前StateDP合同与机制诊断
+# 当前StateDP合同与数据准入
 
-## 2026-11-06 当前授权：数据可信度与StateDP变更审计
+## 2026-11-06 数据可信度与StateDP变更审计（已完成）
+
+审计已完成，独立root `dataset_trust_20261106_01` 为audit_complete/await_user_decision；60/60轨迹用尽，所有自有GPU进程退出，0训练/0学生rollout/0正式扩采。State数值275条、三视角75条准入，原400/275、权重及失败证据保留。不得自动继续任何旧runner或新训练/采集；下一步由用户决定。详见SLOW_EXPERT_RESULTS、STATE_DP_RESULTS和evidence/dataset_trust，历史授权段落不是当前待办。
 
 先重读研究目标与冻结历史，逐条审核275条原始数据全部模态、分布、减速、成功/失败及采样偏差；基点84cbb98至0c209b9做真实Git/AST/运行SHA核查。静态通过后独立分层专家/逐tick target/H24回放，root dataset_trust_20261106_01，固定3h含准备等待、最多60轨迹启动、8GiB新增/60GiB磁盘保留、共享目标35%及6GiB VRAM/12GiB RAM。仅CPU审核和冻结RL专家/记录命令，正式数据新增0、学生rollout0、optimizer更新0。所有原400/275、manifest、正式checkpoint和失败证据只读。审计报告和准入建议为终点，用户决定下一阶段；不自动扩采/重训/学生误差调参/Image/nominal/触觉。H24/12、5/60/120Hz、target_after_rad而非q_after、29D、网络/损失/归一化/历史/原生物理保持。新脚本独立，原始验收标记不改写。
 

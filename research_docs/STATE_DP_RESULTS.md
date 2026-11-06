@@ -1,5 +1,43 @@
 # StateDP结果：当前窄域新训练与历史宽分布
 
+<!-- DATASET_TRUST_START -->
+<a id="dataset-trust-code-audit"></a>
+## 2026-11-06：冻结基点与StateDP实际代码审计
+
+本轮只审计数据、baseline及冻结专家/目标回放；此前“下一轮继续学生偏移/动作块诊断”等为历史建议，已被当前用户明确暂停。标准StateDP监督真实处理后target_after_rad，不是nominal、不以q_after作标签；H24/commit12、5/60/120Hz、29D、连续历史和正式overlap0均保持。
+
+**结论范围：未发现网络/损失/原生控制/物理被本段Git变更暗改的证据；不能宣称200、275及前宽域实验全部训练语义/数值行为完全相同。** 下列真实变化必须进入实验身份，当前不作大规模回滚。完整数据结论和物理结果见[SLOW_EXPERT_RESULTS](SLOW_EXPERT_RESULTS.md)。
+
+基点：`84cbb981593e4c57cbbcb17283ae62cbf580fa85`是窄域采集首commit `6a1a0aa`之前最后tree；它已有可选expert_speed扩展。更早运行验证基点`100d71edbc99ff0e02d3798308838c7cffdc446d`由state_random_20261105_02的100文件runtime_freeze逐项100/100匹配。该“baseline正确”仅指明确合同和控制实现有记录，**不等于学生已具备高成功率**。
+
+审核84cbb98..0c209b9所有21个commit：727个相关tracked代码/资产文件中702个blob不变，25个新增/修改；另5个新增测试文件。isaacsimenvs/evaluation/rl_games/assets无差异；未发现删除native文件。[逐文件blob/SHA、AST函数差异及运行冻结表](evidence/dataset_trust/source_audit.json)。
+
+|文件/模块|原始版本→实际变化|行为与默认路径|审计结论/建议|
+|---|---|---|---|
+|state_history（HistoryBank/Controller、StateDP）、state_image_loss、native_data、action_history、checkpointing及vendor DP/EMA|84→0c逐字未改|GRU、HistoryBank reset、x0/LossB权重、归一化公式、网络及EMA数学保持|冻结保留，不借审计重构|
+|position_control.py|3e4d679只新增recorded_target_plan；全部原函数AST相等|仅显式replay_horizon=24的诊断调用；原位置映射/限位、无重复delay/EMA及默认overlap0不变|保留为隔离诊断，禁止把H24oracle结果当学生结果|
+|anchor_sampling.py|旧只允许32/64且整除320；6a1a0aa允许非空任意正batch和短尾|旧320连续160次抽样、state_dict和RNG逐次完全一致；新148实际64/64/20，新207为64/64/64/15。episode均衡仍非anchor均衡|这是正式采样行为扩展，不能写“采样完全未改”；既往新数据训练授权所需，本轮不改。若复现旧320，应使用旧合同；回滚会让新数据直接报错|
+|anchor_continue.py|旧train/contract等所有已有函数AST不变；新增fresh、early metrics、curves和CLI|新随机模型、AdamW、EMA、调度/seed、完整恢复及可选早停；维持原objective/history/microbatch权重。随机初训不等于旧checkpoint续训|用户曾明确要求新数据随机训练；配置须独立，不能据旧epoch概念混报。续训代码具备完整状态恢复，但旧200本轮未续训|
+|narrow_data.py|新增直接初态配置、逐HDF5适配与train-only统计|command=target_after_rad；真实q仅观察，过去target teacher forcing；geometry每12tick拟合统计、robot每tick。直接q与旧proprio逆变换可有≤2.38e-7rad舍入差|标签/公式合同保持，统计数值因数据变化；不能给旧权重替换新统计。207条及旧148条分别重算6组统计误差全0|
+|state_benchmark.prepare / live_collision|新增显式narrow_reset和live_collision_mesh_bounds_v1|原生reset数学未改，调用前cfg范围确实收窄；保守mesh OBB代替已证不可靠scene query。无标志仍走旧路径；同env配置会持续，不能把窄域env随后无spec调用当作原宽域|必要采集修复/分布变化，旧query证据保留；不作物理穿透深度承诺|
+|state_benchmark.trial|元数据、计时、视频标题、完整终止图像mask、可选H24回放|默认学生/专家控制循环不变；capture时终止后图像mask避免reset帧冒充末帧；完整成功只由原生pre-reset reason决定|必要记录修复与诊断，未改变成功阈值/timeout|
+|native_evaluation.make_env、sim/environment、camera_validity|b0e1bd0新增默认False的内容验收；打开时初始化固定相机位姿、RGB空间变化/有效深度判据|视觉修复是真实输入变化；默认False仍旧presence标志，不能掩盖旧200空白。State不读图像但新视觉数据身份不同|有明确视觉修复授权，保留开关/旧数据身份，不回填伪造旧图像|
+|precision.py及新runner入口|b0e1bd0将新在线CUDA matmul/CuDNN TF32关闭；旧训练已关闭|CuDNN旧在线默认与训练不一致，修复会改变数值，不能说全路径bitwise未变；既有condition误差2.525e-4→1.073e-6来自历史实测|授权的一致性修复，后续明确统一FP32；不“恢复”不一致数值路径|
+|tools/narrow_*、reset_query_probe|新增有界采集、条件化决策、修复/交付/视频owner|只选显式入口；预算、失败分类、随机新训练/扩采为当时授权；旧owner全部完成，不自动重启|实验工具不等于零行为影响，运行配置和SHA需同时审查|
+|tools/state_mechanism*|3e4d679后新增独立小集采样/拟合、oracle和overlap4诊断|仅显式新root；正式模型/默认overlap不替换；历史800 tiny更新不是275正式重训|此前诊断授权的隔离路径，本轮禁用，不外推baseline性能|
+
+运行源码核对比“文档称未改”更严格：旧200 source_freeze183/183对应b119470；其正式training configuration中43个visuotactile SHA全部匹配。275 production_and_training及reviewed_collection_completion各121/121对应b0e1bd0/8eb30b4；正式275 configuration中的46个SHA全部匹配8eb30b4。[正式训练源码](evidence/dataset_trust/training_source.json)。因此正式两次训练可定位到实际运行实现，不仅是git HEAD。两模型也不是严格等曝光的纯数据量对照：200实际5735更新/约100 anchor等效epoch，275原预算6438、早停5000/约60.95等效epoch，初始化seed及余弦总长度不同。不能把二者差异唯一归因于200→275；本轮不通过补训练来抹平历史差异。
+
+**发现追溯缺口：** 较早repair的audit/camera_and_recheck门控在927eac5 HEAD上运行未提交工作区版本，分别3/7文件不同；多数hash可对应后来的b0e1bd0，但两版tools/narrow_repair.py以及一版camera_validity.py在84..0c中找不到逐字相同blob；进一步扫描Git对象库2501个小blob仍未恢复这三版。保留其运行SHA，不捏造其内容、不声称完整可复建。该缺口涉及前置owner/验收代码；正式生产/训练源码可匹配，全275原始内容本轮独立重审。建议以后先提交冻结脚本再启动，另外保存实际源码快照；本轮物理阶段已从已提交4ddb554启动。未据此无证据回滚模型或修改原数据。[逐阶段追溯](evidence/dataset_trust/runtime_commits.json)。
+
+验证：41项相关CPU测试通过，1项大型反向传播测试明确未跑；160次原320采样序列及RNG一致；已有官方动作处理对照100tick的target/queue/RNG测试通过。本轮optimizer更新0、学生rollout0；没有用通过测试冒充物理任务成功。所有关于新物理复现的结论只取本轮完成记录：主56次native15/15、source-slow8/9，tick6/15、H24 4/15；4个额外fresh Kit检查全部成功，两来源的tick/H24各18字段逐位相等。它们是专家/命令验收，学生新增rollout仍为0。详见SLOW报告，不能把开环耗尽解释为数据无效或H24必然有错。
+
+准入建议：代码可作为明确版本的H24 StateDP实现冻结，数据可作为275条state-only窄域专家目标数据；仍需如实标注短尾batch、207 train-only统计、统一FP32和目标时长缺口。没有发现必须立即回滚的未经授权核心改动。缺失早期门控源码的历史追溯不确定性应保留，不能用“未发现”证明从未存在任何错误。审计通过本身不构成新一轮重训的科研收益证据，是否重训由用户决定，本轮不启动。
+<!-- DATASET_TRUST_END -->
+
+## 以下为已完成实验历史，不构成当前执行授权
+
+
 <!-- STATE_MECHANISM_START -->
 ## 2026-11-06：StateDP基础能力、采样与动作块诊断
 

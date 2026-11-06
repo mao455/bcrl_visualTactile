@@ -21,6 +21,7 @@ def publish(root):
         if isinstance(x,str):
             for prefix in (str(CODE),'/home/CNS2025331827/docs/bc+rl_RSS'):
                 x=x.replace(prefix,'$REPO')
+            x=x.replace('/home/CNS2025331827','$HOME')
         return x
     rows=[read(p) for p in sorted((root/'episodes').glob('*.json'))]
     assert len(rows)==275 and read(root/'static_summary.json')['passed']
@@ -43,7 +44,16 @@ def publish(root):
         rr.append(d)
     table('families.csv',rr)
     names=('static_summary','source_audit','normalization','coverage','attempts','failures','pairs','configurations','replay_plan')
-    for name in names:write(out/(name+'.json'),clean(read(root/(name+'.json'))))
+    for name in names:
+        value=clean(read(root/(name+'.json')))
+        if name=='configurations':
+            for variants in value.values():
+                if len(variants)==1 and variants[0]['count']==275:
+                    variants[0].pop('ids',None);variants[0]['ids_scope']='all275'
+        write(out/(name+'.json'),value)
+    for name in ('motion','physics_dr','runtime_commits','training_source','early_reset_ledger','sensor_and_label_extra','speed_details','initial_environment_rng','failed_capture_checks','historical_source_recovery','physical_details','fresh_pair_plan','fresh_pair_details','final_audit','videos'):
+        if (root/(name+'.json')).exists():
+            (out/(name+'.json')).write_text(json.dumps(clean(read(root/(name+'.json'))),separators=(',',':'))+'\n')
     physical=[]
     for mode in ('expert','replay'):
         p=root/(mode+'_results.json')
@@ -76,7 +86,7 @@ def publish(root):
             for a,key in zip(ax[:2],('object_xyz','relative_xyz')):
                 a.scatter([r[key][0]*1000 for r in v],[r[key][1]*1000 for r in v],s=20,marker=marker,alpha=.65,label=cohort+(' selected' if selected else ' not selected'))
     ax[0].set(xlabel='Object x (mm)',ylabel='Object y (mm)',title='All 148 initial candidates')
-    ax[1].set(xlabel='Hole - object x (mm)',ylabel='Hole - object y (mm)',title='Selected 92 families')
+    ax[1].set(xlabel='Hole - object x (mm)',ylabel='Hole - object y (mm)',title='Relative positions and selection')
     rejected=[r for r in c['candidates'] if not r['legal']]
     for a,key in zip(ax[:2],('object_xyz','relative_xyz')):
         a.scatter([r[key][0]*1000 for r in rejected],[r[key][1]*1000 for r in rejected],s=65,facecolors='none',edgecolors='red',label='OBB rejected')
@@ -88,7 +98,8 @@ def publish(root):
     write(out/'provenance.json',dict(run='dataset_trust_20261106_01',source_root='$REPO/outputs/visuotactile/run/dataset_trust_20261106_01',
         session=clean(read(root/'session.json')),status=clean(read(root/'status.json')),
         all_275_files_hashed=True,all_64663_frames_pixels_read=True,original_artifacts_modified=False,
-        physical_complete=(root/'phases/physical_acceptance/complete.json').exists()))
+        physical_complete=(root/'phases/physical_acceptance/complete.json').exists(),
+        fresh_pair_complete=(root/'phases/fresh_pair_check/complete.json').exists()))
 
 
 if __name__=='__main__':
