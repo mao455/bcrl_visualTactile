@@ -23,7 +23,7 @@ def snapshot(root):
         ('started','deadline','gate_deadline','collection_deadline','maximum_capture_attempts','maximum_evaluation_starts','maximum_training_updates')},
         source_commit=s.get('source_commit'),original400_and200_preserved=True)
     for name in ('gpu_parity','camera_probe','camera_visual_review','reviewed_preaction_failure','recheck_complete','decision','speed_decision',
-        'collection_counts','DATA_READY','motion_diagnosis','offline_comparison','FINAL_REPORT','cleanup'):
+        'collection_counts','DATA_READY','motion_diagnosis','offline_comparison','FINAL_REPORT','cleanup','final_review'):
         if (root/(name+'.json')).exists():public[name]=read(root/(name+'.json'))
     if (root/'reviewed_collection_resume.json').exists():
         receipt=read(root/'reviewed_collection_resume.json')
@@ -70,16 +70,32 @@ def snapshot(root):
             '独立阶段reviewed_collection_completion仍只允许一次新训练。实际接续进度以上方机器状态和当前计数为准。')
         lines+=['',continuation]
     final=public.get('FINAL_REPORT')
+    completed_summary=''
     if final:
+        training=final.get('training')
+        if training:
+            selected=min(public['expanded_validation'],key=lambda row:row['metrics']['selection_mse'])
+            outcomes='；'.join(f"{name}: train{cc['train']['successes']}/{cc['train']['valid']}，"
+                f"unseen{cc['unseen']['successes']}/{cc['unseen']['valid']}有效、{cc['unseen']['initial_rejections']}次初态拒绝"
+                for name,cc in final['final_evaluation']['models'].items())
+            completed_summary=(f"已完成一次扩充：{final['expansion']['new_successes']}条新成功、{final['expansion']['new_families']}个新家族，合计{final['expansion']['state_valid']}条State-valid；"
+                f"独立随机模型完成{training['updates']}更新，因{training['stop_reason']}结束，validation选第{selected['update']}步。"
+                f"最终完整成功：{outcomes}。这轮有限对照已结束，不自动再训练/扩采或启动Image/触觉训练。")
+            lines+=['',completed_summary,'','同一原26条validation的比较（不含test）：','',
+                '|模型|Arm RMSE(rad)|Hand RMSE(rad)|末端FK RMSE(mm)|','|---|---:|---:|---:|']
+            for name,metrics in public['offline_comparison']['models'].items():
+                v=metrics['validation'];lines.append(f"|{name}|{v['arm_rmse']:.6f}|{v['hand_rmse']:.6f}|{v['ee_distance_rmse_mm']:.3f}|")
         lines+=['','|模型|train完整成功|独立unseen完整成功|','|---|---:|---:|']
         for name,cohorts in final['final_evaluation']['models'].items():
             t,u=cohorts['train'],cohorts['unseen'];lines.append(f"|{name}|{t['successes']}/{t['valid']}|{u['successes']}/{u['valid']}|")
         lines+=['','失败阶段：'+str({k:{split:v['failures'] for split,v in cc.items()} for k,cc in final['final_evaluation']['models'].items()}),
             '小样本诊断；未放宽成功标准或按结果替换初态。ImageDP仍需严格在线输入配对，触觉效益尚未验证；本轮不自动启动两者。']
+    if 'final_review' in public:
+        lines+=['',public['final_review']['interpretation_zh'],'',public['final_review']['resource_note_zh']]
     lines+=['','[轻量数值、门控与后台结果](evidence/narrow_repair.json) · [训练曲线](evidence/narrow_repair_curves.png)。原始数据、权重、视频留本地。']
     for p in DOCS:
         body='\n'.join(lines if p.endswith('STATE_DP_RESULTS.md') else [lines[0],'',lines[2],lines[3],lines[4],'',
-            continuation,'', '实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。'])
+            continuation,'',completed_summary,'', '实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。'])
         (CODE/p).write_text(publication.replace((CODE/p).read_text(),body))
     import matplotlib
     matplotlib.use('Agg')

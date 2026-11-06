@@ -21,6 +21,15 @@ GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关
 
 12:35首次生产停止：第50条原速专家真实掉落，末帧物体离开侧视野；81帧RGB-D和数值合同通过。成功示范的目标可见性检查错误地先于任务失败分类，导致少记1次尝试/掉落。复核49条成功文件哈希后，保留原错误和计数快照，补记为50次/49成功/1任务失败，失败轨迹不入训练。修复仅分离自然任务失败与传感器错误，成功数据门槛不变；8项CPU测试通过。本次复核后的接续入口只运行原冻结清单剩余26条，不重跑已执行条目或门控，不重置计数、17:12采集/21:12总截止；独立阶段reviewed_collection_completion仍只允许一次新训练。实际接续进度以上方机器状态和当前计数为准。
 
+已完成一次扩充：75条新成功、32个新家族，合计275条State-valid；独立随机模型完成5000更新，因validation_plateau_or_overfit结束，validation选第4500步。最终完整成功：state200_fp32: train0/4，unseen0/10有效、2次初态拒绝；state_expanded_fp32: train0/4，unseen0/10有效、2次初态拒绝。这轮有限对照已结束，不自动再训练/扩采或启动Image/触觉训练。
+
+同一原26条validation的比较（不含test）：
+
+|模型|Arm RMSE(rad)|Hand RMSE(rad)|末端FK RMSE(mm)|
+|---|---:|---:|---:|
+|state200_fp32|0.016714|0.095797|12.874|
+|state_expanded_fp32|0.015016|0.091867|12.494|
+
 |模型|train完整成功|独立unseen完整成功|
 |---|---:|---:|
 |state200_fp32|0/4|0/10|
@@ -28,6 +37,10 @@ GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关
 
 失败阶段：{'state200_fp32': {'train': {'grasp_or_lift_unresolved': 3, 'second_insertion': 1}, 'unseen': {'grasp_or_lift_unresolved': 8, 'illegal_initialization': 2, 'post_lift_alignment_or_loss': 2}}, 'state_expanded_fp32': {'train': {'grasp_or_lift_unresolved': 3, 'post_lift_alignment_or_loss': 1}, 'unseen': {'grasp_or_lift_unresolved': 7, 'illegal_initialization': 2, 'post_lift_alignment_or_loss': 2, 'second_insertion': 1}}}
 小样本诊断；未放宽成功标准或按结果替换初态。ImageDP仍需严格在线输入配对，触觉效益尚未验证；本轮不自动启动两者。
+
+原200验证已平台且泛化误差大，未追加旧模型训练。扩充后新模型3500–5000更新验证MSE仅改善约0.14%，train8改善约41.3%，因此5000步早停、保留4500步best。相同26条validation离线Arm/Hand/FK略改善，但旧/新最终均0/14合法完整成功；旧11/14、新10/14在抓取/抬升仍未解决，阶段分类仅诊断代理。各有1条达到首子目标而未完成全任务。此前精度复核train1/2是小样本单次成功，最终未复现，不能声称稳定性。可观测配对初态完全一致，隐藏PhysX状态并非严格复现。当前没有证据支持继续堆数据或无限续训；下一步应聚焦早期闭环动作幅度、块边界连续性和teacher-forcing/部署分布偏移的机制定位（研究假设，未证实原因），暂不作为成功基线推进Image/触觉训练。
+
+资源实测：累计已采样整卡时间加权均值30.81%，最大完整60s均值52.19%；因此不能声称全程≤50%。样本查询失败0，但三次monitor交接存在2518.41s无采样空档，均跨monitor身份，不称连续无缺测；未干预其他任务。最小空闲VRAM8002MiB、可用RAM18.90GiB。全体自有GPU进程已退出。
 
 [轻量数值、门控与后台结果](evidence/narrow_repair.json) · [训练曲线](evidence/narrow_repair_curves.png)。原始数据、权重、视频留本地。
 <!-- NARROW_REPAIR_END -->

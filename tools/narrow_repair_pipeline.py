@@ -375,7 +375,8 @@ def queue(root, resume=False):
             final_evaluation=read(root/'final_evaluation/result.json'),old200_preserved=True,
             automatic_second_expansion=False,automatic_image_or_tactile_training=False))
     execute(root,'reviewed_collection_completion' if resume else 'production_and_training',jobs,s['deadline'])
-    status(root,state='complete',stage='complete')
+    finished=root/'expanded_training/finished.json'
+    status(root,state='complete',stage='complete',formal_updates=read(finished)['updates'] if finished.exists() else 0)
 
 
 def main():

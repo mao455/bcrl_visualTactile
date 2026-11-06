@@ -1,4 +1,21 @@
-# Current — camera/history repair and one slower StateDP contrast (2026-11-06)
+# Completed — camera/history repair and the single StateDP contrast (2026-11-06)
+
+Run narrow_repair_20261106_01 finished15:19:38 UTC+8, all owned processes exited.
+Read STATE_DP_RESULTS/SESSION_HANDOFF and final_review.json. Collection76 attempts,
+75 successes/1 native fall,32 new families; total275 State-valid,75 Multi-view-valid.
+Fresh StateDP stopped5000 updates at validation plateau, best4500; old200 was not
+extended. Final old/new each train0/4 and unseen0/10 legal, plus2 initial rejects
+per model. All32 planned starts resolved; mostly unresolved grasp/lift. Offline
+improvements did not establish task benefit. Earlier recheck train1/2 is not stable
+performance. No automatic new training, trials, data expansion, Image or tactile.
+Keep all400+200+75 formal data, failures, best/last, caches and videos. Only two
+completed disposable smoke checkpoints removed at final review (2,306,195,456B).
+Measured whole-card mean30.81%, max complete60s52.19%; three monitor handoff gaps
+total2518.41s, query failures0. Do not claim <=50% throughout or gap-free telemetry.
+Completed status counter corrected from stale0 to actual5000; original snapshot
+preserved. The authorization and startup notes below are historical, not new work.
+
+# Authorization — camera/history repair and one slower StateDP contrast (2026-11-06)
 
 Latest user explicitly authorizes camera content repair, measured GPU parity,
 existing-model diagnosis/recheck, true slow RL expert pilots, one bounded expansion

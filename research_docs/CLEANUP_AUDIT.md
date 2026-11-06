@@ -1,5 +1,11 @@
 # 清理与回归验收
 
+## 2026-11-06 最终收尾
+
+`narrow_repair_20261106_01`于15:19:38结束后，CPU读回正式best4500/last5000、验证部署hash及原400+200保护清单。新增75条成功、1条真实失败、全部正式模型/缓存/视频均保留；6条最终三视角视频有全帧解码记录，当前文件SHA已记录。无新增CUDA初始化或GPU任务。
+
+仅删除本轮`startup_gpu/last.pt`与`disposable_gpu/last.pt`：均为1步一次性smoke、完整恢复验收通过、正式更新0，已确认正式模型不依赖它们且无打开句柄。实际释放2,306,195,456分配bytes（约2.148GiB），与下方此前1.074GiB分开记录。每个文件的inode/大小/SHA、删除前审查和完成状态保留在现有cleanup_ledger；未知或失败证据不删除。
+
 ## 2026-11-06 本轮修复清理
 
 核查引用、原run完成状态、一次性GPU恢复验收receipt、checkpoint更新数及同UID打开文件后，仅删除原narrow_state_20261105_02/disposable_gpu/last.pt（1次可丢弃更新，正式更新0）。原best/last、全部400+200、有效缓存、专家/资产、初态和失败/partial证据保留。本次释放1,153,085,440bytes（约1.074GiB）。精确字节与SHA见新run cleanup.json/cleanup_ledger.json；不按日期/通配符删除目录，不将以前清理重复计数。后续正式模型和新数据仍保护。

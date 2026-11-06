@@ -1,5 +1,11 @@
 # 维护变更
 
+## 2026-11-06 收尾复核：完成不等于成功
+
+`tools/narrow_repair_pipeline.py`修正完成状态遗漏正式更新数的问题：原status一直保留启动时0，现从trainer finished读取；本轮依据真实receipt更正为5000，旧status另存。`tools/narrow_repair_delivery.py`将实际训练终点、validation最佳步、同一验证集误差和最终审查结论写入原有主MD及轻量JSON；不改算法、模型或实验结果。8项相关CPU回归通过，真实best4500/last5000和保护hash读回通过，无新GPU运行。
+
+275条模型与200条模型最终均train0/4、unseen0/10有效（各2初态拒绝），离线小幅改善未转化成功率。更新AGENTS/交接为已完成并停止；原有视频索引加入最终6条已录制三视角失败片段，无新增仿真。仅清理2个已验收的1步smoke checkpoint，约2.148GiB；保留正式数据/权重/失败证据。整卡最大完整60s为52.19%，三次monitor交接缺测2518.41s，如实记录，不能称完全合规或无缺测。
+
 <!-- NARROW_REPAIR_START -->
 ## 2026-11-06：视觉与GPU历史修复、单次慢速数据对照
 
@@ -8,6 +14,8 @@
 GPU差异来自未统一的CuDNN TF32：旧默认condition最大2.52545e-4；关闭TF32后最大1.07288e-6、前12目标1.13249e-6rad、FK0.000229mm。原2e-5门限未放宽；完整序列/逐tick/训练prefix/reset均检查，无优化更新。
 
 12:35首次生产停止：第50条原速专家真实掉落，末帧物体离开侧视野；81帧RGB-D和数值合同通过。成功示范的目标可见性检查错误地先于任务失败分类，导致少记1次尝试/掉落。复核49条成功文件哈希后，保留原错误和计数快照，补记为50次/49成功/1任务失败，失败轨迹不入训练。修复仅分离自然任务失败与传感器错误，成功数据门槛不变；8项CPU测试通过。本次复核后的接续入口只运行原冻结清单剩余26条，不重跑已执行条目或门控，不重置计数、17:12采集/21:12总截止；独立阶段reviewed_collection_completion仍只允许一次新训练。实际接续进度以上方机器状态和当前计数为准。
+
+已完成一次扩充：75条新成功、32个新家族，合计275条State-valid；独立随机模型完成5000更新，因validation_plateau_or_overfit结束，validation选第4500步。最终完整成功：state200_fp32: train0/4，unseen0/10有效、2次初态拒绝；state_expanded_fp32: train0/4，unseen0/10有效、2次初态拒绝。这轮有限对照已结束，不自动再训练/扩采或启动Image/触觉训练。
 
 实际扩采/训练/评估结果见[StateDP统一记录](STATE_DP_RESULTS.md)和[机器统计](evidence/narrow_repair.json)，不把准备写成成功。
 <!-- NARROW_REPAIR_END -->
