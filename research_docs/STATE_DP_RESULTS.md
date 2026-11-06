@@ -3,7 +3,7 @@
 <!-- STATE_MECHANISM_START -->
 ## 2026-11-06：StateDP基础能力、采样与动作块诊断
 
-实测 `running` / `oracle`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
+实测 `complete` / `complete`；独立root `state_mechanism_20261106_01`，固定4h含等待，最多15次Kit轨迹启动、1条训练示范的独立随机模型≤4000更新/90min。正式数据/权重保持，A/B/C不改变H24/12/29D/损失/历史/物理。
 只读审查275条/64,663tick：全体均值3.919s、中位3.433s、p10–p90 2.640–5.517s，范围2.117–12.900s。新增75均值4.676s、中位4.4s；尚不符合多数5–7s的设计预期，没有补等待或改时间戳。State-valid275、Multi-view-valid75、旧固定视角无效200；触觉数值有限及有效标记通过，不等于硬件校准。所有成功标签只在末transition出现，275条原始数值与缓存完全相等，q_after[t]=q_before[t+1]。
 92个真实初态家族，68/12/12训练/验证/测试；速度版本不跨split。位置±25mm、相对位置±35mm、姿态20°球、关节初态及速度仍有变化；不是唯一起点。原200/201和扩充75/76是已准入家族上的采集结果，不代表整个连续分布100%成功。
 
@@ -20,7 +20,13 @@ B仅选family_066_repair_a055（300tick、5s、alpha.55，train），由接近5s
 
 真实GPU更新审查：从275 last5000完整采样状态取下一批64个episode，记录全部ID/anchor/shape/mask及累积梯度；诊断副本做1次micro累积更新和1次相同噪声的大batch参考更新。梯度相对L2差4.81e-06，参数更新最大差1.19e-07，passed=True。未改正式checkpoint。
 
-A/B/C尚未全部完成，不作机制结论；以已保存门控和错误为准。
+A：{"passed": true, "comparisons": [{"identity": "family_066", "native_success": true, "open_loop_success": false, "censored": true, "ticks": 177, "source_to_requested_max_rad": 0.0, "submitted_to_actuator_max_rad": 0.0, "requested_to_submitted_max_rad": 0.0, "actual_joint_difference_max_rad": 0.1368221640586853, "boundary_max_rad": 0.0, "initial_observable_errors": {"joint_position_rad": 0.0, "joint_velocity_rad_s": 0.0, "object_pose_w": 0.0, "hole_pose_w": 0.0, "table_pose_w": 0.0, "palm_body_pose_w": 0.0, "finger_position_w": 0.0, "finger_quat_wxyz": 0.0}}, {"identity": "repair_family_26", "native_success": true, "open_loop_success": true, "censored": false, "ticks": 184, "source_to_requested_max_rad": 0.0, "submitted_to_actuator_max_rad": 0.0, "requested_to_submitted_max_rad": 0.0, "actual_joint_difference_max_rad": 0.11390954256057739, "boundary_max_rad": 0.0, "initial_observable_errors": {"joint_position_rad": 0.0, "joint_velocity_rad_s": 0.0, "object_pose_w": 0.0, "hole_pose_w": 0.0, "table_pose_w": 0.0, "palm_body_pose_w": 0.0, "finger_position_w": 0.0, "finger_quat_wxyz": 0.0}}], "recorded_slow": {"success": false, "censored": true, "target_max_rad": 0.0, "actuator_max_rad": 0.0, "submitted_max_rad": 0.0}, "starts": 5, "scope": "Native RL is closed loop; both H24 target cases are OPEN LOOP, not an online expert. Exact physical replay is not an acceptance requirement."}
+
+B：{"complete": true, "updates": 800, "best_update": 800, "stop_reason": "small_dataset_fit_gate_two_checks", "elapsed_s": 327.10833740234375, "best_sha256": "1638f93e0183c9e422113adf17bf75524031281f6b2a1ed09829295a56a83781", "checkpoint_readback": true, "normalization_unchanged": true, "generalization_claim": false}
+
+B/C闭环：{"complete": true, "starts": 10, "groups": {"B_tiny": {"attempts": 2, "legal": 2, "successes": 0}, "C0": {"attempts": 4, "legal": 4, "successes": 0}, "C4": {"attempts": 4, "legal": 4, "successes": 0}}, "generalization_claim": false, "formal_default_overlap": 0, "hidden_physics_exact": false}
+
+极小集离线拟合通过但对应初态仍未成功；精准目标回放接口检查已通过，优先研究执行后状态偏离teacher-forced训练轨迹这一机制。下一轮只做有限闭环分布偏移定位；本轮不自动DAgger或改方法。噪声/块跳变的因果归属仍受小样本限制。
 
 [完整轻量统计、真实batch与阶段指标](evidence/state_mechanism.json)。原数据、checkpoint、数值轨迹和视频留本地。
 <!-- STATE_MECHANISM_END -->
