@@ -372,6 +372,20 @@ def baseline_evaluate(root):
         dataset_scope=plan['dataset_scope'],formal_slow_data_admitted=False,final_test_for_selection=False))
 
 
+def evaluation_family_plan(families, manifest, evaluation):
+    """A planned family without an admitted Core is not a training family."""
+    available={f['family']:f for f in families};admitted={}
+    for entry in manifest['episodes']:
+        family=entry['family'];split=entry['split']
+        require(family in available and available[family]['split']==split,'Evaluation family/source split mismatch')
+        require(admitted.setdefault(family,split)==split,'Evaluation family leakage')
+    plan=[]
+    for split,key in [('train','train_families'),('validation','validation_families')]:
+        selected=sorted(f for f,s in admitted.items() if s==split)[:evaluation[key]]
+        plan.extend(dict(available[f],identity='evaluation_'+f) for f in selected)
+    return plan
+
+
 def evaluate(root):
     import torch
     from visuotactile.state_benchmark import trial
@@ -379,11 +393,9 @@ def evaluate(root):
     from visuotactile.narrow_data import direct_configuration
     s=read(root/'session.json');app,env,player,lease=environment(root,True)
     with lease.block():saved=torch.load(root/'training/best.pt',map_location='cpu',weights_only=False)
-    families=read(root/'frozen_families.json');plan=[];e=s['evaluation']
-    for split,number in [('train',e['train_families']),('validation',e['validation_families'])]:
-        plan.extend(dict(f,identity='evaluation_'+f['family']) for f in families if f['split']==split)
-        # Finite first families by identity, never selected by expert/student success.
-        plan=[p for p in plan if p['split']!=split]+[p for p in plan if p['split']==split][:number]
+    families=read(root/'frozen_families.json');e=s['evaluation']
+    # Select by admitted dataset membership before any student result is known.
+    plan=evaluation_family_plan(families,read(root/'manifest.json'),e)
     for j in range(e['new_initial_attempts']):
         seed=e['new_seed_start']+j
         plan.append(dict(identity=f'new_{j:03d}',family=f'new_{j:03d}',split='new',seed=seed,cohort='fresh',

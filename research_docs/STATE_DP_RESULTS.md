@@ -1,12 +1,12 @@
 # Tight-Insertion 当前结果
 
-## 当前Core/Auxiliary接续（2026-11-07，尚未启动新物理尝试）
+## 当前Core/Auxiliary接续（2026-11-07，生产进行中）
 
 用户改变的是正式数据组成合同，不追改此前10/20严格准入。Auxiliary在新采集前冻结为[1.35,1.5)或(3,3.30]，其它路径/成功/真实运动/模态门槛不变。旧20数值分类10Core、2Aux、8拒绝；2Aux完整RGB-D已删除，只能复用10Core。开发14Core与1个Aux候选保持开发身份，不混入独立验证/测试。
 
-针对官方固定revision的动作/时间检查未发现实际错位：29D后处理关节目标仅逐关节仿射；H24从当前anchor开始，commit12后重规划。实际是完整episode持续GRU，不存在64tick截断历史；官方动作窗口含观察前缀时的To−1切片不能套用本future-only标签。针对性确定性测试及新准入/复用队列回归将记入本轮receipt；已通过工程实现源码不变。
+针对官方固定revision的动作/时间检查未发现实际错位：29D后处理关节目标仅逐关节仿射；H24从当前anchor开始，commit12后重规划。实际是完整episode持续GRU，不存在64tick截断历史；官方动作窗口含观察前缀时的To−1切片不能套用本future-only标签。61项定向确定性/准入/复用队列回归通过，已记入[evidence/tight_composition_20261107.json](evidence/tight_composition_20261107.json)；已通过工程实现源码不变。
 
-当前尚未冻结新数据、未启动新学生训练或闭环；不能记成0%或完成。预算/配额/停止条件见[合同](CONTRACTS.md)。
+运行源码4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917，22:30启动composition_06；首条formal_020_slow_0完整成功且Core通过。Core-only衔接另补1项闭环家族成员测试：仅最终Core manifest中的train/validation家族进入对应诊断，未见物理状态仍独立。采集实现及模型/训练不变，评估修订单独登记源码。当前尚未冻结新数据、未启动新学生训练或闭环；不能记成0%或完成。预算/配额/停止条件见[合同](CONTRACTS.md)。
 
 ## 历史formal_05：原严格合同结果（保持不变）
 

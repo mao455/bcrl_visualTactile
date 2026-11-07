@@ -512,3 +512,17 @@ def test_collection_reuses_attempts_and_does_not_stop_on_duration_yield(tmp_path
     assert m['core_count']==4 and m['auxiliary_count']==2 and m['all_attempts']==9
     assert len(json.loads((root/'manifest.json').read_text())['episodes'])==4
     assert json.loads((prior/'formal_results.json').read_text())==rows
+
+
+def test_closed_loop_families_come_from_actual_core_manifest():
+    from tools.tight_finish import evaluation_family_plan
+    families=[dict(family=f'{s}_{i}',split=s,seed=i) for s in ('train','validation','test') for i in range(4)]
+    manifest=dict(episodes=[dict(id=f'{s}_{i}_{j}',family=f'{s}_{i}',split=s)
+        for s in ('train','validation','test') for i in (1,3) for j in (0,1)])
+    plan=evaluation_family_plan(list(reversed(families)),manifest,dict(train_families=1,validation_families=7))
+    assert [p['family'] for p in plan]==['train_1','validation_1','validation_3']
+    # No requested-count padding, test selection, duplicate family, or unknown
+    # planned family mislabeled as having participated in training.
+    assert len(plan)==3 and all(p['family']!='train_0' for p in plan)
+    manifest['episodes'][0]['split']='validation'
+    with pytest.raises(ValueError,match='split mismatch'):evaluation_family_plan(families,manifest,dict(train_families=1,validation_families=7))
