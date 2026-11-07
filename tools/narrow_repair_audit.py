@@ -168,6 +168,11 @@ def slow_phase_analysis(root, prior_root):
                 dr[key]=float(np.ravel(g['transition/'+key][0])[0])
             for key in ('external_force_nonzero','external_torque_nonzero'):
                 dr[key+'_ticks']=int(np.asarray(g['transition/'+key][:]).reshape(n,-1).any(-1).sum())
+            for kind,unit in (('force','N'),('torque','Nm')):
+                values=g[f'transition/applied_wrench/{kind}_w_{unit}'][:]
+                norms=np.linalg.norm(values,axis=-1)
+                dr[f'actual_physics_{kind}_nonzero_substeps']=int(norms.reshape(n,2,-1).max(-1).astype(bool).sum())
+                dr[f'actual_{kind}_impulse_norm_sum_{unit}s']=float(norms.sum()/120)
             scheme=record.get('speed_scheme') or dict(kind='closed_loop',arm=record['alpha'],hand=record['alpha'],phase='all')
             expected=previous+(native-previous)*np.r_[np.full(7,scheme['arm']),np.full(22,scheme['hand'])]
             progression_error=float(np.max(np.abs(expected-target)))
@@ -198,7 +203,7 @@ def slow_phase_analysis(root, prior_root):
         pairs.append(dict(slow=row['identity'],reference=ref['identity'],family=row['family'],duration_ratio=row['duration_s']/ref['duration_s'],
             slow_success=row['success'],phase_ratios=ratios))
     report=dict(captures=len(rows),slow_attempts=len(pairs),reference_attempts=len(rows)-len(pairs),new_physical_starts=0,rows=rows,pairs=pairs,
-        phases='Existing mutually exclusive diagnostic proxies, not stable-grasp labels. Native alignment and second insertion retained separately and combined for macro insertion.',
+        phases='Existing mutually exclusive diagnostic proxies, not stable-grasp labels. Native alignment, second insertion and any ordered completion/retract ticks retained separately and combined for macro insertion.',
         amplitude='Mean per-joint sum(abs(q_after-q_before)) over phase ticks plus mean joint range. No concatenated cross-phase jumps.',
         counts='Previous21 captures comprise15 slow+6 native; new12 comprise6 slow+6 native. Total21 slow,12 native.',
         prior_admission_unchanged=True)

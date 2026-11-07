@@ -1,11 +1,7 @@
 # 当前A/B交接
 
-从362c630继续；A根目录baseline_03，best4500的显式legacy/canonical输入对照已登记24次启动，B只读分析33既有capture。尚未完成，读实际status。无新增训练计划，使用原275混速State数据版本；新慢速正式准入独立。
+从362c630继续，A运行代码991db6a1c02af140ef12fb1f3a35f159c7ba2193，root为`outputs/visuotactile/run/tight_state_20261107_01/baseline_03`。24次登记尝试全部结束，自有owner/worker/monitor均退出；旧275混速State数据best4500同权重legacy/canonical输入对照：train均0/4，未见初态旧0/7、canonical1/7，各另1次动作前初态拒绝。unseen_05 canonical178tick完整成功，legacy601timeout；数值修复有正向案例，未证明稳定改善。新训练更新0，无checkpoint复制。
 
-# 当前交接
+B只读分析33capture（21慢+12原速），新采样0：B00耗时增加主要伴随更长插入路径；B01/B02 Hand插入速度仍接近原速、Arm路径缩短。旧Hand更低参数也呈非单调时间及最终插入timeout。没有可靠统一方案，不生产新正式慢速集。最小提案仅在采集侧Hand目标增加因果速度上限，尚未实施；不得把A成功当B过关。
 
-固定Arm0.50/Hand1.00验证已于2026-11-07 12:01:49（UTC+8）按预登记产出不可达规则停止。root为`outputs/visuotactile/run/tight_state_20261107_01/continuation_02`，运行代码`cf275d5ec8029782942f2d36a58eb06f669e4b02`；启动干净，结束241份冻结源码/配置未变。旧e67bfc6基础工程验收继续有效，无需重做。
-
-实际6对/12次物理启动，原速6/6成功、慢速6/6成功、个体合格2/6；3家族各测2个新事件seed，合格只覆盖B00。即使剩余6对全合格也只能8/12<预注册9/12，因此不补seed、不换参数追加搜索。任务可靠性/完整覆盖未完成，不能称6/6就通过。详见[当前结果](STATE_DP_RESULTS.md)和机器证据continuation_final。
-
-全部新State/三RGB-D/触觉通过、慢速实际两子步目标误差0；worker exit0、owner门控拒绝exit1，所有自有进程已退出。正式数据0、训练更新0、train/validation/新初态均0/0未评估。此前合格6条和新增2条开发记录保留；没有重复清理。旧143归因仍未知。
+原168项/510tick等工程证据有效，本轮24受影响回归通过。运行后只读分析器补入实际两子步外力统计，33条重算一致；学生/执行代码未再修改。完整结果、逐条表、CSV/图和机器证据均在既有STATE_DP_RESULTS及evidence/tight_state_20261107.json。原400/275/专家/资产、旧6+新2开发合格记录保持；本轮清理0。当前无需重开基础审计或自动扩展队列。
