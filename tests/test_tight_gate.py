@@ -13,6 +13,30 @@ def config():
     return json.loads((Path(__file__).resolve().parents[1]/'configs/tight_state.json').read_text())
 
 
+def test_capped_current_configuration_is_standalone_and_rejects_invalid_limits():
+    current=config();assert validate_config(current) is current
+    assert current['speed_scheme']['hand_target_cap_rad_s']==2.
+    for bad in (0,-1,float('inf'),float('nan'),[2]*21):
+        cfg=copy.deepcopy(current);cfg['speed_scheme']['hand_target_cap_rad_s']=bad
+        with pytest.raises(ValueError):validate_config(cfg)
+    for bad in ({},dict(maximum_mean_speed_ratio=1.,maximum_insertion_path_ratio=1.25),
+                dict(maximum_mean_speed_ratio=.9,maximum_insertion_path_ratio=float('inf'))):
+        cfg=copy.deepcopy(current);cfg['physical_motion_gate']=bad
+        with pytest.raises(ValueError):validate_config(cfg)
+
+
+def test_scalar_development_and_mismatched_production_reject_before_kit(tmp_path):
+    from tools.runtime import write
+    from tools.tight_state import development
+    from tools.tight_finish import collect
+    c=config();write(tmp_path/'session.json',c);write(tmp_path/'configuration.json',c)
+    with pytest.raises(ValueError,match='legacy scalar-alpha'):development(tmp_path)
+    wrong=dict(c['speed_scheme'],hand_target_cap_rad_s=3.)
+    write(tmp_path/'selected_development_gate.json',dict(passed=True,alpha=None,speed_scheme=wrong))
+    with pytest.raises(ValueError,match='differs from production'):collect(tmp_path)
+    assert not (tmp_path/'episodes').exists()
+
+
 def test_historical_baseline_override_is_explicit_and_does_not_mutate_checkpoint():
     from tools.tight_finish import baseline_checkpoint
     from visuotactile.position_control import contract
@@ -186,6 +210,7 @@ def test_lossless_capture_codec_preserves_rgb_depth_and_valid_bits(tmp_path):
 
 def test_formal_passed_flag_cannot_override_bad_measured_duration_or_motion():
     c=config();c['collection'].update(minimum_accepted_episodes=3,minimum_accepted_families=3)
+    c['speed_scheme'].pop('hand_target_cap_rad_s')  # Explicit historical uncapped contract.
     entries=[dict(id=k,family=k,split=k,alpha=.525,state_valid=True,multi_view_valid=True,tactile_valid=True,
         reference_sha256='r',visual_acceptance_sha256='v',admission=paired_admission(row(.525,6.,.5),row(),c['development']))
         for k in ('train','validation','test')]
@@ -194,6 +219,22 @@ def test_formal_passed_flag_cannot_override_bad_measured_duration_or_motion():
     for field,value in [('duration_ratio',1.35),('duration_ratio',3.1),('actual_phase_speed_ratios',{})]:
         bad=copy.deepcopy(m);bad['episodes'][0]['admission'][field]=value
         with pytest.raises(ValueError):validate_formal_manifest(bad,c)
+
+
+def test_current_manifest_requires_matching_cap_and_real_path_evidence():
+    c=config();c['collection'].update(minimum_accepted_episodes=3,minimum_accepted_families=3)
+    comparison={phase:{g:dict(decomposition_valid=True,path_ratio=1.,mean_speed_ratio=.6)
+        for g in ('hand','end_effector','object')} for phase in ('whole','insertion')}
+    admission=dict(paired_admission(row(.5,6.,.5),row(),c['development']),physical_motion_comparison=comparison)
+    entries=[dict(id=k,family=k,split=k,speed_scheme=c['speed_scheme'],state_valid=True,multi_view_valid=True,tactile_valid=True,
+        reference_sha256='r',visual_acceptance_sha256='v',admission=copy.deepcopy(admission)) for k in ('train','validation','test')]
+    m=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_speed_scheme=c['speed_scheme'],episodes=entries)
+    assert validate_formal_manifest(m,c)
+    for bad in ({},dict(comparison,insertion=dict(comparison['insertion'],object=dict(decomposition_valid=True,path_ratio=2.,mean_speed_ratio=.6)))):
+        broken=copy.deepcopy(m);broken['episodes'][0]['admission']['physical_motion_comparison']=bad
+        with pytest.raises(ValueError,match='physical speed/path'):validate_formal_manifest(broken,c)
+    other=copy.deepcopy(c);other['speed_scheme']['hand_target_cap_rad_s']=3.
+    with pytest.raises(ValueError,match='current validated scheme'):validate_formal_manifest(m,other)
 
 
 def test_tactile_requires_correct_past_and_two_substep_clocks(tmp_path):
@@ -273,18 +314,27 @@ def test_passing_fixture_gpu_receipts_cannot_admit_formal_data(tmp_path):
     with pytest.raises(ValueError,match='dataset/statistics mismatch'):validate_training_gates(tmp_path,data)
 
 
-def test_current_cache_rechecks_real_rgbd_despite_manifest_valid_flags(tmp_path):
+@pytest.mark.parametrize('capped',[False,True])
+def test_current_cache_rechecks_real_rgbd_despite_manifest_valid_flags(tmp_path,capped):
     from unittest.mock import patch
     import hashlib
     from tools.runtime import write
     from visuotactile.narrow_data import build_cache
     c=config();c['collection'].update(minimum_accepted_episodes=3,minimum_accepted_families=3)
+    if not capped:c['speed_scheme'].pop('hand_target_cap_rad_s')  # Explicit historical contract.
     write(tmp_path/'configuration.json',c)
     source=tmp_path/'source.h5';source.write_bytes(b'bad legacy source')
     entries=[dict(id=str(i),family=str(i),split=split,alpha=.55,path=str(source),sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
         state_valid=True,multi_view_valid=True,tactile_valid=True,reference_sha256='r',visual_acceptance_sha256='v',
         admission=dict(passed=True,duration_ratio=2.,actual_phase_speed_ratios={k:.5 for k in ['grasp','lift_transport','insertion']})) for i,split in enumerate(['train','validation','test'])]
-    write(tmp_path/'manifest.json',dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_alpha=.55,episodes=entries))
+    m=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_alpha=.55,episodes=entries)
+    if capped:
+        m['frozen_speed_scheme']=c['speed_scheme']
+        for entry in entries:
+            entry['speed_scheme']=c['speed_scheme']
+            entry['admission']['physical_motion_comparison']={phase:{g:dict(decomposition_valid=True,path_ratio=1.,mean_speed_ratio=.6)
+                for g in ('hand','end_effector','object')} for phase in ('whole','insertion')}
+    write(tmp_path/'manifest.json',m)
     with patch('visuotactile.camera_validity.inspect_capture',return_value={'passed':False}) as inspect:
         with pytest.raises(ValueError,match='Actual RGB-D content failed'):build_cache(tmp_path)
         inspect.assert_called_once_with(str(source))

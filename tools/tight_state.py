@@ -112,7 +112,10 @@ def environment(root,evaluation=False,*,camera_content_validation=None):
 
 def development(root):
     from visuotactile.narrow_data import direct_configuration
-    s=read(root/'session.json');app,env,player,lease=environment(root)
+    s=read(root/'session.json')
+    if s.get('speed_scheme',{}).get('hand_target_cap_rad_s') is not None:
+        raise ValueError('Validated Hand cap requires tight_finish gates; legacy scalar-alpha development is not eligible')
+    app,env,player,lease=environment(root)
     lease.deadline=s['development_deadline']
     refs={};rows=[];candidates=[]
     for i,seed in enumerate(s['development']['seeds']):

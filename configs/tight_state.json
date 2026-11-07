@@ -117,25 +117,42 @@
     "outputs/visuotactile/run/narrow_repair_20261106_01/manifest.json"
   ],
   "capture_compression": "gzip4_lossless_v1",
-  "development_revision": 3,
+  "development_revision": 4,
   "speed_scheme": {
     "kind": "closed_loop",
     "arm": 0.5,
     "hand": 1.0,
-    "phase": "all"
+    "phase": "all",
+    "hand_target_cap_rad_s": 2.0
   },
   "speed_validation": {
     "slow_attempts": 12,
-    "repeats_per_family": 4,
+    "repeats_per_family": 3,
     "maximum_physical_starts": 24,
     "maximum_hours": 2,
     "minimum_task_successes": 11,
-    "minimum_admitted": 9,
-    "minimum_family_successes": 3,
+    "minimum_admitted": 10,
+    "minimum_family_successes": 2,
     "minimum_family_admitted": 2,
     "minimum_reference_successes": 11,
-    "event_seed_start": 28171001,
+    "event_seed_start": 30181001,
     "stop_if_threshold_unreachable": true,
-    "automatic_parameter_search": false
+    "automatic_parameter_search": false,
+    "independent_families": 4,
+    "initial_seed_start": 30171001
+  },
+  "physical_motion_gate": {
+    "maximum_mean_speed_ratio": 0.9,
+    "maximum_insertion_path_ratio": 1.25
+  },
+  "validated_speed_evidence": {
+    "run": "tight_state_20261107_01/hand_cap_04",
+    "pilot_successes": 5,
+    "pilot_attempts": 6,
+    "pilot_admitted": 4,
+    "independent_successes": 12,
+    "independent_attempts": 12,
+    "independent_admitted": 10,
+    "rule": "Evidence identity only; startup still requires passed receipts, never trust these summary counts as admission"
   }
 }

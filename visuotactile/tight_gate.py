@@ -32,6 +32,15 @@ def validate_config(config):
     require(len(set(gate['seeds']))==len(gate['seeds']), 'Development seeds must be distinct')
     require(all(0<a<1 for a in gate['alphas']), 'Slow candidate alpha must be within(0,1)')
     require(sum(config['collection'][k] for k in ('train_families','validation_families','test_families'))==config['collection']['families'], 'Family split sizes')
+    cap=config.get('speed_scheme',{}).get('hand_target_cap_rad_s')
+    if cap is not None:
+        values=np.asarray(cap,dtype=float)
+        require(values.shape in ((),(22,)) and np.isfinite(values).all() and (values>0).all(),
+            'Hand cap must be finite positive scalar or22 canonical rad/s values')
+        physical=config.get('physical_motion_gate',{})
+        speed=physical.get('maximum_mean_speed_ratio',float('nan'));path=physical.get('maximum_insertion_path_ratio',float('nan'))
+        require(math.isfinite(speed) and 0<speed<1 and math.isfinite(path) and path>=1,
+            'Capped production requires explicit physical speed/path gates in current configuration')
     return config
 
 
@@ -139,6 +148,22 @@ def numeric_admission(path):
     return key,meta,rec,result
 
 
+def physical_motion_errors(comparison, rules):
+    errors=[]
+    for phase,groups in [('whole',('hand',)),('insertion',('hand','end_effector','object'))]:
+        for group in groups:
+            item=comparison.get(phase,{}).get(group,{})
+            if not item.get('decomposition_valid'):
+                errors.append(phase+'_'+group+'_missing_physical_motion');continue
+            if not all(math.isfinite(item.get(k,float('nan'))) and item[k]>=0 for k in ('mean_speed_ratio','path_ratio')):
+                errors.append(phase+'_'+group+'_invalid_physical_motion');continue
+            if item['mean_speed_ratio']>rules['maximum_mean_speed_ratio']:
+                errors.append(phase+'_'+group+'_actual_speed_not_reduced')
+            if phase=='insertion' and item['path_ratio']>rules['maximum_insertion_path_ratio']:
+                errors.append(phase+'_'+group+'_path_excess')
+    return errors
+
+
 def validate_formal_manifest(manifest, config):
     require(manifest.get('version')=='tight_slow_multimodal_v1','Historical datasets cannot enter current formal training')
     require(manifest.get('collection_finished') is True,'Collection has not finished')
@@ -163,6 +188,11 @@ def validate_formal_manifest(manifest, config):
             value=speeds.get(phase)
             require(isinstance(value,(float,int)) and math.isfinite(value) and 0<=value<=config['development']['maximum_phase_speed_ratio'],
                 'Actual phase speed missing or not slower: '+phase)
+        if config.get('speed_scheme',{}).get('hand_target_cap_rad_s') is not None:
+            require(manifest.get('frozen_speed_scheme')==config['speed_scheme'],
+                'Native or mixed speed does not match current validated scheme')
+            require(not physical_motion_errors(admission.get('physical_motion_comparison',{}),config['physical_motion_gate']),
+                'Missing or invalid physical speed/path evidence for capped production')
         require(entry.get('reference_sha256') and entry.get('visual_acceptance_sha256'),'Missing reference/content evidence')
     require(len(entries)>=config['collection']['minimum_accepted_episodes'],'Insufficient accepted episodes, no quantity backfill')
     require(len(families)>=config['collection']['minimum_accepted_families'],'Insufficient accepted families')

@@ -1,19 +1,19 @@
 # Tight-Insertion StateDP
 
-当前任务分A/B：A实际验证一次Hand目标速度上限；B固定canonical与best4500，在独立训练家族和新初态闭环评估。两者独立，不重开已通过基础审计。主文档只有[当前合同](CONTRACTS.md)和[当前结果](STATE_DP_RESULTS.md)；历史事实见[精简历史表](RESEARCH_HISTORY.md)，历史待办不是当前授权。
+当前结果分开报告：A固定Hand cap已通过有限可靠性验证；B原275混速State数据的canonical best4500独立闭环未显示稳定新初态泛化。主文档为[当前合同](CONTRACTS.md)与[当前结果](STATE_DP_RESULTS.md)，历史事实见[精简历史表](RESEARCH_HISTORY.md)。
 
-本轮起点为1b70d3b6fce8052300a54f5361f4092da27cba5f；此前工程审查基点为feature/narrow-state-data的642f5a2。IDE原目录HEAD为3e11d62且有既存文档改动；实际修改在`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`，基于干净642f5a2新建本地分支`feature/tight-state-foundation`，未重写共享分支。
+本轮基点`1b70d3b6fce8052300a54f5361f4092da27cba5f`，实际物理运行提交`f8beeef6d408ac20f520f6a26625c31bc3cdb5ee`，干净启动。实际工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、分支`feature/tight-state-foundation`；IDE原树既存改动保持。
 
-唯一配置：[configs/tight_state.json](../configs/tight_state.json)。最新有限实验root：`outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`，父root保留上一段结果。只读状态：
+唯一当前配置：[configs/tight_state.json](../configs/tight_state.json)。已冻结Arm.50、Hand1、Hand逐关节目标cap2rad/s及实际速度/路径门槛(.90/1.25)。正式入口仍tools.tight_finish；旧标量alpha开发入口会拒绝当前配置，不能冒用旧gate。工程证据冻结，未重开基础审计；新增限速与配置门控的37项回归通过。
+
+当前root：`outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`。只读状态：
 
 ```bash
 bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04
 ```
 
-入口拒绝自动覆盖已有物理attempt；`prepare`只允许新root，不能用换root重置已经登记的失败/预算。开发、正式数据、训练与学生成功是四个不同结果，均以本root对应实测文件为准。旧narrow_collection/narrow_repair/旧session不是当前正式生产入口。
+A pilot5/6成功、4/6准入；独立12/12成功、10/12准入，4家族覆盖3/3/2/2。`qualified_development.json`保留14条7家族train-only合格开发轨迹；尚非正式集。B同一best4500 canonical：训练家族1/4成功、新初态0/10合法成功，另2次初态拒绝；无新训练，无上轮7seed重跑。
 
-正式慢速生产配置不依赖旧run/session/calibration或学生权重。A受控复评则按最新授权显式引用冻结275数据版本和best4500，独立于生产门槛；旧数据审计通过不等于被准入慢速多模态集。原生工程入口、专家、assets与共享SDK保持。
+当前明确阻断为磁盘：保留60GiB后约8GiB，复用全部合格开发数据后按最小实测payload仍需约31GiB新增空间。正式采集前容量STOP已退出全部自有进程；正式attempt0、manifest/统计/cache未冻结、训练未执行。不要直接重启已完成队列或删除STOP绕过容量。空间到位后从通过的gate准备正式生产continuation，沿用冻结参数与剩余预算，不重采开发案例。
 
-上一轮A实际运行代码991db6a1c02af140ef12fb1f3a35f159c7ba2193。24次尝试完成：旧/canonical训练家族均0/4，未见初态旧0/7、canonical1/7，各另1次初态拒绝；同权重输入修复观察到1个成功改善配对，未证明稳定改善。没有新增训练，原275混速数据不授予新慢速资格。
-
-B分析33条既有记录，不新采样；固定方案尚不可靠，正式慢速集0条。速度上限机制仅有采集侧提案，未实施。全部自有进程退出；最终[当前结果](STATE_DP_RESULTS.md)分别报告A和B。当前生产配置仍是tight_state.json，历史数据复评配置显式冻结在baseline_03/baseline_plan.json，不隐式修改源checkpoint。
+生产配置不读取旧学生checkpoint或旧calibration作为参数来源；已有gate/轨迹仅是明确的准入证据。原275历史baseline显式只读引用其数据/统计/best4500，永不冒称严格慢速多模态集。原400、旧275、专家/资产及失败分母继续保护；无数据/checkpoint上传。

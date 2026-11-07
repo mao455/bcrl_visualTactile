@@ -1,6 +1,12 @@
-# 当前有限实验交接
+# 当前交接：两个有限实验结束，正式生产容量阻断
 
-最新授权从1b70d3b6继续，A=Hand cap最小实测、B=独立canonical State诊断。入口仍tools.tight_finish，root `outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`；先6次固定2rad/s cap，再16次canonical best4500。只有A改善才条件启动4独立家族×3event可靠性验证；规则和种子已经登记，见CONTRACTS及root plans。旧工程证据冻结；新增33受影响回归与21条6765tick关闭限速恒等通过。尚无本轮物理结果，不把启动当完成。无新训练计划，理由和旧曝光/平台在合同。
+基点1b70d3b6fce8052300a54f5361f4092da27cba5f；物理运行f8beeef6d408ac20f520f6a26625c31bc3cdb5ee，工作树bc+rl_RSS_narrow_followup，root tight_state_20261107_01/hand_cap_04。A Hand cap固定Arm.50/Hand1/cap2rad/s：pilot5/6成功4/6准入，独立12/12成功10/12准入、覆盖3/3/2/2，有限预登记门槛通过。18慢速17成功14准入；新增12原速全部成功，新采30条三模态全过，所有实际目标误差0。14条7家族仅作train-only可复用开发数据，未冻结正式集。
+
+B保留同一best4500 canonical：独立训练家族1/4成功，新初态12尝试/10合法/0成功/2拒绝，全部合法新初态601tick零子目标。成功family005176tick原生完整终止。无随机重训、无上轮7seed重复；不能声称稳定泛化或把未运行训练报0%。
+
+容量guard在通过可靠性后停止生产：reserve以上约8GiB，最大复用开发数据仍按最小实测文件需约31GiB新增空间。无其他已挂载数据盘，待额外空间/目录；正式attempt0、统计/cache/训练均未执行。3实验worker exit0，owner因明确STOP exit1、所有自有进程退出；未知旧143及本轮只读观察会话143不归Kit/OOM。不可直接重跑run --mechanism或清STOP冒进；空间到位后用当前唯一配置准备生产continuation，继承通过的gate与原剩余预算。
+
+运行后只固化当前cap/运动门槛配置及拒绝错入口/manifest路径证据；37项受影响测试通过，18条运动判定一致，限速器/原生包装/模型未再改变。已通过168/510tick等基础工程证据不重审。209运行源码/计划指纹及保护清单核对通过。清理仅本轮重复JSON/临时图2文件876544bytes，原400/275/模型/成功失败记录不动。完整逐条表、物理分解、容量/资源与可复现记录见STATE_DP_RESULTS和evidence/tight_hand_cap_results_20261107.json。
 
 ## 上一轮已完成记录
 

@@ -12,23 +12,7 @@ import traceback
 
 from tools.runtime import CODE,RUN,read,write,supervised_owner,sha,kill_owned,proc
 from tools.tight_state import capture,digest,beat,check_protected
-from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require,scheme_reliability,accepted_foundation
-
-
-def physical_motion_errors(comparison, rules):
-    errors=[]
-    for phase,groups in [('whole',('hand',)),('insertion',('hand','end_effector','object'))]:
-        for group in groups:
-            item=comparison.get(phase,{}).get(group,{})
-            if not item.get('decomposition_valid'):
-                errors.append(phase+'_'+group+'_missing_physical_motion');continue
-            if not all(math.isfinite(item.get(k,float('nan'))) and item[k]>=0 for k in ('mean_speed_ratio','path_ratio')):
-                errors.append(phase+'_'+group+'_invalid_physical_motion');continue
-            if item['mean_speed_ratio']>rules['maximum_mean_speed_ratio']:
-                errors.append(phase+'_'+group+'_actual_speed_not_reduced')
-            if phase=='insertion' and item['path_ratio']>rules['maximum_insertion_path_ratio']:
-                errors.append(phase+'_'+group+'_path_excess')
-    return errors
+from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require,scheme_reliability,accepted_foundation,physical_motion_errors
 
 
 def cap_motion_admission(row, reference, rules):
@@ -194,6 +178,9 @@ def collect(root):
     s=read(root/'session.json');cfg=read(root/'configuration.json');gate=read(root/'selected_development_gate.json')
     require(gate['passed'],'Development did not pass');c=s['collection'];alpha=gate['alpha']
     scheme=gate.get('speed_scheme',dict(kind='closed_loop',arm=alpha,hand=alpha,phase='all'))
+    require(scheme==s.get('speed_scheme',scheme),'Validated speed scheme differs from production configuration')
+    if scheme.get('hand_target_cap_rad_s') is not None:
+        require('physical_motion_gate' in s,'Extract physical admission into standalone current configuration before production')
     families=[];order=np.random.default_rng(c['split_seed']).permutation(c['families'])
     splits={int(i):'train' if j<c['train_families'] else 'validation' if j<c['train_families']+c['validation_families'] else 'test' for j,i in enumerate(order)}
     for i in range(c['families']):
@@ -226,7 +213,8 @@ def collect(root):
         else:
             ref=refs[job['family']];admission=paired_admission(row,ref,s['development']);row['admission']=admission
             if scheme.get('hand_target_cap_rad_s') is not None:
-                row['physical_motion']=cap_motion_admission(row,ref,read(root/'hand_cap_plan.json')['physical_rules'])
+                row['physical_motion']=cap_motion_admission(row,ref,s['physical_motion_gate'])
+                admission['physical_motion_comparison']=row['physical_motion'].get('comparison',{})
                 admission['errors'].extend(row['physical_motion']['errors']);admission['passed']=not admission['errors']
             if admission['passed']:
                 entries.append(dict(id=job['identity'],family=job['family'],split=job['split'],alpha=alpha,speed_scheme=scheme,
