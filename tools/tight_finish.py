@@ -12,7 +12,44 @@ import traceback
 
 from tools.runtime import CODE,RUN,read,write,supervised_owner,sha,kill_owned,proc
 from tools.tight_state import capture,digest,beat,check_protected
-from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require
+from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require,scheme_reliability,accepted_foundation
+
+
+def validate_speed(root):
+    """One preregistered fixed scheme, distinct post-reset event seeds, no search."""
+    from tools.tight_state import environment
+    from visuotactile.narrow_data import direct_configuration
+    s=read(root/'session.json');plan=read(root/'speed_validation_plan.json')
+    require(digest(s['domain'])==plan['domain_sha256'],'Registered domain changed')
+    require(s['speed_scheme']==plan['speed_scheme'],'Registered scheme changed')
+    require(not (root/'validation_results.json').exists(),'No blind validation restart')
+    app,env,player,lease=environment(root);lease.deadline=plan['deadline']
+    refs=[];slow=[];halt=None
+    for pair in plan['pairs']:
+        spec=dict(pair,split='development',cohort='fresh',collision_gate='live_collision_mesh_bounds_v1',
+            narrow_reset=direct_configuration(s['domain'],pair['seed']))
+        spec['identity']=pair['pair_id']+'_reference';reference=capture(root,env,player,lease,spec,1.)
+        refs.append(reference)
+        spec['identity']=pair['pair_id']+'_slow'
+        row=capture(root,env,player,lease,spec,None,speed_scheme=plan['speed_scheme'])
+        row['admission']=paired_admission(row,reference,s['development'])
+        for key in ('initial_observable_sha256','actual_native_configuration_sha256'):
+            if row.get(key)!=reference.get(key):
+                row['admission']['errors'].append(key+'_mismatch');row['admission']['passed']=False
+        slow.append(row);gate=scheme_reliability(slow,plan)
+        gate.update(reference_attempts=len(refs),reference_successes=sum(r['success'] for r in refs))
+        write(root/'validation_results.json',dict(references=refs,slow=slow,gate=gate))
+        if row['classification'] in ('sensor_failure','software_or_sensor_failure') or reference['classification'] in ('sensor_failure','software_or_sensor_failure'):
+            halt='Sensor/software fault; no replacement attempt';break
+        if gate['preregistered_threshold_unreachable'] or sum(not r['success'] for r in refs)>plan['slow_attempts']-plan['reliability']['minimum_reference_successes']:
+            halt='Preregistered reliability/yield/coverage threshold is mathematically unreachable';break
+    gate=scheme_reliability(slow,plan)
+    reference_ok=len(refs)==plan['slow_attempts'] and sum(r['success'] for r in refs)>=plan['reliability']['minimum_reference_successes']
+    gate.update(reference_reliability_passed=reference_ok,reference_attempts=len(refs),reference_successes=sum(r['success'] for r in refs),
+        passed=gate['passed'] and reference_ok,stop_reason=halt,remaining_unstarted_pairs=plan['slow_attempts']-len(slow))
+    write(root/'scheme_reliability.json',gate)
+    write(root/'selected_development_gate.json',dict(passed=gate['passed'],alpha=None,speed_scheme=plan['speed_scheme'],
+        references=refs,slow=slow,reliability=gate,reason=halt or 'Completed registered fixed-scheme validation'))
 
 
 def refine(root):
@@ -76,6 +113,7 @@ def collect(root):
     from visuotactile.narrow_data import direct_configuration,build_cache
     s=read(root/'session.json');cfg=read(root/'configuration.json');gate=read(root/'selected_development_gate.json')
     require(gate['passed'],'Development did not pass');c=s['collection'];alpha=gate['alpha']
+    scheme=gate.get('speed_scheme',dict(kind='closed_loop',arm=alpha,hand=alpha,phase='all'))
     families=[];order=np.random.default_rng(c['split_seed']).permutation(c['families'])
     splits={int(i):'train' if j<c['train_families'] else 'validation' if j<c['train_families']+c['validation_families'] else 'test' for j,i in enumerate(order)}
     for i in range(c['families']):
@@ -84,30 +122,31 @@ def collect(root):
             narrow_reset=direct_configuration(s['domain'],seed)))
     write(root/'frozen_families.json',families)
     jobs=[]
-    for f in families:jobs.append(dict(f,identity=f['family']+'_reference',alpha=1.))
+    for f in families:jobs.append(dict(f,identity=f['family']+'_reference',alpha=1.,speed_scheme=dict(kind='closed_loop',arm=1.,hand=1.,phase='all')))
     for j in range(c['variations_per_family']):
         for f in families:
             # Same fixed-pose family/configuration; independent native joint,
             # observation/delay/wrench RNG draws. No alteration of DR settings.
-            jobs.append(dict(f,identity=f['family']+f'_slow_{j}',seed=f['seed']+j*100000,alpha=alpha))
+            jobs.append(dict(f,identity=f['family']+f'_slow_{j}',seed=f['seed']+j*100000,
+                event_seed=c['event_seed_start']+j*c['families']+int(f['family'].split('_')[-1]),alpha=alpha,speed_scheme=scheme))
     require(len(jobs)<=c['maximum_attempts'],'Predetermined attempt cap')
-    write(root/'frozen_collection_plan.json',dict(jobs=jobs,configuration_sha256=s['configuration_sha256'],alpha=alpha,
+    write(root/'frozen_collection_plan.json',dict(jobs=jobs,configuration_sha256=s['configuration_sha256'],alpha=alpha,speed_scheme=scheme,
         reference_scope='Same fixed-pose family and native reset/DR configuration; variation seeds change joint/noise/event draws, not an exact hidden-state pair'))
     app,env,player,lease=environment(root);refs={};entries=[];results=[];consecutive=0
     budget_stop=None
     for index,job in enumerate(jobs):
         import shutil
         if shutil.disk_usage(root).free<s['reserve_bytes']+5*1024**3:
-            candidate=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_alpha=alpha,episodes=entries)
+            candidate=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=entries)
             validate_formal_manifest(candidate,cfg)
             budget_stop=dict(reason='Soft count target yields to fixed disk reserve plus5GiB training/checkpoint allowance',
                 unstarted=len(jobs)-index,completed=len(results),accepted=len(entries));break
-        row=capture(root,env,player,lease,job,job['alpha']);results.append(row)
+        row=capture(root,env,player,lease,job,job['alpha'],speed_scheme=job['speed_scheme']);results.append(row)
         if job['alpha']==1.:refs[job['family']]=row
         else:
             ref=refs[job['family']];admission=paired_admission(row,ref,s['development']);row['admission']=admission
             if admission['passed']:
-                entries.append(dict(id=job['identity'],family=job['family'],split=job['split'],alpha=alpha,
+                entries.append(dict(id=job['identity'],family=job['family'],split=job['split'],alpha=alpha,speed_scheme=scheme,
                     path=row['path'],sha256=row['source_sha256'],steps=row['steps'],size=Path(row['path']).stat().st_size,
                     state_valid=True,multi_view_valid=True,tactile_valid=True,admission=admission,
                     reference_path=ref['path'],reference_sha256=ref['source_sha256'],visual_acceptance_sha256=row['visual_acceptance_sha256']))
@@ -126,11 +165,17 @@ def collect(root):
         consecutive=0 if row['success'] else consecutive+1
         write(root/'formal_results.json',results)
         write(root/'manifest.pending.json',dict(version='tight_slow_multimodal_v1',collection_finished=False,
-            development_passed=True,frozen_alpha=alpha,episodes=entries))
+            development_passed=True,frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=entries))
         if row.get('classification') in ('sensor_failure','software_or_sensor_failure'):raise RuntimeError('Sensor/software failure; no promotion')
         if consecutive>=c['maximum_consecutive_task_failures']:raise RuntimeError('Preregistered consecutive task-failure stop')
+        completed_slow=[r for r in results if r['alpha']!=1.]
+        if c.get('reliability_window') and len(completed_slow) and len(completed_slow)%c['reliability_window']==0:
+            task_rate=sum(r['success'] for r in completed_slow)/len(completed_slow)
+            yield_rate=sum(r.get('admission',{}).get('passed',False) for r in completed_slow)/len(completed_slow)
+            require(task_rate>=c['minimum_production_task_rate'] and yield_rate>=c['minimum_production_yield'],
+                'Preregistered cumulative production reliability/yield stop')
     manifest=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,
-        frozen_alpha=alpha,episodes=entries,all_attempts=len(results),configuration_sha256=s['configuration_sha256'],
+        frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=entries,all_attempts=len(results),configuration_sha256=s['configuration_sha256'],
         original400_included=False,original275_included=False,quarantined=False,budget_stop=budget_stop)
     validate_formal_manifest(manifest,cfg)
     # Recheck every accepted payload and both modalities at freeze, never trust
@@ -180,7 +225,7 @@ def evaluate(root):
 
 
 @supervised_owner
-def pipeline(root,refinement=False):
+def pipeline(root,refinement=False,speed_validation=False):
     import fcntl
     with (root/'owner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -188,6 +233,8 @@ def pipeline(root,refinement=False):
         (root/'STOP_MONITOR').unlink(missing_ok=True)
         def worker(stage,args,deadline):
             nonlocal child
+            if (root/'execution_source_freeze.json').exists():
+                for path,expected in read(root/'execution_source_freeze.json').items():require(sha(path)==expected,'Execution source drift: '+path)
             path=root/'stages'/stage;path.mkdir(parents=True,exist_ok=False)
             write(root/'status.json',dict(state='running',stage=stage,utc=time.time()))
             with (path/'worker.log').open('w') as log:child=subprocess.Popen(RUN+args,cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
@@ -200,21 +247,25 @@ def pipeline(root,refinement=False):
             if child.returncode:raise RuntimeError(stage+' failed; no blind retry')
         try:
             with (root/'monitor.log').open('a') as log:monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-            if not (root/'gpu_parity.json').exists():
+            inherited=(root/'accepted_foundation.json').exists()
+            if inherited:accepted_foundation(root)
+            elif not (root/'gpu_parity.json').exists():
                 worker('foundation_fixture',['-m','tools.tight_audit','fixture','--root',str(root)],s['development_deadline'])
                 worker('foundation_gpu',['-m','tools.tight_audit','gpu','--root',str(root),'--data',str(root/'diagnostic_data')],s['development_deadline'])
-            require(read(root/'gpu_parity.json')['passed'],'Foundation full trajectory GPU gate must pass')
+            if not inherited:require(read(root/'gpu_parity.json')['passed'],'Foundation full trajectory GPU gate must pass')
+            if speed_validation:
+                worker('speed_validation',['-m','tools.tight_finish','validate_speed','--root',str(root)],s['development_deadline'])
             if refinement:
                 require(s.get('development_revision')==2,'Refinement revision missing; refuse startup')
                 worker('refined_development_v2',['-m','tools.tight_finish','refine','--root',str(root)],s['development_deadline'])
             gate=read(root/'selected_development_gate.json')
-            if not gate['passed']:raise ValueError('Narrower development still failed; bounded calibration exhausted')
-            if not (root/'actuator_gate.json').exists():
+            if not gate['passed']:raise ValueError('Fixed-scheme gate failed: '+json.dumps(gate.get('reliability',gate.get('reason'))))
+            if not inherited and not (root/'actuator_gate.json').exists():
                 worker('actuator_gate',['-m','tools.tight_finish','actuator_worker','--root',str(root)],s['development_deadline'])
-            require(read(root/'actuator_gate.json')['passed'],'Actual processed-target execution gate must pass')
+            if not inherited:require(read(root/'actuator_gate.json')['passed'],'Actual processed-target execution gate must pass')
             worker('collection',['-m','tools.tight_finish','collect','--root',str(root)],s['collection_deadline'])
             worker('formal_cpu_audit',['-m','tools.tight_audit','cpu','--root',str(root),'--data',str(root/'state_data')],s['deadline'])
-            worker('formal_gpu_audit',['-m','tools.tight_audit','gpu','--root',str(root),'--data',str(root/'state_data')],s['deadline'])
+            if not inherited:worker('formal_gpu_audit',['-m','tools.tight_audit','gpu','--root',str(root),'--data',str(root/'state_data')],s['deadline'])
             data=read(root/'state_data/data.json');ids=data['splits']['train'];anchors=sum(math.ceil(data['entries'][i]['length']/12) for i in ids)
             batch=len(ids)/math.ceil(len(ids)/64);t=s['training'];train=root/'training';train.mkdir()
             total=math.ceil(t['maximum_anchor_epochs']*anchors/batch);boundary=math.ceil(t['initial_anchor_epochs']*anchors/batch)
@@ -254,9 +305,9 @@ def pipeline(root,refinement=False):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker','validate_speed']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true')
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='run':pipeline(root,a.refinement)
+    if a.mode=='run':pipeline(root,a.refinement,a.speed_validation)
     else:
         code=0
         try:globals()[a.mode](root)

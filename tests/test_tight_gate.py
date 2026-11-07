@@ -246,3 +246,80 @@ def test_current_cache_rechecks_real_rgbd_despite_manifest_valid_flags(tmp_path)
         with pytest.raises(ValueError,match='Actual RGB-D content failed'):build_cache(tmp_path)
         inspect.assert_called_once_with(str(source))
     assert not (tmp_path/'state_data/statistics.pt').exists()
+
+
+def reliability_fixture():
+    from visuotactile.tight_gate import scheme_reliability
+    scheme=dict(kind='closed_loop',arm=.5,hand=1.,phase='all')
+    plan=dict(speed_scheme=scheme,families=['a','b','c'],slow_attempts=12,repeats_per_family=4,
+        reliability=dict(minimum_task_successes=11,minimum_admitted=9,minimum_family_successes=3,minimum_family_admitted=2))
+    rows=[dict(identity=f'{f}{i}',family=f,speed_scheme=scheme,success=True,legal=True,software_complete=True,
+        admission=dict(passed=True)) for i in range(4) for f in plan['families']]
+    return scheme_reliability,plan,rows
+
+
+def test_reliability_separates_task_success_individual_admission_and_coverage():
+    check,plan,rows=reliability_fixture()
+    rows[0].update(success=False,admission=dict(passed=False))
+    rows[1]['admission']['passed']=False;rows[2]['admission']['passed']=False
+    result=check(rows,plan)
+    assert result['passed'] and result['successes']==11 and result['admitted']==9
+    rows[3]['success']=False
+    result=check(rows,plan)
+    assert not result['passed'] and not result['task_reliability_passed']
+    check,plan,rows=reliability_fixture()
+    for i in (0,3,6):rows[i]['admission']['passed']=False
+    result=check(rows,plan)
+    assert result['task_reliability_passed'] and result['admission_yield_passed'] and not result['coverage_passed']
+
+
+def test_reliability_short_run_or_mixed_parameters_cannot_pass():
+    check,plan,rows=reliability_fixture()
+    assert not check(rows[:3],plan)['passed']
+    rows[0]['speed_scheme']=dict(plan['speed_scheme'],hand=.5)
+    with pytest.raises(ValueError,match='Mixed scheme'):check(rows,plan)
+    check,plan,rows=reliability_fixture()
+    for row in rows[:2]:row['success']=False
+    assert check(rows[:2],plan)['preregistered_threshold_unreachable']
+
+
+def test_independent_arm_hand_parameters_keep_individual_duration_gate():
+    slow=row(.5,6.,.7);slow['speed_scheme']=dict(arm=.5,hand=1.,kind='closed_loop',phase='all')
+    assert paired_admission(slow,row(),config()['development'])['passed']
+    slow['duration_s']=4.4
+    assert not paired_admission(slow,row(),config()['development'])['passed']
+
+
+def test_event_seed_changes_future_draws_without_changing_reset_or_external_rng():
+    import torch
+    from visuotactile.environment_rng import IsolatedEnvironment
+    class Env:
+        device='cpu'
+        def reset(self,seed):return torch.rand(5)
+        def step(self,command):return torch.rand(5)
+    external=torch.get_rng_state().clone()
+    first=IsolatedEnvironment(Env(),3);second=IsolatedEnvironment(Env(),3)
+    assert torch.equal(first.reset(3),second.reset(3))
+    first.begin_events(7);second.begin_events(8)
+    assert not torch.equal(first.step(None),second.step(None))
+    first.begin_events(9);second.begin_events(9)
+    assert torch.equal(first.step(None),second.step(None))
+    assert torch.equal(torch.get_rng_state(),external)
+    with pytest.raises(ValueError):first.begin_events(-1)
+
+
+def test_accepted_foundation_rejects_changed_implementation_or_receipt(tmp_path):
+    import hashlib
+    from tools.runtime import write
+    from visuotactile.tight_gate import accepted_foundation
+    source=tmp_path/'source.py';source.write_text('accepted math')
+    gate=tmp_path/'gate.json';write(gate,dict(passed=True))
+    fingerprint=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+    write(tmp_path/'accepted_foundation.json',dict(baseline_commit='e67bfc6fa1b66359b55e019ae9899240625d5295',
+        unchanged_implementations={str(source):fingerprint(source)},gates={k:dict(path=str(gate),sha256=fingerprint(gate))
+        for k in ['gpu_parity','gradient_gate','restore_gate','actuator_gate']}))
+    assert accepted_foundation(tmp_path)
+    source.write_text('changed math')
+    with pytest.raises(ValueError,match='implementation changed'):accepted_foundation(tmp_path)
+    source.write_text('accepted math');write(gate,dict(passed=False))
+    with pytest.raises(ValueError,match='receipt changed'):accepted_foundation(tmp_path)

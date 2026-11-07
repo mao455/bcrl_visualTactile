@@ -61,3 +61,9 @@ class IsolatedEnvironment:
     def step(self, command):
         with self.stream.scope():
             return self.env.step(command)
+
+    def begin_events(self, seed):
+        """Opt-in post-reset event seed; native draws/distributions stay intact."""
+        if not isinstance(seed, int) or seed < 0:
+            raise ValueError('A nonnegative integer event seed is required')
+        self.stream = RandomStream(seed)

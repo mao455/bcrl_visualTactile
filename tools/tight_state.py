@@ -49,17 +49,18 @@ def beat(root,**fields):
     write(root/'heartbeat.json',dict(utc=time.time(),**fields))
 
 
-def capture(root,env,player,lease,spec,alpha):
+def capture(root,env,player,lease,spec,alpha,*,speed_scheme=None):
     from visuotactile.state_benchmark import trial
     from visuotactile.camera_validity import inspect_capture
     s=read(root/'session.json');out=root/'episodes'/spec['identity']
     if out.exists():raise FileExistsError('No implicit retry of a physical attempt: '+str(out))
     if shutil.disk_usage(root).free<s['reserve_bytes']:raise RuntimeError('Disk reserve reached before capture')
-    attempt=dict(identity=spec['identity'],family=spec['family'],seed=spec['seed'],alpha=alpha,
+    speed=dict(speed_scheme) if speed_scheme is not None else dict(kind='closed_loop',arm=alpha,hand=alpha,phase='all')
+    attempt=dict(identity=spec['identity'],family=spec['family'],seed=spec['seed'],alpha=alpha,speed_scheme=speed,
         split=spec['split'],event_seed=spec.get('event_seed'),started=time.time(),classification='started')
     with (root/'attempts.jsonl').open('a') as f:f.write(json.dumps(attempt)+'\n');f.flush();os.fsync(f.fileno())
     beat(root,stage='capture',identity=spec['identity'])
-    speed=dict(kind='closed_loop',arm=alpha,hand=alpha,phase='all');env.speed_config=speed
+    env.speed_config=speed
     try:
         result=trial(env,lease,out,dict(spec,alpha=alpha),{},player,s['expert_checkpoint'],expert_speed=speed,capture_dataset=True,
             capture_compression=s.get('capture_compression','lzf'))

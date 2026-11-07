@@ -57,7 +57,7 @@
       27111003
     ],
     "alphas": [
-      0.55
+      0.5
     ],
     "minimum_duration_ratio": 1.5,
     "maximum_duration_ratio": 3.0,
@@ -75,7 +75,10 @@
     "minimum_accepted_families": 40,
     "minimum_accepted_episodes": 150,
     "maximum_attempts": 275,
-    "maximum_consecutive_task_failures": 5
+    "maximum_consecutive_task_failures": 5,
+    "reliability_window": 20,
+    "minimum_production_task_rate": 0.85,
+    "minimum_production_yield": 0.65
   },
   "training": {
     "random_seed": 2026110702,
@@ -114,5 +117,25 @@
     "outputs/visuotactile/run/narrow_repair_20261106_01/manifest.json"
   ],
   "capture_compression": "gzip4_lossless_v1",
-  "development_revision": 2
+  "development_revision": 3,
+  "speed_scheme": {
+    "kind": "closed_loop",
+    "arm": 0.5,
+    "hand": 1.0,
+    "phase": "all"
+  },
+  "speed_validation": {
+    "slow_attempts": 12,
+    "repeats_per_family": 4,
+    "maximum_physical_starts": 24,
+    "maximum_hours": 2,
+    "minimum_task_successes": 11,
+    "minimum_admitted": 9,
+    "minimum_family_successes": 3,
+    "minimum_family_admitted": 2,
+    "minimum_reference_successes": 11,
+    "event_seed_start": 28171001,
+    "stop_if_threshold_unreachable": true,
+    "automatic_parameter_search": false
+  }
 }

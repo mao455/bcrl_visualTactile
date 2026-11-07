@@ -75,7 +75,12 @@ def paired_admission(slow, reference, gate):
         if row.get('post_success_actions')!=0:errors.append(name+'_post_success_padding')
     for key in ('family','configuration_sha256','reset_sha256','expert_sha256'):
         if not slow.get(key) or slow.get(key)!=reference.get(key):errors.append('reference_'+key+'_mismatch')
-    if reference.get('alpha')!=1 or not 0<slow.get('alpha',1)<1:errors.append('invalid_speed_roles')
+    def factors(row):
+        scheme=row.get('speed_scheme')
+        return (scheme['arm'],scheme['hand']) if scheme else (row.get('alpha',1),)*2
+    native=factors(reference);limited=factors(slow)
+    if native!=(1.,1.) or not all(isinstance(v,(int,float)) and 0<v<=1 for v in limited) or min(limited)>=1:
+        errors.append('invalid_speed_roles')
     duration=slow.get('duration_s',0);base=reference.get('duration_s',0)
     ratio=duration/base if base>0 else None
     if ratio is None or not math.isfinite(ratio) or not gate['minimum_duration_ratio']<=ratio<=gate['maximum_duration_ratio']:
@@ -143,7 +148,12 @@ def validate_formal_manifest(manifest, config):
         require(entry['id'] not in ids, 'Duplicate episode identity');ids.add(entry['id'])
         require(entry['split'] in ('train','validation','test'), 'Invalid split')
         require(families.setdefault(entry['family'],entry['split'])==entry['split'], 'Family split leakage')
-        require(entry.get('alpha')==manifest['frozen_alpha'] and 0<entry['alpha']<1,'Native or mixed speed in slow dataset')
+        if 'frozen_speed_scheme' in manifest:
+            scheme=manifest['frozen_speed_scheme']
+            require(entry.get('speed_scheme')==scheme and 0<scheme['arm']<=1 and 0<scheme['hand']<=1
+                and min(scheme['arm'],scheme['hand'])<1,'Native or mixed speed in slow dataset')
+        else:
+            require(entry.get('alpha')==manifest['frozen_alpha'] and 0<entry['alpha']<1,'Native or mixed speed in slow dataset')
         require(all(entry.get(k) is True for k in ('state_valid','multi_view_valid','tactile_valid')),'Invalid formal modality')
         require(entry.get('admission',{}).get('passed') is True,'Missing individual admission')
         admission=entry['admission'];ratio=admission.get('duration_ratio')
@@ -172,9 +182,56 @@ def validate_training_gates(collection, data_root):
     expected=dict(source_data_sha256=fingerprint(data_root/'data.json'),statistics_sha256=fingerprint(data_root/'statistics.pt'))
     cpu=read(collection/'cpu_audit.json')
     require(cpu.get('passed') and cpu.get('source_data_sha256')==expected['source_data_sha256'],'Formal CPU audit dataset mismatch')
+    if (collection/'accepted_foundation.json').exists():
+        accepted_foundation(collection)
+        return True
     for name in ('gpu_parity','gradient_gate'):
         gate=read(collection/(name+'.json'))
         require(gate.get('passed') and all(gate.get(k)==v for k,v in expected.items()),'Formal GPU gate dataset/statistics mismatch: '+name)
     for name in ('restore_gate','actuator_gate'):
         require(read(collection/(name+'.json')).get('passed') is True,'Missing completed '+name)
     return True
+
+
+def accepted_foundation(root):
+    """Reuse user-accepted engineering evidence only for unchanged implementations."""
+    import hashlib
+    def sha(path):
+        h=hashlib.sha256()
+        with Path(path).open('rb') as stream:
+            for block in iter(lambda:stream.read(8*1024**2),b''):h.update(block)
+        return h.hexdigest()
+    receipt=json.loads((root/'accepted_foundation.json').read_text())
+    require(receipt['baseline_commit']=='e67bfc6fa1b66359b55e019ae9899240625d5295','Accepted baseline changed')
+    for path,expected in receipt['unchanged_implementations'].items():
+        require(sha(path)==expected,'Accepted implementation changed: '+path)
+    for name,item in receipt['gates'].items():
+        require(sha(item['path'])==item['sha256'],'Accepted receipt changed: '+name)
+        require(json.loads(Path(item['path']).read_text()).get('passed') is True,'Accepted gate did not pass: '+name)
+    require(set(receipt['gates'])=={'gpu_parity','gradient_gate','restore_gate','actuator_gate'},'Missing accepted engineering evidence')
+    return True
+
+
+def scheme_reliability(rows, plan):
+    """Separate attempt reliability, individual admission and family coverage."""
+    scheme=plan['speed_scheme'];families=plan['families'];rules=plan['reliability']
+    require(all(r.get('speed_scheme')==scheme for r in rows),'Mixed scheme cannot estimate reliability')
+    require(len({r['identity'] for r in rows})==len(rows),'Duplicate validation attempt')
+    require(all(r['family'] in families for r in rows),'Unregistered validation family')
+    success=sum(bool(r.get('legal') and r.get('software_complete') and r.get('success')) for r in rows)
+    admitted=sum(bool(r.get('admission',{}).get('passed')) for r in rows)
+    coverage={f:dict(attempts=len(rr),successes=sum(bool(r.get('success')) for r in rr),
+        admitted=sum(bool(r.get('admission',{}).get('passed')) for r in rr))
+        for f in families for rr in [[r for r in rows if r['family']==f]]}
+    complete=len(rows)==plan['slow_attempts']
+    task_ok=complete and success>=rules['minimum_task_successes']
+    yield_ok=complete and admitted>=rules['minimum_admitted']
+    coverage_ok=complete and all(c['attempts']==plan['repeats_per_family'] and c['successes']>=rules['minimum_family_successes']
+        and c['admitted']>=rules['minimum_family_admitted'] for c in coverage.values())
+    remaining=plan['slow_attempts']-len(rows)
+    impossible=(success+remaining<rules['minimum_task_successes'] or admitted+remaining<rules['minimum_admitted']
+        or any(c['successes']+plan['repeats_per_family']-c['attempts']<rules['minimum_family_successes']
+        or c['admitted']+plan['repeats_per_family']-c['attempts']<rules['minimum_family_admitted'] for c in coverage.values()))
+    return dict(passed=task_ok and yield_ok and coverage_ok,complete=complete,attempts=len(rows),successes=success,admitted=admitted,
+        task_reliability_passed=task_ok,admission_yield_passed=yield_ok,coverage_passed=coverage_ok,coverage=coverage,
+        preregistered_threshold_unreachable=impossible,scope='Finite pilot evidence; individual acceptance is not attempt success; no population success guarantee')

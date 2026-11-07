@@ -123,6 +123,10 @@ def prepare(env, isolated, spec, source, output):
         isolated.stream = RandomStream(spec['seed']+100000)
         restoration['event_stream_seed'] = spec['seed']+100000
         restoration['historical_physics_exact'] = False
+    if spec.get('event_seed') is not None:
+        isolated.begin_events(spec['event_seed'])
+        restoration.update(event_stream_seed=spec['event_seed'],
+            event_seed_scope='Post-reset native draws only; initial state and reset-sampled DR probabilities retain initial seed')
     if spec.get('collision_gate')=='live_collision_mesh_bounds_v1':
         from .live_collision import clearance
         legal=clearance(env)

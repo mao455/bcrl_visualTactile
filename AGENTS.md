@@ -2,7 +2,7 @@
 
 Read research_docs/README.md, CONTRACTS.md and STATE_DP_RESULTS.md. The current user authorizes the full foundation repair, necessary real slow collection, fresh random StateDP training, closed-loop evaluation and classified cleanup. Earlier audit-only/await-authorization/short-startup-and-yield restrictions are historical and do not stop this task. Advance on actual passing gates; a launch is not completion, data validity is not student success. Report real blockers.
 
-Reference642f5a2; current worktree bc+rl_RSS_narrow_followup, local feature/tight-state-foundation. Do not alter existing edits in the IDE root3e11d62. Current config configs/tight_state.json; current root outputs/visuotactile/run/tight_state_20261107_01. Read machine state and real evidence.
+Reference642f5a2; current worktree bc+rl_RSS_narrow_followup, local feature/tight-state-foundation. Do not alter existing edits in the IDE root3e11d62. Current config configs/tight_state.json; active continuation root outputs/visuotactile/run/tight_state_20261107_01/continuation_02. Parent results remain historical and immutable. Latest user explicitly authorizes this bounded continuation beyond the old no-more-calibration statement. Reuse accepted e67bfc6 engineering receipts for unchanged implementations; do not reopen a full audit. Read the registered speed_validation_plan and actual child status.
 
 Freeze target_after_rad29D, H24/commit12,5/60/120Hz,Actor141/robot178/geometry85,persistent history,original network/loss/weights/DDIM,formal overlap0. No expert/asset/PD/physics/native DR/task-success changes, Image/nominal/tactile/DAgger work. Preserve original400 and current275 source data, expert/assets and failure denominators. Same processed target must not receive alpha/delay/EMA twice.
 
