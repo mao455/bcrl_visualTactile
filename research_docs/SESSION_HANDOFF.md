@@ -1,3 +1,7 @@
 # 当前交接
 
-沿用e67bfc6修复工作树的有界慢速续行，root为`outputs/visuotactile/run/tight_state_20261107_01/continuation_02`。只读该root状态、scheme_reliability及[当前结果](STATE_DP_RESULTS.md)，不要把父root blocked当作续行状态，也不要把service启动当完成。固定方案和阈值已登记；通过后自动生产/训练/评估，不复做未变工程审计。
+固定Arm0.50/Hand1.00验证已于2026-11-07 12:01:49（UTC+8）按预登记产出不可达规则停止。root为`outputs/visuotactile/run/tight_state_20261107_01/continuation_02`，运行代码`cf275d5ec8029782942f2d36a58eb06f669e4b02`；启动干净，结束241份冻结源码/配置未变。旧e67bfc6基础工程验收继续有效，无需重做。
+
+实际6对/12次物理启动，原速6/6成功、慢速6/6成功、个体合格2/6；3家族各测2个新事件seed，合格只覆盖B00。即使剩余6对全合格也只能8/12<预注册9/12，因此不补seed、不换参数追加搜索。任务可靠性/完整覆盖未完成，不能称6/6就通过。详见[当前结果](STATE_DP_RESULTS.md)和机器证据continuation_final。
+
+全部新State/三RGB-D/触觉通过、慢速实际两子步目标误差0；worker exit0、owner门控拒绝exit1，所有自有进程已退出。正式数据0、训练更新0、train/validation/新初态均0/0未评估。此前合格6条和新增2条开发记录保留；没有重复清理。旧143归因仍未知。

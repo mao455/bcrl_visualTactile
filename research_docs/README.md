@@ -4,7 +4,7 @@
 
 本轮审查基点为feature/narrow-state-data的642f5a2。IDE原目录HEAD为3e11d62且有既存文档改动；实际修改在`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`，基于干净642f5a2新建本地分支`feature/tight-state-foundation`，未重写共享分支。
 
-唯一配置：[configs/tight_state.json](../configs/tight_state.json)。当前续行root：`outputs/visuotactile/run/tight_state_20261107_01/continuation_02`，父root保留上一段结果。只读状态：
+唯一配置：[configs/tight_state.json](../configs/tight_state.json)。最新已结束续行root：`outputs/visuotactile/run/tight_state_20261107_01/continuation_02`，父root保留上一段结果。只读状态：
 
 ```bash
 bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotactile/run/tight_state_20261107_01/continuation_02
@@ -14,4 +14,4 @@ bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotac
 
 当前配置不依赖旧run/session/calibration或学生权重；原400/275路径仅用于保护、明确标记的独立审计fixture和历史索引。旧数据审计通过不等于被准入本轮慢速多模态集。原生工程入口、专家、assets与共享SDK保持。
 
-当前以e67bfc6完整修复为基础，只续行已登记的固定Arm0.50/Hand1.00验证；旧工程验收不重做，实际新结果由child status及scheme_reliability.json判断。
+运行代码cf275d5ec8029782942f2d36a58eb06f669e4b02以e67bfc6完整修复为基础。固定Arm0.50/Hand1.00验证已按预登记规则结束：慢速成功6/6、准入2/6，剩余6条即使全过也达不到9/12。所有自有进程退出；正式数据/更新均0，学生闭环未执行。旧工程验收不重做，不将父root状态或历史运行当成本次进展。
