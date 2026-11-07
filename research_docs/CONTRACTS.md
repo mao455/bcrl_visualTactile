@@ -1,97 +1,55 @@
 # Tight-Insertion command StateDP 当前合同
 
-2026-11-07 用户授权完整执行基础链路整改、必要慢速重采、随机初始化训练、闭环评估和分类清理。验收通过后自动进入下一阶段，历史“等待授权/审计后停止”不再是当前限制。任何真实门控失败必须保留证据并阻断其依赖阶段。审查基点642f5a2，当前入口与实际状态见[README](README.md)和[结果](STATE_DP_RESULTS.md)。
+2026-11-07最新用户授权：将全体逐条1.5–3倍改为Core/Auxiliary组成，完成两项确定性实现检查后，继续同一固定方案生产及Core优先训练。此授权取代此前65%严格准入率生产停机及路径进度机制提案，不追改历史结果。现有工程验收不重开；真实阶段通过后自动继续，启动不算完成。
 
-## 当前生产状态（2026-11-07 21:22）
+## 固定实现
 
-容量恢复后，以干净HEAD `5b3bd48ef720f71d860b2c76a32b39b4e27d8dc1`运行formal_05，继承原deadline、不改配置/源码。55原速尝试54成功+1初态拒绝；20慢速20成功但仅10准入。预登记每20次任务率≥.85通过、准入率≥.65未过，原队列在此停止，剩余200次未执行。正式manifest/统计/cache和新训练/闭环均未运行。10条合格候选（train8/validation2/test0）及14条开发合格记录分开保留，不构成正式集。当前阻断是生产yield，不是磁盘或已通过工程检查。
+工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、分支`feature/tight-state-foundation`；本轮起点完整HEAD `e26e3d92e7daa39bc695a9bef3bce64b49ca7538`，起始工作区干净。正式运行使用本轮提交与SHA清单，不返回IDE原工作树。唯一配置[configs/tight_state.json](../configs/tight_state.json)，入口tools.tight_finish，不新建实验体系。
 
-停止固定alpha/Hand cap机械搜索；下一采集侧路径进度机制仅为提案，尚未实现，不自动启动新实验。已有混速275 State baseline证据独立有效。以下历史实验登记用于复现，其旧容量/启动状态不能覆盖本段；固定模型、数据准入、训练与资源合同继续保持。
+监督始终是专家实际处理后的`transition/target_after_rad`，canonical Arm7+Hand22绝对关节目标，单位rad，不是q_after或nominal。Actor141、robot178、geometry85、持续GRU256、原网络、sample/x0 Loss B及辅助权重、DDIM100训练噪声步/16推理步/eta0/不clip、overlap0保持。H24/commit12，5Hz规划、60Hz控制、120Hz物理。StateDP只读既定State输入，RGB-D/触觉用于准入，不进入学生训练。
 
-## 已完成开发登记：Hand限速最小验证与独立StateDP推进（基点1b70d3b6fce8052300a54f5361f4092da27cba5f）
+不改专家权重、资产、PD、物理、原生DR/观测噪声/延迟/外力、任务成功或timeout。Arm=.50、Hand=1.00、Hand逐关节目标cap=2rad/s只在采集侧原生处理后施加一次；学生处理后目标不再次alpha/delay/EMA/cap。按原限位裁剪后canonical→Lab送实际执行器。
 
-本轮A指Hand限速，B指StateDP，与下方上一轮A/B编号不同。运行root为`outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`，仍使用tools.tight_finish监督入口；此前工程验收保持，新增33项受影响回归通过。登记并非实际完成，结果以root下summary/status为准。
+## 两项实现检查与物理时间
 
-A先读取B00/B01/B02既有记录，用实际60Hz前后状态计算Arm/Hand平均每关节路径、物理palm末端和物体的平移/旋转路径。速度定义path/阶段时间，按T=L/v作对称秒数分解；这是描述性归因，不是固定路径因果实验，也不恢复120Hz内部振荡。旧B00两次插入物体路径3.29/3.88倍，均速1.01/.93倍；不能把旧时长合格等同于无绕路慢速。
+参考官方固定revision `5ba07ac6661db573af695b419a7947ecb704690f`的[Robomimic lowdim adapter](https://raw.githubusercontent.com/real-stanford/diffusion_policy/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/dataset/robomimic_replay_lowdim_dataset.py)和[lowdim policy](https://raw.githubusercontent.com/real-stanford/diffusion_policy/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_lowdim_policy.py)。其abs_action旋转转换针对末端位姿，不适用于本29关节标签。我们的动作仅作逐关节仿射归一化/反归一化；观察geometry的坐标/四元数变换不作用于动作。已知29D HDF标签→实际loss归一化→predict反归一化→canonical/Lab执行器目标往返测试需通过。
 
-唯一候选Arm.50/Hand1+Hand各关节2rad/s目标限速，只在采集native分支、原delay/EMA/限位后应用一次；None关闭返回原target对象，学生已处理位置路径直接绕过。原专家、PD、物理、DR、限位和成功/timeout不变。2rad/s依据6原速参照主要活动关节P90约3–5rad/s而低运动轴多<.32rad/s；不按家族拟合，不增加第二候选。
+当前实现不是截断的64tick历史：GRU从本episode第0tick持续到当前tick；每次训练重算完整prefix，96tick TBPTT只界定梯度窗口。短窗口是13个native robot观察(a−12…a)和3个geometry观察(a−24,a−12,a)。旧native模型配置中的64是旧预测horizon，不是当前历史长度；不因此改模型或把动作从索引63开始切。
 
-预登记6次新慢速（B00/B01/B02各2个已有initial/event seed，复用6原速证据），1h pilot窗。完整成功≥5/6、加强后的逐条准入≥4/6且每家族≥1才算改善。原逐条完整成功、真实总时长1.5–3、各实际运动阶段和三模态门槛保持；额外要求Hand整体/插入、palm和object插入平均实际速度≤原速.90，三者插入路径≤1.25。25%为预先声明的保守筛查阈值，防止旧2–4倍绕行；不要求每阶段都慢1.5–3。没有改善则停止恒定alpha/Hand cap搜索。
+anchor a为12的倍数，obs[a]在a/60秒、动作前。未来24目标是y[a…a+23]，依次作用于[a/60,(a+24)/60]的24个控制区间；本次只提交前12目标，a+12时观察后重规划，从新plan索引0执行。首tick从0开始，不跳历史尾部；尾部越界label为0且mask=false，左侧缺失观察为0且valid=false，真实episode切换才reset。严格过去目标为y[a−1]，不是当前标签。人工tick轨迹覆盖episode首尾、63/64/65及replan边界。
 
-只有pilot通过才启动事先登记的4个独立开发家族×3event（12慢+12原速），固定同一参数：慢速成功≥11/12、全部准入≥10/12、每家族≥2成功且≥2准入，原速成功≥11/12；阈值不可达即停，不替换seed。通过才进入既有正式生产/全量准入/冻结/新StateDP训练合同。机制开发总窗3h，原root不重置；新root后续生产/训练使用启动时登记的36h总界限与资源储备，不把到期叫收敛。
+上述实现若测试通过则保持不变，不新增模型实验。168项/完整510tick GPU FP32 normalized-input、hidden、condition及固定噪声动作一致性、microbatch/EMA/恢复、实际执行器/模态证据按源码SHA复用；仅改准入/队列则只运行受影响回归。新数据仍逐条验收并拟合train-only统计。
 
-B决定本轮不随机重训：canonical只修在线构造，原275离线训练输入已canonical；原4000–5000步selection MSE约.00417平台，同时训练loss下降而验证loss上升。换初始化不能隔离修复效果，也没有当前训练标签改变的依据；不声称旧模型全局收敛。保留同一best4500完整状态（54.86anchor等效epoch；历史末步5000约60.95），固定canonical，独立评估后4个字典序训练家族005/008/010/011和12个全新初态31171001–12，共16次上限，3h窗，无旧7seed复跑、无重试/补seed/自动扩评/最终test选择。历史275仍是原始混速State baseline，不是严格慢速多模态baseline；不启ImageDP或触觉训练。
+## 新版数据组成（新物理尝试前冻结）
 
-## 开发验收与生产配置冻结（历史容量停止已解除）
+Core目标约200条：完整成功、所有路径/真实运动/输入输出/模态条件通过，总时长比[1.5,3]。Auxiliary最多100条：完全相同的非时长要求，倍率只允许[1.35,1.5)或(3,3.30]，即原边界外最多10%相对偏差。选界依据是已有分布和保守10%上限，不跨过3.365等更远样本来提高准入。阈值在新采集前冻结，不事后挑选。
 
-Hand cap pilot5/6成功、4/6准入；独立4家族×3事件12/12成功、10/12准入，覆盖3/3/2/2，预登记门槛全部通过。唯一当前配置已固定Arm.50/Hand1/Hand cap2rad/s与physical_motion_gate(.90/1.25)，development_revision4；配置中的结果数字仅作来源标记，不能替代真实gate receipt。正式入口不再从开发hand_cap_plan读取运行参数；拒绝错方案、缺实际路径证据或用旧标量alpha入口冒充当前方案。
+旧formal_05仍为20/20任务成功、10/20旧严格准入；新分类数值上10Core+2Aux。两条潜在Aux(formal_014/017)的RGB-D已按旧规则删除，不能复用成完整多模态集，不能补假图、复制帧或重采相同案例抹去历史。10条完整Core复用。14条开发Core及另外1条开发Aux候选保留独立开发身份，不混入独立validation/test；本次正式训练视图不混开发筛选案例。
 
-本轮有14条7家族train-only合格开发数据，可在来源/配置复核后复用；尚非正式数据集。State独立评估train1/4，新初态0/10合法（12尝试、2拒绝）；不随机重训的理由及完整失败分母见结果。可靠性过关后，实际容量门控因保留60GiB后只有约8GiB、复用开发数据仍至少约需31GiB新增空间而停止。没有正式物理采集、数据冻结或训练。空间到位后继续已有生产/训练合同，不重跑本轮开发队列、不重置既有预算/截止时间；若旧窗口到期，应如实登记未完成及新的实际授权范围，不能冒称收敛。
+Auxiliary全局≤Core/2，每家族最多2条且不超过本家族Core数量；按家族排序逐轮取身份排序条目，不按有利速度区间挑选或补采，记录上下侧实际分布。其余合格候选保留但不进入冻结组成。Core不足不能用Aux替代200目标；总约300是软目标。
 
-## 上一轮已完成A/B独立范围
+所有准入轨迹必须同家族同配置原速参照、原生完整成功、post_success_actions=0，实际抓取/抬升运输/插入joint RMS降低至≤原速.98；另要求Hand全程及Hand/末端/物体插入实际均速≤原速.90，三者插入路径≤1.25。不是每关节或每子阶段都必须1.5–3倍。严重时长偏差、等待、绕路、任务失败、IO错配、State/三路RGB-D/触觉故障一律拒绝。
 
-任务A允许原275条State-valid原始混合速度数据的受控baseline诊断，不授予1.5–3慢速多模态资格。原200空白相机不进入视觉模型。现存best4500版本/数据/统计/EMA加载兼容，通过显式evaluation-only配置分别运行legacy_packet_inverse_v1与canonical_joint_state_v1，不修改源checkpoint或网络/损失/权重；仅此任务允许旧checkpoint的声明式输入对照，不静默升级。
+三路RGB-D逐帧真实内容/depth/mask/时钟/frame counter、触觉首tick无效后续有效/120Hz两子步、处理后目标实际执行一致性全通过。camera_valid全True不代替内容检查。每条保存时长比、阶段时长、Arm/Hand/末端/物体路径与速度分解、family、initial/event seed、split、原始成功/严格准入及新版分类。原速参照不进入训练，时间戳不改、帧不复制。
 
-A在启动前登记4个字典序训练家族、8个新初态，每例两种输入，共24物理启动上限、2h总窗；相同初态/事件/DDIM seed、交替执行顺序，非法初态保留不替换，软件/执行器错误或deadline停止。原275实际初态采样域为XY±25mm/相对±35mm、20°、joint lerp.03、qd±.15，按保存的家庭spec和实际旧采样函数确认；与B进一步收窄域区分。未见初态是此次新seed，训练家族是旧训练split来源；不以最终test选择权重。不因B失败抹掉A结果。
+## 有限生产、冻结与训练
 
-本次A已经完成全部24尝试：训练家族旧/canonical均0/4，未见初态旧0/7、canonical1/7，各另1次初态拒绝，未扩大队列。canonical出现完整原生成功并保留全记录；这只是有限同权重输入对照，不授权把原275当合格慢速数据或宣称稳定成功率。无新参数更新。
+复用formal_05的55原速尝试与20慢速尝试，旧root只读。55家族41/7/7 split和初态范围保持：物体XY±2mm、相对XY±3mm、旋转半径1.5723103°、joint lerp.0075、qd±.03rad/s；完整范围以配置为准。保留formal_033原速动作前拒绝，不换家族；该家族缺成功参照的慢速任务预先记为依赖未启动，不计为任务失败或成功，不用删除ID声称全原分布可靠。
 
-任务B仅分析已完成旧21capture（15慢+6参考）和新12capture（6慢+6参考），不重采。新的有限测试须有具体证据，保持逐条正式慢速标准；无统一可靠方案则明确最小采集侧修改提案，不擅改专家/PD/物理/学生算法。未来不同慢速数据必须另做matched-data baseline。
+最多8个固定家族轮次，即含旧20在内440个慢速计划身份、另55个原速身份，总上限495。原先4轮改为8轮是本次明确有限生产预算；seed公式保持，已完成身份绝不重复。达到200Core且≥40家族/三split，在完整轮次边界停止；否则按有限队列或继承deadline停止并报告Core实际效率/缺口。Core冻结训练最低仍为150条/40家族/三split，不声称低于目标已经凑齐200。
 
-## 固定模型与控制
+5次连续真实任务失败停止；每20个慢速尝试检查合法执行累计成功率≥85%，非法初态/软件/传感器失败分别报告，后两者立即停。旧65%逐条严格产出率不再是新生产停机条件。新旧尝试/拒绝/依赖未启动全部留账，不换seed凑数。旧10/20结果及失败表不可重写。
 
-监督为transition/target_after_rad，29D绝对关节目标弧度，7Arm+22Hand；不是q_after，不是nominal。Actor141、robot178、geometry85及GRU256持续历史、原网络、sample/x0 Loss B和辅助权重保持。H24/commit12，5Hz规划/60Hz执行/120Hz物理；DDIM100训练噪声步、推理16、eta0、clip_sample=false、正式overlap=0。FP32关闭matmul和CuDNN TF32。
+采集截止仍为2026-11-08 09:08:21 Asia/Shanghai，结束前预留30min验收冻结；整体截止2026-11-09 03:08:21，不重置。独立root仅用于本次合同版本及不可变出处登记，仍使用原监督/恢复入口。到期不叫收敛。
 
-不改专家权重、资产、PD、原生观测噪声/观测延迟/动作延迟/外力参数或分布、任务成功/终止定义。不进入ImageDP、nominal、触觉模型或DAgger。StateDP使用声明的仿真几何，不冒称视觉估计。触觉/RGB-D记录只作数据准入，不是StateDP输入。
+冻结composition_manifest保存Core+按配额选出的Aux；训练manifest仅Core，按既有family split生成train-only归一化/statistics/cache。新源数据CPU一致性验收通过才训练；模型/optimizer/EMA/scheduler/RNG/计数全新，不载入旧学生。Auxiliary是否训练留待独立受控组成选择，本次不额外启动第二模型。
 
-## 输入—标签—执行
+实际anchor预算：初始120、最低80、最多200 anchor等效epoch；每500更新验证，4次验证相对改善<1%视为平台，仍改善按40等效epoch完整状态续训。原episode-balanced AnchorSampler/effective64/micro4/短尾加权/EMA/完整恢复不变。时间或步数耗尽不能证明充分收敛。最终test不选模型。
 
-obs[t]是动作前观察；target_after_rad[t]是两物理子步的真实执行器目标。target_before_rad[t]等于obs.actuator_target_rad[t]，t>0还等于target_after_rad[t-1]。实际q_after[t]等于下一tick q_before，不把实际q当目标。
+闭环报告训练家族、validation及冻结后新初态；先10个新初态，出现真实非零成功才扩大到100，扩展前50有效例全失败早停；实际分母、非法初态、任务阶段和失败类型分别记。没有运行的训练/闭环不记0%。旧275混速State baseline的train1/4、新初态0/10合法+2拒绝保持独立，不当作新严格Core结果。
 
-新checkpoint显式canonical_joint_state_v1：robot的q/qd直接取与HDF5相同的canonical观察值，避免normalized-proprio反算丢位；旧checkpoint继续legacy_packet_inverse_v1，不静默改输入。
+## 保护与交付
 
-robot178的116:145为严格过去请求位置、145:174为严格过去应用位置、174:176为age、176为valid；首tick清零。训练历史是明确teacher-forced的过去专家目标，部署使用实际学生请求/应用反馈；当前/未来标签不可进入输入。真实每60Hz观察更新历史，replan/子目标不reset；只以真实episode ID切换清空。
+原400/275、专家/资产、当前必要成功模型、开发证据与失败分母只读保护。共享GPU整卡均值/完整60s≤50%，目标35%，6GiB VRAM/12GiB RAM/60GiB磁盘储备；普通systemd脚本负责监控/阶段推进，Restart=no，实际验完后才报告完成。不修改无关进程。
 
-已处理学生目标经反归一化和原关节限位裁剪，canonical→Lab后直接写原目标缓冲。不得再次alpha、delay、EMA，不写真实关节/物体状态。仅保留原delay随机抽样调用次序，其结果不再作用于处理后位置目标。必须核对实际两物理子步目标，不能只核对网络输出。
-
-geometry为既有base-frame85D构造；四元数wxyz和q/-q处理保持。Actor使用冻结专家RMS140/clip5与embedding32；robot统计每native tick、geometry统计每12tick、动作仿射统计仅训练split拟合。三split按家族隔离；原速参考不得入慢速训练。开发示范仅在最终参数/来源一致时可入train，绝不进入独立validation/test；当前旧6条因Hand参数不同未复用。
-
-## 唯一当前配置与数据门控
-
-正式慢速生产配置为[configs/tight_state.json](../configs/tight_state.json)，运行时只读该配置、专家和资产，不读旧session/calibration/checkpoint作为新训练配置。原400及现有275源HDF5/manifest只读。旧200空白固定相机不改、不补图、不准入完整多模态集。
-
-开发范围已在同一deadline内收窄一次：当前物体XY±2mm、相对孔位XY±3mm、旋转半径1.5723103°；台面z[.379,.381]m、物体距台面原点[.248,.252]m、原生关节lerp .0075、初速度±.03rad/s；中心完整值见唯一配置。最初±8/10mm、6°仅是保留的开发证据。初态采样与观测噪声/延迟、动作延迟、外力分别记录；只调整声明初始化参数，原生DR保持。direct_configuration实际读取每项配置。
-
-已结束的前段开发登记（不限制最新明确授权的续行）：最初3家族×(原速+.55/.50/.45)=12次；一次收窄后的3家族×(原速+.55)=6次；最后同三家族.525共3次。合计21专家启动，该前段已结束。另1次240tick执行器映射oracle独立计数。旧all(admission)门槛未过不能解释成可靠性零容错要求；续行按下面独立登记的可靠性、产出和覆盖门槛判断。
-
-每条慢速示范必须原生完整任务成功、同家族同配置原速参考、真实时长比[1.5,3]、抓取/抬升运输/插入三个实际运动阶段减速、全State/三路RGB-D/触觉时钟和有效位通过。运动阶段及分阶段实际joint-speed RMS是诊断代理，另记录object速度；不代替原生成功定义，也不主张轨迹逐点相同。alpha及中位数不能替代逐条时长；不通过成功后等待、帧复制或时间戳修改凑比例。
-
-固定相机必须明确配置。RGB-D验收逐帧逐视角读取真实像素、depth与mask、时间及frame counter；camera_valid全True不能替代内容验收。触觉首tick无效、后续有效及120Hz两子步必须保持真实。原速参考与未达标成功记录仅作参考/历史，不进入慢速manifest。
-
-本次预登记生产预算为55家族、每家族4次慢速尝试，41/7/7家族train/validation/test；规模是软目标，不扩大范围补数量。所有attempt在物理启动前写账，task failure、非法初态、software/sensor fault分别统计。正式manifest/统计/cache只有逐条门控通过后才冻结；未知partial不删。
-
-## 已完成有界续行的方案门槛
-
-从e67bfc6修复工作树继续，固定Arm0.50/Hand1.00、phase=all，当前收窄域不再改。3个已有开发家族×4个新post-reset event seed，12对/最多24次物理尝试；不重复原seed事件案例。初始状态及reset抽取的DR概率由原initial seed保留；仅切换后续环境随机流，不改分布或抽样顺序。
-
-启动前登记：慢速完整成功≥11/12、个体准入≥9/12，每家族≥3成功且≥2准入；原速参考≥11/12成功。可靠性、产出与覆盖分别输出，不再用all(admission)代替三者。阈值已无法达到则提前停止，不补seed、不扩参数网格。正式逐条门槛仍为原完整成功/实际总时长1.5–3/真实运动减慢/三模态有效，不要求每个关节或子阶段都1.5–3。
-
-原5连续任务失败生产停止规则保持；新增预注册每20慢速attempt检查累计任务成功率≥.85、个体准入率≥.65。新2h验证窗口由本次续行授权设立，原整体36h和生产18h绝对deadline不重置。使用原pipeline与systemd用户service，Restart=no；未变工程实现复用原receipt和源码SHA，新正式数据本身仍验收并只拟合train统计。
-
-实际结束：原速6/6、慢速6/6完整成功，慢速仅2/6逐条合格；3家族各2个新事件seed。准入最多2+6=8<9触发预登记早停，剩余6对未启动。完整可靠性和覆盖未验完，当前方案未获准生产；没有数据/训练/评估阶段通过。
-
-## 训练与评估
-
-模型、optimizer、EMA、scheduler、RNG、计数全新；不加载旧学生。原episode-balanced AnchorSampler每次最多64个不同episode，各取一个无放回anchor；短尾不丢不复制，micro4按全batch有效target数及有效相邻对分别加权，所有microbatch后才clip1/AdamW/EMA一次。以当前参数从episode开头重算历史，原96tick TBPTT边界保持；不使用随机零状态窗口。
-
-预算按真实anchor数登记：初始120、最低80、上限200 anchor等效epoch；每500更新验完整validation。仍改善时按预注册40 anchor等效epoch阶段继续完整状态，不能重置优化器/EMA；最终test不选模型。达到固定更新或墙钟上限只能称预算停止，不能称收敛。GPU完整轨迹验收逐tick比较真实HistoryController与离线prefix的原始/normalized输入、hidden、condition、固定噪声动作；保存恢复必须包含优化器矩、EMA、采样和noise/Torch/CUDA RNG及schedule计数。
-
-分别报告train家族、validation与冻结后新初态。先10个新初态；只有真实非零成功才扩到100；若扩展队列前50有效例全失败则停止，不补齐100或改分母。软件错误和非法初态单列，合法失败保留。充分训练仍失败也不自动换网络、损失、频率或无限加实验。
-
-## 资源、清理、证据
-
-共享GPU目标35%，保留50%整卡批次/完整60s约束与6GiB VRAM/12GiB RAM/60GiB磁盘余量。监控从启动至退出；实际超限/缺口如实报告。普通脚本管理有界阶段，模型在本次任务内复核完成结果，不把后台启动当作完成。
-
-先解除依赖、检查活跃进程/打开句柄，再按路径、inode、size和必要SHA删除。原400/275、专家、资产、未知partial与新当前产物受保护；失败分母以精简结果表保留，不建巨型备份。旧历史完整文档/代码由Git642f5a2追溯，不重写共享Git历史。仅发布已审查代码和小证据，不上传数据/checkpoint。
-
-最新追加清理授权：删除分类确认无用的旧权重/记录及重复入口，实际对照与原400/275、成功模型、失败分母保留；GitHub仅普通提交至当前origin feature分支。具体释放量见CLEANUP_AUDIT；空间已恢复，当前生产阻断见本页顶部；历史未实施Hand cap提案已被本轮真实实现/独立验证结果取代。
+不新建重复MD；更新本合同、STATE_DP_RESULTS、简明README/SESSION_HANDOFF及CHANGELOG。已有清理7.510GiB与2.705GiB分别保留，不重复计算；新合格Core/Aux载荷不得按旧严格时长规则误删。不上传数据/checkpoint、不重写共享Git历史；审查后的代码/小证据普通提交当前origin feature。

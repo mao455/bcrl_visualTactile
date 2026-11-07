@@ -32,6 +32,14 @@ def validate_config(config):
     require(len(set(gate['seeds']))==len(gate['seeds']), 'Development seeds must be distinct')
     require(all(0<a<1 for a in gate['alphas']), 'Slow candidate alpha must be within(0,1)')
     require(sum(config['collection'][k] for k in ('train_families','validation_families','test_families'))==config['collection']['families'], 'Family split sizes')
+    if 'data_composition' in config:
+        d=config['data_composition']
+        require(d['version']=='core_auxiliary_v1' and d['auxiliary_bounds']==[1.35,3.3], 'Frozen Auxiliary bounds required')
+        require(d['core_target']==200 and d['auxiliary_maximum']==100 and d['auxiliary_per_family_maximum']==2,
+            'Frozen composition targets required')
+        require(d['auxiliary_global_ratio_maximum']==.5 and d['auxiliary_per_family_not_above_core'] is True,
+            'Frozen Auxiliary family balance required')
+        require(d['training_subset']=='core_only', 'Auxiliary training requires a separate controlled experiment')
     cap=config.get('speed_scheme',{}).get('hand_target_cap_rad_s')
     if cap is not None:
         values=np.asarray(cap,dtype=float)
@@ -164,8 +172,64 @@ def physical_motion_errors(comparison, rules):
     return errors
 
 
+def capture_configuration(config):
+    """Composition/queue changes cannot masquerade as physical capture changes."""
+    return {k:v for k,v in config.items() if k not in ('collection','data_composition')}
+
+
+def composition_admission(slow, reference, config, reference_config):
+    """New classification, retaining the historical strict decision verbatim.
+
+    The only removable admission error is the strict duration bound. Native
+    settings, reset, physical motion, full success and sensor gates remain hard.
+    """
+    require(capture_configuration(config)==capture_configuration(reference_config),
+        'Reference physical capture configuration differs')
+    a=dict(slow);b=dict(reference)
+    # Full experiment hashes legitimately differ when only the queue/contract
+    # changes; additionally require the actually recorded native configuration.
+    native=a.get('actual_native_configuration_sha256')
+    compatible=bool(native) and native==b.get('actual_native_configuration_sha256')
+    if compatible:
+        a['configuration_sha256']=native;b['configuration_sha256']=native
+    strict=paired_admission(a,b,config['development'])
+    physical=slow.get('physical_motion',{})
+    errors=list(strict['errors'])+list(physical.get('errors',['missing_physical_motion']))
+    errors+=physical_motion_errors(physical.get('comparison',{}),config['physical_motion_gate'])
+    if not compatible:errors.append('recorded_native_configuration_mismatch')
+    strict=dict(strict,errors=sorted(set(errors)),passed=not errors,
+        physical_motion_comparison=physical.get('comparison',{}))
+    errors=[e for e in strict['errors'] if e!='measured_duration_outside_1.5_3']
+    ratio=strict['duration_ratio'];low,high=config['data_composition']['auxiliary_bounds']
+    if ratio is None or not math.isfinite(ratio) or not low<=ratio<=high:
+        errors.append('outside_frozen_auxiliary_bounds')
+    kind='rejected' if errors else 'Core' if 1.5<=ratio<=3. else 'Auxiliary'
+    return dict(strict,passed=not errors,errors=sorted(set(errors)),admission_class=kind,
+        strict_admission=strict,source_configuration_sha256=slow.get('configuration_sha256'),
+        reference_configuration_sha256=reference.get('configuration_sha256'),
+        comparison_native_configuration_sha256=native if compatible else None)
+
+
+def select_composition(entries, config):
+    """Deterministic family rounds, never outcome-dependent recollection."""
+    from collections import Counter,defaultdict
+    core=[e for e in entries if e['admission']['admission_class']=='Core']
+    counts=Counter(e['family'] for e in core);groups=defaultdict(list)
+    for e in entries:
+        if e['admission']['admission_class']=='Auxiliary':groups[e['family']].append(e)
+    maximum=min(config['data_composition']['auxiliary_maximum'],len(core)//2)
+    auxiliary=[]
+    for index in range(config['data_composition']['auxiliary_per_family_maximum']):
+        for family in sorted(groups):
+            rows=sorted(groups[family],key=lambda e:e['id'])
+            if len(auxiliary)<maximum and index<min(len(rows),counts[family]):auxiliary.append(rows[index])
+    return core,auxiliary
+
+
 def validate_formal_manifest(manifest, config):
-    require(manifest.get('version')=='tight_slow_multimodal_v1','Historical datasets cannot enter current formal training')
+    composition=manifest.get('version')=='tight_slow_multimodal_composition_v2'
+    require(composition or manifest.get('version')=='tight_slow_multimodal_v1','Historical datasets cannot enter current formal training')
+    if composition:require(manifest.get('data_composition')==config.get('data_composition') and config.get('data_composition'), 'Composition contract mismatch')
     require(manifest.get('collection_finished') is True,'Collection has not finished')
     require(manifest.get('development_passed') is True,'Development gate did not pass')
     entries=manifest['episodes'];families={};ids=set()
@@ -182,7 +246,11 @@ def validate_formal_manifest(manifest, config):
         require(all(entry.get(k) is True for k in ('state_valid','multi_view_valid','tactile_valid')),'Invalid formal modality')
         require(entry.get('admission',{}).get('passed') is True,'Missing individual admission')
         admission=entry['admission'];ratio=admission.get('duration_ratio')
-        require(isinstance(ratio,(float,int)) and math.isfinite(ratio) and 1.5<=ratio<=3.,'Measured duration ratio is invalid despite passed flag')
+        bounds=(1.5,3.)
+        if composition and admission.get('admission_class')=='Auxiliary':bounds=config['data_composition']['auxiliary_bounds']
+        require(isinstance(ratio,(float,int)) and math.isfinite(ratio) and bounds[0]<=ratio<=bounds[1],'Measured duration ratio is invalid despite passed flag')
+        if composition:
+            require(admission.get('admission_class')==('Core' if 1.5<=ratio<=3. else 'Auxiliary') and not admission.get('errors'), 'Incorrect composition classification')
         speeds=admission.get('actual_phase_speed_ratios',{})
         for phase in ('grasp','lift_transport','insertion'):
             value=speeds.get(phase)
@@ -194,7 +262,11 @@ def validate_formal_manifest(manifest, config):
             require(not physical_motion_errors(admission.get('physical_motion_comparison',{}),config['physical_motion_gate']),
                 'Missing or invalid physical speed/path evidence for capped production')
         require(entry.get('reference_sha256') and entry.get('visual_acceptance_sha256'),'Missing reference/content evidence')
-    require(len(entries)>=config['collection']['minimum_accepted_episodes'],'Insufficient accepted episodes, no quantity backfill')
+    if composition:
+        core,auxiliary=select_composition(entries,config)
+        require(len(core)+len(auxiliary)==len(entries),'Auxiliary count/family balance exceeded')
+        entries=core;families={e['family']:e['split'] for e in core}
+    require(len(entries)>=config['collection']['minimum_accepted_episodes'],'Insufficient accepted Core episodes, no quantity backfill')
     require(len(families)>=config['collection']['minimum_accepted_families'],'Insufficient accepted families')
     require(set(families.values())=={'train','validation','test'},'Missing split')
     return True

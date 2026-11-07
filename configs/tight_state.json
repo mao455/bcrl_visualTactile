@@ -65,7 +65,7 @@
   },
   "collection": {
     "families": 55,
-    "variations_per_family": 4,
+    "variations_per_family": 8,
     "seed_start": 27120000,
     "event_seed_start": 27130000,
     "split_seed": 2026110701,
@@ -74,11 +74,10 @@
     "test_families": 7,
     "minimum_accepted_families": 40,
     "minimum_accepted_episodes": 150,
-    "maximum_attempts": 275,
+    "maximum_attempts": 495,
     "maximum_consecutive_task_failures": 5,
     "reliability_window": 20,
-    "minimum_production_task_rate": 0.85,
-    "minimum_production_yield": 0.65
+    "minimum_production_task_rate": 0.85
   },
   "training": {
     "random_seed": 2026110702,
@@ -154,5 +153,22 @@
     "independent_attempts": 12,
     "independent_admitted": 10,
     "rule": "Evidence identity only; startup still requires passed receipts, never trust these summary counts as admission"
+  },
+  "data_composition": {
+    "version": "core_auxiliary_v1",
+    "core_target": 200,
+    "auxiliary_maximum": 100,
+    "auxiliary_bounds": [
+      1.35,
+      3.3
+    ],
+    "auxiliary_per_family_maximum": 2,
+    "training_subset": "core_only",
+    "auxiliary_global_ratio_maximum": 0.5,
+    "auxiliary_per_family_not_above_core": true,
+    "selection": "family_round_robin_then_identity; no duration-bin targeting",
+    "collection_stop": "complete family round after Core>=200 and Core coverage>=40 with all three splits; otherwise finite8 rounds or inherited deadline",
+    "core_minimum_for_training": 150,
+    "threshold_basis": "10% relative boundary deviation, fixed before new attempts; old20 numeric candidates10Core/2Aux but2Aux full RGBD already removed; severe and path failures remain excluded"
   }
 }

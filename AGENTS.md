@@ -1,17 +1,9 @@
-# Current Tight-Insertion state — formal production yield stop
+# 当前 Tight-Insertion：Core/Auxiliary合同接续
 
-Use `/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`, branch `feature/tight-state-foundation`. Actual clean runtime HEAD `5b3bd48ef720f71d860b2c76a32b39b4e27d8dc1`; code unchanged during this continuation. Read research_docs/CONTRACTS.md and STATE_DP_RESULTS.md. Do not return to the modified IDE worktree or reopen accepted foundation audits.
+本轮从干净e26e3d92e7daa39bc695a9bef3bce64b49ca7538继续，仅修改准入/队列。使用`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`。用户明确授权新版Core/Auxiliary合同，旧65%严格产出率停机不再约束新生产；旧formal_05及10/20统计仍只读。当前计划root为`outputs/visuotactile/run/tight_state_20261107_01/composition_06`，实际状态须读status.json，准备不等于启动或完成。
 
-`outputs/visuotactile/run/tight_state_20261107_01/formal_05` ended 2026-11-07 21:22:04 Asia/Shanghai. 55 reference attempts:54 native successes,1 pre-action rejection.20 slow attempts:20 native successes,10 fully admitted. Registered task rate100% passes85%; admission yield50% fails65% at the first20-attempt checkpoint.200 remaining starts were not run. This is a production yield stop, not a zero-failure rule, Kit crash, OOM or capacity problem. Owner/worker exit1 from gate; all owned processes exited. Do not restart this root, replace seeds, relax thresholds, reset deadlines or continue constant alpha/cap search.
+固定Arm.50/Hand1/cap2rad/s，不开发新控制器；Aux bounds在新采集前固定1.35–3.30，Core1.5–3；最多8家族轮次、440慢速计划身份含旧20，复用55原速与10完整Core。旧2条数值Aux无RGB-D不能复用。原55家族/split/seed公式/范围及09:08采集、次日03:08整体deadline保持。Core优先，Aux≤100且≤Core/2、每家族≤2且≤本家族Core。Core-only训练；详见CONTRACTS。
 
-10 qualified production candidates cover10 families,train8/validation2/test0; pending only.14 qualified development records remain separate. No formal manifest/statistics/cache, fresh training or new student evaluation exists. Do not call unrun training0% or complete. Earlier finite cap pilot5/6 task4/6 admission and independent12/12 task10/12 admission remain valid limited evidence, superseded for production readiness by this failed production gate.
+已完成针对性29D动作/物理时间确定性检查；当前GRU持续完整prefix，并非64tick截断历史。H24未来标签从anchor开始，在线plan取tick%12；未发现需修模型的动作/时序错位。源码未变的168/510tick等工程验收继续有效。新准入与复用队列回归完成后才采集。原400/275/专家/资产/成功模型/失败分母保护，不重开旧审计或重试旧案例。
 
-B mixed-speed275 State baseline remains independent:canonical best4500 train1/4, unseen0/10 legal plus2 initial rejections. Prior same-weight legacy0/7 versus canonical1/7 positive example does not establish stable generalization. No new random training or repeated old seeds.
-
-Freeze target_after_rad29D,H24/commit12,5/60/120Hz,Actor141/robot178/geometry85,persistent history,original network/loss/weights/DDIM,overlap0. No expert/assets/PD/physics/native DR/task/timeout changes or Image/nominal/tactile/DAgger work. Accepted168 tests/full510tick history, microbatch/EMA/recovery/actuator/modalities evidence stands. Only test affected implementations if changed.
-
-Unique current config is configs/tight_state.json:Arm.50/Hand1/Hand target cap2rad/s applied once on collection only. Per-record native success,measured1.5–3,real motion slowing and complete State/three RGB-D/tactile remain mandatory; no waiting/frame duplication/time changes. Data-source and production gates precede fresh training. Next mechanism is only a proposal for collection-side reference path-progress timing with synchronized Arm/Hand feedback; it is not implemented or an automatic new experimental authorization.
-
-207 execution source/plan SHA,6 protected SHA,64 retained new HDF5 SHA and10 rejected numeric SHA verified; all original400/275 payloads present with recorded sizes. This continuation removed10 classified rejected RGB-D payloads,2.705GiB,retaining numeric/evidence/failure denominators. Earlier1867-path7.510GiB cleanup is separate; never recount it. Preserve expert/assets/original400/275/current successful models/experimental controls and unknown partials. No raw uploads or shared history rewrite. Reviewed docs/code/small evidence may use ordinary push to current origin feature branch only.
-
-Protect unrelated work; whole-card mean/complete60s<=50%,target35%,6GiB VRAM/12GiB RAM/60GiB disk reserves,continuous telemetry. Actual continuation mean23.231%,max60s44.909%,missing0. Final reports must distinguish completed finite experiments from blocked formal data/training goals.
+固定模型、资源、执行与真实交付要求以[当前合同](research_docs/CONTRACTS.md)为准；[当前结果](research_docs/STATE_DP_RESULTS.md)保留历史实验及本轮状态。

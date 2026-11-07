@@ -1,0 +1,259 @@
+{
+  "version": "core_auxiliary_v1",
+  "registered_at": "2026-11-07T22:29:13.349723",
+  "base_commit": "e26e3d92e7daa39bc695a9bef3bce64b49ca7538",
+  "config_sha256": "cf819d3d7934bd4059e2e69d2e27b384c2977ed3f0fc170e3d7d9bd50e171872",
+  "official_sources": [
+    {
+      "url": "https://raw.githubusercontent.com/real-stanford/diffusion_policy/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/dataset/robomimic_replay_lowdim_dataset.py",
+      "sha256": "344f167a580b6f02af7f696e0c8a37c443f399b4d01083b42614da95117dfbaa",
+      "bytes": 5868
+    },
+    {
+      "url": "https://raw.githubusercontent.com/real-stanford/diffusion_policy/5ba07ac6661db573af695b419a7947ecb704690f/diffusion_policy/policy/diffusion_unet_lowdim_policy.py",
+      "sha256": "bd13e7fe78fc8757281afec757117b0b15c518b5b3896d5d780958b8e31217ea",
+      "bytes": 9385
+    }
+  ],
+  "focused_tests": {
+    "passed": 61,
+    "command": "bash visuotactile/run_cpu.sh -m pytest -q tests/test_state_action_time_contract.py tests/test_tight_gate.py"
+  },
+  "action_test": "Known canonical29D HDF labels to actual loss normalization, predict inverse and permuted actuator buffers; <1e-6rad",
+  "timing_test": "Actual future labels/anchor_batch/short_windows/HistoryController.act; 12 episode lengths, six history anchors, 89 online ticks/two episodes",
+  "implementation_changed": false,
+  "history": "Full persistent episode GRU; not64tick truncation; H24 future-only at anchor, commit12",
+  "accepted_foundation_unchanged": true,
+  "historical_strict": {
+    "successes": 10,
+    "attempts": 20
+  },
+  "reclassification": [
+    {
+      "identity": "formal_000_slow_0",
+      "duration_ratio": 3.798850574712644,
+      "classification": "rejected",
+      "errors": [
+        "insertion_end_effector_path_excess",
+        "insertion_hand_path_excess",
+        "insertion_object_actual_speed_not_reduced",
+        "insertion_object_path_excess",
+        "outside_frozen_auxiliary_bounds"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_001_slow_0",
+      "duration_ratio": 3.3652694610778444,
+      "classification": "rejected",
+      "errors": [
+        "outside_frozen_auxiliary_bounds"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_002_slow_0",
+      "duration_ratio": 2.3287671232876717,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_003_slow_0",
+      "duration_ratio": 2.2048192771084336,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_004_slow_0",
+      "duration_ratio": 0.6061269146608315,
+      "classification": "rejected",
+      "errors": [
+        "outside_frozen_auxiliary_bounds",
+        "whole_hand_actual_speed_not_reduced"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_005_slow_0",
+      "duration_ratio": 1.5409836065573772,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_006_slow_0",
+      "duration_ratio": 6.582781456953643,
+      "classification": "rejected",
+      "errors": [
+        "insertion_end_effector_path_excess",
+        "insertion_hand_path_excess",
+        "insertion_object_path_excess",
+        "outside_frozen_auxiliary_bounds"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_007_slow_0",
+      "duration_ratio": 1.7865853658536586,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_008_slow_0",
+      "duration_ratio": 0.8706896551724138,
+      "classification": "rejected",
+      "errors": [
+        "outside_frozen_auxiliary_bounds"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_009_slow_0",
+      "duration_ratio": 1.5299999999999998,
+      "classification": "rejected",
+      "errors": [
+        "insertion_hand_path_excess"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_010_slow_0",
+      "duration_ratio": 0.4466911764705882,
+      "classification": "rejected",
+      "errors": [
+        "outside_frozen_auxiliary_bounds"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_011_slow_0",
+      "duration_ratio": 2.0709219858156027,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_012_slow_0",
+      "duration_ratio": 2.1928571428571426,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_013_slow_0",
+      "duration_ratio": 2.933734939759036,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_014_slow_0",
+      "duration_ratio": 1.3636363636363635,
+      "classification": "Auxiliary",
+      "errors": [],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_015_slow_0",
+      "duration_ratio": 2.2384105960264904,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_016_slow_0",
+      "duration_ratio": 1.5846994535519126,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_017_slow_0",
+      "duration_ratio": 1.4343434343434345,
+      "classification": "Auxiliary",
+      "errors": [],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    },
+    {
+      "identity": "formal_018_slow_0",
+      "duration_ratio": 2.293103448275862,
+      "classification": "Core",
+      "errors": [],
+      "complete_payload_available": true,
+      "historical_strict_passed": true
+    },
+    {
+      "identity": "formal_019_slow_0",
+      "duration_ratio": 2.047297297297297,
+      "classification": "rejected",
+      "errors": [
+        "insertion_object_path_excess"
+      ],
+      "complete_payload_available": false,
+      "historical_strict_passed": false
+    }
+  ],
+  "reuse": {
+    "core": 10,
+    "auxiliary": 0,
+    "numeric_auxiliary_missing_rgbd": 2,
+    "references_successful": 54,
+    "references_initial_rejected": 1
+  },
+  "production_plan": {
+    "families": 55,
+    "variations_per_family": 8,
+    "seed_start": 27120000,
+    "event_seed_start": 27130000,
+    "split_seed": 2026110701,
+    "train_families": 41,
+    "validation_families": 7,
+    "test_families": 7,
+    "minimum_accepted_families": 40,
+    "minimum_accepted_episodes": 150,
+    "maximum_attempts": 495,
+    "maximum_consecutive_task_failures": 5,
+    "reliability_window": 20,
+    "minimum_production_task_rate": 0.85
+  },
+  "data_composition": {
+    "version": "core_auxiliary_v1",
+    "core_target": 200,
+    "auxiliary_maximum": 100,
+    "auxiliary_bounds": [
+      1.35,
+      3.3
+    ],
+    "auxiliary_per_family_maximum": 2,
+    "training_subset": "core_only",
+    "auxiliary_global_ratio_maximum": 0.5,
+    "auxiliary_per_family_not_above_core": true,
+    "selection": "family_round_robin_then_identity; no duration-bin targeting",
+    "collection_stop": "complete family round after Core>=200 and Core coverage>=40 with all three splits; otherwise finite8 rounds or inherited deadline",
+    "core_minimum_for_training": 150,
+    "threshold_basis": "10% relative boundary deviation, fixed before new attempts; old20 numeric candidates10Core/2Aux but2Aux full RGBD already removed; severe and path failures remain excluded"
+  },
+  "new_capture_started": false,
+  "formal_training_started": false
+}

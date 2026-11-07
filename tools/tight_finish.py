@@ -12,7 +12,7 @@ import traceback
 
 from tools.runtime import CODE,RUN,read,write,supervised_owner,sha,kill_owned,proc
 from tools.tight_state import capture,digest,beat,check_protected
-from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require,scheme_reliability,accepted_foundation,physical_motion_errors
+from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require,scheme_reliability,accepted_foundation,physical_motion_errors,composition_admission,select_composition,capture_configuration
 
 
 def cap_motion_admission(row, reference, rules):
@@ -199,14 +199,48 @@ def collect(root):
     require(len(jobs)<=c['maximum_attempts'],'Predetermined attempt cap')
     write(root/'frozen_collection_plan.json',dict(jobs=jobs,configuration_sha256=s['configuration_sha256'],alpha=alpha,speed_scheme=scheme,
         reference_scope='Same fixed-pose family and native reset/DR configuration; variation seeds change joint/noise/event draws, not an exact hidden-state pair'))
-    app,env,player,lease=environment(root);refs={};entries=[];results=[];consecutive=0
+    refs={};entries=[];results=[];consecutive=0;skipped=[];old_ids=set()
+    composition='data_composition' in s
+    reference_config=cfg
+    def entry_for(row,ref,admission):
+        return dict(id=row['identity'],family=row['family'],split=row['split'],alpha=alpha,speed_scheme=scheme,
+            path=row['path'],sha256=row['source_sha256'],steps=row['steps'],size=Path(row['path']).stat().st_size,
+            state_valid=True,multi_view_valid=True,tactile_valid=True,admission=admission,
+            reference_path=ref['path'],reference_sha256=ref['source_sha256'],visual_acceptance_sha256=row['visual_acceptance_sha256'])
+    if (root/'production_reuse.json').exists():
+        require(composition,'Explicit composition contract required for historical reuse')
+        reuse=read(root/'production_reuse.json')
+        for path,expected in reuse['immutable_files'].items():require(sha(path)==expected,'Reuse evidence drift: '+path)
+        prior=Path(reuse['root']);reference_config=read(prior/'configuration.json')
+        require(capture_configuration(cfg)==capture_configuration(reference_config),'Reference physical capture configuration differs')
+        require(read(prior/'frozen_families.json')==families,'Reuse family/split identity differs')
+        results=read(prior/'formal_results.json');old_ids={r['identity'] for r in results}
+        require(old_ids<={j['identity'] for j in jobs},'Reuse contains unknown planned starts')
+        refs={r['family']:r for r in results if r['alpha']==1.}
+        for row in results:
+            if row['alpha']==1.:continue
+            admission=composition_admission(row,refs[row['family']],cfg,reference_config)
+            row['composition_admission']=admission
+            available=Path(row['path']).is_file() if row.get('path') else False
+            row['composition_payload_available']=available
+            if admission['passed'] and available:entries.append(entry_for(row,refs[row['family']],admission))
+        historical_slow=[r for r in results if r['alpha']!=1.]
+        write(root/'reuse_classification.json',dict(historical_strict_successes=sum(r.get('admission',{}).get('passed',False) for r in historical_slow),historical_slow_attempts=len(historical_slow),
+            source=str(prior),rows=[r for r in results if r['alpha']!=1.],reusable=len(entries)))
+    app,env,player,lease=environment(root)
     budget_stop=None
     for index,job in enumerate(jobs):
+        if job['identity'] in old_ids:continue
+        if composition and job['alpha']!=1. and not refs[job['family']].get('success'):
+            skipped.append(dict(identity=job['identity'],reason='known_unavailable_successful_reference',
+                seed=job['seed'],event_seed=job.get('event_seed'),family=job['family']))
+            write(root/'unstarted_dependencies.json',skipped);continue
         import shutil
-        if shutil.disk_usage(root).free<s['reserve_bytes']+5*1024**3:
-            candidate=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=entries)
+        if shutil.disk_usage(root).free<s['reserve_bytes']+5*1024**3 or (composition and time.time()>=s['collection_deadline']-1800):
+            core=select_composition(entries,cfg)[0] if composition else entries
+            candidate=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=core)
             validate_formal_manifest(candidate,cfg)
-            budget_stop=dict(reason='Soft count target yields to fixed disk reserve plus5GiB training/checkpoint allowance',
+            budget_stop=dict(reason='Fixed reserve or inherited collection deadline with30min freeze allowance',
                 unstarted=len(jobs)-index,completed=len(results),accepted=len(entries));break
         row=capture(root,env,player,lease,job,job['alpha'],speed_scheme=job['speed_scheme']);results.append(row)
         if job['alpha']==1.:refs[job['family']]=row
@@ -216,12 +250,13 @@ def collect(root):
                 row['physical_motion']=cap_motion_admission(row,ref,s['physical_motion_gate'])
                 admission['physical_motion_comparison']=row['physical_motion'].get('comparison',{})
                 admission['errors'].extend(row['physical_motion']['errors']);admission['passed']=not admission['errors']
+            if composition:
+                admission=composition_admission(row,ref,cfg,reference_config)
+                row['composition_admission']=admission
+                row['admission']=admission['strict_admission']
             if admission['passed']:
-                entries.append(dict(id=job['identity'],family=job['family'],split=job['split'],alpha=alpha,speed_scheme=scheme,
-                    path=row['path'],sha256=row['source_sha256'],steps=row['steps'],size=Path(row['path']).stat().st_size,
-                    state_valid=True,multi_view_valid=True,tactile_valid=True,admission=admission,
-                    reference_path=ref['path'],reference_sha256=ref['source_sha256'],visual_acceptance_sha256=row['visual_acceptance_sha256']))
-            elif row.get('numeric_valid') and row.get('visual_passed') and row.get('software_complete'):
+                entries.append(entry_for(row,ref,admission))
+            elif not composition and row.get('numeric_valid') and row.get('visual_passed') and row.get('software_complete'):
                 # Classified, complete rejected NEW captures keep full numeric
                 # traces, initial/config evidence, sensor hashes and attempt row.
                 # Never remove protected400/275 or unknown partial/sensor faults.
@@ -233,32 +268,51 @@ def collect(root):
                     numeric_path=str(numeric),numeric_sha256=sha(numeric),deleted_source_sha256=row['source_sha256'],
                     released_bytes=st.st_blocks*512 if st.st_nlink==1 else 0)
                 with (root/'collection_cleanup.jsonl').open('a') as stream:stream.write(json.dumps(dict(identity=row['identity'],**row['payload_retention']))+'\n')
-        consecutive=0 if row['success'] else consecutive+1
+        if row['classification']=='task_failure':consecutive+=1
+        elif row['classification']=='task_success':consecutive=0
         write(root/'formal_results.json',results)
+        core,auxiliary=select_composition(entries,cfg) if composition else (entries,[])
         write(root/'manifest.pending.json',dict(version='tight_slow_multimodal_v1',collection_finished=False,
-            development_passed=True,frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=entries))
+            development_passed=True,frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=core))
+        if composition:
+            write(root/'composition.pending.json',dict(core=len(core),auxiliary=len(auxiliary),
+                candidate_episodes=entries,all_slow_attempts=sum(r['alpha']!=1. for r in results),
+                core_families=len({e['family'] for e in core}),auxiliary_families=len({e['family'] for e in auxiliary})))
         if row.get('classification') in ('sensor_failure','software_or_sensor_failure'):raise RuntimeError('Sensor/software failure; no promotion')
         if consecutive>=c['maximum_consecutive_task_failures']:raise RuntimeError('Preregistered consecutive task-failure stop')
         completed_slow=[r for r in results if r['alpha']!=1.]
         if c.get('reliability_window') and len(completed_slow) and len(completed_slow)%c['reliability_window']==0:
-            task_rate=sum(r['success'] for r in completed_slow)/len(completed_slow)
+            legal_slow=[r for r in completed_slow if r.get('legal')]
+            task_rate=sum(r['success'] for r in legal_slow)/max(1,len(legal_slow))
             yield_rate=sum(r.get('admission',{}).get('passed',False) for r in completed_slow)/len(completed_slow)
-            require(task_rate>=c['minimum_production_task_rate'] and yield_rate>=c['minimum_production_yield'],
+            require(task_rate>=c['minimum_production_task_rate'] and (composition or yield_rate>=c['minimum_production_yield']),
                 'Preregistered cumulative production reliability/yield stop')
+        if composition and job['alpha']!=1. and job['family']==families[-1]['family'] and len(core)>=s['data_composition']['core_target']:
+            check=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,
+                frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=core)
+            validate_formal_manifest(check,cfg)
+            budget_stop=dict(reason='Core soft target reached at complete predetermined family round',unstarted=len(jobs)-index-1);break
+    if composition:entries,auxiliary=select_composition(entries,cfg)
     manifest=dict(version='tight_slow_multimodal_v1',collection_finished=True,development_passed=True,
         frozen_alpha=alpha,frozen_speed_scheme=scheme,episodes=entries,all_attempts=len(results),configuration_sha256=s['configuration_sha256'],
         original400_included=False,original275_included=False,quarantined=False,budget_stop=budget_stop)
     validate_formal_manifest(manifest,cfg)
+    if composition:
+        combined=dict(manifest,version='tight_slow_multimodal_composition_v2',data_composition=s['data_composition'],
+            episodes=entries+auxiliary,core_count=len(entries),auxiliary_count=len(auxiliary))
+        validate_formal_manifest(combined,cfg)
     # Recheck every accepted payload and both modalities at freeze, never trust
     # flags copied from the old legacy camera path.
     from visuotactile.camera_validity import inspect_capture
     from visuotactile.tight_gate import numeric_admission
-    for e in entries:
+    for e in entries+(auxiliary if composition else []):
         require(sha(e['path'])==e['sha256'] and sha(e['reference_path'])==e['reference_sha256'],'Frozen pair source changed')
         require(numeric_admission(e['path'])[3]['success'],'Native complete success missing')
         require(inspect_capture(e['path'])['passed'],'RGB-D content failed at freeze')
+    if composition:write(root/'composition_manifest.json',combined)
     write(root/'manifest.json',manifest);data=build_cache(root)
-    write(root/'DATA_READY.json',dict(passed=True,episodes=len(entries),families=len({e['family'] for e in entries}),manifest_sha256=sha(root/'manifest.json')))
+    write(root/'DATA_READY.json',dict(passed=True,episodes=len(entries),families=len({e['family'] for e in entries}),
+        auxiliary_episodes=len(auxiliary) if composition else 0,training_subset='core_only',manifest_sha256=sha(root/'manifest.json')))
     write(root/'COMPLETE.json',read(root/'DATA_READY.json'))
 
 

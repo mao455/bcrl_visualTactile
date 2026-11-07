@@ -416,3 +416,99 @@ def test_accepted_foundation_rejects_changed_implementation_or_receipt(tmp_path)
     with pytest.raises(ValueError,match='implementation changed'):accepted_foundation(tmp_path)
     source.write_text('accepted math');write(gate,dict(passed=False))
     with pytest.raises(ValueError,match='receipt changed'):accepted_foundation(tmp_path)
+
+
+def composition_pair(ratio=2.):
+    c=config();reference=dict(row(),actual_native_configuration_sha256='native')
+    measured={phase:{group:dict(decomposition_valid=True,path_ratio=1.,mean_speed_ratio=.6)
+        for group in ('hand','end_effector','object')} for phase in ('whole','insertion')}
+    slow=dict(row(.5,3*ratio,.6),actual_native_configuration_sha256='native',
+        physical_motion=dict(errors=[],comparison=measured))
+    return c,slow,reference
+
+
+@pytest.mark.parametrize('ratio,kind',[(1.349,'rejected'),(1.35,'Auxiliary'),(1.499,'Auxiliary'),
+    (1.5,'Core'),(3.,'Core'),(3.001,'Auxiliary'),(3.3,'Auxiliary'),(3.301,'rejected')])
+def test_composition_changes_only_duration_classification(ratio,kind):
+    from visuotactile.tight_gate import composition_admission
+    c,slow,reference=composition_pair(ratio)
+    old=copy.deepcopy(slow);slow['configuration_sha256']='new_contract'
+    outcome=composition_admission(slow,reference,c,c)
+    assert outcome['admission_class']==kind
+    assert outcome['strict_admission']['passed']==(kind=='Core')
+    assert old['duration_s']==slow['duration_s'] and 'admission' not in reference
+    for key in ('success','numeric_valid','visual_passed','tactile_valid'):
+        assert not composition_admission(dict(slow,**{key:False}),reference,c,c)['passed']
+    assert not composition_admission(dict(slow,post_success_actions=1),reference,c,c)['passed']
+
+
+def test_composition_rejects_native_drift_and_detours():
+    from visuotactile.tight_gate import composition_admission
+    c,slow,reference=composition_pair(1.4)
+    other=copy.deepcopy(c);other['domain']['joint_velocity_halfwidth']=.1
+    with pytest.raises(ValueError,match='capture configuration'):composition_admission(slow,reference,c,other)
+    assert not composition_admission(dict(slow,actual_native_configuration_sha256='different'),reference,c,c)['passed']
+    slow['physical_motion']['comparison']['insertion']['object']['path_ratio']=1.251
+    assert not composition_admission(slow,reference,c,c)['passed']
+    slow['physical_motion']['comparison']['insertion']['object']['path_ratio']=1.
+    slow['physical_motion']['errors']=['cap_applied_target_formula_mismatch']
+    assert not composition_admission(slow,reference,c,c)['passed']
+
+
+def test_auxiliary_selection_balances_families_and_never_replaces_core():
+    from visuotactile.tight_gate import select_composition
+    c=config()
+    rows=[dict(id=f'{family}_{kind}_{i}',family=family,admission=dict(admission_class=kind))
+        for family in ('a','b','c') for kind,n in [('Core',4),('Auxiliary',8)] for i in range(n)]
+    rows+=[dict(id='empty_aux',family='no_core',admission=dict(admission_class='Auxiliary'))]
+    core,aux=select_composition(list(reversed(rows)),c)
+    assert len(core)==12 and len(aux)==6
+    assert [e['family'] for e in aux]==['a','b','c','a','b','c']
+    assert len(select_composition([e for e in rows if e['admission']['admission_class']=='Auxiliary'],c)[1])==0
+
+
+def test_collection_reuses_attempts_and_does_not_stop_on_duration_yield(tmp_path,monkeypatch):
+    import time
+    from tools.runtime import write,sha
+    from tools.tight_finish import collect
+    from tools.tight_state import digest
+    c=config();c['collection'].update(families=3,train_families=1,validation_families=1,test_families=1,
+        variations_per_family=2,maximum_attempts=9,minimum_accepted_episodes=3,minimum_accepted_families=3,reliability_window=2)
+    old=copy.deepcopy(c);old.pop('data_composition');old['collection']['variations_per_family']=1
+    prior=tmp_path/'prior';root=tmp_path/'new';prior.mkdir();root.mkdir()
+    s=dict(c,reserve_bytes=0,collection_deadline=time.time()+3600,configuration_sha256='new')
+    write(root/'configuration.json',c);write(root/'session.json',s)
+    write(root/'selected_development_gate.json',dict(passed=True,alpha=.5,speed_scheme=c['speed_scheme']))
+    order=np.random.default_rng(c['collection']['split_seed']).permutation(3)
+    splits={int(i):('train','validation','test')[j] for j,i in enumerate(order)}
+    families=[dict(family=f'formal_{i:03d}',seed=c['collection']['seed_start']+i,cohort='fresh',split=splits[i],
+        collision_gate='live_collision_mesh_bounds_v1',narrow_reset=direct_configuration(c['domain'],c['collection']['seed_start']+i)) for i in range(3)]
+    def make_row(job,alpha,ratio):
+        _,slow,reference=composition_pair(ratio)
+        path=tmp_path/(job['identity']+'.h5');path.write_bytes(b'synthetic receipt fixture, not real data')
+        x=dict(reference if alpha==1 else slow,identity=job['identity'],family=job['family'],seed=job['seed'],split=job['split'],
+            event_seed=job.get('event_seed'),speed_scheme=job['speed_scheme'],alpha=alpha,configuration_sha256='old' if alpha==1 else 'new',
+            reset_sha256=digest(job['narrow_reset']),legal=True,software_complete=True,classification='task_success',path=str(path),
+            source_sha256=sha(path),visual_acceptance_sha256='v',steps=180)
+        return x
+    native=dict(kind='closed_loop',arm=1.,hand=1.,phase='all')
+    rows=[make_row(dict(f,identity=f['family']+'_reference',speed_scheme=native),1.,1.) for f in families]
+    first=dict(families[0],identity='formal_000_slow_0',speed_scheme=c['speed_scheme'])
+    rows.append(make_row(first,.5,2.))
+    write(prior/'configuration.json',old);write(prior/'formal_results.json',rows);write(prior/'frozen_families.json',families)
+    write(root/'production_reuse.json',dict(root=str(prior),immutable_files={str(p):sha(p) for p in prior.iterdir()}))
+    calls=[]
+    def capture(root,env,player,lease,job,alpha,**kwargs):
+        calls.append(job['identity']);return make_row(job,alpha,1.4 if job['identity'].endswith('_0') else 2.)
+    monkeypatch.setattr('tools.tight_finish.capture',capture)
+    monkeypatch.setattr('tools.tight_state.environment',lambda root:(None,)*4)
+    monkeypatch.setattr('tools.tight_finish.cap_motion_admission',lambda row,*args:row['physical_motion'])
+    monkeypatch.setattr('visuotactile.camera_validity.inspect_capture',lambda path:dict(passed=True))
+    monkeypatch.setattr('visuotactile.tight_gate.numeric_admission',lambda path:(None,None,None,dict(success=True)))
+    monkeypatch.setattr('visuotactile.narrow_data.build_cache',lambda root:None)
+    collect(root)
+    assert calls==['formal_001_slow_0','formal_002_slow_0','formal_000_slow_1','formal_001_slow_1','formal_002_slow_1']
+    m=json.loads((root/'composition_manifest.json').read_text())
+    assert m['core_count']==4 and m['auxiliary_count']==2 and m['all_attempts']==9
+    assert len(json.loads((root/'manifest.json').read_text())['episodes'])==4
+    assert json.loads((prior/'formal_results.json').read_text())==rows
