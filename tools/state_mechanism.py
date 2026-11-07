@@ -136,10 +136,8 @@ def run(root):
             diagnostic_updates=read(root/'tiny_training/finished.json')['updates'])
     finally:
         if read(root/'status.json').get('owned_workers_exited'):
-            try:
-                from tools.state_mechanism_delivery import finish
-                finish(root)
-            except BaseException:write(root/'publication_error.json',dict(traceback=traceback.format_exc()))
+            write(root/'publication.json',dict(state='pending_review',
+                reason='Historical automatic document rewrite/push retired; preserve local control results for review'))
 
 
 if __name__=='__main__':

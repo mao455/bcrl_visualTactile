@@ -14,6 +14,6 @@ bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotac
 
 A pilot5/6成功、4/6准入；独立12/12成功、10/12准入，4家族覆盖3/3/2/2。`qualified_development.json`保留14条7家族train-only合格开发轨迹；尚非正式集。B同一best4500 canonical：训练家族1/4成功、新初态0/10合法成功，另2次初态拒绝；无新训练，无上轮7seed重跑。
 
-当前明确阻断为磁盘：保留60GiB后约8GiB，复用全部合格开发数据后按最小实测payload仍需约31GiB新增空间。正式采集前容量STOP已退出全部自有进程；正式attempt0、manifest/统计/cache未冻结、训练未执行。不要直接重启已完成队列或删除STOP绕过容量。空间到位后从通过的gate准备正式生产continuation，沿用冻结参数与剩余预算，不重采开发案例。
+追加清理1867个产物释放7.510GiB，并清除过期入口和8份重复报告；当前明确阻断仍为磁盘：可用71.46GiB、保留60GiB后约11.46GiB，复用全部合格开发数据后至少还缺19.41GiB。详见[CLEANUP_AUDIT](CLEANUP_AUDIT.md)。正式采集前容量STOP已退出全部自有进程；正式attempt0、manifest/统计/cache未冻结、训练未执行。不要直接重启已完成队列或删除STOP绕过容量。空间到位后从通过的gate准备正式生产continuation，沿用冻结参数与剩余预算，不重采开发案例。
 
 生产配置不读取旧学生checkpoint或旧calibration作为参数来源；已有gate/轨迹仅是明确的准入证据。原275历史baseline显式只读引用其数据/统计/best4500，永不冒称严格慢速多模态集。原400、旧275、专家/资产及失败分母继续保护；无数据/checkpoint上传。

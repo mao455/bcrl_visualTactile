@@ -1,5 +1,11 @@
 # Tight-Insertion 当前结果：Hand cap通过有限可靠性验证；正式生产受容量阻断
 
+## 最新追加清理与剩余阻断
+
+已清理1867个产物文件，释放7.510GiB；另删除4个过期owner/发布脚本和8份完全重复报告，4个旧流水线仅保留对照/回归辅助函数。54项受影响回归、5225个保护文件identity、当前数据/模型/gate指纹及14条合格开发payload SHA通过。原400/275、当前30条采集、实际模型对照与失败分母保留；详细分类及去重映射见[清理记录](CLEANUP_AUDIT.md)。
+
+清理后可用71.46GiB，60GiB储备之上11.46GiB，仍至少缺19.41GiB。其他项目不在本次删除范围。正式采集0次、新训练未执行，慢速方案的有限可靠性结论及旧275 State闭环结果不变；本任务仍因容量未完成。原deadline不重置。
+
 基点`1b70d3b6fce8052300a54f5361f4092da27cba5f`已核实干净。实际物理运行使用干净提交`f8beeef6d408ac20f520f6a26625c31bc3cdb5ee`，工作树`bc+rl_RSS_narrow_followup`，没有退回IDE原工作树。完整记录在`outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`；[预登记](evidence/tight_hand_cap_registration_20261107.json)、[机器结果](evidence/tight_hand_cap_results_20261107.json)、[路径/速度明细](evidence/tight_hand_path_speed_20261107.csv)。
 
 本轮A=Hand限速，B=StateDP；下方baseline_03历史部分的A/B编号不同。两项有限实验已执行完毕；**正式采集、正式数据冻结、随机初始化训练尚未执行**，不能把本轮开发门槛通过写成完整项目完成。

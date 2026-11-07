@@ -283,7 +283,7 @@ def test_standalone_owner_automatically_advances_only_after_real_gate(tmp_path):
 def test_current_entry_has_no_retired_pipeline_imports():
     import ast
     from pathlib import Path
-    for name in ('tight_state','tight_finish','tight_final_calibration','tight_check','tight_audit'):
+    for name in ('tight_state','tight_finish','tight_check','tight_audit'):
         tree=ast.parse(Path('tools',name+'.py').read_text())
         assert not any(isinstance(n,ast.ImportFrom) and n.module in ('tools.narrow_collection','tools.narrow_repair_pipeline') for n in ast.walk(tree))
 
