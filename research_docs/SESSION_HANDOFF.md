@@ -1,31 +1,13 @@
-# 当前交接：两个有限实验结束，正式生产容量阻断
+# 当前交接：formal_05正式生产准入率停止
 
-## 2026-11-07 20:05容量恢复，准备正式生产continuation
+实际运行HEAD `5b3bd48ef720f71d860b2c76a32b39b4e27d8dc1`，干净启动，工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`，分支`feature/tight-state-foundation`。源码无变更；报告更新见当前提交。IDE原树既存改动不动。
 
-用户确认空间后实测可用1018.29GiB，保留60GiB仍足够。沿用已通过的固定Arm.50/Hand1/cap2rad/s和configs/tight_state.json；新root为tight_state_20261107_01/formal_05，通过tools.tight_finish既有入口接续，跳过已完成开发与基础工程验收。正式55新家族×4慢速＋55原速，最大275物理尝试，固定41/7/7家族split；不重采既有开发案例。14条合格开发证据保留独立，本次正式manifest仅使用新预登记生产家族，不为数量追加案例。
+root `outputs/visuotactile/run/tight_state_20261107_01/formal_05`；service `tight-state-formal-20261107-05.service`。2026-11-07 20:08:38–21:22:04，全部自有进程已退出。75登记尝试：55原速=54成功+1初态拒绝，20慢速=20成功/10准入。第20次累计准入50%<65%触发预登记停止，任务100%≥85%通过；剩余200次未启动。worker/owner exit1是门控退出，不是Kit/OOM/143。容量已恢复，不再是当前阻断。
 
-继承hand_cap_04原始deadline：采集截至2026-11-08 09:08:21、全流程截至2026-11-09 03:08:21（Asia/Shanghai），不重置。逐条准入及每20慢速尝试累计任务率≥.85/准入率≥.65、5连续任务失败停止均不变。只有正式manifest/缓存/新数据验收通过才随机初始化训练；120/80/200 anchor等效epoch预算及验证平台规则、分cohort闭环依旧。此段仅登记接续，未声称采集/训练完成。
+10条新合格记录覆盖10家族（train8/validation2/test0），保留完整载荷，仍在pending manifest。14条开发合格轨迹独立保留；原400/275只读保护。没有正式manifest/统计/cache、新随机训练或新模型闭环，不得把它们写成完成或0%成功。不要清STOP/重启、补seed、扩大范围或继续恒定alpha/cap搜索来绕过门槛。
 
-## 最新追加清理与剩余阻断
+已接受168测试/510tick等基础证据继续有效，不重审。固定Arm.50/Hand1/cap2rad/s实现实际减速，但闭环路径及阶段时长改变，生产yield不足。最小下一机制只提出采集侧参考路径进度/Arm-Hand同步时间重参数化，尚未实现或授权为自动新实验；不得改专家/PD/物理/DR/任务/学生。
 
-已清理1867个产物文件，释放7.510GiB；另删除4个过期owner/发布脚本和8份完全重复报告，4个旧流水线仅保留对照/回归辅助函数。54项受影响回归、5225个保护文件identity、当前数据/模型/gate指纹及14条合格开发payload SHA通过。原400/275、当前30条采集、实际模型对照与失败分母保留；详细分类及去重映射见[清理记录](CLEANUP_AUDIT.md)。
+B混速State best4500独立结果保留：train1/4，新初态0/10合法+2拒绝；旧同权重canonical1/7对legacy0/7有正向案例，无稳定泛化结论。无旧seed复跑或新训练。
 
-清理后可用71.46GiB，60GiB储备之上11.46GiB，仍至少缺19.41GiB。其他项目不在本次删除范围。正式采集0次、新训练未执行，慢速方案的有限可靠性结论及旧275 State闭环结果不变；本任务仍因容量未完成。原deadline不重置。
-
-基点1b70d3b6fce8052300a54f5361f4092da27cba5f；物理运行f8beeef6d408ac20f520f6a26625c31bc3cdb5ee，工作树bc+rl_RSS_narrow_followup，root tight_state_20261107_01/hand_cap_04。A Hand cap固定Arm.50/Hand1/cap2rad/s：pilot5/6成功4/6准入，独立12/12成功10/12准入、覆盖3/3/2/2，有限预登记门槛通过。18慢速17成功14准入；新增12原速全部成功，新采30条三模态全过，所有实际目标误差0。14条7家族仅作train-only可复用开发数据，未冻结正式集。
-
-B保留同一best4500 canonical：独立训练家族1/4成功，新初态12尝试/10合法/0成功/2拒绝，全部合法新初态601tick零子目标。成功family005176tick原生完整终止。无随机重训、无上轮7seed重复；不能声称稳定泛化或把未运行训练报0%。
-
-容量guard在通过可靠性后停止生产：reserve以上约8GiB，最大复用开发数据仍按最小实测文件需约31GiB新增空间。无其他已挂载数据盘，待额外空间/目录；正式attempt0、统计/cache/训练均未执行。3实验worker exit0，owner因明确STOP exit1、所有自有进程退出；未知旧143及本轮只读观察会话143不归Kit/OOM。不可直接重跑run --mechanism或清STOP冒进；空间到位后用当前唯一配置准备生产continuation，继承通过的gate与原剩余预算。
-
-运行后只固化当前cap/运动门槛配置及拒绝错入口/manifest路径证据；37项受影响测试通过，18条运动判定一致，限速器/原生包装/模型未再改变。已通过168/510tick等基础工程证据不重审。209运行源码/计划指纹及保护清单核对通过。清理仅本轮重复JSON/临时图2文件876544bytes，原400/275/模型/成功失败记录不动。完整逐条表、物理分解、容量/资源与可复现记录见STATE_DP_RESULTS和evidence/tight_hand_cap_results_20261107.json。
-
-## 上一轮已完成记录
-
-
-
-从362c630继续，A运行代码991db6a1c02af140ef12fb1f3a35f159c7ba2193，root为`outputs/visuotactile/run/tight_state_20261107_01/baseline_03`。24次登记尝试全部结束，自有owner/worker/monitor均退出；旧275混速State数据best4500同权重legacy/canonical输入对照：train均0/4，未见初态旧0/7、canonical1/7，各另1次动作前初态拒绝。unseen_05 canonical178tick完整成功，legacy601timeout；数值修复有正向案例，未证明稳定改善。新训练更新0，无checkpoint复制。
-
-B只读分析33capture（21慢+12原速），新采样0：B00耗时增加主要伴随更长插入路径；B01/B02 Hand插入速度仍接近原速、Arm路径缩短。旧Hand更低参数也呈非单调时间及最终插入timeout。没有可靠统一方案，不生产新正式慢速集。最小提案仅在采集侧Hand目标增加因果速度上限，尚未实施；不得把A成功当B过关。
-
-原168项/510tick等工程证据有效，本轮24受影响回归通过。运行后只读分析器补入实际两子步外力统计，33条重算一致；学生/执行代码未再修改。完整结果、逐条表、CSV/图和机器证据均在既有STATE_DP_RESULTS及evidence/tight_state_20261107.json。原400/275/专家/资产、旧6+新2开发合格记录保持；本轮清理0。当前无需重开基础审计或自动扩展队列。
+本次10份已拒绝RGB-D载荷清理2.705GiB；此前7.510GiB不重复计数，失败numeric/分母完整保留。207源码/计划、6保护文件、64新HDF5、10拒绝numeric SHA核对通过；原400/275全部存在且大小正确。完整结果和75次表见[当前结果](STATE_DP_RESULTS.md)，执行合同见[当前合同](CONTRACTS.md)，清理见[CLEANUP_AUDIT](CLEANUP_AUDIT.md)。

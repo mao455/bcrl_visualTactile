@@ -1,4 +1,76 @@
 {
+  "current_status": {
+    "source_head": "5b3bd48ef720f71d860b2c76a32b39b4e27d8dc1",
+    "run": "tight_state_20261107_01/formal_05",
+    "state": "blocked",
+    "reason": "Preregistered production admission yield 10/20=0.50 < 0.65; task reliability 20/20=1.00 passes 0.85",
+    "counts": {
+      "total_attempts": 75,
+      "physical_trajectories": 74,
+      "reference_attempts": 55,
+      "reference_successes": 54,
+      "reference_initial_rejections": 1,
+      "slow_attempts": 20,
+      "slow_task_successes": 20,
+      "slow_task_failures": 0,
+      "slow_initial_rejections": 0,
+      "slow_admitted": 10,
+      "success_but_rejected": 10,
+      "software_sensor_faults": 0,
+      "remaining_unstarted_attempts": 200
+    },
+    "coverage": {
+      "reference_families_attempted": 55,
+      "reference_families_legal": 54,
+      "slow_families_attempted": 20,
+      "admitted_families": 10,
+      "admitted_splits": {
+        "validation": 2,
+        "train": 8
+      },
+      "planned_splits": {
+        "train": 41,
+        "validation": 7,
+        "test": 7
+      },
+      "minimum_formal_families": 40,
+      "minimum_formal_episodes": 150
+    },
+    "formal_dataset": {
+      "frozen": false,
+      "training_permitted": false,
+      "pending_qualified_episodes": 10,
+      "pending_qualified_families": 10,
+      "development_qualified_separate": 14,
+      "original400_or275_included": false,
+      "formal_manifest_or_stats_or_cache_created": false
+    },
+    "training": {
+      "executed": false,
+      "sufficient": null,
+      "reason": "Production admission yield failed; no fresh model/optimizer/EMA/scheduler or updates"
+    },
+    "student_evaluation": {
+      "executed": false,
+      "reason": "No formal model; prior mixed-speed baseline remains independent"
+    },
+    "cleanup": {
+      "new_rejected_rgbd_payloads": 10,
+      "released_allocated_bytes": 2904580096,
+      "released_gib": 2.7051010131835938,
+      "retained": "All numeric trajectories, seeds, initial/config/event/termination and sensor acceptance evidence; admitted and reference complete HDF5 retained",
+      "previous_cleanup_recounted": false
+    },
+    "processes": {
+      "owner_exit": 1,
+      "collection_worker_exit": 1,
+      "monitor_exited": true,
+      "owned_workers_exited": true,
+      "exit_cause": "Registered yield gate, not an OOM/Kit signal; no retry"
+    },
+    "evidence": "tight_production_results_20261107.json"
+  },
+  "top_level_initial_snapshot_scope": "Historical first audit; use current_status and subsequent named runs for latest status",
   "version": "tight_state_results_v1",
   "reference_head": "642f5a272e9df1c8646fde0e7d4ad456b74972e1",
   "ide_original_head": "3e11d6281e4b0178389a1a37c766e946f2605724",

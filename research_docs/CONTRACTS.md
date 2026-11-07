@@ -2,7 +2,13 @@
 
 2026-11-07 用户授权完整执行基础链路整改、必要慢速重采、随机初始化训练、闭环评估和分类清理。验收通过后自动进入下一阶段，历史“等待授权/审计后停止”不再是当前限制。任何真实门控失败必须保留证据并阻断其依赖阶段。审查基点642f5a2，当前入口与实际状态见[README](README.md)和[结果](STATE_DP_RESULTS.md)。
 
-## 本轮：Hand限速最小验证与独立StateDP推进（基点1b70d3b6fce8052300a54f5361f4092da27cba5f）
+## 当前生产状态（2026-11-07 21:22）
+
+容量恢复后，以干净HEAD `5b3bd48ef720f71d860b2c76a32b39b4e27d8dc1`运行formal_05，继承原deadline、不改配置/源码。55原速尝试54成功+1初态拒绝；20慢速20成功但仅10准入。预登记每20次任务率≥.85通过、准入率≥.65未过，原队列在此停止，剩余200次未执行。正式manifest/统计/cache和新训练/闭环均未运行。10条合格候选（train8/validation2/test0）及14条开发合格记录分开保留，不构成正式集。当前阻断是生产yield，不是磁盘或已通过工程检查。
+
+停止固定alpha/Hand cap机械搜索；下一采集侧路径进度机制仅为提案，尚未实现，不自动启动新实验。已有混速275 State baseline证据独立有效。以下历史实验登记用于复现，其旧容量/启动状态不能覆盖本段；固定模型、数据准入、训练与资源合同继续保持。
+
+## 已完成开发登记：Hand限速最小验证与独立StateDP推进（基点1b70d3b6fce8052300a54f5361f4092da27cba5f）
 
 本轮A指Hand限速，B指StateDP，与下方上一轮A/B编号不同。运行root为`outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`，仍使用tools.tight_finish监督入口；此前工程验收保持，新增33项受影响回归通过。登记并非实际完成，结果以root下summary/status为准。
 
@@ -16,7 +22,7 @@ A先读取B00/B01/B02既有记录，用实际60Hz前后状态计算Arm/Hand平�
 
 B决定本轮不随机重训：canonical只修在线构造，原275离线训练输入已canonical；原4000–5000步selection MSE约.00417平台，同时训练loss下降而验证loss上升。换初始化不能隔离修复效果，也没有当前训练标签改变的依据；不声称旧模型全局收敛。保留同一best4500完整状态（54.86anchor等效epoch；历史末步5000约60.95），固定canonical，独立评估后4个字典序训练家族005/008/010/011和12个全新初态31171001–12，共16次上限，3h窗，无旧7seed复跑、无重试/补seed/自动扩评/最终test选择。历史275仍是原始混速State baseline，不是严格慢速多模态baseline；不启ImageDP或触觉训练。
 
-## 本轮实际验收与生产配置冻结
+## 开发验收与生产配置冻结（历史容量停止已解除）
 
 Hand cap pilot5/6成功、4/6准入；独立4家族×3事件12/12成功、10/12准入，覆盖3/3/2/2，预登记门槛全部通过。唯一当前配置已固定Arm.50/Hand1/Hand cap2rad/s与physical_motion_gate(.90/1.25)，development_revision4；配置中的结果数字仅作来源标记，不能替代真实gate receipt。正式入口不再从开发hand_cap_plan读取运行参数；拒绝错方案、缺实际路径证据或用旧标量alpha入口冒充当前方案。
 
@@ -62,7 +68,7 @@ geometry为既有base-frame85D构造；四元数wxyz和q/-q处理保持。Actor�
 
 固定相机必须明确配置。RGB-D验收逐帧逐视角读取真实像素、depth与mask、时间及frame counter；camera_valid全True不能替代内容验收。触觉首tick无效、后续有效及120Hz两子步必须保持真实。原速参考与未达标成功记录仅作参考/历史，不进入慢速manifest。
 
-未执行的生产预算为55家族、每家族4次慢速尝试，41/7/7家族train/validation/test；规模是软目标，不扩大范围补数量。所有attempt在物理启动前写账，task failure、非法初态、software/sensor fault分别统计。正式manifest/统计/cache只有逐条门控通过后才冻结；未知partial不删。
+本次预登记生产预算为55家族、每家族4次慢速尝试，41/7/7家族train/validation/test；规模是软目标，不扩大范围补数量。所有attempt在物理启动前写账，task failure、非法初态、software/sensor fault分别统计。正式manifest/统计/cache只有逐条门控通过后才冻结；未知partial不删。
 
 ## 已完成有界续行的方案门槛
 
@@ -88,4 +94,4 @@ geometry为既有base-frame85D构造；四元数wxyz和q/-q处理保持。Actor�
 
 先解除依赖、检查活跃进程/打开句柄，再按路径、inode、size和必要SHA删除。原400/275、专家、资产、未知partial与新当前产物受保护；失败分母以精简结果表保留，不建巨型备份。旧历史完整文档/代码由Git642f5a2追溯，不重写共享Git历史。仅发布已审查代码和小证据，不上传数据/checkpoint。
 
-最新追加清理授权：删除分类确认无用的旧权重/记录及重复入口，实际对照与原400/275、成功模型、失败分母保留；GitHub仅普通提交至当前origin feature分支。具体释放量和仍缺空间见CLEANUP_AUDIT；历史未实施Hand cap提案已被本轮真实实现/独立验证结果取代。
+最新追加清理授权：删除分类确认无用的旧权重/记录及重复入口，实际对照与原400/275、成功模型、失败分母保留；GitHub仅普通提交至当前origin feature分支。具体释放量见CLEANUP_AUDIT；空间已恢复，当前生产阻断见本页顶部；历史未实施Hand cap提案已被本轮真实实现/独立验证结果取代。
