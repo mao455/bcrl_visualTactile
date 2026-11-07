@@ -1,3 +1,9 @@
+# Latest authorization — independent State baseline and slow-collection analysis
+
+2026-11-07 user resumes from362c6308a6519b57309487583ec401c5acd6f4a7. Task A explicitly permits the original275 State-valid mixed-speed data and compatible retained student checkpoint for controlled baseline evaluation. It is independent of Task B slow-multimodal admission; never use blank cameras for ImageDP. Current A is preregistered best4500 same-weight legacy/canonical input comparison,4 training families+8 new initializations,24 starts maximum, no outcome replacement. No new optimizer updates are planned. Keep accepted engineering gates; only changed entry tests.
+
+Task B first analyzes all existing33 expert records (21 slow+12 references). No new physical sampling without specific evidence and a finite registered plan. Do not treat prior stage stop as prohibition of this new task, or Task A as passing formal slow admission. Main entry remains tools.tight_finish; active A root is outputs/visuotactile/run/tight_state_20261107_01/baseline_03. Report actual completion, not startup.
+
 # Current task — Tight-Insertion StateDP foundation, 2026-11-07
 
 Read research_docs/README.md, CONTRACTS.md and STATE_DP_RESULTS.md. The current user authorizes the full foundation repair, necessary real slow collection, fresh random StateDP training, closed-loop evaluation and classified cleanup. Earlier audit-only/await-authorization/short-startup-and-yield restrictions are historical and do not stop this task. Advance on actual passing gates; a launch is not completion, data validity is not student success. Report real blockers.

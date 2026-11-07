@@ -191,6 +191,60 @@ def collect(root):
     write(root/'COMPLETE.json',read(root/'DATA_READY.json'))
 
 
+def baseline_checkpoint(saved, input_builder):
+    """Explicit evaluation-only I/O intervention; preserve source weights/state."""
+    from visuotactile.position_control import contract
+    require(saved.get('contract') == contract(24, True), 'Baseline requires frozen H24 command-target StateDP')
+    require(saved.get('kind') == 'dp' and saved.get('updates', 0) > 0, 'Trained StateDP required')
+    require(input_builder in ('legacy_packet_inverse_v1', 'canonical_joint_state_v1'), 'Unknown baseline input intervention')
+    result = dict(saved)
+    result['configuration'] = dict(saved.get('configuration', {}), input_builder=input_builder)
+    return result
+
+
+def baseline_evaluate(root):
+    """Paired old275 diagnostic, separate from formal slow-data admission."""
+    import torch
+    from visuotactile.state_benchmark import trial
+    from tools.tight_state import environment
+    s=read(root/'session.json');plan=read(root/'baseline_plan.json')
+    require(plan['dataset_scope']=='original275_state_valid_mixed_speed', 'Explicit historical baseline scope required')
+    require(not (root/'baseline_results.json').exists(), 'No baseline restart/replacement')
+    for path,expected in plan['protected_inputs'].items():require(sha(path)==expected, 'Baseline source drift: '+path)
+    saved=torch.load(plan['checkpoint'],map_location='cpu',weights_only=False)
+    variants={key:baseline_checkpoint(saved,key) for key in plan['input_builders']}
+    app,env,player,lease=environment(root,True);rows=[];pairs=[]
+    for index,pair in enumerate(plan['pairs']):
+        current=[]
+        order=plan['input_builders'][::1 if index%2==0 else -1]
+        for builder in order:
+            identity=pair['pair_id']+'_'+('legacy' if builder.startswith('legacy') else 'canonical')
+            spec=dict(pair['spec'],identity=identity)
+            with (root/'attempts.jsonl').open('a') as stream:
+                stream.write(json.dumps(dict(identity=identity,pair_id=pair['pair_id'],input_builder=builder,started=time.time()))+'\n');stream.flush();os.fsync(stream.fileno())
+            output=root/'baseline_evaluation'/identity
+            result=trial(env,lease,output,spec,{},player,s['expert_checkpoint'],saved=variants[builder],position=True,inference=plan['inference'])
+            result.update(pair_id=pair['pair_id'],input_builder=builder,source_student_sha256=plan['protected_inputs'][plan['checkpoint']],
+                evaluation_only_input_override=True,dataset_scope=plan['dataset_scope'])
+            if result['legal']:
+                require(result['actuator_target_max_error']<1e-6 and result['submitted_target_max_error']<1e-6,'Baseline actuator mismatch')
+            rows.append(result);current.append(result);write(root/'baseline_results.json',rows)
+            require(result['software_complete'],'Baseline software fault; no replacement')
+            beat(root,stage='baseline_evaluation',identity=identity,completed=len(rows))
+        initial=[root/'baseline_evaluation'/x['identity']/'initial_observable.json' for x in current]
+        pairs.append(dict(pair_id=pair['pair_id'],split=pair['spec']['split'],initial_observable_exact=sha(initial[0])==sha(initial[1]),
+            members=[x['identity'] for x in current],successes={x['input_builder']:x['success'] for x in current},
+            scope='Same native reset/config/event and diffusion seeds; observable equality checked, hidden PhysX state not asserted'))
+        write(root/'baseline_pairs.json',pairs)
+    summary={builder:{split:dict(attempts=len(rr),legal=sum(r['legal'] for r in rr),successes=sum(r['success'] for r in rr),
+        initial_rejections=sum(not r['legal'] for r in rr),software_failures=sum(not r['software_complete'] for r in rr))
+        for split in ('train','unseen') for rr in [[r for r in rows if r['input_builder']==builder and r['split']==split]]} for builder in plan['input_builders']}
+    for path,expected in plan['protected_inputs'].items():require(sha(path)==expected,'Baseline source changed during evaluation')
+    write(root/'baseline_summary.json',dict(complete=True,cohorts=summary,physical_attempts=len(rows),pairs=len(pairs),
+        observable_exact_pairs=sum(p['initial_observable_exact'] for p in pairs),optimizer_updates=0,
+        dataset_scope=plan['dataset_scope'],formal_slow_data_admitted=False,final_test_for_selection=False))
+
+
 def evaluate(root):
     import torch
     from visuotactile.state_benchmark import trial
@@ -225,7 +279,7 @@ def evaluate(root):
 
 
 @supervised_owner
-def pipeline(root,refinement=False,speed_validation=False):
+def pipeline(root,refinement=False,speed_validation=False,baseline=False):
     import fcntl
     with (root/'owner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -249,7 +303,13 @@ def pipeline(root,refinement=False,speed_validation=False):
             with (root/'monitor.log').open('a') as log:monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             inherited=(root/'accepted_foundation.json').exists()
             if inherited:accepted_foundation(root)
-            elif not (root/'gpu_parity.json').exists():
+            if baseline:
+                require(inherited,'Baseline must explicitly retain accepted engineering evidence')
+                worker('baseline_evaluation',['-m','tools.tight_finish','baseline_evaluate','--root',str(root)],s['deadline'])
+                write(root/'status.json',dict(state='complete',stage='baseline_evaluated',formal_updates=0,formal_slow_episodes=0,
+                    baseline=read(root/'baseline_summary.json')))
+                return
+            elif not inherited and not (root/'gpu_parity.json').exists():
                 worker('foundation_fixture',['-m','tools.tight_audit','fixture','--root',str(root)],s['development_deadline'])
                 worker('foundation_gpu',['-m','tools.tight_audit','gpu','--root',str(root),'--data',str(root/'diagnostic_data')],s['development_deadline'])
             if not inherited:require(read(root/'gpu_parity.json')['passed'],'Foundation full trajectory GPU gate must pass')
@@ -305,9 +365,9 @@ def pipeline(root,refinement=False,speed_validation=False):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker','validate_speed']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker','validate_speed','baseline_evaluate']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true')
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='run':pipeline(root,a.refinement,a.speed_validation)
+    if a.mode=='run':pipeline(root,a.refinement,a.speed_validation,a.baseline)
     else:
         code=0
         try:globals()[a.mode](root)

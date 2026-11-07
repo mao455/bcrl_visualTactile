@@ -2,6 +2,14 @@
 
 2026-11-07 用户授权完整执行基础链路整改、必要慢速重采、随机初始化训练、闭环评估和分类清理。验收通过后自动进入下一阶段，历史“等待授权/审计后停止”不再是当前限制。任何真实门控失败必须保留证据并阻断其依赖阶段。审查基点642f5a2，当前入口与实际状态见[README](README.md)和[结果](STATE_DP_RESULTS.md)。
 
+## 本轮A/B独立范围
+
+任务A允许原275条State-valid原始混合速度数据的受控baseline诊断，不授予1.5–3慢速多模态资格。原200空白相机不进入视觉模型。现存best4500版本/数据/统计/EMA加载兼容，通过显式evaluation-only配置分别运行legacy_packet_inverse_v1与canonical_joint_state_v1，不修改源checkpoint或网络/损失/权重；仅此任务允许旧checkpoint的声明式输入对照，不静默升级。
+
+A在启动前登记4个字典序训练家族、8个新初态，每例两种输入，共24物理启动上限、2h总窗；相同初态/事件/DDIM seed、交替执行顺序，非法初态保留不替换，软件/执行器错误或deadline停止。原275实际初态采样域为XY±25mm/相对±35mm、20°、joint lerp.03、qd±.15，按保存的家庭spec和实际旧采样函数确认；与B进一步收窄域区分。未见初态是此次新seed，训练家族是旧训练split来源；不以最终test选择权重。不因B失败抹掉A结果。
+
+任务B仅分析已完成旧21capture（15慢+6参考）和新12capture（6慢+6参考），不重采。新的有限测试须有具体证据，保持逐条正式慢速标准；无统一可靠方案则明确最小采集侧修改提案，不擅改专家/PD/物理/学生算法。未来不同慢速数据必须另做matched-data baseline。
+
 ## 固定模型与控制
 
 监督为transition/target_after_rad，29D绝对关节目标弧度，7Arm+22Hand；不是q_after，不是nominal。Actor141、robot178、geometry85及GRU256持续历史、原网络、sample/x0 Loss B和辅助权重保持。H24/commit12，5Hz规划/60Hz执行/120Hz物理；DDIM100训练噪声步、推理16、eta0、clip_sample=false、正式overlap=0。FP32关闭matmul和CuDNN TF32。

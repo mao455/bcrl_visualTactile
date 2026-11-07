@@ -13,6 +13,20 @@ def config():
     return json.loads((Path(__file__).resolve().parents[1]/'configs/tight_state.json').read_text())
 
 
+def test_historical_baseline_override_is_explicit_and_does_not_mutate_checkpoint():
+    from tools.tight_finish import baseline_checkpoint
+    from visuotactile.position_control import contract
+    weights=object();saved=dict(contract=contract(24,True),kind='dp',updates=4500,
+        configuration={'seed':17},ema=weights,optimizer=object())
+    fixed=baseline_checkpoint(saved,'canonical_joint_state_v1')
+    assert fixed['ema'] is weights and fixed['optimizer'] is saved['optimizer']
+    assert fixed['configuration']['input_builder']=='canonical_joint_state_v1'
+    assert 'input_builder' not in saved['configuration'] and fixed['updates']==4500
+    with pytest.raises(ValueError):baseline_checkpoint(saved,'unknown')
+    with pytest.raises(ValueError):baseline_checkpoint(dict(saved,contract=contract(32,True)),'canonical_joint_state_v1')
+    with pytest.raises(ValueError):baseline_checkpoint(dict(saved,updates=0),'canonical_joint_state_v1')
+
+
 def row(alpha=1.,duration=3.,speed=1.):
     return dict(family='f0',configuration_sha256='c',reset_sha256='r',expert_sha256='e',alpha=alpha,
         success=True,numeric_valid=True,visual_passed=True,tactile_valid=True,post_success_actions=0,

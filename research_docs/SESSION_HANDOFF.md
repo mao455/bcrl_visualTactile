@@ -1,3 +1,7 @@
+# 当前A/B交接
+
+从362c630继续；A根目录baseline_03，best4500的显式legacy/canonical输入对照已登记24次启动，B只读分析33既有capture。尚未完成，读实际status。无新增训练计划，使用原275混速State数据版本；新慢速正式准入独立。
+
 # 当前交接
 
 固定Arm0.50/Hand1.00验证已于2026-11-07 12:01:49（UTC+8）按预登记产出不可达规则停止。root为`outputs/visuotactile/run/tight_state_20261107_01/continuation_02`，运行代码`cf275d5ec8029782942f2d36a58eb06f669e4b02`；启动干净，结束241份冻结源码/配置未变。旧e67bfc6基础工程验收继续有效，无需重做。

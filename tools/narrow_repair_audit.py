@@ -131,6 +131,81 @@ def motion(g):
     return result
 
 
+def slow_phase_analysis(root, prior_root):
+    """Read completed evidence only; never collect or change admission labels."""
+    prior=Path(prior_root);continuation=prior/'continuation_02'
+    historical=[json.loads(line) for line in (prior/'completed_attempts.jsonl').read_text().splitlines()]
+    historical=[r for r in historical if r.get('path') and r.get('classification') in ('task_success','task_failure')]
+    current=read(continuation/'validation_results.json')
+    captures=historical+current['references']+current['slow']
+    assert len(historical)==21 and len(captures)==33 and len({r['path'] for r in captures})==33
+    rows=[]
+    for record in captures:
+        output=Path(record['path']).parents[1]
+        with h5py.File(output/'numeric.h5') as f:
+            g=f['episode'];label=stages(g);n=len(label)
+            before=g['transition/diagnostics_before'];after=g['transition/diagnostics_after']
+            q=before['joint_position_rad'][:];qa=after['joint_position_rad'][:];qd=before['joint_velocity_rad_s'][:]
+            target=g['transition/target_after_rad'][:];previous=g['transition/target_before_rad'][:]
+            native=g['transition/speed_native_target_rad'][:]
+            sub=after['successes'][:].reshape(n,-1).max(-1)
+            macro=np.array(['approach' if x=='approach_no_object_contact' else 'grasp_lift' if x in ('contact_low_object','transport_above_3cm') else 'insertion' for x in label])
+            measures={}
+            for name,mask in [(str(k),label==k) for k in sorted(set(label))]+[(str(k),macro==k) for k in ('approach','grasp_lift','insertion')]+[('whole',np.ones(n,dtype=bool))]:
+                count=int(mask.sum());item=dict(ticks=count,seconds=count/60)
+                for group,slice_ in [('arm',slice(0,7)),('hand',slice(7,29))]:
+                    if not count:continue
+                    delta=qa[mask,slice_]-q[mask,slice_]
+                    item[group]=dict(speed_rms_rad_s=float(np.sqrt(np.mean(qd[mask,slice_]**2))),
+                        actual_path_mean_joint_rad=float(np.abs(delta).sum(0).mean()),
+                        range_mean_joint_rad=float(np.ptp(np.concatenate([q[mask,slice_],qa[mask,slice_]]),axis=0).mean()),
+                        target_speed_rms_rad_s=float(np.sqrt(np.mean(((target-previous)[mask,slice_]*60)**2))),
+                        tracking_rmse_rad=float(np.sqrt(np.mean((target[mask,slice_]-q[mask,slice_])**2))))
+                measures[name]=item
+            assert sum(measures[x]['ticks'] for x in ('approach','grasp_lift','insertion'))==n
+            dr={}
+            for key in ('external_force_probability','external_torque_probability'):
+                dr[key]=float(np.ravel(g['transition/'+key][0])[0])
+            for key in ('external_force_nonzero','external_torque_nonzero'):
+                dr[key+'_ticks']=int(np.asarray(g['transition/'+key][:]).reshape(n,-1).any(-1).sum())
+            scheme=record.get('speed_scheme') or dict(kind='closed_loop',arm=record['alpha'],hand=record['alpha'],phase='all')
+            expected=previous+(native-previous)*np.r_[np.full(7,scheme['arm']),np.full(22,scheme['hand'])]
+            progression_error=float(np.max(np.abs(expected-target)))
+            transitions={str(level):int(np.where(sub>=level)[0][0]+1) if np.any(sub>=level) else None for level in (1,2)}
+            result=read(output/'result.json');spec=read(output/'started.json')['spec']
+            rows.append(dict(identity=record['identity'],family=record['family'],initial_seed=record['seed'],event_seed=record.get('event_seed'),
+                event_scope='explicit post-reset stream' if record.get('event_seed') is not None else 'continuation of reset-seeded stream',
+                narrow_reset=spec['narrow_reset'],speed_scheme=scheme,source_sha256=record['source_sha256'],path=record['path'],
+                numeric_path=str(output/'numeric.h5'),numeric_sha256=sha(output/'numeric.h5'),steps=n,duration_s=n/60,phases=measures,
+                native_subgoal_completed_ticks=transitions,termination=result['reasons'],success=record['success'],
+                post_success_actions=result['post_success_actions'],dr=dr,target_progression_max_error_rad=progression_error))
+    by_id={r['identity']:r for r in rows};pairs=[]
+    for row in rows:
+        if row['speed_scheme']['arm']==row['speed_scheme']['hand']==1:continue
+        if row['identity'].startswith('fixed_'):
+            ref=by_id[row['identity'].replace('_slow','_reference')]
+        else:
+            ref=next(r for r in rows if r['family']==row['family'] and r['speed_scheme']['arm']==r['speed_scheme']['hand']==1)
+        ratios={}
+        for phase in row['phases']:
+            a=row['phases'][phase];b=ref['phases'].get(phase)
+            if not b or not b['ticks'] or not a['ticks']:continue
+            value=dict(duration_ratio=a['seconds']/b['seconds'])
+            for group in ('arm','hand'):
+                value[group]={key:a[group][key]/b[group][key] if b[group][key]>1e-12 else None
+                    for key in ('speed_rms_rad_s','actual_path_mean_joint_rad','range_mean_joint_rad')}
+            ratios[phase]=value
+        pairs.append(dict(slow=row['identity'],reference=ref['identity'],family=row['family'],duration_ratio=row['duration_s']/ref['duration_s'],
+            slow_success=row['success'],phase_ratios=ratios))
+    report=dict(captures=len(rows),slow_attempts=len(pairs),reference_attempts=len(rows)-len(pairs),new_physical_starts=0,rows=rows,pairs=pairs,
+        phases='Existing mutually exclusive diagnostic proxies, not stable-grasp labels. Native alignment and second insertion retained separately and combined for macro insertion.',
+        amplitude='Mean per-joint sum(abs(q_after-q_before)) over phase ticks plus mean joint range. No concatenated cross-phase jumps.',
+        counts='Previous21 captures comprise15 slow+6 native; new12 comprise6 slow+6 native. Total21 slow,12 native.',
+        prior_admission_unchanged=True)
+    write(Path(root)/'slow_phase_analysis.json',report)
+    return report
+
+
 def dataset(root):
     from visuotactile.narrow_data import record
     from visuotactile.narrow_decision import curve_summary
