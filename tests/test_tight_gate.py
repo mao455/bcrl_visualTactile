@@ -27,6 +27,34 @@ def test_historical_baseline_override_is_explicit_and_does_not_mutate_checkpoint
     with pytest.raises(ValueError):baseline_checkpoint(dict(saved,updates=0),'canonical_joint_state_v1')
 
 
+def test_motion_gate_rejects_detours_even_if_duration_is_long():
+    from tools.tight_finish import physical_motion_errors
+    rules=dict(maximum_mean_speed_ratio=.9,maximum_insertion_path_ratio=1.25)
+    measured={phase:{group:dict(decomposition_valid=True,path_ratio=1.1,mean_speed_ratio=.7)
+        for group in ('hand','end_effector','object')} for phase in ('whole','insertion')}
+    assert not physical_motion_errors(measured,rules)
+    measured['insertion']['object']['path_ratio']=3.2
+    assert 'insertion_object_path_excess' in physical_motion_errors(measured,rules)
+    measured['insertion']['hand']['mean_speed_ratio']=1.01
+    assert 'insertion_hand_actual_speed_not_reduced' in physical_motion_errors(measured,rules)
+    del measured['insertion']['end_effector']
+    assert 'insertion_end_effector_missing_physical_motion' in physical_motion_errors(measured,rules)
+    measured['whole']['hand']['mean_speed_ratio']=float('nan')
+    assert 'whole_hand_invalid_physical_motion' in physical_motion_errors(measured,rules)
+
+
+def test_path_speed_decomposition_separates_longer_route_from_slower_motion():
+    from tools.narrow_repair_audit import path_speed_comparison
+    groups=('arm','hand','end_effector','object','end_effector_rotation','object_rotation')
+    ref=dict(phases={'insertion':dict(seconds=2,**{g:dict(path=1,mean_speed=.5) for g in groups})})
+    slow=dict(phases={'insertion':dict(seconds=6,**{g:dict(path=3,mean_speed=.5) for g in groups})})
+    x=path_speed_comparison(slow,ref)['insertion']['object']
+    assert x['path_contribution_seconds']==4 and x['speed_contribution_seconds']==0
+    slow['phases']['insertion'].update({g:dict(path=1,mean_speed=1/6) for g in groups})
+    x=path_speed_comparison(slow,ref)['insertion']['object']
+    assert x['path_contribution_seconds']==0 and x['speed_contribution_seconds']==4
+
+
 def row(alpha=1.,duration=3.,speed=1.):
     return dict(family='f0',configuration_sha256='c',reset_sha256='r',expert_sha256='e',alpha=alpha,
         success=True,numeric_valid=True,visual_passed=True,tactile_valid=True,post_success_actions=0,
@@ -60,6 +88,7 @@ def test_same_family_reference_and_all_modalities_are_mandatory():
     for key in ('success','numeric_valid','visual_passed','tactile_valid'):
         assert not paired_admission(dict(slow,**{key:False}),native,gate)['passed']
         assert not paired_admission(slow,dict(native,**{key:False}),gate)['passed']
+    assert not paired_admission(slow,dict(native,speed_scheme=dict(arm=1.,hand=1.,hand_target_cap_rad_s=2)),gate)['passed']
 
 
 def test_direct_sampler_reads_every_configured_range_and_rejects_bad_bounds():

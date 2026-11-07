@@ -211,6 +211,64 @@ def slow_phase_analysis(root, prior_root):
     return report
 
 
+def path_speed_metrics(path):
+    """Actual transition increments, never target motion or cross-phase jumps.
+
+    Mean speed is path / elapsed phase time (including stationary ticks).
+    This permits exact time decomposition; it is not a causal intervention.
+    Palm is the recorded physical end effector; quaternion paths use radians.
+    """
+    with h5py.File(path) as f:
+        g=f['episode'];labels=stages(g);n=len(labels)
+        before=g['transition/diagnostics_before'];after=g['transition/diagnostics_after']
+        increments={}
+        for group,selection in [('arm',slice(0,7)),('hand',slice(7,29))]:
+            increments[group]=np.abs(after['joint_position_rad'][:,selection].astype('f8')-
+                before['joint_position_rad'][:,selection]).mean(-1)
+        for group,key in [('end_effector','palm_body_pose_w'),('object','object_pose_w')]:
+            a=before[key][:].astype('f8');b=after[key][:].astype('f8')
+            increments[group]=np.linalg.norm(b[:,:3]-a[:,:3],axis=-1)
+            qa=a[:,3:]/np.linalg.norm(a[:,3:],axis=-1,keepdims=True)
+            qb=b[:,3:]/np.linalg.norm(b[:,3:],axis=-1,keepdims=True)
+            increments[group+'_rotation']=2*np.arccos(np.clip(np.abs((qa*qb).sum(-1)),0,1))
+        macro=np.array(['approach' if x=='approach_no_object_contact' else 'grasp_lift' if x in
+            ('contact_low_object','transport_above_3cm') else 'insertion' for x in labels])
+        phases={}
+        for name,mask in [(k,macro==k) for k in ('approach','grasp_lift','insertion')]+[(k,labels==k) for k in sorted(set(labels))]+[('whole',np.ones(n,dtype=bool))]:
+            seconds=int(mask.sum())/60
+            phases[name]=dict(seconds=seconds,**{k:dict(path=float(v[mask].sum()),
+                mean_speed=float(v[mask].sum()/seconds) if seconds else None) for k,v in increments.items()})
+        actual=np.abs(before['joint_velocity_rad_s'][:,7:].astype('f8'))
+        requested=np.abs((g['transition/target_after_rad'][:,7:].astype('f8')-
+            g['transition/target_before_rad'][:,7:])*60)
+        distributions={}
+        for name,mask in [('whole',np.ones(n,dtype=bool)),('insertion',macro=='insertion')]:
+            if not mask.any():continue
+            distributions[name]={k:{str(p):np.quantile(v[mask],p,axis=0).tolist() for p in (.5,.75,.9,.95,.99)}
+                for k,v in [('actual_rad_s',actual),('target_rad_s',requested)]}
+        return dict(phases=phases,hand_velocity_quantiles=distributions)
+
+
+def path_speed_comparison(slow, reference):
+    """T=L/v; symmetric additive decomposition in seconds, with zero checks."""
+    result={}
+    for phase,a in slow['phases'].items():
+        b=reference['phases'].get(phase)
+        if not b or not a['seconds'] or not b['seconds']:continue
+        row=dict(duration_ratio=a['seconds']/b['seconds'],delta_seconds=a['seconds']-b['seconds'])
+        for group in ('arm','hand','end_effector','object','end_effector_rotation','object_rotation'):
+            la,lb=a[group]['path'],b[group]['path'];va,vb=a[group]['mean_speed'],b[group]['mean_speed']
+            if min(la,lb,va,vb)<=1e-12:
+                row[group]=dict(decomposition_valid=False);continue
+            path_part=.5*(la-lb)*(1/va+1/vb)
+            speed_part=.5*(la+lb)*(1/va-1/vb)
+            assert abs(path_part+speed_part-row['delta_seconds'])<1e-7
+            row[group]=dict(decomposition_valid=True,path_ratio=la/lb,mean_speed_ratio=va/vb,
+                path_contribution_seconds=path_part,speed_contribution_seconds=speed_part)
+        result[phase]=row
+    return result
+
+
 def dataset(root):
     from visuotactile.narrow_data import record
     from visuotactile.narrow_decision import curve_summary

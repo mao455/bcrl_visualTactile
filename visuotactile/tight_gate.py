@@ -79,7 +79,7 @@ def paired_admission(slow, reference, gate):
         scheme=row.get('speed_scheme')
         return (scheme['arm'],scheme['hand']) if scheme else (row.get('alpha',1),)*2
     native=factors(reference);limited=factors(slow)
-    if native!=(1.,1.) or not all(isinstance(v,(int,float)) and 0<v<=1 for v in limited) or min(limited)>=1:
+    if native!=(1.,1.) or reference.get('speed_scheme',{}).get('hand_target_cap_rad_s') is not None or not all(isinstance(v,(int,float)) and 0<v<=1 for v in limited) or min(limited)>=1:
         errors.append('invalid_speed_roles')
     duration=slow.get('duration_s',0);base=reference.get('duration_s',0)
     ratio=duration/base if base>0 else None

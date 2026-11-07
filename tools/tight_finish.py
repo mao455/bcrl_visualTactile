@@ -15,6 +15,82 @@ from tools.tight_state import capture,digest,beat,check_protected
 from visuotactile.tight_gate import paired_admission,validate_formal_manifest,require,scheme_reliability,accepted_foundation
 
 
+def physical_motion_errors(comparison, rules):
+    errors=[]
+    for phase,groups in [('whole',('hand',)),('insertion',('hand','end_effector','object'))]:
+        for group in groups:
+            item=comparison.get(phase,{}).get(group,{})
+            if not item.get('decomposition_valid'):
+                errors.append(phase+'_'+group+'_missing_physical_motion');continue
+            if not all(math.isfinite(item.get(k,float('nan'))) and item[k]>=0 for k in ('mean_speed_ratio','path_ratio')):
+                errors.append(phase+'_'+group+'_invalid_physical_motion');continue
+            if item['mean_speed_ratio']>rules['maximum_mean_speed_ratio']:
+                errors.append(phase+'_'+group+'_actual_speed_not_reduced')
+            if phase=='insertion' and item['path_ratio']>rules['maximum_insertion_path_ratio']:
+                errors.append(phase+'_'+group+'_path_excess')
+    return errors
+
+
+def cap_motion_admission(row, reference, rules):
+    """Supplement unchanged per-record admission with real motion and no detour."""
+    import h5py
+    import numpy as np
+    from tools.narrow_repair_audit import path_speed_metrics,path_speed_comparison
+    from visuotactile.expert_speed import cap_hand_target,progress_target
+    import torch
+    if not row.get('path') or not reference.get('path'):
+        return dict(passed=False,errors=['missing_physical_capture'])
+    path=Path(row['path']).parents[1]/'numeric.h5'
+    other=Path(reference['path']).parents[1]/'numeric.h5'
+    metrics=path_speed_metrics(path);comparison=path_speed_comparison(metrics,path_speed_metrics(other))
+    errors=physical_motion_errors(comparison,rules)
+    with h5py.File(path) as f:
+        g=f['episode'];prev=torch.from_numpy(g['transition/target_before_rad'][:])
+        native=torch.from_numpy(g['transition/speed_native_target_rad'][:]);scheme=row['speed_scheme']
+        expected=cap_hand_target(prev,progress_target(prev,native,scheme['arm'],scheme['hand']),scheme['hand_target_cap_rad_s'])
+        actual=torch.from_numpy(g['transition/target_after_rad'][:])
+        error=float((expected-actual).abs().max())
+        maximum=float((actual[:,7:]-prev[:,7:]).abs().max()*60)
+        requested=float((native[:,7:]-prev[:,7:]).abs().max()*60)
+        before=g['transition/diagnostics_before'];after=g['transition/diagnostics_after']
+        actual_hand_rms=float(np.sqrt(np.mean(before['joint_velocity_rad_s'][:,7:]**2)))
+        sub=after['successes'][:].reshape(len(actual),-1).max(-1)
+        transitions={str(k):int(np.flatnonzero(sub>=k)[0]+1) if (sub>=k).any() else None for k in (1,2)}
+    if error>1e-6:errors.append('cap_applied_target_formula_mismatch')
+    return dict(passed=not errors,errors=errors,metrics=metrics,comparison=comparison,
+        target_formula_max_error_rad=error,maximum_hand_target_speed_rad_s=maximum,
+        maximum_native_hand_target_request_rad_s=requested,actual_hand_rms_rad_s=actual_hand_rms,
+        native_subgoal_completed_ticks=transitions)
+
+
+def hand_cap_pilot(root):
+    from tools.tight_state import environment
+    s=read(root/'session.json');plan=read(root/'hand_cap_plan.json')
+    require(not (root/'hand_cap_results.json').exists(),'No cap pilot restart/replacement')
+    for path,expected in plan['protected_references'].items():require(sha(path)==expected,'Reference changed: '+path)
+    app,env,player,lease=environment(root);lease.deadline=plan['deadline'];rows=[]
+    for pair in plan['pairs']:
+        ref=pair['reference'];spec=dict(pair['spec'],identity=pair['pair_id']+'_cap')
+        row=capture(root,env,player,lease,spec,None,speed_scheme=plan['speed_scheme'])
+        row['admission']=paired_admission(row,ref,s['development'])
+        for key in ('initial_observable_sha256','actual_native_configuration_sha256'):
+            if row.get(key)!=ref.get(key):row['admission']['errors'].append(key+'_mismatch');row['admission']['passed']=False
+        row['physical_motion']=cap_motion_admission(row,ref,plan['physical_rules'])
+        row['admission']['errors'].extend(row['physical_motion']['errors'])
+        row['admission']['passed']=not row['admission']['errors']
+        rows.append(row);write(root/'hand_cap_results.json',rows)
+        require(row['classification'] not in ('sensor_failure','software_or_sensor_failure'),'Software/sensor fault; no replacement')
+    coverage={family:dict(attempts=len(rr),successes=sum(r['success'] for r in rr),admitted=sum(r['admission']['passed'] for r in rr))
+        for family in plan['families'] for rr in [[r for r in rows if r['family']==family]]}
+    successes=sum(r['success'] for r in rows);admitted=sum(r['admission']['passed'] for r in rows)
+    rules=plan['pilot_improvement']
+    passed=(len(rows)==rules['complete_attempts'] and successes>=rules['minimum_task_successes'] and
+        admitted>=rules['minimum_admitted'] and all(x['admitted']>=rules['minimum_family_admitted'] for x in coverage.values()))
+    write(root/'hand_cap_summary.json',dict(complete=True,passed=passed,attempts=len(rows),successes=successes,admitted=admitted,
+        coverage=coverage,scope='Pilot improvement gate only; independent reliability required before production',
+        parameters=plan['speed_scheme'],automatic_parameter_search=False))
+
+
 def validate_speed(root):
     """One preregistered fixed scheme, distinct post-reset event seeds, no search."""
     from tools.tight_state import environment
@@ -36,6 +112,10 @@ def validate_speed(root):
         for key in ('initial_observable_sha256','actual_native_configuration_sha256'):
             if row.get(key)!=reference.get(key):
                 row['admission']['errors'].append(key+'_mismatch');row['admission']['passed']=False
+        if 'physical_rules' in plan:
+            row['physical_motion']=cap_motion_admission(row,reference,plan['physical_rules'])
+            row['admission']['errors'].extend(row['physical_motion']['errors'])
+            row['admission']['passed']=not row['admission']['errors']
         slow.append(row);gate=scheme_reliability(slow,plan)
         gate.update(reference_attempts=len(refs),reference_successes=sum(r['success'] for r in refs))
         write(root/'validation_results.json',dict(references=refs,slow=slow,gate=gate))
@@ -145,6 +225,9 @@ def collect(root):
         if job['alpha']==1.:refs[job['family']]=row
         else:
             ref=refs[job['family']];admission=paired_admission(row,ref,s['development']);row['admission']=admission
+            if scheme.get('hand_target_cap_rad_s') is not None:
+                row['physical_motion']=cap_motion_admission(row,ref,read(root/'hand_cap_plan.json')['physical_rules'])
+                admission['errors'].extend(row['physical_motion']['errors']);admission['passed']=not admission['errors']
             if admission['passed']:
                 entries.append(dict(id=job['identity'],family=job['family'],split=job['split'],alpha=alpha,speed_scheme=scheme,
                     path=row['path'],sha256=row['source_sha256'],steps=row['steps'],size=Path(row['path']).stat().st_size,
@@ -212,6 +295,7 @@ def baseline_evaluate(root):
     require(not (root/'baseline_results.json').exists(), 'No baseline restart/replacement')
     for path,expected in plan['protected_inputs'].items():require(sha(path)==expected, 'Baseline source drift: '+path)
     saved=torch.load(plan['checkpoint'],map_location='cpu',weights_only=False)
+    require(len(plan['input_builders']) in (1,2) and len(set(plan['input_builders']))==len(plan['input_builders']),'One independent variant or two distinct paired variants required')
     variants={key:baseline_checkpoint(saved,key) for key in plan['input_builders']}
     app,env,player,lease=environment(root,True);rows=[];pairs=[]
     for index,pair in enumerate(plan['pairs']):
@@ -232,16 +316,17 @@ def baseline_evaluate(root):
             require(result['software_complete'],'Baseline software fault; no replacement')
             beat(root,stage='baseline_evaluation',identity=identity,completed=len(rows))
         initial=[root/'baseline_evaluation'/x['identity']/'initial_observable.json' for x in current]
-        pairs.append(dict(pair_id=pair['pair_id'],split=pair['spec']['split'],initial_observable_exact=sha(initial[0])==sha(initial[1]),
+        pairs.append(dict(pair_id=pair['pair_id'],split=pair['spec']['split'],initial_observable_exact=sha(initial[0])==sha(initial[1]) if len(initial)==2 else None,
             members=[x['identity'] for x in current],successes={x['input_builder']:x['success'] for x in current},
-            scope='Same native reset/config/event and diffusion seeds; observable equality checked, hidden PhysX state not asserted'))
+            scope='Independent frozen canonical rollout' if len(current)==1 else 'Same native reset/config/event and diffusion seeds; observable equality checked, hidden PhysX state not asserted'))
         write(root/'baseline_pairs.json',pairs)
     summary={builder:{split:dict(attempts=len(rr),legal=sum(r['legal'] for r in rr),successes=sum(r['success'] for r in rr),
         initial_rejections=sum(not r['legal'] for r in rr),software_failures=sum(not r['software_complete'] for r in rr))
         for split in ('train','unseen') for rr in [[r for r in rows if r['input_builder']==builder and r['split']==split]]} for builder in plan['input_builders']}
     for path,expected in plan['protected_inputs'].items():require(sha(path)==expected,'Baseline source changed during evaluation')
     write(root/'baseline_summary.json',dict(complete=True,cohorts=summary,physical_attempts=len(rows),pairs=len(pairs),
-        observable_exact_pairs=sum(p['initial_observable_exact'] for p in pairs),optimizer_updates=0,
+        paired_comparisons=sum(len(p['members'])==2 for p in pairs),
+        observable_exact_pairs=sum(p['initial_observable_exact'] is True for p in pairs),optimizer_updates=0,
         dataset_scope=plan['dataset_scope'],formal_slow_data_admitted=False,final_test_for_selection=False))
 
 
@@ -279,7 +364,7 @@ def evaluate(root):
 
 
 @supervised_owner
-def pipeline(root,refinement=False,speed_validation=False,baseline=False):
+def pipeline(root,refinement=False,speed_validation=False,baseline=False,mechanism=False):
     import fcntl
     with (root/'owner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -303,6 +388,22 @@ def pipeline(root,refinement=False,speed_validation=False,baseline=False):
             with (root/'monitor.log').open('a') as log:monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             inherited=(root/'accepted_foundation.json').exists()
             if inherited:accepted_foundation(root)
+            if mechanism:
+                require(inherited,'Reuse accepted foundation with affected regressions')
+                worker('hand_cap_pilot',['-m','tools.tight_finish','hand_cap_pilot','--root',str(root)],read(root/'hand_cap_plan.json')['deadline'])
+                # A negative mechanism result does not cancel independent B.
+                worker('baseline_evaluation',['-m','tools.tight_finish','baseline_evaluate','--root',str(root)],read(root/'baseline_plan.json')['deadline'])
+                if not read(root/'hand_cap_summary.json')['passed']:
+                    write(root/'status.json',dict(state='complete',stage='bounded_mechanism_and_baseline_evaluated',
+                        mechanism=read(root/'hand_cap_summary.json'),baseline=read(root/'baseline_summary.json'),
+                        formal_updates=0,formal_slow_episodes=0,production_blocked=True))
+                    return
+                worker('independent_cap_validation',['-m','tools.tight_finish','validate_speed','--root',str(root)],s['development_deadline'])
+                if not read(root/'scheme_reliability.json')['passed']:
+                    write(root/'status.json',dict(state='complete',stage='independent_validation_rejected',
+                        mechanism=read(root/'scheme_reliability.json'),baseline=read(root/'baseline_summary.json'),
+                        formal_updates=0,formal_slow_episodes=0,production_blocked=True))
+                    return
             if baseline:
                 require(inherited,'Baseline must explicitly retain accepted engineering evidence')
                 worker('baseline_evaluation',['-m','tools.tight_finish','baseline_evaluate','--root',str(root)],s['deadline'])
@@ -365,9 +466,9 @@ def pipeline(root,refinement=False,speed_validation=False,baseline=False):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker','validate_speed','baseline_evaluate']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='run':pipeline(root,a.refinement,a.speed_validation,a.baseline)
+    if a.mode=='run':pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)
     else:
         code=0
         try:globals()[a.mode](root)

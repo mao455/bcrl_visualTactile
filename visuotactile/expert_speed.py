@@ -24,6 +24,33 @@ def progress_target(previous, native, arm=1., hand=1.):
     return result
 
 
+def cap_hand_target(previous, target, maximum_rad_s=None, dt=1/60):
+    """Once per native tick, bound each Hand target increment from last issued.
+
+    None is the exact old path. This is an actuator-request slew limit, not a
+    guarantee about physical joint or task speed. Convex clipping preserves
+    native position bounds when both incoming endpoints are within them.
+    """
+    if maximum_rad_s is None:
+        return target
+    if previous.shape != target.shape or target.shape[-1] != 29:
+        raise ValueError('Expected matching canonical29 targets')
+    if not math.isfinite(dt) or dt<=0:
+        raise ValueError('Positive finite native control dt required')
+    limits=torch.as_tensor(maximum_rad_s,device=target.device,dtype=target.dtype)
+    if limits.shape not in (torch.Size([]),torch.Size([22])) or not torch.isfinite(limits).all() or not (limits>0).all():
+        raise ValueError('Hand cap must be positive finite scalar or22 canonical rad/s values')
+    if not torch.isfinite(previous).all() or not torch.isfinite(target).all():
+        raise ValueError('Nonfinite target')
+    delta=target[...,7:]-previous[...,7:];bound=limits*dt
+    result=target.clone()
+    # Preserve every uncapped element bytewise, including subtraction/addition
+    # rounding. Arm commands do not pass through the limiter arithmetic.
+    result[...,7:]=torch.where(delta.abs()>bound,
+        previous[...,7:]+torch.maximum(torch.minimum(delta,bound),-bound),target[...,7:])
+    return result
+
+
 def retime_targets(before, after, stretch):
     """q(0)=initial applied target; q(k)=original postprocessed target[k-1].
 

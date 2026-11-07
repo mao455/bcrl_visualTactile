@@ -1,8 +1,10 @@
 # Tight-Insertion 当前结果：A观察到一个成功改善配对；B仍不准生产
 
-本轮从干净HEAD `362c6308a6519b57309487583ec401c5acd6f4a7`继续，工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、分支`feature/tight-state-foundation`。A实际运行代码为`991db6a1c02af140ef12fb1f3a35f159c7ba2193`，启动时干净、结束241份冻结源码/配置未变。运行后仅完善B只读分析器的实际外力字段和结果文档，未改学生或执行代码。
+## 当前有限实验：Hand cap / canonical StateDP
 
-A的24次登记尝试已经全部结束；B完成既有证据分析，没有新增采样、没有验证出可靠统一慢速方案。两项结果独立：**A的真实学生成功不授予B正式慢速数据资格。** [机器证据](evidence/tight_state_20261107.json)中的`tasks_ab_20261107`分开保存两项结果，原历史证据值保持。
+从1b70d3b6fce8052300a54f5361f4092da27cba5f继续。A=单一2rad/s Hand cap、6次配对开发；B=同一best4500 canonical、4训练家族+12新初态。完整预登记见[当前合同](CONTRACTS.md)和[evidence](evidence/tight_hand_cap_registration_20261107.json)。root为`outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04`。33项受影响测试、21条6765tick关闭限速逐位一致已通过；物理队列未启动，不能据此报成功或正式生产。
+
+现有B00两次插入物体路径3.29/3.88倍、平均速度1.01/.93倍，时长主要由绕行增加；完整Arm/Hand/palm/object分阶段描述性分解见[CSV](evidence/tight_hand_path_speed_20261107.csv)。旧准入标签保留，新试验额外拒绝明显路径增长。
 
 ## 任务A：原275条混合速度State基线受控复评
 

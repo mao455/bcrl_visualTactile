@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import torch
-from visuotactile.expert_speed import progress_target,retime_targets,reliability
+from visuotactile.expert_speed import progress_target,retime_targets,reliability,cap_hand_target
 
 
 def test_identity_is_bitwise_and_separate_arm_hand_factors():
@@ -75,6 +75,7 @@ def test_speed_subclass_filters_once_and_feeds_actual_target_back(monkeypatch):
     module=ModuleType('visuotactile.sim.native_diagnostics')
     class FakeNative:
         def __init__(self):
+            self.step_dt=1/60
             self._prev_targets=torch.zeros(1,29);self._cur_targets=self._prev_targets.clone()
             self._perm_lab_to_canon=self._perm_canon_to_lab=torch.arange(29)
             self._successes=torch.zeros(1);self.action_control_mode='native_command_clipped_pre_delay';self.calls=0
@@ -91,3 +92,30 @@ def test_speed_subclass_filters_once_and_feeds_actual_target_back(monkeypatch):
     torch.testing.assert_close(env._cur_targets[:,:7],torch.full((1,7),.1))
     torch.testing.assert_close(env._cur_targets[:,7:],torch.full((1,22),.16))
     assert torch.equal(env._prev_targets,env.last_transition['target_after_rad'])
+    capped=loaded.SpeedLimitedDiagnosticEnv(speed_config=dict(kind='closed_loop',arm=.5,hand=1.,phase='all',hand_target_cap_rad_s=2.))
+    for _ in range(2):capped._pre_physics_step(torch.ones(1,29)*.1)
+    assert capped.calls==2
+    torch.testing.assert_close(capped._cur_targets[:,7:],torch.full((1,22),4/60))
+    torch.testing.assert_close(capped._cur_targets[:,:7],torch.full((1,7),.1))
+    assert torch.equal(capped._prev_targets,capped.last_transition['target_after_rad'])
+    # Processed student targets bypass BOTH collection modifiers, including cap.
+    capped.action_control_mode='absolute_joint_position_target_rad'
+    prev=capped._prev_targets.clone();capped._pre_physics_step(torch.ones(1,29))
+    assert torch.equal(capped._cur_targets,prev+1)
+    assert 'speed_before_hand_cap_target_rad' not in capped.last_transition
+
+
+def test_hand_cap_disabled_exact_and_per_joint_rate_preserves_arm_and_bounds():
+    g=torch.Generator().manual_seed(15);p=torch.randn(8,29,generator=g);t=torch.randn(8,29,generator=g)
+    assert cap_hand_target(p,t,None) is t
+    limits=torch.linspace(.1,3,22)
+    out=cap_hand_target(p,t,limits)
+    assert torch.equal(out[:,:7],t[:,:7])
+    assert ((out[:,7:]-p[:,7:]).abs()*60 <= limits+1e-5).all()
+    assert ((out>=torch.minimum(p,t)) & (out<=torch.maximum(p,t))).all()
+    t=p+1e-5
+    assert torch.equal(cap_hand_target(p,t,2),t)
+    for bad in (0,-1,float('nan'),float('inf'),[1]*21,[[1]*22]):
+        with pytest.raises(ValueError):cap_hand_target(p,t,bad)
+    for bad in (0,-1,float('nan')):
+        with pytest.raises(ValueError):cap_hand_target(p,t,2,bad)

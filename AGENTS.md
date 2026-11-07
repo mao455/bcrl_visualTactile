@@ -1,4 +1,8 @@
-# Latest authorization — independent State baseline and slow-collection analysis
+# Latest authorization — finite Hand-cap validation and canonical State diagnostic
+
+2026-11-07 user starts from1b70d3b6fce8052300a54f5361f4092da27cba5f. Current A=collection-only Hand per-joint target slew cap, B=canonical StateDP independent evaluation; prior A/B labels below are historical. Read the current CONTRACTS and hand_cap_04 plans. One2rad/s cap candidate, Arm.5/Hand1, six paired pilot starts reusing existing native references. No blind search. Conditional independent4families x3events only if pilot improves; frozen formal production/training only after reliability and every admission gate. No repeated engineering audit;33 focused regressions pass. State B retains best4500 canonical on4 different training families+12 new initial seeds,16 starts, no random retrain because offline data already canonical and prior validation plateau/overfit. This is a diagnostic, not a slow multimodal baseline or convergence claim. Complete actual experiments, do not yield at startup. Protect originals and denominators. Current root outputs/visuotactile/run/tight_state_20261107_01/hand_cap_04; status and summaries determine readiness.
+
+# Completed previous authorization — independent State baseline and slow-collection analysis
 
 2026-11-07 user resumes from362c6308a6519b57309487583ec401c5acd6f4a7. Task A explicitly permits the original275 State-valid mixed-speed data and compatible retained student checkpoint for controlled baseline evaluation. It is independent of Task B slow-multimodal admission; never use blank cameras for ImageDP. Current A is preregistered best4500 same-weight legacy/canonical input comparison,4 training families+8 new initializations,24 starts maximum, no outcome replacement. No new optimizer updates are planned. Keep accepted engineering gates; only changed entry tests.
 
