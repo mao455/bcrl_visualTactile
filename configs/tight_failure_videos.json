@@ -4,11 +4,43 @@
   "checkpoint_sha256": "6940b066cf8296d8e90203c0aa714f2ad780d5440c6128b89ddc5698bbbaa4da",
   "maximum_seconds": 3600,
   "cases": [
-    {"identity": "evaluation_formal_000", "historical_behavior": "未抬升，601步超时"},
-    {"identity": "evaluation_formal_015", "historical_behavior": "曾抬升，542步掉落"},
-    {"identity": "evaluation_formal_017", "historical_behavior": "首子目标到达，334步掉落"}
+    {
+      "identity": "evaluation_formal_000",
+      "historical_behavior": "\u672a\u62ac\u5347\uff0c601\u6b65\u8d85\u65f6"
+    },
+    {
+      "identity": "evaluation_formal_015",
+      "historical_behavior": "\u66fe\u62ac\u5347\uff0c542\u6b65\u6389\u843d"
+    },
+    {
+      "identity": "evaluation_formal_017",
+      "historical_behavior": "\u9996\u5b50\u76ee\u6807\u5230\u8fbe\uff0c334\u6b65\u6389\u843d"
+    }
   ],
-  "inference": {"inference_steps": 16, "clip_sample": false, "overlap_steps": 0, "sampler_seed": 7091},
-  "resources": {"target_percent": 35, "admission_percent": 45, "cap_percent": 50, "min_gpu_free_mib": 6144, "min_ram_gib": 14, "min_disk_gib": 60},
-  "purpose": "Outcome-selected viewing reruns; no formal denominator, training, retries or replacement seeds. Same seed is not exact physical replay."
+  "inference": {
+    "inference_steps": 16,
+    "clip_sample": false,
+    "overlap_steps": 0,
+    "sampler_seed": 7091
+  },
+  "resources": {
+    "target_percent": 35,
+    "admission_percent": 45,
+    "cap_percent": 50,
+    "min_gpu_free_mib": 6144,
+    "min_ram_gib": 14,
+    "min_disk_gib": 60
+  },
+  "purpose": "Outcome-selected viewing reruns; no formal denominator, training, retries or replacement seeds. Same seed is not exact physical replay.",
+  "conditional_evaluation": {
+    "training_source_head": "35485d77830b109d61491d3f905f74c865f44c03",
+    "minimum_anchor_epochs": 200,
+    "plateau_validations": 4,
+    "plateau_relative_improvement": 0.01,
+    "maximum_attempts": 10,
+    "record_first_attempts": 3,
+    "maximum_seconds": 3600,
+    "seed_start": 27150000,
+    "rule": "Wait for training and final38 offline completion and all owned processes to exit. Keep the original plateau gate; otherwise SKIPPED. No retries, replacements, expansion or weight selection from rollout outcomes."
+  }
 }

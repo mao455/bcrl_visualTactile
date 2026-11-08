@@ -1,3 +1,7 @@
+当前新增授权：训练/离线结束且原平台条件满足后，使用选定模型做最多10次新初态成功率测试，前3身份录制视频。
+独立工作树入口`tools.tight_videos prepare-after-training/run`；原35485d7训练源码与预算不变，条件不满足自动SKIPPED。
+观看及状态索引：`outputs/visuotactile/demos/tight_palm_eval_20261109_01/README.md`。
+
 # Tight-Insertion StateDP
 
 当前任务：一次全新掌部几何StateDP。输入所需实际掌部/关节/过去施加目标已在每tick GRU及直达条件中，维度不重复扩充；

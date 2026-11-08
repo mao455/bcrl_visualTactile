@@ -167,3 +167,12 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 同Core8500 EMA与原控制/物理，三个按历史结果挑选的独立观看复跑；不改原27例分母，不训练、不补seed。
 首次队列因整卡60s均值51.29%停止，保留592帧已解码中断视频；本次仅接续未启动两例，原截止时间不变。
 <!-- tight-failure-videos:end -->
+
+
+<!-- tight-palm-evaluation:start -->
+## 2026-11-09 有条件成功率测试与视频
+
+状态 **PREPARED**；成功0/合法0，拒绝0，中断0，未启动10。无合法完成时成功率未测。
+Wait for predecessor exit; require the original >=200 epoch / last4 <1% plateau；索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_palm_eval_20261109_01/README.md`。
+仅原200epoch/last4改善<1%平台达成后使用最终validation选定模型，最多10次新初态/1h、前3身份视频；不扩跑。
+<!-- tight-palm-evaluation:end -->

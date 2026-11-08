@@ -1,3 +1,16 @@
+# 2026-11-09 最新授权：平台后小队列闭环与视频
+
+用户明确授权“接近收敛可以尝试成功率实验并录制视频”，仅覆盖此前无新学生闭环限制。
+原训练运行于35485d7工作树，保持其代码、预算、数据、优化器和评估完全不动。
+本分支/独立工作树复用tools.tight_videos与configs/tight_failure_videos.json的conditional_evaluation；
+普通CPU程序等待原训练及最终38条离线诊断正常结束、全部owned进程退出，再检查原≥200 anchor等效epoch/最后4次validation分数改善<1%、无严重退化条件。
+未满足写SKIPPED，不称预算耗尽为收敛；失败则终止，不能放宽阈值来凑视频。
+满足才使用最终validation4选定EMA，冻结10个新初态seed27150000–27150009，前3身份录制；拒绝不补seed/补录。
+最多1h GPU评估，单Kit串行；零成功不扩100，有成功也不扩本次10例。保持29D/H24/commit12/5/60/120Hz与原生完整成功判据。
+沿用50%整卡批次/60s上限、35%目标、45%准入、6GiB VRAM/14GiB RAM/60GiB磁盘；实测越界停止自己的录制worker，保留中断分母。
+等待截止为原整体deadline+120s，评估绝对截止再加1h；不重置原训练截止、不重试、不新训。
+root outputs/visuotactile/demos/tight_palm_eval_20261109_01。机器状态/README为准；Codex启动短查后退出，无LLM守候。
+
 # 当前 Tight-Insertion：掌部几何损失与有限扩充的新训练
 
 最新显式任务授权一个全新StateDP：只原位改已有文件，补齐输入审查，commit12掌部位置/完整旋转辅助loss，
