@@ -1,6 +1,30 @@
 # Tight-Insertion 当前结果
 
-## 本轮结论：数据与有限训练完成，学生完整任务成功仍为零
+<!-- tight-dp3-diagnostics:start -->
+## 2026-11-08 DP3风格StateDP条件与诊断
+
+状态 **CHECKED**；阶段 `ready_to_freeze`；已完成离线轨迹 0/38。
+原因：CPU acceptance passed。正式新增更新0；新Kit/闭环启动0。
+等价当前robot/geometry直达condition已存在，保留原模型/GRU/U-Net与旧checkpoint。
+旧最近四次验证改善 0.9386%，验证/train8采样MSE比 35.52；依据train/validation冻结为诊断后停止，不自动续训。
+
+本轮root：`outputs/visuotactile/run/tight_dp3_20261108_01`；状态`status.json`，日志`service.log`，验收`acceptance.json`，
+冻结身份`session.json`/`inputs.json`/`source_freeze.json`。
+图均由本run CSV生成：`historical_curves.csv/png`为原17点完整DDIM曲线（旧episode-batch噪声）；
+`sampled_ticks.csv`/`stage_metrics.json`为当前同部署batch1顺序、固定seed7091、真实完整专家前缀、前12步目标误差；
+`*_targets.csv/png`含29关节目标/变化量原始数值及固定joint3/7示例、接触/抬升/重规划标记。
+`closed_loop_reused.csv`/`closed_loop_summary.json`与`*_physical.csv/png`复用旧27次自主轨迹。
+未生成文件代表该阶段未完成，不代表零误差或零成功。离线目标FK误差、命令接口误差和物理tracking各自独立；
+自主与专家不同进度下第一次物理偏离未测，不按同tick作动作误差。阶段事件只作诊断，且含transition接触/对齐信息，绝不输入网络。
+资源上限：整卡批次/完整60s均值50%，45%准入、35%目标、6GiB显存/14GiB RAM/60GiB磁盘储备；最多1h含等待。
+实测资源见`resources/resources.json`与`resource_summary.json`，启动不等于完成或全程资源合规。
+
+旧闭环复用：new 0/10成功，拒绝0；train 0/10成功，拒绝0；validation 0/7成功，拒绝0。不加入新实验分母。
+
+<!-- tight-dp3-diagnostics:end -->
+
+
+## 上轮Core任务结论：数据与有限训练完成，学生完整任务成功仍为零
 
 新版合同下已冻结208条Core＋15条Auxiliary，固定Arm=.50、Hand=1、Hand cap=2rad/s。随机初始化Core-only StateDP完成8500更新、100.2068 anchor等效epoch；真实闭环train **0/10**、validation **0/7**、新初态 **0/10**，27次均合法。新初态首10例零成功，按预登记规则不扩至100；没有补seed或重复旧7例。
 

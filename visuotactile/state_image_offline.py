@@ -186,3 +186,92 @@ def evaluate(model,records,identities,objective,lease):
         ee_rotation_mean_deg=float(angle.mean()),ee_rotation_p95_deg=float(angle.quantile(.95)),
         fingertip_rmse_mm=finger.square().mean(0).sqrt().tolist(),motion_mean_cosine_amplitude=torch.cat(motion).mean(0).tolist() if motion else None,
         continuity={k:float(np.mean([r[k] for r in continuity if r.get(k) is not None])) for k in continuity[0] if any(r.get(k) is not None for r in continuity)})
+
+
+@torch.no_grad()
+def deployment_sample(model, record, objective, lease, *, seed=7091, progress=lambda **kw: None):
+    """Expert-history diagnostic, with the deployment batch=1 RNG call order.
+
+    Consume each native observation exactly once. HistoryBank is also used by
+    HistoryController; labels/events never enter it. The older evaluate() keeps
+    its episode-batched noise protocol for comparable historical curves.
+    """
+    model.eval()
+    device = next(model.parameters()).device
+    generator = torch.Generator(device=device).manual_seed(seed)
+    bank = HistoryBank()
+    plans, holds = [], []
+    n = len(record['time'])
+    for start in range(0, n, 12):
+        with lease.block():
+            # The previous chunk left history at start-1, just like deployment.
+            condition = bank.observe(0, 1, start, model, record['actor'][start],
+                record['robot'][start], record['geometry'][start], record['time'][start])
+            raw = model.predict(condition, generator, inference_steps=16, clip_sample=False)
+            prediction = bounded_targets(raw[0], record['joint_limits'])
+            count = min(12, n-start)
+            plans.append(prediction[:count].cpu())
+            holds.append(record['robot'][start, 58:87].cpu().expand(count, -1))
+            for tick in range(start+1, start+count):
+                assert bank.observe(0, 1, tick, model, record['actor'][tick],
+                    record['robot'][tick], record['geometry'][tick], record['time'][tick]) is None
+        progress(native_ticks=min(start+12, n), sampled_anchors=len(plans))
+    prediction, hold = torch.cat(plans), torch.cat(holds)
+    truth = record['command'].cpu()
+    with lease.block():
+        p, r = objective.fk(prediction.to(device))
+        q, s = objective.fk(truth.to(device))
+        distance = (p-q).norm(dim=-1).cpu()*1000
+        rotation = r[:, 0].transpose(-1, -2)@s[:, 0]
+        sine = torch.stack((rotation[:, 2, 1]-rotation[:, 1, 2],
+            rotation[:, 0, 2]-rotation[:, 2, 0], rotation[:, 1, 0]-rotation[:, 0, 1]), -1).norm(dim=-1)/2
+        angle = torch.atan2(sine, (rotation.diagonal(dim1=-2, dim2=-1).sum(-1)-1)/2).cpu()*180/torch.pi
+    return dict(prediction=prediction, truth=truth, hold=hold,
+        ee_mm=distance[:, 0], finger_mm=distance[:, 1:], rotation_deg=angle)
+
+
+def diagnostic_rows(sample, phases, *, identity, split):
+    """One measured target row per real tick; empty stages remain unmeasured.
+
+    The .01rad movement threshold is the existing evaluate() diagnostic scale,
+    applied separately to arm/hand displacement from the anchor's held target.
+    This is a reporting bin, never a success label or training input.
+    """
+    truth, prediction, hold = (sample[k] for k in ('truth', 'prediction', 'hold'))
+    if truth.shape != prediction.shape or truth.shape != hold.shape or len(phases) != len(truth):
+        raise ValueError('Diagnostic target/event lengths differ')
+    error, hold_error = prediction-truth, hold-truth
+    rows = []
+    for tick in range(len(truth)):
+        row = dict(identity=identity, split=split, tick=tick, time_s=tick/60,
+            anchor=tick//12*12, phase=str(phases[tick]), replan=tick % 12 == 0,
+            ee_squared_mm2=float(sample['ee_mm'][tick]**2),
+            fingertip_squared_mm2=float(sample['finger_mm'][tick].square().mean()),
+            ee_rotation_deg=float(sample['rotation_deg'][tick]))
+        for name, part in (('arm', slice(0, 7)), ('hand', slice(7, 29))):
+            row[name+'_mse_rad2'] = float(error[tick, part].square().mean())
+            row['hold_'+name+'_mse_rad2'] = float(hold_error[tick, part].square().mean())
+            row[name+'_motion'] = 'moving' if row['hold_'+name+'_mse_rad2'] > .01**2 else 'near_static'
+        if not all(np.isfinite(v) for v in row.values() if isinstance(v, float)):
+            raise FloatingPointError('Nonfinite complete-sampling metric')
+        rows.append(row)
+    return rows
+
+
+def summarize_diagnostics(rows):
+    phases = ('all', 'approach_no_object_contact', 'contact_low_object',
+        'transport_above_3cm', 'native_alignment', 'second_insertion', 'ordered_complete_retract')
+    result = []
+    for split in sorted({r['split'] for r in rows}):
+        for phase in phases:
+            selected = [r for r in rows if r['split'] == split and (phase == 'all' or r['phase'] == phase)]
+            for group in ('arm', 'hand'):
+                for motion in ('all', 'moving', 'near_static'):
+                    part = [r for r in selected if motion == 'all' or r[group+'_motion'] == motion]
+                    result.append(dict(split=split, phase=phase, group=group, motion=motion,
+                        ticks=len(part), episodes=len({r['identity'] for r in part}),
+                        rmse_rad=float(np.sqrt(np.mean([r[group+'_mse_rad2'] for r in part]))) if part else None,
+                        hold_rmse_rad=float(np.sqrt(np.mean([r['hold_'+group+'_mse_rad2'] for r in part]))) if part else None,
+                        ee_rmse_mm=float(np.sqrt(np.mean([r['ee_squared_mm2'] for r in part]))) if part else None,
+                        fingertip_rmse_mm=float(np.sqrt(np.mean([r['fingertip_squared_mm2'] for r in part]))) if part else None))
+    return result

@@ -1,6 +1,14 @@
 # Tight-Insertion StateDP
 
-本轮已完成：208Core/50家族＋15Auxiliary/11家族冻结，Core-only随机初始化训练8500步/100.21 anchor等效epoch，闭环train0/10、validation0/7、新初态0/10。有限训练停止条件通过，但学生没有完整成功；没有扩展到100、凑300或自动增加模型实验。
+当前显式任务：核实并复用已有robot/geometry直达condition，补齐DP3风格StateDP动作/行为诊断；不声称视觉DP3复现。
+等价路径已存在，旧采样曲线触发平台/过拟合停止，本轮按条件分支**不重训/续训**。
+独立[诊断配置](../configs/tight_dp3_diagnostics.json)、[当前字段与时序合同](CONTRACTS.md)、[结果](STATE_DP_RESULTS.md)。
+run：`outputs/visuotactile/run/tight_dp3_20261108_01`；最多1h、固定train8/validation30、新Kit0。
+一次查看：`bash visuotactile/run_cpu.sh -m tools.tight_diagnostics status --root outputs/visuotactile/run/tight_dp3_20261108_01`。
+后台正常结束会原位更新结果MD；启动与完成分开报告。下文保留原Core任务结案。
+
+
+此前Core任务已完成：208Core/50家族＋15Auxiliary/11家族冻结，Core-only随机初始化训练8500步/100.21 anchor等效epoch，闭环train0/10、validation0/7、新初态0/10。有限训练停止条件通过，但学生没有完整成功；没有扩展到100、凑300或自动增加模型实验。
 
 [当前合同](CONTRACTS.md) · [当前结果与证据](STATE_DP_RESULTS.md) · [交接](SESSION_HANDOFF.md) · [清理](CLEANUP_AUDIT.md)
 

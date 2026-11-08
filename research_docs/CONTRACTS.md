@@ -1,5 +1,70 @@
 # Tight-Insertion command StateDP 当前合同
 
+## 2026-11-08 本轮覆盖：DP3风格条件诊断，等价路径复用
+
+本轮起点`0caa908256da4863968208d9c040f7564a2a69af`；实际工作树与feature分支同下文，起始干净。
+IDE原工作树停留`3e11d62`及其两份未提交历史文档原样保留。范围仅本项目Tight-Insertion。
+独立配置[configs/tight_dp3_diagnostics.json](../configs/tight_dp3_diagnostics.json)，
+`condition_mode=existing_robot_geometry_short_windows_v1`明确复用现有直达路径；不创建等价新模型。
+本轮名称为“借鉴DP3条件编码的StateDP”，不声称完整视觉DP3复现。
+
+参考DP3固定版本`47385d9d6f5bde3f2ebdf2400ecb8261cc9e6b97`的
+[DP3Encoder](https://github.com/YanjieZe/3D-Diffusion-Policy/blob/47385d9d6f5bde3f2ebdf2400ecb8261cc9e6b97/3D-Diffusion-Policy/diffusion_policy_3d/model/vision/pointnet_extractor.py)与
+[条件策略](https://github.com/YanjieZe/3D-Diffusion-Policy/blob/47385d9d6f5bde3f2ebdf2400ecb8261cc9e6b97/3D-Diffusion-Policy/diffusion_policy_3d/policy/dp3.py)，只借鉴分支编码及条件化思路；未移植代码、点云或超参数，未增加第三方许可证负担。
+
+### 实际输入字段与condition通路
+
+源文件：`narrow_data.record`读取本批numeric缓存；`native_data.robot_rows/geometry`共用变换；
+`state_history.PersistentState.encode`训练，`HistoryController.act → HistoryBank.observe`部署。
+索引均为Python半开区间。时间t为当前60Hz动作前观察；Actor观测保留原生噪声/延迟，因此不等同无延迟真值。
+State几何是本模型既有允许的模拟器State输入，不冒称真实视觉估计；没有新增特权字段。
+
+|字段 / 切片|原始路径或来源|维度、单位、坐标|时间、归一化|实际网络分支|
+|---|---|---|---|---|
+|Actor q/qd/previous target `[0:87]`|`transition/expert_actor_input_diagnostic`，原`obs_utils.build_observations`|29归一化q、29 rad/s、29 rad；canonical Arm7+Hand22|原生延迟/噪声观察；前140维冻结专家RMS、clip5|当前Actor172→MLP128直接condition；另入GRU|
+|Actor掌心位置/朝向 `[87:94]`，物体朝向`[94:98]`|同上；掌心含原PALM_CENTER_OFFSET|3m、4+4 quaternion **xyzw**；位置减env origin，姿态世界轴|同Actor预处理；不新增变换|同Actor直达及GRU|
+|Actor指尖相对掌心`[98:113]`|同上；含原指腹offset|5×3 m，世界轴方向的位置差，非掌坐标旋转|同上|同上|
+|Actor物体关键点相对掌心`[113:125]`、相对目标`[125:137]`|同上；4 object keypoints−掌心、4 object keypoints−对应goal keypoints|各12m；世界轴方向差；关键点携带既有形状/朝向信息|同上；保留原噪声/延迟，非专家隐藏态|同上；已明确表达物体—掌/目标关系|
+|Actor尺度/group `[137:141]`|同上；140维观察+group ID|3无量纲尺度+1类别|RMS140；group匹配6类冻结32D embedding|合为172D→128D|
+|robot q `[0:29]`、qd`[29:58]`|`transition/diagnostics_before/joint_position_rad,joint_velocity_rad_s`；部署`controller_proprio(canonical_joint_state_v1)`|29 rad、29 rad/s，canonical关节序|当前t；冻结train156 mean/std|当前及过去13帧直接robot_encoder→256；另native_encoder→128→GRU|
+|robot执行器目标`[58:87]`及target−q`[87:116]`|`transition/target_before_rad == obs/actuator_target_rad`；`robot_rows`计算差|各29 rad；当前动作之前已生效目标|当前t；train156 mean/std|同robot两条路径；不读取当前标签target_after|
+|robot过去requested/applied `[116:174]`、age/valid/elapsed`[174:178]`|`position_robot_history`；部署`observe_execution`反馈|29+29 rad，2s+1bool+1s|严格t−1及更早；首tick缺失置零，valid不标准化|同robot两条路径；训练明确expert teacher forcing|
+|geometry object/goal/hole/table/palm `[0:35]`|`transition/diagnostics_before/*_pose_w`；部署相同`native_data.geometry`|5×(3m+4 **wxyz**)；共同robot base坐标、四元数w≥0|当前t；train156 mean/std|t−24,t−12,t窗口直接state_encoder→256；另当前geometry_encoder→128→GRU|
+|geometry object/goal速度`[35:47]`|`*_velocity_w_m_s_rad_s`|各3m/s+3rad/s，旋转到base|当前t；同统计|同geometry双路径|
+|geometry指尖`[47:82]`、尺寸`[82:85]`|`finger_position_w,finger_quat_wxyz`；既有object_dimensions URDF工具|5×3m+5×4wxyz，base坐标；3m尺寸|当前t；同统计|同geometry双路径；是link/body位姿，非触点|
+|输出/监督|`transition/target_after_rad`|29D Arm7+Hand22**绝对关节目标rad**|当前及未来H24仅标签；train156仿射action_scale/offset|sample/x0 U-Net输出，DDIM16反归一化后原关节限位；仅执行前12|
+
+geometry没有单独存储“物体相对掌/孔”的7D位姿；共有base中的成对位姿和Actor相对关键点已经直达condition。
+不追加重复派生字段，也不把可推导关系说成显式相对四元数。
+实际拼接为 `cat(robot_encoder[13×(178+age+valid)]256, state_encoder[3×(85+age+valid)]256,
+actor_encoder128, persistent_GRU256)`，即896→现有MLP512→conditional U-Net `global_cond`。
+当前帧在两个窗口末端，**不只经GRU压缩**；GRU仍每个native tick消费一次，仅真episode reset清空。
+H24/commit12、5/60/120Hz、模型规模、sample/x0、损失/优化器、DDIM16/eta0、归一化均原样保留。
+
+### 有界诊断与不训练依据
+
+Core208/50家族、Aux15/11家族不动；只用既有Core train156统计及train8/validation30固定诊断身份。
+旧8500更新/442012 anchor曝光、17次每500更新完整采样曲线直接复用；旧采样为episode-batch随机流，
+新补充指标按部署batch1顺序、每episode seed7091、完整真实前缀和前12步执行窗口采样，不宣称两种噪声逐位相同。
+新旧指标分别落盘，不能把旧曲线标作本轮训练结果。无test选择、无Aux加入。
+
+已有等价结构且最近四次验证采样MSE改善0.9386%<1%、验证/train8差距35.52倍，旧有限patience4已触发。
+按用户本轮条件分支，冻结**新增训练0更新/0小时**，不创建重复方案或续训；仅一次可丢弃CPU验收更新，不用于任何选模或部署。
+后台最多**1小时评估总墙钟（含等待）**，固定38条离线诊断及旧27条闭环结果复用，新Kit/新初态启动0。
+不重跑旧失败rollout，不扩100，不自动调参。预算耗尽写BUDGET_STOP，错误/NaN写FAILED，不补样本。
+
+阶段直接复用`tools.narrow_repair_audit.stages`：无物体接触接近、低位接触、升高>3cm运输、原生对齐、第二插入、完成后回撤。
+接触/对齐含transition事件，**仅事后分组和画图**，不进policy。保持与运动按相对anchor执行器目标的Arm/Hand RMS>.01rad分箱，
+沿用现有评估的运动诊断尺度；不当成功阈值。零样本阶段标未测。末端/指尖误差复用GeometryObjective的URDF FK，报告mm/deg。
+新目标叠图保存全部29关节数值，以预先固定canonical joint3与joint7示例；每次replan的变化量从真实anchor执行器目标起算。
+闭环仅比较自身命令接口/实际关节tracking及事件，不能用不同进度专家轨迹的同tick目标作标签误差。
+
+沿用整卡批次与完整60s≤50%，目标35%，准入45%；6GiB显存、14GiB RAM（比原12更保守）、60GiB磁盘储备。
+复用现有普通资源监控及严格Lease；压力暂停自身chunk，固定deadline不延长。共享卡外部突发不能由采样准入硬保证，报告实际越界/缺测。
+普通独立systemd脚本串行完成诊断、CSV/JSON→PNG、原位结果MD和终态；Restart=no、锁防重复、stdin关闭，Codex不驻守。
+启动之前提交源码并校验acceptance/runtime source SHA；启动之后不修改对应代码。
+
+
 2026-11-07最新用户授权：将全体逐条1.5–3倍改为Core/Auxiliary组成，完成两项确定性实现检查后，继续同一固定方案生产及Core优先训练。此授权取代此前65%严格准入率生产停机及路径进度机制提案，不追改历史结果。现有工程验收不重开；真实阶段通过后自动继续，启动不算完成。
 
 执行结案（2026-11-08）：208Core＋15Aux冻结，Core-only fresh8500更新/100.21 anchor等效epoch；闭环train0/10、validation0/7、新初态0/10。预登记有限训练停止条件满足，但学生没有完整成功。本轮无待自动追加阶段；资源存在实测越界，详见[当前结果](STATE_DP_RESULTS.md)，不降低以下资源约束来改写历史。
