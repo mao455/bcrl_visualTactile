@@ -232,7 +232,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     from contextlib import nullcontext
     from .state_history import PersistentState, HistoryBank
     from .position_control import contract
-    from .state_image_loss import GeometryObjective, LOSS_ID
+    from .state_image_loss import GeometryObjective, LOSS_ID, PALM_LOSS_ID
     from .state_resources import lease_for
     from .narrow_data import read as read_data
     import h5py
@@ -241,13 +241,18 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if not smoke and not (collection/'COMPLETE.json').exists():raise ValueError('Dataset not ready')
     if target is None or target<1 or (smoke and target!=1):raise ValueError('Explicit positive update budget; smoke exactly one')
     session=read_data(collection/'session.json');cached=torch.load(data_root/'numeric.pt',map_location='cpu',weights_only=False)
+    palm=session.get('palm_training')
     if session.get('version')=='tight_state_foundation_v1' and not smoke:
         from .tight_gate import validate_formal_manifest
         validate_formal_manifest(read_data(collection/'manifest.json'),read_data(collection/'configuration.json'))
         if data['manifest_sha256']!=sha256(collection/'manifest.json'):
             raise ValueError('Frozen manifest changed after cache/statistics construction')
-        from .tight_gate import validate_training_gates
-        validate_training_gates(collection,data_root)
+        if palm:
+            check=read(collection/'palm_acceptance.json')
+            assert check['passed'] and check['data_sha256']==sha256(data_root/'data.json') and check['statistics_sha256']==sha256(data_root/'statistics.pt')
+        else:
+            from .tight_gate import validate_training_gates
+            validate_training_gates(collection,data_root)
     assert cached['data_sha256']==sha256(data_root/'data.json') and cached['contract']==contract(24,True)
     ids=data['splits']['train'];vals=data['splits']['validation']
     # Never load test trajectories into the optimizer or validation worker.
@@ -262,10 +267,11 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
     model.set_statistics(stats,expert);del expert
     with h5py.File(data['entries'][ids[0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
-    objective=GeometryObjective(metadata);objective.weights=session['loss_weights']
+    objective=GeometryObjective(metadata,mode=PALM_LOSS_ID if palm else LOSS_ID,commit=model.contract['commit'])
+    objective.weights=session['loss_weights']
     config=dict(version='fresh_narrow_state_v1',initialization='random_model_fresh_optimizer_ema_schedule_counters',
         seed=seed,data_sha256=sha256(data_root/'data.json'),statistics_sha256=sha256(data_root/'statistics.pt'),
-        contract=contract(24,True),loss_id=LOSS_ID,loss_weights=objective.weights,target=target,
+        contract=contract(24,True),loss_id=objective.mode,loss_weights=objective.weights,target=target,
         effective_batch=64,microbatch=4,lr_peak=3e-5,lr_floor=3e-6,warmup=min(200,max(1,target//10)),
         sampler='episode_balanced_shuffled_decks_short_tail_no_drop',smoke=smoke,device=device,
         source_sha256={str(p):sha256(p) for p in sorted(Path('visuotactile').rglob('*.py'))})
@@ -274,6 +280,12 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                       continuation=continuation)
     if session.get('version')=='tight_state_foundation_v1':
         config['input_builder']='canonical_joint_state_v1'
+    if palm:
+        if continuation: raise ValueError('This palm experiment requires a fresh model')
+        config.update(geometry_warmup=palm['geometry_warmup_updates'],geometry_commit=model.contract['commit'],
+            geometry_position_units='m^2',geometry_rotation='0.5 Frobenius matrix squared',
+            selection=palm['selection'],diagnostic_cohorts=palm['diagnostic_cohorts'],
+            effective_batch=session['training']['effective_batch'],microbatch=session['training']['microbatch'])
     root.mkdir(parents=True,exist_ok=True)
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
@@ -294,7 +306,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     def checkpoint():
         save(root/'last.pt',training_state(model,averaged,opt,ema,generator,noise,kind='dp',group=model.group,
             updates=step,anchor_sampler=sampler.state_dict(),best=best,config_sha256=sha256(cp),configuration=config,
-            loss_id=LOSS_ID,train_ids=ids,validation_ids=vals))
+            loss_id=objective.mode,train_ids=ids,validation_ids=vals))
     try:
         # Admission and monitoring precede the first CUDA allocation, including
         # model/EMA construction and same-run optimizer restoration.
@@ -303,7 +315,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
             opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
             generator=torch.Generator().manual_seed(seed);noise=torch.Generator(device=device).manual_seed(seed+1)
-            sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,64)
+            sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,config['effective_batch'])
             if (root/'last.pt').exists():
                 old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
                 assert old['config_sha256']==sha256(cp)
@@ -362,14 +374,18 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 stop_reason='fixed_wall_budget';checkpoint()
                 if (root/'best.pt').exists():break
                 raise TimeoutError('Training deadline without validated checkpoint')
-            before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all())
-            selected=sampler.draw();totals=mask_totals(sampler.lengths,selected);model.train();opt.zero_grad(set_to_none=True);loss_sum=0.
-            for start in range(0,len(selected),4):
+            before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all() if torch.cuda.is_initialized() else [])
+            selected=sampler.draw();totals=mask_totals(sampler.lengths,selected,model.contract['commit'] if palm else None)
+            model.train();opt.zero_grad(set_to_none=True);loss_sum=0.;parts_sum={};batch_started=time.time()
+            objective.gain=min(1.,(step+1)/config['geometry_warmup']) if palm else 1.
+            weights={k:v*objective.gain for k,v in objective.weights.items()}
+            for start in range(0,len(selected),config['microbatch']):
                 with block():
-                    c,y,m=anchor_batch(model,records,selected[start:start+4]);_,parts,_=objective.forward(model,c,y,m,noise)
-                    loss,_=weighted_parts(parts,m,totals,objective.weights)
+                    c,y,m=anchor_batch(model,records,selected[start:start+config['microbatch']]);_,parts,_=objective.forward(model,c,y,m,noise)
+                    loss,scaled=weighted_parts(parts,m,totals,weights,model.contract['commit'])
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite loss')
                     loss.backward();loss_sum+=float(loss.detach())
+                    for k,v in scaled.items():parts_sum[k]=parts_sum.get(k,0.)+float(v.detach())
             with block():
                 norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
                 assert torch.isfinite(norm)
@@ -384,28 +400,56 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 sampled_anchors=sampler.draws,formal_updates=0 if smoke else step,
                 stage_updates=step-initial_step,restored_updates=initial_step,
                 updates_per_hour=(step-initial_step)*3600/max(1,time.time()-training_started),utc=time.time(),**no_kit())
+            if palm:
+                elapsed=time.time()-training_started
+                estimated=(target-step)*elapsed/max(1,step-initial_step)
+                progress.update(components=parts_sum,geometry_gain=objective.gain,loss_weights=weights,
+                    anchor_equivalent_epochs=sampler.coverage()['anchor_equivalent_epochs'],
+                    anchor_population=sampler.coverage()['anchor_population'],seconds_per_update=time.time()-batch_started,
+                    resource_wait_s=lease.wait_s+lease.pacing_s if lease else 0.,
+                    remaining_seconds_estimate=estimated,estimated_completion_utc=time.time()+estimated,
+                    hard_stop_utc=lease.deadline if lease else None,eta_includes_observed_validation_and_resource_wait=True,
+                    numerical_gradient_norm=float(norm))
             atomic_json(root/'progress.json',progress)
             with (root/'training.jsonl').open('a') as f:f.write(json.dumps(progress)+'\n')
             bounded_end=step==stage_stop or (lease is not None and time.time()>=lease.deadline-600)
             if step%100==0 or bounded_end or stop[0] or step==1:checkpoint()
             if stop[0]:raise InterruptedError('Saved at optimizer boundary')
-            if not smoke and (step%interval==0 or bounded_end):
-                metrics=evaluate(averaged,records,vals,objective,lease)
-                train_metrics=evaluate(averaged,records,ids[:min(8,len(ids))],objective,lease)
-                early=fresh_early_metrics(averaged,records,dict(train=ids[:min(8,len(ids))],validation=vals),objective,lease)
-                if metrics['selection_mse']<best:
-                    best=metrics['selection_mse'];checkpoint();save(root/'best.pt',torch.load(root/'last.pt',map_location='cpu',weights_only=False))
+            if not smoke and (step%interval==0 or bounded_end or (palm and step in runtime.get('comparison_updates',[]))):
+                if palm:
+                    from .state_image_offline import deployment_evaluate
+                    val_ids=palm['diagnostic_cohorts']['validation'][:palm['interim_validation_episodes']]
+                    train_ids=palm['diagnostic_cohorts']['train'][:palm['interim_train_episodes']]
+                    metrics=deployment_evaluate(averaged,records,val_ids,objective,lease)
+                    train_metrics=deployment_evaluate(averaged,records,train_ids,objective,lease)
+                    early={};score=metrics['selection_score']
+                else:
+                    val_ids=vals;train_ids=ids[:min(8,len(ids))]
+                    metrics=evaluate(averaged,records,vals,objective,lease)
+                    train_metrics=evaluate(averaged,records,train_ids,objective,lease)
+                    early=fresh_early_metrics(averaged,records,dict(train=train_ids,validation=vals),objective,lease)
+                    score=metrics['selection_mse']
+                if score<best:
+                    best=score;checkpoint();save(root/'best.pt',torch.load(root/'last.pt',map_location='cpu',weights_only=False))
                 report=dict(update=step,metrics=metrics,train8=train_metrics,early=early,utc=time.time())
+                if palm: report.update(anchor_equivalent_epochs=sampler.coverage()['anchor_equivalent_epochs'],train_scope='fixed_train2',validation_scope='fixed_validation4',loss_weights=weights,geometry_gain=objective.gain)
                 if runtime.get('deterministic_validation_loss'):
-                    report['validation_loss']=deterministic_loss(averaged,records,vals,objective,lease)
-                    report['train8_loss']=deterministic_loss(averaged,records,ids[:min(8,len(ids))],objective,lease)
+                    report['validation_loss']=deterministic_loss(averaged,records,val_ids,objective,lease)
+                    report['train8_loss']=deterministic_loss(averaged,records,train_ids,objective,lease)
                 atomic_json(root/'validation.json',report)
                 with (root/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
                 fresh_curves(root)
                 if runtime.get('early_stop_minimum_update'):
-                    from .narrow_decision import early_stop
                     rows=[json.loads(line) for line in (root/'validation.jsonl').read_text().splitlines()]
-                    if early_stop(rows,runtime['early_stop_minimum_update']):
+                    if palm:
+                        scores=[r['metrics']['selection_score'] for r in rows]
+                        plateau=len(rows)>=4 and step>=runtime['early_stop_minimum_update'] and 1-min(scores[-4:])/max(scores[-4],1e-12)<.01
+                        severe=len(rows)>=5 and all(v>2*min(scores[:-3]) for v in scores[-3:])
+                        should_stop=plateau or severe
+                    else:
+                        from .narrow_decision import early_stop
+                        should_stop=early_stop(rows,runtime['early_stop_minimum_update'])
+                    if should_stop:
                         stop_reason='validation_plateau_or_overfit';checkpoint();break
             if bounded_end:
                 if step<stage_stop:stop_reason='fixed_wall_budget'
@@ -462,6 +506,44 @@ def fresh_curves(root):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
     rows=[json.loads(line) for line in (root/'validation.jsonl').read_text().splitlines()]
+    if 'selection_score' in rows[0]['metrics']:
+        import csv
+        flattened=[]
+        for row in rows:
+            for key in ('train8','metrics'):
+                values=row[key]
+                flattened.append(dict(update=row['update'],anchor_epochs=row['anchor_equivalent_epochs'],
+                    cohort='fixed_train2' if key=='train8' else 'fixed_validation4',
+                    **{k:values[k] for k in ('arm_rmse','hand_rmse','ee_distance_rmse_mm','ee_rotation_mean_deg','selection_score')}))
+        with (root/'validation_curves.csv').open('w',newline='') as f:
+            writer=csv.DictWriter(f,fieldnames=list(flattened[0]));writer.writeheader();writer.writerows(flattened)
+        fig,axes=plt.subplots(2,3,figsize=(13,7))
+        fields=('arm_rmse','hand_rmse','ee_distance_rmse_mm','ee_rotation_mean_deg','selection_score')
+        titles=('Arm RMSE (rad)','Hand RMSE (rad)','Command palm position (mm)','Command palm angle (deg)','Frozen validation selection score')
+        for ax,key,title in zip(axes.flat,fields,titles):
+            for cohort in ('fixed_train2','fixed_validation4'):
+                rr=[r for r in flattened if r['cohort']==cohort]
+                ax.plot([r['anchor_epochs'] for r in rr],[r[key] for r in rr],label=cohort)
+            ax.set_title(title);ax.set_xlabel('Anchor-equivalent epochs');ax.legend();ax.grid(alpha=.3)
+        losses=[json.loads(line) for line in (root/'training.jsonl').read_text().splitlines()]
+        with (root/'training_curves.csv').open('w',newline='') as f:
+            writer=csv.DictWriter(f,fieldnames=['update','anchor_epochs','base','position_m2','rotation','lambda_pos','lambda_rot','geometry_gain'])
+            writer.writeheader()
+            for r in losses:writer.writerow(dict(update=r['update'],anchor_epochs=r['anchor_equivalent_epochs'],base=r['components']['base'],
+                position_m2=r['components']['position'],rotation=r['components']['rotation'],lambda_pos=r['loss_weights']['position'],
+                lambda_rot=r['loss_weights']['rotation'],geometry_gain=r['geometry_gain']))
+        ax=axes[1,2]
+        for field in ('base','position','rotation'):
+            # Plot each validation interval's training mean; raw every-update
+            # components and effective warm-up weights remain in CSV/JSONL.
+            points=[];previous=0
+            for row in rows:
+                part=[r for r in losses if previous<r['update']<=row['update']];previous=row['update']
+                points.append(sum(r['components'][field]*(1 if field=='base' else r['loss_weights'][field]) for r in part)/max(1,len(part)))
+            ax.plot([r['anchor_equivalent_epochs'] for r in rows],points,label=field)
+        ax.set_title('Training loss: base and weighted palm terms');ax.set_xlabel('Anchor-equivalent epochs');ax.legend();ax.grid(alpha=.3)
+        fig.tight_layout();fig.savefig(root/'curves.png',dpi=150);plt.close(fig)
+        return
     fig,axes=plt.subplots(1,2,figsize=(9,3.5))
     for key,label in [('train8','train8'),('metrics','validation')]:
         axes[0].plot([r['update'] for r in rows],[r[key]['selection_mse'] for r in rows],label=label)

@@ -1,6 +1,50 @@
 # Tight-Insertion command StateDP 当前合同
 
-## 2026-11-08 本轮覆盖：DP3风格条件诊断，等价路径复用
+## 2026-11-08 当前覆盖：一次全新掌部几何StateDP训练
+
+用户新任务要求真实启动新模型，覆盖下文旧诊断任务“不重训”的已完成阶段限制。
+当前入口仍为`tools.tight_state prepare`与`tools.tight_finish run`，原位配置`configs/tight_state.json`的`palm_training`。
+不新增源码/配置/脚本，不复制policy；Actor141+robot178+geometry85、GRU256、条件896→512与原U-Net保持。
+
+真实掌部是原生`PALM_BODY_NAME=iiwa14_link_7`刚体（不是另加掌心offset），
+`geometry[28:31]`为其base坐标位置m，`[31:35]`为base←palm的wxyz单位四元数，w≥0。
+已按每60Hz tick进入GRU与当前几何直达分支。robot实际q/qd、决策前执行器目标、target−q，以及严格过去的目标均已齐全，故不追加重复维度。
+旧两组历史槽在当前position合同内都等于t−1实际施加的29D rad目标：训练取处理后的target_after，学生的bounded命令就是实际施加目标。
+不读专家滤波前requested/native command，不再次delay/EMA/减速。现有完整prefix与真实episode reset保留；具体切片/频率/反传表见当前结果MD。
+
+新损失身份`palm_command_sample_commit12`；旧`position_geometry_sample_v1`完整保留供旧模型解释。
+令`x0`为本次去噪网络的sample输出，反仿射归一化得到`q_pred`，`q*`为专家target_after标签。
+`L_diffusion`仍为所有有效H24上的原equal-Arm/Hand Loss B；另有
+`L_pos = mean ||FK_p(q_pred) − FK_p(q*)||²`（m²），
+`L_rot = mean 0.5 ||R(q_pred) − R(q*)||²_F`（无量纲），仅作用于contract.commit=12内有效标签。
+完整旋转矩阵监督不只对齐掌轴；FK使用资产URDF关节轴/固定安装变换，FP32梯度连通。
+这是命令几何一致性，不匹配下一tick实测掌部。没有新增指尖/接触/奖励项；本模式不叠加旧指尖/时序辅助项，Hand仍由完整29D扩散监督。
+sample/x0无逆SNR恢复，无需高噪声放大修正，固定噪声权重w(t)=1，不反传DDIM链、不在几何loss硬clamp。
+空几何mask返回有梯度连接的零；microbatch基础项按有效24步数、几何项按有效12步数累积。
+
+仅两批固定train4、anchor12/96的随机初始化输出进行一次尺度/梯度标定；
+每项按最坏batch将其值与输出梯度各限制到base的5%，得到
+`lambda_pos=0.3342396121814294 m^-2`、`lambda_rot=0.029946394754032265`。
+实际系数乘`min(1, update/500)`。新增数据后的normalizer只做固定权重有限性/≤20%尺度保护检查，不再调权重、不看validation选权重。
+
+基线Core208/train156/val30/test22，Aux15不混入。当前训练家族无未使用合格Core，复用原36个训练家族/原速参考/初态与慢速设置，
+冻结120个未用身份，目标新增50、最多60，物理尝试120或采集2h先到即止；保留失败/拒绝/中断。
+有限截止后用实际新增数冻结manifest和train-only统计。复用已验收原numeric缓存，仅新增轨迹执行原全模态/运动准入；原400/275不加入。
+
+一次随机初始化，原AdamW(β=.95/.999,wd=1e−6)、lr3e−5峰值/3e−6底值、LR warmup200、effective batch64/短尾、microbatch4保持。
+训练前由实际manifest计算anchors和精确短尾draws/update，冻结300 anchor等效epoch更新上限；保留update8500及约100等效epoch比较点。
+固定validation4完整部署DDIM16/seed7091选模：四项`(Arm/.01rad)^2,(Hand/.1rad)^2,(palm/10mm)^2,(angle/5deg)^2`等权平均，低者优。
+每1500更新做固定train2/validation4完整采样（前12与全部24分别记录）及确定性loss，最早200等效epoch后last4改善<1%才平台停；
+连续3点超过此前最佳2倍可严重退化早停。训练墙钟9h（含等待/中途验证）优先，曝光不足标预算耗尽，不声称收敛。
+结束后仅best在既有train8/validation30上完整诊断，复用旧38条/1103plans/13000tick参照；无新学生闭环、无test选模、无二轮采集/训练。
+只保存last/best完整模型状态，训练/验证JSONL与CSV绘图可追溯。最终诊断最多1h，全流程硬上限12.5h含冻结/验收余量。
+
+资源沿用整卡批次/完整60s≤50%、35%目标/45%准入；空闲VRAM6GiB、RAM14GiB、磁盘60GiB。
+现有严格Lease在调用之间等待自身任务，固定deadline不延长；外部负载的实际越界/遥测缺口如实记录，不称硬GPU配额。
+普通systemd作业负责补采→冻结→针对新增统计的验收→全新训练→离线诊断→原位MD，stdin关闭、单owner锁、无自动重试。
+源码提交冻结后启动，Codex只短监督；阶段失败停止后续，预算停止与数值/软件失败分开。
+
+## 2026-11-08 已完成：DP3风格条件诊断，等价路径复用
 
 本轮起点`0caa908256da4863968208d9c040f7564a2a69af`；实际工作树与feature分支同下文，起始干净。
 IDE原工作树停留`3e11d62`及其两份未提交历史文档原样保留。范围仅本项目Tight-Insertion。

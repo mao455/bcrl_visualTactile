@@ -189,7 +189,7 @@ def evaluate(model,records,identities,objective,lease):
 
 
 @torch.no_grad()
-def deployment_sample(model, record, objective, lease, *, seed=7091, progress=lambda **kw: None):
+def deployment_sample(model, record, objective, lease, *, seed=7091, progress=lambda **kw: None, full_horizon=False):
     """Expert-history diagnostic, with the deployment batch=1 RNG call order.
 
     Consume each native observation exactly once. HistoryBank is also used by
@@ -200,7 +200,7 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
     device = next(model.parameters()).device
     generator = torch.Generator(device=device).manual_seed(seed)
     bank = HistoryBank()
-    plans, holds = [], []
+    plans, holds, full_plans, full_truth, full_holds, full_ticks, full_anchors = [], [], [], [], [], [], []
     n = len(record['time'])
     for start in range(0, n, 12):
         with lease.block():
@@ -212,22 +212,34 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
             count = min(12, n-start)
             plans.append(prediction[:count].cpu())
             holds.append(record['robot'][start, 58:87].cpu().expand(count, -1))
+            if full_horizon:
+                extent = min(model.horizon, n-start)
+                full_plans.append(prediction[:extent].cpu())
+                full_truth.append(record['command'][start:start+extent].cpu())
+                full_holds.append(record['robot'][start, 58:87].cpu().expand(extent, -1))
+                full_ticks.extend(range(start, start+extent));full_anchors.extend([start]*extent)
             for tick in range(start+1, start+count):
                 assert bank.observe(0, 1, tick, model, record['actor'][tick],
                     record['robot'][tick], record['geometry'][tick], record['time'][tick]) is None
         progress(native_ticks=min(start+12, n), sampled_anchors=len(plans))
     prediction, hold = torch.cat(plans), torch.cat(holds)
     truth = record['command'].cpu()
-    with lease.block():
-        p, r = objective.fk(prediction.to(device))
-        q, s = objective.fk(truth.to(device))
-        distance = (p-q).norm(dim=-1).cpu()*1000
-        rotation = r[:, 0].transpose(-1, -2)@s[:, 0]
-        sine = torch.stack((rotation[:, 2, 1]-rotation[:, 1, 2],
-            rotation[:, 0, 2]-rotation[:, 2, 0], rotation[:, 1, 0]-rotation[:, 0, 1]), -1).norm(dim=-1)/2
-        angle = torch.atan2(sine, (rotation.diagonal(dim1=-2, dim2=-1).sum(-1)-1)/2).cpu()*180/torch.pi
-    return dict(prediction=prediction, truth=truth, hold=hold,
-        ee_mm=distance[:, 0], finger_mm=distance[:, 1:], rotation_deg=angle)
+    def measured(prediction, truth, hold):
+        with lease.block():
+            p, r = objective.fk(prediction.to(device))
+            q, s = objective.fk(truth.to(device))
+            distance = (p-q).norm(dim=-1).cpu()*1000
+            rotation = r[:, 0].transpose(-1, -2)@s[:, 0]
+            sine = torch.stack((rotation[:, 2, 1]-rotation[:, 1, 2],
+                rotation[:, 0, 2]-rotation[:, 2, 0], rotation[:, 1, 0]-rotation[:, 0, 1]), -1).norm(dim=-1)/2
+            angle = torch.atan2(sine, (rotation.diagonal(dim1=-2, dim2=-1).sum(-1)-1)/2).cpu()*180/torch.pi
+        return dict(prediction=prediction, truth=truth, hold=hold,
+            ee_mm=distance[:, 0], finger_mm=distance[:, 1:], rotation_deg=angle)
+    result=measured(prediction,truth,hold)
+    if full_horizon:
+        result['full_horizon']=dict(measured(torch.cat(full_plans),torch.cat(full_truth),torch.cat(full_holds)),
+            target_ticks=full_ticks,anchor_ticks=full_anchors)
+    return result
 
 
 def diagnostic_rows(sample, phases, *, identity, split):
@@ -243,8 +255,10 @@ def diagnostic_rows(sample, phases, *, identity, split):
     error, hold_error = prediction-truth, hold-truth
     rows = []
     for tick in range(len(truth)):
-        row = dict(identity=identity, split=split, tick=tick, time_s=tick/60,
-            anchor=tick//12*12, phase=str(phases[tick]), replan=tick % 12 == 0,
+        real_tick=sample.get('target_ticks',range(len(truth)))[tick]
+        anchor=sample['anchor_ticks'][tick] if 'anchor_ticks' in sample else tick//12*12
+        row = dict(identity=identity, split=split, tick=real_tick, time_s=real_tick/60,
+            anchor=anchor, phase=str(phases[tick]), replan=real_tick==anchor,
             ee_squared_mm2=float(sample['ee_mm'][tick]**2),
             fingertip_squared_mm2=float(sample['finger_mm'][tick].square().mean()),
             ee_rotation_deg=float(sample['rotation_deg'][tick]))
@@ -273,5 +287,30 @@ def summarize_diagnostics(rows):
                         rmse_rad=float(np.sqrt(np.mean([r[group+'_mse_rad2'] for r in part]))) if part else None,
                         hold_rmse_rad=float(np.sqrt(np.mean([r['hold_'+group+'_mse_rad2'] for r in part]))) if part else None,
                         ee_rmse_mm=float(np.sqrt(np.mean([r['ee_squared_mm2'] for r in part]))) if part else None,
-                        fingertip_rmse_mm=float(np.sqrt(np.mean([r['fingertip_squared_mm2'] for r in part]))) if part else None))
+                        fingertip_rmse_mm=float(np.sqrt(np.mean([r['fingertip_squared_mm2'] for r in part]))) if part else None,
+                        palm_angle_mean_deg=float(np.mean([r['ee_rotation_deg'] for r in part])) if part else None))
+    return result
+
+
+def sampled_metrics(sample):
+    error=sample['prediction']-sample['truth'];hold=sample['hold']-sample['truth']
+    arm=float(error[:,:7].square().mean().sqrt());hand=float(error[:,7:].square().mean().sqrt())
+    palm=float(sample['ee_mm'].square().mean().sqrt());angle=float(sample['rotation_deg'].mean())
+    # Frozen physical scales, equal four terms; never fitted on validation.
+    score=.25*((arm/.01)**2+(hand/.1)**2+(palm/10.)**2+(angle/5.)**2)
+    return dict(arm_rmse=arm,hand_rmse=hand,selection_mse=.5*(arm**2+hand**2),selection_score=score,
+        ee_distance_rmse_mm=palm,ee_rotation_mean_deg=angle,ticks=len(error),
+        hold_arm_rmse=float(hold[:,:7].square().mean().sqrt()),hold_hand_rmse=float(hold[:,7:].square().mean().sqrt()))
+
+
+@torch.no_grad()
+def deployment_evaluate(model,records,identities,objective,lease):
+    samples=[deployment_sample(model,records[i],objective,lease,full_horizon=True) for i in identities]
+    def merged(values):
+        return {k:torch.cat([v[k] for v in values]) for k in
+                ('prediction','truth','hold','ee_mm','finger_mm','rotation_deg')}
+    result=sampled_metrics(merged(samples))
+    result['full_horizon']=sampled_metrics(merged([s['full_horizon'] for s in samples]))
+    result['identities']=list(identities)
+    result['protocol']='complete real prefix, deployment batch1 DDIM16 seed7091; committed12 vs all valid24'
     return result

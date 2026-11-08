@@ -7,6 +7,7 @@ import argparse
 import csv
 import fcntl
 import json
+import math
 import os
 from pathlib import Path
 import shutil
@@ -452,9 +453,83 @@ def run(root):
     return code
 
 
+def trained_diagnostics(root):
+    """Final train8/validation30 only; no test selection or physical rollouts."""
+    import torch
+    import h5py
+    import numpy as np
+    from visuotactile.state_history import PersistentState
+    from visuotactile.state_image_loss import GeometryObjective, PALM_LOSS_ID
+    from visuotactile.state_image_offline import deployment_sample,diagnostic_rows,summarize_diagnostics,sampled_metrics,no_kit
+    from visuotactile.state_resources import lease_for
+    from tools.narrow_repair_audit import stages
+    cfg=read(root/'configuration.json');s=read(root/'session.json');data=read(root/'state_data/data.json')
+    plan=cfg['palm_training'];out=root/'offline';out.mkdir(exist_ok=False)
+    lease=lease_for(root,deadline=s['offline_deadline']);cohorts=plan['diagnostic_cohorts']
+    saved=torch.load(root/'training/best.pt',map_location='cpu',weights_only=False)
+    if saved['configuration']['loss_id']!=PALM_LOSS_ID or saved['configuration']['data_sha256']!=sha(root/'state_data/data.json'):
+        raise ValueError('Selected model/data identity mismatch')
+    cache=torch.load(root/'state_data/numeric.pt',map_location='cpu',weights_only=False)
+    if cache['data_sha256']!=sha(root/'state_data/data.json'):raise ValueError('Numeric data identity changed')
+    with h5py.File(data['entries'][cohorts['train'][0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
+    objective=GeometryObjective(metadata,mode=PALM_LOSS_ID);objective.weights=cfg['loss_weights']
+    model=PersistentState('dp',saved['contract']);model.load_state_dict(saved['ema'],strict=True);model.eval()
+    stats=torch.load(root/'state_data/statistics.pt',map_location='cpu',weights_only=False)
+    if not all(torch.equal(getattr(model,k),v) for k,v in stats.items()):raise ValueError('Checkpoint normalization mismatch')
+    with lease.block():model.cuda()
+    rows=[];full_rows=[];summaries=[];completed=0;plans=0;ticks=0
+    for split,ids in cohorts.items():
+        if not set(ids)<=set(data['splits'][split]):raise ValueError('Fixed diagnostic cohort changed')
+        for index,identity in enumerate(ids):
+            with lease.block():rec={k:v.cuda() for k,v in cache['records'][identity].items()}
+            def progress(**values):write(out/'progress.json',dict(offline_episodes=completed,offline_total=38,identity=identity,utc=time.time(),**values))
+            sample=deployment_sample(model,rec,objective,lease,full_horizon=True,progress=progress)
+            entry=data['entries'][identity]
+            with h5py.File(entry['path']) as f:
+                g=f['episodes'][entry['episode']];phases=stages(g)
+                contact=np.linalg.norm(g['transition/object_contact_force_w'][:],axis=-1).reshape(len(phases),-1).max(-1)>.1
+                lift=g['transition/diagnostics_before/lifted_object'][:].reshape(len(phases),-1).any(-1)
+            rows.extend(diagnostic_rows(sample,phases,identity=identity,split=split))
+            full=sample['full_horizon']
+            full_rows.extend(diagnostic_rows(full,np.asarray(phases)[full['target_ticks']],identity=identity,split=split))
+            summaries.append(dict(identity=identity,split=split,executed12=sampled_metrics(sample),all_valid24=sampled_metrics(full)))
+            if index==0:target_plot(out,identity,sample,phases,contact,lift)
+            completed+=1;ticks+=len(phases);plans+=math.ceil(len(phases)/12)
+            write(out/'progress.json',dict(offline_episodes=completed,offline_total=38,sampled_anchors=plans,native_ticks=ticks,utc=time.time()))
+            table(out/'sampled_ticks.csv',rows);table(out/'full_horizon_ticks.csv',full_rows)
+            write(out/'stage_metrics.json',summarize_diagnostics(rows));write(out/'full_horizon_stage_metrics.json',summarize_diagnostics(full_rows))
+            write(out/'episode_metrics.json',summaries)
+    old=read(CODE/plan['previous_diagnostics']/'stage_metrics.json');new=read(out/'stage_metrics.json')
+    comparisons=[]
+    for current in new:
+        if current['motion']!='all':continue
+        reference=next(r for r in old if all(r[k]==current[k] for k in ('split','phase','group','motion')))
+        comparisons.append(dict(split=current['split'],phase=current['phase'],group=current['group'],ticks=current['ticks'],
+            old_rmse_rad=reference['rmse_rad'],new_rmse_rad=current['rmse_rad'],hold_rmse_rad=current['hold_rmse_rad'],
+            old_palm_rmse_mm=reference['ee_rmse_mm'],new_palm_rmse_mm=current['ee_rmse_mm'],new_palm_angle_mean_deg=current['palm_angle_mean_deg']))
+    table(out/'stage_comparison.csv',comparisons)
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    fig,axes=plt.subplots(1,3,figsize=(15,4))
+    for ax,group in zip(axes[:2],('arm','hand')):
+        rr=[r for r in comparisons if r['split']=='validation' and r['group']==group and r['ticks']]
+        x=np.arange(len(rr));ax.bar(x-.2,[r['old_rmse_rad'] for r in rr],.4,label='old Core8500')
+        ax.bar(x+.2,[r['new_rmse_rad'] for r in rr],.4,label='new selected');ax.set_ylabel(group+' RMSE (rad)')
+        ax.set_xticks(x,[r['phase'] for r in rr],rotation=70);ax.legend()
+    rr=[r for r in comparisons if r['split']=='validation' and r['group']=='arm' and r['ticks']]
+    axes[2].plot([r['phase'] for r in rr],[r['old_palm_rmse_mm'] for r in rr],label='old Core8500')
+    axes[2].plot([r['phase'] for r in rr],[r['new_palm_rmse_mm'] for r in rr],label='new selected')
+    axes[2].set_ylabel('Command FK palm RMSE (mm)');axes[2].tick_params(axis='x',rotation=70);axes[2].legend()
+    fig.tight_layout();fig.savefig(out/'stage_comparison.png',dpi=140);plt.close(fig)
+    write(out/'result.json',dict(complete=True,episodes=completed,ticks=ticks,plans=plans,
+        selected_update=saved['updates'],checkpoint_sha256=sha(root/'training/best.pt'),selection='fixed validation4 before final38',
+        new_closed_loop=0,no_new_task_success_evidence=True,**no_kit()))
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
     args = parser.parse_args(); root = args.root.resolve()
@@ -464,7 +539,9 @@ def main():
         import torch
         from visuotactile.precision import state_fp32
         torch.set_num_threads(2); state_fp32()
-        if args.mode == 'check': acceptance(root)
+        if args.mode == 'final':
+            trained_diagnostics(root)
+        elif args.mode == 'check': acceptance(root)
         else: raise SystemExit(run(root))
 
 

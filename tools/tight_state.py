@@ -43,6 +43,9 @@ def prepare(root,config_path):
     protected={str((CODE/p).resolve()):sha(CODE/p) for p in config['source_protection']}
     write(root/'protected.json',protected)
     write(root/'status.json',dict(state='prepared',stage='development',formal_updates=0,formal_episodes=0))
+    if config.get('palm_training'):
+        from tools.tight_finish import prepare_extension
+        prepare_extension(root)
 
 
 def beat(root,**fields):

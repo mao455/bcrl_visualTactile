@@ -73,8 +73,8 @@ class Lease:
             raise TimeoutError('Session deadline reached; preserve resumable checkpoint')
         if (self.root / 'STOP').exists():
             raise InterruptedError('Owned session STOP requested')
-        if shutil.disk_usage(self.root).free < 12_000_000_000:
-            raise RuntimeError('Disk reserve below 12 decimal GB')
+        if shutil.disk_usage(self.root).free < plan.get('reserve_bytes',12_000_000_000):
+            raise RuntimeError('Configured disk reserve reached')
 
     @contextmanager
     def block(self, *, deadline=None, cuda=True):
@@ -121,6 +121,7 @@ class Lease:
                 ratio = max(2.5,state['sleep_work_ratio']) if duration>=2 else state['sleep_work_ratio']
                 remaining = ratio*duration
                 while remaining > 0:
+                    self.check(deadline)
                     interval = min(remaining, 1.)
                     time.sleep(interval)
                     remaining -= interval
@@ -183,6 +184,8 @@ def policy(row, now):
 
 def lease_for(root, deadline=None):
     session = json.loads((Path(root)/'session.json').read_text())
+    if session.get('resource_policy') == 'bounded_mean_v1':
+        return Lease(root, deadline=deadline)
     if session.get('resource_policy') == 'shared_recent_v1':
         return SharedLease(root, deadline=deadline)
     raise ValueError('Current experiments require explicit shared_recent_v1 resource policy')

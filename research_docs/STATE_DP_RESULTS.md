@@ -1,5 +1,29 @@
 # Tight-Insertion 当前结果
 
+<!-- tight-palm-training:start -->
+## 掌部几何损失与有限训练数据扩充（当前任务）
+
+状态 **prepared**，阶段 `ready_to_launch`；Focused palm/current-history/FK/trainer checks passed; awaiting frozen background collection and fresh training。
+基础208 Core/train156；新增待冻结，物理尝试见collection_progress.json。validation30/test22及固定诊断身份不变，Aux不加入。
+全新训练更新0，anchor等效epoch 0.000；目标300，平台停止最早200，训练墙钟9h优先。
+loss = 原完整29D扩散Loss B + 0.3342396122 × 平均掌部位置平方距离(m²) + 0.02994639475 × 平均0.5旋转矩阵Frobenius平方；仅有效commit12，500更新渐入。
+实际掌部/关节/决策前执行器目标和严格过去已施加目标已有60Hz通路，复用178/85维，不重复追加；GRU256不变。
+本轮尚无新的任务成功证据；完成训练/离线验证后停止，不自动物理闭环。
+run：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_palm_20261108_01`；`status.json`、`training/progress.json`、`training/validation.jsonl`、`training/curves.png`、`offline/stage_metrics.json`。
+已有旧诊断38条/1103次完整采样/13000tick仅为离线参照，不是任务成功数。
+
+|实际字段/切片|动作前时间语义与来源|每tick网络路径|重置与反传|
+|---|---|---|---|
+|robot[0:58]：q29/qd29，rad/rad·s⁻¹|diagnostics_before实测canonical状态，时刻t|60Hz native_encoder→GRU；当前/过去13帧另直达condition|真实episode重置；完整0…t前向，当前权重重算前缀|
+|geometry[28:35]：掌部xyz3+wxyz4|iiwa14_link_7实测刚体，robot base坐标，m/单位四元数；非控制目标FK|60Hz geometry_encoder→GRU；t−24/t−12/t另直达condition|同上，四元数w≥0；train-only mean/std|
+|robot[58:116]：目标29/目标−q29|target_before_rad＝动作前已生效执行器目标，rad|同robot两条路径|不读取本tick target_after标签|
+|robot[116:174]：过去目标29×2|严格t−1实际施加target_after；保留既有两个兼容槽，两者相等；不是专家滤波前request|每60Hz tick反馈，commit内部仍更新GRU|t=0置零，valid=0；重规划不清空|
+|robot[174:178]：age2/valid/elapsed|前次目标距当前时间，s/bool/s|同robot路径；valid不标准化|真实episode重置，缺失窗口全零且valid=false|
+|Actor141与geometry其余78维|既有Actor噪声/延迟、物体/目标/孔/桌/指尖几何；不新引入传感器|Actor/robot/geometry每tick拼384→GRU256；条件仍896→512|anchor t的反传区间[96⌊t/96⌋,t]，≤96tick（当前12tick anchors为1–85）；更早历史no_grad重算，不缓存旧权重hidden|
+
+可丢弃验收：checkpoint/EMA/normalizer完全匹配，109tick实际在线controller与完整prefix输入完全相同，condition max1.90735e−6；FK真实位姿与梯度验收见palm_source_check.json，最终新增数据统计下再验收。
+<!-- tight-palm-training:end -->
+
 <!-- tight-dp3-diagnostics:start -->
 ## 2026-11-08 DP3风格StateDP条件与诊断
 
@@ -138,7 +162,7 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 <!-- tight-failure-videos:start -->
 ## 2026-11-08 用户请求的三个失败案例视频
 
-状态 **PREPARED**，完成 0/2；队列已冻结，等待提交源码后启动。
+状态 **COMPLETE**，完成 2/2；Finite viewing queue finished; no additional starts。
 观看索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_failures_20261108_01/remaining_01/README.md`；阶段/计数见同目录`status.json`。
 同Core8500 EMA与原控制/物理，三个按历史结果挑选的独立观看复跑；不改原27例分母，不训练、不补seed。
 首次队列因整卡60s均值51.29%停止，保留592帧已解码中断视频；本次仅接续未启动两例，原截止时间不变。

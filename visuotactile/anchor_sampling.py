@@ -77,19 +77,21 @@ def anchor_batch(model,records,selected):
     return torch.cat(conditions),torch.cat(commands),torch.cat(masks)
 
 
-def mask_totals(lengths,selected):
+def mask_totals(lengths,selected,geometry_commit=None):
     n=[min(24,lengths[i]-t) for i,t in selected]
-    return sum(n),sum(max(0,x-1) for x in n)
+    totals = (sum(n),sum(max(0,x-1) for x in n))
+    return totals if geometry_commit is None else totals+(sum(min(geometry_commit,x) for x in n),)
 
 
-def weighted_parts(parts,valid,totals,weights):
+def weighted_parts(parts,valid,totals,weights,geometry_commit=12):
     """Exactly the old global valid-target/pair means across microbatches.
 
     Weighting every microbatch equally is wrong at padded episode tails.
     Geometry/base terms count valid targets; temporal counts valid adjacent pairs.
     """
-    rows=valid.sum()/totals[0];pairs=(valid[:,1:]&valid[:,:-1]).sum()/max(1,totals[1])
-    contribution={k:v*(pairs if k=='temporal' else rows) for k,v in parts.items()}
+    rows=valid.sum()/max(1,totals[0]);pairs=(valid[:,1:]&valid[:,:-1]).sum()/max(1,totals[1])
+    geometry=valid[:,:geometry_commit].sum()/max(1,totals[2]) if len(totals)==3 else rows
+    contribution={k:v*(pairs if k=='temporal' else geometry if k in ('position','rotation') else rows) for k,v in parts.items()}
     return contribution['base']+sum(weights[k]*contribution[k] for k in weights),contribution
 
 

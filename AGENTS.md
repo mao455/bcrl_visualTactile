@@ -1,4 +1,14 @@
-# 当前 Tight-Insertion：Core/Auxiliary有限任务已完成
+# 当前 Tight-Insertion：掌部几何损失与有限扩充的新训练
+
+最新显式任务授权一个全新StateDP：只原位改已有文件，补齐输入审查，commit12掌部位置/完整旋转辅助loss，
+原36训练家族有限新增目标50/最多60Core，最多120物理尝试/2h；原val30/test22、Aux不混入。
+一次fresh训练目标300 anchor等效epoch，通常≥200才平台早停，训练墙钟9h优先，最后固定train8/validation30离线诊断≤1h；无自动学生闭环或下一轮。
+读CONTRACTS与STATE_DP_RESULTS，配置configs/tight_state.json，入口tools.tight_finish。
+root `outputs/visuotactile/run/tight_palm_20261108_01`；读取实际status判断是否启动/结束，不从本段推断训练计数。
+采用严格Lease整卡50%上限/35%目标/45%准入，6GiB VRAM/14GiB RAM/60GiB磁盘储备；全流程≤12.5h。
+冻结源码后不改运行代码，普通后台完成转换/训练/报告，Codex不驻守；结束后不自动追加。
+
+## 已完成 Core/Auxiliary 基线
 
 使用`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、`feature/tight-state-foundation`；读research_docs/CONTRACTS.md、STATE_DP_RESULTS.md和SESSION_HANDOFF.md。root为outputs/visuotactile/run/tight_state_20261107_01/composition_06，2026-11-08 13:21:54 complete/evaluated，所有owned服务/worker/monitor已退出，不重启旧队列。
 

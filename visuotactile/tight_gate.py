@@ -41,6 +41,14 @@ def validate_config(config):
             'Frozen Auxiliary family balance required')
         require(d['training_subset']=='core_only', 'Auxiliary training requires a separate controlled experiment')
     cap=config.get('speed_scheme',{}).get('hand_target_cap_rad_s')
+    if config.get('palm_training'):
+        p=config['palm_training'];r=config['resources'];t=config['training']
+        require(0<p['additional_target']<=p['additional_maximum']<=60 and 0<p['maximum_attempts']<=120,'Finite train-only collection cap')
+        require(r['collection_hours']<=2 and r['training_hours']<=9 and p['offline_hours']<=1,'Finite stage wall budgets')
+        require(t['maximum_anchor_epochs']==300 and t['minimum_anchor_epochs']>=200,'Explicit anchor exposure budget')
+        require(r['resource_policy']=='bounded_mean_v1' and r['cap_percent']==50 and r['admission_percent']<=45
+                and r['min_gpu_free_mib']>=6144 and r['min_ram_gib']>=14 and r['min_disk_gib']>=60,'Current resource caps/reserves')
+        require(p['final_closed_loop'] is False and p['loss_id']=='palm_command_sample_commit12','Single palm model/offline-only scope')
     if cap is not None:
         values=np.asarray(cap,dtype=float)
         require(values.shape in ((),(22,)) and np.isfinite(values).all() and (values>0).all(),
@@ -174,7 +182,8 @@ def physical_motion_errors(comparison, rules):
 
 def capture_configuration(config):
     """Composition/queue changes cannot masquerade as physical capture changes."""
-    return {k:v for k,v in config.items() if k not in ('collection','data_composition')}
+    return {k:v for k,v in config.items() if k not in
+            ('collection','data_composition','training','loss_weights','palm_training','resources','reference_commit')}
 
 
 def composition_admission(slow, reference, config, reference_config):

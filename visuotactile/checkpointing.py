@@ -20,7 +20,7 @@ def training_state(model, averaged, optimizer, ema, generator, noise, **metadata
     return cpu_snapshot(dict(contract=getattr(model,'contract',STATE_CONTRACT), model=model.state_dict(), ema=averaged.state_dict(),
         optimizer=optimizer.state_dict(), ema_optimization_step=ema.optimization_step,
         schedule_rng=generator.get_state(), noise_rng=noise.get_state(),
-        torch_rng=torch.get_rng_state(), cuda_rng=torch.cuda.get_rng_state_all(), **metadata))
+        torch_rng=torch.get_rng_state(), cuda_rng=torch.cuda.get_rng_state_all() if torch.cuda.is_initialized() else [], **metadata))
 
 
 def restore_training(saved, model, averaged, optimizer, ema, generator, noise):

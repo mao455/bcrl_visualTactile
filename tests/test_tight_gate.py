@@ -10,7 +10,18 @@ from visuotactile.narrow_data import direct_configuration,angle
 
 
 def config():
-    return json.loads((Path(__file__).resolve().parents[1]/'configs/tight_state.json').read_text())
+    value=json.loads((Path(__file__).resolve().parents[1]/'configs/tight_state.json').read_text())
+    value.pop('palm_training',None)  # Existing tests below exercise the original collection queue.
+    return value
+
+
+def test_palm_extension_keeps_budgets_and_resource_caps():
+    c=json.loads((Path(__file__).resolve().parents[1]/'configs/tight_state.json').read_text())
+    validate_config(c)
+    for section,key,value in [('palm_training','maximum_attempts',121),('palm_training','additional_maximum',61),
+                               ('resources','training_hours',10),('resources','min_gpu_free_mib',4096)]:
+        changed=copy.deepcopy(c);changed[section][key]=value
+        with pytest.raises(ValueError):validate_config(changed)
 
 
 def test_capped_current_configuration_is_standalone_and_rejects_invalid_limits():

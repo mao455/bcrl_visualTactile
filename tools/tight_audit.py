@@ -208,10 +208,106 @@ def gpu(root,data_root):
     write(root/'gpu_parity.json',report);require(report['passed'],'Full normalized input/controller parity failed')
 
 
+def palm(root, data_root=None):
+    """Focused CPU gate for the palm objective; old full audits are not rerun."""
+    from visuotactile.state_history import PersistentState, HistoryController
+    from visuotactile.state_image_loss import GeometryObjective, PALM_LOSS_ID, calibrated_palm_weights
+    from visuotactile.position_control import contract
+    from visuotactile.native_data import rotate
+    from visuotactile.anchor_sampling import anchor_batch
+    from visuotactile.checkpointing import training_state,restore_training,save
+    from visuotactile.models.vendor.ema_model import EMAModel
+    from tools.tight_state import digest
+    cfg=read(root/'configuration.json');session=read(root/'session.json');plan=cfg['palm_training']
+    calibration=data_root is None
+    if calibration:
+        if (root/'palm_calibration.json').exists():raise ValueError('One scale calibration only; no automatic retuning')
+        data_root=Path(plan['source_root'])/'state_data'
+    data=read(data_root/'data.json');cache=torch.load(data_root/'numeric.pt',map_location='cpu',weights_only=False)
+    require(cache['data_sha256']==sha(data_root/'data.json'),'Numeric cache identity')
+    ids=plan['diagnostic_cohorts']['train'][:4]
+    require(set(ids)<=set(data['splits']['train']),'Calibration/gate must be train-only')
+    records={i:cache['records'][i] for i in ids};del cache
+    stats=torch.load(data_root/'statistics.pt',map_location='cpu',weights_only=False)
+    torch.manual_seed(cfg['training']['random_seed']);torch.set_num_threads(2)
+    model=PersistentState('dp',contract(24,True))
+    expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
+    model.set_statistics(stats,expert);del expert
+    with h5py.File(data['entries'][ids[0]]['path']) as f:meta=json.loads(f.attrs['metadata_json'])
+    objective=GeometryObjective(meta,mode=PALM_LOSS_ID,commit=model.contract['commit'])
+    fk_errors=[]
+    for rec in records.values():
+        xyz,rotation=objective.palm_fk(rec['robot'][:,:29])
+        observed=rotate(rec['geometry'][:,None,31:35],torch.eye(3)[None].expand(len(xyz),3,3)).transpose(-1,-2)
+        fk_errors.append(dict(position_m=float((xyz[:,0]-rec['geometry'][:,28:31]).abs().max()),
+            rotation_matrix=float((rotation[:,0]-observed).abs().max())))
+    require(all(max(r.values())<2e-5 for r in fk_errors),'Actual palm/FK frame or installation mismatch')
+    rows=[]
+    for start in (12,96):
+        c,y,m=anchor_batch(model,records,[(i,min(start,(len(records[i]['time'])-1)//12*12)) for i in ids])
+        _,parts,prediction=objective.forward(model,c,y,m,torch.Generator().manual_seed(8100+start))
+        grads={k:float(torch.autograd.grad(v,prediction,retain_graph=True)[0].norm()) for k,v in parts.items()}
+        parameter=next(model.denoiser.parameters())
+        network={k:float(torch.autograd.grad(parts[k],parameter,retain_graph=True)[0].norm()) for k in ('position','rotation')}
+        row=dict(loss={k:float(v.detach()) for k,v in parts.items()},gradient=grads,network_gradient=network,anchor=start)
+        require(all(math.isfinite(v) and v>0 for v in [*row['loss'].values(),*grads.values(),*network.values()]),'Finite nonzero palm/model gradients')
+        rows.append(row)
+    weights=calibrated_palm_weights(rows) if calibration else cfg['loss_weights']
+    if calibration:
+        cfg['loss_weights']=weights;session['loss_weights']=weights;session['configuration_sha256']=digest(cfg)
+        write(root/'configuration.json',cfg);write(root/'session.json',session)
+        write(root/'palm_calibration.json',dict(weights=weights,rows=rows,train_ids=ids,
+            noise_weight='1 for all sample/x0 timesteps; no inverse-SNR reconstruction',
+            rule='Each term <=5% of base value and output-gradient on both frozen training batches'))
+    objective.weights=weights
+    require(all(weights[k]*r['loss'][k]<=.2*r['loss']['base'] and
+                weights[k]*r['gradient'][k]<=.2*r['gradient']['base']
+                for r in rows for k in weights),'Frozen weights exceed declared final-normalizer 20% safety gate; stop without retuning')
+    averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
+    optimizer=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
+    rng=torch.Generator().manual_seed(18);noise=torch.Generator().manual_seed(19)
+    initial=next(model.denoiser.parameters()).detach().clone()
+    c,y,m=anchor_batch(model,records,[(i,12) for i in ids]);loss,_,_=objective.forward(model,c,y,m,noise)
+    loss.backward();norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+    require(bool(torch.isfinite(norm)),'Finite real-update gradient');optimizer.step();ema.step(model)
+    require(not torch.equal(initial,next(model.denoiser.parameters())),'Real update must change model')
+    path=root/'palm_disposable.pt'
+    save(path,training_state(model,averaged,optimizer,ema,rng,noise,kind='dp',group=model.group,updates=1,
+        configuration=dict(input_builder='canonical_joint_state_v1',loss_id=PALM_LOSS_ID,loss_weights=weights)))
+    saved=torch.load(path,map_location='cpu',weights_only=False)
+    restore_training(saved,model,averaged,optimizer,ema,rng,noise)
+    require(ema.optimization_step==1 and all(int(s['step'])==1 for s in optimizer.state.values()),'Optimizer/EMA restoration')
+    require(all(torch.equal(getattr(averaged,k),v) for k,v in stats.items()),'Train-only normalizer restoration')
+    controller=HistoryController(saved,meta,device='cpu',inference=dict(inference_steps=16,clip_sample=False,overlap_steps=0,sampler_seed=7091))
+    rec=records[ids[0]];count=min(109,len(rec['time']));maximum={k:0. for k in ('actor','robot','geometry','condition')}
+    with h5py.File(data['entries'][ids[0]]['path']) as f,torch.no_grad():
+        g=f['episodes'][data['entries'][ids[0]]['episode']]
+        offline,anchors,_=controller.model.encode(rec,stop=count)
+        for t in range(count):
+            def tree(group):return {k:tree(v) if isinstance(v,h5py.Group) else torch.from_numpy(np.asarray(v[t]))[None] for k,v in group.items()}
+            controller.act(rec['actor'][t:t+1],tree(g['obs']),tree(g['transition/diagnostics_before']))
+            for k in ('actor','robot','geometry'):maximum[k]=max(maximum[k],float((controller.last_inputs[k]-rec[k][t]).abs().max()))
+            if t%12==0:maximum['condition']=max(maximum['condition'],float((controller.last_condition-offline[t//12:t//12+1]).abs().max()))
+            # Explicit expert-history evaluation, feedback only AFTER this tick.
+            controller.command=rec['command'][t:t+1]
+            controller.observe_execution(dict(position_applied_rad=rec['command'][t:t+1]))
+        prediction=controller.model.predict(offline[-1:],torch.Generator().manual_seed(7091))
+    require(max(maximum.values())<2e-5 and prediction.shape==(1,24,29) and bool(torch.isfinite(prediction).all()),'Real online prefix or complete sampling mismatch')
+    path.unlink()  # Only this owned disposable update; protected old models remain.
+    check=dict(passed=True,calibration=calibration,weights=weights,scale_checks=rows,fk_actual_errors=fk_errors,
+        online_prefix_ticks=count,online_maximum=maximum,disposable_updates=1,formal_updates=0,
+        save_reload_ema_normalizer=True,prediction_shape=list(prediction.shape),
+        data_sha256=sha(data_root/'data.json'),statistics_sha256=sha(data_root/'statistics.pt'),
+        source_sha256={str(p):sha(p) for p in Path('visuotactile').rglob('*.py')},
+        old_checkpoint_loaded=False,new_fields_added=0,reason='Actual palm and applied-target history already have the required direct/GRU paths')
+    write(root/('palm_source_check.json' if calibration else 'palm_acceptance.json'),check)
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['cpu','gpu','fixture']);p.add_argument('--root',type=Path,required=True);p.add_argument('--data',type=Path)
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['cpu','gpu','fixture','palm']);p.add_argument('--root',type=Path,required=True);p.add_argument('--data',type=Path)
     a=p.parse_args();a.root.mkdir(parents=True,exist_ok=True)
     if a.mode=='fixture':fixture(a.root.resolve())
+    elif a.mode=='palm':palm(a.root.resolve(),a.data.resolve() if a.data else None)
     else:
         if a.data is None:p.error('--data required for cpu/gpu')
         (cpu if a.mode=='cpu' else gpu)(a.root.resolve(),a.data.resolve())

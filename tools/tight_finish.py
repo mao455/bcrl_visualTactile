@@ -171,7 +171,152 @@ def actuator_worker(root):
     actuator(root,env,player,lease,gate['slow'],alpha)
 
 
+def prepare_extension(root):
+    """Freeze a train-family-only finite extension of the accepted Core dataset."""
+    cfg=read(root/'configuration.json');p=cfg['palm_training'];parent=(CODE/p['source_root']).resolve()
+    original=read(parent/'configuration.json');manifest=read(parent/'manifest.json')
+    require(capture_configuration(cfg)==capture_configuration(original),'Capture physics/speed/domain changed')
+    require(sha(parent/'training/best.pt')==p['baseline_checkpoint_sha256'],'Protected baseline identity')
+    data=read(parent/'state_data/data.json')
+    require([len(data['splits'][s]) for s in ('train','validation','test')]==[156,30,22],'Accepted split identity')
+    used={e['id'] for e in manifest['episodes']};digests={e['sha256'] for e in manifest['episodes']}
+    train={e['family'] for e in manifest['episodes'] if e['split']=='train'}
+    rows=read(parent/'formal_results.json');refs={r['family']:r for r in rows if r['alpha']==1.}
+    reusable=[r for r in rows if r['identity'] not in used and r['family'] in train
+        and r.get('composition_admission',{}).get('admission_class')=='Core'
+        and r.get('source_sha256') not in digests and Path(r.get('path','__missing__')).is_file()]
+    # The current accepted source has no unused Core; fail explicitly if that
+    # inventory changes instead of silently collecting over reusable evidence.
+    require(not reusable,'Unused Core discovered: incorporate exact entries before physical collection')
+    families=[f for f in read(parent/'frozen_families.json') if f['family'] in train]
+    require(len(families)==36 and all(f['split']=='train' and refs[f['family']]['success'] for f in families),'Frozen training families/reference mismatch')
+    jobs=[];variation=p['first_variation']
+    while len(jobs)<p['maximum_attempts']:
+        for f in families:
+            fid=int(f['family'].split('_')[-1])
+            job=dict(f,identity=f['family']+f'_slow_{variation}',seed=f['seed']+variation*100000,
+                event_seed=original['collection']['event_seed_start']+variation*original['collection']['families']+fid)
+            require(job['identity'] not in {r['identity'] for r in rows},'Physical attempt identity already used')
+            jobs.append(job)
+            if len(jobs)==p['maximum_attempts']:break
+        variation+=1
+    write(root/'extension_plan.json',dict(parent=str(parent),unused_core=0,train_families=sorted(train),jobs=jobs,
+        references={f:refs[f] for f in train},maximum_new=p['additional_maximum'],target_new=p['additional_target'],
+        validation_ids=data['splits']['validation'],test_ids=data['splits']['test'],base_manifest_sha256=sha(parent/'manifest.json')))
+    protected=read(root/'protected.json')
+    for name in ('manifest.json','composition_manifest.json','state_data/data.json','state_data/numeric.pt',
+                 'state_data/statistics.pt','training/best.pt','training/configuration.json'):
+        path=parent/name;protected[str(path)]=sha(path)
+    write(root/'protected.json',protected)
+    write(root/'extension_results.json',[]);write(root/'extension_entries.json',[])
+    write(root/'status.json',dict(state='prepared',stage='palm_acceptance',formal_updates=0,base_core=208,
+        base_train=156,new_core=0,attempts=0,no_new_task_success_evidence=True))
+
+
+def extend_core(root):
+    from tools.tight_state import environment
+    s=read(root/'session.json');cfg=read(root/'configuration.json');plan=read(root/'extension_plan.json')
+    parent=Path(plan['parent']);reference_config=read(parent/'configuration.json')
+    rows=[];entries=[];stop_reason='attempt_budget'
+    try:
+        app,env,player,lease=environment(root)
+        for job in plan['jobs']:
+            if len(entries)>=plan['target_new']:stop_reason='additional_target';break
+            if time.time()>=s['collection_deadline']-60:stop_reason='collection_wall_budget';break
+            # The admission is the existing strict Core rule, including physical
+            # speed/path, full success and all recorded sensor content.
+            row=capture(root,env,player,lease,job,None,speed_scheme=s['speed_scheme'])
+            ref=plan['references'][job['family']]
+            row['physical_motion']=cap_motion_admission(row,ref,s['physical_motion_gate'])
+            admission=composition_admission(row,ref,cfg,reference_config)
+            row['composition_admission']=admission;rows.append(row)
+            if admission['admission_class']=='Core':
+                entries.append(dict(id=row['identity'],family=row['family'],split='train',alpha=None,speed_scheme=s['speed_scheme'],
+                    path=row['path'],sha256=row['source_sha256'],steps=row['steps'],size=Path(row['path']).stat().st_size,
+                    state_valid=True,multi_view_valid=True,tactile_valid=True,admission=admission,
+                    reference_path=ref['path'],reference_sha256=ref['source_sha256'],visual_acceptance_sha256=row['visual_acceptance_sha256']))
+            write(root/'extension_results.json',rows);write(root/'extension_entries.json',entries)
+            write(root/'collection_progress.json',dict(attempts=len(rows),new_core=len(entries),
+                task_successes=sum(bool(r.get('success')) for r in rows),
+                task_failures=sum(r['classification']=='task_failure' for r in rows),
+                initial_rejections=sum(not r.get('legal',False) for r in rows),
+                core_rejections=sum(r['composition_admission']['admission_class']!='Core' for r in rows),utc=time.time()))
+            if row['classification'] in ('sensor_failure','software_or_sensor_failure'):
+                raise RuntimeError('Collection sensor/software failure; subsequent training stopped')
+            require(len(entries)<=plan['maximum_new'],'Additional Core cap')
+    except TimeoutError:
+        if time.time()<s['collection_deadline']:raise
+        stop_reason='collection_wall_budget_interrupted_attempt'
+    write(root/'collection_finished.json',dict(complete=True,stop_reason=stop_reason,attempts_completed=len(rows),new_core=len(entries)))
+
+
+def freeze_extension(root):
+    from visuotactile.narrow_data import build_cache
+    plan=read(root/'extension_plan.json');parent=Path(plan['parent']);cfg=read(root/'configuration.json')
+    original=read(parent/'manifest.json');added=read(root/'extension_entries.json')
+    require(sha(parent/'manifest.json')==plan['base_manifest_sha256'],'Protected manifest changed')
+    require(len(added)<=plan['maximum_new'] and all(e['split']=='train' and e['family'] in plan['train_families'] for e in added),'Extension split or count violation')
+    combined=original['episodes']+added
+    require(len({e['id'] for e in combined})==len(combined) and len({e['sha256'] for e in combined})==len(combined),'Duplicate demonstration')
+    manifest=dict(original,episodes=combined,collection_finished=True,base_manifest_sha256=plan['base_manifest_sha256'],
+        additional_core=len(added),configuration_sha256=read(root/'session.json')['configuration_sha256'],
+        scope='Accepted Core plus finite new train-only successes; Auxiliary excluded')
+    validate_formal_manifest(manifest,cfg);write(root/'manifest.json',manifest)
+    data_root=build_cache(root,reuse_source=parent);data=read(data_root/'data.json')
+    require(data['splits']['validation']==plan['validation_ids'] and data['splits']['test']==plan['test_ids'],'Validation/test identities changed')
+    attempts=[json.loads(line) for line in (root/'attempts.jsonl').read_text().splitlines()] if (root/'attempts.jsonl').exists() else []
+    completed=read(root/'extension_results.json')
+    require(len(attempts)<=cfg['palm_training']['maximum_attempts'],'Physical attempts exceeded bound')
+    evidence=dict(passed=True,base_core=208,base_train=156,new_core=len(added),total_core=len(combined),
+        split_counts={k:len(v) for k,v in data['splits'].items()},physical_attempts=len(attempts),
+        completed_attempts=len(completed),interrupted_attempts=len(attempts)-len(completed),
+        task_failures=sum(r['classification']=='task_failure' for r in completed),initial_rejections=sum(not r['legal'] for r in completed),
+        core_rejections=sum(r['composition_admission']['admission_class']!='Core' for r in completed),
+        manifest_sha256=sha(root/'manifest.json'),auxiliary_added=0,validation_test_preserved=True)
+    write(root/'DATA_READY.json',evidence);write(root/'COMPLETE.json',evidence)
+
+
+def palm_report(root):
+    status=read(root/'status.json');data=read(root/'DATA_READY.json') if (root/'DATA_READY.json').exists() else {}
+    progress=read(root/'training/progress.json') if (root/'training/progress.json').exists() else {}
+    weights=read(root/'configuration.json')['loss_weights']
+    start,end='<!-- tight-palm-training:start -->','<!-- tight-palm-training:end -->'
+    lines=[start,'## 掌部几何损失与有限训练数据扩充（当前任务）','',
+        f"状态 **{status['state']}**，阶段 `{status['stage']}`；{status.get('reason','')}。",
+        f"基础208 Core/train156；新增{data.get('new_core','待冻结')}，物理尝试{data.get('physical_attempts','见collection_progress.json')}。validation30/test22及固定诊断身份不变，Aux不加入。",
+        f"全新训练更新{progress.get('update',0)}，anchor等效epoch {progress.get('anchor_equivalent_epochs',0):.3f}；目标300，平台停止最早200，训练墙钟9h优先。",
+        f"loss = 原完整29D扩散Loss B + {weights['position']:.10g} × 平均掌部位置平方距离(m²) + {weights['rotation']:.10g} × 平均0.5旋转矩阵Frobenius平方；仅有效commit12，500更新渐入。",
+        '实际掌部/关节/决策前执行器目标和严格过去已施加目标已有60Hz通路，复用178/85维，不重复追加；GRU256不变。',
+        '本轮尚无新的任务成功证据；完成训练/离线验证后停止，不自动物理闭环。',
+        f'run：`{root}`；`status.json`、`training/progress.json`、`training/validation.jsonl`、`training/curves.png`、`offline/stage_metrics.json`。',
+        '已有旧诊断38条/1103次完整采样/13000tick仅为离线参照，不是任务成功数。','',
+        '|实际字段/切片|动作前时间语义与来源|每tick网络路径|重置与反传|',
+        '|---|---|---|---|',
+        '|robot[0:58]：q29/qd29，rad/rad·s⁻¹|diagnostics_before实测canonical状态，时刻t|60Hz native_encoder→GRU；当前/过去13帧另直达condition|真实episode重置；完整0…t前向，当前权重重算前缀|',
+        '|geometry[28:35]：掌部xyz3+wxyz4|iiwa14_link_7实测刚体，robot base坐标，m/单位四元数；非控制目标FK|60Hz geometry_encoder→GRU；t−24/t−12/t另直达condition|同上，四元数w≥0；train-only mean/std|',
+        '|robot[58:116]：目标29/目标−q29|target_before_rad＝动作前已生效执行器目标，rad|同robot两条路径|不读取本tick target_after标签|',
+        '|robot[116:174]：过去目标29×2|严格t−1实际施加target_after；保留既有两个兼容槽，两者相等；不是专家滤波前request|每60Hz tick反馈，commit内部仍更新GRU|t=0置零，valid=0；重规划不清空|',
+        '|robot[174:178]：age2/valid/elapsed|前次目标距当前时间，s/bool/s|同robot路径；valid不标准化|真实episode重置，缺失窗口全零且valid=false|',
+        '|Actor141与geometry其余78维|既有Actor噪声/延迟、物体/目标/孔/桌/指尖几何；不新引入传感器|Actor/robot/geometry每tick拼384→GRU256；条件仍896→512|anchor t的反传区间[96⌊t/96⌋,t]，≤96tick（当前12tick anchors为1–85）；更早历史no_grad重算，不缓存旧权重hidden|','',
+        '可丢弃验收：checkpoint/EMA/normalizer完全匹配，109tick实际在线controller与完整prefix输入完全相同，condition max1.90735e−6；FK真实位姿与梯度验收见palm_source_check.json，最终新增数据统计下再验收。',end]
+    if (root/'offline/stage_metrics.json').exists():
+        metrics=read(root/'offline/stage_metrics.json')
+        summary=['','|固定专家历史诊断|Arm/hold (rad)|Hand/hold (rad)|掌部FK (mm/deg)|tick|','|---|---:|---:|---:|---:|']
+        for a in (r for r in metrics if r['group']=='arm' and r['motion']=='all'):
+            b=next(r for r in metrics if r['split']==a['split'] and r['phase']==a['phase'] and r['group']=='hand' and r['motion']=='all')
+            fmt=lambda r:'未测' if not r['ticks'] else f"{r['rmse_rad']:.6f}/{r['hold_rmse_rad']:.6f}"
+            geom='未测' if not a['ticks'] else f"{a['ee_rmse_mm']:.4f}/{a['palm_angle_mean_deg']:.4f}"
+            summary.append(f"|{a['split']}/{a['phase']}|{fmt(a)}|{fmt(b)}|{geom}|{a['ticks']}|")
+        lines[-1:-1]=summary
+    path=CODE/'research_docs/STATE_DP_RESULTS.md';old=path.read_text();content='\n'.join(lines)
+    if start in old:old=old[:old.index(start)]+content+old[old.index(end)+len(end):]
+    else:old=old.replace('\n','\n\n'+content+'\n',1)
+    tmp=path.with_suffix('.md.tmp');tmp.write_text(old);tmp.replace(path)
+
+
 def collect(root):
+    if read(root/'configuration.json').get('palm_training'):
+        return extend_core(root)
     import numpy as np
     from tools.tight_state import environment
     from visuotactile.narrow_data import direct_configuration,build_cache
@@ -418,28 +563,94 @@ def evaluate(root):
 
 
 @supervised_owner
+@supervised_owner
 def pipeline(root,refinement=False,speed_validation=False,baseline=False,mechanism=False):
     import fcntl
     with (root/'owner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         s=read(root/'session.json');monitor=None;child=None
+        palm=s.get('palm_training')
+        if palm:
+            require(read(root/'status.json')['state']=='prepared' and not (root/'execution_source_freeze.json').exists(),'No duplicate/restarted palm run')
+            check=read(root/'palm_source_check.json');require(check['passed'],'Focused source/gradient check required')
+            for path,expected in check['source_sha256'].items():require(sha(CODE/path)==expected,'Accepted implementation drift: '+path)
+            require(not subprocess.check_output(['git','status','--porcelain','--','tools','visuotactile','configs','tests'],cwd=CODE,text=True).strip(),'Commit runtime before launch')
+            require(read(root/'configuration.json')==read(CODE/'configs/tight_state.json'),'Prepared configuration differs from committed configuration')
+            now=time.time();s.update(started=now,deadline=now+s['maximum_hours']*3600,
+                collection_deadline=now+s['collection_hours']*3600,source_head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip(),
+                cwd=str(CODE),python=str(Path(sys.executable).resolve()))
+            write(root/'session.json',s);write(root/'gpu_schedule.json',read(root/'configuration.json')['resources'])
+            write(root/'execution_source_freeze.json',{str(p):sha(p) for folder in ('tools','visuotactile','isaacsimenvs','evaluation','rl_games') for p in (CODE/folder).rglob('*.py')})
+            write(root/'source_freeze.json',read(root/'execution_source_freeze.json'))
         (root/'STOP_MONITOR').unlink(missing_ok=True)
-        def worker(stage,args,deadline):
+        def worker(stage,args,deadline,bounded_collection=False):
             nonlocal child
             if (root/'execution_source_freeze.json').exists():
                 for path,expected in read(root/'execution_source_freeze.json').items():require(sha(path)==expected,'Execution source drift: '+path)
             path=root/'stages'/stage;path.mkdir(parents=True,exist_ok=False)
             write(root/'status.json',dict(state='running',stage=stage,utc=time.time()))
-            with (path/'worker.log').open('w') as log:child=subprocess.Popen(RUN+args,cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            with (path/'worker.log').open('w') as log:child=subprocess.Popen(RUN+args,cwd=CODE,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             write(root/'active_owner.json',dict(owner=proc(os.getpid()),worker=proc(child.pid),monitor=proc(monitor.pid)))
             while child.poll() is None:
                 if monitor.poll() is not None:raise RuntimeError('Monitor stopped')
-                if time.time()>=deadline or (root/'STOP').exists():raise TimeoutError('Fixed deadline/STOP')
+                if time.time()>=deadline:
+                    if bounded_collection:
+                        require(not (root/'collect_error.json').exists(),'Software error at collection deadline; do not promote to budget stop')
+                        kill_owned(child)
+                        write(root/'collection_finished.json',dict(complete=True,stop_reason='collection_wall_budget_owned_worker_stopped',
+                            completed=len(read(root/'extension_results.json')),new_core=len(read(root/'extension_entries.json'))))
+                        write(path/'exit.json',dict(returncode=child.returncode,budget_stop=True,utc=time.time()))
+                        return
+                    raise TimeoutError('Fixed deadline')
+                if (root/'STOP').exists():raise InterruptedError('Owned STOP')
+                if palm:
+                    status=dict(state='running',stage=stage,pid=os.getpid(),worker_pid=child.pid,monitor_pid=monitor.pid,
+                        utc=time.time(),hard_stop_utc=deadline,run=str(root),formal_updates=0,no_new_task_success_evidence=True)
+                    for field in ('collection_progress.json','training/progress.json','offline/progress.json'):
+                        if (root/field).exists():status.update(read(root/field))
+                    if (root/'training/progress.json').exists():status['formal_updates']=status.get('update',0)
+                    status.update(last_progress_utc=status.get('utc'),utc=time.time(),hard_stop_utc=deadline)
+                    write(root/'status.json',status)
                 time.sleep(2)
             write(path/'exit.json',dict(returncode=child.returncode,utc=time.time()))
             if child.returncode:raise RuntimeError(stage+' failed; no blind retry')
         try:
             with (root/'monitor.log').open('a') as log:monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],cwd=CODE,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+            if palm:
+                palm_report(root)
+                worker('collection',['-m','tools.tight_finish','collect','--root',str(root)],s['collection_deadline']-45,bounded_collection=True)
+                worker('freeze',['-m','tools.tight_finish','freeze_extension','--root',str(root)],min(s['deadline']-10*3600,time.time()+1800))
+                worker('palm_acceptance',['-m','tools.tight_audit','palm','--root',str(root),'--data',str(root/'state_data')],time.time()+1200)
+                data=read(root/'state_data/data.json');ids=data['splits']['train'];anchors=sum(math.ceil(data['entries'][i]['length']/12) for i in ids)
+                t=s['training'];batch=t['effective_batch'];groups=math.ceil(len(ids)/batch)
+                def updates_for(draws):
+                    rounds,left=divmod(math.ceil(draws),len(ids));return rounds*groups+math.ceil(left/batch)
+                total=updates_for(300*anchors);train=root/'training';train.mkdir(exist_ok=False)
+                old_rows=[json.loads(line) for line in (Path(palm['source_root'])/'training/training.jsonl').read_text().splitlines()]
+                old_seconds=(old_rows[-1]['utc']-old_rows[0]['utc'])/(old_rows[-1]['update']-old_rows[0]['update'])
+                budget=dict(anchor_population=anchors,train_episodes=len(ids),effective_batch_max=batch,short_tail=len(ids)%batch,
+                    mean_batch=len(ids)/groups,total_updates=total,target_anchor_epochs=300,early_stop_minimum_update=updates_for(200*anchors),
+                    comparison_updates=sorted(set([8500,updates_for(100*anchors)])),
+                    baseline_seconds_per_update=old_seconds,initial_eta_seconds_range=[.6*old_seconds*total,1.3*old_seconds*total],
+                    eta_basis='Old measured throughput; new palm-only FK may be faster; real worker updates this estimate',
+                    selection=palm['selection'],wall_hours=9,validation_interval=t['validation_interval'])
+                write(train/'budget.json',budget)
+                deadline=min(s['deadline']-3600,time.time()+9*3600)
+                runtime=dict(resource_policy=s['resource_policy'],external_monitor_root=str(root),training_deadline=deadline,
+                    random_seed=t['random_seed'],validation_interval=t['validation_interval'],
+                    early_stop_minimum_update=budget['early_stop_minimum_update'],comparison_updates=budget['comparison_updates'],
+                    deterministic_validation_loss=True,stage_stop_update=total)
+                write(train/'session.json',runtime);palm_report(root)
+                worker('training',['-m','visuotactile.anchor_continue','fresh-train','--job','state','--data',str(root/'state_data'),
+                    '--root',str(train),'--target',str(total),'--output',str(train/'launch')],deadline)
+                require((train/'best.pt').exists(),'No validation-selected model: stop without final diagnostic')
+                s['offline_deadline']=min(s['deadline'],time.time()+palm['offline_hours']*3600);write(root/'session.json',s)
+                worker('offline',['-m','tools.tight_diagnostics','final','--root',str(root)],s['offline_deadline'])
+                finished=read(train/'finished.json')
+                write(root/'status.json',dict(state='BUDGET_STOP' if finished['stop_reason']=='fixed_wall_budget' else 'COMPLETE',stage='trained_and_offline_evaluated',
+                    formal_updates=finished['updates'],training_stop_reason=finished['stop_reason'],data=read(root/'DATA_READY.json'),
+                    no_new_task_success_evidence=True,exit_code=0,utc=time.time()))
+                return
             inherited=(root/'accepted_foundation.json').exists()
             if inherited:accepted_foundation(root)
             if mechanism:
@@ -507,7 +718,7 @@ def pipeline(root,refinement=False,speed_validation=False,baseline=False,mechani
             write(root/'status.json',dict(state='complete',stage='evaluated',formal_updates=end['updates'],data=read(root/'DATA_READY.json'),evaluation=read(root/'evaluation_summary.json')))
         except BaseException as error:
             write(root/'finish_error.json',dict(error=repr(error),traceback=traceback.format_exc()))
-            previous=read(root/'status.json');write(root/'status.json',dict(previous,state='blocked',reason=repr(error)))
+            previous=read(root/'status.json');write(root/'status.json',dict(previous,state=('BUDGET_STOP' if isinstance(error,TimeoutError) else 'FAILED') if palm else 'blocked',reason=repr(error),exit_code=1,utc=time.time()))
             raise
         finally:
             if child is not None:kill_owned(child)
@@ -517,12 +728,25 @@ def pipeline(root,refinement=False,speed_validation=False,baseline=False,mechani
                 except subprocess.TimeoutExpired:kill_owned(monitor)
             check_protected(root)
             status=read(root/'status.json');status['owned_workers_exited']=True;write(root/'status.json',status)
+            if palm:
+                if (root/'resources/resources.json').exists():write(root/'resource_summary.json',dict(read(root/'resources/resources.json'),
+                    configured_limits=read(root/'configuration.json')['resources'],hard_gpu_quota_guaranteed=False))
+                palm_report(root)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
     a=p.parse_args();root=a.root.resolve()
-    if a.mode=='run':pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)
+    if a.mode=='run':
+        try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)
+        except BaseException as error:
+            if (root/'configuration.json').exists() and read(root/'configuration.json').get('palm_training'):
+                status=read(root/'status.json')
+                if status.get('state') not in ('FAILED','BUDGET_STOP'):
+                    write(root/'status.json',dict(status,state='FAILED',reason=repr(error),exit_code=1,utc=time.time()))
+                    write(root/'finish_error.json',dict(error=repr(error),traceback=traceback.format_exc()))
+                    palm_report(root)
+            raise
     else:
         code=0
         try:globals()[a.mode](root)

@@ -184,7 +184,7 @@ def record(path):
         return key,m,result
 
 
-def build_cache(root, *, partial=False):
+def build_cache(root, *, partial=False, reuse_source=None):
     root=Path(root); manifest=read(root/'manifest.json')
     current=(root/'configuration.json').exists() and read(root/'configuration.json').get('version')=='tight_state_foundation_v1'
     if current:
@@ -194,9 +194,24 @@ def build_cache(root, *, partial=False):
     if manifest.get('quarantined') and not partial: raise ValueError('Quarantined collision admission; data cannot be marked ready')
     if not partial and not manifest['collection_finished']: raise ValueError('Collection is not finished')
     out=root/('smoke_data' if partial else 'state_data'); out.mkdir(exist_ok=True)
+    reused={};reused_entries={}
+    if reuse_source is not None:
+        previous=Path(reuse_source)/'state_data';old_data=read(previous/'data.json')
+        old_cache=torch.load(previous/'numeric.pt',map_location='cpu',weights_only=False)
+        if old_cache['data_sha256']!=sha256(previous/'data.json') or old_cache['contract']!=contract(24,True):
+            raise ValueError('Accepted reusable numeric cache identity differs')
+        reused=old_cache['records'];reused_entries=old_data['entries']
     records={}; entries={}; splits={k:[] for k in ('train','validation','test')}; families={}
     for e in manifest['episodes']:
         if partial and e['split']!='train': continue
+        if e['id'] in reused:
+            previous=reused_entries[e['id']]
+            assert previous['source_sha256']==e['sha256'] and previous['path']==e['path']
+            assert Path(e['path']).is_file() and Path(e['path']).stat().st_size==e['size']
+            identity=e['id'];records[identity]=reused[identity];entries[identity]=previous
+            splits[e['split']].append(identity)
+            assert families.setdefault(e['family'],e['split'])==e['split']
+            continue
         if sha256(e['path'])!=e['sha256']:raise ValueError('Accepted capture source hash changed: '+e['id'])
         if current:
             from .camera_validity import inspect_capture
