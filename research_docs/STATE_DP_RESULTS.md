@@ -3,12 +3,12 @@
 <!-- tight-dp3-diagnostics:start -->
 ## 2026-11-08 DP3风格StateDP条件与诊断
 
-状态 **CHECKED**；阶段 `ready_to_freeze`；已完成离线轨迹 0/38。
-原因：CPU acceptance passed。正式新增更新0；新Kit/闭环启动0。
+状态 **COMPLETE**；阶段 `diagnostics_complete_no_training`；已完成离线轨迹 38/38。
+原因：Finite diagnosis complete; equivalent path and existing plateau do not justify retraining。正式新增更新0；新Kit/闭环启动0。
 等价当前robot/geometry直达condition已存在，保留原模型/GRU/U-Net与旧checkpoint。
 旧最近四次验证改善 0.9386%，验证/train8采样MSE比 35.52；依据train/validation冻结为诊断后停止，不自动续训。
 
-本轮root：`outputs/visuotactile/run/tight_dp3_20261108_01`；状态`status.json`，日志`service.log`，验收`acceptance.json`，
+本轮root：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dp3_20261108_01`；状态`status.json`，日志`service.log`，验收`acceptance.json`，
 冻结身份`session.json`/`inputs.json`/`source_freeze.json`。
 图均由本run CSV生成：`historical_curves.csv/png`为原17点完整DDIM曲线（旧episode-batch噪声）；
 `sampled_ticks.csv`/`stage_metrics.json`为当前同部署batch1顺序、固定seed7091、真实完整专家前缀、前12步目标误差；
@@ -18,6 +18,24 @@
 自主与专家不同进度下第一次物理偏离未测，不按同tick作动作误差。阶段事件只作诊断，且含transition接触/对齐信息，绝不输入网络。
 资源上限：整卡批次/完整60s均值50%，45%准入、35%目标、6GiB显存/14GiB RAM/60GiB磁盘储备；最多1h含等待。
 实测资源见`resources/resources.json`与`resource_summary.json`，启动不等于完成或全程资源合规。
+
+|专家历史离线集/阶段|Arm RMSE / hold (rad)|Hand RMSE / hold (rad)|有效tick|
+|---|---:|---:|---:|
+|train / all|0.001428 / 0.007797|0.009568 / 0.117869|2762|
+|train / approach_no_object_contact|0.001334 / 0.007792|0.009049 / 0.098436|776|
+|train / contact_low_object|0.001381 / 0.007968|0.009470 / 0.143243|543|
+|train / transport_above_3cm|0.001460 / 0.007743|0.009919 / 0.111795|1032|
+|train / native_alignment|0.001306 / 0.007429|0.009169 / 0.098119|8|
+|train / second_insertion|0.001573 / 0.007718|0.009760 / 0.129291|403|
+|train / ordered_complete_retract|未测|未测|0|
+|validation / all|0.006517 / 0.007764|0.057276 / 0.116285|10238|
+|validation / approach_no_object_contact|0.005032 / 0.007705|0.047946 / 0.097322|2742|
+|validation / contact_low_object|0.006486 / 0.008156|0.057774 / 0.144008|1978|
+|validation / transport_above_3cm|0.006448 / 0.007735|0.059106 / 0.109322|3995|
+|validation / native_alignment|0.009234 / 0.007255|0.059569 / 0.087002|30|
+|validation / second_insertion|0.008713 / 0.007379|0.066832 / 0.124859|1474|
+|validation / ordered_complete_retract|0.009092 / 0.010099|0.042326 / 0.161878|19|
+
 
 旧闭环复用：new 0/10成功，拒绝0；train 0/10成功，拒绝0；validation 0/7成功，拒绝0。不加入新实验分母。
 
@@ -115,3 +133,12 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 |Hand cap开发|pilot5/6任务成功、4/6严格准入；独立12/12成功、10/12准入；14合格/7开发家族保留，不混独立val/test。30新增capture三模态通过。旧阶段图与[原机器证据](evidence/tight_state_20261107.json)保留。|
 |formal_05旧严格合同|55原速54成功＋1拒绝；20慢速20成功/10严格准入，当时按65%产出门槛停止。原10/20与[75次尝试表](evidence/tight_production_attempts_20261107.csv)、[旧结果](evidence/tight_production_results_20261107.json)不改；新版数值2Aux因旧RGB-D已删除不可复用。|
 |旧275混速State|best4500曝光54.86等效epoch，last5000约60.95；同权重旧/canonical配对0/7→1/7，独立canonical训练家族1/4、新初态0/10合法＋2初态拒绝。旧完整状态、成功证据及分母保留；本轮没重复这7seed或重训275，不称新慢速matched-data结果。|
+
+
+<!-- tight-failure-videos:start -->
+## 2026-11-08 用户请求的三个失败案例视频
+
+状态 **PREPARED**，完成 0/3；队列已冻结，等待提交源码后启动。
+观看索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_failures_20261108_01/README.md`；阶段/计数见同目录`status.json`。
+同Core8500 EMA与原控制/物理，三个按历史结果挑选的独立观看复跑；不改原27例分母，不训练、不补seed。
+<!-- tight-failure-videos:end -->

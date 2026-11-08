@@ -86,11 +86,12 @@ def capture(root,env,player,lease,spec,alpha,*,speed_scheme=None):
     return row
 
 
-def environment(root,evaluation=False,*,camera_content_validation=None):
+def environment(root,evaluation=False,*,camera_content_validation=None,lease=None):
     from visuotactile.native_evaluation import client_startup_controls,make_env
     from visuotactile.state_resources import lease_for
     from visuotactile.expert import create_expert
-    s=read(root/'session.json');lease=lease_for(root,deadline=s['deadline'] if evaluation else s['collection_deadline'])
+    s=read(root/'session.json')
+    if lease is None:lease=lease_for(root,deadline=s['deadline'] if evaluation else s['collection_deadline'])
     if not evaluation and (camera_content_validation is False or not s.get('camera_content_validation',False)):
         raise ValueError('Collection requires explicit camera_content_validation=true and fixed camera configuration')
     if s.get('precision_policy') == 'unified_fp32':

@@ -1,5 +1,10 @@
 # Tight-Insertion StateDP
 
+2026-11-08用户追加三个失败案例视频：[冻结队列](../configs/tight_failure_videos.json)，
+`tools.tight_videos`复用现有三相机/recorder，以Core8500 EMA进行独立观看复跑。
+索引与MP4：`outputs/visuotactile/demos/tight_failures_20261108_01/README.md`；实际进度见同目录`status.json`。
+最多3次、1小时含初始化/等待；无训练、无替换seed、不改正式分母，普通后台程序自动完成解码验收与报告。
+
 当前显式任务：核实并复用已有robot/geometry直达condition，补齐DP3风格StateDP动作/行为诊断；不声称视觉DP3复现。
 等价路径已存在，旧采样曲线触发平台/过拟合停止，本轮按条件分支**不重训/续训**。
 独立[诊断配置](../configs/tight_dp3_diagnostics.json)、[当前字段与时序合同](CONTRACTS.md)、[结果](STATE_DP_RESULTS.md)。

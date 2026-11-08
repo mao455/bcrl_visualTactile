@@ -144,7 +144,7 @@ def prepare(env, isolated, spec, source, output):
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
           inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
-          capture_compression='lzf'):
+          capture_compression='lzf', expert_checkpoint=None):
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     output.mkdir(parents=True, exist_ok=False)
@@ -161,7 +161,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             return result
         metadata = env.research_metadata(); metadata['config'] = env.cfg.to_dict()
         metadata['env_origins_w'] = env.scene.env_origins.cpu().tolist()
-        metadata['expert_model_sha256'] = sha256(checkpoint)
+        metadata['expert_model_sha256'] = sha256(checkpoint if expert_checkpoint is None else expert_checkpoint)
+        if expert_checkpoint is not None:
+            metadata['policy_checkpoint_sha256'] = sha256(checkpoint)
         metadata['initial_family'] = spec.get('family', spec['identity'])
         metadata['dataset_split'] = spec.get('split', spec['cohort'])
         if expert_speed is not None:
