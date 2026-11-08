@@ -1,9 +1,13 @@
-# 当前 Tight-Insertion：Core/Auxiliary合同接续
+# 当前 Tight-Insertion：Core/Auxiliary有限任务已完成
 
-本轮从干净e26e3d92e7daa39bc695a9bef3bce64b49ca7538继续，仅修改准入/队列。使用`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`。用户明确授权新版Core/Auxiliary合同，旧65%严格产出率停机不再约束新生产；旧formal_05及10/20统计仍只读。当前运行root为`outputs/visuotactile/run/tight_state_20261107_01/composition_06`，实际状态须读status.json，运行源码完整HEAD为4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917；2026-11-07 22:30由tight-state-composition-20261107-06.service启动，首条新增Core通过，尚未冻结/训练/评估。
+使用`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、`feature/tight-state-foundation`；读research_docs/CONTRACTS.md、STATE_DP_RESULTS.md和SESSION_HANDOFF.md。root为outputs/visuotactile/run/tight_state_20261107_01/composition_06，2026-11-08 13:21:54 complete/evaluated，所有owned服务/worker/monitor已退出，不重启旧队列。
 
-固定Arm.50/Hand1/cap2rad/s，不开发新控制器；Aux bounds在新采集前固定1.35–3.30，Core1.5–3；最多8家族轮次、440慢速计划身份含旧20，复用55原速与10完整Core。旧2条数值Aux无RGB-D不能复用。原55家族/split/seed公式/范围及09:08采集、次日03:08整体deadline保持。Core优先，Aux≤100且≤Core/2、每家族≤2且≤本家族Core。Core-only训练；详见CONTRACTS。
+采集源码4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917；训练/评估fdb7ea94a1457de57ff2a9fc21d1a9486742d5ab。208Core/50家族＋15Aux/11家族冻结，Core-only fresh8500更新/100.21 anchor等效epoch，完整恢复及有限充分性条件通过；闭环train0/10、validation0/7、新初态0/10，学生仍无完整成功。没有自动追加实验、采样、Aux模型或100例评估。
 
-已完成针对性29D动作/物理时间确定性检查；当前GRU持续完整prefix，并非64tick截断历史。H24未来标签从anchor开始，在线plan取tick%12；未发现需修模型的动作/时序错位。源码未变的168/510tick等工程验收继续有效。61项定向/准入/复用队列回归通过后已开始采集。原400/275/专家/资产/成功模型/失败分母保护，不重开旧审计或重试旧案例。
+保持command-based target_after_rad、Arm7+Hand22 rad绝对目标、持续GRU、原网络/损失/权重、H24/commit12、5/60/120Hz、DDIM/overlap0与原生任务/PD/物理/DR/专家。当前不是64tick截断历史。源码未变的168/510tick等基础证据继续有效，不重开全仓审计；本轮61项定向/准入＋1成员回归通过。
 
-固定模型、资源、执行与真实交付要求以[当前合同](research_docs/CONTRACTS.md)为准；[当前结果](research_docs/STATE_DP_RESULTS.md)保留历史实验及本轮状态。
+旧20严格10/20与旧275混速结果独立保留。原400/275、专家/资产、开发/成功证据及失败分母保护。135拒绝RGB-D+1重复checkpoint已清理36.191GiB，不重复删除；best原字节保留，last完整恢复硬链接。当前数据/统计/cache路径与225合格载荷SHA清理后通过。
+
+资源实况存在整卡60s59.632%及空闲VRAM4154MiB越界，不能称全程合规；遥测/失败记录保留。v1 SIGSTOP造成比例等待重复计时，已改v2原gpu.lock计算段外等待，trainer未重启、算法未变，guard已退出。不得修改无关进程。
+
+不上传数据/checkpoint、不重写共享Git历史、不新增重复MD。后续显式任务覆盖旧阶段授权限制；本文件记录完成边界，不把数据/训练通过冒称学生成功。

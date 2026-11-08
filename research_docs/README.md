@@ -1,15 +1,17 @@
 # Tight-Insertion StateDP
 
-当前按用户新版Core/Auxiliary合同接续，已通过61项回归并恢复生产，尚未声称数据冻结、训练或闭环完成。Core目标约200，Auxiliary最多100且仅允许边界外10%；首轮训练仅Core。旧20条10/20严格准入保留，10完整Core可复用，2条数值Aux缺完整RGB-D不可复用。
+本轮已完成：208Core/50家族＋15Auxiliary/11家族冻结，Core-only随机初始化训练8500步/100.21 anchor等效epoch，闭环train0/10、validation0/7、新初态0/10。有限训练停止条件通过，但学生没有完整成功；没有扩展到100、凑300或自动增加模型实验。
 
-[当前合同](CONTRACTS.md) · [当前结果](STATE_DP_RESULTS.md) · [交接](SESSION_HANDOFF.md) · [清理](CLEANUP_AUDIT.md)
+[当前合同](CONTRACTS.md) · [当前结果与证据](STATE_DP_RESULTS.md) · [交接](SESSION_HANDOFF.md) · [清理](CLEANUP_AUDIT.md)
 
-使用修复工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、feature/tight-state-foundation；[唯一配置](../configs/tight_state.json)和tools.tight_finish原入口，Arm.50/Hand1/cap2rad/s。模型/控制/模态实现冻结；当前持续GRU不截断64tick，未来H24/commit12不变。
+使用修复工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、feature/tight-state-foundation；[唯一配置](../configs/tight_state.json)和tools.tight_finish原入口。固定Arm.50/Hand1/cap2rad/s；command-based target_after_rad、持续GRU、H24/commit12、5/60/120Hz不变，不是64tick截断历史。
 
-当前root：`outputs/visuotactile/run/tight_state_20261107_01/composition_06`。运行源码4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917，22:30启动；只读状态：
+已完成root：`outputs/visuotactile/run/tight_state_20261107_01/composition_06`。采集源码4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917，训练/评估fdb7ea94a1457de57ff2a9fc21d1a9486742d5ab。只读状态：
 
 ```bash
 bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotactile/run/tight_state_20261107_01/composition_06
 ```
 
-原400/275、专家/资产/成功模型和失败分母保护；不上传数据或权重。旧275混速State结果独立为train1/4、新初态0/10合法+2拒绝，不作为新Core模型结果。
+Core训练视图为root/manifest.json和state_data；完整组成在composition_manifest.json。当前完整模型为training/best.pt，last.pt为同inode恢复别名。所有自有服务已退出，不重复启动已完成队列；未来恢复必须保留完整状态和数据指纹，不能把新实验混入本次分母。
+
+清理136文件释放36.191GiB，原400/275、专家/资产、成功历史和失败分母保护。整卡60秒峰值59.632%、最低空闲VRAM4154MiB，本轮不是全程资源合规。仅发布代码/文档/小统计，不上传数据或权重。

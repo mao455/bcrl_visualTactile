@@ -2,6 +2,8 @@
 
 2026-11-07最新用户授权：将全体逐条1.5–3倍改为Core/Auxiliary组成，完成两项确定性实现检查后，继续同一固定方案生产及Core优先训练。此授权取代此前65%严格准入率生产停机及路径进度机制提案，不追改历史结果。现有工程验收不重开；真实阶段通过后自动继续，启动不算完成。
 
+执行结案（2026-11-08）：208Core＋15Aux冻结，Core-only fresh8500更新/100.21 anchor等效epoch；闭环train0/10、validation0/7、新初态0/10。预登记有限训练停止条件满足，但学生没有完整成功。本轮无待自动追加阶段；资源存在实测越界，详见[当前结果](STATE_DP_RESULTS.md)，不降低以下资源约束来改写历史。
+
 ## 固定实现
 
 工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、分支`feature/tight-state-foundation`；本轮起点完整HEAD `e26e3d92e7daa39bc695a9bef3bce64b49ca7538`，起始工作区干净。正式运行使用本轮提交与SHA清单，不返回IDE原工作树。唯一配置[configs/tight_state.json](../configs/tight_state.json)，入口tools.tight_finish，不新建实验体系。

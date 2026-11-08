@@ -1,5 +1,15 @@
 # 当前清理与保护结果
 
+## 2026-11-08 composition_06：36.191101GiB
+
+全部owned进程实际退出后，复用tools.project_maintenance的分类计划、PID/打开句柄、文件identity/SHA预检和逐文件journal，删除135份新未准入RGB-D载荷与1份重复checkpoint，共136文件、38,859,898,880分配bytes。原400/275及历史root在允许范围之外；225合格Core/Aux载荷（含2未选Aux）、135拒绝numeric、27学生失败轨迹、全部433数据尝试及失败分母保留。
+
+best/last完整状态逐字段相同，保留best SHA6940b066cf8296d8e90203c0aa714f2ad780d5440c6128b89ddc5698bbbaa4da；last原SHAab119825270213c17556a13e5a00cce361b06073a49461b6c69addd8caaa8b45留账，恢复路径原子切为best硬链接，旧重复inode再删除，没有巨型备份。未删不同实验对照或成功历史。
+
+清理后211执行源码/计划、6保护SHA、225合格payload SHA、135拒绝numeric SHA、冻结manifest/stat/cache指纹、3CLI及last完整状态读回通过；8500计数/442012draws保持，无GPU再训练或基础重审。当前可用约884.57GiB。root内cleanup_ledger_20261108.json、deletions journal、checkpoint_cleanup_mapping.json及post_cleanup_verification.json可复查。原400/275、专家、资产未改；旧7.510/2.705GiB与更早清理均不重复计算。
+
+下文仅为既往清理记录，其中当时“当前/未训练/容量阻断”等不代表本轮最终状态。
+
 ## formal_05本次生产清理：2.705GiB，未重复计算
 
 本次75登记尝试后按预登记yield停止。采集器仅对10条已完整写盘、State/RGB-D/触觉验收完成但逐条慢速准入被拒绝的新记录，核对原payload SHA并确认numeric证据存在后删除其RGB-D大载荷；完整账本为formal_05/collection_cleanup.jsonl。实际释放2,904,580,096分配bytes（2.705101GiB）。不是删除10次失败分母：10条均任务成功，但不符合慢速数据标准，numeric、初态、参数、事件、终止、模态验收与原payload SHA全部保留。
