@@ -23,7 +23,7 @@ def sources():
             for p in sorted((CODE/folder).rglob('*.py'))}
 
 
-def prepare(root, config):
+def prepare(root, config, remaining_from=None):
     if root.exists():
         raise FileExistsError('Existing viewing root: inspect its status; never restart automatically')
     cfg = read(config); parent = (CODE/cfg['source_root']).resolve()
@@ -45,6 +45,18 @@ def prepare(root, config):
         selected.append(dict(case, spec=spec, historical_result=old))
     if len(selected) != 3 or len({r['identity'] for r in selected}) != 3:
         raise ValueError('Exactly three distinct viewing cases required')
+    if remaining_from is not None:
+        previous = remaining_from.resolve()
+        if read(previous/'status.json')['state'] != 'FAILED' or 'GPU mean exceeded 50%' not in read(previous/'worker_error.json')['reason']:
+            raise ValueError('Explicit remaining queue only supports the recorded resource interruption')
+        if read(previous/'configuration.json') != cfg:
+            raise ValueError('Original viewing configuration changed')
+        selected = [case for case in selected if not (previous/case['identity']/'started.json').exists()]
+        if len(selected) != 2:
+            raise ValueError('Only the two never-started identities may continue; no retry/replacement')
+        cfg = dict(cfg, recovery_of=str(previous), absolute_deadline=read(previous/'session.json')['deadline'])
+        if time.time() >= cfg['absolute_deadline']: raise TimeoutError('Original viewing deadline exhausted')
+        cfg['resources'] = dict(cfg['resources'], exceeded_mean_action='wait_for_original_admission')
     root.mkdir(parents=True)
     write(root/'configuration.json', cfg)
     write(root/'plan.json', selected)
@@ -52,15 +64,16 @@ def prepare(root, config):
     files = [checkpoint, Path(session['expert_checkpoint']), parent/'manifest.json',
              parent/'state_data/data.json', parent/'state_data/statistics.pt', parent/'frozen_evaluation_plan.json']
     write(root/'inputs.json', {str(p): sha(p) for p in files})
-    beat(root, state='PREPARED', stage='awaiting_source_freeze', completed=0, total=3, exit_code=None,
+    beat(root, state='PREPARED', stage='awaiting_source_freeze', completed=0, total=len(selected), exit_code=None,
          reason='队列已冻结，等待提交源码后启动')
     report(root)
 
 
 def report(root):
     status = read(root/'status.json')
+    cfg = read(root/'configuration.json')
     text = ['# Core StateDP 失败案例观看复跑', '',
-        f"状态：{status['state']}；完成 {status['completed']}/3。{status.get('reason', '')}", '',
+        f"状态：{status['state']}；完成 {status['completed']}/{status['total']}。{status.get('reason', '')}", '',
         '按历史失败行为挑选；实际复跑结果见下表，不加入原正式评估分母。',
         '同 seed 不保证物理逐帧一致；完整三视角、60fps、1倍仿真时间，末次动作前画面结束，无重置画面。', '',
         '|原案例与历史行为|本次实际结果|已完整解码的视频|', '|---|---|---|']
@@ -80,12 +93,24 @@ def report(root):
     text += ['', '模型8500更新EMA，身份见inputs.json；旧trial checkpoint字段误指专家，本次分别记录学生与专家SHA。',
              '实际资源见resource_summary.json；整卡上限不能由显存限额保证。', '']
     temporary = root/'README.md.tmp'; temporary.write_text('\n'.join(text)); temporary.replace(root/'README.md')
+    if cfg.get('recovery_of'):
+        previous = Path(cfg['recovery_of'])
+        relative = os.path.relpath(root, previous)
+        combined = ['# Core StateDP 观看视频', '',
+            '[第一段三视角视频，592帧/9.87秒；资源中断，非自然终止](evaluation_formal_000/interrupted_592frames.mp4)', '',
+            '首次录制在整卡60秒均值51.29%时停止；原FAILED记录保留。',
+            '仅接续原队列中从未启动的两个案例，不重跑第一例、不增加seed，沿用原绝对截止时间。', '',
+            f"剩余队列：{status['state']}，{status['completed']}/{status['total']}完成。", '']
+        combined += [line.replace('](', ']('+relative+'/') for line in text[6:]]
+        temporary = previous/'README.md.tmp'; temporary.write_text('\n'.join(combined)); temporary.replace(previous/'README.md')
     target = CODE/'research_docs/STATE_DP_RESULTS.md'
     begin, end = '<!-- tight-failure-videos:start -->', '<!-- tight-failure-videos:end -->'
     fragment = '\n'.join([begin, '## 2026-11-08 用户请求的三个失败案例视频', '',
-        f"状态 **{status['state']}**，完成 {status['completed']}/3；{status.get('reason', '')}。",
+        f"状态 **{status['state']}**，完成 {status['completed']}/{status['total']}；{status.get('reason', '')}。",
         f'观看索引：`{root}/README.md`；阶段/计数见同目录`status.json`。',
         '同Core8500 EMA与原控制/物理，三个按历史结果挑选的独立观看复跑；不改原27例分母，不训练、不补seed。', end])
+    if cfg.get('recovery_of'):
+        fragment = fragment.replace(end, '首次队列因整卡60s均值51.29%停止，保留592帧已解码中断视频；本次仅接续未启动两例，原截止时间不变。\n'+end)
     previous = target.read_text()
     if begin in previous:
         previous = previous[:previous.index(begin)]+fragment+previous[previous.index(end)+len(end):]
@@ -118,7 +143,11 @@ def worker(root):
                     raise RuntimeError('Resource telemetry stale')
                 if any(v is not None and v > 50 for v in
                        (resources['gpu_time_weighted_mean_percent'], row.get('rolling_60s_percent'))):
-                    raise RuntimeError('Measured whole-card GPU mean exceeded 50%; stop only this viewing worker')
+                    if cfg['resources'].get('exceeded_mean_action') != 'wait_for_original_admission':
+                        raise RuntimeError('Measured whole-card GPU mean exceeded 50%; stop only this viewing worker')
+                    if not (root/'resource_cap_observed.json').exists():
+                        write(root/'resource_cap_observed.json', dict(utc=time.time(), resources=resources,
+                            action='Lease waits for batch, complete60s and recent means <=45; original deadline unchanged'))
             if time.monotonic()-last_beat >= 5:
                 progress = root/active/'progress.json' if active else None
                 fields = {}
@@ -154,7 +183,7 @@ def worker(root):
             write(output/'video_verified.json', dict(verified, sha256=sha(output/'rollout.mp4')))
         beat(root, completed=index+1, observed_control_steps=result.get('steps', 0))
         report(root)
-    write(root/'result.json', dict(software_complete=True, completed=3, formal_trials_added=0))
+    write(root/'result.json', dict(software_complete=True, completed=len(read(root/'plan.json')), formal_trials_added=0))
     from visuotactile.native_evaluation import exit_completed_kit_worker
     exit_completed_kit_worker(root)
 
@@ -173,14 +202,16 @@ def run(root):
         # Results MD is updated by this queue itself; all runtime/config sources must be committed.
         dirty = subprocess.check_output(['git', 'status', '--porcelain', '--', 'tools', 'visuotactile', 'configs'], cwd=CODE, text=True)
         if dirty: raise ValueError('Uncommitted runtime/configuration: '+dirty)
-        now = time.time(); deadline = now+cfg['maximum_seconds']
+        now = time.time(); deadline = min(now+cfg['maximum_seconds'], cfg.get('absolute_deadline', float('inf')))
+        if now >= deadline: raise TimeoutError('Original viewing deadline exhausted')
         session = dict(read(root/'source_session.json'), started_utc=now, deadline=deadline,
             training_deadline=deadline, source_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=CODE, text=True).strip(),
             configuration_sha256=sha(root/'configuration.json'), plan_sha256=sha(root/'plan.json'),
             resource_target_percent=35, cwd=str(CODE), python=sys.executable, viewing_only=True)
         write(root/'session.json', session); write(root/'source_freeze.json', sources())
         write(root/'gpu_schedule.json', cfg['resources'])
-        beat(root, state='RUNNING', stage='starting_monitor', pid=os.getpid(), reason='Three viewing reruns; one-hour total budget')
+        beat(root, state='RUNNING', stage='starting_monitor', pid=os.getpid(), reason='Frozen viewing queue; original one-hour deadline retained')
+        report(root)
         for mode in ('monitor', 'worker'):
             log = (root/(mode+'.log')).open('a'); logs.append(log)
             args = ['-m', 'visuotactile.state_resources'] if mode == 'monitor' else ['-m', 'tools.tight_videos', 'worker']
@@ -221,8 +252,9 @@ def main():
     parser.add_argument('mode', choices=['prepare', 'run', 'worker', 'status'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_failure_videos.json')
+    parser.add_argument('--remaining-from', type=Path)
     args = parser.parse_args(); root = args.root.resolve()
-    if args.mode == 'prepare': prepare(root, args.config)
+    if args.mode == 'prepare': prepare(root, args.config, args.remaining_from)
     elif args.mode == 'status': print(json.dumps(read(root/'status.json'), indent=2))
     elif args.mode == 'run': raise SystemExit(run(root))
     else:

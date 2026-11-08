@@ -138,7 +138,8 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 <!-- tight-failure-videos:start -->
 ## 2026-11-08 用户请求的三个失败案例视频
 
-状态 **PREPARED**，完成 0/3；队列已冻结，等待提交源码后启动。
-观看索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_failures_20261108_01/README.md`；阶段/计数见同目录`status.json`。
+状态 **PREPARED**，完成 0/2；队列已冻结，等待提交源码后启动。
+观看索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_failures_20261108_01/remaining_01/README.md`；阶段/计数见同目录`status.json`。
 同Core8500 EMA与原控制/物理，三个按历史结果挑选的独立观看复跑；不改原27例分母，不训练、不补seed。
+首次队列因整卡60s均值51.29%停止，保留592帧已解码中断视频；本次仅接续未启动两例，原截止时间不变。
 <!-- tight-failure-videos:end -->
