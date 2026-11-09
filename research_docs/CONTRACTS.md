@@ -1,3 +1,12 @@
+## 2026-11-09 用户授权资源等待接续
+
+上一录制队列在Kit启动前因仅约4秒的整卡累计均值59.76%而停止，物理尝试0；原FAILED/遥测/选模证据保留。
+用户明确要求继续，接续目录`outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01`重登一次≤1h墙钟。
+同19865更新best SHA `6558f411eeffe7b55f5012de6b103ac4b8ace94a13e17cc1a22e9ff0da6be6bc`、同10个seed/初态/原生判据/前3视频。
+仅冻结run配置启用已有`exceeded_mean_action=wait_for_original_admission`；整卡累计、完整60s与近期均值需回落至原45%准入才推进。
+无完整60s窗口时等候采样；高读数保留并暂停自身计算，不立即将worker判失败。50%上限与6GiB/14GiB/60GiB储备、35%目标不变。
+原训练及旧评估期限不重置；本次显式授权的独立截止在configuration/continuation/session留账。没有新模型/采集/自动重试。
+
 ## 2026-11-09 追加授权：有条件的成功率与视频
 
 原训练/离线任务保持35485d7源码与全部既定预算。独立工作树仅扩展已有tight_videos入口，

@@ -1,3 +1,6 @@
+当前接续：`outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
+用户已授权原10个未启动身份继续；GPU短采样偏高改为原Lease有界等待，不放宽资源阈值，不重训。
+
 当前新增授权：训练/离线结束且原平台条件满足后，使用选定模型做最多10次新初态成功率测试，前3身份录制视频。
 独立工作树入口`tools.tight_videos prepare-after-training/run`；原35485d7训练源码与预算不变，条件不满足自动SKIPPED。
 观看及状态索引：`outputs/visuotactile/demos/tight_palm_eval_20261109_01/README.md`。

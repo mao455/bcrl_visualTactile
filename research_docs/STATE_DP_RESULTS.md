@@ -3,9 +3,9 @@
 <!-- tight-palm-training:start -->
 ## 掌部几何损失与有限训练数据扩充（当前任务）
 
-状态 **prepared**，阶段 `ready_to_launch`；Focused palm/current-history/FK/trainer checks passed; awaiting frozen background collection and fresh training。
-基础208 Core/train156；新增待冻结，物理尝试见collection_progress.json。validation30/test22及固定诊断身份不变，Aux不加入。
-全新训练更新0，anchor等效epoch 0.000；目标300，平台停止最早200，训练墙钟9h优先。
+状态 **COMPLETE**，阶段 `trained_and_offline_evaluated`；。
+基础208 Core/train156；新增10，物理尝试18。validation30/test22及固定诊断身份不变，Aux不加入。
+全新训练更新19865，anchor等效epoch 234.374；目标300，平台停止最早200，训练墙钟9h优先。
 loss = 原完整29D扩散Loss B + 0.3342396122 × 平均掌部位置平方距离(m²) + 0.02994639475 × 平均0.5旋转矩阵Frobenius平方；仅有效commit12，500更新渐入。
 实际掌部/关节/决策前执行器目标和严格过去已施加目标已有60Hz通路，复用178/85维，不重复追加；GRU256不变。
 本轮尚无新的任务成功证据；完成训练/离线验证后停止，不自动物理闭环。
@@ -22,6 +22,23 @@ run：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_palm_20
 |Actor141与geometry其余78维|既有Actor噪声/延迟、物体/目标/孔/桌/指尖几何；不新引入传感器|Actor/robot/geometry每tick拼384→GRU256；条件仍896→512|anchor t的反传区间[96⌊t/96⌋,t]，≤96tick（当前12tick anchors为1–85）；更早历史no_grad重算，不缓存旧权重hidden|
 
 可丢弃验收：checkpoint/EMA/normalizer完全匹配，109tick实际在线controller与完整prefix输入完全相同，condition max1.90735e−6；FK真实位姿与梯度验收见palm_source_check.json，最终新增数据统计下再验收。
+
+|固定专家历史诊断|Arm/hold (rad)|Hand/hold (rad)|掌部FK (mm/deg)|tick|
+|---|---:|---:|---:|---:|
+|train/all|0.000632/0.007797|0.004542/0.117869|0.5419/0.0845|2762|
+|train/approach_no_object_contact|0.000587/0.007792|0.004082/0.098436|0.4912/0.0772|776|
+|train/contact_low_object|0.000627/0.007968|0.004316/0.143243|0.5528/0.0847|543|
+|train/transport_above_3cm|0.000649/0.007743|0.004902/0.111795|0.5580/0.0878|1032|
+|train/native_alignment|0.000630/0.007429|0.004681/0.098119|0.5571/0.0998|8|
+|train/second_insertion|0.000674/0.007718|0.004715/0.129291|0.5771/0.0893|403|
+|train/ordered_complete_retract|未测|未测|未测|0|
+|validation/all|0.005645/0.007764|0.056618/0.116285|4.9823/0.7034|10238|
+|validation/approach_no_object_contact|0.004322/0.007705|0.046959/0.097322|4.4282/0.5423|2742|
+|validation/contact_low_object|0.005492/0.008156|0.058060/0.144008|5.4379/0.7520|1978|
+|validation/transport_above_3cm|0.005715/0.007735|0.059125/0.109322|4.8838/0.7285|3995|
+|validation/native_alignment|0.007172/0.007255|0.058593/0.087002|4.5751/0.8916|30|
+|validation/second_insertion|0.007466/0.007379|0.063849/0.124859|5.5401/0.8643|1474|
+|validation/ordered_complete_retract|0.007939/0.010099|0.037956/0.161878|6.1796/0.8479|19|
 <!-- tight-palm-training:end -->
 
 <!-- tight-dp3-diagnostics:start -->
@@ -173,6 +190,6 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 ## 2026-11-09 有条件成功率测试与视频
 
 状态 **PREPARED**；成功0/合法0，拒绝0，中断0，未启动10。无合法完成时成功率未测。
-Wait for predecessor exit; require the original >=200 epoch / last4 <1% plateau；索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_palm_eval_20261109_01/README.md`。
+Explicitly authorized continuation; high GPU samples cause bounded admission waiting, not immediate worker termination；索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
 仅原200epoch/last4改善<1%平台达成后使用最终validation选定模型，最多10次新初态/1h、前3身份视频；不扩跑。
 <!-- tight-palm-evaluation:end -->
