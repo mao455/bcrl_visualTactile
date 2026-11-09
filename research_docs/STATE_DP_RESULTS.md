@@ -1,5 +1,20 @@
 # Tight-Insertion 当前结果
 
+<!-- VISUAL_PAIR_START -->
+## 2026-11-09 G00/G10：实现与小样本验收完成，正式训练待启动
+
+本轮run `outputs/visuotactile/run/tight_vision_20261109_01`，实际源码工作树`bc+rl_RSS_palm_eval`，发布参照72a9256；冻结commit/PID写launch.json。
+218 Core保持166/30/22，Aux15不加入、不采新数据。单writer共享约6.91GiB冻结DINOv2-S/14特征；两组公共模块相同随机初始化，不加载StateDP。
+G00合法robot178+原三视角RGB/Depth历史；G10另加原242子步观测触觉直接融合。Actor141/Geometry85拒绝进入模型，无残差。
+每组一次可丢弃更新：G00 loss0.5346713、G10 loss0.5101740；所有共同模块及G10触觉模块梯度非零、参数实际更新。
+两组完整prefix与真实NativeController在tick108的condition最大差均0；实时/缓存DINO特征最大差0。
+EMA、保存恢复、完整2×24×29 DDIM采样有限；27项既有动作/损失测试通过。验收更新不计入正式曝光、不被用作初始化。
+已按完整进程身份正常停止fingereye-async-production.service，MainPID=0/Result=success；数据保留，未动其他任务。
+本轮正式训练/最终离线/闭环尚未运行，成功率未测。每组25428更新≈300epoch，原≥200平台停止；共享训练墙钟9h优先，总≤12.5h。
+当前完整GPU授权无利用率节流，6GiB/14GiB/60GiB储备与遥测保留。普通后台测并行/串行吞吐并更新ETA，Codex不守候。
+后续train8/validation30诊断、每组最多10同spec开发闭环与首1视频由同一队列收尾；新0/10不构成验证通过，StateDP仍仅参照。
+<!-- VISUAL_PAIR_END -->
+
 ## 2026-11-09 结案与可复查图表
 
 掌部几何 StateDP 已完成 **19,865 更新、1,099,214 个采样 anchor、234.374 anchor 等效 epoch**。

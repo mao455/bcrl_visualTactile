@@ -734,8 +734,432 @@ def pipeline(root,refinement=False,speed_validation=False,baseline=False,mechani
                 palm_report(root)
 
 
+def vision_prepare(root):
+    """Freeze the accepted 218 records, lawful inputs and one shared initializer."""
+    import torch
+    import h5py
+    from visuotactile.position_control import contract,image_contract
+    from visuotactile.state_history import PersistentImage
+    from visuotactile.native_data import tactile_values
+    from visuotactile.checkpointing import save
+    cfg=read(CODE/'configs/tight_state.json');v=cfg['vision_pair'];base=CODE/v['source_root']
+    require(not (root/'configuration.json').exists(),'Already prepared; no overwrite')
+    source=read(base/'session.json');data=read(base/'state_data/data.json')
+    require([len(data['splits'][k]) for k in ('train','validation','test')]==[166,30,22],'Frozen 218 Core identity required')
+    require(data['manifest_sha256']==sha(base/'manifest.json'),'Accepted manifest identity changed')
+    cfg['loss_weights']=source['loss_weights'];cfg['training']=source['training'];cfg['palm_training']=source['palm_training']
+    cfg['palm_training']['previous_diagnostics']=str(base/'offline')
+    cfg['resources']={k:v[k] for k in ('min_gpu_free_mib','min_ram_gib','min_disk_gib')}
+    cfg['resources'].update(resource_policy='full_gpu_v1',resource_target_percent=None)
+    root.mkdir(parents=True,exist_ok=True);out=root/'state_data';out.mkdir()
+    write(root/'manifest.json',read(base/'manifest.json'))
+    data=dict(data,visual_pair=True,manifest_sha256=sha(root/'manifest.json'),
+        policy_inputs=['robot178','RGB_DINO_patches','deterministic_depth_grid'],tactile_separate=True,
+        privileged_inputs=False,source_data_sha256=sha(base/'state_data/data.json'))
+    write(out/'data.json',data)
+    raw=torch.load(base/'state_data/numeric.pt',map_location='cpu',weights_only=False)
+    require(raw['data_sha256']==data['source_data_sha256'],'Accepted numeric identity changed')
+    records={i:{k:r[k] for k in ('robot','command','time','joint_limits')} for i,r in raw['records'].items()}
+    save(out/'numeric.pt',dict(contract=contract(24,True),data_sha256=sha(out/'data.json'),records=records));del raw
+    stats=torch.load(base/'state_data/statistics.pt',map_location='cpu',weights_only=False)
+    legal={k:stats[k] for k in ('robot_mean','robot_std','action_scale','action_offset')};save(out/'statistics.pt',legal)
+    touch={};training=[]
+    for identity in data['splits']['train']+data['splits']['validation']:
+        entry=data['entries'][identity]
+        with h5py.File(entry['path']) as f:
+            g=f['episodes'][entry['episode']]['obs']
+            values=[torch.from_numpy(g[k][:entry['length']]) for k in
+                ('contact_substeps_w_N','contact_substeps_local_N','contact_time_s','time_s','contact_valid')]
+            touch[identity]=tactile_values(*values)
+            require(len(touch[identity])==len(records[identity]['time']),'Tactile/robot ticks differ')
+            require(torch.equal(values[3],records[identity]['time']),'Tactile acquisition tick differs')
+        if identity in data['splits']['train']:
+            t=touch[identity].flatten(0,1);training.append(t[t[:,-1].bool(),:30])
+    save(out/'tactile.pt',touch);all_touch=torch.cat(training)
+    save(out/'tactile_statistics.pt',dict(tactile_mean=all_touch.mean(0),tactile_std=all_touch.std(0).clamp_min(1e-4)))
+    torch.manual_seed(v['initialization_seed']);model=PersistentImage('I-HistoryDP',image_contract('I-HistoryDP',24,'G00'))
+    for k,value in legal.items():getattr(model,k).copy_(value)
+    save(root/'common_initial.pt',model.state_dict())
+    dino=Path.home()/'.cache/torch/hub/checkpoints/dinov2_vits14_pretrain.pth'
+    session=dict(source,version='tight_visual_pair_v1',vision_pair=v,resources=cfg['resources'],
+        resource_policy='full_gpu_v1',resource_target_percent=None,reserve_bytes=v['min_disk_gib']*1024**3,
+        dino_sha256=sha(dino),dino_checkpoint=str(dino),cache_deadline=time.time()+1200,
+        training=cfg['training'],palm_training=cfg['palm_training'],cwd=str(CODE),source_head=None)
+    write(root/'configuration.json',cfg);write(root/'session.json',session)
+    budget=read(base/'training/budget.json');budget={k:budget[k] for k in
+        ('anchor_population','train_episodes','effective_batch_max','short_tail','mean_batch','total_updates',
+         'target_anchor_epochs','early_stop_minimum_update','comparison_updates','selection','wall_hours','validation_interval')}
+    write(root/'budget.json',budget)
+    for group in v['groups']:
+        dest=root/group;dest.mkdir();(dest/'training').mkdir();(dest/'state_data').symlink_to(out,target_is_directory=True)
+        write(dest/'configuration.json',cfg);write(dest/'session.json',dict(session,resource_root=str(root),modality=group))
+    write(root/'evaluation_plan.json',read(CODE/v['evaluation_plan'])[:v['evaluation_attempts_per_group']])
+    write(root/'COMPLETE.json',dict(dataset_prepared=True,core=218,train=166,validation=30,test=22,
+        source=str(base),source_manifest_sha256=sha(base/'manifest.json'),source_statistics_sha256=sha(base/'state_data/statistics.pt'),
+        legal_statistics_identical=True,trainable_initial_sha256=sha(root/'common_initial.pt'),
+        estimated_cache_gib=sum(math.ceil(data['entries'][i]['length']/12) for i in data['splits']['train']+data['splits']['validation'])*3*386*18*32*2/1024**3,
+        stopped_datagen_service='fingereye-async-production.service',completed_datagen_preserved=True))
+    write(root/'status.json',dict(state='PREPARED',stage='modality_acceptance_pending',utc=time.time(),formal_updates=0))
+
+
+def vision_check(root):
+    """Two real prefixes, disposable updates; no formal model is reused from gates."""
+    import torch
+    import h5py
+    from visuotactile.native_data import cache_visual_pair,visual_records,Episode
+    from visuotactile.state_history import PersistentImage
+    from visuotactile.position_control import image_contract
+    from visuotactile.precision import state_fp32
+    from visuotactile.anchor_sampling import anchor_batch,mask_totals,weighted_parts
+    from visuotactile.state_image_loss import GeometryObjective,PALM_LOSS_ID
+    from visuotactile.checkpointing import save,training_state,restore_training
+    from visuotactile.models.vendor.ema_model import EMAModel
+    state_fp32();s=read(root/'session.json');data=read(root/'state_data/data.json')
+    ids=s['palm_training']['diagnostic_cohorts']['train'][:2]
+    cache_visual_pair(root,ids)
+    with h5py.File(data['entries'][ids[0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
+    from visuotactile.models.native_vision import NativeDinoSpatial
+    live_dino=NativeDinoSpatial().cuda().eval();cached_episode=Episode(root/'state_data',ids[0],'I-HistoryDP')
+    pixel_error=0.
+    with h5py.File(data['entries'][ids[0]]['path']) as f:
+        for tick in (0,108):
+            rgb=torch.from_numpy(f['episodes'][data['entries'][ids[0]]['episode']]['frames/rgb_u8'][tick]).cuda()
+            pixel_error=max(pixel_error,float((live_dino(rgb.float()/255)-cached_episode.frame(tick,'cuda')['patches']).abs().max()))
+    require(pixel_error==0 and not any(p.requires_grad for p in live_dino.parameters()),'Live/cached frozen DINO differs')
+    del live_dino,rgb;torch.cuda.empty_cache()
+    obj=GeometryObjective(metadata,mode=PALM_LOSS_ID,commit=12);obj.weights=s['loss_weights'];obj.gain=1/500
+    initial=torch.load(root/'common_initial.pt',map_location='cpu',weights_only=False);checks={}
+    for modality in ('G00','G10'):
+        torch.manual_seed(s['vision_pair']['initialization_seed'])
+        model=PersistentImage('I-HistoryDP',image_contract('I-HistoryDP',24,modality))
+        state=model.state_dict()
+        for k,value in initial.items():state[k].copy_(value)
+        if modality=='G10':
+            for k,value in torch.load(root/'state_data/tactile_statistics.pt',weights_only=False).items():getattr(model,k).copy_(value)
+        require(all(torch.equal(state[k],v) for k,v in initial.items()),'Shared initialization differs')
+        model.cuda();records=visual_records(root/'state_data',ids,modality,'cuda');rec=records[ids[0]]
+        rejected=[]
+        for forbidden in ('actor','geometry')+(('tactile',) if modality=='G00' else ()):
+            try:model.encode(dict(rec,**{forbidden:torch.zeros(1)}),0,1)
+            except ValueError:rejected.append(forbidden)
+        require(len(rejected)==(3 if modality=='G00' else 2),'Input allowlist failed')
+        model.eval();episode=Episode(root/'state_data',ids[0],'I-HistoryDP');memory=None
+        with torch.no_grad():
+            for tick in range(109):
+                memory=model.observe(rec['robot'][tick],rec['time'][tick],tick,episode.frame(tick,'cuda') if tick%12==0 else None,
+                    memory,tactile=rec['tactile'][tick] if modality=='G10' else None)
+            direct=model.condition(memory,rec['time'][108]);rebuilt=anchor_batch(model,records,[(ids[0],108)])[0]
+            parity=float((direct-rebuilt).abs().max());require(parity<2e-5,'Full causal prefix differs')
+            if modality=='G10':
+                altered=copy.copy(memory);altered.tactile=[x.clone() for x in memory.tactile];altered.tactile[-1][:,:30]+=.01
+                impact=float((model.condition(altered,rec['time'][108])-direct).abs().max())
+            else:
+                altered=copy.copy(memory);altered.frames=[(x+0.01,t,v) for x,t,v in memory.frames]
+                impact=float((model.condition(altered,rec['time'][108])-direct).abs().max())
+            require(impact>1e-7,'Modality does not affect condition')
+        averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
+        optimizer=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
+        generator=torch.Generator().manual_seed(7091);noise=torch.Generator(device='cuda').manual_seed(7092)
+        selected=[(i,108) for i in ids];model.train();optimizer.zero_grad(set_to_none=True)
+        c,y,m=anchor_batch(model,records,selected);_,parts,_=obj.forward(model,c,y,m,noise)
+        loss,_=weighted_parts(parts,m,mask_totals({i:len(r['time']) for i,r in records.items()},selected,12),
+            {k:v*obj.gain for k,v in obj.weights.items()},12)
+        require(torch.isfinite(loss),'Nonfinite gate loss');loss.backward()
+        modules=['robot_encoder','vision','native_input','native_gru','visual_gru','condition_projection','denoiser']
+        if modality=='G10':modules+=['tactile_history','tactile_fusion']
+        evidence={}
+        for name in modules:
+            params=list(getattr(model,name).parameters());grad=sum(float(p.grad.abs().sum()) for p in params if p.grad is not None)
+            require(grad>0 and math.isfinite(grad),'Missing gradient: '+name)
+            p=next(p for p in params if p.grad is not None and p.grad.abs().sum()>0);evidence[name]=(p,p.detach().clone(),grad)
+        torch.nn.utils.clip_grad_norm_(model.parameters(),1.);optimizer.step();ema.step(model)
+        updated={name:dict(gradient_sum=g,changed=bool((p!=old).any())) for name,(p,old,g) in evidence.items()}
+        require(all(x['changed'] for x in updated.values()),'Trainable module did not update')
+        saved=training_state(model,averaged,optimizer,ema,generator,noise,group=model.group,updates=1,configuration=dict(modality=modality))
+        path=root/('gate_'+modality+'.pt');save(path,saved)
+        loaded=torch.load(path,map_location='cpu',weights_only=False);restore_training(loaded,model,averaged,optimizer,ema,generator,noise)
+        require(all(torch.equal(v.cpu(),loaded['ema'][k]) for k,v in averaged.state_dict().items()),'EMA restore differs')
+        with torch.no_grad():prediction=averaged.predict(c.detach(),torch.Generator(device='cuda').manual_seed(7091))
+        require(prediction.shape==(2,24,29) and torch.isfinite(prediction).all(),'DDIM prediction failed')
+        from visuotactile.native_controller import NativeController
+        # Replay only legal sensor fields and past command acknowledgments through
+        # the deployment controller. Predictions are bypassed for this history
+        # check only; the full DDIM call above independently exercises sampling.
+        current_tick=[0]
+        controller=NativeController(loaded,metadata,dino=lambda rgb:cached_episode.frame(current_tick[0],'cuda')['patches'])
+        controller.model.predict=lambda condition,generator:torch.zeros(1,24,29,device='cuda')
+        with h5py.File(data['entries'][ids[0]]['path']) as f:
+            episode_data=f['episodes'][data['entries'][ids[0]]['episode']];obs=episode_data['obs']
+            for tick in range(109):
+                current_tick[0]=tick
+                packet={k:torch.from_numpy(obs[k][tick:tick+1]) for k in
+                    ('episode_id','step_id','time_s','task_id','goal_valid','actuator_target_rad','camera_time_s','camera_valid')}
+                if modality=='G10':packet.update({k:torch.from_numpy(obs[k][tick:tick+1]) for k in
+                    ('contact_substeps_w_N','contact_substeps_local_N','contact_time_s','contact_valid')})
+                if tick%12==0:
+                    frame=episode_data['frames'];rgb=torch.from_numpy(frame['rgb_u8'][tick]).float()/255
+                    packet['image']=torch.cat((rgb,torch.from_numpy(frame['depth_m'][tick])),1)[None]
+                    packet['depth_valid']=torch.from_numpy(frame['depth_valid'][tick:tick+1])
+                diagnostics={k:torch.from_numpy(episode_data['transition/diagnostics_before'][k][tick:tick+1]) for k in
+                    ('joint_position_rad','joint_velocity_rad_s')}
+                controller.act(packet,diagnostics)
+                controller.command=rec['command'][tick:tick+1].cpu()
+                controller.observe_execution({'position_applied_rad':controller.command})
+        with torch.no_grad():expected=anchor_batch(averaged,records,[(ids[0],108)])[0]
+        deployed_error=float((controller.last_condition-expected).abs().max())
+        require(deployed_error<2e-5,'Deployment sensor/history condition differs')
+        checks[modality]=dict(passed=True,prefix_max_abs=parity,condition_effect=impact,rejected=rejected,
+            modules=updated,loss=float(loss),full_prediction_shape=list(prediction.shape),ema_step=ema.optimization_step,
+            saved_sha256=sha(path),gate_updates_not_formal_training=True,deployment_prefix_max_abs=deployed_error,
+            live_cached_dino_max_abs=pixel_error)
+        del model,averaged,optimizer,ema,saved,loaded,evidence,state,records,rec,c,y,m,parts,loss,memory,altered,p,prediction
+        del controller,expected;path.unlink();torch.cuda.empty_cache()
+    write(root/'vision_acceptance.json',dict(passed=True,checks=checks,data_sha256=sha(root/'state_data/data.json'),
+        statistics_sha256=sha(root/'state_data/statistics.pt'),dino_sha256=s['dino_sha256'],
+        cache=read(root/'cache_acceptance_index.json'),utc=time.time()))
+
+
+def vision_cache(root):
+    from visuotactile.native_data import cache_visual_pair
+    cache_visual_pair(root)
+
+
+def vision_report(root):
+    """Ordinary owner publishes measured results, including partial failures."""
+    status=read(root/'status.json');rows=[];text_rows=[]
+    for group in ('G00','G10'):
+        g=root/group;p=g/'training/progress.json';end=g/'training/finished.json';offline=g/'offline/stage_metrics.json'
+        progress=read(p) if p.exists() else {};finished=read(end) if end.exists() else {}
+        metrics=[x for x in read(offline) if x['split']=='validation' and x['motion']=='all' and x['phase']=='all'] if offline.exists() else []
+        evaluation=read(g/'evaluation_summary.json') if (g/'evaluation_summary.json').exists() else None
+        row=dict(group=group,training=finished,progress=progress,validation=metrics,evaluation=evaluation,
+            last=str(g/'training/last.pt') if (g/'training/last.pt').exists() else None,
+            best=str(g/'training/best.pt') if (g/'training/best.pt').exists() else None,
+            failure=read(g/'failure.json') if (g/'failure.json').exists() else None)
+        arm=next((x for x in metrics if x['group']=='arm'),None);hand=next((x for x in metrics if x['group']=='hand'),None)
+        if not arm or not hand or evaluation is None:
+            row['residual_readiness']='未测完整离线/闭环；尚不能判断残差基础能力'
+        else:
+            better_hold=arm['rmse_rad']<arm['hold_rmse_rad'] and hand['rmse_rad']<hand['hold_rmse_rad']
+            degraded=(arm['rmse_rad']>.005645*1.5 or hand['rmse_rad']>.056618*1.5 or
+                arm['ee_rmse_mm']>4.9823*1.5 or arm['palm_angle_mean_deg']>.7034*1.5)
+            stage_progress=any(r.get('native_lift') or r.get('native_subgoals',0)>0 for r in evaluation['results'])
+            row['comparison_flags']=dict(both_joint_groups_better_than_hold=better_hold,
+                any_metric_over_1p5_State_reference=degraded,observed_lift_or_subgoal=stage_progress,
+                scope='Descriptive development flags only; not a success gate or model-selection rule')
+            row['residual_readiness']=('可作为下一阶段开发起点，尚无可靠性/等价性证明；是否完整成功见真实分母' if
+                better_hold and not degraded and stage_progress else '当前证据不足以支持残差试验；查看相对保持目标、StateDP误差与原生阶段进展，停止不自动调参')
+        evaluation_counts={k:value for k,value in evaluation.items() if k!='results'} if evaluation else None
+        rows.append(row);text_rows.append(f"- {group}: updates={progress.get('update',0)}, anchor epochs={progress.get('anchor_equivalent_epochs',0):.3f}; stop={finished.get('stop_reason',row['failure'] or 'not finished')}; validation={json.dumps(metrics,ensure_ascii=False)}; development={json.dumps(evaluation_counts,ensure_ascii=False)}")
+        text_rows.append('  '+row['residual_readiness'])
+    result=dict(status=status,groups=rows,state_reference=dict(arm_rad=.005645,hand_rad=.056618,palm_mm=4.9823,angle_deg=.7034,
+        success=0,valid=10,scope='Same development reset specifications; hidden simulator state is not bitwise paired'),
+        residual_training_started=False,readiness='Unproven until offline hold comparison and native stage progress are available; 0/10 alone is not acceptance')
+    write(root/'result.json',result)
+    block='\n'.join(['<!-- VISUAL_PAIR_START -->','## G00/G10 visual pair — '+status['state'],
+        f"Run: `{root}`; source `{status.get('source_head','pending')}`; updated UTC epoch `{time.time()}`.",
+        '218 Core (166/30/22); test22 unused. H24/commit12; frozen DINOv2-S/14 RGB + existing Depth; no Actor141/Geometry85 or residual.',
+        'The two independent models share initial common parameters and train-only normalizers. G10 also learns its tactile encoder and fusion.',
+        *text_rows,'Offline errors use expert causal histories; native rollouts are separate development evidence. Missing stages are unmeasured.',
+        'No automatic G01/G11, recollection, retry or parameter search. Future G01 freezes selected G00; G11 freezes selected G10.',
+        '<!-- VISUAL_PAIR_END -->'])
+    path=CODE/'research_docs/STATE_DP_RESULTS.md';existing=path.read_text()
+    import re
+    if '<!-- VISUAL_PAIR_START -->' in existing:existing=re.sub(r'<!-- VISUAL_PAIR_START -->.*?<!-- VISUAL_PAIR_END -->',lambda _:block,existing,flags=re.S)
+    else:existing+='\n\n'+block+'\n'
+    temporary=path.with_suffix('.md.tmp');temporary.write_text(existing);temporary.replace(path)
+
+
+def vision_evaluate(root):
+    import torch
+    from tools.tight_state import environment
+    from visuotactile.state_benchmark import trial
+    from visuotactile.state_resources import lease_for
+    from visuotactile.video import verify_video
+    from visuotactile.native_evaluation import exit_completed_kit_worker
+    s=read(root/'session.json');v=s['vision_pair'];lease=lease_for(root,deadline=s['evaluation_deadline'])
+    require(sha(s['dino_checkpoint'])==s['dino_sha256'],'Frozen DINO identity changed before deployment')
+    app,env,player,lease=environment(root,True,lease=lease)
+    available=[g for g in v['groups'] if (root/g/'offline/result.json').exists()]
+    results={g:[] for g in available};plan=read(root/'evaluation_plan.json');saved={}
+    for group in available:
+        checkpoint=root/group/'training/best.pt';saved[group]=torch.load(checkpoint,map_location='cpu',weights_only=False)
+        require(saved[group]['configuration']['statistics_sha256']==sha(root/'state_data/statistics.pt'),'Evaluation normalizer differs')
+        require(saved[group]['configuration']['dino_sha256']==s['dino_sha256'],'Checkpoint DINO identity differs')
+    for index,case in enumerate(plan):
+        for group in available:
+            checkpoint=root/group/'training/best.pt';out=root/group/'evaluation'/case['identity']
+            record=index<v['videos_per_group']
+            write(root/'evaluation_progress.json',dict(group=group,case=index,completed=sum(map(len,results.values())),utc=time.time()))
+            result=trial(env,lease,out,case['spec'],{},player,str(checkpoint),saved=saved[group],position=True,video=record,
+                expert_checkpoint=s['expert_checkpoint'],video_title=f'{group} visual DP | development seed {case["spec"]["seed"]}')
+            if result.get('legal') and record:write(out/'video_verified.json',verify_video(out/'rollout.mp4',expected_frames=result['steps']))
+            results[group].append(result)
+            valid=[r for r in results[group] if r.get('legal') and r.get('software_complete')]
+            write(root/group/'evaluation_summary.json',dict(attempts=len(results[group]),valid=len(valid),
+                rejected=len(results[group])-len(valid),successes=sum(bool(r.get('success')) for r in valid),
+                native_lifts=sum(bool(r.get('native_lift')) for r in valid),
+                first_subgoal_reached=sum(r.get('native_subgoals',0)>0 for r in valid),
+                alignments=sum(bool(r.get('native_alignment')) for r in valid),
+                results=results[group],development_only=True,formal_test22_used=False,
+                paired_specs_and_sampler_seed=True,bitwise_hidden_state_pairing_proven=False))
+            require(result.get('software_complete') or not result.get('legal'),'Evaluation software failure; no retry')
+    write(root/'evaluation_complete.json',dict(complete=True,groups=available,maximum_attempts_each=10,utc=time.time()))
+    exit_completed_kit_worker(root)
+
+
+@supervised_owner
+def vision_run(root):
+    """Finite cache/pair/offline/single-Kit queue within the existing owner."""
+    import fcntl
+    lock=(root/'vision.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    require(not (root/'launch.json').exists(),'Existing launch must not reset its deadlines')
+    require(read(root/'vision_acceptance.json')['passed'],'Modality acceptance failed')
+    for group in ('G00','G10'):
+        require(read(root/('smoke_'+group)/'check/result.json')['complete_restore'],'Trainer restore gate missing')
+    dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=CODE,text=True).strip()
+    require(not dirty,'Commit actual runtime before launch: '+dirty)
+    head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip()
+    cfg=read(root/'configuration.json');s=read(root/'session.json');v=cfg['vision_pair'];budget=read(root/'budget.json')
+    now=time.time();s.update(started=now,deadline=now+v['maximum_hours']*3600,cache_deadline=now+v['cache_hours']*3600,
+        training_deadline=now+(v['maximum_hours']-2)*3600,offline_deadline=None,evaluation_deadline=None,
+        collection_deadline=None,development_deadline=None,
+        source_head=head,python=sys.executable,cwd=str(CODE),owned_worker_roots=[str(root/g/'training') for g in v['groups']])
+    write(root/'session.json',s);write(root/'launch.json',dict(pid=os.getpid(),source_head=head,cwd=str(CODE),python=sys.executable,
+        started=now,configuration_sha256=sha(root/'configuration.json'),data_sha256=sha(root/'state_data/data.json')))
+    source_files=subprocess.check_output(['git','ls-files','visuotactile/*.py','tools/*.py','configs/tight_state.json'],cwd=CODE,text=True).splitlines()
+    frozen={p:sha(CODE/p) for p in source_files};write(root/'source_freeze.json',frozen)
+    write(root/'concurrency.json',dict(mode='parallel',pause_groups=[]))
+    (root/'STOP_MONITOR').unlink(missing_ok=True);children=[];monitor=None;failures=[]
+    def status(stage,**kw):
+        write(root/'status.json',dict(state='RUNNING',stage=stage,pid=os.getpid(),source_head=head,utc=time.time(),**kw))
+    def spawn(args,name):
+        require(all(sha(CODE/p)==value for p,value in frozen.items()),'Runtime source changed after launch; stop dependent stages')
+        log=(root/(name+'.log')).open('a')
+        env=dict(os.environ)
+        if name=='G10_training':env['RESEARCH_CPUS']='20,21'
+        child=subprocess.Popen(RUN+args,cwd=CODE,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
+        log.close();children.append(child);return child
+    def wait(child,deadline,stage):
+        began=time.time()
+        while child.poll() is None:
+            if time.time()>=deadline:kill_owned(child);raise TimeoutError(stage+' wall budget exhausted')
+            cache=read(root/'cache_progress.json') if (root/'cache_progress.json').exists() else None
+            eta=dict(stage=stage,utc=time.time(),stage_hard_stop_utc=deadline,queue_hard_stop_utc=s['deadline'])
+            if stage=='shared_dino_cache':
+                eta.update(cache_remaining_seconds=cache.get('eta_seconds') if cache else None,
+                    training_remaining_seconds=None,reason='Training throughput not measured yet; training <=9h, offline/evaluation <=2h')
+            elif stage.endswith('_offline'):
+                path=root/stage.split('_')[0]/'offline/progress.json';p=read(path) if path.exists() else {}
+                count=p.get('offline_episodes',0);eta['offline_remaining_seconds']=(38-count)*(time.time()-began)/count if count else None
+            elif stage=='matched_development':
+                path=root/'evaluation_progress.json';p=read(path) if path.exists() else {};count=p.get('completed',0)
+                eta['evaluation_remaining_seconds']=(20-count)*(time.time()-began)/count if count else None
+            write(root/'eta.json',eta)
+            status(stage,worker_pid=child.pid,cache=cache,eta=eta)
+            time.sleep(5)
+        if child.returncode:raise RuntimeError(stage+' exit '+str(child.returncode))
+    try:
+        monitor=spawn(['-m','visuotactile.state_resources','--root',str(root)],'monitor')
+        # Bounded telemetry admission; an ordinary process, never a model watcher.
+        for _ in range(10):
+            if (root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json')['utc_epoch']<4:break
+            time.sleep(1)
+        wait(spawn(['-m','tools.tight_finish','vision_cache','--root',str(root)],'cache'),s['cache_deadline'],'shared_dino_cache')
+        start=time.time();train_deadline=min(start+v['training_hours']*3600,s['deadline']-7200)
+        s['training_deadline']=train_deadline;write(root/'session.json',s)
+        workers={}
+        for group in v['groups']:
+            dest=root/group;gs=dict(s,resource_root=str(root),modality=group);write(dest/'session.json',gs)
+            runtime=dict(resource_policy='full_gpu_v1',external_monitor_root=str(root),training_deadline=train_deadline,
+                modality=group,microbatch=v['microbatch'],random_seed=v['initialization_seed'],
+                validation_interval=budget['validation_interval'],early_stop_minimum_update=budget['early_stop_minimum_update'],
+                comparison_updates=budget['comparison_updates'],deterministic_validation_loss=True)
+            write(dest/'training/session.json',runtime);write(dest/'training/budget.json',budget)
+            workers[group]=spawn(['-m','visuotactile.anchor_continue','fresh-train','--job','state','--data',str(root/'state_data'),
+                '--root',str(dest/'training'),'--target',str(budget['total_updates']),'--output',str(dest/'training/launch')],group+'_training')
+        measured='parallel';baseline=None;serial=None;active='G00';switch_at=None;recorded=set()
+        while any(p.poll() is None for p in workers.values()):
+            now=time.time();progress={g:read(root/g/'training/progress.json') if (root/g/'training/progress.json').exists() else {} for g in workers}
+            live=[g for g,p in workers.items() if p.poll() is None]
+            for g,p in workers.items():
+                if p.poll() is not None and g not in recorded:
+                    recorded.add(g)
+                    if p.returncode:
+                        failure=dict(stage='training',exit_code=p.returncode,reason='See '+g+'_training.log',utc=now)
+                        write(root/g/'failure.json',failure);failures.append(dict(group=g,**failure))
+            if now>=train_deadline:
+                for g in live:kill_owned(workers[g]);write(root/g/'failure.json',dict(stage='training',reason='fixed_wall_budget',exit_code=workers[g].returncode))
+                failures.append(dict(stage='training',reason='fixed_wall_budget'));break
+            counts={g:progress[g].get('update',0) for g in workers};anchors={g:progress[g].get('sampled_anchors',0) for g in workers}
+            if measured=='parallel' and len(live)==2 and min(counts.values())>=v['parallel_measure_updates']:
+                # Measure a second window after initialization, so startup is not counted as throughput.
+                if baseline is None:baseline=(now,counts.copy(),anchors.copy())
+                elif min(counts[g]-baseline[1][g] for g in live)>=v['parallel_measure_updates']:
+                    parallel_rate=sum(anchors[g]-baseline[2][g] for g in live)/(now-baseline[0])
+                    serial=(now,counts['G00'],anchors['G00']);measured='serial_probe'
+                    write(root/'concurrency.json',dict(mode=measured,pause_groups=['G10'],parallel_anchors_per_second=parallel_rate))
+            elif measured=='serial_probe' and len(live)==2 and counts['G00']-serial[1]>=v['serial_compare_updates']:
+                serial_rate=(anchors['G00']-serial[2])/(now-serial[0])
+                measured='parallel_selected' if parallel_rate>=serial_rate*v['parallel_efficiency_floor'] else 'serial_selected'
+                active=min(live,key=lambda g:counts[g]);switch_at=counts[active]+v['serial_switch_updates']
+                write(root/'throughput_comparison.json',dict(parallel_anchors_per_second=parallel_rate,serial_anchors_per_second=serial_rate,
+                    selected=measured,utc=now,includes_normal_io_and_prefix_work=True))
+                write(root/'concurrency.json',dict(mode=measured,pause_groups=[] if measured=='parallel_selected' else [g for g in live if g!=active]))
+            elif measured=='serial_selected' and len(live)==2 and counts[active]>=switch_at:
+                active=min(live,key=lambda g:counts[g]);switch_at=counts[active]+v['serial_switch_updates']
+                write(root/'concurrency.json',dict(mode=measured,pause_groups=[g for g in live if g!=active]))
+            if len(live)==1:write(root/'concurrency.json',dict(mode='single_remaining',pause_groups=[]))
+            estimates={g:dict(remaining_seconds_unbounded=progress[g].get('remaining_seconds_estimate'),
+                budget_remaining_seconds=max(0,train_deadline-now),includes_observed_wait=True) for g in workers}
+            predicted=[x['remaining_seconds_unbounded'] for x in estimates.values() if x['remaining_seconds_unbounded'] is not None]
+            write(root/'eta.json',dict(stage='training',utc=now,groups=estimates,cache_remaining_seconds=0,
+                concurrency=measured,training_completion_utc_estimate=now+min(max(predicted),max(0,train_deadline-now)) if predicted else None,
+                post_training_budget_seconds=7200,queue_hard_stop_utc=s['deadline'],
+                basis='Per-worker observed wall time includes current/previous concurrency and actual waits; not a single-model speed extrapolation'))
+            status('training',groups=progress,worker_pids={g:p.pid for g,p in workers.items()},concurrency=measured,eta=estimates,
+                queue_latest_finish_utc=s['deadline'],evaluation_budget_seconds=3600,offline_budget_seconds=3600)
+            time.sleep(5)
+        for group,p in workers.items():
+            if p.poll() is not None and p.returncode and group not in recorded:
+                failure=dict(group=group,stage='training',exit_code=p.returncode,reason='See '+group+'_training.log')
+                failures.append(failure);write(root/group/'failure.json',failure)
+        write(root/'concurrency.json',dict(mode='post_training',pause_groups=[]))
+        offline_deadline=min(time.time()+v['offline_hours']*3600,s['deadline']-v['evaluation_hours']*3600)
+        s['offline_deadline']=offline_deadline;write(root/'session.json',s)
+        for group,p in workers.items():
+            dest=root/group
+            if not (dest/'training/finished.json').exists():continue
+            gs=read(dest/'session.json');gs['offline_deadline']=offline_deadline;write(dest/'session.json',gs)
+            try:wait(spawn(['-m','tools.tight_diagnostics','final','--root',str(dest)],group+'_offline'),offline_deadline,group+'_offline')
+            except (RuntimeError,TimeoutError) as error:
+                failures.append(dict(group=group,stage='offline',reason=repr(error)));write(dest/'failure.json',failures[-1])
+        if any((root/g/'offline/result.json').exists() for g in workers):
+            s['evaluation_deadline']=min(time.time()+v['evaluation_hours']*3600,s['deadline']);write(root/'session.json',s)
+            try:wait(spawn(['-m','tools.tight_finish','vision_evaluate','--root',str(root)],'evaluation'),s['evaluation_deadline'],'matched_development')
+            except (RuntimeError,TimeoutError) as error:failures.append(dict(stage='evaluation',reason=repr(error)))
+        budget_stop=any((root/g/'training/finished.json').exists() and read(root/g/'training/finished.json')['stop_reason']=='fixed_wall_budget' for g in workers)
+        write(root/'status.json',dict(state='FAILED' if failures else 'BUDGET_STOP' if budget_stop else 'COMPLETE',stage='finished',source_head=head,
+            utc=time.time(),exit_code=1 if failures else 0,failures=failures,reason='Finite queue ended; no automatic next model'))
+    except BaseException as error:
+        write(root/'owner_error.json',dict(error=repr(error),traceback=traceback.format_exc()))
+        write(root/'status.json',dict(state='BUDGET_STOP' if isinstance(error,TimeoutError) else 'FAILED',stage='stopped',
+            source_head=head,utc=time.time(),exit_code=1,reason=repr(error)))
+        raise
+    finally:
+        for p in children:
+            if p is not monitor:kill_owned(p)
+        (root/'STOP_MONITOR').touch()
+        if monitor is not None:
+            try:monitor.wait(timeout=15)
+            except subprocess.TimeoutExpired:kill_owned(monitor)
+        result=read(root/'status.json');result.update(owned_workers_exited=True,utc=time.time());write(root/'status.json',result)
+        vision_report(root)
+    if read(root/'status.json')['state']=='FAILED':raise RuntimeError('Finite queue contains failed stages; see status.json')
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_evaluate']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)

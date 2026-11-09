@@ -237,5 +237,40 @@
     "offline_hours": 1,
     "stop_rule": "After >=200 anchor epochs, last4 validation gain<1%; any time last3 scores>2x prior best; NaN stops immediately",
     "final_closed_loop": false
+  },
+  "vision_pair": {
+    "version": "visual_pair_v1",
+    "source_root": "outputs/visuotactile/run/tight_palm_20261108_01",
+    "groups": [
+      "G00",
+      "G10"
+    ],
+    "initialization_seed": 2026110803,
+    "cache_hours": 1.5,
+    "training_hours": 9,
+    "offline_hours": 1,
+    "evaluation_hours": 1,
+    "maximum_hours": 12.5,
+    "resource_policy": "full_gpu_v1",
+    "min_gpu_free_mib": 6144,
+    "min_ram_gib": 14,
+    "min_disk_gib": 60,
+    "maximum_parallel_trainers": 2,
+    "parallel_measure_updates": 32,
+    "serial_compare_updates": 32,
+    "serial_switch_updates": 200,
+    "parallel_efficiency_floor": 0.95,
+    "microbatch": 4,
+    "evaluation_plan": "outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/plan.json",
+    "evaluation_attempts_per_group": 10,
+    "videos_per_group": 1,
+    "tactile_definition": "3e11d62 long_data.tactile_values; MaskedHistory32to64 last242 120Hz samples",
+    "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+    "dino_architecture": "dinov2_vits14",
+    "future_residual_bases": {
+      "G01": "G00 selected EMA frozen",
+      "G11": "G10 selected EMA frozen"
+    },
+    "residual_training": false
   }
 }

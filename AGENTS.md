@@ -1,4 +1,15 @@
-# 2026-11-09 当前结案与发布范围
+# 2026-11-09 当前授权：G00/G10视觉训练
+
+本轮用户明确授权218 Core(166/30/22)上的G00/G10新视觉策略；不是继续StateDP。
+实际源码工作树bc+rl_RSS_palm_eval，起点72a9256，现有tools.tight_finish vision_run与configs/tight_state.json vision_pair。
+读CONTRACTS与STATE_DP_RESULTS。无Actor141/Geometry85真值；共用冻结DINOv2-S/14缓存与共同随机初始化；G10联合训练触觉直接融合。
+完整GPU使用覆盖旧45/50%上限；6GiB VRAM/14GiB RAM/60GiB磁盘储备保持。已正常停止明确识别的fingereye-async-production.service，数据保留。
+缓存1.5h、共享训练墙钟9h、离线合计1h、单Kit评估合计1h，总12.5h；每组25428更新≈300epoch、原200后平台规则。
+固定validation选模；各最多10同spec开发trial，首1视频；test22不用于选择。G01/G11本轮不训练，不新增数据/自动调参/失败重试。
+只编辑现有源码/配置/MD，先提交推origin feature再启动并冻结；Codex启动后短监督≤60–90s即退出，普通owner收尾，无LLM轮询。
+本轮root outputs/visuotactile/run/tight_vision_20261109_01；机器status/launch与实际产物优先于历史叙述。
+
+# 2026-11-09 已完成StateDP结案与发布范围
 
 训练root tight_palm_20261108_01 COMPLETE：19865更新/234.374 anchor等效epoch，validation平台停止；
 评估root tight_palm_eval_20261109_01/remaining_01 COMPLETE：10合法/0成功、8timeout/2fall，3视频完整解码。

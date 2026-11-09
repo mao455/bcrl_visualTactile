@@ -117,7 +117,14 @@ class Episode:
     def __init__(self, root, identity, group):
         self.group = group
         root = Path(root)
-        index = json.loads((root/'data.json').read_text())['entries'][identity]
+        info = json.loads((root/'data.json').read_text())
+        index = info['entries'][identity]
+        if info.get('visual_pair'):
+            shard = torch.load(root/'perception'/(identity+'.pt'),map_location='cpu',weights_only=False,mmap=True)
+            self.record = {k:shard[k] for k in ('camera_time','camera_valid')}
+            self.perception = {k:shard[k] for k in ('patches','depth')}
+            self.index = index
+            return
         self.record = torch.load(root/'numeric'/(identity+'.pt'), map_location='cpu', weights_only=False)
         self.index = index
         self.perception = None
@@ -147,3 +154,80 @@ class Episode:
                     depth=torch.from_numpy(frames['depth_m'][tick]).to(device),
                     depth_valid=torch.from_numpy(frames['depth_valid'][tick]).to(device))
         return result
+
+
+def tactile_values(world, local, stamps, observed, valid):
+    """Preserved G10 long_data convention (3e11d62): 2x32 per control tick."""
+    values = torch.cat((world,local),-1).flatten(-2)
+    values = values.sign()*torch.log1p(values.abs())
+    age = (observed[...,None]-stamps).float()
+    mask = valid[...,None].expand_as(stamps)
+    if ((age < -1e-6)&mask).any():raise ValueError('Future tactile sample')
+    return torch.where(mask[...,None],torch.cat((values,age[...,None],mask[...,None].float()),-1),0.)
+
+
+def visual_records(data_root, identities, modality, device='cpu'):
+    """Strict dataset boundary: G00 never loads the separate tactile file."""
+    root=Path(data_root)
+    cache=torch.load(root/'numeric.pt',map_location='cpu',weights_only=False)
+    if cache['data_sha256']!=sha256(root/'data.json'):raise ValueError('Numeric identity differs')
+    touch=torch.load(root/'tactile.pt',map_location='cpu',weights_only=False) if modality=='G10' else None
+    records={}
+    for identity in identities:
+        raw=cache['records'][identity]
+        if set(raw)!={'robot','command','time','joint_limits'}:raise ValueError('Privileged visual record')
+        records[identity]={k:v.to(device) for k,v in raw.items()}
+        records[identity].update(identity=identity,source_root=str(root))
+        if touch is not None:records[identity]['tactile']=touch[identity].to(device)
+    return records
+
+
+def cache_visual_pair(root, identities=None):
+    """Single writer, immutable backbone features only; live uses the same call."""
+    import time
+    from .models.native_vision import NativeDinoSpatial
+    from .state_resources import lease_for
+    from .checkpointing import save
+    from .training_resources import atomic_json
+    root=Path(root);out=root/'state_data';info=json.loads((out/'data.json').read_text())
+    ids=identities or info['splits']['train']+info['splits']['validation']
+    plan=json.loads((root/'session.json').read_text())
+    if sha256(plan['dino_checkpoint'])!=plan['dino_sha256']:raise ValueError('Frozen DINO weight file changed')
+    lease=lease_for(root,deadline=plan['cache_deadline'])
+    with lease.block():dino=NativeDinoSpatial().cuda().eval()
+    if any(p.requires_grad for p in dino.parameters()):raise ValueError('DINO must be frozen')
+    (out/'perception').mkdir(exist_ok=True);entries={};started=time.time();frames_done=0
+    total=sum((info['entries'][i]['length']+11)//12 for i in ids)
+    prior=json.loads((root/'cache_acceptance_index.json').read_text()) if (root/'cache_acceptance_index.json').exists() else None
+    if prior and (prior['dino_sha256']!=plan['dino_sha256'] or prior['data_sha256']!=sha256(out/'data.json')):
+        raise ValueError('Acceptance cache identity differs')
+    for identity in ids:
+        entry=info['entries'][identity];patches=[];depth=[]
+        path=out/'perception'/(identity+'.pt')
+        if path.exists():
+            old=prior['entries'].get(identity) if prior else None
+            if not old or old['sha256']!=sha256(path) or old['source_sha256']!=entry['source_sha256']:
+                raise ValueError('Unverified existing cache: '+identity)
+            entries[identity]=old;total-=old['frames'];continue
+        with h5py.File(entry['path'],'r') as f:
+            g=f['episodes'][entry['episode']];meta=json.loads(f.attrs['metadata_json'])
+            if meta['camera_ids']!=CAMERAS:raise ValueError('Camera order differs')
+            ticks=np.arange(0,entry['length'],12)
+            times=torch.from_numpy(g['obs/time_s'][ticks]);ct=torch.from_numpy(g['obs/camera_time_s'][ticks]);cv=torch.from_numpy(g['obs/camera_valid'][ticks])
+            if not cv.all() or ((times[:,None]-ct)<-1e-6).any():raise ValueError('Invalid/future camera')
+            for tick in ticks:
+                with lease.block():
+                    rgb=torch.from_numpy(g['frames/rgb_u8'][int(tick)]).cuda()
+                    patches.append(dino(rgb).cpu())
+                    depth.append(depth_grid(torch.from_numpy(g['frames/depth_m'][int(tick)]),torch.from_numpy(g['frames/depth_valid'][int(tick)])))
+                frames_done+=1
+                elapsed=time.time()-started
+                atomic_json(root/'cache_progress.json',dict(episodes=len(entries),total_episodes=len(ids),frames=frames_done,total_frames=total,
+                    seconds=elapsed,eta_seconds=(total-frames_done)*elapsed/frames_done,identity=identity,utc=time.time()))
+        if path.exists():raise FileExistsError('No repeated cache writes: '+str(path))
+        save(path,dict(patches=torch.stack(patches),depth=torch.stack(depth),camera_time=ct,camera_valid=cv))
+        entries[identity]=dict(path=str(path),sha256=sha256(path),source_sha256=entry['source_sha256'],frames=len(ticks),camera_time_sha256=__import__('hashlib').sha256(ct.numpy().tobytes()).hexdigest())
+    atomic_json(root/('cache_acceptance_index.json' if identities else 'cache_index.json'),dict(entries=entries,
+        dino_revision=DINO_REVISION,dino_sha256=plan['dino_sha256'],data_sha256=sha256(out/'data.json'),
+        cameras=CAMERAS,resolution=[448,252],patches=[384,18,32],depth=[2,18,32],stride=12,
+        random_augmentation=False,trainable_projection_cached=False,complete=True))

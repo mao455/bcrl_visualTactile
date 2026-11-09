@@ -19,6 +19,7 @@ class Memory:
     native: torch.Tensor | None = None
     visual: torch.Tensor | None = None
     next_tick: int = 0
+    tactile: list = field(default_factory=list)
 
 
 def mlp(source, target):
@@ -90,7 +91,7 @@ class HistoryVision(nn.Module):
 
 
 class NativePolicy(nn.Module):
-    def __init__(self, group, horizon=64, prediction_type='sample'):
+    def __init__(self, group, horizon=64, prediction_type='sample', modality=None):
         super().__init__()
         if group not in GROUPS:
             raise ValueError('Unknown native policy group')
@@ -126,6 +127,17 @@ class NativePolicy(nn.Module):
             self.register_buffer(name+'_std', torch.ones(width))
         self.register_buffer('action_scale', torch.ones(29))
         self.register_buffer('action_offset', torch.zeros(29))
+        self.modality = modality
+        if modality not in (None, 'G00', 'G10') or (modality and group != 'I-HistoryDP'):
+            raise ValueError('Unsupported visual modality')
+        if modality == 'G10':
+            # Existing G10 convention: 242 real 120Hz samples, signed-log
+            # world/local five-finger forces + age/valid, GRU32->64.
+            # Additive fusion keeps every shared parameter shape/initial value.
+            self.tactile_history = nn.GRU(32, 64, batch_first=True)
+            self.tactile_fusion = nn.Linear(64, 512)
+            self.register_buffer('tactile_mean', torch.zeros(30))
+            self.register_buffer('tactile_std', torch.ones(30))
 
     def normalized_robot(self, robot):
         value = (robot-self.robot_mean)/self.robot_std
@@ -134,7 +146,9 @@ class NativePolicy(nn.Module):
                            robot[..., 176:177], value[..., 177:]), -1)
         return value
 
-    def observe(self, robot, time, tick, frame, memory=None):
+    def observe(self, robot, time, tick, frame, memory=None, tactile=None):
+        if (tactile is not None) != (self.modality == 'G10'):
+            raise ValueError('G00 cannot consume tactile; G10 requires real tactile')
         if memory is None and self.group == 'I-HistoryDP' and tick != 0:
             raise ValueError('History memory requires the complete causal episode prefix')
         memory = Memory(next_tick=tick) if memory is None else memory
@@ -144,6 +158,10 @@ class NativePolicy(nn.Module):
             raise ValueError('Strict robot input contract differs')
         normalized = self.normalized_robot(robot)
         memory.robot = (memory.robot+[(normalized, time)])[-13:]
+        if self.modality == 'G10':
+            if tactile.shape != (2, 32) or not torch.isfinite(tactile).all():
+                raise ValueError('Two finite causal tactile samples per native tick required')
+            memory.tactile = (memory.tactile+[tactile])[-121:]
         if self.group == 'I-HistoryDP':
             with torch.autocast(device_type=robot.device.type, enabled=False):
                 memory.native = self.native_gru(self.native_input(normalized.float())[None], memory.native)
@@ -189,7 +207,15 @@ class NativePolicy(nn.Module):
             rows = [torch.zeros_like(rows[0])]*(3-len(rows))+rows
             encoder = self.state_encoder if self.group == 'S-NativeDP' else self.recent_encoder
             parts = (common, encoder(torch.stack(rows).flatten()[None]))
-        return self.condition_projection(torch.cat(parts, -1))
+        condition = self.condition_projection(torch.cat(parts, -1))
+        if self.modality == 'G10':
+            touch = torch.cat(memory.tactile)
+            touch = touch[touch[:, -1].bool()]
+            if len(touch):
+                touch = torch.cat(((touch[:, :30]-self.tactile_mean)/self.tactile_std, touch[:, 30:]), -1)
+                _, hidden = self.tactile_history(touch[None])
+                condition = condition+self.tactile_fusion(hidden[-1])
+        return condition
 
     def loss(self, condition, command, valid, generator=None, *, temporal_weight=0.):
         if command.shape[1:] != (self.horizon,29):
@@ -234,7 +260,8 @@ def encode_segment(model, episode, start, stop):
             robot = record['robot'][tick].to(device)
             stamp = record['time'][tick].to(device)
             frame = episode.frame(tick, device) if tick % 12 == 0 else None
-            memory = model.observe(robot, stamp, tick, frame, memory)
+            touch = record['tactile'][tick].to(device) if model.modality == 'G10' else None
+            memory = model.observe(robot, stamp, tick, frame, memory, tactile=touch)
             if tick >= start and tick % 12 == 0:
                 conditions.append(model.condition(memory, stamp))
                 anchors.append(tick)
@@ -245,9 +272,10 @@ def load_policy(payload, device='cpu', ema=True):
     stored=payload.get('contract');group=payload.get('group')
     from ..position_control import image_contract
     allowed=[CONTRACT]+[image_contract(g,h) for g in ('I-OfficialDP','I-HistoryDP') for h in (24,32)]
-    if stored not in allowed or group not in GROUPS or (stored != CONTRACT and stored!=image_contract(group,stored['horizon'])):
+    allowed += [image_contract('I-HistoryDP',24,m) for m in ('G00','G10')]
+    if stored not in allowed or group not in GROUPS or (stored != CONTRACT and stored!=image_contract(group,stored['horizon'],stored.get('modality'))):
         raise ValueError('Not a native-command v1 checkpoint; old weights cannot be reinterpreted')
-    model = NativePolicy(group,stored['horizon']).to(device)
+    model = NativePolicy(group,stored['horizon'],modality=stored.get('modality')).to(device)
     model.contract=stored
     model.load_state_dict(payload['ema'] if ema else payload['model'])
     return model.eval()

@@ -56,13 +56,21 @@ def contract(horizon=32, position=True, prediction_type='sample'):
             if position else STATE_CONTRACT['history_source']))
 
 
-def image_contract(group, horizon=32):
+def image_contract(group, horizon=32, modality=None):
     from .native_data import CONTRACT
     if group not in ('I-OfficialDP','I-HistoryDP') or horizon not in (24,32):
         raise ValueError('Explicit short-horizon ImageDP group required')
-    return dict(CONTRACT,version=3,horizon=horizon,action=POSITION_ACTION,
+    value = dict(CONTRACT,version=3,horizon=horizon,action=POSITION_ACTION,
         action_contract='position_rad_v1',observation=group+'_robot178_rgbd_no_privileged_v1',
         history_source='past_requested_and_applied_position_rad; teacher_forced_in_training')
+    if modality is not None:
+        if group != 'I-HistoryDP' or horizon != 24 or modality not in ('G00', 'G10'):
+            raise ValueError('Explicit H24 visual pair required')
+        value.update(version=4, modality=modality, input_builder='canonical_joint_state_v1',
+            observation='robot178_dino_rgb_depth_v1'+('_touch32x242' if modality=='G10' else ''),
+            tactile_history=242 if modality=='G10' else 0, sampler_seed=7091,
+            task_condition='constant externally selected tight_insertion; goal pose absent')
+    return value
 
 
 def bounded_targets(actions, limits):

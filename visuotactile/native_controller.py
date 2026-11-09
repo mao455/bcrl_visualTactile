@@ -17,7 +17,7 @@ class NativeController:
         self.limits = torch.tensor(metadata['joint_limits_rad'][0])
         self.dimensions = object_dimensions(metadata) if self.model.group=='S-NativeDP' else None
         self.position_mode = self.model.contract['action']=='absolute_joint_position_target_rad'
-        self.generator = torch.Generator(device=device).manual_seed(7093)
+        self.generator = torch.Generator(device=device).manual_seed(self.model.contract.get('sampler_seed',7093))
         self.episode, self.memory, self.plan = None, None, None
         self.execution = ExecutionHistory(1)
         self.next_step = 0
@@ -46,7 +46,11 @@ class NativeController:
                 torch.stack((stamp-history['previous_command_time_s'][0], stamp-history['previous_delayed_time_s'][0])).float(),
                 history['action_history_valid'][0, None].float()))
             past = torch.where(history['action_history_valid'][0], past, 0.)
-        proprio = proprio_radians(packet['proprio'][0].cpu(), self.limits)
+        if self.model.modality:
+            from .state_history import controller_proprio
+            proprio=controller_proprio(packet,diagnostics,self.limits,'canonical_joint_state_v1')
+            if int(packet['task_id'][0])!=0 or bool(packet['goal_valid'][0]):raise ValueError('Unexpected external task command')
+        else:proprio = proprio_radians(packet['proprio'][0].cpu(), self.limits)
         robot = robot_rows(proprio[:29], proprio[29:], packet['actuator_target_rad'][0].cpu(), past, stamp-self.started)
         frame = None
         if step % 12 == 0:
@@ -61,7 +65,12 @@ class NativeController:
             else:
                 frame.update(rgb=packet['image'][0, :, :3].to(self.device),
                     depth=packet['image'][0, :, 3:].to(self.device), depth_valid=packet['depth_valid'][0].to(self.device))
-        self.memory = self.model.observe(robot.to(self.device), stamp.to(self.device), step, frame, self.memory)
+        touch=None
+        if self.model.modality=='G10':
+            from .native_data import tactile_values
+            touch=tactile_values(packet['contact_substeps_w_N'][0].cpu(),packet['contact_substeps_local_N'][0].cpu(),
+                packet['contact_time_s'][0].cpu(),stamp,packet['contact_valid'][0].cpu()).to(self.device)
+        self.memory = self.model.observe(robot.to(self.device), stamp.to(self.device), step, frame, self.memory,tactile=touch)
         if step % 12 == 0:
             self.last_condition = self.model.condition(self.memory, stamp.to(self.device))
             self.plan = self.model.predict(self.last_condition, self.generator).cpu()

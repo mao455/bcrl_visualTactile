@@ -184,11 +184,39 @@ def policy(row, now):
 
 def lease_for(root, deadline=None):
     session = json.loads((Path(root)/'session.json').read_text())
+    if session.get('resource_policy') == 'full_gpu_v1':
+        return FullLease(root, deadline=deadline)
     if session.get('resource_policy') == 'bounded_mean_v1':
         return Lease(root, deadline=deadline)
     if session.get('resource_policy') == 'shared_recent_v1':
         return SharedLease(root, deadline=deadline)
     raise ValueError('Current experiments require explicit shared_recent_v1 resource policy')
+
+
+class FullLease(Lease):
+    """Explicit full-card authorization; memory/disk/deadline remain enforced."""
+    @contextmanager
+    def block(self, *, deadline=None, cuda=True):
+        import sys
+        began=time.monotonic()
+        worker_root=Path(sys.argv[sys.argv.index('--root')+1]) if '--root' in sys.argv else Path('.')
+        group=next((p for p in worker_root.parts if p in ('G00','G10')),None)
+        while True:
+            self.check(deadline)
+            schedule=self.root/'concurrency.json'
+            paused=json.loads(schedule.read_text()).get('pause_groups',[]) if schedule.exists() else []
+            if group not in paused:break
+            time.sleep(.25)
+        self.wait_s+=time.monotonic()-began
+        row=json.loads((self.root/'shared_resources.json').read_text())
+        limits=json.loads((self.root/'session.json').read_text())['resources']
+        if time.time()-row['utc_epoch']>8:raise RuntimeError('Stale resource telemetry')
+        if row['ram_available_bytes']<limits['min_ram_gib']*1024**3:raise RuntimeError('RAM reserve')
+        if cuda and (row['gpu_free_mib'] is None or row['gpu_free_mib']<limits['min_gpu_free_mib']):
+            raise RuntimeError('VRAM reserve; no OOM retry')
+        started=time.monotonic()
+        try:yield
+        finally:self.work_s+=time.monotonic()-started
 
 
 class SharedLease(Lease):
@@ -275,6 +303,11 @@ def monitor(root):
         row.update(gpu_processes=processes, external_gpu_processes=[p for p in processes if not p['owned']],
             process_telemetry_errors=errors, external_throughput_available=False)
         reasons, ratio = policy(row, time.time())
+        if session.get('resource_policy')=='full_gpu_v1':
+            limits=session['resources'];ratio=0.
+            reasons=[]
+            if row.get('gpu_free_mib') is None or row['gpu_free_mib']<limits['min_gpu_free_mib']:reasons.append('VRAM_reserve')
+            if row.get('ram_available_bytes',0)<limits['min_ram_gib']*1024**3:reasons.append('RAM_reserve')
         if target is not None and now-last_adjustment>=5:
             recent=row.get('rolling_60s_percent')
             if recent is not None:

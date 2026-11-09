@@ -1,6 +1,18 @@
-# Tight-Insertion StateDP
+# Tight-Insertion StateDP 与 G00/G10
 
-当前训练和评估均已完成：**19,865更新 / 234.374 anchor等效epoch；新初态完整成功0/10，3个视频已验收**。
+当前新增任务为G00/G10视觉训练，源码与小样本验收已就绪，正式状态读取
+`outputs/visuotactile/run/tight_vision_20261109_01/status.json`；未把启动当作训练完成。
+G00=三视角RGB-D+合法robot178；G10另加观测触觉直接融合。两者去掉Actor141/Geometry85，
+共用冻结DINOv2-S/14缓存和公共随机初始权重，训练所有非DINO模块。无残差，G01/G11只保留后续加载关系。
+218 Core保持166/30/22；每组约300 anchor epoch上限、≥200后原平台规则，训练总墙钟9h；完整队列≤12.5h。
+已正常停止用户确认范围的数据生成service，数据保留；现允许完整GPU，保留6GiB显存/14GiB RAM/60GiB磁盘储备。
+普通后台完成训练、相同validation30诊断、各至多10次匹配开发闭环与首1视频、结果MD。模型/视频/缓存只留run目录。
+
+```bash
+cat outputs/visuotactile/run/tight_vision_20261109_01/status.json
+```
+
+已完成的StateDP训练和评估：**19,865更新 / 234.374 anchor等效epoch；新初态完整成功0/10，3个视频已验收**。
 不自动继续训练或追加评估。数据为218 Core（166/30/22），Aux15未加入。
 
 [当前合同](CONTRACTS.md) · [结果、误差图与解释](STATE_DP_RESULTS.md) · [清理清单与恢复](CLEANUP_AUDIT.md) · [配置](../configs/tight_state.json)

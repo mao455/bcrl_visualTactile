@@ -241,7 +241,12 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if not smoke and not (collection/'COMPLETE.json').exists():raise ValueError('Dataset not ready')
     if target is None or target<1 or (smoke and target!=1):raise ValueError('Explicit positive update budget; smoke exactly one')
     session=read_data(collection/'session.json');cached=torch.load(data_root/'numeric.pt',map_location='cpu',weights_only=False)
+    vision=session.get('vision_pair')
     palm=session.get('palm_training')
+    if vision and not smoke:
+        gate=read(collection/'vision_acceptance.json')
+        assert gate['passed'] and gate['data_sha256']==sha256(data_root/'data.json')
+        assert read(collection/'cache_index.json')['complete']
     if session.get('version')=='tight_state_foundation_v1' and not smoke:
         from .tight_gate import validate_formal_manifest
         validate_formal_manifest(read_data(collection/'manifest.json'),read_data(collection/'configuration.json'))
@@ -255,6 +260,9 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             validate_training_gates(collection,data_root)
     assert cached['data_sha256']==sha256(data_root/'data.json') and cached['contract']==contract(24,True)
     ids=data['splits']['train'];vals=data['splits']['validation']
+    if vision and smoke:
+        ids=list(read(collection/'cache_acceptance_index.json')['entries']);vals=[]
+        assert len(ids)==2 and set(ids)<=set(data['splits']['train'])
     # Never load test trajectories into the optimizer or validation worker.
     records={i:cached['records'][i] for i in ids+vals};del cached
     stats=torch.load(data_root/'statistics.pt',map_location='cpu',weights_only=False)
@@ -263,15 +271,34 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     continuation=runtime.get('continuation')
     seed=continuation['configuration']['seed'] if continuation else runtime.get('random_seed',20261105)
     device=smoke_device if smoke else 'cuda:0';torch.manual_seed(seed)
-    model=PersistentState('dp',contract(24,True))
-    expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
-    model.set_statistics(stats,expert);del expert
+    if vision:
+        from .state_history import PersistentImage
+        from .position_control import image_contract
+        from .native_data import visual_records
+        modality=runtime['modality']
+        model=PersistentImage('I-HistoryDP',image_contract('I-HistoryDP',24,modality))
+        initial=torch.load(collection/'common_initial.pt',map_location='cpu',weights_only=False)
+        state=model.state_dict()
+        for key,value in initial.items():
+            if key not in state or state[key].shape!=value.shape:raise ValueError('Shared initialization mismatch')
+            state[key].copy_(value)
+        assert set(state)-set(initial)==(set() if modality=='G00' else {k for k in state if k.startswith('tactile_')})
+        for k,v in stats.items():getattr(model,k).copy_(v)
+        if modality=='G10':
+            touch_stats=torch.load(data_root/'tactile_statistics.pt',map_location='cpu',weights_only=False)
+            for k,v in touch_stats.items():getattr(model,k).copy_(v)
+        records=visual_records(data_root,ids+vals,modality)
+        del initial,state
+    else:
+        model=PersistentState('dp',contract(24,True))
+        expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
+        model.set_statistics(stats,expert);del expert
     with h5py.File(data['entries'][ids[0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
     objective=GeometryObjective(metadata,mode=PALM_LOSS_ID if palm else LOSS_ID,commit=model.contract['commit'])
     objective.weights=session['loss_weights']
     config=dict(version='fresh_narrow_state_v1',initialization='random_model_fresh_optimizer_ema_schedule_counters',
         seed=seed,data_sha256=sha256(data_root/'data.json'),statistics_sha256=sha256(data_root/'statistics.pt'),
-        contract=contract(24,True),loss_id=objective.mode,loss_weights=objective.weights,target=target,
+        contract=model.contract,loss_id=objective.mode,loss_weights=objective.weights,target=target,
         effective_batch=64,microbatch=4,lr_peak=3e-5,lr_floor=3e-6,warmup=min(200,max(1,target//10)),
         sampler='episode_balanced_shuffled_decks_short_tail_no_drop',smoke=smoke,device=device,
         source_sha256={str(p):sha256(p) for p in sorted(Path('visuotactile').rglob('*.py'))})
@@ -286,6 +313,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             geometry_position_units='m^2',geometry_rotation='0.5 Frobenius matrix squared',
             selection=palm['selection'],diagnostic_cohorts=palm['diagnostic_cohorts'],
             effective_batch=session['training']['effective_batch'],microbatch=session['training']['microbatch'])
+    if vision:
+        config.update(version='fresh_visual_pair_v1',modality=modality,
+            shared_initial_sha256=sha256(collection/'common_initial.pt'),dino_sha256=session['dino_sha256'],
+            input_builder='canonical_joint_state_v1',microbatch=runtime.get('microbatch',config['microbatch']))
     root.mkdir(parents=True,exist_ok=True)
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
@@ -311,7 +342,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         # Admission and monitoring precede the first CUDA allocation, including
         # model/EMA construction and same-run optimizer restoration.
         with block():
-            model.to(device);records={i:{k:v.to(device) for k,v in r.items()} for i,r in records.items()}
+            model.to(device);records={i:{k:v.to(device) if torch.is_tensor(v) else v for k,v in r.items()} for i,r in records.items()}
             averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
             opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
             generator=torch.Generator().manual_seed(seed);noise=torch.Generator(device=device).manual_seed(seed+1)
@@ -346,7 +377,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 atomic_json(output/'restore.json',dict(passed=True,checks=checks,from_update=step,
                     source_sha256=continuation['sha256'],optimizer_and_ema_preserved=True,scheduler_replaced=False))
                 checkpoint();del old
-        if smoke:
+        if smoke and not vision:
             with torch.no_grad():
                 identity=ids[0];rec=records[identity];model.eval();full,anchors,_=model.encode(rec)
                 bank=HistoryBank();maximum=0.
@@ -369,6 +400,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         if not step<=stage_stop<=target:raise ValueError('Invalid finite stage boundary')
         if stage_stop<target:stop_reason='stage_update_budget'
         while step<stage_stop:
+            if stop[0]:checkpoint();raise InterruptedError('SIGTERM at complete optimizer boundary')
             if (root/'STOP').exists():checkpoint();raise InterruptedError('Stopped at optimizer boundary')
             if not smoke and lease and time.time()>=lease.deadline-600:
                 stop_reason='fixed_wall_budget';checkpoint()

@@ -200,13 +200,25 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
     device = next(model.parameters()).device
     generator = torch.Generator(device=device).manual_seed(seed)
     bank = HistoryBank()
+    image = isinstance(model, PersistentImage)
+    memory = None
+    if image:
+        from .native_data import Episode
+        episode=Episode(record['source_root'],record['identity'],model.group)
+    def observe(tick):
+        nonlocal memory
+        if image:
+            touch=record['tactile'][tick] if model.modality=='G10' else None
+            memory=model.observe(record['robot'][tick],record['time'][tick],tick,
+                episode.frame(tick,device) if tick%12==0 else None,memory,tactile=touch)
+            return model.condition(memory,record['time'][tick]) if tick%12==0 else None
+        return bank.observe(0,1,tick,model,record['actor'][tick],record['robot'][tick],record['geometry'][tick],record['time'][tick])
     plans, holds, full_plans, full_truth, full_holds, full_ticks, full_anchors = [], [], [], [], [], [], []
     n = len(record['time'])
     for start in range(0, n, 12):
         with lease.block():
             # The previous chunk left history at start-1, just like deployment.
-            condition = bank.observe(0, 1, start, model, record['actor'][start],
-                record['robot'][start], record['geometry'][start], record['time'][start])
+            condition = observe(start)
             raw = model.predict(condition, generator, inference_steps=16, clip_sample=False)
             prediction = bounded_targets(raw[0], record['joint_limits'])
             count = min(12, n-start)
@@ -219,8 +231,7 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
                 full_holds.append(record['robot'][start, 58:87].cpu().expand(extent, -1))
                 full_ticks.extend(range(start, start+extent));full_anchors.extend([start]*extent)
             for tick in range(start+1, start+count):
-                assert bank.observe(0, 1, tick, model, record['actor'][tick],
-                    record['robot'][tick], record['geometry'][tick], record['time'][tick]) is None
+                assert observe(tick) is None
         progress(native_ticks=min(start+12, n), sampled_anchors=len(plans))
     prediction, hold = torch.cat(plans), torch.cat(holds)
     truth = record['command'].cpu()

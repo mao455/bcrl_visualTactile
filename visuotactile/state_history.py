@@ -287,15 +287,16 @@ class PersistentImage(NativePolicy):
     def __init__(self, group, action_contract):
         from collections import OrderedDict
         from .position_control import image_contract
-        if action_contract != image_contract(group,action_contract['horizon']):
+        if action_contract != image_contract(group,action_contract['horizon'],action_contract.get('modality')):
             raise ValueError('Image position contract mismatch')
-        super().__init__(group,action_contract['horizon'])
+        super().__init__(group,action_contract['horizon'],modality=action_contract.get('modality'))
         self.contract=action_contract
         self._episodes=OrderedDict()
 
     def encode(self, record, start=0, stop=None):
         from .models.native_dp import encode_segment
         allowed={'robot','command','time','joint_limits','identity','source_root'}
+        if self.modality == 'G10':allowed.add('tactile')
         if set(record)!=allowed:
             raise ValueError('Image record contains non-allowlisted fields')
         key=record['identity']
@@ -308,4 +309,5 @@ class PersistentImage(NativePolicy):
         episode=self._episodes[key]
         # Episode.frame uses camera timestamps; encoder consumes robot/time only.
         episode.record.update(robot=record['robot'],time=record['time'])
+        if self.modality == 'G10':episode.record['tactile']=record['tactile']
         return encode_segment(self,episode,start,len(record['time']) if stop is None else stop)

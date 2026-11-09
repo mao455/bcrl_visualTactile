@@ -1,4 +1,50 @@
-## 2026-11-09 当前执行状态与发布
+## 2026-11-09 当前覆盖：G00/G10真实视觉策略
+
+本轮只训练G00/G10，复用218 Core、train166/validation30/test22；Aux15、原400/275不混入，不采集。
+实际工作树`bc+rl_RSS_palm_eval`，发布基线72a9256；训练源码先提交并冻结，启动身份由run/launch.json记录。
+G00=视觉+robot178；G10=相同输入+观测触觉直接融合；两组没有残差，不加载StateDP权重。
+公共参数由同一个seed2026110803的初始化复制；G10触觉新增参数独立随机初始化，所有非DINO模块联合训练。
+G01未来加载/冻结本轮G00，G11未来加载/冻结本轮G10，再训练同一残差；本轮不执行、不指定残差频率。
+
+|实际策略输入|来源与时间|维度/单位|归一化与网络路径|
+|---|---|---|---|
+|实测q/qd|当前tick观测joint_position_rad/joint_velocity_rad_s|29+29，rad/rad·s⁻¹|保留当前train166统计；robot[0:58]|
+|执行器目标/跟踪误差|决策前actuator_target_rad及target−q|29+29，rad|同统计；robot[58:116]|
+|过去issued/applied|严格t−1目标及执行反馈；position合同两槽相等|29+29，rad|同统计；robot[116:174]；无效历史置零|
+|历史年龄/有效/episode时间|当前与过去时间戳之差、episode累计时间|2秒+1bool+1秒|robot[174:178]；显式mask|
+|三相机RGB|fixed_high/fixed_side/wrist_rgbd；当前及过去已到达帧|各448×252，uint8→[0,1]|原ImageNet归一化、冻结DINOv2-S/14，384×18×32；原112通道投影|
+|原Depth分支|同帧metric depth+valid|2×18×32 masked grid|原depth_grid与16通道卷积；DINO不编码Depth|
+|G10触觉|截至当前已完成2个120Hz子步，五指world/local力与采集时间|每子步30N分量+age秒+valid|沿用signed-log1p、最近242子步/121tick；新增train166-only均值/标准差，GRU32→64，再线性映射加至512条件|
+|任务选择|外部固定tight_insertion task_id=0、goal_valid=false|固定合同|两组相同；不以真实孔/物体位姿补充目标|
+
+Actor141/Geometry85整块拒绝进入视觉dataset和encoder，包括物体/目标真值、速度、相对掌/孔几何、专家隐藏态和成功阶段。
+掌/指运动学可由合法q推导，本轮不增添重复FK输入；阶段标签只用于离线报告，绝不作为模型条件。
+复用实际`PersistentImage/I-HistoryDP`视觉接口：13tick robot窗口、256维持续native GRU每60Hz更新，
+原三帧视觉历史、6×8空间池化、4query×128注意力、256维visual GRU在5Hz更新，1280→512条件。
+这不是继续使用StateDP的Actor/Geometry编码器；历史hidden仍256，完整因果prefix、原96tick反传边界与episode reset不变。
+G10复用历史G10的242个120Hz有效触觉样本定义（3e11d62 long_data.tactile_values/MaskedHistory），不新建重规划历史系统。
+
+冻结DINO使用现有revision `7764ea0f912e53c92e82eb78a2a1631e92725fc8`及本机`dinov2_vits14_pretrain.pth`；实际SHA写session。
+一个writer每12tick编码三路当前帧，保留原六图重复批次算术、18×32 tokens与确定性Depth处理，无随机增强被关闭。
+仅缓存冻结输出，逐episode mmap读取，约6.91GiB，两组共享；不缓存可训练投影、融合或GRU hidden。
+缓存绑定manifest、相机顺序/采集时间、源载荷SHA与DINO SHA；train-only robot/action统计逐tensor保留，触觉统计不读val/test。
+
+29D绝对transition/target_after_rad、H24/commit12、5/60/120Hz、U-Net256/512/1024、sample/x0、DDIM16/seed7091、FP32不变。
+沿用equal Arm/Hand Loss B和commit12有效mask的掌部FK位置/完整旋转损失；权重0.3342396121814294/0.029946394754032265，500更新渐入。
+AdamW(.95,.999), wd1e-6，有效batch64（166尾批38），micro4；lr3e-6→3e-5→3e-6、warmup200；每1500更新固定train2/validation4完整采样。
+每组上限25428更新≈300 anchor epoch，≥16952更新≈200后原last4改善<1%平台停止；原严重退化/NaN规则保留。
+同一9h训练墙钟优先于曝光目标，预算耗尽明确记录。共享缓存≤1.5h、最终离线合计≤1h、单Kit开发评估合计≤1h、总≤12.5h。
+普通owner先实测并行32更新稳定窗口，再暂停G10测G00串行32更新；比较总anchors/s，效率不足95%则公平轮换200更新，保留有效batch和优化器。
+完整GPU授权覆盖旧45/50%限制；无利用率节流，保留6GiB空闲VRAM/14GiB可用RAM/60GiB磁盘和连续遥测，越界停止自己、不OOM循环重试。
+只停止已按owner/cmd/cwd/output/父子关系确认的用户`fingereye-async-production.service`，正常退出，已有数据保留。
+
+选模仍固定validation4四尺度score，最终train8/validation30按原聚合口径输出old/new/hold与阶段/运动指标。
+各组最多10个同spec/事件流/seed7091开发闭环，复用StateDP seed27150000–27150009，首1例/组录影；拒绝不补、零成功不扩100。
+同reset参数与随机流不构成隐藏物理状态逐位配对；StateDP0/10仅参考，不能把新0/10当通过。原生成功、lift/首子目标分别计数。
+输入排除、触觉影响/梯度、公共模块真实更新、live/cache DINO、108tick训练/部署prefix、EMA/保存恢复/完整DDIM验收通过；27项既有动作/损失测试通过。
+现有`tools.tight_finish vision_run`负责共享缓存→两组训练→离线→单Kit→原位STATE_DP_RESULTS更新与退出；启动不表示模型训练完成。
+
+## 2026-11-09 已完成StateDP状态与发布
 
 掌部训练与后续有限闭环均已COMPLETE：19865更新/234.374等效epoch，独立新初态0/10完整成功，3视频验收。
 本次仅增加完成产物的CPU绘图/小型指标导出；输入、动作、网络、训练和原生物理合同不变，无新增实验。

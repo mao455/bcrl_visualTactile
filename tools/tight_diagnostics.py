@@ -465,7 +465,7 @@ def trained_diagnostics(root):
     from tools.narrow_repair_audit import stages
     cfg=read(root/'configuration.json');s=read(root/'session.json');data=read(root/'state_data/data.json')
     plan=cfg['palm_training'];out=root/'offline';out.mkdir(exist_ok=False)
-    lease=lease_for(root,deadline=s['offline_deadline']);cohorts=plan['diagnostic_cohorts']
+    lease=lease_for(Path(s.get('resource_root',root)),deadline=s['offline_deadline']);cohorts=plan['diagnostic_cohorts']
     saved=torch.load(root/'training/best.pt',map_location='cpu',weights_only=False)
     if saved['configuration']['loss_id']!=PALM_LOSS_ID or saved['configuration']['data_sha256']!=sha(root/'state_data/data.json'):
         raise ValueError('Selected model/data identity mismatch')
@@ -473,7 +473,13 @@ def trained_diagnostics(root):
     if cache['data_sha256']!=sha(root/'state_data/data.json'):raise ValueError('Numeric data identity changed')
     with h5py.File(data['entries'][cohorts['train'][0]]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
     objective=GeometryObjective(metadata,mode=PALM_LOSS_ID);objective.weights=cfg['loss_weights']
-    model=PersistentState('dp',saved['contract']);model.load_state_dict(saved['ema'],strict=True);model.eval()
+    if saved['contract'].get('modality'):
+        from visuotactile.state_history import PersistentImage
+        from visuotactile.native_data import visual_records
+        model=PersistentImage('I-HistoryDP',saved['contract'])
+        cache['records']=visual_records(root/'state_data',sum(cohorts.values(),[]),saved['contract']['modality'])
+    else:model=PersistentState('dp',saved['contract'])
+    model.load_state_dict(saved['ema'],strict=True);model.eval()
     stats=torch.load(root/'state_data/statistics.pt',map_location='cpu',weights_only=False)
     if not all(torch.equal(getattr(model,k),v) for k,v in stats.items()):raise ValueError('Checkpoint normalization mismatch')
     with lease.block():model.cuda()
@@ -481,7 +487,7 @@ def trained_diagnostics(root):
     for split,ids in cohorts.items():
         if not set(ids)<=set(data['splits'][split]):raise ValueError('Fixed diagnostic cohort changed')
         for index,identity in enumerate(ids):
-            with lease.block():rec={k:v.cuda() for k,v in cache['records'][identity].items()}
+            with lease.block():rec={k:v.cuda() if torch.is_tensor(v) else v for k,v in cache['records'][identity].items()}
             def progress(**values):write(out/'progress.json',dict(offline_episodes=completed,offline_total=38,identity=identity,utc=time.time(),**values))
             sample=deployment_sample(model,rec,objective,lease,full_horizon=True,progress=progress)
             entry=data['entries'][identity]
@@ -514,11 +520,12 @@ def trained_diagnostics(root):
     fig,axes=plt.subplots(1,3,figsize=(15,4))
     for ax,group in zip(axes[:2],('arm','hand')):
         rr=[r for r in comparisons if r['split']=='validation' and r['group']==group and r['ticks']]
-        x=np.arange(len(rr));ax.bar(x-.2,[r['old_rmse_rad'] for r in rr],.4,label='old Core8500')
+        reference_label='StateDP Palm19865' if saved['contract'].get('modality') else 'old Core8500'
+        x=np.arange(len(rr));ax.bar(x-.2,[r['old_rmse_rad'] for r in rr],.4,label=reference_label)
         ax.bar(x+.2,[r['new_rmse_rad'] for r in rr],.4,label='new selected');ax.set_ylabel(group+' RMSE (rad)')
         ax.set_xticks(x,[r['phase'] for r in rr],rotation=70);ax.legend()
     rr=[r for r in comparisons if r['split']=='validation' and r['group']=='arm' and r['ticks']]
-    axes[2].plot([r['phase'] for r in rr],[r['old_palm_rmse_mm'] for r in rr],label='old Core8500')
+    axes[2].plot([r['phase'] for r in rr],[r['old_palm_rmse_mm'] for r in rr],label=reference_label)
     axes[2].plot([r['phase'] for r in rr],[r['new_palm_rmse_mm'] for r in rr],label='new selected')
     axes[2].set_ylabel('Command FK palm RMSE (mm)');axes[2].tick_params(axis='x',rotation=70);axes[2].legend()
     fig.tight_layout();fig.savefig(out/'stage_comparison.png',dpi=140);plt.close(fig)
