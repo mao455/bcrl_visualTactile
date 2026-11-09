@@ -1,14 +1,81 @@
 # Tight-Insertion 当前结果
 
+## 2026-11-09 结案与可复查图表
+
+掌部几何 StateDP 已完成 **19,865 更新、1,099,214 个采样 anchor、234.374 anchor 等效 epoch**。
+最后四次固定 validation4 选模分数改善 **0.7646%**，触发原平台停止条件；未达到300等效epoch目标，不称全局收敛。
+最终新初态队列 **0/10 完整成功**：10次合法并自然结束，8 timeout、2 fall，拒绝/中断/未启动均0。
+2次达到原生lift、2次达到首子目标，两者不是同一组案例；前3个预登记身份的视频全部验收。
+没有自动增训、补seed或扩为100次。原启动在Kit前资源终止，物理0次，单独保留，不并入这10次。
+
+训练执行源码为 `35485d77830b109d61491d3f905f74c865f44c03`，评估接续登记版本为 `a1c16e5023a066026ce884b98aa283945ef7c8bc`；
+选定 best19865 EMA SHA256 为 `6558f411eeffe7b55f5012de6b103ac4b8ace94a13e17cc1a22e9ff0da6be6bc`。
+本次发布只增加 CPU 指标导出/绘图、文档和小型指标文件，没有修改训练、模型或仿真行为。
+checkpoint、RGB-D/HDF5轨迹、视频保留本地，发布的数据身份索引不是训练轨迹本体。
+
+|相同专家历史上的commit12指标|旧Core8500|新best19865|保持当前执行器目标|
+|---|---:|---:|---:|
+|train8 Arm RMSE (rad)|0.001428|0.000632|0.007797|
+|train8 Hand RMSE (rad)|0.009568|0.004542|0.117869|
+|validation30 Arm RMSE (rad)|0.006517|0.005645|0.007764|
+|validation30 Hand RMSE (rad)|0.057276|0.056618|0.116285|
+|validation30 掌部目标FK RMSE (mm)|5.2635|4.9823|未测|
+|validation30 掌部目标FK平均角差 (deg)|未测|0.7034|未测|
+
+新数据为218 Core（train166/validation30/test22），Aux15未加入；208条沿用上一轮，18次补充物理尝试产生10条新增Core，17次专家完整成功、1次时间中断、7条Core准入拒绝。家族split与train-only统计保持。
+新旧最终38条诊断身份相同，均使用完整真实专家前缀、持续GRU、batch1 DDIM16/seed7091、反归一化后commit12。
+训练中的曲线固定train2/validation4；最后诊断是train8/validation30，两种样本量不混称。H24曲线统计每个plan所有有效位置，存在重叠，不能把数量叫独立物理tick。
+数据扩充、fresh初始化、掌部损失和曝光量同时变化（旧100.21 vs 新234.37等效epoch），以上差异不是单项损失或条件分支的因果收益。
+
+![完整部署采样误差曲线：commit12与有效H24](evidence/tight_palm_20261109/sampling_curves.png)
+
+![训练分项与固定样本去噪loss](evidence/tight_palm_20261109/loss_curves.png)
+
+训练误差下降，但验证去噪loss没有同步下降，完整采样的验证动作误差趋于平台；不能只凭训练loss宣称动作已经学好。
+图中没有新增平滑或补造未测的旧掌部角度指标。
+
+![分阶段误差、hold基线及有效样本数](evidence/tight_palm_20261109/stage_errors.png)
+
+![运动与近静止目标误差](evidence/tight_palm_20261109/motion_errors.png)
+
+沿用原阶段与运动划分，n为有效样本tick。validation的native_alignment仅30、完成后retract仅19tick，阶段均值应谨慎解释。
+validation近静止Hand仅40tick，新模型RMSE 0.01713rad，高于hold的0.00829rad；运动Hand有10198tick，新模型0.05672rad、hold 0.11651rad。
+因此总体胜过hold并不表示静止阶段也更稳。
+
+![固定validation轨迹目标与变化量叠图](evidence/tight_palm_20261109/formal_002_slow_0_targets.png)
+
+另一条固定train代表轨迹：[目标/变化量图](evidence/tight_palm_20261109/formal_003_slow_0_targets.png)。两图保留接触、抬升、重规划标记，全部29关节数值见对应CSV。
+这些是专家历史上的目标预测误差。10次自主闭环的提交/执行器接口最大误差均0，但实际关节tracking误差非零；自主与专家进度不同，不作同tick标签误差。
+首次自主行为偏离的严格配对定位仍未测。3个本地视频见 `outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
+
+[机器结果/资源](evidence/tight_palm_20261109/summary.json) · [10次闭环逐例指标](evidence/tight_palm_20261109/closed_loop.csv) · [数据身份](evidence/tight_palm_20261109/dataset_index.csv) · [冻结配置](evidence/tight_palm_20261109/frozen_configuration.json) · [文件SHA与完整产物索引](evidence/tight_palm_20261109/artifacts.json)
+
+图由同目录CSV/JSON产生；`sampled_ticks.csv.gz`、`full_horizon_ticks.csv.gz`和`every_update_loss.csv.gz`为无损压缩的原始指标。
+本地重建命令（只读完成的run，不加载模型或Kit）：
+
+```bash
+bash visuotactile/run_cpu.sh -m tools.tight_diagnostics publish \
+  --root outputs/visuotactile/run/tight_palm_20261108_01 \
+  --evaluation outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01 \
+  --output research_docs/evidence/tight_palm_20261109
+```
+
+训练整卡均值34.281%、最高完整60秒72.127%，遥测缺失0，**训练不属于全程资源合规**；本次10例评估对应21.990%/35.456%，缺失0。
+整卡读数不能归因给单个进程，未用显存限制冒充硬GPU利用率配额。
+
+已按用户指定清理上一轮 `tight_state_20261107_01`：移除1个可重建重复数值缓存，13个大日志无损压缩后删除原文件，实际回收303,198,208 bytes（289.15MiB）。
+当前208条继承轨迹仍位于旧目录，连同Aux、原速参照、旧best/normalizer和失败分母保留；没有整体删除旧root。
+逐文件删除/归档清单见[CSV](evidence/tight_palm_20261109/cleanup_files.csv)、[校验记录](evidence/tight_palm_20261109/cleanup.json)与[恢复说明](CLEANUP_AUDIT.md)。下文保留历史证据。
+
 <!-- tight-palm-training:start -->
 ## 掌部几何损失与有限训练数据扩充（当前任务）
 
-状态 **COMPLETE**，阶段 `trained_and_offline_evaluated`；。
+状态 **COMPLETE**，阶段 `trained_and_offline_evaluated`。
 基础208 Core/train156；新增10，物理尝试18。validation30/test22及固定诊断身份不变，Aux不加入。
 全新训练更新19865，anchor等效epoch 234.374；目标300，平台停止最早200，训练墙钟9h优先。
 loss = 原完整29D扩散Loss B + 0.3342396122 × 平均掌部位置平方距离(m²) + 0.02994639475 × 平均0.5旋转矩阵Frobenius平方；仅有效commit12，500更新渐入。
 实际掌部/关节/决策前执行器目标和严格过去已施加目标已有60Hz通路，复用178/85维，不重复追加；GRU256不变。
-本轮尚无新的任务成功证据；完成训练/离线验证后停止，不自动物理闭环。
+随后按用户追加授权完成10例闭环，完整成功0/10；详情见上方结案，不再自动追加。
 run：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_palm_20261108_01`；`status.json`、`training/progress.json`、`training/validation.jsonl`、`training/curves.png`、`offline/stage_metrics.json`。
 已有旧诊断38条/1103次完整采样/13000tick仅为离线参照，不是任务成功数。
 
@@ -189,7 +256,7 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 <!-- tight-palm-evaluation:start -->
 ## 2026-11-09 有条件成功率测试与视频
 
-状态 **PREPARED**；成功0/合法0，拒绝0，中断0，未启动10。无合法完成时成功率未测。
-Explicitly authorized continuation; high GPU samples cause bounded admission waiting, not immediate worker termination；索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
+状态 **COMPLETE**；成功0/合法10，拒绝0，中断0，未启动0。无合法完成时成功率未测。
+Finite evaluation/video queue finished; no additional starts；索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
 仅原200epoch/last4改善<1%平台达成后使用最终validation选定模型，最多10次新初态/1h、前3身份视频；不扩跑。
 <!-- tight-palm-evaluation:end -->

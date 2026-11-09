@@ -1,4 +1,15 @@
-# 2026-11-09 用户明确接续：GPU采样偏高先等待
+# 2026-11-09 当前结案与发布范围
+
+训练root tight_palm_20261108_01 COMPLETE：19865更新/234.374 anchor等效epoch，validation平台停止；
+评估root tight_palm_eval_20261109_01/remaining_01 COMPLETE：10合法/0成功、8timeout/2fall，3视频完整解码。
+全部owned worker/monitor已退出；不自动重训、重录或扩大评估。实际指标/资源越界/源码身份见STATE_DP_RESULTS。
+用户明确要求推送代码、MD、图表、小型原始指标；完整checkpoint/源轨迹/视频保留本地。
+清理范围明确为tight_state_20261107_01，需逐项清单；当前218数据中的208仍引用该root，不得整体删除。
+已删除一个重复可重建numeric缓存，13日志无损压缩，回收289.15MiB；旧best、统计、轨迹和全部分母保留。
+清单及恢复说明见CLEANUP_AUDIT与evidence/tight_palm_20261109。仅推origin feature/tight-state-foundation，不force、不推upstream。
+下文是已经完成的阶段授权与证据，不代表仍有待运行队列。
+
+# 2026-11-09 用户明确接续：GPU采样偏高先等待（已完成）
 
 用户在收到“启动4秒整卡均值59.76%触发终止、物理0次”的结果后明确要求“不要因为采样太多停止，继续”。
 授权同一19865更新EMA/同10个未启动seed的一次有界接续；root为原tight_palm_eval_20261109_01/remaining_01。

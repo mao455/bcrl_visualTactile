@@ -527,14 +527,184 @@ def trained_diagnostics(root):
         new_closed_loop=0,no_new_task_success_evidence=True,**no_kit()))
 
 
+def publish_metrics(root, evaluation, output):
+    """CPU-only publication from completed receipts; never load a policy or Kit.
+
+    Raw runs remain immutable. The exported CSV/JSON is sufficient to redraw the
+    figures; large checkpoints, images and simulator trajectories stay local.
+    """
+    import gzip
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    if read(root/'status.json')['state'] != 'COMPLETE' or read(evaluation/'status.json')['state'] != 'COMPLETE':
+        raise ValueError('Publication requires completed training and evaluation')
+    output.mkdir(parents=True, exist_ok=True)
+
+    def public(value):
+        if isinstance(value, dict):
+            return {public(k): public(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [public(v) for v in value]
+        if isinstance(value, str):
+            # Shared outputs can resolve into a different frozen worktree.
+            for prefix in ('/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup/',
+                           '/home/CNS2025331827/docs/bc+rl_RSS_palm_eval/',
+                           '/home/CNS2025331827/docs/bc+rl_RSS/'):
+                value = value.replace(prefix, '')
+        return value
+
+    def csv_rows(name):
+        with (output/name).open(newline='') as stream:
+            return list(csv.DictReader(stream))
+
+    def compressed_copy(source, name):
+        with source.open('rb') as src, (output/name).open('wb') as dst:
+            with gzip.GzipFile(filename='', mode='wb', fileobj=dst, mtime=0) as archive:
+                shutil.copyfileobj(src, archive)
+
+    validation = [json.loads(line) for line in (root/'training/validation.jsonl').read_text().splitlines()]
+    training = [json.loads(line) for line in (root/'training/training.jsonl').read_text().splitlines()]
+    curves, losses = [], []
+    previous = 0
+    for row in validation:
+        for key, cohort in (('train8', 'fixed_train2'), ('metrics', 'fixed_validation4')):
+            for horizon, values in (('commit12', row[key]), ('valid24', row[key]['full_horizon'])):
+                curves.append(dict(update=row['update'], anchor_epochs=row['anchor_equivalent_epochs'],
+                    cohort=cohort, horizon=horizon, **{k: values[k] for k in (
+                        'arm_rmse', 'hand_rmse', 'ee_distance_rmse_mm', 'ee_rotation_mean_deg',
+                        'selection_score', 'ticks', 'hold_arm_rmse', 'hold_hand_rmse')}))
+        part = [r for r in training if previous < r['update'] <= row['update']]
+        previous = row['update']
+        losses.append(dict(update=row['update'], anchor_epochs=row['anchor_equivalent_epochs'], updates_in_interval=len(part),
+            interval_base=sum(r['components']['base'] for r in part)/len(part),
+            interval_weighted_position=sum(r['components']['position']*r['loss_weights']['position'] for r in part)/len(part),
+            interval_weighted_rotation=sum(r['components']['rotation']*r['loss_weights']['rotation'] for r in part)/len(part),
+            fixed_train2_loss=row['train8_loss']['loss'], fixed_validation4_loss=row['validation_loss']['loss']))
+    table(output/'sampling_curves.csv', curves)
+    table(output/'loss_curves.csv', losses)
+    compressed_copy(root/'training/training_curves.csv', 'every_update_loss.csv.gz')
+    for name in ('sampled_ticks.csv', 'full_horizon_ticks.csv'):
+        compressed_copy(root/'offline'/name, name+'.gz')
+    for p in sorted((root/'offline').glob('*_targets.*')):
+        if p.suffix in ('.csv', '.png'):
+            shutil.copyfile(p, output/p.name)
+    for name in ('stage_comparison.csv', 'stage_metrics.json', 'full_horizon_stage_metrics.json', 'episode_metrics.json'):
+        shutil.copyfile(root/'offline'/name, output/name)
+
+    # All plots below read the published CSV/JSON, not model outputs in memory.
+    curves = csv_rows('sampling_curves.csv')
+    fig, axes = plt.subplots(2, 2, figsize=(11, 7), layout='constrained')
+    fields = ('arm_rmse', 'hand_rmse', 'ee_distance_rmse_mm', 'ee_rotation_mean_deg')
+    titles = ('Arm RMSE (rad)', 'Hand RMSE (rad)', 'Command FK palm RMSE (mm)', 'Command FK palm mean angle (deg)')
+    for ax, field, title in zip(axes.flat, fields, titles):
+        for cohort, color in (('fixed_train2', 'tab:blue'), ('fixed_validation4', 'tab:orange')):
+            for horizon, style in (('commit12', '-'), ('valid24', '--')):
+                rr = [r for r in curves if r['cohort'] == cohort and r['horizon'] == horizon]
+                ax.plot([float(r['anchor_epochs']) for r in rr], [float(r[field]) for r in rr],
+                        style, color=color, label=cohort+' / '+horizon)
+        ax.set(title=title, xlabel='Anchor-equivalent epochs'); ax.grid(alpha=.25)
+    axes[0, 0].legend(fontsize=8)
+    fig.suptitle('Expert-history deployment sampling: DDIM16, seed7091; full real prefixes')
+    fig.savefig(output/'sampling_curves.png', dpi=150); plt.close(fig)
+
+    losses = csv_rows('loss_curves.csv')
+    fig, axes = plt.subplots(1, 2, figsize=(11, 3.8), layout='constrained')
+    for field in ('interval_base', 'interval_weighted_position', 'interval_weighted_rotation'):
+        axes[0].plot([float(r['anchor_epochs']) for r in losses], [float(r[field]) for r in losses], label=field)
+    for field in ('fixed_train2_loss', 'fixed_validation4_loss'):
+        axes[1].plot([float(r['anchor_epochs']) for r in losses], [float(r[field]) for r in losses], label=field)
+    for ax, title in zip(axes, ('Every-update loss, mean within validation interval', 'Fixed-cohort deterministic denoising loss')):
+        ax.set(title=title, xlabel='Anchor-equivalent epochs', ylabel='Weighted training objective', yscale='log')
+        ax.grid(alpha=.25); ax.legend(fontsize=8)
+    fig.savefig(output/'loss_curves.png', dpi=150); plt.close(fig)
+
+    comparisons = csv_rows('stage_comparison.csv')
+    fig, axes = plt.subplots(2, 3, figsize=(14, 8), layout='constrained')
+    for row_axes, split in zip(axes, ('train', 'validation')):
+        for ax, group in zip(row_axes[:2], ('arm', 'hand')):
+            rr = [r for r in comparisons if r['split'] == split and r['group'] == group and int(r['ticks'])]
+            for key, label in (('old_rmse_rad', 'old Core8500'), ('new_rmse_rad', 'new selected19865'), ('hold_rmse_rad', 'hold current actuator target')):
+                ax.plot(range(len(rr)), [float(r[key]) for r in rr], 'o-', label=label)
+            ax.set(ylabel=group+' RMSE (rad)', title=split+' / commit12')
+            ax.set_xticks(range(len(rr)), [r['phase'].replace('_', ' ')+'\nn='+r['ticks'] for r in rr], rotation=55, ha='right', fontsize=7)
+            ax.grid(alpha=.25)
+        rr = [r for r in comparisons if r['split'] == split and r['group'] == 'arm' and int(r['ticks'])]
+        for key, label in (('old_palm_rmse_mm', 'old Core8500'), ('new_palm_rmse_mm', 'new selected19865')):
+            row_axes[2].plot(range(len(rr)), [float(r[key]) for r in rr], 'o-', label=label)
+        row_axes[2].set(ylabel='Command FK palm RMSE (mm)', title=split+' / commit12')
+        row_axes[2].set_xticks(range(len(rr)), [r['phase'].replace('_', ' ')+'\nn='+r['ticks'] for r in rr], rotation=55, ha='right', fontsize=7)
+        row_axes[2].grid(alpha=.25)
+    axes[0, 0].legend(fontsize=7); axes[0, 2].legend(fontsize=7)
+    fig.savefig(output/'stage_errors.png', dpi=150); plt.close(fig)
+
+    stages = read(output/'stage_metrics.json')
+    motion = [r for r in stages if r['phase'] == 'all' and r['motion'] != 'all']
+    table(output/'motion_errors.csv', motion)
+    motion = csv_rows('motion_errors.csv')
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout='constrained')
+    for ax, group in zip(axes, ('arm', 'hand')):
+        rr = [r for r in motion if r['group'] == group and int(r['ticks'])]
+        for key, label in (('rmse_rad', 'new selected19865'), ('hold_rmse_rad', 'hold current actuator target')):
+            ax.plot(range(len(rr)), [float(r[key]) for r in rr], 'o-', label=label)
+        ax.set_xticks(range(len(rr)), [r['split']+' / '+r['motion']+'\nn='+r['ticks'] for r in rr], rotation=25, ha='right')
+        ax.set_ylabel(group+' RMSE (rad)'); ax.grid(alpha=.25); ax.legend(fontsize=8)
+    fig.savefig(output/'motion_errors.png', dpi=150); plt.close(fig)
+
+    trials = []
+    for p in sorted(evaluation.glob('palm_fresh_*/result.json')):
+        r = read(p)
+        trials.append({k: r[k] for k in ('identity', 'seed', 'software_complete', 'legal', 'success', 'steps',
+            'native_lift', 'native_subgoals', 'native_alignment', 'actuator_target_max_error',
+            'submitted_target_max_error', 'tracking_rmse_rad')} | {'termination': ','.join(k for k, v in r['reasons'].items() if v)})
+    table(output/'closed_loop.csv', trials)
+    manifest = read(root/'manifest.json')
+    table(output/'dataset_index.csv', [public({k: r[k] for k in ('id', 'family', 'split', 'steps', 'size', 'sha256', 'path', 'reference_path', 'reference_sha256')}) for r in manifest['episodes']])
+    write(output/'summary.json', public(dict(
+        training=read(root/'status.json'), progress=read(root/'training/progress.json'),
+        training_source=read(root/'session.json')['source_head'],
+        selected_checkpoint=read(evaluation/'selected_checkpoint.json'),
+        offline=read(root/'offline/result.json'), closed_loop=read(evaluation/'evaluation_summary.json'),
+        training_resources=read(root/'resource_summary.json'), evaluation_resources=read(evaluation/'resource_summary.json'),
+        normalizer_sha256=sha(root/'state_data/statistics.pt'),
+        notes=['Offline errors use expert histories, not autonomous same-tick labels.',
+               'Command interface error and physical tracking error are distinct.',
+               'Dataset expansion, fresh initialization, loss and exposure changed together; no causal ablation.',
+               'Train2/validation4 select weights; final train8/validation30 diagnose; no test selection.'])))
+    write(output/'frozen_configuration.json', public(read(root/'configuration.json')))
+    write(output/'source_hashes.json', public(read(root/'execution_source_freeze.json')))
+    cleanup = root/'cleanup_previous_core.json'
+    if cleanup.exists():
+        ledger = read(cleanup)
+        if ledger['state'] != 'COMPLETE':
+            raise ValueError('Do not publish incomplete cleanup as complete')
+        write(output/'cleanup.json', public(ledger))
+        fields = ('path', 'action', 'bytes', 'sha256', 'archive', 'archive_bytes',
+                  'archive_sha256', 'roundtrip_sha256_verified', 'reclaimed_allocated_bytes', 'removed')
+        table(output/'cleanup_files.csv', [{k: r.get(k, '') for k in fields} for r in ledger['entries']])
+    # Keep public text diffs clean without changing any numeric CSV values.
+    # Compressed raw metrics and the original run files retain their bytes.
+    for p in output.glob('*.csv'):
+        p.write_bytes(p.read_bytes().replace(b'\r\n', b'\n'))
+    write(output/'artifacts.json', {p.name: dict(bytes=p.stat().st_size, sha256=sha(p))
+          for p in sorted(output.iterdir()) if p.is_file() and p.name != 'artifacts.json'})
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
+    parser.add_argument('--evaluation', type=Path)
+    parser.add_argument('--output', type=Path)
     args = parser.parse_args(); root = args.root.resolve()
     if args.mode == 'prepare': prepare(root, args.config)
     elif args.mode == 'status': print(json.dumps(read(root/'status.json'), indent=2))
+    elif args.mode == 'publish':
+        if args.evaluation is None or args.output is None:
+            parser.error('publish requires --evaluation and --output')
+        publish_metrics(root, args.evaluation.resolve(), args.output.resolve())
     else:
         import torch
         from visuotactile.precision import state_fp32

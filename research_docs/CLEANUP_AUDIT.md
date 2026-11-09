@@ -1,5 +1,30 @@
 # 当前清理与保护结果
 
+## 2026-11-09 指定上一轮Core目录：289.15MiB
+
+用户明确选择清理 `outputs/visuotactile/run/tight_state_20261107_01` 并要求逐项清单。
+本次移除14个原文件路径：1个可重建重复数值cache，13个日志先无损gzip归档再删除原文件。
+**实际释放303,198,208 allocated bytes＝289.152344MiB**，未累计历史释放量；不是删除14条实验轨迹。
+
+|处理|旧root内路径|结果|
+|---|---|---|
+|删除重复cache|`composition_06/state_data/numeric.pt`|122,160,231逻辑bytes；208条records与当前218条cache对应记录逐字段相等|
+|无损归档13日志|具体路径见[删除清单CSV](evidence/tight_palm_20261109/cleanup_files.csv)|同目录`.gz`；逐文件解压SHA与原文件SHA一致|
+|保留|208条当前继承轨迹、Aux、原速参照、旧best/last、统计、manifest/split、试验结果及失败分母|旧root不能整体删除|
+|保留开发cache|`diagnostic_data/numeric.pt`|部分开发RGB-D源已在历史清理中删除，不能假定可重建，故保留|
+
+删除前检查同UID进程没有打开候选文件，逐项核对SHA、size及单硬链接；清理后9002个非候选/当前关键文件inode/size/mtime检查通过。
+当前manifest全部218载荷存在且size匹配；未重新读取50GB以上源轨迹做无关全量审计，不把metadata检查冒充全SHA重审。
+删除清单和压缩SHA见[机器记录](evidence/tight_palm_20261109/cleanup.json)，原执行账本在当前run的`cleanup_previous_core.json`。
+没有删除唯一旧checkpoint、改变新训练数据统计、处理其他实验root、修改无关进程或重启训练。
+
+日志原路径需要时用 `gzip -dk <原路径>.gz` 恢复，解压后SHA应与清单一致。
+旧Core数值cache可在CPU上从当前 `tight_palm_20261108_01/state_data/numeric.pt` 按旧 `composition_06/state_data/data.json` 的entries提取208条records，
+保留旧contract和data_sha256，经既有 `visuotactile.checkpointing.save` 写回旧numeric路径；旧统计无需重算。
+也可从未改的原HDF5重建。重写序列化不保证原文件字节SHA，需记录新cache校验；不得伪造旧冻结输入验收或自动重跑旧队列。
+
+下文为历史清理记录，当时“当前/cache有效”等表述只代表当时验收状态。
+
 ## 2026-11-08 composition_06：36.191101GiB
 
 全部owned进程实际退出后，复用tools.project_maintenance的分类计划、PID/打开句柄、文件identity/SHA预检和逐文件journal，删除135份新未准入RGB-D载荷与1份重复checkpoint，共136文件、38,859,898,880分配bytes。原400/275及历史root在允许范围之外；225合格Core/Aux载荷（含2未选Aux）、135拒绝numeric、27学生失败轨迹、全部433数据尝试及失败分母保留。

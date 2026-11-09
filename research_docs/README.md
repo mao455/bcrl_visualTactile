@@ -1,44 +1,36 @@
-当前接续：`outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
-用户已授权原10个未启动身份继续；GPU短采样偏高改为原Lease有界等待，不放宽资源阈值，不重训。
-
-当前新增授权：训练/离线结束且原平台条件满足后，使用选定模型做最多10次新初态成功率测试，前3身份录制视频。
-独立工作树入口`tools.tight_videos prepare-after-training/run`；原35485d7训练源码与预算不变，条件不满足自动SKIPPED。
-观看及状态索引：`outputs/visuotactile/demos/tight_palm_eval_20261109_01/README.md`。
-
 # Tight-Insertion StateDP
 
-当前任务：一次全新掌部几何StateDP。输入所需实际掌部/关节/过去施加目标已在每tick GRU及直达条件中，维度不重复扩充；
-新增commit12命令FK位置/完整旋转loss，有限新增训练Core后fresh训练，最后仅离线诊断。
-使用原位[配置](../configs/tight_state.json)、[合同](CONTRACTS.md)、[当前结果](STATE_DP_RESULTS.md)。
-run：`outputs/visuotactile/run/tight_palm_20261108_01`；目标新增50/最多60，120尝试或2h；训练300 anchor等效epoch目标/9h硬限，最终诊断≤1h。
-一次查看：`bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotactile/run/tight_palm_20261108_01`。
-所有耗时阶段由现有`tools.tight_finish run`普通后台顺序执行；不自动学生闭环，暂无新的任务成功证据。
+当前训练和评估均已完成：**19,865更新 / 234.374 anchor等效epoch；新初态完整成功0/10，3个视频已验收**。
+不自动继续训练或追加评估。数据为218 Core（166/30/22），Aux15未加入。
 
-2026-11-08用户追加三个失败案例视频：[冻结队列](../configs/tight_failure_videos.json)，
-`tools.tight_videos`复用现有三相机/recorder，以Core8500 EMA进行独立观看复跑。
-索引与MP4：`outputs/visuotactile/demos/tight_failures_20261108_01/README.md`；实际进度见同目录`status.json`。
-最多3次、1小时含初始化/等待；无训练、无替换seed、不改正式分母，普通后台程序自动完成解码验收与报告。
+[当前合同](CONTRACTS.md) · [结果、误差图与解释](STATE_DP_RESULTS.md) · [清理清单与恢复](CLEANUP_AUDIT.md) · [配置](../configs/tight_state.json)
 
-已完成的前轮任务：核实并复用已有robot/geometry直达condition，补齐DP3风格StateDP动作/行为诊断；不声称视觉DP3复现。
-等价路径已存在，旧采样曲线触发平台/过拟合停止，本轮按条件分支**不重训/续训**。
-独立[诊断配置](../configs/tight_dp3_diagnostics.json)、[当前字段与时序合同](CONTRACTS.md)、[结果](STATE_DP_RESULTS.md)。
-run：`outputs/visuotactile/run/tight_dp3_20261108_01`；最多1h、固定train8/validation30、新Kit0。
-一次查看：`bash visuotactile/run_cpu.sh -m tools.tight_diagnostics status --root outputs/visuotactile/run/tight_dp3_20261108_01`。
-后台正常结束会原位更新结果MD；启动与完成分开报告。下文保留原Core任务结案。
+![完整部署采样误差曲线](evidence/tight_palm_20261109/sampling_curves.png)
 
+[训练/验证loss](evidence/tight_palm_20261109/loss_curves.png) · [分阶段误差与hold基线](evidence/tight_palm_20261109/stage_errors.png) · [运动/近静止误差](evidence/tight_palm_20261109/motion_errors.png)
 
-此前Core任务已完成：208Core/50家族＋15Auxiliary/11家族冻结，Core-only随机初始化训练8500步/100.21 anchor等效epoch，闭环train0/10、validation0/7、新初态0/10。有限训练停止条件通过，但学生没有完整成功；没有扩展到100、凑300或自动增加模型实验。
+模型复用已有robot/geometry直达condition与持续GRU，仅新增掌部目标FK位置/旋转训练损失。
+固定专家历史validation30的Arm RMSE为0.005645rad、Hand 0.056618rad、掌部4.9823mm；离线改善未转化成完整任务成功。
+训练中的固定train2/validation4曲线与最终train8/validation30诊断分别报告；同tick自主动作不与不同进度专家标签硬配对。
+保持29D绝对target_after_rad、H24/commit12、5Hz规划/60Hz控制/120Hz物理，未训练视觉/触觉，不声称完整视觉DP3复现。
 
-[当前合同](CONTRACTS.md) · [当前结果与证据](STATE_DP_RESULTS.md) · [交接](SESSION_HANDOFF.md) · [清理](CLEANUP_AUDIT.md)
+源码、MD、CSV/JSON和6张图公开在当前origin feature分支；完整checkpoint、源轨迹和视频仍在本地。
+[机器结果](evidence/tight_palm_20261109/summary.json)、[10例闭环](evidence/tight_palm_20261109/closed_loop.csv)、[数据身份索引](evidence/tight_palm_20261109/dataset_index.csv)、[全部文件SHA](evidence/tight_palm_20261109/artifacts.json)。
 
-使用修复工作树`/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`、feature/tight-state-foundation；[唯一配置](../configs/tight_state.json)和tools.tight_finish原入口。固定Arm.50/Hand1/cap2rad/s；command-based target_after_rad、持续GRU、H24/commit12、5/60/120Hz不变，不是64tick截断历史。
+本地训练run：`outputs/visuotactile/run/tight_palm_20261108_01`。
+本地新模型视频：`outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
+IDE中的 `demos/tight_failures_20261108_01/README.md` 是旧Core8500观看队列，不能当作新模型结果。
 
-已完成root：`outputs/visuotactile/run/tight_state_20261107_01/composition_06`。采集源码4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917，训练/评估fdb7ea94a1457de57ff2a9fc21d1a9486742d5ab。只读状态：
+本地仅重新导出指标/绘图（CPU，不启动训练或Kit）：
 
 ```bash
-bash visuotactile/run_cpu.sh -m tools.tight_state status --root outputs/visuotactile/run/tight_state_20261107_01/composition_06
+bash visuotactile/run_cpu.sh -m tools.tight_diagnostics publish \
+  --root outputs/visuotactile/run/tight_palm_20261108_01 \
+  --evaluation outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01 \
+  --output research_docs/evidence/tight_palm_20261109
 ```
 
-Core训练视图为root/manifest.json和state_data；完整组成在composition_manifest.json。当前完整模型为training/best.pt，last.pt为同inode恢复别名。所有自有服务已退出，不重复启动已完成队列；未来恢复必须保留完整状态和数据指纹，不能把新实验混入本次分母。
-
-清理136文件释放36.191GiB，原400/275、专家/资产、成功历史和失败分母保护。整卡60秒峰值59.632%、最低空闲VRAM4154MiB，本轮不是全程资源合规。仅发布代码/文档/小统计，不上传数据或权重。
+上一轮 `tight_state_20261107_01` 已清理一个重复cache、无损归档13个日志，释放289.15MiB。
+当前208条继承轨迹仍引用该目录，旧best/统计、Aux、原速参照和全部成功/失败分母保留，未整体删除旧实验。
+旧Core8500的27例闭环与本轮10例保持独立；历史原400/275、专家和资产未动。
+训练最高完整60秒整卡均值72.127%超过50%约束，不能宣称全程资源合规；本轮10例评估最高35.456%。

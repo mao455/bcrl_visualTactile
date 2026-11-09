@@ -1,0 +1,215 @@
+{
+  "training": {
+    "state": "COMPLETE",
+    "stage": "trained_and_offline_evaluated",
+    "formal_updates": 19865,
+    "training_stop_reason": "validation_plateau_or_overfit",
+    "data": {
+      "passed": true,
+      "base_core": 208,
+      "base_train": 156,
+      "new_core": 10,
+      "total_core": 218,
+      "split_counts": {
+        "train": 166,
+        "validation": 30,
+        "test": 22
+      },
+      "physical_attempts": 18,
+      "completed_attempts": 17,
+      "interrupted_attempts": 1,
+      "task_failures": 0,
+      "initial_rejections": 0,
+      "core_rejections": 7,
+      "manifest_sha256": "c13cee10fdad493d285d2624195f8bc353dbe789222f28ec1559da13d0e4f325",
+      "auxiliary_added": 0,
+      "validation_test_preserved": true
+    },
+    "no_new_task_success_evidence": true,
+    "exit_code": 0,
+    "utc": 1794171296.1751337,
+    "owned_workers_exited": true
+  },
+  "progress": {
+    "update": 19865,
+    "target": 25428,
+    "loss": 3.7931036331428913e-05,
+    "lr": 6.111843747179986e-06,
+    "actual_batch": 64,
+    "sampled_anchors": 1099214,
+    "formal_updates": 19865,
+    "stage_updates": 19865,
+    "restored_updates": 0,
+    "updates_per_hour": 2249.0514880614714,
+    "utc": 1794170872.6525424,
+    "kit_loaded": false,
+    "checked_namespaces": [
+      "omni",
+      "carb",
+      "isaacsim",
+      "isaaclab"
+    ],
+    "components": {
+      "base": 3.76912270212415e-05,
+      "position": 4.058599980538702e-07,
+      "rotation": 3.4780424158498136e-06
+    },
+    "geometry_gain": 1.0,
+    "loss_weights": {
+      "position": 0.3342396121814294,
+      "rotation": 0.029946394754032265
+    },
+    "anchor_equivalent_epochs": 234.37398720682302,
+    "anchor_population": 4690,
+    "seconds_per_update": 0.8993780612945557,
+    "resource_wait_s": 20433.6987247183,
+    "remaining_seconds_estimate": 8904.554006736273,
+    "estimated_completion_utc": 1794179777.208121,
+    "hard_stop_utc": 1794171472.4645123,
+    "eta_includes_observed_validation_and_resource_wait": true,
+    "numerical_gradient_norm": 0.005741927772760391
+  },
+  "training_source": "35485d77830b109d61491d3f905f74c865f44c03",
+  "selected_checkpoint": {
+    "path": "outputs/visuotactile/run/tight_palm_20261108_01/training/best.pt",
+    "sha256": "6558f411eeffe7b55f5012de6b103ac4b8ace94a13e17cc1a22e9ff0da6be6bc",
+    "updates": 19865,
+    "selection": "Frozen validation4; closed-loop results never select weights"
+  },
+  "offline": {
+    "complete": true,
+    "episodes": 38,
+    "ticks": 13000,
+    "plans": 1103,
+    "selected_update": 19865,
+    "checkpoint_sha256": "6558f411eeffe7b55f5012de6b103ac4b8ace94a13e17cc1a22e9ff0da6be6bc",
+    "selection": "fixed validation4 before final38",
+    "new_closed_loop": 0,
+    "no_new_task_success_evidence": true,
+    "kit_loaded": false,
+    "checked_namespaces": [
+      "omni",
+      "carb",
+      "isaacsim",
+      "isaaclab"
+    ]
+  },
+  "closed_loop": {
+    "planned": 10,
+    "physical_attempts": 10,
+    "completed": 10,
+    "valid": 10,
+    "successes": 0,
+    "initial_rejections": 0,
+    "incomplete_attempts": 0,
+    "unstarted": 0,
+    "success_rate": 0.0,
+    "native_lift": 2,
+    "first_subgoal": 2,
+    "videos_verified": 3,
+    "state": "COMPLETE",
+    "exit_code": 0,
+    "reason": "Finite evaluation/video queue finished; no additional starts",
+    "original_results_unchanged": true,
+    "selection_used_closed_loop": false
+  },
+  "training_resources": {
+    "pid": 3346392,
+    "latest": {
+      "pid": 3346392,
+      "utc_epoch": 1794171296.9645417,
+      "elapsed_s": 39451.98918422288,
+      "gpu_util_percent": 0.0,
+      "gpu_used_mib": 542.0,
+      "gpu_free_mib": 23541.0,
+      "ram_available_bytes": 33434357760,
+      "process_rss_bytes": 15540224,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 31.711094625441667
+    },
+    "samples": 39439,
+    "gpu_time_weighted_mean_percent": 34.280530768935556,
+    "max_complete_60s_mean_percent": 72.12742148380494,
+    "missing_samples": 0,
+    "missing_seconds": 0.0,
+    "max_sample_gap_s": 2.155980327865109,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 19943.0,
+    "peak_process_rss_bytes": 15609856,
+    "min_ram_available_bytes": 16229470208,
+    "thresholds": {
+      "gpu_free_mib": 6144,
+      "ram_available_bytes": 12884901888,
+      "max_gpu_mean_percent": null,
+      "gpu_admission_mean_percent": null
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched",
+    "configured_limits": {
+      "resource_policy": "bounded_mean_v1",
+      "resource_target_percent": 35.0,
+      "reserve_bytes": 64424509440,
+      "maximum_hours": 12.5,
+      "development_hours": 0,
+      "collection_hours": 2,
+      "training_hours": 9,
+      "target_percent": 35,
+      "admission_percent": 45,
+      "cap_percent": 50,
+      "min_gpu_free_mib": 6144,
+      "min_ram_gib": 14,
+      "min_disk_gib": 60
+    },
+    "hard_gpu_quota_guaranteed": false
+  },
+  "evaluation_resources": {
+    "pid": 4097472,
+    "latest": {
+      "pid": 4097472,
+      "utc_epoch": 1794191634.8142605,
+      "elapsed_s": 872.4024394291919,
+      "gpu_util_percent": 9.0,
+      "gpu_used_mib": 943.0,
+      "gpu_free_mib": 23141.0,
+      "ram_available_bytes": 31952691200,
+      "process_rss_bytes": 14663680,
+      "cuda_allocated_bytes": null,
+      "cuda_reserved_bytes": null,
+      "rolling_60s_percent": 24.19917993351895
+    },
+    "samples": 873,
+    "gpu_time_weighted_mean_percent": 21.990153151621232,
+    "max_complete_60s_mean_percent": 35.45569990977722,
+    "missing_samples": 0,
+    "missing_seconds": 0.0,
+    "max_sample_gap_s": 1.767756848828867,
+    "wait_seconds": 0.0,
+    "peak_gpu_used_mib": 8108.0,
+    "peak_process_rss_bytes": 14663680,
+    "min_ram_available_bytes": 20058931200,
+    "thresholds": {
+      "gpu_free_mib": 6144,
+      "ram_available_bytes": 12884901888,
+      "max_gpu_mean_percent": null,
+      "gpu_admission_mean_percent": null
+    },
+    "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched",
+    "configured_limits": {
+      "target_percent": 35,
+      "admission_percent": 45,
+      "cap_percent": 50,
+      "min_gpu_free_mib": 6144,
+      "min_ram_gib": 14,
+      "min_disk_gib": 60,
+      "exceeded_mean_action": "wait_for_original_admission"
+    },
+    "hard_gpu_quota_guaranteed": false
+  },
+  "normalizer_sha256": "4a38bbcca38dec1067e01f635dbccde165f9a0a566df657e6edc2bd4659aceb9",
+  "notes": [
+    "Offline errors use expert histories, not autonomous same-tick labels.",
+    "Command interface error and physical tracking error are distinct.",
+    "Dataset expansion, fresh initialization, loss and exposure changed together; no causal ablation.",
+    "Train2/validation4 select weights; final train8/validation30 diagnose; no test selection."
+  ]
+}

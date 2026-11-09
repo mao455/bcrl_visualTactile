@@ -1,4 +1,4 @@
-> 当前 StateDP/ImageDP 研究入口、真实结果与清理记录：[research_docs/README.md](research_docs/README.md)。以下保留原项目说明。
+> 当前 Tight-Insertion StateDP：[结果与误差图](research_docs/STATE_DP_RESULTS.md)、[研究入口](research_docs/README.md)、[清理清单](research_docs/CLEANUP_AUDIT.md)。19,865更新；新初态完整成功0/10，3个视频保留本地。以下保留原项目说明。
 
 > 视觉—触觉研究最新入口：[完整系统与实验审计](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、[文件地图](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/PROJECT_FILE_MAP.md)、[有效性矩阵](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/EXPERIMENT_VALIDITY_MATRIX.md)、[实际状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
 
