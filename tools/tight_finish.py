@@ -926,7 +926,7 @@ def vision_cache(root):
 
 def vision_report(root):
     """Ordinary owner publishes measured results, including partial failures."""
-    status=read(root/'status.json');rows=[];text_rows=[]
+    status=read(root/'status.json');session=read(root/'session.json');rows=[];text_rows=[]
     for group in ('G00','G10'):
         g=root/group;p=g/'training/progress.json';end=g/'training/finished.json';offline=g/'offline/stage_metrics.json'
         progress=read(p) if p.exists() else {};finished=read(end) if end.exists() else {}
@@ -936,9 +936,12 @@ def vision_report(root):
             last=str(g/'training/last.pt') if (g/'training/last.pt').exists() else None,
             best=str(g/'training/best.pt') if (g/'training/best.pt').exists() else None,
             failure=read(g/'failure.json') if (g/'failure.json').exists() else None)
+        row['verified_videos']=[str(p.parent/'rollout.mp4') for p in sorted((g/'evaluation').glob('*/video_verified.json'))]
         arm=next((x for x in metrics if x['group']=='arm'),None);hand=next((x for x in metrics if x['group']=='hand'),None)
-        if not arm or not hand or evaluation is None:
+        if not arm or not hand:
             row['residual_readiness']='未测完整离线/闭环；尚不能判断残差基础能力'
+        elif evaluation is None:
+            row['residual_readiness']='完整离线已测；闭环尚无完整结果，不能判断残差基础能力'
         else:
             better_hold=arm['rmse_rad']<arm['hold_rmse_rad'] and hand['rmse_rad']<hand['hold_rmse_rad']
             degraded=(arm['rmse_rad']>.005645*1.5 or hand['rmse_rad']>.056618*1.5 or
@@ -952,12 +955,14 @@ def vision_report(root):
         evaluation_counts={k:value for k,value in evaluation.items() if k!='results'} if evaluation else None
         rows.append(row);text_rows.append(f"- {group}: updates={progress.get('update',0)}, anchor epochs={progress.get('anchor_equivalent_epochs',0):.3f}; stop={finished.get('stop_reason',row['failure'] or 'not finished')}; validation={json.dumps(metrics,ensure_ascii=False)}; development={json.dumps(evaluation_counts,ensure_ascii=False)}")
         text_rows.append('  '+row['residual_readiness'])
+        text_rows.extend(f'  已完整解码视频：[{group} {Path(p).parent.name}]({p})' for p in row['verified_videos'])
     result=dict(status=status,groups=rows,state_reference=dict(arm_rad=.005645,hand_rad=.056618,palm_mm=4.9823,angle_deg=.7034,
         success=0,valid=10,scope='Same development reset specifications; hidden simulator state is not bitwise paired'),
         residual_training_started=False,readiness='Unproven until offline hold comparison and native stage progress are available; 0/10 alone is not acceptance')
     write(root/'result.json',result)
     block='\n'.join(['<!-- VISUAL_PAIR_START -->','## G00/G10 visual pair — '+status['state'],
         f"Run: `{root}`; source `{status.get('source_head','pending')}`; updated UTC epoch `{time.time()}`.",
+        f"Training source: `{session.get('training_source_head',session.get('source_head','pending'))}`; recovery of `{session.get('recovery_of','none')}`. Original failed attempts remain separate; training is not repeated.",
         '218 Core (166/30/22); test22 unused. H24/commit12; frozen DINOv2-S/14 RGB + existing Depth; no Actor141/Geometry85 or residual.',
         'The two independent models share initial common parameters and train-only normalizers. G10 also learns its tactile encoder and fusion.',
         *text_rows,'Offline errors use expert causal histories; native rollouts are separate development evidence. Missing stages are unmeasured.',
@@ -1009,22 +1014,39 @@ def vision_evaluate(root):
 
 
 @supervised_owner
-def vision_run(root):
+def vision_run(root, evaluation_only=False):
     """Finite cache/pair/offline/single-Kit queue within the existing owner."""
     import fcntl
     lock=(root/'vision.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
     require(not (root/'launch.json').exists(),'Existing launch must not reset its deadlines')
-    require(read(root/'vision_acceptance.json')['passed'],'Modality acceptance failed')
-    for group in ('G00','G10'):
-        require(read(root/('smoke_'+group)/'check/result.json')['complete_restore'],'Trainer restore gate missing')
+    if evaluation_only:
+        recovery=read(root/'recovery.json')
+        require(recovery['passed'] and recovery['original_completed_trials']==0,'Recovery gate failed')
+        original=Path(recovery['original_root'])
+        original_lock=(original/'vision.lock').open('a');fcntl.flock(original_lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        for path,expected in recovery['protected_sha256'].items():
+            require(sha(path)==expected,'Recovery artifact changed: '+path)
+        require(read(original/'status.json')['owned_workers_exited'],'Original workers have not exited')
+    else:
+        require(read(root/'vision_acceptance.json')['passed'],'Modality acceptance failed')
+        for group in ('G00','G10'):
+            require(read(root/('smoke_'+group)/'check/result.json')['complete_restore'],'Trainer restore gate missing')
     dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=CODE,text=True).strip()
     require(not dirty,'Commit actual runtime before launch: '+dirty)
     head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip()
     cfg=read(root/'configuration.json');s=read(root/'session.json');v=cfg['vision_pair'];budget=read(root/'budget.json')
-    now=time.time();s.update(started=now,deadline=now+v['maximum_hours']*3600,cache_deadline=now+v['cache_hours']*3600,
-        training_deadline=now+(v['maximum_hours']-2)*3600,offline_deadline=None,evaluation_deadline=None,
-        collection_deadline=None,development_deadline=None,
-        source_head=head,python=sys.executable,cwd=str(CODE),owned_worker_roots=[str(root/g/'training') for g in v['groups']])
+    now=time.time()
+    if evaluation_only:
+        require(s['evaluation_deadline']==read(original/'session.json')['evaluation_deadline'], 'Recovery cannot reset evaluation deadline')
+        require(now<s['evaluation_deadline']<=s['deadline'],'Original evaluation budget exhausted')
+        require(sha(root/'evaluation_plan.json')==sha(original/'evaluation_plan.json'),'Recovery plan differs')
+        s.update(recovery_started=now,training_source_head=s['source_head'],source_head=head,
+            python=sys.executable,cwd=str(CODE),owned_worker_roots=[])
+    else:
+        s.update(started=now,deadline=now+v['maximum_hours']*3600,cache_deadline=now+v['cache_hours']*3600,
+            training_deadline=now+(v['maximum_hours']-2)*3600,offline_deadline=None,evaluation_deadline=None,
+            collection_deadline=None,development_deadline=None,
+            source_head=head,python=sys.executable,cwd=str(CODE),owned_worker_roots=[str(root/g/'training') for g in v['groups']])
     write(root/'session.json',s);write(root/'launch.json',dict(pid=os.getpid(),source_head=head,cwd=str(CODE),python=sys.executable,
         started=now,configuration_sha256=sha(root/'configuration.json'),data_sha256=sha(root/'state_data/data.json')))
     source_files=subprocess.check_output(['git','ls-files','visuotactile/*.py','tools/*.py','configs/tight_state.json'],cwd=CODE,text=True).splitlines()
@@ -1056,7 +1078,8 @@ def vision_run(root):
                 path=root/'evaluation_progress.json';p=read(path) if path.exists() else {};count=p.get('completed',0)
                 eta['evaluation_remaining_seconds']=(20-count)*(time.time()-began)/count if count else None
             write(root/'eta.json',eta)
-            status(stage,worker_pid=child.pid,cache=cache,eta=eta)
+            status(stage,worker_pid=child.pid,cache=cache,eta=eta,
+                evaluation=read(root/'evaluation_progress.json') if (root/'evaluation_progress.json').exists() else None)
             time.sleep(5)
         if child.returncode:raise RuntimeError(stage+' exit '+str(child.returncode))
     try:
@@ -1065,6 +1088,14 @@ def vision_run(root):
         for _ in range(10):
             if (root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json')['utc_epoch']<4:break
             time.sleep(1)
+        if evaluation_only:
+            wait(spawn(['-m','tools.tight_finish','vision_evaluate','--root',str(root)],'evaluation'),s['evaluation_deadline'],'matched_development')
+            require(read(root/'evaluation_complete.json')['complete'],'Evaluation completion receipt missing')
+            write(root/'status.json',dict(state='COMPLETE',stage='finished',source_head=head,
+                training_source_head=s['training_source_head'],utc=time.time(),exit_code=0,
+                reason='Authorized evaluation continuation finished; prior training stopped at fixed wall budget',
+                recovery_of=str(original),training_repeated=False))
+            return
         wait(spawn(['-m','tools.tight_finish','vision_cache','--root',str(root)],'cache'),s['cache_deadline'],'shared_dino_cache')
         start=time.time();train_deadline=min(start+v['training_hours']*3600,s['deadline']-7200)
         s['training_deadline']=train_deadline;write(root/'session.json',s)
@@ -1158,8 +1189,13 @@ def vision_run(root):
     if read(root/'status.json')['state']=='FAILED':raise RuntimeError('Finite queue contains failed stages; see status.json')
 
 
+def vision_resume(root):
+    """User-authorized evaluation-only continuation; original deadlines stay fixed."""
+    return vision_run(root,evaluation_only=True)
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_evaluate']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)

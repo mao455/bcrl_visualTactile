@@ -1,15 +1,18 @@
 # Tight-Insertion StateDP 与 G00/G10
 
-当前新增任务为G00/G10视觉训练，源码与小样本验收已就绪，正式状态读取
-`outputs/visuotactile/run/tight_vision_20261109_01/status.json`；未把启动当作训练完成。
+G00/G10训练已按固定墙钟预算停止：10132/6929更新、119.541/81.753 anchor等效epoch，不能称收敛。
+各38条完整离线诊断已完成。旧闭环在首次控制前因漏传实测q/qd失败，0完整trial，不是0/10成功。
+现已修复实际评估调用，仅传两个实测关节字段；36项定向测试通过。用户授权原队列一次接续，当前状态读取
+`outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01/status.json`；启动准备不等于录制完成。
 G00=三视角RGB-D+合法robot178；G10另加观测触觉直接融合。两者去掉Actor141/Geometry85，
 共用冻结DINOv2-S/14缓存和公共随机初始权重，训练所有非DINO模块。无残差，G01/G11只保留后续加载关系。
-218 Core保持166/30/22；每组约300 anchor epoch上限、≥200后原平台规则，训练总墙钟9h；完整队列≤12.5h。
+218 Core保持166/30/22；原训练预算9h已结束，不追加训练。原模型、完整离线与失败证据保留。
 已正常停止用户确认范围的数据生成service，数据保留；现允许完整GPU，保留6GiB显存/14GiB RAM/60GiB磁盘储备。
-普通后台完成训练、相同validation30诊断、各至多10次匹配开发闭环与首1视频、结果MD。模型/视频/缓存只留run目录。
+普通后台只接续各至多10次原匹配开发闭环与首1视频、结果MD，保留原2026-11-10 02:08:51 +08:00截止。
+模型/视频/缓存只留run目录；结果MD列出通过完整解码的视频链接，失败/未启动不计有效成功率分母。
 
 ```bash
-cat outputs/visuotactile/run/tight_vision_20261109_01/status.json
+cat outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01/status.json
 ```
 
 已完成的StateDP训练和评估：**19,865更新 / 234.374 anchor等效epoch；新初态完整成功0/10，3个视频已验收**。

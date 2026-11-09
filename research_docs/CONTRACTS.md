@@ -1,3 +1,14 @@
+## 2026-11-10 评估调用修复与有界接续
+
+`state_benchmark.native_policy_action`在实际trial内给G00/G10传入当前实测q/qd；
+从`env._diagnostics()`只提取`joint_position_rad`和`joint_velocity_rad_s`，不把掌/物体/孔真值或成功标签交给视觉策略。
+训练的canonical_joint_state_v1、robot178构造、当前帧时序/持续历史及全部模型参数不变；旧无modality图像策略仍只收packet。
+98dfafe原队列首次act前失败，0控制transition，旧证据保留。用户授权一次evaluation_resume_01接续，
+仅复用原best、原normalizer、已完成train8/val30离线和原10×2开发spec，各首1视频；不重训/不扩样本。
+继续使用原评估绝对截止2026-11-10 02:08:51 +08:00；等待/初始化消耗剩余预算，超时停止自己的worker并记录BUDGET_STOP。
+复用现有owner/监控/源冻结，锁住原run和接续run，hash校验旧失败证据、选定权重、统计/数据身份/离线结果。
+原FAILED与新接续状态分开，训练源码98dfafe与修复后的评估源码分别记录；不把预算耗尽称收敛。
+
 ## 2026-11-09 当前覆盖：G00/G10真实视觉策略
 
 本轮只训练G00/G10，复用218 Core、train166/validation30/test22；Aux15、原400/275不混入，不采集。

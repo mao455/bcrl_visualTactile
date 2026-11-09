@@ -1,19 +1,25 @@
 # Tight-Insertion 当前结果
 
 <!-- VISUAL_PAIR_START -->
-## 2026-11-09 G00/G10：实现与小样本验收完成，正式训练待启动
-
-本轮run `outputs/visuotactile/run/tight_vision_20261109_01`，实际源码工作树`bc+rl_RSS_palm_eval`，发布参照72a9256；冻结commit/PID写launch.json。
-218 Core保持166/30/22，Aux15不加入、不采新数据。单writer共享约6.91GiB冻结DINOv2-S/14特征；两组公共模块相同随机初始化，不加载StateDP。
-G00合法robot178+原三视角RGB/Depth历史；G10另加原242子步观测触觉直接融合。Actor141/Geometry85拒绝进入模型，无残差。
-每组一次可丢弃更新：G00 loss0.5346713、G10 loss0.5101740；所有共同模块及G10触觉模块梯度非零、参数实际更新。
-两组完整prefix与真实NativeController在tick108的condition最大差均0；实时/缓存DINO特征最大差0。
-EMA、保存恢复、完整2×24×29 DDIM采样有限；27项既有动作/损失测试通过。验收更新不计入正式曝光、不被用作初始化。
-已按完整进程身份正常停止fingereye-async-production.service，MainPID=0/Result=success；数据保留，未动其他任务。
-本轮正式训练/最终离线/闭环尚未运行，成功率未测。每组25428更新≈300epoch，原≥200平台停止；共享训练墙钟9h优先，总≤12.5h。
-当前完整GPU授权无利用率节流，6GiB/14GiB/60GiB储备与遥测保留。普通后台测并行/串行吞吐并更新ETA，Codex不守候。
-后续train8/validation30诊断、每组最多10同spec开发闭环与首1视频由同一队列收尾；新0/10不构成验证通过，StateDP仍仅参照。
+## G00/G10 visual pair — PREPARED
+Run: `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01`; source `pending`; updated UTC epoch `1794245452.404788`.
+Training source: `98dfafe77bec63c7d7e69d65c01037f4373618c7`; recovery of `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01`. Original failed attempts remain separate; training is not repeated.
+218 Core (166/30/22); test22 unused. H24/commit12; frozen DINOv2-S/14 RGB + existing Depth; no Actor141/Geometry85 or residual.
+The two independent models share initial common parameters and train-only normalizers. G10 also learns its tactile encoder and fusion.
+- G00: updates=10132, anchor epochs=119.541; stop=fixed_wall_budget; validation=[{"split": "validation", "phase": "all", "group": "arm", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.005423087617535823, "hold_rmse_rad": 0.0077639229117655514, "ee_rmse_mm": 4.930306919573449, "fingertip_rmse_mm": 8.734292680533297, "palm_angle_mean_deg": 0.7063642874380825}, {"split": "validation", "phase": "all", "group": "hand", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.05523515855170199, "hold_rmse_rad": 0.11628535264269428, "ee_rmse_mm": 4.930306919573449, "fingertip_rmse_mm": 8.734292680533297, "palm_angle_mean_deg": 0.7063642874380825}]; development=null
+  完整离线已测；闭环尚无完整结果，不能判断残差基础能力
+- G10: updates=6929, anchor epochs=81.753; stop=fixed_wall_budget; validation=[{"split": "validation", "phase": "all", "group": "arm", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.005645163110261294, "hold_rmse_rad": 0.0077639229117655514, "ee_rmse_mm": 5.130682866799043, "fingertip_rmse_mm": 8.89212037732473, "palm_angle_mean_deg": 0.7332931989239914}, {"split": "validation", "phase": "all", "group": "hand", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.054648982710324034, "hold_rmse_rad": 0.11628535264269428, "ee_rmse_mm": 5.130682866799043, "fingertip_rmse_mm": 8.89212037732473, "palm_angle_mean_deg": 0.7332931989239914}]; development=null
+  完整离线已测；闭环尚无完整结果，不能判断残差基础能力
+Offline errors use expert causal histories; native rollouts are separate development evidence. Missing stages are unmeasured.
+No automatic G01/G11, recollection, retry or parameter search. Future G01 freezes selected G00; G11 freezes selected G10.
 <!-- VISUAL_PAIR_END -->
+
+原训练于2026-11-10约01:04按墙钟预算停止；两组最终38条离线分别于01:06:43/01:08:46完成。
+原评估01:09:17失败：runner未把当前实测q/qd传给新视觉策略，首次控制前TypeError，0控制transition/0完整trial，不能记成0/10。
+原失败日志、空numeric.h5及partial视频保留在原root；本次用户授权修复并接续，36项定向测试通过，真实Kit仍待启动验收。
+接续复用原10132/6929更新EMA、统计/数据身份、已完成离线和10×2开发spec，各首1视频；不重训、不改变网络/采样/控制。
+继承原评估截止 **2026-11-10 02:08:51 +08:00**，不因修复重置；本段为启动前快照，实际状态读取上方接续run/status.json。
+
 
 ## 2026-11-09 结案与可复查图表
 

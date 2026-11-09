@@ -24,6 +24,17 @@ from .state_motion import plan_metrics, distribution
 from .training_resources import atomic_json
 
 
+def native_policy_action(controller, packet, diagnostics_provider):
+    """Route actual joint observations without exposing task geometry to vision."""
+    if controller.model.modality in ('G00', 'G10'):
+        observed = diagnostics_provider()
+        joints = {key: observed[key] for key in ('joint_position_rad', 'joint_velocity_rad_s')}
+        return controller.act(packet, joints)
+    if controller.model.group.startswith('I-'):
+        return controller.act(packet)
+    return controller.act(packet, diagnostics_provider())
+
+
 def collision_evidence(env):
     """Query real cooked PhysX shapes before any action; no integration probe."""
     import omni.usd
@@ -245,7 +256,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     actual = controller.model.actor_input(actor.to(controller.device))[:, :140].cpu()
                     actor_parity = max(actor_parity, float((expected-actual).abs().max()))
                 else:
-                    command = controller.act(packet) if saved.get('group','').startswith('I-') else controller.act(packet, env._diagnostics())
+                    command = native_policy_action(controller, packet, env._diagnostics)
                 if controller is not None and tick % 12 == 0 and (takeover_steps is None or tick < takeover_steps):
                     plans.append(controller.plan[0].cpu().numpy())
                     if isinstance(controller, HistoryController): raw_plans.append(controller.raw_plan[0].numpy())

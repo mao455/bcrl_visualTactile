@@ -1,4 +1,14 @@
-# 2026-11-09 当前授权：G00/G10视觉训练
+# 2026-11-10 当前授权：修复视觉评估调用并接续
+
+用户明确要求“那改好，继续”。98dfafe训练已完成有限预算：G00 10132更新、G10 6929更新，最终各38条离线完成。
+旧闭环在首次act前漏传canonical q/qd而失败，0控制transition/0完整trial；原FAILED、partial视频与checkpoint全部保留。
+仅修state_benchmark调用：G00/G10明确传入当前joint_position_rad/joint_velocity_rad_s两字段，不传其他诊断真值。
+复用原tools.tight_finish owner的vision_resume，root为tight_vision_20261109_01/evaluation_resume_01；只接续原10×2身份、各首1视频。
+不重训、不重算离线、不改变模型/采样/控制，不自动第二次重试；原评估截止2026-11-10 02:08:51 +08:00不重置。
+6GiB VRAM/14GiB RAM/60GiB磁盘储备、完整GPU授权不变；先提交推送后冻结，启动短查≤60–90s即退出。
+实际状态以接续root/status.json为准；原root/status.json继续保留历史FAILED，不混作新状态。
+
+# 2026-11-09 历史授权：G00/G10视觉训练
 
 本轮用户明确授权218 Core(166/30/22)上的G00/G10新视觉策略；不是继续StateDP。
 实际源码工作树bc+rl_RSS_palm_eval，起点72a9256，现有tools.tight_finish vision_run与configs/tight_state.json vision_pair。
