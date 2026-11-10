@@ -13,13 +13,13 @@
 |数据/缓存测试|新增7项测试通过：实际执行与u/q标签分离、H24切断、监督/历史mask分离、固定统计聚合、真实G10 EMA续训、DINO无GPU复用、重预测因果历史/previous_nominal与四SHA|
 |最终CPU集成验收|88项联合通过（40.00s）；新增后继等待保护测试随9项定向回归通过（0.81s），去重共89项，覆盖接管/聚合、两阶段续训与恢复、缓存身份、owner依赖、发布、清理及相关历史兼容；一个既有requests依赖版本warning|
 |真实接管/GPU|本次文档整理未启动新GPU/Kit，未获得DAgger纠正数据、正式增量更新或自主后测|
-|后继注册|必须用实际服务/进程及registration/status凭据补录；脚本和配置存在不能称已排队|
+|后继注册|已登记普通用户服务 `tight-dagger-20261111-01.service`，PID `1021762`；2026-11-11 01:54:40+08:00 启动核验 **active / WAITING**，`gpu_started=false`，依赖旧owner退出与发布|
 
 原Core全196条监督mask+segment SHA为 `6601d614380010cc37b7ffb031cab35405859b0bcb7e1ad7652ef27166466e80`；加入纠正后按实际数据重新计算。临时CPU聚合产物由临时目录释放，未写旧run。
 
 ## 接续核验
 
-公共入口仍为 `bash visuotactile/run_cpu.sh -m tools.tight_finish`，子命令为 `dagger_prepare` 与 `dagger_follow`，并提供 `--root`。准备登记与普通后台follow必须都实际完成；离开前短查一次WAITING/真实推进，不用模型守候。
+公共入口仍为 `bash visuotactile/run_cpu.sh -m tools.tight_finish`，子命令为 `dagger_prepare` 与 `dagger_follow`，并提供 `--root`。登记与普通后台follow已实际完成，离开前一次启动核验通过，不用模型守候。机器凭据位于 `outputs/visuotactile/run/tight_dagger_20261111_01/{registration,status,successor_service}.json`；公共实现与验收摘要见 [preparation.json](evidence/tight_dagger_20261111_01/preparation.json)。当前尚无新纠正数据或正式更新。
 
 接手时核验后继的配置/采集计划SHA、registration、实际服务或PID身份、源冻结与依赖路径。follow依据旧owner/自有worker实际退出和可用选定模型推进，不能只看预计结束时刻，也不能忽略仍在发布的旧owner。单纯报告异常可独立修复，不把它等同模型不可用。新阶段时间预算从实际新起点建立，不复用旧绝对deadline。
 
@@ -29,7 +29,7 @@ G11初始前端为旧G10 selected EMA；QG01初始前端为旧轮QG00 selected E
 
 ## 发布与历史
 
-旧owner先完成其结果发布；后继在指定origin分支整合后再发布新变化，避免两个工作树同时推送。新小型结果集中在 [STATE_DP_RESULTS](STATE_DP_RESULTS.md)，清理集中在 [CLEANUP_AUDIT](CLEANUP_AUDIT.md)，不新增重复报告MD。
+代码已在隔离本地分支提交；旧owner先完成其结果发布，已运行的后继随后合并该报告并把新代码推送 `origin/feature/tight-state-foundation`，避免两个工作树同时推送。新轮结束后再自动推送数值、曲线和清理记录。新小型结果集中在 [STATE_DP_RESULTS](STATE_DP_RESULTS.md)，清理集中在 [CLEANUP_AUDIT](CLEANUP_AUDIT.md)，不新增重复报告MD。
 
 必要历史：StateDP 19,865更新/开发0/10；G00/G10 10,132/6,929更新/各0/10；旧GRU残差G01/G11各98,610更新/0/10、1/10。旧G11成功native_lift=false，旧视觉队列FAILED收尾与PhysX/资源问题如实保留。当前Transformer与旧GRU同时改变网络、监督范围和门控，不能据历史单例声称改善。
 
