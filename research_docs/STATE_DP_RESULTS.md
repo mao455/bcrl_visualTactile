@@ -2,7 +2,7 @@
 
 ## 2026-11-10 Transformer 与实际配置监督匹配实验
 
-机器状态 **PREPARED** / `gpu_model_and_throughput_gates_pending`；源码 `提交后冻结`；运行 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01`。
+机器状态 **FAILED** / `stopped`；源码 `af3e3bb49ad40609ee9d2adc4501f78cace8c27e`；运行 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01`。
 G00/G10从共同初始化重新训练；G01/G11冻结本轮基础。Q00/Q01改用实际配置q_reached前端及命令u_expert残差；QG只在真实碰撞投影准入后启用。
 固定train166/validation30；前端200规划anchor等效遍历、残差200完整控制tick遍历，两者不等价。固定validation4选模；10个开发spec沿用。
 Transformer残差约75.7万参数，2层/128维/4头/FF256，当前有效H24计划与游标、独立上一名义输出、严格过去执行反馈、当前已采集触觉；持续GRU加32tick显式历史。失触不强制归零，全部valid tick监督。
