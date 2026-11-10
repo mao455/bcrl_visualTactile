@@ -153,10 +153,10 @@ def select(source):
         source_data_sha256=sha256(Path(source)/'data.json'))
 
 
-def record(path):
+def record(path, *, episode=None, privileged=True):
     """Actual before-state/target labels and unchanged strict-past radian history."""
     with h5py.File(path) as f:
-        key=next(iter(f['episodes'])); g=f['episodes'][key]; m=json.loads(f.attrs['metadata_json'])
+        key=episode if episode is not None else next(iter(f['episodes'])); g=f['episodes'][key]; m=json.loads(f.attrs['metadata_json'])
         t=lambda p: torch.from_numpy(g[p][:])
         time=t('obs/time_s'); target=t('transition/target_after_rad'); before=t('transition/target_before_rad')
         n=len(time); limits=torch.tensor(m['joint_limits_rad'][0])
@@ -171,17 +171,137 @@ def record(path):
         assert not bool(t('obs/contact_valid')[0]) and t('obs/contact_valid')[1:].all()
         assert g['transition/contact_substeps_after_w_N'].shape[:3]==(n,2,5)
         assert np.array_equal(g['frames/post_index'][:],np.r_[np.arange(1,n),-1])
-        diag={k:t('transition/diagnostics_before/'+k) for k in GEOMETRY_FIELDS}
         q=t('transition/diagnostics_before/joint_position_rad'); qd=t('transition/diagnostics_before/joint_velocity_rad_s')
         robot=robot_rows(q,qd,before,torch.zeros(n,61),time-time[0])
-        result=dict(time=time,command=target,robot=position_robot_history(dict(robot=robot,time=time),target),
-            actor=t('transition/expert_actor_input_diagnostic'),geometry=geometry(diag,object_dimensions(m)),joint_limits=limits)
-        assert result['actor'].shape==(n,141)
+        result=dict(time=time,command=target,robot=position_robot_history(dict(robot=robot,time=time),target),joint_limits=limits)
+        if privileged:
+            diag={k:t('transition/diagnostics_before/'+k) for k in GEOMETRY_FIELDS}
+            result.update(actor=t('transition/expert_actor_input_diagnostic'),geometry=geometry(diag,object_dimensions(m)))
+            assert result['actor'].shape==(n,141)
         assert all(torch.isfinite(v).all() for v in result.values())
         assert (target>=limits[:,0]-1e-6).all() and (target<=limits[:,1]+1e-6).all()
         # Both physics substeps must receive the recorded post-slowdown target.
         assert torch.equal(t('transition/actuator_substep_target_rad'),target[:,None,:].expand(-1,2,-1))
         return key,m,result
+
+
+def dagger_record(entry, *, include_geometry=True):
+    """One accepted actual takeover episode, with loss-only expert labels.
+
+    Numeric robot history is built from the complete actual execution, including
+    the student prefix. Masked labels never replace issued/applied commands.
+    Geometry stays in a separate loss context, not the policy record.
+    """
+    from .native_data import tactile_values
+    from .anchor_sampling import supervision_rows
+    if entry.get('trajectory_kind')!='expert_takeover_v1' or entry.get('split','train')!='train':
+        raise ValueError('Only training-distribution expert takeovers enter aggregation')
+    if sha256(entry['path'])!=entry['source_sha256']:raise ValueError('Takeover source changed')
+    key,metadata,result=record(entry['path'],episode=entry['episode'],privileged=False)
+    n=len(result['time'])
+    if n!=entry['length'] or metadata.get('dataset_split')!='train':raise ValueError('Takeover length/split mismatch')
+    actual_q,_=actual_configuration_labels(entry)
+    with h5py.File(entry['path']) as stream:
+        group=stream['episodes'][key];source=group['transition/dagger'];obs=group['obs']
+        load=lambda name:torch.from_numpy(source[name][:])
+        mask=load('expert_label_valid');segment=load('segment_id')
+        control=load('control_source');clean=load('switch_clean')
+        command=load('u_expert');reached=load('q_reached')
+        if mask.dtype!=torch.bool or clean.dtype!=torch.bool or any(v.shape!=(n,) for v in (mask,segment,control,clean)):
+            raise ValueError('Malformed takeover eligibility fields')
+        if (mask & ((control!=1)|~clean)).any() or not mask.any() or mask[0]:
+            raise ValueError('Expert labels require actual clean expert suffix after a student prefix')
+        if not ((control==0)|(control==1)).all() or (control[1:]<control[:-1]).any():
+            raise ValueError('Exactly one student-to-expert authority transition required')
+        if command.shape!=(n,29) or reached.shape!=(n,29):raise ValueError('Takeover labels must be canonical29D')
+        if not torch.equal(command[mask],result['command'][mask]) or not torch.equal(reached[mask],actual_q[mask]):
+            raise ValueError('Expert labels must be actual issued targets and reached configurations')
+        previous=load('previous_issued')
+        if previous.shape!=(n,29) or not torch.equal(previous[1:],result['command'][:-1]):
+            raise ValueError('Past issued targets differ from the actual mixed execution')
+        if any(not torch.isfinite(v).all() for v in (command,reached,previous)):
+            raise ValueError('Nonfinite takeover labels/history')
+        changes=(control[1:]!=control[:-1])|(mask[1:]!=mask[:-1])
+        if (changes&(segment[1:]==segment[:-1])).any():raise ValueError('Authority/eligibility switch lacks a new segment')
+        terminal=torch.from_numpy(group['terminated'][:]).bool()|torch.from_numpy(group['truncated'][:]).bool()
+        if terminal[:-1].any():raise ValueError('Takeover record crosses a reset/terminal boundary')
+        values=[torch.from_numpy(obs[k][:]) for k in
+            ('contact_substeps_w_N','contact_substeps_local_N','contact_time_s','time_s','contact_valid')]
+        touch=tactile_values(*values)
+    result.update(u_expert=torch.where(mask[:,None],command,0.),q_reached=torch.where(mask[:,None],reached,0.),
+        supervision_mask=mask,control_segment=segment)
+    supervision_rows(result)
+    context=None
+    if include_geometry:
+        from .state_image_loss import geometry_loss_context
+        context=geometry_loss_context(entry)
+    return result,touch,context
+
+
+def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,manifest_sha256=None,include_geometry=True):
+    """Append accepted train takeovers; keep original validation/test and affine.
+
+    Both roots name state_data directories. Selection/native success admission
+    belongs to the owner. This layer verifies source identities and labels, never
+    reads test trajectories, and never calculates new statistics from aggregation.
+    """
+    import shutil
+    from .native_data import target_supervision
+    source=Path(source_root).resolve();out=Path(output_root).resolve()
+    if source==out or (out/'data.json').exists():raise ValueError('Aggregate must be a new independent dataset')
+    kind=target_supervision(supervision);old=read(source/'data.json')
+    if target_supervision(old.get('supervision','u_expert'))!=kind:raise ValueError('Aggregate target semantics changed')
+    raw=torch.load(source/'numeric.pt',map_location='cpu',weights_only=False)
+    if raw['data_sha256']!=sha256(source/'data.json'):raise ValueError('Source numeric cache identity differs')
+    touched=torch.load(source/'tactile.pt',map_location='cpu',weights_only=False)
+    ids=old['splits']['train']+old['splits']['validation']
+    records={};touch={};contexts={}
+    old_context=torch.load(source/'loss_context.pt',map_location='cpu',weights_only=False) if include_geometry and (source/'loss_context.pt').exists() else {}
+    for identity in ids:
+        row={k:raw['records'][identity][k] for k in ('robot','command','time','joint_limits')}
+        # Read q labels only for train/validation when the historical command
+        # cache did not yet carry them. No source episode in test is opened.
+        row['q_reached']=(raw['records'][identity]['q_reached'] if 'q_reached' in raw['records'][identity]
+            else actual_configuration_labels(old['entries'][identity])[0])
+        n=len(row['time']);row.update(u_expert=row['command'],supervision_mask=torch.ones(n,dtype=torch.bool),
+            control_segment=torch.zeros(n,dtype=torch.long))
+        # Aggregating an already aggregated pool retains its real masks/labels.
+        for key in ('u_expert','supervision_mask','control_segment'):
+            if key in raw['records'][identity]:row[key]=raw['records'][identity][key]
+        records[identity]=row;touch[identity]=touched[identity]
+        if include_geometry:
+            if identity in old_context:contexts[identity]=old_context[identity]
+            else:
+                from .state_image_loss import geometry_loss_context
+                contexts[identity]=geometry_loss_context(old['entries'][identity])
+    entries=dict(old['entries']);splits={k:list(v) for k,v in old['splits'].items()};families=dict(old.get('families',{}))
+    for identity,entry in new_entries.items():
+        if identity in entries:raise ValueError('Duplicate aggregate episode: '+identity)
+        family=entry.get('family',identity)
+        if families.get(family,'train')!='train':raise ValueError('Takeover family leaks a held-out split')
+        records[identity],touch[identity],context=dagger_record(entry,include_geometry=include_geometry)
+        if include_geometry:contexts[identity]=context
+        entries[identity]=dict(entry);splits['train'].append(identity);families[family]='train'
+    train_ids=old.get('normalization_train_ids',old['splits']['train'])
+    if not set(train_ids)<=set(old['splits']['train']):raise ValueError('Source normalizer population is not original training data')
+    data=dict(old,entries=entries,splits=splits,families=families,visual_pair=True,supervision=kind,
+        normalization_identity=old.get('normalization_identity',kind+'_train166_affine_v1'),
+        normalization_train_ids=train_ids,normalization_scope='unchanged original training affine; no aggregate refit',
+        aggregation=dict(version='expert_takeover_aggregate_v1',selection='successful_expert_executed_corrections',
+            student_prefix_supervised=False,new_training_ids=list(new_entries)),
+        source_data_sha256=sha256(source/'data.json'),
+        policy_inputs=['robot178','RGB_DINO_patches','deterministic_depth_grid'],privileged_inputs=False,
+        source_statistics_sha256=sha256(source/'statistics.pt'))
+    if manifest_sha256 is not None:data['manifest_sha256']=manifest_sha256
+    out.mkdir(parents=True,exist_ok=True)
+    for name in ('statistics.pt','tactile_statistics.pt'):
+        shutil.copyfile(source/name,out/name)
+        if sha256(source/name)!=sha256(out/name):raise ValueError('Fixed aggregate affine copy changed')
+    atomic_json(out/'data.json',data)
+    save(out/'numeric.pt',dict(contract=raw['contract'],data_sha256=sha256(out/'data.json'),records=records))
+    save(out/'tactile.pt',touch)
+    if include_geometry:save(out/'loss_context.pt',contexts)
+    return data
 
 
 def actual_configuration_labels(entry):

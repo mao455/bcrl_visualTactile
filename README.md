@@ -1,8 +1,4 @@
-> 当前 G01/G11 已完成：开发完整成功0/10、1/10；误差图、原始指标及成功视频位置见[当前结果](research_docs/STATE_DP_RESULTS.md)与[研究入口](research_docs/README.md)。基础结果保留，大文件仍在本地。
-
-> 当前 Tight-Insertion StateDP：[结果与误差图](research_docs/STATE_DP_RESULTS.md)、[研究入口](research_docs/README.md)、[清理清单](research_docs/CLEANUP_AUDIT.md)。19,865更新；新初态完整成功0/10，3个视频保留本地。以下保留原项目说明。
-
-> 视觉—触觉研究最新入口：[完整系统与实验审计](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/SYSTEM_ARCHITECTURE_AND_EXPERIMENT_AUDIT.md)、[文件地图](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/PROJECT_FILE_MAP.md)、[有效性矩阵](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/EXPERIMENT_VALIDITY_MATRIX.md)、[实际状态](research_docs/SESSION_HANDOFF.md)。本项目基于原 Play2Perfect，保留原资产、专家与控制；新增研究代码位于 `visuotactile/`。原始数据/视频/权重保留本地。
+> Tight-Insertion 当前研究：原 `tight_transformer_20261110_02` 继续正常收尾；隔离工作树准备一轮 G11/QG01 专家接管式 DAgger，聚合后更新现有 U-Net 前端和 Transformer 后端。两组各12次采集机会、10次固定开发自主评估，新阶段12小时内；实际注册/启动以机器凭据为准。[研究入口](research_docs/README.md) · [现行合同](research_docs/CONTRACTS.md) · [实际结果](research_docs/STATE_DP_RESULTS.md) · [交接](research_docs/SESSION_HANDOFF.md)。
 
 # Play2Perfect
 
@@ -58,29 +54,11 @@ play2perfect/
 
 ## Local visual–tactile research extension
 
-Latest bounded expert-data milestone: [insertion dataset report](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/INSERTION_DATASET.md)
-and [session handoff](research_docs/SESSION_HANDOFF.md). Lossless dual-view records,
-manifest replay and zero-update checks are implemented; collection stopped on
-invalid initializations and a simulator startup crash. No training or robustness
-claim is made. Raw data, weights and videos remain local.
+The `visuotactile/` extension implements three-view RGB-D policies, causal robot and tactile histories, trajectory recording, and a Transformer residual controller. The frontend remains the existing conditional U-Net; the DINO backbone stays frozen. Current work prepares a bounded round of success-filtered expert takeover aggregation using the same data, training and evaluation modules.
 
-Current research adds persistent episode memory, explicit command/delay/target provenance,
-and per-control-step HDF5 recording with optional episode PKL export. Read
-[the user's research directions](research_docs/USER_RESEARCH_DIRECTION.md) and
-[history, timing and trace contracts](https://github.com/mao455/bcrl_visualTactile/blob/48a3516/research_docs/HISTORY_AND_TRACE.md).
-This milestone performs no parameter training; Correction remains Shadow only.
+The predecessor experiment continues with its frozen source. After its owned processes exit and selected checkpoints are verified, an ordinary successor process can collect corrections, fine-tune the frontend, regenerate nominal caches, fine-tune the backend and evaluate the autonomous student. A registered process and actual runtime receipts are required before describing the work as queued or started.
 
-The independent `visuotactile/` package adds audited trajectory recording, nominal
-Diffusion BC and a non-controlling tactile correction probe. See
-[research_docs/README.md](research_docs/README.md) for verified results, limitations
-and commands. Read `AGENTS.md` before continuing this research. These local
-experiments do not establish assembly competence or learned tactile improvement.
-
-Perception v2 now connects **two calibrated RGB-D views**, a shared RGB ResNet / separate
-depth spatial encoder, five-finger force/FK histories, external task commands and
-causal self-plan context. Correction remains in shadow mode. See
-[the perception design and rendered evidence](research_docs/PERCEPTION.md) for
-input provenance, tested interfaces and open limitations. No v2 policy has been trained.
+Student prefixes retain their actual observations and execution history with zero supervision. Only valid, actually executed expert suffixes from successful takeover episodes enter the correction pool. Command targets and reached configurations remain distinct; validation stays fixed and test22 is unused. Takeover success is reported separately from student autonomous success. Read [the research directions](research_docs/USER_RESEARCH_DIRECTION.md), [current contracts](research_docs/CONTRACTS.md), [perception inputs](research_docs/PERCEPTION.md), and [results](research_docs/STATE_DP_RESULTS.md). CPU tests do not establish physical recovery or improved assembly performance.
 
 This repository, [mao455/bcrl_visualTactile](https://github.com/mao455/bcrl_visualTactile), is a research fork of the original
 [Play2Perfect](https://github.com/kushal2000/play2perfect) release. The original

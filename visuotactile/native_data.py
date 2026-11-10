@@ -97,10 +97,15 @@ def robot_rows(position, velocity, target, action, elapsed):
 
 
 def labels(record, anchors):
-    indices = anchors[:, None]+torch.arange(64)
-    valid = indices < len(record['time'])
-    commands = record['command'][indices.clamp_max(len(record['time'])-1)]
-    return torch.where(valid[..., None], commands, 0.), valid
+    from .anchor_sampling import labels as anchor_labels
+    return anchor_labels(record,anchors,64)
+
+
+def target_supervision(value):
+    """Semantic targets, independent of experiment/group names."""
+    aliases={'command':'u_expert','configuration':'q_reached','u_expert':'u_expert','q_reached':'q_reached'}
+    if value not in aliases:raise ValueError('Explicit command/configuration supervision required')
+    return aliases[value]
 
 
 def limits_affine(values):
@@ -174,14 +179,22 @@ def visual_records(data_root, identities, modality, device='cpu'):
     touch=torch.load(root/'tactile.pt',map_location='cpu',weights_only=False) if modality=='G10' else None
     records={}
     data=json.loads((root/'data.json').read_text())
+    supervision=target_supervision(data.get('supervision','u_expert'))
     for identity in identities:
         raw=cache['records'][identity]
         expected={'robot','command','time','joint_limits'}
         if data.get('supervision') is not None:expected|={'q_reached'}
-        if set(raw)!=expected:raise ValueError('Privileged visual record')
+        extra={'u_expert','supervision_mask','control_segment'}
+        if not expected<=set(raw) or set(raw)-expected-extra:raise ValueError('Privileged visual record')
+        if set(raw)&extra and not extra<=set(raw):raise ValueError('Incomplete supervised segment contract')
         records[identity]={k:raw[k].to(device) for k in ('robot','command','time','joint_limits')}
         if data.get('supervision') is not None:
-            records[identity]['clean_sample']=raw['q_reached' if data['supervision']=='q_reached' else 'command'].to(device)
+            records[identity]['clean_sample']=raw['q_reached'].to(device) if supervision=='q_reached' else raw.get('u_expert',raw['command']).to(device)
+        if 'supervision_mask' in raw:
+            from .anchor_sampling import supervision_rows
+            supervision_rows(raw)
+            records[identity].update({k:raw[k].to(device) for k in ('supervision_mask','control_segment')})
+            records[identity].update(supervision=supervision,expert_command=raw.get('u_expert',raw['command']).to(device))
         records[identity].update(identity=identity,source_root=str(root))
         if touch is not None:records[identity]['tactile']=touch[identity].to(device)
     return records
@@ -242,11 +255,46 @@ def residual_batch(records,start,stop,device):
     return inputs
 
 
+def residual_supervision_mask(records,start,stop,device):
+    """Loss/exposure mask only; residual_batch.valid keeps the real student prefix."""
+    from .anchor_sampling import supervision_rows
+    rows=[]
+    for record in records:
+        mask,_=supervision_rows(record)
+        out=torch.zeros(stop-start,dtype=torch.bool,device=device)
+        count=max(0,min(stop,len(mask))-start)
+        if count:out[:count]=mask[start:start+count].to(device)
+        rows.append(out)
+    return torch.stack(rows)
+
+
+def supervision_mask_sha256(records,identities=None):
+    """Bind actual loss masks AND segment boundaries, not a renamed dataset hash."""
+    import hashlib
+    from .anchor_sampling import supervision_rows
+    digest=hashlib.sha256()
+    for identity in sorted(records if identities is None else identities):
+        mask,segment=supervision_rows(records[identity])
+        encoded=identity.encode('utf-8')
+        digest.update(len(encoded).to_bytes(8,'little'));digest.update(encoded)
+        digest.update(len(mask).to_bytes(8,'little'))
+        digest.update(mask.cpu().numpy().tobytes());digest.update(segment.cpu().numpy().astype('<i8').tobytes())
+    return digest.hexdigest()
+
+
 @torch.no_grad()
-def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None):
+def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None):
     from .position_control import bounded_targets
     device=next(base.parameters()).device
     if base.training or any(p.requires_grad for p in base.parameters()):raise ValueError('Base must be completely frozen')
+    binding={'base_checkpoint_sha256','statistics_sha256','data_sha256','residual_statistics_sha256'}
+    if entry.get('trajectory_kind')=='expert_takeover_v1' and cache_identity is None:
+        raise ValueError('DAgger nominal caches require current DP, base/residual statistics and dataset SHA bindings')
+    if cache_identity is not None:
+        if set(cache_identity)!=binding or any(not isinstance(v,str) or len(v)!=64 for v in cache_identity.values()):
+            raise ValueError('Incomplete nominal cache identity')
+        if cache_identity['data_sha256']!=sha256(Path(record['source_root'])/'data.json'):
+            raise ValueError('Nominal cache dataset changed')
     episode=Episode(record['source_root'],record['identity'],base.group)
     generator=torch.Generator(device=device).manual_seed(7091);memory=None
     result=residual_observations(entry,record['robot'],record['time'])
@@ -264,10 +312,13 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None):
             plans.append(remaining[0].cpu());masks.append(valid.cpu());commands.append(plan[0,tick%12].cpu());features.append(visual)
         if tick%60==0:progress(tick=tick+1,plans=tick//12+1)
     result.update(plans=torch.stack(plans),plan_valid=torch.stack(masks),base=torch.stack(commands),
-        visual=torch.stack(features),target=record['command'].cpu(),limits=record['joint_limits'].cpu(),
+        visual=torch.stack(features),target=record.get('expert_command',record['command']).cpu(),limits=record['joint_limits'].cpu(),
         identity=record['identity'],time=record['time'].cpu(),
-        nominal_source='frozen_EMA_DDIM16_seed7091_predictions_on_complete_expert_observation_prefix',
-        history_source='strictly_past_executed_expert_targets_teacher_forcing; never nominal labels')
+        nominal_source='frozen_EMA_DDIM16_seed7091_predictions_on_complete_recorded_observation_prefix',
+        history_source='strictly_past_actual_executed_targets_including_student_prefix; never regenerated nominal labels')
+    for key in ('supervision_mask','control_segment'):
+        if key in record:result[key]=record[key].cpu()
+    if cache_identity is not None:result['cache_identity']=dict(cache_identity)
     nominal=result['base'];n=len(nominal)
     if base.contract.get('supervision')=='q_reached' and 'clean_sample' not in record:
         raise ValueError('Actual-configuration nominal cache requires explicit reached labels')
@@ -279,7 +330,7 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None):
     return result
 
 
-def cache_visual_pair(root, identities=None):
+def cache_visual_pair(root, identities=None, *, reuse_index=None):
     """Single writer, immutable backbone features only; live uses the same call."""
     import time
     from .models.native_vision import NativeDinoSpatial
@@ -291,16 +342,34 @@ def cache_visual_pair(root, identities=None):
     plan=json.loads((root/'session.json').read_text())
     if sha256(plan['dino_checkpoint'])!=plan['dino_sha256']:raise ValueError('Frozen DINO weight file changed')
     lease=lease_for(root,deadline=plan['cache_deadline'])
-    with lease.block():dino=NativeDinoSpatial().cuda().eval()
-    if any(p.requires_grad for p in dino.parameters()):raise ValueError('DINO must be frozen')
+    dino=None
     (out/'perception').mkdir(exist_ok=True);entries={};started=time.time();frames_done=0
     total=sum((info['entries'][i]['length']+11)//12 for i in ids)
     prior=json.loads((root/'cache_acceptance_index.json').read_text()) if (root/'cache_acceptance_index.json').exists() else None
     if prior and (prior['dino_sha256']!=plan['dino_sha256'] or prior['data_sha256']!=sha256(out/'data.json')):
         raise ValueError('Acceptance cache identity differs')
+    reusable=json.loads(Path(reuse_index).read_text()) if reuse_index is not None else None
+    if reusable and (reusable['dino_sha256']!=plan['dino_sha256'] or reusable.get('dino_revision')!=DINO_REVISION
+            or reusable.get('stride')!=12 or reusable.get('cameras')!=CAMERAS
+            or reusable.get('resolution')!=[448,252] or reusable.get('patches')!=[384,18,32]
+            or reusable.get('depth')!=[2,18,32] or reusable.get('random_augmentation') is not False
+            or reusable.get('trainable_projection_cached') is not False or reusable.get('complete') is not True):
+        raise ValueError('Only matching frozen DINO features may be shared across policies')
     for identity in ids:
         entry=info['entries'][identity];patches=[];depth=[]
         path=out/'perception'/(identity+'.pt')
+        shared=reusable['entries'].get(identity) if reusable else None
+        if shared is not None:
+            source=Path(shared['path'])
+            if not source.is_absolute():
+                candidates=(Path.cwd()/source,Path(reuse_index).resolve().parent/source)
+                source=next((p for p in candidates if p.is_file()),source)
+            if shared['source_sha256']!=entry['source_sha256'] or sha256(source)!=shared['sha256']:
+                raise ValueError('Shared DINO payload/source identity changed: '+identity)
+            if shared['frames']!=(entry['length']+11)//12:raise ValueError('Shared DINO temporal coverage differs')
+            if path.exists() and sha256(path)!=shared['sha256']:raise ValueError('Existing DINO payload differs')
+            if not path.exists():path.symlink_to(source.resolve())
+            entries[identity]=dict(shared,path=str(path.resolve()));total-=shared['frames'];continue
         if path.exists():
             old=prior['entries'].get(identity) if prior else None
             if not old or old['sha256']!=sha256(path) or old['source_sha256']!=entry['source_sha256']:
@@ -313,6 +382,9 @@ def cache_visual_pair(root, identities=None):
             times=torch.from_numpy(g['obs/time_s'][ticks]);ct=torch.from_numpy(g['obs/camera_time_s'][ticks]);cv=torch.from_numpy(g['obs/camera_valid'][ticks])
             if not cv.all() or ((times[:,None]-ct)<-1e-6).any():raise ValueError('Invalid/future camera')
             for tick in ticks:
+                if dino is None:
+                    with lease.block():dino=NativeDinoSpatial().cuda().eval()
+                    if any(p.requires_grad for p in dino.parameters()):raise ValueError('DINO must be frozen')
                 with lease.block():
                     rgb=torch.from_numpy(g['frames/rgb_u8'][int(tick)]).cuda()
                     patches.append(dino(rgb).cpu())

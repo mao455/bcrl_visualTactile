@@ -1039,6 +1039,332 @@ def publish_residual_metrics(root, evaluation, output):
         for p in sorted(output.rglob('*')) if p.is_file() and p.name!='artifacts.json'})
 
 
+def dagger_publish(root, output=None):
+    """Publish retained DAgger receipts on CPU, including failed/partial rounds.
+
+    No checkpoint is deserialized and no model, simulator, decoder, collection,
+    training, selection, cleanup or git operation is invoked here.
+    """
+    import gzip
+    root=Path(root).resolve()
+    output=Path(output).resolve() if output is not None else CODE/'research_docs/evidence'/root.name
+    if output==root or root in output.parents:raise ValueError('Publication must not overwrite run evidence')
+    output.mkdir(parents=True,exist_ok=True)
+    issues=[];sources={};artifacts={};hashes={}
+    def public(value):
+        if isinstance(value,dict):return {str(public(k)):public(v) for k,v in value.items()}
+        if isinstance(value,(list,tuple)):return [public(v) for v in value]
+        if isinstance(value,float) and not math.isfinite(value):return None
+        if isinstance(value,str):
+            for prefix in (str(CODE)+'/',str(root.parent.parent.parent.parent)+'/',
+                '/home/CNS2025331827/docs/bc+rl_RSS_palm_eval/','/home/CNS2025331827/docs/bc+rl_RSS/'):
+                value=value.replace(prefix,'')
+            return value.replace(str(Path.home())+'/','~/')
+        return value
+    def evidence(path,kind='metric',declared=None):
+        path=Path(path);key=public(str(path));row=dict(path=key,kind=kind,exists=path.is_file(),uploaded=False)
+        if row['exists']:
+            stat=path.stat();token=(stat.st_dev,stat.st_ino,stat.st_size,stat.st_mtime_ns)
+            if kind=='trajectory':digest=declared;scope='Collector manifest SHA; raw trajectory not opened by publisher'
+            else:
+                if token not in hashes:hashes[token]=sha(path)
+                digest=hashes[token];scope='Read and SHA256 verified during CPU publication'
+            row.update(bytes=stat.st_size,sha256=digest,hash_scope=scope)
+            if declared and digest!=declared:issues.append(dict(problem='declared_SHA_mismatch',path=key,declared=declared,actual=digest))
+        else:row.update(sha256=declared,hash_scope='Declared only; missing file')
+        (artifacts if kind in ('checkpoint','trajectory','video') else sources)[key]=row
+        return row
+    def optional(path,default=None):
+        if not path.is_file():return default
+        evidence(path)
+        try:return read(path)
+        except (ValueError,OSError) as error:
+            issues.append(dict(problem='unreadable_json_receipt',path=str(path),error=str(error)));return default
+    def lines(path):
+        if not path.is_file():return []
+        evidence(path);rows=[]
+        with path.open() as stream:
+            for number,line in enumerate(stream,1):
+                if not line.strip():continue
+                try:
+                    value=json.loads(line)
+                    if not isinstance(value,dict):raise ValueError('Expected metric object')
+                    rows.append(value)
+                except ValueError:issues.append(dict(problem='incomplete_or_invalid_jsonl_line',path=str(path),line=number))
+        return rows
+    def number(value):
+        try:result=float(value)
+        except (TypeError,ValueError):return None
+        return result if math.isfinite(result) else None
+    def numeric(value,prefix=''):
+        result={}
+        for key,item in value.items():
+            if isinstance(item,dict):result.update(numeric(item,prefix+key+'.'))
+            elif isinstance(item,(int,float)):result[prefix+key]=number(item)
+        return result
+    def emit(name,rows):
+        path=output/name
+        if not rows:path.unlink(missing_ok=True);return
+        fields=list(dict.fromkeys(k for row in rows for k in row))
+        clean=[{k:public(row.get(k)) for k in fields} for row in rows]
+        if path.suffix=='.gz':
+            import io
+            with path.open('wb') as raw,gzip.GzipFile(filename='',fileobj=raw,mode='wb',mtime=0) as zipped:
+                with io.TextIOWrapper(zipped,encoding='utf-8',newline='') as stream:
+                    writer=csv.DictWriter(stream,fieldnames=fields,lineterminator='\n');writer.writeheader();writer.writerows(clean)
+        else:table(path,clean)
+    def csv_read(path):
+        if not path.is_file():return []
+        evidence(path)
+        with path.open(newline='') as stream:return list(csv.DictReader(stream))
+    cfg=optional(root/'configuration.json',{});status=optional(root/'status.json',{})
+    if status.get('state')=='RUNNING' and not status.get('owned_workers_exited'):
+        raise ValueError('Publish after the DAgger owner stops its workers')
+    session=optional(root/'session.json',{});launch=optional(root/'launch.json',{})
+    registration=optional(root/'registration.json',{})
+    plans=optional(root/'collection_plan.json',[]);eval_plan=optional(root/'evaluation_plan.json',[])
+    groups=list(cfg.get('groups',{})) or sorted(p.name for p in (root/'round_01').glob('*') if p.is_dir())
+    group_reports={};collection_rows=[];closed_rows=[];stage_rows=[];curves=[];losses=[];errors=[];videos=[]
+    def video(node,group,cohort,identity,result):
+        for movie in sorted(node.glob('*.mp4')):
+            receipt=optional(node/'video_verified.json',{})
+            videos.append(dict(group=group,cohort=cohort,identity=identity,success=result.get('success'),
+                **evidence(movie,'video'),decoded_frames=receipt.get('decoded_frames'),frame_rate=receipt.get('frame_rate'),
+                decode_scope='Existing retained CPU decode receipt; publisher did not decode' if receipt else 'No retained complete decode receipt'))
+    def evaluated(node,group,cohort,selected):
+        aggregate=optional(node/'evaluation_summary.json',{});rows=[]
+        indexed={r.get('identity'):r for r in aggregate.get('results',[]) if isinstance(r,dict)}
+        known={p.name for p in (node/'evaluation').glob('*') if p.is_dir()}|set(indexed)
+        registered={case['identity']:case for case in eval_plan if isinstance(case,dict) and 'identity' in case}
+        if len(registered)!=len(eval_plan):issues.append(dict(group=group,problem='evaluation_plan_missing_or_duplicate_identity'))
+        for identity in list(registered)+sorted(known-set(registered)):
+            trial=node/'evaluation'/identity;r=optional(trial/'result.json')
+            started=optional(trial/'started.json')
+            attempted=r is not None or started is not None or identity in indexed
+            if r is None and identity in indexed:issues.append(dict(group=group,cohort=cohort,identity=identity,problem='trial_receipt_missing_summary_preserved'))
+            if r is not None and identity in indexed and r!=indexed[identity]:issues.append(dict(group=group,identity=identity,problem='trial_summary_mismatch'))
+            r=r or {};valid=r.get('legal') is True and r.get('software_complete') is True and isinstance(r.get('success'),bool)
+            if valid and r.get('reasons',{}).get('max_successes')!=r['success']:
+                valid=False;issues.append(dict(group=group,identity=identity,problem='native_success_field_mismatch'))
+            expected_seed=registered.get(identity,{}).get('spec',{}).get('seed')
+            matched=(expected_seed is None or r.get('seed')==expected_seed) and bool(selected.get('exists')) and r.get('checkpoint_sha256')==selected.get('sha256')
+            classification=('unmeasured' if not attempted else 'rejected' if r.get('legal') is False else
+                'valid' if valid and matched else 'unverified_model_or_seed' if valid else 'software_incomplete')
+            if valid and not matched:issues.append(dict(group=group,cohort=cohort,identity=identity,problem='evaluation_model_or_seed_unverified'))
+            row=dict(group=group,cohort=cohort,identity=identity,registered=identity in registered,attempted=attempted,
+                classification=classification,legal=r.get('legal'),software_complete=r.get('software_complete'),
+                native_success=r.get('success'),success=r.get('success') if classification=='valid' else None,
+                seed=r.get('seed'),steps=r.get('steps'),native_lift=r.get('native_lift'),native_subgoals=r.get('native_subgoals'),
+                native_alignment=r.get('native_alignment'),stable_grasp=r.get('contact',{}).get('stable_grasp_diagnostic'),
+                termination=','.join(k for k,v in r.get('reasons',{}).items() if v),post_success_actions=r.get('post_success_actions'),
+                checkpoint_sha256=r.get('checkpoint_sha256'))
+            rows.append(row);closed_rows.append(row);video(trial,group,cohort,identity,r)
+        counted=[r for r in rows if r['registered']];valid=sum(r['classification']=='valid' for r in counted)
+        attempted=sum(r['attempted'] for r in counted);successes=sum(r['success'] is True for r in counted) if valid else None
+        return dict(planned=len(registered),attempted=attempted,valid=valid,successes=successes,
+            success_rate=successes/valid if valid else None,unstarted=sum(not r['attempted'] for r in counted),
+            rejected=sum(r['classification']=='rejected' for r in counted),
+            software_incomplete=sum(r['classification']=='software_incomplete' for r in counted),
+            unverified_model_or_seed=sum(r['classification']=='unverified_model_or_seed' for r in counted),
+            unregistered_attempts=sum(r['attempted'] and not r['registered'] for r in rows),
+            state='complete' if len(registered)==10 and len(counted)==10 and all(r['classification'] in ('valid','rejected') for r in counted)
+                else 'partial' if attempted else 'unmeasured',declared_summary=aggregate,
+            denominator='Registered ten-case development cohort; actual per-trial receipts, legal/software complete, native success and model/seed identity')
+    for group in groups:
+        job=root/'round_01'/group;pair=optional(job/'initial_pair.json',{})
+        initial={key:evidence(pair[key],'checkpoint',pair.get(key+'_sha256')) for key in ('frontend','backend') if pair.get(key)}
+        rows=optional(job/'collection_results.json',[]);attempts=lines(job/'attempts.jsonl')
+        by_id={r['identity']:r for r in rows if isinstance(r,dict) and 'identity' in r}
+        started={r['identity']:r for r in attempts if 'identity' in r}
+        registered={p['identity']:p for p in plans if 'identity' in p}
+        if len(registered)!=len(plans):issues.append(dict(group=group,problem='collection_plan_missing_or_duplicate_identity'))
+        local=[]
+        for identity in list(registered)+sorted((set(by_id)|set(started))-set(registered)):
+            row=by_id.get(identity,{});result=row.get('result',{});dagger=result.get('dagger',{});exposure=row.get('exposure',{})
+            attempted=identity in by_id or identity in started
+            valid=result.get('legal') is True and result.get('software_complete') is True and isinstance(result.get('success'),bool)
+            accepted=row.get('accepted') is True and valid and result.get('success') is True and dagger.get('expert_takeover_success') is True and row.get('label_contract_checked') is True
+            if row.get('accepted') and not accepted:issues.append(dict(group=group,identity=identity,problem='accepted_correction_receipt_inconsistent'))
+            record=dict(group=group,cohort='training_takeover_collection',identity=identity,registered=identity in registered,
+                attempted=attempted,legal=result.get('legal'),software_complete=result.get('software_complete'),
+                classification='unmeasured' if not attempted else 'rejected' if result.get('legal') is False else 'valid' if valid else 'software_incomplete',
+                mixed_success=result.get('success') if valid else None,accepted=accepted,
+                student_autonomous_success=dagger.get('student_autonomous_success'),takeover_triggered=dagger.get('takeover_triggered'),
+                expert_takeover_success=dagger.get('expert_takeover_success'),student_ticks=dagger.get('student_ticks'),
+                expert_ticks=dagger.get('expert_ticks'),expert_valid_ticks=dagger.get('expert_valid_ticks'),
+                supervised_ticks=exposure.get('supervised_ticks'),supervised_anchors=exposure.get('supervised_anchors'),
+                seed=result.get('seed',started.get(identity,registered.get(identity,{})).get('seed')),
+                exclusion_reason=row.get('exclusion_reason'),error=row.get('error'),
+                termination=','.join(k for k,v in result.get('reasons',{}).items() if v))
+            local.append(record);collection_rows.append(record)
+            video(job/'episodes'/identity,group,'training_takeover_collection',identity,result)
+        admitted=[r for r in local if r['registered'] and r['accepted']]
+        entries=optional(job/'correction_entries.json',{})
+        for entry in entries.values():
+            if entry.get('path'):evidence(entry['path'],'trajectory',entry.get('source_sha256'))
+        collection=dict(planned=len(registered),attempted=sum(r['attempted'] for r in local if r['registered']),
+            unstarted=sum(not r['attempted'] for r in local if r['registered']),
+            accepted_episodes=len(admitted),effective_expert_ticks=sum(r['supervised_ticks'] or 0 for r in admitted),
+            effective_dp_anchors=sum(r['supervised_anchors'] or 0 for r in admitted),
+            mixed_successes=sum(r['mixed_success'] is True for r in local if r['registered']),
+            expert_takeover_successes=sum(r['expert_takeover_success'] is True for r in local if r['registered']),
+            student_autonomous_successes=sum(r['student_autonomous_success'] is True for r in local if r['registered']),
+            software_incomplete=sum(r['classification']=='software_incomplete' for r in local if r['registered']),
+            unregistered_attempts=sum(r['attempted'] and not r['registered'] for r in local),
+            finished=optional(job/'collection_finished.json'),gate=optional(job/'collection_gate.json'),
+            selection='Only successful expert-executed corrections admitted; student prefix retained with zero supervision; not autonomous evaluation')
+        stages={}
+        for stage,node,target,unit in (('frontend',job/'dp/training',pair.get('supervision','unknown'),'supervised_planning_anchor_equivalent_epochs'),
+                ('backend',job/'backend'/group/'training','u_expert','supervised_control_tick_equivalent_epochs')):
+            done=optional(node/'finished.json',{});progress=optional(node/'progress.json',{})
+            configuration=optional(node/'configuration.json',{});selected=optional(node/'selected.json',{})
+            budget=optional(node/'budget.json',optional(job/'dp/budget.json') if stage=='frontend' else None)
+            checkpoint=evidence(node/'best.pt','checkpoint');evidence(node/'last.pt','checkpoint')
+            updates=lines(node/('training.jsonl' if stage=='frontend' else 'loss.jsonl'))
+            validation=lines(node/'validation.jsonl') if stage=='frontend' else optional(node/'validation.json',[])
+            emit(group+'_'+stage+'_every_update.csv.gz',[numeric(r) for r in updates])
+            emit(group+'_'+stage+'_validation_raw.csv.gz',[numeric(r) for r in validation])
+            if stage=='frontend':
+                emit(group+'_frontend_geometry.csv.gz',[numeric(r) for r in lines(node/'geometry_projection.jsonl')])
+                emit(group+'_frontend_probe.csv.gz',[numeric(r) for r in lines(job/'dp/probe/training.jsonl')])
+            cumulative=0
+            for row in updates:
+                cumulative+=row.get('supervised_ticks',0)
+                population=done.get('supervised_tick_population',done.get('control_tick_population'))
+                exposure=cumulative/population if stage=='backend' and population else row.get('anchor_equivalent_epochs')
+                losses.append(dict(stage=stage,model=group+' '+stage,target=target,exposure_unit=unit,
+                    first_update=row.get('update'),update=row.get('update'),updates_in_interval=1,exposure=exposure,mean_loss=number(row.get('loss'))))
+            for row in validation:
+                for key,cohort in (('train8','fixed_train2'),('metrics','fixed_validation4')) if stage=='frontend' else (('train','fixed_train2'),('validation','fixed_validation4')):
+                    metric=row.get(key,{})
+                    if stage=='backend':metric=metric.get('all',{})
+                    curves.append(dict(stage=stage,model=group+' '+stage,target=target,exposure_unit=unit,cohort=cohort,
+                        update=row.get('update'),exposure=row.get('anchor_equivalent_epochs' if stage=='frontend' else 'control_tick_epochs'),
+                        arm_rmse_rad=number(metric.get('arm_rmse' if stage=='frontend' else 'arm_rmse_rad')),
+                        hand_rmse_rad=number(metric.get('hand_rmse' if stage=='frontend' else 'hand_rmse_rad')),
+                        palm_rmse_mm=number(metric.get('ee_distance_rmse_mm')),
+                        selection_metric=number(metric.get('selection_score' if stage=='frontend' else 'normalized_equal_mse'))))
+            exposure=done.get('coverage',{}).get('anchor_equivalent_epochs',progress.get('anchor_equivalent_epochs')) if stage=='frontend' else done.get('control_tick_epochs',progress.get('control_tick_epochs'))
+            train_state=('disposable' if done.get('disposable') or configuration.get('disposable') else
+                'budget_reached' if done.get('target_reached') is True else 'stopped_before_ceiling' if done else 'partial' if progress or updates else 'unmeasured')
+            report=dict(state=train_state,updates=done.get('updates',progress.get('update')),exposure=exposure,exposure_unit=unit,
+                target=target,finished=done,progress=progress,configuration=configuration,budget=budget,selection=selected,
+                selected_checkpoint=checkpoint,restore=optional(node/'restore.json'),
+                continuation_audit=configuration.get('continuation_audit'),
+                probe=optional(job/('dp/throughput_probe.json' if stage=='frontend' else 'backend/throughput_probe.json')))
+            stages[stage]=report
+            stage_rows.append(dict(group=group,stage=stage,target=target,state=train_state,updates=report['updates'],
+                new_optimizer_updates=done.get('new_optimizer_updates'),exposure=exposure,exposure_unit=unit,
+                supervised_target_ticks=done.get('supervised_target_ticks'),supervised_ticks=done.get('supervised_ticks'),
+                stop_reason=done.get('stop_reason'),selected_update=selected.get('update'),checkpoint_sha256=checkpoint.get('sha256')))
+        backend=job/'backend'/group
+        offline=optional(backend/'offline/result.json',{})
+        for name in ('stage_errors.csv','base_stage_errors.csv','force_sensitivity.json','geometry_metrics.json'):
+            path=backend/'offline'/name
+            if path.suffix=='.csv':
+                metric_rows=csv_read(path);emit(group+'_'+name,metric_rows)
+                for row in metric_rows:
+                    errors.append(dict(stage='backend',model=group,target='u_expert',prediction_kind='final_command' if name=='stage_errors.csv' else 'nominal_against_command',
+                        **{key:row.get(key) for key in ('split','phase','group','motion')},
+                        **{key:number(row.get(key)) for key in ('ticks','rmse_rad','ee_rmse_mm')}))
+            else:
+                receipt=optional(path)
+                if receipt is not None:write(output/(group+'_'+name),public(receipt))
+                else:(output/(group+'_'+name)).unlink(missing_ok=True)
+        for name in ('sampled_ticks.csv','base_sampled_ticks.csv'):
+            emit(group+'_'+name+'.gz',csv_read(backend/'offline'/name))
+        evaluated_new=evaluated(backend,group,'autonomous_development_after_dagger',stages['backend']['selected_checkpoint'])
+        previous=evaluated(Path(pair['backend']).parent.parent,group,'historical_autonomous_development',initial['backend']) if pair.get('backend') else None
+        group_reports[group]=dict(owner_state=status.get('groups',{}).get(group,'UNMEASURED'),initial_pair=pair,
+            initialization_artifacts=initial,collection=collection,stages=stages,offline=offline,
+            autonomous_development=evaluated_new,historical_autonomous_development=previous,
+            evaluation_completion=optional(job/'backend/evaluation_complete.json'),failure=optional(job/'failure.json'),
+            input_acceptance=optional(job/'dp/vision_acceptance.json'))
+    telemetry=lines(root/'resources/shared.jsonl')
+    if not telemetry:telemetry=lines(root/'shared_resources.jsonl')
+    start=number(launch.get('started',session.get('started')));end=number(status.get('utc'))
+    valid_samples=[r for r in telemetry if number(r.get('utc_epoch')) is not None and (start is None or r['utc_epoch']>=start) and (end is None or r['utc_epoch']<=end)]
+    intervals=[(b['utc_epoch']-a['utc_epoch'],number(a.get('gpu_util_percent'))) for a,b in zip(valid_samples,valid_samples[1:])]
+    usable=[(dt,value) for dt,value in intervals if 0<dt<=8 and value is not None]
+    covered=sum(dt for dt,_ in usable)
+    def minimum(key):
+        values=[number(r.get(key)) for r in valid_samples];values=[v for v in values if v is not None]
+        return min(values) if values else None
+    resources=dict(samples=len(valid_samples),time_weighted_whole_card_percent=sum(dt*v for dt,v in usable)/covered if covered else None,
+        measured_interval_s=covered,max_sample_gap_s=max((dt for dt,_ in intervals),default=None),
+        gap_seconds_above8=sum(dt for dt,_ in intervals if dt>8),
+        leading_uncovered_s=max(0,valid_samples[0]['utc_epoch']-start) if valid_samples and start is not None else None,
+        trailing_uncovered_s=max(0,end-valid_samples[-1]['utc_epoch']) if valid_samples and end is not None else None,
+        min_gpu_free_mib=minimum('gpu_free_mib'),min_ram_available_bytes=minimum('ram_available_bytes'),
+        monitor_exit=optional(root/'monitor_exit.json'),
+        scope='Retained launch-to-status telemetry, positive intervals <=8s; whole card, not per-process utilization; missing coverage retained')
+    emit('resource_samples.csv.gz',[numeric(r) for r in valid_samples])
+    log_rows=[];physx=[]
+    for path in sorted(root.rglob('*.log')):
+        evidence(path,'log');counts=dict(path=str(path),error_lines=0,physx_error_lines=0)
+        with path.open(errors='replace') as stream:
+            for line_number,line in enumerate(stream,1):
+                if '[Error]' in line or 'Traceback (most recent call last)' in line:counts['error_lines']+=1
+                if 'PhysX error:' in line:
+                    counts['physx_error_lines']+=1;physx.append(dict(path=str(path),line=line_number,message=line.rstrip()))
+        log_rows.append(counts)
+    receipts={name:optional(root/(name+'.json')) for name in ('source_freeze','integration','owned_cleanup','owner_error','active_stage','worker_processes','publication_error','cleanup','preparation_receipt','time_estimate','successor_service')}
+    verified_complete=status.get('state')=='COMPLETE' and bool(groups) and not issues and status.get('owned_workers_exited') is True and (receipts.get('owned_cleanup') or {}).get('verified') is True and all(
+        r['owner_state']=='COMPLETE' and r['autonomous_development']['state']=='complete' and r['evaluation_completion'] is not None and r['evaluation_completion'].get('complete') is True
+        and (r['collection']['finished'] or {}).get('complete') is True and (r['collection']['finished'] or {}).get('sufficient') is True
+        and (r['collection']['gate'] or {}).get('passed') is True
+        and all(s['finished'] and not s['finished'].get('disposable') and s['selected_checkpoint'].get('exists') for s in r['stages'].values()) for r in group_reports.values())
+    summary=dict(schema='dagger_cpu_publication_v1',status=status,verified_round_complete=verified_complete,configuration=cfg,
+        registration=registration,session=session,source_run=str(root),source_commit=launch.get('source_head',session.get('source_head')),
+        groups=group_reports,resources=resources,root_receipts=receipts,publication_issues=issues,
+        inference_or_training_performed=False,kit_loaded=False,selection_performed_by_exporter=False,
+        test22_used=status.get('test22_used'),no_next_round=status.get('no_next_round'),
+        log_scope='Retained log line occurrences; duplicate sinks are not distinct simulator events',physx_error_lines=len(physx),
+        limitations=['Collection successes include expert takeover and are not autonomous policy success',
+            'Only successful corrections are aggregated; failed/illegal/interrupted attempts remain in collection denominator',
+            'u_expert and q_reached frontend supervision retain separate target semantics; backend target remains u_expert',
+            'Offline errors use recorded actual prefixes, not aligned autonomous trajectories',
+            'Ten-case development evaluation is not formal test22 or OOD evidence',
+            'Same reset specifications and seeds do not establish bitwise hidden-state pairing',
+            'Null/unmeasured is missing measurement, never a zero success rate; exit0 does not establish harmless log errors'])
+    write(output/'summary.json',public(summary));write(output/'plans.json',public(dict(collection=plans,autonomous_development=eval_plan)))
+    emit('collection.csv',collection_rows);emit('closed_loop.csv',closed_rows);emit('training_stages.csv',stage_rows)
+    emit('validation_curves.csv',curves);emit('training_loss.csv.gz',losses);emit('offline_metrics.csv',errors)
+    emit('video_index.csv',videos);emit('log_counts.csv',log_rows);emit('physx_errors.csv',physx)
+    write(output/'source_artifacts.json',public(sources));write(output/'local_artifacts.json',public(artifacts))
+    matrix_plots(output,curves,losses,errors)
+    for path in output.glob('*.csv'):path.write_bytes(path.read_bytes().replace(b'\r\n',b'\n'))
+    write(output/'artifacts.json',{str(p.relative_to(output)):dict(bytes=p.stat().st_size,sha256=sha(p))
+        for p in sorted(output.iterdir()) if p.is_file() and p.name!='artifacts.json'})
+    document=CODE/'research_docs/STATE_DP_RESULTS.md'
+    start_marker='<!-- tight-dagger-results:start -->';end_marker='<!-- tight-dagger-results:end -->'
+    text=document.read_text() if document.exists() else ''
+    if text.count(start_marker)!=text.count(end_marker) or text.count(start_marker)>1:
+        raise ValueError('Malformed DAgger managed block; preserve existing document')
+    relative=os.path.relpath(output,document.parent)
+    lines_out=[start_marker,'## 2026-11-11 DAgger：一轮前端与后端增量续训','',
+        f"本轮 owner 状态为 **{status.get('state','UNMEASURED')}**；产物核验{'完整' if verified_complete else '尚不完整'}。以下按已有凭据整理，缺失项不记为零成功。",'',
+        '|组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|',
+        '|---|---:|---:|---:|---:|---:|---:|']
+    def show(value):return '未测' if value is None else f'{value:.3f}' if isinstance(value,float) else str(value)
+    for group,row in group_reports.items():
+        c=row['collection'];f=row['stages']['frontend'];b=row['stages']['backend'];e=row['autonomous_development']
+        lines_out.append(f"|{group}|{c['attempted']} / {c['planned']}|{c['expert_takeover_successes']} / {c['attempted']}|{c['accepted_episodes']} / {c['effective_expert_ticks']} / {c['effective_dp_anchors']}|{show(f['updates'])} / {show(f['exposure'])}|{show(b['updates'])} / {show(b['exposure'])}|{show(e['successes'])} / {e['valid']} / {e['planned']}|")
+    lines_out+=['','采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。',
+        '自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。',
+        f"整卡时间加权利用率：{show(resources['time_weighted_whole_card_percent'])}%；资源样本 {resources['samples']} 条，>8s 内部缺口 {show(resources['gap_seconds_above8'])}s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。",'',
+        f'[原始机器结果]({relative}/summary.json) · [采集逐次记录]({relative}/collection.csv) · [自主逐次记录]({relative}/closed_loop.csv) · [两阶段曝光]({relative}/training_stages.csv) · [权重/视频本地索引]({relative}/local_artifacts.json)。']
+    if (output/'training_curves.png').is_file():lines_out+=['',f'![DAgger 训练与固定验证曲线]({relative}/training_curves.png)']
+    lines_out+=['','仅 CPU 导出已有数值、日志与 SHA；未新增训练、推理、Kit、评估、清理或模型选择。初始化身份、失败原因、视频解码凭据和全部缺失项见公开结果。',end_marker]
+    block='\n'.join(lines_out)
+    if start_marker in text:
+        start=text.index(start_marker);end=text.index(end_marker,start)+len(end_marker);text=text[:start]+block+text[end:]
+    else:text=text.rstrip()+'\n\n'+block+'\n'
+    document.parent.mkdir(parents=True,exist_ok=True)
+    temporary=document.with_suffix('.dagger.tmp');temporary.write_text(text);temporary.replace(document)
+    return public(summary)
+
+
 def matrix_publish(root, output):
     """CPU-only export of a finite method matrix, including incomplete stages.
 
@@ -1543,7 +1869,7 @@ def matrix_plots(output, curves, losses, errors):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
     parser.add_argument('--evaluation', type=Path)
@@ -1554,6 +1880,7 @@ def main():
     elif args.mode == 'matrix_publish':
         if args.output is None: parser.error('matrix_publish requires --output')
         matrix_publish(root, args.output.resolve())
+    elif args.mode == 'dagger_publish':dagger_publish(root,args.output)
     elif args.mode == 'publish':
         if args.evaluation is None or args.output is None:
             parser.error('publish requires --evaluation and --output')

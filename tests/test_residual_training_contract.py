@@ -17,9 +17,10 @@ class TinyResidual(torch.nn.Module):
         super().__init__()
         self.weight = torch.nn.Parameter(torch.zeros(29))
         self.register_buffer('action_scale', torch.ones(29))
-        self.seen = []
+        self.seen = [];self.had_state=[]
 
     def forward(self, inputs, state):
+        self.had_state.append(state is not None)
         self.seen.extend(inputs['robot'][..., 0][inputs['valid']].tolist())
         raw = self.weight.expand(*inputs['valid'].shape, 29)
         return raw, {'last': raw[:, -1]}
@@ -128,3 +129,140 @@ def test_selection_metric_counts_noncontact_and_equal_arm_hand(monkeypatch):
     assert metrics['all']['normalized_equal_mse']==5.
     assert metrics['contact']['normalized_equal_mse']==0.
     assert metrics['noncontact']['normalized_equal_mse']==10.
+
+
+def test_prefix_advances_history_without_optimizer_or_supervised_exposure(trainer):
+    root,_,model,_=trainer
+    _,config,data,records,*_=anchor_continue.residual_setup(root)
+    data['splits']['train']=['t0'];config.update(maximum_control_tick_epochs=1,minimum_control_tick_epochs=1,microbatch=1,
+        learning_rate=3e-4,weight_decay=.002)
+    records['t0']=record(7,80);records['t0']['time']=torch.arange(80)/60
+    records['t0']['supervision_mask']=torch.arange(80)>=64
+    records['t0']['target'][:64]=1000.  # An invalid target must never affect loss.
+    anchor_continue.residual_train(root)
+    finished=json.loads((root/'training/finished.json').read_text())
+    saved=torch.load(root/'training/last.pt',weights_only=False)
+    assert model.seen==[7.]*80
+    assert model.had_state==[False,True,True]
+    assert finished['updates']==1 and finished['supervised_ticks']==16
+    assert finished['control_ticks']==80 and finished['target_reached']
+    assert saved['optimizer']['param_groups'][0]['lr']==3e-4
+    assert saved['optimizer']['param_groups'][0]['weight_decay']==.002
+    loss=json.loads((root/'training/loss.jsonl').read_text())
+    assert loss['loss']==pytest.approx(1.) and loss['supervised_ticks']==16
+
+
+def test_incremental_resume_after_final_group_preserves_next_updates(trainer,monkeypatch):
+    root,session,model,_=trainer
+    _,config,*_=anchor_continue.residual_setup(root)
+    config.update(continuation_from={'test':'CPU mocked selected source'},maximum_control_tick_epochs=3,
+        minimum_control_tick_epochs=3,learning_rate=3e-4)
+    anchor_continue.residual_train(root)
+    expected=torch.load(root/'training/last.pt',weights_only=False)
+    other=root.parent/'resumed';other.mkdir();session['base_contracts']['resumed']={}
+    with torch.no_grad():model.weight.zero_()
+    original=anchor_continue.save;writes=[]
+    def interrupted(path,payload):
+        original(path,payload)
+        if path.name=='last.pt':
+            writes.append(path)
+            if len(writes)==2:raise RuntimeError('simulated exit after completed epoch group')
+    monkeypatch.setattr(anchor_continue,'save',interrupted)
+    with pytest.raises(RuntimeError,match='simulated exit'):anchor_continue.residual_train(other)
+    assert not (other/'training/finished.json').exists()
+    monkeypatch.setattr(anchor_continue,'save',original)
+    anchor_continue.residual_train(other)
+    actual=torch.load(other/'training/last.pt',weights_only=False)
+    assert actual['updates']==expected['updates']==6
+    assert actual['supervised_ticks']==expected['supervised_ticks']==63
+    assert torch.equal(actual['model']['weight'],expected['model']['weight'])
+    for key in ('step','exp_avg','exp_avg_sq'):
+        assert torch.equal(actual['optimizer']['state'][0][key],expected['optimizer']['state'][0][key])
+    assert torch.equal(actual['schedule_rng'],expected['schedule_rng'])
+    restored=json.loads((other/'training/restore.json').read_text())
+    assert restored['passed'] and all(restored['checks'].values())
+    # Reading an already completed round never performs an extra optimizer step.
+    anchor_continue.residual_train(other)
+    assert torch.equal(model.weight,actual['model']['weight'])
+
+
+def test_selected_residual_reuses_parameters_but_rejects_changed_bounds():
+    class Small(torch.nn.Module):
+        version=TargetResidual.version
+        def __init__(self):
+            super().__init__();self.layer=torch.nn.Linear(2,3)
+            self.register_buffer('scales',torch.tensor([.1,.2,.3]))
+    source=Small();target=Small()
+    saved=dict(residual_version=TargetResidual.version,updates=20,configuration={'residual_statistics_sha256':'fixed'},model=source.state_dict())
+    audit=anchor_continue.load_residual_continuation(target,saved,'fixed')
+    assert audit['new_optimizer_updates']==0 and audit['statistics_and_delta_buffers_unchanged']
+    assert all(torch.equal(value,target.state_dict()[key]) for key,value in source.state_dict().items())
+    target.scales[0]=.11
+    with pytest.raises(ValueError,match='buffer'):anchor_continue.load_residual_continuation(target,saved,'fixed')
+
+
+def test_incremental_probe_keeps_formal_scheduler_horizon():
+    schedule=dict(maximum_updates=2000,minimum_updates=1000,warmup_updates=100,
+        lr_peak=1e-5,lr_floor=1e-6,validation_interval=500)
+    assert anchor_continue.incremental_schedule(schedule,2000)['maximum_updates']==2000
+    assert anchor_continue.incremental_schedule(schedule,1,smoke=True)['maximum_updates']==2000
+    with pytest.raises(ValueError,match='shorten'):anchor_continue.incremental_schedule(schedule,8)
+
+
+def test_selection_metric_excludes_unlabeled_prefix(monkeypatch):
+    model=TinyResidual();records={'a':dict(target=torch.zeros(2,29),gate=torch.tensor([True,True]),
+        supervision_mask=torch.tensor([False,True]))}
+    prediction=torch.ones(2,29);prediction[0]=1000
+    monkeypatch.setattr(anchor_continue,'residual_prediction',lambda *a,**kw:prediction)
+    metrics,_=anchor_continue.residual_metrics(model,records,['a'],None)
+    assert metrics['all']['ticks']==1 and metrics['all']['normalized_equal_mse']==1.
+
+
+def test_dagger_setup_keeps_original_stat_population_and_rejects_stale_cache(tmp_path,monkeypatch):
+    from visuotactile import state_resources
+    from visuotactile.native_data import supervision_mask_sha256
+    root=tmp_path/'G11';root.mkdir();data_root=root/'state_data';data_root.mkdir()
+    nominal=root/'nominal';nominal.mkdir();normal=tmp_path/'command_statistics';normal.mkdir()
+    def write(path,value):path.write_text(json.dumps(value))
+    data=dict(splits={'train':['old','new'],'validation':['val']},normalization_train_ids=['old'])
+    write(data_root/'data.json',data)
+    identity='u_expert_train166_affine_v1'
+    write(normal/'data.json',dict(data,normalization_identity=identity))
+    stats=dict(robot_mean=torch.zeros(178),robot_std=torch.ones(178),action_scale=torch.ones(29),action_offset=torch.zeros(29))
+    torch.save(stats,normal/'statistics.pt')
+    torch.save(dict(stats,action_scale=torch.full((29,),2.)),data_root/'statistics.pt')
+    stat_sha=anchor_continue.sha256(normal/'statistics.pt')
+    base=tmp_path/'updated_dp.pt';base.write_bytes(b'new DP identity')
+    base_sha=anchor_continue.sha256(base)
+    source_model=TargetResidual(stats,[.01]*29)
+    source=tmp_path/'prior_selected.pt'
+    torch.save(dict(residual_version=TargetResidual.version,updates=10,model=source_model.state_dict(),
+        configuration={'residual_statistics_sha256':stat_sha}),source)
+    continuation=dict(path=str(source),sha256=anchor_continue.sha256(source),teacher_supervision='u_expert',
+        statistics_sha256=stat_sha,normalization_identity=identity,round_index=1,source_group='G11')
+    pair=dict(version=TargetResidual.version,bases={'G11':{'checkpoint':str(base),'sha256':base_sha}},
+        residual_statistics_path=str(normal/'statistics.pt'),initialization_seed=3,continuation_from=continuation)
+    write(root/'configuration.json',{'residual_pair':pair})
+    write(root/'session.json',dict(dino_sha256='fixed',resource_root=str(tmp_path),training_deadline=123))
+    binding=dict(base_checkpoint_sha256=base_sha,statistics_sha256=anchor_continue.sha256(data_root/'statistics.pt'),
+        data_sha256=anchor_continue.sha256(data_root/'data.json'),residual_statistics_sha256=stat_sha)
+    rows={i:dict(time=torch.arange(3),supervision_mask=torch.ones(3,dtype=torch.bool),
+        control_segment=torch.zeros(3,dtype=torch.long),cache_identity=dict(binding)) for i in ('old','new','val')}
+    index=dict(base_sha256=base_sha,data_sha256=binding['data_sha256'],residual_statistics_sha256=stat_sha,
+        residual_normalization_identity=identity,supervision_mask_sha256=supervision_mask_sha256(rows),episodes={})
+    for key,row in rows.items():
+        torch.save(row,nominal/(key+'.pt'));index['episodes'][key]={'sha256':anchor_continue.sha256(nominal/(key+'.pt'))}
+    write(nominal/'index.json',index)
+    write(nominal/'scales.json',dict(scales=[.01]*29,residual_statistics_sha256=stat_sha,residual_normalization_identity=identity))
+    monkeypatch.setattr(state_resources,'lease_for',lambda *a,**kw:SimpleNamespace(block=nullcontext))
+    monkeypatch.setattr(TargetResidual,'cuda',lambda self:self)
+    *_,model,config,_=anchor_continue.residual_setup(root)
+    assert config['normalization_train_ids']==['old'] and torch.equal(model.action_scale,stats['action_scale'])
+    assert all(torch.equal(value,model.state_dict()[key]) for key,value in source_model.state_dict().items())
+    _,_,smoke_data,verified_records,*_=anchor_continue.residual_setup(root,smoke=True)
+    assert smoke_data['splits']['train']==['old'] and set(verified_records)=={'old','new','val'}
+    # Even a fully rehashed cache file must identify the newly updated DP.
+    rows['new']['cache_identity']['base_checkpoint_sha256']='0'*64
+    torch.save(rows['new'],nominal/'new.pt');index['episodes']['new']['sha256']=anchor_continue.sha256(nominal/'new.pt')
+    write(nominal/'index.json',index)
+    with pytest.raises(ValueError,match='episode cache source'):anchor_continue.residual_setup(root)

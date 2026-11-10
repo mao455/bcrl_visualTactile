@@ -35,6 +35,66 @@ def native_policy_action(controller, packet, diagnostics_provider):
     return controller.act(packet, diagnostics_provider())
 
 
+def dagger_configuration(configuration, spec, source):
+    """Validate a predeclared train-family takeover; never choose by outcome."""
+    from .position_control import ExpertPositionBridge
+    if configuration.get('version') != ExpertPositionBridge.version:
+        raise ValueError('Explicit expert takeover position contract required')
+    tick = spec.get('takeover_tick', configuration.get('takeover_tick'))
+    if isinstance(tick, bool) or not isinstance(tick, int) or tick < 1:
+        raise ValueError('Positive preregistered takeover tick required')
+    if configuration.get('expert_speed') != ExpertPositionBridge.speed_scheme:
+        raise ValueError('Existing validated expert speed scheme must be explicit')
+    if spec.get('cohort') != 'dagger_train' or spec.get('split') != 'train' or 'narrow_reset' not in spec:
+        raise ValueError('DAgger requires a fresh, explicitly train-only family reset')
+    identity = spec.get('source_identity')
+    if identity not in source['splits']['train']:
+        raise ValueError('DAgger family must come from the training split')
+    if spec.get('event_seed') is None:
+        raise ValueError('A separately registered new event seed is required')
+    return dict(configuration, takeover_tick=tick, trajectory_kind='expert_takeover_v1',
+        control_source_codes=dict(student=0, expert=1),
+        segment_rule='Increase at control-source or supervision-validity changes; never join across episode reset',
+        supervision_rule='Student prefix and the complete expert-delay queue flush have mask0; clean executed expert suffix only',
+        q_reached_rule='Actual same-transition post-integration joint state; never a counterfactual expert response',
+        expert_delay_rule='Continuous shadow queue; same single draw retained by the position executor; native queue untouched')
+
+
+def record_dagger_transition(controller, transition, previous_nominal):
+    """Attach factual labels, then acknowledge the actual command to the student."""
+    value = transition['dagger']
+    target = transition['target_after_rad']
+    requested = transition['position_requested_rad']
+    applied = transition['position_applied_rad']
+    expert = value['control_source'].bool()
+    if not torch.equal(requested, applied) or not torch.equal(applied, target):
+        raise ValueError('DAgger requested/applied/actuator target mismatch')
+    if not torch.equal(transition['actuator_substep_target_rad'], target[:, None].expand_as(transition['actuator_substep_target_rad'])):
+        raise ValueError('DAgger target was not applied at every physics substep')
+    if expert.any() and not torch.equal(target[expert], value['expert_mapped_target_rad'][expert]):
+        raise ValueError('DAgger expert mapping differs from actual actuator target')
+    reached = transition['diagnostics_after']['joint_position_rad']
+    if not torch.isfinite(reached).all():
+        raise ValueError('Nonfinite actual reached configuration')
+    nominal = controller.nominal.to(target.device)
+    required = torch.where(expert[:, None], target-nominal, torch.zeros_like(target))
+    required_normalized = required*controller.action_scale_cpu.to(target.device)
+    residual_bound = controller.residual_scales_cpu.to(target.device)
+    value.update(u_expert=torch.where(expert[:, None], target, torch.zeros_like(target)),
+        q_reached=reached.clone(), nominal=nominal.clone(),
+        required_expert_residual_rad=required, required_expert_residual_normalized=required_normalized,
+        required_expert_residual_bound_fraction=required_normalized.abs()/residual_bound,
+        required_expert_residual_out_of_bounds=required_normalized.abs()>residual_bound,
+        previous_nominal=torch.zeros_like(nominal) if previous_nominal is None else previous_nominal.to(target.device).clone(),
+        previous_nominal_valid=torch.full_like(expert, previous_nominal is not None),
+        actual_issued=requested.clone(), actual_applied=applied.clone())
+    # During the expert suffix the student's proposal remains a diagnostic.
+    # Its next history must contain the command the position executor received.
+    controller.base.command = requested.detach().cpu().clone()
+    controller.observe_execution(transition)
+    return nominal.detach().cpu().clone()
+
+
 def residual_episode_metrics(arrays, control_hz=60):
     """Read-only correction/contact diagnostics, never inputs or success gates."""
     contact=np.asarray(arrays['residual_contact_gate'],dtype=bool)
@@ -160,7 +220,7 @@ def prepare(env, isolated, spec, source, output):
         configure_direct_reset(env,spec['narrow_reset'])
     teacher, _ = isolated.reset(spec['seed'])
     restoration = dict(kind='fresh_native_reset')
-    if spec['cohort'] not in ('fresh','formal_test'):
+    if spec['cohort'] not in ('fresh','formal_test','dagger_train'):
         entry = source['entries'][spec['identity']]
         last = {}; original = env._get_observations
         def observed():
@@ -201,9 +261,13 @@ def prepare(env, isolated, spec, source, output):
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
           inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
-          capture_compression='lzf', expert_checkpoint=None):
+          capture_compression='lzf', expert_checkpoint=None, dagger=None):
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
+    dagger = dagger_configuration(dagger, spec, source) if dagger is not None else None
+    if dagger is not None and (saved is None or not saved.get('residual_version') or not position or not capture_dataset
+            or replay is not None or takeover_steps is not None or expert_speed is not None or expert_checkpoint is None):
+        raise ValueError('DAgger requires a trained combined position student, compact capture and explicit expert identity')
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
@@ -223,6 +287,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             metadata['policy_checkpoint_sha256'] = sha256(checkpoint)
         metadata['initial_family'] = spec.get('family', spec['identity'])
         metadata['dataset_split'] = spec.get('split', spec['cohort'])
+        if dagger is not None:
+            metadata.update(dagger=dagger, trajectory_kind='expert_takeover_v1', source_identity=spec['source_identity'])
         if expert_speed is not None:
             metadata['expert_speed']=expert_speed
             metadata['supervision_contract']='transition/target_after_rad: actual issued actuator target, not measured joint position'
@@ -253,17 +319,26 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         from .recording import CompactEpisodeStream,flatten,numpy_tree,verify_stream_fields
         stream=CompactEpisodeStream(output/'demonstration',metadata,spec['identity'],compression=capture_compression)
         stream.group.attrs['action_source']='recorded_position_retime' if expert_speed and expert_speed['kind']=='recorded_retime' else 'frozen_expert_slow_execution'
+        if dagger is not None:
+            stream.group.attrs['action_source']='student_then_expert_position_bridge_v1'
     movie = RolloutVideo(output/'rollout.mp4', 'expert' if saved is None else saved.get('kind', 'oldState'),
         spec['seed'], 0, CAMERAS) if video else None
     if movie is not None and video_title is not None:
         movie.title = video_title
     actor_parity = 0.
     raw_policy={};raw_handle=None
-    if saved is None:
+    if saved is None or dagger is not None:
         def capture_raw_mean(module,inputs,result):
             raw_policy['mean']=result['mus'].detach().clone()
         raw_handle=player.model.register_forward_hook(capture_raw_mean)
+    bridge = None; previous_nominal = None
     try:
+        if dagger is not None:
+            from .position_control import ExpertPositionBridge
+            if hasattr(env, '_dagger_position_bridge'):
+                raise ValueError('A prior DAgger bridge is still attached')
+            bridge = ExpertPositionBridge(env, dagger['takeover_tick'], dagger['expert_speed'])
+            env._dagger_position_bridge = bridge
         bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
         if replay is not None and expert_speed is None:
             bound = len(replay)
@@ -316,6 +391,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     command = expert_command
                 if not torch.isfinite(command).all():
                     raise FloatingPointError('Nonfinite policy output')
+                if bridge is not None:
+                    bridge.submit(raw_policy['mean'], expert_command, tick)
                 before_rng = isolated.stream.state[2].clone()
                 measured=time.perf_counter()
                 teacher, _, terminated, truncated, _ = isolated.step(command)
@@ -325,7 +402,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     torch_rng_before_step=before_rng[None], expert_shadow_command=expert_command.clone())
                 if raw_handle is not None:
                     transition['expert_raw_policy_mean_before_clip']=raw_policy['mean']
-                if controller is not None and (takeover_steps is None or tick < takeover_steps):
+                if bridge is not None:
+                    previous_nominal = record_dagger_transition(controller, transition, previous_nominal)
+                    command = transition['position_requested_rad']
+                elif controller is not None and (takeover_steps is None or tick < takeover_steps):
                     controller.observe_execution(transition)
                 before_packet = {k: v for k, v in packet.items() if torch.is_tensor(v)
                     and k not in ('image', 'depth_m', 'depth_valid')}
@@ -361,6 +441,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     force=take(transition['applied_wrench']['force_w_N']), torque=take(transition['applied_wrench']['torque_w_Nm']),
                     lifted=take(after['lifted_object']), subgoals=take(after['successes']),
                     retract=take(after['retract_succeeded']), alignment=take(transition['native_alignment_condition'])))
+                if bridge is not None:
+                    rows[-1].update({'dagger_'+key: take(transition['dagger'][key]) for key in
+                        ('control_source','segment_id','expert_label_valid','switch_clean','expert_source_step','expert_delay_index',
+                         'required_expert_residual_bound_fraction','required_expert_residual_out_of_bounds')})
                 if inference is not None or (saved is not None and saved.get('residual_version')):
                     rows[-1]['palm']=take(after['palm_body_pose_w'])
                     rows[-1]['fingertip_distance']=np.linalg.norm(take(after['finger_position_w'])-
@@ -435,6 +519,29 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         if takeover_steps is not None:
             result['takeover'] = dict(student_ticks=takeover_steps,expert_recovery=True,
                 limitation='Direct position to original native expert mode; original delay queue resumes unchanged. Not autonomous success.')
+        if dagger is not None:
+            expert_ticks = int(arrays['dagger_control_source'].sum())
+            valid = arrays['dagger_expert_label_valid'].astype(bool)
+            outside = arrays['dagger_required_expert_residual_out_of_bounds'][valid]
+            fractions = arrays['dagger_required_expert_residual_bound_fraction'][valid]
+            result['dagger'] = dict(configuration=dagger, expert_shadow_queries=len(rows),
+                student_ticks=len(rows)-expert_ticks, expert_ticks=expert_ticks, takeover_triggered=expert_ticks>0,
+                expert_valid_ticks=int(arrays['dagger_expert_label_valid'].sum()),
+                expert_switch_masked_ticks=expert_ticks-int(arrays['dagger_expert_label_valid'].sum()),
+                student_autonomous_success=bool(result['success'] and expert_ticks==0),
+                expert_takeover_success=bool(result['success'] and expert_ticks>0),
+                position_executor_continuous=env.action_control_mode=='absolute_joint_position_target_rad',
+                provenance_passed=True, autonomous_evaluation=False,
+                residual_capacity=dict(valid_expert_ticks=int(valid.sum()),
+                    out_of_bounds_ticks=int(outside.any(-1).sum()),
+                    out_of_bounds_tick_fraction=float(outside.any(-1).mean()) if len(outside) else None,
+                    out_of_bounds_joint_components=int(outside.sum()),
+                    max_required_bound_fraction=float(fractions.max()) if fractions.size else None,
+                    scope='Executed valid expert command minus contemporaneous frozen frontend output; original residual normalized bounds unchanged'),
+                admission='Root aggregator requires native success and nonzero valid expert supervision; failures retained')
+            result['residual_forward_ticks'] = len(rows)
+            result['residual_executed_ticks'] = len(rows)-expert_ticks
+            result['residual_diagnostics']['scope'] = 'Student proposals at every tick, including unexecuted expert-suffix shadow proposals'
         if movie:
             movie.close(complete=True)
         if stream is not None:
@@ -444,10 +551,16 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             profile['finalize_verify_s']+=time.perf_counter()-measured
             result['dataset_capture']=dict(path=str(output/'demonstration/data.h5'),verified_source_fields=count,
                 accepted_success=bool(result['success']),checkpoint_sha256=result['checkpoint_sha256'])
+            if dagger is not None:
+                result['dataset_capture'].update(sha256=sha256(output/'demonstration/data.h5'),
+                    trajectory_kind='expert_takeover_v1', accepted_success=bool(
+                        result['dagger']['expert_takeover_success'] and result['dagger']['expert_valid_ticks']>0))
             result['wall_profile']=dict(profile,scope='Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded')
         atomic_json(output/'result.json', result)
         return result
     finally:
+        if bridge is not None and getattr(env, '_dagger_position_bridge', None) is bridge:
+            del env._dagger_position_bridge
         numeric.close()
         if raw_handle is not None:raw_handle.remove()
         if stream is not None and stream.file.id.valid:stream.file.close()
@@ -460,7 +573,17 @@ def run(root, output, mode, job=None):
     session = json.loads((root/'session.json').read_text())
     job_data = json.loads(job.read_text()) if job else None
     speed_config=job_data.get('expert_speed') if job_data else None
+    dagger = job_data.get('dagger') if job_data else None
     source = json.loads((Path(session['source_root'])/'data.json').read_text())
+    if dagger is not None:
+        if mode != 'dp' or not job_data.get('capture_dataset') or speed_config is not None or job_data.get('takeover_steps') is not None:
+            raise ValueError('DAgger uses the existing dp job with explicit compact capture and its own takeover contract')
+        if not job_data.get('specs'):
+            raise ValueError('Finite preregistered DAgger attempts required')
+        for spec in job_data['specs']:
+            dagger_configuration(dagger, spec, source)
+        if sha256(session['expert_checkpoint']) != job_data['expert_checkpoint_sha256']:
+            raise ValueError('Frozen expert identity changed')
     lease = lease_for(root, deadline=session['deadline'])
     atomic_json(output/'runtime_controls.json', client_startup_controls(session.get('kit_gate',{}).get('omniclient_startup')))
     atomic_json(output/'runtime_before.json', kit_process_snapshot())
@@ -482,11 +605,12 @@ def run(root, output, mode, job=None):
             return
         import isaacsimenvs
         env = make_env(True, lease, scene_queries=True,
+            **({'camera_content_validation':True} if dagger is not None else {}),
             **({'expert_speed':speed_config} if speed_config and speed_config['kind']=='closed_loop' else {}))
         with lease.block():
             player, config = create_expert(env, session['expert_checkpoint'])
         expert_fingerprint=None
-        if mode in ('expert','expert_slow','expert_retime'):
+        if mode in ('expert','expert_slow','expert_retime') or dagger is not None:
             from .recording import model_fingerprint
             expert_fingerprint=model_fingerprint(player.model)
         atomic_json(output/'actor_configuration.json', config)
@@ -572,7 +696,9 @@ def run(root, output, mode, job=None):
                     saved=saved, replay=replay,position=position, video=(job_data.get('video', i == 0) if job_data else i == 0) and mode not in ('replay','position_replay'),
                     inference=job_data.get('inference') if job_data else None,
                     takeover_steps=job_data.get('takeover_steps') if job_data else None,
-                    expert_speed=speed_config,capture_dataset=bool(job_data and job_data.get('capture_dataset')))
+                    expert_speed=speed_config,capture_dataset=bool(job_data and job_data.get('capture_dataset')),
+                    capture_compression=job_data.get('capture_compression','lzf') if job_data else 'lzf',
+                    expert_checkpoint=session['expert_checkpoint'] if dagger is not None else None,dagger=dagger)
                 if mode in ('replay','position_replay') and result.get('legal'):
                     with np.load(root/'expert'/spec['identity']/'trace.npz') as original, np.load(output/spec['identity']/'trace.npz') as current:
                         result['bytewise_fields'] = {key: original[key].shape == current[key].shape and

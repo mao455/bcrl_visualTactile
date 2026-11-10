@@ -91,18 +91,118 @@ def bounded_targets(actions, limits):
 
 
 def apply_position_targets(env, actions):
-    """No velocity conversion, queue, smoothing, rate cap or joint-state writes."""
+    """Direct targets; only the explicit DAgger bridge converts expert proposals."""
     limits = env.robot.data.joint_pos_limits[:, env._perm_lab_to_canon]
-    clipped = bounded_targets(actions.to(env.device), limits)
-    env._cur_targets[:] = clipped[:, env._perm_canon_to_lab]
-    env._prev_targets = env._cur_targets.clone()
     # Retain the UNUSED native delay RNG draw to align subsequent observation
     # noise/wrench events across the command/position comparison. No delay applied.
     dr = env.cfg.domain_randomization
     event_draw = torch.full((env.num_envs,), -1, device=env.device, dtype=torch.long)
     if dr.use_action_delay and dr.action_delay_max > 0:
         event_draw = torch.randint(0, env._action_queue.shape[1], (env.num_envs,), device=env.device)
+    bridge = getattr(env, '_dagger_position_bridge', None)
+    if bridge is not None:
+        actions = bridge.select(env, actions, event_draw)
+    clipped = bounded_targets(actions.to(env.device), limits)
+    env._cur_targets[:] = clipped[:, env._perm_canon_to_lab]
+    env._prev_targets = env._cur_targets.clone()
     return clipped, event_draw
+
+
+class ExpertPositionBridge:
+    """Opt-in shadow expert conversion, followed by the unchanged position actuator.
+
+    The expert queue advances on every real observation, including student ticks.
+    Conversion reuses native math on an isolated proxy and the position executor's
+    one existing random delay draw. It neither resumes nor mutates the native
+    command queue. Every conversion starts from the last *actual* issued target.
+    """
+    version = 'expert_takeover_position_v1'
+    speed_scheme = dict(kind='closed_loop', arm=.5, hand=1., phase='all', hand_target_cap_rad_s=2.)
+
+    def __init__(self, env, takeover_tick, speed, *, pipeline=None):
+        from types import SimpleNamespace
+        if isinstance(takeover_tick, bool) or not isinstance(takeover_tick, int) or takeover_tick < 1:
+            raise ValueError('A preregistered positive student prefix is required')
+        if dict(speed) != self.speed_scheme:
+            raise ValueError('DAgger requires the existing validated expert speed scheme')
+        if env.num_envs != 1 or env.action_control_mode != POSITION_ACTION:
+            raise ValueError('DAgger bridge requires one continuous position-controlled episode')
+        if pipeline is None:
+            from isaacsimenvs.tasks.play.utils.action_utils import apply_action_pipeline
+            pipeline = apply_action_pipeline
+        self.pipeline = pipeline
+        self.takeover_tick, self.speed = takeover_tick, dict(speed)
+        dr = env.cfg.domain_randomization
+        self.delay_enabled = bool(dr.use_action_delay and dr.action_delay_max > 0)
+        self.queue_length = env._action_queue.shape[1] if self.delay_enabled else 1
+        self.queue = self.source_steps = None
+        self.tick, self.pending, self.trace = 0, None, None
+        self.segment, self.previous_phase = -1, None
+        # Disable only the proxy delay: the already drawn index selects our
+        # continuously maintained queue before calling the exact native mapper.
+        names = ('device', 'num_envs', 'step_dt', '_perm_canon_to_lab',
+                 '_arm_joint_ids', '_hand_joint_ids', '_arm_lower', '_arm_upper', '_hand_lower', '_hand_upper')
+        self.proxy = SimpleNamespace(**{key: getattr(env, key) for key in names},
+            cfg=SimpleNamespace(action=env.cfg.action,
+                domain_randomization=SimpleNamespace(use_action_delay=False, action_delay_max=0)))
+
+    def submit(self, raw_action, clipped_action, tick):
+        if tick != self.tick or self.pending is not None:
+            raise ValueError('Expert shadow must advance exactly once per real control tick')
+        if raw_action.shape != (1, 29) or clipped_action.shape != (1, 29):
+            raise ValueError('Expert shadow requires canonical 29D native commands')
+        if not torch.isfinite(raw_action).all() or not torch.equal(raw_action.clamp(-1, 1), clipped_action):
+            raise ValueError('Expert raw/clipped action provenance mismatch')
+        self.pending = raw_action.detach().clone(), clipped_action.detach().clone()
+
+    def select(self, env, student_target, event_draw):
+        from .expert_speed import progress_target, cap_hand_target
+        if self.pending is None or env.action_control_mode != POSITION_ACTION:
+            raise ValueError('Missing expert shadow or changed position executor')
+        raw, clipped = (value.to(env.device) for value in self.pending)
+        if self.queue is None:
+            self.queue = clipped[:, None].expand(-1, self.queue_length, -1).clone()
+            self.source_steps = torch.zeros((1, self.queue_length), device=env.device, dtype=torch.long)
+        self.queue = torch.roll(self.queue, 1, 1); self.queue[:, 0] = clipped
+        self.source_steps = torch.roll(self.source_steps, 1, 1); self.source_steps[:, 0] = self.tick
+        index = event_draw if self.delay_enabled else torch.zeros_like(event_draw)
+        if (index < 0).any() or (index >= self.queue_length).any():
+            raise ValueError('Expert source delay index outside the recorded queue')
+        delayed = self.queue[torch.arange(1, device=env.device), index]
+        selected_step = self.source_steps[torch.arange(1, device=env.device), index]
+        previous = env._prev_targets[:, env._perm_lab_to_canon].clone()
+        self.proxy._prev_targets = env._prev_targets.clone()
+        self.proxy._cur_targets = env._cur_targets.clone()
+        self.pipeline(self.proxy, delayed)
+        native = self.proxy._cur_targets[:, env._perm_lab_to_canon].clone()
+        progressed = progress_target(previous, native, self.speed['arm'], self.speed['hand'])
+        mapped = cap_hand_target(previous, progressed, self.speed['hand_target_cap_rad_s'], env.step_dt)
+        expert = self.tick >= self.takeover_tick
+        # Flush every pre-takeover suggestion, not merely whichever slot this
+        # random draw selects. The first clean label starts a new H24 segment.
+        clean = expert and self.tick >= self.takeover_tick + self.queue_length - 1
+        source_is_expert = selected_step >= self.takeover_tick
+        valid = clean and bool(source_is_expert.all())
+        phase = (expert, valid)
+        if phase != self.previous_phase:
+            self.segment += 1; self.previous_phase = phase
+        requested = mapped if expert else student_target.to(env.device)
+        scalar = lambda value, dtype: torch.tensor([value], dtype=dtype, device=env.device)
+        self.trace = dict(expert_raw_action=raw, expert_clipped_action=clipped,
+            expert_delayed_action=delayed.clone(), expert_source_step=selected_step.clone(),
+            expert_delay_index=index.clone(), expert_delay_enabled=scalar(self.delay_enabled, torch.bool),
+            expert_queue_length=scalar(self.queue_length, torch.long),
+            expert_source_is_expert_issued=source_is_expert.clone(),
+            control_source=scalar(int(expert), torch.long), segment_id=scalar(self.segment, torch.long),
+            switch_clean=scalar(clean, torch.bool),
+            expert_label_valid=scalar(valid, torch.bool),
+            expert_native_target_rad=native, expert_progressed_target_rad=progressed,
+            expert_mapped_target_rad=mapped, student_proposed_target_rad=student_target.to(env.device).clone(),
+            previous_issued=previous, previous_issued_valid=scalar(self.tick > 0, torch.bool),
+            takeover_tick=scalar(self.takeover_tick, torch.long))
+        self.requested = requested.clone()
+        self.pending = None; self.tick += 1
+        return requested
 
 
 def position_robot_history(record, targets):

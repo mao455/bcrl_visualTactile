@@ -298,8 +298,11 @@ class PersistentImage(NativePolicy):
         allowed={'robot','command','time','joint_limits','identity','source_root'}
         if self.contract.get('supervision') is not None:allowed.add('clean_sample')
         if self.modality == 'G10':allowed.add('tactile')
-        if set(record)!=allowed:
+        supervision_fields={'supervision_mask','control_segment','supervision','expert_command'}
+        if not allowed<=set(record) or set(record)-allowed-supervision_fields:
             raise ValueError('Image record contains non-allowlisted fields')
+        if 'supervision' in record and record['supervision']!=self.contract.get('supervision','u_expert'):
+            raise ValueError('Image label semantics differ from checkpoint contract')
         key=record['identity']
         if key not in self._episodes:
             episode=Episode(record['source_root'],key,self.group)
@@ -369,3 +372,43 @@ def load_image_warm_start(saved, action_contract, statistics):
         optimizer_state_restored=False,schedule_state_restored=False,ema_schedule_restored=False,
         rng_state_restored=False,requires_fresh_optimizer_ema_sampler_and_counters=True)
     return model,audit
+
+
+def load_image_continuation(saved, action_contract, statistics, supervision=None):
+    """Fresh optimizer, identical EMA and affine; never relabel q as command.
+
+    Historical v4 command contracts may explicitly acquire the v5 u_expert
+    declaration. This is a same-label continuation, unlike the Q warm start.
+    A supplied tactile affine is mandatory for a G10 checkpoint.
+    """
+    from .position_control import image_contract
+    from .native_data import target_supervision
+    target=target_supervision(supervision or action_contract.get('supervision','u_expert'))
+    source=saved.get('contract',{})
+    modality=action_contract.get('modality')
+    expected=image_contract('I-HistoryDP',24,modality,target)
+    legacy=image_contract('I-HistoryDP',24,modality)
+    if action_contract!=expected or source not in (expected,legacy):
+        raise ValueError('Continuation requires identical architecture and supervision')
+    if source==legacy and target!='u_expert':
+        raise ValueError('Legacy command EMA cannot be continued as an already-trained configuration policy')
+    if saved.get('group')!='I-HistoryDP' or saved.get('updates',0)<1 or 'ema' not in saved or saved.get('disposable'):
+        raise ValueError('Trained selected image EMA required')
+    names={'robot_mean','robot_std','action_scale','action_offset'}
+    if modality=='G10':names|={'tactile_mean','tactile_std'}
+    if set(statistics)!=names:raise ValueError('All and only fixed observation/action affine buffers required')
+    with torch.random.fork_rng(devices=[]):model=PersistentImage('I-HistoryDP',action_contract)
+    model.load_state_dict(saved['ema'],strict=True)
+    for key,value in model.state_dict().items():
+        if not torch.isfinite(value).all():raise ValueError('Nonfinite continuation EMA tensor: '+key)
+    for key in names:
+        value=statistics[key].detach().cpu()
+        if not torch.equal(getattr(model,key),value):raise ValueError('Continuation affine changed: '+key)
+        if key.endswith('std') or key=='action_scale':
+            if not (value>0).all():raise ValueError('Invalid continuation affine scale: '+key)
+    return model,dict(version='same_supervision_ema_continuation_v1',source='ema',
+        source_contract=source,target_contract=action_contract,supervision=target,
+        source_updates=saved['updates'],new_optimizer_updates=0,all_state_tensors_reused=True,
+        affine_replaced=False,affine_buffers_verified=sorted(names),
+        legacy_command_contract_declared=source==legacy,optimizer_state_restored=False,
+        requires_fresh_optimizer_ema_sampler_and_counters=True)

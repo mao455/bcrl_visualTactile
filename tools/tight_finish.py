@@ -1376,7 +1376,13 @@ def residual_prepare(root, configuration=None):
     require(v['version']=='target_residual_transformer60_v1','Historical GRU configuration cannot silently acquire the Transformer; use explicit matrix configuration')
     require(set(v['bases'])==set(v['groups']),'Freeze every selected base identity before preparing residuals')
     require(not root.exists(),'Residual root already exists; inspect instead of duplicating')
-    data=read(old/'state_data/data.json');require([len(data['splits'][k]) for k in ('train','validation','test')]==[166,30,22],'Core split changed')
+    data=read(old/'state_data/data.json')
+    if v.get('dagger_round'):
+        require(data.get('aggregation',{}).get('version')=='expert_takeover_aggregate_v1',
+            'DAgger requires an explicit audited aggregate')
+        require(len(data['splits']['train'])>166 and [len(data['splits'][k]) for k in ('validation','test')]==[30,22],
+            'DAgger must add train corrections while preserving held-out splits')
+    else:require([len(data['splits'][k]) for k in ('train','validation','test')]==[166,30,22],'Core split changed')
     # Preserve the residual-only metadata wrapper even when its unchanged tensor
     # file links to historical command statistics.
     residual_stats=Path(v['residual_statistics_path']).absolute()
@@ -1421,7 +1427,7 @@ def residual_prepare(root, configuration=None):
 def residual_cache(root, *, acceptance=False):
     import torch
     from visuotactile.models.native_dp import load_policy
-    from visuotactile.native_data import visual_records,cache_residual_episode
+    from visuotactile.native_data import visual_records,cache_residual_episode,supervision_mask_sha256
     from visuotactile.state_resources import lease_for
     from visuotactile.checkpointing import save
     from visuotactile.precision import state_fp32
@@ -1437,13 +1443,15 @@ def residual_cache(root, *, acceptance=False):
             statistics_sha256=sha(root/'state_data/statistics.pt'),residual_version=v['version'],
             residual_statistics_sha256=v['residual_statistics_sha256'],residual_normalization_identity=v['residual_normalization_identity'],
             sampler=dict(steps=16,seed=7091,horizon=24,commit=12,prediction='sample'),
-            inputs='causal_full_expert_prefix; separate_previous_nominal')
+            inputs='causal_actual_student_expert_prefix; separate_previous_nominal' if v.get('dagger_round') else 'causal_full_expert_prefix; separate_previous_nominal')
+        records=visual_records(root/'state_data',ids,base.get('modality',base['group']))
+        if v.get('dagger_round'):identity_fields['supervision_mask_sha256']=supervision_mask_sha256(records)
         index=read(index_path) if index_path.exists() else dict(identity_fields,episodes={})
         require(all(index.get(k)==value for k,value in identity_fields.items()),'Nominal cache semantic identity differs')
         require(index['base_sha256']==base['sha256'],'Cached base differs')
         saved=torch.load(base['checkpoint'],map_location='cpu',weights_only=False)
         with lease.block():model=load_policy(saved,'cuda:0').requires_grad_(False).eval()
-        del saved;records=visual_records(root/'state_data',ids,base.get('modality',base['group']))
+        del saved
         for identity in ids:
             path=dest/(identity+'.pt')
             if path.exists():require(index['episodes'][identity]['sha256']==sha(path),'Existing nominal cache drift')
@@ -1453,7 +1461,10 @@ def residual_cache(root, *, acceptance=False):
                 def progress(**kw):
                     write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                         elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed if completed else None,**kw))
-                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress)
+                binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=identity_fields['statistics_sha256'],
+                    data_sha256=identity_fields['data_sha256'],residual_statistics_sha256=v['residual_statistics_sha256'])
+                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,
+                    **({'cache_identity':binding} if v.get('dagger_round') else {}))
                 require(all(p.grad is None for p in model.parameters()),'Frozen base received gradient')
                 save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12))
                 write(index_path,index)
@@ -1461,16 +1472,25 @@ def residual_cache(root, *, acceptance=False):
             write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                 elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed))
         if not acceptance:
-            scale=torch.load(v['residual_statistics_path'],map_location='cpu',weights_only=False)['action_scale'];errors=[];population=0
+            scale=torch.load(v['residual_statistics_path'],map_location='cpu',weights_only=False)['action_scale'];errors=[];population=0;history_population=0;all_errors=[]
             for identity in data['splits']['train']:
-                r=torch.load(dest/(identity+'.pt'),map_location='cpu',weights_only=False);population+=len(r['robot'])
-                if identity in data['splits']['train'][:16]:errors.append(((r['target']-r['base'])*scale).abs())
+                r=torch.load(dest/(identity+'.pt'),map_location='cpu',weights_only=False)
+                mask=r.get('supervision_mask',torch.ones(len(r['robot']),dtype=torch.bool));population+=int(mask.sum());history_population+=len(r['robot'])
+                error=((r['target']-r['base'])*scale).abs()[mask]
+                if identity in data['splits']['train'][:16]:errors.append(error)
+                if v.get('dagger_round'):all_errors.append(error)
             e=torch.cat(errors);amplitudes=[]
             for part in (e[:,:7],e[:,7:]):amplitudes.append(max(.1,min(2.,math.ceil(float(part.flatten().quantile(.99))*10)/10)))
-            write(dest/'scales.json',dict(scales=[amplitudes[0]]*7+[amplitudes[1]]*22,
+            scales=v.get('fixed_residual_scales',[amplitudes[0]]*7+[amplitudes[1]]*22)
+            overflow={}
+            if all_errors:
+                required=torch.cat(all_errors);exceeded=required>torch.tensor(scales)
+                overflow=dict(supervised_ticks=len(required),joint_fraction=float(exceeded.float().mean()),
+                    tick_fraction=float(exceeded.any(-1).float().mean()),maximum_required_normalized=float(required.max()))
+            write(dest/'scales.json',dict(scales=scales,
                 residual_statistics_sha256=v['residual_statistics_sha256'],residual_normalization_identity=v['residual_normalization_identity'],
-                rule='all-tick train16 p99 rounded up0.1; bounded[0.1,2]; no label clipping',train_ids=data['splits']['train'][:16],
-                control_tick_population=population,labels_are_only_supervision=True))
+                rule='previous selected backend bounds unchanged' if v.get('dagger_round') else 'all-tick train16 p99 rounded up0.1; bounded[0.1,2]; no label clipping',train_ids=data['splits']['train'][:16],
+                control_tick_population=population,history_tick_population=history_population,required_correction_overflow=overflow,labels_are_only_supervision=True))
         del model,records;torch.cuda.empty_cache()
     if not acceptance:write(root/'cache_complete.json',dict(complete=True,episodes=completed,wall_s=time.time()-began,utc=time.time()))
 
@@ -2281,7 +2301,7 @@ def matrix_run(root):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_follow','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)
@@ -2296,8 +2316,15 @@ if __name__=='__main__':
     else:
         code=0
         try:
-            if a.mode in ('matrix_gate','matrix_group_run'):globals()[a.mode](root,group=a.group)
+            if a.mode.startswith('dagger_'):
+                from tools import tight_dagger
+                getattr(tight_dagger,a.mode.removeprefix('dagger_'))(root)
+            elif a.mode in ('matrix_gate','matrix_group_run'):globals()[a.mode](root,group=a.group)
             else:globals()[a.mode](root)
         except BaseException:
             write(root/(a.mode+'_error.json'),dict(traceback=traceback.format_exc()));code=1
+            if a.mode=='dagger_follow':
+                previous=read(root/'status.json') if (root/'status.json').exists() else {}
+                if previous.get('state') in ('WAITING','PREPARED','RUNNING'):
+                    write(root/'status.json',dict(previous,state='FAILED',stage='successor_admission_or_owner_error',utc=time.time()))
         sys.stdout.flush();sys.stderr.flush();os._exit(code)

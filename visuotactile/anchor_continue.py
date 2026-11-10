@@ -131,7 +131,14 @@ def geometry_selection(objective, selected, lengths, seed):
     candidates=[[],[]]
     for row,(identity,tick) in enumerate(selected):
         context=objective.loss_context[identity]
+        supervised=None
+        if hasattr(objective,'supervision_records'):
+            from .anchor_sampling import labels
+            record=objective.supervision_records[identity]
+            _, supervised=labels(record,torch.tensor([tick],device=record['command'].device),24)
+            supervised=supervised[0].detach().cpu()
         for offset in range(min(12,lengths[identity]-tick)):
+            if supervised is not None and not bool(supervised[offset]):continue
             contact=bool(context['stage'][tick+offset]==1 and context['contact_mask'][tick+offset].any())
             candidates[int(contact)].append((row,offset))
     generator=torch.Generator().manual_seed(seed)
@@ -165,6 +172,90 @@ def projection_batch(objective, selected, device, *, selected_mask=None, update_
             update_selected_count=report['selected_count']
         result.update(selected_mask=selected_mask.to(device),update_selected_count=update_selected_count,active=active)
     return result
+
+
+def incremental_schedule(spec, target, *, smoke=False):
+    """A new finite DAgger schedule, independent of the prior round's horizon."""
+    required=('maximum_updates','minimum_updates','warmup_updates','lr_peak','lr_floor','validation_interval')
+    if not isinstance(spec,dict) or any(key not in spec for key in required):
+        raise ValueError('Explicit complete incremental schedule required')
+    maximum=spec['maximum_updates'];minimum=spec['minimum_updates'];warmup=spec['warmup_updates']
+    if not all(isinstance(value,int) and not isinstance(value,bool) for value in
+            (maximum,minimum,warmup,spec['validation_interval'])):
+        raise ValueError('Incremental schedule update counts must be integers')
+    if not 1<=minimum<=maximum or not 0<warmup<maximum or spec['validation_interval']<1:
+        raise ValueError('Invalid finite incremental schedule')
+    if not (target==maximum or smoke and target==1):
+        raise ValueError('Short probes stop early; they must not shorten the incremental LR horizon')
+    if not all(isinstance(spec[k],(int,float)) and math.isfinite(spec[k]) for k in ('lr_peak','lr_floor')) or not 0<spec['lr_floor']<=spec['lr_peak']:
+        raise ValueError('Finite positive incremental learning rates required')
+    return dict(spec)
+
+
+def continuation_source(spec, supervision, statistics_path, normalization_identity):
+    """Pin a selected prior-round checkpoint and unchanged label/statistics semantics."""
+    if not isinstance(spec,dict) or not all(k in spec for k in
+            ('path','sha256','teacher_supervision','statistics_sha256','normalization_identity','round_index','source_group')):
+        raise ValueError('Explicit prior-round continuation source identity required')
+    if spec['teacher_supervision']!=supervision or spec['normalization_identity']!=normalization_identity:
+        raise ValueError('Continuation supervision or normalizer identity changed')
+    if not isinstance(spec['round_index'],int) or spec['round_index']<1:
+        raise ValueError('Explicit positive aggregation round index required')
+    path=Path(spec['path'])
+    if sha256(path)!=spec['sha256'] or sha256(statistics_path)!=spec['statistics_sha256']:
+        raise ValueError('Continuation source or frozen statistics SHA differs')
+    saved=torch.load(path,map_location='cpu',weights_only=False)
+    if saved.get('updates',0)<1 or saved.get('disposable',False) or saved.get('configuration',{}).get('disposable',False):
+        raise ValueError('A trained nondisposable selected source is required')
+    return saved
+
+
+def load_residual_continuation(model, saved, statistics_sha256):
+    """Reuse every Transformer parameter and fixed action/delta buffer exactly."""
+    if saved.get('residual_version')!=model.version or saved.get('updates',0)<1 or saved.get('disposable',False):
+        raise ValueError('Selected trained Transformer checkpoint required')
+    source=saved.get('configuration',{})
+    if source.get('residual_statistics_sha256')!=statistics_sha256:
+        raise ValueError('Residual continuation command statistics changed')
+    state=saved['model']
+    for name,value in model.named_buffers():
+        if name not in state or not torch.equal(value.detach().cpu(),state[name].detach().cpu()):
+            raise ValueError('Residual continuation cannot change action/delta/normalizer buffer: '+name)
+    if any(not torch.isfinite(value).all() for value in state.values()):
+        raise ValueError('Nonfinite selected Transformer parameters')
+    model.load_state_dict(state,strict=True)
+    return dict(source_updates=saved['updates'],new_optimizer_updates=0,parameters='all prior selected Transformer parameters',
+        statistics_and_delta_buffers_unchanged=True,optimizer_state_restored=False)
+
+
+def restore_residual_training(saved,model,optimizer,generator,configuration,train_ids):
+    """Restore one round at a complete episode-group boundary, including RNG."""
+    from .checkpointing import cpu_snapshot
+    required=('model','optimizer','schedule_rng','torch_rng','cuda_rng','updates','epoch',
+        'next_episode_group','episode_order','supervised_ticks','control_ticks','contact_anchors','best','history')
+    if any(k not in saved for k in required) or saved.get('configuration')!=configuration or saved.get('disposable'):
+        raise ValueError('Invalid residual same-round restore identity or incomplete state')
+    order=saved['episode_order'];next_group=saved['next_episode_group']
+    if saved.get('train_ids')!=train_ids or len(order)!=len(train_ids) or set(order)!=set(train_ids):
+        raise ValueError('Residual restore episode population/order differs')
+    if not 0<=next_group<=len(order) or saved['epoch']<1 or saved['updates']<0:
+        raise ValueError('Invalid residual complete episode-group restore cursor')
+    model.load_state_dict(saved['model'],strict=True);optimizer.load_state_dict(saved['optimizer'])
+    generator.set_state(saved['schedule_rng']);torch.set_rng_state(saved['torch_rng'])
+    device=next(model.parameters()).device
+    if device.type=='cuda':torch.cuda.set_rng_state_all(saved['cuda_rng'])
+    def equal(a,b):
+        if isinstance(a,torch.Tensor):return isinstance(b,torch.Tensor) and torch.equal(a.cpu(),b.cpu())
+        if isinstance(a,dict):return isinstance(b,dict) and a.keys()==b.keys() and all(equal(a[k],b[k]) for k in a)
+        if isinstance(a,(list,tuple)):return isinstance(b,(list,tuple)) and len(a)==len(b) and all(equal(x,y) for x,y in zip(a,b))
+        return a==b
+    checks=dict(model=equal(model.state_dict(),saved['model']),optimizer=equal(cpu_snapshot(optimizer.state_dict()),saved['optimizer']),
+        schedule_rng=torch.equal(generator.get_state(),saved['schedule_rng']),torch_rng=torch.equal(torch.get_rng_state(),saved['torch_rng']),
+        cuda_rng=device.type!='cuda' or equal(torch.cuda.get_rng_state_all(),saved['cuda_rng']))
+    if not all(checks.values()):raise ValueError('Residual full state restore parity failed')
+    return dict(passed=True,updates=saved['updates'],episode=saved['epoch'],next_episode_group=next_group,
+        optimizer_rng_sampler_preserved=True,checks=checks,
+        scope='Complete episode-group boundary; full real prefix recomputed after resume')
 
 
 def train(root,job,target,output):
@@ -318,7 +409,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if not ids or (not smoke and not vals):raise ValueError('Nonempty train/validation required')
     runtime=read(root/'session.json') if (root/'session.json').exists() else {}
     continuation=runtime.get('continuation');warm_start=runtime.get('warm_start');warm_start_audit=None
-    if continuation and warm_start:raise ValueError('Target adaptation and optimizer continuation are distinct')
+    continuation_from=runtime.get('continuation_from');continuation_audit=None;continued_geometry=None;continued_geometry_sha=None
+    if sum(bool(v) for v in (continuation,warm_start,continuation_from))>1:
+        raise ValueError('Same-run restore, label conversion and same-semantic incremental continuation are distinct')
+    schedule=incremental_schedule(runtime.get('incremental_schedule'),target,smoke=smoke) if continuation_from else None
     seed=continuation['configuration']['seed'] if continuation else runtime.get('random_seed',20261105)
     device=smoke_device if smoke else 'cuda:0';torch.manual_seed(seed)
     if vision:
@@ -327,7 +421,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         from .native_data import visual_records
         modality=runtime['modality']
         model=PersistentImage('I-HistoryDP',image_contract('I-HistoryDP',24,modality,data.get('supervision')))
-        if not warm_start:
+        if not warm_start and not continuation_from:
             initial=torch.load(collection/'common_initial.pt',map_location='cpu',weights_only=False)
             state=model.state_dict()
             for key,value in initial.items():
@@ -347,6 +441,19 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             model,warm_start_audit=load_image_warm_start(saved,model.contract,stats)
             warm_start_audit.update(source=str(source.resolve()),source_sha256=warm_start['sha256'])
             del saved
+        if continuation_from:
+            from .state_history import load_image_continuation
+            saved=continuation_source(continuation_from,data['supervision'],data_root/'statistics.pt',data['normalization_identity'])
+            if saved.get('configuration',{}).get('statistics_sha256')!=sha256(data_root/'statistics.pt'):
+                raise ValueError('Selected DP used different frozen action statistics')
+            continued_geometry=saved['configuration'].get('hand_geometry')
+            continued_geometry_sha=saved['configuration'].get('geometry_acceptance_sha256')
+            supplied=dict(stats)
+            if modality=='G10':supplied.update(touch_stats)
+            model,continuation_audit=load_image_continuation(saved,model.contract,supplied,supervision=data['supervision'])
+            continuation_audit.update(source=str(Path(continuation_from['path']).resolve()),source_sha256=continuation_from['sha256'],
+                round_index=continuation_from['round_index'])
+            del saved
         records=visual_records(data_root,ids+vals,modality)
     else:
         model=PersistentState('dp',contract(24,True))
@@ -356,8 +463,16 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     objective=GeometryObjective(metadata,mode=PALM_LOSS_ID if palm else LOSS_ID,commit=model.contract['commit'])
     objective.weights=dict(session['loss_weights'])
     projection=runtime.get('hand_geometry')
+    if continuation_from and bool(projection)!=bool(continued_geometry):
+        raise ValueError('Incremental continuation must preserve prior hand geometry method')
     if projection:
         if data.get('supervision')!='q_reached':raise ValueError('Hand geometry requires actual configuration labels')
+        if continuation_from:
+            from .state_image_loss import DIRECT_HAND_GEOMETRY_ID
+            if projection.get('loss_kind')!=DIRECT_HAND_GEOMETRY_ID or projection.get('options')!=continued_geometry.get('options'):
+                raise ValueError('Incremental QG preserves direct soft geometry and its fixed options; no SLSQP')
+            if sha256(projection['acceptance'])!=continued_geometry_sha:
+                raise ValueError('Incremental QG must preserve the calibrated geometry weight/threshold receipt')
         acceptance=read(Path(projection['acceptance']))
         if not acceptance['passed']:raise ValueError('Hand geometry gate failed')
         live=read(Path(projection['live']))
@@ -377,6 +492,11 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if warm_start:
         config.update(initialization='old_G00_EMA_q_reached_adaptation_fresh_optimizer_ema_schedule',
             warm_start=warm_start_audit)
+    if continuation_from:
+        config.update(version='dagger_same_semantics_incremental_dp_v1',initialization='prior_selected_EMA_same_supervision_fresh_round_optimizer',
+            continuation_from=continuation_from,continuation_audit=continuation_audit,incremental_schedule=schedule,
+            teacher_supervision=data['supervision'],lr_peak=schedule['lr_peak'],lr_floor=schedule['lr_floor'],
+            warmup=schedule['warmup_updates'],scheduler_total_updates=schedule['maximum_updates'])
     if session.get('version')=='tight_state_foundation_v1':
         config['input_builder']='canonical_joint_state_v1'
     if palm:
@@ -387,7 +507,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             effective_batch=session['training']['effective_batch'],microbatch=session['training']['microbatch'])
     if vision:
         config.update(version='fresh_visual_pair_v1',modality=modality,
-            shared_initial_sha256=warm_start['sha256'] if warm_start else sha256(collection/'common_initial.pt'),dino_sha256=session['dino_sha256'],
+            shared_initial_sha256=continuation_from['sha256'] if continuation_from else warm_start['sha256'] if warm_start else sha256(collection/'common_initial.pt'),dino_sha256=session['dino_sha256'],
             input_builder='canonical_joint_state_v1',microbatch=runtime.get('microbatch',config['microbatch']))
         if data.get('supervision') is not None:
             config.update(version='matched_visual_supervision_v1',supervision=data['supervision'],
@@ -395,6 +515,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 clean_sample_field=model.contract['clean_sample_field'])
         if projection:config.update(hand_geometry=projection,geometry_acceptance_sha256=sha256(projection['acceptance']),
             loss_context_sha256=sha256(data_root/'loss_context.pt'),loss_weights=dict(objective.weights))
+    if continuation_from:
+        config.update(version='dagger_same_semantics_incremental_dp_v1',normalizer_recomputed=False,
+            trainable_scope='all existing encoder/history/conditional U-Net parameters; shared DINO features frozen',
+            history='complete actual student-prefix/expert-suffix observations; expert suffix only supervises targets')
     if runtime.get('geometry_probe_gain_sequence'):
         if not config['disposable']:raise ValueError('Geometry timing gain overrides are disposable only')
         config['geometry_probe_gain_sequence']=runtime['geometry_probe_gain_sequence']
@@ -402,7 +526,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
     else:atomic_json(cp,config)
-    step=0;best=float('inf');monitor=None;lease=None
+    step=0;best=float('inf');monitor=None;lease=None;supervised_target_ticks=0
     if device!='cpu':
         if not (root/'session.json').exists():atomic_json(root/'session.json',dict(resource_policy='shared_recent_v1',resource_target_percent=40.,
             training_deadline=session['deadline'],external_monitor_root=str(collection)))
@@ -418,21 +542,25 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     def checkpoint():
         save(root/'last.pt',training_state(model,averaged,opt,ema,generator,noise,kind='dp',group=model.group,
             updates=step,anchor_sampler=sampler.state_dict(),best=best,config_sha256=sha256(cp),configuration=config,
-            loss_id=objective.mode,train_ids=ids,validation_ids=vals))
+            loss_id=objective.mode,train_ids=ids,validation_ids=vals,supervised_target_ticks=supervised_target_ticks,
+            new_optimizer_updates=0 if config['disposable'] else step,formal_updates=0 if config['disposable'] else step,
+            disposable=config['disposable'],continuation_from=continuation_from))
     try:
         # Admission and monitoring precede the first CUDA allocation, including
         # model/EMA construction and same-run optimizer restoration.
         with block():
             model.to(device);records={i:{k:v.to(device) if torch.is_tensor(v) else v for k,v in r.items()} for i,r in records.items()}
             averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
-            opt=torch.optim.AdamW(model.parameters(),lr=3e-6,betas=(.95,.999),weight_decay=1e-6)
+            opt=torch.optim.AdamW(model.parameters(),lr=config['lr_floor'],betas=(.95,.999),weight_decay=1e-6)
             generator=torch.Generator().manual_seed(seed);noise=torch.Generator(device=device).manual_seed(seed+1)
-            sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,config['effective_batch'])
+            sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,config['effective_batch'],
+                records={i:records[i] for i in ids})
+            objective.supervision_records=records
             if (root/'last.pt').exists():
                 old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
                 assert old['config_sha256']==sha256(cp)
                 restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])
-                step=old['updates'];best=old['best'];del old
+                step=old['updates'];best=old['best'];supervised_target_ticks=old.get('supervised_target_ticks',0);del old
             elif continuation:
                 source=Path(continuation['path'])
                 assert sha256(source)==continuation['sha256'],'Continuation source changed'
@@ -476,7 +604,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             atomic_json(output/'history_check.json',dict(passed=True,online_max_abs=maximum,tail_valid=int(m.sum()),future_leakage=False))
         stop=[False];signal.signal(signal.SIGTERM,lambda *_:stop.__setitem__(0,True))
         training_started=time.time();initial_step=step
-        interval=runtime.get('validation_interval',session.get('validation_interval',500));stop_reason='update_budget'
+        interval=schedule['validation_interval'] if schedule else runtime.get('validation_interval',session.get('validation_interval',500));stop_reason='update_budget'
         stage_stop=runtime.get('stage_stop_update',target)
         if runtime.get('probe_limit_updates'):
             if not config['disposable']:raise ValueError('Probe stop requires disposable run')
@@ -490,8 +618,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 stop_reason='fixed_wall_budget';checkpoint()
                 if (root/'best.pt').exists():break
                 raise TimeoutError('Training deadline without validated checkpoint')
-            before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all() if torch.cuda.is_initialized() else [])
-            selected=sampler.draw();totals=mask_totals(sampler.lengths,selected,model.contract['commit'] if palm else None)
+            before_batch=(step,copy.deepcopy(sampler.state_dict()),generator.get_state(),noise.get_state(),torch.get_rng_state(),torch.cuda.get_rng_state_all() if torch.cuda.is_initialized() else [],supervised_target_ticks)
+            selected=sampler.draw();totals=mask_totals(sampler.lengths,selected,model.contract['commit'] if palm else None,records=records)
             model.train();opt.zero_grad(set_to_none=True);loss_sum=0.;parts_sum={};batch_started=time.time()
             objective.gain=min(1.,(step+1)/config['geometry_warmup']) if palm else 1.
             weights={k:v*objective.gain for k,v in objective.weights.items()}
@@ -536,11 +664,14 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 if continuation:
                     from .narrow_decision import continuation_rate
                     lr=continuation_rate(step,continuation['configuration'])
-                else:lr=3e-6 if target==1 else continuation_lr(step,target,config['warmup'],3e-5,3e-6)
+                else:lr=config['lr_floor'] if target==1 and not schedule else continuation_lr(step,
+                    schedule['maximum_updates'] if schedule else target,config['warmup'],config['lr_peak'],config['lr_floor'])
                 for group in opt.param_groups:group['lr']=lr
                 opt.step();ema.step(model)
+                supervised_target_ticks+=totals[0]
             progress=dict(update=step,target=target,loss=loss_sum,lr=lr,actual_batch=len(selected),
                 sampled_anchors=sampler.draws,formal_updates=0 if config.get('disposable',smoke) else step,
+                new_optimizer_updates=0 if config.get('disposable',smoke) else step,supervised_target_ticks=supervised_target_ticks,
                 stage_updates=step-initial_step,restored_updates=initial_step,
                 updates_per_hour=(step-initial_step)*3600/max(1,time.time()-training_started),utc=time.time(),**no_kit())
             if palm:
@@ -590,16 +721,17 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 if step in (runtime.get('comparison_updates') or []):
                     checkpoint();save(root/f'comparison_{step}.pt',torch.load(root/'last.pt',map_location='cpu',weights_only=False))
                 fresh_curves(root)
-                if runtime.get('early_stop_minimum_update'):
+                early_minimum=schedule['minimum_updates'] if schedule else runtime.get('early_stop_minimum_update')
+                if early_minimum:
                     rows=[json.loads(line) for line in (root/'validation.jsonl').read_text().splitlines()]
                     if palm:
                         scores=[r['metrics']['selection_score'] for r in rows]
-                        plateau=len(rows)>=4 and step>=runtime['early_stop_minimum_update'] and 1-min(scores[-4:])/max(scores[-4],1e-12)<.01
+                        plateau=len(rows)>=4 and step>=early_minimum and 1-min(scores[-4:])/max(scores[-4],1e-12)<.01
                         severe=len(rows)>=5 and all(v>2*min(scores[:-3]) for v in scores[-3:])
                         should_stop=plateau or severe
                     else:
                         from .narrow_decision import early_stop
-                        should_stop=early_stop(rows,runtime['early_stop_minimum_update'])
+                        should_stop=early_stop(rows,early_minimum)
                     if should_stop:
                         stop_reason='validation_plateau_or_overfit';checkpoint();break
             if bounded_end:
@@ -612,17 +744,21 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         assert all(torch.equal(v.cpu(),saved['model'][k]) for k,v in model.state_dict().items())
         assert all(torch.equal(v.cpu(),saved['ema'][k]) for k,v in averaged.state_dict().items())
         atomic_json(output/'result.json',dict(passed=True,updates=step,disposable=config.get('disposable',smoke),formal_updates=0 if config.get('disposable',smoke) else step,
-            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=bool(continuation or warm_start),
-            warm_start=warm_start_audit,scheduler_total_updates=target,probe_limit_updates=runtime.get('probe_limit_updates'),
+            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=bool(continuation or warm_start or continuation_from),
+            warm_start=warm_start_audit,continuation_audit=continuation_audit,
+            scheduler_total_updates=schedule['maximum_updates'] if schedule else target,probe_limit_updates=runtime.get('probe_limit_updates'),
             stage_updates=step-initial_step,restored_updates=initial_step,**no_kit()))
         if not smoke:atomic_json(root/'finished.json',dict(updates=step,target_updates=target,target_reached=step==target,
-            stop_reason=stop_reason,
+            stop_reason=stop_reason,new_optimizer_updates=0 if config['disposable'] else step,
+            formal_updates=0 if config['disposable'] else step,disposable=config['disposable'],supervised_target_ticks=supervised_target_ticks,
+            teacher_supervision=data.get('supervision'),continuation_from=continuation_from,
             best_checkpoint=str(root/'best.pt'),wall_s=time.time()-training_started,
             wait_s=lease.wait_s+lease.pacing_s if lease else 0.,coverage=sampler.coverage(),utc=time.time()))
     except (TimeoutError,InterruptedError):
         if 'before_batch' in locals() and step==before_batch[0]:
             sampler.load_state_dict(before_batch[1]);generator.set_state(before_batch[2]);noise.set_state(before_batch[3])
             torch.set_rng_state(before_batch[4]);torch.cuda.set_rng_state_all(before_batch[5])
+            supervised_target_ticks=before_batch[6]
         if 'opt' in locals():checkpoint()
         raise
     finally:
@@ -713,7 +849,7 @@ def residual_setup(root, *, selected=False, smoke=False):
     from .state_resources import lease_for
     s=read(root/'session.json');cfg=read(root/'configuration.json');v=cfg['residual_pair']
     if v['version']!=TargetResidual.version:raise ValueError('Residual architecture/configuration identity differs')
-    data=read(root/'state_data/data.json');index=read(root/'nominal/index.json')
+    data=read(root/'state_data/data.json');index=read(root/'nominal/index.json');all_splits=data['splits']
     if smoke:data=dict(data,splits={k:values[:1] for k,values in data['splits'].items()})
     base=v['bases'][root.name]
     if sha256(base['checkpoint'])!=base['sha256']:raise ValueError('Frozen base changed')
@@ -726,14 +862,18 @@ def residual_setup(root, *, selected=False, smoke=False):
     if residual_data.get('normalization_identity')!=residual_normalization_identity:
         raise ValueError('New residual requires common u_expert training affine')
     expected_train=read(root/'state_data/data.json')['splits']['train']
-    if residual_data['splits']['train']!=expected_train:raise ValueError('Residual normalization training population differs')
+    normalization_train=data.get('normalization_train_ids',expected_train) if v.get('continuation_from') else expected_train
+    residual_normalization_train=residual_data.get('normalization_train_ids',residual_data['splits']['train'])
+    if residual_normalization_train!=normalization_train or not set(normalization_train)<=set(expected_train) or not set(normalization_train)<=set(residual_data['splits']['train']):
+        raise ValueError('Residual normalization training population differs')
     residual_statistics_sha256=sha256(residual_statistics_path)
     amplitudes=read(root/'nominal/scales.json')
     for artifact in (index,amplitudes):
         if artifact.get('residual_statistics_sha256')!=residual_statistics_sha256 or artifact.get('residual_normalization_identity')!=residual_normalization_identity:
             raise ValueError('Residual cache/scales normalization identity differs')
     records={}
-    for identity in data['splits']['train']+data['splits']['validation']:
+    cache_splits=all_splits if v.get('continuation_from') else data['splits']
+    for identity in cache_splits['train']+cache_splits['validation']:
         path=root/'nominal'/(identity+'.pt')
         if sha256(path)!=index['episodes'][identity]['sha256']:raise ValueError('Nominal cache drift')
         records[identity]=torch.load(path,map_location='cpu',weights_only=False)
@@ -750,6 +890,21 @@ def residual_setup(root, *, selected=False, smoke=False):
         loss_id='all_tick_equal_arm_hand_plus_1e-4_residual',ema=False,
         architecture=model.architecture(),residual_version=model.version,
         history='full causal episodes; 32tick detach only; expert past acknowledgements teacher forced offline')
+    if v.get('continuation_from'):
+        from .native_data import supervision_mask_sha256
+        saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)
+        audit=load_residual_continuation(model,saved,residual_statistics_sha256)
+        configuration.update(continuation_audit=audit,teacher_supervision='u_expert',
+            history='complete actual student-prefix/expert-suffix history; only expert-executed suffix supplies supervision',
+            normalization_train_ids=normalization_train,normalizer_recomputed=False)
+        if index.get('supervision_mask_sha256')!=supervision_mask_sha256(records):
+            raise ValueError('Aggregated nominal cache supervision mask identity differs')
+        binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=sha256(root/'state_data/statistics.pt'),
+            data_sha256=sha256(root/'state_data/data.json'),residual_statistics_sha256=residual_statistics_sha256)
+        if any(record.get('cache_identity')!=binding for record in records.values()):
+            raise ValueError('DAgger nominal episode cache source identity differs')
+        configuration['supervision_mask_sha256']=index['supervision_mask_sha256']
+        del saved
     if selected:
         saved=torch.load(root/('training_smoke' if smoke else 'training')/'best.pt',map_location='cpu',weights_only=False)
         if saved.get('disposable',False) and not smoke:raise ValueError('Disposable residual cannot become a selected formal checkpoint')
@@ -795,16 +950,18 @@ def residual_metrics(model,records,ids,lease,*,mask_force=False):
         return dict(ticks=len(e),arm_rmse_rad=float(e[:,:7].square().mean().sqrt()) if len(e) else None,
             hand_rmse_rad=float(e[:,7:].square().mean().sqrt()) if len(e) else None,
             normalized_equal_mse=float(.5*(z[:,:7].square().mean()+z[:,7:].square().mean())) if len(e) else None)
-    return dict(all=metrics(torch.ones(len(error),dtype=torch.bool)),contact=metrics(gate),noncontact=metrics(~gate)),predictions
+    supervised=torch.cat([records[i].get('supervision_mask',torch.ones(len(records[i]['target']),dtype=torch.bool)).cpu() for i in ids])
+    return dict(all=metrics(supervised),contact=metrics(gate&supervised),noncontact=metrics(~gate&supervised)),predictions
 
 
 def residual_train(root, *, smoke=False, probe=False):
     """Full native-tick command supervision, complete histories, no base optimizer."""
-    from .native_data import residual_batch
+    from .native_data import residual_batch,residual_supervision_mask
     from .checkpointing import cpu_snapshot
     if smoke and probe:raise ValueError('Choose residual smoke or throughput probe, not both')
     setup_began=time.time()
     s,v,data,records,model,configuration,lease=residual_setup(root,smoke=smoke)
+    formal_epochs=v['maximum_control_tick_epochs']
     if smoke or probe:v=dict(v,maximum_control_tick_epochs=1)
     if probe:
         if len(data['splits']['train'])<4:raise ValueError('Residual throughput probe requires four complete train episodes')
@@ -814,23 +971,48 @@ def residual_train(root, *, smoke=False, probe=False):
     disposable=smoke or probe
     run_kind='throughput_probe' if probe else 'smoke' if smoke else 'formal'
     out=root/('training_probe' if probe else 'training_smoke' if smoke else 'training');out.mkdir(exist_ok=True)
-    if (out/'last.pt').exists():raise ValueError('No implicit second residual training run')
-    atomic_json(out/'configuration.json',configuration)
-    opt=torch.optim.AdamW(model.parameters(),lr=1e-3,weight_decay=1e-4)
+    resumable=bool(v.get('continuation_from')) and not disposable
+    if (out/'last.pt').exists() and not resumable:raise ValueError('No implicit second residual training run')
+    if (out/'configuration.json').exists():
+        if read(out/'configuration.json')!=configuration:raise ValueError('Residual resume configuration/source mismatch')
+    else:atomic_json(out/'configuration.json',configuration)
+    lr=v.get('learning_rate',1e-3)
+    if not isinstance(lr,(float,int)) or not math.isfinite(lr) or lr<=0:raise ValueError('Finite positive residual learning rate required')
+    decay=v.get('weight_decay',1e-4)
+    if not isinstance(decay,(float,int)) or not math.isfinite(decay) or decay<0:raise ValueError('Finite nonnegative residual weight decay required')
+    opt=torch.optim.AdamW(model.parameters(),lr=lr,weight_decay=decay)
     device=next(model.parameters()).device
     ids=data['splits']['train'][:4] if probe else data['splits']['train']
-    vals=data['splits']['validation'][:4];population=sum(len(records[i]['robot']) for i in ids)
+    vals=data['splits']['validation'][:4]
+    population=sum(int(records[i].get('supervision_mask',torch.ones(len(records[i]['robot']),dtype=torch.bool)).sum()) for i in ids)
     native_population=sum(len(records[i]['robot']) for i in ids)
     if population<1:raise ValueError('No valid native training ticks')
     target_ticks=v['maximum_control_tick_epochs']*population
     generator=torch.Generator().manual_seed(v['initialization_seed'])
     updates=draws=ticks=contact_ticks=0;best=float('inf');history=[];began=time.time();stop='maximum_control_tick_exposure';request=[]
-    setup_wall_s=began-setup_began;training_wall_s=0.
+    resume_epoch=1;resume_group=0;resume_order=None
+    if (out/'last.pt').exists():
+        saved=torch.load(out/'last.pt',map_location='cpu',weights_only=False)
+        restored=restore_residual_training(saved,model,opt,generator,configuration,ids)
+        updates=saved['updates'];draws=saved['supervised_ticks'];ticks=saved['control_ticks'];contact_ticks=saved['contact_anchors']
+        best=saved['best'];history=saved['history'];resume_epoch=saved['epoch'];resume_group=saved['next_episode_group'];resume_order=saved['episode_order']
+        # Keep an exhausted epoch until its validation/stop checkpoint commits.
+        # A crash after its last group must not skip validation or retrain it.
+        atomic_json(out/'restore.json',restored)
+    setup_wall_s=began-setup_began;training_wall_s=saved.get('training_wall_s',0.) if resumable and (out/'last.pt').exists() else 0.
+    prior_wall_s=saved.get('wall_s',0.) if resumable and (out/'last.pt').exists() else 0.
+    if resumable and (out/'finished.json').exists():
+        finished=read(out/'finished.json')
+        if finished['updates']!=updates:raise ValueError('Residual completed receipt/checkpoint update differs')
+        return
     signal.signal(signal.SIGTERM,lambda *_:request.append('SIGTERM'))
     def snapshot(epoch,next_group):
         return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
             configuration=configuration,model=model.state_dict(),optimizer=opt.state_dict(),updates=updates,
             formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
+            new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),
+            schedule_maximum_control_tick_epochs=formal_epochs,
+            training_wall_s=training_wall_s,wall_s=prior_wall_s+time.time()-began,
             contact_anchors=contact_ticks,supervised_ticks=draws,control_ticks=ticks,epoch=epoch,next_episode_group=next_group,episode_order=order,
             schedule_rng=generator.get_state(),torch_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all() if device.type=='cuda' else [],
             best=best,history=history,train_ids=ids,validation_ids=vals,ema=False))
@@ -848,28 +1030,31 @@ def residual_train(root, *, smoke=False, probe=False):
             atomic_json(out/'selected.json',dict(epoch=epoch,update=updates,validation_score=score,
                 selection='fixed validation4 all-tick normalized equal Arm/Hand MSE',checkpoint_sha256=sha256(out/'best.pt')))
         residual_curves(out)
-    for epoch in range(1,v['maximum_control_tick_epochs']+1):
-        epoch_training_began=time.time()
-        order=[ids[i] for i in torch.randperm(len(ids),generator=generator).tolist()]
-        for offset in range(0,len(order),v['microbatch']):
+    for epoch in range(resume_epoch,v['maximum_control_tick_epochs']+1):
+        order=resume_order if resume_order is not None and epoch==resume_epoch else [ids[i] for i in torch.randperm(len(ids),generator=generator).tolist()]
+        next_group=resume_group if epoch==resume_epoch else 0
+        for offset in range(resume_group if epoch==resume_epoch else 0,len(order),v['microbatch']):
+            group_began=time.time()
             selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None
             for start in range(0,max(len(r['robot']) for r in selected),32):
                 end=min(start+32,max(len(r['robot']) for r in selected))
                 with lease.block():
                     model.train();inputs=residual_batch(selected,start,end,device)
                     raw,state=model(inputs,state)
+                    supervised=residual_supervision_mask(selected,start,end,device)&inputs['valid']
                     gate=residual_aux(selected,start,end,'gate',device)&inputs['valid']
                     action,delta=model.compose(residual_aux(selected,start,end,'base',device),raw,gate,
                         torch.stack([r['limits'] for r in selected]).to(device)[:,None])
-                    loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,inputs['valid'])
+                    loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,supervised)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
-                    if inputs['valid'].any():
+                    if supervised.any():
                         opt.zero_grad(set_to_none=True);loss.backward()
                         norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
                         if not torch.isfinite(norm):raise FloatingPointError('Nonfinite residual gradient')
-                        opt.step();updates+=1;draws+=int(inputs['valid'].sum());contact_ticks+=int(gate.sum())
+                        opt.step();updates+=1;draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
                         with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
-                            loss=float(loss.detach()),contact_ticks=int(gate.sum()),supervised_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm)))+'\n')
+                            loss=float(loss.detach()),contact_ticks=int((gate&supervised).sum()),supervised_ticks=int(supervised.sum()),
+                            history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm)))+'\n')
                     ticks+=int(inputs['valid'].sum())
                     def detach(x):return {k:detach(z) for k,z in x.items()} if isinstance(x,dict) else x.detach()
                     state=detach(state)
@@ -877,15 +1062,21 @@ def residual_train(root, *, smoke=False, probe=False):
                     elapsed=time.time()-began;rate=draws/max(elapsed,1e-6)
                     atomic_json(out/'progress.json',dict(update=updates,epoch=epoch,control_tick_epochs=draws/population,
                         sampled_anchors=draws,anchor_population=population,control_ticks=ticks,wall_s=elapsed,
+                        new_optimizer_updates=0 if disposable else updates,supervised_ticks=draws,
                         wait_s=lease.wait_s,work_s=lease.work_s,remaining_seconds_estimate=(v['maximum_control_tick_epochs']*population-draws)/max(rate,1e-6),
                         utc=time.time()))
+            # Only complete episode groups are resumable: no mid-prefix hidden
+            # state is invented, and unsupervised prefixes still advance state.
+            training_wall_s+=time.time()-group_began
+            next_group=offset+len(selected)
+            if resumable:save(out/'last.pt',snapshot(epoch,next_group))
             if request or time.time()>s['training_deadline']-180:
                 stop='requested_stop' if request else 'fixed_wall_budget';break
-        training_wall_s+=time.time()-epoch_training_began
-        save(out/'last.pt',snapshot(epoch,offset+len(selected)))
-        if epoch==1 or epoch%v['validation_epoch_interval']==0 or stop!='maximum_control_tick_exposure':validate(epoch)
+        save(out/'last.pt',snapshot(epoch,next_group))
+        if (epoch==1 or epoch%v['validation_epoch_interval']==0 or stop!='maximum_control_tick_exposure') and (not history or history[-1]['update']!=updates):validate(epoch)
         if not disposable and epoch in v.get('comparison_control_tick_epochs',[]):
-            save(out/f'comparison_epoch_{epoch}.pt',snapshot(epoch,offset+len(selected)))
+            save(out/f'comparison_epoch_{epoch}.pt',snapshot(epoch,next_group))
+        save(out/'last.pt',snapshot(epoch,next_group))
         if stop!='maximum_control_tick_exposure':break
         # Minimum exposure and a fixed validation trend define bounded stopping;
         # maximum exposure is a ceiling, not an admission condition.
@@ -893,15 +1084,18 @@ def residual_train(root, *, smoke=False, probe=False):
             scores=[r['validation']['all']['normalized_equal_mse'] for r in history[-4:]]
             if (scores[0]-min(scores[1:]))/max(scores[0],1e-12)<.01:stop='validation_plateau_after_minimum_exposure';break
     if not history or history[-1]['update']!=updates:validate(epoch)
-    save(out/'last.pt',snapshot(epoch,offset+len(selected)))
+    save(out/'last.pt',snapshot(epoch,next_group))
     atomic_json(out/'finished.json',dict(stop_reason=stop,updates=updates,control_tick_epochs=draws/population,
         formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
-        target_reached=draws>=target_ticks and ticks>=target_ticks,required_supervised_ticks=target_ticks,
+        target_reached=draws>=target_ticks,required_supervised_ticks=target_ticks,
+        new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),
+        schedule_maximum_control_tick_epochs=formal_epochs,
         required_control_tick_epochs=v['maximum_control_tick_epochs'],train_episode_count=len(ids),effective_batch=v['microbatch'],
         minimum_control_tick_epochs=v['minimum_control_tick_epochs'],minimum_exposure_reached=draws>=v['minimum_control_tick_epochs']*population,
-        sampled_contact_anchors=contact_ticks,contact_anchor_population=sum(int(records[i]['gate'].sum()) for i in ids),
-        control_tick_population=population,supervised_ticks=draws,control_ticks=ticks,control_equivalent_epochs=ticks/native_population,
-        wall_s=time.time()-began,supervised_ticks_per_wall_s=draws/max(time.time()-began,1e-6),
+        sampled_contact_anchors=contact_ticks,contact_anchor_population=sum(int((records[i]['gate']&records[i].get('supervision_mask',torch.ones_like(records[i]['gate']))).sum()) for i in ids),
+        control_tick_population=native_population,supervised_tick_population=population,supervised_ticks=draws,
+        control_ticks=ticks,control_equivalent_epochs=ticks/native_population,
+        wall_s=prior_wall_s+time.time()-began,supervised_ticks_per_wall_s=draws/max(prior_wall_s+time.time()-began,1e-6),
         setup_wall_s=setup_wall_s,training_wall_s=training_wall_s,
         supervised_ticks_per_training_wall_s=draws/max(training_wall_s,1e-6),
         timing_scope='wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup',

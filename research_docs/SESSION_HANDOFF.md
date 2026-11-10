@@ -1,37 +1,38 @@
-## 2026-11-10 最新接手：用户更正后的 _02 队列准备
+# 2026-11-11：原实验继续，准备自动接续 DAgger
 
-本轮从 f352ac8 停止记录接续新的授权。保留 U-Net、现有编码器与持续历史；直接复用 G00/G10 selected EMA，本轮两前端 optimizer 更新数必须为0。G01/G11 使用现有756581参数后端Transformer（2层、d128、4头、FF256、过去32tick与持续GRU），不替换前端。
-Q00/QG00 共用旧 G00 EMA 参数作为初始化，分别使用相同 train166 的 q_reached affine、新优化器/EMA计数/采样器和学习率日程；这是新监督适配，不把旧 u_expert 权重称作已经学好的配置策略。H24/commit12、29D绝对目标、5/60/120Hz、166/30/22划分及原生成功判据不变。q_after标签、加噪clean sample与掌部FK监督一致切换，未来物体/接触安排只进loss。所有后端最终仍监督 u_expert，统一命令affine，并使用真实冻结DDIM16前端预测。
+旧运行树是 `/home/CNS2025331827/docs/bc+rl_RSS_palm_eval`，源码 e9385bc，root `outputs/visuotactile/run/tight_transformer_20261110_02`。本次只在隔离 `bc+rl_RSS_dagger` 修改；旧源码/数据/预算不变。文档整理时只读状态仍为 RUNNING / independent_dependency_queue：G01/G11 COMPLETE，Q00/QG00 RUNNING，Q01/QG01 PENDING。这是状态快照，不是最后结果；后续须读原root/status及实际凭据。
 
-上一轮 f352ac8 FAILED，正式更新0、闭环0，自有worker已退出。本轮未启动错误前端替换或G重训；当前修改/验收进行中。新root _02，状态以机器文件为准；无LLM长期守候。
-短验收已通过：两Q各8真实GPU可丢弃更新，完整恢复；soft开启耗时1.01034倍，额外几何0.023625s/update，最终λ2.355370821894758e-06。正式启动状态读_02/status.json，固定绝对截止2026-11-11 18:54:40+08:00；每组有限10开发、test22不用，普通owner自动发布。
+用户已经授权旧队列实际结束后自动进行一轮成功筛选的专家接管式 DAgger，最新更正包含前端和后端。配置 `configs/tight_state.json.dagger`：G11/QG01各12采集机会、各10固定开发自主评估，新阶段12h硬上限；前端20/后端30有效遍历上限，平台停止最低10遍，硬墙钟优先。test22不使用，不追加旧轮离线训练。
 
-## 2026-11-10 接手：Transformer/实际配置方法实现与门控
+## 当前已完成与尚未完成
 
-起点8e67fb7，工作树bc+rl_RSS_palm_eval干净后开始；原主工作树/窄域工作树未提交文档未动。现有400/Core/旧成功保护。当前run为outputs/visuotactile/run/tight_transformer_20261110_01，机器status/各gate为准，正式更新暂0；102项定向CPU测试通过，详细启动进度随后以status/launch为准。
+|事项|当前证据边界|
+|---|---|
+|隔离准备|共享数据/缓存/训练/接管接口与普通后继模式已实现，仍按最终集成验收状态推进|
+|真实Core CPU聚合|196条train/validation读回；train166=55,392tick、4,690有效规划anchor，H24累计108,792有效窗口目标；原统计字节相同，test源读取0|
+|数据/缓存测试|新增7项测试通过：实际执行与u/q标签分离、H24切断、监督/历史mask分离、固定统计聚合、真实G10 EMA续训、DINO无GPU复用、重预测因果历史/previous_nominal与四SHA|
+|最终CPU集成验收|88项联合通过（40.00s）；新增后继等待保护测试随9项定向回归通过（0.81s），去重共89项，覆盖接管/聚合、两阶段续训与恢复、缓存身份、owner依赖、发布、清理及相关历史兼容；一个既有requests依赖版本warning|
+|真实接管/GPU|本次文档整理未启动新GPU/Kit，未获得DAgger纠正数据、正式增量更新或自主后测|
+|后继注册|必须用实际服务/进程及registration/status凭据补录；脚本和配置存在不能称已排队|
 
-新旧差异、监督时序、网络/门控、实验矩阵和有限预算见CONTRACTS当前段。CPU验证实际train166+validation30共65630tick，test未读；新Transformer756581参数，旧GRU显式保留用于成功对照。清理398文件释放823.789063MiB，0模型权重删除。
+原Core全196条监督mask+segment SHA为 `6601d614380010cc37b7ffb031cab35405859b0bcb7e1ad7652ef27166466e80`；加入纠正后按实际数据重新计算。临时CPU聚合产物由临时目录释放，未写旧run。
 
-首Kit gate完成2reset/4pose/0step、PhysX错误0，但geometry metadata header缺config导致worker异常。原失败完整保留；第二次physics_gate_repair同样完成零步功能检查，但SDK关闭停滞；只中断本次父进程并清理自有子进程，保留中断凭据。第三次physics_gate_exitfix复用既有durable-results OS退出，worker0/全日志PhysX0/进程与GPU census退出核验通过；不称SDK graceful close。第三次几何回调26/26明确INVALID_PARSING(2)：错误地把CollisionAPI包装Xform当Mesh传入。按具体API缺陷做一次第四复验，预算修订留账、原三小时期限不变，不改任何几何/物理容差。第四次physics_gate_meshfix实际通过：worker0、完整日志PhysX0、所有自有进程退出；26实际Mesh/属性同SDK重建凸包，当前姿态FK/查询一致。固定6训练状态6/6投影可行，λ_geom=0.7029496672279293，手臂新增梯度0、手部梯度有效；QG00/QG01准入。内部力前提未满足：现有5distal sensor接口可读但startup为零接触，缺全手/物体环境接触与所需wrench及动作响应；实际扰动0，未建立F(action,...)，λ_int禁用。不能把几何消融称完整内力方法。
+## 接续核验
 
-root配置/数据已prepare；大训练尚须GPU真实DDIM/cache/controller、保存恢复、每profile8update吞吐门控。门控source冻结与绝对期限不重置。外层owner负责训练→验证→残差→固定开发→冻结后test22→CPU整理，任何依赖失败停后续、不补seed。最终状态及是否启动必须读机器文件。
+公共入口仍为 `bash visuotactile/run_cpu.sh -m tools.tight_finish`，子命令为 `dagger_prepare` 与 `dagger_follow`，并提供 `--root`。准备登记与普通后台follow必须都实际完成；离开前短查一次WAITING/真实推进，不用模型守候。
 
-以下历史handoff不作为当前任务队列。
+接手时核验后继的配置/采集计划SHA、registration、实际服务或PID身份、源冻结与依赖路径。follow依据旧owner/自有worker实际退出和可用选定模型推进，不能只看预计结束时刻，也不能忽略仍在发布的旧owner。单纯报告异常可独立修复，不把它等同模型不可用。新阶段时间预算从实际新起点建立，不复用旧绝对deadline。
 
-# 当前交接：Core/Auxiliary有限任务已完成，学生未成功
+G11初始前端为旧G10 selected EMA；QG01初始前端为旧轮QG00 selected EMA。各自后端必须是同一前端SHA配套的所选Transformer；新轮先训练前端，再重建全部train/validation名义缓存并训练后端。采集起点、专家、统计和最终选定模型的确切路径/SHA由 `initial_pair.json` 与各训练凭据报告，不从历史简称猜测。
 
-2026-11-08，使用修复worktree `/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`，branch `feature/tight-state-foundation`。当前实验root `outputs/visuotactile/run/tight_state_20261107_01/composition_06`，status=complete/evaluated；11月8日13:21:54 owner/monitor/Kit退出。原训练PID2805678、owner2393723、monitor2393729、最终eval3127549与两版资源guard均已核实退出；不可用历史PID冒充活进程。
+监督只取成功接管episode的有效专家后缀，学生/切换前缀保留实际历史且mask=0。H24不跨段；G11的u、QG01的q与后端u区分。原统计与残差幅度界限固定。无新成功纠正或有效DP监督不足时报告不足，不改成仅后端训练。
 
-采集源码4d43a3975c9bd153ff90d7c13e03ca9a0e6aa917，训练/评估fdb7ea94a1457de57ff2a9fc21d1a9486742d5ab，仅后续闭环成员选择修订。源代码211文件/计划指纹及基础accepted gates有效；61项定向/准入回归＋1项成员回归通过，不重开168/510tick基础审计。完整episode持续GRU不是64tick截断；29D绝对处理后目标、H24/commit12与所有模型/物理条件不变。
+## 发布与历史
 
-最终55refs=54成功+1动作前拒绝；378slow=359成功+11任务失败+8动作前拒绝。208Core/50家族，train156/36家族、validation30/7、test22/7；15Aux/11家族另存，未进入训练或统计。另2完整Aux未选保留。旧20严格10/20不改，旧2数值Aux缺图不复用。第7轮达到Core软目标停止，62计划身份未启动；完整数据、阶段运动、原生结果与分母在当前结果/CSV/机器证据。
+旧owner先完成其结果发布；后继在指定origin分支整合后再发布新变化，避免两个工作树同时推送。新小型结果集中在 [STATE_DP_RESULTS](STATE_DP_RESULTS.md)，清理集中在 [CLEANUP_AUDIT](CLEANUP_AUDIT.md)，不新增重复报告MD。
 
-Fresh训练8500步、442012draws、100.2068 anchor等效epoch，全部4411anchor覆盖57–150次；最低80曝光已过，最后4验证改善.9386%且泛化差距触发预登记early stop。sufficiency=true仅有限曝光/趋势，不是全局收敛。完整恢复passed、旧学生loaded=false；best8500 EMA SHA6940b066cf8296d8e90203c0aa714f2ad780d5440c6128b89ddc5698bbbaa4da。test未选模。
+必要历史：StateDP 19,865更新/开发0/10；G00/G10 10,132/6,929更新/各0/10；旧GRU残差G01/G11各98,610更新/0/10、1/10。旧G11成功native_lift=false，旧视觉队列FAILED收尾与PhysX/资源问题如实保留。当前Transformer与旧GRU同时改变网络、监督范围和门控，不能据历史单例声称改善。
 
-闭环27/27合法：train0/10、validation0/7、新初态0/10；24timeout/3fall，1例第一子目标后fall。首10新初态零成功，剩余90未启动；不扩分母，不新增seed/训练/参数搜索。全部实际执行器与canonical actor一致性误差0。剩余是自主抓取/抬升/连续插入稳定性；不同于旧275数据，不作因果matched比较。
+新前端以旧队列最近10次更新参考，20个原训练人口anchor等效遍历约1.8–1.9h/组；聚合量、串行资源和前端模态会影响实际速度，后继仍必须用真实输入probe分配时间。DP/后端、缓存与评估实际耗时独立记录，总12h截止不变。
 
-清理后225合格payload SHA、135拒绝numeric SHA、6保护SHA、manifest/stat/cache指纹及3CLI通过；135拒绝RGB-D+1重复checkpoint释放36.191101GiB。best保留原字节，last是完整状态相同的硬链接别名；旧last SHA映射保留，完整恢复读回8500/442012。原400/275、专家/资产、开发证据与全部失败分母不动，不重复计算旧7.510/2.705GiB。
-
-整卡均值28.389%、最高完整60s59.632%、缺口0，最低VRAM4154MiB/可用RAM16.85GiB；本轮资源并非全程合规。v1 SIGSTOP导致比例限流重复等待，v2改原gpu.lock在计算外等待，不改训练状态、没重启trainer、没重置deadline；原日志和源码receipt都保留，guard正常exit0。不要再用SIGSTOP节流。
-
-详情以CONTRACTS、STATE_DP_RESULTS、CLEANUP_AUDIT和evidence/tight_composition_results_20261108.json为准。不可变evidence/tight_composition_20261107.json是启动前登记，started=false不代表当前状态，勿改其SHA。没有新的待执行实验或ImageDP/触觉授权。本次只正常提交/推送审查后的当前origin feature内容，不上传数据/checkpoint或重写历史。
+本页的CPU实现状态不代替新阶段物理验收或成果。现行详细合同见 [CONTRACTS](CONTRACTS.md)，过时阶段授权已从当前文档入口去重。

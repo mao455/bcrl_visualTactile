@@ -419,10 +419,22 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             from visuotactile.position_control import apply_position_targets
             from isaacsimenvs.tasks.play.utils.action_utils import apply_wrench_dr
             applied, event_draw = apply_position_targets(self, actions)
+            bridge = getattr(self, '_dagger_position_bridge', None)
+            if bridge is not None:
+                # The student still proposed a position target, but this opt-in
+                # collector may issue the mapped expert target through the same
+                # executor. Standard history fields must name what was issued.
+                actions = bridge.requested
+                self.last_transition.update(raw_action=actions.clone(), submitted_action=actions.clone(),
+                    dagger={key: value.clone() for key, value in bridge.trace.items()})
             # Old command aliases are deliberately absent in the new unit contract.
             del self.last_transition['command_clipped_pre_delay'], self.last_transition['executed_action']
             self.last_transition.update(position_requested_rad=actions.clone(),position_applied_rad=applied.clone(),
                 unused_delay_rng_draw=event_draw,position_clip_mask=actions!=applied)
+            if bridge is not None:
+                # This draw is genuinely used by the expert proposal converter;
+                # the shared position actuator itself still has no delay.
+                self.last_transition['expert_bridge_delay_rng_draw'] = self.last_transition.pop('unused_delay_rng_draw')
             self.last_transition['control_trace'] = dict(valid=torch.ones(self.num_envs,dtype=torch.bool,device=self.device),
                 applied_position_target_rad=applied.clone(), delay_enabled=torch.zeros(self.num_envs,dtype=torch.bool,device=self.device),
                 delay_index=torch.zeros(self.num_envs,dtype=torch.long,device=self.device))
