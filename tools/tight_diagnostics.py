@@ -832,6 +832,130 @@ def publish_visual_metrics(root, evaluation, output):
         for p in sorted(output.rglob('*')) if p.is_file() and p.name!='artifacts.json'})
 
 
+def publish_residual_metrics(root, evaluation, output):
+    """Publish completed residual evidence on CPU; no training or simulation."""
+    import gzip
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from visuotactile.video import verify_video
+    status=read(root/'status.json');completion=read(evaluation/'evaluation_complete.json')
+    if root!=evaluation or status['state']!='COMPLETE' or not status['owned_workers_exited'] or not completion['complete']:
+        raise ValueError('Residual publication requires its completed, exited queue')
+    if completion['groups']!=['G01','G11']:raise ValueError('Unexpected residual cohort')
+    data=read(root/'state_data/data.json');plan=read(root/'evaluation_plan.json');expected=[r['identity'] for r in plan]
+    if len(expected)!=10 or len(set(expected))!=10:raise ValueError('Development identities differ')
+    output.mkdir(parents=True,exist_ok=True);sources={};groups={};videos=[];closed=[];stages=[];curves=[];force=[]
+    def public(value):
+        if isinstance(value,dict):return {public(k):public(v) for k,v in value.items()}
+        if isinstance(value,list):return [public(v) for v in value]
+        if isinstance(value,str):
+            for prefix in ('/home/CNS2025331827/docs/bc+rl_RSS_palm_eval/','/home/CNS2025331827/docs/bc+rl_RSS/'):
+                value=value.replace(prefix,'')
+            return value.replace('/home/CNS2025331827/','~/')
+        return value
+    def record(path):sources[public(str(path))]=dict(bytes=path.stat().st_size,sha256=sha(path))
+    def copy(source,dest):
+        record(source)
+        if dest.suffix=='.gz':
+            with source.open('rb') as src,dest.open('wb') as dst:
+                with gzip.GzipFile(filename='',fileobj=dst,mode='wb',mtime=0) as archive:shutil.copyfileobj(src,archive)
+        elif source.suffix=='.json':write(dest,public(read(source)))
+        else:shutil.copyfile(source,dest)
+    summary=read(root/'result.json')
+    for group in completion['groups']:
+        g=root/group;out=output/group;out.mkdir(exist_ok=True)
+        offline=read(g/'offline/result.json');evaluation_rows=read(g/'evaluation_summary.json')['results']
+        finished=read(g/'training/finished.json');history=read(g/'training/validation.json')
+        if not offline['complete'] or sha(g/'training/best.pt')!=offline['checkpoint_sha256']:
+            raise ValueError('Selected residual identity differs')
+        if [r['identity'] for r in evaluation_rows]!=expected:raise ValueError('Evaluation plan mismatch')
+        for split,number in (('train',8),('validation',30)):
+            with (g/'offline/sampled_ticks.csv').open() as f:
+                identities={r['identity'] for r in csv.DictReader(f) if r['split']==split}
+            if identities!=set(data['splits'][split][:number]):raise ValueError('Offline cohort mismatch')
+        for i,r in enumerate(evaluation_rows):
+            path=g/'evaluation'/r['identity']/'result.json'
+            if read(path)!=r or not r['software_complete'] or not r['legal']:
+                raise ValueError('Publication requires all ten completed legal trial receipts')
+            if r['checkpoint_sha256']!=offline['checkpoint_sha256'] or r['seed']!=plan[i]['spec']['seed']:
+                raise ValueError('Deployed model/seed differs')
+            if bool(r['success'])!=bool(r['reasons']['max_successes']):raise ValueError('Native success mismatch')
+            if r['post_success_actions']!=0 or r['residual_ticks']!=r['steps']:raise ValueError('Tick/termination mismatch')
+            record(path)
+            closed.append(dict(group=group,identity=r['identity'],seed=r['seed'],success=r['success'],steps=r['steps'],
+                native_lift=r['native_lift'],native_subgoals=r['native_subgoals'],alignment=r['native_alignment'],
+                stable_grasp=r['contact']['stable_grasp_diagnostic'],**r['reasons'],
+                first_success_tick=r['first_success_tick'],post_success_actions=r['post_success_actions'],
+                submitted_target_max_error_rad=r['submitted_target_max_error'],tracking_rmse_rad=r['tracking_rmse_rad'],
+                contact_gate_ticks=r['contact_gate_ticks'],checkpoint_sha256=r['checkpoint_sha256']))
+        for p in sorted((g/'evaluation').glob('*/video_verified.json')):
+            movie=p.parent/'rollout.mp4';trial=read(p.parent/'result.json');receipt=verify_video(movie,expected_frames=trial['steps'])
+            if receipt!=read(p):raise ValueError('Video decode differs from stored receipt')
+            record(movie);videos.append(dict(group=group,identity=trial['identity'],success=trial['success'],
+                path=public(str(movie)),sha256=sha(movie),uploaded=False,**receipt))
+        for name in ('training/best.pt','training/last.pt'):record(g/name)
+        for name in ('training/finished.json','training/configuration.json','training/validation.json','offline/result.json',
+                     'offline/stage_errors.csv','offline/base_stage_errors.csv','offline/force_sensitivity.json','nominal/scales.json'):
+            copy(g/name,out/Path(name).name)
+        for name in ('sampled_ticks.csv','base_sampled_ticks.csv'):
+            copy(g/'offline'/name,out/(name+'.gz'))
+        copy(g/'training/loss.jsonl',out/'every_update_loss.jsonl.gz')
+        copy(g/'training/curves.png',out/'training_curves.png')
+        for p in sorted((g/'offline').glob('*')):
+            if p.suffix=='.png' or p.name.endswith('_targets.csv'):
+                copy(p,out/(p.name+('.gz' if p.suffix=='.csv' else '')))
+        for row in history:
+            for split in ('train','validation'):
+                for scope,metrics in row[split].items():
+                    curves.append(dict(group=group,epoch=row['epoch'],update=row['update'],cohort='fixed_'+split+('2' if split=='train' else '4'),scope=scope,**metrics))
+        for kind,key in (('residual','metrics'),('frozen_base','base_metrics')):
+            stages.extend(dict(model=group,kind=kind,**r) for r in offline[key])
+        force.extend(dict(group=group,**r) for r in offline['force_sensitivity'])
+        selected=min(history,key=lambda r:r['validation']['contact']['normalized_equal_mse'])
+        groups[group]=dict(training=public(finished),selection_record=selected,checkpoint_sha256=offline['checkpoint_sha256'],
+            closed_loop=summary['groups'][group]['closed_loop'],frozen_base_closed_loop=summary['groups'][group]['frozen_base_closed_loop'])
+    if len(videos)!=4 or len(closed)!=20:raise ValueError('Expected four complete videos and twenty trials')
+    table(output/'closed_loop.csv',closed);table(output/'sampling_curves.csv',curves)
+    table(output/'stage_metrics.csv',stages);table(output/'force_sensitivity.csv',force)
+    # One compact comparison regenerated from the exported raw CSV only.
+    with (output/'stage_metrics.csv').open() as f:rows=list(csv.DictReader(f))
+    fig,axes=plt.subplots(1,3,figsize=(11,3.6),layout='constrained')
+    for ax,part,key,title in zip(axes,('arm','hand','arm'),('rmse_rad','rmse_rad','ee_rmse_mm'),('Arm RMSE (rad)','Hand RMSE (rad)','Target palm FK RMSE (mm)')):
+        for offset,kind in ((-.18,'frozen_base'),(.18,'residual')):
+            values=[next(float(r[key]) for r in rows if r['model']==g and r['kind']==kind and r['split']=='validation'
+                and r['phase']=='all' and r['motion']=='all' and r['group']==part) for g in completion['groups']]
+            ax.bar([offset,1+offset],values,width=.36,label=kind)
+        ax.set_xticks([0,1],['G01 / G00','G11 / G10']);ax.set_title(title);ax.legend(fontsize=8)
+    fig.suptitle('Fixed expert prefixes, validation30; not autonomous trajectory errors')
+    fig.savefig(output/'comparison.png',dpi=150);plt.close(fig)
+    launch=read(root/'launch.json');finish=status['utc']
+    telemetry=[json.loads(line) for line in (root/'resources/shared.jsonl').read_text().splitlines()]
+    telemetry=[r for r in telemetry if launch['started']<=r['utc_epoch']<=finish]
+    intervals=[(b['utc_epoch']-a['utc_epoch'],a['gpu_util_percent']) for a,b in zip(telemetry,telemetry[1:])]
+    valid=[(dt,value) for dt,value in intervals if dt<=8 and value is not None]
+    resources=dict(scope='formal launch through exit; gate monitor restarts reported separately',samples=len(telemetry),
+        gpu_time_weighted_percent=sum(dt*v for dt,v in valid)/sum(dt for dt,_ in valid),
+        max_gap_s=max(dt for dt,_ in intervals),gap_seconds_above8=sum(dt for dt,_ in intervals if dt>8),
+        leading_uncovered_s=telemetry[0]['utc_epoch']-launch['started'],trailing_uncovered_s=finish-telemetry[-1]['utc_epoch'],
+        min_gpu_free_mib=min(r['gpu_free_mib'] for r in telemetry),min_ram_available_bytes=min(r['ram_available_bytes'] for r in telemetry),
+        full_authorization=True,inherited_monitor_summary=read(root/'monitor_exit.json'))
+    errors=[line for line in (root/'evaluation.log').read_text(errors='replace').splitlines() if 'PhysX error:' in line]
+    for name in ('status.json','launch.json','evaluation_complete.json','evaluation_plan.json','configuration.json','source_freeze.json',
+                 'base_identities.json','throughput_comparison.json','monitor_exit.json','process_exit_requested.json'):
+        copy(root/name,output/name)
+    record(root/'evaluation.log');record(root/'resources/shared.jsonl');record(root/'state_data/data.json')
+    write(output/'summary.json',dict(groups=groups,videos=videos,resources=resources,
+        formal_elapsed_s=finish-launch['started'],source_commit=launch['source_head'],status=status,
+        physx_log_errors=errors,physx_error_impact='Not specifically audited; retain native receipts and original log, do not infer no impact from exit0',
+        data=dict(core=218,train=166,validation=30,test=22,data_sha256=sha(root/'state_data/data.json'),test_used=False),
+        scope='Existing development measurements only; no new model inference, training, Kit or cleanup; same seeds, hidden-state bitwise pairing unproven'))
+    write(output/'source_artifacts.json',sources)
+    for p in output.rglob('*.csv'):p.write_bytes(p.read_bytes().replace(b'\r\n',b'\n'))
+    write(output/'artifacts.json',{str(p.relative_to(output)):dict(bytes=p.stat().st_size,sha256=sha(p))
+        for p in sorted(output.rglob('*')) if p.is_file() and p.name!='artifacts.json'})
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish'])
@@ -845,7 +969,9 @@ def main():
     elif args.mode == 'publish':
         if args.evaluation is None or args.output is None:
             parser.error('publish requires --evaluation and --output')
-        if read(root/'configuration.json').get('vision_pair'):
+        if read(root/'configuration.json').get('residual_pair') and (root/'base_identities.json').exists():
+            publish_residual_metrics(root,args.evaluation.resolve(),args.output.resolve())
+        elif read(root/'configuration.json').get('vision_pair'):
             publish_visual_metrics(root, args.evaluation.resolve(), args.output.resolve())
         else:publish_metrics(root, args.evaluation.resolve(), args.output.resolve())
     else:

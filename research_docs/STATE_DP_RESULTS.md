@@ -1,46 +1,81 @@
 # Tight-Insertion 当前结果
 
 <!-- RESIDUAL_PAIR_START -->
+## 2026-11-10 G01/G11：完成训练与20次开发评估
 
+**G01完整成功0/10；G11完整成功1/10。** 两组各10次合法、无拒绝/中断，test22未使用。
+G11成功是`palm_fresh_000`（seed27150000），279个控制tick/4.65s、原生两子目标与`max_successes=true`，成功后0额外动作。
+该例`native_lift=false`，不把完整成功或稳定抓持诊断反推成原生抬升；G11另有一例记录原生lift。
+这是有限开发结果，不是正式test成功率，也不能据1例证明稳定改善或触觉因果收益。
 
+源码`c3386b69113595806dc080149f8c2104ded509e4`；run `outputs/visuotactile/run/tight_residual_20261110_01`。
+2026-11-10 10:14:46启动，12:01:02（北京时间）结束，总墙钟1小时46分16秒；status=COMPLETE、exit=0，自有owner/worker/monitor已退出，无下一轮。
+[公开机器结果](evidence/tight_residual_20261110/summary.json) · [20例逐次结果](evidence/tight_residual_20261110/closed_loop.csv) · [冻结配置](evidence/tight_residual_20261110/configuration.json) · [验收](evidence/tight_residual_20261110/acceptance.json)。
 
-## 2026-11-10 G01/G11：60Hz触觉残差
-
-
-
-后台状态：**PREPARED**，阶段 `acceptance_passed_pending_launch`；原因 `Two residual gates and16 existing interface tests passed; no formal training yet`。
-
-运行目录 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01`；源码 `None`；机器状态 `status.json`，完整结果 `result.json`。
-
-G01冻结G00选定EMA，G11冻结G10选定EMA；原G00/G10结果保留。两组相同残差结构、预算、开发种子。
-
-沿用3e11d62的60Hz GRU残差/0.1N观测接触门/Arm-Hand等权损失与1e-4残差正则/AdamW；适配当前H24绝对目标。
-
-基础DP仍5Hz/commit12；残差60Hz、触觉GRU120Hz、完整持续历史。当前冻结视觉512D读出替代已删除旧B0帧编码器。
-
-离线nominal为冻结EMA完整DDIM16真实预测；过去专家执行命令明确teacher forcing。闭环历史读取实际组合目标及执行反馈；G01基础策略可间接受残差影响。
-
-Core218（train166/validation30/test22），不加入Auxiliary、不使用test选模。训练最多9h/300接触tick等效遍历，200遍后才允许平台早停；这不是DP重规划anchor epoch。
-
-完整成功仅原生终止判据；稳定抓持是已有诊断，阶段进展不计完整成功；自主轨迹不作同tick动作标签误差。
-
-
-
-|组别|新增成功/有效|未运行|原生lift/首子目标/对准|冻结基础成功/有效|
+|开发指标|G00冻结基础|G01残差|G10冻结基础|G11残差|
 |---|---:|---:|---:|---:|
-|G01|0/0|10|0/0/0|0/10|
-|G11|0/0|10|0/0/0|0/10|
+|原生完整成功/有效|0/10|0/10|0/10|1/10|
+|稳定抓持诊断|4|1|3|3|
+|原生lift|1|0|3|1|
+|首子目标 / 第二插入子目标|3 / 0|0 / 0|1 / 0|1 / 1|
+|原生alignment|3|0|1|1|
+|timeout / fall / dropped|9 / 1 / 0|10 / 0 / 0|7 / 3 / 0|8 / 1 / 0|
 
+基础闭环复用既有记录，按相同预登记初态spec/seed比较，没有重跑基础；不宣称隐藏模拟器状态逐位相同。
+G01的阶段到达没有改善；G11出现一次完整成功，但原生lift数量少于基础，不能只选有利指标解释。
 
-G01：拒绝0、中断0、稳定抓持未测、超时0、fall0、dropped0；第二插入子目标0，原生完整任务0。
+两组都完成98,610次残差更新、7,620,800个接触tick（人口38,104）、200个接触tick/控制tick等效遍历；
+基础策略更新数均为0。G01/G11训练墙钟4069.57/4062.56s，等待24.23/29.66s。
+达到预设>=200遍及最近4次validation平台条件后停止，未耗尽9小时预算；这不是DP重规划anchor epoch或已学会任务的证明。
+固定validation4接触归一化Arm/Hand等权MSE选定G01 epoch110/update54264、G11 epoch180/update88771；最终train8/validation30各38条诊断，不使用闭环挑选模型。
+并行接触anchor吞吐4025.92/s、串行2548.15/s，因此后台选择并行。last/best均留在各组`training/`，权重SHA见公开结果。
 
+|validation30专家历史上的离线指标|G00 nominal|G01组合|G10 nominal|G11组合|
+|---|---:|---:|---:|---:|
+|Arm RMSE (rad)|0.00542309|0.00542475|0.00564516|0.00564609|
+|Hand RMSE (rad)|0.05523516|0.05461565|0.05464898|0.05357456|
+|目标掌部FK RMSE (mm)|4.930307|4.929388|5.130683|5.130097|
+|目标掌部FK平均旋转误差 (deg)|0.706364|0.706228|0.733293|0.734046|
 
-G11：拒绝0、中断0、稳定抓持未测、超时0、fall0、dropped0；第二插入子目标0，原生完整任务0。
+每列相同validation30/10,238个tick，nominal为各自冻结EMA完整DDIM16真实预测；组合动作逐60Hz tick更新。
+这些是专家观测和过去专家执行反馈上的误差，掌部是命令FK，不是实际物理轨迹偏离。Arm几乎不变，Hand有小幅降低；自主轨迹不按同tick对齐专家动作。
 
+![冻结基础与残差的离线误差](evidence/tight_residual_20261110/comparison.png)
 
-未完成的训练、离线指标或闭环均未测；0/0不是成功率0%。没有自动重试、扩展评估或下一轮训练。
+[G01训练/验证曲线](evidence/tight_residual_20261110/G01/training_curves.png) · [G11训练/验证曲线](evidence/tight_residual_20261110/G11/training_curves.png) · [G01阶段误差](evidence/tight_residual_20261110/G01/stage_errors.png) · [G11阶段误差](evidence/tight_residual_20261110/G11/stage_errors.png)。
+原始指标包含每次更新loss、完整逐tick误差、阶段/运动样本数、hold参照和代表轨迹目标/变化量CSV；压缩文件只含数值记录，不含源轨迹或权重。
 
+固定validation4把残差world/local触觉力置零，保持nominal/接触门/FK不变，输出确有变化：G01接触输出RMS差0.000855–0.001157rad，G11为0.001219–0.001446rad。
+误差收益很小且G11方向不一致；这证明对力输入敏感，不证明触觉带来闭环成功。详见[原始敏感性指标](evidence/tight_residual_20261110/force_sensitivity.csv)。
+
+4段视频均完整CPU解码，帧数G01为601/601，G11为279/601，60fps。视频本体留本地；[路径、SHA与解码凭据](evidence/tight_residual_20261110/summary.json)。
+本地路径前缀为`outputs/visuotactile/run/tight_residual_20261110_01/`：
+
+- **成功视频**：`G11/evaluation/palm_fresh_000/rollout.mp4`。
+- G11失败：`G11/evaluation/palm_fresh_001/rollout.mp4`。
+- G01失败：`G01/evaluation/palm_fresh_000/rollout.mp4`、`palm_fresh_001/rollout.mp4`。
+
+正式启动至结束资源记录6,374条，整卡时间加权均值79.17%，符合本轮充分使用空闲GPU授权；最大采样间隔1.1382s，无>8s内部缺口。
+最小空闲显存19,541MiB、可用RAM25.696GiB；开头0.059s/尾部1.055s未被共享样本覆盖。
+继承的monitor汇总包含前置验收及其监控重启间隔，仍记录807.409s缺口；不能把它改写成全会话无缺口，也不能把整卡占用当成每进程利用率。
+
+评估日志末尾2026-11-10T04:00:56Z仍有4条PhysX非kinematic刚体速度设置错误，完整摘录已公开；其影响未专项审计。
+20例独立完成凭据、原生成功字段、视频及exit0如实保留，不能仅凭exit0声称日志无错误或错误无影响。原G00/G10的FAILED收尾记录也保持不变。
+
+本次发布只读取完成产物、核对SHA/分母/视频并导出CSV/JSON/9张图；没有新训练、推理、Kit、补录或清理。
+同一CPU导出命令：
+
+```bash
+bash visuotactile/run_cpu.sh -m tools.tight_diagnostics publish \
+  --root outputs/visuotactile/run/tight_residual_20261110_01 \
+  --evaluation outputs/visuotactile/run/tight_residual_20261110_01 \
+  --output research_docs/evidence/tight_residual_20261110
+```
 <!-- RESIDUAL_PAIR_END -->
+
+
+
+
 
 
 <!-- VISUAL_PAIR_START -->

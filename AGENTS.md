@@ -1,3 +1,13 @@
+# 2026-11-10 已完成：G01/G11结果发布
+
+用户要求上传GitHub。本次只发布c3386b6已经完成的结果：G01 0/10，G11 1/10，均无拒绝/中断，test22未用。
+两组98610更新/200接触tick等效遍历，固定validation选epoch110/180；原基础冻结。12:01:02+08:00正常结束，所有自有进程退出。
+4视频完整解码，包括G11 seed27150000原生完整成功279tick；该例native_lift=false，不能改写指标或反推抬升。
+原始400/275、218Core、Aux、权重、缓存、视频与所有历史失败记录保护。无自动下一轮/新推理/Kit/补录/删除。
+只扩展现有CPU publish入口、当前结果/README/合同，公开源码/MD/9图/CSV/JSON与压缩数值指标，origin feature/tight-state-foundation。
+正式资源窗口最大采样间隔1.1382s；继承monitor包含验收重启间隙807.409s，须分开披露。退出前4条PhysX错误影响未专项审计。
+读STATE_DP_RESULTS及evidence/tight_residual_20261110/summary.json。下面训练授权为已执行历史，不授权重启。
+
 # 2026-11-10 当前授权：G01/G11 60Hz触觉残差
 
 用户明确授权下一阶段，覆盖下文历史“不启动G01/G11”限制。实际工作树bc+rl_RSS_palm_eval，参照4164f83。

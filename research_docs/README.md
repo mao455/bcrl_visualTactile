@@ -1,11 +1,21 @@
-# Tight-Insertion StateDP、G00/G10 与 G01/G11
+# Tight-Insertion 当前研究结果
 
-当前新增授权：G01冻结已完成G00、G11冻结已完成G10，训练相同60Hz触觉GRU残差。
-基础仍DINOv2-S/14、H24/commit12/5Hz，控制60Hz/物理120Hz；数据218 Core保持166/30/22。
-小规模同前缀/梯度/冻结/保存恢复验收通过；正式训练与闭环状态以[当前结果](STATE_DP_RESULTS.md)及本地`outputs/visuotactile/run/tight_residual_20261110_01/status.json`为准，启动不等于完成。
-后台最多缓存1.5h+训练9h+离线1h+评估1h，两个残差自适应并行；各10个已有开发初态、首2视频，之后停止。
-下文G00/G10“本轮不启动残差”等叙述是已结束阶段记录，本次明确授权覆盖。checkpoint/源数据/视频留本地。
+**G01/G11已完成：原生完整成功分别0/10、1/10；G11成功视频已保留。**
+两组各98,610次残差更新、200个接触tick等效遍历，约68分钟并行训练；总队列1小时46分16秒，12:01正常退出。
+固定validation4选模，最终train8/validation30诊断，test22未用；小规模开发结果不等于稳定提升或触觉因果结论。
+G00/G10基础完整冻结，DINOv2-S/14、H24/commit12/5Hz与原控制60Hz/物理120Hz保持，数据218 Core仍166/30/22。
 
+[当前结果、成功视频位置与限制](STATE_DP_RESULTS.md) · [机器结果与视频SHA](evidence/tight_residual_20261110/summary.json) · [20例闭环](evidence/tight_residual_20261110/closed_loop.csv) · [当前合同](CONTRACTS.md)
+
+![G01/G11与各自冻结基础的离线误差](evidence/tight_residual_20261110/comparison.png)
+
+[G01曲线](evidence/tight_residual_20261110/G01/training_curves.png) · [G11曲线](evidence/tight_residual_20261110/G11/training_curves.png) · [分阶段原始指标](evidence/tight_residual_20261110/stage_metrics.csv) · [触觉敏感性](evidence/tight_residual_20261110/force_sensitivity.csv)
+
+成功视频本地：`outputs/visuotactile/run/tight_residual_20261110_01/G11/evaluation/palm_fresh_000/rollout.mp4`，279帧/60fps。
+本次公开源码、MD、图表、CSV/JSON及压缩数值指标；checkpoint、专家源轨迹、缓存和4段视频仍留本地，无新清理。
+后台已停止，不自动续训、补录或扩评估。正式窗口与包含验收间隙的资源汇总分别报告；退出前4条PhysX错误尚未专项审计影响。
+
+以下保留G00/G10和StateDP的既有结果。
 
 **G00/G10各完成10例合法开发闭环，完整成功均为0/10，两段视频已验收。**
 训练分别10132/6929更新、119.541/81.753 anchor等效epoch，按墙钟预算停止；曝光不同，不能据此作触觉因果收益结论。

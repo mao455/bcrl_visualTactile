@@ -1,0 +1,325 @@
+{
+  "version": "tight_state_foundation_v1",
+  "reference_commit": "55ca8052fc6ac89143d5b78ba53522d71c5fbf28",
+  "expert_checkpoint": "pretrained_assembly/tight_insertion/model.pth",
+  "expert_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+  "loss_weights": {
+    "position": 0.3342396121814294,
+    "rotation": 0.029946394754032265
+  },
+  "precision_policy": "unified_fp32",
+  "camera_content_validation": true,
+  "domain": {
+    "center": {
+      "object_xyz": [
+        -0.03232575998365054,
+        -0.01103706849990168,
+        0.63250910599455
+      ],
+      "relative_xyz": [
+        0.07399514386507924,
+        -0.02830284561436696,
+        -0.08228570222854614
+      ],
+      "quaternion": [
+        0.12416211631086395,
+        0.8920265731875647,
+        -0.38029772696726616,
+        0.2103475944481774
+      ]
+    },
+    "object_xy_halfwidth": [
+      0.002,
+      0.002
+    ],
+    "relative_xy_halfwidth": [
+      0.003,
+      0.003
+    ],
+    "rotation_radius_degrees": 1.5723102967361697,
+    "native_joint_lerp": 0.0075,
+    "table_z_m": [
+      0.379,
+      0.381
+    ],
+    "object_height_above_table_origin_m": [
+      0.248,
+      0.252
+    ],
+    "joint_velocity_halfwidth": 0.03
+  },
+  "development": {
+    "seeds": [
+      27111001,
+      27111002,
+      27111003
+    ],
+    "alphas": [
+      0.5
+    ],
+    "minimum_duration_ratio": 1.5,
+    "maximum_duration_ratio": 3.0,
+    "maximum_phase_speed_ratio": 0.98
+  },
+  "collection": {
+    "families": 55,
+    "variations_per_family": 8,
+    "seed_start": 27120000,
+    "event_seed_start": 27130000,
+    "split_seed": 2026110701,
+    "train_families": 41,
+    "validation_families": 7,
+    "test_families": 7,
+    "minimum_accepted_families": 40,
+    "minimum_accepted_episodes": 150,
+    "maximum_attempts": 495,
+    "maximum_consecutive_task_failures": 5,
+    "reliability_window": 20,
+    "minimum_production_task_rate": 0.85
+  },
+  "training": {
+    "random_seed": 2026110803,
+    "initial_anchor_epochs": 300,
+    "maximum_anchor_epochs": 300,
+    "minimum_anchor_epochs": 200,
+    "validation_interval": 1500,
+    "extension_anchor_epochs": 40,
+    "plateau_relative_improvement": 0.01,
+    "plateau_validations": 4,
+    "effective_batch": 64,
+    "microbatch": 4
+  },
+  "evaluation": {
+    "train_families": 10,
+    "validation_families": 7,
+    "new_seed_start": 27140000,
+    "new_initial_attempts": 100,
+    "zero_success_stop_at": 50,
+    "initial_probe": 10,
+    "sampler_seed": 7091,
+    "overlap_steps": 0
+  },
+  "resources": {
+    "min_gpu_free_mib": 6144,
+    "min_ram_gib": 14,
+    "min_disk_gib": 60,
+    "resource_policy": "full_gpu_v1"
+  },
+  "source_protection": [
+    "outputs/visuotactile/data/close_v4/manifest.json",
+    "outputs/visuotactile/run/narrow_state_20261105_02/manifest.json",
+    "outputs/visuotactile/run/narrow_repair_20261106_01/manifest.json"
+  ],
+  "capture_compression": "gzip4_lossless_v1",
+  "development_revision": 4,
+  "speed_scheme": {
+    "kind": "closed_loop",
+    "arm": 0.5,
+    "hand": 1.0,
+    "phase": "all",
+    "hand_target_cap_rad_s": 2.0
+  },
+  "speed_validation": {
+    "slow_attempts": 12,
+    "repeats_per_family": 3,
+    "maximum_physical_starts": 24,
+    "maximum_hours": 2,
+    "minimum_task_successes": 11,
+    "minimum_admitted": 10,
+    "minimum_family_successes": 2,
+    "minimum_family_admitted": 2,
+    "minimum_reference_successes": 11,
+    "event_seed_start": 30181001,
+    "stop_if_threshold_unreachable": true,
+    "automatic_parameter_search": false,
+    "independent_families": 4,
+    "initial_seed_start": 30171001
+  },
+  "physical_motion_gate": {
+    "maximum_mean_speed_ratio": 0.9,
+    "maximum_insertion_path_ratio": 1.25
+  },
+  "validated_speed_evidence": {
+    "run": "tight_state_20261107_01/hand_cap_04",
+    "pilot_successes": 5,
+    "pilot_attempts": 6,
+    "pilot_admitted": 4,
+    "independent_successes": 12,
+    "independent_attempts": 12,
+    "independent_admitted": 10,
+    "rule": "Evidence identity only; startup still requires passed receipts, never trust these summary counts as admission"
+  },
+  "data_composition": {
+    "version": "core_auxiliary_v1",
+    "core_target": 200,
+    "auxiliary_maximum": 100,
+    "auxiliary_bounds": [
+      1.35,
+      3.3
+    ],
+    "auxiliary_per_family_maximum": 2,
+    "training_subset": "core_only",
+    "auxiliary_global_ratio_maximum": 0.5,
+    "auxiliary_per_family_not_above_core": true,
+    "selection": "family_round_robin_then_identity; no duration-bin targeting",
+    "collection_stop": "complete family round after Core>=200 and Core coverage>=40 with all three splits; otherwise finite8 rounds or inherited deadline",
+    "core_minimum_for_training": 150,
+    "threshold_basis": "10% relative boundary deviation, fixed before new attempts; old20 numeric candidates10Core/2Aux but2Aux full RGBD already removed; severe and path failures remain excluded"
+  },
+  "palm_training": {
+    "source_root": "outputs/visuotactile/run/tight_state_20261107_01/composition_06",
+    "baseline_checkpoint_sha256": "6940b066cf8296d8e90203c0aa714f2ad780d5440c6128b89ddc5698bbbaa4da",
+    "previous_diagnostics": "outputs/visuotactile/run/tight_dp3_20261108_01",
+    "additional_target": 50,
+    "additional_maximum": 60,
+    "maximum_attempts": 120,
+    "first_variation": 7,
+    "loss_id": "palm_command_sample_commit12",
+    "geometry_warmup_updates": 500,
+    "calibration_rule": "Two fixed train-only batches; each term <=5% base value AND output-gradient; freeze once",
+    "final_normalizer_gradient_safety_fraction": 0.2,
+    "selection": "mean((arm_rad/.01)^2,(hand_rad/.1)^2,(palm_mm/10)^2,(angle_deg/5)^2); fixed validation4, lower is better",
+    "diagnostic_cohorts": {
+      "train": [
+        "formal_003_slow_0",
+        "formal_005_slow_0",
+        "formal_007_slow_0",
+        "formal_012_slow_0",
+        "formal_013_slow_0",
+        "formal_015_slow_0",
+        "formal_016_slow_0",
+        "formal_018_slow_0"
+      ],
+      "validation": [
+        "formal_002_slow_0",
+        "formal_011_slow_0",
+        "formal_035_slow_0",
+        "formal_038_slow_0",
+        "formal_002_slow_1",
+        "formal_014_slow_1",
+        "formal_035_slow_1",
+        "formal_001_slow_2",
+        "formal_011_slow_2",
+        "formal_019_slow_2",
+        "formal_001_slow_3",
+        "formal_002_slow_3",
+        "formal_014_slow_3",
+        "formal_019_slow_3",
+        "formal_035_slow_3",
+        "formal_038_slow_3",
+        "formal_001_slow_4",
+        "formal_011_slow_4",
+        "formal_019_slow_4",
+        "formal_035_slow_4",
+        "formal_038_slow_4",
+        "formal_002_slow_5",
+        "formal_011_slow_5",
+        "formal_019_slow_5",
+        "formal_035_slow_5",
+        "formal_038_slow_5",
+        "formal_001_slow_6",
+        "formal_002_slow_6",
+        "formal_014_slow_6",
+        "formal_038_slow_6"
+      ]
+    },
+    "interim_validation_episodes": 4,
+    "interim_train_episodes": 2,
+    "offline_hours": 1,
+    "stop_rule": "After >=200 anchor epochs, last4 validation gain<1%; any time last3 scores>2x prior best; NaN stops immediately",
+    "final_closed_loop": false
+  },
+  "vision_pair": {
+    "version": "visual_pair_v1",
+    "source_root": "outputs/visuotactile/run/tight_palm_20261108_01",
+    "groups": [
+      "G00",
+      "G10"
+    ],
+    "initialization_seed": 2026110803,
+    "cache_hours": 1.5,
+    "training_hours": 9,
+    "offline_hours": 1,
+    "evaluation_hours": 1,
+    "maximum_hours": 12.5,
+    "resource_policy": "full_gpu_v1",
+    "min_gpu_free_mib": 6144,
+    "min_ram_gib": 14,
+    "min_disk_gib": 60,
+    "maximum_parallel_trainers": 2,
+    "parallel_measure_updates": 32,
+    "serial_compare_updates": 32,
+    "serial_switch_updates": 200,
+    "parallel_efficiency_floor": 0.95,
+    "microbatch": 4,
+    "evaluation_plan": "outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/plan.json",
+    "evaluation_attempts_per_group": 10,
+    "videos_per_group": 1,
+    "tactile_definition": "3e11d62 long_data.tactile_values; MaskedHistory32to64 last242 120Hz samples",
+    "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+    "dino_architecture": "dinov2_vits14",
+    "future_residual_bases": {
+      "G01": "G00 selected EMA frozen",
+      "G11": "G10 selected EMA frozen"
+    },
+    "residual_training": false
+  },
+  "residual_pair": {
+    "version": "target_residual_gru60_v1",
+    "source_root": "outputs/visuotactile/run/tight_vision_20261109_01",
+    "groups": [
+      "G01",
+      "G11"
+    ],
+    "initialization_seed": 2026110803,
+    "cache_hours": 1.5,
+    "training_hours": 9,
+    "offline_hours": 1,
+    "evaluation_hours": 1,
+    "maximum_hours": 12.5,
+    "resource_policy": "full_gpu_v1",
+    "min_gpu_free_mib": 6144,
+    "min_ram_gib": 14,
+    "min_disk_gib": 60,
+    "maximum_parallel_trainers": 2,
+    "parallel_measure_updates": 32,
+    "serial_compare_updates": 32,
+    "serial_switch_updates": 200,
+    "parallel_efficiency_floor": 0.95,
+    "microbatch": 4,
+    "evaluation_attempts_per_group": 10,
+    "videos_per_group": 2,
+    "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+    "dino_architecture": "dinov2_vits14",
+    "residual_training": true,
+    "method_source_commit": "3e11d62",
+    "residual_hz": 60,
+    "base_replan_hz": 5,
+    "tactile_hz": 120,
+    "horizon": 24,
+    "commit": 12,
+    "maximum_anchor_epochs": 300,
+    "minimum_anchor_epochs": 200,
+    "validation_epoch_interval": 10,
+    "tbptt_ticks": 32,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "residual_penalty": 0.0001,
+    "ema": false,
+    "selection": "fixed validation4 contact normalized equal Arm/Hand MSE",
+    "cache_definition": "actual frozen EMA DDIM16 seed7091 predictions; complete teacher-forced observation/past-command prefixes",
+    "bases": {
+      "G01": {
+        "group": "G00",
+        "checkpoint": "outputs/visuotactile/run/tight_vision_20261109_01/G00/training/best.pt",
+        "sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452"
+      },
+      "G11": {
+        "group": "G10",
+        "checkpoint": "outputs/visuotactile/run/tight_vision_20261109_01/G10/training/best.pt",
+        "sha256": "5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b"
+      }
+    },
+    "stop_rule": "300 contact-tick equivalent traversals max; validation plateau only after200; fixed9h train wall; fail on nonfinite/software/resource violation; no retries"
+  }
+}

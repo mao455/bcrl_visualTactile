@@ -1,4 +1,4 @@
-> 当前 G01/G11：冻结已完成G00/G10，训练60Hz触觉残差；真实进度见[当前结果](research_docs/STATE_DP_RESULTS.md)与[研究入口](research_docs/README.md)。旧StateDP/G00/G10结果保留；大文件留本地。
+> 当前 G01/G11 已完成：开发完整成功0/10、1/10；误差图、原始指标及成功视频位置见[当前结果](research_docs/STATE_DP_RESULTS.md)与[研究入口](research_docs/README.md)。基础结果保留，大文件仍在本地。
 
 > 当前 Tight-Insertion StateDP：[结果与误差图](research_docs/STATE_DP_RESULTS.md)、[研究入口](research_docs/README.md)、[清理清单](research_docs/CLEANUP_AUDIT.md)。19,865更新；新初态完整成功0/10，3个视频保留本地。以下保留原项目说明。
 
