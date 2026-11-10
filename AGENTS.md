@@ -1,3 +1,17 @@
+# 2026-11-10 当前授权：G01/G11 60Hz触觉残差
+
+用户明确授权下一阶段，覆盖下文历史“不启动G01/G11”限制。实际工作树bc+rl_RSS_palm_eval，参照4164f83。
+G01冻结G00 EMA4356acbc；G11冻结G10 EMA5f3460ab；两基础不重训，原0/10结果及视频和FAILED退出凭据全部保留。
+复用3e11d62的60Hz GRU残差，不采用10Hz Transformer；适配当前H24/commit12/29D绝对执行器目标。
+两组相同结构、字段、300接触tick等效遍历上限、>=200才允许平台停止、开发10个固定spec/种子；最多2视频/组。
+离线nominal必须是冻结基础完整DDIM16真实预测；过去专家执行历史明确teacher forcing。闭环反馈实际混合目标。
+持续历史只在真episode重置，基础5Hz、残差60Hz、触觉120Hz；不改数据166/30/22、控制、任务成功、物理、资产。
+独立普通owner复用tools.tight_finish residual_run：冻结预测缓存<=1.5h，训练<=9h，离线<=1h，评估<=1h，总<=12.5h含等待。
+允许空闲GPU充分使用；实测并行/串行择优，仅管理自己子进程，保留6GiB VRAM/14GiB RAM/60GiB磁盘。
+验收和提交推送后启动一次；Codex只短确认实际推进后退出，不轮询、不另开agent守候。普通owner最终更新STATE_DP_RESULTS。
+下一轮不得自动启动；原始专家数据、400/275、Core/Aux、checkpoint、视频均保护。公开仅源码/配置/MD/小指标，origin feature/tight-state-foundation。
+实际就绪/进度以本轮run的residual_acceptance.json/status.json/launch.json为准，授权不表示训练或成功已完成。
+
 # 2026-11-10 当前阶段：发布G00/G10既有实验资料
 
 用户明确要求把代码和实验资料提交GitHub；沿用代码/MD/图表/小型原始指标公开，大checkpoint/源轨迹/视频本地保留的范围。

@@ -1,0 +1,119 @@
+{
+  "passed": true,
+  "groups": {
+    "G01": {
+      "passed": true,
+      "gradients": {
+        "tactile": 9.934380131326748e-05,
+        "visual": 5.1542848581220824e-05,
+        "intent": 4.541400052460176e-06,
+        "motion": 1.9500716717857358e-05,
+        "policy": 0.0012599536321431515
+      },
+      "losses": [
+        0.00010097582708112895,
+        0.00010010891128331423
+      ],
+      "save_restore_exact": true,
+      "base_frozen": true,
+      "chunk_prediction_max_abs_rad": 1.1920928955078125e-07,
+      "deployment_prediction_max_abs_rad": 2.9802322387695312e-08,
+      "nominal_max_abs_rad": 0.0,
+      "robot_max_abs": 0.0,
+      "zero_residual_exact": true,
+      "control_ticks": 109,
+      "base_replans": 10,
+      "tactile_samples": 218,
+      "formal_updates": 0,
+      "cache_ticks": 366,
+      "base_sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452",
+      "teacher_forced_past_feedback": true,
+      "real_trainer_smoke": {
+        "stop_reason": "maximum_anchor_exposure",
+        "updates": 10,
+        "contact_anchor_epochs": 1.0,
+        "sampled_contact_anchors": 264,
+        "contact_anchor_population": 264,
+        "control_ticks": 366,
+        "control_equivalent_epochs": 1.0,
+        "wall_s": 0.993067741394043,
+        "wait_s": 0.007484600180760026,
+        "work_s": 0.6969624836929142,
+        "selection": "fixed validation4 contact normalized equal Arm/Hand MSE",
+        "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G01/training_smoke/last.pt",
+        "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G01/training_smoke/best.pt",
+        "utc": 1794276420.3595808,
+        "base_optimizer_updates": 0
+      },
+      "offline_smoke": {
+        "complete": true,
+        "episodes": 2,
+        "result_sha256": "abc09b092c7810dd7b879167c23b1860ab99136daf965898fd80b7bf65e91874"
+      }
+    },
+    "G11": {
+      "passed": true,
+      "gradients": {
+        "tactile": 0.0002084212547188713,
+        "visual": 0.00013712716645386536,
+        "intent": 8.752405236123195e-06,
+        "motion": 3.638766983726782e-05,
+        "policy": 0.0023670256650802912
+      },
+      "losses": [
+        0.00018863299919757992,
+        0.00018698538769967854
+      ],
+      "save_restore_exact": true,
+      "base_frozen": true,
+      "chunk_prediction_max_abs_rad": 1.1920928955078125e-07,
+      "deployment_prediction_max_abs_rad": 3.725290298461914e-09,
+      "nominal_max_abs_rad": 0.0,
+      "robot_max_abs": 0.0,
+      "zero_residual_exact": true,
+      "control_ticks": 109,
+      "base_replans": 10,
+      "tactile_samples": 218,
+      "formal_updates": 0,
+      "cache_ticks": 366,
+      "base_sha256": "5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b",
+      "teacher_forced_past_feedback": true,
+      "real_trainer_smoke": {
+        "stop_reason": "maximum_anchor_exposure",
+        "updates": 10,
+        "contact_anchor_epochs": 1.0,
+        "sampled_contact_anchors": 264,
+        "contact_anchor_population": 264,
+        "control_ticks": 366,
+        "control_equivalent_epochs": 1.0,
+        "wall_s": 0.7593038082122803,
+        "wait_s": 0.008547409670427442,
+        "work_s": 0.5947862819302827,
+        "selection": "fixed validation4 contact normalized equal Arm/Hand MSE",
+        "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G11/training_smoke/last.pt",
+        "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G11/training_smoke/best.pt",
+        "utc": 1794276423.2219703,
+        "base_optimizer_updates": 0
+      },
+      "offline_smoke": {
+        "complete": true,
+        "episodes": 2,
+        "result_sha256": "0c94e09a9b774075ed03bf8df02f7e706199f16dd3575c9d553d4087c9ea563f"
+      }
+    }
+  },
+  "utc": 1794276424.865116,
+  "implementation_files": {
+    "visuotactile/models/native_dp.py": "a03a07f1c0d1ccfb57d807e07dd6ca2afae49fc23de2cab14ba1d71376d52b4c",
+    "visuotactile/native_data.py": "291dc4b1935e7f04d5febb296d95045d877bf13b73c7b388f6e4b623f35336c7",
+    "visuotactile/native_controller.py": "6661a7f89ce72dc0f10b034094b0a9359d12b4d5ae558723a52b370d45225f02"
+  },
+  "trainer_sha256": "c95a4c5ba0f1f985729174c91e17182986c811ec5fb0829dc8d88fa09a3e7c8a",
+  "existing_interface_tests": {
+    "passed": 16,
+    "files": [
+      "test_position_control.py",
+      "test_state_image_kit_gate.py"
+    ]
+  }
+}

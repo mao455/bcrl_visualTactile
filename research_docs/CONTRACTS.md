@@ -1,3 +1,40 @@
+## 2026-11-10 当前覆盖：G01/G11冻结基础的60Hz残差
+
+实际4164f83的G00/G10是I-HistoryDP视觉策略，均无Actor141/Geometry85；G10另有触觉条件融合。
+G01→G00 EMA `4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452`；
+G11→G10 EMA `5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b`。
+基础DINO/Depth/robot encoder/DP U-Net/全部GRU/normalizer/EMA均冻结；残差优化器完全不含基础参数。
+历史60Hz方法从本仓库3e11d62的models/tactile.py、models/residual.py、train_residual.py恢复到现有文件；不整套复制旧训练管线。
+当前512D冻结视觉读出替代退役B0的帧编码器输出；保持独立visual GRU128、tactile64、intent64、motion64和320→256→128→29头。
+原tanh有界残差、观测接触门0.1N、等权Arm/Hand接触MSE+1e-4残差正则、AdamW1e-3/weight_decay1e-4/clip1/TBPTT32保持，无EMA及额外FK训练损失。
+这是当前29D绝对目标接口适配的历史残差，不是完整旧B0复现，也不是新的10Hz Transformer方案。
+
+|残差实际输入|源路径/时间含义|维度/坐标/单位|进入分支|
+|---|---|---|---|
+|冻结视觉读出|base.vision.read(memory.frames)，只读当前/过去三帧，重规划时更新并保持|512，当前DINO+Depth原投影|独立GRU128，每60Hz tick一次|
+|触觉|obs/contact_substeps_w_N、contact_substeps_local_N、contact_time_s、contact_valid；当前之前已完成的2个物理子步|每步五指world/local 3D力N；120Hz|原FingerTactileEncoder，signed-log1p、时差、导数、接触事件；每指GRU32→fusion64|
+|指尖FK|obs/finger_position_base_m、finger_rotation_base，同触觉采样时间|五指base坐标xyz米/旋转矩阵，转6D旋转|同上；不读取物体/孔位置|
+|实测q/qd|canonical robot178[0:58]，当前60Hz观测|29rad+29rad/s，原train166 mean/std|motion GRU64|
+|过去issued目标|robot[116:145]+[176]，严格t−1；离线专家反馈，部署实际组合目标|29rad+valid，以原action affine归一化，无效置零|motion GRU64|
+|当前执行器目标/target−q|robot[58:116]，决策之前已施加目标|29归一化目标+29rad tracking|motion GRU64；146D输入总宽度|
+|当前nominal剩余计划|冻结基础EMA完整DDIM16 seed7091预测，H24中cursor=tick%12，右侧mask padding|24×29绝对rad，原train-only affine|plan GRU64+持续intent GRU64|
+
+基础策略仍读原robot178全部字段，包括过去issued/applied及年龄；残差motion分支只取上表146D，不声称消费178D每个字段。
+nominal缓存使用全真实专家观测前缀，绝不以target_after_rad替换预测；标签仅用于监督与train16尺度校准。
+两组尺度使用同一历史规则：contact train16各Arm/Hand绝对归一化残差p99向上取0.1，限[0.1,2]；不截断标签。
+组合 `nominal_rad + scale*tanh(raw)/action_scale`，然后原物理joint limits；无接触严格返回nominal，不引入额外延迟/滤波/控制机制。
+基础GRU每60Hz tick推进，5Hz重规划；残差自己的历史沿用旧方法，60Hz更新，触觉120Hz更新，32tick只detach不清空。
+部署base的过去命令是实际组合目标及真实执行反馈；因此G01基础可间接受触觉残差影响，不声称完全隔离。
+
+Core218保持166/30/22，Aux15不加入。缓存只包含两个冻结基础真实预测和视觉读出，不缓存残差隐藏状态。
+两组同随机种子、结构、字段、最大300遍训练接触tick人口；>=200遍后最近4次validation4改善<1%可停；每10遍验证，第一遍也验证。
+有效batch4完整episode并行，32tick分段，以实际有效接触tick加权；小尾batch保持正确权重。明确报告接触tick/控制tick/重规划anchor，三者不混称。
+最多9h共享训练墙钟含资源等待。保留last和best固定validation4接触归一化MSE；不根据test或闭环选模，不把loss平台当学会。
+最终train8/validation30输出原始逐tickCSV、原阶段/运动分箱、掌部/指尖FK和nominal/hold参照；固定validation4残差触觉置零仅作敏感性诊断，保持nominal/门/FK不变。
+最多各10个与已有基础相同开发spec/seed，首2完整视频；无需重跑已完成基础，隐藏物理状态非逐位配对。无成功不扩100。
+原生lift、首/第二子目标、alignment、稳定抓持诊断、timeout/fall/dropped和完整成功分别报告；完整成功必须原生max_successes，不能以子目标代替。
+同一普通owner完成缓存→自适应并行训练→有限离线→单Kit→报告。依赖失败立即停止后续；新残差评估写退出函数要求的software_complete凭据，旧FAILED不改写。
+
 ## 2026-11-10 既有测量发布边界
 
 G00/G10各38条离线和10次合法开发闭环已完成，均0/10原生完整成功；2视频验收，所有自有worker/monitor退出。

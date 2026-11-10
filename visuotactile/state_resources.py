@@ -200,7 +200,7 @@ class FullLease(Lease):
         import sys
         began=time.monotonic()
         worker_root=Path(sys.argv[sys.argv.index('--root')+1]) if '--root' in sys.argv else Path('.')
-        group=next((p for p in worker_root.parts if p in ('G00','G10')),None)
+        group=next((p for p in worker_root.parts if p in ('G00','G10','G01','G11')),None)
         while True:
             self.check(deadline)
             schedule=self.root/'concurrency.json'

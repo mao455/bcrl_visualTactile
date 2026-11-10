@@ -182,6 +182,85 @@ def visual_records(data_root, identities, modality, device='cpu'):
     return records
 
 
+def residual_observations(entry, robot, time):
+    """Existing observed force/FK fields only; targets stay outside the inputs."""
+    with h5py.File(entry['path']) as f:
+        g=f['episodes'][entry['episode']];n=len(time);obs=g['obs']
+        if not torch.equal(torch.from_numpy(obs['time_s'][:n]),time.cpu()):
+            raise ValueError('Residual observations and actual robot time differ')
+        tactile={target:torch.from_numpy(obs[source][:n]).flatten(0,1) for source,target in (
+            ('contact_substeps_w_N','force_w_N'),('contact_substeps_local_N','force_local_N'),
+            ('finger_position_base_m','position_base_m'),('finger_rotation_base','rotation_base'),('contact_time_s','time_s'))}
+        valid=torch.from_numpy(obs['contact_valid'][:n]).bool()
+        force=torch.from_numpy(obs['contact_w_N'][:n])
+        before=torch.from_numpy(g['transition/time_before_s'][:n]);after=torch.from_numpy(g['transition/time_after_s'][:n])
+        if not torch.equal(before,time.cpu()) or not torch.allclose(after[:-1],time[1:].cpu(),atol=1e-6,rtol=0):
+            raise ValueError('Expert execution acknowledgement is not strictly past')
+        if not torch.allclose(time[1:]-time[:-1],torch.full_like(time[1:],1/60),atol=1e-6,rtol=0):
+            raise ValueError('Residual requires native 60Hz data')
+        stamps=tactile['time_s'].reshape(n,2)
+        if ((stamps-time.cpu()[:,None]>1e-6)&valid[:,None]).any():raise ValueError('Future tactile sample')
+        if not torch.allclose(stamps[valid,1]-stamps[valid,0],torch.full_like(stamps[valid,0],1/120),atol=1e-6,rtol=0):
+            raise ValueError('Residual requires two native 120Hz samples')
+    return dict(robot=robot.cpu(),tactile=tactile,tactile_valid=valid.repeat_interleave(2),
+        gate=valid&(force.norm(dim=-1).amax(-1)>.1))
+
+
+def residual_visual(model,memory,stamp):
+    """Frozen DP's existing visual-only readout, before proprio/touch fusion."""
+    return model.vision.read(torch.stack([f[0] for f in memory.frames]),
+        torch.stack([stamp-f[1] for f in memory.frames]),torch.stack([f[2] for f in memory.frames]))
+
+
+def remaining_target_plan(plan,cursor):
+    if plan.shape[-2:]!=(24,29) or not 0<=cursor<12:raise ValueError('H24/commit12 nominal cursor differs')
+    index=torch.arange(24,device=plan.device)+cursor
+    return plan[...,index.clamp_max(23),:],index<24
+
+
+def residual_batch(records,start,stop,device):
+    """Same allowlisted builder for training and real one-tick deployment."""
+    def tensor(values):return torch.stack(values).to(device)
+    def padded(value,a,b):
+        out=value.new_zeros((b-a,*value.shape[1:]));count=max(0,min(b,len(value))-a)
+        if count:out[:count]=value[a:a+count]
+        return out
+    inputs={k:tensor([padded(r[k],start,stop) for r in records]) for k in ('visual','robot','plans','plan_valid')}
+    inputs['tactile']={k:tensor([padded(r['tactile'][k],2*start,2*stop) for r in records]) for k in records[0]['tactile']}
+    inputs['tactile_valid']=tensor([padded(r['tactile_valid'],2*start,2*stop) for r in records])
+    inputs['valid']=tensor([torch.arange(start,stop)<len(r['robot']) for r in records])
+    return inputs
+
+
+@torch.no_grad()
+def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None):
+    from .position_control import bounded_targets
+    device=next(base.parameters()).device
+    if base.training or any(p.requires_grad for p in base.parameters()):raise ValueError('Base must be completely frozen')
+    episode=Episode(record['source_root'],record['identity'],base.group)
+    generator=torch.Generator(device=device).manual_seed(7091);memory=None
+    result=residual_observations(entry,record['robot'],record['time'])
+    plans=[];masks=[];commands=[];features=[]
+    for tick in range(len(record['time'])):
+        with lease.block():
+            stamp=record['time'][tick].to(device)
+            memory=base.observe(record['robot'][tick].to(device),stamp,tick,episode.frame(tick,device) if tick%12==0 else None,
+                memory,tactile=record['tactile'][tick].to(device) if base.modality=='G10' else None)
+            if tick%12==0:
+                plan=base.predict(base.condition(memory,stamp),generator)
+                plan=bounded_targets(plan[0],record['joint_limits'].to(device))[None]
+                visual=residual_visual(base,memory,stamp).cpu()[0]
+            remaining,valid=remaining_target_plan(plan,tick%12)
+            plans.append(remaining[0].cpu());masks.append(valid.cpu());commands.append(plan[0,tick%12].cpu());features.append(visual)
+        if tick%60==0:progress(tick=tick+1,plans=tick//12+1)
+    result.update(plans=torch.stack(plans),plan_valid=torch.stack(masks),base=torch.stack(commands),
+        visual=torch.stack(features),target=record['command'].cpu(),limits=record['joint_limits'].cpu(),
+        identity=record['identity'],time=record['time'].cpu(),
+        nominal_source='frozen_EMA_DDIM16_seed7091_predictions_on_complete_expert_observation_prefix',
+        history_source='strictly_past_executed_expert_targets_teacher_forcing; never nominal labels')
+    return result
+
+
 def cache_visual_pair(root, identities=None):
     """Single writer, immutable backbone features only; live uses the same call."""
     import time

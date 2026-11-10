@@ -975,14 +975,14 @@ def vision_report(root):
     temporary=path.with_suffix('.md.tmp');temporary.write_text(existing);temporary.replace(path)
 
 
-def vision_evaluate(root):
+def vision_evaluate(root, residual=False):
     import torch
     from tools.tight_state import environment
     from visuotactile.state_benchmark import trial
     from visuotactile.state_resources import lease_for
     from visuotactile.video import verify_video
     from visuotactile.native_evaluation import exit_completed_kit_worker
-    s=read(root/'session.json');v=s['vision_pair'];lease=lease_for(root,deadline=s['evaluation_deadline'])
+    s=read(root/'session.json');v=s['residual_pair' if residual else 'vision_pair'];lease=lease_for(root,deadline=s['evaluation_deadline'])
     require(sha(s['dino_checkpoint'])==s['dino_sha256'],'Frozen DINO identity changed before deployment')
     app,env,player,lease=environment(root,True,lease=lease)
     available=[g for g in v['groups'] if (root/g/'offline/result.json').exists()]
@@ -997,7 +997,7 @@ def vision_evaluate(root):
             record=index<v['videos_per_group']
             write(root/'evaluation_progress.json',dict(group=group,case=index,completed=sum(map(len,results.values())),utc=time.time()))
             result=trial(env,lease,out,case['spec'],{},player,str(checkpoint),saved=saved[group],position=True,video=record,
-                expert_checkpoint=s['expert_checkpoint'],video_title=f'{group} visual DP | development seed {case["spec"]["seed"]}')
+                expert_checkpoint=s['expert_checkpoint'],video_title=f'{group} {"60Hz residual" if residual else "visual DP"} | development seed {case["spec"]["seed"]}')
             if result.get('legal') and record:write(out/'video_verified.json',verify_video(out/'rollout.mp4',expected_frames=result['steps']))
             results[group].append(result)
             valid=[r for r in results[group] if r.get('legal') and r.get('software_complete')]
@@ -1010,11 +1010,15 @@ def vision_evaluate(root):
                 paired_specs_and_sampler_seed=True,bitwise_hidden_state_pairing_proven=False))
             require(result.get('software_complete') or not result.get('legal'),'Evaluation software failure; no retry')
     write(root/'evaluation_complete.json',dict(complete=True,groups=available,maximum_attempts_each=10,utc=time.time()))
+    if residual:
+        # Required exit receipt, absent in the historical visual-pair owner.
+        # All trial files and videos are already closed and individually checked.
+        write(root/'result.json',dict(software_complete=True,worker_error=None,stage='evaluation_complete',utc=time.time()))
     exit_completed_kit_worker(root)
 
 
 @supervised_owner
-def vision_run(root, evaluation_only=False):
+def vision_run(root, evaluation_only=False, residual=False):
     """Finite cache/pair/offline/single-Kit queue within the existing owner."""
     import fcntl
     lock=(root/'vision.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
@@ -1027,6 +1031,11 @@ def vision_run(root, evaluation_only=False):
         for path,expected in recovery['protected_sha256'].items():
             require(sha(path)==expected,'Recovery artifact changed: '+path)
         require(read(original/'status.json')['owned_workers_exited'],'Original workers have not exited')
+    elif residual:
+        require(read(root/'residual_acceptance.json')['passed'],'Residual acceptance failed')
+        require(read(root/'residual_acceptance.json')['trainer_sha256']==sha(CODE/'visuotactile/anchor_continue.py'),'Accepted trainer changed')
+        for name,value in read(root/'residual_acceptance.json')['implementation_files'].items():
+            require(sha(CODE/name)==value,'Accepted residual implementation changed')
     else:
         require(read(root/'vision_acceptance.json')['passed'],'Modality acceptance failed')
         for group in ('G00','G10'):
@@ -1034,7 +1043,7 @@ def vision_run(root, evaluation_only=False):
     dirty=subprocess.check_output(['git','status','--porcelain','--untracked-files=no'],cwd=CODE,text=True).strip()
     require(not dirty,'Commit actual runtime before launch: '+dirty)
     head=subprocess.check_output(['git','rev-parse','HEAD'],cwd=CODE,text=True).strip()
-    cfg=read(root/'configuration.json');s=read(root/'session.json');v=cfg['vision_pair'];budget=read(root/'budget.json')
+    cfg=read(root/'configuration.json');s=read(root/'session.json');v=cfg['residual_pair' if residual else 'vision_pair'];budget=read(root/'budget.json');first,second=v['groups']
     now=time.time()
     if evaluation_only:
         require(s['evaluation_deadline']==read(original/'session.json')['evaluation_deadline'], 'Recovery cannot reset evaluation deadline')
@@ -1046,7 +1055,7 @@ def vision_run(root, evaluation_only=False):
         s.update(started=now,deadline=now+v['maximum_hours']*3600,cache_deadline=now+v['cache_hours']*3600,
             training_deadline=now+(v['maximum_hours']-2)*3600,offline_deadline=None,evaluation_deadline=None,
             collection_deadline=None,development_deadline=None,
-            source_head=head,python=sys.executable,cwd=str(CODE),owned_worker_roots=[str(root/g/'training') for g in v['groups']])
+            source_head=head,python=sys.executable,cwd=str(CODE),owned_worker_roots=[str(root/g if residual else root/g/'training') for g in v['groups']])
     write(root/'session.json',s);write(root/'launch.json',dict(pid=os.getpid(),source_head=head,cwd=str(CODE),python=sys.executable,
         started=now,configuration_sha256=sha(root/'configuration.json'),data_sha256=sha(root/'state_data/data.json')))
     source_files=subprocess.check_output(['git','ls-files','visuotactile/*.py','tools/*.py','configs/tight_state.json'],cwd=CODE,text=True).splitlines()
@@ -1059,7 +1068,8 @@ def vision_run(root, evaluation_only=False):
         require(all(sha(CODE/p)==value for p,value in frozen.items()),'Runtime source changed after launch; stop dependent stages')
         log=(root/(name+'.log')).open('a')
         env=dict(os.environ)
-        if name=='G10_training':env['RESEARCH_CPUS']='20,21'
+        if residual:env['RESEARCH_CPUS']='3,4' if name==second+'_training' else '1,2'
+        elif name=='G10_training':env['RESEARCH_CPUS']='20,21'
         child=subprocess.Popen(RUN+args,cwd=CODE,env=env,stdin=subprocess.DEVNULL,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
         log.close();children.append(child);return child
     def wait(child,deadline,stage):
@@ -1068,7 +1078,7 @@ def vision_run(root, evaluation_only=False):
             if time.time()>=deadline:kill_owned(child);raise TimeoutError(stage+' wall budget exhausted')
             cache=read(root/'cache_progress.json') if (root/'cache_progress.json').exists() else None
             eta=dict(stage=stage,utc=time.time(),stage_hard_stop_utc=deadline,queue_hard_stop_utc=s['deadline'])
-            if stage=='shared_dino_cache':
+            if stage in ('shared_dino_cache','frozen_nominal_cache'):
                 eta.update(cache_remaining_seconds=cache.get('eta_seconds') if cache else None,
                     training_remaining_seconds=None,reason='Training throughput not measured yet; training <=9h, offline/evaluation <=2h')
             elif stage.endswith('_offline'):
@@ -1089,14 +1099,17 @@ def vision_run(root, evaluation_only=False):
             if (root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json')['utc_epoch']<4:break
             time.sleep(1)
         if evaluation_only:
-            wait(spawn(['-m','tools.tight_finish','vision_evaluate','--root',str(root)],'evaluation'),s['evaluation_deadline'],'matched_development')
+            wait(spawn(['-m','tools.tight_finish','residual_evaluate' if residual else 'vision_evaluate','--root',str(root)],'evaluation'),s['evaluation_deadline'],'matched_development')
             require(read(root/'evaluation_complete.json')['complete'],'Evaluation completion receipt missing')
             write(root/'status.json',dict(state='COMPLETE',stage='finished',source_head=head,
                 training_source_head=s['training_source_head'],utc=time.time(),exit_code=0,
                 reason='Authorized evaluation continuation finished; prior training stopped at fixed wall budget',
                 recovery_of=str(original),training_repeated=False))
             return
-        wait(spawn(['-m','tools.tight_finish','vision_cache','--root',str(root)],'cache'),s['cache_deadline'],'shared_dino_cache')
+        if residual:
+            status('frozen_nominal_cache',formal_updates=0)
+            residual_report(root)
+        wait(spawn(['-m','tools.tight_finish','residual_cache' if residual else 'vision_cache','--root',str(root)],'cache'),s['cache_deadline'],'frozen_nominal_cache' if residual else 'shared_dino_cache')
         start=time.time();train_deadline=min(start+v['training_hours']*3600,s['deadline']-7200)
         s['training_deadline']=train_deadline;write(root/'session.json',s)
         workers={}
@@ -1107,9 +1120,9 @@ def vision_run(root, evaluation_only=False):
                 validation_interval=budget['validation_interval'],early_stop_minimum_update=budget['early_stop_minimum_update'],
                 comparison_updates=budget['comparison_updates'],deterministic_validation_loss=True)
             write(dest/'training/session.json',runtime);write(dest/'training/budget.json',budget)
-            workers[group]=spawn(['-m','visuotactile.anchor_continue','fresh-train','--job','state','--data',str(root/'state_data'),
-                '--root',str(dest/'training'),'--target',str(budget['total_updates']),'--output',str(dest/'training/launch')],group+'_training')
-        measured='parallel';baseline=None;serial=None;active='G00';switch_at=None;recorded=set()
+            workers[group]=spawn(['-m','visuotactile.anchor_continue','residual-train' if residual else 'fresh-train','--job','state','--data',str(root/'state_data'),
+                '--root',str(dest if residual else dest/'training'),'--target',str(budget['total_updates']),'--output',str(dest/'training/launch')],group+'_training')
+        measured='parallel';baseline=None;serial=None;active=first;switch_at=None;recorded=set()
         while any(p.poll() is None for p in workers.values()):
             now=time.time();progress={g:read(root/g/'training/progress.json') if (root/g/'training/progress.json').exists() else {} for g in workers}
             live=[g for g,p in workers.items() if p.poll() is None]
@@ -1119,6 +1132,7 @@ def vision_run(root, evaluation_only=False):
                     if p.returncode:
                         failure=dict(stage='training',exit_code=p.returncode,reason='See '+g+'_training.log',utc=now)
                         write(root/g/'failure.json',failure);failures.append(dict(group=g,**failure))
+            if residual and failures:raise RuntimeError('Residual training failed; dependent stages stopped')
             if now>=train_deadline:
                 for g in live:kill_owned(workers[g]);write(root/g/'failure.json',dict(stage='training',reason='fixed_wall_budget',exit_code=workers[g].returncode))
                 failures.append(dict(stage='training',reason='fixed_wall_budget'));break
@@ -1128,10 +1142,10 @@ def vision_run(root, evaluation_only=False):
                 if baseline is None:baseline=(now,counts.copy(),anchors.copy())
                 elif min(counts[g]-baseline[1][g] for g in live)>=v['parallel_measure_updates']:
                     parallel_rate=sum(anchors[g]-baseline[2][g] for g in live)/(now-baseline[0])
-                    serial=(now,counts['G00'],anchors['G00']);measured='serial_probe'
-                    write(root/'concurrency.json',dict(mode=measured,pause_groups=['G10'],parallel_anchors_per_second=parallel_rate))
-            elif measured=='serial_probe' and len(live)==2 and counts['G00']-serial[1]>=v['serial_compare_updates']:
-                serial_rate=(anchors['G00']-serial[2])/(now-serial[0])
+                    serial=(now,counts[first],anchors[first]);measured='serial_probe'
+                    write(root/'concurrency.json',dict(mode=measured,pause_groups=[second],parallel_anchors_per_second=parallel_rate))
+            elif measured=='serial_probe' and len(live)==2 and counts[first]-serial[1]>=v['serial_compare_updates']:
+                serial_rate=(anchors[first]-serial[2])/(now-serial[0])
                 measured='parallel_selected' if parallel_rate>=serial_rate*v['parallel_efficiency_floor'] else 'serial_selected'
                 active=min(live,key=lambda g:counts[g]);switch_at=counts[active]+v['serial_switch_updates']
                 write(root/'throughput_comparison.json',dict(parallel_anchors_per_second=parallel_rate,serial_anchors_per_second=serial_rate,
@@ -1155,6 +1169,8 @@ def vision_run(root, evaluation_only=False):
             if p.poll() is not None and p.returncode and group not in recorded:
                 failure=dict(group=group,stage='training',exit_code=p.returncode,reason='See '+group+'_training.log')
                 failures.append(failure);write(root/group/'failure.json',failure)
+        if residual and (failures or any(not (root/g/'training/finished.json').exists() for g in workers)):
+            raise RuntimeError('Residual pair incomplete; no dependent evaluation')
         write(root/'concurrency.json',dict(mode='post_training',pause_groups=[]))
         offline_deadline=min(time.time()+v['offline_hours']*3600,s['deadline']-v['evaluation_hours']*3600)
         s['offline_deadline']=offline_deadline;write(root/'session.json',s)
@@ -1162,12 +1178,15 @@ def vision_run(root, evaluation_only=False):
             dest=root/group
             if not (dest/'training/finished.json').exists():continue
             gs=read(dest/'session.json');gs['offline_deadline']=offline_deadline;write(dest/'session.json',gs)
-            try:wait(spawn(['-m','tools.tight_diagnostics','final','--root',str(dest)],group+'_offline'),offline_deadline,group+'_offline')
+            try:
+                args=(['-m','visuotactile.anchor_continue','residual-offline','--job','state','--root',str(dest),'--output',str(dest/'offline_launch')] if residual else ['-m','tools.tight_diagnostics','final','--root',str(dest)])
+                wait(spawn(args,group+'_offline'),offline_deadline,group+'_offline')
             except (RuntimeError,TimeoutError) as error:
                 failures.append(dict(group=group,stage='offline',reason=repr(error)));write(dest/'failure.json',failures[-1])
+        if residual and failures:raise RuntimeError('Residual offline failed; no dependent evaluation')
         if any((root/g/'offline/result.json').exists() for g in workers):
             s['evaluation_deadline']=min(time.time()+v['evaluation_hours']*3600,s['deadline']);write(root/'session.json',s)
-            try:wait(spawn(['-m','tools.tight_finish','vision_evaluate','--root',str(root)],'evaluation'),s['evaluation_deadline'],'matched_development')
+            try:wait(spawn(['-m','tools.tight_finish','residual_evaluate' if residual else 'vision_evaluate','--root',str(root)],'evaluation'),s['evaluation_deadline'],'matched_development')
             except (RuntimeError,TimeoutError) as error:failures.append(dict(stage='evaluation',reason=repr(error)))
         budget_stop=any((root/g/'training/finished.json').exists() and read(root/g/'training/finished.json')['stop_reason']=='fixed_wall_budget' for g in workers)
         write(root/'status.json',dict(state='FAILED' if failures else 'BUDGET_STOP' if budget_stop else 'COMPLETE',stage='finished',source_head=head,
@@ -1185,8 +1204,280 @@ def vision_run(root, evaluation_only=False):
             try:monitor.wait(timeout=15)
             except subprocess.TimeoutExpired:kill_owned(monitor)
         result=read(root/'status.json');result.update(owned_workers_exited=True,utc=time.time());write(root/'status.json',result)
-        vision_report(root)
+        (residual_report if residual else vision_report)(root)
     if read(root/'status.json')['state']=='FAILED':raise RuntimeError('Finite queue contains failed stages; see status.json')
+
+
+def residual_prepare(root):
+    import torch
+    cfg=read(CODE/'configs/tight_state.json');v=cfg['residual_pair'];old=(CODE/v['source_root']).resolve()
+    require(not root.exists(),'Residual root already exists; inspect instead of duplicating')
+    data=read(old/'state_data/data.json');require([len(data['splits'][k]) for k in ('train','validation','test')]==[166,30,22],'Core split changed')
+    s=read(old/'session.json');contracts={};identities={};protected={}
+    for g,b in v['bases'].items():
+        path=old/b['checkpoint'];require(sha(path)==b['sha256'],'Wrong selected base '+g);b['checkpoint']=str(path)
+        ck=torch.load(path,map_location='cpu',weights_only=False);c=ck['contract'];contracts[g]=c
+        require(c['modality']==b['group'] and c['horizon']==24 and c['commit']==12 and c['native_hz']==60 and
+            c['action']=='absolute_joint_position_target_rad','Unexpected actual checkpoint contract')
+        require(ck['configuration']['statistics_sha256']==sha(old/'state_data/statistics.pt'),'Base normalization mismatch')
+        identities[g]=dict(base=b,contract=c,updates=ck['updates'],architecture='I-HistoryDP; DINOv2-S/14 RGB, Depth, robot178, continuous GRUs',
+            direct_tactile=b['group']=='G10',actor141=False,geometry85=False,selected='EMA',source_commit='98dfafe')
+        protected[str(path)]=b['sha256'];del ck
+    for path in [old/'manifest.json',old/'state_data/data.json',old/'state_data/statistics.pt',old/'cache_index.json']:
+        protected[str(path)]=sha(path)
+    root.mkdir(parents=True);(root/'state_data').symlink_to(old/'state_data',target_is_directory=True)
+    cfg['resources']={k:v[k] for k in ('min_gpu_free_mib','min_ram_gib','min_disk_gib')};cfg['resources']['resource_policy']='full_gpu_v1'
+    s.update(version=v['version'],residual_pair=v,resources=cfg['resources'],resource_policy='full_gpu_v1',resource_target_percent=None,
+        reserve_bytes=v['min_disk_gib']*1024**3,base_contracts=contracts,source_root=str(old),
+        cache_deadline=time.time()+900,training_deadline=time.time()+900,cwd=str(CODE),source_head=None)
+    write(root/'configuration.json',cfg);write(root/'session.json',s)
+    write(root/'base_identities.json',dict(reference_commit='4164f83ded367d988f9ce1049228a026ca5fd9dd',groups=identities,
+        baseline_evaluation=str(old/'evaluation_resume_01'),old_status_preserved=True,protected=protected))
+    write(root/'evaluation_plan.json',read(old/'evaluation_plan.json')[:v['evaluation_attempts_per_group']])
+    write(root/'budget.json',dict(total_updates=0,validation_interval=10,early_stop_minimum_update=None,comparison_updates=None,
+        maximum_contact_anchor_epochs=300,minimum_plateau_contact_anchor_epochs=200,contact_anchor_population='measured after frozen prediction cache',
+        training_hours=9,evaluation_hours=1,cache_hours=1.5,offline_hours=1,maximum_hours=12.5))
+    for g in v['groups']:
+        dest=root/g;dest.mkdir();(dest/'nominal').mkdir();(dest/'training').mkdir()
+        (dest/'state_data').symlink_to(old/'state_data',target_is_directory=True)
+        write(dest/'configuration.json',cfg);write(dest/'session.json',dict(s,resource_root=str(root),modality=g))
+    write(root/'status.json',dict(state='PREPARED',stage='residual_acceptance_pending',utc=time.time(),formal_updates=0))
+
+
+def residual_cache(root, *, acceptance=False):
+    import torch
+    from visuotactile.models.native_dp import load_policy
+    from visuotactile.native_data import visual_records,cache_residual_episode
+    from visuotactile.state_resources import lease_for
+    from visuotactile.checkpointing import save
+    from visuotactile.precision import state_fp32
+    state_fp32();s=read(root/'session.json');v=s['residual_pair'];data=read(root/'state_data/data.json')
+    protected=read(root/'base_identities.json')['protected']
+    for path,value in protected.items():require(sha(path)==value,'Protected artifact changed: '+path)
+    ids=data['splits']['train'][:1]+data['splits']['validation'][:1] if acceptance else data['splits']['train']+data['splits']['validation']
+    visual_index=read(Path(s['source_root'])/'cache_index.json');began=time.time();completed=0
+    total=2*len(ids);lease=lease_for(root,deadline=s['cache_deadline'])
+    for group,base in v['bases'].items():
+        dest=root/group/'nominal';index_path=dest/'index.json'
+        index=read(index_path) if index_path.exists() else dict(base_sha256=base['sha256'],data_sha256=sha(root/'state_data/data.json'),episodes={})
+        require(index['base_sha256']==base['sha256'],'Cached base differs')
+        saved=torch.load(base['checkpoint'],map_location='cpu',weights_only=False)
+        with lease.block():model=load_policy(saved,'cuda:0').requires_grad_(False).eval()
+        del saved;records=visual_records(root/'state_data',ids,base['group'])
+        for identity in ids:
+            path=dest/(identity+'.pt')
+            if path.exists():require(index['episodes'][identity]['sha256']==sha(path),'Existing nominal cache drift')
+            else:
+                visual_path=root/'state_data/perception'/(identity+'.pt')
+                require(sha(visual_path)==visual_index['entries'][identity]['sha256'],'Frozen DINO cache differs')
+                def progress(**kw):
+                    write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
+                        elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed if completed else None,**kw))
+                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress)
+                require(all(p.grad is None for p in model.parameters()),'Frozen base received gradient')
+                save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12))
+                write(index_path,index)
+            completed+=1
+            write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
+                elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed))
+        if not acceptance:
+            scale=model.action_scale.cpu();errors=[];population=0
+            for identity in data['splits']['train']:
+                r=torch.load(dest/(identity+'.pt'),map_location='cpu',weights_only=False);population+=int(r['gate'].sum())
+                if identity in data['splits']['train'][:16]:errors.append(((r['target']-r['base'])*scale).abs()[r['gate']])
+            e=torch.cat(errors);amplitudes=[]
+            for part in (e[:,:7],e[:,7:]):amplitudes.append(max(.1,min(2.,math.ceil(float(part.flatten().quantile(.99))*10)/10)))
+            write(dest/'scales.json',dict(scales=[amplitudes[0]]*7+[amplitudes[1]]*22,
+                rule='3e11d62: contact train16 p99 rounded up0.1; bounded[0.1,2]; no label clipping',train_ids=data['splits']['train'][:16],
+                contact_anchor_population=population,labels_are_only_supervision=True))
+        del model,records;torch.cuda.empty_cache()
+    if not acceptance:write(root/'cache_complete.json',dict(complete=True,episodes=completed,wall_s=time.time()-began,utc=time.time()))
+
+
+def residual_check(root):
+    """Disposable residual updates, real base sampling, same-prefix deployment."""
+    import torch
+    import h5py
+    from visuotactile.models.native_dp import TargetResidual
+    from visuotactile.native_data import residual_batch,Episode
+    from visuotactile.native_controller import ResidualController
+    from visuotactile.checkpointing import save,cpu_snapshot
+    from visuotactile.anchor_continue import residual_prediction
+    from visuotactile.state_resources import lease_for
+    from visuotactile.precision import state_fp32
+    state_fp32();residual_cache(root,acceptance=True)
+    s=read(root/'session.json');data=read(root/'state_data/data.json');v=s['residual_pair'];identity=data['splits']['train'][0]
+    stats=torch.load(root/'state_data/statistics.pt',map_location='cpu',weights_only=False);checks={}
+    lease=lease_for(root,deadline=s['cache_deadline']);episode=Episode(root/'state_data',identity,'I-HistoryDP')
+    with h5py.File(data['entries'][identity]['path']) as f:metadata=json.loads(f.attrs['metadata_json'])
+    for group,base in v['bases'].items():
+        r=torch.load(root/group/'nominal'/(identity+'.pt'),map_location='cpu',weights_only=False)
+        torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,[.1]*29).cuda();opt=torch.optim.AdamW(model.parameters(),lr=1e-3,weight_decay=1e-4)
+        with lease.block():
+            inputs=residual_batch([r],0,len(r['robot']),'cuda:0')
+            with torch.no_grad():
+                raw,_=model(inputs);initial,_=model.compose(r['base'][None].cuda(),raw,r['gate'][None].cuda(),r['limits'].cuda())
+                require(torch.equal(initial.cpu()[0],r['base']),'Zero residual changed nominal')
+            losses=[]
+            for _ in range(2):
+                opt.zero_grad(set_to_none=True);raw,_=model(inputs)
+                command,delta=model.compose(r['base'][None].cuda(),raw,r['gate'][None].cuda(),r['limits'].cuda())
+                loss=model.objective(command,r['target'][None].cuda(),delta,r['gate'][None].cuda());loss.backward()
+                require(torch.isfinite(loss),'Residual loss nonfinite');torch.nn.utils.clip_grad_norm_(model.parameters(),1.);opt.step();losses.append(float(loss))
+            grads={name:sum(float(p.grad.abs().sum()) for p in module.parameters() if p.grad is not None)
+                for name,module in [('tactile',model.tactile),('visual',model.visual),('intent',model.intent),('motion',model.motion),('policy',model.policy)]}
+            require(all(math.isfinite(g) and g>0 for g in grads.values()),'Residual branch gradient missing')
+        configuration=dict(base_checkpoint=base['checkpoint'],base_sha256=base['sha256'])
+        saved=cpu_snapshot(dict(residual_version=model.version,configuration=configuration,model=model.state_dict(),optimizer=opt.state_dict(),
+            contract=s['base_contracts'][group],group='I-HistoryDP',updates=2,ema=False))
+        path=root/('gate_'+group+'.pt');save(path,saved);loaded=torch.load(path,map_location='cpu',weights_only=False)
+        fresh=TargetResidual(stats,[.1]*29).cuda();fresh.load_state_dict(loaded['model']);fresh_opt=torch.optim.AdamW(fresh.parameters(),lr=1e-3,weight_decay=1e-4);fresh_opt.load_state_dict(loaded['optimizer'])
+        expected=residual_prediction(model,r,lease);restored=residual_prediction(fresh,r,lease)
+        require(torch.equal(expected,restored),'Residual save/load prediction differs')
+        with torch.no_grad():full,_=model(inputs);full,_=model.compose(r['base'][None].cuda(),full,r['gate'][None].cuda(),r['limits'].cuda())
+        chunk_error=float((full.cpu()[0]-restored).abs().max());require(chunk_error<2e-5,'Persistent residual chunks differ')
+        tick_now=[0];controller=ResidualController(loaded,metadata,dino=lambda rgb:episode.frame(tick_now[0],'cuda')['patches'])
+        maximum=nominal_error=robot_error=0.;before={k:p.detach().cpu().clone() for k,p in controller.model.state_dict().items()}
+        with h5py.File(data['entries'][identity]['path']) as f:
+            g=f['episodes'][data['entries'][identity]['episode']];obs=g['obs']
+            for tick in range(min(109,len(r['robot']))):
+                tick_now[0]=tick
+                packet={k:torch.from_numpy(obs[k][tick:tick+1]) for k in ('episode_id','step_id','time_s','task_id','goal_valid',
+                    'actuator_target_rad','camera_time_s','camera_valid','contact_substeps_w_N','contact_substeps_local_N','contact_time_s',
+                    'contact_valid','contact_w_N','finger_position_base_m','finger_rotation_base')}
+                if tick%12==0:
+                    rgb=torch.from_numpy(g['frames/rgb_u8'][tick]).float()/255
+                    packet['image']=torch.cat((rgb,torch.from_numpy(g['frames/depth_m'][tick])),1)[None]
+                    packet['depth_valid']=torch.from_numpy(g['frames/depth_valid'][tick:tick+1])
+                joints={k:torch.from_numpy(g['transition/diagnostics_before'][k][tick:tick+1]) for k in ('joint_position_rad','joint_velocity_rad_s')}
+                with lease.block():action=controller.act(packet,joints)
+                maximum=max(maximum,float((action[0]-expected[tick]).abs().max()))
+                nominal_error=max(nominal_error,float((controller.nominal[0]-r['base'][tick]).abs().max()))
+                robot_error=max(robot_error,float((controller.base.last_robot-r['robot'][tick]).abs().max()))
+                # Diagnostic replay explicitly supplies past expert feedback.
+                controller.base.command=r['target'][tick:tick+1]
+                controller.observe_execution({'position_applied_rad':r['target'][tick:tick+1]})
+        require(maximum<2e-5 and nominal_error<2e-5 and robot_error<2e-5,'Offline/deployment full-prefix mismatch')
+        require(all(torch.equal(p.cpu(),before[k]) for k,p in controller.model.state_dict().items()),'Frozen base parameter/buffer changed')
+        require(all(p.grad is None and not p.requires_grad for p in controller.model.parameters()),'Base not frozen')
+        require(sha(base['checkpoint'])==base['sha256'],'Base checkpoint changed')
+        checks[group]=dict(passed=True,gradients=grads,losses=losses,save_restore_exact=True,base_frozen=True,
+            chunk_prediction_max_abs_rad=chunk_error,deployment_prediction_max_abs_rad=maximum,nominal_max_abs_rad=nominal_error,
+            robot_max_abs=robot_error,zero_residual_exact=True,control_ticks=109,base_replans=10,tactile_samples=218,
+            formal_updates=0,cache_ticks=len(r['robot']),base_sha256=base['sha256'],teacher_forced_past_feedback=True)
+        del model,opt,inputs,raw,command,delta,loss,saved,loaded,fresh,fresh_opt,controller,before,full;path.unlink();torch.cuda.empty_cache()
+    write(root/'residual_acceptance.json',dict(passed=True,groups=checks,utc=time.time(),
+        implementation_files={str(p.relative_to(CODE)):sha(p) for p in [CODE/'visuotactile/models/native_dp.py',CODE/'visuotactile/native_data.py',CODE/'visuotactile/native_controller.py']}))
+
+
+def residual_training_check(root):
+    import torch
+    from visuotactile.anchor_continue import residual_train,residual_offline
+    from visuotactile.precision import state_fp32
+    state_fp32();residual_cache(root,acceptance=True)
+    receipt=read(root/'residual_acceptance.json');data=read(root/'state_data/data.json');s=read(root/'session.json')
+    for group in s['residual_pair']['groups']:
+        # Disposable scale only; formal train16 calibration replaces this file.
+        scale=root/group/'nominal/scales.json'
+        require(not scale.exists(),'Unexpected prior residual calibration')
+        write(scale,dict(scales=[.1]*29,scope='disposable smoke only'))
+        residual_train(root/group,smoke=True)
+        result=read(root/group/'training_smoke/finished.json')
+        require(result['updates']>0 and result['base_optimizer_updates']==0,'Real trainer smoke failed')
+        saved=torch.load(root/group/'training_smoke/best.pt',map_location='cpu',weights_only=False)
+        require(saved['updates']>0 and saved['configuration']['base_sha256']==s['residual_pair']['bases'][group]['sha256'],'Smoke checkpoint mismatch')
+        receipt['groups'][group]['real_trainer_smoke']=result
+        residual_offline(root/group,smoke=True)
+        receipt['groups'][group]['offline_smoke']=dict(complete=True,episodes=2,
+            result_sha256=sha(root/group/'offline_smoke/result.json'))
+        scale.unlink()
+        for name in ('best.pt','last.pt'):(root/group/'training_smoke'/name).unlink()
+    receipt['trainer_sha256']=sha(CODE/'visuotactile/anchor_continue.py');receipt['utc']=time.time()
+    write(root/'residual_acceptance.json',receipt)
+
+
+def residual_run(root):return vision_run(root,residual=True)
+
+
+def residual_evaluate(root):return vision_evaluate(root,residual=True)
+
+
+def residual_report(root):
+    """Ordinary owner finalizes the existing result MD, including failures."""
+    import numpy as np
+    import h5py
+    from visuotactile.native_evaluation import stable_grasp
+    s=read(root/'session.json');status=read(root/'status.json');v=s['residual_pair'];groups={}
+    def totals(rows):
+        valid=[r for r in rows if r.get('legal') and r.get('software_complete')]
+        return dict(attempts=len(rows),valid=len(valid),rejected=sum(not r.get('legal') for r in rows),
+            interrupted=sum(r.get('legal',False) and not r.get('software_complete',False) for r in rows),
+            successes=sum(bool(r.get('success')) for r in valid),native_lifts=sum(bool(r.get('native_lift')) for r in valid),
+            first_subgoal=sum(r.get('native_subgoals',0)>0 for r in valid),alignment=sum(bool(r.get('native_alignment')) for r in valid),
+            second_subgoal_insertions=sum(r.get('native_subgoals',0)>=2 for r in valid),
+            timeouts=sum(bool(r.get('reasons',{}).get('timeout',False)) for r in valid),
+            falls=sum(bool(r.get('reasons',{}).get('fall',False)) for r in valid),
+            drops=sum(bool(r.get('reasons',{}).get('dropped',False)) for r in valid),
+            stable_grasp=sum(bool(r.get('contact',{}).get('stable_grasp_diagnostic')) for r in valid)
+                if all('contact' in r for r in valid) and valid else None,
+            native_insertions_complete=sum(bool(r.get('success')) for r in valid))
+    for group,b in v['bases'].items():
+        dest=root/group;row={};previous=Path(s['source_root'])/'evaluation_resume_01'/b['group']
+        if (dest/'training/finished.json').exists():row['training']=read(dest/'training/finished.json')
+        if (dest/'offline/result.json').exists():row['offline']=read(dest/'offline/result.json')
+        results=[read(p) for p in sorted((dest/'evaluation').glob('*/result.json'))]
+        row['closed_loop']=totals(results);row['closed_loop']['not_run']=v['evaluation_attempts_per_group']-len(results)
+        reference=[]
+        for p in sorted((previous/'evaluation').glob('*/result.json')):
+            r=read(p)
+            try:
+                trace=dict(np.load(p.parent/'trace.npz'))
+                with h5py.File(p.parent/'numeric.h5') as f:trace['palm']=f['episode/transition/diagnostics_after/palm_body_pose_w'][:]
+                # Recorded numeric fields sometimes retain their single-env axis.
+                if trace['palm'].ndim==3:trace['palm']=trace['palm'][:,0]
+                initial=read(p.parent/'initial_observable.json')
+                r['contact']=stable_grasp(trace,float(initial['object_pose_w'][0][2]))
+            except (KeyError,OSError,ValueError) as error:r['stable_grasp_unmeasured_reason']=repr(error)
+            reference.append(r)
+        row['frozen_base_closed_loop']=totals(reference)
+        row['frozen_base_stable_grasp_unmeasured']=[r['stable_grasp_unmeasured_reason'] for r in reference if 'stable_grasp_unmeasured_reason' in r]
+        row['frozen_base_results_path']=str(previous)
+        row['pairing']='same registered specs/seeds and sampler; simulator hidden-state equality NOT claimed; historical baseline reused'
+        row['videos']=[str(p) for p in sorted((dest/'evaluation').glob('*/rollout.mp4'))]
+        groups[group]=row
+    report=dict(status=status,groups=groups,base_identities=read(root/'base_identities.json'),
+        test22_used=False,next_stage_automatic=False,updated_utc=time.time())
+    write(root/'result.json',report)
+    lines=['<!-- RESIDUAL_PAIR_START -->','','## 2026-11-10 G01/G11：60Hz触觉残差','',
+        f'后台状态：**{status["state"]}**，阶段 `{status["stage"]}`；原因 `{status.get("reason", "进行中")}`。',
+        f'运行目录 `{root}`；源码 `{s.get("source_head")}`；机器状态 `status.json`，完整结果 `result.json`。',
+        'G01冻结G00选定EMA，G11冻结G10选定EMA；原G00/G10结果保留。两组相同残差结构、预算、开发种子。',
+        '沿用3e11d62的60Hz GRU残差/0.1N观测接触门/Arm-Hand等权损失与1e-4残差正则/AdamW；适配当前H24绝对目标。',
+        '基础DP仍5Hz/commit12；残差60Hz、触觉GRU120Hz、完整持续历史。当前冻结视觉512D读出替代已删除旧B0帧编码器。',
+        '离线nominal为冻结EMA完整DDIM16真实预测；过去专家执行命令明确teacher forcing。闭环历史读取实际组合目标及执行反馈；G01基础策略可间接受残差影响。',
+        'Core218（train166/validation30/test22），不加入Auxiliary、不使用test选模。训练最多9h/300接触tick等效遍历，200遍后才允许平台早停；这不是DP重规划anchor epoch。',
+        '完整成功仅原生终止判据；稳定抓持是已有诊断，阶段进展不计完整成功；自主轨迹不作同tick动作标签误差。',
+        '', '|组别|新增成功/有效|未运行|原生lift/首子目标/对准|冻结基础成功/有效|',
+        '|---|---:|---:|---:|---:|']
+    for g,r in groups.items():
+        x=r['closed_loop'];b=r['frozen_base_closed_loop']
+        lines.append(f'|{g}|{x["successes"]}/{x["valid"]}|{x["not_run"]}|{x["native_lifts"]}/{x["first_subgoal"]}/{x["alignment"]}|{b["successes"]}/{b["valid"]}|')
+    lines.append('')
+    for g,r in groups.items():
+        x=r['closed_loop'];b=r['frozen_base_closed_loop']
+        lines.append(f'{g}：拒绝{x["rejected"]}、中断{x["interrupted"]}、稳定抓持{x["stable_grasp"] if x["stable_grasp"] is not None else "未测"}、超时{x["timeouts"]}、fall{x["falls"]}、dropped{x["drops"]}；第二插入子目标{x["second_subgoal_insertions"]}，原生完整任务{x["native_insertions_complete"]}。\n')
+        if 'training' in r:
+            t=r['training'];lines.append(f'{g}: updates={t["updates"]}, contact-anchor epochs={t["contact_anchor_epochs"]:.3f}, wall={t["wall_s"]:.1f}s, wait={t["wait_s"]:.1f}s, stop={t["stop_reason"]}。')
+        if 'offline' in r:
+            m=[x for x in r['offline']['metrics'] if x['split']=='validation' and x['phase']=='all' and x['motion']=='all']
+            lines.append(f'{g} validation30离线 '+', '.join(f'{x["group"]}={x["rmse_rad"]:.6f}rad' for x in m)+
+                f'；分阶段、保持目标参照及掌部FK见 `{g}/offline/stage_errors.csv`；触觉置零诊断见 `force_sensitivity.json`。')
+    lines+=['未完成的训练、离线指标或闭环均未测；0/0不是成功率0%。没有自动重试、扩展评估或下一轮训练。','<!-- RESIDUAL_PAIR_END -->']
+    doc=CODE/'research_docs/STATE_DP_RESULTS.md';text=doc.read_text();begin='<!-- RESIDUAL_PAIR_START -->';end='<!-- RESIDUAL_PAIR_END -->'
+    section='\n'.join(line if line.startswith('|') else line+'\n' for line in lines)+'\n'
+    if begin in text:text=text[:text.index(begin)]+section+text[text.index(end)+len(end):]
+    else:text=text.replace('# Tight-Insertion 当前结果\n','# Tight-Insertion 当前结果\n\n'+section,1)
+    temp=doc.with_suffix('.md.tmp');temp.write_text(text);temp.replace(doc)
 
 
 def vision_resume(root):
@@ -1195,7 +1486,7 @@ def vision_resume(root):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)

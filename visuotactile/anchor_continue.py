@@ -584,14 +584,239 @@ def fresh_curves(root):
     fig.tight_layout();fig.savefig(root/'curves.png',dpi=150);plt.close(fig)
 
 
+def residual_setup(root, *, selected=False, smoke=False):
+    from .models.native_dp import TargetResidual
+    from .state_resources import lease_for
+    s=read(root/'session.json');cfg=read(root/'configuration.json');v=cfg['residual_pair']
+    data=read(root/'state_data/data.json');index=read(root/'nominal/index.json')
+    if smoke:data=dict(data,splits={k:values[:1] for k,values in data['splits'].items()})
+    base=v['bases'][root.name]
+    if sha256(base['checkpoint'])!=base['sha256']:raise ValueError('Frozen base changed')
+    if index['base_sha256']!=base['sha256'] or index['data_sha256']!=sha256(root/'state_data/data.json'):
+        raise ValueError('Nominal cache identity mismatch')
+    records={}
+    for identity in data['splits']['train']+data['splits']['validation']:
+        path=root/'nominal'/(identity+'.pt')
+        if sha256(path)!=index['episodes'][identity]['sha256']:raise ValueError('Nominal cache drift')
+        records[identity]=torch.load(path,map_location='cpu',weights_only=False)
+    stats=torch.load(root/'state_data/statistics.pt',map_location='cpu',weights_only=False)
+    scale=read(root/'nominal/scales.json')['scales']
+    torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,scale)
+    configuration=dict(v,group=root.name,base_checkpoint=base['checkpoint'],base_sha256=base['sha256'],
+        statistics_sha256=sha256(root/'state_data/statistics.pt'),data_sha256=sha256(root/'state_data/data.json'),
+        dino_sha256=s['dino_sha256'],cache_index_sha256=sha256(root/'nominal/index.json'),
+        loss_id='historical_contact_equal_arm_hand_plus_1e-4_residual',ema=False,
+        history='full causal episodes; 32tick detach only; expert past acknowledgements teacher forced offline')
+    if selected:
+        saved=torch.load(root/('training_smoke' if smoke else 'training')/'best.pt',map_location='cpu',weights_only=False)
+        if saved['configuration']!=configuration:raise ValueError('Selected residual configuration differs')
+        model.load_state_dict(saved['model'])
+    lease=lease_for(Path(s['resource_root']),deadline=s['offline_deadline'] if selected and not smoke else s['training_deadline'])
+    with lease.block():model.cuda()
+    return s,v,data,records,model,configuration,lease
+
+
+def residual_aux(records,start,stop,key,device):
+    values=[]
+    for r in records:
+        value=r[key];padded=value.new_zeros(stop-start,*value.shape[1:]);n=max(0,min(stop,len(value))-start)
+        if n:padded[:n]=value[start:start+n]
+        values.append(padded)
+    return torch.stack(values).to(device)
+
+
+@torch.no_grad()
+def residual_prediction(model,record,lease,*,mask_force=False):
+    from .native_data import residual_batch
+    model.eval();state=None;predictions=[];device=next(model.parameters()).device
+    for start in range(0,len(record['robot']),32):
+        stop=min(start+32,len(record['robot']))
+        with lease.block():
+            inputs=residual_batch([record],start,stop,device)
+            raw,state=model(inputs,state,mask_force=mask_force)
+            action,_=model.compose(record['base'][None,start:stop].to(device),raw,
+                record['gate'][None,start:stop].to(device),record['limits'].to(device))
+            if not torch.isfinite(action).all():raise FloatingPointError('Nonfinite residual prediction')
+            predictions.append(action[0].cpu())
+    return torch.cat(predictions)
+
+
+@torch.no_grad()
+def residual_metrics(model,records,ids,lease,*,mask_force=False):
+    predictions=[residual_prediction(model,records[i],lease,mask_force=mask_force) for i in ids]
+    error=torch.cat([p-records[i]['target'] for i,p in zip(ids,predictions)])
+    gate=torch.cat([records[i]['gate'] for i in ids]);normalized=error*model.action_scale.cpu()
+    def metrics(mask):
+        e=error[mask];z=normalized[mask]
+        return dict(ticks=len(e),arm_rmse_rad=float(e[:,:7].square().mean().sqrt()) if len(e) else None,
+            hand_rmse_rad=float(e[:,7:].square().mean().sqrt()) if len(e) else None,
+            normalized_equal_mse=float(.5*(z[:,:7].square().mean()+z[:,7:].square().mean())) if len(e) else None)
+    return dict(all=metrics(torch.ones(len(error),dtype=torch.bool)),contact=metrics(gate),noncontact=metrics(~gate)),predictions
+
+
+def residual_train(root, *, smoke=False):
+    """Historical contact loss/AdamW, complete histories, no base optimizer."""
+    from .native_data import residual_batch
+    from .checkpointing import cpu_snapshot
+    s,v,data,records,model,configuration,lease=residual_setup(root,smoke=smoke)
+    if smoke:v=dict(v,maximum_anchor_epochs=1)
+    out=root/('training_smoke' if smoke else 'training');out.mkdir(exist_ok=True)
+    if (out/'last.pt').exists():raise ValueError('No implicit second residual training run')
+    atomic_json(out/'configuration.json',configuration)
+    opt=torch.optim.AdamW(model.parameters(),lr=1e-3,weight_decay=1e-4)
+    ids=data['splits']['train'];vals=data['splits']['validation'][:4];population=sum(int(records[i]['gate'].sum()) for i in ids)
+    native_population=sum(len(records[i]['robot']) for i in ids)
+    if population<1:raise ValueError('No observed training contact')
+    generator=torch.Generator().manual_seed(v['initialization_seed'])
+    updates=draws=ticks=0;best=float('inf');history=[];began=time.time();stop='maximum_anchor_exposure';request=[]
+    signal.signal(signal.SIGTERM,lambda *_:request.append('SIGTERM'))
+    def snapshot(epoch,next_group):
+        return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
+            configuration=configuration,model=model.state_dict(),optimizer=opt.state_dict(),updates=updates,
+            contact_anchors=draws,control_ticks=ticks,epoch=epoch,next_episode_group=next_group,episode_order=order,
+            schedule_rng=generator.get_state(),torch_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all(),
+            best=best,history=history,train_ids=ids,validation_ids=vals,ema=False))
+    def validate(epoch):
+        nonlocal best
+        validation,_=residual_metrics(model,records,vals,lease)
+        train,_=residual_metrics(model,records,ids[:2],lease)
+        row=dict(epoch=epoch,update=updates,contact_anchor_epochs=draws/population,control_epoch=ticks/native_population,
+            train=train,validation=validation,wall_s=time.time()-began,wait_s=lease.wait_s)
+        history.append(row);atomic_json(out/'validation.json',history)
+        score=validation['contact']['normalized_equal_mse']
+        if score is None or not math.isfinite(score):raise FloatingPointError('Invalid validation score')
+        if score<best:best=score;save(out/'best.pt',snapshot(epoch,0))
+        residual_curves(out)
+    for epoch in range(1,v['maximum_anchor_epochs']+1):
+        order=[ids[i] for i in torch.randperm(len(ids),generator=generator).tolist()]
+        for offset in range(0,len(order),v['microbatch']):
+            selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None
+            for start in range(0,max(len(r['robot']) for r in selected),32):
+                end=min(start+32,max(len(r['robot']) for r in selected))
+                with lease.block():
+                    model.train();inputs=residual_batch(selected,start,end,'cuda:0')
+                    raw,state=model(inputs,state)
+                    gate=residual_aux(selected,start,end,'gate','cuda:0')&inputs['valid']
+                    action,delta=model.compose(residual_aux(selected,start,end,'base','cuda:0'),raw,gate,
+                        torch.stack([r['limits'] for r in selected]).to('cuda:0')[:,None])
+                    loss=model.objective(action,residual_aux(selected,start,end,'target','cuda:0'),delta,gate)
+                    if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
+                    if gate.any():
+                        opt.zero_grad(set_to_none=True);loss.backward()
+                        norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+                        if not torch.isfinite(norm):raise FloatingPointError('Nonfinite residual gradient')
+                        opt.step();updates+=1;draws+=int(gate.sum())
+                        with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
+                            loss=float(loss.detach()),contact_ticks=int(gate.sum()),gradient_norm=float(norm)))+'\n')
+                    ticks+=int(inputs['valid'].sum())
+                    def detach(x):return {k:detach(z) for k,z in x.items()} if isinstance(x,dict) else x.detach()
+                    state=detach(state)
+                if updates%32==0:
+                    elapsed=time.time()-began;rate=draws/max(elapsed,1e-6)
+                    atomic_json(out/'progress.json',dict(update=updates,epoch=epoch,contact_anchor_epochs=draws/population,
+                        sampled_anchors=draws,anchor_population=population,control_ticks=ticks,wall_s=elapsed,
+                        wait_s=lease.wait_s,work_s=lease.work_s,remaining_seconds_estimate=(v['maximum_anchor_epochs']*population-draws)/max(rate,1e-6),
+                        utc=time.time()))
+            if request or time.time()>s['training_deadline']-180:
+                stop='requested_stop' if request else 'fixed_wall_budget';break
+        save(out/'last.pt',snapshot(epoch,offset+len(selected)))
+        if epoch==1 or epoch%v['validation_epoch_interval']==0 or stop!='maximum_anchor_exposure':validate(epoch)
+        if stop!='maximum_anchor_exposure':break
+        if epoch>=v['minimum_anchor_epochs'] and len(history)>=4:
+            scores=[r['validation']['contact']['normalized_equal_mse'] for r in history[-4:]]
+            if (scores[0]-min(scores[1:]))/max(scores[0],1e-12)<.01:stop='validation_plateau_after_minimum_exposure';break
+    if not history or history[-1]['update']!=updates:validate(epoch)
+    save(out/'last.pt',snapshot(epoch,offset+len(selected)))
+    atomic_json(out/'finished.json',dict(stop_reason=stop,updates=updates,contact_anchor_epochs=draws/population,
+        sampled_contact_anchors=draws,contact_anchor_population=population,control_ticks=ticks,control_equivalent_epochs=ticks/native_population,
+        wall_s=time.time()-began,wait_s=lease.wait_s,work_s=lease.work_s,selection='fixed validation4 contact normalized equal Arm/Hand MSE',
+        last=str(out/'last.pt'),best=str(out/'best.pt'),utc=time.time(),base_optimizer_updates=0))
+
+
+def residual_curves(out):
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    rows=read(out/'validation.json');fig,axes=plt.subplots(1,3,figsize=(12,3.5))
+    for split in ('train','validation'):
+        for ax,key in zip(axes,('normalized_equal_mse','arm_rmse_rad','hand_rmse_rad')):
+            ax.plot([r['contact_anchor_epochs'] for r in rows],[r[split]['contact'][key] for r in rows],label=split)
+            ax.set(xlabel='Contact tick equivalent epochs',ylabel=key);ax.grid(alpha=.25);ax.legend()
+    fig.tight_layout();fig.savefig(out/'curves.png',dpi=140);plt.close(fig)
+
+
+def residual_offline(root, *, smoke=False):
+    import h5py
+    import numpy as np
+    from .state_image_loss import GeometryObjective
+    from .state_image_offline import diagnostic_rows,summarize_diagnostics
+    from tools.narrow_repair_audit import stages
+    from tools.tight_diagnostics import table,target_plot
+    s,v,data,records,model,configuration,lease=residual_setup(root,selected=True,smoke=smoke)
+    out=root/('offline_smoke' if smoke else 'offline');out.mkdir(exist_ok=False);rows=[];base_rows=[];sensitivity=[];completed=0
+    ids={'train':data['splits']['train'][:8],'validation':data['splits']['validation']}
+    with h5py.File(data['entries'][ids['train'][0]]['path']) as f:objective=GeometryObjective(json.loads(f.attrs['metadata_json']))
+    @torch.no_grad()
+    def measured(prediction,record):
+        truth=record['target'];hold=record['robot'][torch.arange(len(truth))//12*12,58:87]
+        with lease.block():
+            p,r=objective.fk(prediction.cuda());q,t=objective.fk(truth.cuda());distance=(p-q).norm(dim=-1).cpu()*1000
+            rot=r[:,0].transpose(-1,-2)@t[:,0]
+            sine=torch.stack((rot[:,2,1]-rot[:,1,2],rot[:,0,2]-rot[:,2,0],rot[:,1,0]-rot[:,0,1]),-1).norm(dim=-1)/2
+            angle=torch.atan2(sine,(rot.diagonal(dim1=-2,dim2=-1).sum(-1)-1)/2).cpu()*180/torch.pi
+        return dict(prediction=prediction,truth=truth,hold=hold,ee_mm=distance[:,0],finger_mm=distance[:,1:],rotation_deg=angle)
+    for split,identities in ids.items():
+        for n,identity in enumerate(identities):
+            record=records[identity];pred=residual_prediction(model,record,lease);sample=measured(pred,record)
+            with h5py.File(data['entries'][identity]['path']) as f:
+                g=f['episodes'][data['entries'][identity]['episode']];phase=stages(g)
+                contact=np.linalg.norm(g['transition/object_contact_force_w'][:],axis=-1).reshape(len(phase),-1).max(-1)>.1
+                lift=g['transition/diagnostics_before/lifted_object'][:].reshape(len(phase),-1).any(-1)
+            rows.extend(diagnostic_rows(sample,phase,identity=identity,split=split))
+            base_rows.extend(diagnostic_rows(measured(record['base'],record),phase,identity=identity,split=split))
+            if n==0:target_plot(out,identity,sample,phase,contact,lift)
+            if split=='validation' and n<4:
+                masked=residual_prediction(model,record,lease,mask_force=True);gate=record['gate']
+                e=pred-record['target'];me=masked-record['target'];change=pred-masked
+                sensitivity.append(dict(identity=identity,contact_ticks=int(gate.sum()),
+                    force_zero_output_rms_rad=float(change[gate].square().mean().sqrt()),
+                    force_zero_output_max_abs_rad=float(change.abs().max()),
+                    normal_contact_equal_mse_rad2=float(.5*(e[gate,:7].square().mean()+e[gate,7:].square().mean())),
+                    zero_force_contact_equal_mse_rad2=float(.5*(me[gate,:7].square().mean()+me[gate,7:].square().mean())),
+                    fixed_nominal=True,fixed_gate=True,test_used=False))
+            completed+=1;atomic_json(out/'progress.json',dict(offline_episodes=completed,utc=time.time()))
+    metrics=summarize_diagnostics(rows);base=summarize_diagnostics(base_rows)
+    table(out/'sampled_ticks.csv',rows);table(out/'base_sampled_ticks.csv',base_rows)
+    table(out/'stage_errors.csv',metrics);table(out/'base_stage_errors.csv',base)
+    import csv
+    import matplotlib.pyplot as plt
+    with (out/'stage_errors.csv').open() as f:draw=list(csv.DictReader(f))
+    with (out/'base_stage_errors.csv').open() as f:reference=list(csv.DictReader(f))
+    fig,axes=plt.subplots(1,2,figsize=(12,4))
+    for ax,part in zip(axes,('arm','hand')):
+        rr=[x for x in draw if x['split']=='validation' and x['group']==part and x['motion']=='all' and x['rmse_rad']]
+        bb=[x for x in reference if x['split']=='validation' and x['group']==part and x['motion']=='all' and x['rmse_rad']]
+        ax.plot(range(len(rr)),[float(x['rmse_rad']) for x in rr],label='60Hz residual')
+        ax.plot(range(len(bb)),[float(x['rmse_rad']) for x in bb],label='frozen base')
+        ax.set_xticks(range(len(rr)),[x['phase']+' n='+x['ticks'] for x in rr],rotation=65,ha='right',fontsize=7)
+        ax.set(ylabel=part+' RMSE (rad)');ax.legend();ax.grid(alpha=.2)
+    fig.tight_layout();fig.savefig(out/'stage_errors.png',dpi=140);plt.close(fig)
+    atomic_json(out/'force_sensitivity.json',dict(rows=sensitivity,scope='Fixed validation4; only residual force world/local set to zero; gate, FK and nominal held; sensitivity is not causal task benefit'))
+    atomic_json(out/'result.json',dict(complete=True,metrics=metrics,base_metrics=base,force_sensitivity=sensitivity,
+        checkpoint=str(root/('training_smoke' if smoke else 'training')/'best.pt'),checkpoint_sha256=sha256(root/('training_smoke' if smoke else 'training')/'best.pt'),
+        scope='Expert observation/past-command history; complete frozen DDIM16 plans, each native tick residual; no autonomous action-label comparison',test_used=False))
+
+
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['contract','train','fresh-smoke','fresh-train']);p.add_argument('--root',type=Path,required=True)
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['contract','train','fresh-smoke','fresh-train','residual-train','residual-offline']);p.add_argument('--root',type=Path,required=True)
     p.add_argument('--data',type=Path)
     p.add_argument('--smoke-device',choices=['cpu','cuda:0'],default='cpu')
     p.add_argument('--job',choices=['state','image'],required=True);p.add_argument('--target',type=int);p.add_argument('--output',type=Path,required=True)
     a=p.parse_args();a.output.mkdir(parents=True,exist_ok=False);torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
-    if a.mode.startswith('fresh-'):
+    if a.mode.startswith('residual-'):
+        (residual_train if a.mode=='residual-train' else residual_offline)(a.root)
+    elif a.mode.startswith('fresh-'):
         if a.job!='state' or a.data is None:p.error('Fresh entry requires --job state and --data')
         fresh(a.root,a.data,a.output,a.target,smoke=a.mode=='fresh-smoke',smoke_device=a.smoke_device)
     elif a.mode=='contract':contract_check(a.root,a.job,a.output)

@@ -279,3 +279,146 @@ def load_policy(payload, device='cpu', ema=True):
     model.contract=stored
     model.load_state_dict(payload['ema'] if ema else payload['model'])
     return model.eval()
+
+
+# Restored from this repository 3e11d62:models/tactile.py; 120Hz recurrence unchanged.
+class FingerTactileEncoder(nn.Module):
+    def __init__(self, hidden=64, contact_threshold_N=.1):
+        super().__init__()
+        self.threshold = contact_threshold_N
+        self.finger_id = nn.Embedding(5,8)
+        # world/local force, base xyz/rotation6, velocity, force change,
+        # magnitude, contact/onset/release, time interval, pair validity + ID.
+        self.spatial = nn.Sequential(nn.Linear(27+8,64),nn.LayerNorm(64),nn.SiLU(),nn.Linear(64,32),nn.SiLU())
+        self.per_finger = nn.GRUCell(32,32)
+        self.fusion = nn.Sequential(nn.Linear(5*32,128),nn.SiLU(),nn.Linear(128,hidden),nn.LayerNorm(hidden))
+
+    def forward(self,tactile,valid,state=None,*,return_state=False,return_sequence=False):
+        if set(tactile) != {"force_w_N","force_local_N","position_base_m","rotation_base","time_s"}:
+            raise ValueError("Unexpected tactile field; no privileged inputs accepted")
+        # Retain the previous physical sample for boundary derivatives/events.
+        # Its features are NOT fed through the recurrence a second time.
+        if state is not None:
+            previous_valid = state["previous_valid"].bool()
+            tactile = {k:torch.cat((state["previous"][k][:,None],v),1) for k,v in tactile.items()}
+            valid = torch.cat((previous_valid[:,None],valid),1)
+        force = tactile["force_w_N"]
+        b,t,f,c = force.shape
+        if (f,c) != (5,3) or valid.shape != (b,t):
+            raise ValueError("Expected B,T,5,3 force and B,T validity")
+        local, pos, rot = tactile["force_local_N"],tactile["position_base_m"],tactile["rotation_base"]
+        if rot.shape != (b,t,5,3,3) or pos.shape != force.shape or local.shape != force.shape:
+            raise ValueError("Finger calibration/force shape mismatch")
+        valid = valid.bool()
+        pair_valid = valid & torch.roll(valid,1,1)
+        pair_valid[:,0] = False
+        dt = tactile["time_s"]-torch.roll(tactile["time_s"],1,1)
+        if ((dt<=0)&pair_valid).any():
+            raise ValueError("Tactile timestamps must strictly increase within valid history")
+        dt = torch.where(pair_valid,dt,torch.ones_like(dt)).to(force.dtype)
+        velocity = (pos-torch.roll(pos,1,1))/dt[...,None,None]
+        delta = local-torch.roll(local,1,1)
+        velocity = torch.where(pair_valid[...,None,None],velocity,0.)
+        delta = torch.where(pair_valid[...,None,None],delta,0.)
+        norm = force.norm(dim=-1,keepdim=True)
+        contact = norm > self.threshold
+        previous = torch.roll(contact,1,1)
+        onset = contact & ~previous & pair_valid[...,None,None]
+        release = ~contact & previous & pair_valid[...,None,None]
+        signed_log = lambda x: x.sign()*torch.log1p(x.abs())
+        identity = self.finger_id(torch.arange(5,device=force.device))[None,None].expand(b,t,-1,-1)
+        features = torch.cat((signed_log(force),signed_log(local),pos,rot[...,:,:2].transpose(-1,-2).flatten(-2),
+                              velocity,signed_log(delta),torch.log1p(norm),contact.float(),onset.float(),release.float(),
+                              dt[...,None,None].expand(b,t,5,1),pair_valid[...,None,None].expand(b,t,5,1).float(),identity),-1)
+        features = self.spatial(torch.where(valid[...,None,None],features,0.))
+        hidden = force.new_zeros(b*5,32) if state is None else state["hidden"].reshape(b*5,32)
+        seen = torch.zeros(b,dtype=torch.bool,device=force.device) if state is None else state["seen"].bool()
+        start = 0 if state is None else 1
+        encoded_steps=[]
+        for i in range(t):
+            if i >= start:
+                m = valid[:,i,None].expand(b,5).reshape(b*5,1)
+                hidden = torch.where(m,self.per_finger(features[:,i].reshape(b*5,32),hidden),hidden)
+                seen = seen | valid[:,i]
+                encoded_i = self.fusion(hidden.reshape(b,5*32))
+                encoded_steps.append(torch.where(seen[:,None],encoded_i,0.))
+        if return_sequence:
+            result = torch.stack(encoded_steps,1) if encoded_steps else force.new_zeros(b,0,self.fusion[-1].normalized_shape[0])
+        else:
+            encoded = self.fusion(hidden.reshape(b,5*32))
+            result = torch.where(seen[:,None],encoded,0.)
+        # Carry the last actually valid physical sample.  A padded tail must
+        # never become the derivative reference for the next chunk.
+        last = torch.where(valid, torch.arange(t, device=force.device), -1).amax(1).clamp_min(0)
+        rows = torch.arange(b,device=force.device)
+        next_state = dict(hidden=hidden.reshape(b,5,32),seen=seen,
+                          previous={k:v[rows,last] for k,v in tactile.items()},
+                          previous_valid=valid[rows,last])
+        return (result,next_state) if return_state else result
+
+
+class TargetResidual(nn.Module):
+    """3e11d62 ResidualCorrection's 60Hz GRUs, adapted to H24 target radians.
+
+    The frozen current DP supplies its existing 512D visual readout instead of
+    the retired B0 frame encoder. Hidden sizes, contact gate, tanh residual and
+    equal arm/hand objective are retained; there is no 10Hz residual window.
+    """
+    version='target_residual_gru60_v1'
+
+    def __init__(self, statistics, scales):
+        super().__init__()
+        self.visual=nn.GRUCell(512,128)
+        self.tactile=FingerTactileEncoder()
+        self.intent=nn.GRUCell(29,64)
+        self.intent_memory=nn.GRUCell(64,64)
+        self.motion=nn.GRUCell(146,64)
+        self.policy=nn.Sequential(nn.Linear(320,256),nn.SiLU(),nn.Linear(256,128),nn.SiLU(),nn.Linear(128,29))
+        nn.init.zeros_(self.policy[-1].weight);nn.init.zeros_(self.policy[-1].bias)
+        for k in ('robot_mean','robot_std','action_scale','action_offset'):
+            self.register_buffer(k,statistics[k].detach().cpu().clone())
+        self.register_buffer('scales',torch.as_tensor(scales,dtype=torch.float32))
+
+    def forward(self, inputs, state=None, *, mask_force=False):
+        if set(inputs)!={'visual','robot','tactile','tactile_valid','plans','plan_valid','valid'}:
+            raise ValueError('Residual sensor/nominal allowlist differs')
+        state={} if state is None else state
+        robot=inputs['robot'];batch,steps=robot.shape[:2];valid=inputs['valid']
+        touch=inputs['tactile']
+        if mask_force:
+            touch={k:torch.zeros_like(v) if k in ('force_w_N','force_local_N') else v for k,v in touch.items()}
+        tactile,ts=self.tactile(touch,inputs['tactile_valid'],state.get('tactile'),return_state=True,return_sequence=True)
+        tactile=tactile[:,1::2]
+        plan=inputs['plans']*self.action_scale+self.action_offset
+        intent=robot.new_zeros(batch*steps,64)
+        for cursor in range(24):
+            intent=torch.where(inputs['plan_valid'][...,cursor].reshape(-1,1),
+                self.intent(plan[:,:,cursor].detach().reshape(-1,29),intent),intent)
+        intent=intent.reshape(batch,steps,64)
+        previous=torch.where(robot[...,176:177].bool(),robot[...,116:145]*self.action_scale+self.action_offset,0.)
+        motion=torch.cat(((robot[...,:58]-self.robot_mean[:58])/self.robot_std[:58],previous,
+            robot[...,176:177],robot[...,58:87]*self.action_scale+self.action_offset,robot[...,87:116]),-1)
+        def scan(cell,x,key,width):
+            h=state.get(key,x.new_zeros(batch,width));rows=[]
+            for t in range(steps):
+                h=torch.where(valid[:,t,None],cell(x[:,t],h),h);rows.append(h)
+            return torch.stack(rows,1),h
+        visual,vs=scan(self.visual,inputs['visual'],'visual',128)
+        intent,ins=scan(self.intent_memory,intent,'intent',64)
+        motion,ms=scan(self.motion,motion,'motion',64)
+        raw=self.policy(torch.cat((visual,tactile,intent,motion),-1))
+        return raw,dict(visual=vs,tactile=ts,intent=ins,motion=ms)
+
+    def compose(self, base, raw, contact, limits):
+        delta=self.scales*raw.tanh()
+        # Residual units are the existing train-only affine action coordinates.
+        # Inverse scale only: zero delta and noncontact preserve base bitwise.
+        proposal=base+delta/self.action_scale
+        proposal=torch.maximum(torch.minimum(proposal,limits[...,1]),limits[...,0])
+        return torch.where(contact[...,None],proposal,base),delta
+
+    def objective(self, action, target, delta, contact):
+        error=((action-target)*self.action_scale).square()
+        fit=.5*error[...,:7].mean(-1)+.5*error[...,7:].mean(-1)
+        penalty=.5*delta[...,:7].square().mean(-1)+.5*delta[...,7:].square().mean(-1)
+        return ((fit+1e-4*penalty)*contact).sum()/contact.sum().clamp_min(1)

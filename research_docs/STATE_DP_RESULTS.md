@@ -1,5 +1,48 @@
 # Tight-Insertion 当前结果
 
+<!-- RESIDUAL_PAIR_START -->
+
+
+
+## 2026-11-10 G01/G11：60Hz触觉残差
+
+
+
+后台状态：**PREPARED**，阶段 `acceptance_passed_pending_launch`；原因 `Two residual gates and16 existing interface tests passed; no formal training yet`。
+
+运行目录 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01`；源码 `None`；机器状态 `status.json`，完整结果 `result.json`。
+
+G01冻结G00选定EMA，G11冻结G10选定EMA；原G00/G10结果保留。两组相同残差结构、预算、开发种子。
+
+沿用3e11d62的60Hz GRU残差/0.1N观测接触门/Arm-Hand等权损失与1e-4残差正则/AdamW；适配当前H24绝对目标。
+
+基础DP仍5Hz/commit12；残差60Hz、触觉GRU120Hz、完整持续历史。当前冻结视觉512D读出替代已删除旧B0帧编码器。
+
+离线nominal为冻结EMA完整DDIM16真实预测；过去专家执行命令明确teacher forcing。闭环历史读取实际组合目标及执行反馈；G01基础策略可间接受残差影响。
+
+Core218（train166/validation30/test22），不加入Auxiliary、不使用test选模。训练最多9h/300接触tick等效遍历，200遍后才允许平台早停；这不是DP重规划anchor epoch。
+
+完整成功仅原生终止判据；稳定抓持是已有诊断，阶段进展不计完整成功；自主轨迹不作同tick动作标签误差。
+
+
+
+|组别|新增成功/有效|未运行|原生lift/首子目标/对准|冻结基础成功/有效|
+|---|---:|---:|---:|---:|
+|G01|0/0|10|0/0/0|0/10|
+|G11|0/0|10|0/0/0|0/10|
+
+
+G01：拒绝0、中断0、稳定抓持未测、超时0、fall0、dropped0；第二插入子目标0，原生完整任务0。
+
+
+G11：拒绝0、中断0、稳定抓持未测、超时0、fall0、dropped0；第二插入子目标0，原生完整任务0。
+
+
+未完成的训练、离线指标或闭环均未测；0/0不是成功率0%。没有自动重试、扩展评估或下一轮训练。
+
+<!-- RESIDUAL_PAIR_END -->
+
+
 <!-- VISUAL_PAIR_START -->
 ## 2026-11-10 G00/G10：测量完成，程序收尾失败
 

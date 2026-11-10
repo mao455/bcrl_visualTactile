@@ -191,7 +191,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             if saved['group']=='I-HistoryDP':
                 from .models.native_vision import NativeDinoSpatial
                 dino=NativeDinoSpatial().to('cuda:0').eval()
-            controller=NativeController(saved,metadata,dino=dino)
+            if saved.get('residual_version'):
+                from .native_controller import ResidualController
+                controller=ResidualController(saved,metadata,dino=dino)
+            else:controller=NativeController(saved,metadata,dino=dino)
         else:
             controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
     rows = []; plans = []; raw_plans = []; timings = []; first_success_tick = None
@@ -312,10 +315,13 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     force=take(transition['applied_wrench']['force_w_N']), torque=take(transition['applied_wrench']['torque_w_Nm']),
                     lifted=take(after['lifted_object']), subgoals=take(after['successes']),
                     retract=take(after['retract_succeeded']), alignment=take(transition['native_alignment_condition'])))
-                if inference is not None:
+                if inference is not None or (saved is not None and saved.get('residual_version')):
                     rows[-1]['palm']=take(after['palm_body_pose_w'])
                     rows[-1]['fingertip_distance']=np.linalg.norm(take(after['finger_position_w'])-
                         take(after['object_pose_w'])[:3],axis=-1).min()
+                if saved is not None and saved.get('residual_version'):
+                    rows[-1].update(nominal=take(controller.nominal),residual_normalized=take(controller.delta),
+                        residual_contact_gate=np.asarray(controller.contact_gate))
             if tick % 100 == 0:
                 atomic_json(output/'progress.json', dict(tick=tick, utc=time.time()))
             if first_success_tick is not None or bool((terminated | truncated)[0]):
@@ -349,6 +355,13 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             result['trajectory_retiming_is_not_state_retiming']=True
         if position:
             result['submitted_target_max_error']=float(np.abs(arrays['command']-arrays['target']).max())
+        if saved is not None and saved.get('residual_version'):
+            from .native_evaluation import stable_grasp
+            initial=json.loads((output/'initial_observable.json').read_text())
+            result['contact']=stable_grasp(arrays,float(initial['object_pose_w'][0][2]))
+            result['residual_hz']=60
+            result['residual_ticks']=len(rows)
+            result['contact_gate_ticks']=int(arrays['residual_contact_gate'].sum())
         if inference is not None:
             from .native_evaluation import stable_grasp
             initial=json.loads((output/'initial_observable.json').read_text())
