@@ -536,7 +536,9 @@ def trained_diagnostics(root):
             if live.get('live_collision_parity') and live.get('inventory',{}).get('cooked_hulls'):
                 from visuotactile.kinematics import HandCollisionGeometry
                 surface = HandCollisionGeometry(metadata, live['inventory'])
-                surface_options = read(Path(s['matrix_owner'])/'configuration.json')['method_matrix']['geometry_projection']
+                matrix_options=read(Path(s['matrix_owner'])/'configuration.json')['method_matrix']
+                surface_options=matrix_options.get('geometry_soft_options',matrix_options.get('geometry_projection',
+                    dict(penetration_tolerance_m=.001,contact_tolerance_m=.002)))
     rows=[];full_rows=[];summaries=[];completed=0;plans=0;ticks=0
     for split,ids in cohorts.items():
         if not set(ids)<=set(data['splits'][split]):raise ValueError('Fixed diagnostic cohort changed')
@@ -1047,7 +1049,7 @@ def matrix_publish(root, output):
     cfg, status = read(root/'configuration.json'), read(root/'status.json')
     if not cfg.get('method_matrix'):
         raise ValueError('Expected an explicitly registered method matrix')
-    if status.get('state') == 'RUNNING' and not status.get('owned_workers_exited'):
+    if status.get('owned_workers_exited') is False or status.get('state') == 'RUNNING' and not status.get('owned_workers_exited'):
         raise ValueError('Publish after the owner has stopped its workers')
     if root == output or root in output.parents:
         raise ValueError('Publication must not overwrite run evidence')
@@ -1110,6 +1112,13 @@ def matrix_publish(root, output):
         return [dict(stage=stage, model=group, target=target, prediction_kind=kind,
             **{k:r.get(k) for k in ('split','phase','group','motion')},
             **{k:number(r.get(k)) for k in numeric}) for r in rows]
+    def numeric_fields(value, prefix=''):
+        result={}
+        for key,item in value.items():
+            key=prefix+key
+            if isinstance(item,dict):result.update(numeric_fields(item,key+'.'))
+            elif isinstance(item,(int,float)):result[key]=int(item) if isinstance(item,bool) else number(item)
+        return result
 
     master = optional(root/'result.json', {})
     registration = optional(root/'preregistration.json', {})
@@ -1130,6 +1139,7 @@ def matrix_publish(root, output):
         stage_status = optional(node/'status.json', recorded.get('status',dict(state='UNMEASURED')))
         sc = optional(node/'configuration.json', {})
         ss = optional(node/'session.json', {})
+        reuse = optional(node/'reuse_manifest.json', {}) if stage=='command' else {}
         residual_stage = stage.endswith('_residual') or recorded.get('residual',False)
         v = ss.get('residual_pair' if residual_stage else 'vision_pair', sc.get('residual_pair' if residual_stage else 'vision_pair',{}))
         frozen = optional(node/'model_freeze.json', {}) if stage == 'formal_test' else {}
@@ -1139,22 +1149,29 @@ def matrix_publish(root, output):
         evaluation_plans[stage]=plan
         ids = [case['identity'] for case in plan]
         if len(ids) != len(set(ids)): raise ValueError('Duplicate registered evaluation identities in '+stage)
-        evaluate = stage != 'configuration' and v.get('evaluate',True)
+        evaluate = v.get('evaluate',True)
         stage_out = dict(status=stage_status, groups={}, declared_groups=groups,
             acceptance={name:optional(node/(name+'.json')) for name in ('vision_acceptance','residual_acceptance')},
             evaluation_plan_sha256=sha(node/'evaluation_plan.json') if plan else None,
-            cohort='formal_test' if stage == 'formal_test' else 'development')
+            cohort='historical_development_reused' if reuse else 'formal_test' if stage == 'formal_test' else 'development',
+            reuse_manifest=reuse or None,throughput_probe=optional(node/'throughput_probe.json'))
         for group in groups:
             d = node/group; recorded_group = recorded.get('groups',{}).get(group,{})
             finished = optional(d/'training/finished.json', recorded_group.get('training',{}))
+            historical_training = finished if reuse else None
+            if reuse:finished=dict(updates=0,stop_reason='existing_selected_EMA_reused',new_optimizer_updates=0)
             progress = optional(d/'training/progress.json', {})
             training_cfg = optional(d/'training/configuration.json', {})
             selected_receipt = optional(d/'training/selected.json', {})
             training_budget = optional(d/'training/budget.json', {})
+            adaptation_scope = optional(d/'training/adaptation_scope.json')
             offline = optional(d/'offline/result.json', recorded_group.get('offline',{}))
-            evaluation = optional(d/'evaluation_summary.json', recorded_group.get('evaluation',{}))
+            evaluation_root=(Path(reuse.get('evaluation_root',str(Path(reuse['source_root'])/'evaluation_resume_01')))/group) if reuse else d
+            evaluation = optional(evaluation_root/'evaluation_summary.json', recorded_group.get('evaluation',{}))
             failure = optional(d/'failure.json')
             auxiliary={name:optional(d/'offline'/(name+'.json')) for name in ('geometry_metrics','force_sensitivity')}
+            execution={name:optional(root/'queue'/group/(name+'.json')) for name in
+                ('status','node','throughput_probe','residual_acceptance','evaluation_process_reaped')}
             geometry_rows=csv_rows(d/'offline/geometry_rows.csv')
             if geometry_rows and stage != 'formal_test':
                 emit(stage+'_'+group+'_geometry.csv',geometry_rows)
@@ -1181,7 +1198,7 @@ def matrix_publish(root, output):
                     base_metrics = offline.get('base_metrics') or csv_rows(d/'offline/base_stage_errors.csv')
                     # Historical/current residual offline metrics explicitly compare base to u_expert.
                     error_rows += metric_rows(base_metrics,stage,group,'u_expert','nominal_against_command_not_configuration_fit')
-                validation = optional(d/'training/validation.json') if residual else lines(d/'training/validation.jsonl')
+                validation = [] if reuse else optional(d/'training/validation.json') if residual else lines(d/'training/validation.jsonl')
                 for r in validation or []:
                     for source,cohort in (('train','fixed_train2'),('validation','fixed_validation4')) if residual else (('train8','fixed_train2'),('metrics','fixed_validation4')):
                         metrics = r.get(source,{})
@@ -1192,7 +1209,15 @@ def matrix_publish(root, output):
                             hand_rmse_rad=number(metrics.get('hand_rmse_rad' if residual else 'hand_rmse')),
                             palm_rmse_mm=number(metrics.get('ee_distance_rmse_mm')),
                             selection_metric=number(metrics.get('normalized_equal_mse' if residual else 'selection_score'))))
-                updates = lines(d/'training'/('loss.jsonl' if residual else 'training.jsonl'))
+                updates = [] if reuse else lines(d/'training'/('loss.jsonl' if residual else 'training.jsonl'))
+                numeric_name=stage+'_'+group+'_updates.csv.gz'
+                if updates:
+                    import gzip
+                    numeric_updates=[numeric_fields(row) for row in updates]
+                    fields=list(dict.fromkeys(key for row in numeric_updates for key in row))
+                    with gzip.open(output/numeric_name,'wt',encoding='utf-8',newline='') as stream:
+                        writer=csv.DictWriter(stream,fieldnames=fields);writer.writeheader();writer.writerows(numeric_updates)
+                else:(output/numeric_name).unlink(missing_ok=True)
                 width = max(1, math.ceil(len(updates)/1000)); cumulative = 0
                 for offset in range(0,len(updates),width):
                     part=updates[offset:offset+width]
@@ -1204,13 +1229,13 @@ def matrix_publish(root, output):
                 for p in (d/'offline').glob('*.csv'): evidence(p)
             # Every registered case remains visible, even if it never started.
             summary_results = {r['identity']:r for r in evaluation.get('results',[])}
-            actual_ids = {p.name for p in (d/'evaluation').glob('*') if p.is_dir()}
+            actual_ids = {p.name for p in (evaluation_root/'evaluation').glob('*') if p.is_dir()}
             if set(summary_results)-set(ids) or actual_ids-set(ids):
                 if plan: issues.append(dict(stage=stage,group=group,problem='unregistered_trial_ids',identities=sorted((set(summary_results)|actual_ids)-set(ids))))
             cases = ids+sorted((set(summary_results)|actual_ids)-set(ids)) if evaluate else []
             measured = []
             for identity in cases:
-                trial = d/'evaluation'/identity
+                trial = evaluation_root/'evaluation'/identity
                 r = optional(trial/'result.json')
                 started = (trial/'started.json').is_file()
                 if started: evidence(trial/'started.json')
@@ -1252,6 +1277,7 @@ def matrix_publish(root, output):
             counts=dict(planned_attempts=len(ids) if evaluate and plan else None,attempts=attempted,valid=valid,
                 rejected=rejected,software_incomplete=incomplete,unstarted=sum(not r['attempted'] for r in counted),
                 unregistered_attempts=sum(r['attempted'] and r['registered'] is False for r in measured),
+                new_attempts=0 if reuse else attempted,historical_attempts=attempted if reuse else 0,
                 successes=successes,success_rate=successes/valid if valid else None,
                 declared_counts={k:evaluation.get(k) for k in ('attempts','valid','rejected','successes')},
                 evaluation_state='unmeasured' if not attempted else 'complete' if plan and attempted==len(ids) and incomplete==0 else 'partial',
@@ -1261,14 +1287,16 @@ def matrix_publish(root, output):
             for key in ('attempts','valid','successes'):
                 if evaluation.get(key) is not None and evaluation[key]!=counts[key]:
                     issues.append(dict(stage=stage,group=group,problem='declared_count_mismatch',field=key,declared=evaluation[key],verified=counts[key]))
-            row=dict(stage=stage,model=group,target=target,training_role='selected_model_reference' if stage=='formal_test' else 'trained_here',
+            row=dict(stage=stage,model=group,target=target,training_role='reused_selected_model' if reuse else 'selected_model_reference' if stage=='formal_test' else 'trained_here',
                 training_state=('stopped_before_target' if finished.get('target_reached') is False else 'complete') if finished else 'partial' if progress else 'unmeasured',
                 updates=finished.get('updates',progress.get('update')),exposure_unit=unit,
-                exposure=finished.get('control_tick_epochs') if residual else progress.get('anchor_equivalent_epochs'),
+                exposure=None if reuse else finished.get('control_tick_epochs') if residual else progress.get('anchor_equivalent_epochs'),
                 stop_reason=finished.get('stop_reason'),selection=finished.get('selection',training_cfg.get('selection',offline.get('selection'))),
                 selected_update=selected_receipt.get('update',offline.get('selected_update')),
                 selected_epoch=selected_receipt.get('epoch'),selection_receipt=selected_receipt,selected_checkpoint=selected,
-                training=finished,training_progress=progress,training_configuration=training_cfg,training_budget=training_budget,
+                training=finished,historical_training=historical_training,training_progress={} if reuse else progress,
+                historical_progress=progress if reuse else None,training_configuration=training_cfg,training_budget=training_budget,
+                warm_start=training_cfg.get('warm_start'),adaptation_scope=adaptation_scope,independent_execution=execution,
                 offline_state='complete' if offline.get('complete') else 'partial' if stage_metrics else 'unmeasured',
                 offline_target=target,closed_loop=counts,failure=failure,auxiliary_measurements=auxiliary)
             stage_out['groups'][group]=row
@@ -1290,7 +1318,7 @@ def matrix_publish(root, output):
                 if 'PhysX error:' in line:
                     count+=1;physx.append(dict(path=str(path),line=line_number,message=line.rstrip()))
         log_rows.append(dict(path=str(path),physx_error_lines=count,error_or_traceback_lines=errors))
-    root_receipts={name:optional(root/(name+'.json')) for name in ('physics_acceptance','geometry_acceptance','geometry_blocked','force_calibration_blocked','monitor_exit','owner_error','launch')}
+    root_receipts={name:optional(root/(name+'.json')) for name in ('physics_acceptance','geometry_acceptance','geometry_blocked','force_calibration_blocked','monitor_exit','owner_error','launch','execution_plan','concurrency_comparison','owned_cleanup','development_kit_owner')}
     gate_attempts={}
     for gate in sorted(root.glob('physics_gate*')):
         if not gate.is_dir(): continue
@@ -1411,6 +1439,7 @@ def matrix_commit_publication(root, output):
             'training_loss_intervals.csv','log_counts.csv','physx_errors.csv','video_index.csv','evaluation_plans.json',
             'source_artifacts.json','local_artifacts.json','artifacts.json','training_curves.png','offline_errors.png'}
         generated.update(stage+'_'+group+'_geometry.csv' for stage,row in summary['stages'].items() for group in row['groups'])
+        generated.update(stage+'_'+group+'_updates.csv' for stage,row in summary['stages'].items() for group in row['groups'])
         require(all(p.name.removesuffix('.gz') in generated for p in files), 'Unknown files are not generated matrix reports')
         total=0
         for path in files+[state_doc]:

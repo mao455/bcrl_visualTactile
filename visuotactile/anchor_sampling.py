@@ -83,7 +83,7 @@ def mask_totals(lengths,selected,geometry_commit=None):
     return totals if geometry_commit is None else totals+(sum(min(geometry_commit,x) for x in n),)
 
 
-def weighted_parts(parts,valid,totals,weights,geometry_commit=12):
+def weighted_parts(parts,valid,totals,weights,geometry_commit=12,global_hand_geometry=False):
     """Exactly the old global valid-target/pair means across microbatches.
 
     Weighting every microbatch equally is wrong at padded episode tails.
@@ -91,7 +91,8 @@ def weighted_parts(parts,valid,totals,weights,geometry_commit=12):
     """
     rows=valid.sum()/max(1,totals[0]);pairs=(valid[:,1:]&valid[:,:-1]).sum()/max(1,totals[1])
     geometry=valid[:,:geometry_commit].sum()/max(1,totals[2]) if len(totals)==3 else rows
-    contribution={k:v*(pairs if k=='temporal' else geometry if k in ('position','rotation') else rows) for k,v in parts.items()}
+    contribution={k:v*(1. if k=='hand_geometry' and global_hand_geometry else
+        pairs if k=='temporal' else geometry if k in ('position','rotation') else rows) for k,v in parts.items()}
     return contribution['base']+sum(weights[k]*contribution[k] for k in weights),contribution
 
 

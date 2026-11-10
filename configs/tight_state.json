@@ -275,17 +275,17 @@
   },
   "residual_pair": {
     "version": "target_residual_transformer60_v1",
-    "source_root": "outputs/visuotactile/run/tight_transformer_20261110_01/command",
+    "source_root": "outputs/visuotactile/run/tight_vision_20261109_01",
     "groups": [
       "G01",
       "G11"
     ],
     "initialization_seed": 2026110803,
     "cache_hours": 1.5,
-    "training_hours": 9,
+    "training_hours": null,
     "offline_hours": 1,
     "evaluation_hours": 1,
-    "maximum_hours": 12.5,
+    "maximum_hours": null,
     "resource_policy": "full_gpu_v1",
     "min_gpu_free_mib": 6144,
     "min_ram_gib": 14,
@@ -315,38 +315,35 @@
     "selection": "fixed validation4 all-tick normalized equal Arm/Hand MSE",
     "cache_definition": "actual frozen EMA DDIM16 seed7091 predictions; complete teacher-forced observation/past-command prefixes",
     "bases": {},
-    "stop_rule": "fixed200 full control-tick traversals; matched exposure; finite measured wall ceiling; no retries",
+    "stop_rule": "After >=50 complete native-tick traversals and last4 fixed validation gains<1%; maximum200 or sealed measured wall budget; report actual exposure",
     "gate": "all valid control ticks, no hard contact disabling",
     "previous_nominal": "separate strictly previous frozen DP output",
     "architecture": "Transformer d128 heads4 layers2 FF256 +past32+persistent GRUs; 756581 parameters",
     "maximum_control_tick_epochs": 200,
-    "minimum_control_tick_epochs": 200
+    "minimum_control_tick_epochs": 50,
+    "comparison_control_tick_epochs": [
+      50,
+      100,
+      150,
+      200
+    ]
   },
   "method_matrix": {
-    "version": "matched_supervision_transformer_v1",
+    "version": "frozen_frontends_reached_adaptation_soft_geometry_v1",
     "source_root": "outputs/visuotactile/run/tight_palm_20261108_01",
     "perception_root": "outputs/visuotactile/run/tight_vision_20261109_01",
-    "anchor_epochs": 200,
+    "anchor_epochs": 100,
     "control_tick_epochs": 200,
     "comparison_updates": [
-      8476,
-      16952
+      2119,
+      4238,
+      6357,
+      8476
     ],
     "acceptance_hours": 3,
-    "maximum_frontend_hours": 60,
-    "maximum_residual_pair_hours": 10,
-    "formal_test_hours": 4,
-    "maximum_hours": 144,
     "calibration_maximum_states": 6,
     "calibration_maximum_action_perturbations": 12,
     "calibration_maximum_minutes": 30,
-    "geometry_projection": {
-      "penetration_tolerance_m": 0.001,
-      "contact_tolerance_m": 0.002,
-      "local_radius_rad": 0.15,
-      "maximum_iterations": 30,
-      "maximum_rows": 2
-    },
     "internal_force_fallback": "block unless full contact/wrench/action-response calibration accepted; continue admitted geometry only",
     "groups": [
       "G00",
@@ -360,8 +357,30 @@
       "QG00",
       "QG01"
     ],
-    "formal_test22": true,
+    "formal_test22": false,
     "extra_ablation_runs": 0,
-    "budget_rule": "measured serial update wall * fixed matched updates * group count *1.35 +2h; never silently shorten exposure; stop if fixed ceiling cannot fit"
+    "budget_rule": "Independent finite node budgets sealed from actual same-configuration probes; expected timing is not an admission cap; validated checkpoint may be budget limited and exposure must be reported; no automatic multiday expansion",
+    "command_root": "outputs/visuotactile/run/tight_vision_20261109_01",
+    "q_data_root": "outputs/visuotactile/run/tight_transformer_20261110_01/configuration",
+    "maximum_updates": 8476,
+    "minimum_updates": 4238,
+    "validation_interval": 1000,
+    "probe_limit_updates": 8,
+    "minimum_control_tick_epochs": 50,
+    "comparison_control_tick_epochs": [
+      50,
+      100,
+      150,
+      200
+    ],
+    "geometry_soft": {
+      "loss_kind": "hand_surface_soft_hinge_v1",
+      "penetration_tolerance_m": 0.001,
+      "contact_tolerance_m": 0.002,
+      "maximum_rows_per_optimizer_update": 2,
+      "warmup_updates": 100,
+      "ramp_updates": 400
+    },
+    "initialization": "Q00/QG00 same existing G00 selected EMA, fresh q_reached statistics/optimizer/EMA schedule; G00/G10 zero updates"
   }
 }

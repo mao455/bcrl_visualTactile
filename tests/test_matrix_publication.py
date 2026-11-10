@@ -235,3 +235,33 @@ def test_unregistered_result_cannot_replace_missing_planned_case_or_change_rate(
     with (out/'closed_loop.csv').open() as f:rows=list(csv.DictReader(f))
     replacement=next(r for r in rows if r['identity']=='replacement')
     assert replacement['registered']=='False' and replacement['classification']=='valid'
+
+
+def test_reused_base_has_zero_new_updates_and_uses_completed_historical_cohort(tmp_path):
+    root,out,_=matrix(tmp_path);old=tmp_path/'old';resumed=old/'evaluation_resume_01'
+    rows=[trial(resumed,'A','case0'),trial(resumed,'A','case1')]
+    put(resumed/'A/evaluation_summary.json',dict(attempts=2,valid=2,rejected=0,successes=0,results=rows))
+    put(root/'command/reuse_manifest.json',dict(source_root=str(old),models={},new_training_updates=0,new_evaluation_attempts=0))
+    report=matrix_publish(root,out);group=report['stages']['command']['groups']['A']
+    assert group['updates']==0 and group['historical_training']['updates']==10
+    assert group['training_role']=='reused_selected_model' and group['exposure'] is None
+    assert group['closed_loop']['successes']==0 and group['closed_loop']['valid']==2
+    assert group['closed_loop']['new_attempts']==0 and group['closed_loop']['historical_attempts']==2
+    assert report['stages']['command']['cohort']=='historical_development_reused'
+    assert not (out/'command_A_updates.csv.gz').exists()
+
+
+def test_new_q_evaluation_and_numeric_update_components_are_exported(tmp_path):
+    import gzip
+    root,out,_=matrix(tmp_path);q=root/'configuration'
+    value=json.loads((q/'session.json').read_text());value['vision_pair']['evaluate']=True;put(q/'session.json',value)
+    trial(q,'Q00','case0',success=True);trial(q,'Q00','case1')
+    update=dict(update=10,loss=.03,anchor_equivalent_epochs=2,hand_geometry_seconds=.01,
+        hand_geometry_gain=.5,components=dict(base=.02,hand_geometry=.01),geometry_sampling=dict(selected_rows=2),
+        numerical_gradient_norm=1.2,note='non-numeric scope stays in indexed original')
+    (q/'Q00/training/training.jsonl').write_text(json.dumps(update)+'\n')
+    report=matrix_publish(root,out)
+    assert report['stages']['configuration']['groups']['Q00']['closed_loop']['valid']==2
+    with gzip.open(out/'configuration_Q00_updates.csv.gz','rt') as f:rows=list(csv.DictReader(f))
+    assert len(rows)==1 and rows[0]['geometry_sampling.selected_rows']=='2.0'
+    assert rows[0]['components.hand_geometry']=='0.01' and 'note' not in rows[0]

@@ -1,0 +1,133 @@
+{
+  "version": "independent_measured_reuse_queue_v1",
+  "accepted": true,
+  "max_parallel_jobs": 2,
+  "maximum_wall_seconds": 93600,
+  "absolute_deadline_utc": 1794394480.4580941,
+  "first_probe_utc": 1794300880.4580941,
+  "nodes": {
+    "G01": {
+      "kind": "residual",
+      "stage": "command_residual",
+      "depends_on": [],
+      "admitted": true,
+      "budget": {
+        "cache_s": 3600,
+        "gate_s": 1200,
+        "probe_s": 900,
+        "training_s": 10800,
+        "offline_s": 1800,
+        "evaluation_s": 2400
+      },
+      "estimate_margin": 1.35
+    },
+    "G11": {
+      "kind": "residual",
+      "stage": "command_residual",
+      "depends_on": [],
+      "admitted": true,
+      "budget": {
+        "cache_s": 3600,
+        "gate_s": 1200,
+        "probe_s": 900,
+        "training_s": 10800,
+        "offline_s": 1800,
+        "evaluation_s": 2400
+      },
+      "estimate_margin": 1.35
+    },
+    "Q00": {
+      "kind": "frontend",
+      "stage": "configuration",
+      "depends_on": [],
+      "admitted": true,
+      "budget": {
+        "cache_s": 0,
+        "gate_s": 0,
+        "probe_s": 0,
+        "training_s": 45000,
+        "offline_s": 1800,
+        "evaluation_s": 2400
+      },
+      "estimate_margin": 1.35
+    },
+    "QG00": {
+      "kind": "frontend",
+      "stage": "configuration",
+      "depends_on": [],
+      "admitted": true,
+      "budget": {
+        "cache_s": 0,
+        "gate_s": 0,
+        "probe_s": 0,
+        "training_s": 45000,
+        "offline_s": 1800,
+        "evaluation_s": 2400
+      },
+      "estimate_margin": 1.35
+    },
+    "Q01": {
+      "kind": "residual",
+      "stage": "configuration_residual",
+      "depends_on": [
+        "Q00"
+      ],
+      "admitted": true,
+      "budget": {
+        "cache_s": 3600,
+        "gate_s": 1200,
+        "probe_s": 900,
+        "training_s": 10800,
+        "offline_s": 1800,
+        "evaluation_s": 2400
+      },
+      "estimate_margin": 1.35
+    },
+    "QG01": {
+      "kind": "residual",
+      "stage": "configuration_residual",
+      "depends_on": [
+        "QG00"
+      ],
+      "admitted": true,
+      "budget": {
+        "cache_s": 3600,
+        "gate_s": 1200,
+        "probe_s": 900,
+        "training_s": 10800,
+        "offline_s": 1800,
+        "evaluation_s": 2400
+      },
+      "estimate_margin": 1.35
+    }
+  },
+  "physics_acceptance_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/acceptance.json",
+  "protected_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02/configuration/throughput_probe.json": "a0cdbacd8679a244897a09fbf40f0d66e9960d9a00214732a321cd4a87eb2414",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02/configuration/vision_acceptance.json": "3bfe5267338ddcf3b54789bb8f7d93540614edc97f7e41e3d4a23d06848a489c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02/geometry_acceptance.json": "10ff0ce6d568176a2d2364645f90aa1eb11ef5cf81757b75ffc3fbf1e8d8a50e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02/command/reuse_manifest.json": "3f44c621380e8de467e7c111eabf7d278283cf6e756998636fd44fc7ab7a9b59"
+  },
+  "timing_basis": {
+    "frontend_single_group_compute_hours": {
+      "Q00": 8.545454594735745,
+      "QG00": 8.52088768592587
+    },
+    "frontend_two_group_serial_compute_hours": 17.066342280661615,
+    "frontend_parallel_wall": "Measured online parallel/serial windows select concurrency; no divide-by-two promise",
+    "residual_training": "3h allocation per new branch is a finite ceiling, not an expected duration or maximum-exposure admission gate; real complete-four-episode probe records min/max exposure time before optimizing",
+    "cache": "196 real frozen predictions per base; missing only; <=1h per branch including waits",
+    "diagnostics": "<=30min offline and <=40min development including single-Kit lock wait per group",
+    "overall": "26h from first new-run probe including preparation/waits; independent branch failures do not extend it; measured abnormal costs block only that branch; no automatic multiday extension"
+  },
+  "goals": {
+    "frontend_maximum_new_q_anchor_epochs": 100,
+    "frontend_minimum_for_plateau": 50,
+    "residual_maximum_control_tick_epochs": 200,
+    "residual_minimum_for_plateau": 50,
+    "test22_used": false,
+    "development_per_new_group": 10
+  },
+  "source_head": null,
+  "created_utc": 1794302053.9094114
+}

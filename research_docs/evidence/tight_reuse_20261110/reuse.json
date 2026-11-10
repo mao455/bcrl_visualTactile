@@ -1,0 +1,286 @@
+{
+  "scope": "Read-only historical checkpoint/cache/reuse audit; implemented CPU warm-start helper; no GPU/Kit/optimizer update",
+  "source_head": "f352ac8",
+  "models": {
+    "G00": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/G00/training/best.pt",
+      "sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452",
+      "size_bytes": 1164658007,
+      "selected_ema_updates": 10132,
+      "recorded_update_rows": 10132,
+      "new_updates_authorized": 0,
+      "sampled_anchors": 560646,
+      "anchor_population": 4690,
+      "anchor_equivalent_epochs": 119.5407249466951,
+      "first_completed_update_time": "2026-11-09T16:14:02.646772+08:00",
+      "last_completed_update_time": "2026-11-10T01:03:57.172401+08:00",
+      "finished_receipt_time": "2026-11-10T01:04:30.343511+08:00",
+      "stop_reason": "fixed_wall_budget",
+      "target_reached": false,
+      "resource_wait_s": 127.09955742279999,
+      "legacy_contract_preserved": true,
+      "original_status_preserved": "FAILED"
+    },
+    "G10": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/G10/training/best.pt",
+      "sha256": "5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b",
+      "size_bytes": 1165501501,
+      "selected_ema_updates": 6929,
+      "recorded_update_rows": 6929,
+      "new_updates_authorized": 0,
+      "sampled_anchors": 383422,
+      "anchor_population": 4690,
+      "anchor_equivalent_epochs": 81.75309168443496,
+      "first_completed_update_time": "2026-11-09T16:14:03.578003+08:00",
+      "last_completed_update_time": "2026-11-10T01:03:56.254553+08:00",
+      "finished_receipt_time": "2026-11-10T01:04:30.236817+08:00",
+      "stop_reason": "fixed_wall_budget",
+      "target_reached": false,
+      "resource_wait_s": 198.39298610575497,
+      "legacy_contract_preserved": true,
+      "original_status_preserved": "FAILED"
+    }
+  },
+  "historical_nine_hour_budget": {
+    "shared_training_stage_hours": 9,
+    "owner_training_start_derived_from_deadline": "2026-11-09T16:13:54.512630+08:00",
+    "owner_deadline": "2026-11-10T01:13:54.512630+08:00",
+    "owner_stage_to_last_finished_s": 31835.8308801651,
+    "meaning": "Same nine-hour shared stage wall window, concurrent workers with unequal achieved exposure; not nine hours of dedicated GPU compute each; timestamps above distinguish first/last completed updates and final receipts",
+    "all_session_start": "2026-11-09T16:11:48.233142+08:00",
+    "selected_ema_steps": {
+      "G00": 10132,
+      "G10": 6929
+    }
+  },
+  "dino_cache": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/state_data/perception",
+    "index_sha256": "eda7fc71888917b514c3b86495aab80f08a8f84ce361a99bdbed325449a8dfde",
+    "entries": 196,
+    "train": 166,
+    "validation": 30,
+    "test": 0,
+    "all_files_present": true,
+    "all_196_payload_sha256_verified": true,
+    "sha_mismatches": 0,
+    "total_payload_bytes": 7415135492,
+    "source_episode_sha_matches": true,
+    "exact_train_validation_population": true,
+    "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+    "dino_sha256": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9",
+    "cameras": [
+      "fixed_high",
+      "fixed_side",
+      "wrist_rgbd"
+    ],
+    "resolution": [
+      448,
+      252
+    ],
+    "stride": 12,
+    "patches_shape_per_anchor": [
+      3,
+      384,
+      18,
+      32
+    ],
+    "depth_shape_per_anchor": [
+      3,
+      2,
+      18,
+      32
+    ],
+    "feature_dtype": "float16",
+    "camera_time_dtype": "float64",
+    "direct_reuse_conditions": [
+      "same source capture SHA and episode identity",
+      "same camera order/resolution/acquisition timestamps and validity",
+      "same pinned DINO revision and weight SHA",
+      "same deterministic depth grid, stride12 and no augmentation",
+      "no learned projection in cache",
+      "verify payload SHA then bind a new index to the new data manifest without changing original index"
+    ],
+    "target_change_effect": "q_reached labels/statistics do not alter frozen RGB/depth features; no recollection or DINO regeneration needed"
+  },
+  "nominal_caches": {
+    "G01": {
+      "training": {
+        "stop_reason": "validation_plateau_after_minimum_exposure",
+        "updates": 98610,
+        "contact_anchor_epochs": 200.0,
+        "sampled_contact_anchors": 7620800,
+        "contact_anchor_population": 38104,
+        "control_ticks": 11078400,
+        "control_equivalent_epochs": 200.0,
+        "wall_s": 4069.573436498642,
+        "wait_s": 24.234237113269046,
+        "work_s": 4028.2932001678273,
+        "selection": "fixed validation4 contact normalized equal Arm/Hand MSE",
+        "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G01/training/last.pt",
+        "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G01/training/best.pt",
+        "utc": 1794282021.9632351,
+        "base_optimizer_updates": 0
+      },
+      "nominal_directory": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G01/nominal",
+      "indexed_episodes": 196,
+      "present_prediction_payloads": 0,
+      "retained_index_sha256": "e4f96dd2d6e03b0379160ca613e81e4e3f78d5d0a2ca783410395bfd52aea32b",
+      "base_sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452",
+      "data_sha256": "0af8c0ea45056d472040be2bc3d6f6b9d4064749f80cc94f08aee2fbad6dbbd4"
+    },
+    "G11": {
+      "training": {
+        "stop_reason": "validation_plateau_after_minimum_exposure",
+        "updates": 98610,
+        "contact_anchor_epochs": 200.0,
+        "sampled_contact_anchors": 7620800,
+        "contact_anchor_population": 38104,
+        "control_ticks": 11078400,
+        "control_equivalent_epochs": 200.0,
+        "wall_s": 4062.563470363617,
+        "wait_s": 29.66361298155971,
+        "work_s": 4014.8268118132837,
+        "selection": "fixed validation4 contact normalized equal Arm/Hand MSE",
+        "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G11/training/last.pt",
+        "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G11/training/best.pt",
+        "utc": 1794282014.97925,
+        "base_optimizer_updates": 0
+      },
+      "nominal_directory": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_residual_20261110_01/G11/nominal",
+      "indexed_episodes": 196,
+      "present_prediction_payloads": 0,
+      "retained_index_sha256": "1635d2ab57181ddb26568e6b24df0432b0e12e30b1ee680ba951a4b806a5ebf4",
+      "base_sha256": "5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b",
+      "data_sha256": "0af8c0ea45056d472040be2bc3d6f6b9d4064749f80cc94f08aee2fbad6dbbd4"
+    }
+  },
+  "nominal_reuse_conditions": [
+    "exact frozen selected base checkpoint SHA and inference contract",
+    "exact source episode observations and strict-past executed history",
+    "exact base normalization",
+    "DDIM16 sample seed7091, H24,commit12,120/60Hz",
+    "matching clipping/FK/input preprocessing code and current remaining-plan/cursor/previous-nominal fields",
+    "new residual common u_expert normalization identity and amplitude bindings"
+  ],
+  "nominal_action": "Old 392 payloads were deleted in the previous authorized cleanup; index alone is insufficient. Regenerate frozen DDIM predictions for new backend; Q/QG require their actually adapted selected checkpoints.",
+  "warm_start": {
+    "helper": "visuotactile.state_history.load_image_warm_start(saved, action_contract, statistics)",
+    "source": "old G00 best EMA",
+    "source_updates": 10132,
+    "new_optimizer_updates": 0,
+    "learned_tensors_reused": 188,
+    "learned_parameters_reused": 72770109,
+    "denoiser": "ConditionalUnet1D",
+    "new_modules": [],
+    "replaced_normalizers": [
+      "robot_mean",
+      "robot_std",
+      "action_scale",
+      "action_offset"
+    ],
+    "numerically_changed_normalizers": [
+      "action_scale",
+      "action_offset"
+    ],
+    "other_preserved_buffers": [
+      "geometry_mean",
+      "geometry_std",
+      "vision.coordinates"
+    ],
+    "Q00_QG00_initial_states_identical": true,
+    "fresh_optimizer_ema_sampler_and_schedule": true,
+    "old_checkpoint_is_completed_q_policy": false,
+    "cpu_test": {
+      "command": "bash visuotactile/run_cpu.sh -m pytest -q tests/test_image_warm_start.py",
+      "passed": 6,
+      "finite_real_q_label_unet_loss_and_gradient": true,
+      "synthetic_condition": true,
+      "real_train_source_read": 1,
+      "test_source_reads": 0,
+      "optimizer_steps": 0
+    }
+  },
+  "residual_contract_difference": {
+    "old": {
+      "architecture": "GRU",
+      "hard_contact_gate": true,
+      "loss": "contact ticks only",
+      "selection": "fixed validation4 contact equal Arm/Hand normalized MSE",
+      "exposure": "200 complete control-tick passes but only38104/55392 ticks contribute fit; 98610 updates per group"
+    },
+    "new": {
+      "architecture": "Transformer plan/causal feedback with persistent GRUs",
+      "hard_contact_gate": false,
+      "loss": "all valid native ticks including noncontact",
+      "selection": "fixed validation4 all-tick equal Arm/Hand normalized MSE",
+      "normalization": "common u_expert_train166_affine_v1",
+      "exposure": "Finite measured node budget and validation schedule; latest user correction removes mandatory 200-epoch admission; report actual updates and tick exposure separately",
+      "recovery_supervision": false,
+      "recovery_capability_demonstrated": false
+    }
+  },
+  "cleanup_candidates": [
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01/command/common_initial.pt",
+      "size_bytes": 291163456,
+      "sha256": "f7c252e1193bb21081cb49d9df360c3849c176a64a47cad10d86169ebc935fca",
+      "retained_reconstruction_source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/common_initial.pt",
+      "retained_source_sha256": "f7c252e1193bb21081cb49d9df360c3849c176a64a47cad10d86169ebc935fca",
+      "byte_identical_to_retained_source": true,
+      "tensor_difference_from_retained_source": [],
+      "reconstruction": "Copy retained common_initial.pt bytewise",
+      "learned_parameters_identical_to_retained_source": true,
+      "new_q_training_initialization_source": "old G00 selected EMA, not this random initialization",
+      "dependency_at_audit": "No active corrected command training consumer; old failed reports retain hash",
+      "candidate_only": true,
+      "deleted": true,
+      "dependency_at_cleanup": "No current formal or gate runtime dependency after explicit warm-start branch fixes",
+      "cleanup_receipt": "cleanup.json"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01/configuration/common_initial.pt",
+      "size_bytes": 291163456,
+      "sha256": "f8f07604e9e796f4d3db5f7efa7b03786ec816cc2a5a0e8e7d207d926f01b666",
+      "retained_reconstruction_source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/common_initial.pt",
+      "retained_source_sha256": "f7c252e1193bb21081cb49d9df360c3849c176a64a47cad10d86169ebc935fca",
+      "byte_identical_to_retained_source": false,
+      "tensor_difference_from_retained_source": [
+        "action_scale",
+        "action_offset"
+      ],
+      "reconstruction": "Load retained common_initial state; replace only action_scale/action_offset from failed configuration/state_data/statistics.pt; tensor state reconstructable, serialized SHA not guaranteed",
+      "learned_parameters_identical_to_retained_source": true,
+      "new_q_training_initialization_source": "old G00 selected EMA, not this random initialization",
+      "dependency_at_audit": "Current in-progress root integration still symlinks this file, fresh() loads it before warm_start and hashes shared_initial_sha256; preserve until those unnecessary runtime dependencies are removed",
+      "candidate_only": true,
+      "deleted": true,
+      "dependency_at_cleanup": "No current formal or gate runtime dependency after explicit warm-start branch fixes",
+      "cleanup_receipt": "cleanup.json"
+    }
+  ],
+  "other_disposable_checkpoint_inventory": {
+    "scope": "Existing tight* run directories; paths containing smoke/probe/throughput/gate_",
+    "found": 0
+  },
+  "cleanup_this_audit": {
+    "deleted_files": 3,
+    "deleted_regular_files": 2,
+    "deleted_symlinks": 1,
+    "released_allocated_bytes": 582336512,
+    "prior398_files_excluded": true,
+    "receipt": "cleanup.json"
+  },
+  "protections": [
+    "original400",
+    "Core218",
+    "all selected best/last checkpoints",
+    "failed logs/numeric data/receipts",
+    "source copies unchanged"
+  ],
+  "current_random_initial_dependencies": {
+    "formal_training": [],
+    "acceptance_gate": [],
+    "stale_symlink_removed": true,
+    "reconstruction_verified": true
+  }
+}

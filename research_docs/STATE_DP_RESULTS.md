@@ -1,20 +1,22 @@
 <!-- METHOD_MATRIX_START -->
 
-## 2026-11-10 Transformer 与实际配置监督匹配实验
+## 2026-11-10 复用 U-Net 基础与实际配置适配实验
 
-机器状态 **FAILED** / `stopped`；源码 `af3e3bb49ad40609ee9d2adc4501f78cace8c27e`；运行 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01`。
-G00/G10从共同初始化重新训练；G01/G11冻结本轮基础。Q00/Q01改用实际配置q_reached前端及命令u_expert残差；QG只在真实碰撞投影准入后启用。
-固定train166/validation30；前端200规划anchor等效遍历、残差200完整控制tick遍历，两者不等价。固定validation4选模；10个开发spec沿用。
+机器状态 **PREPARED** / `measured_execution_plan_pending`；源码 `提交后冻结`；运行 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02`。
+G00/G10直接复用既有 best EMA 与开发记录，本轮基础更新和基础评估均为0。Q00/QG00保留U-Net，共用旧G00 EMA热启动，使用q_reached新统计与新优化器；G/Q残差各自独立依赖。
+固定train166/validation30与validation4选模。Q本轮有界适配最多100新q规划anchor遍历、50遍后可按验证平台停止；旧u训练曝光不相加。残差最多200/至少50完整控制tick遍历后平台停止，旧200接触tick遍历不能直接等同。每新后端10开发spec；test22不自动运行。
 Transformer残差约75.7万参数，2层/128维/4头/FF256，当前有效H24计划与游标、独立上一名义输出、严格过去执行反馈、当前已采集触觉；持续GRU加32tick显式历史。失触不强制归零，全部valid tick监督。
 未完成指标为未测；旧G11首次成功及原0/10、1/10独立保留。本轮无滑移/受阻恢复新监督，不声称已具备恢复能力。
 
-几何固定投影验收：6/6；内力BLOCKED，未启用。SDK重建与无接触现场查询不证明完整接触力学等价。
+几何软表面损失验收：True；几何阻塞只影响QG分支。内力模型BLOCKED，未启用；不声称完整接触力学等价。
 [实现差异与完整合同](CONTRACTS.md) · [几何验收与全部工程尝试](evidence/tight_refactor_20261110/geometry_acceptance_summary.json) · [清理清单](CLEANUP_AUDIT.md)
 
-|阶段（开发/正式分列）|组|实际更新|停止原因|原生完整成功/有效|
+|阶段（本轮开发）|组|本轮更新 / 历史更新|停止原因|原生完整成功/有效|
 |---|---|---:|---|---:|
+|command|G00|0 / 10132|existing_selected_EMA_reused|0/10|
+|command|G10|0 / 6929|existing_selected_EMA_reused|0/10|
 
-实际预算与原始指标：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01/budget.json`、`result.json`及各组training/offline/evaluation；没有把启动或验收当成训练完成。
+实际预算与原始指标：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02/budget.json`、`result.json`及各组training/offline/evaluation；没有把启动或验收当成训练完成。
 <!-- METHOD_MATRIX_END -->
 
 

@@ -6,7 +6,8 @@ import h5py
 import pytest
 import torch
 
-from visuotactile.state_image_loss import GeometryObjective, HandGeometryProjection, geometry_loss_context
+from visuotactile.state_image_loss import (GeometryObjective, HandGeometryProjection, HandGeometrySoftLoss,
+    geometry_loss_context, geometry_soft_acceptance, calibrate_geometry_update, DIRECT_HAND_GEOMETRY_ID, PALM_LOSS_ID)
 
 
 @pytest.fixture(scope='module')
@@ -128,6 +129,183 @@ def test_projection_does_not_depend_on_outer_autograd_mode(recorded):
         validation, validation_report = objective.project(predicted, **arguments)
     assert ordinary_report['feasible'] == validation_report['feasible'] == 1
     assert torch.equal(ordinary, validation)
+
+
+@pytest.fixture(scope='module')
+def direct_geometry(recorded):
+    metadata, _, _, q, context = recorded
+    root = Path('outputs/visuotactile/run/tight_transformer_20261110_01')
+    report_path = root/'physics_gate_meshfix/geometry_live.json'
+    if not report_path.exists():
+        pytest.skip('Accepted same-SDK collision representation is local')
+    live = json.loads(report_path.read_text())
+    acceptance = geometry_soft_acceptance(root/'configuration/state_data/data.json', live)
+    assert acceptance['passed']
+    objective = GeometryObjective(metadata, mode=PALM_LOSS_ID)
+    objective.enable_hand_geometry(live['inventory'], acceptance, loss_kind=DIRECT_HAND_GEOMETRY_ID)
+    objective.weights['hand_geometry'] = acceptance['hand_geometry_weight']
+    return objective, q, context, acceptance
+
+
+def test_direct_geometry_new_scale_contact_effect_and_arm_detach(direct_geometry):
+    objective, q, context, acceptance = direct_geometry
+    assert acceptance['loss_identity'] == DIRECT_HAND_GEOMETRY_ID
+    assert acceptance['effective_geometry_rows'] == 4
+    assert acceptance['effective_contact_attraction_rows'] == 2
+    assert acceptance['solver_calls'] == 0 and acceptance['dropped'] == 0
+    assert 0 < acceptance['hand_geometry_weight'] < .001  # New units, not projection's old rad² weight.
+    assert all(row['weighted_gradient_fraction'] <= .050000001 for row in acceptance['rows'])
+    assert all(row['arm_geometry_gradient_norm'] == 0 for row in acceptance['rows'])
+    contact = [row for row in acceptance['rows'] if row['contact_loss']>0]
+    assert all(row['hand_geometry_gradient_norm']>0 and row['descent_contact_loss']<row['contact_loss'] for row in contact)
+    predicted = q[183:184].clone(); predicted[:, 7:] -= .08; predicted.requires_grad_()
+    arguments = {k:context[k][183:184] for k in ('object_pose_base', 'contact_mask', 'stage')}
+    loss, report = objective.hand_geometry.loss(predicted, **arguments)
+    gradient = torch.autograd.grad(loss, predicted)[0]
+    assert gradient[:, :7].abs().sum()==0
+    assert report['rows'][0]['penetration_loss']==0
+    assert report['rows'][0]['contact_hand_gradient_norm_per_rad']==pytest.approx(float(gradient[:, 7:].norm()))
+    joint = 7+int(gradient[:, 7:].abs().argmax())
+    delta = torch.zeros_like(predicted); delta[:, joint] = 1e-5
+    high, _ = objective.hand_geometry.loss(predicted+delta, **arguments)
+    low, _ = objective.hand_geometry.loss(predicted-delta, **arguments)
+    assert torch.allclose((high-low)/2e-5, gradient[0, joint], atol=1e-5, rtol=1e-4)
+
+
+def test_direct_loss_keeps_difficult_contact_without_local_solver(direct_geometry, monkeypatch):
+    import scipy.optimize
+    objective, q, context, _ = direct_geometry
+    def forbidden(*args, **kwargs):
+        raise AssertionError('SLSQP must never run in the direct loss')
+    monkeypatch.setattr(scipy.optimize, 'minimize', forbidden)
+    predicted = q[183:184].clone(); predicted[:, 7:] -= .5; predicted.requires_grad_()
+    loss, report = objective.hand_geometry.loss(predicted,
+        **{k:context[k][183:184] for k in ('object_pose_base', 'contact_mask', 'stage')})
+    assert report['included']==report['attempted']==1 and report['dropped']==report['solver_calls']==0
+    assert report['rows'][0]['contact_loss']>0
+    gradient = torch.autograd.grad(loss, predicted)[0]
+    assert torch.isfinite(gradient).all() and gradient[:, 7:].norm()>0 and gradient[:, :7].norm()==0
+
+
+def test_direct_approach_release_no_attraction(direct_geometry):
+    objective, q, context, _ = direct_geometry
+    pose = context['object_pose_base'][:1].clone(); pose[:, :3] += 2.
+    for phase in (0, 2):
+        predicted = q[:1].clone().requires_grad_()
+        loss, report = objective.hand_geometry.loss(predicted, pose, torch.zeros(1, 5, dtype=torch.bool), torch.tensor([phase]))
+        assert loss==0 and report['rows'][0]['contact_loss']==0
+        assert torch.autograd.grad(loss, predicted)[0].abs().sum()==0
+
+
+def test_direct_complete_update_microbatch_sum_and_padding_equivalent(direct_geometry):
+    from visuotactile.anchor_sampling import weighted_parts
+    objective, q, source, _ = direct_geometry
+    command = q[183].expand(3, 24, 29).clone().float()
+    prediction = command.clone(); prediction[..., 7:] -= .08; prediction.requires_grad_()
+    valid = torch.arange(24)[None]<torch.tensor([24, 5, 17])[:, None]
+    context = {k:source[k][183].expand(3, 24, *source[k].shape[1:]).clone() for k in ('object_pose_base', 'contact_mask', 'stage')}
+    context['selected_mask'] = torch.zeros(3, 24, dtype=torch.bool)
+    context['selected_mask'][0, 3] = True; context['selected_mask'][2, 8] = True
+    context['stage'][2] = 0; context['contact_mask'][2] = False
+    context['update_selected_count'] = 2
+    scale, offset = torch.ones(29), torch.zeros(29)
+    full = objective.components(prediction, command, valid, scale, offset, context)['hand_geometry']
+    expected = torch.autograd.grad(full, prediction, retain_graph=True)[0]
+    accumulated = 0.
+    for sl in (slice(0, 1), slice(1, 3)):
+        subcontext = {k:v[sl] if torch.is_tensor(v) else v for k,v in context.items()}
+        parts = objective.components(prediction[sl], command[sl], valid[sl], scale, offset, subcontext)
+        totals = (int(valid.sum()), int((valid[:, 1:]&valid[:, :-1]).sum()), int(valid[:, :12].sum()))
+        _, scaled = weighted_parts(parts, valid[sl], totals, {'hand_geometry':1.}, global_hand_geometry=True)
+        accumulated += scaled['hand_geometry']
+    actual = torch.autograd.grad(accumulated, prediction)[0]
+    assert torch.allclose(full, accumulated, atol=1e-7)
+    assert torch.allclose(expected, actual, atol=1e-6, rtol=1e-5)
+    assert actual[~context['selected_mask']].abs().sum()==0 and actual[..., :7].abs().sum()==0
+
+
+def test_direct_warmup_and_unselected_microbatch_skip_distance_work(direct_geometry, monkeypatch):
+    from visuotactile.anchor_continue import projection_batch
+    objective, q, _, _ = direct_geometry
+    def forbidden(*args, **kwargs):
+        raise AssertionError('Inactive geometry must not evaluate collision distance')
+    monkeypatch.setattr(objective.hand_geometry.geometry, 'distances', forbidden)
+    assert projection_batch(objective, [('unused', 0)], 'cpu', active=False)=={'active':False}
+    command = q[:1, None].expand(1, 24, 29).float()
+    prediction = command.clone().requires_grad_()
+    valid = torch.ones(1, 24, dtype=torch.bool)
+    for context in ({'active':False}, {'selected_mask':torch.zeros_like(valid), 'update_selected_count':2}):
+        value = objective.components(prediction, command, valid, torch.ones(29), torch.zeros(29), context)['hand_geometry']
+        assert value==0 and objective.last_geometry_metrics['attempted']==0
+        assert objective.last_geometry_metrics['elapsed_s']==0
+    monkeypatch.setattr(objective, 'gain', 0.)
+    value = objective.components(prediction, command, valid, torch.ones(29), torch.zeros(29), {})['hand_geometry']
+    assert value==0 and objective.last_geometry_metrics['attempted']==0
+
+
+def test_complete_update_sampling_stratifies_without_advancing_model_rng(direct_geometry):
+    from types import SimpleNamespace
+    from visuotactile.anchor_continue import geometry_selection
+    _, q, context, _ = direct_geometry
+    objective = SimpleNamespace(loss_context={'recorded':context})
+    selected = [('recorded',0), ('recorded',len(q)//2), ('recorded',len(q)-1)]
+    state = torch.get_rng_state().clone()
+    mask, report = geometry_selection(objective, selected, {'recorded':len(q)}, 417)
+    repeated, _ = geometry_selection(objective, selected, {'recorded':len(q)}, 417)
+    assert torch.equal(torch.get_rng_state(), state) and torch.equal(mask, repeated)
+    assert mask.sum()==2 and report['selected_count']==2 and report['selected_contact_count']==1
+    assert not mask[:, 12:].any() and not mask[-1, 1:].any()
+
+
+@pytest.fixture
+def complete_update_calibration_progress():
+    root = Path('outputs/visuotactile/run/tight_transformer_20261110_02/configuration/geometry_update_calibration')
+    if not (root/'training.jsonl').exists():
+        pytest.skip('One actual train-only complete-update calibration receipt is local')
+    configuration = json.loads((root/'configuration.json').read_text())
+    assert configuration['disposable'] is True
+    rows = [json.loads(line) for line in (root/'training.jsonl').read_text().splitlines()]
+    assert len(rows)==1
+    return dict(rows[0], disposable=configuration['disposable'])
+
+
+def test_complete_update_scale_corrects_normalization_without_mutating_evidence(direct_geometry, complete_update_calibration_progress):
+    _, _, _, initial = direct_geometry
+    before = json.dumps(initial, sort_keys=True)
+    updated = calibrate_geometry_update(initial, complete_update_calibration_progress)
+    calibration = updated['complete_update_calibration']
+    assert json.dumps(initial, sort_keys=True)==before
+    assert calibration['initial_weighted_gradient_ratio']==pytest.approx(6.12211195, rel=1e-7)
+    assert calibration['final_weighted_gradient_ratio']==pytest.approx(.2)
+    assert 0 < updated['hand_geometry_weight'] < updated['initial_hand_geometry_weight']
+    assert all(row['weighted_gradient_fraction']<=.050000001 for row in updated['rows'])
+    assert calibration['final_weighted_loss_fraction']<.001
+    with pytest.raises(ValueError, match='once-only'):
+        calibrate_geometry_update(updated, complete_update_calibration_progress)
+
+
+@pytest.mark.parametrize('field,value,match', [
+    ('base_full_update_output_hand_gradient_norm', None, 'Finite'),
+    ('geometry_full_update_output_hand_gradient_norm', 0., 'Positive'),
+    ('disposable', False, 'disposable'),
+    ('formal_updates', 1, 'formal updates'),
+    ('geometry_solver_calls', 1, 'solver calls')])
+def test_complete_update_scale_rejects_missing_or_invalid_measurement(direct_geometry, complete_update_calibration_progress, field, value, match):
+    _, _, _, initial = direct_geometry
+    complete_update_calibration_progress[field] = value
+    with pytest.raises(ValueError, match=match):
+        calibrate_geometry_update(initial, complete_update_calibration_progress)
+
+
+def test_complete_update_scale_rejects_extra_arm_or_incomplete_gradient_sum(direct_geometry, complete_update_calibration_progress):
+    _, _, _, initial = direct_geometry
+    complete_update_calibration_progress['geometry_probe_gradients'][0]['arm_norm'] = 1e-12
+    with pytest.raises(ValueError, match='arm gradient'):
+        calibrate_geometry_update(initial, complete_update_calibration_progress)
+    complete_update_calibration_progress['geometry_probe_gradients'][0]['arm_norm'] = 0.
+    complete_update_calibration_progress['geometry_full_update_output_hand_gradient_norm'] *= 2.
+    with pytest.raises(ValueError, match='reconstruct'):
+        calibrate_geometry_update(initial, complete_update_calibration_progress)
 
 
 @pytest.mark.parametrize('status,count,callback,expected', [

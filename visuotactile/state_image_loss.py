@@ -10,6 +10,7 @@ from .kinematics import EncoderKinematics, FINGERS, HandCollisionGeometry
 
 LOSS_ID = 'position_geometry_sample_v1'
 PALM_LOSS_ID = 'palm_command_sample_commit12'
+DIRECT_HAND_GEOMETRY_ID = 'hand_surface_soft_hinge_v1'
 COMPONENTS = ('position', 'rotation', 'fingertip', 'temporal')
 
 
@@ -35,21 +36,28 @@ class GeometryObjective:
                 metadata['joint_order'], links=('iiwa14_link_7',))
         self.weights = {name: 0. for name in (('position', 'rotation') if mode == PALM_LOSS_ID else COMPONENTS)}
 
-    def enable_hand_geometry(self, live_inventory, acceptance, **projection_options):
+    def enable_hand_geometry(self, live_inventory, acceptance, loss_kind='projection_v1', **geometry_options):
         """Training admission is separate from offline implementation tests."""
         if acceptance.get('live_collision_parity') is not True:
             raise ValueError('Live collision parity has not admitted geometric training')
-        candidate = HandGeometryProjection(self.metadata, live_inventory, **projection_options)
+        if loss_kind not in ('projection_v1', DIRECT_HAND_GEOMETRY_ID):
+            raise ValueError('Explicit supported hand geometry loss identity required')
+        candidate = (HandGeometrySoftLoss if loss_kind == DIRECT_HAND_GEOMETRY_ID else HandGeometryProjection)(
+            self.metadata, live_inventory, **geometry_options)
         if acceptance.get('geometry_identity') != candidate.geometry.identity:
             raise ValueError('Geometry acceptance identity differs')
         if acceptance.get('asset_sha256') != candidate.geometry.assets:
             raise ValueError('Geometry acceptance assets differ')
         if self.mode != PALM_LOSS_ID:
             raise ValueError('Hand projection is an explicit H24 palm/fit objective extension')
+        if loss_kind == DIRECT_HAND_GEOMETRY_ID and (not acceptance.get('passed') or
+                acceptance.get('loss_identity') != DIRECT_HAND_GEOMETRY_ID):
+            raise ValueError('Direct soft geometry requires its own train-only scale acceptance')
         self.hand_geometry = candidate
         self.weights['hand_geometry'] = 0.
 
     def components(self, prediction, command, valid, scale, offset, geometry_context=None):
+        self.last_geometry_metrics = None
         target = torch.where(valid[..., None], command*scale+offset, 0.)
         base = masked_objectives(prediction, target, valid)['B']
         if self.mode == PALM_LOSS_ID:
@@ -57,7 +65,10 @@ class GeometryObjective:
             mask = valid & (torch.arange(valid.shape[1], device=valid.device)[None] < self.commit)
             if not mask.any():
                 zero = prediction.sum()*0.
-                return dict(base=base, position=zero, rotation=zero)
+                values = dict(base=base, position=zero, rotation=zero)
+                if self.hand_geometry is not None:
+                    values['hand_geometry'] = zero
+                return values
             # sample means x0: no SNR division and no DDIM graph. FK uses real
             # target radians, never noisy actions or next-tick measured state.
             q = (prediction[mask].float()-offset.float())/scale.float()
@@ -68,6 +79,9 @@ class GeometryObjective:
             if self.hand_geometry is not None:
                 if geometry_context is None:
                     raise ValueError('Geometric loss requires separate aligned loss-only context')
+                if isinstance(self.hand_geometry, HandGeometrySoftLoss):
+                    values['hand_geometry'] = self._soft_hand_component(prediction, mask, scale, offset, geometry_context)
+                    return values
                 locations = mask.nonzero()
                 selected = locations[torch.linspace(0, len(locations)-1,
                     min(len(locations), self.hand_geometry.maximum_rows), device=prediction.device).long()]
@@ -96,6 +110,43 @@ class GeometryObjective:
             target[:, 1:]-target[:, :-1], pairs)['B']
         return dict(base=base, position=position, rotation=orientation, fingertip=finger, temporal=temporal)
 
+    def _soft_hand_component(self, prediction, mask, scale, offset, context):
+        """The caller selects at most two configurations across a whole update.
+
+        The outer accumulator adds hand_geometry directly, without valid-tick
+        or microbatch weighting. The complete update loss is therefore exactly
+        sum(selected losses)/update_selected_count, including padded tails.
+        A zero warmup coefficient skips all collision/FK work, not just its loss.
+        """
+        zero = prediction[..., 7:].sum()*0.
+        if not context.get('active', True) or self.gain == 0 or self.weights['hand_geometry'] == 0:
+            self.last_geometry_metrics = dict(skipped=True, reason='geometry_warmup_or_zero_weight',
+                attempted=0, elapsed_s=0., loss_identity=DIRECT_HAND_GEOMETRY_ID)
+            return zero
+        selected = context.get('selected_mask')
+        if selected is None or selected.shape != mask.shape or selected.dtype != torch.bool:
+            raise ValueError('Explicit complete-update selected_mask must align with valid commit targets')
+        if (selected & ~mask).any():
+            raise ValueError('Geometry selection contains an invalid or uncommitted configuration')
+        count = int(context['update_selected_count'])
+        if count not in (1, 2):
+            raise ValueError('One/two complete-update selections required')
+        row, tick = selected.nonzero(as_tuple=True)
+        if len(row) > count:
+            raise ValueError('Microbatch selections exceed the complete-update geometry budget')
+        if not len(row):
+            self.last_geometry_metrics = dict(skipped=True, reason='no_complete_update_selection_in_microbatch',
+                attempted=0, elapsed_s=0., loss_identity=DIRECT_HAND_GEOMETRY_ID)
+            return zero
+        physical = (prediction[row, tick].float()-offset.float())/scale.float()
+        values, report = self.hand_geometry.per_configuration(physical,
+            **{key: context[key][row, tick] for key in ('object_pose_base', 'contact_mask', 'stage')})
+        report.update(selected_locations=torch.stack((row, tick), -1).tolist(),
+            update_selected_count=count,
+            normalization='sum selected row losses / complete-update selected count; outer accumulator adds directly')
+        self.last_geometry_metrics = report
+        return values.sum()/count
+
     def forward(self, model, condition, command, valid, generator, geometry_context=None):
         if model.noise.config.prediction_type != 'sample' or model.horizon != 24:
             raise ValueError('New geometry objective is explicitly H24 sample only')
@@ -106,6 +157,89 @@ class GeometryObjective:
         values = self.components(prediction, command, valid, model.action_scale, model.action_offset, geometry_context)
         total = values['base']+self.gain*sum(self.weights[k]*values[k] for k in self.weights)
         return total, values, prediction
+
+
+class HandGeometrySoftLoss:
+    """Direct signed-surface penalties, evaluated once per selected configuration.
+
+    Distances/tolerances are metres. Each squared hinge is divided by its fixed
+    tolerance squared, making both loss and calibrated multiplier dimensionless.
+    No local solve, feasible-set admission, predicted-contact gating or sample
+    rejection is used. The arm/object are detached geometric context only.
+    """
+    identity = DIRECT_HAND_GEOMETRY_ID
+
+    def __init__(self, metadata, live_inventory, penetration_tolerance_m=.001, contact_tolerance_m=.002):
+        if penetration_tolerance_m != .001 or contact_tolerance_m != .002:
+            raise ValueError('Direct geometry retains fixed 1mm penetration / 2mm required-contact tolerances')
+        self.geometry = HandCollisionGeometry(metadata, live_inventory)
+        self.penetration_tolerance_m = float(penetration_tolerance_m)
+        self.contact_tolerance_m = float(contact_tolerance_m)
+        self.contact_indices = [[i for i in indices if self.geometry.links[i].endswith(('_DP', '_elastomer'))]
+                                for indices in self.geometry.finger_indices]
+        if any(not indices for indices in self.contact_indices):
+            raise ValueError('Every required finger needs actual distal collision geometry')
+
+    def per_configuration(self, q_prediction_rad, object_pose_base, contact_mask, stage):
+        import time
+        started = time.perf_counter()
+        contacts = contact_mask.detach().bool().to(q_prediction_rad.device)
+        stages = stage.detach().long().to(q_prediction_rad.device)
+        if contacts.shape != (len(q_prediction_rad), 5) or stages.shape != (len(q_prediction_rad),):
+            raise ValueError('Aligned five-finger required contacts and stage required')
+        if ((stages < 0) | (stages > 2)).any() or ((stages != 1) & contacts.any(-1)).any():
+            raise ValueError('Only contact stage may prescribe fingertip contact; approach/release have no attraction')
+        # One CPU signed-distance/Jacobian call, followed by its exact local
+        # first derivative on the original device. No CUDA FK launch loop or
+        # differentiation through GJK/EPA is needed; witnesses are stop-gradient.
+        with torch.no_grad():
+            distance, jacobian = self.geometry.distances(q_prediction_rad.detach().double().cpu(),
+                object_pose_base.detach().double().cpu(), jacobian=True)
+        distance = distance.to(q_prediction_rad)
+        jacobian = jacobian.to(q_prediction_rad)
+        hand_delta = q_prediction_rad[:, 7:]-q_prediction_rad[:, 7:].detach()
+        distance = distance + torch.einsum('bch,bh->bc', jacobian, hand_delta)
+        minima = [distance[:, indices].min(-1) for indices in self.contact_indices]
+        fingertip = torch.stack([result.values for result in minima], -1)
+        penetration = (-distance-self.penetration_tolerance_m).clamp_min(0)
+        gap = (fingertip-self.contact_tolerance_m).clamp_min(0)
+        pen_loss = (penetration/self.penetration_tolerance_m).square().mean(-1)
+        contact_loss = ((gap/self.contact_tolerance_m).square()*contacts).sum(-1)/contacts.sum(-1).clamp_min(1)
+        values = pen_loss+contact_loss
+        if not torch.isfinite(values).all():
+            raise FloatingPointError('Nonfinite direct hand geometry; do not silently discard a selected row')
+        with torch.no_grad():
+            batch = torch.arange(len(distance), device=distance.device)
+            fingertip_jacobian = torch.stack([jacobian[batch,
+                torch.as_tensor(indices, device=distance.device)[result.indices]]
+                for indices, result in zip(self.contact_indices, minima)], 1)
+            contact_gradient = (fingertip_jacobian*(2*gap/self.contact_tolerance_m**2*contacts/
+                contacts.sum(-1, keepdim=True).clamp_min(1))[..., None]).sum(1)
+            penetration_gradient = (jacobian*(-2*penetration/self.penetration_tolerance_m**2)[..., None]).mean(1)
+        # Small scalar/row diagnostics are detached; difficult contact rows keep
+        # their loss and gradient even when a local feasible projection fails.
+        rows = [dict(stage=int(stages[i]), required_contacts=int(contacts[i].sum()),
+            minimum_distance_m=float(distance[i].detach().min()),
+            fingertip_distance_m=fingertip[i].detach().tolist(),
+            required_contact_mask=contacts[i].tolist(),
+            maximum_penetration_violation_m=float(penetration[i].detach().max()),
+            maximum_required_contact_gap_violation_m=float((gap[i]*contacts[i]).detach().max()),
+            penetrating_colliders=int((penetration[i]>0).sum()),
+            violated_required_contacts=int(((gap[i]>0)&contacts[i]).sum()),
+            penetration_loss=float(pen_loss[i].detach()), contact_loss=float(contact_loss[i].detach()),
+            contact_hand_gradient_norm_per_rad=float(contact_gradient[i].norm()),
+            penetration_hand_gradient_norm_per_rad=float(penetration_gradient[i].norm()),
+            geometry_loss=float(values[i].detach()), included=True) for i in range(len(values))]
+        return values, dict(rows=rows, attempted=len(rows), included=len(rows), dropped=0,
+            contact_rows=int((stages==1).sum()), noncontact_rows=int((stages!=1).sum()),
+            required_contacts=int(contacts.sum()), elapsed_s=time.perf_counter()-started,
+            distance_evaluations=len(rows), collision_pairs_per_configuration=len(self.geometry.links)*len(self.geometry.boxes),
+            identity=self.geometry.identity, loss_identity=self.identity, distance_unit='m', loss_unit='dimensionless',
+            solver_calls=0, arm_gradient='detached', reduction='per row: mean collision penetration + mean required-finger gap')
+
+    def loss(self, q_prediction_rad, object_pose_base, contact_mask, stage):
+        values, report = self.per_configuration(q_prediction_rad, object_pose_base, contact_mask, stage)
+        return values.mean(), report
 
 
 class HandGeometryProjection:
@@ -585,6 +719,188 @@ def _live_geometry_probe(env):
             raw_contact_api=contact_api, reason='full_hand_environment_contact_coverage_and_action_response_missing',
             required='Object-filtered contacts for all hand bodies plus separate object-environment contacts, mass/inertia, timestamps, and bounded +/- action-response pairs',
             scope='Existing five distal normal sensors and zero-contact startup cannot identify internal force or calibrate a differentiable action-force model'))
+
+
+def geometry_soft_acceptance(data_path, live_report):
+    """One fixed six-state train-only direct-loss scale/gradient check.
+
+    The same first two train episodes and 0/mid/three-quarter ticks as the old
+    check are used, with preregistered [+0.08, -0.08, +0.08] rad perturbations.
+    The middle open-hand perturbation tests actual required-contact attraction;
+    noncontact rows are allowed zero penalty rather than invented gradients.
+    This check does not assert feasible projection or successful learned control.
+    """
+    import hashlib
+    import json
+    from pathlib import Path
+    import h5py
+    path = Path(data_path)
+    if path.is_dir():
+        path = path/'data.json'
+    data = json.loads(path.read_text())
+    if data.get('supervision') != 'q_reached' or data.get('normalization_identity') != 'q_reached_train166_affine_v1':
+        raise ValueError('Direct geometry calibration requires actual-configuration train-only statistics')
+    if not live_report.get('live_collision_parity') or not live_report.get('inventory', {}).get('cooked_hulls'):
+        return dict(passed=False, reason='accepted_collision_representation_missing', hand_geometry_weight=0.,
+                    attempted=0, loss_identity=DIRECT_HAND_GEOMETRY_ID)
+    statistics_path = path.parent/'statistics.pt'
+    statistics = torch.load(statistics_path, map_location='cpu', weights_only=False)
+    scale, offset = statistics['action_scale'].double(), statistics['action_offset'].double()
+    rows, candidates, elapsed = [], [], 0.
+    objective = None
+    for identity in sorted(data['splits']['train'])[:2]:
+        entry = data['entries'][identity]
+        context = geometry_loss_context(entry)
+        with h5py.File(entry['path']) as f:
+            metadata = json.loads(f.attrs['metadata_json'])
+            reached = torch.from_numpy(f['episodes'][entry['episode']]['transition/diagnostics_after/joint_position_rad'][:]).double()
+        if objective is None:
+            objective = HandGeometrySoftLoss(metadata, live_report['inventory'])
+            if objective.geometry.assets != live_report['asset_sha256']:
+                raise ValueError('Accepted collision assets differ from recorded train assets')
+        for tick, perturbation in zip((0, len(reached)//2, 3*len(reached)//4), (.08, -.08, .08)):
+            truth = reached[tick:tick+1]
+            perturbed = truth.clone(); perturbed[:, 7:] += perturbation
+            prediction = (perturbed*scale+offset).detach().requires_grad_()
+            physical = (prediction-offset)/scale
+            arguments = {k: context[k][tick:tick+1] for k in ('object_pose_base', 'contact_mask', 'stage')}
+            geom, report = objective.loss(physical, **arguments)
+            fit = masked_objectives(prediction, truth*scale+offset, torch.ones(1, dtype=torch.bool))['B']
+            geom_gradient = torch.autograd.grad(geom, prediction, retain_graph=True)[0]
+            physical_gradient = torch.autograd.grad(geom, physical, retain_graph=True)[0]
+            fit_gradient = torch.autograd.grad(fit, prediction)[0]
+            row = report['rows'][0]
+            row.update(identity=identity, tick=tick, perturbation_hand_rad=perturbation,
+                source_sha256=entry['source_sha256'], fit_loss=float(fit.detach()),
+                fit_gradient_norm=float(fit_gradient.norm()), geometry_gradient_norm=float(geom_gradient.norm()),
+                arm_geometry_gradient_norm=float(geom_gradient[:, :7].norm()),
+                hand_geometry_gradient_norm=float(geom_gradient[:, 7:].norm()),
+                gradients_finite=bool(torch.isfinite(geom_gradient).all() and torch.isfinite(fit_gradient).all()))
+            if row['geometry_loss'] > 0 and row['geometry_gradient_norm'] > 0:
+                candidates.extend((.05*row['fit_loss']/row['geometry_loss'],
+                                   .05*row['fit_gradient_norm']/row['geometry_gradient_norm']))
+                # A bounded deterministic gradient descent check is diagnostic;
+                # it is not a projection or a physics rollout.
+                changed = physical.detach()-.001*physical_gradient/physical_gradient.norm().clamp_min(1e-30)
+                after, changed_report = objective.loss(changed, **arguments)
+                row.update(descent_hand_step_norm_rad=float((changed[:, 7:]-physical.detach()[:, 7:]).norm()),
+                    descent_geometry_loss=float(after), descent_decreased=bool(after<geom.detach()),
+                    descent_contact_loss=changed_report['rows'][0]['contact_loss'])
+                elapsed += changed_report['elapsed_s']
+            elapsed += report['elapsed_s']; rows.append(row)
+    finite = len(rows) == 6 and all(r['gradients_finite'] and r['arm_geometry_gradient_norm']==0 for r in rows)
+    effective = [r for r in rows if r['geometry_loss']>0]
+    contact = [r for r in rows if r['contact_loss']>0]
+    passed = finite and bool(effective) and bool(contact) and all(
+        r['hand_geometry_gradient_norm']>0 and r.get('descent_decreased', False) for r in effective)
+    passed = passed and all(r['contact_hand_gradient_norm_per_rad']>0 and
+        r.get('descent_contact_loss', float('inf'))<r['contact_loss'] for r in contact)
+    weight = min(1., *candidates) if passed and candidates else 0.
+    for row in rows:
+        row['weighted_loss_fraction'] = weight*row['geometry_loss']/max(row['fit_loss'], 1e-30)
+        row['weighted_gradient_fraction'] = weight*row['geometry_gradient_norm']/max(row['fit_gradient_norm'], 1e-30)
+    passed = passed and 0 < weight <= 1 and all(r['weighted_loss_fraction'] <= .050000001 and
+        r['weighted_gradient_fraction'] <= .050000001 for r in rows)
+    return dict(passed=bool(passed), reason='six_fixed_train_soft_loss_scale_and_gradients_passed' if passed else 'direct_soft_acceptance_failed',
+        loss_identity=DIRECT_HAND_GEOMETRY_ID, geometry_identity=objective.geometry.identity,
+        live_collision_parity=True, asset_sha256=objective.geometry.assets,
+        attempted=len(rows), included=len(rows), dropped=0, rows=rows, elapsed_s=elapsed,
+        effective_geometry_rows=len(effective), effective_contact_attraction_rows=len(contact),
+        hand_geometry_weight=weight if passed else 0., weight_unit='dimensionless', distance_unit='m',
+        normalization_identity=data['normalization_identity'], statistics_sha256=hashlib.sha256(statistics_path.read_bytes()).hexdigest(),
+        weight_rule='min(1,0.05*Lfit/Lgeom,0.05*norm_grad_Lfit/norm_grad_Lgeom) over positive six-state train losses/gradients in normalized output coordinates; zero rows retained',
+        constraints=dict(penetration_tolerance_m=.001, contact_tolerance_m=.002),
+        training_selection='at most 2 configurations per complete optimizer update: 1 contact and 1 noncontact when available',
+        warmup='skip all geometry computations while inactive or effective coefficient is zero',
+        calibration_reads_validation=False, calibration_reads_test=False, solver_calls=0,
+        limitation='Direct soft gradients do not guarantee feasible configurations or closed-loop task success; no internal-force term admitted')
+
+
+def calibrate_geometry_update(acceptance, progress, fraction=.2):
+    """Freeze one train-only complete-update output-gradient scale correction.
+
+    The trainer computes the base gradient after global valid-tick weighting,
+    and geometry after sum(selected losses)/complete-update selected count.
+    Distinct microbatch outputs occupy disjoint coordinates, so their squared
+    gradient norms add. These are hand output gradients, not model parameter
+    gradients; the bound applies to this recorded update, not future updates.
+    The caller verifies/pins the disposable run's source, input and RNG receipts.
+    Neither input dictionary is modified and repeated calibration is rejected.
+    """
+    import copy
+    import math
+    if not acceptance.get('passed') or acceptance.get('loss_identity') != DIRECT_HAND_GEOMETRY_ID:
+        raise ValueError('Accepted direct-soft six-state train calibration required')
+    if 'complete_update_calibration' in acceptance:
+        raise ValueError('Complete-update geometry calibration is once-only')
+    if progress.get('disposable') is not True or progress.get('formal_updates') != 0:
+        raise ValueError('Explicit disposable progress with zero formal updates required')
+    batch = progress.get('actual_batch')
+    if not isinstance(batch, int) or isinstance(batch, bool) or batch <= 0:
+        raise ValueError('Complete nonempty optimizer batch required')
+    sampling = progress.get('geometry_sampling', {})
+    if sampling.get('selected_count') != 2 or sampling.get('selected_contact_count') != 1:
+        raise ValueError('Two complete-update selections, one required-contact and one noncontact, required')
+    if progress.get('geometry_solver_calls') != 0 or progress.get('hand_geometry_gain') != 1.:
+        raise ValueError('Direct geometry without solver calls at unit calibration gain required')
+
+    def number(value, name, positive=True):
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise ValueError('Finite '+name+' required')
+        if (value <= 0 if positive else value < 0):
+            raise ValueError(('Positive ' if positive else 'Nonnegative ')+name+' required')
+        return float(value)
+
+    fraction = number(fraction, 'complete-update gradient fraction')
+    if fraction > 1:
+        raise ValueError('Complete-update gradient fraction cannot exceed one')
+    initial = number(acceptance.get('hand_geometry_weight'), 'initial six-state geometry weight')
+    base = number(progress.get('base_full_update_output_hand_gradient_norm'), 'complete-update base hand output norm')
+    geometry = number(progress.get('geometry_full_update_output_hand_gradient_norm'), 'complete-update geometry hand output norm')
+    applied = number(progress.get('loss_weights', {}).get('hand_geometry'), 'recorded calibration weight')
+    if not math.isclose(applied, initial, rel_tol=1e-10, abs_tol=0.):
+        raise ValueError('Disposable update must measure the accepted initial geometry coefficient')
+    gradients = progress.get('geometry_probe_gradients')
+    if not isinstance(gradients, list) or not gradients:
+        raise ValueError('Complete selected-microbatch gradient records required')
+    squared = 0.
+    for row in gradients:
+        arm = number(row.get('arm_norm'), 'geometry arm output gradient', positive=False)
+        hand = number(row.get('hand_norm'), 'selected geometry hand output gradient', positive=False)
+        if arm != 0:
+            raise ValueError('Additional geometry arm gradient must be exactly zero')
+        squared += hand*hand
+    if not math.isclose(math.sqrt(squared), geometry, rel_tol=1e-6, abs_tol=1e-12):
+        raise ValueError('Selected-microbatch gradient norms do not reconstruct the complete-update geometry norm')
+    fit_loss = number(progress.get('components', {}).get('base'), 'complete-update fit loss')
+    geometry_loss = number(progress.get('components', {}).get('hand_geometry'), 'complete-update geometry loss')
+    weight = min(initial, fraction*base/geometry)
+    if not math.isfinite(weight) or weight <= 0:
+        raise ValueError('Calibration must retain a finite positive geometry coefficient')
+    result = copy.deepcopy(acceptance)
+    result['initial_hand_geometry_weight'] = initial
+    result['hand_geometry_weight'] = weight
+    for row in result['rows']:
+        row['weighted_loss_fraction'] = weight*row['geometry_loss']/max(row['fit_loss'], 1e-30)
+        row['weighted_gradient_fraction'] = weight*row['geometry_gradient_norm']/max(row['fit_gradient_norm'], 1e-30)
+    result['reason'] = 'six_state_acceptance_and_once_complete_update_scale_passed'
+    result['weight_rule'] = ('min(initial six-state train-only upper bound, fraction * complete-update base hand '
+        'output gradient norm / unweighted geometry hand output gradient norm); one disposable train update')
+    result['complete_update_calibration'] = dict(passed=True, disposable=True, formal_updates=0,
+        update=progress.get('update'), actual_batch=batch, selected_count=2, selected_contact_count=1,
+        initial_hand_geometry_weight=initial, final_hand_geometry_weight=weight, fraction=fraction,
+        base_full_update_output_hand_gradient_norm=base,
+        geometry_full_update_output_hand_gradient_norm=geometry,
+        initial_weighted_gradient_ratio=initial*geometry/base,
+        final_weighted_gradient_ratio=weight*geometry/base,
+        final_weighted_geometry_loss=weight*geometry_loss,
+        fit_loss=fit_loss, unweighted_geometry_loss=geometry_loss,
+        final_weighted_loss_fraction=weight*geometry_loss/fit_loss,
+        geometry_arm_gradient_norm=0., solver_calls=0, hand_geometry_gain=1.,
+        calibration_reads_validation=False, calibration_reads_test=False,
+        scope='Complete-update normalized hand output gradient; sum squared disjoint microbatch norms, not model parameter gradients',
+        limitation='A fixed coefficient calibrated on one train update; no claim that every later update obeys this ratio')
+    return result
 
 
 def geometry_acceptance(data_path, live_report):

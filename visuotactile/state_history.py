@@ -312,3 +312,60 @@ class PersistentImage(NativePolicy):
         episode.record.update(robot=record['robot'],time=record['time'])
         if self.modality == 'G10':episode.record['tactile']=record['tactile']
         return encode_segment(self,episode,start,len(record['time']) if stop is None else stop)
+
+
+def load_image_warm_start(saved, action_contract, statistics):
+    """Initialize a new q_reached G00 policy from the historical command EMA.
+
+    This is weight transfer, never optimizer/schedule/checkpoint continuation.
+    Every learned tensor, including the existing conditional U-Net denoiser,
+    is copied strictly. Only the four explicitly supplied observation/action
+    normalizer buffers are replaced. Q00 and QG00 call this same helper with
+    the same source and train-only statistics; geometry adds a training loss,
+    not a different policy module. The caller creates fresh optimizer, EMA,
+    sampler and counters and records the source file path/SHA separately.
+    """
+    from .position_control import image_contract
+    source_contract=image_contract('I-HistoryDP',24,'G00')
+    target_contract=image_contract('I-HistoryDP',24,'G00','q_reached')
+    if saved.get('group')!='I-HistoryDP' or saved.get('contract')!=source_contract:
+        raise ValueError('Reached warm start requires the explicit historical command G00 contract')
+    if action_contract!=target_contract:
+        raise ValueError('Warm start target must explicitly declare q_reached supervision and affine identity')
+    if saved.get('updates',0)<1 or 'ema' not in saved:
+        raise ValueError('A trained historical EMA source is required')
+    replaced=('robot_mean','robot_std','action_scale','action_offset')
+    if set(statistics)!=set(replaced):
+        raise ValueError('Warm start requires exactly the four explicit train-only normalizers')
+    # Construction must not consume the caller's fresh experiment RNG stream.
+    with torch.random.fork_rng(devices=[]):
+        model=PersistentImage('I-HistoryDP',action_contract)
+    state=saved['ema']
+    model.load_state_dict(state,strict=True)
+    for name,value in state.items():
+        if not torch.isfinite(value).all():raise ValueError('Nonfinite historical EMA tensor: '+name)
+    changed=[]
+    with torch.no_grad():
+        for name in replaced:
+            value=statistics[name].detach().cpu()
+            current=getattr(model,name)
+            if value.shape!=current.shape or value.dtype!=current.dtype or not torch.isfinite(value).all():
+                raise ValueError('Invalid replacement normalizer: '+name)
+            if name in ('robot_std','action_scale') and not (value>0).all():
+                raise ValueError('Normalizer scale must be positive: '+name)
+            if not torch.equal(current,value):changed.append(name)
+            current.copy_(value)
+    parameters=dict(model.named_parameters())
+    if not all(torch.equal(value.detach(),state[name]) for name,value in parameters.items()):
+        raise ValueError('Warm start changed a learned parameter')
+    audit=dict(version='command_ema_to_reached_warm_start_v1',source='ema',
+        source_contract=source_contract,target_contract=target_contract,
+        source_updates=saved['updates'],new_optimizer_updates=0,completed_reached_policy=False,
+        learned_tensors_reused=len(parameters),learned_parameters_reused=sum(p.numel() for p in parameters.values()),
+        learned_parameter_names=list(parameters),normalizers_replaced=list(replaced),
+        normalizers_numerically_changed=changed,
+        other_buffers_reused=[name for name,_ in model.named_buffers() if name not in replaced],
+        denoiser_class=type(model.denoiser).__name__,new_modules=[],
+        optimizer_state_restored=False,schedule_state_restored=False,ema_schedule_restored=False,
+        rng_state_restored=False,requires_fresh_optimizer_ema_sampler_and_counters=True)
+    return model,audit

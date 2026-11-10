@@ -1,6 +1,26 @@
 # 当前清理与保护结果
 
-## 2026-11-10 当前重构清理：823.789063MiB
+## 2026-11-10 当前复用调整：555.359375MiB
+
+依最新精确授权，删除失败 `tight_transformer_20261110_01` 内 `command/common_initial.pt`、
+`configuration/common_initial.pt` 两个随机初始化副本，以及新 `_02/configuration/common_initial.pt` 指向后者的残留软链接。
+**本次仅2个普通文件＋1个软链接，释放582,336,512 allocated bytes＝555.359375MiB。**
+两个权重文件的逻辑大小合计582,326,912 bytes；不把共享磁盘空闲量变化当成本次释放量，不累计此前398文件的清理。
+
+command副本与保留的 `tight_vision_20261109_01/common_initial.pt` 文件SHA相同，可逐字节复制重建。
+configuration副本可从该保留文件加载，再用仍保留的 `_01/configuration/state_data/statistics.pt` 替换
+`robot_mean`、`robot_std`、`action_scale`、`action_offset` 四个buffer；删除前195个张量逐项完全相等。
+后者仅两个action buffer数值不同，不承诺重新序列化后的文件SHA相同。
+
+当前Q00/QG00明确从旧G00选定EMA热启动，fresh训练和验收的warm-start分支均不再读取或哈希随机初始化副本。
+删除前核对实际session依赖、同UID打开句柄、候选SHA/inode/size/mtime与单硬链接；清理计划先落盘。
+删除后8项关键保留文件的identity和SHA未变，失败root其余239个既有文件路径的identity未变。
+旧G00/G10 selected best、旧G01/G11 best/last、原vision随机初始化、q统计、全部失败日志/probe/data均保留；原400/Core不在删除清单内，未重复读取其载荷做全SHA审计。
+
+[逐文件SHA、allocated bytes、依赖与实际删除凭据](evidence/tight_reuse_20261110/cleanup.json) ·
+[权重/缓存复用及历史训练口径](evidence/tight_reuse_20261110/reuse.json)。本次没有GPU、Kit、参数更新或新增归档。
+
+## 2026-11-10 前次重构清理：823.789063MiB
 
 本轮依用户最新授权，实际删除完成的 `tight_residual_20261110_01` 内 **398个明确文件**：
 392个旧G01/G11冻结名义预测cache（每组train166+validation30），以及6个验收用可重绘PNG。
@@ -9,7 +29,8 @@
 
 旧G00/G10 selected best及G01/G11 best/last、Core218源轨迹与当前DINO/numeric/tactile共享cache、统计、nominal index/scales均保留。
 全部20次开发成功/失败的numeric/trace/result及4视频、首次G11成功的完整目录、历史错误与分母均保留。
-新轮会重训基础，故旧GRU nominal cache不进入下一阶段；历史c3386b6缓存入口和保留模型/原始数据可重新计算，未实际重建，也不承诺重建序列化字节SHA相同。
+此前清理时计划重训基础；最新任务已改为直接复用旧G00/G10，0更新。已删除的旧GRU nominal payload目前仍缺失，保留索引不能代替真实预测。
+历史c3386b6缓存入口和保留模型/原始数据可重新计算，未实际重建，也不承诺重建序列化字节SHA相同。
 
 删除前逐文件核对index SHA、inode/size/mtime、同UID打开句柄和保护依赖；计划先落盘，之后按已审核清单执行。
 删除后406个非候选文件identity和SHA不变，6个保留checkpoint真实CPU读回；原始400和Core218每条载荷存在、size及HDF签名检查通过。

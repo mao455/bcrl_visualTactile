@@ -55,7 +55,7 @@ def trainer(tmp_path, monkeypatch):
         (session,config,data,records,model,{},lease))
     monkeypatch.setattr(anchor_continue.signal,'signal',lambda *a:None)
     monkeypatch.setattr(anchor_continue,'residual_curves',lambda *a:None)
-    # Constant validation tempts the old early-plateau stop at epoch four.
+    # Constant validation exercises the registered four-validation plateau.
     calls=[]
     def metrics(model,records,ids,lease):
         calls.append(list(ids))
@@ -84,15 +84,27 @@ def test_probe_is_four_complete_train_episodes_and_disposable(trainer):
     with pytest.raises(ValueError,match='second residual'):anchor_continue.residual_train(root,probe=True)
 
 
-def test_flat_validation_cannot_end_fixed_exposure_early(trainer):
+def test_flat_validation_stops_after_registered_minimum_and_four_checks(trainer):
     root,_,_,_=trainer
     anchor_continue.residual_train(root)
     finished=json.loads((root/'training/finished.json').read_text())
-    assert finished['control_tick_epochs']==5
-    assert finished['supervised_ticks']==finished['required_supervised_ticks']==105
-    assert finished['target_reached'] and not finished['disposable']
-    assert finished['formal_updates']==finished['updates']==10
+    assert finished['control_tick_epochs']==4
+    assert finished['supervised_ticks']==84 and finished['required_supervised_ticks']==105
+    assert not finished['target_reached'] and not finished['disposable']
+    assert finished['minimum_exposure_reached'] and finished['stop_reason']=='validation_plateau_after_minimum_exposure'
+    assert finished['formal_updates']==finished['updates']==8
     assert finished['sampled_contact_anchors']==0
+
+
+def test_plateau_cannot_bypass_minimum_and_common_exposure_is_saved(trainer):
+    root,_,_,_=trainer
+    _,config,*_=anchor_continue.residual_setup(root)
+    config.update(minimum_control_tick_epochs=5,comparison_control_tick_epochs=[2])
+    anchor_continue.residual_train(root)
+    finished=json.loads((root/'training/finished.json').read_text())
+    assert finished['control_tick_epochs']==5 and finished['target_reached']
+    common=torch.load(root/'training/comparison_epoch_2.pt',weights_only=False)
+    assert common['epoch']==2 and common['supervised_ticks']==42 and common['updates']==4
 
 
 def test_budget_stop_does_not_claim_full_exposure(trainer):

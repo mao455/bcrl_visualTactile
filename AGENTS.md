@@ -1,3 +1,12 @@
+# 最新用户更正：保留前端并复用 G00/G10
+
+本轮从 f352ac8 停止记录接续新的授权。保留 U-Net、现有编码器与持续历史；直接复用 G00/G10 selected EMA，本轮两前端 optimizer 更新数必须为0。G01/G11 使用现有756581参数后端Transformer（2层、d128、4头、FF256、过去32tick与持续GRU），不替换前端。
+Q00/QG00 共用旧 G00 EMA 参数作为初始化，分别使用相同 train166 的 q_reached affine、新优化器/EMA计数/采样器和学习率日程；这是新监督适配，不把旧 u_expert 权重称作已经学好的配置策略。H24/commit12、29D绝对目标、5/60/120Hz、166/30/22划分及原生成功判据不变。q_after标签、加噪clean sample与掌部FK监督一致切换，未来物体/接触安排只进loss。所有后端最终仍监督 u_expert，统一命令affine，并使用真实冻结DDIM16前端预测。
+
+读 research_docs/CONTRACTS.md 最新段和 STATE_DP_RESULTS.md；旧18/2/20/60/144小时限制不适用于本轮。各分支按实测有限预算独立推进，test22不用；短查真实更新和checkpoint后交普通后台，不依赖模型轮询。旧run tight_transformer_20261110_01正式更新0，FAILED不重启；新root _02。
+
+以下为历史授权，冲突以本段及当前用户为准。
+
 # 2026-11-10 当前授权：匹配Transformer与实际配置监督
 
 用户附件明确授权原位重构、训练/评估、依赖核对后实际清理和origin feature/tight-state-foundation推送。起点8e67fb7，实际工作树bc+rl_RSS_palm_eval；其它工作树未提交修改保护。读CONTRACTS当前段、STATE_DP_RESULTS及最新SESSION_HANDOFF。

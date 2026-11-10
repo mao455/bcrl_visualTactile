@@ -1,3 +1,11 @@
+## 2026-11-10 最新接手：用户更正后的 _02 队列准备
+
+本轮从 f352ac8 停止记录接续新的授权。保留 U-Net、现有编码器与持续历史；直接复用 G00/G10 selected EMA，本轮两前端 optimizer 更新数必须为0。G01/G11 使用现有756581参数后端Transformer（2层、d128、4头、FF256、过去32tick与持续GRU），不替换前端。
+Q00/QG00 共用旧 G00 EMA 参数作为初始化，分别使用相同 train166 的 q_reached affine、新优化器/EMA计数/采样器和学习率日程；这是新监督适配，不把旧 u_expert 权重称作已经学好的配置策略。H24/commit12、29D绝对目标、5/60/120Hz、166/30/22划分及原生成功判据不变。q_after标签、加噪clean sample与掌部FK监督一致切换，未来物体/接触安排只进loss。所有后端最终仍监督 u_expert，统一命令affine，并使用真实冻结DDIM16前端预测。
+
+上一轮 f352ac8 FAILED，正式更新0、闭环0，自有worker已退出。本轮未启动错误前端替换或G重训；当前修改/验收进行中。新root _02，状态以机器文件为准；无LLM长期守候。
+短验收已通过：两Q各8真实GPU可丢弃更新，完整恢复；soft开启耗时1.01034倍，额外几何0.023625s/update，最终λ2.355370821894758e-06。正式启动状态读_02/status.json，固定绝对截止2026-11-11 18:54:40+08:00；每组有限10开发、test22不用，普通owner自动发布。
+
 ## 2026-11-10 接手：Transformer/实际配置方法实现与门控
 
 起点8e67fb7，工作树bc+rl_RSS_palm_eval干净后开始；原主工作树/窄域工作树未提交文档未动。现有400/Core/旧成功保护。当前run为outputs/visuotactile/run/tight_transformer_20261110_01，机器status/各gate为准，正式更新暂0；102项定向CPU测试通过，详细启动进度随后以status/launch为准。

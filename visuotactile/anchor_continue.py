@@ -115,16 +115,56 @@ def deterministic_loss(model,records,ids,obj,lease):
                 y,m=labels(records[identity],a,24)
                 context=projection_batch(obj,[(identity,int(t)) for t in a],c.device)
                 loss,parts,_=obj.forward(model,c,y,m,torch.Generator(device='cuda').manual_seed(8091),geometry_context=context)
+                if hasattr(obj,'current_loss_weights'):
+                    loss=parts['base']+sum(obj.current_loss_weights[k]*parts[k] for k in obj.current_loss_weights)
                 values.append(dict(loss=float(loss),**{k:float(v) for k,v in parts.items()}))
     return {k:sum(v[k] for v in values)/len(values) for k in values[0]}
 
 
-def projection_batch(objective, selected, device):
+def geometry_selection(objective, selected, lengths, seed):
+    """Stratify two valid commit configurations over one complete update.
+
+    Sampling uses no predicted distance/feasibility and does not change the
+    anchor or diffusion RNG. Base supervision still consumes every valid row.
+    """
+    mask=torch.zeros((len(selected),24),dtype=torch.bool)
+    candidates=[[],[]]
+    for row,(identity,tick) in enumerate(selected):
+        context=objective.loss_context[identity]
+        for offset in range(min(12,lengths[identity]-tick)):
+            contact=bool(context['stage'][tick+offset]==1 and context['contact_mask'][tick+offset].any())
+            candidates[int(contact)].append((row,offset))
+    generator=torch.Generator().manual_seed(seed)
+    chosen=[]
+    for pool in candidates:
+        if pool:chosen.append(pool[int(torch.randint(len(pool),(1,),generator=generator))])
+    remaining=[x for pool in candidates for x in pool if x not in chosen]
+    if len(chosen)<2 and remaining:chosen.append(remaining[int(torch.randint(len(remaining),(1,),generator=generator))])
+    for row,tick in chosen:mask[row,tick]=True
+    return mask,dict(selected_count=len(chosen),eligible_commit_count=sum(map(len,candidates)),
+        eligible_contact_count=len(candidates[1]),selected_contact_count=sum(x in candidates[1] for x in chosen),
+        sampling='one required-contact and one noncontact if present; otherwise two without replacement',
+        normalization='equal selected configuration mean, then full-update accumulation; not population-unbiased')
+
+
+def projection_batch(objective, selected, device, *, selected_mask=None, update_selected_count=None, active=True):
     """Loss-only future context, never inserted into the model record/condition."""
     if objective.hand_geometry is None:return None
+    from .state_image_loss import HandGeometrySoftLoss
+    direct=isinstance(objective.hand_geometry,HandGeometrySoftLoss)
+    if direct and not active:return dict(active=False)
+    if direct and selected_mask is not None and not selected_mask.any():
+        return dict(active=True,selected_mask=selected_mask.to(device),update_selected_count=update_selected_count)
     context=objective.loss_context
-    return {key:torch.stack([context[i][key][torch.arange(t,t+24).clamp_max(len(context[i][key])-1)]
+    result={key:torch.stack([context[i][key][torch.arange(t,t+24).clamp_max(len(context[i][key])-1)]
         for i,t in selected]).to(device) for key in ('object_pose_base','contact_mask','stage')}
+    if direct:
+        if selected_mask is None:
+            selected_mask,report=geometry_selection(objective,selected,
+                {i:len(context[i]['stage']) for i,t in selected},8091)
+            update_selected_count=report['selected_count']
+        result.update(selected_mask=selected_mask.to(device),update_selected_count=update_selected_count,active=active)
+    return result
 
 
 def train(root,job,target,output):
@@ -277,7 +317,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     stats=torch.load(data_root/'statistics.pt',map_location='cpu',weights_only=False)
     if not ids or (not smoke and not vals):raise ValueError('Nonempty train/validation required')
     runtime=read(root/'session.json') if (root/'session.json').exists() else {}
-    continuation=runtime.get('continuation')
+    continuation=runtime.get('continuation');warm_start=runtime.get('warm_start');warm_start_audit=None
+    if continuation and warm_start:raise ValueError('Target adaptation and optimizer continuation are distinct')
     seed=continuation['configuration']['seed'] if continuation else runtime.get('random_seed',20261105)
     device=smoke_device if smoke else 'cuda:0';torch.manual_seed(seed)
     if vision:
@@ -286,18 +327,27 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         from .native_data import visual_records
         modality=runtime['modality']
         model=PersistentImage('I-HistoryDP',image_contract('I-HistoryDP',24,modality,data.get('supervision')))
-        initial=torch.load(collection/'common_initial.pt',map_location='cpu',weights_only=False)
-        state=model.state_dict()
-        for key,value in initial.items():
-            if key not in state or state[key].shape!=value.shape:raise ValueError('Shared initialization mismatch')
-            state[key].copy_(value)
-        assert set(state)-set(initial)==(set() if modality=='G00' else {k for k in state if k.startswith('tactile_')})
+        if not warm_start:
+            initial=torch.load(collection/'common_initial.pt',map_location='cpu',weights_only=False)
+            state=model.state_dict()
+            for key,value in initial.items():
+                if key not in state or state[key].shape!=value.shape:raise ValueError('Shared initialization mismatch')
+                state[key].copy_(value)
+            assert set(state)-set(initial)==(set() if modality=='G00' else {k for k in state if k.startswith('tactile_')})
+            del initial,state
         for k,v in stats.items():getattr(model,k).copy_(v)
         if modality=='G10':
             touch_stats=torch.load(data_root/'tactile_statistics.pt',map_location='cpu',weights_only=False)
             for k,v in touch_stats.items():getattr(model,k).copy_(v)
+        if warm_start:
+            from .state_history import load_image_warm_start
+            source=Path(warm_start['path'])
+            if sha256(source)!=warm_start['sha256']:raise ValueError('Warm-start source changed')
+            saved=torch.load(source,map_location='cpu',weights_only=False)
+            model,warm_start_audit=load_image_warm_start(saved,model.contract,stats)
+            warm_start_audit.update(source=str(source.resolve()),source_sha256=warm_start['sha256'])
+            del saved
         records=visual_records(data_root,ids+vals,modality)
-        del initial,state
     else:
         model=PersistentState('dp',contract(24,True))
         expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
@@ -311,7 +361,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         acceptance=read(Path(projection['acceptance']))
         if not acceptance['passed']:raise ValueError('Hand geometry gate failed')
         live=read(Path(projection['live']))
-        objective.enable_hand_geometry(live['inventory'],acceptance,**projection['options'])
+        objective.enable_hand_geometry(live['inventory'],acceptance,
+            loss_kind=projection.get('loss_kind','projection_v1'),**projection['options'])
         objective.weights['hand_geometry']=acceptance['hand_geometry_weight']
         objective.loss_context=torch.load(data_root/'loss_context.pt',map_location='cpu',weights_only=False)
     config=dict(version='fresh_narrow_state_v1',initialization='random_model_fresh_optimizer_ema_schedule_counters',
@@ -323,6 +374,9 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
     if continuation:
         config.update(initialization='complete_checkpoint_continuation_original_schedule_clamped_at_floor',
                       continuation=continuation)
+    if warm_start:
+        config.update(initialization='old_G00_EMA_q_reached_adaptation_fresh_optimizer_ema_schedule',
+            warm_start=warm_start_audit)
     if session.get('version')=='tight_state_foundation_v1':
         config['input_builder']='canonical_joint_state_v1'
     if palm:
@@ -333,7 +387,7 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             effective_batch=session['training']['effective_batch'],microbatch=session['training']['microbatch'])
     if vision:
         config.update(version='fresh_visual_pair_v1',modality=modality,
-            shared_initial_sha256=sha256(collection/'common_initial.pt'),dino_sha256=session['dino_sha256'],
+            shared_initial_sha256=warm_start['sha256'] if warm_start else sha256(collection/'common_initial.pt'),dino_sha256=session['dino_sha256'],
             input_builder='canonical_joint_state_v1',microbatch=runtime.get('microbatch',config['microbatch']))
         if data.get('supervision') is not None:
             config.update(version='matched_visual_supervision_v1',supervision=data['supervision'],
@@ -341,6 +395,9 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 clean_sample_field=model.contract['clean_sample_field'])
         if projection:config.update(hand_geometry=projection,geometry_acceptance_sha256=sha256(projection['acceptance']),
             loss_context_sha256=sha256(data_root/'loss_context.pt'),loss_weights=dict(objective.weights))
+    if runtime.get('geometry_probe_gain_sequence'):
+        if not config['disposable']:raise ValueError('Geometry timing gain overrides are disposable only')
+        config['geometry_probe_gain_sequence']=runtime['geometry_probe_gain_sequence']
     root.mkdir(parents=True,exist_ok=True)
     cp=root/'configuration.json'
     if cp.exists():assert read(cp)==config,'Resume configuration/source mismatch'
@@ -421,6 +478,9 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         training_started=time.time();initial_step=step
         interval=runtime.get('validation_interval',session.get('validation_interval',500));stop_reason='update_budget'
         stage_stop=runtime.get('stage_stop_update',target)
+        if runtime.get('probe_limit_updates'):
+            if not config['disposable']:raise ValueError('Probe stop requires disposable run')
+            stage_stop=min(stage_stop,step+int(runtime['probe_limit_updates']))
         if not step<=stage_stop<=target:raise ValueError('Invalid finite stage boundary')
         if stage_stop<target:stop_reason='stage_update_budget'
         while step<stage_stop:
@@ -435,16 +495,37 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             model.train();opt.zero_grad(set_to_none=True);loss_sum=0.;parts_sum={};batch_started=time.time()
             objective.gain=min(1.,(step+1)/config['geometry_warmup']) if palm else 1.
             weights={k:v*objective.gain for k,v in objective.weights.items()}
+            from .state_image_loss import HandGeometrySoftLoss
+            direct_geometry=isinstance(objective.hand_geometry,HandGeometrySoftLoss)
+            geometry_gain=0.;geometry_report={};geometry_wall=0.;geometry_gradients=[];base_output_hand_grad_squared=0.
+            if direct_geometry:
+                geometry_gain=max(0.,min(1.,(step+1-projection.get('warmup_updates',100))/max(1,projection.get('ramp_updates',400))))
+                if config.get('geometry_probe_gain_sequence'):
+                    geometry_gain=config['geometry_probe_gain_sequence'][step-initial_step]
+                weights['hand_geometry']=objective.weights['hand_geometry']*geometry_gain
+                selected_geometry,geometry_report=geometry_selection(objective,selected,sampler.lengths,seed+1000003*(step+1))
+            objective.current_loss_weights=weights
             for start in range(0,len(selected),config['microbatch']):
                 with block():
                     selected_micro=selected[start:start+config['microbatch']]
                     c,y,m=anchor_batch(model,records,selected_micro)
-                    context=projection_batch(objective,selected_micro,c.device)
-                    _,parts,_=objective.forward(model,c,y,m,noise,geometry_context=context)
+                    context=projection_batch(objective,selected_micro,c.device,
+                        selected_mask=selected_geometry[start:start+config['microbatch']] if direct_geometry else None,
+                        update_selected_count=geometry_report.get('selected_count'),active=geometry_gain>0 if direct_geometry else True)
+                    _,parts,prediction=objective.forward(model,c,y,m,noise,geometry_context=context)
                     if objective.last_geometry_metrics is not None:
+                        geometry_wall+=objective.last_geometry_metrics.get('elapsed_s',0.)
                         with (root/'geometry_projection.jsonl').open('a') as f:f.write(json.dumps(dict(update=step+1,
                             selected=selected_micro,**objective.last_geometry_metrics))+'\n')
-                    loss,scaled=weighted_parts(parts,m,totals,weights,model.contract['commit'])
+                    if direct_geometry and config['disposable'] and geometry_gain:
+                        base_grad=torch.autograd.grad(parts['base'],prediction,retain_graph=True)[0]*(m.sum()/max(1,totals[0]))
+                        base_output_hand_grad_squared+=float(base_grad[...,7:].square().sum())
+                        if objective.last_geometry_metrics.get('attempted',0):
+                            grad=torch.autograd.grad(parts['hand_geometry'],prediction,retain_graph=True)[0]
+                            geometry_gradients.append(dict(arm_norm=float(grad[...,:7].norm()),hand_norm=float(grad[...,7:].norm()),
+                                base_hand_norm=float(base_grad[...,7:].norm()),weighted_hand_norm=float(grad[...,7:].norm())*weights['hand_geometry'],
+                                scope='selected microbatch contributions to complete-update output gradient; not full model-parameter gradient ratio'))
+                    loss,scaled=weighted_parts(parts,m,totals,weights,model.contract['commit'],global_hand_geometry=direct_geometry)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite loss')
                     loss.backward();loss_sum+=float(loss.detach())
                     for k,v in scaled.items():parts_sum[k]=parts_sum.get(k,0.)+float(v.detach())
@@ -472,6 +553,12 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                     remaining_seconds_estimate=estimated,estimated_completion_utc=time.time()+estimated,
                     hard_stop_utc=lease.deadline if lease else None,eta_includes_observed_validation_and_resource_wait=True,
                     numerical_gradient_norm=float(norm))
+            if direct_geometry:
+                progress.update(hand_geometry_gain=geometry_gain,hand_geometry_seconds=geometry_wall,
+                    geometry_sampling=geometry_report,geometry_probe_gradients=geometry_gradients,
+                    base_full_update_output_hand_gradient_norm=math.sqrt(base_output_hand_grad_squared) if config['disposable'] and geometry_gain else None,
+                    geometry_full_update_output_hand_gradient_norm=math.sqrt(sum(x['hand_norm']**2 for x in geometry_gradients)) if config['disposable'] and geometry_gain else None,
+                    geometry_solver_calls=0)
             atomic_json(root/'progress.json',progress)
             with (root/'training.jsonl').open('a') as f:f.write(json.dumps(progress)+'\n')
             bounded_end=step==stage_stop or (lease is not None and time.time()>=lease.deadline-600)
@@ -525,7 +612,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         assert all(torch.equal(v.cpu(),saved['model'][k]) for k,v in model.state_dict().items())
         assert all(torch.equal(v.cpu(),saved['ema'][k]) for k,v in averaged.state_dict().items())
         atomic_json(output/'result.json',dict(passed=True,updates=step,disposable=config.get('disposable',smoke),formal_updates=0 if config.get('disposable',smoke) else step,
-            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=bool(continuation),
+            complete_restore=True,statistics_train_only=True,old_policy_checkpoint_loaded=bool(continuation or warm_start),
+            warm_start=warm_start_audit,scheduler_total_updates=target,probe_limit_updates=runtime.get('probe_limit_updates'),
             stage_updates=step-initial_step,restored_updates=initial_step,**no_kit()))
         if not smoke:atomic_json(root/'finished.json',dict(updates=step,target_updates=target,target_reached=step==target,
             stop_reason=stop_reason,
@@ -584,7 +672,7 @@ def fresh_curves(root):
             writer=csv.DictWriter(f,fieldnames=list(flattened[0]));writer.writeheader();writer.writerows(flattened)
         fig,axes=plt.subplots(2,3,figsize=(13,7))
         fields=('arm_rmse','hand_rmse','ee_distance_rmse_mm','ee_rotation_mean_deg','selection_score')
-        titles=('Arm RMSE (rad)','Hand RMSE (rad)','Command palm position (mm)','Command palm angle (deg)','Frozen validation selection score')
+        titles=('Arm RMSE (rad)','Hand RMSE (rad)','Predicted palm FK position (mm)','Predicted palm FK angle (deg)','Frozen validation selection score')
         for ax,key,title in zip(axes.flat,fields,titles):
             for cohort in ('fixed_train2','fixed_validation4'):
                 rr=[r for r in flattened if r['cohort']==cohort]
@@ -592,13 +680,16 @@ def fresh_curves(root):
             ax.set_title(title);ax.set_xlabel('Anchor-equivalent epochs');ax.legend();ax.grid(alpha=.3)
         losses=[json.loads(line) for line in (root/'training.jsonl').read_text().splitlines()]
         with (root/'training_curves.csv').open('w',newline='') as f:
-            writer=csv.DictWriter(f,fieldnames=['update','anchor_epochs','base','position_m2','rotation','lambda_pos','lambda_rot','geometry_gain'])
+            writer=csv.DictWriter(f,fieldnames=['update','anchor_epochs','base','position_m2','rotation','lambda_pos','lambda_rot','geometry_gain',
+                'hand_geometry','lambda_hand','hand_geometry_gain','hand_geometry_seconds'])
             writer.writeheader()
             for r in losses:writer.writerow(dict(update=r['update'],anchor_epochs=r['anchor_equivalent_epochs'],base=r['components']['base'],
                 position_m2=r['components']['position'],rotation=r['components']['rotation'],lambda_pos=r['loss_weights']['position'],
-                lambda_rot=r['loss_weights']['rotation'],geometry_gain=r['geometry_gain']))
+                lambda_rot=r['loss_weights']['rotation'],geometry_gain=r['geometry_gain'],hand_geometry=r['components'].get('hand_geometry'),
+                lambda_hand=r['loss_weights'].get('hand_geometry'),hand_geometry_gain=r.get('hand_geometry_gain'),
+                hand_geometry_seconds=r.get('hand_geometry_seconds')))
         ax=axes[1,2]
-        for field in ('base','position','rotation'):
+        for field in ('base','position','rotation')+(('hand_geometry',) if any('hand_geometry' in r['components'] for r in losses) else ()):
             # Plot each validation interval's training mean; raw every-update
             # components and effective warm-up weights remain in CSV/JSONL.
             points=[];previous=0
@@ -606,7 +697,7 @@ def fresh_curves(root):
                 part=[r for r in losses if previous<r['update']<=row['update']];previous=row['update']
                 points.append(sum(r['components'][field]*(1 if field=='base' else r['loss_weights'][field]) for r in part)/max(1,len(part)))
             ax.plot([r['anchor_equivalent_epochs'] for r in rows],points,label=field)
-        ax.set_title('Training loss: base and weighted palm terms');ax.set_xlabel('Anchor-equivalent epochs');ax.legend();ax.grid(alpha=.3)
+        ax.set_title('Training loss: base and weighted auxiliary terms');ax.set_xlabel('Anchor-equivalent epochs');ax.legend();ax.grid(alpha=.3)
         fig.tight_layout();fig.savefig(root/'curves.png',dpi=150);plt.close(fig)
         return
     fig,axes=plt.subplots(1,2,figsize=(9,3.5))
@@ -793,10 +884,12 @@ def residual_train(root, *, smoke=False, probe=False):
         training_wall_s+=time.time()-epoch_training_began
         save(out/'last.pt',snapshot(epoch,offset+len(selected)))
         if epoch==1 or epoch%v['validation_epoch_interval']==0 or stop!='maximum_control_tick_exposure':validate(epoch)
+        if not disposable and epoch in v.get('comparison_control_tick_epochs',[]):
+            save(out/f'comparison_epoch_{epoch}.pt',snapshot(epoch,offset+len(selected)))
         if stop!='maximum_control_tick_exposure':break
-        # The matrix preregisters fixed complete native-tick exposure. A flat
-        # validation curve cannot end training before that exposure is reached.
-        if draws>=target_ticks and epoch>=v['minimum_control_tick_epochs'] and len(history)>=4:
+        # Minimum exposure and a fixed validation trend define bounded stopping;
+        # maximum exposure is a ceiling, not an admission condition.
+        if epoch>=v['minimum_control_tick_epochs'] and len(history)>=4:
             scores=[r['validation']['all']['normalized_equal_mse'] for r in history[-4:]]
             if (scores[0]-min(scores[1:]))/max(scores[0],1e-12)<.01:stop='validation_plateau_after_minimum_exposure';break
     if not history or history[-1]['update']!=updates:validate(epoch)
@@ -805,6 +898,7 @@ def residual_train(root, *, smoke=False, probe=False):
         formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
         target_reached=draws>=target_ticks and ticks>=target_ticks,required_supervised_ticks=target_ticks,
         required_control_tick_epochs=v['maximum_control_tick_epochs'],train_episode_count=len(ids),effective_batch=v['microbatch'],
+        minimum_control_tick_epochs=v['minimum_control_tick_epochs'],minimum_exposure_reached=draws>=v['minimum_control_tick_epochs']*population,
         sampled_contact_anchors=contact_ticks,contact_anchor_population=sum(int(records[i]['gate'].sum()) for i in ids),
         control_tick_population=population,supervised_ticks=draws,control_ticks=ticks,control_equivalent_epochs=ticks/native_population,
         wall_s=time.time()-began,supervised_ticks_per_wall_s=draws/max(time.time()-began,1e-6),
