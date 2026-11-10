@@ -1,4 +1,13 @@
-# 2026-11-10 当前授权：修复视觉评估调用并接续
+# 2026-11-10 当前阶段：发布G00/G10既有实验资料
+
+用户明确要求把代码和实验资料提交GitHub；沿用代码/MD/图表/小型原始指标公开，大checkpoint/源轨迹/视频本地保留的范围。
+读STATE_DP_RESULTS。G00/G10各10合法/0成功，原生lift1/3、首子目标3/1，2视频完整解码；20例已完成且自有进程全部退出。
+训练10132/6929更新、119.541/81.753 anchor epoch，固定墙钟停止；各38离线完成，test22未使用，曝光不等，不能作触觉因果结论。
+接续队列在所有trial落盘后因退出函数要求root/result.json顶层software_complete而报错，实际使用evaluation_complete.json；原FAILED完整保留。
+本次只扩展现有CPU指标导出与绘图，公开目录research_docs/evidence/tight_vision_20261110；不修改历史状态、不重训、不再评估或补录。
+只推origin feature/tight-state-foundation，不force、不推upstream；不要把前轮有限接续授权当成自动重试权限。
+
+# 2026-11-10 已结束授权：修复视觉评估调用并接续
 
 用户明确要求“那改好，继续”。98dfafe训练已完成有限预算：G00 10132更新、G10 6929更新，最终各38条离线完成。
 旧闭环在首次act前漏传canonical q/qd而失败，0控制transition/0完整trial；原FAILED、partial视频与checkpoint全部保留。

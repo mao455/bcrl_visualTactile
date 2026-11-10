@@ -534,7 +534,7 @@ def trained_diagnostics(root):
         new_closed_loop=0,no_new_task_success_evidence=True,**no_kit()))
 
 
-def publish_metrics(root, evaluation, output):
+def publish_metrics(root, evaluation, output, *, pair_root=None):
     """CPU-only publication from completed receipts; never load a policy or Kit.
 
     Raw runs remain immutable. The exported CSV/JSON is sufficient to redraw the
@@ -545,8 +545,17 @@ def publish_metrics(root, evaluation, output):
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
-    if read(root/'status.json')['state'] != 'COMPLETE' or read(evaluation/'status.json')['state'] != 'COMPLETE':
+    if pair_root is None and (read(root/'status.json')['state'] != 'COMPLETE' or read(evaluation/'status.json')['state'] != 'COMPLETE'):
         raise ValueError('Publication requires completed training and evaluation')
+    if pair_root is not None:
+        finished=read(root/'training/finished.json');offline=read(root/'offline/result.json')
+        summary=read(evaluation/'evaluation_summary.json')
+        if not offline['complete'] or summary['attempts']!=10 or len(summary['results'])!=10:
+            raise ValueError('Visual publication requires complete per-group evidence')
+        if not all(r['software_complete'] for r in summary['results']):
+            raise ValueError('Incomplete visual trial; do not publish as completed')
+    reference_label='StateDP Palm19865' if pair_root else 'old Core8500'
+    selected_label=root.name+' selected' if pair_root else 'new selected19865'
     output.mkdir(parents=True, exist_ok=True)
 
     def public(value):
@@ -560,6 +569,7 @@ def publish_metrics(root, evaluation, output):
                            '/home/CNS2025331827/docs/bc+rl_RSS_palm_eval/',
                            '/home/CNS2025331827/docs/bc+rl_RSS/'):
                 value = value.replace(prefix, '')
+            value=value.replace('/home/CNS2025331827/', '~/')
         return value
 
     def csv_rows(name):
@@ -596,7 +606,8 @@ def publish_metrics(root, evaluation, output):
         compressed_copy(root/'offline'/name, name+'.gz')
     for p in sorted((root/'offline').glob('*_targets.*')):
         if p.suffix in ('.csv', '.png'):
-            shutil.copyfile(p, output/p.name)
+            if pair_root and p.suffix=='.csv':compressed_copy(p,p.name+'.gz')
+            else:shutil.copyfile(p, output/p.name)
     for name in ('stage_comparison.csv', 'stage_metrics.json', 'full_horizon_stage_metrics.json', 'episode_metrics.json'):
         shutil.copyfile(root/'offline'/name, output/name)
 
@@ -632,13 +643,13 @@ def publish_metrics(root, evaluation, output):
     for row_axes, split in zip(axes, ('train', 'validation')):
         for ax, group in zip(row_axes[:2], ('arm', 'hand')):
             rr = [r for r in comparisons if r['split'] == split and r['group'] == group and int(r['ticks'])]
-            for key, label in (('old_rmse_rad', 'old Core8500'), ('new_rmse_rad', 'new selected19865'), ('hold_rmse_rad', 'hold current actuator target')):
+            for key, label in (('old_rmse_rad', reference_label), ('new_rmse_rad', selected_label), ('hold_rmse_rad', 'hold current actuator target')):
                 ax.plot(range(len(rr)), [float(r[key]) for r in rr], 'o-', label=label)
             ax.set(ylabel=group+' RMSE (rad)', title=split+' / commit12')
             ax.set_xticks(range(len(rr)), [r['phase'].replace('_', ' ')+'\nn='+r['ticks'] for r in rr], rotation=55, ha='right', fontsize=7)
             ax.grid(alpha=.25)
         rr = [r for r in comparisons if r['split'] == split and r['group'] == 'arm' and int(r['ticks'])]
-        for key, label in (('old_palm_rmse_mm', 'old Core8500'), ('new_palm_rmse_mm', 'new selected19865')):
+        for key, label in (('old_palm_rmse_mm', reference_label), ('new_palm_rmse_mm', selected_label)):
             row_axes[2].plot(range(len(rr)), [float(r[key]) for r in rr], 'o-', label=label)
         row_axes[2].set(ylabel='Command FK palm RMSE (mm)', title=split+' / commit12')
         row_axes[2].set_xticks(range(len(rr)), [r['phase'].replace('_', ' ')+'\nn='+r['ticks'] for r in rr], rotation=55, ha='right', fontsize=7)
@@ -653,19 +664,28 @@ def publish_metrics(root, evaluation, output):
     fig, axes = plt.subplots(1, 2, figsize=(10, 4), layout='constrained')
     for ax, group in zip(axes, ('arm', 'hand')):
         rr = [r for r in motion if r['group'] == group and int(r['ticks'])]
-        for key, label in (('rmse_rad', 'new selected19865'), ('hold_rmse_rad', 'hold current actuator target')):
+        for key, label in (('rmse_rad', selected_label), ('hold_rmse_rad', 'hold current actuator target')):
             ax.plot(range(len(rr)), [float(r[key]) for r in rr], 'o-', label=label)
         ax.set_xticks(range(len(rr)), [r['split']+' / '+r['motion']+'\nn='+r['ticks'] for r in rr], rotation=25, ha='right')
         ax.set_ylabel(group+' RMSE (rad)'); ax.grid(alpha=.25); ax.legend(fontsize=8)
     fig.savefig(output/'motion_errors.png', dpi=150); plt.close(fig)
 
     trials = []
-    for p in sorted(evaluation.glob('palm_fresh_*/result.json')):
+    trial_root=evaluation/'evaluation' if pair_root else evaluation
+    for p in sorted(trial_root.glob('palm_fresh_*/result.json')):
         r = read(p)
         trials.append({k: r[k] for k in ('identity', 'seed', 'software_complete', 'legal', 'success', 'steps',
             'native_lift', 'native_subgoals', 'native_alignment', 'actuator_target_max_error',
             'submitted_target_max_error', 'tracking_rmse_rad')} | {'termination': ','.join(k for k, v in r['reasons'].items() if v)})
     table(output/'closed_loop.csv', trials)
+    if pair_root is not None:
+        write(output/'summary.json',public(dict(training=finished,progress=read(root/'training/progress.json'),
+            offline=offline,closed_loop=summary,training_source=read(pair_root/'session.json')['source_head'],
+            evaluation_source=read(evaluation.parent/'session.json')['source_head'],
+            normalizer_sha256=sha(pair_root/'state_data/statistics.pt'))))
+        write(output/'frozen_configuration.json',public(read(root/'training/configuration.json')))
+        for p in output.glob('*.csv'):p.write_bytes(p.read_bytes().replace(b'\r\n',b'\n'))
+        return
     manifest = read(root/'manifest.json')
     table(output/'dataset_index.csv', [public({k: r[k] for k in ('id', 'family', 'split', 'steps', 'size', 'sha256', 'path', 'reference_path', 'reference_sha256')}) for r in manifest['episodes']])
     write(output/'summary.json', public(dict(
@@ -698,6 +718,120 @@ def publish_metrics(root, evaluation, output):
           for p in sorted(output.iterdir()) if p.is_file() and p.name != 'artifacts.json'})
 
 
+def publish_visual_metrics(root, evaluation, output):
+    """Publish completed measurements while preserving the failed owner status."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    completion=read(evaluation/'evaluation_complete.json')
+    if not completion['complete'] or completion['groups']!=['G00','G10']:
+        raise ValueError('Both visual evaluation cohorts must be complete')
+    if not read(evaluation/'status.json')['owned_workers_exited']:
+        raise ValueError('Do not export a live experiment')
+    expected=[r['identity'] for r in read(evaluation/'evaluation_plan.json')]
+    if len(expected)!=10 or len(set(expected))!=10:
+        raise ValueError('Expected original ten development identities')
+    groups={};inputs={};videos=[]
+
+    def public(value):
+        if isinstance(value,dict):return {public(k):public(v) for k,v in value.items()}
+        if isinstance(value,list):return [public(v) for v in value]
+        if isinstance(value,str):
+            for prefix in ('/home/CNS2025331827/docs/bc+rl_RSS_palm_eval/',
+                           '/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup/',
+                           '/home/CNS2025331827/docs/bc+rl_RSS/'):
+                value=value.replace(prefix,'')
+            return value.replace('/home/CNS2025331827/','~/')
+        return value
+
+    def evidence(path):
+        inputs[public(str(path))]=dict(bytes=path.stat().st_size,sha256=sha(path))
+
+    for group in ('G00','G10'):
+        g=root/group;e=evaluation/group
+        offline=read(g/'offline/result.json');summary=read(e/'evaluation_summary.json')
+        episodes=read(g/'offline/episode_metrics.json')
+        if not offline['complete'] or offline['episodes']!=38:
+            raise ValueError('Incomplete final train8/validation30 diagnosis')
+        if {split:sum(r['split']==split for r in episodes) for split in ('train','validation')}!={'train':8,'validation':30}:
+            raise ValueError('Final diagnostic cohort mismatch')
+        if [r['identity'] for r in summary['results']]!=expected:
+            raise ValueError('Development queue differs from registered identities')
+        for r in summary['results']:
+            path=e/'evaluation'/r['identity']/'result.json'
+            if read(path)!=r or not r['software_complete']:
+                raise ValueError('Trial receipt missing, changed or incomplete')
+            if r['legal'] and r['checkpoint_sha256']!=offline['checkpoint_sha256']:
+                raise ValueError('Offline and deployed checkpoint differ')
+            evidence(path)
+        valid=[r for r in summary['results'] if r['legal'] and r['software_complete']]
+        if (summary['attempts'],summary['valid'],summary['rejected'],summary['successes'])!=(
+                10,len(valid),10-len(valid),sum(bool(r['success']) for r in valid)):
+            raise ValueError('Closed-loop counts do not match individual receipts')
+        if sha(g/'training/best.pt')!=offline['checkpoint_sha256']:
+            raise ValueError('Selected checkpoint changed')
+        for name in ('training/best.pt','training/finished.json','training/progress.json','training/configuration.json',
+                     'training/training.jsonl','training/validation.jsonl','offline/result.json','offline/stage_metrics.json'):
+            evidence(g/name)
+        for p in sorted((e/'evaluation').glob('*/video_verified.json')):
+            receipt=read(p);trial=read(p.parent/'result.json');movie=p.parent/'rollout.mp4'
+            if receipt['decoded_frames']!=trial['steps']:
+                raise ValueError('Video frame count differs from completed trial')
+            evidence(movie);videos.append(dict(group=group,identity=trial['identity'],path=public(str(movie)),
+                sha256=sha(movie),**receipt,uploaded=False))
+        publish_metrics(g,e,output/group,pair_root=root)
+        groups[group]=read(output/group/'summary.json')
+
+    if [r['identity'] for r in read(root/'G00/offline/episode_metrics.json')]!=[
+            r['identity'] for r in read(root/'G10/offline/episode_metrics.json')]:
+        raise ValueError('Final offline cohorts differ between modalities')
+    stage_rows=[];sampling=[]
+    for group in groups:
+        stage_rows.extend(dict(model=group,**r) for r in read(output/group/'stage_metrics.json'))
+        with (output/group/'sampling_curves.csv').open() as f:
+            sampling.extend(dict(model=group,**r) for r in csv.DictReader(f))
+    table(output/'stage_metrics.csv',stage_rows);table(output/'sampling_curves.csv',sampling)
+    fields=('arm_rmse','hand_rmse','ee_distance_rmse_mm','ee_rotation_mean_deg')
+    titles=('Arm RMSE (rad)','Hand RMSE (rad)','Command FK palm RMSE (mm)','Command FK palm mean angle (deg)')
+    with (output/'sampling_curves.csv').open() as f:sampling=list(csv.DictReader(f))
+    fig,axes=plt.subplots(2,2,figsize=(11,7),layout='constrained')
+    for ax,field,title in zip(axes.flat,fields,titles):
+        for group,color in (('G00','tab:blue'),('G10','tab:orange')):
+            for cohort,style in (('fixed_train2','--'),('fixed_validation4','-')):
+                rows=[r for r in sampling if r['model']==group and r['cohort']==cohort and r['horizon']=='commit12']
+                ax.plot([float(r['anchor_epochs']) for r in rows],[float(r[field]) for r in rows],style,color=color,label=group+' '+cohort)
+        ax.set(title=title,xlabel='Anchor-equivalent epochs');ax.grid(alpha=.25)
+    axes[0,0].legend(fontsize=8);fig.suptitle('Expert-prefix DDIM16 sampling; unequal training exposure, no causal tactile claim')
+    fig.savefig(output/'comparison.png',dpi=150);plt.close(fig)
+    manifest=read(root/'manifest.json')
+    table(output/'dataset_index.csv',[public({k:r[k] for k in ('id','family','split','steps','size','sha256','path')}) for r in manifest['episodes']])
+    receipt_paths={'original_status':root/'status.json','original_error':root/'vision_evaluate_error.json',
+        'evaluation_status':evaluation/'status.json','evaluation_error':evaluation/'vision_evaluate_error.json',
+        'evaluation_complete':evaluation/'evaluation_complete.json','training_launch':root/'launch.json',
+        'evaluation_launch':evaluation/'launch.json','training_resources':root/'monitor_exit.json',
+        'evaluation_resources':evaluation/'monitor_exit.json','throughput_comparison':root/'throughput_comparison.json'}
+    receipts={k:public(read(p)) for k,p in receipt_paths.items()}
+    for p in receipt_paths.values():evidence(p)
+    for p in (root/'state_data/data.json',root/'state_data/statistics.pt',root/'configuration.json',evaluation/'evaluation_plan.json'):
+        evidence(p)
+    write(output/'summary.json',dict(groups=groups,receipts=receipts,videos=videos,
+        classification='Measurements complete; evaluation owner state='+receipts['evaluation_status']['state'],
+        notes=['Original statuses and failure receipts are preserved, not relabeled COMPLETE.',
+            'Use recorded anchor exposure for comparisons; these final models are not an equal-update tactile ablation.',
+            'Offline errors use full expert prefixes; autonomous traces have no same-tick expert-label claim.',
+            'Final train8/validation30 is diagnostic; test22 unused; no new training or simulation.',
+            'Native complete-success counts are reported per cohort; lift/subgoals are separate.',
+            'Training resource telemetry has gaps; monitor RSS is not total worker memory.']))
+    write(output/'frozen_configuration.json',public(read(root/'configuration.json')))
+    write(output/'evaluation_plan.json',read(evaluation/'evaluation_plan.json'))
+    write(output/'source_hashes.json',dict(training=read(root/'source_freeze.json'),evaluation=read(evaluation/'source_freeze.json')))
+    write(output/'source_artifacts.json',inputs)
+    for p in output.rglob('*.csv'):p.write_bytes(p.read_bytes().replace(b'\r\n',b'\n'))
+    write(output/'artifacts.json',{str(p.relative_to(output)):dict(bytes=p.stat().st_size,sha256=sha(p))
+        for p in sorted(output.rglob('*')) if p.is_file() and p.name!='artifacts.json'})
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish'])
@@ -711,7 +845,9 @@ def main():
     elif args.mode == 'publish':
         if args.evaluation is None or args.output is None:
             parser.error('publish requires --evaluation and --output')
-        publish_metrics(root, args.evaluation.resolve(), args.output.resolve())
+        if read(root/'configuration.json').get('vision_pair'):
+            publish_visual_metrics(root, args.evaluation.resolve(), args.output.resolve())
+        else:publish_metrics(root, args.evaluation.resolve(), args.output.resolve())
     else:
         import torch
         from visuotactile.precision import state_fp32

@@ -1,25 +1,79 @@
 # Tight-Insertion 当前结果
 
 <!-- VISUAL_PAIR_START -->
-## G00/G10 visual pair — PREPARED
-Run: `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01`; source `pending`; updated UTC epoch `1794245452.404788`.
-Training source: `98dfafe77bec63c7d7e69d65c01037f4373618c7`; recovery of `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_vision_20261109_01`. Original failed attempts remain separate; training is not repeated.
-218 Core (166/30/22); test22 unused. H24/commit12; frozen DINOv2-S/14 RGB + existing Depth; no Actor141/Geometry85 or residual.
-The two independent models share initial common parameters and train-only normalizers. G10 also learns its tactile encoder and fusion.
-- G00: updates=10132, anchor epochs=119.541; stop=fixed_wall_budget; validation=[{"split": "validation", "phase": "all", "group": "arm", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.005423087617535823, "hold_rmse_rad": 0.0077639229117655514, "ee_rmse_mm": 4.930306919573449, "fingertip_rmse_mm": 8.734292680533297, "palm_angle_mean_deg": 0.7063642874380825}, {"split": "validation", "phase": "all", "group": "hand", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.05523515855170199, "hold_rmse_rad": 0.11628535264269428, "ee_rmse_mm": 4.930306919573449, "fingertip_rmse_mm": 8.734292680533297, "palm_angle_mean_deg": 0.7063642874380825}]; development=null
-  完整离线已测；闭环尚无完整结果，不能判断残差基础能力
-- G10: updates=6929, anchor epochs=81.753; stop=fixed_wall_budget; validation=[{"split": "validation", "phase": "all", "group": "arm", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.005645163110261294, "hold_rmse_rad": 0.0077639229117655514, "ee_rmse_mm": 5.130682866799043, "fingertip_rmse_mm": 8.89212037732473, "palm_angle_mean_deg": 0.7332931989239914}, {"split": "validation", "phase": "all", "group": "hand", "motion": "all", "ticks": 10238, "episodes": 30, "rmse_rad": 0.054648982710324034, "hold_rmse_rad": 0.11628535264269428, "ee_rmse_mm": 5.130682866799043, "fingertip_rmse_mm": 8.89212037732473, "palm_angle_mean_deg": 0.7332931989239914}]; development=null
-  完整离线已测；闭环尚无完整结果，不能判断残差基础能力
-Offline errors use expert causal histories; native rollouts are separate development evidence. Missing stages are unmeasured.
-No automatic G01/G11, recollection, retry or parameter search. Future G01 freezes selected G00; G11 freezes selected G10.
+## 2026-11-10 G00/G10：测量完成，程序收尾失败
+
+两组训练均按固定墙钟预算停止，各完成最终train8/validation30离线诊断与10次合法开发闭环。
+**G00完整成功0/10、G10完整成功0/10；两组拒绝、中断、未启动均为0。**
+两段预登记视频完整解码通过。2026-11-10 01:51:00 +08:00写入评估完成凭据，01:51:06自有worker/monitor全部退出。
+
+原run和接续run的机器状态均保留`FAILED`，不改写成正常完成。
+原失败发生在首次控制前：评估器漏传当前实测q/qd，0控制transition/0完整trial，修复后在新目录接续。
+接续的20例均已有独立`software_complete=true`结果；最后`exit_completed_kit_worker`读取root/result.json，
+要求顶层`software_complete=true`，而本队列写的是`evaluation_complete.json`及普通报告result.json，导致退出检查报错。
+因此是**测量完成、收尾接口失败**。本次仅发布既有结果及CPU导出代码，不修写历史状态、不重跑Kit。
+
+|项目|G00：视觉+机器人|G10：另加观测触觉|
+|---|---:|---:|
+|实际更新 / 选定EMA更新|10132 / 10132|6929 / 6929|
+|采样anchor|560646|383422|
+|anchor等效epoch（人口4690）|119.540725|81.753092|
+|停止原因|fixed_wall_budget|fixed_wall_budget|
+|完整成功 / 有效次数|0 / 10|0 / 10|
+|超时 / 掉落|9 / 1|7 / 3|
+|原生lift / 首子目标 / alignment|1 / 3 / 3|3 / 1 / 1|
+
+训练阶段约8h50m36s，9h预算中保留了最后收尾窗口；尚未达到原至少200等效epoch的平台判定起点，不称收敛。
+G00/G10的资源等待计数分别127.10s/198.39s，仅代表trainer已记录的等待，不等于全部竞争或GPU空闲时间。
+两组曝光不同，观察到的差别不能直接归因于触觉。20例使用相同预登记reset spec和采样seed，不声称隐藏仿真状态逐位配对。
+完整成功为原生任务判据；lift、首子目标、alignment是分别统计的阶段事件，不冒充任务成功或可靠抓持。
+
+|相同专家历史validation30、commit12|StateDP Palm19865|G00|G10|保持当前执行器目标|
+|---|---:|---:|---:|---:|
+|Arm RMSE (rad)|0.005645|0.005423|0.005645|0.007764|
+|Hand RMSE (rad)|0.056618|0.055235|0.054649|0.116285|
+|掌部命令FK RMSE (mm)|4.9823|4.9303|5.1307|未测|
+|掌部命令FK平均角差 (deg)|0.7034|0.7064|0.7333|未测|
+|指尖命令FK RMSE (mm)|见旧原始指标|8.7343|8.8921|未测|
+
+完整真实专家前缀、持续GRU、DDIM16/seed7091、反归一化后截取commit12；validation30有10238个有效tick。
+图中的训练曲线为固定train2/validation4，最后汇总为train8/validation30（2762/10238 tick），两种样本量不混称。
+H24的有效位置含重叠，不当作独立物理tick。自主轨迹与专家进度不同，不计算同tick专家标签误差。
+全部20例提交目标/执行器接口最大误差为0，实际关节tracking误差非零，逐例值见闭环CSV。
+两组整体关节误差均低于hold，但这没有转化为完整任务成功；末期validation改善有限，训练/验证误差仍有差距。
+分阶段与静止/运动结果及样本数全部发布；validation alignment仅30 tick、完成后retract仅19 tick，不能据此作稳定阶段能力结论。
+
+![G00/G10完整采样误差与不等曝光](evidence/tight_vision_20261110/comparison.png)
+
+|可复查图表|G00|G10|
+|---|---|---|
+|commit12与有效H24完整采样|[图](evidence/tight_vision_20261110/G00/sampling_curves.png)|[图](evidence/tight_vision_20261110/G10/sampling_curves.png)|
+|训练分项与固定验证loss|[图](evidence/tight_vision_20261110/G00/loss_curves.png)|[图](evidence/tight_vision_20261110/G10/loss_curves.png)|
+|原阶段误差、StateDP/hold及n|[图](evidence/tight_vision_20261110/G00/stage_errors.png)|[图](evidence/tight_vision_20261110/G10/stage_errors.png)|
+|运动/近静止误差|[图](evidence/tight_vision_20261110/G00/motion_errors.png)|[图](evidence/tight_vision_20261110/G10/motion_errors.png)|
+|验证代表轨迹目标/变化量|[图](evidence/tight_vision_20261110/G00/formal_002_slow_0_targets.png)|[图](evidence/tight_vision_20261110/G10/formal_002_slow_0_targets.png)|
+|训练代表轨迹目标/变化量|[图](evidence/tight_vision_20261110/G00/formal_003_slow_0_targets.png)|[图](evidence/tight_vision_20261110/G10/formal_003_slow_0_targets.png)|
+|10例闭环原始指标|[CSV](evidence/tight_vision_20261110/G00/closed_loop.csv)|[CSV](evidence/tight_vision_20261110/G10/closed_loop.csv)|
+
+数据仍为218 Core（166/30/22），Aux15未加入；本轮没有新增数据，test22未用于选模或评估。
+训练源码`98dfafe77bec63c7d7e69d65c01037f4373618c7`；修复后的评估源码`a82c33f3c1079a7e1d5db1bdd1ea9410e2143646`。
+选定G00 best SHA256：`4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452`；
+G10 best：`5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b`。
+原训练root为`outputs/visuotactile/run/tight_vision_20261109_01`，接续root为其`evaluation_resume_01`。
+完整checkpoint、源轨迹、缓存和视频保留本地；公开指标中的路径和SHA用于核查，不等于已上传原载荷。
+
+本地视频位于接续root的`G00/evaluation/palm_fresh_000/rollout.mp4`（523帧、60fps）
+和`G10/evaluation/palm_fresh_000/rollout.mp4`（399帧、60fps）。解码凭据与视频SHA见summary.json，不计额外评估次数。
+
+本轮完整GPU授权下，原run监控整卡均值92.169%、完整60s最大96.652%；存在537.81s遥测缺口，最大采样间隔318.63s，不能声称全程资源已证实合规。
+接续评估监控均值24.250%、完整60s最大33.830%、遥测缺口0；实测可用RAM最低27.075GiB，最高整卡显存使用4555MiB。
+原monitor摘要内的RAM阈值为12GiB，实际FullLease运行准入依据session中的14GiB，不能把摘要阈值当作实际准入配置。
+monitor进程RSS不代表trainer/Kit总RSS。监控原始摘要与冻结资源约束一并发布，6GiB显存/14GiB RAM/60GiB磁盘储备未放宽。
+
+[机器汇总与原错误](evidence/tight_vision_20261110/summary.json) · [跨组原始曲线](evidence/tight_vision_20261110/sampling_curves.csv) · [全部分阶段指标](evidence/tight_vision_20261110/stage_metrics.csv) · [数据身份](evidence/tight_vision_20261110/dataset_index.csv) · [冻结配置](evidence/tight_vision_20261110/frozen_configuration.json) · [原产物SHA](evidence/tight_vision_20261110/source_artifacts.json) · [公开文件SHA](evidence/tight_vision_20261110/artifacts.json)
+
+不自动继续训练、扩大评估、启动G01/G11或采集。当前证据未证明触觉带来因果收益或基础策略可靠完成任务。
 <!-- VISUAL_PAIR_END -->
-
-原训练于2026-11-10约01:04按墙钟预算停止；两组最终38条离线分别于01:06:43/01:08:46完成。
-原评估01:09:17失败：runner未把当前实测q/qd传给新视觉策略，首次控制前TypeError，0控制transition/0完整trial，不能记成0/10。
-原失败日志、空numeric.h5及partial视频保留在原root；本次用户授权修复并接续，36项定向测试通过，真实Kit仍待启动验收。
-接续复用原10132/6929更新EMA、统计/数据身份、已完成离线和10×2开发spec，各首1视频；不重训、不改变网络/采样/控制。
-继承原评估截止 **2026-11-10 02:08:51 +08:00**，不因修复重置；本段为启动前快照，实际状态读取上方接续run/status.json。
-
 
 ## 2026-11-09 结案与可复查图表
 

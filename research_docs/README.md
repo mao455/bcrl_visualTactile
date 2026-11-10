@@ -1,19 +1,34 @@
 # Tight-Insertion StateDP 与 G00/G10
 
-G00/G10训练已按固定墙钟预算停止：10132/6929更新、119.541/81.753 anchor等效epoch，不能称收敛。
-各38条完整离线诊断已完成。旧闭环在首次控制前因漏传实测q/qd失败，0完整trial，不是0/10成功。
-现已修复实际评估调用，仅传两个实测关节字段；36项定向测试通过。用户授权原队列一次接续，当前状态读取
-`outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01/status.json`；启动准备不等于录制完成。
-G00=三视角RGB-D+合法robot178；G10另加观测触觉直接融合。两者去掉Actor141/Geometry85，
-共用冻结DINOv2-S/14缓存和公共随机初始权重，训练所有非DINO模块。无残差，G01/G11只保留后续加载关系。
-218 Core保持166/30/22；原训练预算9h已结束，不追加训练。原模型、完整离线与失败证据保留。
-已正常停止用户确认范围的数据生成service，数据保留；现允许完整GPU，保留6GiB显存/14GiB RAM/60GiB磁盘储备。
-普通后台只接续各至多10次原匹配开发闭环与首1视频、结果MD，保留原2026-11-10 02:08:51 +08:00截止。
-模型/视频/缓存只留run目录；结果MD列出通过完整解码的视频链接，失败/未启动不计有效成功率分母。
+**G00/G10各完成10例合法开发闭环，完整成功均为0/10，两段视频已验收。**
+训练分别10132/6929更新、119.541/81.753 anchor等效epoch，按墙钟预算停止；曝光不同，不能据此作触觉因果收益结论。
+各38条train8/validation30完整离线诊断已完成，test22未使用。G00=三视角RGB-D+合法robot178，G10另加观测触觉；
+共用冻结DINOv2-S/14和公共随机初始化，没有Actor141/Geometry85或残差。
+
+全部20例结果于2026-11-10 01:51落盘后，退出检查发生完成凭据接口错误；机器状态保留FAILED，所有自有进程已退出。
+原首次控制前漏传q/qd的失败与修复接续独立保留。测量完成不等于程序正常收尾，本次发布不改写原状态或重跑实验。
+
+[当前合同](CONTRACTS.md) · [完整结果、误差解释与视频位置](STATE_DP_RESULTS.md) · [机器指标与错误](evidence/tight_vision_20261110/summary.json) · [数据身份](evidence/tight_vision_20261110/dataset_index.csv)
+
+![G00/G10完整部署采样误差](evidence/tight_vision_20261110/comparison.png)
+
+[G00 loss](evidence/tight_vision_20261110/G00/loss_curves.png) · [G10 loss](evidence/tight_vision_20261110/G10/loss_curves.png) · [G00阶段误差](evidence/tight_vision_20261110/G00/stage_errors.png) · [G10阶段误差](evidence/tight_vision_20261110/G10/stage_errors.png)
+
+代码、MD、13张图、CSV/JSON及压缩逐tick指标提供于当前origin feature分支；checkpoint、RGB-D源轨迹和MP4保留本地。
+本地视频在`outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01/{G00,G10}/evaluation/palm_fresh_000/rollout.mp4`。
+IDE中的`demos/tight_failures_20261108_01/README.md`属于旧Core8500观看队列。
+
+仅从既有指标重新导出/绘图（CPU，不加载policy/Kit）：
 
 ```bash
-cat outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01/status.json
+bash visuotactile/run_cpu.sh -m tools.tight_diagnostics publish \
+  --root outputs/visuotactile/run/tight_vision_20261109_01 \
+  --evaluation outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01 \
+  --output research_docs/evidence/tight_vision_20261110
 ```
+
+本轮无新增数据：218 Core保持166/30/22，Aux15未加入。不自动增训、扩评估或启动G01/G11。
+下文保留先前掌部StateDP的独立结果和发布资料。
 
 已完成的StateDP训练和评估：**19,865更新 / 234.374 anchor等效epoch；新初态完整成功0/10，3个视频已验收**。
 不自动继续训练或追加评估。数据为218 Core（166/30/22），Aux15未加入。
@@ -27,7 +42,7 @@ cat outputs/visuotactile/run/tight_vision_20261109_01/evaluation_resume_01/statu
 模型复用已有robot/geometry直达condition与持续GRU，仅新增掌部目标FK位置/旋转训练损失。
 固定专家历史validation30的Arm RMSE为0.005645rad、Hand 0.056618rad、掌部4.9823mm；离线改善未转化成完整任务成功。
 训练中的固定train2/validation4曲线与最终train8/validation30诊断分别报告；同tick自主动作不与不同进度专家标签硬配对。
-保持29D绝对target_after_rad、H24/commit12、5Hz规划/60Hz控制/120Hz物理，未训练视觉/触觉，不声称完整视觉DP3复现。
+该StateDP阶段保持29D绝对target_after_rad、H24/commit12、5Hz规划/60Hz控制/120Hz物理，未训练视觉/触觉，不声称完整视觉DP3复现。
 
 源码、MD、CSV/JSON和6张图公开在当前origin feature分支；完整checkpoint、源轨迹和视频仍在本地。
 [机器结果](evidence/tight_palm_20261109/summary.json)、[10例闭环](evidence/tight_palm_20261109/closed_loop.csv)、[数据身份索引](evidence/tight_palm_20261109/dataset_index.csv)、[全部文件SHA](evidence/tight_palm_20261109/artifacts.json)。

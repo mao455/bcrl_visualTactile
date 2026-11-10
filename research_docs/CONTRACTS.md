@@ -1,3 +1,12 @@
+## 2026-11-10 既有测量发布边界
+
+G00/G10各38条离线和10次合法开发闭环已完成，均0/10原生完整成功；2视频验收，所有自有worker/monitor退出。
+训练曝光119.541/81.753 anchor epoch不同，按墙钟停止而非平台收敛；最终test22未用。
+退出函数与队列完成凭据不兼容导致owner FAILED，原status/错误/完成凭据及各trial结果全部保留，不重标COMPLETE。
+tools.tight_diagnostics publish对视觉run逐一核对38诊断身份、10预登记trial与原生结果、计数、best SHA、视频帧数后公开已有测量；
+发布完整测量不豁免程序收尾失败。CPU导出不会加载policy/Kit，不能据此产生任何新实验次数。
+代码/文档/图表/CSV/JSON与压缩数值指标公开，大checkpoint、源HDF5/RGB-D、MP4及缓存留本地；没有新清理授权。
+
 ## 2026-11-10 评估调用修复与有界接续
 
 `state_benchmark.native_policy_action`在实际trial内给G00/G10传入当前实测q/qd；
