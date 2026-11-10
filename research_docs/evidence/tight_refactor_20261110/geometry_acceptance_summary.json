@@ -1,0 +1,924 @@
+{
+  "schema": "tight_hand_geometry_acceptance_summary_v1",
+  "date": "2026-11-10",
+  "source_root": "outputs/visuotactile/run/tight_transformer_20261110_01",
+  "geometry_training_admitted": true,
+  "admitted_scope": "QG geometry ablation only; admission is not training completion or task-success evidence",
+  "internal_force_training_admitted": false,
+  "original_attempts_preserved": true,
+  "thresholds_relaxed": false,
+  "gate_deadline_reset": false,
+  "attempts": [
+    {
+      "attempt": 1,
+      "directory": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate",
+      "diagnosis": "Our helper passed research_metadata without the separate env.cfg.to_dict config expected by HandCollisionGeometry; KeyError(config). Reset checks were durable before failure.",
+      "reset_checks_complete": true,
+      "resets": 2,
+      "goal_pose_checks": 4,
+      "control_steps": 0,
+      "physics_steps": 0,
+      "maximum_reset_pose_error": 5.960464477539063e-08,
+      "worker_returncode": 1,
+      "process_acceptance": {
+        "passed": false,
+        "worker_returncode": 1,
+        "physx_errors": [],
+        "source_result": "result.json",
+        "scope": "Entire new worker log; old162 errors remain preserved"
+      },
+      "geometry_live_collision_parity": null,
+      "geometry_blocker_count": null,
+      "receipts": {
+        "result.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate/result.json",
+          "sha256": "232d5e965bf749a451b54dfd814f6f068a42609e5f8e50de3f001c6b6657238e",
+          "bytes": 2937
+        },
+        "exit.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate/exit.json",
+          "sha256": "7787b9f60566f7a11bfccdd66344abde98100dac024206b6cf95de9b4d632371",
+          "bytes": 52
+        },
+        "acceptance.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate/acceptance.json",
+          "sha256": "43daba2f741d09236172ea6a999f1eccb559f222e156b67b392f5298263e0f65",
+          "bytes": 172
+        },
+        "worker_error.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate/worker_error.json",
+          "sha256": "8ff6576203e7af6f55b05d29ae21ee2b91152ce60be6f4917462d98efa02cf84",
+          "bytes": 921
+        }
+      }
+    },
+    {
+      "attempt": 2,
+      "directory": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_repair",
+      "diagnosis": "Metadata repair let geometry report BLOCKED with 26 unavailable hulls. The then-current helper did not preserve callback status, so this receipt alone cannot distinguish no callback from parsing failure. SDK teardown stalled; an owned-process-only interruption is preserved.",
+      "reset_checks_complete": true,
+      "resets": 2,
+      "goal_pose_checks": 4,
+      "control_steps": 0,
+      "physics_steps": 0,
+      "maximum_reset_pose_error": 5.960464477539063e-08,
+      "worker_returncode": null,
+      "process_acceptance": null,
+      "geometry_live_collision_parity": false,
+      "geometry_blocker_count": 26,
+      "receipts": {
+        "result.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_repair/result.json",
+          "sha256": "232d5e965bf749a451b54dfd814f6f068a42609e5f8e50de3f001c6b6657238e",
+          "bytes": 2937
+        },
+        "teardown_interruption.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_repair/teardown_interruption.json",
+          "sha256": "18052868317e0bf5d01b1a235b43aef27241c61d734ece713c990dc9a15d6776",
+          "bytes": 701
+        },
+        "geometry_live.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_repair/geometry_live.json",
+          "sha256": "9009a2ce1b689fed3c01e29071f349748fa32e7c6ea08b647af339f95dd9d489",
+          "bytes": 27400
+        },
+        "geometry_acceptance.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_repair/geometry_acceptance.json",
+          "sha256": "9270e12cb590348c5257a0148ea6576560cf30fdf25be26fe08209a7b526bafa",
+          "bytes": 27419
+        }
+      }
+    },
+    {
+      "attempt": 3,
+      "directory": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_exitfix",
+      "diagnosis": "Detailed callbacks isolated our API-target bug: 26 CollisionAPI wrapper Xforms were passed to the Mesh collision-representation API. All returned RESULT_ERROR_INVALID_PARSING(2), hull_count=0. This is not evidence the SDK lacks convex-hull support.",
+      "reset_checks_complete": true,
+      "resets": 2,
+      "goal_pose_checks": 4,
+      "control_steps": 0,
+      "physics_steps": 0,
+      "maximum_reset_pose_error": 5.960464477539063e-08,
+      "worker_returncode": 0,
+      "process_acceptance": {
+        "passed": true,
+        "worker_returncode": 0,
+        "physx_errors": [],
+        "worker_pid": 660828,
+        "worker_reaped": true,
+        "worker_gpu_absent": true,
+        "sdk_graceful_shutdown": false,
+        "exit_method": "existing isolated-worker durable-results OS exit",
+        "source_result": "result.json",
+        "scope": "Entire new worker log; old162 errors remain preserved"
+      },
+      "geometry_live_collision_parity": false,
+      "geometry_blocker_count": 26,
+      "receipts": {
+        "result.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_exitfix/result.json",
+          "sha256": "217e7f127900112ca288d5ba7e807dbed6fbe868fe15613173a6bcf4025c0f2c",
+          "bytes": 2966
+        },
+        "exit.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_exitfix/exit.json",
+          "sha256": "9f57e1fb0812a202c4e396808890876b2ae54eae421eede7f73afb1425789a68",
+          "bytes": 53
+        },
+        "acceptance.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_exitfix/acceptance.json",
+          "sha256": "4a2df067789fa47b76365bf4f42226c1bdd761b61fc888875ef18eed2ad72eb0",
+          "bytes": 352
+        },
+        "geometry_live.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_exitfix/geometry_live.json",
+          "sha256": "23513c31bde4969ff2938aec61458d24a8fcf72c2b848478ac89950f6a7a47a5",
+          "bytes": 55130
+        },
+        "geometry_acceptance.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_exitfix/geometry_acceptance.json",
+          "sha256": "a951c3a7492e8735700e6703a5dce622389359fe280d77b790cc84acffcd95ac",
+          "bytes": 55149
+        }
+      },
+      "cooked_requests": {
+        "count": 26,
+        "admitted": 0,
+        "callback_count": 26,
+        "status_counts": {
+          "2": 26
+        },
+        "hull_count_counts": {
+          "0": 26
+        }
+      }
+    },
+    {
+      "attempt": 4,
+      "directory": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix",
+      "diagnosis": "Resolve exactly one actual Mesh under each collision owner; copy exact live mesh attributes and effective collision properties to an unattached Mesh+CollisionAPI data stage; request one same-SDK reconstruction per collider. All 26 admitted; live FK and current-pose overlap checks passed.",
+      "reset_checks_complete": true,
+      "resets": 2,
+      "goal_pose_checks": 4,
+      "control_steps": 0,
+      "physics_steps": 0,
+      "maximum_reset_pose_error": 5.960464477539063e-08,
+      "worker_returncode": 0,
+      "process_acceptance": {
+        "passed": true,
+        "worker_returncode": 0,
+        "physx_errors": [],
+        "worker_pid": 665797,
+        "worker_reaped": true,
+        "worker_gpu_absent": true,
+        "sdk_graceful_shutdown": false,
+        "exit_method": "existing isolated-worker durable-results OS exit",
+        "source_result": "result.json",
+        "scope": "Entire new worker log; old162 errors remain preserved"
+      },
+      "geometry_live_collision_parity": true,
+      "geometry_blocker_count": 0,
+      "receipts": {
+        "result.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/result.json",
+          "sha256": "217e7f127900112ca288d5ba7e807dbed6fbe868fe15613173a6bcf4025c0f2c",
+          "bytes": 2966
+        },
+        "exit.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/exit.json",
+          "sha256": "970b92d9b57869347c70ac0c11b8a3ba8d9058a9543ca708ee525bb0dbe096e4",
+          "bytes": 53
+        },
+        "acceptance.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/acceptance.json",
+          "sha256": "d72c5d75c7ca105db692726679b14c04351f0710826d85e2a2c404477ae86290",
+          "bytes": 352
+        },
+        "geometry_live.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/geometry_live.json",
+          "sha256": "6a776b39519a508783e9920449a5b9bfd3b8ef9369773b5d9c4f026bb1b6ab38",
+          "bytes": 301842
+        },
+        "geometry_acceptance.json": {
+          "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/geometry_acceptance.json",
+          "sha256": "0235f38ae43ed75a63d248bd85dce6c7c48c203728aa845052fd87cba282aa9c",
+          "bytes": 301860
+        }
+      },
+      "cooked_requests": {
+        "count": 26,
+        "admitted": 26,
+        "callback_count": 26,
+        "status_counts": {
+          "0": 26
+        },
+        "hull_count_counts": {
+          "1": 26
+        }
+      }
+    }
+  ],
+  "accepted_representation": {
+    "complete": true,
+    "status": "PASSED",
+    "live_collision_parity": true,
+    "geometry_identity": "physx_reconstructed_convex_surface_fcl_witness_v1",
+    "representation_provenance": "same SDK reconstructed from exact live Mesh and effective collision properties",
+    "scope": "Exact source-input/schema-copy checks, live FK and current-pose overlap agreement; not a read of runtime cooked-memory buffers",
+    "limitation": "Current reset pose may have no contacts; matching far-separation queries does not establish full PhysX contact/force equivalence",
+    "maximum_fk_position_error_m": 2.330449734635128e-07,
+    "maximum_fk_rotation_entry_error": 6.150060408161018e-07,
+    "control_steps": 0,
+    "physics_steps": 0,
+    "runtime_cooked_memory_read": false,
+    "full_physx_contact_force_equivalence_proven": false,
+    "live_stage_modified": false,
+    "colliders": 26,
+    "single_mesh_per_collision_owner": true,
+    "all_point_bytes_sha256_equal": true,
+    "maximum_inventory_bounds_error_m": 0.0,
+    "cook_requests": 26,
+    "accepted_callbacks": 26,
+    "sdk_status": "RESULT_VALID(0)",
+    "hulls_per_request": 1,
+    "reconstructed_vertices_per_collider": [
+      40,
+      23,
+      23,
+      23,
+      36,
+      34,
+      34,
+      34,
+      34,
+      23,
+      24,
+      24,
+      24,
+      34,
+      36,
+      28,
+      28,
+      28,
+      28,
+      28,
+      28,
+      24,
+      27,
+      32,
+      28,
+      28
+    ],
+    "minimum_current_pose_distance_m": 0.03687852381462133,
+    "maximum_current_pose_distance_m": 0.10947434537691256,
+    "current_pose_hand_object_overlap_count": 0,
+    "current_pose_query_self_hit_count": 4,
+    "object_box_shapes": 2,
+    "query_scope": "Original verified object boxes at live PhysX pose vs all scene shapes; OBB check also passes",
+    "query_limitation": "Overlap query is conservative: touching may be rejected; not a signed penetration-depth oracle",
+    "source_vs_reconstructed_surface_example": {
+      "link": "left_hand_C_MC",
+      "object_overlap_hits": [],
+      "cooked_vertices": 40,
+      "query_source": "verified actual-pose object boxes with object self-hit controls",
+      "cooked_distance_m": 0.09721174901491338,
+      "source_distance_m": 0.09651773329534759
+    },
+    "asset_sha256": {
+      "hand_mesh:left_sharpa_meshes/left_hand_C_MC.STL": "01e17ed8392d99e76d1c00a849749610c3f7715f18ea12b107ba56eba3541fee",
+      "hand_mesh:left_sharpa_meshes/left_thumb_MC.STL": "3f15b81f22feec350ae2f60a7c69ca36028bd580d6cf4722d4f759d401ea02f9",
+      "hand_mesh:left_sharpa_meshes/left_thumb_PP.STL": "2847673ad531a6d1fe3d12b3433d080358727def9acade9f0319c18579676b13",
+      "hand_mesh:left_sharpa_meshes/left_thumb_DP.STL": "7bd0a9187d9cca7c3136d471784db39a3593b5264e16586002f73db42292dc6e",
+      "hand_mesh:left_sharpa_meshes/thumb_elastomer.STL": "8fb5b2036eda97fe4c2ce50ad8e021775185961c478c0d6f25f5a776588d9b14",
+      "hand_mesh:left_sharpa_meshes/MCP_VL.STL": "587e34505de3b4f5b7131e6554e0ab92a18a3c28d250ea46eaf728c4539bf77d",
+      "hand_mesh:left_sharpa_meshes/left_PP.STL": "6e4434712a5c668dbeda169e727629e95d4a9492fca431126543109451e2484f",
+      "hand_mesh:left_sharpa_meshes/left_MP.STL": "1f0a96877af9ec35f20941ae696e9e22cedc6e341703657b0c6d0ebc982897a9",
+      "hand_mesh:left_sharpa_meshes/left_DP.STL": "09ae5e485d42c651c70d025ef6bcd000f727dd1535836d7d8fa9de0686db4583",
+      "hand_mesh:left_sharpa_meshes/elastomer.STL": "1611f42070a8fb34226508417bb930af53bbe9e3b619113136b60cb0595ca4ed",
+      "hand_mesh:left_sharpa_meshes/left_pinky_MC.STL": "f7a7192ae246a6b88f9096332216013c8f6be507ee0dc9bfd4444518453b0c13",
+      "robot_urdf": "3c36492da57eb4326068a0b97b2d064034035d9037c07e345a1317ead195fb71",
+      "object_urdf": "f5a7ba576e235d5f5326140f36075658a03bbe6ee57a84cb1cecf27f799071f3",
+      "cooked_hulls": "c0b03953ea779e68e698b022de56074258e0382b50c9283567054279f75a4230"
+    },
+    "receipt": {
+      "path": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/geometry_live.json",
+      "sha256": "6a776b39519a508783e9920449a5b9bfd3b8ef9369773b5d9c4f026bb1b6ab38",
+      "bytes": 301842
+    }
+  },
+  "fixed_training_state_acceptance": {
+    "passed": true,
+    "live_collision_parity": true,
+    "reason": "six_fixed_train_projections_and_scale_passed",
+    "attempted": 6,
+    "feasible": 6,
+    "rows": [
+      {
+        "stage": 0,
+        "required_contacts": 0,
+        "feasible": true,
+        "reason": "feasible",
+        "iterations": 1,
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully",
+        "local_solver_failure_is_not_global_infeasibility_proof": false,
+        "before_min_distance_m": 0.013702973067121036,
+        "after_min_distance_m": 0.014499533020553053,
+        "before_fingertip_distance_m": [
+          0.031517928124539206,
+          0.023814729116182362,
+          0.017803998647235204,
+          0.08395729121331764,
+          0.013702973067121036
+        ],
+        "after_fingertip_distance_m": [
+          0.03375492293467588,
+          0.025577275765967484,
+          0.01902602210626885,
+          0.08395729121331764,
+          0.014499533020553053
+        ],
+        "required_contact_mask": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "maximum_hand_change_rad": 0.04571448672330007,
+        "arm_changed": false,
+        "minimum_constraint_margin_m": 0.015499533020553052,
+        "identity": "formal_000_slow_1",
+        "tick": 0,
+        "source_sha256": "f3e23a30690e651f8e822d8a9d0b200865d14e664645e6a31cb6d5181166a133",
+        "fit_loss": 0.4776875376701355,
+        "geometry_loss": 0.00036820183720060476,
+        "fit_gradient_norm": 0.20838939548545277,
+        "geometry_gradient_norm": 0.000290084207603033,
+        "arm_geometry_gradient_norm": 0.0,
+        "hand_geometry_gradient_norm": 0.000290084207603033,
+        "gradients_finite": true,
+        "weighted_loss_fraction": 0.0005418340201950362,
+        "weighted_gradient_fraction": 0.0009785267466590664
+      },
+      {
+        "stage": 1,
+        "required_contacts": 1,
+        "feasible": true,
+        "reason": "feasible",
+        "iterations": 8,
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully",
+        "local_solver_failure_is_not_global_infeasibility_proof": false,
+        "before_min_distance_m": -0.007345377466480628,
+        "after_min_distance_m": -0.001000000000023662,
+        "before_fingertip_distance_m": [
+          -0.007345377466480628,
+          -0.0016129008039450377,
+          0.018388883543134723,
+          -0.00467720058740717,
+          -0.001545505716683595
+        ],
+        "after_fingertip_distance_m": [
+          -0.001000000000023662,
+          0.0007222489391293932,
+          0.023094838362737846,
+          -0.001000000000003576,
+          0.006385627347440042
+        ],
+        "required_contact_mask": [
+          true,
+          false,
+          false,
+          false,
+          false
+        ],
+        "maximum_hand_change_rad": 0.08415651521864065,
+        "arm_changed": false,
+        "minimum_constraint_margin_m": -2.3662061893192643e-14,
+        "identity": "formal_000_slow_1",
+        "tick": 183,
+        "source_sha256": "f3e23a30690e651f8e822d8a9d0b200865d14e664645e6a31cb6d5181166a133",
+        "fit_loss": 0.4776874780654907,
+        "geometry_loss": 0.0032690573778209023,
+        "fit_gradient_norm": 0.20838939543368432,
+        "geometry_gradient_norm": 0.014770005971643197,
+        "arm_geometry_gradient_norm": 0.0,
+        "hand_geometry_gradient_norm": 0.014770005971643197,
+        "gradients_finite": true,
+        "weighted_loss_fraction": 0.0048106406414387065,
+        "weighted_gradient_fraction": 0.049822932501501285
+      },
+      {
+        "stage": 1,
+        "required_contacts": 1,
+        "feasible": true,
+        "reason": "feasible",
+        "iterations": 6,
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully",
+        "local_solver_failure_is_not_global_infeasibility_proof": false,
+        "before_min_distance_m": -0.008916625023113316,
+        "after_min_distance_m": -0.0010000000001246102,
+        "before_fingertip_distance_m": [
+          -0.008916625023113316,
+          -0.004985545083970305,
+          0.023674677227086566,
+          -0.00588384085053625,
+          -0.0018581993779946168
+        ],
+        "after_fingertip_distance_m": [
+          -0.0010000000000737507,
+          -0.0010000000000021565,
+          0.02704289698465302,
+          -0.0009999999999953059,
+          0.00668932830901355
+        ],
+        "required_contact_mask": [
+          true,
+          false,
+          false,
+          false,
+          false
+        ],
+        "maximum_hand_change_rad": 0.09316943724040111,
+        "arm_changed": false,
+        "minimum_constraint_margin_m": -1.2461017460940749e-13,
+        "identity": "formal_000_slow_1",
+        "tick": 274,
+        "source_sha256": "f3e23a30690e651f8e822d8a9d0b200865d14e664645e6a31cb6d5181166a133",
+        "fit_loss": 0.4776875376701355,
+        "geometry_loss": 0.0025683480224146845,
+        "fit_gradient_norm": 0.20838939559942432,
+        "geometry_gradient_norm": 0.0148224976349448,
+        "arm_geometry_gradient_norm": 0.0,
+        "hand_geometry_gradient_norm": 0.014822497634944802,
+        "gradients_finite": true,
+        "weighted_loss_fraction": 0.0037794986163709283,
+        "weighted_gradient_fraction": 0.05
+      },
+      {
+        "stage": 0,
+        "required_contacts": 0,
+        "feasible": true,
+        "reason": "feasible",
+        "iterations": 1,
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully",
+        "local_solver_failure_is_not_global_infeasibility_proof": false,
+        "before_min_distance_m": 0.030223525250482376,
+        "after_min_distance_m": 0.030742048690660894,
+        "before_fingertip_distance_m": [
+          0.04587995676075007,
+          0.038798203719830386,
+          0.03421037302648365,
+          0.09953099149346416,
+          0.030223525250482376
+        ],
+        "after_fingertip_distance_m": [
+          0.04756704471423239,
+          0.04011770520705422,
+          0.03553907885146134,
+          0.09953099149346416,
+          0.030742048690660894
+        ],
+        "required_contact_mask": [
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "maximum_hand_change_rad": 0.04599971369141713,
+        "arm_changed": false,
+        "minimum_constraint_margin_m": 0.03174204869066089,
+        "identity": "formal_000_slow_3",
+        "tick": 0,
+        "source_sha256": "dfb4a5c99dbdb0e6168d0c9e678206b647e59dbfa8aa8c0c80f3e542f498906c",
+        "fit_loss": 0.4776875376701355,
+        "geometry_loss": 0.0003703153522479729,
+        "fit_gradient_norm": 0.20838939552485508,
+        "geometry_gradient_norm": 0.0002909206436077465,
+        "arm_geometry_gradient_norm": 0.0,
+        "hand_geometry_gradient_norm": 0.0002909206436077465,
+        "gradients_finite": true,
+        "weighted_loss_fraction": 0.0005449442011858884,
+        "weighted_gradient_fraction": 0.0009813482547839575
+      },
+      {
+        "stage": 1,
+        "required_contacts": 1,
+        "feasible": true,
+        "reason": "feasible",
+        "iterations": 5,
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully",
+        "local_solver_failure_is_not_global_infeasibility_proof": false,
+        "before_min_distance_m": -0.006816363175925139,
+        "after_min_distance_m": -0.0010000000056346106,
+        "before_fingertip_distance_m": [
+          -0.006816363175925139,
+          -0.004005431765592113,
+          0.023408688397509408,
+          -0.0036988068170003556,
+          0.0037477216721106565
+        ],
+        "after_fingertip_distance_m": [
+          -0.0010000000056346106,
+          -0.0009999999995255282,
+          0.02750570342348419,
+          -0.0010000000000359656,
+          0.0037642127029950123
+        ],
+        "required_contact_mask": [
+          true,
+          false,
+          false,
+          false,
+          false
+        ],
+        "maximum_hand_change_rad": 0.0940220318382956,
+        "arm_changed": false,
+        "minimum_constraint_margin_m": -5.634610616631064e-12,
+        "identity": "formal_000_slow_3",
+        "tick": 165,
+        "source_sha256": "dfb4a5c99dbdb0e6168d0c9e678206b647e59dbfa8aa8c0c80f3e542f498906c",
+        "fit_loss": 0.4776874780654907,
+        "geometry_loss": 0.002596533885897457,
+        "fit_gradient_norm": 0.2083893880934248,
+        "geometry_gradient_norm": 0.013232720499142201,
+        "arm_geometry_gradient_norm": 0.0,
+        "hand_geometry_gradient_norm": 0.013232720499142201,
+        "gradients_finite": true,
+        "weighted_loss_fraction": 0.003820976506291046,
+        "weighted_gradient_fraction": 0.04463728482768028
+      },
+      {
+        "stage": 1,
+        "required_contacts": 2,
+        "feasible": true,
+        "reason": "feasible",
+        "iterations": 6,
+        "solver_success": true,
+        "solver_status": 0,
+        "solver_message": "Optimization terminated successfully",
+        "local_solver_failure_is_not_global_infeasibility_proof": false,
+        "before_min_distance_m": -0.009086333794325767,
+        "after_min_distance_m": -0.0010000000000122016,
+        "before_fingertip_distance_m": [
+          -0.009086333794325767,
+          -0.00045890315722432794,
+          0.05552472059676117,
+          -0.00044647747190972823,
+          -0.003346394131070826
+        ],
+        "after_fingertip_distance_m": [
+          -0.0010000000000122016,
+          0.004982028560749155,
+          0.05280759389929302,
+          -0.0009999999988526962,
+          -0.0010000000000005777
+        ],
+        "required_contact_mask": [
+          true,
+          false,
+          false,
+          true,
+          false
+        ],
+        "maximum_hand_change_rad": 0.08136922446116346,
+        "arm_changed": false,
+        "minimum_constraint_margin_m": -1.2201611249151867e-14,
+        "identity": "formal_000_slow_3",
+        "tick": 248,
+        "source_sha256": "dfb4a5c99dbdb0e6168d0c9e678206b647e59dbfa8aa8c0c80f3e542f498906c",
+        "fit_loss": 0.4776874780654907,
+        "geometry_loss": 0.001625310951062914,
+        "fit_gradient_norm": 0.2083893884490617,
+        "geometry_gradient_norm": 0.011905816905603717,
+        "arm_geometry_gradient_norm": 0.0,
+        "hand_geometry_gradient_norm": 0.011905816905603717,
+        "gradients_finite": true,
+        "weighted_loss_fraction": 0.0023917557915029684,
+        "weighted_gradient_fraction": 0.040161306168987276
+      }
+    ],
+    "elapsed_s": 0.2955569170881063,
+    "hand_geometry_weight": 0.7029496672279293,
+    "geometry_identity": "physx_reconstructed_convex_surface_fcl_witness_v1",
+    "statistics_sha256": "d6b65e41ca99262958c386516b37e7d34981eb9241b9b109b028c8ce9926c2ef",
+    "normalization_identity": "q_reached_train166_affine_v1",
+    "perturbation_hand_rad": 0.08,
+    "weight_rule": "min(1,0.05*Lfit/Lgeom,0.05*norm_grad_Lfit/norm_grad_Lgeom) over all six train states; gradients in normalized output coordinates",
+    "constraints": {
+      "penetration_tolerance_m": 0.001,
+      "contact_tolerance_m": 0.002,
+      "local_radius_rad": 0.15,
+      "maximum_iterations": 30,
+      "training_projection_rows_per_microbatch": 2
+    },
+    "calibration_reads_validation": false,
+    "calibration_reads_test": false,
+    "limitation": "Acceptance uses fixed perturbed recorded configurations, not learned predictions or a closed-loop success claim; no internal-force term admitted",
+    "receipt": {
+      "path": "outputs/visuotactile/run/tight_transformer_20261110_01/geometry_acceptance.json",
+      "sha256": "a2735300c9bbfe29920aa666f7a4bef1f8dc2658ffdc7cf57fbbfc490440f1c4",
+      "bytes": 136553
+    },
+    "selection": "First two sorted training episode IDs, each at ticks 0, length//2 and 3*length//4; fixed +0.08 rad hand perturbation; no sample replacement",
+    "maximum_weighted_loss_fraction": 0.0048106406414387065,
+    "maximum_weighted_gradient_fraction": 0.05,
+    "all_arm_geometry_gradients_zero": true,
+    "all_hand_geometry_gradients_finite_nonzero": true,
+    "maximum_local_hand_change_rad": 0.0940220318382956,
+    "maximum_penetration_constraint_numerical_excess_m": 5.634610616631064e-12
+  },
+  "internal_force": {
+    "status": "BLOCKED",
+    "accepted": false,
+    "calibration_perturbations": 0,
+    "raw_contact_api": [
+      {
+        "prim_path": "/World/envs/env_.*/Robot/left_index_DP",
+        "normal_shapes": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "friction_shapes": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "contact_count": 0,
+        "available": true
+      },
+      {
+        "prim_path": "/World/envs/env_.*/Robot/left_middle_DP",
+        "normal_shapes": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "friction_shapes": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "contact_count": 0,
+        "available": true
+      },
+      {
+        "prim_path": "/World/envs/env_.*/Robot/left_ring_DP",
+        "normal_shapes": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "friction_shapes": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "contact_count": 0,
+        "available": true
+      },
+      {
+        "prim_path": "/World/envs/env_.*/Robot/left_thumb_DP",
+        "normal_shapes": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "friction_shapes": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "contact_count": 0,
+        "available": true
+      },
+      {
+        "prim_path": "/World/envs/env_.*/Robot/left_pinky_DP",
+        "normal_shapes": [
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "friction_shapes": [
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "contact_count": 0,
+        "available": true
+      }
+    ],
+    "reason": "full_hand_environment_contact_coverage_and_action_response_missing",
+    "required": "Object-filtered contacts for all hand bodies plus separate object-environment contacts, mass/inertia, timestamps, and bounded +/- action-response pairs",
+    "scope": "Existing five distal normal sensors and zero-contact startup cannot identify internal force or calibrate a differentiable action-force model",
+    "action_dependent_force_model_calibrated": false,
+    "internal_force_loss_enabled": false
+  },
+  "prior_source_hull_cpu_check": {
+    "receipt": {
+      "path": "outputs/visuotactile/tmp/geometry_offline_acceptance_20261110.json",
+      "sha256": "123933c27f861ec45497adbc9de853564b3d23d98d03e8705be71857599de634",
+      "bytes": 9910
+    },
+    "geometry_identity": "urdf_convex_surface_fcl_witness_v1",
+    "live_collision_parity": false,
+    "admitted_for_training": false,
+    "feasible": 6,
+    "attempted": 6,
+    "scope": "Actual collision-source convex surfaces; live cooked-hull gate is separately required; no Kit/training/action perturbations"
+  },
+  "mesh_adapter_cpu_check": {
+    "receipt": {
+      "path": "outputs/visuotactile/tmp/geometry_mesh_adapter_cpu_20261110.json",
+      "sha256": "14f5089eedcba02ce695a1715e2a03120677ccf9d039568d4ff9339952c0f8be",
+      "bytes": 120973
+    },
+    "passed": true,
+    "colliders": 26,
+    "source_usd_sha256": "3628c9a6f439dcfb61aa61bc9bcd9bd131f5f8cd8b0723910d0cc30aee27e58a",
+    "source_stage_unchanged": true,
+    "kit_started": false,
+    "cook_calls": 0
+  }
+}

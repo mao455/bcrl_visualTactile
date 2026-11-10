@@ -184,6 +184,36 @@ def record(path):
         return key,m,result
 
 
+def actual_configuration_labels(entry):
+    """Read q(t+1) directly, with u(t) kept distinct and reset boundaries checked.
+
+    This is loss-only supervision. Neither future configuration nor future object
+    geometry is an observation input. A terminal row is the recorded pre-reset
+    after-state; its missing post image is never replaced by a reset image.
+    """
+    with h5py.File(entry['path']) as f:
+        g=f['episodes'][entry['episode']];n=entry['length']
+        q=torch.from_numpy(g['transition/diagnostics_after/joint_position_rad'][:])
+        before=torch.from_numpy(g['transition/diagnostics_before/joint_position_rad'][:])
+        u=torch.from_numpy(g['transition/target_after_rad'][:])
+        t=torch.from_numpy(g['obs/time_s'][:]);after=torch.from_numpy(g['transition/time_after_s'][:])
+        time_before=torch.from_numpy(g['transition/time_before_s'][:])
+        if q.shape!=(n,29) or u.shape!=q.shape or not torch.isfinite(q).all():raise ValueError('Invalid actual joint labels')
+        if not torch.equal(q[:-1],before[1:]):raise ValueError('Actual configuration crosses reset or loses after/before alignment')
+        if not torch.allclose(after-t,torch.full_like(t,1/60),atol=1e-8,rtol=0):raise ValueError('After-state clock differs')
+        if not torch.equal(time_before,t) or not torch.allclose(after[:-1],t[1:],atol=1e-8,rtol=0):
+            raise ValueError('Actual configuration observation/transition clocks lose causal alignment')
+        if not np.array_equal(g['frames/post_index'][:],np.r_[np.arange(1,n),-1]):raise ValueError('Terminal image/reset boundary differs')
+        if not bool(g.attrs['complete']):raise ValueError('Incomplete source trajectory')
+        if not torch.equal(torch.from_numpy(g['obs/step_id'][:]),torch.arange(n)):raise ValueError('Native tick sequence differs')
+        report=dict(ticks=n,after_before_exact=True,terminal_after_preserved=True,terminal_post_image=-1,
+            command_reached_max_abs_rad=float((u-q).abs().max()),
+            command_reached_arm_rmse_rad=float((u[:,:7]-q[:,:7]).square().mean().sqrt()),
+            command_reached_hand_rmse_rad=float((u[:,7:]-q[:,7:]).square().mean().sqrt()),
+            q_reached_field='transition/diagnostics_after/joint_position_rad',u_expert_field='transition/target_after_rad')
+        return q,report
+
+
 def build_cache(root, *, partial=False, reuse_source=None):
     root=Path(root); manifest=read(root/'manifest.json')
     current=(root/'configuration.json').exists() and read(root/'configuration.json').get('version')=='tight_state_foundation_v1'

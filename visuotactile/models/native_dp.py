@@ -273,7 +273,8 @@ def load_policy(payload, device='cpu', ema=True):
     from ..position_control import image_contract
     allowed=[CONTRACT]+[image_contract(g,h) for g in ('I-OfficialDP','I-HistoryDP') for h in (24,32)]
     allowed += [image_contract('I-HistoryDP',24,m) for m in ('G00','G10')]
-    if stored not in allowed or group not in GROUPS or (stored != CONTRACT and stored!=image_contract(group,stored['horizon'],stored.get('modality'))):
+    allowed += [image_contract('I-HistoryDP',24,m,s) for m in ('G00','G10') for s in ('u_expert','q_reached')]
+    if stored not in allowed or group not in GROUPS or (stored != CONTRACT and stored!=image_contract(group,stored['horizon'],stored.get('modality'),stored.get('supervision'))):
         raise ValueError('Not a native-command v1 checkpoint; old weights cannot be reinterpreted')
     model = NativePolicy(group,stored['horizon'],modality=stored.get('modality')).to(device)
     model.contract=stored
@@ -357,7 +358,7 @@ class FingerTactileEncoder(nn.Module):
         return (result,next_state) if return_state else result
 
 
-class TargetResidual(nn.Module):
+class LegacyTargetResidual(nn.Module):
     """3e11d62 ResidualCorrection's 60Hz GRUs, adapted to H24 target radians.
 
     The frozen current DP supplies its existing 512D visual readout instead of
@@ -422,3 +423,149 @@ class TargetResidual(nn.Module):
         fit=.5*error[...,:7].mean(-1)+.5*error[...,7:].mean(-1)
         penalty=.5*delta[...,:7].square().mean(-1)+.5*delta[...,7:].square().mean(-1)
         return ((fit+1e-4*penalty)*contact).sum()/contact.sum().clamp_min(1)
+
+
+class TargetResidual(nn.Module):
+    """60 Hz Transformer plan/feedback fusion with persistent sensor memory.
+
+    The Transformer query is current collected feedback, including separately
+    identified previous nominal and executed commands. Its memory is the
+    currently available H24 nominal plan, 32 past feedback tokens, and a
+    persistent recurrent summary. Future *predicted plan* tokens are legal;
+    future measured feedback or expert targets are never supplied. All new
+    groups retain the same frozen visual readout bypass. No contact hard gate
+    removes correction during free motion or temporary loss of contact.
+    """
+    version = 'target_residual_transformer60_v1'
+    history_ticks = 32
+    width = 128
+    input_keys = {'visual', 'robot', 'tactile', 'tactile_valid', 'plans',
+                  'plan_valid', 'plan_cursor', 'previous_nominal',
+                  'previous_nominal_valid', 'valid'}
+
+    def __init__(self, statistics, scales):
+        super().__init__()
+        self.visual = nn.GRUCell(512, 64)
+        self.tactile = FingerTactileEncoder()
+        self.motion = nn.GRUCell(ROBOT_DIM, 64)
+        self.feedback = mlp(64*3+30, self.width)
+        self.memory = nn.GRUCell(self.width, self.width)
+        self.intent = nn.Linear(29, self.width)
+        self.plan_position = nn.Embedding(24, self.width)
+        self.plan_cursor = nn.Embedding(12, self.width)
+        self.history_position = nn.Embedding(self.history_ticks, self.width)
+        self.token_type = nn.Embedding(3, self.width)
+        layer = nn.TransformerDecoderLayer(self.width, 4, dim_feedforward=256,
+            dropout=0., activation='gelu', batch_first=True, norm_first=True)
+        self.transformer = nn.TransformerDecoder(layer, 2, norm=nn.LayerNorm(self.width))
+        self.policy = nn.Sequential(nn.Linear(self.width, 128), nn.SiLU(), nn.Linear(128, 29))
+        nn.init.zeros_(self.policy[-1].weight)
+        nn.init.zeros_(self.policy[-1].bias)
+        for name in ('robot_mean', 'robot_std', 'action_scale', 'action_offset'):
+            self.register_buffer(name, statistics[name].detach().cpu().clone())
+        scale = torch.as_tensor(scales, dtype=torch.float32)
+        if scale.shape != (29,) or not torch.isfinite(scale).all() or (scale <= 0).any():
+            raise ValueError('Residual scales must be 29 finite positive normalized amplitudes')
+        self.register_buffer('scales', scale)
+
+    def architecture(self):
+        return dict(version=self.version, transformer='decoder_cross_attention', layers=2,
+            width=self.width, heads=4, feedforward=256, dropout=0.,
+            plan_tokens=24, past_feedback_tokens=self.history_ticks,
+            persistent_memory='visual64, tactile64 with per-finger32 at120Hz, motion64, feedback128; episode reset only',
+            previous_nominal='separate previous-tick base prediction in radians',
+            direct_frozen_visual_bypass=True, control_hz=60,
+            gate='none; all valid native ticks supervised including noncontact',
+            parameters=sum(p.numel() for p in self.parameters()),
+            trainable_parameters=sum(p.numel() for p in self.parameters() if p.requires_grad))
+
+    def forward(self, inputs, state=None, *, mask_force=False):
+        if set(inputs) != self.input_keys:
+            raise ValueError('Transformer residual sensor/plan allowlist differs')
+        state = {} if state is None else state
+        robot = inputs['robot']
+        batch, steps = robot.shape[:2]
+        valid = inputs['valid'].bool()
+        cursor = inputs['plan_cursor']
+        if robot.shape != (batch, steps, ROBOT_DIM) or valid.shape != (batch, steps) or steps < 1:
+            raise ValueError('Expected nonempty B,T,178 causal robot observations')
+        if cursor.shape != valid.shape or cursor.is_floating_point() or ((cursor < 0) | (cursor >= 12)).any():
+            raise ValueError('Expected explicit H24/commit12 integer plan cursor')
+        if inputs['plans'].shape != (batch, steps, 24, 29) or inputs['plan_valid'].shape != (batch, steps, 24):
+            raise ValueError('Expected current remaining H24 plan and validity mask')
+        if inputs['previous_nominal'].shape != (batch, steps, 29) or inputs['previous_nominal_valid'].shape != valid.shape:
+            raise ValueError('Previous nominal must have its own value and validity')
+        if not inputs['plan_valid'][valid].any(-1).all():
+            raise ValueError('Every valid control tick needs a valid current nominal plan')
+        touch = inputs['tactile']
+        if mask_force:
+            touch = {k: torch.zeros_like(v) if k in ('force_w_N', 'force_local_N') else v for k, v in touch.items()}
+        touch_valid = inputs['tactile_valid'].bool() & valid.repeat_interleave(2, dim=1)
+        tactile, ts = self.tactile(touch, touch_valid, state.get('tactile'), return_state=True, return_sequence=True)
+        tactile = tactile[:, 1::2]
+        normalized = (robot-self.robot_mean)/self.robot_std
+        # Unavailable strict-past execution slots must remain exactly zero.
+        normalized = torch.cat((normalized[..., :116],
+            torch.where(robot[..., 176:177].bool(), normalized[..., 116:176], 0.),
+            robot[..., 176:177], normalized[..., 177:]), -1)
+        previous_valid = inputs['previous_nominal_valid'].bool()
+        previous_nominal = torch.where(previous_valid[..., None],
+            inputs['previous_nominal']*self.action_scale+self.action_offset, 0.)
+        visual_state = state.get('visual', robot.new_zeros(batch, 64))
+        motion_state = state.get('motion', robot.new_zeros(batch, 64))
+        memory_state = state.get('memory', robot.new_zeros(batch, self.width))
+        history = state.get('history', robot.new_zeros(batch, self.history_ticks, self.width))
+        history_valid = state.get('history_valid', torch.zeros(batch, self.history_ticks, dtype=torch.bool, device=robot.device))
+        queries, summaries, histories, history_masks = [], [], [], []
+        for tick in range(steps):
+            active = valid[:, tick, None]
+            visual_state = torch.where(active, self.visual(inputs['visual'][:, tick], visual_state), visual_state)
+            motion_state = torch.where(active, self.motion(normalized[:, tick], motion_state), motion_state)
+            feedback = self.feedback(torch.cat((visual_state, tactile[:, tick], motion_state,
+                previous_nominal[:, tick], previous_valid[:, tick, None].to(robot.dtype)), -1))
+            memory_state = torch.where(active, self.memory(feedback, memory_state), memory_state)
+            queries.append(feedback + memory_state + self.plan_cursor(cursor[:, tick]))
+            summaries.append(memory_state)
+            histories.append(history)
+            history_masks.append(history_valid)
+            # The query sees only preceding feedback tokens. Current feedback
+            # becomes history only for the next native observation.
+            history = torch.where(active[..., None], torch.cat((history[:, 1:], feedback[:, None]), 1), history)
+            history_valid = torch.where(active, torch.cat((history_valid[:, 1:], valid[:, tick, None]), 1), history_valid)
+        plan = inputs['plans'].detach()*self.action_scale+self.action_offset
+        positions = (torch.arange(24, device=robot.device)[None, None]+cursor[..., None]).clamp_max(23)
+        plan_tokens = self.intent(plan)+self.plan_position(positions)+self.token_type.weight[0]
+        history_tokens = torch.stack(histories, 1)+self.history_position.weight+self.token_type.weight[1]
+        summary_tokens = torch.stack(summaries, 1)[:, :, None]+self.token_type.weight[2]
+        tokens = torch.cat((plan_tokens, history_tokens, summary_tokens), 2).reshape(batch*steps, 57, self.width)
+        padding = torch.cat((~inputs['plan_valid'].bool(), ~torch.stack(history_masks, 1),
+            torch.zeros(batch, steps, 1, dtype=torch.bool, device=robot.device)), -1).reshape(batch*steps, 57)
+        query = torch.stack(queries, 1).reshape(batch*steps, 1, self.width)
+        fused = self.transformer(query, tokens, memory_key_padding_mask=padding).reshape(batch, steps, self.width)
+        raw = torch.where(valid[..., None], self.policy(fused), 0.)
+        return raw, dict(visual=visual_state, tactile=ts, motion=motion_state,
+            memory=memory_state, history=history, history_valid=history_valid)
+
+    def compose(self, base, raw, contact, limits):
+        """Observed contact remains a diagnostic argument, never a hard switch."""
+        delta = self.scales*raw.tanh()
+        proposal = base+delta/self.action_scale
+        return torch.maximum(torch.minimum(proposal, limits[..., 1]), limits[..., 0]), delta
+
+    def objective(self, action, target, delta, valid):
+        """Equal total arm/hand fit on all valid control ticks, not contact only."""
+        error = ((action-target)*self.action_scale).square()
+        fit = .5*error[..., :7].mean(-1)+.5*error[..., 7:].mean(-1)
+        penalty = .5*delta[..., :7].square().mean(-1)+.5*delta[..., 7:].square().mean(-1)
+        return ((fit+1e-4*penalty)*valid).sum()/valid.sum().clamp_min(1)
+
+
+def load_residual(payload, device='cpu'):
+    """Dispatch historical evidence explicitly; GRU weights never become Transformer."""
+    versions = {LegacyTargetResidual.version: LegacyTargetResidual, TargetResidual.version: TargetResidual}
+    if payload.get('residual_version') not in versions:
+        raise ValueError('Unknown residual architecture identity')
+    state = payload['model']
+    model = versions[payload['residual_version']](state, state['scales']).to(device)
+    model.load_state_dict(state)
+    return model.eval()

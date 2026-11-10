@@ -56,7 +56,7 @@ def contract(horizon=32, position=True, prediction_type='sample'):
             if position else STATE_CONTRACT['history_source']))
 
 
-def image_contract(group, horizon=32, modality=None):
+def image_contract(group, horizon=32, modality=None, supervision=None):
     from .native_data import CONTRACT
     if group not in ('I-OfficialDP','I-HistoryDP') or horizon not in (24,32):
         raise ValueError('Explicit short-horizon ImageDP group required')
@@ -70,6 +70,15 @@ def image_contract(group, horizon=32, modality=None):
             observation='robot178_dino_rgb_depth_v1'+('_touch32x242' if modality=='G10' else ''),
             tactile_history=242 if modality=='G10' else 0, sampler_seed=7091,
             task_condition='constant externally selected tight_insertion; goal pose absent')
+    if supervision is not None:
+        if modality is None or supervision not in ('u_expert', 'q_reached'):
+            raise ValueError('Explicit visual clean-sample supervision required')
+        value.update(version=5, supervision=supervision,
+            clean_sample_field=('transition/target_after_rad' if supervision=='u_expert'
+                else 'transition/diagnostics_after/joint_position_rad'),
+            normalization_identity=supervision+'_train166_affine_v1',
+            label_time='same transition: issued target before integration / reached configuration after integration',
+            deployment_output='absolute_joint_position_target_rad')
     return value
 
 

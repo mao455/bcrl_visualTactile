@@ -1,3 +1,15 @@
+## 2026-11-10 接手：Transformer/实际配置方法实现与门控
+
+起点8e67fb7，工作树bc+rl_RSS_palm_eval干净后开始；原主工作树/窄域工作树未提交文档未动。现有400/Core/旧成功保护。当前run为outputs/visuotactile/run/tight_transformer_20261110_01，机器status/各gate为准，正式更新暂0；102项定向CPU测试通过，详细启动进度随后以status/launch为准。
+
+新旧差异、监督时序、网络/门控、实验矩阵和有限预算见CONTRACTS当前段。CPU验证实际train166+validation30共65630tick，test未读；新Transformer756581参数，旧GRU显式保留用于成功对照。清理398文件释放823.789063MiB，0模型权重删除。
+
+首Kit gate完成2reset/4pose/0step、PhysX错误0，但geometry metadata header缺config导致worker异常。原失败完整保留；第二次physics_gate_repair同样完成零步功能检查，但SDK关闭停滞；只中断本次父进程并清理自有子进程，保留中断凭据。第三次physics_gate_exitfix复用既有durable-results OS退出，worker0/全日志PhysX0/进程与GPU census退出核验通过；不称SDK graceful close。第三次几何回调26/26明确INVALID_PARSING(2)：错误地把CollisionAPI包装Xform当Mesh传入。按具体API缺陷做一次第四复验，预算修订留账、原三小时期限不变，不改任何几何/物理容差。第四次physics_gate_meshfix实际通过：worker0、完整日志PhysX0、所有自有进程退出；26实际Mesh/属性同SDK重建凸包，当前姿态FK/查询一致。固定6训练状态6/6投影可行，λ_geom=0.7029496672279293，手臂新增梯度0、手部梯度有效；QG00/QG01准入。内部力前提未满足：现有5distal sensor接口可读但startup为零接触，缺全手/物体环境接触与所需wrench及动作响应；实际扰动0，未建立F(action,...)，λ_int禁用。不能把几何消融称完整内力方法。
+
+root配置/数据已prepare；大训练尚须GPU真实DDIM/cache/controller、保存恢复、每profile8update吞吐门控。门控source冻结与绝对期限不重置。外层owner负责训练→验证→残差→固定开发→冻结后test22→CPU整理，任何依赖失败停后续、不补seed。最终状态及是否启动必须读机器文件。
+
+以下历史handoff不作为当前任务队列。
+
 # 当前交接：Core/Auxiliary有限任务已完成，学生未成功
 
 2026-11-08，使用修复worktree `/home/CNS2025331827/docs/bc+rl_RSS_narrow_followup`，branch `feature/tight-state-foundation`。当前实验root `outputs/visuotactile/run/tight_state_20261107_01/composition_06`，status=complete/evaluated；11月8日13:21:54 owner/monitor/Kit退出。原训练PID2805678、owner2393723、monitor2393729、最终eval3127549与两版资源guard均已核实退出；不可用历史PID冒充活进程。

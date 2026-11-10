@@ -357,9 +357,7 @@ class PreciseAssemblyEnv(PlayEnv):
         self.hole_quat_wxyz[env_ids] = hole_quat
         hole_pose = torch.cat([self.hole_pos[env_ids] + env_origins, hole_quat], dim=-1)
         self.hole.write_root_pose_to_sim(hole_pose, env_ids=env_ids)
-        self.hole.write_root_velocity_to_sim(
-            torch.zeros(n, 6, device=self.device), env_ids=env_ids
-        )
+        # Kinematic bodies are repositioned by pose; PhysX rejects velocity setters.
 
         self.goal_pos_obs_noise[env_ids] = 0.0
         self.goal_yaw_obs_noise[env_ids] = 0.0
@@ -510,9 +508,7 @@ class PreciseAssemblyEnv(PlayEnv):
 
         pose = torch.cat([pos_local + env_origins, quat], dim=-1)
         self.goal_viz.write_root_pose_to_sim(pose, env_ids=env_ids)
-        self.goal_viz.write_root_velocity_to_sim(
-            torch.zeros(n, 6, device=self.device), env_ids=env_ids
-        )
+        # Kinematic bodies are repositioned by pose; PhysX rejects velocity setters.
 
     def _clear_goal_trackers(self, env_ids: torch.Tensor) -> None:
         self._closest_keypoint_max_dist[env_ids] = -1.0

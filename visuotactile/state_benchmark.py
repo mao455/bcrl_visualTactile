@@ -35,6 +35,52 @@ def native_policy_action(controller, packet, diagnostics_provider):
     return controller.act(packet, diagnostics_provider())
 
 
+def residual_episode_metrics(arrays, control_hz=60):
+    """Read-only correction/contact diagnostics, never inputs or success gates."""
+    contact=np.asarray(arrays['residual_contact_gate'],dtype=bool)
+    valid=np.asarray(arrays['residual_contact_valid'],dtype=bool)
+    applied=np.asarray(arrays['residual_applied_rad'])
+    proposed=np.asarray(arrays['residual_proposed_rad'])
+    clipped=np.asarray(arrays['residual_clip_mask'],dtype=bool)
+    tanh=np.asarray(arrays['residual_tanh_fraction'])
+    if any(value.shape!=(len(contact),29) for value in (applied,proposed,clipped,tanh)) or valid.shape!=contact.shape:
+        raise ValueError('Residual diagnostic dimensions differ from native ticks')
+    def amplitudes(mask):
+        result=dict(ticks=int(mask.sum()))
+        for name,part in (('arm',slice(0,7)),('hand',slice(7,29))):
+            a=applied[mask,part];p=proposed[mask,part]
+            result[name]=dict(applied_rms_rad=float(np.sqrt(np.mean(a*a))) if a.size else None,
+                proposed_rms_rad=float(np.sqrt(np.mean(p*p))) if p.size else None,
+                applied_max_abs_rad=float(np.max(np.abs(a))) if a.size else None)
+        return result
+    gaps=[];unknown_interruptions=[];previous=None;start=None
+    for tick,(seen,known) in enumerate(zip(contact,valid)):
+        if not known:
+            if start is not None:unknown_interruptions.append(dict(loss_tick=start,invalid_tick=tick))
+            previous=None;start=None
+            continue
+        if previous is True and not seen:start=tick
+        if start is not None and seen:
+            gaps.append(dict(loss_tick=start,regain_tick=tick,noncontact_ticks=tick-start,
+                noncontact_seconds=(tick-start)/control_hz,
+                correction_active_ticks=int((np.abs(applied[start:tick]).max(-1)>1e-8).sum())))
+            start=None
+        previous=bool(seen)
+    return dict(all_ticks=amplitudes(np.ones(len(contact),dtype=bool)),
+        observed_contact=amplitudes(valid&contact),observed_noncontact=amplitudes(valid&~contact),
+        unknown_contact_ticks=int((~valid).sum()),
+        joint_limit_clip=dict(joint_components=int(clipped.sum()),ticks=int(clipped.any(-1).sum()),
+            joint_component_fraction=float(clipped.mean()) if clipped.size else None),
+        tanh_saturation=dict(threshold=.95,joint_components=int((tanh>=.95).sum()),
+            ticks=int((tanh>=.95).any(-1).sum()),maximum_fraction=float(tanh.max()) if tanh.size else None),
+        observed_contact_loss_regain=dict(completed=gaps,completed_count=len(gaps),
+            interrupted_by_invalid_observation=unknown_interruptions,
+            open_loss_tick=start,open_noncontact_ticks=len(contact)-start if start is not None else 0,
+            tick_index='zero-based pre-action observation tick',force_threshold_N=.1,
+            definition='Any finger observed normal resultant >0.1N, valid current observation; gaps require uninterrupted valid observations',
+            interpretation='Recontact is a sensor event, not successful recovery; no recovery supervision or causal capability is established'))
+
+
 def collision_evidence(env):
     """Query real cooked PhysX shapes before any action; no integration probe."""
     import omni.usd
@@ -114,7 +160,7 @@ def prepare(env, isolated, spec, source, output):
         configure_direct_reset(env,spec['narrow_reset'])
     teacher, _ = isolated.reset(spec['seed'])
     restoration = dict(kind='fresh_native_reset')
-    if spec['cohort'] != 'fresh':
+    if spec['cohort'] not in ('fresh','formal_test'):
         entry = source['entries'][spec['identity']]
         last = {}; original = env._get_observations
         def observed():
@@ -322,6 +368,12 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 if saved is not None and saved.get('residual_version'):
                     rows[-1].update(nominal=take(controller.nominal),residual_normalized=take(controller.delta),
                         residual_contact_gate=np.asarray(controller.contact_gate))
+                    diagnostics=controller.residual_diagnostics
+                    rows[-1].update(residual_proposed_rad=take(diagnostics['proposed_rad']),
+                        residual_applied_rad=take(diagnostics['applied_rad']),
+                        residual_clip_mask=take(diagnostics['clip_mask']),
+                        residual_tanh_fraction=take(diagnostics['tanh_fraction']),
+                        residual_contact_valid=np.asarray(bool(diagnostics['contact_valid'])))
             if tick % 100 == 0:
                 atomic_json(output/'progress.json', dict(tick=tick, utc=time.time()))
             if first_success_tick is not None or bool((terminated | truncated)[0]):
@@ -355,13 +407,21 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             result['trajectory_retiming_is_not_state_retiming']=True
         if position:
             result['submitted_target_max_error']=float(np.abs(arrays['command']-arrays['target']).max())
+        if controller is not None and hasattr(controller,'inference_metrics'):
+            timing=controller.inference_metrics()
+            atomic_json(output/'native_inference_timing.json',timing)
+            result['native_inference']=dict(summary=timing['summary'],pending_cuda_events=timing['pending_cuda_events'],
+                timing_scope=timing['timing_scope'],wall_scope=timing['wall_scope'],excludes=timing['excludes'],
+                raw_file='native_inference_timing.json',control_dt_changed=False)
         if saved is not None and saved.get('residual_version'):
             from .native_evaluation import stable_grasp
             initial=json.loads((output/'initial_observable.json').read_text())
             result['contact']=stable_grasp(arrays,float(initial['object_pose_w'][0][2]))
             result['residual_hz']=60
+            result['residual_version']=saved['residual_version']
             result['residual_ticks']=len(rows)
             result['contact_gate_ticks']=int(arrays['residual_contact_gate'].sum())
+            result['residual_diagnostics']=residual_episode_metrics(arrays)
         if inference is not None:
             from .native_evaluation import stable_grasp
             initial=json.loads((output/'initial_observable.json').read_text())

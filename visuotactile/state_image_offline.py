@@ -227,14 +227,14 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
             if full_horizon:
                 extent = min(model.horizon, n-start)
                 full_plans.append(prediction[:extent].cpu())
-                full_truth.append(record['command'][start:start+extent].cpu())
+                full_truth.append(record.get('clean_sample',record['command'])[start:start+extent].cpu())
                 full_holds.append(record['robot'][start, 58:87].cpu().expand(extent, -1))
                 full_ticks.extend(range(start, start+extent));full_anchors.extend([start]*extent)
             for tick in range(start+1, start+count):
                 assert observe(tick) is None
         progress(native_ticks=min(start+12, n), sampled_anchors=len(plans))
     prediction, hold = torch.cat(plans), torch.cat(holds)
-    truth = record['command'].cpu()
+    truth = record.get('clean_sample',record['command']).cpu()
     def measured(prediction, truth, hold):
         with lease.block():
             p, r = objective.fk(prediction.to(device))

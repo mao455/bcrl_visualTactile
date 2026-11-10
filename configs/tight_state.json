@@ -274,8 +274,8 @@
     "residual_training": false
   },
   "residual_pair": {
-    "version": "target_residual_gru60_v1",
-    "source_root": "outputs/visuotactile/run/tight_vision_20261109_01",
+    "version": "target_residual_transformer60_v1",
+    "source_root": "outputs/visuotactile/run/tight_transformer_20261110_01/command",
     "groups": [
       "G01",
       "G11"
@@ -301,34 +301,67 @@
     "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
     "dino_architecture": "dinov2_vits14",
     "residual_training": true,
-    "method_source_commit": "3e11d62",
     "residual_hz": 60,
     "base_replan_hz": 5,
     "tactile_hz": 120,
     "horizon": 24,
     "commit": 12,
-    "maximum_anchor_epochs": 300,
-    "minimum_anchor_epochs": 200,
     "validation_epoch_interval": 10,
     "tbptt_ticks": 32,
     "learning_rate": 0.001,
     "weight_decay": 0.0001,
     "residual_penalty": 0.0001,
     "ema": false,
-    "selection": "fixed validation4 contact normalized equal Arm/Hand MSE",
+    "selection": "fixed validation4 all-tick normalized equal Arm/Hand MSE",
     "cache_definition": "actual frozen EMA DDIM16 seed7091 predictions; complete teacher-forced observation/past-command prefixes",
-    "bases": {
-      "G01": {
-        "group": "G00",
-        "checkpoint": "G00/training/best.pt",
-        "sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452"
-      },
-      "G11": {
-        "group": "G10",
-        "checkpoint": "G10/training/best.pt",
-        "sha256": "5f3460ab07bca11d0fa33fc5976a0d3e4fcc77c6823413ab208ad04b4c4efd7b"
-      }
+    "bases": {},
+    "stop_rule": "fixed200 full control-tick traversals; matched exposure; finite measured wall ceiling; no retries",
+    "gate": "all valid control ticks, no hard contact disabling",
+    "previous_nominal": "separate strictly previous frozen DP output",
+    "architecture": "Transformer d128 heads4 layers2 FF256 +past32+persistent GRUs; 756581 parameters",
+    "maximum_control_tick_epochs": 200,
+    "minimum_control_tick_epochs": 200
+  },
+  "method_matrix": {
+    "version": "matched_supervision_transformer_v1",
+    "source_root": "outputs/visuotactile/run/tight_palm_20261108_01",
+    "perception_root": "outputs/visuotactile/run/tight_vision_20261109_01",
+    "anchor_epochs": 200,
+    "control_tick_epochs": 200,
+    "comparison_updates": [
+      8476,
+      16952
+    ],
+    "acceptance_hours": 3,
+    "maximum_frontend_hours": 60,
+    "maximum_residual_pair_hours": 10,
+    "formal_test_hours": 4,
+    "maximum_hours": 144,
+    "calibration_maximum_states": 6,
+    "calibration_maximum_action_perturbations": 12,
+    "calibration_maximum_minutes": 30,
+    "geometry_projection": {
+      "penetration_tolerance_m": 0.001,
+      "contact_tolerance_m": 0.002,
+      "local_radius_rad": 0.15,
+      "maximum_iterations": 30,
+      "maximum_rows": 2
     },
-    "stop_rule": "300 contact-tick equivalent traversals max; validation plateau only after200; fixed9h train wall; fail on nonfinite/software/resource violation; no retries"
+    "internal_force_fallback": "block unless full contact/wrench/action-response calibration accepted; continue admitted geometry only",
+    "groups": [
+      "G00",
+      "G10",
+      "G01",
+      "G11",
+      "Q00",
+      "Q01"
+    ],
+    "conditional_geometry_groups": [
+      "QG00",
+      "QG01"
+    ],
+    "formal_test22": true,
+    "extra_ablation_runs": 0,
+    "budget_rule": "measured serial update wall * fixed matched updates * group count *1.35 +2h; never silently shorten exposure; stop if fixed ceiling cannot fit"
   }
 }

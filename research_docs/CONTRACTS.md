@@ -1,3 +1,41 @@
+## 2026-11-10 当前：匹配 Transformer 与实际配置监督
+
+本轮为用户明确授权的新任务；此前各轮“不再启动/不清理”是已完成阶段边界。实际工作树为 `bc+rl_RSS_palm_eval`，起点 `8e67fb7`；只推 `origin/feature/tight-state-foundation`，不覆盖其它工作树的未提交文档。
+
+|项目|旧实现|本轮主实现|
+|---|---|---|
+|G00/G10|旧视觉＋本体 / 再加直接触觉；曝光10132/6929更新不等|保持同一DP U-Net与模态，重新随机初始化；同seed、sampler、优化规则、200规划anchor等效遍历；保留100/200共同曝光点|
+|G01/G11|冻结旧基础，489125参数GRU残差|冻结本轮对应完整基础，756581参数Transformer残差；旧GRU只为已有成功对照保留显式loader|
+|残差融合|plan GRU和全连接头|2层Transformer decoder，d128、4头、FF256；交叉注意力实际读取H24计划及mask/cursor；过去32反馈token＋持续GRU摘要|
+|过去名义/执行|过去实际命令；未单列上一名义输出|独立 `previous_nominal` / valid 与过去实际issued/applied；禁止互换|
+|门控/监督范围|失触立即零修正、contact-only loss|所有valid控制tick等权Arm/Hand命令监督；触觉接触只作诊断，不是硬开关；相同视觉旁路用于所有新残差组|
+|前端clean sample|`u_expert=transition/target_after_rad`|命令组保持u；Q00改为 `q_reached=transition/diagnostics_after/joint_position_rad`；加噪样本和FK标签同步切换|
+|归一化/合同|旧command身份|显式v5监督合同，u/q各自train166 affine身份；robot统计不变；旧权重不能静默升级|
+|QG几何|只有掌部命令FK与初态OBB准入|26手部实际Mesh/有效碰撞参数经同SDK重建表面、FCL距离与手形局部可行投影stop-gradient；只有输入/变换/现场查询一致性＋固定6训练状态验收通过才准入|
+|内力|五指法向合力，不能还原接触场|原始normal/friction API探针已接入；完整手/环境接触、所需wrench和动作响应不足时明确BLOCKED，不启用假loss|
+|执行|29D绝对关节目标，H24/commit12|保持5Hz/60Hz/120Hz；有效计划按物理关节限位界定，`u_final=clip(q_nominal+residual)`；无delta执行接口|
+|调度/清理|分轮旧墙钟9h、旧预测缓存|复用原owner/trainer/cache实现，按各模态/几何profile实际8步吞吐封存有限预算；实删392旧预测cache和6重复smoke图|
+
+G00参数72,770,109，G10为72,822,205；其中相同U-Net70,369,437。此范围包括可训练视觉投影、Depth、历史及条件网络，排除共享冻结DINO。Q组网络参数量同G00。Transformer的视觉/触觉/运动GRU仍持续推进，32tick仅detach，显式窗口之前的信息由持续状态保留；真正episode才清空。CPU2线程残差单tick中位1.447ms/p95 1.529ms，属于合成输入组件计时，不代替GPU或包含DINO/DP的部署耗时；真实评估另记异步CUDA事件、wall计时和未完成事件数。
+
+`q_reached[t]`是obs[t]对应transition完成后的真实配置，`u_expert[t]`是这次transition开始时施加的目标。196条train+validation共65,630tick已验证q_after[t]=q_before[t+1]逐位一致、time_before/after与1/60s对齐；terminal after状态保留，post image=-1，不使用reset图。两字段Arm/Hand RMSE差分别0.00584547/0.07906162rad；test22轨迹未参与此验收或统计。训练器`clean_sample`只供labels/noise/loss，`command`继续明确保存u_expert；不进入网络条件。几何future context独立文件，只供loss。
+
+几何固定容差：穿透1mm、指定接触2mm、手部局部L∞变化0.15rad、30次局部求解迭代；每microbatch最多2个均匀位置的有效commit12配置，所有组仍有完整fit监督。接近/接触/释放由时间对齐的物体过滤接触安排定义，接近/释放无吸附项。臂预测仅为detached上下文，新增梯度只到22D手部。求解失败记录原因/迭代/余量，不生成伪目标，也不称局部失败证明全局不可行。权重只用固定6训练状态按loss/输出梯度各≤fit的5%一次校准。原始mesh测试通过不等于SDK/现场查询验收通过。导入资产的CollisionAPI在Xform包装层，适配器只在未挂接的内存数据stage复制唯一实际Mesh和有效collision属性，同SDK求convexHull；完整点字节/属性/变换核对，live stage不修改。这是相同来源与参数的重建表示，不是读取PhysX运行内存；当前远离接触的查询一致不证明完整接触/力学等价。
+
+已完成实际验收：第四次零步Kit门26/26 SDK重建与现场一致性通过；固定6训练状态6/6可行，λ_geom=0.7029496672279293，新增臂梯度0，手部有限非零。三次先前工程失败/中断完整保留，原3h期限不变。内力实际动作扰动0、前提缺失，未实现动作依赖力模型，禁止启用λ_int。
+
+矩阵：G00/G10→G01/G11；Q00（实际配置无新物理项）→Q01；仅几何门通过才加QG00→QG01。内力未验收时QG只能叫几何消融，不能叫两项物理正则完整方法。所有残差拟合u_expert，统一使用本轮command/train166的u_expert affine（含计划/previous_nominal输入缩放、delta边界和命令loss）；它与Q前端q_reached统计分别绑定SHA/身份，避免将前端监督差异混入后端归一化。冻结基础参数但基础运行历史持续推进；真实DDIM16/seed7091预测缓存绑定checkpoint/data/statistics/sampler/版本，绝不以专家动作代替名义输出。过去专家执行反馈在离线是teacher forcing，部署为实际组合命令；同输入一致不解决自主分布偏移。
+
+前端固定200规划anchor等效遍历（约16,952更新），残差固定200完整控制tick遍历，不能混称epoch或相互比较update。按各profile实际吞吐×固定曝光×1.35＋验证余量封存墙钟预算；任一匹配组不能完成则BUDGET_STOP/FAILED，停止依赖阶段，不声称充分训练。残差在冻结预测缓存完成后，另用同训练器前4条完整train episode/batch4做一次可丢弃吞吐测量，正式更新为0；按训练tick吞吐、固定验证次数与保存开销封存≤10h预算，容纳不了200遍则停。外层绝对上限144h含验收、等待和收尾；3h验收从首GPU gate起，不重置。144h是保守硬上限，实际队列预算在probe完成后写budget.json；每前端阶段≤60h，每残差pair≤10h。无额外预登记消融、无自动下一轮。
+
+开发仍为既有10个固定spec，拒绝/中断不替换。正式test22在全部模型与规则SHA冻结后才读取准入前初态spec，每组固定22例；不用未来标签选模，原reset参数与event seed相同不代表隐藏状态逐位重现，也不是OOD。无闭环结果选择模型。当前成功专家轨迹未提供独立受阻/滑移恢复监督；失触→再接触仅诊断，不宣称恢复策略已学会。
+
+新增推理时间、残差幅度/tanh饱和/关节裁剪和失触区间诊断均只读；不改变控制dt、物理参数、资产、随机事件或成功判据。PhysX原162条错误完整保留；源修复仅删除对kinematic hole/goal_viz的两处恒零速度写，保留pose/RNG。函数验收与Kit进程正常收尾分别记录，不能用退出0推断日志无错。
+
+资源使用沿用充分利用空闲GPU授权，保留6GiB显存/14GiB可用RAM/60GiB磁盘。每个普通owner有绝对deadline、连续遥测、owned-child清理和失败落盘；Codex启动长队列后只短查一次。结束后普通owner只读取完成产物生成CSV/JSON/图和视频索引；源码SHA、HEAD、工作区与允许路径全部通过才自动提交并推送小型结果到指定origin分支，失败记录本地且不改实验状态。旧400/Core源文件、首次成功视频与全部分母、选定权重保留；清理见CLEANUP_AUDIT和evidence/tight_refactor_20261110/cleanup.json。公开仅源码、配置、现有文档、有限CSV/JSON/图；大文件留本机精确索引。
+
+以下为已完成历史合同，不作为本轮待执行队列。
+
 ## 2026-11-10 G01/G11完成与发布边界
 
 c3386b6有限队列完成：两组各98610更新、200个接触tick等效遍历，validation平台停止；epoch110/180选定模型，基础零更新。

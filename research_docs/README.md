@@ -1,3 +1,10 @@
+# 当前任务：匹配Transformer与实际配置名义策略
+
+本轮实现和定向验收进行中，正式训练是否已启动/完成以[当前结果](STATE_DP_RESULTS.md)及本机tight_transformer_20261110_01/status.json为准。
+[新旧差异与完整合同](CONTRACTS.md) · [实删398文件/823.8MiB](CLEANUP_AUDIT.md) · [Transformer及标签CPU证据](evidence/tight_refactor_20261110/transformer.json) · [已有成功摘要](evidence/tight_refactor_20261110/existing_success.json)。
+
+重新匹配G00/G10基础与G01/G11 Transformer；Q00/Q01采用真实after配置前端和命令执行修正。几何需live cooked准入，内力缺完整校准时明确BLOCKED。未产生本轮新成功率，旧结果保持如下。
+
 # Tight-Insertion 当前研究结果
 
 **G01/G11已完成：原生完整成功分别0/10、1/10；G11成功视频已保留。**

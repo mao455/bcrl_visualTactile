@@ -1,3 +1,23 @@
+<!-- METHOD_MATRIX_START -->
+
+## 2026-11-10 Transformer 与实际配置监督匹配实验
+
+机器状态 **PREPARED** / `gpu_model_and_throughput_gates_pending`；源码 `提交后冻结`；运行 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01`。
+G00/G10从共同初始化重新训练；G01/G11冻结本轮基础。Q00/Q01改用实际配置q_reached前端及命令u_expert残差；QG只在真实碰撞投影准入后启用。
+固定train166/validation30；前端200规划anchor等效遍历、残差200完整控制tick遍历，两者不等价。固定validation4选模；10个开发spec沿用。
+Transformer残差约75.7万参数，2层/128维/4头/FF256，当前有效H24计划与游标、独立上一名义输出、严格过去执行反馈、当前已采集触觉；持续GRU加32tick显式历史。失触不强制归零，全部valid tick监督。
+未完成指标为未测；旧G11首次成功及原0/10、1/10独立保留。本轮无滑移/受阻恢复新监督，不声称已具备恢复能力。
+
+几何固定投影验收：6/6；内力BLOCKED，未启用。SDK重建与无接触现场查询不证明完整接触力学等价。
+[实现差异与完整合同](CONTRACTS.md) · [几何验收与全部工程尝试](evidence/tight_refactor_20261110/geometry_acceptance_summary.json) · [清理清单](CLEANUP_AUDIT.md)
+
+|阶段（开发/正式分列）|组|实际更新|停止原因|原生完整成功/有效|
+|---|---|---:|---|---:|
+
+实际预算与原始指标：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_01/budget.json`、`result.json`及各组training/offline/evaluation；没有把启动或验收当成训练完成。
+<!-- METHOD_MATRIX_END -->
+
+
 # Tight-Insertion 当前结果
 
 <!-- RESIDUAL_PAIR_START -->

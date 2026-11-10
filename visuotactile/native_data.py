@@ -173,10 +173,15 @@ def visual_records(data_root, identities, modality, device='cpu'):
     if cache['data_sha256']!=sha256(root/'data.json'):raise ValueError('Numeric identity differs')
     touch=torch.load(root/'tactile.pt',map_location='cpu',weights_only=False) if modality=='G10' else None
     records={}
+    data=json.loads((root/'data.json').read_text())
     for identity in identities:
         raw=cache['records'][identity]
-        if set(raw)!={'robot','command','time','joint_limits'}:raise ValueError('Privileged visual record')
-        records[identity]={k:v.to(device) for k,v in raw.items()}
+        expected={'robot','command','time','joint_limits'}
+        if data.get('supervision') is not None:expected|={'q_reached'}
+        if set(raw)!=expected:raise ValueError('Privileged visual record')
+        records[identity]={k:raw[k].to(device) for k in ('robot','command','time','joint_limits')}
+        if data.get('supervision') is not None:
+            records[identity]['clean_sample']=raw['q_reached' if data['supervision']=='q_reached' else 'command'].to(device)
         records[identity].update(identity=identity,source_root=str(root))
         if touch is not None:records[identity]['tactile']=touch[identity].to(device)
     return records
@@ -225,7 +230,12 @@ def residual_batch(records,start,stop,device):
         out=value.new_zeros((b-a,*value.shape[1:]));count=max(0,min(b,len(value))-a)
         if count:out[:count]=value[a:a+count]
         return out
-    inputs={k:tensor([padded(r[k],start,stop) for r in records]) for k in ('visual','robot','plans','plan_valid')}
+    keys=('visual','robot','plans','plan_valid')
+    extra=('plan_cursor','previous_nominal','previous_nominal_valid')
+    if any(k in r for r in records for k in extra):
+        if not all(all(k in r for k in extra) for r in records):raise ValueError('Incomplete previous nominal/cursor contract')
+        keys+=extra
+    inputs={k:tensor([padded(r[k],start,stop) for r in records]) for k in keys}
     inputs['tactile']={k:tensor([padded(r['tactile'][k],2*start,2*stop) for r in records]) for k in records[0]['tactile']}
     inputs['tactile_valid']=tensor([padded(r['tactile_valid'],2*start,2*stop) for r in records])
     inputs['valid']=tensor([torch.arange(start,stop)<len(r['robot']) for r in records])
@@ -258,6 +268,14 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None):
         identity=record['identity'],time=record['time'].cpu(),
         nominal_source='frozen_EMA_DDIM16_seed7091_predictions_on_complete_expert_observation_prefix',
         history_source='strictly_past_executed_expert_targets_teacher_forcing; never nominal labels')
+    nominal=result['base'];n=len(nominal)
+    if base.contract.get('supervision')=='q_reached' and 'clean_sample' not in record:
+        raise ValueError('Actual-configuration nominal cache requires explicit reached labels')
+    result.update(plan_cursor=torch.arange(n)%12,
+        previous_nominal=torch.cat((torch.zeros_like(nominal[:1]),nominal[:-1])),
+        previous_nominal_valid=torch.arange(n)>0,
+        nominal_supervision=base.contract.get('supervision','u_expert'),
+        q_reached=record['clean_sample'].cpu() if base.contract.get('supervision')=='q_reached' else None)
     return result
 
 

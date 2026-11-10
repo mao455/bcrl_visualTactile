@@ -1,3 +1,12 @@
+# 2026-11-10 当前授权：匹配Transformer与实际配置监督
+
+用户附件明确授权原位重构、训练/评估、依赖核对后实际清理和origin feature/tight-state-foundation推送。起点8e67fb7，实际工作树bc+rl_RSS_palm_eval；其它工作树未提交修改保护。读CONTRACTS当前段、STATE_DP_RESULTS及最新SESSION_HANDOFF。
+复用现有native_dp/native_data/anchor_continue/tight_finish，G00/G10重新匹配训练，G01/G11冻结新基础并用Transformer；Q00/Q01实际配置监督，QG仅真实几何门通过准入。没有完整动作依赖力模型/接触校准时内力明确BLOCKED。
+run outputs/visuotactile/run/tight_transformer_20261110_01；actual status/launch/budget/physics gate优先。200规划anchor遍历与200全控制tick遍历不混称；test22只能在模型/评价规则冻结后，不能选模。
+首GPU gate起3h验收和144h绝对上限包含等待，不重置；probe测得预算封存后才能正式训练，匹配曝光不足停止依赖阶段。原始400/Core、旧首次成功/分母/selected weights保护；允许删除已证实可重建无引用派生物。
+充分使用空闲GPU，6GiB VRAM/14GiB RAM/60GiB磁盘；不动无关进程。冻结运行源码后不得修改正在使用代码。普通owner自动阶段转换/退出；Codex短查启动后返回，不持续轮询等待。
+本段授权不是实现或训练完成证据；以下全部为已完成历史记录。
+
 # 2026-11-10 已完成：G01/G11结果发布
 
 用户要求上传GitHub。本次只发布c3386b6已经完成的结果：G01 0/10，G11 1/10，均无拒绝/中断，test22未用。

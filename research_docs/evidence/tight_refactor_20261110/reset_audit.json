@@ -1,0 +1,41 @@
+{
+  "scope": "Targeted source/API/CPU regression only; live Kit acceptance pending",
+  "historical_physx_errors": {
+    "total": 162,
+    "linear_velocity": 81,
+    "angular_velocity": 81,
+    "first": "2026-11-10T03:40:56Z [11,228ms] [Error] [omni.physx.plugin] PhysX error: PxRigidDynamic::setLinearVelocity: Body must be non-kinematic!, FILE /builds/omniverse/physics/physx/source/physx/src/NpRigidDynamic.cpp, LINE 232",
+    "last": "2026-11-10T04:00:56Z [1,211,020ms] [Error] [omni.physx.plugin] PhysX error: PxRigidDynamic::setAngularVelocity: Body must be non-kinematic!, FILE /builds/omniverse/physics/physx/source/physx/src/NpRigidDynamic.cpp, LINE 266",
+    "log_sha256": "cdcc3ca6dbdf4d2d5c4fb548267e1a5cdb7a9860aa39ea978ee5f6bf53cf0d84",
+    "published_summary_matches": true,
+    "tail_four_are_not_total": true
+  },
+  "root_cause": "hole and goal_viz are spawned kinematic_enabled=True; native reset and goal-transition methods passed zero velocities into IsaacLab RigidObject.write_root_velocity_to_sim -> write_root_com_velocity_to_sim -> root_physx_view.set_velocities. PhysX rejects dynamic velocity setters for kinematic bodies.",
+  "minimal_change": {
+    "removed_calls": [
+      {
+        "owner": "self.hole",
+        "line": 360
+      },
+      {
+        "owner": "self.goal_viz",
+        "line": 513
+      }
+    ],
+    "entire_source_AST_otherwise_equal_to_8e67fb7": true,
+    "pose_writes_retained": true,
+    "no_changes_to_physics_controller_reset_sampling_success": true
+  },
+  "installed_api": {
+    "path": "~/IsaacLab/source/isaaclab/isaaclab/assets/rigid_object/rigid_object.py",
+    "sha256": "0aa371d43fae2f9dbfccc98bdb1d14f75860973afb68d3832e83b815d52fb546",
+    "root_velocity_line": 321,
+    "physx_set_velocities_line": 364
+  },
+  "cpu_regression": {
+    "command": "bash visuotactile/run_cpu.sh -m pytest -q tests/test_kinematic_reset.py tests/test_project_maintenance.py",
+    "passed": 9,
+    "scope": "Real native reset/goal Python methods with rejecting kinematic adapter; no physics simulation"
+  },
+  "remaining": "One coordinated live reset + goal-transition check must verify zero relevant PhysX errors and unchanged native targets/pose placement; historical trajectory effect is not established from CPU evidence."
+}

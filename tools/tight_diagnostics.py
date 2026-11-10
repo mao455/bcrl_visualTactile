@@ -211,11 +211,11 @@ def historical_curves(root, parent):
     fig.tight_layout(); fig.savefig(root/'historical_curves.png', dpi=140); plt.close(fig)
 
 
-def target_plot(root, identity, sample, phases, contact, lift):
+def target_plot(root, identity, sample, phases, contact, lift, *, target_semantics='u_expert'):
     import matplotlib.pyplot as plt
     rows = []
     for tick in range(len(phases)):
-        row = dict(tick=tick, seconds=tick/60, phase=str(phases[tick]), contact=bool(contact[tick]), lift=bool(lift[tick]), replan=tick%12 == 0)
+        row = dict(tick=tick, seconds=tick/60, phase=str(phases[tick]), contact=bool(contact[tick]), lift=bool(lift[tick]), replan=tick%12 == 0, target_semantics=target_semantics)
         for kind in ('truth', 'prediction', 'hold'):
             # Increments within a planned chunk start from the real anchor target.
             before = sample['hold'][tick] if tick%12 == 0 else sample[kind][tick-1]
@@ -238,7 +238,7 @@ def target_plot(root, identity, sample, phases, contact, lift):
             for field, color in (('contact', 'green'), ('lift', 'purple')):
                 first = next((r for r in rows if r[field] == 'True'), None)
                 if first: ax.axvline(float(first['seconds']), color=color, label='first '+field)
-            ax.set(xlabel='Expert-history time (s)', ylabel=('Target' if row_index == 0 else 'Within-plan change')+' (rad)', title=f'Canonical joint {joint}')
+            ax.set(xlabel='Expert-history time (s)', ylabel=(target_semantics+' target' if row_index == 0 else 'Within-plan target change')+' (rad)', title=f'Canonical joint {joint}')
             ax.legend(fontsize=7)
     fig.tight_layout(); fig.savefig(root/(identity+'_targets.png'), dpi=140); plt.close(fig)
 
@@ -453,6 +453,49 @@ def run(root):
     return code
 
 
+def configuration_geometry_rows(sample, context, geometry, *, identity, split,
+                                penetration_tolerance_m, contact_tolerance_m):
+    """Measure saved predictions at every12 ticks in the expert's after-state scene.
+
+    This is a surface-consistency diagnostic, not autonomous physics or an
+    action-to-force model. No projection, policy call, or optimizer is used.
+    """
+    import torch
+    indices=torch.arange(0,len(sample['prediction']),12)
+    q=sample['prediction'][indices].detach().double().cpu()
+    truth=sample['truth'][indices].detach().double().cpu()
+    pose=context['object_pose_base'][indices].double().cpu()
+    contacts=context['contact_mask'][indices].bool().cpu()
+    distal=[[i for i in group if geometry.links[i].endswith(('_DP','_elastomer'))]
+            for group in geometry.finger_indices]
+    if any(not group for group in distal):raise ValueError('Surface diagnostic lacks a distal collider')
+    with torch.no_grad():
+        predicted=geometry.distances(q,pose).cpu()
+        reference=geometry.distances(truth,pose).cpu()
+    rows=[]
+    for row,tick in enumerate(indices.tolist()):
+        item=dict(identity=identity,split=split,tick=tick,phase=int(context['stage'][tick]),
+                  required_contacts=int(contacts[row].sum()))
+        for label,distances in (('prediction',predicted),('reference_reached',reference)):
+            d=distances[row]
+            finger=torch.stack([d[group].min() for group in distal])
+            kept=(finger>=-penetration_tolerance_m)&(finger<=contact_tolerance_m)&contacts[row]
+            item.update({label+'_min_surface_distance_m':float(d.min()),
+                label+'_maximum_penetration_m':float((-d.min()).clamp_min(0)),
+                label+'_within_penetration_tolerance':bool(d.min()>=-penetration_tolerance_m),
+                label+'_kept_required_contacts':int(kept.sum())})
+        rows.append(item)
+    return rows
+
+
+
+def accepted_matrix_physics_gate(session):
+    """Resolve the matrix owner's selected attempt, including repaired gates."""
+    owner = Path(session['matrix_owner'])
+    owner_session = read(owner/'session.json') if (owner/'session.json').is_file() else {}
+    return owner/owner_session.get('accepted_physics_gate', session.get('accepted_physics_gate', 'physics_gate'))
+
+
 def trained_diagnostics(root):
     """Final train8/validation30 only; no test selection or physical rollouts."""
     import torch
@@ -483,6 +526,17 @@ def trained_diagnostics(root):
     stats=torch.load(root/'state_data/statistics.pt',map_location='cpu',weights_only=False)
     if not all(torch.equal(getattr(model,k),v) for k,v in stats.items()):raise ValueError('Checkpoint normalization mismatch')
     with lease.block():model.cuda()
+    target_semantics = saved['contract'].get('supervision', 'u_expert')
+    surface = None; surface_rows = []; surface_options = None
+    surface_report = dict(state='unmeasured',reason='No admitted cooked collision geometry for this configuration target')
+    if target_semantics == 'q_reached' and s.get('matrix_owner'):
+        live_path = accepted_matrix_physics_gate(s)/'geometry_live.json'
+        if live_path.exists():
+            live = read(live_path)
+            if live.get('live_collision_parity') and live.get('inventory',{}).get('cooked_hulls'):
+                from visuotactile.kinematics import HandCollisionGeometry
+                surface = HandCollisionGeometry(metadata, live['inventory'])
+                surface_options = read(Path(s['matrix_owner'])/'configuration.json')['method_matrix']['geometry_projection']
     rows=[];full_rows=[];summaries=[];completed=0;plans=0;ticks=0
     for split,ids in cohorts.items():
         if not set(ids)<=set(data['splits'][split]):raise ValueError('Fixed diagnostic cohort changed')
@@ -495,42 +549,69 @@ def trained_diagnostics(root):
                 g=f['episodes'][entry['episode']];phases=stages(g)
                 contact=np.linalg.norm(g['transition/object_contact_force_w'][:],axis=-1).reshape(len(phases),-1).max(-1)>.1
                 lift=g['transition/diagnostics_before/lifted_object'][:].reshape(len(phases),-1).any(-1)
+            if surface is not None:
+                from visuotactile.state_image_loss import geometry_loss_context
+                surface_rows.extend(configuration_geometry_rows(sample, geometry_loss_context(entry), surface,
+                    identity=identity,split=split,penetration_tolerance_m=surface_options['penetration_tolerance_m'],
+                    contact_tolerance_m=surface_options['contact_tolerance_m']))
             rows.extend(diagnostic_rows(sample,phases,identity=identity,split=split))
             full=sample['full_horizon']
             full_rows.extend(diagnostic_rows(full,np.asarray(phases)[full['target_ticks']],identity=identity,split=split))
             summaries.append(dict(identity=identity,split=split,executed12=sampled_metrics(sample),all_valid24=sampled_metrics(full)))
-            if index==0:target_plot(out,identity,sample,phases,contact,lift)
+            if index==0:target_plot(out,identity,sample,phases,contact,lift,target_semantics=target_semantics)
             completed+=1;ticks+=len(phases);plans+=math.ceil(len(phases)/12)
             write(out/'progress.json',dict(offline_episodes=completed,offline_total=38,sampled_anchors=plans,native_ticks=ticks,utc=time.time()))
             table(out/'sampled_ticks.csv',rows);table(out/'full_horizon_ticks.csv',full_rows)
             write(out/'stage_metrics.json',summarize_diagnostics(rows));write(out/'full_horizon_stage_metrics.json',summarize_diagnostics(full_rows))
             write(out/'episode_metrics.json',summaries)
-    old=read(CODE/plan['previous_diagnostics']/'stage_metrics.json');new=read(out/'stage_metrics.json')
-    comparisons=[]
-    for current in new:
-        if current['motion']!='all':continue
-        reference=next(r for r in old if all(r[k]==current[k] for k in ('split','phase','group','motion')))
-        comparisons.append(dict(split=current['split'],phase=current['phase'],group=current['group'],ticks=current['ticks'],
-            old_rmse_rad=reference['rmse_rad'],new_rmse_rad=current['rmse_rad'],hold_rmse_rad=current['hold_rmse_rad'],
-            old_palm_rmse_mm=reference['ee_rmse_mm'],new_palm_rmse_mm=current['ee_rmse_mm'],new_palm_angle_mean_deg=current['palm_angle_mean_deg']))
-    table(out/'stage_comparison.csv',comparisons)
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-    fig,axes=plt.subplots(1,3,figsize=(15,4))
-    for ax,group in zip(axes[:2],('arm','hand')):
-        rr=[r for r in comparisons if r['split']=='validation' and r['group']==group and r['ticks']]
-        reference_label='StateDP Palm19865' if saved['contract'].get('modality') else 'old Core8500'
-        x=np.arange(len(rr));ax.bar(x-.2,[r['old_rmse_rad'] for r in rr],.4,label=reference_label)
-        ax.bar(x+.2,[r['new_rmse_rad'] for r in rr],.4,label='new selected');ax.set_ylabel(group+' RMSE (rad)')
-        ax.set_xticks(x,[r['phase'] for r in rr],rotation=70);ax.legend()
-    rr=[r for r in comparisons if r['split']=='validation' and r['group']=='arm' and r['ticks']]
-    axes[2].plot([r['phase'] for r in rr],[r['old_palm_rmse_mm'] for r in rr],label=reference_label)
-    axes[2].plot([r['phase'] for r in rr],[r['new_palm_rmse_mm'] for r in rr],label='new selected')
-    axes[2].set_ylabel('Command FK palm RMSE (mm)');axes[2].tick_params(axis='x',rotation=70);axes[2].legend()
-    fig.tight_layout();fig.savefig(out/'stage_comparison.png',dpi=140);plt.close(fig)
+    if surface_rows:
+        table(out/'geometry_rows.csv',surface_rows)
+        surface_report=dict(state='complete',geometry_identity=surface.identity,geometry_assets=surface.assets,
+            sampled_ticks=len(surface_rows),sampling='Every12 recorded control ticks, fixed before evaluation',
+            scope='Predicted configuration in recorded expert after-state object scene; not autonomous physical penetration or internal force',
+            surface='PhysX cooked hull surface; contact/rest offsets excluded',splits={})
+        for split in cohorts:
+            selected=[r for r in surface_rows if r['split']==split];required=sum(r['required_contacts'] for r in selected)
+            surface_report['splits'][split]=dict(sampled_ticks=len(selected),required_contacts=required)
+            for label in ('prediction','reference_reached'):
+                kept=sum(r[label+'_kept_required_contacts'] for r in selected)
+                surface_report['splits'][split][label]=dict(
+                    maximum_penetration_m=max(r[label+'_maximum_penetration_m'] for r in selected),
+                    mean_maximum_penetration_m=sum(r[label+'_maximum_penetration_m'] for r in selected)/len(selected),
+                    ticks_exceeding_penetration_tolerance=sum(not r[label+'_within_penetration_tolerance'] for r in selected),
+                    kept_required_contacts=kept,contact_retention=kept/required if required else None)
+    if target_semantics == 'q_reached': write(out/'geometry_metrics.json',surface_report)
+    if target_semantics == 'q_reached':
+        write(out/'stage_comparison_omitted.json', dict(reason='Previous reference fits u_expert; q_reached target errors are not comparable',
+            current_target='q_reached', previous_target='u_expert', current_metrics='stage_metrics.json'))
+    else:
+        old=read(CODE/plan['previous_diagnostics']/'stage_metrics.json');new=read(out/'stage_metrics.json')
+        comparisons=[]
+        for current in new:
+            if current['motion']!='all':continue
+            reference=next(r for r in old if all(r[k]==current[k] for k in ('split','phase','group','motion')))
+            comparisons.append(dict(split=current['split'],phase=current['phase'],group=current['group'],ticks=current['ticks'],
+                old_rmse_rad=reference['rmse_rad'],new_rmse_rad=current['rmse_rad'],hold_rmse_rad=current['hold_rmse_rad'],
+                old_palm_rmse_mm=reference['ee_rmse_mm'],new_palm_rmse_mm=current['ee_rmse_mm'],new_palm_angle_mean_deg=current['palm_angle_mean_deg']))
+        table(out/'stage_comparison.csv',comparisons)
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        fig,axes=plt.subplots(1,3,figsize=(15,4))
+        for ax,group in zip(axes[:2],('arm','hand')):
+            rr=[r for r in comparisons if r['split']=='validation' and r['group']==group and r['ticks']]
+            reference_label='StateDP Palm19865' if saved['contract'].get('modality') else 'old Core8500'
+            x=np.arange(len(rr));ax.bar(x-.2,[r['old_rmse_rad'] for r in rr],.4,label=reference_label)
+            ax.bar(x+.2,[r['new_rmse_rad'] for r in rr],.4,label='new selected');ax.set_ylabel(group+' RMSE (rad)')
+            ax.set_xticks(x,[r['phase'] for r in rr],rotation=70);ax.legend()
+        rr=[r for r in comparisons if r['split']=='validation' and r['group']=='arm' and r['ticks']]
+        axes[2].plot([r['phase'] for r in rr],[r['old_palm_rmse_mm'] for r in rr],label=reference_label)
+        axes[2].plot([r['phase'] for r in rr],[r['new_palm_rmse_mm'] for r in rr],label='new selected')
+        axes[2].set_ylabel('Command FK palm RMSE (mm)');axes[2].tick_params(axis='x',rotation=70);axes[2].legend()
+        fig.tight_layout();fig.savefig(out/'stage_comparison.png',dpi=140);plt.close(fig)
     write(out/'result.json',dict(complete=True,episodes=completed,ticks=ticks,plans=plans,
         selected_update=saved['updates'],checkpoint_sha256=sha(root/'training/best.pt'),selection='fixed validation4 before final38',
+        target_semantics=target_semantics, old_command_reference_comparable=target_semantics=='u_expert',
         new_closed_loop=0,no_new_task_success_evidence=True,**no_kit()))
 
 
@@ -956,9 +1037,484 @@ def publish_residual_metrics(root, evaluation, output):
         for p in sorted(output.rglob('*')) if p.is_file() and p.name!='artifacts.json'})
 
 
+def matrix_publish(root, output):
+    """CPU-only export of a finite method matrix, including incomplete stages.
+
+    Read measured receipts only. No model deserialization, inference, simulator,
+    seed selection, or best-checkpoint selection occurs in this publication path.
+    """
+    root, output = Path(root).resolve(), Path(output).resolve()
+    cfg, status = read(root/'configuration.json'), read(root/'status.json')
+    if not cfg.get('method_matrix'):
+        raise ValueError('Expected an explicitly registered method matrix')
+    if status.get('state') == 'RUNNING' and not status.get('owned_workers_exited'):
+        raise ValueError('Publish after the owner has stopped its workers')
+    if root == output or root in output.parents:
+        raise ValueError('Publication must not overwrite run evidence')
+    output.mkdir(parents=True, exist_ok=True)
+    sources, artifacts, issues = {}, {}, []
+    digest_cache = {}
+    def public(value):
+        if isinstance(value, dict): return {public(k):public(v) for k,v in value.items()}
+        if isinstance(value, list): return [public(v) for v in value]
+        if isinstance(value, str):
+            for prefix in (str(CODE)+'/', str((CODE/'outputs').resolve().parent)+'/'):
+                value = value.replace(prefix, '')
+            return value.replace(str(Path.home())+'/', '~/')
+        return value
+    def evidence(path, kind='metric', declared_sha=None):
+        path = Path(path); key = public(str(path))
+        row = dict(path=key, kind=kind, exists=path.is_file(), uploaded=False)
+        if row['exists']:
+            st = path.stat(); row['bytes'] = st.st_size
+            if declared_sha or kind=='source_trajectory':
+                row.update(sha256=declared_sha, hash_scope='retained source manifest; not rehashed during publication')
+            else:
+                identity = (st.st_dev, st.st_ino, st.st_size, st.st_mtime_ns)
+                if identity not in digest_cache: digest_cache[identity] = sha(path)
+                row.update(sha256=digest_cache[identity], hash_scope='read and SHA256 verified during CPU publication')
+        else:
+            row.update(sha256=declared_sha, hash_scope='declared only; missing file')
+        (artifacts if kind in ('checkpoint','source_trajectory','rollout','video') else sources)[key] = row
+        return row
+    def optional(path, fallback=None):
+        if not path.is_file(): return fallback
+        evidence(path); return read(path)
+    def lines(path):
+        if not path.is_file(): return []
+        evidence(path)
+        rows=[]
+        with path.open() as stream:
+            for index,line in enumerate(stream,1):
+                if not line.strip(): continue
+                try: rows.append(json.loads(line))
+                except json.JSONDecodeError:
+                    issues.append(dict(problem='incomplete_or_malformed_metric_line',path=str(path),line=index))
+        return rows
+    def csv_rows(path):
+        if not path.is_file(): return []
+        evidence(path)
+        with path.open(newline='') as stream: return list(csv.DictReader(stream))
+    def emit(name, rows):
+        if not rows:
+            (output/name).unlink(missing_ok=True)
+            return
+        fields = list(dict.fromkeys(key for row in rows for key in row))
+        table(output/name, [{key:public(row.get(key)) for key in fields} for row in rows])
+    def number(value):
+        if value in ('', None): return None
+        value = float(value)
+        return value if math.isfinite(value) else None
+    def metric_rows(rows, stage, group, target, kind):
+        numeric = ('ticks','episodes','rmse_rad','hold_rmse_rad','ee_rmse_mm','fingertip_rmse_mm','palm_angle_mean_deg')
+        return [dict(stage=stage, model=group, target=target, prediction_kind=kind,
+            **{k:r.get(k) for k in ('split','phase','group','motion')},
+            **{k:number(r.get(k)) for k in numeric}) for r in rows]
+
+    master = optional(root/'result.json', {})
+    registration = optional(root/'preregistration.json', {})
+    session = optional(root/'session.json', {})
+    budget = optional(root/'budget.json')
+    group_rows, closed_rows, error_rows, curve_rows, loss_rows, resource_rows = [], [], [], [], [], []
+    trace_diagnostics, videos, evaluation_plans = [], [], {}
+    exported_stages = {}
+    main_groups = cfg['method_matrix'].get('groups', registration.get('groups', []))
+    reserved = set(cfg.get('vision_pair',{}).get('groups',[])+cfg.get('residual_pair',{}).get('groups',[]))
+    default_groups = dict(command=[g for g in main_groups if g in cfg.get('vision_pair',{}).get('groups',[])],
+        command_residual=[g for g in main_groups if g in cfg.get('residual_pair',{}).get('groups',[])],
+        configuration=[g for g in main_groups if g not in reserved and g.endswith('00')],
+        configuration_residual=[g for g in main_groups if g not in reserved and g.endswith('01')])
+    for stage in ('command','configuration','command_residual','configuration_residual','formal_test'):
+        node = root/stage
+        recorded = optional(node/'stage_result.json', master.get('stages',{}).get(stage,{}))
+        stage_status = optional(node/'status.json', recorded.get('status',dict(state='UNMEASURED')))
+        sc = optional(node/'configuration.json', {})
+        ss = optional(node/'session.json', {})
+        residual_stage = stage.endswith('_residual') or recorded.get('residual',False)
+        v = ss.get('residual_pair' if residual_stage else 'vision_pair', sc.get('residual_pair' if residual_stage else 'vision_pair',{}))
+        frozen = optional(node/'model_freeze.json', {}) if stage == 'formal_test' else {}
+        groups = list(dict.fromkeys(v.get('groups',[])+list(recorded.get('groups',{}))+list(frozen.get('models',{}))))
+        if not groups: groups = default_groups.get(stage, [])
+        plan = optional(node/'evaluation_plan.json', [])
+        evaluation_plans[stage]=plan
+        ids = [case['identity'] for case in plan]
+        if len(ids) != len(set(ids)): raise ValueError('Duplicate registered evaluation identities in '+stage)
+        evaluate = stage != 'configuration' and v.get('evaluate',True)
+        stage_out = dict(status=stage_status, groups={}, declared_groups=groups,
+            acceptance={name:optional(node/(name+'.json')) for name in ('vision_acceptance','residual_acceptance')},
+            evaluation_plan_sha256=sha(node/'evaluation_plan.json') if plan else None,
+            cohort='formal_test' if stage == 'formal_test' else 'development')
+        for group in groups:
+            d = node/group; recorded_group = recorded.get('groups',{}).get(group,{})
+            finished = optional(d/'training/finished.json', recorded_group.get('training',{}))
+            progress = optional(d/'training/progress.json', {})
+            training_cfg = optional(d/'training/configuration.json', {})
+            selected_receipt = optional(d/'training/selected.json', {})
+            training_budget = optional(d/'training/budget.json', {})
+            offline = optional(d/'offline/result.json', recorded_group.get('offline',{}))
+            evaluation = optional(d/'evaluation_summary.json', recorded_group.get('evaluation',{}))
+            failure = optional(d/'failure.json')
+            auxiliary={name:optional(d/'offline'/(name+'.json')) for name in ('geometry_metrics','force_sensitivity')}
+            geometry_rows=csv_rows(d/'offline/geometry_rows.csv')
+            if geometry_rows and stage != 'formal_test':
+                emit(stage+'_'+group+'_geometry.csv',geometry_rows)
+            residual = bool(training_cfg.get('residual_version')) or residual_stage or bool(training_cfg.get('architecture'))
+            target = 'u_expert' if residual else training_cfg.get('supervision',v.get('supervision',recorded.get('supervision')))
+            if target not in ('u_expert','q_reached'):
+                target = 'u_expert' if stage == 'command' else 'unknown'
+            unit = 'control_tick_equivalent_epochs' if residual else 'planning_anchor_equivalent_epochs'
+            selected = evidence(d/'training/best.pt', 'checkpoint')
+            for p in sorted((d/'training').glob('*.pt')): evidence(p,'checkpoint')
+            if selected.get('sha256') and offline.get('checkpoint_sha256') and selected['sha256'] != offline['checkpoint_sha256']:
+                issues.append(dict(stage=stage,group=group,problem='offline_selected_checkpoint_SHA_mismatch'))
+            # Read the source manifest only; large original HDF5 files are never opened.
+            manifest = optional(node/'manifest.json')
+            if manifest:
+                for entry in manifest.get('episodes',[]):
+                    if 'path' in entry:
+                        evidence(Path(entry['path']), 'source_trajectory', entry.get('sha256',entry.get('source_sha256')))
+            stage_metrics = optional(d/'offline/stage_metrics.json', offline.get('metrics',[]))
+            if not stage_metrics: stage_metrics = csv_rows(d/'offline/stage_errors.csv')
+            if stage != 'formal_test':
+                error_rows += metric_rows(stage_metrics,stage,group,target,'final_command' if residual else 'nominal')
+                if residual:
+                    base_metrics = offline.get('base_metrics') or csv_rows(d/'offline/base_stage_errors.csv')
+                    # Historical/current residual offline metrics explicitly compare base to u_expert.
+                    error_rows += metric_rows(base_metrics,stage,group,'u_expert','nominal_against_command_not_configuration_fit')
+                validation = optional(d/'training/validation.json') if residual else lines(d/'training/validation.jsonl')
+                for r in validation or []:
+                    for source,cohort in (('train','fixed_train2'),('validation','fixed_validation4')) if residual else (('train8','fixed_train2'),('metrics','fixed_validation4')):
+                        metrics = r.get(source,{})
+                        if residual: metrics = metrics.get('all',{})
+                        curve_rows.append(dict(stage=stage,model=group,target=target,exposure_unit=unit,cohort=cohort,
+                            update=r.get('update'),exposure=r.get('control_tick_epochs' if residual else 'anchor_equivalent_epochs'),
+                            arm_rmse_rad=number(metrics.get('arm_rmse_rad' if residual else 'arm_rmse')),
+                            hand_rmse_rad=number(metrics.get('hand_rmse_rad' if residual else 'hand_rmse')),
+                            palm_rmse_mm=number(metrics.get('ee_distance_rmse_mm')),
+                            selection_metric=number(metrics.get('normalized_equal_mse' if residual else 'selection_score'))))
+                updates = lines(d/'training'/('loss.jsonl' if residual else 'training.jsonl'))
+                width = max(1, math.ceil(len(updates)/1000)); cumulative = 0
+                for offset in range(0,len(updates),width):
+                    part=updates[offset:offset+width]
+                    cumulative += sum(r.get('supervised_ticks',0) for r in part)
+                    exposure = cumulative/finished['control_tick_population'] if residual and finished.get('control_tick_population') else part[-1].get('anchor_equivalent_epochs')
+                    loss_rows.append(dict(stage=stage,model=group,target=target,exposure_unit=unit,
+                        first_update=part[0].get('update'),update=part[-1].get('update'),updates_in_interval=len(part),
+                        exposure=exposure,mean_loss=sum(r['loss'] for r in part)/len(part)))
+                for p in (d/'offline').glob('*.csv'): evidence(p)
+            # Every registered case remains visible, even if it never started.
+            summary_results = {r['identity']:r for r in evaluation.get('results',[])}
+            actual_ids = {p.name for p in (d/'evaluation').glob('*') if p.is_dir()}
+            if set(summary_results)-set(ids) or actual_ids-set(ids):
+                if plan: issues.append(dict(stage=stage,group=group,problem='unregistered_trial_ids',identities=sorted((set(summary_results)|actual_ids)-set(ids))))
+            cases = ids+sorted((set(summary_results)|actual_ids)-set(ids)) if evaluate else []
+            measured = []
+            for identity in cases:
+                trial = d/'evaluation'/identity
+                r = optional(trial/'result.json')
+                started = (trial/'started.json').is_file()
+                if started: evidence(trial/'started.json')
+                if r is None and identity in summary_results:
+                    issues.append(dict(stage=stage,group=group,identity=identity,problem='trial_result_missing_summary_preserved'))
+                if r is not None and identity in summary_results and r != summary_results[identity]:
+                    issues.append(dict(stage=stage,group=group,identity=identity,problem='trial_summary_receipt_mismatch'))
+                attempted = r is not None or started or identity in summary_results
+                r = r or {}
+                valid = r.get('legal') is True and r.get('software_complete') is True and isinstance(r.get('success'),bool)
+                if valid and r.get('success') is not None and r.get('reasons',{}).get('max_successes') != r['success']:
+                    issues.append(dict(stage=stage,group=group,identity=identity,problem='native_success_field_mismatch'));valid=False
+                classification = 'unmeasured' if not attempted else 'rejected' if r.get('legal') is False else 'valid' if valid else 'software_incomplete'
+                row=dict(stage=stage,model=group,cohort=stage_out['cohort'],identity=identity,attempted=attempted,
+                    registered=identity in ids if plan else None,
+                    classification=classification,seed=r.get('seed'),legal=r.get('legal'),software_complete=r.get('software_complete'),
+                    success=r.get('success') if valid else None,steps=r.get('steps'),native_lift=r.get('native_lift'),
+                    native_subgoals=r.get('native_subgoals'),native_alignment=r.get('native_alignment'),
+                    termination=','.join(k for k,value in r.get('reasons',{}).items() if value),
+                    checkpoint_sha256=r.get('checkpoint_sha256'),post_success_actions=r.get('post_success_actions'))
+                closed_rows.append(row);measured.append(row)
+                trace_diagnostics.append(dict(stage=stage,model=group,identity=identity,
+                    **{k:r.get(k) for k in ('native_inference','residual_diagnostics','contact','planning_latency_s','native_history_latency_s','plan_consistency')}))
+                for name in ('initial_collision.json','initial_observable.json','native_inference_timing.json'):
+                    if (trial/name).is_file():evidence(trial/name)
+                for p in sorted(trial.glob('*')):
+                    if p.suffix in ('.h5','.npz','.mp4'): evidence(p,'video' if p.suffix=='.mp4' else 'rollout')
+                if (trial/'rollout.mp4').is_file():
+                    verified=optional(trial/'video_verified.json',{})
+                    videos.append(dict(stage=stage,model=group,identity=identity,success=r.get('success'),
+                        path=str(trial/'rollout.mp4'),sha256=evidence(trial/'rollout.mp4','video')['sha256'],
+                        decoded_frames=verified.get('decoded_frames'),frame_rate=verified.get('frame_rate'),
+                        decode_scope='Existing complete CPU decode receipt; not newly decoded by publisher' if verified else 'unmeasured'))
+            counted=[r for r in measured if r['registered']] if plan else measured
+            attempted=sum(r['attempted'] for r in counted);valid=sum(r['classification']=='valid' for r in counted)
+            rejected=sum(r['classification']=='rejected' for r in counted)
+            incomplete=sum(r['classification']=='software_incomplete' for r in counted)
+            successes=sum(r['success'] is True for r in counted) if attempted else None
+            counts=dict(planned_attempts=len(ids) if evaluate and plan else None,attempts=attempted,valid=valid,
+                rejected=rejected,software_incomplete=incomplete,unstarted=sum(not r['attempted'] for r in counted),
+                unregistered_attempts=sum(r['attempted'] and r['registered'] is False for r in measured),
+                successes=successes,success_rate=successes/valid if valid else None,
+                declared_counts={k:evaluation.get(k) for k in ('attempts','valid','rejected','successes')},
+                evaluation_state='unmeasured' if not attempted else 'complete' if plan and attempted==len(ids) and incomplete==0 else 'partial',
+                evaluation_state_scope='Registered-case receipt coverage only; owner status is separate',
+                owner_state=stage_status.get('state'),
+                denominator_rule='Registered cases only when a plan exists; valid=legal and software_complete native receipts; rejected/software-incomplete/unregistered remain visible; no replacement')
+            for key in ('attempts','valid','successes'):
+                if evaluation.get(key) is not None and evaluation[key]!=counts[key]:
+                    issues.append(dict(stage=stage,group=group,problem='declared_count_mismatch',field=key,declared=evaluation[key],verified=counts[key]))
+            row=dict(stage=stage,model=group,target=target,training_role='selected_model_reference' if stage=='formal_test' else 'trained_here',
+                training_state=('stopped_before_target' if finished.get('target_reached') is False else 'complete') if finished else 'partial' if progress else 'unmeasured',
+                updates=finished.get('updates',progress.get('update')),exposure_unit=unit,
+                exposure=finished.get('control_tick_epochs') if residual else progress.get('anchor_equivalent_epochs'),
+                stop_reason=finished.get('stop_reason'),selection=finished.get('selection',training_cfg.get('selection',offline.get('selection'))),
+                selected_update=selected_receipt.get('update',offline.get('selected_update')),
+                selected_epoch=selected_receipt.get('epoch'),selection_receipt=selected_receipt,selected_checkpoint=selected,
+                training=finished,training_progress=progress,training_configuration=training_cfg,training_budget=training_budget,
+                offline_state='complete' if offline.get('complete') else 'partial' if stage_metrics else 'unmeasured',
+                offline_target=target,closed_loop=counts,failure=failure,auxiliary_measurements=auxiliary)
+            stage_out['groups'][group]=row
+            group_rows.append(dict(stage=stage,model=group,target=target,training_state=row['training_state'],
+                training_role=row['training_role'],updates=row['updates'],exposure=row['exposure'],exposure_unit=unit,
+                stop_reason=row['stop_reason'],selection=row['selection'],offline_state=row['offline_state'],
+                cohort=stage_out['cohort'],**{k:v for k,v in counts.items() if k not in ('declared_counts','denominator_rule','evaluation_state_scope')}))
+        for name in ('monitor_exit.json','resources/resources.json','throughput_comparison.json','throughput_probe.json'):
+            receipt=optional(node/name)
+            if receipt is not None: resource_rows.append(dict(stage=stage,path=str(node/name),receipt=receipt))
+        exported_stages[stage]=stage_out
+    log_rows, physx = [], []
+    for path in sorted(root.rglob('*.log')):
+        if not path.is_file(): continue
+        evidence(path,'log'); count=0; errors=0
+        with path.open(errors='replace') as stream:
+            for line_number,line in enumerate(stream,1):
+                if '[Error]' in line or 'Traceback (most recent call last)' in line: errors+=1
+                if 'PhysX error:' in line:
+                    count+=1;physx.append(dict(path=str(path),line=line_number,message=line.rstrip()))
+        log_rows.append(dict(path=str(path),physx_error_lines=count,error_or_traceback_lines=errors))
+    root_receipts={name:optional(root/(name+'.json')) for name in ('physics_acceptance','geometry_acceptance','geometry_blocked','force_calibration_blocked','monitor_exit','owner_error','launch')}
+    gate_attempts={}
+    for gate in sorted(root.glob('physics_gate*')):
+        if not gate.is_dir(): continue
+        receipts={}
+        for p in sorted(gate.glob('*.json')):
+            receipt=optional(p)
+            # Keep large geometry/process inventories local, while retaining every
+            # attempt receipt's exact identity and all acceptance/failure fields.
+            if p.name in ('geometry_live.json','geometry_acceptance.json','inotify.json'):
+                receipt={k:v for k,v in receipt.items() if k not in ('inventory','before','after')}
+                receipt.update(omitted_fields='Inventory/process listings stay in the indexed local receipt',artifact=evidence(p))
+            root_receipts[gate.name+'/'+p.stem]=receipt
+            receipts[p.stem]=receipt
+        result=receipts.get('result',{});acceptance=receipts.get('acceptance',{});exit_receipt=receipts.get('exit',{})
+        passed=acceptance.get('passed');code=exit_receipt.get('returncode',acceptance.get('worker_returncode'))
+        inconsistent=passed is True and (code != 0 or result.get('complete') is not True or result.get('software_complete') is False)
+        if inconsistent: issues.append(dict(problem='physics_gate_acceptance_receipts_inconsistent',attempt=gate.name))
+        state=('inconsistent' if inconsistent else 'accepted' if passed is True else 'failed' if passed is False or code not in (None,0)
+            else 'functional_complete_without_accepted_exit' if result.get('complete') else 'unmeasured')
+        geometry=receipts.get('geometry_acceptance',{})
+        gate_attempts[gate.name]=dict(state=state,selected_by_session=gate.name==session.get('accepted_physics_gate','physics_gate'),
+            functional_complete=result.get('complete'),software_complete=result.get('software_complete'),acceptance_passed=passed,
+            worker_returncode=code,geometry_passed=geometry.get('passed'),live_collision_parity=geometry.get('live_collision_parity'),
+            receipts=list(receipts))
+    summary=dict(schema='method_matrix_cpu_publication_v1',status=status,source_run=str(root),session=session,
+        configuration=cfg,preregistration=registration,actual_budget=budget,stages=exported_stages,root_receipts=root_receipts,
+        physics_gate_attempts=gate_attempts,
+        resource_receipts=resource_rows,publication_issues=issues,log_summary=log_rows,physx_error_lines=len(physx),
+        trace_diagnostics=trace_diagnostics,
+        physx_count_scope='All lines in every retained run log; duplicated log sinks are line occurrences, not proven distinct simulator events',
+        inference_or_training_performed=False,kit_loaded=False,selection_performed_by_exporter=False,
+        missing_value_semantics='null/unmeasured means unmeasured; never a 0 percent task success rate',
+        limitations=['q_reached nominal configuration errors and u_expert command errors have separate targets and plots',
+            'Residual frozen-base errors against u_expert are command-gap diagnostics, not actual-configuration fitting error',
+            'Expert-history FK/surface errors are not autonomous physical deviation',
+            'Formal test is reported separately and is never consulted to choose a model',
+            'Native resets pair source specifications and event seeds, not hidden simulator state',
+            'A normal exit never establishes harmless PhysX errors'])
+    write(output/'summary.json',public(summary))
+    emit('groups.csv',group_rows);emit('closed_loop.csv',closed_rows);emit('offline_metrics.csv',error_rows)
+    emit('validation_curves.csv',curve_rows);emit('training_loss_intervals.csv',loss_rows)
+    emit('log_counts.csv',log_rows);emit('physx_errors.csv',physx);emit('video_index.csv',videos)
+    write(output/'evaluation_plans.json',public(evaluation_plans))
+    write(output/'source_artifacts.json',public(sources));write(output/'local_artifacts.json',public(artifacts))
+    matrix_plots(output,curve_rows,loss_rows,error_rows)
+    for p in output.glob('*.csv'):p.write_bytes(p.read_bytes().replace(b'\r\n',b'\n'))
+    write(output/'artifacts.json',{p.name:dict(bytes=p.stat().st_size,sha256=sha(p))
+        for p in sorted(output.iterdir()) if p.is_file() and p.name!='artifacts.json'})
+    return public(summary)
+
+
+def matrix_commit_publication(root, output):
+    """Publish only verified CPU report files after the finite owner has exited.
+
+    The caller must first run matrix_publish. Failures never alter experiment
+    status or rewind commits; a failed push retains its local report commit.
+    """
+    import gzip
+    import io
+    import re
+    root, output = Path(root).resolve(), Path(output).absolute()
+    repository = CODE.resolve(); target = 'refs/heads/feature/tight-state-foundation'
+    allowed_remotes = {'https://github.com/mao455/bcrl_visualTactile.git',
+        'git@github.com:mao455/bcrl_visualTactile.git', 'ssh://git@github.com/mao455/bcrl_visualTactile.git'}
+    receipt = dict(complete=False, target=target, remote='origin', source_head=None,
+        report_commit=None, pushed=False, files=[], started=time.time())
+    staged_by_us = False
+    def git(*args):
+        return subprocess.run(['git', *args], cwd=repository, check=True,
+            text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=45).stdout
+    def require(condition, reason):
+        if not condition: raise ValueError(reason)
+    def names(*args):
+        return set(filter(None, git(*args, '-z').split('\0')))
+    try:
+        status, session = read(root/'status.json'), read(root/'session.json')
+        source = session.get('source_head'); receipt['source_head'] = source
+        require(status.get('state') in ('COMPLETE','FAILED','BUDGET_STOP') and status.get('owned_workers_exited') is True,
+            'Report publication requires terminal owner status and exited owned workers')
+        require(isinstance(source,str) and re.fullmatch(r'[0-9a-f]{40}',source), 'Missing frozen source commit')
+        require(git('rev-parse','HEAD').strip()==source, 'HEAD differs from frozen source; preserve user commits')
+        for mode in ((),('--push',)):
+            require(git('remote','get-url',*mode,'--all','origin').splitlines() in [[url] for url in allowed_remotes],
+                'Unexpected origin repository or multiple remote URLs')
+        remote = git('ls-remote','--exit-code','origin',target).splitlines()
+        require(remote==[source+'\t'+target], 'Remote target differs from frozen source; no automatic reconciliation')
+        require(not names('diff','--cached','--name-only'), 'Pre-existing staged files; preserve user index')
+        frozen = read(root/'source_freeze.json')
+        require(bool(frozen), 'Missing frozen runtime hash manifest')
+        def verify_source():
+            require(git('rev-parse','HEAD').strip()==source, 'Source HEAD changed before report commit')
+            for name, digest in frozen.items():
+                path = repository/name
+                require(path.resolve().is_relative_to(repository) and not path.is_symlink() and sha(path)==digest,
+                    'Frozen runtime changed: '+name)
+        verify_source()
+        relative = output.relative_to(repository)
+        require(len(relative.parts)>=3 and relative.parts[:2]==('research_docs','evidence'), 'Output must be a report folder under research_docs/evidence')
+        for path in (output,*output.parents):
+            if path==repository: break
+            require(not path.is_symlink(), 'Publication path contains a symlink: '+str(path))
+        state_doc = repository/'research_docs/STATE_DP_RESULTS.md'
+        require(state_doc.is_file() and not state_doc.is_symlink(), 'State document missing or linked')
+        original_doc=git('show',source+':research_docs/STATE_DP_RESULTS.md')
+        def unmanaged_doc(value):
+            return re.sub(r'<!-- METHOD_MATRIX_START -->.*?<!-- METHOD_MATRIX_END -->\n?', '', value, flags=re.S)
+        require(unmanaged_doc(state_doc.read_text())==unmanaged_doc(original_doc),
+            'State document changed outside the owner-managed result block; preserve user edits')
+        manifest = read(output/'artifacts.json')
+        files = sorted(output.iterdir())
+        require({p.name for p in files}==set(manifest)|{'artifacts.json'}, 'Output differs from publisher artifact manifest')
+        summary = read(output/'summary.json')
+        require(summary.get('schema')=='method_matrix_cpu_publication_v1' and summary.get('status')==status
+            and summary.get('session',{}).get('source_head')==source, 'Publication is stale or belongs to another source')
+        source_run = Path(summary['source_run'])
+        require((repository/source_run).resolve()==root, 'Publication belongs to another run')
+        generated = {'summary.json','groups.csv','closed_loop.csv','offline_metrics.csv','validation_curves.csv',
+            'training_loss_intervals.csv','log_counts.csv','physx_errors.csv','video_index.csv','evaluation_plans.json',
+            'source_artifacts.json','local_artifacts.json','artifacts.json','training_curves.png','offline_errors.png'}
+        generated.update(stage+'_'+group+'_geometry.csv' for stage,row in summary['stages'].items() for group in row['groups'])
+        require(all(p.name.removesuffix('.gz') in generated for p in files), 'Unknown files are not generated matrix reports')
+        total=0
+        for path in files+[state_doc]:
+            require(path.is_file() and not path.is_symlink(), 'Only regular report files may be published')
+            size=path.stat().st_size;total+=size
+            require(size<=20*1024**2, 'Report file exceeds 20 MiB: '+path.name)
+            if path==state_doc: continue
+            require(path.suffix in ('.json','.csv','.png','.gz'), 'Raw/model/unknown file type: '+path.name)
+            if path.name!='artifacts.json':
+                require(manifest[path.name]==dict(bytes=size,sha256=sha(path)), 'Generated artifact changed: '+path.name)
+            if path.suffix=='.json': read(path)
+            elif path.suffix=='.csv':
+                with path.open(newline='',encoding='utf-8') as stream:
+                    for row in csv.reader(stream): require(all('\0' not in cell for cell in row), 'Binary CSV rejected')
+            elif path.suffix=='.png':
+                from PIL import Image
+                with Image.open(path) as picture:
+                    require(picture.format=='PNG', 'Non-PNG binary rejected');picture.verify()
+            else:
+                require(path.name.endswith('.csv.gz'), 'Only compressed numeric CSV is allowed')
+                with gzip.open(path,'rb') as stream: payload=stream.read(100*1024**2+1)
+                require(len(payload)<=100*1024**2, 'Compressed numeric report exceeds decoded limit')
+                rows=csv.reader(io.StringIO(payload.decode('utf-8')));header=next(rows,None)
+                require(bool(header), 'Empty compressed numeric table')
+                for row in rows:
+                    require(len(row)==len(header), 'Invalid compressed numeric row')
+                    for cell in row:
+                        if cell: require(math.isfinite(float(cell)), 'Non-numeric compressed payload')
+        require(total<=100*1024**2, 'Total report exceeds 100 MiB')
+        explicit = {str(p.relative_to(repository)) for p in files+[state_doc]}
+        changed = names('diff','--name-only')
+        require(changed<=explicit, 'Other tracked changes exist: '+', '.join(sorted(changed-explicit)))
+        snapshots = {str(p.relative_to(repository)):sha(p) for p in files+[state_doc]}
+        receipt.update(files=sorted(explicit),bytes=total,report_sha256=snapshots)
+        verify_source()
+        require(not names('diff','--cached','--name-only'), 'Index changed before report staging')
+        require(all(sha(repository/p)==digest for p,digest in snapshots.items()), 'Report changed before staging')
+        git('add','--',*receipt['files']);staged_by_us=True
+        require(names('diff','--cached','--name-only')<=explicit, 'Unrelated files entered the index')
+        require(names('diff','--name-only')<=explicit, 'Unrelated tracked changes appeared before commit')
+        verify_source()
+        require(all(sha(repository/p)==digest for p,digest in snapshots.items()), 'Report changed before commit')
+        require(bool(names('diff','--cached','--name-only')), 'No generated report changes to commit')
+        git('commit','--only','-m','Publish measured method matrix results: '+root.name,'--',*receipt['files'])
+        receipt['report_commit']=git('rev-parse','HEAD').strip();staged_by_us=False
+        require(git('rev-parse','HEAD^').strip()==source, 'Report commit does not directly follow frozen source')
+        require(names('diff-tree','--no-commit-id','--name-only','-r','HEAD')<=explicit, 'Report commit contains unrelated paths')
+        require(all(sha(repository/name)==digest for name,digest in frozen.items()), 'Frozen runtime changed during commit')
+        require(not names('diff','--cached','--name-only') and not names('diff','--name-only'), 'Working tree or index changed during commit')
+        require(git('rev-parse','HEAD').strip()==receipt['report_commit'], 'HEAD changed before report push')
+        git('push','origin','HEAD:'+target)
+        receipt.update(complete=True,pushed=True,ended=time.time())
+        write(root/'public_git.json',receipt)
+    except Exception as error:
+        receipt.update(error=repr(error),ended=time.time())
+        if isinstance(error,subprocess.CalledProcessError): receipt['git_stderr']=error.stderr
+        if staged_by_us and not receipt['report_commit']:
+            try: git('restore','--staged','--',*receipt['files'])
+            except Exception as cleanup_error: receipt['index_cleanup_error']=repr(cleanup_error)
+        write(root/'public_git_error.json',receipt)
+    return receipt
+
+
+def matrix_plots(output, curves, losses, errors):
+    """One plotter for exported scalar rows; each target/exposure has its own axes."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    panels=list(dict.fromkeys((r['target'],r['exposure_unit']) for r in curves+losses))
+    if not panels: (output/'training_curves.png').unlink(missing_ok=True)
+    if panels:
+        fig,axes=plt.subplots(len(panels),2,figsize=(12,3.5*len(panels)),squeeze=False,layout='constrained')
+        for axis,(target,unit) in zip(axes,panels):
+            for model in dict.fromkeys(r['model'] for r in losses if (r['target'],r['exposure_unit'])==(target,unit)):
+                rows=[r for r in losses if r['model']==model and (r['target'],r['exposure_unit'])==(target,unit) and r['exposure'] is not None]
+                axis[0].plot([r['exposure'] for r in rows],[r['mean_loss'] for r in rows],label=model)
+            for model,cohort in dict.fromkeys((r['model'],r['cohort']) for r in curves if (r['target'],r['exposure_unit'])==(target,unit)):
+                rows=[r for r in curves if r['model']==model and r['cohort']==cohort and (r['target'],r['exposure_unit'])==(target,unit)
+                      and r['exposure'] is not None and r['selection_metric'] is not None]
+                axis[1].plot([r['exposure'] for r in rows],[r['selection_metric'] for r in rows],label=model+' '+cohort)
+            for ax,title in zip(axis,('Training objective interval mean','Fixed-cohort validation metric')):
+                ax.set(title=target+' / '+title,xlabel=unit);ax.grid(alpha=.25)
+                if ax.lines:ax.legend(fontsize=7)
+                else:ax.text(.5,.5,'Unmeasured',ha='center',transform=ax.transAxes)
+        fig.savefig(output/'training_curves.png',dpi=140);plt.close(fig)
+    targets=list(dict.fromkeys(r['target'] for r in errors))
+    if not targets: (output/'offline_errors.png').unlink(missing_ok=True)
+    if targets:
+        fig,axes=plt.subplots(len(targets),3,figsize=(13,3.6*len(targets)),squeeze=False,layout='constrained')
+        for axis,target in zip(axes,targets):
+            for ax,part,key,title in zip(axis,('arm','hand','arm'),('rmse_rad','rmse_rad','ee_rmse_mm'),
+                    ('Arm RMSE (rad)','Hand RMSE (rad)','Target-configuration palm FK RMSE (mm)')):
+                rows=[r for r in errors if r['target']==target and r['split']=='validation' and r['phase']=='all'
+                    and r['motion']=='all' and r['group']==part and r[key] is not None and r['ticks']]
+                labels=[r['model']+(' nominal vs command' if r['prediction_kind'].startswith('nominal_against') else '') for r in rows]
+                ax.bar(range(len(rows)),[r[key] for r in rows]);ax.set_xticks(range(len(rows)),labels,rotation=35,ha='right',fontsize=7)
+                ax.set(title=target+' / '+title);ax.grid(axis='y',alpha=.25)
+                if not rows:ax.text(.5,.5,'Unmeasured',ha='center',transform=ax.transAxes)
+        fig.suptitle('Fixed expert histories; separate target semantics; no autonomous deviation claim')
+        fig.savefig(output/'offline_errors.png',dpi=140);plt.close(fig)
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
     parser.add_argument('--evaluation', type=Path)
@@ -966,6 +1522,9 @@ def main():
     args = parser.parse_args(); root = args.root.resolve()
     if args.mode == 'prepare': prepare(root, args.config)
     elif args.mode == 'status': print(json.dumps(read(root/'status.json'), indent=2))
+    elif args.mode == 'matrix_publish':
+        if args.output is None: parser.error('matrix_publish requires --output')
+        matrix_publish(root, args.output.resolve())
     elif args.mode == 'publish':
         if args.evaluation is None or args.output is None:
             parser.error('publish requires --evaluation and --output')

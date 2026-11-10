@@ -1,5 +1,26 @@
 # 当前清理与保护结果
 
+## 2026-11-10 当前重构清理：823.789063MiB
+
+本轮依用户最新授权，实际删除完成的 `tight_residual_20261110_01` 内 **398个明确文件**：
+392个旧G01/G11冻结名义预测cache（每组train166+validation30），以及6个验收用可重绘PNG。
+**实际释放863,805,440 allocated bytes＝823.789063MiB；未删除训练checkpoint，未创建archive。**
+通用本地ledger的`deleted_checkpoints=392`按`.pt`后缀计数，实际全是逐episode派生预测cache，不是392个模型。
+
+旧G00/G10 selected best及G01/G11 best/last、Core218源轨迹与当前DINO/numeric/tactile共享cache、统计、nominal index/scales均保留。
+全部20次开发成功/失败的numeric/trace/result及4视频、首次G11成功的完整目录、历史错误与分母均保留。
+新轮会重训基础，故旧GRU nominal cache不进入下一阶段；历史c3386b6缓存入口和保留模型/原始数据可重新计算，未实际重建，也不承诺重建序列化字节SHA相同。
+
+删除前逐文件核对index SHA、inode/size/mtime、同UID打开句柄和保护依赖；计划先落盘，之后按已审核清单执行。
+删除后406个非候选文件identity和SHA不变，6个保留checkpoint真实CPU读回；原始400和Core218每条载荷存在、size及HDF签名检查通过。
+沿用既有完整性审计，未重复读取全部源载荷做全SHA扫描，不把metadata检查冒称完整重审。
+`tools.tight_finish`/诊断入口未删除；少数仍有对照用途的权重和共享cache保留，不按日期整目录删。
+
+[逐文件SHA、原因、实际释放与读回机器证据](evidence/tight_refactor_20261110/cleanup.json)。
+原机before/request/deletions/after账本位于该run的`cleanup_20261110*`；无新GPU/Kit或训练。
+
+下文为此前独立清理，释放空间不重复累计。
+
 ## 2026-11-09 指定上一轮Core目录：289.15MiB
 
 用户明确选择清理 `outputs/visuotactile/run/tight_state_20261107_01` 并要求逐项清单。

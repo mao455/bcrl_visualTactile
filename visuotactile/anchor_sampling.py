@@ -104,5 +104,5 @@ def continuation_lr(step,total,warmup=200,peak=3e-5,floor=3e-6):
 def labels(record, anchors, horizon=64):
     indices = anchors[:, None]+torch.arange(horizon, device=anchors.device)
     valid = indices < len(record['time'])
-    commands = record['command'][indices.clamp_max(len(record['time'])-1)]
+    commands = record.get('clean_sample',record['command'])[indices.clamp_max(len(record['time'])-1)]
     return torch.where(valid[..., None], commands, 0.), valid
