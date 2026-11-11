@@ -46,17 +46,90 @@ H24/commit12、sample/x0、DDIM16/seed7091、overlap0；5Hz规划、60Hz控制�
 
 规划 anchor 是12的倍数。H24 从 anchor 当前 transition 开始，遇首次无效、segment变化或 episode尾部即截断余下标签；填充为零且 mask=false。训练只抽有专家监督的 anchor，曝光按实际有效人口计。观察历史可跨接管边界，GRU仍从真正 episode起点推进；96tick TBPTT或后端32tick detach只限制梯度，不重置记忆。未来观察/动作只作允许的标签，不作策略输入。
 
-## 聚合、统计、缓存与损失
+## 聚合、统计与缓存
 
 原 Core train166 加各组成功纠正；validation30 和 test22 身份保持，test22 本轮不读取轨迹、不评估、不选模。原 Core 的55,392训练tick、4,690规划anchor是旧人口；聚合后的分母由实际 mask 重新计数，不能用历史 epoch 或学生前缀冒充新增监督。
 
 `normalization_train_ids` 固定为原训练人口；`statistics.pt` 与 G10 的 `tactile_statistics.pt` 按原字节复用。Q 前端保持 q affine；G 前端保持 u affine；所有后端保持共同 `u_expert_train166_affine_v1`。不从纠正数据/validation/test重新拟合。G10六个、G00四个观测/动作统计 buffer 在同语义续训时逐 tensor 校验。
 
-前端保持现有 Conditional U-Net 和持续历史；DINO backbone 冻结，既有视觉投影/深度/历史/策略参数可训练。QG沿用已验收的 signed-surface soft geometry：分离 d>0、穿透1mm容许、指定实际末节接触距离2mm；额外梯度仅到手22D，arm/object上下文 detach。既有校准权重/选点规则保持，不执行逐配置SLSQP，不新增未经建模的内力 loss。
+前端保持现有 Conditional U-Net 和持续历史；DINO backbone 冻结，既有视觉投影/深度/历史/策略参数可训练。每轮先恢复这些前端参数参与微调，再固定本轮选定前端训练后端；不能把整个 DAgger 轮次称为“冻结前端”。前后端分别优化，没有端到端联合反传。
 
-后端仍为 `target_residual_transformer60_v1`：756,581参数，2层d128/4头/FF256，过去32tick与持续GRU、当前H24计划/cursor/mask和独立上一名义输出。无失触立即清零门；监督只作用本轮有效专家tick，Arm/Hand等权，既定残差幅度与关节限位不变。报告所需修正超界比例、实际幅度/饱和和观测失触→再接触；后者不证明已学会恢复。
+后端仍为 `target_residual_transformer60_v1`：756,581参数，2层d128/4头/FF256，过去32tick与持续GRU、当前H24计划/cursor/mask和独立上一名义输出。无失触立即清零门，既定残差幅度与关节限位不变。报告所需修正超界比例、实际幅度/饱和和观测失触→再接触；后者不证明已学会恢复。
 
 新前端选定后，对全部原Core/纠正train和validation重放完整实际历史，重新计算持续隐藏态、视觉读出、H24/cursor/mask及 previous_nominal。不能复用旧 DP 的预测或可训练表征。每个后端缓存绑定 `base_checkpoint_sha256/statistics_sha256/data_sha256/residual_statistics_sha256`，index另绑定实际监督mask+segment SHA。只允许复用源轨迹、backbone与内容SHA都一致的冻结DINO特征；新纠正图像重新提特征。
+
+<a id="qg-loss-details"></a>
+
+## QG 数学目标、量纲与梯度
+
+以下是已完成离线 QG00 与本轮 DAgger QG01 前端实际沿用的 `hand_surface_soft_hinge_v1` 目标。Q00 使用相同配置监督但没有手部几何项；G00/G10 保持命令监督。`loss_id=palm_command_sample_commit12` 是历史标识字符串，不能据此把 QG 的真实 `q_reached` 标签解释成 `u_expert`。实际标签由合同中的 `supervision/clean_sample_field/normalization_identity` 决定。
+
+令 $q^*$ 为有效专家 transition 完成后的配置（rad），$z^*=s_q\odot q^*+b_q$ 为其固定 train166 affine，$\hat z$ 为 U-Net 对加噪 $z^*$ 的 sample/x0 预测，$\hat q=(\hat z-b_q)/s_q$。clean sample、加噪输入和拟合目标都使用这一配置语义。基础拟合覆盖全部有效 H24 目标：
+
+$$
+L_{\rm fit}=\frac12\operatorname{mean}_{V,\,j\in Arm7}(\hat z_j-z_j^*)^2
++\frac12\operatorname{mean}_{V,\,j\in Hand22}(\hat z_j-z_j^*)^2.
+$$
+
+$V$ 排除 padding、学生前缀和切换过渡；窗口在首次无效监督或控制段边界处截断。两个关节组各占一半，不能按29个关节直接混合求均值。掌部项仅覆盖 $C=V\cap\{0,\ldots,11\}$，用还原后的真实弧度做 FK：
+
+$$
+L_{\rm pos}=\operatorname{mean}_{C}\|p(\hat q)-p(q^*)\|_2^2,\qquad
+L_{\rm rot}=\frac12\operatorname{mean}_{C}\|R(\hat q)-R(q^*)\|_F^2.
+$$
+
+位置项单位是 **m²**，旋转矩阵项无量纲，不能把毫米或角度误差直接代入这些训练项。这里的掌部位姿是预测关节配置的 FK，不是实际自主轨迹偏离。代码见 [sample/x0 与掌部目标](../visuotactile/state_image_loss.py#L59)、[Arm/Hand 等权拟合](../visuotactile/dp_objectives.py#L8)、[有效窗口](../visuotactile/anchor_sampling.py#L154)。
+
+对抽中的配置，$d_c$ 是手部碰撞表面与物体之间的有符号距离（m，分离为正、穿透为负），$d_f$ 是指定手指实际末节/弹性体碰撞表面的最小距离，$m_f$ 是要求接触的五指 mask。令 $[x]_+=\max(x,0)$：
+
+$$
+\ell_{\rm geom}=
+\operatorname{mean}_{c}\left(\frac{[-d_c-0.001]_+}{0.001}\right)^2
++\frac{\sum_f m_f\left(\frac{[d_f-0.002]_+}{0.002}\right)^2}{\max(1,\sum_fm_f)}.
+$$
+
+穿透容许1mm、要求接触的表面间距容许2mm；平方 hinge 除以各自容差平方，因此几何项与其乘子均无量纲。接触安排来自同 transition 最后120Hz采样的 object-filtered force，范数超过0.1N的指头才有 $m_f=1$。接近、释放及未要求接触的指头没有吸附项。after-state 物体位姿、接触 mask 和阶段只进入 loss，不进入策略观测；它们与 `q_reached` 对齐。[软几何实现](../visuotactile/state_image_loss.py#L162) · [几何标签时序](../visuotactile/state_image_loss.py#L354)
+
+每个完整 optimizer update 最多抽两个合法 commit 配置，有候选时接触/非接触各一个，否则从剩余候选补齐。$L_{\rm geom}$ 是这两个配置的等权均值；分母在整个 update 内固定，各微批直接累加贡献，不能误乘成每微批两个配置。该分层抽样均值**不是整个目标人口的无偏估计**；基础拟合仍使用全部合法目标，困难几何样本不按可行性剔除。[抽样](../visuotactile/anchor_continue.py#L124) · [全 update 归一化](../visuotactile/state_image_loss.py#L113) · [微批累加](../visuotactile/anchor_sampling.py#L102)
+
+实际总损失与权重为：
+
+$$
+L=L_{\rm fit}+g_p(k)\,[0.3342396121814294L_{\rm pos}
++0.029946394754032265L_{\rm rot}]
++g_g(k)\,2.355370821894758\times10^{-6}L_{\rm geom},
+$$
+
+其中 $k$ 是本训练阶段从1开始的 optimizer update，$g_p(k)=\min(1,k/500)$，$g_g(k)=\operatorname{clip}((k-100)/400,0,1)$。前100次更新跳过几何距离计算，第101次开始渐入，第500次达到全权重；掌部权重独立渐入，手部几何不会再重复乘 $g_p$。位置权重对应上面的 m² 标度。[实际训练累加与调度](../visuotactile/anchor_continue.py#L624)
+
+几何权重经过训练集六状态检查和**一次完整 update**校准：基础手部输出梯度范数0.001015357876518895，未加权几何手部输出梯度范数86.21639251708984，最终加权比0.2，手臂几何输出梯度为0。这个0.2是该次校准的输出梯度比，既不是模型参数梯度比，也不是后续每次更新的保证；没有使用 validation/test 调权重。[原始软几何验收](evidence/tight_reuse_20261110/geometry_soft_acceptance.json) · [吞吐与拟合短测](evidence/tight_reuse_20261110/training_readiness.json)
+
+距离计算复用 `HandCollisionGeometry.distances()` 的局部手关节 Jacobian；碰撞 witness 不反向传播，arm/object 上下文 detach，几何梯度只接到输出的 Hand22。共享网络参数会收到这些手部梯度，不能声称共享参数更新绝不会影响手臂预测。当前正式训练不调用 SLSQP。此前 `projection_v1` 则是求局部可行投影后回归投影手部目标，只有可行样本贡献；两者数学目标与权重单位不同，不能把旧投影权重直接沿用或混称同一方法。精确投影代码只留诊断。**内部力项未启用**，软惩罚也不保证几何可行或任务成功。
+
+几何训练日志记录的是抽样 x0 输出在记录物体场景下的距离与局部梯度；`maximum_penetration_violation_m` 是**超过1mm后的违约量**，绝对穿透深度应取 $\max(0,-\min_c d_c)$。离线几何诊断使用专家观测前缀下的完整 DDIM 预测。两者都不能冒充自主 rollout 的实际物理穿透或失败因果证据。
+
+## 后端目标与验证选择
+
+所有 Transformer 后端都监督最终 `u_expert`，包括接在 Q00/QG00 后面的 Q01/QG01。设共同命令 affine 的 scale 为 $s_u$，$\hat u$ 为限位后的组合命令，$\Delta$ 为归一化命令空间残差，则每个合法监督 tick：
+
+$$
+\ell_{\rm back}=\frac12\operatorname{mean}_{Arm7}[s_u\odot(\hat u-u^*)]^2
++\frac12\operatorname{mean}_{Hand22}[s_u\odot(\hat u-u^*)]^2
++10^{-4}\left(\frac12\operatorname{mean}_{Arm7}\Delta^2+\frac12\operatorname{mean}_{Hand22}\Delta^2\right).
+$$
+
+最终对合法专家监督 tick 求均值，接触/非接触都参与；学生前缀仍更新历史但不监督。后端没有新增 QG 几何项，也不把命令 affine 换成前端配置 affine。组合为 `base + delta / action_scale` 后施加关节限位，残差幅度沿用既有校准。[组合与后端目标](../visuotactile/models/native_dp.py#L549)
+
+前端按固定 validation4、真实完整前缀、部署 batch1 DDIM16/seed7091 的 commit12 误差选择最低分 EMA：
+
+$$
+S=\frac14\left[(\mathrm{ArmRMSE}_{rad}/0.01)^2+
+(\mathrm{HandRMSE}_{rad}/0.1)^2+
+(\mathrm{PalmRMSE}_{mm}/10)^2+
+(\mathrm{MeanAngle}_{deg}/5)^2\right].
+$$
+
+四项尺度固定；不是训练 loss 或几何可行率选模。H24全长误差另报，不混入此分数。后端按固定 validation4 全合法tick的命令归一化 Arm/Hand 等权 MSE 选择，选择分数不加残差正则。DAgger 在本轮正式保存的新增验证检查点中选最优；当前实现未把初始化 update0 作为候选。前端平台早停要求达到最低曝光、最近四次验证改善不足1%；另有至少五次验证后最近三次分数均超过此前最佳两倍的严重劣化停止条件，以及登记更新上限/墙钟限制。阶段配置与实际停止原因均须报告，不能把达到最大曝光当成收敛证明。[物理尺度选择分数](../visuotactile/state_image_offline.py#L306) · [前端选模与早停](../visuotactile/anchor_continue.py#L698)
 
 ## 有限预算、停止与自主评估
 

@@ -1,0 +1,944 @@
+{
+  "version": "qg_cpu_detail_v1",
+  "source_root": "outputs/visuotactile/run/tight_transformer_20261110_02",
+  "groups": {
+    "QG00": {
+      "attempts": 10,
+      "valid": 10,
+      "rejected": 0,
+      "successes": 0,
+      "native_lifts": 0,
+      "first_subgoal_reached": 0,
+      "second_subgoal_reached": 0,
+      "alignments": 0,
+      "stable_grasp_computed": 0,
+      "terminations": {
+        "dropped": 0,
+        "fall": 0,
+        "hand_far": 0,
+        "max_successes": 0,
+        "timeout": 10
+      },
+      "ticks": 6010,
+      "training": {
+        "finished": {
+          "updates": 7000,
+          "target_updates": 8476,
+          "target_reached": false,
+          "stop_reason": "validation_plateau_or_overfit",
+          "best_checkpoint": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration/QG00/training/best.pt",
+          "wall_s": 29577.308275938034,
+          "wait_s": 484.0747768622823,
+          "coverage": {
+            "sampled_anchors": 387342,
+            "anchor_population": 4690,
+            "anchor_equivalent_epochs": 82.58891257995735,
+            "unique_anchors": 4690,
+            "per_episode_selection_min": 2333,
+            "per_episode_selection_max": 2334,
+            "episode_selection_passes": 2333.385542168675,
+            "visited_original_segments": 658,
+            "original_segment_population": 658,
+            "anchor_based_segment_equivalents": 54343.50447761194,
+            "full_segment_traversals": 0,
+            "prefix_ticks_recomputed": 63727830,
+            "gradient_ticks": 15830262
+          },
+          "utc": 1794336163.2978077
+        },
+        "selected": {
+          "update": 7000,
+          "metrics": {
+            "arm_rmse": 0.004683142993599176,
+            "hand_rmse": 0.049229297786951065,
+            "selection_mse": 0.001222727794447401,
+            "selection_score": 0.15589333537703964,
+            "ee_distance_rmse_mm": 3.8199713230133057,
+            "ee_rotation_mean_deg": 0.6320773959159851,
+            "ticks": 1303,
+            "hold_arm_rmse": 0.005997271742671728,
+            "hold_hand_rmse": 0.10142528265714645,
+            "full_horizon": {
+              "arm_rmse": 0.005684307776391506,
+              "hand_rmse": 0.07585091143846512,
+              "selection_mse": 0.0028928360604713117,
+              "selection_score": 0.2980475142954773,
+              "ee_distance_rmse_mm": 5.198215007781982,
+              "ee_rotation_mean_deg": 0.7669100165367126,
+              "ticks": 2558,
+              "hold_arm_rmse": 0.012180657126009464,
+              "hold_hand_rmse": 0.1732359230518341
+            },
+            "identities": [
+              "formal_002_slow_0",
+              "formal_011_slow_0",
+              "formal_035_slow_0",
+              "formal_038_slow_0"
+            ],
+            "protocol": "complete real prefix, deployment batch1 DDIM16 seed7091; committed12 vs all valid24"
+          },
+          "train8": {
+            "arm_rmse": 0.0008455154020339251,
+            "hand_rmse": 0.0050667026080191135,
+            "selection_mse": 1.3193185806592138e-05,
+            "selection_score": 0.003709522169090676,
+            "ee_distance_rmse_mm": 0.6813876032829285,
+            "ee_rotation_mean_deg": 0.10944034159183502,
+            "ticks": 648,
+            "hold_arm_rmse": 0.006078336387872696,
+            "hold_hand_rmse": 0.10576381534337997,
+            "full_horizon": {
+              "arm_rmse": 0.000889219343662262,
+              "hand_rmse": 0.005081541836261749,
+              "selection_mse": 1.3306389237410787e-05,
+              "selection_score": 0.004060137854843682,
+              "ee_distance_rmse_mm": 0.7226033806800842,
+              "ee_rotation_mean_deg": 0.11507365107536316,
+              "ticks": 1272,
+              "hold_arm_rmse": 0.012046300806105137,
+              "hold_hand_rmse": 0.18140730261802673
+            },
+            "identities": [
+              "formal_003_slow_0",
+              "formal_005_slow_0"
+            ],
+            "protocol": "complete real prefix, deployment batch1 DDIM16 seed7091; committed12 vs all valid24"
+          },
+          "early": {},
+          "utc": 1794336160.5114703,
+          "anchor_equivalent_epochs": 82.58891257995735,
+          "train_scope": "fixed_train2",
+          "validation_scope": "fixed_validation4",
+          "loss_weights": {
+            "position": 0.3342396121814294,
+            "rotation": 0.029946394754032265,
+            "hand_geometry": 2.355370821894758e-06
+          },
+          "geometry_gain": 1.0,
+          "validation_loss": {
+            "loss": 0.010579406982287765,
+            "base": 0.010562303476035595,
+            "position": 1.4788616226724116e-05,
+            "rotation": 0.00017810255121730734,
+            "hand_geometry": 2.898490554187447
+          },
+          "train8_loss": {
+            "loss": 5.222825893724803e-05,
+            "base": 5.191242780711036e-05,
+            "position": 4.914812166134652e-07,
+            "rotation": 5.060960120317759e-06,
+            "hand_geometry": 0.0
+          }
+        },
+        "configuration": {
+          "version": "matched_visual_supervision_v1",
+          "initialization": "old_G00_EMA_q_reached_adaptation_fresh_optimizer_ema_schedule",
+          "seed": 2026110803,
+          "data_sha256": "dcb54fd791018b9018876c58ae56a217d34e944e773fe743875d0c56e27d0a35",
+          "statistics_sha256": "d6b65e41ca99262958c386516b37e7d34981eb9241b9b109b028c8ce9926c2ef",
+          "contract": {
+            "version": 5,
+            "action": "absolute_joint_position_target_rad",
+            "horizon": 24,
+            "commit": 12,
+            "native_history": 13,
+            "visual_history": 3,
+            "native_hz": 60,
+            "physics_hz": 120,
+            "observation": "robot178_dino_rgb_depth_v1",
+            "prediction_type": "sample",
+            "loss": "B",
+            "train_noise_steps": 100,
+            "inference_steps": 16,
+            "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+            "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+            "action_contract": "position_rad_v1",
+            "modality": "G00",
+            "input_builder": "canonical_joint_state_v1",
+            "tactile_history": 0,
+            "sampler_seed": 7091,
+            "task_condition": "constant externally selected tight_insertion; goal pose absent",
+            "supervision": "q_reached",
+            "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+            "normalization_identity": "q_reached_train166_affine_v1",
+            "label_time": "same transition: issued target before integration / reached configuration after integration",
+            "deployment_output": "absolute_joint_position_target_rad"
+          },
+          "loss_id": "palm_command_sample_commit12",
+          "loss_weights": {
+            "position": 0.3342396121814294,
+            "rotation": 0.029946394754032265,
+            "hand_geometry": 2.355370821894758e-06
+          },
+          "target": 8476,
+          "effective_batch": 64,
+          "microbatch": 4,
+          "lr_peak": 3e-05,
+          "lr_floor": 3e-06,
+          "warmup": 200,
+          "sampler": "episode_balanced_shuffled_decks_short_tail_no_drop",
+          "smoke": false,
+          "disposable": false,
+          "device": "cuda:0",
+          "geometry_warmup": 500,
+          "geometry_commit": 12,
+          "geometry_position_units": "m^2",
+          "geometry_rotation": "0.5 Frobenius matrix squared",
+          "selection": "mean((arm_rad/.01)^2,(hand_rad/.1)^2,(palm_mm/10)^2,(angle_deg/5)^2); fixed validation4, lower is better",
+          "diagnostic_cohorts": {
+            "train": [
+              "formal_003_slow_0",
+              "formal_005_slow_0",
+              "formal_007_slow_0",
+              "formal_012_slow_0",
+              "formal_013_slow_0",
+              "formal_015_slow_0",
+              "formal_016_slow_0",
+              "formal_018_slow_0"
+            ],
+            "validation": [
+              "formal_002_slow_0",
+              "formal_011_slow_0",
+              "formal_035_slow_0",
+              "formal_038_slow_0",
+              "formal_002_slow_1",
+              "formal_014_slow_1",
+              "formal_035_slow_1",
+              "formal_001_slow_2",
+              "formal_011_slow_2",
+              "formal_019_slow_2",
+              "formal_001_slow_3",
+              "formal_002_slow_3",
+              "formal_014_slow_3",
+              "formal_019_slow_3",
+              "formal_035_slow_3",
+              "formal_038_slow_3",
+              "formal_001_slow_4",
+              "formal_011_slow_4",
+              "formal_019_slow_4",
+              "formal_035_slow_4",
+              "formal_038_slow_4",
+              "formal_002_slow_5",
+              "formal_011_slow_5",
+              "formal_019_slow_5",
+              "formal_035_slow_5",
+              "formal_038_slow_5",
+              "formal_001_slow_6",
+              "formal_002_slow_6",
+              "formal_014_slow_6",
+              "formal_038_slow_6"
+            ]
+          },
+          "modality": "G00",
+          "shared_initial_sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452",
+          "dino_sha256": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9",
+          "input_builder": "canonical_joint_state_v1",
+          "supervision": "q_reached",
+          "normalization_identity": "q_reached_train166_affine_v1",
+          "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+          "hand_geometry": {
+            "acceptance": "outputs/visuotactile/run/tight_transformer_20261110_02/geometry_acceptance.json",
+            "live": "outputs/visuotactile/run/tight_transformer_20261110_01/physics_gate_meshfix/geometry_live.json",
+            "loss_kind": "hand_surface_soft_hinge_v1",
+            "options": {
+              "penetration_tolerance_m": 0.001,
+              "contact_tolerance_m": 0.002
+            },
+            "warmup_updates": 100,
+            "ramp_updates": 400
+          },
+          "geometry_acceptance_sha256": "10ff0ce6d568176a2d2364645f90aa1eb11ef5cf81757b75ffc3fbf1e8d8a50e",
+          "loss_context_sha256": "cf2bc6b5948905676ff53ff7e9fcad0c70c8a674a8fdbbd2dfaf382c83024491",
+          "warm_start": {
+            "version": "command_ema_to_reached_warm_start_v1",
+            "source": "outputs/visuotactile/run/tight_vision_20261109_01/G00/training/best.pt",
+            "source_contract": {
+              "version": 4,
+              "action": "absolute_joint_position_target_rad",
+              "horizon": 24,
+              "commit": 12,
+              "native_history": 13,
+              "visual_history": 3,
+              "native_hz": 60,
+              "physics_hz": 120,
+              "observation": "robot178_dino_rgb_depth_v1",
+              "prediction_type": "sample",
+              "loss": "B",
+              "train_noise_steps": 100,
+              "inference_steps": 16,
+              "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+              "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+              "action_contract": "position_rad_v1",
+              "modality": "G00",
+              "input_builder": "canonical_joint_state_v1",
+              "tactile_history": 0,
+              "sampler_seed": 7091,
+              "task_condition": "constant externally selected tight_insertion; goal pose absent"
+            },
+            "target_contract": {
+              "version": 5,
+              "action": "absolute_joint_position_target_rad",
+              "horizon": 24,
+              "commit": 12,
+              "native_history": 13,
+              "visual_history": 3,
+              "native_hz": 60,
+              "physics_hz": 120,
+              "observation": "robot178_dino_rgb_depth_v1",
+              "prediction_type": "sample",
+              "loss": "B",
+              "train_noise_steps": 100,
+              "inference_steps": 16,
+              "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+              "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+              "action_contract": "position_rad_v1",
+              "modality": "G00",
+              "input_builder": "canonical_joint_state_v1",
+              "tactile_history": 0,
+              "sampler_seed": 7091,
+              "task_condition": "constant externally selected tight_insertion; goal pose absent",
+              "supervision": "q_reached",
+              "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+              "normalization_identity": "q_reached_train166_affine_v1",
+              "label_time": "same transition: issued target before integration / reached configuration after integration",
+              "deployment_output": "absolute_joint_position_target_rad"
+            },
+            "source_updates": 10132,
+            "new_optimizer_updates": 0,
+            "completed_reached_policy": false,
+            "learned_tensors_reused": 188,
+            "learned_parameters_reused": 72770109,
+            "normalizers_replaced": [
+              "robot_mean",
+              "robot_std",
+              "action_scale",
+              "action_offset"
+            ],
+            "normalizers_numerically_changed": [
+              "action_scale",
+              "action_offset"
+            ],
+            "other_buffers_reused": [
+              "geometry_mean",
+              "geometry_std",
+              "vision.coordinates"
+            ],
+            "denoiser_class": "ConditionalUnet1D",
+            "new_modules": [],
+            "optimizer_state_restored": false,
+            "schedule_state_restored": false,
+            "ema_schedule_restored": false,
+            "rng_state_restored": false,
+            "requires_fresh_optimizer_ema_sampler_and_counters": true,
+            "source_sha256": "4356acbcaabd95e97b1f236f853d724db5f3ad5d9effad2301fe0e1eca4ba452"
+          }
+        },
+        "weights": {
+          "best.pt": {
+            "path": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration/QG00/training/best.pt",
+            "sha256": "6eaacefa29cb036aa06b24dc91ff52137955795132d2e7f00bbda1fba6b3774f",
+            "bytes": 1164669783
+          },
+          "last.pt": {
+            "path": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration/QG00/training/last.pt",
+            "sha256": "44c31b1c5bacee81f3c38b3933c2d077f3c4bc1b91a7785c43015854960a0822",
+            "bytes": 1164669783
+          }
+        },
+        "geometry": {
+          "log_rows": 98002,
+          "updates": 7000,
+          "active_updates": 6900,
+          "sampled_configurations": 13800,
+          "nonzero_local_gradient_configurations": 4112,
+          "normalization": "Per-update selected-row mean; not mean of microbatch means or population-unbiased",
+          "scope": "Denoised training x0 configurations in expert object/contact context; not autonomous physical trajectories",
+          "penetration": "Absolute depth=max(0,-minimum_distance_m); violation excludes 1mm tolerance",
+          "contact": "Required-finger gap violation excludes 2mm tolerance; separate contact/penetration local gradients"
+        },
+        "validation_scope": "Fixed train2/validation4; selection before development evaluation; no test22",
+        "target": "q_reached",
+        "offline_scope": "Expert-history predictions; QG01 base_* files compare nominal q output against u_expert, not configuration fitting"
+      }
+    },
+    "QG01": {
+      "attempts": 10,
+      "valid": 10,
+      "rejected": 0,
+      "successes": 0,
+      "native_lifts": 0,
+      "first_subgoal_reached": 0,
+      "second_subgoal_reached": 0,
+      "alignments": 0,
+      "stable_grasp_computed": 0,
+      "terminations": {
+        "dropped": 0,
+        "fall": 1,
+        "hand_far": 0,
+        "max_successes": 0,
+        "timeout": 9
+      },
+      "ticks": 5978,
+      "training": {
+        "finished": {
+          "stop_reason": "validation_plateau_after_minimum_exposure",
+          "updates": 97441,
+          "control_tick_epochs": 180.0,
+          "formal_updates": 97441,
+          "disposable": false,
+          "run_kind": "formal",
+          "target_reached": false,
+          "required_supervised_ticks": 11078400,
+          "required_control_tick_epochs": 200,
+          "train_episode_count": 166,
+          "effective_batch": 4,
+          "minimum_control_tick_epochs": 50,
+          "minimum_exposure_reached": true,
+          "sampled_contact_anchors": 6858720,
+          "contact_anchor_population": 38104,
+          "control_tick_population": 55392,
+          "supervised_ticks": 9970560,
+          "control_ticks": 9970560,
+          "control_equivalent_epochs": 180.0,
+          "wall_s": 4283.15279006958,
+          "supervised_ticks_per_wall_s": 2327.855317830729,
+          "setup_wall_s": 0.8007960319519043,
+          "training_wall_s": 4262.549139261246,
+          "supervised_ticks_per_training_wall_s": 2339.1073449837168,
+          "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+          "wait_s": 32.57773565547541,
+          "work_s": 4232.1207017849665,
+          "selection": "fixed validation4 all-tick normalized equal Arm/Hand MSE",
+          "last": "outputs/visuotactile/run/tight_transformer_20261110_02/queue/QG01/QG01/training/last.pt",
+          "best": "outputs/visuotactile/run/tight_transformer_20261110_02/queue/QG01/QG01/training/best.pt",
+          "utc": 1794342274.6478138,
+          "base_optimizer_updates": 0
+        },
+        "selected": {
+          "epoch": 150,
+          "update": 81232,
+          "validation_score": 0.00456139026209712,
+          "selection": "fixed validation4 all-tick normalized equal Arm/Hand MSE",
+          "checkpoint_sha256": "d944a9a4ea5ea520e27d977bc74e147f5acd302bdd2322dd3bbbfd8786a74fe3"
+        },
+        "configuration": {
+          "version": "target_residual_transformer60_v1",
+          "source_root": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration",
+          "groups": [
+            "QG01"
+          ],
+          "initialization_seed": 2026110803,
+          "cache_hours": 1.5,
+          "training_hours": null,
+          "offline_hours": 1,
+          "evaluation_hours": 1,
+          "maximum_hours": null,
+          "resource_policy": "full_gpu_v1",
+          "min_gpu_free_mib": 6144,
+          "min_ram_gib": 14,
+          "min_disk_gib": 60,
+          "maximum_parallel_trainers": 2,
+          "parallel_measure_updates": 32,
+          "serial_compare_updates": 32,
+          "serial_switch_updates": 200,
+          "parallel_efficiency_floor": 0.95,
+          "microbatch": 4,
+          "evaluation_attempts_per_group": 10,
+          "videos_per_group": 2,
+          "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+          "dino_architecture": "dinov2_vits14",
+          "residual_training": true,
+          "residual_hz": 60,
+          "base_replan_hz": 5,
+          "tactile_hz": 120,
+          "horizon": 24,
+          "commit": 12,
+          "validation_epoch_interval": 10,
+          "tbptt_ticks": 32,
+          "learning_rate": 0.001,
+          "weight_decay": 0.0001,
+          "residual_penalty": 0.0001,
+          "ema": false,
+          "selection": "fixed validation4 all-tick normalized equal Arm/Hand MSE",
+          "cache_definition": "actual frozen EMA DDIM16 seed7091 predictions; complete teacher-forced observation/past-command prefixes",
+          "bases": {
+            "QG01": {
+              "group": "QG00",
+              "modality": "G00",
+              "checkpoint": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration/QG00/training/best.pt",
+              "sha256": "6eaacefa29cb036aa06b24dc91ff52137955795132d2e7f00bbda1fba6b3774f"
+            }
+          },
+          "stop_rule": "After >=50 complete native-tick traversals and last4 fixed validation gains<1%; maximum200 or sealed measured wall budget; report actual exposure",
+          "gate": "all valid control ticks, no hard contact disabling",
+          "previous_nominal": "separate strictly previous frozen DP output",
+          "architecture": {
+            "version": "target_residual_transformer60_v1",
+            "transformer": "decoder_cross_attention",
+            "layers": 2,
+            "width": 128,
+            "heads": 4,
+            "feedforward": 256,
+            "dropout": 0.0,
+            "plan_tokens": 24,
+            "past_feedback_tokens": 32,
+            "persistent_memory": "visual64, tactile64 with per-finger32 at120Hz, motion64, feedback128; episode reset only",
+            "previous_nominal": "separate previous-tick base prediction in radians",
+            "direct_frozen_visual_bypass": true,
+            "control_hz": 60,
+            "gate": "none; all valid native ticks supervised including noncontact",
+            "parameters": 756581,
+            "trainable_parameters": 756581
+          },
+          "maximum_control_tick_epochs": 200,
+          "minimum_control_tick_epochs": 50,
+          "comparison_control_tick_epochs": [
+            50,
+            100,
+            150,
+            200
+          ],
+          "residual_statistics_path": "outputs/visuotactile/run/tight_transformer_20261110_02/command_statistics/statistics.pt",
+          "supervision": "u_expert for every residual; base target remains explicit",
+          "residual_statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+          "residual_normalization_identity": "u_expert_train166_affine_v1",
+          "group": "QG01",
+          "base_checkpoint": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration/QG00/training/best.pt",
+          "base_sha256": "6eaacefa29cb036aa06b24dc91ff52137955795132d2e7f00bbda1fba6b3774f",
+          "statistics_sha256": "d6b65e41ca99262958c386516b37e7d34981eb9241b9b109b028c8ce9926c2ef",
+          "data_sha256": "dcb54fd791018b9018876c58ae56a217d34e944e773fe743875d0c56e27d0a35",
+          "dino_sha256": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9",
+          "cache_index_sha256": "7c930a09ded1397b6d33cd10fdac49790ddd2a775444dc77648df695c6e1f441",
+          "loss_id": "all_tick_equal_arm_hand_plus_1e-4_residual",
+          "residual_version": "target_residual_transformer60_v1",
+          "history": "full causal episodes; 32tick detach only; expert past acknowledgements teacher forced offline"
+        },
+        "weights": {
+          "best.pt": {
+            "path": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration_residual/QG01/training/best.pt",
+            "sha256": "d944a9a4ea5ea520e27d977bc74e147f5acd302bdd2322dd3bbbfd8786a74fe3",
+            "bytes": 9203969
+          },
+          "last.pt": {
+            "path": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration_residual/QG01/training/last.pt",
+            "sha256": "29668d1060387a753505383bae6d615fec38761468192a391077d3d37d16d0e1",
+            "bytes": 9205441
+          }
+        },
+        "geometry": null,
+        "validation_scope": "Fixed train2/validation4; selection before development evaluation; no test22",
+        "target": "u_expert combined actuator command; base q_reached prediction is a different target",
+        "offline_scope": "Expert-history predictions; QG01 base_* files compare nominal q output against u_expert, not configuration fitting"
+      }
+    }
+  },
+  "files": [
+    {
+      "path": "QG00/offline/episode_metrics.json",
+      "bytes": 33616,
+      "sha256": "7385859a7038fad1459a1b8f1a119653a67922bbfb8e2df5adf8a1123b2c9ec7"
+    },
+    {
+      "path": "QG00/offline/formal_002_slow_0_targets.csv.gz",
+      "bytes": 363073,
+      "sha256": "ec06ddcbfd52d55275b1e85e768816d6ae18f15ec7eba6977e7dfc73b750c4bf",
+      "rows": 340,
+      "columns": 181
+    },
+    {
+      "path": "QG00/offline/formal_002_slow_0_targets.png",
+      "bytes": 242119,
+      "sha256": "2c152e1f973db210e98ced25ed89e14822adaba6b68640e56285e6cbd9cb6ce4"
+    },
+    {
+      "path": "QG00/offline/formal_003_slow_0_targets.csv.gz",
+      "bytes": 395823,
+      "sha256": "2649085c2b3292e35349fb0469c105384391320c0bb531cc18774cdbc7fc6123",
+      "rows": 366,
+      "columns": 181
+    },
+    {
+      "path": "QG00/offline/formal_003_slow_0_targets.png",
+      "bytes": 248364,
+      "sha256": "482567b02b893dcec105f19c9a970e107109a2a83be5b7c9c113f9618e227343"
+    },
+    {
+      "path": "QG00/offline/full_horizon_stage_metrics.json",
+      "bytes": 29541,
+      "sha256": "3979dfb15c1701ca94c60e12dd1ebb7c626ddbd1bd32ddcc66b4a45809b4b25a"
+    },
+    {
+      "path": "QG00/offline/full_horizon_ticks.csv.gz",
+      "bytes": 1941009,
+      "sha256": "a437da2fda4828775eb672960a5c00b8f8db15a3d1f78ff83afca769ac8b8b74",
+      "rows": 25544,
+      "columns": 16
+    },
+    {
+      "path": "QG00/offline/geometry_metrics.json",
+      "bytes": 3345,
+      "sha256": "5f280ca47ce5091d4586cce702cbe1538f6186089bb331a1084272156d2cc6c1"
+    },
+    {
+      "path": "QG00/offline/geometry_rows.csv.gz",
+      "bytes": 33896,
+      "sha256": "bc22fdbd6cdb6c05c0ec5820eaf3e893d03f89d4ffb080660b42e399e3c96961",
+      "rows": 1103,
+      "columns": 13
+    },
+    {
+      "path": "QG00/offline/result.json",
+      "bytes": 498,
+      "sha256": "69f17d687f72295a3d4d9a754afa89c879ffe1b4e602c564613a5516f568f47e"
+    },
+    {
+      "path": "QG00/offline/sampled_ticks.csv.gz",
+      "bytes": 1018245,
+      "sha256": "1a27dc01916f208dcca7cf5456b590d8e572669972530a4d0d93148ba82f7496",
+      "rows": 13000,
+      "columns": 16
+    },
+    {
+      "path": "QG00/offline/stage_comparison_omitted.json",
+      "bytes": 204,
+      "sha256": "7569d8fd4952f7cdcd96a8f6aba160200dcdb4d0858e065975ea30107ca5650f"
+    },
+    {
+      "path": "QG00/offline/stage_metrics.json",
+      "bytes": 29439,
+      "sha256": "7bdb866b38201beb8d59bab1cefbffc26afe9bc6b780f8cd28e53eeb272aa813"
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_000.csv.gz",
+      "bytes": 23720,
+      "sha256": "ae1ddf48aa55c75bbe5c7df3f74eda4f6be49a2228e149a130b8470020ffcc44",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_001.csv.gz",
+      "bytes": 26566,
+      "sha256": "a3116a5333b80bb89eb31b36d6577d0aa7e8c56983df0f5be22f418641836be8",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_002.csv.gz",
+      "bytes": 25985,
+      "sha256": "bc0923f01cdc0e16df845e730bab0956f5071a2dea67fecd8fa6727a7a6142bb",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_003.csv.gz",
+      "bytes": 26306,
+      "sha256": "8d964c28d0536f574e21f3c9412f7146a5a289381b5103583d5aebb565c87e67",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_004.csv.gz",
+      "bytes": 27238,
+      "sha256": "a7577f6d582de6594259d1239048f00a5df97f2819ce33d1b907360b3624f5e8",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_005.csv.gz",
+      "bytes": 25219,
+      "sha256": "4669df0a462b52c49c0c043fa5f79b3ed389e9e48c96ef794412b71085e2dab4",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_006.csv.gz",
+      "bytes": 26070,
+      "sha256": "21ccb9674f90a934c2989906d760dea91a35fb2d27e82bfb1611c2b59bbb36fd",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_007.csv.gz",
+      "bytes": 24646,
+      "sha256": "127ec0e5ff93f579cc623df31ae2fc3929c4c77e328cea74878e75df44f3de51",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_008.csv.gz",
+      "bytes": 26520,
+      "sha256": "413972f121627cd0d77dc95b7fc622a9242375782e5735cb2938013c5d0cfab1",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts/palm_fresh_009.csv.gz",
+      "bytes": 26565,
+      "sha256": "4a3d82f735d3aa80544189cdbb7393f26cebd370a7bfc7bbca0d56669e936b50",
+      "rows": 601,
+      "columns": 25
+    },
+    {
+      "path": "QG00/rollouts.png",
+      "bytes": 538925,
+      "sha256": "ef2b3f2f2f5fa568a7389cfa4e9dfaf63e8a3ec6966a42578bbdb73de55f0e91"
+    },
+    {
+      "path": "QG00/training/curves.png",
+      "bytes": 182660,
+      "sha256": "0621b95b47ec1a41d2b053221d09b4704c93d2678cccf8eea59b183f45b8da97"
+    },
+    {
+      "path": "QG00/training/geometry_by_update.csv.gz",
+      "bytes": 454403,
+      "sha256": "ff8f4ca5a00fbc146cef821b3037a6c88fbdbe840f5bfde357a85b018ef65e8e",
+      "rows": 7000,
+      "columns": 22
+    },
+    {
+      "path": "QG00/training/geometry_curves.png",
+      "bytes": 229131,
+      "sha256": "52028050b1aefa25facda2c49064c17538ca4f81e7e2e8c59b8d4c2577f5f934"
+    },
+    {
+      "path": "QG00/training/geometry_projection.csv.gz",
+      "bytes": 3251618,
+      "sha256": "f4f55820bacf444f58ee70e86b153a5750a00d8a4c1123ee1928186f11a45f9b",
+      "rows": 98002,
+      "columns": 80
+    },
+    {
+      "path": "QG00/training/loss.csv.gz",
+      "bytes": 1099201,
+      "sha256": "3d7971deabc208246de76bd02a1a0ea30c36c909467ea99778ce585fbe8b7365",
+      "rows": 7000,
+      "columns": 44
+    },
+    {
+      "path": "QG00/training/validation.csv",
+      "bytes": 14471,
+      "sha256": "d110f55b14cbad453e952ac90f4c7e1cd4df42c1c3ca6a440b146d8ac88f3407",
+      "rows": 10,
+      "columns": 63
+    },
+    {
+      "path": "QG00/training/validation_pose_curves.png",
+      "bytes": 157598,
+      "sha256": "26e8753504333f7937c08b047df3469adce930cd981707666664c62d7e2448c0"
+    },
+    {
+      "path": "QG01/offline/base_sampled_ticks.csv.gz",
+      "bytes": 999885,
+      "sha256": "bd4fc63b7c3fda630c3842e7e797263fad1424f487290bb453d750f208d3fbc2",
+      "rows": 13000,
+      "columns": 16
+    },
+    {
+      "path": "QG01/offline/base_stage_errors.csv.gz",
+      "bytes": 3403,
+      "sha256": "a2ff1a9177cd9a5c639f9f63615dff5f87f59575125146047a3e3f23fe164998",
+      "rows": 84,
+      "columns": 11
+    },
+    {
+      "path": "QG01/offline/force_sensitivity.json",
+      "bytes": 1779,
+      "sha256": "093f9dadc9d5b1c285bf0c4b2c606f8ecc4fbc920ebe84cd9c2bab36f2ab8439"
+    },
+    {
+      "path": "QG01/offline/formal_002_slow_0_targets.csv.gz",
+      "bytes": 294922,
+      "sha256": "80703b2adb0d2f7f2530a078ee07327228217e22520221a57a57da03ed9a7caa",
+      "rows": 340,
+      "columns": 181
+    },
+    {
+      "path": "QG01/offline/formal_002_slow_0_targets.png",
+      "bytes": 270052,
+      "sha256": "2f181fd9ef95dc43db3be72d832004626c55f10e654c608d48c1426f0cb9f2ce"
+    },
+    {
+      "path": "QG01/offline/formal_003_slow_0_targets.csv.gz",
+      "bytes": 311647,
+      "sha256": "561552ad14fc0545f0888a87eab8d77faee91d1b1d500236dff45cdceec44866",
+      "rows": 366,
+      "columns": 181
+    },
+    {
+      "path": "QG01/offline/formal_003_slow_0_targets.png",
+      "bytes": 269597,
+      "sha256": "1e58afda42673e9e464772d4ad1998573f725c0031c5b04ab0b91ba5df399c00"
+    },
+    {
+      "path": "QG01/offline/result.json",
+      "bytes": 64458,
+      "sha256": "352ae53db8b003c1c8d4bc9ec7bb86150c6b9e0556b3a99f0b3c515d392b277b"
+    },
+    {
+      "path": "QG01/offline/sampled_ticks.csv.gz",
+      "bytes": 1012696,
+      "sha256": "89fdacf74fa5569de0aae3ea475c1cbc9aa6a5ea9eb935c1ed448e8c80bcf3d9",
+      "rows": 13000,
+      "columns": 16
+    },
+    {
+      "path": "QG01/offline/stage_errors.csv.gz",
+      "bytes": 3415,
+      "sha256": "1d5d8c13379ea45401d239ca282d81235e171e6146e23ff4e6d95b79f6bc2ba4",
+      "rows": 84,
+      "columns": 11
+    },
+    {
+      "path": "QG01/offline/stage_errors.png",
+      "bytes": 110119,
+      "sha256": "263295aaaa404e175c728d668409531d038c32c7f24ef498ea568586b94ce4fc"
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_000.csv.gz",
+      "bytes": 48260,
+      "sha256": "86b884638438780496c0973e6f121267c6df4335a6089a57e926cdd3d3874c32",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_001.csv.gz",
+      "bytes": 50263,
+      "sha256": "94be0ca689e45247b72870ce1a2ff5de6f777a0af7eab97dfcace7af35ac0fb5",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_002.csv.gz",
+      "bytes": 51319,
+      "sha256": "ccd1fbc10849e23edaa8bae88a72b1fa31031daf92e537f2a43d02ba3c655398",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_003.csv.gz",
+      "bytes": 49074,
+      "sha256": "8729234d11fff9793a253bcc43948c6a48d0634cf06fbfaa792af6de8b4c7aa0",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_004.csv.gz",
+      "bytes": 49864,
+      "sha256": "4930ea397fbda468e6fd06af4484a54828b62c763187a9f68dd5a667fef32e42",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_005.csv.gz",
+      "bytes": 49370,
+      "sha256": "bf4ed1c434c245dd641e6ebf0c5027d868e34a9f0d2bec450ce8cd0e7a480331",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_006.csv.gz",
+      "bytes": 51788,
+      "sha256": "9e641fdbd48262d9f3db332f018652e06ff7d2fead367b94adb3e5e3f1da8e35",
+      "rows": 569,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_007.csv.gz",
+      "bytes": 50145,
+      "sha256": "e01773ddd0abf401d27f9cc149e8497997a1af1ce2958179e506a424dc100419",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_008.csv.gz",
+      "bytes": 48836,
+      "sha256": "f8e5dfb55663d5c72f15ef94e3ddd0084546dccc245930303a59226b9c1bd833",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts/palm_fresh_009.csv.gz",
+      "bytes": 50469,
+      "sha256": "06f738394a1c1d7aa2342152e7402f5033ff8e4e967e6c55bf85d1028833fdb9",
+      "rows": 601,
+      "columns": 33
+    },
+    {
+      "path": "QG01/rollouts.png",
+      "bytes": 553316,
+      "sha256": "be9cce15116c14655d1371caf7790eac3e4265469b1ac5dd3dec61fc15c89f93"
+    },
+    {
+      "path": "QG01/training/curves.png",
+      "bytes": 80928,
+      "sha256": "86915e0e00c1d982c6d3ac6337b1969ebe942938cbab15028b6358c28289e742"
+    },
+    {
+      "path": "QG01/training/loss.csv.gz",
+      "bytes": 2275119,
+      "sha256": "5f6120214932eb66542551d7dade4452dae80f4ff18713e827d1a06566c5c505",
+      "rows": 97441,
+      "columns": 6
+    },
+    {
+      "path": "QG01/training/validation.csv",
+      "bytes": 9549,
+      "sha256": "10abb30a62a4da4e1f328d9b8c2173ee2de7dbeed1eb73d2b3dbf8b6098aa5b9",
+      "rows": 19,
+      "columns": 30
+    },
+    {
+      "path": "events.csv",
+      "bytes": 7505,
+      "sha256": "af37c0e67d6d8a088d0d567675a4cf6e6f0f1c8a37d6ee6442b3b8440997ef25",
+      "rows": 20,
+      "columns": 30
+    },
+    {
+      "path": "sources.json",
+      "bytes": 31615,
+      "sha256": "0c7be12d94f99fe6edff3f83e73a9c9bdbf580a916e0ddddbd690c9d8b04022a"
+    },
+    {
+      "path": "video_index.csv",
+      "bytes": 1027,
+      "sha256": "0bf73a074c6428bb5eb90d8723876aefdc1bc9265836149b8191f980b0c48af8",
+      "rows": 3,
+      "columns": 6
+    }
+  ],
+  "tick_convention": "1-based completed 60Hz control transitions; first contact is the containing control tick of either 120Hz substep",
+  "contact_force": "Per-finger maximum vector norm across the two recorded physics substeps; filtered object force, threshold >0.1N",
+  "stable_grasp_rule": "12 complete ticks: both substeps >=2 fingers, object >=reset height+0.02m, palm-relative drift <=0.01m and <=0.2rad",
+  "tracking_error": "Post-integration actual joint minus issued actuator target; not autonomous/expert same-tick imitation error",
+  "qualification": "All results are development evidence. Contact/stage/tolerance diagnostics do not establish a causal failure mechanism.",
+  "test22_used": false,
+  "checkpoint_deserialized": false,
+  "torch_or_kit_imported": false,
+  "raw_trajectories_or_weights_copied": false,
+  "validation": {
+    "result_summary_trace_hdf_agreement": true,
+    "checked_trace_hdf_fields": [
+      "joint",
+      "object",
+      "target",
+      "object_contact",
+      "lifted",
+      "subgoals",
+      "retract",
+      "alignment"
+    ],
+    "checked_result_fields": [
+      "steps",
+      "native_lift",
+      "native_subgoals",
+      "native_alignment",
+      "success",
+      "reasons",
+      "contact_when_recorded"
+    ],
+    "finite_exported_numbers": true,
+    "events": 20,
+    "ticks": 11988
+  }
+}

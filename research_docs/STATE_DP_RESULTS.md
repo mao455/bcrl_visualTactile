@@ -26,6 +26,102 @@ Transformer残差约75.7万参数，2层/128维/4头/FF256，当前有效H24计�
 <!-- METHOD_MATRIX_END -->
 
 
+<!-- QG_DETAILS_START -->
+## 2026-11-11 QG 专项补充：损失、几何与逐次失败过程
+
+本节只读已完成的 `tight_transformer_20261110_02`，补齐此前汇总表背后的 QG 证据；不是新增训练或重跑。
+随后 `tight_dagger_20261111_01` 的前后端更新和自主评估由本页独立 DAgger 小节报告，不混用模型或分母。
+**QG00、QG01 均为 0/10 完整成功；20 次都接触到物体，但都没有原生 lift、alignment 或插入子目标。**
+这支持“接触后抓持／抬升未完成”的阶段判断，尚不能确定失败根因。
+
+[完整目标、距离符号、权重与梯度范围](CONTRACTS.md#qg-loss-details) ·
+[前端损失实现](../visuotactile/state_image_loss.py) · [完整更新与渐入调度](../visuotactile/anchor_continue.py) ·
+[后端命令损失](../visuotactile/models/native_dp.py) ·
+[本次导出机器结果及来源 SHA](evidence/tight_transformer_20261110_02/qg_details/summary.json)。
+
+QG00 的 U-Net 以 `q_reached` 为 clean sample，Arm/Hand 归一化误差等权；再加 commit12 掌部 FK 和手部几何软惩罚。
+几何容差仍为穿透 1mm、要求接触距离 2mm，未启用内力项。几何权重为 `2.355370821894758e-6`，来自训练集完整 update 的手部输出梯度比 0.2 校准；这不是以后每次梯度比的保证。
+前 100 update 真正跳过几何计算，随后 400 update 渐入；每完整 update 最多两个配置，有条件时接触／非接触各一。
+QG01 冻结选定 QG00 后训练 Transformer，以最终 `u_expert` 命令为监督；后端没有新增几何 loss。
+
+|旧离线训练项目|QG00 前端|QG01 后端|
+|---|---:|---:|
+|正式更新|7,000|97,441|
+|曝光|82.588913 规划 anchor 等效遍|180 完整控制 tick 等效遍|
+|选定更新|7,000|81,232（epoch150）|
+|训练阶段墙钟，含验证/保存/等待|29,577.308s（8.216h）|4,283.153s（1.190h）|
+|训练循环计时，后端独立口径|—|4,262.549s|
+|停止|validation 平台／过拟合规则|最低曝光后的 validation 平台|
+
+Q00 使用相同起点与曝光，墙钟 28,141.375s；QG00/Q00 实测阶段墙钟比约 1.051。
+它包含并行资源竞争、等待及验证，不能全部归因于几何计算。
+QG00 有 6,900 个 update 启用几何、4,069 个 update 的几何 loss 非零；实际计算 13,800 个配置，其中 4,112 个记录有效手部几何梯度，SLSQP 调用为 0。
+距离计算累计 183.868s，约为记录的 update 累计耗时 29,230.382s 的 0.629%；不包含所有采样或同步开销。
+因此某次 progress 中 `hand_geometry=0` 只表示那次采样的 hinge 为零。
+
+|QG 专项图表与原始数值|前端 QG00|后端 QG01|
+|---|---|---|
+|训练 loss 分量与固定验证曲线|[图](evidence/tight_transformer_20261110_02/qg_details/QG00/training/curves.png)|[图](evidence/tight_transformer_20261110_02/qg_details/QG01/training/curves.png)|
+|完整 validation，包括掌部旋转|[CSV](evidence/tight_transformer_20261110_02/qg_details/QG00/training/validation.csv)|[CSV](evidence/tight_transformer_20261110_02/qg_details/QG01/training/validation.csv)|
+|10 次自主接触／高度过程|[图](evidence/tight_transformer_20261110_02/qg_details/QG00/rollouts.png)|[图](evidence/tight_transformer_20261110_02/qg_details/QG01/rollouts.png)|
+|逐 tick 自主数值，每例独立压缩 CSV|[目录](evidence/tight_transformer_20261110_02/qg_details/QG00/rollouts/)|[目录](evidence/tight_transformer_20261110_02/qg_details/QG01/rollouts/)|
+|专家历史离线误差与代表轨迹|[目录](evidence/tight_transformer_20261110_02/qg_details/QG00/offline/)|[目录](evidence/tight_transformer_20261110_02/qg_details/QG01/offline/)|
+
+![QG00 几何损失、有效梯度与距离](evidence/tight_transformer_20261110_02/qg_details/QG00/training/geometry_curves.png)
+
+几何[逐配置原始数值](evidence/tight_transformer_20261110_02/qg_details/QG00/training/geometry_projection.csv.gz)与[逐 update 聚合](evidence/tight_transformer_20261110_02/qg_details/QG00/training/geometry_by_update.csv.gz)保留源文件命名；`geometry_projection` 是历史文件名，本轮实际计算是直接软惩罚。
+全部 7,000 次更新的各 loss／实际权重也在[原始 CSV](evidence/tight_transformer_20261110_02/configuration_QG00_updates.csv.gz)，不会只展示最后一次更新。
+
+几何验证并不理想：validation 868 个抽样 tick 中，预测配置有 492 个超过 1mm 穿透，最大 16.795mm；要求接触保持为 455/1,186（38.364%）。
+同批记录的实际到达配置为 49/868 超容差、最大 2.568mm、保持 1,143/1,186（96.374%）。
+这是**专家观测与记录物体场景下的预测配置 FK 几何**，不是自主 rollout 中实测的物理穿透；也不能单凭该差距断言它造成了闭环失败。
+
+|自主开发结果|QG00|QG01|
+|---|---:|---:|
+|合法且软件完整 / 尝试|10 / 10|10 / 10|
+|完整成功 / 原生 lift / 首子目标 / 第二子目标|0 / 0 / 0 / 0|0 / 0 / 0 / 0|
+|发生物体接触|10|10|
+|稳定抓持诊断|0（从原始日志重算）|0（重算与原结果一致）|
+|timeout / fall / dropped|10 / 0 / 0|9 / 1 / 0|
+
+QG01 `palm_fresh_006` 在完成第 569 个控制转换后记录 fall；其余 19 次均在第 601 个转换后 timeout。
+首次接触阈值是物体过滤五指力模长 >0.1N，任一 120Hz 子步满足；tick 为 **1-based 已完成转换编号**。
+
+|案例尾号|QG00 首接触 / 首双指 tick|QG01 首接触 / 首双指 tick|
+|---|---:|---:|
+|000|101 / 104|72 / 无|
+|001|72 / 91|92 / 94|
+|002|82 / 83|68 / 109|
+|003|76 / 79|66 / 66|
+|004|85 / 95|74 / 136|
+|005|90 / 102|71 / 95|
+|006|93 / 103|72 / 219|
+|007|75 / 89|62 / 68|
+|008|82 / 86|76 / 77|
+|009|64 / 102|70 / 74|
+
+完整事件、连续接触时长、终止原因和来源 SHA 见 [events.csv](evidence/tight_transformer_20261110_02/qg_details/events.csv)。
+“有双指接触”不等于稳定抓持。QG00 原 result 缺 contact 汇总，本次按既有 `stable_grasp()` 规则读取 numeric.h5 的掌部位姿重算，明确保留计算来源，未将缺失字段当成零。
+自主曲线显示实际关节与执行器目标跟踪，不按同 tick 对齐专家命令。
+
+三段已录制视频（QG00 一段、QG01 两段，均601帧/60fps）及解码凭据见[路径、SHA 与帧数索引](evidence/tight_transformer_20261110_02/qg_details/video_index.csv)。视频仍留本机，GitHub 上是索引而非 MP4 本体。
+本地前缀为 `outputs/visuotactile/run/tight_transformer_20261110_02/`：
+`configuration/QG00/evaluation/palm_fresh_000/rollout.mp4`；
+`configuration_residual/QG01/evaluation/palm_fresh_000/rollout.mp4`、`palm_fresh_001/rollout.mp4`。
+
+此处的阶段归类未使用缺失 `approach_proxy` 时默认返回 approach 的历史简化函数；实际 trace 已证明接触发生。
+数据、几何、跟踪与残差幅度可用于进一步定位，但本次没有进行干预实验，不能把 Transformer、几何、触觉或控制器中的某一项写成已证实根因。
+每组十次是有限开发评估，test22 未使用；本次未新增 Kit、训练、推理、评估或清理。
+
+复现 CPU 导出：
+
+```bash
+bash visuotactile/run_cpu.sh -m tools.tight_diagnostics qg_publish \
+  --root outputs/visuotactile/run/tight_transformer_20261110_02 \
+  --output research_docs/evidence/tight_transformer_20261110_02/qg_details
+```
+<!-- QG_DETAILS_END -->
+
 # Tight-Insertion 当前结果
 
 <!-- RESIDUAL_PAIR_START -->

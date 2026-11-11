@@ -1867,9 +1867,332 @@ def matrix_plots(output, curves, losses, errors):
         fig.suptitle('Fixed expert histories; separate target semantics; no autonomous deviation claim')
         fig.savefig(output/'offline_errors.png',dpi=140);plt.close(fig)
 
+def qg_publish(root, output=None):
+    """Read completed QG evidence on CPU; no policy, torch or simulator imports."""
+    import gzip
+    import io
+    import sys
+    import h5py
+    import numpy as np
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    root=Path(root).resolve()
+    terminal=read(root/'status.json')
+    if terminal.get('state')!='COMPLETE' or terminal.get('owned_workers_exited') is not True:
+        raise ValueError('QG detailed publication requires the completed owner and exited owned workers')
+    output=Path(output).resolve() if output else CODE/'research_docs/evidence'/root.name/'qg_details'
+    if output==root or root in output.parents:
+        raise ValueError('Reports must not modify the completed experiment root')
+    output.mkdir(parents=True,exist_ok=True)
+    sources={};generated={};events=[];videos=[];groups={}
+
+    def require(ok, message):
+        if not ok:raise ValueError(message)
+
+    def public(value):
+        if isinstance(value,dict):return {k:public(v) for k,v in value.items()}
+        if isinstance(value,list):return [public(v) for v in value]
+        if isinstance(value,str) and value.startswith('/'):
+            marker='/outputs/'
+            if marker in value:return 'outputs/'+value.split(marker,1)[1]
+            if value.startswith(str(CODE)+'/'):return value[len(str(CODE))+1:]
+        return value
+
+    def provenance(path):
+        path=Path(path)
+        key=str(path)
+        if key not in sources:sources[key]=dict(path=public(key),sha256=sha(path),bytes=path.stat().st_size)
+        return sources[key]
+
+    def flat(value, prefix=''):
+        result={}
+        if isinstance(value,dict):
+            for key,item in value.items():result.update(flat(item,(prefix+'.' if prefix else '')+str(key)))
+        elif isinstance(value,(list,tuple)):
+            for index,item in enumerate(value):result.update(flat(item,prefix+'.'+str(index)))
+        else:
+            if isinstance(value,(float,np.floating)):require(math.isfinite(value),'Nonfinite source: '+prefix)
+            result[prefix]=value.item() if isinstance(value,np.generic) else value
+        return result
+
+    def emit(path, rows):
+        # A factory permits two bounded passes over the large microbatch log.
+        factory=rows if callable(rows) else lambda:iter(rows)
+        fields={};count=0
+        for row in factory():
+            for key,value in row.items():
+                if isinstance(value,(float,np.floating)):require(math.isfinite(value),'Nonfinite export: '+key)
+                fields.setdefault(key,None)
+            count+=1
+        require(count>0,'Empty export: '+str(path))
+        path=Path(path);path.parent.mkdir(parents=True,exist_ok=True)
+        with path.open('wb') as target:
+            compressed=gzip.GzipFile(filename='',mode='wb',fileobj=target,mtime=0) if path.suffix=='.gz' else target
+            with io.TextIOWrapper(compressed,encoding='utf-8',newline='') as stream:
+                writer=csv.DictWriter(stream,fieldnames=list(fields),lineterminator='\n');writer.writeheader();writer.writerows(factory())
+        generated[str(path.relative_to(output))]=dict(rows=count,columns=len(fields))
+        return count
+
+    def lines(path):
+        with Path(path).open() as stream:
+            for line in stream:
+                if line.strip():yield json.loads(line)
+
+    def copy_numeric(path,destination):
+        provenance(path);destination.parent.mkdir(parents=True,exist_ok=True)
+        if path.suffix=='.csv':
+            with path.open(newline='') as stream:rows=list(csv.DictReader(stream))
+            for row in rows:
+                for value in row.values():
+                    try:number=float(value)
+                    except (TypeError,ValueError):continue
+                    require(math.isfinite(number),'Nonfinite copied CSV: '+str(path))
+            emit(destination.with_suffix('.csv.gz'),rows)
+        else:
+            if path.suffix=='.json':
+                value=read(path);flat(value);write(destination,public(value))
+            else:shutil.copyfile(path,destination)
+
+    def first(mask):
+        indices=np.flatnonzero(mask)
+        return int(indices[0]+1) if len(indices) else None
+
+    def stable_grasp_numpy(a,palm,initial):
+        # Same rule as native_evaluation.stable_grasp, implemented without torch.
+        contact=np.linalg.norm(a['object_contact'],axis=-1)>.1
+        two=contact.sum(-1)>=2;pose=a['object'];inverse=palm[:,3:].copy();inverse[:,1:]*=-1
+        qv=inverse[:,1:];v=pose[:,:3]-palm[:,:3]
+        t=2*np.cross(qv,v);relative=v+inverse[:,:1]*t+np.cross(qv,t)
+        q=pose[:,3:];relative_q=np.concatenate((inverse[:,:1]*q[:,:1]-(qv*q[:,1:]).sum(-1,keepdims=True),
+            inverse[:,:1]*q[:,1:]+q[:,:1]*qv+np.cross(qv,q[:,1:])),axis=-1)
+        stable=np.zeros(len(pose),dtype=bool);longest=current=0
+        for active in two.reshape(-1):
+            current=current+1 if active else 0;longest=max(longest,current)
+        for stop in range(12,len(pose)+1):
+            start=stop-12
+            if not two[start:stop].all() or not (pose[start:stop,2]>=initial+.02).all():continue
+            drift=np.linalg.norm(relative[start:stop]-relative[start],axis=-1).max()
+            cosine=np.clip(np.abs((relative_q[start:stop]*relative_q[start]).sum(-1)),0,1)
+            stable[stop-1]=drift<=.01 and (2*np.arccos(cosine)).max()<=.2
+        return stable,dict(object_contact=bool(contact.any()),max_fingers=int(contact.sum(-1).max()),
+            two_finger_continuous_s=longest/120,stable_grasp_diagnostic=bool(stable.any()),
+            object_contact_threshold_N=.1,stable_window_s=.2,scope='filtered normal forces; not native success')
+
+    def train_export(directory,dest,group):
+        training=directory/'training';out=dest/'training';out.mkdir(parents=True,exist_ok=True)
+        configuration=read(training/'configuration.json');provenance(training/'configuration.json')
+        finished=read(training/'finished.json');provenance(training/'finished.json')
+        loss_path=training/('training.jsonl' if group=='QG00' else 'loss.jsonl');provenance(loss_path)
+        emit(out/'loss.csv.gz',lambda:(flat(r) for r in lines(loss_path)))
+        val_path=training/('validation.jsonl' if group=='QG00' else 'validation.json');provenance(val_path)
+        validation=list(lines(val_path)) if group=='QG00' else read(val_path)
+        emit(out/'validation.csv',[flat(r) for r in validation])
+        copy_numeric(training/'curves.png',out/'curves.png')
+        if group=='QG00':
+            fig,axes=plt.subplots(2,2,figsize=(11,7),layout='constrained')
+            for ax,key,title in zip(axes.flat,('arm_rmse','hand_rmse','ee_distance_rmse_mm','ee_rotation_mean_deg'),
+                    ('Arm RMSE (rad)','Hand RMSE (rad)','Reached-configuration palm FK RMSE (mm)','Palm FK mean rotation error (deg)')):
+                for cohort,label in [('train8','fixed train2'),('metrics','fixed validation4')]:
+                    for horizon,style in [('commit12','-'),('valid24','--')]:
+                        ax.plot([r['update'] for r in validation],
+                            [(r[cohort] if horizon=='commit12' else r[cohort]['full_horizon'])[key] for r in validation],
+                            style,label=label+' '+horizon)
+                ax.set(xlabel='Optimizer update',ylabel=title);ax.grid(alpha=.25)
+            axes[0,0].legend(fontsize=7);fig.suptitle('QG00: expert-history DDIM16 predictions; q_reached labels')
+            fig.savefig(out/'validation_pose_curves.png',dpi=140);plt.close(fig)
+            geo_path=training/'geometry_projection.jsonl';provenance(geo_path)
+            emit(out/'geometry_projection.csv.gz',lambda:(flat(dict(log_index=i,**r)) for i,r in enumerate(lines(geo_path))))
+            aggregate={}
+            for log in lines(geo_path):
+                update=log['update'];r=aggregate.setdefault(update,dict(update=update,logged_microbatches=0,
+                    sampled_rows=0,required_contact_rows=0,nonzero_local_gradient_rows=0,penetrating_rows=0,
+                    penetration_loss=0.,contact_loss=0.,geometry_loss=0.,contact_local_gradient_norm_sum=0.,
+                    penetration_local_gradient_norm_sum=0.,maximum_absolute_penetration_m=0.,
+                    maximum_penetration_violation_m=0.,maximum_required_contact_gap_violation_m=0.,
+                    minimum_signed_surface_distance_m=None,required_fingertip_distance_sum_m=0.,required_fingertip_count=0))
+                r['logged_microbatches']+=1
+                for sample in log.get('rows',[]):
+                    r['sampled_rows']+=1;r['required_contact_rows']+=int(sample['required_contacts']>0)
+                    c=sample['contact_hand_gradient_norm_per_rad'];p=sample['penetration_hand_gradient_norm_per_rad']
+                    r['nonzero_local_gradient_rows']+=int(c>0 or p>0)
+                    r['contact_local_gradient_norm_sum']+=c;r['penetration_local_gradient_norm_sum']+=p
+                    for key in ('penetration_loss','contact_loss','geometry_loss'):r[key]+=sample[key]
+                    distance=sample['minimum_distance_m'];r['penetrating_rows']+=int(distance<0)
+                    r['minimum_signed_surface_distance_m']=distance if r['minimum_signed_surface_distance_m'] is None else min(distance,r['minimum_signed_surface_distance_m'])
+                    r['maximum_absolute_penetration_m']=max(r['maximum_absolute_penetration_m'],max(0.,-distance))
+                    for key in ('maximum_penetration_violation_m','maximum_required_contact_gap_violation_m'):r[key]=max(r[key],sample[key])
+                    for distance,required in zip(sample['fingertip_distance_m'],sample['required_contact_mask']):
+                        if required:r['required_fingertip_distance_sum_m']+=distance;r['required_fingertip_count']+=1
+            training_rows={r['update']:r for r in lines(loss_path)}
+            for r in aggregate.values():
+                count=r['sampled_rows'];raw=training_rows[r['update']]
+                for key in ('penetration_loss','contact_loss','geometry_loss'):r[key]=r[key]/count if count else None
+                r['mean_required_fingertip_distance_m']=r['required_fingertip_distance_sum_m']/r['required_fingertip_count'] if r['required_fingertip_count'] else None
+                r['hand_geometry_gain']=raw['hand_geometry_gain'];r['hand_geometry_weight']=raw['loss_weights']['hand_geometry']
+                r['weighted_geometry_loss']=raw['components']['hand_geometry']*r['hand_geometry_weight']
+                r['nonzero_local_gradient_fraction']=r['nonzero_local_gradient_rows']/count if count else None
+                if count:
+                    require(count==raw['geometry_sampling']['selected_count'],'Geometry full-update sample count mismatch')
+                    require(math.isclose(r['geometry_loss'],raw['components']['hand_geometry'],rel_tol=2e-5,abs_tol=1e-7),'Geometry reduction differs from trainer')
+            geometry=list(aggregate.values());emit(out/'geometry_by_update.csv.gz',geometry)
+            fig,axes=plt.subplots(2,2,figsize=(12,7),layout='constrained')
+            panels=[(('penetration_loss','contact_loss'), 'Two sampled rows: mean hinge losses'),
+                (('contact_local_gradient_norm_sum','penetration_local_gradient_norm_sum'),'Separate local gradient norm sums / rad'),
+                (('maximum_absolute_penetration_m','maximum_penetration_violation_m'),'Sampled maximum depth / tolerance violation (m)'),
+                (('mean_required_fingertip_distance_m','maximum_required_contact_gap_violation_m'),'Required fingertip distance / gap violation (m)')]
+            for ax,(keys,title) in zip(axes.flat,panels):
+                for key in keys:
+                    rows=[r for r in geometry if r[key] is not None and r['sampled_rows']]
+                    ax.plot([r['update'] for r in rows],[r[key] for r in rows],label=key,alpha=.7,linewidth=.65)
+                ax.set(xlabel='Optimizer update',title=title);ax.legend(fontsize=6);ax.grid(alpha=.25)
+            active=[r for r in geometry if r['sampled_rows']]
+            fraction=axes[0,1].twinx()
+            fraction.plot([r['update'] for r in active],[r['nonzero_local_gradient_fraction'] for r in active],
+                color='gray',linewidth=.4,alpha=.3)
+            fraction.set(ylabel='Rows with nonzero local gradient / selected rows',ylim=(0,1))
+            fig.suptitle('QG00 sampled x0 geometry in expert context; local gradients are not parameter-gradient norms')
+            fig.savefig(out/'geometry_curves.png',dpi=140);plt.close(fig)
+            geometry_summary=dict(log_rows=generated[str((out/'geometry_projection.csv.gz').relative_to(output))]['rows'],
+                updates=len(geometry),active_updates=sum(bool(r['sampled_rows']) for r in geometry),
+                sampled_configurations=sum(r['sampled_rows'] for r in geometry),
+                nonzero_local_gradient_configurations=sum(r['nonzero_local_gradient_rows'] for r in geometry),
+                normalization='Per-update selected-row mean; not mean of microbatch means or population-unbiased',
+                scope='Denoised training x0 configurations in expert object/contact context; not autonomous physical trajectories',
+                penetration='Absolute depth=max(0,-minimum_distance_m); violation excludes 1mm tolerance',
+                contact='Required-finger gap violation excludes 2mm tolerance; separate contact/penetration local gradients')
+        else:geometry_summary=None
+        for p in sorted((directory/'offline').iterdir()):
+            if p.suffix in ('.csv','.json','.png') and p.name!='progress.json':copy_numeric(p,dest/'offline'/p.name)
+        selected=training/('validation.json' if group=='QG00' else 'selected.json');provenance(selected)
+        weights={}
+        for name in ('best.pt','last.pt'):
+            p=training/name
+            if p.exists():weights[name]=provenance(p)
+        config={k:v for k,v in configuration.items() if k not in ('source_sha256','warm_start')}
+        warm=configuration.get('warm_start')
+        if warm:config['warm_start']={k:v for k,v in warm.items() if k!='learned_parameter_names'}
+        return dict(finished=finished,selected=read(selected),configuration=config,weights=weights,geometry=geometry_summary,
+            validation_scope='Fixed train2/validation4; selection before development evaluation; no test22',
+            target='q_reached' if group=='QG00' else 'u_expert combined actuator command; base q_reached prediction is a different target',
+            offline_scope='Expert-history predictions; QG01 base_* files compare nominal q output against u_expert, not configuration fitting')
+
+    provenance(root/'status.json')
+    for stage,group in [('configuration','QG00'),('configuration_residual','QG01')]:
+        directory=root/stage/group;dest=output/group;dest.mkdir(exist_ok=True)
+        evaluation=read(directory/'evaluation_summary.json');provenance(directory/'evaluation_summary.json')
+        complete=root/'queue'/group/'evaluation_complete.json'
+        if not complete.exists():complete=root/stage/'evaluation_complete.json'
+        require(read(complete)['complete'],'Evaluation incomplete');provenance(complete)
+        require(evaluation['attempts']==10 and evaluation['valid']==10,'Expected completed ten-case QG cohort')
+        reported={r['identity']:r for r in evaluation['results']};group_events=[]
+        fig,axes=plt.subplots(10,2,figsize=(12,24),layout='constrained')
+        for index,path in enumerate(sorted((directory/'evaluation').glob('*/result.json'))):
+            trial=path.parent;r=read(path);provenance(path);require(r==reported[trial.name],'Trial/summary mismatch')
+            for name in ('trace.npz','numeric.h5','initial_observable.json'):provenance(trial/name)
+            initial=read(trial/'initial_observable.json')['object_pose_w'][0][2]
+            with np.load(trial/'trace.npz',allow_pickle=False) as z,h5py.File(trial/'numeric.h5','r') as h:
+                a={k:z[k] for k in z.files};tr=h['episode/transition'];n=len(a['joint'])
+                require(n==r['steps'],'Trace/result tick count mismatch')
+                for value in a.values():require(np.isfinite(value).all(),'Nonfinite trace')
+                for key,field in [('joint','joint_position_rad'),('object','object_pose_w'),('lifted','lifted_object'),('subgoals','successes'),('retract','retract_succeeded')]:
+                    require(np.array_equal(a[key],tr['diagnostics_after/'+field][:]),'Trace/HDF mismatch: '+key)
+                for key,field in [('target','target_after_rad'),('object_contact','object_contact_force_w')]:
+                    require(np.array_equal(a[key],tr[field][:]),'Trace/HDF mismatch: '+key)
+                require(np.array_equal(a['alignment'],tr['native_alignment_condition'][:]),'Alignment trace mismatch')
+                clock=tr['time_after_s'][:];before=tr['time_before_s'][:];palm=tr['diagnostics_after/palm_body_pose_w'][:]
+                require(np.isfinite(clock).all() and np.all(np.diff(clock)>0),'Invalid recorded time')
+                reasons={k:v[:] for k,v in tr['termination_reasons'].items()}
+                for key,value in reasons.items():require(bool(value.any())==r['reasons'][key],'Termination mismatch: '+key)
+            stable,contact=stable_grasp_numpy(a,palm,initial)
+            if r.get('contact'):require(contact==r['contact'],'Recomputed grasp diagnostic differs')
+            require(bool(a['lifted'].any())==r['native_lift'] and int(a['subgoals'].max())==r['native_subgoals'],'Native stage mismatch')
+            require(bool(a['alignment'].any())==r['native_alignment'],'Native alignment/result mismatch')
+            require(bool(reasons['max_successes'].any())==r['success'],'Native success/result mismatch')
+            forces=np.linalg.norm(a['object_contact'],axis=-1);fingers=(forces>.1).sum(-1)
+            tracking=a['joint']-a['target'];rows=[]
+            for tick in range(n):
+                row=dict(tick=tick+1,time_before_s=float(before[tick]),time_after_s=float(clock[tick]),
+                    elapsed_after_s=float(clock[tick]-before[0]),object_z_m=float(a['object'][tick,2]),
+                    object_rise_from_initial_m=float(a['object'][tick,2]-initial),
+                    contact_fingers_max_substep=int(fingers[tick].max()),two_finger_both_substeps=bool((fingers[tick]>=2).all()),
+                    arm_tracking_rmse_rad=float(np.sqrt(np.mean(tracking[tick,:7]**2))),
+                    hand_tracking_rmse_rad=float(np.sqrt(np.mean(tracking[tick,7:]**2))),
+                    native_lift=bool(a['lifted'][tick]),native_subgoals=int(a['subgoals'][tick]),native_alignment=bool(a['alignment'][tick]),
+                    native_retract=bool(a['retract'][tick]),computed_stable_grasp_window_end=bool(stable[tick]))
+                row.update({f'finger_{finger}_object_force_max_N':float(forces[tick,:,finger].max()) for finger in range(5)})
+                row.update({'termination_'+key:bool(value[tick]) for key,value in reasons.items()})
+                if group=='QG01':
+                    for part,selection in [('arm',slice(0,7)),('hand',slice(7,29))]:
+                        for name in ('residual_applied_rad','residual_proposed_rad'):
+                            row[name+'_'+part+'_rms']=float(np.sqrt(np.mean(a[name][tick,selection]**2)))
+                    row.update(residual_clip_components=int(a['residual_clip_mask'][tick].sum()),
+                        residual_tanh_saturation_components=int((np.abs(a['residual_tanh_fraction'][tick])>=.95).sum()),
+                        residual_contact_observed=bool(a['residual_contact_gate'][tick]),residual_contact_valid=bool(a['residual_contact_valid'][tick]))
+                rows.append(row)
+            emit(dest/'rollouts'/(trial.name+'.csv.gz'),rows)
+            event=dict(group=group,identity=trial.name,seed=r['seed'],valid=r['legal'] and r['software_complete'],success=r['success'],
+                ticks=n,first_contact_tick=first((fingers>0).any(-1)),first_two_finger_tick=first((fingers>=2).any(-1)),
+                first_native_lift_tick=first(a['lifted']),first_subgoal_tick=first(a['subgoals']>=1),second_subgoal_tick=first(a['subgoals']>=2),
+                first_alignment_tick=first(a['alignment']),first_retract_tick=first(a['retract']),first_computed_stable_tick=first(stable),
+                max_contact_fingers=contact['max_fingers'],two_finger_continuous_s=contact['two_finger_continuous_s'],
+                computed_stable_grasp=contact['stable_grasp_diagnostic'],stable_source='CPU recomputation of original rule from recorded object/palm/forces',
+                recorded_contact_summary_present='contact' in r,termination_tick=n,termination=';'.join(k for k,v in r['reasons'].items() if v),
+                maximum_rise_from_initial_m=float((a['object'][:,2]-initial).max()),
+                observed_stage='object_contact_without_native_lift' if contact['object_contact'] and not r['native_lift'] else 'see_native_events',
+                interpretation='Observed stage only; no causal failure attribution',source_result_sha256=sha(path))
+            event.update({'first_termination_'+key+'_tick':first(value) for key,value in reasons.items()})
+            events.append(event);group_events.append(event)
+            x=[row['elapsed_after_s'] for row in rows]
+            axes[index,0].plot(x,[row['object_rise_from_initial_m']*1000 for row in rows],linewidth=1)
+            axes[index,0].axhline(20,color='gray',linestyle=':',label='stable diagnostic height prerequisite')
+            axes[index,0].set(title=trial.name+' / '+event['termination'],ylabel='Height from reset (mm)')
+            for finger in range(5):axes[index,1].plot(x,forces[:,:,finger].max(-1),label='finger '+str(finger),linewidth=.65)
+            axes[index,1].axhline(.1,color='gray',linestyle=':');axes[index,1].set(ylabel='Filtered object force (N)')
+            for ax in axes[index]:
+                for key,color in [('first_contact_tick','tab:green'),('first_native_lift_tick','tab:orange'),('first_subgoal_tick','tab:purple')]:
+                    if event[key] is not None:ax.axvline(x[event[key]-1],color=color,linestyle='--',alpha=.7)
+                ax.set(xlabel='Recorded elapsed time (s)');ax.grid(alpha=.2)
+            for video in sorted(trial.glob('*.mp4')):
+                receipt=trial/'video_verified.json'
+                videos.append(dict(group=group,identity=trial.name,**provenance(video),
+                    verification=json.dumps(public(read(receipt)),sort_keys=True) if receipt.exists() else None))
+                if receipt.exists():provenance(receipt)
+        require(len(group_events)==10,'Wrong number of completed results')
+        axes[0,1].legend(fontsize=7);fig.suptitle(group+' autonomous development: green=first contact; native stages absent when unreached')
+        fig.savefig(dest/'rollouts.png',dpi=130);plt.close(fig)
+        groups[group]=dict(attempts=evaluation['attempts'],valid=evaluation['valid'],rejected=evaluation['rejected'],
+            successes=evaluation['successes'],native_lifts=evaluation['native_lifts'],first_subgoal_reached=evaluation['first_subgoal_reached'],
+            second_subgoal_reached=sum(e['second_subgoal_tick'] is not None for e in group_events),alignments=evaluation['alignments'],
+            stable_grasp_computed=sum(e['computed_stable_grasp'] for e in group_events),
+            terminations={key:sum(e['first_termination_'+key+'_tick'] is not None for e in group_events) for key in reasons},
+            ticks=sum(e['ticks'] for e in group_events),training=train_export(directory,dest,group))
+    emit(output/'events.csv',events);emit(output/'video_index.csv',videos)
+    write(output/'sources.json',public(list(sources.values())))
+    require(not any(name=='torch' or name.split('.')[0] in ('omni','carb','isaacsim','isaaclab') for name in sys.modules),
+        'Publisher unexpectedly imported a policy/GPU/simulator dependency')
+    files=[]
+    for path in sorted(output.rglob('*')):
+        if path.is_file() and path.name!='summary.json':
+            files.append(dict(path=str(path.relative_to(output)),bytes=path.stat().st_size,sha256=sha(path),**generated.get(str(path.relative_to(output)),{})))
+    summary=dict(version='qg_cpu_detail_v1',source_root=str(root),groups=groups,files=files,
+        tick_convention='1-based completed 60Hz control transitions; first contact is the containing control tick of either 120Hz substep',
+        contact_force='Per-finger maximum vector norm across the two recorded physics substeps; filtered object force, threshold >0.1N',
+        stable_grasp_rule='12 complete ticks: both substeps >=2 fingers, object >=reset height+0.02m, palm-relative drift <=0.01m and <=0.2rad',
+        tracking_error='Post-integration actual joint minus issued actuator target; not autonomous/expert same-tick imitation error',
+        qualification='All results are development evidence. Contact/stage/tolerance diagnostics do not establish a causal failure mechanism.',
+        test22_used=False,checkpoint_deserialized=False,torch_or_kit_imported=False,raw_trajectories_or_weights_copied=False,
+        validation=dict(result_summary_trace_hdf_agreement=True,
+            checked_trace_hdf_fields=['joint','object','target','object_contact','lifted','subgoals','retract','alignment'],
+            checked_result_fields=['steps','native_lift','native_subgoals','native_alignment','success','reasons','contact_when_recorded'],
+            finite_exported_numbers=True,events=len(events),ticks=sum(e['ticks'] for e in events)))
+    summary=public(summary);write(output/'summary.json',summary)
+    return summary
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish', 'qg_publish'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
     parser.add_argument('--evaluation', type=Path)
@@ -1881,6 +2204,7 @@ def main():
         if args.output is None: parser.error('matrix_publish requires --output')
         matrix_publish(root, args.output.resolve())
     elif args.mode == 'dagger_publish':dagger_publish(root,args.output)
+    elif args.mode == 'qg_publish':qg_publish(root,args.output)
     elif args.mode == 'publish':
         if args.evaluation is None or args.output is None:
             parser.error('publish requires --evaluation and --output')
