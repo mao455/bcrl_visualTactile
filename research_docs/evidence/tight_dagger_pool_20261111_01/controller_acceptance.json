@@ -1,0 +1,259 @@
+{
+  "version": "actual_selected_transformer_controller_cpu_v1",
+  "source_head": "215f74b9c64efb74f2db88d9ae9036de6efcd618",
+  "cpu_only": true,
+  "optimizer_updates": 0,
+  "kit_or_gpu_launches": 0,
+  "groups": {
+    "G11": {
+      "frontend": {
+        "path": "outputs/visuotactile/run/tight_dagger_20261111_01/round_01/G11/dp/training/best.pt",
+        "sha256": "3bfa956d28cbf7cf541384c6182a63e91a229adfba1168401d71237ac23a38fb",
+        "contract": {
+          "version": 5,
+          "action": "absolute_joint_position_target_rad",
+          "horizon": 24,
+          "commit": 12,
+          "native_history": 13,
+          "visual_history": 3,
+          "native_hz": 60,
+          "physics_hz": 120,
+          "observation": "robot178_dino_rgb_depth_v1_touch32x242",
+          "prediction_type": "sample",
+          "loss": "B",
+          "train_noise_steps": 100,
+          "inference_steps": 16,
+          "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+          "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+          "action_contract": "position_rad_v1",
+          "modality": "G10",
+          "input_builder": "canonical_joint_state_v1",
+          "tactile_history": 242,
+          "sampler_seed": 7091,
+          "task_condition": "constant externally selected tight_insertion; goal pose absent",
+          "supervision": "u_expert",
+          "clean_sample_field": "transition/target_after_rad",
+          "normalization_identity": "u_expert_train166_affine_v1",
+          "label_time": "same transition: issued target before integration / reached configuration after integration",
+          "deployment_output": "absolute_joint_position_target_rad"
+        },
+        "updates": 1680
+      },
+      "backend": {
+        "path": "outputs/visuotactile/run/tight_dagger_20261111_01/round_01/G11/backend/G11/training/best.pt",
+        "sha256": "894446f4a827905344d0ced897395f2f0797bcb44e26b9323fdb0c0485711bd7",
+        "version": "target_residual_transformer60_v1",
+        "updates": 6028,
+        "epoch": 10,
+        "normalization": "u_expert_train166_affine_v1",
+        "statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+        "scales": [
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612,
+          0.10000000149011612
+        ]
+      },
+      "cache": {
+        "path": "outputs/visuotactile/run/tight_dagger_20261111_01/round_01/G11/backend/G11/nominal/formal_003_slow_0.pt",
+        "sha256": "3a12dbcd39e34ded786006619ab5e6c09f959e4a4128278c35a9eb0b711b835f",
+        "identity": {
+          "base_checkpoint_sha256": "3bfa956d28cbf7cf541384c6182a63e91a229adfba1168401d71237ac23a38fb",
+          "statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+          "data_sha256": "ba54e21f2e570b7d0fa5a62b73e60c3fc6e24e646074072058597a9383e6efac",
+          "residual_statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2"
+        },
+        "index_sha256": "0551fc7b9ebe662b3ba522ea46ad52bc1502d34b7e37e0d45a2769f9d9e42de5"
+      },
+      "checks": {
+        "pair_sha_and_contract": true,
+        "normalizer_buffers": true,
+        "model_weights_unchanged": true,
+        "plan_shape": [
+          1,
+          37,
+          24,
+          29
+        ],
+        "raw_shape": [
+          1,
+          37,
+          29
+        ],
+        "per_tick_raw_shape": [
+          1,
+          1,
+          29
+        ],
+        "full_vs_tick_max_abs": 4.76837158203125e-07,
+        "contact_flag_composition_bitwise_equal": true,
+        "actual_valid_noncontact_ticks": 37,
+        "actual_noncontact_raw_rms": 0.20022810995578766,
+        "valid_noncontact_loss_raw_gradient_l1": 0.0013413779670372605,
+        "zero_force_seen": true,
+        "missing_force_seen": false,
+        "missing_sensor_does_not_reset_other_memory": true,
+        "deployment_seam_with_legal_nonzero_raw": "passed 6 ticks: known zero/contact/loss/missing/known zero/known zero; no correction removal and no episode reset",
+        "raw_nonzero_at_every_tick_required": false
+      }
+    },
+    "QG01": {
+      "frontend": {
+        "path": "outputs/visuotactile/run/tight_dagger_20261111_01/round_01/QG01/dp/training/best.pt",
+        "sha256": "4a5a2d8450188d1398013d9b139e2d9909159e4af34accab23a05504c51220e7",
+        "contract": {
+          "version": 5,
+          "action": "absolute_joint_position_target_rad",
+          "horizon": 24,
+          "commit": 12,
+          "native_history": 13,
+          "visual_history": 3,
+          "native_hz": 60,
+          "physics_hz": 120,
+          "observation": "robot178_dino_rgb_depth_v1",
+          "prediction_type": "sample",
+          "loss": "B",
+          "train_noise_steps": 100,
+          "inference_steps": 16,
+          "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+          "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+          "action_contract": "position_rad_v1",
+          "modality": "G00",
+          "input_builder": "canonical_joint_state_v1",
+          "tactile_history": 0,
+          "sampler_seed": 7091,
+          "task_condition": "constant externally selected tight_insertion; goal pose absent",
+          "supervision": "q_reached",
+          "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+          "normalization_identity": "q_reached_train166_affine_v1",
+          "label_time": "same transition: issued target before integration / reached configuration after integration",
+          "deployment_output": "absolute_joint_position_target_rad"
+        },
+        "updates": 1680
+      },
+      "backend": {
+        "path": "outputs/visuotactile/run/tight_dagger_20261111_01/round_01/QG01/backend/QG01/training/best.pt",
+        "sha256": "86468257a8422e927828c21d93f8b3131beb7f71733addd86d27c95a83a420b5",
+        "version": "target_residual_transformer60_v1",
+        "updates": 8736,
+        "epoch": 15,
+        "normalization": "u_expert_train166_affine_v1",
+        "statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+        "scales": [
+          0.20000000298023224,
+          0.20000000298023224,
+          0.20000000298023224,
+          0.20000000298023224,
+          0.20000000298023224,
+          0.20000000298023224,
+          0.20000000298023224,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421,
+          0.8999999761581421
+        ]
+      },
+      "cache": {
+        "path": "outputs/visuotactile/run/tight_dagger_20261111_01/round_01/QG01/backend/QG01/nominal/formal_003_slow_0.pt",
+        "sha256": "42fc375698ac9d97ca2d1fa78672d651117599e84d283fa099ae831ba6074ab4",
+        "identity": {
+          "base_checkpoint_sha256": "4a5a2d8450188d1398013d9b139e2d9909159e4af34accab23a05504c51220e7",
+          "statistics_sha256": "d6b65e41ca99262958c386516b37e7d34981eb9241b9b109b028c8ce9926c2ef",
+          "data_sha256": "9499cf934b7564ddd0071086a93376cf04ca59315da5f77b28415bb43707cb2b",
+          "residual_statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2"
+        },
+        "index_sha256": "83cfc1d4ab55597eaaf318018ffc0ad680ae42ae0e3c36528bea392df229c5d9"
+      },
+      "checks": {
+        "pair_sha_and_contract": true,
+        "normalizer_buffers": true,
+        "model_weights_unchanged": true,
+        "plan_shape": [
+          1,
+          37,
+          24,
+          29
+        ],
+        "raw_shape": [
+          1,
+          37,
+          29
+        ],
+        "per_tick_raw_shape": [
+          1,
+          1,
+          29
+        ],
+        "full_vs_tick_max_abs": 2.980232238769531e-07,
+        "contact_flag_composition_bitwise_equal": true,
+        "actual_valid_noncontact_ticks": 37,
+        "actual_noncontact_raw_rms": 0.07448257505893707,
+        "valid_noncontact_loss_raw_gradient_l1": 0.006243051961064339,
+        "zero_force_seen": true,
+        "missing_force_seen": false,
+        "missing_sensor_does_not_reset_other_memory": true,
+        "deployment_seam_with_legal_nonzero_raw": "passed 6 ticks: known zero/contact/loss/missing/known zero/known zero; no correction removal and no episode reset",
+        "raw_nonzero_at_every_tick_required": false
+      }
+    }
+  },
+  "production_fix_required": false,
+  "scope": "Actual selected backend weights and paired frozen frontend identities; cached expert-history plan/readout replay, not new DP/DDIM or simulator execution. Synthetic nonzero output injection tests the deployment seam separately; actual trained raw is never required to be nonzero.",
+  "tests": {
+    "command": "bash visuotactile/run_cpu.sh -m pytest -q tests/test_target_residual.py tests/test_dagger_takeover.py tests/test_residual_normalization.py tests/test_residual_training_contract.py",
+    "passed": 49,
+    "warning": "Existing RequestsDependencyWarning only"
+  },
+  "source_files": {
+    "visuotactile/native_controller.py": "ebc2d6424e92d4d339bc03c7ed7ce044d8576a863f8968a02f5c29b5a2ba976e",
+    "visuotactile/models/native_dp.py": "4006f37f632ca9660b59d23bfd5b66d8df57356fe1c9674da297cd7d40ad75b8",
+    "visuotactile/native_data.py": "1f1679a5689f3dd0aa2614ca83769bdb782d1e2f4fb56e5ee3215029f461115a",
+    "visuotactile/anchor_continue.py": "4c79b5d169c5c700d727dba124463e422be8be59a9a44215047b0f2784d33398",
+    "visuotactile/position_control.py": "85e39dd26b27fe79b70cbfcf32c9fab4560305741047d627c1c04a3d7769afb7",
+    "tests/test_target_residual.py": "dc24473e6c3639168b664a7f95c869bbbeed2de752422b081266f078bb4faa80",
+    "tests/test_dagger_takeover.py": "d3a650636181ebb765f3c5d925e9509793479657d8a135168d0a5cb57e59b9d9"
+  }
+}
