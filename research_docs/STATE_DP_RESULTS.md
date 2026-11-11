@@ -441,3 +441,24 @@ best与last完整状态逐字段相同，保留best原字节，last用硬链接�
 Finite evaluation/video queue finished; no additional starts；索引：`/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/demos/tight_palm_eval_20261109_01/remaining_01/README.md`。
 仅原200epoch/last4改善<1%平台达成后使用最终validation选定模型，最多10次新初态/1h、前3身份视频；不扩跑。
 <!-- tight-palm-evaluation:end -->
+
+<!-- tight-dagger-results:start -->
+## 2026-11-11 DAgger：一轮前端与后端增量续训
+
+本轮 owner 状态为 **COMPLETE**；产物核验完整。以下按已有凭据整理，缺失项不记为零成功。
+
+|组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|
+|---|---:|---:|---:|---:|---:|---:|
+|G11|12 / 12|11 / 12|11 / 3265 / 266|1680 / 20.000|9043 / 15.000|0 / 10 / 10|
+|QG01|12 / 12|10 / 12|10 / 2893 / 236|1680 / 20.008|11666 / 20.000|0 / 10 / 10|
+
+采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。
+自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。
+整卡时间加权利用率：28.416%；资源样本 19843 条，>8s 内部缺口 0s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
+
+[原始机器结果](evidence/tight_dagger_20261111_01/summary.json) · [采集逐次记录](evidence/tight_dagger_20261111_01/collection.csv) · [自主逐次记录](evidence/tight_dagger_20261111_01/closed_loop.csv) · [两阶段曝光](evidence/tight_dagger_20261111_01/training_stages.csv) · [权重/视频本地索引](evidence/tight_dagger_20261111_01/local_artifacts.json)。
+
+![DAgger 训练与固定验证曲线](evidence/tight_dagger_20261111_01/training_curves.png)
+
+仅 CPU 导出已有数值、日志与 SHA；未新增训练、推理、Kit、评估、清理或模型选择。初始化身份、失败原因、视频解码凭据和全部缺失项见公开结果。
+<!-- tight-dagger-results:end -->
