@@ -126,3 +126,7 @@ best/last完整状态逐字段相同，保留best SHA6940b066cf8296d8e90203c0aa7
 首次清理因不可读renderer zombie句柄目录被拒绝，尚未删除文件；仅增加Linux确认Z状态的已退出进程豁免后执行。活进程不豁免，真实zombie/live回归已覆盖。没有对外部进程发信号。
 
 [当前结果](STATE_DP_RESULTS.md) · [精简机器结果](evidence/tight_state_20261107.json)
+
+
+<!-- dagger-obsolete-cleanup:/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_20261111_01 -->
+本轮 DAgger 收尾按明确依赖白名单清理旧 checkpoint：删除 0 个目录项，逻辑 0 字节，按最终硬链接释放的已分配空间 0 字节。原400/Core、当前初始化与源缓存、旧成功视频及分母未列入清理。逐项 SHA、跳过原因与保留核对见本地 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_20261111_01/cleanup.json`。
