@@ -235,3 +235,75 @@ def test_revised_ab_scope_retains_retired_partial_and_excludes_unscheduled_oblig
     # New-scope missing evidence must still prevent an optimistic completion claim.
     (root/'round_03/QG01/backend/evaluation_complete.json').unlink()
     assert not diagnostics.dagger_publish(root,out)['verified_round_complete']
+
+
+@pytest.fixture
+def conditional_publication(publication):
+    root,out,document=publication
+    write(root/'configuration.json',dict(version='successful_takeover_pool_v1',scope_revision='complete_strategy_ab_v1',
+        first_round=2,rounds=3,groups={'QG01':{'strategy_role':'A'},'G01':{'strategy_role':'B'}},
+        round_schedule={'2':{'active_groups':['QG01','G01']},'3':{'active_groups':['QG01','G01']}},
+        evaluation={'attempts_per_group':4,'maximum_attempts_per_group':10},pool_root=str(root/'pool')))
+    write(root/'conditional_extension_request.json',dict(version='conditional_zero_success_v1',prior_round=2,
+        next_round=3,groups={'QG01':'A','G01':'B'},extension_seconds=21600,max_extra_rounds=1,
+        prior_deadline=100000,prior_compute_deadline=99400))
+    return root,out,document
+
+
+def test_conditional_request_is_not_a_zero_success_result_or_started_round(conditional_publication):
+    root,out,document=conditional_publication
+    write(root/'conditional_extension_status.json',dict(state='WAITING_CURRENT_EVALUATIONS',started=False))
+    write(root/'conditional_extension_service.json',dict(service='ordinary-watcher.service',pid=123))
+    summary=diagnostics.dagger_publish(root,out)
+    condition=summary['conditional_extension']
+    assert condition['requested'] and not condition['evaluation_ready']
+    assert condition['triggered'] is None and not condition['continuation_started']
+    assert not condition['collection_startup_verified'] and not summary['verified_round_complete']
+    assert summary['completion_scope']['required_groups']==['round_02/G01','round_02/QG01']
+    for group in ('G01','QG01'):
+        row=summary['groups']['round_03/'+group]
+        assert row['participation']=='conditional_pending'
+        assert row['autonomous_development']['successes'] is None
+        assert row['autonomous_development']['planned']==0
+    assert json.loads((out/'conditional_extension_request.json').read_text())['max_extra_rounds']==1
+    assert json.loads((out/'conditional_extension_service.json').read_text())['pid']==123
+    assert '第3轮B未调度' not in document.read_text()
+    assert '请求不等于触发' in document.read_text()
+
+
+def test_conditional_decision_launch_and_actual_startup_remain_distinct(conditional_publication):
+    root,out,_=conditional_publication
+    decision=dict(revision='conditional_zero_success_v1',triggered=True,evaluation_ready=True,
+        reason='Both complete legal candidate evaluations have zero native success',extension_seconds=21600,
+        prior_deadline=100000,deadline=121600,initial_pairs={'G01':{'frontend_sha256':'new-b'},'QG01':{'frontend_sha256':'new-a'}})
+    write(root/'conditional_extension.json',decision)
+    write(root/'conditional_extension_decision.json',dict(triggered=True,evaluation_ready=True))
+    report=diagnostics.dagger_publish(root,out)
+    condition=report['conditional_extension']
+    assert condition['triggered'] and condition['evaluation_ready'] and not condition['continuation_started']
+    assert report['completion_scope']['required_groups']==[
+        'round_02/G01','round_02/QG01','round_03/G01','round_03/QG01']
+    assert not report['verified_round_complete']  # A trigger does not supply any training receipt.
+    assert json.loads((out/'conditional_extension.json').read_text())==decision
+    write(root/'conditional_extension_status.json',dict(state='CONTINUATION_RUNNING',started=False,owner_service_started=True))
+    condition=diagnostics.dagger_publish(root,out)['conditional_extension']
+    assert condition['continuation_started'] and not condition['collection_startup_verified']
+    write(root/'conditional_extension_status.json',dict(state='STARTUP_VERIFIED',started=True))
+    condition=diagnostics.dagger_publish(root,out)['conditional_extension']
+    assert condition['collection_startup_verified']
+
+
+@pytest.mark.parametrize('evaluation_ready,participation',[(False,'conditional_pending'),(True,'not_scheduled')])
+def test_not_triggered_requires_completed_evaluation_to_resolve_future_round(conditional_publication,evaluation_ready,participation):
+    root,out,_=conditional_publication
+    write(root/'conditional_extension.json',dict(triggered=False,evaluation_ready=evaluation_ready,
+        reason='Incomplete evaluation' if not evaluation_ready else 'At least one native success',extension_seconds=0))
+    write(root/'conditional_extension_status.json',dict(state='FAILED' if not evaluation_ready else 'NOT_TRIGGERED',started=False))
+    summary=diagnostics.dagger_publish(root,out)
+    assert summary['conditional_extension']['triggered'] is False
+    assert not summary['conditional_extension']['continuation_started']
+    for group in ('G01','QG01'):
+        row=summary['groups']['round_03/'+group]
+        assert row['participation']==participation and not row['current_scope_required']
+        assert row['autonomous_development']['successes'] is None
+    assert 'round_03,G01,autonomous_development_after_dagger' not in (out/'closed_loop.csv').read_text()

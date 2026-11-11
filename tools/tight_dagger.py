@@ -181,6 +181,201 @@ def validate_selected_pair(spec,parent,group):
         evaluation_root=spec.get('evaluation_root',str(parent/'round_01'/group/'backend'/group/'evaluation')))
 
 
+def conditional_candidate_evidence(root, group, round_index):
+    """Read the completed new pair's own evaluation, never rollback/shared rows.
+
+    This deliberately has no inference or simulator path. An absent, interrupted,
+    mismatched or insufficiently legal evaluation is not a zero-success result.
+    """
+    root=Path(root);job=root/f'round_{round_index:02d}'/group;back=job/'backend'
+    pair=candidate_pair(job)
+    for directory in (job/'dp/training',back/group/'training'):
+        finished=read(directory/'finished.json')
+        require(finished.get('new_optimizer_updates',finished.get('updates',0))>0 and not finished.get('disposable'),
+            'Conditional continuation requires both modules to have real updates: '+group)
+        require(read(directory/'selected.json')['checkpoint_sha256']==sha(directory/'best.pt'),
+            'Selected candidate checkpoint changed: '+group)
+    # Validate real weights, normalizer semantics and frontend/backend binding.
+    verified=validate_selected_pair(pair,Path('/'),group)
+    require(all(verified[k]==pair[k] for k in ('frontend_sha256','backend_sha256','statistics_sha256','modality','supervision')),
+        'Candidate complete pair identity differs: '+group)
+    complete=read(back/'evaluation_complete.json');summary=read(back/group/'evaluation_summary.json')
+    frozen=read(back/'dagger_evaluation_freeze.json');plan=read(root/'evaluation_plan.json')
+    require(complete.get('complete') is True and summary.get('complete') is True and complete.get('groups')==[group],
+        'Conditional continuation requires complete candidate evaluation: '+group)
+    require(summary.get('expert_takeover') is False and summary.get('formal_test22_used') is False and
+        frozen.get('expert_takeover') is False,'Conditional trigger must use pure-student development evaluation')
+    require(frozen['checkpoints']=={group:pair['backend_sha256']} and frozen['plan_sha256']==sha(root/'evaluation_plan.json') and
+        sha(back/'evaluation_plan.json')==sha(root/'evaluation_plan.json'),'Candidate evaluation identity differs: '+group)
+    rules=frozen['rules'];require(rules['initial_trials']==4 and rules['max_trials']==10 and len(plan)==10,
+        'Conditional trigger requires existing bounded developer protocol')
+    expected=10 if summary['expansion']['expanded'] else 4
+    require(summary.get('software_failures')==0 and complete.get('software_failures')==0 and
+        summary.get('attempts')==summary.get('completed')==expected and summary.get('valid',0)>=4,
+        'Candidate evaluation lacks at least four legal completed cases: '+group)
+    rows=[];proof={str(back/'evaluation_complete.json'):sha(back/'evaluation_complete.json'),
+        str(back/group/'evaluation_summary.json'):sha(back/group/'evaluation_summary.json'),
+        str(back/'dagger_evaluation_freeze.json'):sha(back/'dagger_evaluation_freeze.json')}
+    for index,item in enumerate(plan[:expected]):
+        spec=item['spec'];out=back/group/'evaluation'/spec['identity']
+        result=read(out/'result.json');receipt=read(out/'evaluation_receipt.json')
+        binding=dict(identity=spec['identity'],spec=spec,checkpoint_sha256=pair['backend_sha256'],plan_sha256=frozen['plan_sha256'])
+        require(receipt['binding']==binding and receipt['result_sha256']==sha(out/'result.json') and
+            result.get('software_complete') is True and all(result.get(k)==v for k,v in spec.items()),
+            'Candidate trial receipt differs: '+group+'/'+spec['identity'])
+        require(type(result.get('legal')) is bool,'Missing trial legality')
+        if result['legal']:
+            require(result.get('checkpoint_sha256')==pair['backend_sha256'] and receipt['trace_sha256']==sha(out/'trace.npz'),
+                'Candidate legal trace/checkpoint differs')
+            success=result.get('success');native=result.get('reasons',{}).get('max_successes')
+            require(type(success) is bool and type(native) is bool and success==native and
+                result.get('ever_complete_success')==success,'Native complete-success evidence differs')
+            require(result.get('residual_version')=='target_residual_transformer60_v1' and result.get('residual_ticks',0)>0,
+                'Candidate evaluation did not execute the complete student')
+            if receipt.get('video_sha256'):require(receipt['video_sha256']==sha(out/'rollout.mp4'),'Candidate video changed')
+            rows.append(result)
+        proof[str(out/'evaluation_receipt.json')]=sha(out/'evaluation_receipt.json')
+    require(len(rows)==summary['valid'] and sum(r['success'] for r in rows)==summary['successes'],
+        'Candidate evaluation denominator or successes differ')
+    return dict(strategy_role=pair['strategy_role'],valid=len(rows),completed=expected,
+        successes=sum(r['success'] for r in rows),native_lifts=sum(bool(r.get('native_lift')) for r in rows),
+        subgoals=sum(r.get('native_subgoals',0) for r in rows),unrun=10-expected,candidate_pair=pair,
+        receipt_sha256=proof,scope='All measured legal pure-student candidate cases, not the old/new shared subset')
+
+
+def recover_completed_round(root, round_index, evidence):
+    """Finish only missing CPU bookkeeping after an evaluation-boundary STOP."""
+    root=Path(root);directory=root/f'round_{round_index:02d}';snapshot=directory/'snapshot.json'
+    groups={}
+    for group,row in evidence.items():
+        job=directory/group;path=job/'selection.json';candidate=row['candidate_pair']
+        if path.exists():
+            choice=read(path)
+            require(choice['candidate_pair']==candidate and choice['snapshot_sha256']==sha(snapshot),
+                'Existing round selection identity differs')
+        else:
+            previous=read(job/'initial_pair.json');plan=read(root/'evaluation_plan.json')
+            a=read(job/'dp/training/selected.json');b=read(job/'backend'/group/'training/selected.json')
+            acceptable=a.get('selection_score',float('inf'))<=1.000001 and b.get('validation_score',b.get('selection_score',float('inf')))<=1.000001
+            choice=paired_policy_selection(previous,candidate,
+                policy_metrics(previous['evaluation_root'],plan,previous['backend_sha256']),
+                policy_metrics(candidate['evaluation_root'],plan,candidate['backend_sha256']),acceptable)
+            choice.update(frontend_selected=a,backend_selected=b,snapshot_sha256=sha(snapshot),utc=time.time(),
+                recovered_after_evaluation_boundary=True,additional_optimizer_updates=0,additional_evaluation_trials=0)
+            write(path,choice)
+        collection=read(job/'collection_finished.json')
+        require(collection['complete'],'Prior collection incomplete')
+        groups[group]=dict(state='COMPLETE',selection=choice,
+            collection=dict(attempts=collection['attempts'],accepted=collection['accepted_episodes']))
+    path=directory/'round_finished.json'
+    if path.exists():
+        result=read(path)
+        require(set(result['groups'])==set(groups) and all(result['groups'][g]['state']=='COMPLETE' and
+            result['groups'][g]['selection']==groups[g]['selection'] for g in groups),'Existing completed round differs')
+    else:
+        result=dict(state='RESOLVED',groups=groups,snapshot_id=read(snapshot)['snapshot_id'],utc=time.time(),
+            active_groups=list(groups),not_scheduled=[],retained_complete_pairs={},
+            recovered_after_evaluation_boundary=True,additional_optimizer_updates=0,additional_evaluation_trials=0)
+        write(path,result)
+    rounds=read(root/'rounds.json');rounds[f'round_{round_index:02d}']=result;write(root/'rounds.json',rounds)
+    return result
+
+
+def conditional_extend(root):
+    """One explicitly authorized same-run extension after two candidate results.
+
+    The old owner must already have exited. No worker starts here, no completed
+    stage is replayed, and the six hours are added to the original absolute
+    deadline exactly once, never to the current time or a resumed deadline.
+    """
+    import hashlib
+    from tools.tight_finish import matrix_worker_absence
+    root=Path(root).resolve();revision_id='conditional_zero_success_v1';revision=root/'revisions'/revision_id
+    require(not revision.exists(),'Conditional extension already recorded; cannot append another round')
+    request=read(root/'conditional_extension_request.json')
+    require(request.get('version')==revision_id and request.get('extension_seconds')==21600 and
+        request.get('maximum_extra_rounds')==1 and request.get('prior_round')==2 and request.get('next_round')==3 and
+        request.get('groups')=={'QG01':'A','G01':'B'},'Unexpected conditional extension authorization')
+    require(not git('status','--porcelain'),'Commit reviewed conditional changes before migration')
+    status=read(root/'status.json');require(status.get('owned_workers_exited') is True and status.get('state')!='RUNNING',
+        'Conditional changes require an exited owner boundary')
+    require(matrix_worker_absence(read(root/'worker_processes.json'))[0],'Live owned worker')
+    old_session=read(root/'session.json');old_launch=read(root/'launch.json');old_registration=read(root/'registration.json')
+    require(sha(root/'session.json')==old_launch['session_sha256'],'Original session receipt changed')
+    require(old_session['deadline']==request['prior_deadline'] and old_session['compute_deadline']==request['prior_compute_deadline'],
+        'Authorized prior deadlines differ; repeated extension forbidden')
+    owner=read(root/'resume.json') if (root/'resume.json').exists() else old_launch
+    live=proc(owner['pid']);require(live is None or live['start_ticks']!=owner.get('start_ticks'),'Owner still live')
+    require(not old_session.get('conditional_extension'),'This session already consumed its conditional extension')
+    for path,digest in read(root/'source_freeze.json').items():
+        blob=subprocess.check_output(['git','show',old_session['source_head']+':'+path],cwd=CODE)
+        require(hashlib.sha256(blob).hexdigest()==digest,'Prior source not preserved in git: '+path)
+    future=root/'round_03';require(not future.exists() or future.is_dir() and not any(future.iterdir()),
+        'Future round already has registered or started work; preserve it for explicit review')
+    cfg=copy.deepcopy(read(root/'configuration.json'));policy=read(CODE/'configs/tight_state.json')['dagger']['conditional_extension_policy']
+    require(policy['maximum_extra_rounds']==1 and policy['maximum_extension_seconds']==21600 and
+        policy['attempts']=={'QG01':96,'G01':96},'Conditional policy exceeds authorized scope')
+    require({g:v['strategy_role'] for g,v in cfg['groups'].items()}==request['groups'],'Current complete strategy roles differ')
+    evidence={};errors={}
+    for group in request['groups']:
+        try:evidence[group]=conditional_candidate_evidence(root,group,request['prior_round'])
+        except (ValueError,KeyError,FileNotFoundError,TypeError) as error:errors[group]=repr(error)
+    ready=not errors and len(evidence)==2;triggered=ready and all(v['successes']==0 for v in evidence.values())
+    deadline=old_session['deadline']+(21600 if triggered else 0)
+    compute_deadline=old_session['compute_deadline']+(21600 if triggered else 0)
+    if triggered:
+        require(time.time()<compute_deadline,'Authorized conditional compute deadline already passed')
+        require((root/'round_02/G01/dp/cache_index.json').is_file(),'Missing previous frozen-DINO reuse index')
+    revision.mkdir(parents=True);preserved={}
+    for name in ('configuration.json','session.json','registration.json','launch.json','source_freeze.json',
+                 'status.json','rounds.json','public_git.json','active_stage.json','conditional_extension_request.json'):
+        if (root/name).exists():shutil.copyfile(root/name,revision/name);preserved[name]=sha(revision/name)
+    if ready:recover_completed_round(root,request['prior_round'],evidence)
+    pairs={g:v['candidate_pair'] for g,v in evidence.items()}
+    cfg['conditional_extension']=dict(version=revision_id,triggered=triggered,prior_round=2,next_round=3,
+        maximum_extra_rounds=1,maximum_extension_seconds=21600,initialization='new complete candidate pair, independently of prior rollout ranking')
+    cfg['first_round']=3 if triggered else 2;cfg['rounds']=3 if triggered else 2
+    cfg['round_schedule']={'3':dict(active_groups=list(request['groups']),attempts=policy['attempts'])} if triggered else {'2':cfg['round_schedule']['2']}
+    cfg['planning']['pair_stage_reserve_seconds']=policy['pair_stage_reserve_seconds']
+    if triggered:
+        for group,pair in pairs.items():
+            cfg['groups'][group]=dict(cfg['groups'][group],**{key:pair[key] for key in
+                ('frontend','backend','data_root','evaluation_root','modality','supervision','strategy_role','geometry')})
+        cfg['initial_dino_reuse_index']=str(root/'round_02/G01/dp/cache_index.json')
+        cfg['comparison_limitations']=[
+            'Matched G00 frontend modalities and Transformer capacity, but historical initialization/exposure and trained residual scales differ (A .2/.9; B .1); not strict single-variable or equal-budget evidence',
+            'This single appended A/B round has equal admitted collection attempts and one shared frozen training snapshot; actual accepted corrections, training exposure, geometry cost and elapsed time remain separately reported']
+    cfg['stopping']='At most one conditional A/B continuation round from round2 candidate pairs; original deadline extended once by at most six hours; never recurse.'
+    source=git('rev-parse','HEAD');session=dict(old_session,source_head=source,dagger=cfg,
+        deadline=deadline,compute_deadline=compute_deadline,conditional_extension=cfg['conditional_extension'])
+    session['owned_worker_roots']=list(dict.fromkeys(old_session['owned_worker_roots']+
+        [str(root/'round_03'/g/p) for g in request['groups'] for p in ('','dp','dp/training','backend','backend/'+g)]))
+    write(root/'configuration.json',cfg);write(root/'session.json',session)
+    write(root/'registration.json',dict(old_registration,configuration_sha256=sha(root/'configuration.json'),
+        conditional_extension=revision_id,revision_source=source))
+    write(root/'launch.json',dict(old_launch,session_sha256=sha(root/'session.json'),source_head=source,
+        conditional_extension=revision_id,deadline=deadline))
+    files=git('ls-files','*.py','configs/tight_state.json','visuotactile/run_cpu.sh').splitlines()
+    write(root/'source_freeze.json',{p:sha(CODE/p) for p in files})
+    receipt=dict(revision=revision_id,triggered=triggered,evaluation_ready=ready,groups=evidence,errors=errors,
+        reason='both new complete candidates have zero observed native successes' if triggered else
+        'at least one complete candidate succeeded; no additional round' if ready else 'incomplete or invalid evidence is not zero success',
+        initial_pairs=pairs if triggered else {},prior_round=2,next_round=3 if triggered else None,
+        extension_seconds=21600 if triggered else 0,authorized_extension_seconds=21600,
+        prior_deadline=old_session['deadline'],prior_compute_deadline=old_session['compute_deadline'],
+        deadline=deadline,compute_deadline=compute_deadline,started=old_session['started'],deadline_reset=False,
+        deadline_extended=triggered,one_extra_round=True,previous_source=old_session['source_head'],source_head=source,
+        same_root=str(root),preserved_metadata=preserved,original_data_and_weights_preserved=True,
+        collection_initialization='round2 candidate complete pair, not prior lift-ranked selected_pair',
+        no_new_training_or_evaluation_in_migration=True,utc=time.time())
+    write(revision/'applied.json',receipt);write(root/'conditional_extension.json',receipt)
+    write(root/'status.json',dict(status,state='STOPPED' if triggered else 'COMPLETE' if ready else 'PARTIAL',
+        stage='conditional_extension_ready' if triggered else 'conditional_not_triggered' if ready else 'conditional_evidence_incomplete',
+        source_head=source,deadline=deadline,rounds=read(root/'rounds.json'),owned_workers_exited=True,
+        automatic_queue_exited=True,conditional_extension=receipt,failure=None,utc=time.time()))
+    return receipt
+
+
 def revise(root):
     """Explicit reviewed scope transition at an exited boundary, in the same run.
 
@@ -762,10 +957,17 @@ def round_decision(cfg, previous, remaining_seconds, round_index=None):
         reserve=(len(active)+sum(len(v['active_groups']) for v in future))*p['pair_stage_reserve_seconds']
         reserve+=sum(len(v['active_groups']) for v in future)*p['reserve_future_minimum_attempts']*p['seconds_per_attempt']
         available=remaining_seconds-reserve-p['transition_reserve_seconds'];counts={}
-        for i,g in enumerate(active):
-            later=sum(schedule['attempts'][other] for other in active[i+1:])*p['seconds_per_attempt']
-            counts[g]=max(0,min(schedule['attempts'][g],int((available-later)/p['seconds_per_attempt'])))
-            available-=counts[g]*p['seconds_per_attempt']
+        if cfg.get('conditional_extension',{}).get('triggered'):
+            # The new A/B continuation shares the available attempt budget;
+            # old schedules retain their original allocation semantics.
+            count=max(0,min(min(schedule['attempts'][g] for g in active),
+                int(available/(len(active)*p['seconds_per_attempt']))))
+            counts={g:count for g in active}
+        else:
+            for i,g in enumerate(active):
+                later=sum(schedule['attempts'][other] for other in active[i+1:])*p['seconds_per_attempt']
+                counts[g]=max(0,min(schedule['attempts'][g],int((available-later)/p['seconds_per_attempt'])))
+                available-=counts[g]*p['seconds_per_attempt']
         require(all(counts[g]>=p['minimum_admitted_attempts'] for g in active),
             'Insufficient original remaining budget for scheduled collection and complete paired updates')
         result.update(scope_revision=cfg['scope_revision'],active_groups=active,attempts_by_group=counts,
@@ -873,6 +1075,9 @@ def train_pair(root,group,round_index,stages,snapshot,reuse_index):
 
 def resume(root):
     require((root/'launch.json').exists(),'No registered launch to resume')
+    cfg=read(root/'configuration.json')
+    require(not cfg.get('conditional_extension') or cfg['conditional_extension'].get('triggered') is True,
+        'Conditional continuation was not admitted; no automatic queue')
     require(read(root/'status.json').get('state')!='COMPLETE','Completed finite queue cannot be resumed')
     require(time.time()<read(root/'session.json')['compute_deadline'],'Original deadline passed; cannot reset it')
     owner=read(root/'resume.json') if (root/'resume.json').exists() else read(root/'launch.json')
@@ -884,6 +1089,22 @@ def resume(root):
     for path in [root/'STOP']+list(root.glob('round_*/*/dp/STOP'))+list(root.glob('round_*/*/dp/training/STOP'))+list(root.glob('round_*/*/backend/*/STOP'))+list(root.glob('round_*/*/backend/*/training/STOP')):
         path.unlink(missing_ok=True)
     run(root,recover=True)
+
+
+def previous_round_groups(root, cfg):
+    """Use the actual preceding round without changing current paired weights."""
+    index=cfg.get('first_round',1)-1
+    if not cfg.get('scope_revision') or index<1:return {}
+    directory=Path(root)/f'round_{index:02d}'
+    if (directory/'round_finished.json').exists():return read(directory/'round_finished.json')['groups']
+    previous={}
+    for group in cfg['groups']:
+        prior=directory/group
+        if (prior/'selection.json').exists():
+            collection=read(prior/'collection_finished.json')
+            previous[group]=dict(selection=read(prior/'selection.json'),collection=dict(
+                attempts=collection['attempts'],accepted=collection['accepted_episodes']))
+    return previous
 
 
 @supervised_owner
@@ -935,13 +1156,8 @@ def run(root,recover=False):
             if (root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json').get('utc_epoch',0)<4:break
             time.sleep(1)
         require((root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json').get('utc_epoch',0)<4,'Fresh shared resource monitor missing')
-        previous={};reuse_index=Path(cfg['initial_dino_reuse_index']) if cfg.get('initial_dino_reuse_index') else None
-        if cfg.get('scope_revision'):
-            for g in cfg['groups']:
-                prior=root/'round_01'/g
-                if (prior/'selection.json').exists():
-                    previous[g]=dict(selection=read(prior/'selection.json'),collection=dict(
-                        attempts=read(prior/'collection_finished.json')['attempts'],accepted=read(prior/'collection_finished.json')['accepted_episodes']))
+        previous=previous_round_groups(root,cfg)
+        reuse_index=Path(cfg['initial_dino_reuse_index']) if cfg.get('initial_dino_reuse_index') else None
         for round_index in range(cfg.get('first_round',1),cfg['rounds']+1):
             key=f'round_{round_index:02d}';directory=root/key;directory.mkdir(exist_ok=True)
             if (directory/'round_finished.json').exists():
@@ -1042,6 +1258,144 @@ def run(root,recover=False):
             if gone:publish_commit(root)
         except Exception as error:write(root/'publication_error.json',dict(error=repr(error),traceback=traceback.format_exc()))
         lock.close()
+
+
+def conditional_boundary_ready(root, request):
+    """Only completion receipts permit the old owner to stop at its boundary.
+
+    This is not the zero-success decision: full model/result verification is
+    deferred until the old collector, trainers, evaluator and publisher exit.
+    """
+    directory=Path(root)/f"round_{request['prior_round']:02d}"
+    return all((directory/g/'backend/evaluation_complete.json').is_file()
+        and read(directory/g/'backend/evaluation_complete.json').get('complete') is True
+        for g in request['groups'])
+
+
+def conditional_follow(root):
+    """One ordinary-process handoff after actual current evaluations finish.
+
+    Runs from a reviewed isolated checkout, never edits a running frozen tree.
+    It stops only the registered owner after evaluation completion, waits for
+    all owned work/publication to exit, cherry-picks reviewed changes into the
+    original checkout and resumes the same run only after the conditional gate.
+    """
+    root=Path(root).resolve();request=read(root/'conditional_extension_request.json')
+    deployment=Path(request['deployment_tree']).resolve();prepared=request['prepared_source']
+    require(deployment!=CODE.resolve(),'Conditional preparation must be isolated from the running checkout')
+    require(request['version']=='conditional_zero_success_v1' and request['extension_seconds']==21600
+        and request['maximum_extra_rounds']==1,'Expected one authorized six-hour extension')
+    require(git('rev-parse','HEAD')==prepared and not git('status','--porcelain'),'Prepared source must be frozen and committed')
+    require(not (root/'conditional_extension_follow_finished.json').exists(),'Conditional handoff already resolved')
+    lock=(root/'conditional_extension.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    original=request['owner'];started=time.time();state='WAITING_CURRENT_EVALUATIONS'
+    service_started=False;startup_verified=False
+    def status(**extra):
+        write(root/'conditional_extension_status.json',dict(state=state,utc=time.time(),watcher_pid=os.getpid(),
+            watcher_started=started,prepared_source=prepared,started=startup_verified,
+            owner_service_started=service_started,**extra))
+    def original_alive():
+        value=proc(original['pid'])
+        return value is not None and value['start_ticks']==original['start_ticks'] and value.get('state')!='Z'
+    def command(args,timeout=120):
+        with (root/'conditional_extension.log').open('a') as stream:
+            subprocess.run(args,cwd=deployment,stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT,
+                check=True,timeout=timeout)
+    def deployed_git(*args):
+        return subprocess.check_output(['git',*args],cwd=deployment,text=True,stderr=subprocess.STDOUT,timeout=90).strip()
+    try:
+        status()
+        while not conditional_boundary_ready(root,request):
+            require(time.time()<request['prior_deadline'],'Current evaluation did not finish within its original window')
+            require(original_alive(),'Current owner exited before both evaluations completed; no zero-success inference')
+            time.sleep(1)
+        # Validate ownership and immutable source immediately before requesting
+        # STOP. A late watcher must never silently repeat a started next round.
+        next_round=root/f"round_{request['next_round']:02d}"
+        require(not next_round.exists() or not any(next_round.iterdir()),'Next round already started; preserve evidence for review')
+        frozen=read(root/'source_freeze.json')
+        require(all(sha(deployment/p)==v for p,v in frozen.items()),'Current frozen source drifted')
+        state='STOPPING_AT_EVALUATION_BOUNDARY';status()
+        if original_alive():
+            (root/'STOP').touch()
+            write(root/'conditional_extension_boundary.json',dict(utc=time.time(),owner=original,
+                evaluation_complete=True,stop_scope='registered owner only, after both complete evaluation receipts'))
+        wait_until=min(request['prior_deadline'],time.time()+240)
+        while original_alive():
+            require(time.time()<wait_until,'Original owner did not finish owned cleanup/publication')
+            time.sleep(1)
+        from tools.tight_finish import matrix_worker_absence
+        require(read(root/'status.json').get('owned_workers_exited') is True,'Owned cleanup is incomplete')
+        require(matrix_worker_absence(read(root/'worker_processes.json'))[0],'Owned worker remains live')
+        require(not next_round.exists() or not any(next_round.iterdir()),'Old owner started the next round; do not overwrite')
+        require(not deployed_git('status','--porcelain'),'Old publication left unreviewed changes')
+        previous=read(root/'public_git.json')['head']
+        require(deployed_git('rev-parse','HEAD')==previous,'Old public head differs from deployed checkout')
+        require(deployed_git('remote','get-url','origin') in
+            ('https://github.com/mao455/bcrl_visualTactile.git','git@github.com:mao455/bcrl_visualTactile.git'),'Unexpected publication origin')
+        deployed_git('fetch','origin','feature/tight-state-foundation')
+        require(deployed_git('rev-parse','FETCH_HEAD')==previous,'Remote advanced independently; preserve work for review')
+        # Only the owner-scoped report may have advanced since preparation.
+        base=request['prepared_parent']
+        deployed_git('merge-base','--is-ancestor',base,previous)
+        allowed={'research_docs/STATE_DP_RESULTS.md','research_docs/CLEANUP_AUDIT.md'}
+        prefix='research_docs/evidence/'+root.name+'/'
+        require(all(p in allowed or p.startswith(prefix) for p in deployed_git('diff','--name-only',base,previous).splitlines()),
+            'Current source changed beyond the completed owner report')
+        state='DEPLOYING_REVIEWED_SOURCE';status()
+        deployed_git('cherry-pick',prepared)
+        deployed_git('push','origin','HEAD:refs/heads/feature/tight-state-foundation')
+        head=deployed_git('rev-parse','HEAD')
+        write(root/'public_git.json',dict(pushed=True,head=head,target='feature/tight-state-foundation',utc=time.time()))
+        write(root/'conditional_extension_deployment.json',dict(prepared_source=prepared,deployed_source=head,
+            previous_public_head=previous,deployment_tree=str(deployment),utc=time.time(),current_workers_exited=True))
+        command(RUN+['-m','tools.tight_finish','dagger_conditional_extend','--root',str(root)],timeout=240)
+        extension=read(root/'conditional_extension.json')
+        if extension.get('triggered'):
+            state='STARTING_CONTINUATION';status()
+            # Reuse the original ordinary service identity after it exits.
+            command(['systemd-run','--user','--unit='+request['owner_service'],'--collect',
+                '--property=WorkingDirectory='+str(deployment),'--property=KillMode=mixed','--property=TimeoutStopSec=120',
+                '--property=StandardOutput=append:'+str(root/'owner.log'),
+                '--property=StandardError=append:'+str(root/'owner.log'),'/usr/bin/bash',str(deployment/'visuotactile/run_cpu.sh'),
+                '-m','tools.tight_finish','dagger_resume','--root',str(root)])
+            service_started=True
+            state='CONTINUATION_RUNNING';status()
+            # Bounded startup observation only; the ordinary owner then handles
+            # all remaining collection/training/evaluation and its final push.
+            startup_limit=min(read(root/'session.json')['compute_deadline'],time.time()+900)
+            first=next(iter(request['groups']));gate=next_round/first/'complete_policy_acceptance.json'
+            while not (gate.exists() and read(gate).get('passed')):
+                require(time.time()<startup_limit,'Continuation startup acceptance not yet complete')
+                current=read(root/'status.json')
+                require(current.get('state') not in ('FAILED','BUDGET_STOP','PARTIAL'), 'Continuation failed at startup')
+                time.sleep(2)
+            state='STARTUP_VERIFIED';startup_verified=True
+            write(root/'conditional_extension_status.json',dict(state=state,utc=time.time(),started=True,
+                watcher_pid=os.getpid(),prepared_source=prepared,deployed_source=head,
+                actual_first_collection_acceptance=read(gate),automatic_queue_continues=True))
+        else:
+            state='NOT_TRIGGERED';status(reason=extension.get('reason'))
+        write(root/'conditional_extension_follow_finished.json',dict(state=state,utc=time.time(),
+            triggered=extension.get('triggered'),started=service_started,
+            collection_startup_verified=startup_verified,no_recursive_extension=True,
+            scope='Conditional decision and bounded startup handoff finished; publication follows and is confirmed by public_git.json'))
+        # Publish from the original checkout with the new reviewed exporter.
+        command(RUN+['-c',
+            'from pathlib import Path; import sys; from tools.tight_diagnostics import dagger_publish; '
+            'dagger_publish(Path(sys.argv[1]))',str(root)],timeout=240)
+        require(not deployed_git('diff','--cached','--name-only'),'Unexpected staged changes during handoff')
+        changed=set(deployed_git('diff','--name-only').splitlines())|set(deployed_git('ls-files','--others','--exclude-standard').splitlines())
+        require(all(p in allowed or p.startswith(prefix) for p in changed),'Unreviewed publication changes during handoff')
+        deployed_git('add','--','research_docs/STATE_DP_RESULTS.md',prefix)
+        if deployed_git('diff','--cached','--name-only'):deployed_git('commit','-m','Publish conditional DAgger continuation decision and startup')
+        deployed_git('push','origin','HEAD:refs/heads/feature/tight-state-foundation')
+        write(root/'public_git.json',dict(pushed=True,head=deployed_git('rev-parse','HEAD'),target='feature/tight-state-foundation',utc=time.time()))
+    except BaseException as error:
+        state='FAILED';status(error=repr(error))
+        write(root/'conditional_extension_error.json',dict(error=repr(error),traceback=traceback.format_exc(),utc=time.time()))
+        raise
+    finally:lock.close()
 
 
 def cleanup_obsolete(root):

@@ -1120,6 +1120,17 @@ def dagger_publish(root, output=None):
     cfg=optional(root/'configuration.json',{});status=optional(root/'status.json',{})
     pool_mode=cfg.get('version')=='successful_takeover_pool_v1'
     revised_scope=pool_mode and cfg.get('scope_revision')=='complete_strategy_ab_v1'
+    conditional_names=('conditional_extension_request','conditional_extension_decision',
+        'conditional_extension','conditional_extension_status','conditional_extension_service',
+        'conditional_extension_deployment','conditional_extension_follow_finished','conditional_extension_error')
+    conditional_receipts={name:optional(root/(name+'.json')) for name in conditional_names}
+    conditional_request=conditional_receipts['conditional_extension_request'] or {}
+    conditional_decision=conditional_receipts['conditional_extension'] or conditional_receipts['conditional_extension_decision'] or {}
+    conditional_status=conditional_receipts['conditional_extension_status'] or {}
+    conditional_requested=conditional_request.get('version')=='conditional_zero_success_v1'
+    conditional_round=int(conditional_request.get('next_round',3))
+    conditional_ready=conditional_decision.get('evaluation_ready') is True
+    conditional_triggered=conditional_decision.get('triggered') is True
     first_round=int(cfg.get('first_round',1)) if revised_scope else 1
     if not pool_mode and status.get('state')=='RUNNING' and not status.get('owned_workers_exited'):
         raise ValueError('Publish after the DAgger owner stops its workers')
@@ -1138,6 +1149,12 @@ def dagger_publish(root, output=None):
         schedule=cfg.get('round_schedule',{}).get(str(index),{})
         decision=record.get('decision') or {}
         scheduled=decision.get('active_groups',schedule.get('active_groups',[]))
+        conditional_pending=conditional_requested and index==conditional_round and not conditional_ready
+        if conditional_requested and index==conditional_round:
+            # A request is not an evaluation result or a launched extra round.
+            # Both new candidates are required only after the bounded condition
+            # is explicitly resolved true by the owner, never by this exporter.
+            scheduled=list(conditional_request.get('groups',cfg.get('groups',{}))) if conditional_ready and conditional_triggered else []
         existing={p.name for p in (root/name).glob('*') if p.is_dir() and any(
             (p/receipt).exists() for receipt in ('initial_pair.json','collection_results.json','dp','backend'))}
         existing.update((record.get('finished') or {}).get('groups',{}))
@@ -1145,6 +1162,7 @@ def dagger_publish(root, output=None):
         visible=existing if index<first_round else existing|set(groups)|set(scheduled)
         return [(group,index>=first_round and group in scheduled,
             'historical' if index<first_round else 'active' if group in scheduled else
+            'conditional_pending' if conditional_pending and group in groups else
             'retired' if group not in groups else 'not_scheduled') for group in sorted(visible)]
     group_reports={};collection_rows=[];closed_rows=[];stage_rows=[];curves=[];losses=[];errors=[];videos=[];all_plans={};sampling_rows=[]
     def video(node,group,cohort,identity,result):
@@ -1340,10 +1358,10 @@ def dagger_publish(root, output=None):
         if pool_mode:
             emit(export_key+'_contact_phase_metrics.csv',csv_read(backend/'offline/contact_phase_metrics.csv'))
         evaluated_new=evaluated(backend,group,'autonomous_development_after_dagger',stages['backend']['selected_checkpoint'])
-        if revised_scope and participation=='not_scheduled' and not evaluated_new['attempted']:
+        if revised_scope and participation in ('not_scheduled','conditional_pending') and not evaluated_new['attempted']:
             # The complete pair from its previous scheduled round is retained;
             # no autonomous evaluation obligation exists for this round.
-            evaluated_new.update(state='not_scheduled',allocated=0,planned=0,unstarted=0)
+            evaluated_new.update(state=participation,allocated=0,planned=0,unstarted=0)
             closed_rows[:]=[r for r in closed_rows if not (r['round']==round_name and r['group']==group
                 and r['cohort']=='autonomous_development_after_dagger' and not r['attempted'])]
         historical_group=Path(pair['backend']).parent.parent.name if pair.get('backend') else group
@@ -1352,7 +1370,7 @@ def dagger_publish(root, output=None):
         round_group=round_finished.get('groups',{}).get(group,{})
         live_group=status.get('rounds',{}).get(round_name,{}).get('groups',{}).get(group,{})
         owner_state=round_group.get('state',live_group.get('state','UNMEASURED')) if pool_mode else status.get('groups',{}).get(group,'UNMEASURED')
-        if revised_scope and participation=='not_scheduled':owner_state='NOT_SCHEDULED'
+        if revised_scope and participation in ('not_scheduled','conditional_pending'):owner_state=participation.upper()
         coverage_receipts={name:optional(job/(name+'.json')) for name in ('complete_policy_acceptance','recovery_coverage')}
         for name,value in coverage_receipts.items():
             if value is not None:write(output/(export_key+'_'+name+'.json'),public(value))
@@ -1398,6 +1416,9 @@ def dagger_publish(root, output=None):
                     counts['physx_error_lines']+=1;physx.append(dict(path=str(path),line=line_number,message=line.rstrip()))
         log_rows.append(counts)
     receipts={name:optional(root/(name+'.json')) for name in ('source_freeze','integration','owned_cleanup','owner_error','active_stage','worker_processes','publication_error','cleanup','preparation_receipt','time_estimate','successor_service','rounds','pool_import','gpu_gate','timing','registration','scope_revision','complete_policy_acceptance','recovery_coverage')}
+    receipts.update(conditional_receipts)
+    for name,value in conditional_receipts.items():
+        if value is not None:write(output/(name+'.json'),public(value))
     for name in ('scope_revision','complete_policy_acceptance','recovery_coverage'):
         if receipts[name] is not None:write(output/(name+'.json'),public(receipts[name]))
         emit(name+'.csv',csv_read(root/(name+'.csv')))
@@ -1418,6 +1439,7 @@ def dagger_publish(root, output=None):
     if pool_mode:
         verified_complete=verified_complete and all((r.get('finished') or {}).get('state')=='RESOLVED'
             and r.get('snapshot') and r.get('decision') is not None for name,r in round_reports.items() if name in required_rounds)
+    if conditional_requested:verified_complete=verified_complete and conditional_ready
     pool_path=Path(cfg.get('pool_root',CODE/'outputs/visuotactile/data/tight_dagger_pool')) if pool_mode else None
     if pool_path is not None and not pool_path.is_absolute():pool_path=CODE/pool_path
     pool_receipts={name:optional(pool_path/name) for name in ('manifest.json','acceptance/readback.json','acceptance/imported_legacy_snapshot.json')} if pool_mode else None
@@ -1429,6 +1451,13 @@ def dagger_publish(root, output=None):
             excluded_historical_or_unscheduled=[key for key,r in group_reports.items() if not r['current_scope_required']],
             definition='Only scheduled stages in this scope; historical partial evidence remains visible'),
         resources=resources,root_receipts=receipts,publication_issues=issues,
+        conditional_extension=dict(requested=conditional_requested,evaluation_ready=conditional_ready,
+            triggered=conditional_decision.get('triggered'),
+            continuation_started=conditional_status.get('owner_service_started') is True or conditional_status.get('started') is True,
+            collection_startup_verified=conditional_status.get('state')=='STARTUP_VERIFIED',
+            state=conditional_status.get('state','UNMEASURED'),next_round=conditional_round,
+            receipts=conditional_receipts,
+            interpretation='Request, completed evaluation decision, continuation launch and actual collection acceptance are separate; publisher makes no trigger or model selection'),
         partial_snapshot=pool_mode and not status.get('owned_workers_exited',False),
         inference_or_training_performed=False,kit_loaded=False,selection_performed_by_exporter=False,
         test22_used=status.get('test22_used'),no_next_round=status.get('no_next_round'),
@@ -1475,8 +1504,13 @@ def dagger_publish(root, output=None):
         legacy=(pool_receipts or {}).get('acceptance/readback.json') or {}
         lines_out+=['',f"旧池 CPU 读回准入 {show(legacy.get('pool_entries'))} 条成功纠偏；同轮实际调度的组使用共同不可变快照，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。",
             f'[池与快照身份]({relative}/pool_identity.json) · [各轮选择与决定]({relative}/round_decisions.json)。']
-        if revised_scope:lines_out+=['','当前仅A（QG01来源，q_reached＋既定几何）与B（G01来源，u_expert）完整策略；均G00前端模态＋同容量Transformer。历史G11及首轮停止证据保留；第3轮B未调度，不算失败或本范围未完成。原run截止不重置。',
+        if revised_scope:lines_out+=['','当前仅A（QG01来源，q_reached＋既定几何）与B（G01来源，u_expert）完整策略；均G00前端模态＋同容量Transformer。历史G11及首轮停止证据保留；各轮活动组、条件等待及未调度状态按机器凭据分别列出。实际起点和绝对截止见session与追加决定，不从run名称推算。',
             'A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1，历史和本轮曝光不同，不能解释为严格单变量或同预算对照。完整策略采集验收、独立恢复起点/阶段/偏离描述与初段合法监督人口见对应JSON/CSV；接管覆盖不等于自主恢复能力。']
+        if conditional_requested:
+            lines_out+=['',f"条件追加：评估已完整核验={show(conditional_ready)}；触发={show(conditional_decision.get('triggered'))}；后继进程实际启动={show(summary['conditional_extension']['continuation_started'])}；实际采集启动验收={show(conditional_status.get('state')=='STARTUP_VERIFIED')}。状态 **{conditional_status.get('state','UNMEASURED')}**。请求不等于触发，触发不等于已经采集或训练。",
+                '仅当A/B本轮配套新模型的合法纯学生评估完整完成且两者都无完整成功时，追加一轮两组DAgger；不完整/软件错误不能当零成功。最多延长6小时至2026-11-12 13:24:31（计算13:14:31停止），不递归追加。增加恢复覆盖是待检验假说，不证明失败由数据量不足造成。']
+            links=[f'[{name}]({relative}/{name}.json)' for name in conditional_names if conditional_receipts[name] is not None]
+            if links:lines_out+=[' · '.join(links)+'。']
     lines_out+=['','采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。',
         '自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。',
         f"整卡时间加权利用率：{show(resources['time_weighted_whole_card_percent'])}%；资源样本 {resources['samples']} 条，>8s 内部缺口 {show(resources['gap_seconds_above8'])}s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。",'',

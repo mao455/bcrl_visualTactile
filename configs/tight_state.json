@@ -601,6 +601,23 @@
     "comparison_limitations": [
       "Matched G00 frontend modalities and Transformer capacity, but initialization/exposure and trained residual scales differ (A .2/.9; B .1); not strict single-variable or equal-budget evidence",
       "A receives two revised collection/update cycles; B one shared-snapshot cycle; original validation and pure-student developer protocol stay fixed"
-    ]
+    ],
+    "conditional_extension_policy": {
+      "version": "conditional_zero_success_v1",
+      "maximum_extra_rounds": 1,
+      "maximum_extension_seconds": 21600,
+      "prior_round": 2,
+      "next_round": 3,
+      "attempts": {
+        "QG01": 96,
+        "G01": 96
+      },
+      "pair_stage_reserve_seconds": 9600,
+      "collection_initialization": "each round2 new candidate complete pair, independently of prior lift-ranked rollback",
+      "trigger": "both complete pure-student candidate development evaluations have zero native complete successes; missing or failed evaluation is not zero",
+      "training": "same aggregated snapshot; existing DP800 maximum incremental updates then new-front-dependent inputs and backend12 maximum tick epochs; no third variant",
+      "budget": "equal admitted attempt count per group, at most96 each; reserve both full training/evaluation stages; old absolute deadline +21600 seconds at most once",
+      "stop": "finish this one extra round and publish, even if it also has zero student successes"
+    }
   }
 }
