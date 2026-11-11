@@ -2,7 +2,7 @@
 
 当前工作树 `/home/CNS2025331827/docs/bc+rl_RSS_qg_report`。`tight_transformer_20261110_02` 与单轮 `tight_dagger_20261111_01` 均已有COMPLETE凭据；后者源码 `dc1ed4afd51343679a57bd2f71a8a1d6a42e7550`、两组COMPLETE且owned_workers_exited=true。旧“等待原实验/尚未采集”快照已过期。历史训练量、0成功等结果由 [STATE_DP_RESULTS](STATE_DP_RESULTS.md) 及原机器证据说明。
 
-最新授权是QG01优先、G11随后，最多3轮、总18h含等待与最后10min发布预留。每轮每组默认32采集机会、其中4个整episode纠偏dev，最多192机会总量；不是成功数目标，不补失败种子。当前新流程仍处实现/CPU验收阶段，本文不宣称新root已登记、GPU已启动、训练完成或获得改善；root注册后的实际source/起止/deadline/worker由机器凭据补齐。
+最新授权是QG01优先、G11随后，最多3轮、总18h含等待与最后10min发布预留。每轮每组默认32采集机会、其中4个整episode纠偏dev（预算规则取24次时保留其中3个预登记编号），最多192机会总量；不是成功数目标，不补失败种子。新队列 `outputs/visuotactile/run/tight_dagger_pool_20261111_01` 已于北京时间2026-11-11 13:24:31启动，源码 `593f1097216c0934c52fbd238080532dc77d6b20`，owner PID1344446，普通服务 `tight-dagger-pool-20261111-01.service`。原绝对截止为2026-11-12 07:24:31（计算07:14:31停止，最后10min收尾）；启动核验已见第一轮QG01两次真实成功专家接管（1条train、1条纠偏dev），新DP/后端尚未开始正式更新；这不是纯学生自主成功率。46/70接管后的首合法标签与DP anchor分别同为48/72，真实时序修正通过。实际进展与一次有界启动核验见root的 `status.json`、`startup_verification.json`。139项合并CPU测试通过，完整快照正式训练前仍执行本轮真实CUDA输入/梯度/保存恢复检查。
 
 ## 数据与当前验收
 
@@ -37,3 +37,5 @@ bash visuotactile/run_cpu.sh -m tools.tight_finish dagger_resume --root <root>
 崩溃后loss日志晚于last.pt的行保留在 `*.uncommitted.jsonl`，正式计数与日志按持久化update重建，不双计曝光。checkpoint后尚未提交的计算可能重算，不能称其为新增独立数据。已完成训练即使低曝光或best=update0也不从头重训；真正异常/缺失凭据单独处理。模型只核验一次启动后交给普通脚本，不持续轮询。
 
 只发布审查后的源码、既有文档、小型数值/曲线到origin指定feature分支；大轨迹/模型/视频留本地。保护原400、Core、专家/资产、当前/上轮配对、last及未结束阶段依赖；清理由实际SHA/引用审计驱动。原报告中的失败、软件错误与分母不因新轮改变。
+
+启动核验与有限计划：[启动凭据](evidence/tight_dagger_pool_20261111_01/startup_verification.json) · [实测吞吐与时间估计](evidence/tight_dagger_pool_20261111_01/time_estimate.json)。停止：在该root创建`STOP`；恢复使用已有`dagger_resume`入口，原截止不变。owner日志为该root的`owner.log`，逐阶段log和`active_stage.json`保留。
