@@ -130,3 +130,7 @@ best/last完整状态逐字段相同，保留best SHA6940b066cf8296d8e90203c0aa7
 
 <!-- dagger-obsolete-cleanup:/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_20261111_01 -->
 本轮 DAgger 收尾按明确依赖白名单清理旧 checkpoint：删除 0 个目录项，逻辑 0 字节，按最终硬链接释放的已分配空间 0 字节。原400/Core、当前初始化与源缓存、旧成功视频及分母未列入清理。逐项 SHA、跳过原因与保留核对见本地 `/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_20261111_01/cleanup.json`。
+
+
+<!-- dagger-pool-cleanup:20261111 -->
+2026-11-11 扩大版 DAgger 启动前实际删除上一轮 8 个 disposable probe best/last 权重，释放已分配空间 4,697,235,456 字节（约 4.375 GiB）。逐件 SHA、大小、原完成凭据及同用户 FD 复查见 `evidence/tight_dagger_pool_20261111_01/cleanup.json`；systemd、sd-pam、ssh-agent 的受限 FD 单列，未声称全部可见。保留全部探针数值记录、4 个选定前后端、恢复权重、有效 DINO/名义缓存、原400/Core和21条已入池纠偏。没有通过移动或归档计作释放。

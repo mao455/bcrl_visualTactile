@@ -384,45 +384,57 @@
     "initialization": "Q00/QG00 same existing G00 selected EMA, fresh q_reached statistics/optimizer/EMA schedule; G00/G10 zero updates"
   },
   "dagger": {
-    "version": "successful_takeover_two_stage_v1",
-    "predecessor": "outputs/visuotactile/run/tight_transformer_20261110_02",
+    "version": "successful_takeover_pool_v1",
+    "predecessor": "outputs/visuotactile/run/tight_dagger_20261111_01",
     "family_source": "outputs/visuotactile/run/tight_palm_20261108_01/extension_plan.json",
-    "rounds": 1,
-    "maximum_hours": 12,
-    "training_seed": 2026111101,
+    "rounds": 3,
+    "maximum_hours": 18,
+    "training_seed": 2026111103,
     "groups": {
-      "G11": {
-        "frontend": "../tight_vision_20261109_01/G10/training/best.pt",
-        "backend": "command_residual/G11/training/best.pt",
-        "modality": "G10",
-        "supervision": "u_expert",
-        "data_root": "outputs/visuotactile/run/tight_vision_20261109_01/state_data"
-      },
       "QG01": {
-        "frontend": "configuration/QG00/training/best.pt",
-        "backend": "configuration_residual/QG01/training/best.pt",
+        "frontend": "round_01/QG01/dp/training/best.pt",
+        "backend": "round_01/QG01/backend/QG01/training/best.pt",
         "modality": "G00",
         "supervision": "q_reached",
         "data_root": "outputs/visuotactile/run/tight_transformer_20261110_02/configuration/state_data"
+      },
+      "G11": {
+        "frontend": "round_01/G11/dp/training/best.pt",
+        "backend": "round_01/G11/backend/G11/training/best.pt",
+        "modality": "G10",
+        "supervision": "u_expert",
+        "data_root": "outputs/visuotactile/run/tight_vision_20261109_01/state_data"
       }
     },
     "collection": {
-      "attempts_per_group": 12,
+      "attempts_per_group": 32,
       "takeover_ticks": [
-        60,
-        120,
-        180,
-        240
+        46,
+        70,
+        94,
+        118,
+        154,
+        190,
+        238,
+        298
       ],
-      "plan_seed": 2026111102,
-      "seed_start": 28111000,
-      "event_seed_start": 29111000,
-      "maximum_hours": 1.5,
+      "plan_seed": 2026111104,
+      "seed_start": 30111000,
+      "event_seed_start": 31111000,
+      "maximum_hours": 1.25,
       "minimum_successful_corrections": 1,
       "minimum_expert_ticks": 48,
       "minimum_dp_anchors": 4,
-      "selection": "native_success_after_actual_expert_takeover; no replacement attempts",
-      "gate_attempts": 2
+      "selection": "Native successful expert-executed suffix only; all attempted outcomes retained; shared train/dev partition preregistered",
+      "gate_attempts": 2,
+      "development_indices": [
+        1,
+        10,
+        20,
+        31
+      ],
+      "expected_expert_delay_queue": 3,
+      "align_clean_labels_to_commit": true
     },
     "bridge": {
       "version": "expert_takeover_position_v1",
@@ -435,24 +447,27 @@
       }
     },
     "frontend": {
-      "maximum_anchor_epochs": 20,
-      "minimum_anchor_epochs": 10,
-      "validation_anchor_epochs": 5,
+      "maximum_anchor_epochs": 10,
+      "minimum_anchor_epochs": 6,
+      "validation_anchor_epochs": 2,
       "learning_rate": 1e-05,
-      "maximum_hours": 4
+      "maximum_hours": 2
     },
     "backend": {
-      "maximum_control_tick_epochs": 30,
-      "minimum_control_tick_epochs": 10,
-      "validation_epoch_interval": 5,
+      "maximum_control_tick_epochs": 12,
+      "minimum_control_tick_epochs": 6,
+      "validation_epoch_interval": 3,
       "learning_rate": 0.0003,
-      "maximum_hours": 1.5
+      "maximum_hours": 0.75
     },
     "evaluation": {
-      "attempts_per_group": 10,
-      "videos_per_group": 2,
+      "attempts_per_group": 4,
+      "videos_per_group": 1,
       "expert_takeover": false,
-      "test22_used": false
+      "test22_used": false,
+      "maximum_attempts_per_group": 10,
+      "expansion": "After fixed first4, extend same registered cohort to10 only for >=1 success, >=1 subgoal or >=2 native lifts; no replacement seeds",
+      "rollback": "Compare complete paired models on matching measured specs; reuse previous unchanged pair receipts; ties may choose new pair only with acceptable composite recovery validation"
     },
     "resources": {
       "resource_policy": "full_gpu_v1",
@@ -461,8 +476,73 @@
       "min_disk_gib": 60
     },
     "normalization": "Preserve each initial frontend affine and common command backend affine; no label-shape coercion",
-    "mixing": "Existing episode-balanced shuffled decks over original train and all accepted corrections; masked prefix history retained",
-    "stopping": "one round; finite attempts; no backend-only fallback; measured incremental budgets within new 12h session; no automatic expansion",
-    "publication_branch": "feature/tight-state-foundation"
+    "mixing": "Persistent shared content-deduplicated successful corrections; immutable common snapshots; 50% Core/20% historical/30% current anchor/tick strata",
+    "stopping": "Three finite rounds or original 18h deadline; zero student success alone does not stop; stop on corrupt labels/resources/persistent software error; no unlimited expansion",
+    "publication_branch": "feature/tight-state-foundation",
+    "template_root": "outputs/visuotactile/run/tight_transformer_20261110_02",
+    "pool_root": "outputs/visuotactile/data/tight_dagger_pool",
+    "initial_correction_runs": [
+      "outputs/visuotactile/run/tight_dagger_20261111_01"
+    ],
+    "sampling_weights": {
+      "core": 0.5,
+      "historical_correction": 0.2,
+      "current_correction": 0.3
+    },
+    "decisions": {
+      "minimum_attempts_per_group": 24,
+      "default_attempts_per_group": 32,
+      "minimum_round_reserve_hours": 2.5,
+      "default_clean_ticks": [
+        48,
+        72,
+        96,
+        120,
+        156,
+        192,
+        240,
+        300
+      ],
+      "earlier_clean_ticks": [
+        36,
+        48,
+        60,
+        72,
+        96,
+        120,
+        156,
+        192
+      ],
+      "broader_clean_ticks": [
+        36,
+        60,
+        84,
+        108,
+        144,
+        180,
+        228,
+        276
+      ],
+      "later_clean_ticks": [
+        60,
+        96,
+        132,
+        180,
+        240,
+        300,
+        360,
+        420
+      ],
+      "low_takeover_success_fraction": 0.5,
+      "expand_on_successes": 1,
+      "expand_on_lifts": 2,
+      "policy": "Finite metric rules: poor expert recovery -> earlier; student stage progress -> longer roll-in; otherwise broaden early recovery. No online code research."
+    },
+    "recovery": {
+      "maximum_collection_worker_restarts": 2,
+      "maximum_training_worker_restarts": 1,
+      "maximum_software_failed_attempts_per_group": 2,
+      "reset_deadline_on_resume": false
+    }
   }
 }

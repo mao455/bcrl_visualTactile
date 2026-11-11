@@ -270,6 +270,10 @@ def encode_segment(model, episode, start, stop):
 
 def load_policy(payload, device='cpu', ema=True):
     stored=payload.get('contract');group=payload.get('group')
+    if payload.get('updates')==0:
+        from ..state_history import trained_continuation_updates
+        if trained_continuation_updates(payload)<1:
+            raise ValueError('Update-zero policy requires a trained hash-bound continuation source')
     from ..position_control import image_contract
     allowed=[CONTRACT]+[image_contract(g,h) for g in ('I-OfficialDP','I-HistoryDP') for h in (24,32)]
     allowed += [image_contract('I-HistoryDP',24,m) for m in ('G00','G10')]
@@ -562,6 +566,10 @@ class TargetResidual(nn.Module):
 
 def load_residual(payload, device='cpu'):
     """Dispatch historical evidence explicitly; GRU weights never become Transformer."""
+    if payload.get('updates')==0:
+        from ..state_history import trained_continuation_updates
+        if trained_continuation_updates(payload)<1:
+            raise ValueError('Update-zero residual requires a trained hash-bound continuation source')
     versions = {LegacyTargetResidual.version: LegacyTargetResidual, TargetResidual.version: TargetResidual}
     if payload.get('residual_version') not in versions:
         raise ValueError('Unknown residual architecture identity')

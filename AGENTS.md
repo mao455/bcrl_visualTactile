@@ -2,6 +2,20 @@
 
 先读 [研究方向](research_docs/USER_RESEARCH_DIRECTION.md)、[合同](research_docs/CONTRACTS.md)、[交接](research_docs/SESSION_HANDOFF.md) 和 [实际结果](research_docs/STATE_DP_RESULTS.md)。当前授权与实现配置位于 `configs/tight_state.json` 的 `dagger`；历史结果不构成重启旧队列的指令。
 
+## 当前覆盖 — 2026-11-11 多轮共享纠偏池
+
+最新用户授权覆盖以下历史单轮规则。在隔离 `bc+rl_RSS_qg_report` 复用现有模型、训练器、collector和普通owner，实现最多3轮、总18h（含等待，最后10min发布预留）的成功筛选接管式DAgger，优先QG01、再G11。起点是已完成 `tight_dagger_20261111_01` 各自选定的完整前后端配对。当前实现/CPU验收不代表新队列已启动GPU；注册、实际起点与绝对deadline以新root机器凭据为准，恢复不得重置。
+
+两组共用持续去重池和每轮不可变快照，已有21条合法成功纠偏全属历史train。每轮每组默认32机会（有限规则可取24），其中4个整episode预登记为correction_dev；3轮总最多192次机会、每组最多96，失败不补种子。Core、历史纠偏、本轮纠偏按 .5/.2/.3 分层；空纠偏层权重移至另一纠偏层，记录实际抽样/重复/唯一覆盖。原validation30与新增correction_dev分开，test22不读取。
+
+每轮先微调现有U-Net前端，再按选定前端刷新全train/validation/correction_dev名义缓存，最后微调Transformer后端。DP最多10/最低6有效anchor等效遍，约每2遍验证；后端最多12/最低6有效监督tick等效遍，每3遍验证；LR分别1e-5、3e-4，吞吐短探针不另缩正式LR日程。后端以完整episode组取整，实际超出tick公开。选模含真实update0，旧val/纠偏dev/纠偏首24有效tick分别按其update0归一化，再按 .5/.25/.25 合成。保留上轮完整pair回退，禁止拼接不同前端下各自best后端。
+
+自主开发先固定4例，有>=1成功、>=1子目标或>=2原生lift才按原预登记队列扩至10；不以0成功自动停止有界下一轮。当前Transformer无失触立即硬清零；原幅度/限位保留，不增加新门控、新网络或改变物理。旧GRU门控只属旧checkpoint合同。
+
+恢复入口：`bash visuotactile/run_cpu.sh -m tools.tight_finish dagger_resume --root <root>`。已完成且SHA核验的阶段跳过；中断训练从last完整状态恢复。STOP标记在owner/root及具体训练目录，恢复只清理本任务登记的STOP，不重启无关进程；未持久化loss行另存uncommitted日志，正式曝光按持久化计数。新root实际启动由owner完成一次核验后交给普通脚本，不由模型轮询守候。
+
+以下各节是上一轮授权与完成前快照；冲突时以上述覆盖、当前CONTRACTS和最新用户指令为准，原始证据保留。
+
 ## 当前授权与隔离
 
 用户已授权当前 `tight_transformer_20261110_02` 正常结束后，自动进行一轮成功筛选的专家接管式 DAgger：G11、QG01 各最多12次训练分布采集，聚合后先更新现有 U-Net 前端，再冻结新前端、刷新预测缓存并更新 Transformer 后端，最后各最多10次固定开发自主评估。最新更正覆盖附件最初“只更新后端、冻结前端”的要求。

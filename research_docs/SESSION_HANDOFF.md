@@ -1,38 +1,39 @@
-# 2026-11-11：原实验继续，准备自动接续 DAgger
+# 2026-11-11：多轮共享纠偏池，当前实现与交接
 
-旧运行树是 `/home/CNS2025331827/docs/bc+rl_RSS_palm_eval`，源码 e9385bc，root `outputs/visuotactile/run/tight_transformer_20261110_02`。本次只在隔离 `bc+rl_RSS_dagger` 修改；旧源码/数据/预算不变。文档整理时只读状态仍为 RUNNING / independent_dependency_queue：G01/G11 COMPLETE，Q00/QG00 RUNNING，Q01/QG01 PENDING。这是状态快照，不是最后结果；后续须读原root/status及实际凭据。
+当前工作树 `/home/CNS2025331827/docs/bc+rl_RSS_qg_report`。`tight_transformer_20261110_02` 与单轮 `tight_dagger_20261111_01` 均已有COMPLETE凭据；后者源码 `dc1ed4afd51343679a57bd2f71a8a1d6a42e7550`、两组COMPLETE且owned_workers_exited=true。旧“等待原实验/尚未采集”快照已过期。历史训练量、0成功等结果由 [STATE_DP_RESULTS](STATE_DP_RESULTS.md) 及原机器证据说明。
 
-用户已经授权旧队列实际结束后自动进行一轮成功筛选的专家接管式 DAgger，最新更正包含前端和后端。配置 `configs/tight_state.json.dagger`：G11/QG01各12采集机会、各10固定开发自主评估，新阶段12h硬上限；前端20/后端30有效遍历上限，平台停止最低10遍，硬墙钟优先。test22不使用，不追加旧轮离线训练。
+最新授权是QG01优先、G11随后，最多3轮、总18h含等待与最后10min发布预留。每轮每组默认32采集机会、其中4个整episode纠偏dev，最多192机会总量；不是成功数目标，不补失败种子。当前新流程仍处实现/CPU验收阶段，本文不宣称新root已登记、GPU已启动、训练完成或获得改善；root注册后的实际source/起止/deadline/worker由机器凭据补齐。
 
-## 当前已完成与尚未完成
+## 数据与当前验收
 
-|事项|当前证据边界|
+- 已把旧单轮两组共21条合法成功接管纳入同一持续池，全部保留为历史train；新数据按run/group/round/source与内容SHA去重，每轮冻结共同snapshot，两组共享。当前本轮纠偏dev尚待预登记新采集，不借用train替代。
+- 旧21条每条最初10个干净专家tick早于首合法12tick规划anchor，共210tick未用于DP目标；后端仍有这210个有效监督tick。原标签与结果不改写。真实逐条边界在 `outputs/visuotactile/data/tight_dagger_pool/acceptance/readback.json`。新switch=12k−2，按原3项delay队列清空后从12k进入干净后缀；不能偷偷跨无效段补旧标签。
+- Core166/validation30与原统计保留，test22不打开。原Core train55,392tick/4,690anchor是旧人口，新预算按实际mask/分层人口记录。学生前缀完整推进真实历史，监督0；u_expert/q_reached分离，后端始终监督u。
+- 当前Transformer没有失触立即清零；旧GRU的门控只属旧合同。残差幅度/限位不改，失触→再接触计数不证明恢复能力。
+- 训练/采样/离线定向CPU测试42项通过：稀少纠偏层占比、可恢复decks、初段与跨控制段mask、真实小型optimizer更新、update0保留、开发集不进optimizer、完整组中断恢复后的参数/Adam/RNG/曝光精确一致及probe正式LR。此为CPU验收，不是新真实接管或闭环效果证据。
+
+## 下一轮的固定合同
+
+|项|当前约定|
 |---|---|
-|隔离准备|共享数据/缓存/训练/接管接口与普通后继模式已实现，仍按最终集成验收状态推进|
-|真实Core CPU聚合|196条train/validation读回；train166=55,392tick、4,690有效规划anchor，H24累计108,792有效窗口目标；原统计字节相同，test源读取0|
-|数据/缓存测试|新增7项测试通过：实际执行与u/q标签分离、H24切断、监督/历史mask分离、固定统计聚合、真实G10 EMA续训、DINO无GPU复用、重预测因果历史/previous_nominal与四SHA|
-|最终CPU集成验收|88项联合通过（40.00s）；新增后继等待保护测试随9项定向回归通过（0.81s），去重共89项，覆盖接管/聚合、两阶段续训与恢复、缓存身份、owner依赖、发布、清理及相关历史兼容；一个既有requests依赖版本warning|
-|真实接管/GPU|本次文档整理未启动新GPU/Kit，未获得DAgger纠正数据、正式增量更新或自主后测|
-|后继注册|已登记普通用户服务 `tight-dagger-20261111-01.service`，PID `1021762`；2026-11-11 01:54:40+08:00 启动核验 **active / WAITING**，`gpu_started=false`，依赖旧owner退出与发布|
+|起点|`tight_dagger_20261111_01`的各自selected完整pair，逐SHA确认；QG01先、G11后|
+|分层|Core .5 / 历史纠偏 .2 / 本轮纠偏 .3；空纠偏层权重转移，实际比例、重复与唯一覆盖公开|
+|前端|现有U-Net及历史，最多10/最低6有效anchor遍；约2遍验证；LR峰值1e-5；每组每轮最多2h|
+|后端|新选定前端全train/validation/correction_dev缓存刷新后训练；最多12/最低6有效tick遍；3遍验证；LR3e-4；每组每轮最多.75h|
+|选模|实际测量update0；旧val/纠偏dev/首24有效tick各自相对update0，再按.5/.25/.25合成；update0可入选，正式阶段仍须报告新增更新|
+|自主评估|固定4例；>=1成功/子目标或>=2原生lift才按同队列扩至10；没有专家替换；旧pair真实同spec结果可复用|
+|回退|上轮完整pair保留；新前端与对应训练/验证过的后端作为单一候选，禁止拼装独立best|
 
-原Core全196条监督mask+segment SHA为 `6601d614380010cc37b7ffb031cab35405859b0bcb7e1ad7652ef27166466e80`；加入纠正后按实际数据重新计算。临时CPU聚合产物由临时目录释放，未写旧run。
+短探针提前结束但不缩正式LR日程。backend完整episode组取整可能超过名义tick目标，`excess_supervised_ticks`明示；墙钟停止时曝光和采样比例只报实际值。旧val与纠偏dev分开，绝不使用test22选模。
 
-## 接续核验
+## 恢复与退出
 
-公共入口仍为 `bash visuotactile/run_cpu.sh -m tools.tight_finish`，子命令为 `dagger_prepare` 与 `dagger_follow`，并提供 `--root`。登记与普通后台follow已实际完成，离开前一次启动核验通过，不用模型守候。机器凭据位于 `outputs/visuotactile/run/tight_dagger_20261111_01/{registration,status,successor_service}.json`；公共实现与验收摘要见 [preparation.json](evidence/tight_dagger_20261111_01/preparation.json)。当前尚无新纠正数据或正式更新。
+```bash
+bash visuotactile/run_cpu.sh -m tools.tight_finish dagger_resume --root <root>
+```
 
-接手时核验后继的配置/采集计划SHA、registration、实际服务或PID身份、源冻结与依赖路径。follow依据旧owner/自有worker实际退出和可用选定模型推进，不能只看预计结束时刻，也不能忽略仍在发布的旧owner。单纯报告异常可独立修复，不把它等同模型不可用。新阶段时间预算从实际新起点建立，不复用旧绝对deadline。
+按原source freeze、snapshot、配置和绝对deadline恢复，不能新建同义root重置时间。owner跳过有完整结果与SHA凭据的阶段；中断DP保留optimizer/EMA/RNG/anchor decks，backend保留完整episode组cursor和计数。训练STOP请求在DP optimizer边界或backend完整组边界保存并退出，不写完成receipt。backend支持root/STOP与training/STOP；DP支持其训练root/STOP。恢复只清理本任务记录的STOP标记，不操作无关worker。
 
-G11初始前端为旧G10 selected EMA；QG01初始前端为旧轮QG00 selected EMA。各自后端必须是同一前端SHA配套的所选Transformer；新轮先训练前端，再重建全部train/validation名义缓存并训练后端。采集起点、专家、统计和最终选定模型的确切路径/SHA由 `initial_pair.json` 与各训练凭据报告，不从历史简称猜测。
+崩溃后loss日志晚于last.pt的行保留在 `*.uncommitted.jsonl`，正式计数与日志按持久化update重建，不双计曝光。checkpoint后尚未提交的计算可能重算，不能称其为新增独立数据。已完成训练即使低曝光或best=update0也不从头重训；真正异常/缺失凭据单独处理。模型只核验一次启动后交给普通脚本，不持续轮询。
 
-监督只取成功接管episode的有效专家后缀，学生/切换前缀保留实际历史且mask=0。H24不跨段；G11的u、QG01的q与后端u区分。原统计与残差幅度界限固定。无新成功纠正或有效DP监督不足时报告不足，不改成仅后端训练。
-
-## 发布与历史
-
-代码已在隔离本地分支提交；旧owner先完成其结果发布，已运行的后继随后合并该报告并把新代码推送 `origin/feature/tight-state-foundation`，避免两个工作树同时推送。新轮结束后再自动推送数值、曲线和清理记录。新小型结果集中在 [STATE_DP_RESULTS](STATE_DP_RESULTS.md)，清理集中在 [CLEANUP_AUDIT](CLEANUP_AUDIT.md)，不新增重复报告MD。
-
-必要历史：StateDP 19,865更新/开发0/10；G00/G10 10,132/6,929更新/各0/10；旧GRU残差G01/G11各98,610更新/0/10、1/10。旧G11成功native_lift=false，旧视觉队列FAILED收尾与PhysX/资源问题如实保留。当前Transformer与旧GRU同时改变网络、监督范围和门控，不能据历史单例声称改善。
-
-新前端以旧队列最近10次更新参考，20个原训练人口anchor等效遍历约1.8–1.9h/组；聚合量、串行资源和前端模态会影响实际速度，后继仍必须用真实输入probe分配时间。DP/后端、缓存与评估实际耗时独立记录，总12h截止不变。
-
-本页的CPU实现状态不代替新阶段物理验收或成果。现行详细合同见 [CONTRACTS](CONTRACTS.md)，过时阶段授权已从当前文档入口去重。
+只发布审查后的源码、既有文档、小型数值/曲线到origin指定feature分支；大轨迹/模型/视频留本地。保护原400、Core、专家/资产、当前/上轮配对、last及未结束阶段依赖；清理由实际SHA/引用审计驱动。原报告中的失败、软件错误与分母不因新轮改变。

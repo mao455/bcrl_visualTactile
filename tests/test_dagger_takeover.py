@@ -86,6 +86,24 @@ def test_bridge_rejects_missing_shadow_duplicate_ticks_and_raw_as_position():
         bridge.select(env, torch.zeros(1, 29), torch.zeros(1, dtype=torch.long))
 
 
+@pytest.mark.parametrize('clean_tick',[48,72,96,120,156,192,240,300])
+def test_takeover_clean_boundary_can_align_with_unchanged_native_plan_phase(clean_tick):
+    env=environment();env._action_queue=env._action_queue[:,:3].clone()
+    switch=clean_tick-(env._action_queue.shape[1]-1)
+    bridge=ExpertPositionBridge(env,switch,ExpertPositionBridge.speed_scheme,pipeline=native_pipeline())
+    env._dagger_position_bridge=bridge
+    mask=[];sources=[]
+    for tick in range(clean_tick+1):
+        bridge.submit(torch.zeros(1,29),torch.zeros(1,29),tick)
+        apply_position_targets(env,torch.zeros(1,29))
+        mask.append(bool(bridge.trace['expert_label_valid'][0]))
+        sources.append(int(bridge.trace['control_source'][0]))
+    assert sources.index(1)==switch and mask.index(True)==clean_tick
+    assert next(t for t in range(0,len(mask),12) if mask[t])==clean_tick
+    assert not any(mask[switch:clean_tick])
+    assert clean_tick%12==0 and bridge.queue_length==3
+
+
 def test_actual_expert_acknowledgement_and_q_reached_are_not_student_counterfactuals():
     env = environment(False); bridge = ExpertPositionBridge(env, 1, ExpertPositionBridge.speed_scheme, pipeline=native_pipeline())
     env._dagger_position_bridge = bridge

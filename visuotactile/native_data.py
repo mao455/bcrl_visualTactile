@@ -338,16 +338,34 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
     from .checkpointing import save
     from .training_resources import atomic_json
     root=Path(root);out=root/'state_data';info=json.loads((out/'data.json').read_text())
-    ids=identities or info['splits']['train']+info['splits']['validation']
+    ids=identities or info['splits']['train']+info['splits']['validation']+info['splits'].get('correction_dev',[])
     plan=json.loads((root/'session.json').read_text())
     if sha256(plan['dino_checkpoint'])!=plan['dino_sha256']:raise ValueError('Frozen DINO weight file changed')
     lease=lease_for(root,deadline=plan['cache_deadline'])
     dino=None
     (out/'perception').mkdir(exist_ok=True);entries={};started=time.time();frames_done=0
     total=sum((info['entries'][i]['length']+11)//12 for i in ids)
-    prior=json.loads((root/'cache_acceptance_index.json').read_text()) if (root/'cache_acceptance_index.json').exists() else None
-    if prior and (prior['dino_sha256']!=plan['dino_sha256'] or prior['data_sha256']!=sha256(out/'data.json')):
-        raise ValueError('Acceptance cache identity differs')
+    cache_contract=dict(dino_revision=DINO_REVISION,dino_sha256=plan['dino_sha256'],data_sha256=sha256(out/'data.json'),
+        cameras=CAMERAS,resolution=[448,252],patches=[384,18,32],depth=[2,18,32],stride=12,
+        random_augmentation=False,trainable_projection_cached=False)
+    # Only a committed per-episode index proves a reusable payload. A worker
+    # can die after any episode; the next worker must retain its measured work.
+    prior={'entries':{}};orphans=[]
+    for name in ('cache_acceptance_index.json','cache_progress_index.json','cache_index.json'):
+        checkpoint=root/name
+        if not checkpoint.is_file():continue
+        previous=json.loads(checkpoint.read_text())
+        if any(previous.get(k)!=v for k,v in cache_contract.items()):
+            raise ValueError('Existing DINO cache identity differs: '+name)
+        orphans.extend(previous.get('preserved_orphans',[]))
+        for key,value in previous['entries'].items():
+            if key in prior['entries'] and value!=prior['entries'][key]:
+                raise ValueError('Conflicting committed DINO payload identity: '+key)
+            prior['entries'][key]=value
+    def checkpoint_progress():
+        committed=dict(prior['entries']);committed.update(entries)
+        atomic_json(root/'cache_progress_index.json',dict(cache_contract,entries=committed,
+            complete=False,requested_ids=ids,preserved_orphans=orphans,utc=time.time()))
     reusable=json.loads(Path(reuse_index).read_text()) if reuse_index is not None else None
     if reusable and (reusable['dino_sha256']!=plan['dino_sha256'] or reusable.get('dino_revision')!=DINO_REVISION
             or reusable.get('stride')!=12 or reusable.get('cameras')!=CAMERAS
@@ -358,7 +376,23 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
     for identity in ids:
         entry=info['entries'][identity];patches=[];depth=[]
         path=out/'perception'/(identity+'.pt')
+        if reusable and identity in reusable['entries'] and reusable['entries'][identity]['source_sha256']!=entry['source_sha256']:
+            raise ValueError('Shared DINO payload/source identity changed: '+identity)
+        old=prior['entries'].get(identity)
+        if old is not None:
+            if (not path.is_file() or old['sha256']!=sha256(path) or old['source_sha256']!=entry['source_sha256']
+                    or old['frames']!=(entry['length']+11)//12):
+                raise ValueError('Committed DINO payload/source identity changed: '+identity)
+            entries[identity]=old;total-=old['frames'];checkpoint_progress();continue
         shared=reusable['entries'].get(identity) if reusable else None
+        if reusable and shared is None:
+            # A pool identity includes run/group/round, whereas an earlier cache
+            # may use the collector's local name. Only immutable source-content
+            # and backbone identity permit reuse; never copy trainable features.
+            matches=[row for row in reusable['entries'].values() if row.get('source_sha256')==entry['source_sha256']]
+            if len(matches)>1 and len({row['sha256'] for row in matches})!=1:
+                raise ValueError('Ambiguous source-content DINO cache identity')
+            shared=matches[0] if matches else None
         if shared is not None:
             source=Path(shared['path'])
             if not source.is_absolute():
@@ -369,12 +403,12 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
             if shared['frames']!=(entry['length']+11)//12:raise ValueError('Shared DINO temporal coverage differs')
             if path.exists() and sha256(path)!=shared['sha256']:raise ValueError('Existing DINO payload differs')
             if not path.exists():path.symlink_to(source.resolve())
-            entries[identity]=dict(shared,path=str(path.resolve()));total-=shared['frames'];continue
-        if path.exists():
-            old=prior['entries'].get(identity) if prior else None
-            if not old or old['sha256']!=sha256(path) or old['source_sha256']!=entry['source_sha256']:
-                raise ValueError('Unverified existing cache: '+identity)
-            entries[identity]=old;total-=old['frames'];continue
+            entries[identity]=dict(shared,path=str(path.resolve()));total-=shared['frames'];checkpoint_progress();continue
+        if path.exists() or path.is_symlink():
+            orphan=path.with_name(path.name+'.unindexed.'+str(time.time_ns()))
+            record=dict(identity=identity,path=str(orphan),sha256=sha256(path) if path.is_file() else None,
+                reason='Payload exists without a committed matching index; preserved before rebuilding')
+            path.replace(orphan);orphans.append(record);checkpoint_progress()
         with h5py.File(entry['path'],'r') as f:
             g=f['episodes'][entry['episode']];meta=json.loads(f.attrs['metadata_json'])
             if meta['camera_ids']!=CAMERAS:raise ValueError('Camera order differs')
@@ -396,7 +430,6 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
         if path.exists():raise FileExistsError('No repeated cache writes: '+str(path))
         save(path,dict(patches=torch.stack(patches),depth=torch.stack(depth),camera_time=ct,camera_valid=cv))
         entries[identity]=dict(path=str(path),sha256=sha256(path),source_sha256=entry['source_sha256'],frames=len(ticks),camera_time_sha256=__import__('hashlib').sha256(ct.numpy().tobytes()).hexdigest())
-    atomic_json(root/('cache_acceptance_index.json' if identities else 'cache_index.json'),dict(entries=entries,
-        dino_revision=DINO_REVISION,dino_sha256=plan['dino_sha256'],data_sha256=sha256(out/'data.json'),
-        cameras=CAMERAS,resolution=[448,252],patches=[384,18,32],depth=[2,18,32],stride=12,
-        random_augmentation=False,trainable_projection_cached=False,complete=True))
+        checkpoint_progress()
+    atomic_json(root/('cache_acceptance_index.json' if identities else 'cache_index.json'),dict(cache_contract,entries=entries,
+        complete=True,preserved_orphans=orphans))

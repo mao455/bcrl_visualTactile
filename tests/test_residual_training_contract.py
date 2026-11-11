@@ -152,11 +152,19 @@ def test_prefix_advances_history_without_optimizer_or_supervised_exposure(traine
     assert loss['loss']==pytest.approx(1.) and loss['supervised_ticks']==16
 
 
-def test_incremental_resume_after_final_group_preserves_next_updates(trainer,monkeypatch):
+@pytest.mark.parametrize('stratified',[False,True])
+def test_incremental_resume_after_final_group_preserves_next_updates(trainer,monkeypatch,stratified):
     root,session,model,_=trainer
     _,config,*_=anchor_continue.residual_setup(root)
     config.update(continuation_from={'test':'CPU mocked selected source'},maximum_control_tick_epochs=3,
         minimum_control_tick_epochs=3,learning_rate=3e-4)
+    if stratified:
+        _,_,data,records,_,saved_config,_=anchor_continue.residual_setup(root)
+        data['sampling_strata']=dict(core=['t0','t1','t2','t3'],historical_correction=['t4'],current_correction=['t5'])
+        data['splits']['correction_dev']=['d'];records['d']=record(88,3)
+        saved_config.update(sampling_strata=data['sampling_strata'])
+        monkeypatch.setattr(anchor_continue,'residual_metrics',lambda *a,**kw:
+            (dict(all={'normalized_equal_mse':1.},initial24={'normalized_equal_mse':1.}),[]))
     anchor_continue.residual_train(root)
     expected=torch.load(root/'training/last.pt',weights_only=False)
     other=root.parent/'resumed';other.mkdir();session['base_contracts']['resumed']={}
@@ -173,8 +181,10 @@ def test_incremental_resume_after_final_group_preserves_next_updates(trainer,mon
     monkeypatch.setattr(anchor_continue,'save',original)
     anchor_continue.residual_train(other)
     actual=torch.load(other/'training/last.pt',weights_only=False)
-    assert actual['updates']==expected['updates']==6
-    assert actual['supervised_ticks']==expected['supervised_ticks']==63
+    assert actual['updates']==expected['updates']
+    assert actual['supervised_ticks']==expected['supervised_ticks']
+    if not stratified:assert actual['updates']==6 and actual['supervised_ticks']==63
+    assert actual['episode_counts']==expected['episode_counts']
     assert torch.equal(actual['model']['weight'],expected['model']['weight'])
     for key in ('step','exp_avg','exp_avg_sq'):
         assert torch.equal(actual['optimizer']['state'][0][key],expected['optimizer']['state'][0][key])
@@ -266,3 +276,65 @@ def test_dagger_setup_keeps_original_stat_population_and_rejects_stale_cache(tmp
     torch.save(rows['new'],nominal/'new.pt');index['episodes']['new']['sha256']=anchor_continue.sha256(nominal/'new.pt')
     write(nominal/'index.json',index)
     with pytest.raises(ValueError,match='episode cache source'):anchor_continue.residual_setup(root)
+
+
+def test_stratified_round_measures_update_zero_and_keeps_it_if_correction_worsens(trainer,monkeypatch):
+    root,_,model,_=trainer
+    session,config,data,records,_,saved_config,lease=anchor_continue.residual_setup(root)
+    config.update(continuation_from={'test':'trained source'},maximum_control_tick_epochs=2,
+        minimum_control_tick_epochs=2,learning_rate=3e-4)
+    data['sampling_strata']=dict(core=['t0','t1','t2','t3'],historical_correction=['t4'],current_correction=['t5'])
+    data['splits']['correction_dev']=['d'];records['d']=record(88,80)
+    records['d']['time']=torch.arange(80)/60;records['d']['supervision_mask']=torch.arange(80)>=64
+    saved_config.update(sampling_strata=data['sampling_strata'])
+    measured=[]
+    def metrics(model,records,ids,lease):
+        trained=bool(model.weight.detach().abs().sum())
+        measured.append((list(ids),trained))
+        value=(2. if trained else 1.) if ids==['d'] else (.9 if trained else 1.)
+        return dict(all={'normalized_equal_mse':value},initial24={'normalized_equal_mse':value}),[]
+    monkeypatch.setattr(anchor_continue,'residual_metrics',metrics)
+    anchor_continue.residual_train(root)
+    chosen=torch.load(root/'training/best.pt',weights_only=False)
+    done=json.loads((root/'training/finished.json').read_text())
+    assert chosen['updates']==chosen['new_optimizer_updates']==0
+    assert done['new_optimizer_updates']>0
+    assert chosen['selection_baseline']==dict(old_validation=1.,correction_dev=1.,correction_initial24=1.)
+    assert (['d'],False) in measured and (['d'],True) in measured
+    assert done['coverage']['strata']['historical_correction']['supervised_ticks']>0
+    assert not any(x==88 for x in model.seen)  # Held dev never reaches the actual optimizer.
+    before=model.weight.detach().clone();count=len(model.seen)
+    anchor_continue.residual_train(root)
+    assert len(model.seen)==count and torch.equal(model.weight,before)
+
+
+def test_multiround_probe_covers_correction_prefix_cost_at_formal_learning_rate(trainer):
+    root,_,model,_=trainer
+    _,config,data,*_=anchor_continue.residual_setup(root)
+    config['learning_rate']=3e-4
+    data['sampling_strata']=dict(core=['t0','t1','t2','t3'],historical_correction=['t4'],current_correction=['t5'])
+    anchor_continue.residual_train(root,probe=True)
+    saved=torch.load(root/'training_probe/last.pt',weights_only=False)
+    assert saved['train_ids']==['t5','t4','t0','t1']
+    assert set(model.seen)=={5.,4.,0.,1.}
+    assert saved['optimizer']['param_groups'][0]['lr']==3e-4
+    assert saved['formal_updates']==0 and saved['disposable']
+
+
+def test_contact_phases_reuse_actions_and_mask_only_expert_error():
+    pred=torch.arange(7,dtype=torch.float32)[:,None].expand(7,29)
+    rec=dict(base=torch.zeros(7,29),target=torch.zeros(7,29),
+        gate=torch.tensor([False,True,True,False,False,True,True]),
+        supervision_mask=torch.tensor([False,False,True,True,True,True,True]))
+    rows=anchor_continue.contact_phase_metrics(pred,rec,identity='one',split='correction_dev',masked=pred-.25)
+    by_phase={r['contact_phase']:r for r in rows}
+    assert {k:r['ticks'] for k,r in by_phase.items()}==dict(precontact=1,initialcontact=2,sustained=2,lostcontact=2)
+    assert by_phase['precontact']['final_command_equal_mse_rad2'] is None
+    assert by_phase['initialcontact']['supervised_ticks']==1
+    assert by_phase['initialcontact']['final_command_equal_mse_rad2']==25.
+    assert by_phase['lostcontact']['correction_rms_rad']==pytest.approx((12.5)**.5)
+    assert by_phase['lostcontact']['correction_max_abs_rad']==4.
+    assert all(r['force_zero_output_rms_rad']==.25 for r in rows)
+    assert all(r['raw_saturation_fraction'] is None for r in rows)
+    missing=anchor_continue.contact_phase_metrics(pred,rec,identity='one',split='train')
+    assert all(not r['force_zero_available'] and r['force_zero_output_rms_rad'] is None for r in missing)

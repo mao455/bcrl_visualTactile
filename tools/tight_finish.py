@@ -1088,6 +1088,107 @@ def formal_test_plan(source_root, output):
     return cases
 
 
+def dagger_evaluation_rules(root, session, settings):
+    """Opt-in bounded development only; absence preserves historical evaluation."""
+    config=read(root/'configuration.json') if (root/'configuration.json').exists() else session
+    rules=config.get('residual_pair',{}).get('dagger_evaluation')
+    if rules is None:return None
+    expected={'initial_trials','max_trials','expand_if_success','expand_if_subgoal','expand_if_native_lift'}
+    require(set(rules)==expected and all(type(x) is int and x>0 for x in rules.values()),'Invalid DAgger evaluation limits')
+    require(rules['initial_trials']==4 and rules['max_trials']==10,'DAgger evaluation requires frozen 4 then at most10')
+    require(settings.get('cohort','development')=='development','Adaptive evaluation is development-only, never test')
+    return rules
+
+
+def dagger_evaluation(root, groups, plan, rules, run_trial, verify_video):
+    """Account fixed attempts, recover complete evidence, never repeat a started case.
+
+    Callbacks permit a lazy single Kit instance in deployment and CPU owner tests.
+    A software-failed trial makes this group's evaluation incomplete; it does not
+    authorize a replacement or prevent the other group's registered attempts.
+    """
+    require(len(plan)==rules['max_trials'] and len({c['identity'] for c in plan})==len(plan) and all(c['identity']==c['spec'].get('identity') for c in plan),'Freeze exactly ten distinct development cases')
+    require(all(c['spec'].get('cohort') not in ('formal_test','test') and c['spec'].get('split')!='test' for c in plan),'Held-out tests cannot drive expansion')
+    checkpoints={g:root/g/'training/best.pt' for g in groups}
+    frozen=dict(version='dagger_development_4_then_10_v1',plan_sha256=sha(root/'evaluation_plan.json'),rules=rules,
+        checkpoints={g:sha(p) for g,p in checkpoints.items()},groups=groups,videos_per_group=1,expert_takeover=False)
+    freeze=root/'dagger_evaluation_freeze.json'
+    if freeze.exists():require(read(freeze)==frozen,'Frozen evaluation plan, rules or selected checkpoint changed')
+    else:write(freeze,frozen)
+    results={g:[] for g in groups};failures={g:False for g in groups};decisions={g:None for g in groups}
+    def summary(group):
+        rows=results[group];complete=[r for r in rows if r.get('software_complete')];valid=[r for r in complete if r.get('legal')]
+        attempted={r['identity'] for r in rows};unrun=[c['identity'] for c in plan if c['identity'] not in attempted]
+        value=dict(planned=len(plan),attempts=len(rows),completed=len(complete),valid=len(valid),
+            rejected=sum(not r.get('legal') for r in complete),software_failures=len(rows)-len(complete),invalid_total=len(rows)-len(valid),
+            successes=sum(bool(r.get('success')) for r in valid),native_lifts=sum(bool(r.get('native_lift')) for r in valid),
+            first_subgoal_reached=sum(r.get('native_subgoals',0)>0 for r in valid),alignments=sum(bool(r.get('native_alignment')) for r in valid),
+            unrun=len(unrun),unrun_identities=unrun,expansion=decisions[group],results=rows,development_only=True,formal_test22_used=False,
+            paired_specs_and_sampler_seed=True,bitwise_hidden_state_pairing_proven=False,expert_takeover=False,
+            complete=not failures[group] and decisions[group] is not None and len(complete)==(len(plan) if decisions[group]['expanded'] else rules['initial_trials']))
+        write(root/group/'evaluation_summary.json',value);return value
+    def perform(group,index):
+        if failures[group]:return
+        case=plan[index];identity=case['identity'];out=root/group/'evaluation'/identity
+        marker=root/group/'evaluation_started'/(identity+'.json');failure=root/group/'evaluation_failures'/(identity+'.json')
+        binding=dict(identity=identity,spec=case['spec'],checkpoint_sha256=frozen['checkpoints'][group],plan_sha256=frozen['plan_sha256'])
+        try:
+            require(not failure.exists(),'Previously failed attempt is retained; no repeat')
+            if out.exists() or marker.exists():
+                require((out/'started.json').exists() and (out/'result.json').exists(),'Started attempt lacks complete evidence; no repeat')
+                started=read(out/'started.json');result=read(out/'result.json')
+                require(started.get('spec')==case['spec'] and Path(started['checkpoint']).resolve()==checkpoints[group].resolve(),'Existing trial start identity differs')
+                require(result.get('software_complete') is True and all(result.get(k)==v for k,v in case['spec'].items()),'Existing trial is incomplete or differs from frozen spec')
+                if marker.exists():require(read(marker)==binding,'Existing attempt binding differs')
+                if result.get('legal'):
+                    require(result.get('checkpoint_sha256')==frozen['checkpoints'][group] and (out/'trace.npz').is_file(),'Existing legal trial lacks checkpoint/trace evidence')
+                completion=out/'evaluation_receipt.json'
+                if completion.exists():
+                    receipt=read(completion)
+                    require(receipt['result_sha256']==sha(out/'result.json') and receipt['binding']==binding,'Completed trial receipt changed')
+                    if result.get('legal'):require(receipt['trace_sha256']==sha(out/'trace.npz'),'Completed trace changed')
+                    if receipt.get('video_sha256'):require(receipt['video_sha256']==sha(out/'rollout.mp4'),'Completed video changed')
+            else:
+                write(marker,binding)
+                result=run_trial(group,case,out,index==0)
+                require((out/'started.json').exists() and (out/'result.json').exists(),'Trial returned without durable evidence')
+                require(result.get('software_complete') is True,'Trial returned software failure; no repeat')
+                require(all(result.get(k)==v for k,v in case['spec'].items()),'Trial result differs from frozen spec')
+                if result.get('legal'):require(result.get('checkpoint_sha256')==frozen['checkpoints'][group] and (out/'trace.npz').is_file(),'Legal trial lacks checkpoint/trace evidence')
+            require(type(result.get('legal')) is bool and read(out/'result.json')==result,'Incomplete or inconsistent durable trial result')
+            if result['legal']:
+                require(isinstance(result.get('steps'),int) and result['steps']>0 and
+                    all(k in result for k in ('native_subgoals','native_lift','native_alignment')) and (out/'trace.npz').stat().st_size>0,
+                    'Legal trial lacks native completion evidence')
+            if result.get('legal') and index==0 and not (out/'video_verified.json').exists():
+                write(out/'video_verified.json',verify_video(out/'rollout.mp4',expected_frames=result['steps']))
+            receipt=dict(binding=binding,result_sha256=sha(out/'result.json'),trace_sha256=sha(out/'trace.npz') if result.get('legal') else None,
+                video_sha256=sha(out/'rollout.mp4') if result.get('legal') and index==0 else None)
+            write(out/'evaluation_receipt.json',receipt)
+        except Exception as error:
+            failures[group]=True
+            result=dict(**case['spec'],software_complete=False,legal=None,success=False,classification='software_failure',reason=repr(error),no_retry=True)
+            if not failure.exists():write(failure,dict(result=result,binding=binding,utc=time.time(),traceback=traceback.format_exc()))
+            else:result=read(failure)['result']
+        results[group].append(result);summary(group)
+        write(root/'evaluation_progress.json',dict(group=group,case=index,completed=sum(len(r) for r in results.values()),utc=time.time()))
+    for index in range(rules['initial_trials']):
+        for group in groups:perform(group,index)
+    for group in groups:
+        row=summary(group);reasons=[]
+        for metric,key in (('successes','expand_if_success'),('first_subgoal_reached','expand_if_subgoal'),('native_lifts','expand_if_native_lift')):
+            if row[metric]>=rules[key]:reasons.append(metric+' >= '+str(rules[key]))
+        decisions[group]=dict(expanded=bool(reasons) and not failures[group],reason='software_failure' if failures[group] else '; '.join(reasons) if reasons else 'initial four below every preregistered expansion threshold',initial_trials=rules['initial_trials'])
+    for index in range(rules['initial_trials'],len(plan)):
+        for group in groups:
+            if decisions[group]['expanded']:perform(group,index)
+    summaries={g:summary(g) for g in groups};complete=all(r['complete'] for r in summaries.values())
+    receipt=dict(complete=complete,groups=groups,maximum_attempts_each=len(plan),planned=len(groups)*len(plan),
+        completed=sum(r['completed'] for r in summaries.values()),unrun=sum(r['unrun'] for r in summaries.values()),
+        software_failures=sum(r['software_failures'] for r in summaries.values()),group_summary={g:{k:r[k] for k in ('planned','completed','unrun','complete','expansion','software_failures')} for g,r in summaries.items()},utc=time.time())
+    write(root/'evaluation_complete.json',receipt);return receipt
+
+
 def vision_evaluate(root, residual=False):
     import torch
     from tools.tight_state import environment
@@ -1097,14 +1198,30 @@ def vision_evaluate(root, residual=False):
     from visuotactile.native_evaluation import exit_completed_kit_worker
     s=read(root/'session.json');v=s['residual_pair' if residual else 'vision_pair'];lease=lease_for(root,deadline=s['evaluation_deadline'])
     require(sha(s['dino_checkpoint'])==s['dino_sha256'],'Frozen DINO identity changed before deployment')
-    app,env,player,lease=environment(root,True,lease=lease)
+    rules=dagger_evaluation_rules(root,s,v)
     available=[g for g in v['groups'] if (root/g/'offline/result.json').exists()]
+    if rules:require(available==v['groups'],'DAgger evaluation cannot shrink the registered group denominator')
     if s.get('matrix_owner'):require(available==v['groups'],'Registered evaluation group missing; do not shrink denominator')
     results={g:[] for g in available};plan=read(root/'evaluation_plan.json');saved={}
     for group in available:
         checkpoint=root/group/'training/best.pt';saved[group]=torch.load(checkpoint,map_location='cpu',weights_only=False)
         require(saved[group]['configuration']['statistics_sha256']==sha(root/group/'state_data/statistics.pt'),'Evaluation normalizer differs')
         require(saved[group]['configuration']['dino_sha256']==s['dino_sha256'],'Checkpoint DINO identity differs')
+    if rules:
+        live={}
+        def bounded_trial(group,case,out,record):
+            if 'environment' not in live:
+                require(not live.get('initialization_attempted'),'Previous Kit initialization failed; no second initialization')
+                live['initialization_attempted']=True;live['environment']=environment(root,True,lease=lease)
+            app,env,player,owned_lease=live['environment'];checkpoint=root/group/'training/best.pt'
+            return trial(env,owned_lease,out,case['spec'],{},player,str(checkpoint),saved=saved[group],position=True,video=record,
+                expert_checkpoint=s['expert_checkpoint'],video_title=f'{group} | development seed {case["spec"]["seed"]}')
+        report=dagger_evaluation(root,available,plan,rules,bounded_trial,verify_video)
+        write(root/'result.json',dict(software_complete=True,worker_error=None,stage='bounded_evaluation_accounted',
+            evaluation_complete=report['complete'],trial_software_failures=report['software_failures'],utc=time.time()))
+        exit_completed_kit_worker(root)
+        return
+    app,env,player,lease=environment(root,True,lease=lease)
     for index,case in enumerate(plan):
         for group in available:
             checkpoint=root/group/'training/best.pt';out=root/group/'evaluation'/case['identity']
@@ -1424,6 +1541,47 @@ def residual_prepare(root, configuration=None):
     write(root/'status.json',dict(state='PREPARED',stage='residual_acceptance_pending',utc=time.time(),formal_updates=0))
 
 
+def recover_residual_cache(path, identity, record, entry, binding):
+    """Validate an orphan against current source history before indexing it.
+
+    Identity is necessary but insufficient: actual issued history and expert
+    supervision remain bytewise source-derived, never replaced by nominal plans.
+    Unverifiable payloads are retained under an explicit orphan name and rebuilt.
+    """
+    import torch
+    from visuotactile.native_data import residual_observations
+    cached=torch.load(path,map_location='cpu',weights_only=False)
+    require(cached.get('cache_identity')==binding and cached.get('identity')==identity,'Orphan cache identity differs')
+    n=len(record['robot']);actual=residual_observations(entry,record['robot'],record['time'])
+    for key in ('robot','tactile_valid','gate'):
+        require(torch.equal(cached[key],actual[key]),'Orphan actual feedback differs: '+key)
+    for key,value in actual['tactile'].items():require(torch.equal(cached['tactile'][key],value),'Orphan tactile history differs: '+key)
+    for key,value in dict(target=record.get('expert_command',record['command']),time=record['time'],limits=record['joint_limits']).items():
+        require(torch.equal(cached[key],value.cpu()),'Orphan supervision/source differs: '+key)
+    for key in ('supervision_mask','control_segment'):
+        require((key in cached)==(key in record),'Orphan supervision contract differs: '+key)
+        if key in record:require(torch.equal(cached[key],record[key].cpu()),'Orphan supervision mask differs: '+key)
+    for key,shape in dict(plans=(n,24,29),plan_valid=(n,24),base=(n,29),visual=(n,512),previous_nominal=(n,29)).items():
+        require(tuple(cached[key].shape)==shape and torch.isfinite(cached[key]).all(),'Orphan prediction shape/value differs: '+key)
+    cursor=torch.arange(n)%12
+    require(torch.equal(cached['plan_cursor'],cursor) and torch.equal(cached['plan_valid'],torch.arange(24)[None]+cursor[:,None]<24),'Orphan plan phase differs')
+    require(torch.equal(cached['base'],cached['plans'][:,0]),'Orphan current nominal differs from remaining plan')
+    expected_previous=torch.cat((torch.zeros_like(cached['base'][:1]),cached['base'][:-1]))
+    require(torch.equal(cached['previous_nominal'],expected_previous) and torch.equal(cached['previous_nominal_valid'],torch.arange(n)>0),'Orphan nominal history is not strict past')
+    if cached.get('nominal_supervision')=='q_reached':require(torch.equal(cached['q_reached'],record['clean_sample'].cpu()),'Orphan reached labels differ')
+    require(cached.get('history_source')=='strictly_past_actual_executed_targets_including_student_prefix; never regenerated nominal labels','Orphan issued-history provenance differs')
+    return dict(sha256=sha(path),ticks=n,plans=math.ceil(n/12),recovered_orphan=True)
+
+
+def residual_overflow(errors, scales):
+    """Unweighted diagnostic denominator: actual supervised source ticks only."""
+    import torch
+    if not errors:return dict(supervised_ticks=0,joint_fraction=None,tick_fraction=None,maximum_required_normalized=None)
+    required=torch.cat(errors);exceeded=required>torch.as_tensor(scales)
+    return dict(supervised_ticks=len(required),joint_fraction=float(exceeded.float().mean()),
+        tick_fraction=float(exceeded.any(-1).float().mean()),maximum_required_normalized=float(required.max()))
+
+
 def residual_cache(root, *, acceptance=False):
     import torch
     from visuotactile.models.native_dp import load_policy
@@ -1434,7 +1592,9 @@ def residual_cache(root, *, acceptance=False):
     state_fp32();s=read(root/'session.json');v=s['residual_pair'];data=read(root/'state_data/data.json')
     protected=read(root/'base_identities.json')['protected']
     for path,value in protected.items():require(sha(path)==value,'Protected artifact changed: '+path)
-    ids=data['splits']['train'][:1]+data['splits']['validation'][:1] if acceptance else data['splits']['train']+data['splits']['validation']
+    all_ids=data['splits']['train']+data['splits']['validation']+data['splits'].get('correction_dev',[])
+    require(len(all_ids)==len(set(all_ids)),'Nominal cache split overlap')
+    ids=data['splits']['train'][:1]+data['splits']['validation'][:1] if acceptance else all_ids
     visual_index=read(Path(s['source_root'])/'cache_index.json');began=time.time();completed=0
     total=len(v['groups'])*len(ids);lease=lease_for(root,deadline=s['cache_deadline'])
     for group,base in v['bases'].items():
@@ -1444,27 +1604,38 @@ def residual_cache(root, *, acceptance=False):
             residual_statistics_sha256=v['residual_statistics_sha256'],residual_normalization_identity=v['residual_normalization_identity'],
             sampler=dict(steps=16,seed=7091,horizon=24,commit=12,prediction='sample'),
             inputs='causal_actual_student_expert_prefix; separate_previous_nominal' if v.get('dagger_round') else 'causal_full_expert_prefix; separate_previous_nominal')
-        records=visual_records(root/'state_data',ids,base.get('modality',base['group']))
+        records=visual_records(root/'state_data',all_ids,base.get('modality',base['group']))
         if v.get('dagger_round'):identity_fields['supervision_mask_sha256']=supervision_mask_sha256(records)
         index=read(index_path) if index_path.exists() else dict(identity_fields,episodes={})
         require(all(index.get(k)==value for k,value in identity_fields.items()),'Nominal cache semantic identity differs')
         require(index['base_sha256']==base['sha256'],'Cached base differs')
-        saved=torch.load(base['checkpoint'],map_location='cpu',weights_only=False)
-        with lease.block():model=load_policy(saved,'cuda:0').requires_grad_(False).eval()
-        del saved
+        model=None
+        binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=identity_fields['statistics_sha256'],
+            data_sha256=identity_fields['data_sha256'],residual_statistics_sha256=v['residual_statistics_sha256'])
         for identity in ids:
             path=dest/(identity+'.pt')
+            if path.exists() and identity not in index['episodes']:
+                try:
+                    index['episodes'][identity]=recover_residual_cache(path,identity,records[identity],data['entries'][identity],binding)
+                    write(index_path,index)
+                except Exception as error:
+                    digest=sha(path);orphan=path.with_name(path.stem+'.orphan_unverified_'+digest[:16]+'.pt')
+                    require(not orphan.exists(),'Unverified orphan already retained; refuse overwrite')
+                    path.rename(orphan)
+                    write(dest/(identity+'.cache_recovery.json'),dict(action='retain_unverified_orphan_then_rebuild',
+                        retained_path=str(orphan),sha256=digest,reason=repr(error),utc=time.time()))
             if path.exists():require(index['episodes'][identity]['sha256']==sha(path),'Existing nominal cache drift')
             else:
+                if model is None:
+                    saved=torch.load(base['checkpoint'],map_location='cpu',weights_only=False)
+                    with lease.block():model=load_policy(saved,'cuda:0').requires_grad_(False).eval()
+                    del saved
                 visual_path=root/'state_data/perception'/(identity+'.pt')
                 require(sha(visual_path)==visual_index['entries'][identity]['sha256'],'Frozen DINO cache differs')
                 def progress(**kw):
                     write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                         elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed if completed else None,**kw))
-                binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=identity_fields['statistics_sha256'],
-                    data_sha256=identity_fields['data_sha256'],residual_statistics_sha256=v['residual_statistics_sha256'])
-                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,
-                    **({'cache_identity':binding} if v.get('dagger_round') else {}))
+                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,cache_identity=binding)
                 require(all(p.grad is None for p in model.parameters()),'Frozen base received gradient')
                 save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12))
                 write(index_path,index)
@@ -1473,24 +1644,25 @@ def residual_cache(root, *, acceptance=False):
                 elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed))
         if not acceptance:
             scale=torch.load(v['residual_statistics_path'],map_location='cpu',weights_only=False)['action_scale'];errors=[];population=0;history_population=0;all_errors=[]
+            strata=data.get('sampling_strata',{});stratum_errors={name:[] for name in strata}
             for identity in data['splits']['train']:
                 r=torch.load(dest/(identity+'.pt'),map_location='cpu',weights_only=False)
                 mask=r.get('supervision_mask',torch.ones(len(r['robot']),dtype=torch.bool));population+=int(mask.sum());history_population+=len(r['robot'])
                 error=((r['target']-r['base'])*scale).abs()[mask]
                 if identity in data['splits']['train'][:16]:errors.append(error)
                 if v.get('dagger_round'):all_errors.append(error)
+                for name,members in strata.items():
+                    if identity in members:stratum_errors[name].append(error)
             e=torch.cat(errors);amplitudes=[]
             for part in (e[:,:7],e[:,7:]):amplitudes.append(max(.1,min(2.,math.ceil(float(part.flatten().quantile(.99))*10)/10)))
             scales=v.get('fixed_residual_scales',[amplitudes[0]]*7+[amplitudes[1]]*22)
-            overflow={}
-            if all_errors:
-                required=torch.cat(all_errors);exceeded=required>torch.tensor(scales)
-                overflow=dict(supervised_ticks=len(required),joint_fraction=float(exceeded.float().mean()),
-                    tick_fraction=float(exceeded.any(-1).float().mean()),maximum_required_normalized=float(required.max()))
+            overflow=residual_overflow(all_errors,scales) if all_errors else {}
+            by_stratum={name:residual_overflow(values,scales) for name,values in stratum_errors.items()}
             write(dest/'scales.json',dict(scales=scales,
                 residual_statistics_sha256=v['residual_statistics_sha256'],residual_normalization_identity=v['residual_normalization_identity'],
                 rule='previous selected backend bounds unchanged' if v.get('dagger_round') else 'all-tick train16 p99 rounded up0.1; bounded[0.1,2]; no label clipping',train_ids=data['splits']['train'][:16],
-                control_tick_population=population,history_tick_population=history_population,required_correction_overflow=overflow,labels_are_only_supervision=True))
+                control_tick_population=population,history_tick_population=history_population,required_correction_overflow=overflow,
+                required_correction_overflow_by_stratum=by_stratum,overflow_scope='unweighted source supervised ticks; not repeated sampling exposure; correction_dev excluded',labels_are_only_supervision=True))
         del model,records;torch.cuda.empty_cache()
     if not acceptance:write(root/'cache_complete.json',dict(complete=True,episodes=completed,wall_s=time.time()-began,utc=time.time()))
 
@@ -2301,7 +2473,7 @@ def matrix_run(root):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_follow','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_follow','dagger_run','dagger_resume','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)
@@ -2323,7 +2495,7 @@ if __name__=='__main__':
             else:globals()[a.mode](root)
         except BaseException:
             write(root/(a.mode+'_error.json'),dict(traceback=traceback.format_exc()));code=1
-            if a.mode=='dagger_follow':
+            if a.mode in ('dagger_follow','dagger_run','dagger_resume'):
                 previous=read(root/'status.json') if (root/'status.json').exists() else {}
                 if previous.get('state') in ('WAITING','PREPARED','RUNNING'):
                     write(root/'status.json',dict(previous,state='FAILED',stage='successor_admission_or_owner_error',utc=time.time()))

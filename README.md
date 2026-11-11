@@ -1,4 +1,4 @@
-> Tight-Insertion 当前研究：原 `tight_transformer_20261110_02` 继续正常收尾；隔离工作树准备一轮 G11/QG01 专家接管式 DAgger，聚合后更新现有 U-Net 前端和 Transformer 后端。两组各12次采集机会、10次固定开发自主评估，新阶段12小时内；实际注册/启动以机器凭据为准。[研究入口](research_docs/README.md) · [现行合同](research_docs/CONTRACTS.md) · [实际结果](research_docs/STATE_DP_RESULTS.md) · [交接](research_docs/SESSION_HANDOFF.md)。
+> Tight-Insertion 当前研究：在隔离树实现最多3轮、总18小时的共享纠偏池DAgger，QG01优先、G11随后；旧两组21条成功纠偏已纳入共享历史池。每轮继续更新现有U-Net前端和Transformer后端，真实update0参与选模并保留完整配对回退。当前新GPU启动以owner实际凭据为准。[研究入口](research_docs/README.md) · [合同](research_docs/CONTRACTS.md) · [结果](research_docs/STATE_DP_RESULTS.md) · [交接](research_docs/SESSION_HANDOFF.md)。
 
 # Play2Perfect
 
@@ -54,11 +54,11 @@ play2perfect/
 
 ## Local visual–tactile research extension
 
-The `visuotactile/` extension implements three-view RGB-D policies, causal robot and tactile histories, trajectory recording, and a Transformer residual controller. The frontend remains the existing conditional U-Net; the DINO backbone stays frozen. Current work prepares a bounded round of success-filtered expert takeover aggregation using the same data, training and evaluation modules.
+The `visuotactile/` extension implements three-view RGB-D policies, causal robot and tactile histories, trajectory recording, and a Transformer residual controller. The frontend remains the existing conditional U-Net; the DINO backbone stays frozen. Current work implements up to three bounded rounds of success-filtered expert takeover aggregation using a shared correction pool and the same data, training and evaluation modules.
 
-The predecessor experiment continues with its frozen source. After its owned processes exit and selected checkpoints are verified, an ordinary successor process can collect corrections, fine-tune the frontend, regenerate nominal caches, fine-tune the backend and evaluate the autonomous student. A registered process and actual runtime receipts are required before describing the work as queued or started.
+The completed one-round DAgger checkpoints supply each initial frontend/backend pair. Each new round freezes a shared data snapshot, fine-tunes the frontend, refreshes its nominal cache, trains its paired backend and evaluates the autonomous student. Core, historical corrections and current corrections receive explicit sampling weights; the original validation and held-out correction development episodes have separate metrics. Update zero is measured and may remain selected. Whole paired models can be retained or rolled back.
 
-Student prefixes retain their actual observations and execution history with zero supervision. Only valid, actually executed expert suffixes from successful takeover episodes enter the correction pool. Command targets and reached configurations remain distinct; validation stays fixed and test22 is unused. Takeover success is reported separately from student autonomous success. Read [the research directions](research_docs/USER_RESEARCH_DIRECTION.md), [current contracts](research_docs/CONTRACTS.md), [perception inputs](research_docs/PERCEPTION.md), and [results](research_docs/STATE_DP_RESULTS.md). CPU tests do not establish physical recovery or improved assembly performance.
+Student prefixes retain actual observations and execution history with zero supervision. Only valid, actually executed expert suffixes from successful takeovers enter the correction pool. Command targets and reached configurations remain distinct, and test22 remains unused. Resume uses the original deadline and durable checkpoints; implemented scripts and CPU tests do not establish a new GPU launch or improved assembly performance. Read [the contracts](research_docs/CONTRACTS.md), [perception inputs](research_docs/PERCEPTION.md), and [results](research_docs/STATE_DP_RESULTS.md).
 
 This repository, [mao455/bcrl_visualTactile](https://github.com/mao455/bcrl_visualTactile), is a research fork of the original
 [Play2Perfect](https://github.com/kushal2000/play2perfect) release. The original

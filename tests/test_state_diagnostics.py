@@ -9,7 +9,8 @@ from visuotactile.state_image_offline import deployment_sample, diagnostic_rows,
 
 
 @pytest.mark.parametrize('full_horizon',[False,True])
-def test_deployment_sampler_visits_once_uses_one_plan_rng_and_real_tail(monkeypatch,full_horizon):
+@pytest.mark.parametrize('takeover',[False,True])
+def test_deployment_sampler_visits_once_uses_one_plan_rng_and_real_tail(monkeypatch,full_horizon,takeover):
     import visuotactile.state_image_offline as module
     seen, draws = [], []
     class Bank:
@@ -30,6 +31,9 @@ def test_deployment_sampler_visits_once_uses_one_plan_rng_and_real_tail(monkeypa
     rec = dict(time=torch.arange(n)/60, actor=torch.zeros(n, 141), robot=torch.zeros(n, 178),
         geometry=torch.zeros(n, 85), command=torch.zeros(n, 29), joint_limits=torch.tensor([[-2., 2.]]*29))
     rec['robot'][:, 58:87] = torch.arange(n)[:, None]/100
+    if takeover:
+        rec['supervision_mask']=torch.arange(n)>=7
+        rec['control_segment']=(torch.arange(n)>=7).long()
     sample = deployment_sample(Model(), rec, SimpleNamespace(fk=fk), SimpleNamespace(block=nullcontext), seed=42,full_horizon=full_horizon)
     expected_rng = torch.Generator().manual_seed(42)
     assert seen == list(range(n))
@@ -37,12 +41,16 @@ def test_deployment_sampler_visits_once_uses_one_plan_rng_and_real_tail(monkeypa
     for draw in draws: assert torch.equal(draw, torch.randn(1, 24, 29, generator=expected_rng))
     assert torch.equal(sample['prediction'][-1], draws[-1][0, 0].clamp(-2, 2))
     assert torch.equal(sample['hold'][:, 0], torch.tensor([0.]*12+[.12]*12+[.24]))
+    # The plan issued by student tick0 does not become an expert label at tick7.
+    # History nevertheless consumed every prefix tick exactly once above.
+    assert sample['valid'].tolist()==([False]*12+[True]*13 if takeover else [True]*n)
     if full_horizon:
         full=sample['full_horizon']
         assert len(full['prediction'])==24+13+1
         assert full['target_ticks']==list(range(24))+list(range(12,25))+[24]
         assert full['anchor_ticks']==[0]*24+[12]*13+[24]
         assert torch.equal(full['prediction'][:24],draws[0][0].clamp(-2,2))
+        assert full['valid'].tolist()==([False]*24+[True]*14 if takeover else [True]*38)
 
 
 def test_stage_error_uses_real_ticks_and_empty_is_unmeasured():

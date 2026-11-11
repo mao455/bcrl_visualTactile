@@ -1118,17 +1118,23 @@ def dagger_publish(root, output=None):
         evidence(path)
         with path.open(newline='') as stream:return list(csv.DictReader(stream))
     cfg=optional(root/'configuration.json',{});status=optional(root/'status.json',{})
-    if status.get('state')=='RUNNING' and not status.get('owned_workers_exited'):
+    pool_mode=cfg.get('version')=='successful_takeover_pool_v1'
+    if not pool_mode and status.get('state')=='RUNNING' and not status.get('owned_workers_exited'):
         raise ValueError('Publish after the DAgger owner stops its workers')
     session=optional(root/'session.json',{});launch=optional(root/'launch.json',{})
     registration=optional(root/'registration.json',{})
     plans=optional(root/'collection_plan.json',[]);eval_plan=optional(root/'evaluation_plan.json',[])
     groups=list(cfg.get('groups',{})) or sorted(p.name for p in (root/'round_01').glob('*') if p.is_dir())
-    group_reports={};collection_rows=[];closed_rows=[];stage_rows=[];curves=[];losses=[];errors=[];videos=[]
+    round_names=[f'round_{i:02d}' for i in range(1,int(cfg.get('rounds',1))+1)] if pool_mode else ['round_01']
+    if pool_mode:round_names=sorted(set(round_names)|{p.name for p in root.glob('round_[0-9][0-9]') if p.is_dir()})
+    round_reports={name:dict(status=optional(root/name/'round_status.json'),
+        finished=optional(root/name/'round_finished.json'),decision=optional(root/name/'decision.json'),
+        snapshot=optional(root/name/'snapshot.json'),groups={}) for name in round_names} if pool_mode else {}
+    group_reports={};collection_rows=[];closed_rows=[];stage_rows=[];curves=[];losses=[];errors=[];videos=[];all_plans={};sampling_rows=[]
     def video(node,group,cohort,identity,result):
         for movie in sorted(node.glob('*.mp4')):
             receipt=optional(node/'video_verified.json',{})
-            videos.append(dict(group=group,cohort=cohort,identity=identity,success=result.get('success'),
+            videos.append(dict(round=round_name,group=group,cohort=cohort,identity=identity,success=result.get('success'),
                 **evidence(movie,'video'),decoded_frames=receipt.get('decoded_frames'),frame_rate=receipt.get('frame_rate'),
                 decode_scope='Existing retained CPU decode receipt; publisher did not decode' if receipt else 'No retained complete decode receipt'))
     def evaluated(node,group,cohort,selected):
@@ -1151,7 +1157,7 @@ def dagger_publish(root, output=None):
             classification=('unmeasured' if not attempted else 'rejected' if r.get('legal') is False else
                 'valid' if valid and matched else 'unverified_model_or_seed' if valid else 'software_incomplete')
             if valid and not matched:issues.append(dict(group=group,cohort=cohort,identity=identity,problem='evaluation_model_or_seed_unverified'))
-            row=dict(group=group,cohort=cohort,identity=identity,registered=identity in registered,attempted=attempted,
+            row=dict(round=round_name,group=group,cohort=cohort,identity=identity,registered=identity in registered,attempted=attempted,
                 classification=classification,legal=r.get('legal'),software_complete=r.get('software_complete'),
                 native_success=r.get('success'),success=r.get('success') if classification=='valid' else None,
                 seed=r.get('seed'),steps=r.get('steps'),native_lift=r.get('native_lift'),native_subgoals=r.get('native_subgoals'),
@@ -1161,23 +1167,43 @@ def dagger_publish(root, output=None):
             rows.append(row);closed_rows.append(row);video(trial,group,cohort,identity,r)
         counted=[r for r in rows if r['registered']];valid=sum(r['classification']=='valid' for r in counted)
         attempted=sum(r['attempted'] for r in counted);successes=sum(r['success'] is True for r in counted) if valid else None
+        complete=len(registered)==10 and len(counted)==10 and all(r['classification'] in ('valid','rejected') for r in counted)
+        allocation=len(registered);completion=None
+        if pool_mode and cohort=='autonomous_development_after_dagger':
+            completion=optional(node.parent/'evaluation_complete.json',{})
+            group_completion=completion.get('group_summary',{}).get(group,{})
+            expansion=group_completion.get('expansion',{})
+            allocation=len(registered) if expansion.get('expanded') is True else expansion.get('initial_trials')
+            allowed_initial=cfg.get('evaluation',{}).get('attempts_per_group',4)
+            complete=(completion.get('complete') is True and group_completion.get('complete') is True
+                and aggregate.get('complete') is True and aggregate.get('expansion')==expansion
+                and allocation in (allowed_initial,len(registered)) and allocation in (4,10)
+                and len(registered)==10 and group_completion.get('planned')==len(registered)
+                and group_completion.get('completed')==allocation and group_completion.get('unrun')==len(registered)-allocation
+                and group_completion.get('software_failures')==0 and attempted==allocation
+                and all(r['classification'] in ('valid','rejected') and r['software_complete'] is True for r in counted[:allocation])
+                and all(not r['attempted'] for r in counted[allocation:]))
         return dict(planned=len(registered),attempted=attempted,valid=valid,successes=successes,
+            allocated=allocation,allocation_completion=completion,
             success_rate=successes/valid if valid else None,unstarted=sum(not r['attempted'] for r in counted),
             rejected=sum(r['classification']=='rejected' for r in counted),
             software_incomplete=sum(r['classification']=='software_incomplete' for r in counted),
             unverified_model_or_seed=sum(r['classification']=='unverified_model_or_seed' for r in counted),
             unregistered_attempts=sum(r['attempted'] and not r['registered'] for r in rows),
-            state='complete' if len(registered)==10 and len(counted)==10 and all(r['classification'] in ('valid','rejected') for r in counted)
-                else 'partial' if attempted else 'unmeasured',declared_summary=aggregate,
+            state='complete' if complete else 'partial' if attempted else 'unmeasured',declared_summary=aggregate,
             denominator='Registered ten-case development cohort; actual per-trial receipts, legal/software complete, native success and model/seed identity')
-    for group in groups:
-        job=root/'round_01'/group;pair=optional(job/'initial_pair.json',{})
+    for round_name,group in ((r,g) for r in round_names for g in groups):
+        job=root/round_name/group;pair=optional(job/'initial_pair.json',{})
+        report_key=round_name+'/'+group if pool_mode else group
+        export_key=round_name+'_'+group if pool_mode else group
+        local_plan=optional(job/'collection_plan.json',[] if pool_mode else plans)
+        all_plans[report_key]=local_plan
         initial={key:evidence(pair[key],'checkpoint',pair.get(key+'_sha256')) for key in ('frontend','backend') if pair.get(key)}
         rows=optional(job/'collection_results.json',[]);attempts=lines(job/'attempts.jsonl')
         by_id={r['identity']:r for r in rows if isinstance(r,dict) and 'identity' in r}
         started={r['identity']:r for r in attempts if 'identity' in r}
-        registered={p['identity']:p for p in plans if 'identity' in p}
-        if len(registered)!=len(plans):issues.append(dict(group=group,problem='collection_plan_missing_or_duplicate_identity'))
+        registered={p['identity']:p for p in local_plan if 'identity' in p}
+        if len(registered)!=len(local_plan):issues.append(dict(group=group,round=round_name,problem='collection_plan_missing_or_duplicate_identity'))
         local=[]
         for identity in list(registered)+sorted((set(by_id)|set(started))-set(registered)):
             row=by_id.get(identity,{});result=row.get('result',{});dagger=result.get('dagger',{});exposure=row.get('exposure',{})
@@ -1185,7 +1211,8 @@ def dagger_publish(root, output=None):
             valid=result.get('legal') is True and result.get('software_complete') is True and isinstance(result.get('success'),bool)
             accepted=row.get('accepted') is True and valid and result.get('success') is True and dagger.get('expert_takeover_success') is True and row.get('label_contract_checked') is True
             if row.get('accepted') and not accepted:issues.append(dict(group=group,identity=identity,problem='accepted_correction_receipt_inconsistent'))
-            record=dict(group=group,cohort='training_takeover_collection',identity=identity,registered=identity in registered,
+            record=dict(round=round_name,group=group,cohort='training_takeover_collection',identity=identity,registered=identity in registered,
+                pool_partition=registered.get(identity,{}).get('pool_partition','train'),
                 attempted=attempted,legal=result.get('legal'),software_complete=result.get('software_complete'),
                 classification='unmeasured' if not attempted else 'rejected' if result.get('legal') is False else 'valid' if valid else 'software_incomplete',
                 mixed_success=result.get('success') if valid else None,accepted=accepted,
@@ -1222,38 +1249,59 @@ def dagger_publish(root, output=None):
             checkpoint=evidence(node/'best.pt','checkpoint');evidence(node/'last.pt','checkpoint')
             updates=lines(node/('training.jsonl' if stage=='frontend' else 'loss.jsonl'))
             validation=lines(node/'validation.jsonl') if stage=='frontend' else optional(node/'validation.json',[])
-            emit(group+'_'+stage+'_every_update.csv.gz',[numeric(r) for r in updates])
-            emit(group+'_'+stage+'_validation_raw.csv.gz',[numeric(r) for r in validation])
+            emit(export_key+'_'+stage+'_every_update.csv.gz',[numeric(r) for r in updates])
+            emit(export_key+'_'+stage+'_validation_raw.csv.gz',[numeric(r) for r in validation])
+            sampling=optional(node/'sampling_exposure.json',done.get('coverage',progress.get('coverage')))
+            if sampling is None and validation:sampling=validation[-1].get('coverage')
+            if pool_mode and validation:
+                with (output/(export_key+'_'+stage+'_validation.json.gz')).open('wb') as raw:
+                    with gzip.GzipFile(filename='',fileobj=raw,mode='wb',mtime=0) as zipped:
+                        zipped.write(json.dumps(public(validation),sort_keys=True,allow_nan=False).encode())
+            if sampling is not None:
+                write(output/(export_key+'_'+stage+'_sampling_exposure.json'),public(sampling))
+                sampling_rows.append(dict(round=round_name,group=group,stage=stage,**numeric(sampling)))
             if stage=='frontend':
-                emit(group+'_frontend_geometry.csv.gz',[numeric(r) for r in lines(node/'geometry_projection.jsonl')])
-                emit(group+'_frontend_probe.csv.gz',[numeric(r) for r in lines(job/'dp/probe/training.jsonl')])
+                emit(export_key+'_frontend_geometry.csv.gz',[numeric(r) for r in lines(node/'geometry_projection.jsonl')])
+                emit(export_key+'_frontend_probe.csv.gz',[numeric(r) for r in lines(job/'dp/probe/training.jsonl')])
             cumulative=0
             for row in updates:
                 cumulative+=row.get('supervised_ticks',0)
                 population=done.get('supervised_tick_population',done.get('control_tick_population'))
                 exposure=cumulative/population if stage=='backend' and population else row.get('anchor_equivalent_epochs')
-                losses.append(dict(stage=stage,model=group+' '+stage,target=target,exposure_unit=unit,
+                losses.append(dict(round=round_name,stage=stage,model=report_key+' '+stage,target=target,exposure_unit=unit,
                     first_update=row.get('update'),update=row.get('update'),updates_in_interval=1,exposure=exposure,mean_loss=number(row.get('loss'))))
             for row in validation:
-                for key,cohort in (('train8','fixed_train2'),('metrics','fixed_validation4')) if stage=='frontend' else (('train','fixed_train2'),('validation','fixed_validation4')):
+                if pool_mode:
+                    cohort_keys=(('train8','fixed_train_diagnostic'),('metrics','old_validation'),('correction_dev','correction_dev')) if stage=='frontend' else (
+                        ('train','fixed_train_diagnostic'),('validation','old_validation'),('correction_dev','correction_dev'))
+                else:
+                    cohort_keys=(('train8','fixed_train2'),('metrics','fixed_validation4')) if stage=='frontend' else (
+                        ('train','fixed_train2'),('validation','fixed_validation4'))
+                for key,cohort in cohort_keys:
                     metric=row.get(key,{})
                     if stage=='backend':metric=metric.get('all',{})
-                    curves.append(dict(stage=stage,model=group+' '+stage,target=target,exposure_unit=unit,cohort=cohort,
-                        update=row.get('update'),exposure=row.get('anchor_equivalent_epochs' if stage=='frontend' else 'control_tick_epochs'),
+                    curves.append(dict(round=round_name,stage=stage,model=report_key+' '+stage,target=target,exposure_unit=unit,cohort=cohort,
+                        update=row.get('update'),exposure=row.get('anchor_equivalent_epochs',row.get('coverage',{}).get('anchor_equivalent_epochs')) if stage=='frontend' else row.get('control_tick_epochs'),
                         arm_rmse_rad=number(metric.get('arm_rmse' if stage=='frontend' else 'arm_rmse_rad')),
                         hand_rmse_rad=number(metric.get('hand_rmse' if stage=='frontend' else 'hand_rmse_rad')),
                         palm_rmse_mm=number(metric.get('ee_distance_rmse_mm')),
-                        selection_metric=number(metric.get('selection_score' if stage=='frontend' else 'normalized_equal_mse'))))
+                        selection_metric=number(metric.get('selection_score',metric.get('selection_mse')) if stage=='frontend' else metric.get('normalized_equal_mse'))))
+                if pool_mode:
+                    for cohort,value in row.get('selection_components',{}).items():
+                        curves.append(dict(round=round_name,stage=stage,model=report_key+' '+stage,target=target,exposure_unit=unit,
+                            cohort='selection_component_'+cohort,update=row.get('update'),
+                            exposure=row.get('anchor_equivalent_epochs',row.get('coverage',{}).get('anchor_equivalent_epochs')) if stage=='frontend' else row.get('control_tick_epochs'),
+                            selection_metric=number(value)))
             exposure=done.get('coverage',{}).get('anchor_equivalent_epochs',progress.get('anchor_equivalent_epochs')) if stage=='frontend' else done.get('control_tick_epochs',progress.get('control_tick_epochs'))
             train_state=('disposable' if done.get('disposable') or configuration.get('disposable') else
                 'budget_reached' if done.get('target_reached') is True else 'stopped_before_ceiling' if done else 'partial' if progress or updates else 'unmeasured')
             report=dict(state=train_state,updates=done.get('updates',progress.get('update')),exposure=exposure,exposure_unit=unit,
                 target=target,finished=done,progress=progress,configuration=configuration,budget=budget,selection=selected,
                 selected_checkpoint=checkpoint,restore=optional(node/'restore.json'),
-                continuation_audit=configuration.get('continuation_audit'),
+                continuation_audit=configuration.get('continuation_audit'),sampling_exposure=sampling,
                 probe=optional(job/('dp/throughput_probe.json' if stage=='frontend' else 'backend/throughput_probe.json')))
             stages[stage]=report
-            stage_rows.append(dict(group=group,stage=stage,target=target,state=train_state,updates=report['updates'],
+            stage_rows.append(dict(round=round_name,group=group,stage=stage,target=target,state=train_state,updates=report['updates'],
                 new_optimizer_updates=done.get('new_optimizer_updates'),exposure=exposure,exposure_unit=unit,
                 supervised_target_ticks=done.get('supervised_target_ticks'),supervised_ticks=done.get('supervised_ticks'),
                 stop_reason=done.get('stop_reason'),selected_update=selected.get('update'),checkpoint_sha256=checkpoint.get('sha256')))
@@ -1262,24 +1310,33 @@ def dagger_publish(root, output=None):
         for name in ('stage_errors.csv','base_stage_errors.csv','force_sensitivity.json','geometry_metrics.json'):
             path=backend/'offline'/name
             if path.suffix=='.csv':
-                metric_rows=csv_read(path);emit(group+'_'+name,metric_rows)
+                metric_rows=csv_read(path);emit(export_key+'_'+name,metric_rows)
                 for row in metric_rows:
-                    errors.append(dict(stage='backend',model=group,target='u_expert',prediction_kind='final_command' if name=='stage_errors.csv' else 'nominal_against_command',
+                    errors.append(dict(round=round_name,stage='backend',model=report_key,target='u_expert',prediction_kind='final_command' if name=='stage_errors.csv' else 'nominal_against_command',
                         **{key:row.get(key) for key in ('split','phase','group','motion')},
                         **{key:number(row.get(key)) for key in ('ticks','rmse_rad','ee_rmse_mm')}))
             else:
                 receipt=optional(path)
-                if receipt is not None:write(output/(group+'_'+name),public(receipt))
-                else:(output/(group+'_'+name)).unlink(missing_ok=True)
+                if receipt is not None:write(output/(export_key+'_'+name),public(receipt))
+                else:(output/(export_key+'_'+name)).unlink(missing_ok=True)
         for name in ('sampled_ticks.csv','base_sampled_ticks.csv'):
-            emit(group+'_'+name+'.gz',csv_read(backend/'offline'/name))
+            emit(export_key+'_'+name+'.gz',csv_read(backend/'offline'/name))
+        if pool_mode:
+            emit(export_key+'_contact_phase_metrics.csv',csv_read(backend/'offline/contact_phase_metrics.csv'))
         evaluated_new=evaluated(backend,group,'autonomous_development_after_dagger',stages['backend']['selected_checkpoint'])
         previous=evaluated(Path(pair['backend']).parent.parent,group,'historical_autonomous_development',initial['backend']) if pair.get('backend') else None
-        group_reports[group]=dict(owner_state=status.get('groups',{}).get(group,'UNMEASURED'),initial_pair=pair,
+        round_finished=round_reports.get(round_name,{}).get('finished') or {}
+        round_group=round_finished.get('groups',{}).get(group,{})
+        owner_state=round_group.get('state','UNMEASURED') if pool_mode else status.get('groups',{}).get(group,'UNMEASURED')
+        group_reports[report_key]=dict(round=round_name,group=group,owner_state=owner_state,initial_pair=pair,
             initialization_artifacts=initial,collection=collection,stages=stages,offline=offline,
             autonomous_development=evaluated_new,historical_autonomous_development=previous,
             evaluation_completion=optional(job/'backend/evaluation_complete.json'),failure=optional(job/'failure.json'),
-            input_acceptance=optional(job/'dp/vision_acceptance.json'))
+            input_acceptance=optional(job/'dp/vision_acceptance.json'),selection=optional(job/'selection.json'),
+            pool_ingestion=optional(job/'ingestion.json'),data=optional(job/'dp/state_data/data.json') if pool_mode else None,
+            preparation={name:optional(job/name) for name in ('dp/prepared.json','backend/prepared.json',
+                'dp/preparation_recovery.json','backend_preparation_recovery.json')} if pool_mode else None)
+        if pool_mode:round_reports[round_name]['groups'][group]=group_reports[report_key]
     telemetry=lines(root/'resources/shared.jsonl')
     if not telemetry:telemetry=lines(root/'shared_resources.jsonl')
     start=number(launch.get('started',session.get('started')));end=number(status.get('utc'))
@@ -1308,15 +1365,30 @@ def dagger_publish(root, output=None):
                 if 'PhysX error:' in line:
                     counts['physx_error_lines']+=1;physx.append(dict(path=str(path),line=line_number,message=line.rstrip()))
         log_rows.append(counts)
-    receipts={name:optional(root/(name+'.json')) for name in ('source_freeze','integration','owned_cleanup','owner_error','active_stage','worker_processes','publication_error','cleanup','preparation_receipt','time_estimate','successor_service')}
+    receipts={name:optional(root/(name+'.json')) for name in ('source_freeze','integration','owned_cleanup','owner_error','active_stage','worker_processes','publication_error','cleanup','preparation_receipt','time_estimate','successor_service','rounds','pool_import','gpu_gate','timing','registration')}
+    if pool_mode:
+        preparation={}
+        for name in ('controller_acceptance','takeover_timing','owner_data_acceptance','cleanup_candidates'):
+            receipt=optional(root/'preparation'/(name+'.json'));preparation[name]=receipt
+            if receipt is not None:write(output/(name+'.json'),public(receipt))
+        receipts['preparation']=preparation
+        if receipts['cleanup'] is not None:write(output/'cleanup.json',public(receipts['cleanup']))
     verified_complete=status.get('state')=='COMPLETE' and bool(groups) and not issues and status.get('owned_workers_exited') is True and (receipts.get('owned_cleanup') or {}).get('verified') is True and all(
         r['owner_state']=='COMPLETE' and r['autonomous_development']['state']=='complete' and r['evaluation_completion'] is not None and r['evaluation_completion'].get('complete') is True
         and (r['collection']['finished'] or {}).get('complete') is True and (r['collection']['finished'] or {}).get('sufficient') is True
         and (r['collection']['gate'] or {}).get('passed') is True
         and all(s['finished'] and not s['finished'].get('disposable') and s['selected_checkpoint'].get('exists') for s in r['stages'].values()) for r in group_reports.values())
-    summary=dict(schema='dagger_cpu_publication_v1',status=status,verified_round_complete=verified_complete,configuration=cfg,
+    if pool_mode:
+        verified_complete=verified_complete and all((r.get('finished') or {}).get('state')=='RESOLVED'
+            and r.get('snapshot') and r.get('decision') is not None for r in round_reports.values())
+    pool_path=Path(cfg.get('pool_root',CODE/'outputs/visuotactile/data/tight_dagger_pool')) if pool_mode else None
+    if pool_path is not None and not pool_path.is_absolute():pool_path=CODE/pool_path
+    pool_receipts={name:optional(pool_path/name) for name in ('manifest.json','acceptance/readback.json','acceptance/imported_legacy_snapshot.json')} if pool_mode else None
+    summary=dict(schema='dagger_pool_cpu_publication_v1' if pool_mode else 'dagger_cpu_publication_v1',status=status,verified_round_complete=verified_complete,configuration=cfg,
         registration=registration,session=session,source_run=str(root),source_commit=launch.get('source_head',session.get('source_head')),
-        groups=group_reports,resources=resources,root_receipts=receipts,publication_issues=issues,
+        groups=group_reports,rounds=round_reports if pool_mode else None,pool=pool_receipts,
+        resources=resources,root_receipts=receipts,publication_issues=issues,
+        partial_snapshot=pool_mode and not status.get('owned_workers_exited',False),
         inference_or_training_performed=False,kit_loaded=False,selection_performed_by_exporter=False,
         test22_used=status.get('test22_used'),no_next_round=status.get('no_next_round'),
         log_scope='Retained log line occurrences; duplicate sinks are not distinct simulator events',physx_error_lines=len(physx),
@@ -1327,9 +1399,14 @@ def dagger_publish(root, output=None):
             'Ten-case development evaluation is not formal test22 or OOD evidence',
             'Same reset specifications and seeds do not establish bitwise hidden-state pairing',
             'Null/unmeasured is missing measurement, never a zero success rate; exit0 does not establish harmless log errors'])
-    write(output/'summary.json',public(summary));write(output/'plans.json',public(dict(collection=plans,autonomous_development=eval_plan)))
+    write(output/'summary.json',public(summary));write(output/'plans.json',public(dict(collection=all_plans if pool_mode else plans,autonomous_development=eval_plan)))
     emit('collection.csv',collection_rows);emit('closed_loop.csv',closed_rows);emit('training_stages.csv',stage_rows)
-    emit('validation_curves.csv',curves);emit('training_loss.csv.gz',losses);emit('offline_metrics.csv',errors)
+    emit('validation_curves.csv',curves);emit('training_loss.csv.gz',losses);emit('offline_metrics.csv',errors);emit('sampling_exposure.csv',sampling_rows)
+    if pool_mode:
+        write(output/'round_decisions.json',public({key:dict(decision=value['decision'],finished=value['finished'],
+            snapshot_id=(value.get('snapshot') or {}).get('snapshot_id'),
+            groups={g:r.get('selection') for g,r in value['groups'].items()}) for key,value in round_reports.items()}))
+        write(output/'pool_identity.json',public(pool_receipts))
     emit('video_index.csv',videos);emit('log_counts.csv',log_rows);emit('physx_errors.csv',physx)
     write(output/'source_artifacts.json',public(sources));write(output/'local_artifacts.json',public(artifacts))
     matrix_plots(output,curves,losses,errors)
@@ -1337,12 +1414,13 @@ def dagger_publish(root, output=None):
     write(output/'artifacts.json',{str(p.relative_to(output)):dict(bytes=p.stat().st_size,sha256=sha(p))
         for p in sorted(output.iterdir()) if p.is_file() and p.name!='artifacts.json'})
     document=CODE/'research_docs/STATE_DP_RESULTS.md'
-    start_marker='<!-- tight-dagger-results:start -->';end_marker='<!-- tight-dagger-results:end -->'
+    marker='tight-dagger-pool-results' if pool_mode else 'tight-dagger-results'
+    start_marker='<!-- '+marker+':start -->';end_marker='<!-- '+marker+':end -->'
     text=document.read_text() if document.exists() else ''
     if text.count(start_marker)!=text.count(end_marker) or text.count(start_marker)>1:
         raise ValueError('Malformed DAgger managed block; preserve existing document')
     relative=os.path.relpath(output,document.parent)
-    lines_out=[start_marker,'## 2026-11-11 DAgger：一轮前端与后端增量续训','',
+    lines_out=[start_marker,'## 2026-11-11 DAgger：共享持久纠偏池与多轮增量续训' if pool_mode else '## 2026-11-11 DAgger：一轮前端与后端增量续训','',
         f"本轮 owner 状态为 **{status.get('state','UNMEASURED')}**；产物核验{'完整' if verified_complete else '尚不完整'}。以下按已有凭据整理，缺失项不记为零成功。",'',
         '|组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|',
         '|---|---:|---:|---:|---:|---:|---:|']
@@ -1350,6 +1428,10 @@ def dagger_publish(root, output=None):
     for group,row in group_reports.items():
         c=row['collection'];f=row['stages']['frontend'];b=row['stages']['backend'];e=row['autonomous_development']
         lines_out.append(f"|{group}|{c['attempted']} / {c['planned']}|{c['expert_takeover_successes']} / {c['attempted']}|{c['accepted_episodes']} / {c['effective_expert_ticks']} / {c['effective_dp_anchors']}|{show(f['updates'])} / {show(f['exposure'])}|{show(b['updates'])} / {show(b['exposure'])}|{show(e['successes'])} / {e['valid']} / {e['planned']}|")
+    if pool_mode:
+        legacy=(pool_receipts or {}).get('acceptance/readback.json') or {}
+        lines_out+=['',f"旧池 CPU 读回准入 {show(legacy.get('pool_entries'))} 条成功纠偏；每轮同一不可变快照供两组使用，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。",
+            f'[池与快照身份]({relative}/pool_identity.json) · [各轮选择与决定]({relative}/round_decisions.json)。']
     lines_out+=['','采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。',
         '自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。',
         f"整卡时间加权利用率：{show(resources['time_weighted_whole_card_percent'])}%；资源样本 {resources['samples']} 条，>8s 内部缺口 {show(resources['gap_seconds_above8'])}s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。",'',

@@ -147,6 +147,58 @@ def test_noncontact_correction_and_full_tick_objective_have_gradients():
     assert torch.equal(zero, base)
 
 
+def test_controller_keeps_correction_and_memory_across_contact_loss(active_model, monkeypatch):
+    """Exercise deployment composition, including known-zero vs missing touch."""
+    from types import SimpleNamespace
+    from visuotactile.native_controller import ResidualController, InferenceTimings
+    from visuotactile import native_data
+    data=observations(steps=6,batch=1)
+    for key in ('force_w_N','force_local_N'):
+        data['tactile'][key].zero_();data['tactile'][key][:,2:4,0,0]=1.
+    data['tactile_valid'][:,6:8]=False  # Tick3 unknown, versus known zero at2/4.
+    base=SimpleNamespace(limits=torch.tensor([[-2.,2.]]).expand(29,-1),memory=None)
+    base_calls=[]
+    def nominal(packet,diagnostics):
+        tick=int(packet['step_id'][0]);base_calls.append(tick)
+        base.last_robot=data['robot'][0,tick];base.plan=torch.zeros(1,24,29)
+        return torch.zeros(1,29)
+    base.act=nominal
+    monkeypatch.setattr(native_data,'residual_visual',lambda *args:data['visual'][:,0])
+    controller=ResidualController.__new__(ResidualController)
+    controller.base=base;controller.model=SimpleNamespace();controller.residual=active_model
+    controller.device=torch.device('cpu');controller.state=None;controller.episode=None
+    controller.previous_nominal=None;controller.timings=InferenceTimings('cpu')
+    controller.action_scale_cpu=active_model.action_scale;controller.residual_scales_cpu=active_model.scales
+    original=active_model.forward;incoming=[];shapes=[]
+    def legal_nonzero(inputs,state):
+        incoming.append(state is not None);raw,next_state=original(inputs,state)
+        shapes.append((tuple(inputs['plans'].shape),tuple(raw.shape)))
+        # Inject only the output, not parameters: trained models need not emit
+        # nonzero corrections at every no-contact observation.
+        return torch.full_like(raw,.25),next_state
+    monkeypatch.setattr(active_model,'forward',legal_nonzero)
+    states=[];gates=[]
+    for tick in range(6):
+        touch={k:v[:,2*tick:2*tick+2] for k,v in data['tactile'].items()}
+        packet=dict(episode_id=torch.tensor([5]),step_id=torch.tensor([tick]),
+            time_s=torch.tensor([(tick+1)/60],dtype=torch.float64),contact_valid=data['tactile_valid'][:,2*tick],
+            contact_time_s=touch['time_s'],contact_w_N=touch['force_w_N'][:,-1],
+            contact_substeps_w_N=touch['force_w_N'],contact_substeps_local_N=touch['force_local_N'],
+            finger_position_base_m=touch['position_base_m'],finger_rotation_base=touch['rotation_base'])
+        command=controller.act(packet)
+        expected=active_model.scales*torch.tensor(.25).tanh()/active_model.action_scale
+        torch.testing.assert_close(command[0],expected)
+        assert int(controller.state['history_valid'].sum())==tick+1
+        assert bool(controller.residual_diagnostics['contact_valid'])==(tick!=3)
+        states.append(copy.deepcopy(controller.state));gates.append(controller.contact_gate)
+    assert base_calls==list(range(6)) and incoming==[False,True,True,True,True,True]
+    assert gates==[False,True,False,False,False,False]
+    assert shapes==[((1,1,24,29),(1,1,29))]*6
+    assert torch.equal(states[3]['tactile']['hidden'],states[2]['tactile']['hidden'])
+    assert not torch.equal(states[4]['tactile']['hidden'],states[3]['tactile']['hidden'])
+    assert not torch.equal(states[3]['memory'],states[2]['memory'])
+
+
 def test_architecture_identity_loads_legacy_explicitly_and_rejects_reinterpretation(active_model):
     old = LegacyTargetResidual(statistics(), [.1]*29)
     historical = load_residual(dict(residual_version=old.version, model=old.state_dict()))

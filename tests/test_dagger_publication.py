@@ -103,3 +103,77 @@ def test_running_owner_and_malformed_managed_block_preserve_document(publication
     before=document.read_text()
     with pytest.raises(ValueError,match='Malformed'):diagnostics.dagger_publish(root,out)
     assert document.read_text()==before
+
+
+def test_pool_partial_rounds_keep_32_attempt_slots_dev_identity_and_old_result_block(publication):
+    root,out,document=publication
+    diagnostics.dagger_publish(root,out)
+    old=document.read_text()
+    pool=root/'pool'
+    write(root/'configuration.json',dict(version='successful_takeover_pool_v1',rounds=3,
+        groups={'G11':{},'QG01':{}},pool_root=str(pool),collection={'attempts_per_group':32}))
+    write(pool/'acceptance/readback.json',dict(passed=True,pool_entries=21))
+    write(root/'status.json',dict(state='RUNNING',owned_workers_exited=False,rounds={'round_01':{'state':'RUNNING'}}))
+    job=root/'round_01/QG01'
+    write(job/'collection_plan.json',[dict(identity=f'c{i}',pool_partition='correction_dev' if i<4 else 'train') for i in range(32)])
+    write(job/'collection_results.json',[dict(identity='c0',accepted=True,label_contract_checked=True,
+        exposure={'supervised_ticks':24,'supervised_anchors':2},result=dict(legal=True,software_complete=True,success=True,
+            dagger=dict(expert_takeover_success=True,student_autonomous_success=False)))])
+    write(job/'selection.json',dict(selected_previous=True,reason='Candidate did not improve registered development metrics'))
+    write(root/'round_01/decision.json',dict(attempts_per_group=32,automatic_next_round=True))
+    write(root/'round_01/snapshot.json',dict(snapshot_id='frozen',train_ids=['old'],correction_dev_ids=['dev']))
+    stage=job/'dp/training'
+    write(stage/'selected.json',dict(update=0,initialization_candidate=True))
+    write(stage/'progress.json',dict(update=8,coverage=dict(anchor_equivalent_epochs=.2,
+        strata={'core':{'anchors':32},'current_correction':{'anchors':20}})))
+    (stage/'validation.jsonl').write_text(json.dumps(dict(update=0,anchor_equivalent_epochs=0,
+        metrics={'selection_score':2.},correction_dev={'selection_score':3.,'initial24':{'selection_score':4.}},
+        selection_components=dict(old_validation=2.,correction_dev=3.,correction_initial24=4.)))+'\n')
+    output=out.parent/'tight_dagger_pool_20261111_01'
+    summary=diagnostics.dagger_publish(root,output)
+    assert summary['partial_snapshot'] and not summary['verified_round_complete']
+    assert len(summary['rounds'])==3
+    first=summary['groups']['round_01/QG01']
+    assert first['collection']['planned']==32 and first['collection']['unstarted']==31
+    assert first['stages']['frontend']['selection']['initialization_candidate']
+    assert first['stages']['frontend']['sampling_exposure']['strata']['current_correction']['anchors']==20
+    assert summary['groups']['round_02/QG01']['collection']['planned']==0  # No invented future identities.
+    assert summary['groups']['round_02/QG01']['autonomous_development']['successes'] is None
+    assert summary['rounds']['round_01']['snapshot']['correction_dev_ids']==['dev']
+    assert summary['pool']['acceptance/readback.json']['pool_entries']==21
+    text=document.read_text()
+    assert text.startswith(old.rstrip())
+    assert text.count('<!-- tight-dagger-results:start -->')==1
+    assert text.count('<!-- tight-dagger-pool-results:start -->')==1
+    with gzip.open(output/'round_01_QG01_frontend_validation.json.gz','rt') as stream:
+        assert json.load(stream)[0]['correction_dev']['initial24']['selection_score']==4.
+    assert (output/'sampling_exposure.csv').is_file()
+    assert 'correction_initial24' in (output/'validation_curves.csv').read_text()
+
+
+def test_pool_four_case_allocation_is_complete_but_six_unrun_remain(publication):
+    root,out,_=publication
+    write(root/'configuration.json',dict(version='successful_takeover_pool_v1',rounds=1,groups={'G11':{}},
+        evaluation={'attempts_per_group':4,'maximum_attempts_per_group':10},pool_root=str(root/'pool')))
+    back=root/'round_01/G11/backend';node=back/'G11'
+    (node/'training').mkdir(parents=True);(node/'training/best.pt').write_bytes(b'known selected model')
+    digest=diagnostics.sha(node/'training/best.pt')
+    for i in range(4):
+        write(node/f'evaluation/e{i}/result.json',dict(legal=True,software_complete=True,success=False,
+            checkpoint_sha256=digest,seed=200+i,reasons={'max_successes':False,'timeout':True}))
+    expansion=dict(expanded=False,initial_trials=4,reason='registered thresholds not reached')
+    write(node/'evaluation_summary.json',dict(complete=True,expansion=expansion))
+    write(back/'evaluation_complete.json',dict(complete=True,group_summary={'G11':dict(complete=True,planned=10,
+        completed=4,unrun=6,software_failures=0,expansion=expansion)}))
+    for name in ('controller_acceptance','takeover_timing','owner_data_acceptance','cleanup_candidates'):
+        write(root/'preparation'/(name+'.json'),dict(passed=True,source='outputs/checked'))
+    write(root/'cleanup.json',dict(deleted_files=8,released_allocated_bytes=1234))
+    report=diagnostics.dagger_publish(root,out)
+    evaluated=report['groups']['round_01/G11']['autonomous_development']
+    assert evaluated['state']=='complete' and evaluated['allocated']==4
+    assert evaluated['valid']==4 and evaluated['successes']==0 and evaluated['unstarted']==6
+    assert not report['verified_round_complete']  # No collection or training receipt exists.
+    assert json.loads((out/'cleanup.json').read_text())['deleted_files']==8
+    assert json.loads((out/'controller_acceptance.json').read_text())['passed']
+    (back/'evaluation_complete.json').unlink()
+    assert diagnostics.dagger_publish(root,out)['groups']['round_01/G11']['autonomous_development']['state']=='partial'

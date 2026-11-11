@@ -374,6 +374,33 @@ def load_image_warm_start(saved, action_contract, statistics):
     return model,audit
 
 
+def trained_continuation_updates(saved):
+    """Return inherited training only for a hash-bound, nondisposable update0.
+
+    A selected initialization candidate has zero updates in this round, but its
+    weights came from a trained checkpoint. Missing provenance is never treated
+    as training. The referenced parent remains an immutable local dependency.
+    """
+    from .compact import sha256
+    cfg=saved.get('configuration',{})
+    if saved.get('disposable') or cfg.get('disposable'):return 0
+    updates=saved.get('updates',0)
+    if isinstance(updates,int) and not isinstance(updates,bool) and updates>0:return updates
+    if updates!=0 or saved.get('new_optimizer_updates')!=0:return 0
+    audit=cfg.get('continuation_audit',{});source=cfg.get('continuation_from',{})
+    inherited=audit.get('source_updates',0);checkpoint_updates=audit.get('source_checkpoint_updates')
+    if not isinstance(inherited,int) or isinstance(inherited,bool) or inherited<=0:return 0
+    if not isinstance(checkpoint_updates,int) or isinstance(checkpoint_updates,bool) or checkpoint_updates<0:return 0
+    if not isinstance(source,dict) or not isinstance(source.get('path'),str):return 0
+    digest=source.get('sha256','')
+    if not isinstance(digest,str) or len(digest)!=64 or any(c not in '0123456789abcdef' for c in digest):return 0
+    path=Path(source['path'])
+    if audit.get('source_sha256',digest)!=digest:return 0
+    if audit.get('source') and Path(audit['source']).resolve()!=path.resolve():return 0
+    if not path.is_file() or sha256(path)!=digest:return 0
+    return inherited
+
+
 def load_image_continuation(saved, action_contract, statistics, supervision=None):
     """Fresh optimizer, identical EMA and affine; never relabel q as command.
 
@@ -392,7 +419,8 @@ def load_image_continuation(saved, action_contract, statistics, supervision=None
         raise ValueError('Continuation requires identical architecture and supervision')
     if source==legacy and target!='u_expert':
         raise ValueError('Legacy command EMA cannot be continued as an already-trained configuration policy')
-    if saved.get('group')!='I-HistoryDP' or saved.get('updates',0)<1 or 'ema' not in saved or saved.get('disposable'):
+    source_updates=trained_continuation_updates(saved)
+    if saved.get('group')!='I-HistoryDP' or source_updates<1 or 'ema' not in saved:
         raise ValueError('Trained selected image EMA required')
     names={'robot_mean','robot_std','action_scale','action_offset'}
     if modality=='G10':names|={'tactile_mean','tactile_std'}
@@ -408,7 +436,7 @@ def load_image_continuation(saved, action_contract, statistics, supervision=None
             if not (value>0).all():raise ValueError('Invalid continuation affine scale: '+key)
     return model,dict(version='same_supervision_ema_continuation_v1',source='ema',
         source_contract=source,target_contract=action_contract,supervision=target,
-        source_updates=saved['updates'],new_optimizer_updates=0,all_state_tensors_reused=True,
+        source_updates=source_updates,source_checkpoint_updates=saved['updates'],new_optimizer_updates=0,all_state_tensors_reused=True,
         affine_replaced=False,affine_buffers_verified=sorted(names),
         legacy_command_contract_declared=source==legacy,optimizer_state_restored=False,
         requires_fresh_optimizer_ema_sampler_and_counters=True)

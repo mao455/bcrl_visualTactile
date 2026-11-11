@@ -141,6 +141,67 @@ def test_real_command_ema_continuation_keeps_g10_tactile_and_normalizers():
     with pytest.raises(ValueError,match='affine changed'):load_image_continuation(saved,contract,wrong)
     with pytest.raises(ValueError,match='already-trained configuration'):
         load_image_continuation(saved,image_contract('I-HistoryDP',24,'G10','q_reached'),stats)
+    # A real selected initialization is deployable and usable as the next round's
+    # exact EMA source; its local update count must not masquerade as random.
+    candidate=dict(saved,updates=0,new_optimizer_updates=0,contract=contract,
+        configuration=dict(continuation_from=dict(path=str(source),sha256=sha256(source)),
+            continuation_audit=dict(source_updates=saved['updates'],source_checkpoint_updates=saved['updates'],
+                source=str(source.resolve()),source_sha256=sha256(source))))
+    model,audit=load_image_continuation(candidate,contract,stats)
+    assert audit['source_checkpoint_updates']==0 and audit['source_updates']==saved['updates']
+    assert torch.equal(model.state_dict()['action_scale'],saved['ema']['action_scale'])
+    del model
+    from visuotactile.models.native_dp import load_policy
+    deployed=load_policy(candidate)
+    assert torch.equal(deployed.state_dict()['action_scale'],saved['ema']['action_scale'])
+    del deployed
+    from visuotactile.native_controller import NativeController
+    deployed=NativeController(candidate,{'joint_limits_rad':[[[-2.,2.]]*29]},device='cpu')
+    assert deployed.model.contract==contract
+    del deployed
+    with pytest.raises(ValueError,match='Trained selected'):
+        load_image_continuation(dict(candidate,configuration={}),contract,stats)
+    with pytest.raises(ValueError,match='Update-zero policy'):
+        load_policy(dict(candidate,configuration={}))
+    with pytest.raises(ValueError,match='untrained native'):
+        NativeController(dict(candidate,configuration={}),{},device='cpu')
+
+
+def test_update_zero_requires_actual_hash_bound_trained_nondisposable_parent(tmp_path):
+    from copy import deepcopy
+    from visuotactile.state_history import trained_continuation_updates
+    parent=tmp_path/'selected.pt';parent.write_bytes(b'opaque immutable trained parent')
+    saved=dict(updates=0,new_optimizer_updates=0,configuration=dict(
+        continuation_from=dict(path=str(parent),sha256=sha256(parent)),
+        continuation_audit=dict(source_updates=19,source_checkpoint_updates=0)))
+    assert trained_continuation_updates(saved)==19
+    for key,value in [('source_updates',0),('source_checkpoint_updates',None),('source_sha256','f'*64),('source',str(tmp_path/'wrong.pt'))]:
+        bad=deepcopy(saved);bad['configuration']['continuation_audit'][key]=value
+        assert trained_continuation_updates(bad)==0
+    assert trained_continuation_updates(dict(saved,disposable=True))==0
+    assert trained_continuation_updates(dict(saved,new_optimizer_updates=1))==0
+    parent.write_bytes(b'changed parent')
+    assert trained_continuation_updates(saved)==0
+
+
+def test_real_residual_update_zero_controller_keeps_selected_trained_pair():
+    from pathlib import Path
+    from visuotactile.models.native_dp import load_residual
+    from visuotactile.native_controller import ResidualController
+    source=Path('outputs/visuotactile/run/tight_dagger_20261111_01/round_01/G11/backend/G11/training/best.pt')
+    if not source.exists():pytest.skip('Prior-round selected residual stays local')
+    saved=torch.load(source,map_location='cpu',weights_only=False)
+    candidate=dict(saved,updates=0,new_optimizer_updates=0,configuration=dict(saved['configuration'],
+        continuation_from=dict(path=str(source),sha256=sha256(source)),
+        continuation_audit=dict(source_updates=saved['updates'],source_checkpoint_updates=saved['updates'])))
+    model=load_residual(candidate)
+    assert all(torch.equal(v,saved['model'][k]) for k,v in model.state_dict().items())
+    del model
+    controller=ResidualController(candidate,{'joint_limits_rad':[[[-2.,2.]]*29]},device='cpu')
+    assert controller.residual.version==saved['residual_version']
+    del controller
+    with pytest.raises(ValueError,match='Update-zero residual'):load_residual(dict(candidate,configuration={}))
+    with pytest.raises(ValueError,match='Untrained'):ResidualController(dict(candidate,configuration={}),{},device='cpu')
 
 
 def test_frozen_dino_reuse_never_constructs_gpu_model_and_checks_source(tmp_path,monkeypatch):

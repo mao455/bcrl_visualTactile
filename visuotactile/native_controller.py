@@ -58,7 +58,8 @@ class InferenceTimings:
 
 class NativeController:
     def __init__(self, saved, metadata, dino=None, device='cuda:0'):
-        if saved.get('updates', 0) < 1:
+        from .state_history import trained_continuation_updates
+        if trained_continuation_updates(saved) < 1:
             raise ValueError('An untrained native policy cannot control')
         with torch.random.fork_rng(devices=[]):
             self.model = load_policy(saved, device)
@@ -154,7 +155,8 @@ class ResidualController:
     def __init__(self,saved,metadata,dino=None,device='cuda:0'):
         from .compact import sha256
         from .models.native_dp import TargetResidual, LegacyTargetResidual, load_residual
-        if saved.get('residual_version') not in (TargetResidual.version, LegacyTargetResidual.version) or saved.get('updates',0)<1:
+        from .state_history import trained_continuation_updates
+        if saved.get('residual_version') not in (TargetResidual.version, LegacyTargetResidual.version) or trained_continuation_updates(saved)<1:
             raise ValueError('Untrained or incompatible target residual')
         config=saved['configuration']
         if sha256(config['base_checkpoint'])!=config['base_sha256']:raise ValueError('Frozen base identity changed')

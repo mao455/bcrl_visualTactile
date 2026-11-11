@@ -238,7 +238,238 @@ def dagger_record(entry, *, include_geometry=True):
     return result,touch,context
 
 
-def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,manifest_sha256=None,include_geometry=True):
+def _pool_write(path,value):
+    """Durable atomic metadata replacement; callers serialize with pool.lock."""
+    import os
+    path=Path(path);path.parent.mkdir(parents=True,exist_ok=True);temporary=path.with_suffix(path.suffix+'.tmp')
+    with temporary.open('w') as stream:
+        json.dump(value,stream,indent=2,sort_keys=True,allow_nan=False);stream.flush();os.fsync(stream.fileno())
+    os.replace(temporary,path)
+    descriptor=os.open(path.parent,os.O_DIRECTORY)
+    try:os.fsync(descriptor)
+    finally:os.close(descriptor)
+
+
+def _pool_digest(value):
+    return hashlib.sha256(json.dumps(value,sort_keys=True,separators=(',',':'),allow_nan=False).encode()).hexdigest()
+
+
+def _pool_core(data):
+    """Metadata-only Core identity: no held-out trajectory is opened."""
+    splits={k:list(data.get('normalization_train_ids',data['splits']['train']) if k=='train' else data['splits'][k])
+        for k in ('train','validation','test')}
+    if [len(splits[k]) for k in splits]!=[166,30,22]:raise ValueError('Persistent pool requires unchanged Core166/validation30/test22')
+    all_ids=sum(splits.values(),[])
+    if len(set(all_ids))!=len(all_ids):raise ValueError('Core split episode overlap')
+    families={k:{data['entries'][i]['family'] for i in values} for k,values in splits.items()}
+    if any(families[a]&families[b] for a,b in (('train','validation'),('train','test'),('validation','test'))):
+        raise ValueError('Core split family overlap')
+    rows={i:{k:data['entries'][i][k] for k in ('family','source_sha256')} for i in all_ids}
+    value=dict(splits=splits,entries=rows)
+    return dict(identity=_pool_digest(value),**value)
+
+
+def _pool_id(run_id,group,round_index,source_identity):
+    import re
+    origin=dict(run_id=run_id,group=group,round_index=round_index,source_identity=source_identity)
+    readable='__'.join(re.sub(r'[^A-Za-z0-9_.-]','_',str(v)) for v in (run_id,group,'r'+str(round_index),source_identity))
+    return readable+'__'+_pool_digest(origin)[:12],origin
+
+
+def _execution_content_sha(record,touch):
+    digest=hashlib.sha256()
+    for key,value in sorted(dict(record,tactile=touch).items()):
+        array=value.detach().cpu().contiguous().numpy()
+        digest.update(key.encode()+b'\0'+str(array.dtype).encode()+b'\0'+str(array.shape).encode()+b'\0')
+        digest.update(array.tobytes())
+    return digest.hexdigest()
+
+
+def ingest_dagger_pool(pool_root,collection_root,*,run_id,source_group,round_index,core_data_root,development_ids=()):
+    """Idempotently admit a real collector's successes into one shared pool.
+
+    Every started attempt is retained. Complete HDF5 files remain at their
+    original paths; both labels share one record. Development is assigned by
+    the collection plan before rollout and never promoted into training.
+    """
+    import fcntl
+    from .anchor_sampling import supervision_population
+    from .native_data import CAMERAS
+    pool=Path(pool_root).resolve();source=Path(collection_root).resolve();pool.mkdir(parents=True,exist_ok=True)
+    if not isinstance(round_index,int) or isinstance(round_index,bool) or round_index<1:raise ValueError('Positive source round required')
+    if not run_id or source_group not in ('G11','QG01'):raise ValueError('Explicit run and supported source group required')
+    core=_pool_core(read(Path(core_data_root)/'data.json'))
+    plan=read(source/'collection_plan.json');planned={r['identity']:r for r in plan}
+    if len(plan)!=len(planned):raise ValueError('Duplicate source collection identity')
+    dev={i for i,p in planned.items() if p.get('pool_partition')=='correction_dev' or p.get('cohort')=='correction_dev'}
+    if development_ids and set(development_ids)!=dev:raise ValueError('Development identities must be preregistered in collection plan')
+    entries=read(source/'correction_entries.json') if (source/'correction_entries.json').exists() else {}
+    rows=read(source/'collection_results.json') if (source/'collection_results.json').exists() else []
+    by_id={r['identity']:r for r in rows}
+    if len(rows)!=len(by_id) or not set(by_id)<=set(planned) or not set(entries)<=set(planned):raise ValueError('Unregistered/duplicate collected episode')
+    started={}
+    if (source/'attempts.jsonl').exists():
+        for line in (source/'attempts.jsonl').read_text().splitlines():
+            if not line.strip():continue
+            row=json.loads(line)
+            if row['identity'] not in planned:raise ValueError('Unregistered started attempt')
+            if row['identity'] in started:raise ValueError('Duplicate started attempt')
+            started[row['identity']]=row
+    pair=read(source/'initial_pair.json')
+    for key in ('frontend_sha256','backend_sha256'):
+        if not isinstance(pair.get(key),str) or len(pair[key])!=64:raise ValueError('Collection student pair SHA required')
+    receipt=dict(run_id=run_id,source_group=source_group,round_index=round_index,planned=len(plan),
+        attempted=len(set(by_id)|set(started)),inserted=[],duplicates=[],excluded=[],data_errors=[],compatibility_exclusions=[],integrity_passed=True,
+        source_root=str(source),plan_sha256=sha256(source/'collection_plan.json'))
+    with (pool/'pool.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        manifest=read(pool/'manifest.json') if (pool/'manifest.json').exists() else dict(
+            version='persistent_shared_dagger_pool_v1',revision=0,core=core,entries={},attempts={},
+            content_index={},file_index={},ingestions={},raw_payloads_copied=0)
+        if manifest['core']!=core:raise ValueError('Persistent pool Core identity changed')
+        for source_id in planned:
+            if source_id not in by_id and source_id not in started:continue
+            identity,origin=_pool_id(run_id,source_group,round_index,source_id)
+            row=by_id.get(source_id,{});result=row.get('result',{});takeover=result.get('dagger',{})
+            cohort='correction_dev' if source_id in dev else 'train'
+            origin.update(source_frontend_sha256=pair['frontend_sha256'],source_backend_sha256=pair['backend_sha256'])
+            attempt=dict(pool_identity=identity,pool_source=origin,cohort=cohort,seed=row.get('seed',planned[source_id].get('seed')),
+                family=planned[source_id].get('family'),takeover_tick=row.get('takeover_tick',planned[source_id].get('takeover_tick')),
+                receipt_sha256=_pool_digest(row or started[source_id]),classification='pending',accepted_pool_identity=None)
+            old=manifest['attempts'].get(identity)
+            if old and old['receipt_sha256']==attempt['receipt_sha256']:
+                if old['cohort']!=cohort or old['pool_source']!=origin:raise ValueError('Existing source/cohort cannot change')
+                if old.get('accepted_pool_identity'):receipt['duplicates'].append(dict(identity=identity,existing=old['accepted_pool_identity'],reason='same_source_receipt'))
+                elif old.get('integrity_error'):receipt['integrity_passed']=False;receipt['excluded'].append(old);receipt['data_errors'].append(old)
+                continue
+            if old and old['classification']!='pending':raise ValueError('Completed source receipt changed')
+            reason=None
+            if not row:reason='pending_no_result'
+            elif result.get('legal') is False:reason='illegal_initial_state'
+            elif row.get('error') or not result.get('software_complete'):reason='software_or_admission_error'
+            elif takeover.get('student_autonomous_success'):reason='student_success_without_expert_labels'
+            elif not result.get('success') or not takeover.get('expert_takeover_success'):
+                reason='expert_timeout' if result.get('reasons',{}).get('timeout') else 'expert_takeover_failed'
+            elif not row.get('accepted') or not row.get('label_contract_checked') or source_id not in entries:reason='collector_not_admitted'
+            if reason:
+                attempt.update(classification='pending' if not row else 'excluded',reason=reason)
+                receipt['excluded'].append(attempt)
+            else:
+                try:
+                    if result.get('reasons',{}).get('max_successes') is not True or not takeover.get('provenance_passed') or not takeover.get('position_executor_continuous'):
+                        raise ValueError('Native success/executed takeover provenance missing')
+                    if result.get('checkpoint_sha256')!=pair['backend_sha256']:raise ValueError('Collection student backend SHA differs')
+                    entry=dict(entries[source_id]);family=entry.get('family')
+                    train_families={core['entries'][i]['family'] for i in core['splits']['train']}
+                    if family not in train_families or family!=planned[source_id].get('family'):raise ValueError('Correction family outside fixed training families')
+                    record_,touch,_=dagger_record(entry,include_geometry=False)
+                    exposure=supervision_population({identity:record_})
+                    if exposure['supervised_anchors']<1 or exposure['supervised_ticks']!=takeover.get('expert_valid_ticks'):
+                        raise ValueError('Recorded supervised population differs or no native anchor')
+                    with h5py.File(entry['path']) as stream:
+                        metadata=json.loads(stream.attrs['metadata_json']);group=stream['episodes'][entry['episode']]
+                        if metadata.get('camera_ids')!=CAMERAS:raise ValueError('Incompatible camera modality/order')
+                        if metadata.get('policy_checkpoint_sha256')!=pair['backend_sha256']:raise ValueError('Recorded source student SHA differs')
+                        missing_touch=[name for name in ('contact_w_N','finger_position_base_m','finger_rotation_base') if name not in group['obs']]
+                        missing_geometry=[name for name in ('object_pose_w','base_pose_w') if name not in group['transition/diagnostics_after']]
+                        missing_geometry += [name for name in ('contact_time_after_s','object_contact_force_w') if name not in group['transition']]
+                        control=group['transition/dagger/control_source'][:];clean=group['transition/dagger/switch_clean'][:]
+                    mask=record_['supervision_mask'];valid_ticks=mask.nonzero().flatten();anchors=[t for t in range(0,len(mask),12) if bool(mask[t])]
+                    first=int(valid_ticks[0]);first_anchor=anchors[0]
+                    boundary=dict(takeover_tick=int(np.flatnonzero(control==1)[0]),queue_clean_tick=int(np.flatnonzero((control==1)&clean)[0]),
+                        first_expert_label_tick=first,first_backend_supervised_tick=first,first_dp_supervised_anchor=first_anchor,
+                        valid_expert_ticks_before_first_dp_anchor=int(mask[:first_anchor].sum()),
+                        first_24_valid_expert_ticks=valid_ticks[:24].tolist())
+                    compatibility={g:dict(compatible=not missing_touch and (g!='QG01' or not missing_geometry),
+                        reasons=(['missing_backend_tactile_fields:'+','.join(missing_touch)] if missing_touch else [])+
+                            (['missing_loss_geometry_fields:'+','.join(missing_geometry)] if g=='QG01' and missing_geometry else [])) for g in ('G11','QG01')}
+                    if not missing_geometry:
+                        from .state_image_loss import geometry_loss_context
+                        geometry_loss_context(entry)
+                    content=_execution_content_sha(record_,touch);file_sha=entry['source_sha256']
+                    duplicate=manifest['file_index'].get(file_sha) or manifest['content_index'].get(content)
+                    if duplicate:
+                        existing=manifest['entries'][duplicate]
+                        if existing['cohort']!=cohort:raise ValueError('Duplicate execution cannot cross train/development boundary')
+                        attempt.update(classification='duplicate',accepted_pool_identity=duplicate,reason='same_file_or_numeric_execution_content')
+                        receipt['duplicates'].append(dict(identity=identity,existing=duplicate,reason=attempt['reason']))
+                    else:
+                        stored=dict(entry,path=str(Path(entry['path']).resolve()),split='train',pool_source=origin,cohort=cohort,
+                            execution_content_sha256=content,content_hash_scope='Complete actual numeric robot/command/time/limits, both labels/masks/segments and tactile history; images protected by whole-file SHA and original collector acceptance',
+                            compatibility=compatibility,exposure=exposure,supervision_boundary=boundary,
+                            acquisition=dict(seed=attempt['seed'],event_seed=row.get('event_seed',planned[source_id].get('event_seed')),
+                                takeover_reason=takeover.get('takeover_reason',planned[source_id].get('takeover_reason','registered_tick')),
+                                actual_takeover_tick=boundary['takeover_tick'],native_success=True),
+                            admission_receipt_sha256=attempt['receipt_sha256'],source_collection_plan_sha256=receipt['plan_sha256'])
+                        manifest['entries'][identity]=stored;manifest['file_index'][file_sha]=identity;manifest['content_index'][content]=identity
+                        attempt.update(classification='admitted',accepted_pool_identity=identity);receipt['inserted'].append(identity)
+                except (ValueError,KeyError,AssertionError,OSError) as error:
+                    incompatible=str(error).startswith('Incompatible camera')
+                    attempt.update(classification='incompatible' if incompatible else 'data_error',reason=str(error),integrity_error=not incompatible)
+                    receipt['integrity_passed'] &= incompatible;receipt['excluded'].append(attempt)
+                    receipt['compatibility_exclusions' if incompatible else 'data_errors'].append(attempt)
+            manifest['attempts'][identity]=attempt;manifest['revision']+=1
+            _pool_write(pool/'manifest.json',manifest)
+        key,_=_pool_id(run_id,source_group,round_index,'ingestion')
+        receipt.update(pool_entries=len(manifest['entries']),training_entries=sum(e['cohort']=='train' for e in manifest['entries'].values()),
+            development_entries=sum(e['cohort']=='correction_dev' for e in manifest['entries'].values()),pool_revision=manifest['revision'])
+        manifest['ingestions'][key]=receipt;_pool_write(pool/'manifest.json',manifest)
+        _pool_write(pool/'ingestions'/(key+'.json'),receipt)
+    return receipt
+
+
+def read_dagger_snapshot(path):
+    value=read(path);identity=value.pop('snapshot_id',None)
+    if value.get('version')!='immutable_shared_dagger_snapshot_v1' or identity!=_pool_digest(value):raise ValueError('Snapshot identity changed')
+    return dict(value,snapshot_id=identity)
+
+
+def freeze_dagger_snapshot(pool_root,snapshot_path,*,run_id,round_index):
+    """Freeze a shared population once; subsequent ingestion never mutates it."""
+    import fcntl
+    pool=Path(pool_root).resolve();path=Path(snapshot_path).resolve()
+    with (pool/'pool.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        if path.exists():
+            result=read_dagger_snapshot(path)
+            if result['run_id']!=run_id or result['round_index']!=round_index or result['pool_root']!=str(pool):raise ValueError('Snapshot registration changed')
+            return result
+        manifest=read(pool/'manifest.json')
+        value=dict(version='immutable_shared_dagger_snapshot_v1',run_id=run_id,round_index=round_index,pool_root=str(pool),
+            pool_manifest_sha256=sha256(pool/'manifest.json'),pool_revision=manifest['revision'],core=manifest['core'],entries=manifest['entries'],
+            train_ids=[i for i,e in manifest['entries'].items() if e['cohort']=='train'],
+            correction_dev_ids=[i for i,e in manifest['entries'].items() if e['cohort']=='correction_dev'])
+        value['snapshot_id']=_pool_digest(value);_pool_write(path,value)
+        return value
+
+
+def _shared_pool_tactile(frozen,touch):
+    """One immutable derived tactile tensor payload, linked by both consumers."""
+    import fcntl
+    digest=hashlib.sha256()
+    for identity,value in sorted(touch.items()):
+        array=value.detach().cpu().contiguous().numpy()
+        digest.update(identity.encode()+b'\0'+str(array.dtype).encode()+str(array.shape).encode()+array.tobytes())
+    key=digest.hexdigest();pool=Path(frozen['pool_root']);path=pool/'tactile_payloads'/(key+'.pt')
+    receipt=path.with_suffix('.json')
+    with (pool/'pool.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX)
+        if receipt.exists():
+            prior=read(receipt)
+            if prior['content_sha256']!=key or sha256(path)!=prior['file_sha256']:raise ValueError('Shared tactile payload changed')
+        else:
+            if path.exists():raise ValueError('Incomplete shared tactile transaction; preserve for recovery')
+            path.parent.mkdir(parents=True,exist_ok=True);save(path,touch)
+            with path.open('rb') as stream:
+                import os
+                os.fsync(stream.fileno())
+            _pool_write(receipt,dict(content_sha256=key,file_sha256=sha256(path),episode_ids=sorted(touch),
+                scope='Derived tactile values only; one payload shared by compatible snapshot consumers'))
+    return path
+
+
+def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,manifest_sha256=None,include_geometry=True,
+        snapshot=None,consumer_group=None):
     """Append accepted train takeovers; keep original validation/test and affine.
 
     Both roots name state_data directories. Selection/native success admission
@@ -248,13 +479,34 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
     import shutil
     from .native_data import target_supervision
     source=Path(source_root).resolve();out=Path(output_root).resolve()
-    if source==out or (out/'data.json').exists():raise ValueError('Aggregate must be a new independent dataset')
+    frozen=read_dagger_snapshot(snapshot) if snapshot is not None else None
+    if source==out:raise ValueError('Aggregate must be a new independent dataset')
     kind=target_supervision(supervision);old=read(source/'data.json')
     if target_supervision(old.get('supervision','u_expert'))!=kind:raise ValueError('Aggregate target semantics changed')
+    exclusions={}
+    if frozen:
+        if consumer_group not in ('G11','QG01') or new_entries:raise ValueError('Snapshot aggregate requires explicit consumer and no extra mutable entries')
+        if frozen['core']!=_pool_core(old):raise ValueError('Snapshot and source Core identities differ')
+        selected={}
+        for identity,entry in frozen['entries'].items():
+            compatibility=entry['compatibility'][consumer_group]
+            if compatibility['compatible']:selected[identity]=entry
+            else:exclusions[identity]=compatibility['reasons']
+        new_entries=selected
+        request=dict(snapshot_id=frozen['snapshot_id'],consumer_group=consumer_group,supervision=kind,
+            source_data_sha256=sha256(source/'data.json'),source_statistics_sha256=sha256(source/'statistics.pt'),include_geometry=include_geometry)
+        if (out/'aggregation_complete.json').exists():
+            completed=read(out/'aggregation_complete.json')
+            if completed['request']!=request or any(not (out/name).is_file() or sha256(out/name)!=digest for name,digest in completed['artifacts'].items()):
+                raise ValueError('Completed immutable aggregate identity changed')
+            return read(out/'data.json')
+        if out.exists() and any(out.iterdir()):raise ValueError('Partial aggregate has no completion receipt; preserve for transaction recovery')
+    elif (out/'data.json').exists():raise ValueError('Aggregate must be a new independent dataset')
     raw=torch.load(source/'numeric.pt',map_location='cpu',weights_only=False)
     if raw['data_sha256']!=sha256(source/'data.json'):raise ValueError('Source numeric cache identity differs')
     touched=torch.load(source/'tactile.pt',map_location='cpu',weights_only=False)
-    ids=old['splits']['train']+old['splits']['validation']
+    base_splits=frozen['core']['splits'] if frozen else old['splits']
+    ids=base_splits['train']+base_splits['validation']
     records={};touch={};contexts={}
     old_context=torch.load(source/'loss_context.pt',map_location='cpu',weights_only=False) if include_geometry and (source/'loss_context.pt').exists() else {}
     for identity in ids:
@@ -274,14 +526,16 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
             else:
                 from .state_image_loss import geometry_loss_context
                 contexts[identity]=geometry_loss_context(old['entries'][identity])
-    entries=dict(old['entries']);splits={k:list(v) for k,v in old['splits'].items()};families=dict(old.get('families',{}))
+    entries=({i:old['entries'][i] for values in base_splits.values() for i in values} if frozen else dict(old['entries']))
+    splits={k:list(v) for k,v in base_splits.items()};families=dict(old.get('families',{}))
+    if frozen:splits['correction_dev']=[]
     for identity,entry in new_entries.items():
         if identity in entries:raise ValueError('Duplicate aggregate episode: '+identity)
         family=entry.get('family',identity)
         if families.get(family,'train')!='train':raise ValueError('Takeover family leaks a held-out split')
         records[identity],touch[identity],context=dagger_record(entry,include_geometry=include_geometry)
         if include_geometry:contexts[identity]=context
-        entries[identity]=dict(entry);splits['train'].append(identity);families[family]='train'
+        entries[identity]=dict(entry);splits['correction_dev' if frozen and entry['cohort']=='correction_dev' else 'train'].append(identity);families[family]='train'
     train_ids=old.get('normalization_train_ids',old['splits']['train'])
     if not set(train_ids)<=set(old['splits']['train']):raise ValueError('Source normalizer population is not original training data')
     data=dict(old,entries=entries,splits=splits,families=families,visual_pair=True,supervision=kind,
@@ -293,14 +547,27 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
         policy_inputs=['robot178','RGB_DINO_patches','deterministic_depth_grid'],privileged_inputs=False,
         source_statistics_sha256=sha256(source/'statistics.pt'))
     if manifest_sha256 is not None:data['manifest_sha256']=manifest_sha256
+    if frozen:
+        current=[i for i,e in new_entries.items() if e['cohort']=='train' and e['pool_source']['run_id']==frozen['run_id'] and e['pool_source']['round_index']==frozen['round_index']]
+        historical=[i for i,e in new_entries.items() if e['cohort']=='train' and i not in current]
+        data.update(snapshot_id=frozen['snapshot_id'],snapshot_path=str(Path(snapshot).resolve()),round_index=frozen['round_index'],
+            sampling_strata=dict(core=list(base_splits['train']),historical_correction=historical,current_correction=current),
+            snapshot_exclusions=exclusions,consumer_group=consumer_group)
+        data['aggregation'].update(snapshot_id=frozen['snapshot_id'],pool_manifest_sha256=frozen['pool_manifest_sha256'],
+            new_training_ids=current,all_correction_training_ids=historical+current,correction_dev_ids=list(splits['correction_dev']),
+            shared_pool=True,source_group_contributions={g:sum(e['pool_source']['group']==g for e in new_entries.values()) for g in ('G11','QG01')})
     out.mkdir(parents=True,exist_ok=True)
     for name in ('statistics.pt','tactile_statistics.pt'):
         shutil.copyfile(source/name,out/name)
         if sha256(source/name)!=sha256(out/name):raise ValueError('Fixed aggregate affine copy changed')
     atomic_json(out/'data.json',data)
     save(out/'numeric.pt',dict(contract=raw['contract'],data_sha256=sha256(out/'data.json'),records=records))
-    save(out/'tactile.pt',touch)
+    if frozen:(out/'tactile.pt').symlink_to(_shared_pool_tactile(frozen,touch))
+    else:save(out/'tactile.pt',touch)
     if include_geometry:save(out/'loss_context.pt',contexts)
+    if frozen:
+        names=['data.json','numeric.pt','tactile.pt','statistics.pt','tactile_statistics.pt']+(['loss_context.pt'] if include_geometry else [])
+        _pool_write(out/'aggregation_complete.json',dict(complete=True,request=request,artifacts={name:sha256(out/name) for name in names},test_trajectories_opened=0))
     return data
 
 

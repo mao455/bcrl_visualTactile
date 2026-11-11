@@ -213,7 +213,9 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
                 episode.frame(tick,device) if tick%12==0 else None,memory,tactile=touch)
             return model.condition(memory,record['time'][tick]) if tick%12==0 else None
         return bank.observe(0,1,tick,model,record['actor'][tick],record['robot'][tick],record['geometry'][tick],record['time'][tick])
+    from .anchor_sampling import labels
     plans, holds, full_plans, full_truth, full_holds, full_ticks, full_anchors = [], [], [], [], [], [], []
+    masks,full_masks=[],[]
     n = len(record['time'])
     for start in range(0, n, 12):
         with lease.block():
@@ -222,6 +224,8 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
             raw = model.predict(condition, generator, inference_steps=16, clip_sample=False)
             prediction = bounded_targets(raw[0], record['joint_limits'])
             count = min(12, n-start)
+            _,valid=labels(record,torch.tensor([start],device=record['command'].device),model.horizon)
+            masks.append(valid[0,:count].cpu())
             plans.append(prediction[:count].cpu())
             holds.append(record['robot'][start, 58:87].cpu().expand(count, -1))
             if full_horizon:
@@ -230,6 +234,7 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
                 full_truth.append(record.get('clean_sample',record['command'])[start:start+extent].cpu())
                 full_holds.append(record['robot'][start, 58:87].cpu().expand(extent, -1))
                 full_ticks.extend(range(start, start+extent));full_anchors.extend([start]*extent)
+                full_masks.append(valid[0,:extent].cpu())
             for tick in range(start+1, start+count):
                 assert observe(tick) is None
         progress(native_ticks=min(start+12, n), sampled_anchors=len(plans))
@@ -246,10 +251,10 @@ def deployment_sample(model, record, objective, lease, *, seed=7091, progress=la
             angle = torch.atan2(sine, (rotation.diagonal(dim1=-2, dim2=-1).sum(-1)-1)/2).cpu()*180/torch.pi
         return dict(prediction=prediction, truth=truth, hold=hold,
             ee_mm=distance[:, 0], finger_mm=distance[:, 1:], rotation_deg=angle)
-    result=measured(prediction,truth,hold)
+    result=dict(measured(prediction,truth,hold),valid=torch.cat(masks))
     if full_horizon:
         result['full_horizon']=dict(measured(torch.cat(full_plans),torch.cat(full_truth),torch.cat(full_holds)),
-            target_ticks=full_ticks,anchor_ticks=full_anchors)
+            target_ticks=full_ticks,anchor_ticks=full_anchors,valid=torch.cat(full_masks))
     return result
 
 
@@ -266,6 +271,7 @@ def diagnostic_rows(sample, phases, *, identity, split):
     error, hold_error = prediction-truth, hold-truth
     rows = []
     for tick in range(len(truth)):
+        if 'valid' in sample and not bool(sample['valid'][tick]):continue
         real_tick=sample.get('target_ticks',range(len(truth)))[tick]
         anchor=sample['anchor_ticks'][tick] if 'anchor_ticks' in sample else tick//12*12
         row = dict(identity=identity, split=split, tick=real_tick, time_s=real_tick/60,
@@ -304,6 +310,10 @@ def summarize_diagnostics(rows):
 
 
 def sampled_metrics(sample):
+    if 'valid' in sample:
+        mask=sample['valid']
+        sample={k:v[mask] for k,v in sample.items() if torch.is_tensor(v) and k!='valid'}
+    if not len(sample['truth']):raise ValueError('No eligible supervised diagnostic targets')
     error=sample['prediction']-sample['truth'];hold=sample['hold']-sample['truth']
     arm=float(error[:,:7].square().mean().sqrt());hand=float(error[:,7:].square().mean().sqrt())
     palm=float(sample['ee_mm'].square().mean().sqrt());angle=float(sample['rotation_deg'].mean())
@@ -319,9 +329,14 @@ def deployment_evaluate(model,records,identities,objective,lease):
     samples=[deployment_sample(model,records[i],objective,lease,full_horizon=True) for i in identities]
     def merged(values):
         return {k:torch.cat([v[k] for v in values]) for k in
-                ('prediction','truth','hold','ee_mm','finger_mm','rotation_deg')}
+                ('prediction','truth','hold','ee_mm','finger_mm','rotation_deg','valid')}
     result=sampled_metrics(merged(samples))
     result['full_horizon']=sampled_metrics(merged([s['full_horizon'] for s in samples]))
+    initial=[]
+    for sample in samples:
+        mask=torch.zeros_like(sample['valid']);mask[sample['valid'].nonzero().flatten()[:24]]=True
+        initial.append(dict(sample,valid=mask))
+    result['initial24']=sampled_metrics(merged(initial))
     result['identities']=list(identities)
-    result['protocol']='complete real prefix, deployment batch1 DDIM16 seed7091; committed12 vs all valid24'
+    result['protocol']='complete real prefix, deployment batch1 DDIM16 seed7091; committed12 vs valid24 within supervised control segment; initial24 first eligible committed ticks per episode'
     return result
