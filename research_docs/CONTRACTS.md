@@ -69,7 +69,7 @@ H24/commit12、sample/x0、DDIM16/seed7091、overlap0；5Hz规划、60Hz控制�
 
 `normalization_train_ids` 固定为原训练人口；`statistics.pt` 与 G10 的 `tactile_statistics.pt` 按原字节复用。Q 前端保持 q affine；G 前端保持 u affine；所有后端保持共同 `u_expert_train166_affine_v1`。不从纠正数据/validation/test重新拟合。G10六个、G00四个观测/动作统计 buffer 在同语义续训时逐 tensor 校验。
 
-池的全局身份包括run/group/round/source与内容SHA；同内容去重，禁止改变既定cohort。每轮snapshot冻结之后再训练，两组读同一快照。本轮层必须同时匹配run_id与round_index，不能把旧run相同轮号混入本轮。采样按Core .5、历史纠偏 .2、本轮纠偏 .3，空纠偏层权重移到另一纠偏层；DP按有效anchor，后端按有效监督tick分配完整episode。记录实际各层比例、重复样本、唯一episode/anchor/tick覆盖与等效曝光，不把重复抽样称为新增数据。
+池的全局身份包括run/group/round/source与内容SHA；同内容去重，禁止改变既定cohort。每轮snapshot冻结之后再训练，同轮实际调度组读同一快照。本轮层必须同时匹配run_id与round_index，不能把旧run相同轮号混入本轮。采样按Core .5、历史纠偏 .2、本轮纠偏 .3，空纠偏层权重移到另一纠偏层；DP按有效anchor，后端按有效监督tick分配完整episode。记录实际各层比例、重复样本、唯一episode/anchor/tick覆盖与等效曝光，不把重复抽样称为新增数据。
 
 恢复初段从首个合法专家tick起最多48个连续有效tick，遇mask无效或控制segment变化立即截断，不跳过缺口续数；学生和队列过渡不能补入。前端在既有纠偏层内将约一半有效anchor抽样分配到初段，其余仍覆盖全部合法后缀；后端对合法初段最终命令loss施加3倍权重，归一化与实际加权曝光公开。原Core/历史/本轮.5/.2/.3混合层保持。记录原始独立接管起点、来源pair版本、训练家族、实际接管阶段/偏离描述、初段合法tick/anchor人口以及实际采样曝光；重复采样不计新恢复案例，阶段/偏离统计不解释为已证明根因。
 
@@ -99,7 +99,7 @@ L_{\rm pos}=\operatorname{mean}_{C}\|p(\hat q)-p(q^*)\|_2^2,\qquad
 L_{\rm rot}=\frac12\operatorname{mean}_{C}\|R(\hat q)-R(q^*)\|_F^2.
 $$
 
-位置项单位是 **m²**，旋转矩阵项无量纲，不能把毫米或角度误差直接代入这些训练项。这里的掌部位姿是预测关节配置的 FK，不是实际自主轨迹偏离。代码见 [sample/x0 与掌部目标](../visuotactile/state_image_loss.py#L59)、[Arm/Hand 等权拟合](../visuotactile/dp_objectives.py#L8)、[有效窗口](../visuotactile/anchor_sampling.py#L273)。
+位置项单位是 **m²**，旋转矩阵项无量纲，不能把毫米或角度误差直接代入这些训练项。这里的掌部位姿是预测关节配置的 FK，不是实际自主轨迹偏离。代码见 [sample/x0 与掌部目标](../visuotactile/state_image_loss.py#L59)、[Arm/Hand 等权拟合](../visuotactile/dp_objectives.py#L8)、[有效窗口](../visuotactile/anchor_sampling.py#L371)。
 
 对抽中的配置，$d_c$ 是手部碰撞表面与物体之间的有符号距离（m，分离为正、穿透为负），$d_f$ 是指定手指实际末节/弹性体碰撞表面的最小距离，$m_f$ 是要求接触的五指 mask。令 $[x]_+=\max(x,0)$：
 
@@ -111,7 +111,7 @@ $$
 
 穿透容许1mm、要求接触的表面间距容许2mm；平方 hinge 除以各自容差平方，因此几何项与其乘子均无量纲。接触安排来自同 transition 最后120Hz采样的 object-filtered force，范数超过0.1N的指头才有 $m_f=1$。接近、释放及未要求接触的指头没有吸附项。after-state 物体位姿、接触 mask 和阶段只进入 loss，不进入策略观测；它们与 `q_reached` 对齐。[软几何实现](../visuotactile/state_image_loss.py#L162) · [几何标签时序](../visuotactile/state_image_loss.py#L354)
 
-每个完整 optimizer update 最多抽两个合法 commit 配置，有候选时接触/非接触各一个，否则从剩余候选补齐。$L_{\rm geom}$ 是这两个配置的等权均值；分母在整个 update 内固定，各微批直接累加贡献，不能误乘成每微批两个配置。该分层抽样均值**不是整个目标人口的无偏估计**；基础拟合仍使用全部合法目标，困难几何样本不按可行性剔除。[抽样](../visuotactile/anchor_continue.py#L125) · [全 update 归一化](../visuotactile/state_image_loss.py#L113) · [微批累加](../visuotactile/anchor_sampling.py#L221)
+每个完整 optimizer update 最多抽两个合法 commit 配置，有候选时接触/非接触各一个，否则从剩余候选补齐。$L_{\rm geom}$ 是这两个配置的等权均值；分母在整个 update 内固定，各微批直接累加贡献，不能误乘成每微批两个配置。该分层抽样均值**不是整个目标人口的无偏估计**；基础拟合仍使用全部合法目标，困难几何样本不按可行性剔除。[抽样](../visuotactile/anchor_continue.py#L125) · [全 update 归一化](../visuotactile/state_image_loss.py#L113) · [微批累加](../visuotactile/anchor_sampling.py#L319)
 
 实际总损失与权重为：
 

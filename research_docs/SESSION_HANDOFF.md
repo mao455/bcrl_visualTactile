@@ -4,6 +4,10 @@
 
 修改前已请求本任务STOP并核验owner退出：`status.json`为STOPPED、`owned_workers_exited=true`，G11前端在754正式更新保存边界退出，loss=0.00111453、selected=201；没有把未完成后端与自主评估算完成。QG01首轮完整pair保持前端804/后端12212更新，自主0/10成功、2lift、0子目标、全部601tick超时。已有80条纠偏（73train/7dev）与Core166保留。上述为安全边界事实；本次重新注册/启动后的状态以root新机器凭据为准，文档准备不等于新GPU启动。
 
+**真实接续核验（北京时间18:26:55）**：同一service已以源码`c80829c`恢复，状态RUNNING / round_02_collection。新A前两次实际采集均通过完整DP＋Transformer身份与数值链读回，264个冻结源码/配置文件未变；没有额外诊断rollout。B的真实采集验收将由同一owner在其首2个登记机会内执行，目前未测。本轮新训练与自主评估尚未完成。[启动验收](evidence/tight_dagger_pool_20261111_01/scope_startup_acceptance.json) · [64次既有采集审计](evidence/tight_dagger_pool_20261111_01/complete_policy_acceptance.json) · [原run修订/完整pair身份](evidence/tight_dagger_pool_20261111_01/scope_revision.json) · [定向测试](evidence/tight_dagger_pool_20261111_01/scope_tests.json)。
+
+安全边界停止至重新监控之间存在资源采样缺口；后续报告保留这一缺口，不声称全会话连续覆盖。各活跃文件按各自写入时间读取，启动验收中两例已完成的读回与progress字段可能相差一次落盘。
+
 ## 两个完整策略及身份
 
 |角色|前端|后端|标签与模态|

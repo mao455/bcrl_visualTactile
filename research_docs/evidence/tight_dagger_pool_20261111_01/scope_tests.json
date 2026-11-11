@@ -1,0 +1,48 @@
+{
+  "source_head": "c80829ce333ed30adb57ff292cc087910b4ac6c4",
+  "utc": 1794392710.853384,
+  "cpu_only": true,
+  "tests": [
+    {
+      "passed": 114,
+      "wall_seconds": 13.83,
+      "scope": [
+        "dagger_queue",
+        "dagger_owner",
+        "dagger_collection",
+        "dagger_publication",
+        "dagger_stratified_training",
+        "residual_training_contract",
+        "dagger_takeover",
+        "dagger_data",
+        "dagger_pool",
+        "dagger_evaluation",
+        "anchor_sampling"
+      ]
+    },
+    {
+      "passed": 16,
+      "wall_seconds": 8.28,
+      "scope": [
+        "dagger_pool",
+        "dagger_data"
+      ],
+      "note": "Focused recheck overlaps joint suite; counts are not additive"
+    }
+  ],
+  "warnings": [
+    "Existing requests dependency version warning"
+  ],
+  "verified": [
+    "Same-run revision preserves original started/deadline/compute_deadline and prior metadata",
+    "G01/G11 command versus QG01 configuration supervision explicit",
+    "Old G11 data qualification reused for G01 without mutating prior snapshots",
+    "Continuous expert recovery-prefix masks and persistent sampler state",
+    "Actual retained collection command chains and fail-closed complete-policy identity"
+  ],
+  "limitations": [
+    "No new autonomous performance claim from CPU tests",
+    "Future B actual collector gate runs inside its registered budget",
+    "Unchanged full training architecture is not re-benchmarked here"
+  ]
+}

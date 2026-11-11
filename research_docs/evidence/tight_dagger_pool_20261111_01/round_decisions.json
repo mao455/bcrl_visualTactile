@@ -34,6 +34,7 @@
     "finished": null,
     "snapshot_id": "31e6f2bfd8eee80177774330ec1c43c9348fa695a3622b0f80df9c0e0e2b3278",
     "groups": {
+      "G11": null,
       "QG01": {
         "selected_pair": {
           "frontend": "outputs/visuotactile/run/tight_dagger_pool_20261111_01/round_01/QG01/dp/training/best.pt",
@@ -239,17 +240,62 @@
         },
         "snapshot_sha256": "c09d8f62258b6e7e630968284a74c407813c8e03996ae874ac419fba32942bd2",
         "utc": 1794387002.4956884
-      },
-      "G11": null
+      }
     }
   },
   "round_02": {
-    "decision": null,
+    "decision": {
+      "attempts_per_group": 32,
+      "clean_ticks": [
+        60,
+        96,
+        132,
+        180,
+        240,
+        300,
+        360,
+        420
+      ],
+      "takeover_ticks": [
+        58,
+        94,
+        130,
+        178,
+        238,
+        298,
+        358,
+        418
+      ],
+      "reason": "measured student stage progress; extend student prefixes",
+      "remaining_seconds": 46260.497990608215,
+      "weights": {
+        "core": 0.5,
+        "historical_correction": 0.2,
+        "current_correction": 0.3
+      },
+      "zero_student_success_is_stop": false,
+      "scope_revision": "complete_strategy_ab_v1",
+      "active_groups": [
+        "QG01",
+        "G01"
+      ],
+      "attempts_by_group": {
+        "QG01": 96,
+        "G01": 48
+      },
+      "requested_attempts": {
+        "QG01": 96,
+        "G01": 48
+      },
+      "reserved_compute_seconds": 26600,
+      "unequal_exposure_exploration": true,
+      "not_scheduled": []
+    },
     "finished": null,
     "snapshot_id": null,
     "groups": {
-      "QG01": null,
-      "G11": null
+      "G01": null,
+      "QG01": null
     }
   },
   "round_03": {
@@ -257,8 +303,8 @@
     "finished": null,
     "snapshot_id": null,
     "groups": {
-      "QG01": null,
-      "G11": null
+      "G01": null,
+      "QG01": null
     }
   }
 }
