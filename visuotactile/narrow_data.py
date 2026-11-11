@@ -276,6 +276,23 @@ def _pool_id(run_id,group,round_index,source_identity):
     return readable+'__'+_pool_digest(origin)[:12],origin
 
 
+# Complete-policy consumers have explicit supervision identities. G01 and G11
+# need the same command/tactile fields in a correction record; their frontends'
+# observation modalities differ, so this is a data qualification alias only.
+_DAGGER_CONSUMERS={'G11':'u_expert','QG01':'q_reached','G01':'u_expert'}
+
+
+def _pool_compatibility(entry,consumer):
+    receipts=entry.get('compatibility',{})
+    source=consumer
+    if consumer=='G01' and consumer not in receipts:source='G11'
+    receipt=receipts.get(source)
+    if (not isinstance(receipt,dict) or not isinstance(receipt.get('compatible'),bool)
+            or not isinstance(receipt.get('reasons'),list)):
+        raise ValueError('Missing explicit correction compatibility receipt for '+consumer)
+    return receipt,source
+
+
 def _execution_content_sha(record,touch):
     digest=hashlib.sha256()
     for key,value in sorted(dict(record,tactile=touch).items()):
@@ -297,7 +314,7 @@ def ingest_dagger_pool(pool_root,collection_root,*,run_id,source_group,round_ind
     from .native_data import CAMERAS
     pool=Path(pool_root).resolve();source=Path(collection_root).resolve();pool.mkdir(parents=True,exist_ok=True)
     if not isinstance(round_index,int) or isinstance(round_index,bool) or round_index<1:raise ValueError('Positive source round required')
-    if not run_id or source_group not in ('G11','QG01'):raise ValueError('Explicit run and supported source group required')
+    if not run_id or source_group not in _DAGGER_CONSUMERS:raise ValueError('Explicit run and supported source group required')
     core=_pool_core(read(Path(core_data_root)/'data.json'))
     plan=read(source/'collection_plan.json');planned={r['identity']:r for r in plan}
     if len(plan)!=len(planned):raise ValueError('Duplicate source collection identity')
@@ -382,7 +399,7 @@ def ingest_dagger_pool(pool_root,collection_root,*,run_id,source_group,round_ind
                         first_24_valid_expert_ticks=valid_ticks[:24].tolist())
                     compatibility={g:dict(compatible=not missing_touch and (g!='QG01' or not missing_geometry),
                         reasons=(['missing_backend_tactile_fields:'+','.join(missing_touch)] if missing_touch else [])+
-                            (['missing_loss_geometry_fields:'+','.join(missing_geometry)] if g=='QG01' and missing_geometry else [])) for g in ('G11','QG01')}
+                            (['missing_loss_geometry_fields:'+','.join(missing_geometry)] if g=='QG01' and missing_geometry else [])) for g in _DAGGER_CONSUMERS}
                     if not missing_geometry:
                         from .state_image_loss import geometry_loss_context
                         geometry_loss_context(entry)
@@ -483,13 +500,15 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
     if source==out:raise ValueError('Aggregate must be a new independent dataset')
     kind=target_supervision(supervision);old=read(source/'data.json')
     if target_supervision(old.get('supervision','u_expert'))!=kind:raise ValueError('Aggregate target semantics changed')
-    exclusions={}
+    exclusions={};compatibility_aliases={}
     if frozen:
-        if consumer_group not in ('G11','QG01') or new_entries:raise ValueError('Snapshot aggregate requires explicit consumer and no extra mutable entries')
+        if consumer_group not in _DAGGER_CONSUMERS or new_entries:raise ValueError('Snapshot aggregate requires explicit consumer and no extra mutable entries')
+        if _DAGGER_CONSUMERS[consumer_group]!=kind:raise ValueError('Snapshot consumer supervision semantics changed')
         if frozen['core']!=_pool_core(old):raise ValueError('Snapshot and source Core identities differ')
         selected={}
         for identity,entry in frozen['entries'].items():
-            compatibility=entry['compatibility'][consumer_group]
+            compatibility,qualification=_pool_compatibility(entry,consumer_group)
+            if qualification!=consumer_group:compatibility_aliases[identity]=qualification
             if compatibility['compatible']:selected[identity]=entry
             else:exclusions[identity]=compatibility['reasons']
         new_entries=selected
@@ -555,7 +574,9 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
             snapshot_exclusions=exclusions,consumer_group=consumer_group)
         data['aggregation'].update(snapshot_id=frozen['snapshot_id'],pool_manifest_sha256=frozen['pool_manifest_sha256'],
             new_training_ids=current,all_correction_training_ids=historical+current,correction_dev_ids=list(splits['correction_dev']),
-            shared_pool=True,source_group_contributions={g:sum(e['pool_source']['group']==g for e in new_entries.values()) for g in ('G11','QG01')})
+            shared_pool=True,source_group_contributions={g:sum(e['pool_source']['group']==g for e in new_entries.values())
+                for g in ('G11','QG01')+tuple(sorted({e['pool_source']['group'] for e in new_entries.values()}-{'G11','QG01'}))})
+        if compatibility_aliases:data['aggregation']['legacy_compatibility_qualifications']=compatibility_aliases
     out.mkdir(parents=True,exist_ok=True)
     for name in ('statistics.pt','tactile_statistics.pt'):
         shutil.copyfile(source/name,out/name)

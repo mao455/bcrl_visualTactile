@@ -11,7 +11,8 @@ import time
 import torch
 
 from .anchor_sampling import (AnchorSampler,anchor_batch,mask_totals,weighted_parts,continuation_lr,
-    sampling_strata,stratified_episode_order,episode_exposure,relative_selection)
+    sampling_strata,stratified_episode_order,episode_exposure,relative_selection,
+    recovery_prefix_config,recovery_prefix_rows,residual_recovery_weights)
 from .compact import sha256
 from .models.vendor.ema_model import EMAModel
 from .checkpointing import restore_training,training_state
@@ -554,6 +555,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             snapshot_id=data.get('snapshot_id'),round_index=data.get('round_index'),
             sampler='stratified_valid_anchor_decks_v1',correction_dev_ids=devs,
             selection='update0-relative old_validation .5 + correction_dev .25 + correction_initial24 .25')
+    recovery=recovery_prefix_config(runtime.get('recovery_prefix'))
+    if recovery:
+        if not strata:raise ValueError('Recovery-prefix frontend requires correction sampling strata')
+        config.update(recovery_prefix=recovery,sampler='stratified_recovery_anchor_decks_v1')
     if runtime.get('geometry_probe_gain_sequence'):
         if not config['disposable']:raise ValueError('Geometry timing gain overrides are disposable only')
         config['geometry_probe_gain_sequence']=runtime['geometry_probe_gain_sequence']
@@ -595,7 +600,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             opt=torch.optim.AdamW(model.parameters(),lr=config['lr_floor'],betas=(.95,.999),weight_decay=1e-6)
             generator=torch.Generator().manual_seed(seed);noise=torch.Generator(device=device).manual_seed(seed+1)
             sampler=AnchorSampler({i:len(records[i]['time']) for i in ids},generator,config['effective_batch'],
-                records={i:records[i] for i in ids},strata=strata,weights=config.get('sampling_weights'))
+                records={i:records[i] for i in ids},strata=strata,weights=config.get('sampling_weights'),
+                recovery_prefix=config.get('recovery_prefix'))
             objective.supervision_records=records
             if (root/'last.pt').exists():
                 old=torch.load(root/'last.pt',map_location='cpu',weights_only=False)
@@ -966,6 +972,11 @@ def residual_setup(root, *, selected=False, smoke=False):
             snapshot_id=data.get('snapshot_id'),round_index=data.get('round_index'),
             correction_dev_ids=all_splits.get('correction_dev',[]),
             selection='update0-relative old_validation .5 + correction_dev .25 + correction_initial24 .25')
+    recovery=recovery_prefix_config(v.get('recovery_prefix'))
+    if recovery:
+        if not data.get('sampling_strata'):raise ValueError('Recovery-prefix backend requires correction sampling strata')
+        configuration.update(recovery_prefix=recovery,loss_id='recovery_weighted_all_tick_equal_arm_hand_plus_1e-4_residual',
+            loss_weight_normalization='per optimizer update actual masked weight sum; physical tick exposure remains unweighted')
     if v.get('continuation_from'):
         from .native_data import supervision_mask_sha256
         saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)
@@ -1074,6 +1085,13 @@ def residual_train(root, *, smoke=False, probe=False):
     devs=data['splits'].get('correction_dev',[])
     strata=data.get('sampling_strata') if not disposable else None
     if strata and not devs:raise ValueError('Multi-round residual selection requires held correction_dev episodes')
+    recovery=recovery_prefix_config(v.get('recovery_prefix'))
+    recovery_masks={}
+    if recovery:
+        if not data.get('sampling_strata'):raise ValueError('Recovery-prefix backend requires correction sampling strata')
+        core=set(data['sampling_strata']['core'])
+        recovery_masks={i:(torch.zeros(len(records[i]['robot']),dtype=torch.bool) if i in core else
+            recovery_prefix_rows(records[i],recovery['ticks']).cpu()) for i in ids}
     population=sum(int(records[i].get('supervision_mask',torch.ones(len(records[i]['robot']),dtype=torch.bool)).sum()) for i in ids)
     native_population=sum(len(records[i]['robot']) for i in ids)
     if population<1:raise ValueError('No valid native training ticks')
@@ -1123,7 +1141,8 @@ def residual_train(root, *, smoke=False, probe=False):
             if selection_baseline is None and updates!=0:raise ValueError('Missing actual residual update0 baseline')
             score,selection_baseline,ratios=relative_selection(components,selection_baseline)
             row.update(correction_dev=correction,selection_components=components,selection_ratios=ratios,
-                selection_baseline=selection_baseline,coverage=episode_exposure(records,episode_counts,strata,v.get('sampling_weights')))
+                selection_baseline=selection_baseline,coverage=episode_exposure(records,episode_counts,strata,v.get('sampling_weights'),
+                    recovery_prefix=recovery))
         if score is None or not math.isfinite(score):raise FloatingPointError('Invalid validation score')
         row['selection_score']=score
         history.append(row);atomic_json(out/'validation.json',history)
@@ -1162,7 +1181,14 @@ def residual_train(root, *, smoke=False, probe=False):
                     gate=residual_aux(selected,start,end,'gate',device)&inputs['valid']
                     action,delta=model.compose(residual_aux(selected,start,end,'base',device),raw,gate,
                         torch.stack([r['limits'] for r in selected]).to(device)[:,None])
-                    loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,supervised)
+                    loss_mask=supervised;weight_report={}
+                    if recovery:
+                        loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in order[offset:offset+len(selected)]],
+                            start,end,supervised,recovery['backend_weight'])
+                        weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
+                            remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
+                            recovery_prefix_weight=recovery['backend_weight'],loss_weight_mass_is_exposure=False)
+                    loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
                     if supervised.any():
                         opt.zero_grad(set_to_none=True);loss.backward()
@@ -1171,7 +1197,7 @@ def residual_train(root, *, smoke=False, probe=False):
                         opt.step();updates+=1;draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
                         with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
                             loss=float(loss.detach()),contact_ticks=int((gate&supervised).sum()),supervised_ticks=int(supervised.sum()),
-                            history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm)))+'\n')
+                            history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm),**weight_report))+'\n')
                     ticks+=int(inputs['valid'].sum())
                     def detach(x):return {k:detach(z) for k,z in x.items()} if isinstance(x,dict) else x.detach()
                     state=detach(state)
@@ -1224,7 +1250,7 @@ def residual_train(root, *, smoke=False, probe=False):
         selection=configuration.get('selection','fixed validation4 all-tick normalized equal Arm/Hand MSE'),
         exposure_budget_rounding='complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported',
         excess_supervised_ticks=max(0,draws-target_ticks),
-        coverage=episode_exposure(records,episode_counts,strata,v.get('sampling_weights')),
+        coverage=episode_exposure(records,episode_counts,strata,v.get('sampling_weights'),recovery_prefix=recovery),
         last=str(out/'last.pt'),best=str(out/'best.pt'),utc=time.time(),base_optimizer_updates=0))
 
 

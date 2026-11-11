@@ -107,7 +107,8 @@ def test_takeover_clean_boundary_can_align_with_unchanged_native_plan_phase(clea
 def test_actual_expert_acknowledgement_and_q_reached_are_not_student_counterfactuals():
     env = environment(False); bridge = ExpertPositionBridge(env, 1, ExpertPositionBridge.speed_scheme, pipeline=native_pipeline())
     env._dagger_position_bridge = bridge
-    controller = NS(nominal=torch.full((1, 29), .2), base=NS(command=torch.full((1, 29), .7)))
+    controller = NS(nominal=torch.full((1, 29), .2), command=torch.full((1, 29), .7),
+        base=NS(command=torch.full((1, 29), .7)), residual_diagnostics=dict(applied_rad=torch.full((1, 29), .5)))
     controller.action_scale_cpu = torch.ones(29); controller.residual_scales_cpu = torch.full((29,), .05)
     acknowledgements = []
     controller.observe_execution = lambda tr: acknowledgements.append(controller.base.command.clone())
@@ -237,12 +238,19 @@ def test_existing_trial_writes_full_compact_episode_and_separates_mixed_success(
     monkeypatch.setattr(benchmark, 'prepare', prepare)
     monkeypatch.setattr(benchmark, 'environment_identity', lambda env: ({}, 'test_configuration'))
     monkeypatch.setattr(benchmark, 'export_initial', lambda *args: {})
-    checkpoint = tmp_path/'student.pt'; checkpoint.write_bytes(b'test_student_identity')
+    from visuotactile.models.native_dp import TargetResidual
+    from visuotactile.compact import sha256
+    frontend = tmp_path/'frontend.pt'
+    contract = dict(supervision='q_reached', modality='G00')
+    torch.save(dict(contract=contract), frontend)
+    saved = dict(group='I-OfficialDP', residual_version=TargetResidual.version, kind='test', updates=1,
+        configuration=dict(base_checkpoint=str(frontend), base_sha256=sha256(frontend)), contract=contract)
+    checkpoint = tmp_path/'student.pt'; torch.save(saved, checkpoint)
     expert = tmp_path/'expert.pt'; expert.write_bytes(b'test_expert_identity')
     result = benchmark.trial(env, NS(block=lambda: contextlib.nullcontext()), tmp_path/'trial',
         dict(identity='attempt', seed=99, cohort='dagger_train', split='train', source_identity='train_a',
             narrow_reset={}, event_seed=1001, takeover_tick=2), dict(splits=dict(train=['train_a'])),
-        player, str(checkpoint), saved=dict(group='I-OfficialDP', residual_version='test', kind='test'),
+        player, str(checkpoint), saved=saved,
         position=True, capture_dataset=True, expert_checkpoint=str(expert),
         dagger=dict(version=original_bridge.version, expert_speed=original_bridge.speed_scheme))
     assert calls == list(range(steps)) and len(instances[0].seen) == steps
@@ -251,6 +259,11 @@ def test_existing_trial_writes_full_compact_episode_and_separates_mixed_success(
     assert result['dataset_capture']['accepted_success'] == accepted
     assert result['dagger']['expert_valid_ticks'] == max(0, steps-5)
     assert result['dagger']['student_autonomous_success'] == (native_success and steps==1)
+    assert result['complete_student_policy']['frontend_sha256'] == sha256(frontend)
+    assert result['complete_student_policy']['backend_sha256'] == sha256(checkpoint)
+    acceptance = benchmark.audit_dagger_capture(tmp_path/'trial')
+    assert acceptance['passed'] and acceptance['student_ticks'] == min(2, steps)
+    assert acceptance['recovery_coverage']['population']['first24']['valid_expert_ticks'] == max(0, steps-5)
     path = tmp_path/'trial/demonstration/data.h5'
     assert verify_stream_fields(path) > 30
     with h5py.File(path) as stream:
@@ -262,3 +275,103 @@ def test_existing_trial_writes_full_compact_episode_and_separates_mixed_success(
         assert (g['frames/post_index'][-1:] == -1).all()
         for tick in range(1, steps):
             assert torch.equal(instances[0].seen[tick], torch.from_numpy(d['actual_issued'][tick-1:tick]))
+    import numpy as np
+    with np.load(tmp_path/'trial/trace.npz') as archive:
+        trace = {key: archive[key] for key in archive.files}
+    trace['nominal'][0, 0] += .1
+    np.savez_compressed(tmp_path/'trial/trace.npz', **trace)
+    with pytest.raises(ValueError, match='numerical chain mismatch'):
+        benchmark.audit_dagger_capture(tmp_path/'trial')
+
+
+def test_complete_policy_identity_rejects_bare_or_unpaired_checkpoint(tmp_path):
+    from visuotactile.state_benchmark import dagger_policy_identity
+    from visuotactile.compact import sha256
+    from visuotactile.models.native_dp import TargetResidual
+    front = tmp_path/'front.pt'; front.write_bytes(b'identity only')
+    back = tmp_path/'back.pt'; back.write_bytes(b'identity only')
+    saved = dict(group='I-HistoryDP', residual_version=TargetResidual.version, updates=5,
+        configuration=dict(base_checkpoint=str(front), base_sha256=sha256(front)),
+        contract=dict(supervision='u_expert', modality='G00'))
+    assert dagger_policy_identity(saved, back)['zero_correction_is_valid']
+    for change in (dict(residual_version=None), dict(group='state_dp'), dict(updates=0),
+            dict(configuration={}), dict(contract={})):
+        with pytest.raises(ValueError):
+            dagger_policy_identity(dict(saved, **change), back)
+
+
+def test_zero_correction_is_complete_policy_and_wrong_proposal_is_rejected():
+    env = environment(False); bridge = ExpertPositionBridge(env, 1, ExpertPositionBridge.speed_scheme, pipeline=native_pipeline())
+    env._dagger_position_bridge = bridge
+    command = torch.full((1, 29), .1)
+    controller = NS(nominal=command.clone(), command=command.clone(), base=NS(command=command.clone()),
+        residual_diagnostics=dict(applied_rad=torch.zeros_like(command)), action_scale_cpu=torch.ones(29),
+        residual_scales_cpu=torch.ones(29), observe_execution=lambda transition: None)
+    bridge.submit(torch.zeros(1, 29), torch.zeros(1, 29), 0)
+    applied, _ = apply_position_targets(env, command)
+    transition = dict(dagger=copy.deepcopy(bridge.trace), target_after_rad=applied,
+        position_requested_rad=applied.clone(), position_applied_rad=applied.clone(),
+        actuator_substep_target_rad=applied[:, None].repeat(1, 2, 1),
+        diagnostics_after=dict(joint_position_rad=applied*.8))
+    record_dagger_transition(controller, transition, None)
+    controller.residual_diagnostics['applied_rad'] = torch.ones_like(command)
+    with pytest.raises(ValueError, match='nominal/residual/issued'):
+        record_dagger_transition(controller, transition, None)
+
+
+def test_only_exact_legacy_command_contract_can_infer_missing_supervision(tmp_path):
+    from visuotactile.state_benchmark import dagger_policy_identity
+    from visuotactile.position_control import image_contract
+    from visuotactile.compact import sha256
+    from visuotactile.models.native_dp import TargetResidual
+    front = tmp_path/'front.pt'; front.write_bytes(b'identity only')
+    back = tmp_path/'back.pt'; back.write_bytes(b'identity only')
+    saved = dict(group='I-HistoryDP', residual_version=TargetResidual.version, updates=5,
+        configuration=dict(base_checkpoint=str(front), base_sha256=sha256(front)))
+    for modality in ('G00', 'G10'):
+        legacy = image_contract('I-HistoryDP', 24, modality)
+        identity = dagger_policy_identity(dict(saved, contract=legacy), back)
+        assert identity['supervision'] == 'u_expert'
+        assert identity['supervision_inference'] == 'legacy_v4_command_contract'
+        for changed in (dict(version=5), dict(horizon=32), dict(normalization_identity='q_reached_train166_affine_v1'),
+                dict(clean_sample_field='transition/diagnostics_after/joint_position_rad'), dict(supervision=None)):
+            with pytest.raises(ValueError):
+                dagger_policy_identity(dict(saved, contract=dict(legacy, **changed)), back)
+        reached = image_contract('I-HistoryDP', 24, modality, 'q_reached')
+        identity = dagger_policy_identity(dict(saved, contract=reached), back)
+        assert identity['supervision'] == 'q_reached' and identity['supervision_inference'] is None
+        # The same 29D action interface cannot recover a deleted Q supervision field.
+        del reached['supervision']
+        with pytest.raises(ValueError):
+            dagger_policy_identity(dict(saved, contract=reached), back)
+
+
+@pytest.mark.parametrize('boundary', ['mask_gap', 'segment_change', 'continuous', 'no_valid_labels'])
+def test_recovery_initial_windows_never_join_across_mask_or_segment_boundary(boundary):
+    import numpy as np
+    from visuotactile.state_benchmark import dagger_recovery_coverage
+    n = 72; source = np.zeros(n, dtype=int); source[10:] = 1
+    valid = np.zeros(n, dtype=bool); valid[12:] = True
+    segment = np.zeros(n, dtype=int); segment[10:12] = 1; segment[12:] = 2
+    if boundary == 'mask_gap':
+        valid[20] = False  # Later valid labels must not backfill either early window.
+    elif boundary == 'segment_change':
+        segment[20:] = 3
+    elif boundary == 'no_valid_labels':
+        valid[:] = False
+    arrays = dict(dagger_control_source=source, dagger_expert_label_valid=valid,
+        dagger_segment_id=segment, residual_contact_gate=np.zeros(n, dtype=bool),
+        residual_contact_valid=np.zeros(n, dtype=bool))
+    population = dagger_recovery_coverage(arrays, {})['population']
+    if boundary in ('mask_gap', 'segment_change'):
+        assert population['initial_valid_segment_ticks'] == 8
+        for size in (24, 48):
+            assert population['first'+str(size)] == dict(valid_expert_ticks=8, dp_anchors=1, valid_h24_window_targets=8)
+        assert population['valid_expert_ticks'] > 8
+    elif boundary == 'continuous':
+        assert population['initial_valid_segment_ticks'] == 60
+        assert population['first24'] == dict(valid_expert_ticks=24, dp_anchors=2, valid_h24_window_targets=48)
+        assert population['first48'] == dict(valid_expert_ticks=48, dp_anchors=4, valid_h24_window_targets=96)
+    else:
+        assert population['initial_valid_segment_ticks'] == 0 and population['first_valid_expert_tick'] is None
+        assert population['first24'] == population['first48'] == dict(valid_expert_ticks=0, dp_anchors=0, valid_h24_window_targets=0)

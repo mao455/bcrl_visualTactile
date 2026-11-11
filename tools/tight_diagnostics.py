@@ -1119,6 +1119,8 @@ def dagger_publish(root, output=None):
         with path.open(newline='') as stream:return list(csv.DictReader(stream))
     cfg=optional(root/'configuration.json',{});status=optional(root/'status.json',{})
     pool_mode=cfg.get('version')=='successful_takeover_pool_v1'
+    revised_scope=pool_mode and cfg.get('scope_revision')=='complete_strategy_ab_v1'
+    first_round=int(cfg.get('first_round',1)) if revised_scope else 1
     if not pool_mode and status.get('state')=='RUNNING' and not status.get('owned_workers_exited'):
         raise ValueError('Publish after the DAgger owner stops its workers')
     session=optional(root/'session.json',{});launch=optional(root/'launch.json',{})
@@ -1130,6 +1132,20 @@ def dagger_publish(root, output=None):
     round_reports={name:dict(status=optional(root/name/'round_status.json'),
         finished=optional(root/name/'round_finished.json'),decision=optional(root/name/'decision.json'),
         snapshot=optional(root/name/'snapshot.json'),groups={}) for name in round_names} if pool_mode else {}
+    def round_groups(name):
+        if not revised_scope:return [(group,True,'active') for group in groups]
+        index=int(name.rsplit('_',1)[1]);record=round_reports[name]
+        schedule=cfg.get('round_schedule',{}).get(str(index),{})
+        decision=record.get('decision') or {}
+        scheduled=decision.get('active_groups',schedule.get('active_groups',[]))
+        existing={p.name for p in (root/name).glob('*') if p.is_dir() and any(
+            (p/receipt).exists() for receipt in ('initial_pair.json','collection_results.json','dp','backend'))}
+        existing.update((record.get('finished') or {}).get('groups',{}))
+        existing.update(status.get('rounds',{}).get(name,{}).get('groups',{}))
+        visible=existing if index<first_round else existing|set(groups)|set(scheduled)
+        return [(group,index>=first_round and group in scheduled,
+            'historical' if index<first_round else 'active' if group in scheduled else
+            'retired' if group not in groups else 'not_scheduled') for group in sorted(visible)]
     group_reports={};collection_rows=[];closed_rows=[];stage_rows=[];curves=[];losses=[];errors=[];videos=[];all_plans={};sampling_rows=[]
     def video(node,group,cohort,identity,result):
         for movie in sorted(node.glob('*.mp4')):
@@ -1192,7 +1208,7 @@ def dagger_publish(root, output=None):
             unregistered_attempts=sum(r['attempted'] and not r['registered'] for r in rows),
             state='complete' if complete else 'partial' if attempted else 'unmeasured',declared_summary=aggregate,
             denominator='Registered ten-case development cohort; actual per-trial receipts, legal/software complete, native success and model/seed identity')
-    for round_name,group in ((r,g) for r in round_names for g in groups):
+    for round_name,group,required,participation in ((r,g,required,scope) for r in round_names for g,required,scope in round_groups(r)):
         job=root/round_name/group;pair=optional(job/'initial_pair.json',{})
         report_key=round_name+'/'+group if pool_mode else group
         export_key=round_name+'_'+group if pool_mode else group
@@ -1324,15 +1340,31 @@ def dagger_publish(root, output=None):
         if pool_mode:
             emit(export_key+'_contact_phase_metrics.csv',csv_read(backend/'offline/contact_phase_metrics.csv'))
         evaluated_new=evaluated(backend,group,'autonomous_development_after_dagger',stages['backend']['selected_checkpoint'])
-        previous=evaluated(Path(pair['backend']).parent.parent,group,'historical_autonomous_development',initial['backend']) if pair.get('backend') else None
+        if revised_scope and participation=='not_scheduled' and not evaluated_new['attempted']:
+            # The complete pair from its previous scheduled round is retained;
+            # no autonomous evaluation obligation exists for this round.
+            evaluated_new.update(state='not_scheduled',allocated=0,planned=0,unstarted=0)
+            closed_rows[:]=[r for r in closed_rows if not (r['round']==round_name and r['group']==group
+                and r['cohort']=='autonomous_development_after_dagger' and not r['attempted'])]
+        historical_group=Path(pair['backend']).parent.parent.name if pair.get('backend') else group
+        previous=evaluated(Path(pair['backend']).parent.parent,historical_group,'historical_autonomous_development',initial['backend']) if pair.get('backend') else None
         round_finished=round_reports.get(round_name,{}).get('finished') or {}
         round_group=round_finished.get('groups',{}).get(group,{})
-        owner_state=round_group.get('state','UNMEASURED') if pool_mode else status.get('groups',{}).get(group,'UNMEASURED')
+        live_group=status.get('rounds',{}).get(round_name,{}).get('groups',{}).get(group,{})
+        owner_state=round_group.get('state',live_group.get('state','UNMEASURED')) if pool_mode else status.get('groups',{}).get(group,'UNMEASURED')
+        if revised_scope and participation=='not_scheduled':owner_state='NOT_SCHEDULED'
+        coverage_receipts={name:optional(job/(name+'.json')) for name in ('complete_policy_acceptance','recovery_coverage')}
+        for name,value in coverage_receipts.items():
+            if value is not None:write(output/(export_key+'_'+name+'.json'),public(value))
+            emit(export_key+'_'+name+'.csv',csv_read(job/(name+'.csv')))
         group_reports[report_key]=dict(round=round_name,group=group,owner_state=owner_state,initial_pair=pair,
+            role=cfg.get('groups',{}).get(group,{}).get('strategy_role',cfg.get('groups',{}).get(group,{}).get('role')),
+            participation=participation,current_scope_required=required,
             initialization_artifacts=initial,collection=collection,stages=stages,offline=offline,
             autonomous_development=evaluated_new,historical_autonomous_development=previous,
             evaluation_completion=optional(job/'backend/evaluation_complete.json'),failure=optional(job/'failure.json'),
             input_acceptance=optional(job/'dp/vision_acceptance.json'),selection=optional(job/'selection.json'),
+            **coverage_receipts,
             pool_ingestion=optional(job/'ingestion.json'),data=optional(job/'dp/state_data/data.json') if pool_mode else None,
             preparation={name:optional(job/name) for name in ('dp/prepared.json','backend/prepared.json',
                 'dp/preparation_recovery.json','backend_preparation_recovery.json')} if pool_mode else None)
@@ -1365,28 +1397,37 @@ def dagger_publish(root, output=None):
                 if 'PhysX error:' in line:
                     counts['physx_error_lines']+=1;physx.append(dict(path=str(path),line=line_number,message=line.rstrip()))
         log_rows.append(counts)
-    receipts={name:optional(root/(name+'.json')) for name in ('source_freeze','integration','owned_cleanup','owner_error','active_stage','worker_processes','publication_error','cleanup','preparation_receipt','time_estimate','successor_service','rounds','pool_import','gpu_gate','timing','registration')}
+    receipts={name:optional(root/(name+'.json')) for name in ('source_freeze','integration','owned_cleanup','owner_error','active_stage','worker_processes','publication_error','cleanup','preparation_receipt','time_estimate','successor_service','rounds','pool_import','gpu_gate','timing','registration','scope_revision','complete_policy_acceptance','recovery_coverage')}
+    for name in ('scope_revision','complete_policy_acceptance','recovery_coverage'):
+        if receipts[name] is not None:write(output/(name+'.json'),public(receipts[name]))
+        emit(name+'.csv',csv_read(root/(name+'.csv')))
     if pool_mode:
         preparation={}
-        for name in ('controller_acceptance','takeover_timing','owner_data_acceptance','cleanup_candidates'):
+        for name in ('controller_acceptance','takeover_timing','owner_data_acceptance','cleanup_candidates','complete_policy_acceptance'):
             receipt=optional(root/'preparation'/(name+'.json'));preparation[name]=receipt
             if receipt is not None:write(output/(name+'.json'),public(receipt))
         receipts['preparation']=preparation
         if receipts['cleanup'] is not None:write(output/'cleanup.json',public(receipts['cleanup']))
-    verified_complete=status.get('state')=='COMPLETE' and bool(groups) and not issues and status.get('owned_workers_exited') is True and (receipts.get('owned_cleanup') or {}).get('verified') is True and all(
+    required_reports=[r for r in group_reports.values() if r['current_scope_required']]
+    required_rounds={r['round'] for r in required_reports}
+    verified_complete=status.get('state')=='COMPLETE' and bool(required_reports) and not issues and status.get('owned_workers_exited') is True and (receipts.get('owned_cleanup') or {}).get('verified') is True and all(
         r['owner_state']=='COMPLETE' and r['autonomous_development']['state']=='complete' and r['evaluation_completion'] is not None and r['evaluation_completion'].get('complete') is True
         and (r['collection']['finished'] or {}).get('complete') is True and (r['collection']['finished'] or {}).get('sufficient') is True
         and (r['collection']['gate'] or {}).get('passed') is True
-        and all(s['finished'] and not s['finished'].get('disposable') and s['selected_checkpoint'].get('exists') for s in r['stages'].values()) for r in group_reports.values())
+        and all(s['finished'] and not s['finished'].get('disposable') and s['selected_checkpoint'].get('exists') for s in r['stages'].values()) for r in required_reports)
     if pool_mode:
         verified_complete=verified_complete and all((r.get('finished') or {}).get('state')=='RESOLVED'
-            and r.get('snapshot') and r.get('decision') is not None for r in round_reports.values())
+            and r.get('snapshot') and r.get('decision') is not None for name,r in round_reports.items() if name in required_rounds)
     pool_path=Path(cfg.get('pool_root',CODE/'outputs/visuotactile/data/tight_dagger_pool')) if pool_mode else None
     if pool_path is not None and not pool_path.is_absolute():pool_path=CODE/pool_path
     pool_receipts={name:optional(pool_path/name) for name in ('manifest.json','acceptance/readback.json','acceptance/imported_legacy_snapshot.json')} if pool_mode else None
     summary=dict(schema='dagger_pool_cpu_publication_v1' if pool_mode else 'dagger_cpu_publication_v1',status=status,verified_round_complete=verified_complete,configuration=cfg,
         registration=registration,session=session,source_run=str(root),source_commit=launch.get('source_head',session.get('source_head')),
         groups=group_reports,rounds=round_reports if pool_mode else None,pool=pool_receipts,
+        completion_scope=dict(revision=cfg.get('scope_revision'),first_round=first_round,
+            required_groups=[r['round']+'/'+r['group'] for r in required_reports],
+            excluded_historical_or_unscheduled=[key for key,r in group_reports.items() if not r['current_scope_required']],
+            definition='Only scheduled stages in this scope; historical partial evidence remains visible'),
         resources=resources,root_receipts=receipts,publication_issues=issues,
         partial_snapshot=pool_mode and not status.get('owned_workers_exited',False),
         inference_or_training_performed=False,kit_loaded=False,selection_performed_by_exporter=False,
@@ -1427,11 +1468,15 @@ def dagger_publish(root, output=None):
     def show(value):return '未测' if value is None else f'{value:.3f}' if isinstance(value,float) else str(value)
     for group,row in group_reports.items():
         c=row['collection'];f=row['stages']['frontend'];b=row['stages']['backend'];e=row['autonomous_development']
-        lines_out.append(f"|{group}|{c['attempted']} / {c['planned']}|{c['expert_takeover_successes']} / {c['attempted']}|{c['accepted_episodes']} / {c['effective_expert_ticks']} / {c['effective_dp_anchors']}|{show(f['updates'])} / {show(f['exposure'])}|{show(b['updates'])} / {show(b['exposure'])}|{show(e['successes'])} / {e['valid']} / {e['planned']}|")
+        label=group
+        if revised_scope:label+=' ('+str(row['role'] or '历史')+' / '+row['participation']+')'
+        lines_out.append(f"|{label}|{c['attempted']} / {c['planned']}|{c['expert_takeover_successes']} / {c['attempted']}|{c['accepted_episodes']} / {c['effective_expert_ticks']} / {c['effective_dp_anchors']}|{show(f['updates'])} / {show(f['exposure'])}|{show(b['updates'])} / {show(b['exposure'])}|{show(e['successes'])} / {e['valid']} / {e['planned']}|")
     if pool_mode:
         legacy=(pool_receipts or {}).get('acceptance/readback.json') or {}
-        lines_out+=['',f"旧池 CPU 读回准入 {show(legacy.get('pool_entries'))} 条成功纠偏；每轮同一不可变快照供两组使用，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。",
+        lines_out+=['',f"旧池 CPU 读回准入 {show(legacy.get('pool_entries'))} 条成功纠偏；同轮实际调度的组使用共同不可变快照，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。",
             f'[池与快照身份]({relative}/pool_identity.json) · [各轮选择与决定]({relative}/round_decisions.json)。']
+        if revised_scope:lines_out+=['','当前仅A（QG01来源，q_reached＋既定几何）与B（G01来源，u_expert）完整策略；均G00前端模态＋同容量Transformer。历史G11及首轮停止证据保留；第3轮B未调度，不算失败或本范围未完成。原run截止不重置。',
+            'A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1，历史和本轮曝光不同，不能解释为严格单变量或同预算对照。完整策略采集验收、独立恢复起点/阶段/偏离描述与初段合法监督人口见对应JSON/CSV；接管覆盖不等于自主恢复能力。']
     lines_out+=['','采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。',
         '自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。',
         f"整卡时间加权利用率：{show(resources['time_weighted_whole_card_percent'])}%；资源样本 {resources['samples']} 条，>8s 内部缺口 {show(resources['gap_seconds_above8'])}s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。",'',

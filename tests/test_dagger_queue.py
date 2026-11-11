@@ -10,6 +10,7 @@ def config():
 
 def test_round_decisions_are_finite_and_phase_aligned():
     cfg=config()
+    cfg.pop('scope_revision',None)  # Retain the original queue's decision contract.
     for previous in ({},{'g':{'collection':{'attempts':32,'accepted':4}}},
         {'g':{'collection':{'attempts':32,'accepted':28},'selection':{'candidate_metrics':{'lifts':2}}}},
         {'g':{'collection':{'attempts':32,'accepted':28}}}):
@@ -18,6 +19,63 @@ def test_round_decisions_are_finite_and_phase_aligned():
         assert all((k+2)%12==0 for k in out['takeover_ticks'])
         assert len(out['clean_ticks'])==8 and not out['zero_student_success_is_stop']
     assert d.round_decision(cfg,{},15000)['attempts_per_group']==24
+
+
+def test_complete_strategy_schedule_reserves_two_module_updates_and_original_time():
+    cfg=config()
+    first=d.round_decision(cfg,{},13*3600,2)
+    assert first['active_groups']==['QG01','G01']
+    assert first['attempts_by_group']=={'QG01':96,'G01':48}
+    assert first['reserved_compute_seconds']>=3*cfg['planning']['pair_stage_reserve_seconds']
+    later=d.round_decision(cfg,{},4*3600,3)
+    assert later['active_groups']==['QG01'] and later['not_scheduled']==['G01']
+    assert 16<=later['attempts_by_group']['QG01']<96
+    assert later['attempts_by_group']['QG01']*cfg['planning']['seconds_per_attempt']+later['reserved_compute_seconds']<=4*3600
+    with pytest.raises(ValueError,match='remaining budget'):
+        d.round_decision(cfg,{},2*3600,3)
+    assert cfg['groups']['QG01']['supervision']=='q_reached'
+    assert cfg['groups']['G01']['supervision']=='u_expert'
+    assert {v['modality'] for v in cfg['groups'].values()}=={'G00'}
+    assert cfg['frontend']['maximum_updates']==800 and cfg['frontend']['minimum_updates']==400
+
+
+def test_scope_revision_archives_receipts_and_preserves_deadline(tmp_path,monkeypatch):
+    from tools.runtime import write,read,sha
+    from tools import tight_finish
+    import time
+    code=tmp_path/'code';root=tmp_path/'existing';root.mkdir();code.mkdir()
+    cfg=config();cfg['predecessor']='existing-predecessor'
+    write(code/'configs/tight_state.json',{'dagger':cfg})
+    session=dict(source_head='old-source',started=12345.,deadline=time.time()+10000,
+        compute_deadline=time.time()+9400,owned_worker_roots=[str(root)])
+    write(root/'session.json',session)
+    write(root/'launch.json',dict(pid=123,start_ticks=456,source_head='old-source',
+        session_sha256=sha(root/'session.json'),started=session['started'],deadline=session['deadline']))
+    write(root/'configuration.json',{'predecessor':cfg['predecessor']})
+    write(root/'registration.json',{'predecessor':'/completed/old'})
+    write(root/'status.json',{'state':'STOPPED','owned_workers_exited':True})
+    write(root/'worker_processes.json',[]);write(root/'source_freeze.json',{})
+    write(root/'scope_revision_request.json',{'reason':'explicit user scope change'})
+    old_digest=sha(root/'session.json')
+    monkeypatch.setattr(d,'CODE',code);monkeypatch.setattr(d,'proc',lambda pid:None)
+    monkeypatch.setattr(tight_finish,'matrix_worker_absence',lambda rows:(True,[]))
+    def git(*args):
+        if args[0]=='status':return ''
+        if args[0]=='rev-parse':return 'reviewed-new-source'
+        if args[0]=='ls-files':return 'configs/tight_state.json'
+        raise AssertionError(args)
+    monkeypatch.setattr(d,'git',git)
+    monkeypatch.setattr(d,'validate_selected_pair',lambda spec,parent,group:dict(strategy_role=spec['strategy_role'],modality=spec['modality']))
+    d.revise(root)
+    current=read(root/'session.json')
+    assert all(current[k]==session[k] for k in ('started','deadline','compute_deadline'))
+    assert current['source_head']=='reviewed-new-source'
+    assert sha(root/'revisions/complete_strategy_ab_v1/session.json')==old_digest
+    assert read(root/'launch.json')['session_sha256']==sha(root/'session.json')
+    assert read(root/'registration.json')['configuration_sha256']==sha(root/'configuration.json')
+    assert read(root/'scope_revision.json')['deadline_reset'] is False
+    assert read(root/'source_freeze.json')=={'configs/tight_state.json':sha(code/'configs/tight_state.json')}
+    with pytest.raises(ValueError,match='already recorded'):d.revise(root)
 
 
 def test_takeover_can_exceed_family_count_without_heldout_or_id_collision():

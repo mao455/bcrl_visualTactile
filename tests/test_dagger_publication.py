@@ -177,3 +177,61 @@ def test_pool_four_case_allocation_is_complete_but_six_unrun_remain(publication)
     assert json.loads((out/'controller_acceptance.json').read_text())['passed']
     (back/'evaluation_complete.json').unlink()
     assert diagnostics.dagger_publish(root,out)['groups']['round_01/G11']['autonomous_development']['state']=='partial'
+
+
+def test_revised_ab_scope_retains_retired_partial_and_excludes_unscheduled_obligations(publication):
+    root,out,document=publication
+    write(root/'configuration.json',dict(version='successful_takeover_pool_v1',scope_revision='complete_strategy_ab_v1',
+        first_round=2,rounds=3,groups={'QG01':{'strategy_role':'A'},'G01':{'strategy_role':'B'}},
+        round_schedule={'2':{'active_groups':['QG01','G01']},'3':{'active_groups':['QG01']}},
+        evaluation={'attempts_per_group':4,'maximum_attempts_per_group':10},pool_root=str(root/'pool')))
+    write(root/'status.json',dict(state='COMPLETE',owned_workers_exited=True,rounds={
+        'round_01':{'state':'STOPPED','groups':{'G11':{'state':'COLLECTED'}}}}))
+    write(root/'round_01/G11/dp/training/progress.json',dict(update=754,anchor_equivalent_epochs=7.5294))
+    write(root/'round_01/G11/dp/training/selected.json',dict(update=201))
+    write(root/'complete_policy_acceptance.json',dict(passed=True,bare_dp_problem_found=False))
+    write(root/'recovery_coverage.json',dict(independent_takeover_starts=12))
+    for index,groups in ((2,['QG01','G01']),(3,['QG01'])):
+        round_root=root/f'round_{index:02d}'
+        write(round_root/'round_finished.json',dict(state='RESOLVED',groups={g:{'state':'COMPLETE'} for g in groups}))
+        write(round_root/'decision.json',dict(active_groups=groups))
+        write(round_root/'snapshot.json',dict(snapshot_id=f'pool-{index}'))
+        for group in groups:
+            job=round_root/group
+            write(job/'collection_finished.json',dict(complete=True,sufficient=True))
+            write(job/'collection_gate.json',dict(passed=True))
+            write(job/'complete_policy_acceptance.json',dict(passed=True,backend_required=True))
+            write(job/'recovery_coverage.json',dict(independent_takeover_starts=4,recovery_prefix_ticks=48))
+            (job/'recovery_coverage.csv').write_text('phase,count\ninitial_contact,4\n')
+            node=job/'backend'/group
+            for training in (job/'dp/training',node/'training'):
+                write(training/'finished.json',dict(updates=400,disposable=False,target_reached=True))
+                (training/'best.pt').write_bytes(b'selected opaque model')
+            digest=diagnostics.sha(node/'training/best.pt')
+            for i in range(4):
+                write(node/f'evaluation/e{i}/result.json',dict(legal=True,software_complete=True,success=False,
+                    checkpoint_sha256=digest,seed=200+i,reasons={'max_successes':False,'timeout':True}))
+            expansion=dict(expanded=False,initial_trials=4,reason='registered thresholds not reached')
+            write(node/'evaluation_summary.json',dict(complete=True,expansion=expansion))
+            write(job/'backend/evaluation_complete.json',dict(complete=True,group_summary={group:dict(
+                complete=True,planned=10,completed=4,unrun=6,software_failures=0,expansion=expansion)}))
+    report=diagnostics.dagger_publish(root,out)
+    assert report['verified_round_complete']
+    assert report['groups']['round_01/G11']['participation']=='historical'
+    assert report['groups']['round_01/G11']['stages']['frontend']['updates']==754
+    assert report['groups']['round_01/G11']['stages']['frontend']['selection']['update']==201
+    assert 'round_01/G01' not in report['groups']  # Never invent a historical B job.
+    unscheduled=report['groups']['round_03/G01']
+    assert unscheduled['role']=='B' and unscheduled['owner_state']=='NOT_SCHEDULED'
+    assert unscheduled['autonomous_development']['state']=='not_scheduled'
+    assert unscheduled['autonomous_development']['planned']==0
+    assert unscheduled['autonomous_development']['successes'] is None
+    assert report['completion_scope']['required_groups']==['round_02/G01','round_02/QG01','round_03/QG01']
+    assert json.loads((out/'round_02_QG01_complete_policy_acceptance.json').read_text())['passed']
+    assert 'initial_contact,4' in (out/'round_02_QG01_recovery_coverage.csv').read_text()
+    assert json.loads((out/'recovery_coverage.json').read_text())['independent_takeover_starts']==12
+    assert 'round_03,G01,autonomous_development_after_dagger' not in (out/'closed_loop.csv').read_text()
+    assert 'not_scheduled' in document.read_text()
+    # New-scope missing evidence must still prevent an optimistic completion claim.
+    (root/'round_03/QG01/backend/evaluation_complete.json').unlink()
+    assert not diagnostics.dagger_publish(root,out)['verified_round_complete']

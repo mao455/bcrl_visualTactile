@@ -150,9 +150,13 @@ def follow(root):
 
 
 def selected_pair(root, group):
-    import torch
     cfg = read(root/'configuration.json'); parent = Path(read(root/'registration.json')['predecessor'])
-    spec = cfg['groups'][group]
+    return validate_selected_pair(cfg['groups'][group],parent,group)
+
+
+def validate_selected_pair(spec,parent,group):
+    """Load an existing complete pair without coercing its observation or target identity."""
+    import torch
     frontend = (parent/spec['frontend']).resolve(); backend = (parent/spec['backend']).resolve()
     require(frontend.is_file() and backend.is_file(), 'Missing selected initialization for ' + group)
     front = torch.load(frontend, map_location='cpu', weights_only=False)
@@ -172,7 +176,72 @@ def selected_pair(root, group):
         data_root=str(data_root), statistics_sha256=sha(data_root/'statistics.pt'), scales=back['model']['scales'].tolist(),
         residual_statistics_path=back['configuration']['residual_statistics_path'],
         residual_statistics_sha256=back['configuration']['residual_statistics_sha256'],
-        normalization_identity=front['contract'].get('normalization_identity', 'u_expert_train166_affine_v1'))
+        normalization_identity=front['contract'].get('normalization_identity', 'u_expert_train166_affine_v1'),
+        strategy_role=spec.get('strategy_role'),geometry=bool(spec.get('geometry',group=='QG01')),
+        evaluation_root=spec.get('evaluation_root',str(parent/'round_01'/group/'backend'/group/'evaluation')))
+
+
+def revise(root):
+    """Explicit reviewed scope transition at an exited boundary, in the same run.
+
+    Preserve the prior immutable metadata and all stage/data/model evidence.
+    The new source freeze is a recorded revision, never a disabled hash gate or
+    a fresh session/deadline. This entry does not launch any worker.
+    """
+    root=Path(root).resolve();cfg=read(CODE/'configs/tight_state.json')['dagger']
+    require(cfg.get('scope_revision')=='complete_strategy_ab_v1','Expected explicit complete-policy revision')
+    require(not (root/'revisions'/cfg['scope_revision']).exists(),'Scope revision already recorded')
+    require((root/'scope_revision_request.json').exists(),'Missing explicit scope transition request')
+    require(not git('status','--porcelain'),'Commit reviewed scope changes before migration')
+    require(read(root/'status.json').get('state')=='STOPPED','Scope changes require the saved STOP boundary')
+    require(read(root/'status.json').get('owned_workers_exited') is True,'Owned workers have not exited')
+    from tools.tight_finish import matrix_worker_absence
+    require(matrix_worker_absence(read(root/'worker_processes.json'))[0],'Live owned worker')
+    old_session=read(root/'session.json');old_registration=read(root/'registration.json');old_launch=read(root/'launch.json')
+    require(sha(root/'session.json')==old_launch['session_sha256'],'Original session receipt changed')
+    require(time.time()<old_session['compute_deadline'],'Original compute deadline already passed')
+    owner=read(root/'resume.json') if (root/'resume.json').exists() else old_launch
+    live=proc(owner['pid']);require(live is None or live['start_ticks']!=owner.get('start_ticks'),'Owner still live')
+    old_freeze=read(root/'source_freeze.json')
+    import hashlib
+    for path,digest in old_freeze.items():
+        blob=subprocess.check_output(['git','show',old_session['source_head']+':'+path],cwd=CODE)
+        require(hashlib.sha256(blob).hexdigest()==digest,'Prior frozen source is not preserved in git: '+path)
+    require(cfg['predecessor']==read(root/'configuration.json')['predecessor'],'Predecessor changed')
+    require(cfg['first_round']==2 and cfg['rounds']==3,'Expected finite two remaining round identities')
+    require(not (root/'round_02').exists(),'Started future round cannot be re-registered')
+    parent=Path(old_registration['predecessor'])
+    pairs={g:validate_selected_pair(spec,parent,g) for g,spec in cfg['groups'].items()}
+    require({p['strategy_role'] for p in pairs.values()}=={'A','B'},'Exactly two core strategies required')
+    require(all(p['modality']=='G00' for p in pairs.values()),'A/B frontend input modalities differ')
+    revision=root/'revisions'/cfg['scope_revision'];require(not revision.exists(),'Scope revision already recorded')
+    revision.mkdir(parents=True)
+    preserved={}
+    for name in ('configuration.json','session.json','registration.json','launch.json','source_freeze.json',
+                 'status.json','rounds.json','public_git.json','active_stage.json','scope_revision_request.json'):
+        if (root/name).exists():shutil.copyfile(root/name,revision/name);preserved[name]=sha(revision/name)
+    source=git('rev-parse','HEAD')
+    session=dict(old_session,source_head=source,dagger=cfg,scope_revision=cfg['scope_revision'])
+    session['owned_worker_roots']=list(dict.fromkeys(old_session['owned_worker_roots']+
+        [str(root/f'round_{i:02d}'/g/p) for i in range(cfg['first_round'],cfg['rounds']+1)
+         for g in cfg['groups'] for p in ('','dp','dp/training','backend','backend/'+g)]))
+    require(all(session[k]==old_session[k] for k in ('started','deadline','compute_deadline')),'Deadline reset forbidden')
+    write(root/'configuration.json',cfg);write(root/'session.json',session)
+    write(root/'registration.json',dict(old_registration,configuration_sha256=sha(root/'configuration.json'),
+        scope_revision=cfg['scope_revision'],revision_source=source,original_started=old_session['started'],original_deadline=old_session['deadline']))
+    write(root/'launch.json',dict(old_launch,session_sha256=sha(root/'session.json'),source_head=source,
+        scope_revision=cfg['scope_revision'],revision_source=source,original_source_head=old_launch['source_head'],
+        original_session_sha256=old_launch['session_sha256']))
+    files=git('ls-files','*.py','configs/tight_state.json','visuotactile/run_cpu.sh').splitlines()
+    write(root/'source_freeze.json',{p:sha(CODE/p) for p in files})
+    receipt=dict(revision=cfg['scope_revision'],same_root=str(root),preserved_metadata=preserved,
+        previous_source=old_session['source_head'],source_head=source,started=session['started'],
+        deadline=session['deadline'],compute_deadline=session['compute_deadline'],initial_pairs=pairs,
+        active_groups=list(cfg['groups']),retired_groups=cfg['retired_groups'],round_schedule=cfg['round_schedule'],
+        original_data_and_weights_preserved=True,deadline_reset=False,utc=time.time())
+    write(revision/'applied.json',receipt);write(root/'scope_revision.json',receipt)
+    write(root/'status.json',dict(read(root/'status.json'),stage='reviewed_scope_revision_ready',source_head=source,
+        scope_revision=cfg['scope_revision'],deadline=session['deadline'],utc=time.time()))
 
 
 class Stages:
@@ -264,7 +333,7 @@ def collect(root):
     """One persistent Kit, the same finite twelve opportunities for one group."""
     import torch
     from tools.tight_state import environment
-    from visuotactile.state_benchmark import trial, dagger_configuration
+    from visuotactile.state_benchmark import trial, dagger_configuration, audit_dagger_capture
     from visuotactile.camera_validity import inspect_capture
     from visuotactile.narrow_data import dagger_record
     from visuotactile.anchor_sampling import supervision_population
@@ -296,7 +365,7 @@ def collect(root):
                 results.append(dict(attempt,result=dict(software_complete=False,success=False),accepted=False,
                     error='interrupted_started_attempt',exclusion_reason='uncommitted outcome retained as software interruption'))
         write(root/'collection_results.json',results)
-    started=time.time();row=None;app=None
+    started=time.time();row=None;app=None;collection_stop='registered_attempts_resolved'
     finished_ids={r['identity'] for r in results}
     gate_count=cfg['collection'].get('gate_attempts',2)
     require(0<gate_count<=len(plan), 'First takeover gate must be inside the finite attempt budget')
@@ -308,6 +377,8 @@ def collect(root):
         for index,spec in enumerate(plan):
             if spec['identity'] in finished_ids:continue
             row=None
+            if cfg['collection'].get('soft_stop_reserve_seconds') and time.time()+cfg['collection']['soft_stop_reserve_seconds']>=s['collection_deadline']:
+                collection_stop='finite_collection_window_preserves_training';break
             require(time.time()<s['collection_deadline'], 'Finite collection deadline')
             require(shutil.disk_usage(root).free>=s['reserve_bytes'], 'Disk reserve before new collection attempt')
             out=root/'episodes'/spec['identity'];require(not out.exists(),'Attempt already exists; never retry')
@@ -321,6 +392,13 @@ def collect(root):
                 capture_compression='gzip4_lossless_v1',dagger=cfg['bridge'])
             row['result']=result
             if result.get('legal') and result.get('software_complete'):
+                if cfg.get('scope_revision'):
+                    acceptance_path=root/'complete_policy_acceptance.json'
+                    acceptance=read(acceptance_path) if acceptance_path.exists() else dict(attempts=[],passed=False)
+                    if len(acceptance['attempts'])<gate_count:
+                        acceptance['attempts'].append(audit_dagger_capture(out,pair))
+                        acceptance['passed']=len(acceptance['attempts'])>=gate_count and all(x['passed'] for x in acceptance['attempts'])
+                        write(acceptance_path,acceptance)
                 path=Path(result['dataset_capture']['path']);takeover=result['dagger']
                 require(takeover['provenance_passed'] and takeover['position_executor_continuous'], 'Takeover provenance failed')
                 row['exposure']=dict(episodes=1,history_ticks=result['steps'],supervised_ticks=0,
@@ -360,8 +438,13 @@ def collect(root):
             # interface failure. Accumulate the first qualified takeovers from
             # this same fixed plan; never add or replace an opportunity.
             write(root/'collection_gate.json',collection_summary(results,cfg['collection'])['physical_gate'])
+            if cfg.get('scope_revision'):write(root/'recovery_coverage.json',recovery_coverage(results,pair))
         summary=collection_summary(results,cfg['collection'])
-        summary.update(wall_s=time.time()-started,complete=True)
+        summary.update(wall_s=time.time()-started,complete=True,stop_reason=collection_stop,
+            all_registered_attempts_run=len(results)==len(plan))
+        if cfg.get('scope_revision'):
+            require((root/'complete_policy_acceptance.json').exists() and read(root/'complete_policy_acceptance.json')['passed'],
+                'No real complete-policy collection acceptance; preserve data and stop')
         write(root/'collection_finished.json',summary)
         write(root/'result.json',dict(software_complete=True,stage='dagger_collection_complete',worker_error=None))
         exit_completed_kit_worker(root)
@@ -379,6 +462,26 @@ def collect(root):
         write(root/'collection_finished.json',summary)
         write(root/'worker_error.json',dict(error=repr(error),traceback=traceback.format_exc(),attempts=len(results)))
         raise
+
+
+def recovery_coverage(rows,pair):
+    """Observed takeover coverage only; no new controller inputs or success labels."""
+    from collections import Counter
+    covers=[dict(identity=r['identity'],accepted=bool(r.get('accepted')),
+        seed=r.get('seed'),family=r.get('family'),takeover_tick=r.get('takeover_tick'),
+        **r.get('result',{}).get('dagger',{}).get('recovery_coverage',{})) for r in rows]
+    return dict(source_frontend_sha256=pair['frontend_sha256'],source_backend_sha256=pair['backend_sha256'],
+        strategy_role=pair.get('strategy_role'),attempts=len(rows),accepted=sum(x['accepted'] for x in covers),
+        unique_seeds=len({r.get('seed') for r in rows}),unique_training_families=len({r.get('family') for r in rows}),
+        independent_observed_takeover_starts=len({r['switch_observable_sha256'] for r in covers if r.get('switch_observable_sha256')}),
+        phase_counts=dict(Counter(r.get('phase','unknown') for r in covers)),
+        observed_deviation_counts=dict(Counter((r.get('deviation') or {}).get('type','unknown') for r in covers)),
+        accepted_population={key:sum((r.get('population') or {}).get(key,0) for r in covers if r['accepted'])
+            for key in ('valid_expert_ticks','dp_anchors')},
+        accepted_recovery_prefix={str(size):{key:sum(((r.get('population') or {}).get('first'+str(size)) or {}).get(key,0)
+            for r in covers if r['accepted']) for key in ('valid_expert_ticks','dp_anchors','valid_h24_window_targets')}
+            for size in (24,48)},
+        rows=covers,scope='Observed switch states and legal recovery-prefix population; stages/deviations are diagnostics, not established causal failure types')
 
 
 def collection_summary(rows, policy):
@@ -474,11 +577,11 @@ def prepare_frontend(root, group, round_index=1, snapshot=None, reuse_index=None
     raw=torch.load(out/'state_data/numeric.pt',map_location='cpu',weights_only=False)
     records={i:raw['records'][i] for i in data['splits']['train']};exposure=supervision_population(records)
     count=len(records);mean_batch=64 if data.get('sampling_strata') else count/math.ceil(count/64);policy=cfg['frontend']
-    target=math.ceil(policy['maximum_anchor_epochs']*exposure['supervised_anchors']/mean_batch)
-    minimum=math.ceil(policy['minimum_anchor_epochs']*exposure['supervised_anchors']/mean_batch)
-    interval=max(1,math.ceil(policy['validation_anchor_epochs']*exposure['supervised_anchors']/mean_batch))
+    target=policy.get('maximum_updates') or math.ceil(policy['maximum_anchor_epochs']*exposure['supervised_anchors']/mean_batch)
+    minimum=policy.get('minimum_updates') or math.ceil(policy['minimum_anchor_epochs']*exposure['supervised_anchors']/mean_batch)
+    interval=policy.get('validation_updates') or max(1,math.ceil(policy['validation_anchor_epochs']*exposure['supervised_anchors']/mean_batch))
     modality=pair['modality'];profile={}
-    if group=='QG01':profile=read(parent/'configuration/configuration.json')['vision_pair']['geometry_profiles']['QG00']
+    if cfg['groups'][group].get('geometry',group=='QG01'):profile=read(parent/'configuration/configuration.json')['vision_pair']['geometry_profiles']['QG00']
     base['vision_pair']=dict(base['vision_pair'],groups=[group],modalities={group:modality},warm_starts={},
         continuation_from={group:dict(path=pair['frontend'],sha256=pair['frontend_sha256'])})
     base['dagger']=cfg;base['resources']=cfg['resources']
@@ -499,9 +602,11 @@ def prepare_frontend(root, group, round_index=1, snapshot=None, reuse_index=None
             lr_peak=policy['learning_rate'],lr_floor=policy['learning_rate']/10,validation_interval=interval))
     if profile:runtime['hand_geometry']=profile
     if snapshot:runtime['sampling_weights']=cfg['sampling_weights']
+    if cfg.get('recovery_prefix'):runtime['recovery_prefix']=cfg['recovery_prefix']
     write(out/'training/session.json',runtime)
     budget=dict(total_updates=target,anchor_population=exposure['supervised_anchors'],mean_batch=mean_batch,
-        target_anchor_epochs=policy['maximum_anchor_epochs'],early_stop_minimum_update=minimum,
+        target_anchor_epochs=target*mean_batch/exposure['supervised_anchors'],early_stop_minimum_update=minimum,
+        budget_basis='fixed_incremental_updates' if policy.get('maximum_updates') else 'anchor_exposure',
         validation_interval=interval,comparison_updates=runtime['comparison_updates'],exposure=exposure)
     write(out/'budget.json',budget);write(out/'training/budget.json',budget);share_monitor(root,out)
     write(out/'prepared.json',dict(pair=pair,snapshot_sha256=sha(snapshot) if snapshot else None,
@@ -611,6 +716,7 @@ def prepare_backend(root, group, round_index=1):
         training_hours=1.5,maximum_hours=4,cache_hours=1.5,offline_hours=.5,evaluation_hours=1)
     if pool_mode(cfg):
         v['sampling_weights']=cfg['sampling_weights']
+        if cfg.get('recovery_prefix'):v['recovery_prefix']=cfg['recovery_prefix']
         v.update({key:cfg['resources'][key] for key in ('min_gpu_free_mib','min_ram_gib','min_disk_gib')})
         v['dagger_evaluation']=dict(initial_trials=cfg['evaluation']['attempts_per_group'],max_trials=cfg['evaluation']['maximum_attempts_per_group'],
             expand_if_success=1,expand_if_subgoal=1,expand_if_native_lift=2)
@@ -633,7 +739,7 @@ def phase_deadlines(root, directory, **values):
     return s
 
 
-def round_decision(cfg, previous, remaining_seconds):
+def round_decision(cfg, previous, remaining_seconds, round_index=None):
     """Bounded, declared metric rules; no learned or privileged trigger."""
     d=cfg['decisions'];clean=d['default_clean_ticks'];reason='registered broad initial recovery'
     if previous:
@@ -647,8 +753,25 @@ def round_decision(cfg, previous, remaining_seconds):
         else:
             clean=d['broader_clean_ticks'];reason='no measured closed-loop stage gain; broaden early recovery coverage'
     attempts=d['default_attempts_per_group'] if remaining_seconds>=5*3600 else d['minimum_attempts_per_group']
-    return dict(attempts_per_group=attempts,clean_ticks=clean,takeover_ticks=[t-cfg['collection']['expected_expert_delay_queue']+1 for t in clean],
+    result=dict(attempts_per_group=attempts,clean_ticks=clean,takeover_ticks=[t-cfg['collection']['expected_expert_delay_queue']+1 for t in clean],
         reason=reason,remaining_seconds=remaining_seconds,weights=cfg['sampling_weights'],zero_student_success_is_stop=False)
+    if cfg.get('scope_revision'):
+        require(round_index is not None,'Scope schedule needs explicit round identity')
+        schedule=cfg['round_schedule'][str(round_index)];active=list(schedule['active_groups']);p=cfg['planning']
+        future=[v for k,v in cfg['round_schedule'].items() if int(k)>round_index]
+        reserve=(len(active)+sum(len(v['active_groups']) for v in future))*p['pair_stage_reserve_seconds']
+        reserve+=sum(len(v['active_groups']) for v in future)*p['reserve_future_minimum_attempts']*p['seconds_per_attempt']
+        available=remaining_seconds-reserve-p['transition_reserve_seconds'];counts={}
+        for i,g in enumerate(active):
+            later=sum(schedule['attempts'][other] for other in active[i+1:])*p['seconds_per_attempt']
+            counts[g]=max(0,min(schedule['attempts'][g],int((available-later)/p['seconds_per_attempt'])))
+            available-=counts[g]*p['seconds_per_attempt']
+        require(all(counts[g]>=p['minimum_admitted_attempts'] for g in active),
+            'Insufficient original remaining budget for scheduled collection and complete paired updates')
+        result.update(scope_revision=cfg['scope_revision'],active_groups=active,attempts_by_group=counts,
+            requested_attempts=schedule['attempts'],reserved_compute_seconds=reserve,
+            unequal_exposure_exploration=True,not_scheduled=[g for g in cfg['groups'] if g not in active])
+    return result
 
 
 def policy_metrics(directory, plan, checkpoint):
@@ -799,13 +922,11 @@ def run(root,recover=False):
         deadline=session['deadline'],test22_used=False))
     try:
         pairs={g:selected_pair(root,g) for g in cfg['groups']}
-        parent=Path(read(root/'registration.json')['predecessor'])
-        for g,pair in pairs.items():pair['evaluation_root']=str(parent/'round_01'/g/'backend'/g/'evaluation')
         # Idempotent import preserves all old attempts, successes and masks.
         for old in cfg['initial_correction_runs']:
-            for g in cfg['groups']:
+            for g in cfg.get('pool_import_groups',list(cfg['groups'])):
                 receipt=ingest_dagger_pool(pool,CODE/old/'round_01'/g,run_id=Path(old).name,source_group=g,round_index=1,
-                    core_data_root=pairs[g]['data_root'])
+                    core_data_root=pairs.get(g,next(iter(pairs.values())))['data_root'])
                 require(receipt['integrity_passed'],'Historical pool integrity failed')
         with (root/'monitor.log').open('a') as stream:
             monitor=subprocess.Popen(RUN+['-m','visuotactile.state_resources','--root',str(root)],cwd=CODE,stdout=stream,stderr=subprocess.STDOUT,start_new_session=True)
@@ -814,8 +935,14 @@ def run(root,recover=False):
             if (root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json').get('utc_epoch',0)<4:break
             time.sleep(1)
         require((root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json').get('utc_epoch',0)<4,'Fresh shared resource monitor missing')
-        previous={};reuse_index=None
-        for round_index in range(1,cfg['rounds']+1):
+        previous={};reuse_index=Path(cfg['initial_dino_reuse_index']) if cfg.get('initial_dino_reuse_index') else None
+        if cfg.get('scope_revision'):
+            for g in cfg['groups']:
+                prior=root/'round_01'/g
+                if (prior/'selection.json').exists():
+                    previous[g]=dict(selection=read(prior/'selection.json'),collection=dict(
+                        attempts=read(prior/'collection_finished.json')['attempts'],accepted=read(prior/'collection_finished.json')['accepted_episodes']))
+        for round_index in range(cfg.get('first_round',1),cfg['rounds']+1):
             key=f'round_{round_index:02d}';directory=root/key;directory.mkdir(exist_ok=True)
             if (directory/'round_finished.json').exists():
                 prior=read(directory/'round_finished.json');previous=prior['groups'];rounds[key]=prior
@@ -829,23 +956,36 @@ def run(root,recover=False):
             if not (directory/'decision.json').exists() and remaining<cfg['decisions']['minimum_round_reserve_hours']*3600:
                 state='BUDGET_STOP';stage='insufficient_remaining_round_budget';break
             decision_path=directory/'decision.json'
-            decision=read(decision_path) if decision_path.exists() else round_decision(cfg,previous,remaining)
+            try:decision=read(decision_path) if decision_path.exists() else round_decision(cfg,previous,remaining,round_index)
+            except ValueError as error:
+                if cfg.get('scope_revision') and 'remaining budget' in str(error):
+                    write(directory/'budget_not_admitted.json',dict(reason=str(error),remaining_seconds=remaining,utc=time.time()))
+                    state='BUDGET_STOP';stage='preserve_original_deadline_no_round_admission';break
+                raise
+            active_groups=decision.get('active_groups',list(cfg['groups']))
             write(decision_path,decision);rounds[key]=dict(state='RUNNING',groups={});stage=key+'_collection';status()
             family_parent=Path(read(CODE/cfg['family_source'])['parent']);families=read(family_parent/'frozen_families.json')
-            for g in cfg['groups']:
+            for g in active_groups:
                 job=directory/g;job.mkdir(exist_ok=True);pair=pairs[g]
                 if not (job/'collector_registration.json').exists():
                     require(not (job/'attempts.jsonl').exists(),'Started collection cannot be silently re-registered')
-                    policy=dict(cfg['collection'],attempts_per_group=decision['attempts_per_group'],takeover_ticks=decision['takeover_ticks'],
+                    count=decision.get('attempts_by_group',{}).get(g,decision['attempts_per_group'])
+                    policy=dict(cfg['collection'],attempts_per_group=count,takeover_ticks=decision['takeover_ticks'],
                         round_index=round_index,source_group=g,plan_seed=cfg['collection']['plan_seed']+round_index-1,
                         seed_start=cfg['collection']['seed_start']+(round_index-1)*1000,event_seed_start=cfg['collection']['event_seed_start']+(round_index-1)*1000)
+                    if cfg.get('scope_revision'):
+                        policy['development_indices']=list(range(policy['development_offset'],count,policy['development_stride']))
                     local=dict(cfg,collection=policy);plan=takeover_plan(read(Path(pair['data_root'])/'data.json'),families,policy)
                     write(job/'initial_pair.json',pair);write(job/'configuration.json',local);write(job/'collection_plan.json',plan)
                     write(job/'session.json',dict(session,source_root=pair['data_root'],collection_deadline=session['compute_deadline']))
                     write(job/'collector_registration.json',{name:sha(job/name) for name in ('initial_pair.json','configuration.json','collection_plan.json')})
-                share_monitor(root,job);phase_deadlines(root,job,collection_deadline=cfg['collection']['maximum_hours']*3600)
+                collection_seconds=cfg['collection']['maximum_hours']*3600
+                if cfg.get('scope_revision'):
+                    collection_seconds=min(collection_seconds,read(job/'configuration.json')['collection']['attempts_per_group']*
+                        cfg['planning']['seconds_per_attempt']+cfg['collection']['soft_stop_reserve_seconds']+60)
+                share_monitor(root,job);phase_deadlines(root,job,collection_deadline=collection_seconds)
                 execute_bounded(stages,key+'_'+g+'_collect',['-m','tools.tight_finish','dagger_collect','--root',str(job)],
-                    cfg['collection']['maximum_hours']*3600,job/'collection_finished.json',cfg['recovery']['maximum_collection_worker_restarts'])
+                    collection_seconds,job/'collection_finished.json',cfg['recovery']['maximum_collection_worker_restarts'])
                 rows=read(job/'collection_results.json')
                 require(sum(not r['result'].get('software_complete',False) for r in rows)<=cfg['recovery']['maximum_software_failed_attempts_per_group'],
                     'Persistent collection software errors; retain finite evidence and stop')
@@ -859,7 +999,7 @@ def run(root,recover=False):
             current_anchors=sum(e['exposure']['supervised_anchors'] for e in current)
             write(directory/'current_supervision.json',dict(episodes=len(current),supervised_ticks=current_ticks,supervised_anchors=current_anchors,
                 minimum_ticks=cfg['collection']['minimum_expert_ticks'],minimum_anchors=cfg['collection']['minimum_dp_anchors']))
-            for g in cfg['groups']:
+            for g in active_groups:
                 job=directory/g;value=rounds[key]['groups'][g];stage=key+'_'+g+'_two_stage_training';status()
                 if not frozen['correction_dev_ids']:
                     value.update(state='INSUFFICIENT_CORRECTION_DEV',reason='Keep original pair; never replace held development data with training labels');continue
@@ -874,12 +1014,15 @@ def run(root,recover=False):
                     value.update(state='FAILED',error=repr(error))
                     write(job/'failure.json',dict(error=repr(error),traceback=traceback.format_exc(),previous_pair_retained=read(job/'initial_pair.json')))
                 status()
-            result=dict(state='RESOLVED',groups=rounds[key]['groups'],snapshot_id=frozen['snapshot_id'],utc=time.time())
+            result=dict(state='RESOLVED',groups=rounds[key]['groups'],snapshot_id=frozen['snapshot_id'],utc=time.time(),
+                active_groups=active_groups,not_scheduled=[g for g in cfg['groups'] if g not in active_groups],
+                retained_complete_pairs={g:pairs[g] for g in cfg['groups'] if g not in active_groups})
             write(directory/'round_finished.json',result);rounds[key]=result;previous=result['groups'];write(root/'rounds.json',rounds)
             from tools.tight_diagnostics import dagger_publish
             dagger_publish(root)  # CPU-only stage evidence; final push follows owned-worker exit.
         else:
-            state='COMPLETE' if all(v['state']=='COMPLETE' for r in rounds.values() for v in r['groups'].values()) else 'PARTIAL'
+            required=[r for key,r in rounds.items() if int(key.removeprefix('round_'))>=cfg.get('first_round',1)]
+            state='COMPLETE' if required and all(v['state']=='COMPLETE' for r in required for v in r['groups'].values()) else 'PARTIAL'
             stage='registered_rounds_resolved'
     except InterruptedError as error:state='STOPPED';failure=repr(error)
     except TimeoutError as error:state='BUDGET_STOP';failure=repr(error)

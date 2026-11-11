@@ -1,5 +1,6 @@
 """Frozen, pre-action legal State benchmark and shared native command runner."""
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import time
@@ -60,6 +61,187 @@ def dagger_configuration(configuration, spec, source):
         expert_delay_rule='Continuous shadow queue; same single draw retained by the position executor; native queue untouched')
 
 
+def dagger_policy_identity(saved, checkpoint):
+    """Bind the actual two-part deployment, before any student action is allowed."""
+    from .models.native_dp import TargetResidual
+    from .state_history import trained_continuation_updates
+    if (not isinstance(saved, dict) or saved.get('residual_version') != TargetResidual.version
+            or saved.get('group') not in ('I-HistoryDP', 'I-OfficialDP')
+            or trained_continuation_updates(saved) < 1):
+        raise ValueError('DAgger requires a trained complete DP plus Transformer student')
+    cfg = saved.get('configuration', {}); contract = saved.get('contract', {})
+    frontend = Path(cfg.get('base_checkpoint', ''))
+    if not frontend.is_file() or sha256(frontend) != cfg.get('base_sha256'):
+        raise ValueError('DAgger complete policy frontend identity mismatch')
+    supervision = contract.get('supervision'); inference = None
+    if 'supervision' not in contract:
+        from .position_control import image_contract
+        modality = contract.get('modality')
+        # Exactly the historical command contract accepted by load_image_continuation.
+        # Equal tensor dimensions, a version number alone, or an unknown Q contract
+        # are not evidence that a checkpoint learned commands.
+        if (saved['group'] != 'I-HistoryDP' or modality not in ('G00', 'G10')
+                or contract != image_contract('I-HistoryDP', 24, modality)):
+            raise ValueError('DAgger missing supervision is not a known legacy command contract')
+        supervision = 'u_expert'; inference = 'legacy_v4_command_contract'
+    if supervision not in ('u_expert', 'q_reached'):
+        raise ValueError('DAgger complete policy requires known frontend supervision')
+    return dict(version='complete_student_policy_v1', controller='ResidualController',
+        frontend=str(frontend.resolve()), frontend_sha256=cfg['base_sha256'],
+        backend=str(Path(checkpoint).resolve()), backend_sha256=sha256(checkpoint),
+        residual_version=saved['residual_version'], supervision=supervision, supervision_inference=inference,
+        modality=contract.get('modality'), output='absolute_joint_position_target_rad',
+        composition='bounded nominal plus Transformer correction; actual issued/applied feedback',
+        zero_correction_is_valid=True)
+
+
+def dagger_recovery_coverage(arrays, group):
+    """Observed switch coverage only; never a policy input or a success criterion."""
+    source = np.asarray(arrays['dagger_control_source']); valid = np.asarray(arrays['dagger_expert_label_valid'], dtype=bool)
+    segment = np.asarray(arrays['dagger_segment_id']); starts = np.flatnonzero(source == 1)
+    supervised = np.flatnonzero(valid); anchors = np.flatnonzero(valid & (np.arange(len(valid)) % 12 == 0))
+    first = int(supervised[0]) if len(supervised) else None
+    initial_end = first
+    if first is not None:
+        while initial_end < len(valid) and valid[initial_end] and segment[initial_end] == segment[first]:
+            initial_end += 1
+    def window_population(anchor):
+        end = int(anchor)
+        while end < min(int(anchor)+24, len(valid)) and valid[end] and segment[end] == segment[anchor]:
+            end += 1
+        return end-int(anchor)
+    population = dict(valid_expert_ticks=int(valid.sum()), dp_anchors=len(anchors),
+        first_valid_expert_tick=first,
+        initial_valid_segment_ticks=initial_end-first if first is not None else 0,
+        early_window_scope='First valid tick onward, stopping at the first invalid tick or control-segment change')
+    for size in (24, 48):
+        selected = np.arange(first, min(first+size, initial_end)) if first is not None else np.empty(0, dtype=int)
+        population['first'+str(size)] = dict(valid_expert_ticks=len(selected),
+            dp_anchors=int(np.isin(anchors, selected).sum()),
+            valid_h24_window_targets=sum(window_population(t) for t in anchors if t in selected))
+    coverage = dict(takeover_starts=int(len(starts) > 0), population=population,
+        tick_index='zero-based pre-action switch; supervision starts only after the real queue flush',
+        diagnostic_only=True, exact_simulator_state_claim=False)
+    if not len(starts):
+        return dict(coverage, switch_tick=None, switch_observable_sha256=None, phase='no_takeover', deviation=None)
+    tick = int(starts[0]); fields = {}; missing = []
+    paths = ('transition/diagnostics_before/joint_position_rad', 'transition/diagnostics_before/joint_velocity_rad_s',
+        'transition/diagnostics_before/object_pose_w', 'transition/diagnostics_before/object_velocity_w_m_s_rad_s',
+        'obs/actuator_target_rad', 'obs/contact_substeps_w_N', 'obs/contact_valid')
+    digest = hashlib.sha256()
+    for name in paths:
+        if name not in group:
+            missing.append(name); continue
+        value = np.asarray(group[name][tick]); fields[name] = value
+        digest.update(name.encode()); digest.update(str(value.dtype).encode()); digest.update(str(value.shape).encode())
+        digest.update(np.ascontiguousarray(value).tobytes())
+    def observed(name):
+        return np.asarray(group['transition/diagnostics_before/'+name][tick]) if 'transition/diagnostics_before/'+name in group else None
+    lifted = observed('lifted_object'); subgoals = observed('successes'); stage = observed('native_stage_step')
+    contact_known = bool(np.asarray(arrays['residual_contact_valid'])[tick])
+    contact = bool(np.asarray(arrays['residual_contact_gate'])[tick]) if contact_known else None
+    previous_contact = np.asarray(arrays['residual_contact_gate'])[:tick]
+    previous_known = np.asarray(arrays['residual_contact_valid'])[:tick]
+    seen_contact = bool(np.any(previous_contact & previous_known))
+    contact_lost = bool(seen_contact and not contact) if contact_known else None
+    q = fields.get(paths[0]); target = fields.get('obs/actuator_target_rad')
+    tracking = None if q is None or target is None else q-target
+    object_pose = fields.get(paths[2]); initial_z = observed('object_initial_z_m')
+    z_delta = float(object_pose[2]-initial_z.reshape(-1)[0]) if object_pose is not None and initial_z is not None else None
+    # These are observable buckets, not inferred expert-relative trajectory deviation.
+    phase = ('subgoal_observed' if subgoals is not None and bool((subgoals > 0).any()) else
+        'native_lift_observed' if lifted is not None and bool(lifted.any()) else
+        'contact_observed' if contact is True else 'noncontact_observed' if contact is False else 'unknown')
+    deviation = dict(contact_loss_before_switch=contact_lost, object_height_change_from_initial_m=z_delta,
+        arm_tracking_rmse_rad=float(np.sqrt(np.mean(tracking[:7]**2))) if tracking is not None else None,
+        hand_tracking_rmse_rad=float(np.sqrt(np.mean(tracking[7:]**2))) if tracking is not None else None,
+        expert_trajectory_deviation=None,
+        type='observed_contact_loss' if contact_lost else 'unclassified',
+        interpretation='Contact loss and target tracking are observations, not a diagnosed failure cause')
+    return dict(coverage, switch_tick=tick, switch_observable_sha256=digest.hexdigest() if fields else None,
+        switch_hash_fields=list(fields), switch_hash_missing_fields=missing,
+        switch_hash_scope='Recorded pre-action observable subset only; hidden PhysX/RNG state excluded',
+        phase=phase, native_stage_step=stage.tolist() if stage is not None else None,
+        native_lift=bool(lifted.any()) if lifted is not None else None,
+        native_subgoals=float(subgoals.max()) if subgoals is not None else None,
+        contact_valid=contact_known, observed_contact=contact, deviation=deviation)
+
+
+def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True):
+    """CPU readback of real completed collection, including zero-valued corrections.
+
+    Historical captures use their immutable initial_pair ledger. New captures also
+    embed the paired identity. No simulator, model forward, or labels are generated.
+    """
+    output = Path(output); result = json.loads((output/'result.json').read_text())
+    if not result.get('software_complete') or not result.get('legal') or not result.get('dagger'):
+        raise ValueError('Complete legal DAgger capture required for deployment audit')
+    identity = result.get('complete_student_policy')
+    pair = expected_pair or identity
+    if pair is None:
+        raise ValueError('Historical DAgger capture requires its explicit paired checkpoint ledger')
+    for name in ('frontend', 'backend'):
+        if identity is not None and (Path(identity[name]).resolve() != Path(pair[name]).resolve()
+                or identity[name+'_sha256'] != pair[name+'_sha256']):
+            raise ValueError('DAgger recorded paired identity differs from expected collector')
+    if result['checkpoint_sha256'] != pair['backend_sha256']:
+        raise ValueError('DAgger actual backend checkpoint identity differs')
+    if verify_weights:
+        for name in ('frontend', 'backend'):
+            if sha256(pair[name]) != pair[name+'_sha256']:
+                raise ValueError('DAgger actual '+name+' checkpoint bytes changed')
+        backend = torch.load(pair['backend'], map_location='cpu', weights_only=False, mmap=True)
+        frontend = torch.load(pair['frontend'], map_location='cpu', weights_only=False, mmap=True)
+        actual = dagger_policy_identity(backend, pair['backend'])
+        if (actual['frontend_sha256'] != pair['frontend_sha256']
+                or Path(actual['frontend']).resolve() != Path(pair['frontend']).resolve()
+                or frontend['contract'] != backend['contract']):
+            raise ValueError('DAgger actual loaded checkpoints are not a matched complete policy')
+    with np.load(output/'trace.npz') as archive:
+        arrays = {key: archive[key] for key in archive.files}
+    n = result['steps']; student = arrays['dagger_control_source'] == 0
+    valid = arrays['dagger_expert_label_valid'].astype(bool)
+    if (len(student) != n or valid[student].any() or result['residual_forward_ticks'] != n
+            or result['residual_executed_ticks'] != int(student.sum())):
+        raise ValueError('DAgger actual controller execution/label counts differ')
+    errors = {}
+    def match(name, a, b, tolerance=0.):
+        if a.shape != b.shape or not np.isfinite(a).all() or not np.isfinite(b).all():
+            raise ValueError('DAgger '+name+' has malformed or nonfinite values')
+        error = float(np.max(np.abs(a-b))) if a.size else 0.
+        errors[name] = error
+        if error > tolerance:
+            raise ValueError('DAgger '+name+' numerical chain mismatch')
+    with h5py.File(output/'numeric.h5', 'r') as stream:
+        group = stream['episode']; transition = group['transition']; data = transition['dagger']
+        nominal = arrays['nominal']; residual = arrays['residual_applied_rad']
+        proposed = data['student_proposed_target_rad'][:]; issued = data['actual_issued'][:]
+        applied = data['actual_applied'][:]; target = transition['target_after_rad'][:]
+        match('nominal_plus_residual_to_proposal', nominal+residual, proposed, 1e-6)
+        match('recorded_nominal', nominal, data['nominal'][:])
+        match('student_proposal_to_issued', proposed[student], issued[student])
+        match('issued_to_applied', issued, applied); match('applied_to_actuator_target', applied, target)
+        match('trace_issued', arrays['command'], issued)
+        match('expert_command_to_applied', data['u_expert'][:][valid], target[valid])
+        match('q_reached_to_observed_after', data['q_reached'][:], transition['diagnostics_after/joint_position_rad'][:])
+        match('physics_substep_targets', transition['actuator_substep_target_rad'][:],
+            np.repeat(target[:, None], transition['actuator_substep_target_rad'].shape[1], axis=1))
+        with h5py.File(result['dataset_capture']['path'], 'r') as compact:
+            recorded = compact['episodes'][result['identity']]['transition']
+            for name in ('actual_issued', 'actual_applied', 'u_expert', 'q_reached'):
+                match('compact_'+name, recorded['dagger/'+name][:], data[name][:])
+            if not np.array_equal(recorded['dagger/expert_label_valid'][:], valid):
+                raise ValueError('DAgger compact expert supervision mask differs')
+        coverage = dagger_recovery_coverage(arrays, group)
+    return dict(passed=True, finding='No bare-DP collection problem found in actual numeric execution',
+        identity=result['identity'], frontend_sha256=pair['frontend_sha256'], backend_sha256=pair['backend_sha256'],
+        checkpoint_files_checked=verify_weights, embedded_pair_identity=identity is not None,
+        student_ticks=int(student.sum()), residual_forward_ticks=n, valid_expert_ticks=int(valid.sum()),
+        zero_correction_student_ticks=int((np.abs(residual[student]).max(-1) == 0).sum()),
+        correction_must_be_nonzero=False, maximum_absolute_errors_rad=errors, recovery_coverage=coverage,
+        trace_sha256=sha256(output/'trace.npz'), result_sha256=sha256(output/'result.json'))
+
+
 def record_dagger_transition(controller, transition, previous_nominal):
     """Attach factual labels, then acknowledge the actual command to the student."""
     value = transition['dagger']
@@ -77,11 +259,17 @@ def record_dagger_transition(controller, transition, previous_nominal):
     if not torch.isfinite(reached).all():
         raise ValueError('Nonfinite actual reached configuration')
     nominal = controller.nominal.to(target.device)
+    residual = controller.residual_diagnostics['applied_rad'].to(target.device)
+    proposal = value['student_proposed_target_rad']
+    if (not torch.allclose(nominal+residual, proposal, rtol=0, atol=1e-6)
+            or not torch.equal(controller.command.to(target.device), proposal)
+            or not torch.equal(proposal[~expert], requested[~expert])):
+        raise ValueError('DAgger complete student nominal/residual/issued chain mismatch')
     required = torch.where(expert[:, None], target-nominal, torch.zeros_like(target))
     required_normalized = required*controller.action_scale_cpu.to(target.device)
     residual_bound = controller.residual_scales_cpu.to(target.device)
     value.update(u_expert=torch.where(expert[:, None], target, torch.zeros_like(target)),
-        q_reached=reached.clone(), nominal=nominal.clone(),
+        q_reached=reached.clone(), nominal=nominal.clone(), student_residual_applied_rad=residual.clone(),
         required_expert_residual_rad=required, required_expert_residual_normalized=required_normalized,
         required_expert_residual_bound_fraction=required_normalized.abs()/residual_bound,
         required_expert_residual_out_of_bounds=required_normalized.abs()>residual_bound,
@@ -268,6 +456,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
     if dagger is not None and (saved is None or not saved.get('residual_version') or not position or not capture_dataset
             or replay is not None or takeover_steps is not None or expert_speed is not None or expert_checkpoint is None):
         raise ValueError('DAgger requires a trained combined position student, compact capture and explicit expert identity')
+    complete_identity = dagger_policy_identity(saved, checkpoint) if dagger is not None else None
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
@@ -288,7 +477,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         metadata['initial_family'] = spec.get('family', spec['identity'])
         metadata['dataset_split'] = spec.get('split', spec['cohort'])
         if dagger is not None:
-            metadata.update(dagger=dagger, trajectory_kind='expert_takeover_v1', source_identity=spec['source_identity'])
+            metadata.update(dagger=dagger, trajectory_kind='expert_takeover_v1', source_identity=spec['source_identity'],
+                complete_student_policy=complete_identity)
         if expert_speed is not None:
             metadata['expert_speed']=expert_speed
             metadata['supervision_contract']='transition/target_after_rad: actual issued actuator target, not measured joint position'
@@ -541,6 +731,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 admission='Root aggregator requires native success and nonzero valid expert supervision; failures retained')
             result['residual_forward_ticks'] = len(rows)
             result['residual_executed_ticks'] = len(rows)-expert_ticks
+            result['complete_student_policy'] = complete_identity
+            result['dagger']['recovery_coverage'] = dagger_recovery_coverage(arrays, group)
             result['residual_diagnostics']['scope'] = 'Student proposals at every tick, including unexecuted expert-suffix shadow proposals'
         if movie:
             movie.close(complete=True)

@@ -1,21 +1,36 @@
 # Tight-Insertion 现行合同：成功筛选的专家接管式 DAgger
 
-本页约束新授权的多轮共享池DAgger：每轮先训练现有前端，再刷新缓存并训练后端。旧 `_02` 与 `tight_dagger_20261111_01` 已有完成凭据；新工作在隔离 `bc+rl_RSS_qg_report`，不修改旧产物或历史结果。当前实现与CPU验收不等于新GPU运行已启动，实际状态由owner凭据说明。[历史结果](STATE_DP_RESULTS.md)。
+本页约束 `complete_strategy_ab_v1`：只调度A、B完整学生，每轮依次更新前端与后端；以原run的持久状态、安全边界和绝对截止推进。历史 `_02`、单轮DAgger和本run首轮的原始结果保留。实现、CPU验证、真实采集与研究效果分别报告，授权不等于验收。[实际结果](STATE_DP_RESULTS.md)。
 
 ## 范围、来源与执行顺序
 
-配置在 [tight_state.json](../configs/tight_state.json) 的 `dagger`，版本 `successful_takeover_pool_v1`。按QG01优先、G11随后推进最多三轮：
+配置在[tight_state.json](../configs/tight_state.json)的`dagger`，底层池版本仍`successful_takeover_pool_v1`，范围修订为`complete_strategy_ab_v1`。
 
-|组|采集起始前端|前端训练标签|后端起点与标签|
+|完整策略/内部来源标识|实际前端模态|前端训练标签|后端与最终标签|
 |---|---|---|---|
-|G11|已完成DAgger G11 selected EMA；RGB-D+robot178+直接触觉|命令 `u_expert`|同一已完成DAgger配对的Transformer；最终 `u_expert`|
-|QG01|已完成DAgger QG01 selected前端EMA；RGB-D+robot178|实际配置 `q_reached`，保留既定几何loss|同一已完成DAgger配对的Transformer；最终 `u_expert`|
+|A / QG01|RGB-D＋robot178，G00模态，无前端直接触觉|q_reached，保留手部软几何|756,581参数Transformer；组合最终u_expert|
+|B / G01|相同G00模态|u_expert|同容量Transformer；组合最终u_expert|
 
-共享监督类型映射完整覆盖：G00/G10 前端为 `u_expert`；Q00/QG00 前端均为 `q_reached`；G01/G11/Q01/QG01 后端均为 `u_expert`。本轮只调度表中两组，数据层按显式监督类型选择字段与统计，不按组名猜测。
+A从本run首轮选中前端804更新、后端12212更新的完整pair继续；B从既有G00/G01有效完整pair继续（前端SHA`4356acbc…`、后端SHA`0e9ec397…`，完整身份在机器索引）。G11此前引入前端直接触觉，现退出活动队列；其754次持久化前端更新、选定201更新、全部模型/合法数据和历史结果保留。裸Q/QG前端只训练/离线预测验证，不独立DAgger采集或任务成功率考核；不启第三条完整多轮队列，G10辅助基线也无默认新增预算。
 
-最终来源必须核验 checkpoint SHA、训练来源、前后端配对和各自统计身份；不能用disposable probe或缺失/损坏权重代替。选定update0必须有真实训练过的源checkpoint及SHA链，new_optimizer_updates仍记0，不能把它算新增训练完成。旧 G10 v4 隐含 command 合同可显式声明为 v5 `u_expert`，所有 EMA 参数和统计逐 tensor 不变；不能把旧命令模型直接解释为已训练的配置模型。新 round 使用新的优化器/日程/计数，同 round 恢复保留完整训练状态。
+共享监督映射为G00/G10类→u_expert，Q00/QG00类→q_reached，所有后端→组合后的u_expert。由显式`supervision`选择字段、normalizer与损失，不按29维形状或临时组名判断。两组前端模态、历史、频率和后端容量匹配；保留已训练残差归一化幅度A Arm0.2/Hand0.9、B全0.1及各自历史曝光，不能声称严格单变量或同预算对照。
 
-顺序为：本轮当前配对学生有限采集 → 两组成功纠正进入同一持续池并冻结共同快照 → 原Core与共享纠偏分层微调现有前端 → 原validation与correction_dev联合选模 → 冻结选定前端并刷新全池名义缓存 → 原选定后端微调 → 无接管自主评估 → 完整pair选择/回退并进入有限下一轮。没有足够有效前端标签时明确报告不足，不悄悄退为仅后端实验。两组比较包含前端模态和监督方法差异，不能单独证明几何因果贡献。
+每轮顺序：完整配对学生采集→成功专家有效后缀入持续池→冻结快照→微调现有U-Net可训练部分→联合开发选前端→固定新前端并刷新所有依赖缓存→从原Transformer继续学习最终命令→配套自主评估/回退。冻结DP只用于本轮后端训练。数据不足须报告，禁止仅训后端后宣称完成两部分DAgger；没有端到端物理rollout/BOL/PPO新增目标。
+
+必须核验checkpoint SHA、真实训练来源、前后端配对和各自统计。不可部署disposable或随机update0；选中update0须有已训练源权重SHA链。旧命令v4可显式声明为v5 u_expert而保持参数/统计逐tensor不变，不把Q模型重新转作普通命令。新round用新优化器/日程，同round恢复完整状态。
+
+## 原截止内的有限调度
+
+仍用`outputs/visuotactile/run/tight_dagger_pool_20261111_01`，起点2026-11-11 13:24:31、绝对截止2026-11-12 07:24:31、计算07:14:31停止。安全边界从`first_round=2`接续，旧首轮不重跑。
+
+- 第2轮A最多96/B最多48真实机会；采集完成后共用同一不可变快照，分别更新两部分。
+- 第3轮只有更新后的A最多96新机会及两阶段更新，B保留已有完整pair，不作为未完成或失败组。
+- 240为新增上限，不是完成承诺。调度按100秒/机会规划，并为每个完整pair预留7800秒；给后续A至少32机会的计划预留，仍受原硬截止约束。真实速度变化时裁减机会，公开实际采集量及不等曝光。
+- 前端固定增量最大800更新、400后可按验证趋势停止，每200验证；保留400/800共同曝光checkpoint。LR1e-5，样本全集不变；实际anchor遍数按新池人口报告，不能把800固定更新称为10遍。前端不能取消。
+- 后端最多12/最少6有效监督tick遍，3遍验证、LR3e-4、最多.75h；完整episode组取整超量公开。探针提前停止不改变正式LR定义。
+- 完整pair后自主先4例，>=1成功/子目标或>=2原生lift才按原预登记队列扩10；模型选择/回退由owner执行，发布器只读。历史停止或未调度B第3轮不阻塞新scope完成；历史不完整结果仍可见。
+
+选模仍包含真实update0，旧validation/纠偏dev/最初24合法tick分别相对其update0归一化后按.5/.25/.25合成。恢复训练强化的48tick与此24tick开发指标分别记名，不混为同一人口。test22不使用。
 
 ## 原生执行与专家接管
 
@@ -24,6 +39,8 @@ H24/commit12、sample/x0、DDIM16/seed7091、overlap0；5Hz规划、60Hz控制�
 每次从登记训练家族初态运行学生。专家 recurrent shadow 在每个真实观察上连续推进；按冻结的本轮计划接管：新计划switch=12k−2，原3项delay队列清洁后缀从12k规划anchor开始；默认switch为46/70/94/118/154/190/238/298tick，后续仅按登记有限规则调整，不在终止后接管、不恢复理想姿态或拼接 reset。专家动作经原生映射后施加已有 Arm=.5、Hand=1、Hand目标变化上限2rad/s；学生目标不再重复这一限速。两者通过同一位置执行器，并记录两个物理子步实际目标。
 
 专家独立建议队列从学生前缀开始更新，复用位置执行器原有的一次 delay RNG draw，不额外抽样或修改共享 native queue。接管时全队列尚含学生控制期建议的过渡段不监督；干净专家实际执行后缀才有有效标签。连续 shadow、映射和时序需新阶段真实采集验收，CPU/mock 通过不等于物理接管通过。
+
+采集入口必须实际加载配套DP＋Transformer并运行短验证，记录两个checkpoint SHA、nominal、residual、组合issued及真实applied。缺后端、SHA/合同不配或加载失败显式报错，禁止fallback到裸DP；不要求每一步修正非零。已发生轨迹按真实日志核验，路径原本正确则报告“未发现裸DP采集问题”，不宣称修复不存在的bug；若有受影响记录只隔离对应范围。验收及独立起点/覆盖计数嵌入正常采集，不增加长诊断队列。
 
 只有原生完整成功的接管 episode、且内容/时序/标签有效，才能加入成功纠正主池。学生提前自主成功、接管失败、超时和软件中断各自保留分母；它们不自动变为专家训练数据。不会为了凑成功补 seed 或扩大机会。
 
@@ -53,6 +70,8 @@ H24/commit12、sample/x0、DDIM16/seed7091、overlap0；5Hz规划、60Hz控制�
 `normalization_train_ids` 固定为原训练人口；`statistics.pt` 与 G10 的 `tactile_statistics.pt` 按原字节复用。Q 前端保持 q affine；G 前端保持 u affine；所有后端保持共同 `u_expert_train166_affine_v1`。不从纠正数据/validation/test重新拟合。G10六个、G00四个观测/动作统计 buffer 在同语义续训时逐 tensor 校验。
 
 池的全局身份包括run/group/round/source与内容SHA；同内容去重，禁止改变既定cohort。每轮snapshot冻结之后再训练，两组读同一快照。本轮层必须同时匹配run_id与round_index，不能把旧run相同轮号混入本轮。采样按Core .5、历史纠偏 .2、本轮纠偏 .3，空纠偏层权重移到另一纠偏层；DP按有效anchor，后端按有效监督tick分配完整episode。记录实际各层比例、重复样本、唯一episode/anchor/tick覆盖与等效曝光，不把重复抽样称为新增数据。
+
+恢复初段从首个合法专家tick起最多48个连续有效tick，遇mask无效或控制segment变化立即截断，不跳过缺口续数；学生和队列过渡不能补入。前端在既有纠偏层内将约一半有效anchor抽样分配到初段，其余仍覆盖全部合法后缀；后端对合法初段最终命令loss施加3倍权重，归一化与实际加权曝光公开。原Core/历史/本轮.5/.2/.3混合层保持。记录原始独立接管起点、来源pair版本、训练家族、实际接管阶段/偏离描述、初段合法tick/anchor人口以及实际采样曝光；重复采样不计新恢复案例，阶段/偏离统计不解释为已证明根因。
 
 前端保持现有 Conditional U-Net 和持续历史；DINO backbone 冻结，既有视觉投影/深度/历史/策略参数可训练。每轮先恢复这些前端参数参与微调，再固定本轮选定前端训练后端；不能把整个 DAgger 轮次称为“冻结前端”。前后端分别优化，没有端到端联合反传。
 
@@ -120,7 +139,7 @@ $$
 +10^{-4}\left(\frac12\operatorname{mean}_{Arm7}\Delta^2+\frac12\operatorname{mean}_{Hand22}\Delta^2\right).
 $$
 
-最终对合法专家监督 tick 求均值，接触/非接触都参与；学生前缀仍更新历史但不监督。后端没有新增 QG 几何项，也不把命令 affine 换成前端配置 affine。组合为 `base + delta / action_scale` 后施加关节限位，残差幅度沿用既有校准。[组合与后端目标](../visuotactile/models/native_dp.py#L549)
+当前恢复强化目标为每个optimizer update内的加权均值 $L_{\rm back}=\sum_t w_t\ell_t/\max(1,\sum_t w_t)$：纠偏首段连续48tick取 $w_t=3$，其余合法监督取1，无效监督取0；原未启用恢复配置的路径仍为普通均值。实际物理tick曝光按Boolean mask计数，权重质量不能冒充额外专家tick。接触/非接触都参与；学生前缀仍更新历史但不监督。后端没有新增 QG 几何项，也不把命令 affine 换成前端配置 affine。组合为 `base + delta / action_scale` 后施加关节限位，残差幅度沿用既有校准。[组合与后端目标](../visuotactile/models/native_dp.py#L549)
 
 前端按固定 validation4、真实完整前缀、部署 batch1 DDIM16/seed7091 的 commit12 误差选择最低分 EMA：
 
@@ -139,10 +158,10 @@ $$
 
 |项目|本次登记|
 |---|---|
-|round/总时限|最多3轮；新root实际起点起18h，包含等待、探针和报告，最后10min收尾；resume不重设deadline|
-|采集机会|每轮每组默认32，有限规则可24；每组最多96、两组共192；4个dev编号1/10/20/31预登记；每组每轮最多1.25h，无失败补seed|
+|round/总时限|原root从第2轮接续；2026-11-12 07:24:31截止，计算07:14:31结束；resume不重设deadline|
+|采集机会|第2轮A最多96/B最多48，第3轮A最多96；按剩余完整阶段预留裁减，整episode dev预登记，无失败补seed|
 |最低新增监督|成功纠偏episode、至少48有效专家tick和4个有效DP anchor；新增数据不足如实保留原pair，不偷用dev或退为仅后端|
-|前端|最多10有效anchor等效遍，6后可验证停止，约每2遍验证；LR峰值1e-5；每组每轮最多2h|
+|前端|固定增量最多800更新，400后可验证停止，每200验证；LR峰值1e-5；共同400/800 checkpoint；实际anchor曝光另报|
 |后端|最多12有效监督tick等效遍，6后可验证停止，每3遍验证；LR3e-4；每组每轮最多.75h；完整episode组取整的超出tick明示|
 |开发自主评估|先固定4例；>=1原生成功、>=1子目标或>=2原生lift时才按同一登记队列扩至10；每组1视频；拒绝/中断不补，始终无专家替换|
 |资源|充分使用空闲GPU；至少6144MiB空闲显存、14GiB RAM、60GiB磁盘；只管理自有进程|

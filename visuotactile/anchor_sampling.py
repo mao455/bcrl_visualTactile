@@ -12,7 +12,7 @@ class AnchorSampler:
     is episode-balanced, not uniform over all anchors when episodes differ in length.
     An anchor-equivalent epoch is an exposure count, not independent new data.
     """
-    def __init__(self, lengths, generator, batch_size=64, *, records=None, strata=None, weights=None):
+    def __init__(self, lengths, generator, batch_size=64, *, records=None, strata=None, weights=None, recovery_prefix=None):
         self.ids=list(lengths);self.lengths=dict(lengths);self.generator=generator
         if not self.ids or not isinstance(batch_size, int) or batch_size < 1:
             raise ValueError('Positive batch and nonempty episode cohort required')
@@ -38,6 +38,21 @@ class AnchorSampler:
         self.draws=0;self.prefix_ticks=0;self.gradient_ticks=0
         self.strata,self.weights=sampling_strata(self.ids,strata,weights)
         self.stratum_orders={};self.stratum_positions={};self.stratum_draws={k:0 for k in self.strata}
+        self.recovery_prefix=recovery_prefix_config(recovery_prefix)
+        self.recovery_pools={};self.recovery_decks={};self.recovery_positions={};self.recovery_draws={}
+        self.recovery_target_counts={}
+        if self.recovery_prefix:
+            if records is None or not self.strata:raise ValueError('Recovery sampling requires explicit records and correction strata')
+            for name,identities in self.strata.items():
+                if name=='core':continue
+                for identity in identities:
+                    prefix=recovery_prefix_rows(records[identity],self.recovery_prefix['ticks']).cpu()
+                    pools={key:[j for j,t in enumerate(self.anchors[identity]) if bool(prefix[t])==early]
+                        for key,early in (('initial',True),('remaining',False))}
+                    self.recovery_pools[identity]={k:v for k,v in pools.items() if v}
+                    self.recovery_draws[identity]={k:0 for k in self.recovery_pools[identity]}
+                    self.recovery_decks[identity]={};self.recovery_positions[identity]={}
+                    self.recovery_target_counts[identity]=[int(prefix[t:t+24].sum()) for t in self.anchors[identity]]
         self.target_counts={}
         for i in self.ids:
             values=[]
@@ -68,9 +83,20 @@ class AnchorSampler:
         selected=[]
         for index in chosen:
             identity=self.ids[index];n=len(self.counts[identity])
-            if self.positions.get(identity,0)==len(self.decks.get(identity,[])):
-                self.decks[identity]=torch.randperm(n,generator=self.generator).tolist();self.positions[identity]=0
-            anchor=self.decks[identity][self.positions[identity]];self.positions[identity]+=1
+            if identity in self.recovery_pools:
+                pools=self.recovery_pools[identity];draws=self.recovery_draws[identity]
+                fraction=self.recovery_prefix['frontend_fraction']
+                weights=dict(initial=fraction,remaining=1-fraction)
+                total=sum(draws.values())+1
+                bucket=max(pools,key=lambda k:weights[k]*total-draws[k])
+                decks=self.recovery_decks[identity];positions=self.recovery_positions[identity]
+                if positions.get(bucket,0)==len(decks.get(bucket,[])):
+                    decks[bucket]=torch.randperm(len(pools[bucket]),generator=self.generator).tolist();positions[bucket]=0
+                anchor=pools[bucket][decks[bucket][positions[bucket]]];positions[bucket]+=1;draws[bucket]+=1
+            else:
+                if self.positions.get(identity,0)==len(self.decks.get(identity,[])):
+                    self.decks[identity]=torch.randperm(n,generator=self.generator).tolist();self.positions[identity]=0
+                anchor=self.decks[identity][self.positions[identity]];self.positions[identity]+=1
             tick=self.anchors[identity][anchor];self.counts[identity][anchor]+=1
             self.prefix_ticks+=tick+1;self.gradient_ticks+=tick%96+1
             selected.append((identity,tick))
@@ -80,17 +106,28 @@ class AnchorSampler:
         return selected
 
     def state_dict(self):
-        return {k:getattr(self,k) for k in ('order','cursor','decks','positions','counts','draws','prefix_ticks','gradient_ticks','anchors',
-            'strata','weights','stratum_orders','stratum_positions','stratum_draws')}
+        keys=('order','cursor','decks','positions','counts','draws','prefix_ticks','gradient_ticks','anchors',
+            'strata','weights','stratum_orders','stratum_positions','stratum_draws')
+        if self.recovery_prefix:keys+=('recovery_prefix','recovery_pools','recovery_decks','recovery_positions','recovery_draws')
+        return {k:getattr(self,k) for k in keys}
 
     def load_state_dict(self,state):
         if set(state['counts'])!=set(self.ids):raise ValueError('Sampler episode identity mismatch')
         if state.get('anchors',self.anchors)!=self.anchors:raise ValueError('Sampler supervision population changed')
         if state.get('strata',{})!=self.strata or state.get('weights',{})!=self.weights:
             raise ValueError('Sampler stratum snapshot or weights changed')
+        if state.get('recovery_prefix')!=self.recovery_prefix or state.get('recovery_pools',{})!=self.recovery_pools:
+            raise ValueError('Sampler recovery-prefix configuration or population changed')
+        if self.recovery_prefix and any(k not in state for k in ('recovery_decks','recovery_positions','recovery_draws')):
+            raise ValueError('Sampler recovery-prefix resume state is incomplete')
         if any(len(state['counts'][i])!=len(self.anchors[i]) for i in self.ids):raise ValueError('Sampler anchor count differs')
         for k,v in state.items():setattr(self,k,v)
         assert sum(sum(v) for v in self.counts.values())==self.draws
+        if self.recovery_prefix:
+            for identity,pools in self.recovery_pools.items():
+                if any(sum(self.counts[identity][j] for j in anchors)!=self.recovery_draws[identity][bucket]
+                        for bucket,anchors in pools.items()):
+                    raise ValueError('Sampler recovery-prefix exposure counters differ')
 
     def coverage(self):
         counts=torch.tensor([v for values in self.counts.values() for v in values])
@@ -117,7 +154,59 @@ class AnchorSampler:
                     supervised_target_ticks=sum(c*n for i in ids for c,n in zip(self.counts[i],self.target_counts[i])),
                     initial_24_supervised_anchor_draws=sum(sum(self.counts[i][:2]) for i in ids),
                     effective_anchor_exposures=draws/len(values))
+                if self.recovery_prefix and name!='core':
+                    early=[self.counts[i][j] for i in ids for j in self.recovery_pools[i].get('initial',[])]
+                    rest=[self.counts[i][j] for i in ids for j in self.recovery_pools[i].get('remaining',[])]
+                    result['strata'][name]['recovery_prefix']=dict(ticks=self.recovery_prefix['ticks'],
+                        requested_anchor_fraction=self.recovery_prefix['frontend_fraction'],
+                        initial_anchor_population=len(early),remaining_anchor_population=len(rest),
+                        initial_anchor_draws=sum(early),remaining_anchor_draws=sum(rest),
+                        actual_initial_anchor_fraction=sum(early)/max(1,draws),
+                        unique_initial_anchors=sum(v>0 for v in early),unique_remaining_anchors=sum(v>0 for v in rest),
+                        initial_supervised_target_ticks=sum(c*n for i in ids for c,n in zip(self.counts[i],self.recovery_target_counts[i])),
+                        episodes_without_initial_anchor=sum('initial' not in self.recovery_pools[i] for i in ids),
+                        episodes_without_remaining_anchor=sum('remaining' not in self.recovery_pools[i] for i in ids))
         return result
+
+
+def recovery_prefix_config(spec):
+    """Opt-in sampling/loss weighting; missing configuration preserves old paths."""
+    if spec is None:return None
+    if not isinstance(spec,dict) or set(spec)!={'ticks','frontend_fraction','backend_weight'}:
+        raise ValueError('Recovery prefix requires ticks, frontend_fraction and backend_weight')
+    ticks=spec['ticks'];fraction=spec['frontend_fraction'];weight=spec['backend_weight']
+    if isinstance(ticks,bool) or not isinstance(ticks,int) or ticks<1:
+        raise ValueError('Positive integer recovery-prefix length required')
+    if any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) for v in (fraction,weight)):
+        raise ValueError('Finite recovery-prefix fraction/weight required')
+    if not 0<fraction<1 or weight<1:raise ValueError('Recovery fraction must be between zero and one; loss weight at least one')
+    return dict(spec)
+
+
+def recovery_prefix_rows(record,ticks=48):
+    """First continuous legal expert segment only; gaps/switches never get bridged."""
+    mask,segment=supervision_rows(record)
+    prefix=torch.zeros_like(mask);valid=mask.nonzero().flatten()
+    if len(valid):
+        start=int(valid[0]);end=min(start+ticks,len(mask))
+        contiguous=(mask[start:end]&(segment[start:end]==segment[start])).long().cumprod(0).bool()
+        prefix[start:end]=contiguous
+    return prefix
+
+
+def residual_recovery_weights(prefix_masks,start,stop,supervised,weight):
+    """Pass float weights to the existing final-command objective, never to history.
+
+    The objective normalizes by this actual masked weight sum. Physical tick
+    exposure and optimizer counters continue to use the original Boolean mask.
+    """
+    early=torch.zeros_like(supervised)
+    if len(prefix_masks)!=len(supervised):raise ValueError('Recovery masks and residual batch differ')
+    for row,prefix in enumerate(prefix_masks):
+        count=max(0,min(stop,len(prefix))-start)
+        if count:early[row,:count]=prefix[start:start+count].to(supervised.device)
+    early &= supervised
+    return supervised.to(torch.float32)*(1+(weight-1)*early),early
 
 
 def sampling_strata(ids,strata=None,weights=None):
@@ -166,8 +255,9 @@ def stratified_episode_order(ids,records,strata,weights,generator,target_ticks=N
     return order
 
 
-def episode_exposure(records,counts,strata,weights=None):
+def episode_exposure(records,counts,strata,weights=None,*,recovery_prefix=None):
     pools,weights=sampling_strata(list(counts),strata,weights)
+    recovery=recovery_prefix_config(recovery_prefix)
     total=sum(int(supervision_rows(records[i])[0].sum())*count for i,count in counts.items())
     result=dict(supervised_ticks=total,unique_episodes=sum(v>0 for v in counts.values()),
         repeated_samples=sum(max(0,v-1) for v in counts.values()),episode_draws=sum(counts.values()),strata={})
@@ -181,6 +271,14 @@ def episode_exposure(records,counts,strata,weights=None):
             unique_episodes=sum(counts[i]>0 for i in ids),episode_population=len(ids),
             episode_draws=sum(counts[i] for i in ids),repeated_samples=sum(max(0,counts[i]-1) for i in ids),
             initial_24_supervised_tick_draws=sum(min(24,int(supervision_rows(records[i])[0].sum()))*counts[i] for i in ids))
+        if recovery:
+            early={i:int(recovery_prefix_rows(records[i],recovery['ticks']).sum()) if name!='core' else 0 for i in ids}
+            initial=sum(early[i]*counts[i] for i in ids)
+            result['strata'][name]['recovery_prefix']=dict(ticks=recovery['ticks'],
+                initial_supervised_tick_population=sum(early.values()),initial_supervised_tick_draws=initial,
+                remaining_supervised_tick_draws=draws-initial,backend_weight=recovery['backend_weight'],
+                loss_weight_mass=draws+(recovery['backend_weight']-1)*initial,
+                loss_weight_mass_is_exposure=False)
     return result
 
 

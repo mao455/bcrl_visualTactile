@@ -161,7 +161,7 @@ def test_shared_snapshot_aggregate_is_idempotent_separates_dev_and_preserves_aff
     loaded=visual_records(out,result['splits']['correction_dev'],'G00')
     assert next(iter(loaded.values()))['supervision_mask'].sum()==16
     assert build_dagger_aggregate(source,{},out,'u_expert',include_geometry=False,snapshot=snapshot,consumer_group='G11')==result
-    with pytest.raises(ValueError,match='Completed immutable'):
+    with pytest.raises(ValueError,match='supervision semantics'):
         build_dagger_aggregate(source,{},out,'u_expert',include_geometry=False,snapshot=snapshot,consumer_group='QG01')
     # A later round sourced from an aggregate strips its already-present aliases
     # and rebuilds from Core plus the single canonical frozen pool membership.
@@ -178,3 +178,59 @@ def test_family_and_plan_partition_are_not_inferred_from_results(tmp_path):
     write(tmp_path/'wrong/correction_entries.json',entries)
     receipt=ingest(pool,tmp_path/'wrong',source)
     assert not receipt['integrity_passed'] and 'training families' in receipt['data_errors'][0]['reason']
+
+
+def test_g01_import_and_legacy_command_qualification_preserve_pool_and_dev(tmp_path):
+    first=collection(tmp_path/'old',value=1);source=core(tmp_path/'core',first);pool=tmp_path/'pool'
+    ingest(pool,tmp_path/'old',source,run='historical',group='G11')
+    collection(tmp_path/'missing_touch',value=2,missing_touch=True)
+    ingest(pool,tmp_path/'missing_touch',source,run='historical',group='QG01')
+    # Emulate the unchanged existing manifest: historical receipts predate G01.
+    manifest=json.loads((pool/'manifest.json').read_text())
+    old_ids=list(manifest['entries'])
+    for entry in manifest['entries'].values():entry['compatibility'].pop('G01')
+    write(pool/'manifest.json',manifest)
+    old_entries=json.dumps(manifest['entries'],sort_keys=True)
+    collection(tmp_path/'current',value=3)
+    current=ingest(pool,tmp_path/'current',source,group='G01',round_index=2)
+    assert current['integrity_passed'] and current['inserted'] and current['pool_entries']==3
+    collection(tmp_path/'dev',value=4,development=True)
+    dev=ingest(pool,tmp_path/'dev',source,group='G01',run='development_source',round_index=2)
+    assert dev['integrity_passed'] and dev['development_entries']==1
+    now=json.loads((pool/'manifest.json').read_text())
+    assert json.dumps({i:now['entries'][i] for i in old_ids},sort_keys=True)==old_entries
+    for identity in current['inserted']+dev['inserted']:
+        assert now['entries'][identity]['compatibility']['G01']==now['entries'][identity]['compatibility']['G11']
+    snapshot=tmp_path/'snapshot.json';frozen=freeze_dagger_snapshot(pool,snapshot,run_id='new',round_index=2)
+    before_manifest=(pool/'manifest.json').read_bytes();before_snapshot=snapshot.read_bytes()
+    out=tmp_path/'aggregate'
+    result=build_dagger_aggregate(source,{},out,'u_expert',include_geometry=False,snapshot=snapshot,consumer_group='G01')
+    assert [len(result['splits'][k]) for k in ('train','validation','test','correction_dev')]==[168,30,22,1]
+    assert result['aggregation']['source_group_contributions']=={'G11':1,'QG01':0,'G01':2}
+    assert len(result['snapshot_exclusions'])==1
+    assert set(result['aggregation']['legacy_compatibility_qualifications'])==set(old_ids)
+    assert set(result['aggregation']['legacy_compatibility_qualifications'].values())=={'G11'}
+    assert not set(result['splits']['correction_dev'])&set(result['splits']['train'])
+    assert (pool/'manifest.json').read_bytes()==before_manifest and snapshot.read_bytes()==before_snapshot
+    assert sha256(source/'statistics.pt')==sha256(out/'statistics.pt')
+    assert build_dagger_aggregate(source,{},out,'u_expert',include_geometry=False,snapshot=snapshot,consumer_group='G01')==result
+    records=visual_records(out,current['inserted'],'G00')
+    record=records[current['inserted'][0]];valid=record['supervision_mask']
+    assert torch.equal(record['clean_sample'][valid],record['expert_command'][valid])
+    raw=torch.load(out/'numeric.pt',map_location='cpu',weights_only=False)['records'][current['inserted'][0]]
+    assert not torch.equal(record['clean_sample'][valid],raw['q_reached'][valid])
+
+
+def test_g01_missing_qualification_and_configuration_labels_are_not_coerced(tmp_path):
+    from visuotactile.narrow_data import _pool_compatibility
+    with pytest.raises(ValueError,match='explicit correction compatibility'):
+        _pool_compatibility({'compatibility':{'QG01':{'compatible':True,'reasons':[]}}},'G01')
+    receipt,qualification=_pool_compatibility({'compatibility':{
+        'G01':{'compatible':False,'reasons':['explicit exclusion']},
+        'G11':{'compatible':True,'reasons':[]}}},'G01')
+    assert not receipt['compatible'] and qualification=='G01'
+    entry=collection(tmp_path/'one');source=core(tmp_path/'core',entry,supervision='q_reached');pool=tmp_path/'pool'
+    ingest(pool,tmp_path/'one',source,group='G01')
+    snapshot=tmp_path/'snapshot.json';freeze_dagger_snapshot(pool,snapshot,run_id='new',round_index=1)
+    with pytest.raises(ValueError,match='consumer supervision semantics'):
+        build_dagger_aggregate(source,{},tmp_path/'wrong','q_reached',include_geometry=False,snapshot=snapshot,consumer_group='G01')

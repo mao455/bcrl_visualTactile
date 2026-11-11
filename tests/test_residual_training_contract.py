@@ -152,9 +152,10 @@ def test_prefix_advances_history_without_optimizer_or_supervised_exposure(traine
     assert loss['loss']==pytest.approx(1.) and loss['supervised_ticks']==16
 
 
-@pytest.mark.parametrize('stratified',[False,True])
-def test_incremental_resume_after_final_group_preserves_next_updates(trainer,monkeypatch,stratified):
+@pytest.mark.parametrize('sampling',['uniform','stratified','recovery'])
+def test_incremental_resume_after_final_group_preserves_next_updates(trainer,monkeypatch,sampling):
     root,session,model,_=trainer
+    stratified=sampling!='uniform'
     _,config,*_=anchor_continue.residual_setup(root)
     config.update(continuation_from={'test':'CPU mocked selected source'},maximum_control_tick_epochs=3,
         minimum_control_tick_epochs=3,learning_rate=3e-4)
@@ -163,6 +164,9 @@ def test_incremental_resume_after_final_group_preserves_next_updates(trainer,mon
         data['sampling_strata']=dict(core=['t0','t1','t2','t3'],historical_correction=['t4'],current_correction=['t5'])
         data['splits']['correction_dev']=['d'];records['d']=record(88,3)
         saved_config.update(sampling_strata=data['sampling_strata'])
+        if sampling=='recovery':
+            config['recovery_prefix']=dict(ticks=48,frontend_fraction=.5,backend_weight=3.)
+            saved_config['recovery_prefix']=config['recovery_prefix']
         monkeypatch.setattr(anchor_continue,'residual_metrics',lambda *a,**kw:
             (dict(all={'normalized_equal_mse':1.},initial24={'normalized_equal_mse':1.}),[]))
     anchor_continue.residual_train(root)
@@ -185,6 +189,13 @@ def test_incremental_resume_after_final_group_preserves_next_updates(trainer,mon
     assert actual['supervised_ticks']==expected['supervised_ticks']
     if not stratified:assert actual['updates']==6 and actual['supervised_ticks']==63
     assert actual['episode_counts']==expected['episode_counts']
+    if sampling=='recovery':
+        loss_rows=[json.loads(line) for line in (other/'training/loss.jsonl').read_text().splitlines()]
+        assert any(row['loss_weight_mass']>row['supervised_ticks'] for row in loss_rows)
+        assert sum(row['supervised_ticks'] for row in loss_rows)==actual['supervised_ticks']
+        for row in loss_rows:
+            assert row['initial_recovery_supervised_ticks']+row['remaining_supervised_ticks']==row['supervised_ticks']
+            assert row['loss_weight_mass']==row['supervised_ticks']+2*row['initial_recovery_supervised_ticks']
     assert torch.equal(actual['model']['weight'],expected['model']['weight'])
     for key in ('step','exp_avg','exp_avg_sq'):
         assert torch.equal(actual['optimizer']['state'][0][key],expected['optimizer']['state'][0][key])
