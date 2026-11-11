@@ -2,11 +2,13 @@
 
 当前工作树 `/home/CNS2025331827/docs/bc+rl_RSS_qg_report`。`tight_transformer_20261110_02` 与单轮 `tight_dagger_20261111_01` 均已有COMPLETE凭据；后者源码 `dc1ed4afd51343679a57bd2f71a8a1d6a42e7550`、两组COMPLETE且owned_workers_exited=true。旧“等待原实验/尚未采集”快照已过期。历史训练量、0成功等结果由 [STATE_DP_RESULTS](STATE_DP_RESULTS.md) 及原机器证据说明。
 
-最新授权是QG01优先、G11随后，最多3轮、总18h含等待与最后10min发布预留。每轮每组默认32采集机会、其中4个整episode纠偏dev（预算规则取24次时保留其中3个预登记编号），最多192机会总量；不是成功数目标，不补失败种子。新队列 `outputs/visuotactile/run/tight_dagger_pool_20261111_01` 已于北京时间2026-11-11 13:24:31启动，源码 `593f1097216c0934c52fbd238080532dc77d6b20`，owner PID1344446，普通服务 `tight-dagger-pool-20261111-01.service`。原绝对截止为2026-11-12 07:24:31（计算07:14:31停止，最后10min收尾）；启动核验已见第一轮QG01两次真实成功专家接管（1条train、1条纠偏dev），新DP/后端尚未开始正式更新；这不是纯学生自主成功率。46/70接管后的首合法标签与DP anchor分别同为48/72，真实时序修正通过。实际进展与一次有界启动核验见root的 `status.json`、`startup_verification.json`。139项合并CPU测试通过，完整快照正式训练前仍执行本轮真实CUDA输入/梯度/保存恢复检查。
+最新授权是QG01优先、G11随后，最多3轮、总18h含等待与最后10min发布预留。每轮每组默认32采集机会、其中4个整episode纠偏dev（预算规则取24次时保留其中3个预登记编号），最多192机会总量；不是成功数目标，不补失败种子。新队列 `outputs/visuotactile/run/tight_dagger_pool_20261111_01` 已于北京时间2026-11-11 13:24:31启动，冻结运行源码 `593f1097216c0934c52fbd238080532dc77d6b20`，普通服务 `tight-dagger-pool-20261111-01.service`。原绝对截止为2026-11-12 07:24:31（计算07:14:31停止，最后10min收尾），不因中期报告提交重置。
+
+17:01:29阶段快照：第一轮QG01采集27/32成功接管，G11为32/32；QG01前端804次、后端12212次正式更新已完成，自主开发0/10成功、2次原生lift、0子目标、全部601tick超时，按既定规则选中完整新pair。G11前端109/1002、loss有限；后端/自主评估未发生。两组本轮真实CUDA输入、梯度及保存恢复检查均通过。新结果见[结果页首段](STATE_DP_RESULTS.md)与[快照](evidence/tight_dagger_pool_20261111_01/interim_status.json)，后续以root机器进度为准，不用此静态计数推断实时状态。139项历史合并CPU测试仍保留；这次只作CPU报告导出与核对，没有改动264个冻结运行文件或触发额外实验。
 
 ## 数据与当前验收
 
-- 已把旧单轮两组共21条合法成功接管纳入同一持续池，全部保留为历史train；新数据按run/group/round/source与内容SHA去重，每轮冻结共同snapshot，两组共享。当前本轮纠偏dev尚待预登记新采集，不借用train替代。
+- 旧21条与本轮59条合法成功接管合并为80条纠偏：73条训练、7条整episode开发；另加原Core166共239条训练episode。新数据按run/group/round/source与内容SHA去重，第一轮共同snapshot已冻结，两组共享，开发数据不进入optimizer。
 - 旧21条每条最初10个干净专家tick早于首合法12tick规划anchor，共210tick未用于DP目标；后端仍有这210个有效监督tick。原标签与结果不改写。真实逐条边界在 `outputs/visuotactile/data/tight_dagger_pool/acceptance/readback.json`。新switch=12k−2，按原3项delay队列清空后从12k进入干净后缀；不能偷偷跨无效段补旧标签。
 - Core166/validation30与原统计保留，test22不打开。原Core train55,392tick/4,690anchor是旧人口，新预算按实际mask/分层人口记录。学生前缀完整推进真实历史，监督0；u_expert/q_reached分离，后端始终监督u。
 - 当前Transformer没有失触立即清零；旧GRU的门控只属旧合同。残差幅度/限位不改，失触→再接触计数不证明恢复能力。

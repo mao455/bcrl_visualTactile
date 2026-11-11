@@ -1,6 +1,6 @@
 # Tight-Insertion 研究入口
 
-当前工作是在隔离 `bc+rl_RSS_qg_report` 实现最多3轮、总18h的共享纠偏池DAgger，QG01优先、G11随后。上一单轮已完成，两组21条成功纠偏进入共享历史train池；新一轮默认每组32机会并预留4个整episode纠偏dev，每轮使用共同不可变快照。当前新GPU是否启动由实际owner凭据说明，不能从CPU实现推断。
+共享纠偏池DAgger已在 `bc+rl_RSS_qg_report` 启动，最多3轮、总18h，QG01优先、G11随后。2026-11-11 17:01阶段快照：QG01首轮前后端训练与10例自主评估完成，0/10成功、2次原生lift、全部超时；G11前端训练中。本轮59条新成功纠偏加旧21条，共80条（73训练/7开发），另保留Core166；每轮使用共同不可变快照。实际曝光、失败过程、曲线与仍未完成事项见[结果页](STATE_DP_RESULTS.md)，实时状态以owner凭据为准。
 
 每轮现有U-Net前端微调 → 冻结选定前端并刷新全部名义缓存 → Transformer后端微调 → 固定4例自主开发、满足登记条件才扩至10 → 完整配对选择/回退。Core/历史/本轮纠偏按.5/.2/.3采样；实际update0参与旧val/纠偏dev/初24有效tick联合选模。原统计、监督类型和物理不变，test22不使用。详细预算、恢复命令、实际证据边界见 [CONTRACTS](CONTRACTS.md) 与 [SESSION_HANDOFF](SESSION_HANDOFF.md)。
 

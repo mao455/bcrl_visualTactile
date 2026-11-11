@@ -1,3 +1,26 @@
+## 2026-11-11 17:01 阶段快照：QG01首轮完成，G11前端训练中
+
+`tight_dagger_pool_20261111_01` 仍为 **RUNNING**，本节是北京时间17:01:29的中期记录。QG01完成首轮两阶段训练和有限自主评估；G11前端已更新109/1002次、loss=0.00426246，后端和自主评估尚未开始。后台继续原有限队列，绝对截止仍为2026-11-12 07:24:31；test22未使用。冻结运行源码仍为 `593f109`，本次只发布已有证据。
+
+|QG01首轮指标|实际记录|
+|---|---:|
+|纯学生原生完整成功 / 有效|0 / 10|
+|原生lift / 首子目标 / alignment|2 / 0 / 0|
+|timeout / fall / dropped|10 / 0 / 0|
+|接触物体 / 稳定抓持诊断|10 / 0|
+|前端新更新 / anchor等效遍历 / 墙钟|804 / 8.02871 / 4112.40s|
+|后端新更新 / 有效监督tick等效遍历 / 墙钟|12212 / 12.00040 / 841.72s|
+
+`palm_fresh_000/001`记录原生lift，其余8例未记录；10例均在601tick超时，均未到达首子目标。按预设规则，最初4例出现2次lift后扩至同队列10例。相比上一轮同spec/seed的0次lift，本轮有阶段变化，但仍无完整成功；接触与lift不等于稳定抓持，当前证据不能确定失败根因或证明稳定改善。逐次终止、接触、裁剪/饱和与失触再接触事件见[逐例诊断](evidence/tight_dagger_pool_20261111_01/round_01_QG01_rollout_events.csv)和[完整机器记录](evidence/tight_dagger_pool_20261111_01/summary.json)。
+
+前端以`q_reached`续训，804次后按验证平台规则停止，未达到1002次上限；后端使用这份新前端刷新后的真实预测，以`u_expert`续训。选中804/12212的完整新pair，两阶段相对update0的复合开发分数分别0.899974/0.909495，不能解释成闭环成功率提高。几何预热100次完全跳过，随后704次更新计算1408配置，总13.799s，激活更新平均19.60ms，SLSQP调用0；704条要求接触样本中197条有非零接触手部梯度。此处梯度为加权前的局部手关节梯度，不是网络参数梯度。采样配置最大穿透超容差13.114mm；要求接触样本的最大间隙超容差均值0.474mm。这些是训练预测配置上的测量，不是自主物理轨迹的穿透审计；本轮没有新增完整update梯度比例校准。[几何统计与口径](evidence/tight_dagger_pool_20261111_01/round_01_QG01_geometry_summary.json)。
+
+本轮采集64次：QG01专家接管27/32成功、5次超时；G11为32/32成功，无软件中断。新增59条有效纠偏中52训练/7开发，与旧21条合并为80条（73训练/7开发）；另加Core166，共239条训练episode。两组使用同一冻结快照，学生前缀监督为0。专家接管成功与上表纯学生结果分开。
+
+[两阶段训练/验证曲线](evidence/tight_dagger_pool_20261111_01/training_curves.png) · [逐更新原始loss](evidence/tight_dagger_pool_20261111_01/training_loss.csv.gz) · [固定验证数值](evidence/tight_dagger_pool_20261111_01/validation_curves.csv) · [几何逐配置数值](evidence/tight_dagger_pool_20261111_01/round_01_QG01_geometry_samples.csv.gz) · [接触阶段离线误差](evidence/tight_dagger_pool_20261111_01/round_01_QG01_contact_phase_metrics.csv) · [损失与监督合同](CONTRACTS.md)。
+
+自主视频`round_01/QG01/backend/QG01/evaluation/palm_fresh_000/rollout.mp4`位于本轮run下，已有完整CPU解码凭据601帧/60fps；[视频索引](evidence/tight_dagger_pool_20261111_01/video_index.csv)列出准确路径与SHA，模型/源轨迹/视频本体留本机。采集视频缺少完整解码凭据的项目仍标为未测。资源汇总截至root状态时间16:50:02，训练进度截至17:01:29；这次跨文件读取不是所有活跃文件在同一瞬间的原子快照。[快照范围](evidence/tight_dagger_pool_20261111_01/interim_status.json)。
+
 <!-- METHOD_MATRIX_START -->
 
 ## 2026-11-10 复用 U-Net 基础与实际配置适配实验
@@ -568,8 +591,8 @@ Finite evaluation/video queue finished; no additional starts；索引：`/home/C
 
 |组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|
 |---|---:|---:|---:|---:|---:|---:|
-|round_01/QG01|3 / 32|2 / 3|2 / 497 / 42|未测 / 未测|未测 / 未测|未测 / 0 / 10|
-|round_01/G11|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
+|round_01/QG01|32 / 32|27 / 32|27 / 8260 / 698|804 / 8.029|12212 / 12.000|0 / 10 / 10|
+|round_01/G11|32 / 32|32 / 32|32 / 8597 / 732|109 / 1.088|未测 / 未测|未测 / 0 / 10|
 |round_02/QG01|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
 |round_02/G11|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
 |round_03/QG01|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
@@ -580,9 +603,11 @@ Finite evaluation/video queue finished; no additional starts；索引：`/home/C
 
 采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。
 自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。
-整卡时间加权利用率：11.914%；资源样本 160 条，>8s 内部缺口 0s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
+整卡时间加权利用率：24.461%；资源样本 12325 条，>8s 内部缺口 0s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
 
 [原始机器结果](evidence/tight_dagger_pool_20261111_01/summary.json) · [采集逐次记录](evidence/tight_dagger_pool_20261111_01/collection.csv) · [自主逐次记录](evidence/tight_dagger_pool_20261111_01/closed_loop.csv) · [两阶段曝光](evidence/tight_dagger_pool_20261111_01/training_stages.csv) · [权重/视频本地索引](evidence/tight_dagger_pool_20261111_01/local_artifacts.json)。
+
+![DAgger 训练与固定验证曲线](evidence/tight_dagger_pool_20261111_01/training_curves.png)
 
 仅 CPU 导出已有数值、日志与 SHA；未新增训练、推理、Kit、评估、清理或模型选择。初始化身份、失败原因、视频解码凭据和全部缺失项见公开结果。
 <!-- tight-dagger-pool-results:end -->
