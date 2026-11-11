@@ -587,12 +587,12 @@ Finite evaluation/video queue finished; no additional starts；索引：`/home/C
 <!-- tight-dagger-pool-results:start -->
 ## 2026-11-11 DAgger：共享持久纠偏池与多轮增量续训
 
-本轮 owner 状态为 **RUNNING**；产物核验尚不完整。以下按已有凭据整理，缺失项不记为零成功。
+本轮 owner 状态为 **STOPPED**；产物核验尚不完整。以下按已有凭据整理，缺失项不记为零成功。
 
 |组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|
 |---|---:|---:|---:|---:|---:|---:|
 |round_01/QG01|32 / 32|27 / 32|27 / 8260 / 698|804 / 8.029|12212 / 12.000|0 / 10 / 10|
-|round_01/G11|32 / 32|32 / 32|32 / 8597 / 732|109 / 1.088|未测 / 未测|未测 / 0 / 10|
+|round_01/G11|32 / 32|32 / 32|32 / 8597 / 732|754 / 7.529|未测 / 未测|未测 / 0 / 10|
 |round_02/QG01|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
 |round_02/G11|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
 |round_03/QG01|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
@@ -603,7 +603,7 @@ Finite evaluation/video queue finished; no additional starts；索引：`/home/C
 
 采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。
 自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。
-整卡时间加权利用率：24.461%；资源样本 12325 条，>8s 内部缺口 0s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
+整卡时间加权利用率：25.531%；资源样本 16760 条，>8s 内部缺口 0s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
 
 [原始机器结果](evidence/tight_dagger_pool_20261111_01/summary.json) · [采集逐次记录](evidence/tight_dagger_pool_20261111_01/collection.csv) · [自主逐次记录](evidence/tight_dagger_pool_20261111_01/closed_loop.csv) · [两阶段曝光](evidence/tight_dagger_pool_20261111_01/training_stages.csv) · [权重/视频本地索引](evidence/tight_dagger_pool_20261111_01/local_artifacts.json)。
 
