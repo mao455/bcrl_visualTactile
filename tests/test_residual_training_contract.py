@@ -85,6 +85,84 @@ def test_probe_is_four_complete_train_episodes_and_disposable(trainer):
     with pytest.raises(ValueError,match='second residual'):anchor_continue.residual_train(root,probe=True)
 
 
+def test_trainer_persists_explicit_preclip_loss_and_records_components(trainer, monkeypatch):
+    from visuotactile.models.native_dp import PRECLIP_RESIDUAL_LOSS_VERSION
+    root, _, model, _ = trainer
+    setup = anchor_continue.residual_setup(root)
+    configuration = setup[5]
+    monkeypatch.setattr(anchor_continue, 'residual_setup', lambda *a, **kw:setup)
+    model.loss_contract = dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=1.)
+    configuration['loss_contract'] = dict(model.loss_contract)
+    def compose_chain(base, raw, contact, limits):
+        u_pre = base+raw
+        return dict(u_exec=u_pre.clamp(-.01,.01), delta=raw, u_pre=u_pre)
+    monkeypatch.setattr(model, 'compose_chain', compose_chain, raising=False)
+    monkeypatch.setattr(model, 'objective_components',
+        lambda *a, **kw:TargetResidual.objective_components(model, *a, **kw), raising=False)
+    anchor_continue.residual_train(root, probe=True)
+    saved = torch.load(root/'training_probe/last.pt', map_location='cpu', weights_only=False)
+    rows = [json.loads(row) for row in (root/'training_probe/loss.jsonl').read_text().splitlines()]
+    assert saved['residual_loss_version'] == PRECLIP_RESIDUAL_LOSS_VERSION
+    assert saved['configuration']['loss_contract'] == model.loss_contract
+    assert rows[0]['loss_components'] == dict(exec_fit=1., pre_fit=1., regularizer=0.)
+    assert rows[0]['loss'] == 2.
+
+
+def test_continuation_audits_loss_change_without_reinterpreting_old_weights():
+    from visuotactile.models.native_dp import PRECLIP_RESIDUAL_LOSS_VERSION
+    stats = dict(robot_mean=torch.zeros(178), robot_std=torch.ones(178),
+        action_scale=torch.ones(29), action_offset=torch.zeros(29))
+    old = TargetResidual(stats, [.1]*29)
+    new = TargetResidual(stats, [.1]*29,
+        loss_contract=dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=1.))
+    saved = dict(residual_version=old.version, updates=3, model=old.state_dict(),
+        configuration=dict(residual_statistics_sha256='statistics'))
+    audit = anchor_continue.load_residual_continuation(new, saved, 'statistics')
+    assert audit['loss_contract_before'] is None
+    assert audit['loss_contract_after'] == new.loss_contract
+    assert audit['loss_contract_changed'] and audit['loss_change_preserves_forward_execution']
+    assert all(torch.equal(value, old.state_dict()[key]) for key, value in new.state_dict().items())
+    saved['configuration']['loss_contract'] = new.loss_contract
+    saved['residual_loss_version'] = PRECLIP_RESIDUAL_LOSS_VERSION
+    with pytest.raises(ValueError, match='silently discard'):
+        anchor_continue.load_residual_continuation(old, saved, 'statistics')
+
+
+def test_trainer_current_weight_history_replays_prefix_after_each_update(trainer, monkeypatch):
+    from visuotactile.models.native_dp import CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
+    root, _, model, _ = trainer
+    setup = anchor_continue.residual_setup(root)
+    _, config, data, records, _, configuration, _ = setup
+    monkeypatch.setattr(anchor_continue, 'residual_setup', lambda *a, **kw:setup)
+    data['splits']['train'] = ['t0']
+    config.update(maximum_control_tick_epochs=1, minimum_control_tick_epochs=1, microbatch=1)
+    records['t0'] = record(7, 80)
+    records['t0']['time'] = torch.arange(80)/60
+    records['t0']['supervision_mask'] = torch.arange(80)>=32
+    model.history_contract = dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION)
+    configuration['history_contract'] = dict(model.history_contract)
+    original = model.forward
+    main_states=[];replay_calls=[]
+    def forward(inputs, state=None, *, state_only=False):
+        if state_only:
+            replay_calls.append(len(inputs['valid'][0]))
+        else:
+            main_states.append((None if state is None else state['last'].detach().clone(), model.weight.detach().clone()))
+        raw, next_state = original(inputs, state)
+        # Real recurrent outputs are separate storage from mutable parameters.
+        next_state = {key:value.clone() for key,value in next_state.items()}
+        return (None if state_only else raw), next_state
+    monkeypatch.setattr(model, 'forward', forward)
+    anchor_continue.residual_train(root)
+    saved = torch.load(root/'training/last.pt', map_location='cpu', weights_only=False)
+    assert saved['updates'] == 2 and saved['supervised_ticks'] == 48
+    assert saved['residual_history_version'] == CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
+    assert replay_calls == [32, 32, 32]
+    assert len(main_states) == 3 and main_states[0][0] is None
+    assert torch.equal(main_states[2][0][0], main_states[2][1])
+    assert not torch.equal(main_states[1][1], main_states[2][1])
+
+
 def test_flat_validation_stops_after_registered_minimum_and_four_checks(trainer):
     root,_,_,_=trainer
     anchor_continue.residual_train(root)

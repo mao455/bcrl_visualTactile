@@ -79,6 +79,28 @@ CPU读回覆盖564条非test轨迹、169,853个合法专家tick：专家映射�
 ![学生前缀逐关节诊断](evidence/control_consistency_20261112/student_prefix_joint_metrics.png)
 ![实际恢复覆盖](evidence/control_consistency_20261112/recovery_coverage.png)
 
+## 4.1 硬裁剪梯度快检与未采用的最小候选（2026-11-12）
+
+[集中诊断结果](STATE_DP_RESULTS.md#tight-gradient-diagnostic)及[固定样本/权重/缓存身份](evidence/tight_gradient_20261112/manifest.json)使用第一轮新配套完整策略。A是q_reached＋既定几何前端，B是u_expert前端；两者后端仍监督u_expert。固定6条完整轨迹：2 Core训练，A/B采集来源各1条纠偏训练与1条隔离纠偏开发。总2,113历史tick/1,873合法专家监督tick，学生/切换前缀不监督但保留真实历史。test22未读取。
+
+命令链显式拆成
+\(\Delta=s\tanh(z),\quad u_{pre}=u_{DP}+\Delta/a,\quad u_{joint}=\mathrm{clip}_{limits}(u_{pre}),\quad u_{exec}=\mathcal P(u_{joint};p_t)\)。
+这里\(a\)为命令normalizer的action_scale，\(s\)为既定残差幅度；\(u_{pre}\)是任何硬裁剪之前的绝对rad命令，\(z\)是后端logit，二者不能混淆。真实完整H24计划/cursor/mask、logit、修正、各级命令、专家目标、pre-action target、监督mask和权重均保存到本机诊断数值索引。最终执行函数、控制限速、延迟、normalizer和主干保持。
+
+令 \(E(u)=\sum_t w_t[\tfrac12\operatorname{mean}_{arm}(a(u-u^*))^2+\tfrac12\operatorname{mean}_{hand}(a(u-u^*))^2]/\max(\sum_t w_t,1)\)，\(w_t=m_t\)且纠偏初48合法tick乘3。唯一候选为
+\[
+L=E(u_{exec})+\lambda_{pre}E(u_{pre})+10^{-4}R(\Delta),\qquad\lambda_{pre}=1.
+\]
+两项同mask/权重/尺度/Arm-Hand等权；R仍为原归一化残差等权平方惩罚。没有straight-through或修改物理可达集合。配置显式`loss_contract={"version":"exec_preclip_equal_arm_hand_v1","lambda_pre":1}`，checkpoint另记`residual_loss_version`并严格核对；缺失时保持原exec-only行为，历史checkpoint不被静默升级。
+
+Arm1e-4rad/Hand1e-3rad误差容差下，误差存在但主拟合对u_pre局部梯度≤1e-10的坐标占错误坐标A83.04%/54.74%、B74.11%/51.91%。局部梯度去除样本权重/归一化，单位是归一化平方误差每rad；正则梯度另列。此处同时包含关节限位和可达clip，不能只看网络总梯度或历史学生投影率。专家标签被投影改变超过1e-6rad者为0；A有少量理论输出范围超界、B为0，并非共同的大面积tanh饱和问题。
+
+固定每组每损失200更新、同初始化/AdamW/序列，4 train与2 dev严格分开。新候选虽恢复上述梯度且train裁剪前MSE下降85.49%/91.18%，但dev执行MSE较旧损失增加84.03%/82.92%，Core增加113.93%/60.70%，不通过预登记采用条件。因此**本轮不把该候选接入正式队列，不追加同类探针或调大输出头**。只证明裁剪前误差可学习，未证明闭环改善。
+
+正式旧trainer的跨更新detached hidden是另一项已确认近似：实际一次更新后，沿用旧hidden与当前权重重放的下一32tick执行最大差A0.003186/B0.002198rad。固定权重批量/逐tick本身一致，标签、控制时序、双物理子步目标及缓存配对检查通过。新增独立`history_contract={"version":"current_weight_prefix_v1"}`和checkpoint `residual_history_version`支持每个有监督块前以当前参数从t0重算前缀，prefix no_grad，仅缓存不可变输入；`state_only`跳过不影响历史的Transformer读出，不加参数。真实4个160tick前缀13项状态逐位相等，局部提速约1.13–1.16倍。两臂探针均使用当前权重重放；**正式队列未切换该历史版本**，也未将旧合法轨迹/闭环结果判作无效。
+
+尚无可靠的同状态专家/旧学生/新学生配对恢复闭环证据。现有导出不包含完整PhysX/contact/broadphase/传感延迟内部状态，前缀重放偏差未专项量化；没有把记录后缀施加到另一偏离轨迹冒充专家对照。旧损失200更新已改善训练恢复初段拟合及运动方向，但隔离dev变化很小，不能据此声称自主恢复已学会。现阶段继续现有容量，主要待查是损失尺度/短探针泛化与恢复阶段覆盖；这些是下一步假设，不是新增调参或训练授权预算。
+
 ## 5. 聚合、两阶段更新与公平预算
 
 原Core train166、全部合格旧纠偏和本轮新纠偏持续累积，按内容SHA去重；correction-dev在整episode采集计划中预登记并永久隔离。原validation30用于开发，test22不参与采集、训练、选模或本次评估。同轮A/B读同一不可变快照，采集率不同如实保留，拒绝或失败不补seed。

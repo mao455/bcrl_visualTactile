@@ -1,3 +1,12 @@
+## 2026-11-12 — 真实裁剪梯度快检、最小监督候选与否定结果
+
+- 隔离`bc+rl_RSS_gradient_diag`，实际新A/B第一轮均0/10、lift3/1；正式第二轮继续原配置。固定6episode/1873合法tick真实模型检查发现大量有误差但主拟合梯度为零的分量；旧网络并非全部无梯度，执行误差优于hold。原始逐阶段数值集中`evidence/tight_gradient_20261112`。
+- `native_dp.TargetResidual.compose_chain/objective_components`显式拆开u_pre、关节clip、可达投影，新增版本化裁剪前监督；`anchor_continue`真实训练、checkpoint续训/恢复核对loss身份，保留旧配置行为。A/B、边界、限位、mask、恢复权重及旧数学逐位一致定向测试通过。
+- 独立发现正式rear跨更新沿用旧hidden近似；可选current_weight_prefix_v1从真实t0按当前权重重算，仅immutable输入可缓存。state_only实际4prefix/13state tensor逐位相等。新模块/模型容量/前端定义/物理执行未改变，当前正式队列没有切换。
+- 唯一候选lambda_pre=1，各A/B旧新损失200更新、同初值/次序/优化器/当前权重prefix。新项train pre MSE下降85.49%/91.18%，但dev执行误差为旧损失1.8403/1.8292倍，Core2.1393/1.6070倍：拒绝正式采用，无追加调参。全部800更新均disposable、不计正式DAgger。
+- 定向CPU集成验收83项通过（6.02s），compile/diff检查通过，仅既有requests依赖警告；真实模型与小样本训练凭据另列。
+- `tools.tight_gradient_diagnostics`集中diag/probe/audit/publish，不重采数据/全量缓存，不启新Kit。同状态闭环恢复未完成，不能用离线学动或专家成功代替学生恢复成功。大权重/NPZ/HDF5留本地；未清理当前模型或有效数据。
+
 ## 2026-11-12 — DAgger吞吐实测与有限性能修订（待接入）
 
 - 隔离perf树实测真实数据。`anchor_continue/state_image_loss/state_history`支持FP32 effective64、micro16、原micro4扩散RNG顺序与两episode不可变原始特征GPU缓存；可训练历史仍按当前权重从真实前缀重算。单组完整update8.4565→6.8877s（1.228×），梯度/参数差保持在记录的浮点重排范围，监督/几何不减量。

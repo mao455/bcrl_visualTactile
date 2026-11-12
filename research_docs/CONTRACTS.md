@@ -1,5 +1,12 @@
 # Tight-Insertion 现行合同：成功筛选的专家接管式 DAgger
 
+## 2026-11-12 梯度快检的显式候选身份（未正式采用）
+
+原位支持后端 `loss_contract=exec_preclip_equal_arm_hand_v1`（lambda_pre明确数值）和独立 `history_contract=current_weight_prefix_v1`；checkpoint顶层版本与configuration不一致拒绝加载/恢复。两字段缺失完全保留旧行为。前者在所有硬裁剪前的绝对组合命令增加同命令尺度/Arm-Hand等权/mask/恢复权重监督，执行投影不改；后者按当前权重重放t0至当前块，不能跨optimizer更新复用旧hidden。固定DINO/DP缓存输入可复用，rear hidden不可当固定数据缓存。
+
+此次A/B各原/新损失200更新探针均使用完整当前权重前缀，DP冻结仅属诊断。lambda_pre=1虽修通梯度，但两组开发执行误差及Core退化，未通过采用门槛；正式matched run维持原冻结源码、损失及历史训练近似，不更换任何pair、不重置截止。探针checkpoint均disposable，不允许普通owner加载为正式模型。数学和证据集中于[DAGGER_METHOD](DAGGER_METHOD.md#41-硬裁剪梯度快检与未采用的最小候选2026-11-12)。
+
+
 ## 2026-11-12 性能修订覆盖（已测试，待安全边界接入）
 
 性能实测、范围和未完成项集中于 [DAGGER_PERFORMANCE](DAGGER_PERFORMANCE.md)。同一matched run保留绝对截止与已完成阶段；只在第2轮共同DP训练阶段允许两个独立learner并行，其后缓存、Transformer和评估顺序。第一轮A/B不在半轮改变数值设置，B继续micro4；第二轮共同micro16。每个worker保持2CPU/2线程和nice19，双DP用不同核。A第一轮已准备的缓存不动，B第一轮新准备时可用逐位等价的新缓存路径。显式 `fp32_legacy_rng_microbatch_v1` 保持effective64、原micro4 noise/timestep抽样顺序和全部监督人口，下一轮计算micro16；只能缓存不可变原始DINO/depth/时间输入，可训练投影、GRU和名义预测仍随新DP刷新。新缓存路径必须保持实际执行历史及31字段同值，真实checkpoint/data/normalizer身份继续绑定。

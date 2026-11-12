@@ -1,5 +1,56 @@
+<!-- TIGHT_GRADIENT_DIAGNOSTIC_START -->
+<a id="tight-gradient-diagnostic"></a>
+
+## 2026-11-12 22:28：硬裁剪梯度快检完成，最小候选未通过
+
+当前新控制第一轮完整学生：A/QG01 **0/10**，原生lift3、稳定抓持诊断2；B/G01已完成，**0/10**、lift1、稳定抓持2。两组首子目标均0、全部10次timeout，无fall/drop；不能继续把B写成未评估。正式run仍为`tight_dagger_matched_20261112_01`，源码`380a20b`，第二轮采集正常继续：22:28读回A已完成48次/准入39条，B已完成4次/准入4条并继续其48次队列；2026-11-13 11:22:40绝对截止不变。
+
+独立诊断复用第一轮SHA配套DP、后端与缓存，固定字典序2条Core训练、来自A/B各1条本轮纠偏训练及各1条隔离纠偏开发，共6条完整轨迹/2,113历史tick/1,873合法监督tick。选择与模型误差无关；学生前缀只参与因果历史。Arm误差容差1e-4rad、Hand1e-3rad；近零梯度为去除样本权重归一化后的主拟合梯度绝对值≤1e-10。没有读取test22。
+
+|真实模型/部位|合法坐标总数|超容差错误坐标|其中梯度失效坐标/比例|失效分量占加权执行误差|
+|---|---:|---:|---:|---:|
+|QG01 / Arm|13111|3237|2688 / 83.04%|89.51%|
+|QG01 / Hand|41206|8334|4562 / 54.74%|67.20%|
+|G01 / Arm|13111|3820|2831 / 74.11%|83.36%|
+|G01 / Hand|41206|8438|4380 / 51.91%|59.44%|
+
+这是**当前真实模型在合法专家监督上的逐坐标梯度证据**，不是历史学生prefix投影率。关节限位与可达投影均可能截断梯度；不能把两者统称为单一根因。新裁剪前拟合项让以上失效坐标全部获得有效u_pre梯度，但不等于已经改善闭环。两组执行误差均优于保持上一实际目标；专家标签经过同一执行投影改变超过1e-6rad的坐标为0。A存在少量理论修正范围超界，B本批无；与实际tanh饱和分别记录。
+
+另发现正式后端训练每32tick更新后沿用更新前hidden的TBPTT近似。真实恢复案例各一次独立更新，旧hidden与当前权重完整prefix的下一32tick执行命令最大差A0.003186rad/B0.002198rad。固定权重批量/逐tick本身通过，最大执行差A5.96e-7/B2.53e-7rad。真实transition时刻、previous target、issued/applied、q_reached、队列清洁mask、一次delay/native映射/既定速度处理和前后端身份检查通过；尚未证明历史近似是零成功原因。
+
+唯一候选lambda_pre=1已实际完成：A/B各旧/新损失200更新，每臂5,745监督tick、1,568恢复初48tick，训练4episode/开发2episode隔离，两臂均从当前权重完整前缀重算历史；不训DP、不改正式checkpoint。新项初始raw输出梯度L2约为旧exec项A12倍/B10倍，正则远小于两项拟合。
+
+|固定200更新探针|A / QG01|B / G01|
+|---|---:|---:|
+|新损失train裁剪前MSE / 初始|0.1451（下降85.49%）|0.0882（下降91.18%）|
+|新 / 旧损失，dev执行MSE|1.8403|1.8292|
+|新 / 旧损失，Core执行MSE|2.1393|1.6070|
+|新损失dev执行MSE / hold|1.4791|1.3424|
+|旧损失train恢复初48 Hand RMSE，初始→200更新(rad)|0.008816→0.005905|0.009226→0.006225|
+|新损失train恢复初48 Hand RMSE，200更新(rad)|0.013881|0.012275|
+|train恢复初48 Hand方向正确率，初始→旧→新|91.85%→94.97%→83.87%|92.45%→95.49%→86.90%|
+
+整体MSE采用命令normalizer、Arm/Hand各1/2、恢复初段权重3及同分母；方向仅对专家真实运动超过同部位容差的分量统计，本表Hand分母1,153、Arm662。每部位/阶段/partition完整误差与分母见CSV。新项使上述u_pre失效梯度恢复、pre误差可学习，却损害了执行拟合；**两组均不通过预登记采用条件，不接入正式队列、不追加200更新或搜索第二权重**。旧损失能改善训练恢复初段，不支持“网络完全学不动”；隔离dev旧损失变化很小，更不能把专家历史拟合当自主恢复成功。
+
+同时新增可选current-weight-prefix历史修复：每次更新后，下一监督块从t0重算；不缓存跨更新hidden。4个真实160tick前缀、13状态张量均逐位一致，state_only局部计算1.13–1.16倍提速；**正式队列未切换该版本**。新损失与新历史均在checkpoint显式版本化、缺字段保持旧行为。代码/CPU单元验收、真实离线探针、正式闭环效果分开。
+
+闭环配对恢复**未完成**：现有导出不含完整PhysX/contact/broadphase/传感延迟内部状态，前缀重放偏差未专项量化；本次没有新Kit或把旧专家后缀施加到偏离轨迹冒充同状态对照。正式第一轮每组48机会/47独立观测接管起点，A42/B41成功；接管阶段A非接触21/接触25/lift1，B22/23/2，各有1个非法未知起点。阶段覆盖主要在接触前后，不能只以83个成功后缀推定恢复能力充分，也不据此新增预算。
+
+当前判断：硬裁剪梯度阻塞和跨更新旧hidden近似已证实；本批未发现标签/时序/配对/重复delay错误。A理论幅度超界仅Arm23/13,111、Hand473/41,206，B为0；不足以支持扩大共同输出头。lambda1的pre项梯度强约10–12倍与小样本泛化是下一步待查假设，并未证明为何闭环全失败。继续现有网络及原正式队列，禁止以本轮否定候选替换正式pair。
+
+![配对探针执行拟合与未通过的开发门槛](evidence/tight_gradient_20261112/probe_comparison.png)
+
+[固定清单与模型身份](evidence/tight_gradient_20261112/manifest.json) · [集中梯度表](evidence/tight_gradient_20261112/diagnostic_summary.csv) · [逐阶段诊断](evidence/tight_gradient_20261112/diagnosis.json) · [标签/历史审计](evidence/tight_gradient_20261112/history_control_audit.json) · [探针预登记](evidence/tight_gradient_20261112/probe_preregistration.json) · [探针原始数值](evidence/tight_gradient_20261112/probe_results.json) · [分层恢复对照](evidence/tight_gradient_20261112/probe_comparison.csv) · [采用判定](evidence/tight_gradient_20261112/probe_gates.json) · [本地48份完整命令链索引](evidence/tight_gradient_20261112/publication.json)。
+
+83项定向CPU测试通过（6.02s），仅已有requests依赖版本警告；[测试与源码指纹](evidence/tight_gradient_20261112/focused_tests.json) · [正式队列实时读回快照](evidence/tight_gradient_20261112/runtime_snapshot.json)。
+
+统一入口`tools.tight_gradient_diagnostics`的`diagnose/probe/audit/summarize/publish`分别只做相应阶段；`probe --updates 200`是本次已经完成的一次性诊断，不自动扩展。权重、HDF5、完整plan/命令NPZ均留本机，没有清理当前模型或合格数据。正式队列结束后的CPU发布接续独立运行，原源码/模型/截止保持，远端代码推进不会让最终报告丢失；实际启动凭据与最新状态另行核对。
+<!-- TIGHT_GRADIENT_DIAGNOSTIC_END -->
+
 <!-- tight-dagger-live-progress:start -->
 ## 2026-11-12 19:17：A新控制自主10例完成，B前端继续训练
+
+本节保留19:17历史快照；B随后已完成新控制10例评估，最新结果见页首诊断及下方机器汇总。
 
 **A/QG01本轮完整成功0/10、原生lift3/10、稳定抓持诊断2/10；首/第二子目标均0，10例全部601tick超时，fall/dropped均0。** 这是真正使用控制匹配修复和本轮DP＋Transformer的最新自主开发结果，区别于旧控制的0/4。全部合法/软件完成，模型与逐例SHA核验通过；接触和lift不等于任务成功。失败共同停留在首子目标之前，具体原因仍未证实。
 
@@ -662,14 +713,14 @@ A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1，历史和本轮曝光不
 <!-- tight-dagger-matched-results:start -->
 ## 2026-11-12 DAgger：统一控制的配对 A/B 续训
 
-本轮 owner 状态为 **STOPPED**；产物核验尚不完整。以下按已有凭据整理，缺失项不记为零成功。
+本轮 owner 状态为 **RUNNING**；产物核验尚不完整。以下按已有凭据整理，缺失项不记为零成功。
 
 |组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|
 |---|---:|---:|---:|---:|---:|---:|
-|round_01/G01 (B / active)|48 / 48|41 / 48|41 / 10647 / 906|未测 / 未测|未测 / 未测|未测 / 0 / 10|
-|round_01/QG01 (A / active)|48 / 48|42 / 48|42 / 13516 / 1144|1355 / 6.003|未测 / 未测|未测 / 0 / 10|
+|round_01/G01 (B / active)|48 / 48|41 / 48|41 / 10647 / 906|1355 / 6.003|28192 / 12.004|0 / 10 / 10|
+|round_01/QG01 (A / active)|48 / 48|42 / 48|42 / 13516 / 1144|1355 / 6.003|28192 / 12.004|0 / 10 / 10|
 |round_02/G01 (B / active)|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
-|round_02/QG01 (A / active)|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
+|round_02/QG01 (A / active)|48 / 48|39 / 48|39 / 9617 / 822|未测 / 未测|未测 / 未测|未测 / 0 / 10|
 
 旧池 CPU 读回准入 21 条成功纠偏；同轮实际调度的组使用共同不可变快照，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。
 [池与快照身份](evidence/tight_dagger_matched_20261112_01/pool_identity.json) · [各轮选择与决定](evidence/tight_dagger_matched_20261112_01/round_decisions.json)。
@@ -680,7 +731,7 @@ Phase0 为后端控制/幅度适配，前端新增更新0；完成凭据=True。
 
 采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。
 自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。
-整卡时间加权利用率：28.808%；资源样本 20541 条，>8s 内部缺口 0s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
+整卡时间加权利用率：31.740%；资源样本 35571 条，>8s 内部缺口 28.791s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
 
 [原始机器结果](evidence/tight_dagger_matched_20261112_01/summary.json) · [采集逐次记录](evidence/tight_dagger_matched_20261112_01/collection.csv) · [自主逐次记录](evidence/tight_dagger_matched_20261112_01/closed_loop.csv) · [两阶段曝光](evidence/tight_dagger_matched_20261112_01/training_stages.csv) · [权重/视频本地索引](evidence/tight_dagger_matched_20261112_01/local_artifacts.json)。
 

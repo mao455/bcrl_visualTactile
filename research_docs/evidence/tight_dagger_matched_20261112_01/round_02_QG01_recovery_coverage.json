@@ -1,0 +1,2670 @@
+{
+  "source_frontend_sha256": "f25a3895135db02f9f9e23e1df3bea1f6711e7328f7c30d97503ee5e6fef0824",
+  "source_backend_sha256": "8a3471f383adfc3bf81359102dfaa009c7d863cd30db5f863a0e5505322703c4",
+  "strategy_role": "A",
+  "attempts": 47,
+  "accepted": 39,
+  "unique_seeds": 47,
+  "unique_training_families": 36,
+  "independent_observed_takeover_starts": 47,
+  "phase_counts": {
+    "noncontact_observed": 22,
+    "contact_observed": 19,
+    "native_lift_observed": 6
+  },
+  "observed_deviation_counts": {
+    "unclassified": 26,
+    "observed_contact_loss": 21
+  },
+  "accepted_population": {
+    "valid_expert_ticks": 9617,
+    "dp_anchors": 822
+  },
+  "accepted_recovery_prefix": {
+    "24": {
+      "valid_expert_ticks": 936,
+      "dp_anchors": 78,
+      "valid_h24_window_targets": 1872
+    },
+    "48": {
+      "valid_expert_ticks": 1872,
+      "dp_anchors": 156,
+      "valid_h24_window_targets": 3744
+    }
+  },
+  "rows": [
+    {
+      "identity": "dagger_r02_QG01_000",
+      "accepted": true,
+      "seed": 32113000,
+      "family": "formal_044",
+      "takeover_tick": 58,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 270,
+        "dp_anchors": 23,
+        "first_valid_expert_tick": 60,
+        "initial_valid_segment_ticks": 270,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 58,
+      "switch_observable_sha256": "27543e82420d5ac9ff9d6cb2dfde886fb95d98cab37ac9b37684f89d12240e98",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 58,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08980357646942139,
+        "arm_tracking_rmse_rad": 0.0030137456487864256,
+        "hand_tracking_rmse_rad": 0.02596404403448105,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_001",
+      "accepted": true,
+      "seed": 32113001,
+      "family": "formal_021",
+      "takeover_tick": 94,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 362,
+        "dp_anchors": 31,
+        "first_valid_expert_tick": 96,
+        "initial_valid_segment_ticks": 362,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 94,
+      "switch_observable_sha256": "8684616e5be625326b8b30ad84d8b4cbbfa7332e8527a79347e329a3595cd716",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 94,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08995932340621948,
+        "arm_tracking_rmse_rad": 0.0072067719884216785,
+        "hand_tracking_rmse_rad": 0.036811985075473785,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_002",
+      "accepted": true,
+      "seed": 32113002,
+      "family": "formal_006",
+      "takeover_tick": 130,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 239,
+        "dp_anchors": 20,
+        "first_valid_expert_tick": 132,
+        "initial_valid_segment_ticks": 239,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 130,
+      "switch_observable_sha256": "23074037f93a096df1577284746a6069f6f501ae039ee587d19fb45f31fa9c15",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 130,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09195107221603394,
+        "arm_tracking_rmse_rad": 0.00397198973223567,
+        "hand_tracking_rmse_rad": 0.046393297612667084,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_003",
+      "accepted": true,
+      "seed": 32113003,
+      "family": "formal_034",
+      "takeover_tick": 178,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 273,
+        "dp_anchors": 23,
+        "first_valid_expert_tick": 180,
+        "initial_valid_segment_ticks": 273,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 178,
+      "switch_observable_sha256": "3ad74d193a8c3846140a81483aa8b3e197e5a0bc7167daa18aabd69d4fce02ad",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 178,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09137153625488281,
+        "arm_tracking_rmse_rad": 0.027114976197481155,
+        "hand_tracking_rmse_rad": 0.14299719035625458,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_004",
+      "accepted": true,
+      "seed": 32113004,
+      "family": "formal_051",
+      "takeover_tick": 238,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 207,
+        "dp_anchors": 18,
+        "first_valid_expert_tick": 240,
+        "initial_valid_segment_ticks": 207,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 238,
+      "switch_observable_sha256": "15f09200734c1e8be86edc35bedca1fcb584b820c95dfea8e7e46a4a933ce9e7",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 238,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.05690288543701172,
+        "arm_tracking_rmse_rad": 0.004638109356164932,
+        "hand_tracking_rmse_rad": 0.03558074310421944,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_005",
+      "accepted": true,
+      "seed": 32113005,
+      "family": "formal_036",
+      "takeover_tick": 298,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 456,
+        "dp_anchors": 38,
+        "first_valid_expert_tick": 300,
+        "initial_valid_segment_ticks": 456,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 298,
+      "switch_observable_sha256": "4a24dfa76ef6a71b37ac4f868fce7324af3ddcb1aa046f92c01efd511a217702",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 298,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09145766496658325,
+        "arm_tracking_rmse_rad": 0.0023708119988441467,
+        "hand_tracking_rmse_rad": 0.039370134472846985,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_006",
+      "accepted": false,
+      "seed": 32113006,
+      "family": "formal_031",
+      "takeover_tick": 358,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 241,
+        "dp_anchors": 21,
+        "first_valid_expert_tick": 360,
+        "initial_valid_segment_ticks": 241,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 358,
+      "switch_observable_sha256": "c7cc5c714ba4517ecf579f298aa8256863dace82fa137dfaf8ff608f0ec1ae2a",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 358,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.05310535430908203,
+        "arm_tracking_rmse_rad": 0.006124161183834076,
+        "hand_tracking_rmse_rad": 0.04902947321534157,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_007",
+      "accepted": false,
+      "seed": 32113007,
+      "family": "formal_023",
+      "takeover_tick": 418,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 17,
+        "dp_anchors": 2,
+        "first_valid_expert_tick": 420,
+        "initial_valid_segment_ticks": 17,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 17,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 22
+        },
+        "first48": {
+          "valid_expert_ticks": 17,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 22
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 418,
+      "switch_observable_sha256": "14ab82d8da74d9ab3baf0b57e2c62442178d9ee440735f07192c8904726ce6ea",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "native_lift_observed",
+      "native_stage_step": 418,
+      "native_lift": true,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.07032960653305054,
+        "arm_tracking_rmse_rad": 0.004659067373722792,
+        "hand_tracking_rmse_rad": 0.038142286241054535,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_008",
+      "accepted": true,
+      "seed": 32113008,
+      "family": "formal_043",
+      "takeover_tick": 58,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 397,
+        "dp_anchors": 34,
+        "first_valid_expert_tick": 60,
+        "initial_valid_segment_ticks": 397,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 58,
+      "switch_observable_sha256": "67b46806cd48b398a53d9e93281ad1e327f4d7fc04d5bd8db639da0e6b04e81d",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 58,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.09077000617980957,
+        "arm_tracking_rmse_rad": 0.0031810314394533634,
+        "hand_tracking_rmse_rad": 0.014065765775740147,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_009",
+      "accepted": true,
+      "seed": 32113009,
+      "family": "formal_007",
+      "takeover_tick": 94,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 240,
+        "dp_anchors": 20,
+        "first_valid_expert_tick": 96,
+        "initial_valid_segment_ticks": 240,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 94,
+      "switch_observable_sha256": "a98e451007d0b17829c15bad57db214f54f34b56e4be245c44ae28010c03b280",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 94,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09057760238647461,
+        "arm_tracking_rmse_rad": 0.006830007303506136,
+        "hand_tracking_rmse_rad": 0.03996988758444786,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_010",
+      "accepted": true,
+      "seed": 32113010,
+      "family": "formal_037",
+      "takeover_tick": 130,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 304,
+        "dp_anchors": 26,
+        "first_valid_expert_tick": 132,
+        "initial_valid_segment_ticks": 304,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 130,
+      "switch_observable_sha256": "b92d9879012caf2f92e3208e4b85b1cd7adf5f3607746dd65ccf749b03f66b81",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 130,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08948367834091187,
+        "arm_tracking_rmse_rad": 0.010594177059829235,
+        "hand_tracking_rmse_rad": 0.07332420349121094,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_011",
+      "accepted": false,
+      "seed": 32113011,
+      "family": "formal_020",
+      "takeover_tick": 178,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 954,
+        "dp_anchors": 80,
+        "first_valid_expert_tick": 180,
+        "initial_valid_segment_ticks": 954,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 178,
+      "switch_observable_sha256": "93071af59b2d0e8f58c90530a359c0be24d3a050a1164cf4d0c73d45291b0498",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 178,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.07372558116912842,
+        "arm_tracking_rmse_rad": 0.006551322061568499,
+        "hand_tracking_rmse_rad": 0.09399247169494629,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_012",
+      "accepted": true,
+      "seed": 32113012,
+      "family": "formal_045",
+      "takeover_tick": 238,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 228,
+        "dp_anchors": 19,
+        "first_valid_expert_tick": 240,
+        "initial_valid_segment_ticks": 228,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 238,
+      "switch_observable_sha256": "c46392a4338f8e88153d63895d9dd8e05d7254a8377a36a6c8045195a01225ef",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 238,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.09119540452957153,
+        "arm_tracking_rmse_rad": 0.02199818566441536,
+        "hand_tracking_rmse_rad": 0.03441945090889931,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_013",
+      "accepted": true,
+      "seed": 32113013,
+      "family": "formal_028",
+      "takeover_tick": 298,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 317,
+        "dp_anchors": 27,
+        "first_valid_expert_tick": 300,
+        "initial_valid_segment_ticks": 317,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 298,
+      "switch_observable_sha256": "bf02de762b0431d9cba38dca6599460b18e13d3cb501aeb25a07f26909592d1c",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 298,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.08966976404190063,
+        "arm_tracking_rmse_rad": 0.005894557572901249,
+        "hand_tracking_rmse_rad": 0.045031800866127014,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_014",
+      "accepted": true,
+      "seed": 32113014,
+      "family": "formal_050",
+      "takeover_tick": 358,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 256,
+        "dp_anchors": 22,
+        "first_valid_expert_tick": 360,
+        "initial_valid_segment_ticks": 256,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 358,
+      "switch_observable_sha256": "132dd94f578df0183b3ef2f5e9413c8babc59bcbffb226883a776caaf2abd9c6",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 358,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08321243524551392,
+        "arm_tracking_rmse_rad": 0.013608449138700962,
+        "hand_tracking_rmse_rad": 0.08202414214611053,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_015",
+      "accepted": false,
+      "seed": 32113015,
+      "family": "formal_018",
+      "takeover_tick": 418,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 181,
+        "dp_anchors": 16,
+        "first_valid_expert_tick": 420,
+        "initial_valid_segment_ticks": 181,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 418,
+      "switch_observable_sha256": "37280a092a1f48d22b9538d04c8953909ddfd47e9b10261a1c8b17debd2c98d4",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 418,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09094852209091187,
+        "arm_tracking_rmse_rad": 0.003766929265111685,
+        "hand_tracking_rmse_rad": 0.06887464225292206,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_016",
+      "accepted": true,
+      "seed": 32113016,
+      "family": "formal_048",
+      "takeover_tick": 58,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 186,
+        "dp_anchors": 16,
+        "first_valid_expert_tick": 60,
+        "initial_valid_segment_ticks": 186,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 58,
+      "switch_observable_sha256": "3bb58e297012f283ccdf412d33c7497faf457be843bc1df507d92c0a75806b86",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 58,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08994823694229126,
+        "arm_tracking_rmse_rad": 0.002819048473611474,
+        "hand_tracking_rmse_rad": 0.010383129119873047,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_017",
+      "accepted": true,
+      "seed": 32113017,
+      "family": "formal_029",
+      "takeover_tick": 94,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 237,
+        "dp_anchors": 20,
+        "first_valid_expert_tick": 96,
+        "initial_valid_segment_ticks": 237,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 94,
+      "switch_observable_sha256": "f577a3eb62880ab1b040dd8af25fa65c5a88f60660ce3c74256930d9b61e34b7",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 94,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.0914989709854126,
+        "arm_tracking_rmse_rad": 0.0035431482829153538,
+        "hand_tracking_rmse_rad": 0.03763512521982193,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_018",
+      "accepted": true,
+      "seed": 32113018,
+      "family": "formal_017",
+      "takeover_tick": 130,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 446,
+        "dp_anchors": 38,
+        "first_valid_expert_tick": 132,
+        "initial_valid_segment_ticks": 446,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 130,
+      "switch_observable_sha256": "009b7e1d6fa0ad196a352cd66a46e676e6f1d63d37b41361dd5cc5ed418d1e30",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 130,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09052729606628418,
+        "arm_tracking_rmse_rad": 0.009255645796656609,
+        "hand_tracking_rmse_rad": 0.038250796496868134,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_019",
+      "accepted": true,
+      "seed": 32113019,
+      "family": "formal_015",
+      "takeover_tick": 178,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 355,
+        "dp_anchors": 30,
+        "first_valid_expert_tick": 180,
+        "initial_valid_segment_ticks": 355,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 178,
+      "switch_observable_sha256": "526c4f6b55529f652face460fb6aa0d5fcbeaa78ebdb16badc3534aa8c780d36",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 178,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09126365184783936,
+        "arm_tracking_rmse_rad": 0.00993650034070015,
+        "hand_tracking_rmse_rad": 0.03549013286828995,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_020",
+      "accepted": true,
+      "seed": 32113020,
+      "family": "formal_003",
+      "takeover_tick": 238,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 111,
+        "dp_anchors": 10,
+        "first_valid_expert_tick": 240,
+        "initial_valid_segment_ticks": 111,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 238,
+      "switch_observable_sha256": "bc1944410ac8ce966ffee032d67adf0c4ee3f514a258c30f8d4b40cec88ea65b",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "native_lift_observed",
+      "native_stage_step": 238,
+      "native_lift": true,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.093070387840271,
+        "arm_tracking_rmse_rad": 0.007892155088484287,
+        "hand_tracking_rmse_rad": 0.06487447023391724,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_021",
+      "accepted": true,
+      "seed": 32113021,
+      "family": "formal_047",
+      "takeover_tick": 298,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 222,
+        "dp_anchors": 19,
+        "first_valid_expert_tick": 300,
+        "initial_valid_segment_ticks": 222,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 298,
+      "switch_observable_sha256": "c6a28566b14c1e1b3b04ce3f706919344a55796dbd8b166b8bd01029741ebbbc",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 298,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.088875412940979,
+        "arm_tracking_rmse_rad": 0.013392568565905094,
+        "hand_tracking_rmse_rad": 0.09329225867986679,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_022",
+      "accepted": true,
+      "seed": 32113022,
+      "family": "formal_025",
+      "takeover_tick": 358,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 65,
+        "dp_anchors": 6,
+        "first_valid_expert_tick": 360,
+        "initial_valid_segment_ticks": 65,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 358,
+      "switch_observable_sha256": "ba8ee8bf26c00e41d7c911c1432c47c1a91de92e451e0c74c78339bcea808dae",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "native_lift_observed",
+      "native_stage_step": 358,
+      "native_lift": true,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.08225250244140625,
+        "arm_tracking_rmse_rad": 0.005346424411982298,
+        "hand_tracking_rmse_rad": 0.20321446657180786,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_023",
+      "accepted": true,
+      "seed": 32113023,
+      "family": "formal_013",
+      "takeover_tick": 418,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 149,
+        "dp_anchors": 13,
+        "first_valid_expert_tick": 420,
+        "initial_valid_segment_ticks": 149,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 418,
+      "switch_observable_sha256": "3ea3b5329fc38a33f47a237022a46bf16d3ff83945bd1b34747a0b74b9a76eea",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "native_lift_observed",
+      "native_stage_step": 418,
+      "native_lift": true,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.08235716819763184,
+        "arm_tracking_rmse_rad": 0.0027430353220552206,
+        "hand_tracking_rmse_rad": 0.07642562687397003,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_024",
+      "accepted": true,
+      "seed": 32113024,
+      "family": "formal_046",
+      "takeover_tick": 58,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 193,
+        "dp_anchors": 17,
+        "first_valid_expert_tick": 60,
+        "initial_valid_segment_ticks": 193,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 58,
+      "switch_observable_sha256": "c2c615f1023492238d984d5b5e687a0a137f2549ca0e9ce673c5a06ba6f3cdf0",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 58,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.0644870400428772,
+        "arm_tracking_rmse_rad": 0.004985978826880455,
+        "hand_tracking_rmse_rad": 0.009855292737483978,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_025",
+      "accepted": true,
+      "seed": 32113025,
+      "family": "formal_054",
+      "takeover_tick": 94,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 221,
+        "dp_anchors": 19,
+        "first_valid_expert_tick": 96,
+        "initial_valid_segment_ticks": 221,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 94,
+      "switch_observable_sha256": "834cb977c064f24b13c5babb32ac7bba6a878c7c7eb7026ab44e362dc0c7657c",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 94,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.08956843614578247,
+        "arm_tracking_rmse_rad": 0.004730142652988434,
+        "hand_tracking_rmse_rad": 0.04069896787405014,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_026",
+      "accepted": true,
+      "seed": 32113026,
+      "family": "formal_027",
+      "takeover_tick": 130,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 152,
+        "dp_anchors": 13,
+        "first_valid_expert_tick": 132,
+        "initial_valid_segment_ticks": 152,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 130,
+      "switch_observable_sha256": "116c3e3bdf19bc02feda863fc17faa72b89b93bc176b41290a3e126edf39a7aa",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 130,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.0012853741645812988,
+        "arm_tracking_rmse_rad": 0.005581337958574295,
+        "hand_tracking_rmse_rad": 0.051020797342061996,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_027",
+      "accepted": true,
+      "seed": 32113027,
+      "family": "formal_030",
+      "takeover_tick": 178,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 98,
+        "dp_anchors": 9,
+        "first_valid_expert_tick": 180,
+        "initial_valid_segment_ticks": 98,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 178,
+      "switch_observable_sha256": "c6bb5d5d3fe8d785fef069872d5168a13afeb388214050f9dcffe4795a5c097e",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 178,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.09928369522094727,
+        "arm_tracking_rmse_rad": 0.0028733538929373026,
+        "hand_tracking_rmse_rad": 0.17924512922763824,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_028",
+      "accepted": true,
+      "seed": 32113028,
+      "family": "formal_039",
+      "takeover_tick": 238,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 122,
+        "dp_anchors": 11,
+        "first_valid_expert_tick": 240,
+        "initial_valid_segment_ticks": 122,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 238,
+      "switch_observable_sha256": "355675d5bfe079b8ab8c9523bd533eaaeb62558699dce07f88f0034db6455fde",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 238,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.07880836725234985,
+        "arm_tracking_rmse_rad": 0.003463711589574814,
+        "hand_tracking_rmse_rad": 0.03138886019587517,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_029",
+      "accepted": false,
+      "seed": 32113029,
+      "family": "formal_053",
+      "takeover_tick": 298,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 301,
+        "dp_anchors": 26,
+        "first_valid_expert_tick": 300,
+        "initial_valid_segment_ticks": 301,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 298,
+      "switch_observable_sha256": "f81b578453105cf077033ca8278fab26e5ef28e32dc3b8abe75e0fc4c91764d4",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 298,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.00951474905014038,
+        "arm_tracking_rmse_rad": 0.0026784592773765326,
+        "hand_tracking_rmse_rad": 0.04175291955471039,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_030",
+      "accepted": true,
+      "seed": 32113030,
+      "family": "formal_016",
+      "takeover_tick": 358,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 286,
+        "dp_anchors": 24,
+        "first_valid_expert_tick": 360,
+        "initial_valid_segment_ticks": 286,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 358,
+      "switch_observable_sha256": "0990af8f9da960e79c10aedd2b0762839a436873496a00b67a7d599a8af0e510",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 358,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08973616361618042,
+        "arm_tracking_rmse_rad": 0.005490829236805439,
+        "hand_tracking_rmse_rad": 0.05420978367328644,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_031",
+      "accepted": false,
+      "seed": 32113031,
+      "family": "formal_005",
+      "takeover_tick": 418,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 40,
+        "dp_anchors": 4,
+        "first_valid_expert_tick": 420,
+        "initial_valid_segment_ticks": 40,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 40,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 68
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 418,
+      "switch_observable_sha256": "8a235f31bf23c1a3872055345ccc054382f8bf7975462f72ba1283ec5e718b8c",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 418,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.0912708044052124,
+        "arm_tracking_rmse_rad": 0.021307334303855896,
+        "hand_tracking_rmse_rad": 0.061787862330675125,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_032",
+      "accepted": true,
+      "seed": 32113032,
+      "family": "formal_000",
+      "takeover_tick": 58,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 218,
+        "dp_anchors": 19,
+        "first_valid_expert_tick": 60,
+        "initial_valid_segment_ticks": 218,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 58,
+      "switch_observable_sha256": "6cccf38895d81b6156e816dd02fa3e8354875f50d5fe113add1b91e4a1f373fe",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 58,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.057910799980163574,
+        "arm_tracking_rmse_rad": 0.0026905781123787165,
+        "hand_tracking_rmse_rad": 0.03897587209939957,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_033",
+      "accepted": true,
+      "seed": 32113033,
+      "family": "formal_041",
+      "takeover_tick": 94,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 385,
+        "dp_anchors": 33,
+        "first_valid_expert_tick": 96,
+        "initial_valid_segment_ticks": 385,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 94,
+      "switch_observable_sha256": "5d31cfcb3d519b85e20232abc83010744e32ea9b0ca1964f6391eaf2b239d71a",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 94,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.024911880493164062,
+        "arm_tracking_rmse_rad": 0.004845087416470051,
+        "hand_tracking_rmse_rad": 0.051143795251846313,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_034",
+      "accepted": true,
+      "seed": 32113034,
+      "family": "formal_042",
+      "takeover_tick": 130,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 254,
+        "dp_anchors": 22,
+        "first_valid_expert_tick": 132,
+        "initial_valid_segment_ticks": 254,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 130,
+      "switch_observable_sha256": "b9d56476d17db9991e7b4edb705c051552a28a269f45d3164103d92652f6f0b6",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 130,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.08912169933319092,
+        "arm_tracking_rmse_rad": 0.009374537505209446,
+        "hand_tracking_rmse_rad": 0.06163225322961807,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_035",
+      "accepted": true,
+      "seed": 32113035,
+      "family": "formal_012",
+      "takeover_tick": 178,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 131,
+        "dp_anchors": 11,
+        "first_valid_expert_tick": 180,
+        "initial_valid_segment_ticks": 131,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 178,
+      "switch_observable_sha256": "392556feefc245e92592b7d9ae57e846d18b150e95c69b250b7ab0eb3dd137db",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 178,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.07787257432937622,
+        "arm_tracking_rmse_rad": 0.0035217702388763428,
+        "hand_tracking_rmse_rad": 0.1467624306678772,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_036",
+      "accepted": true,
+      "seed": 32113036,
+      "family": "formal_044",
+      "takeover_tick": 238,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 93,
+        "dp_anchors": 8,
+        "first_valid_expert_tick": 240,
+        "initial_valid_segment_ticks": 93,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 238,
+      "switch_observable_sha256": "3a030fe7d1b8a6665f3d25ce1374f9d59b6a5cd82a2246a2cdb10c06cd3d68d1",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "native_lift_observed",
+      "native_stage_step": 238,
+      "native_lift": true,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": 0.071347177028656,
+        "arm_tracking_rmse_rad": 0.003810145426541567,
+        "hand_tracking_rmse_rad": 0.044711221009492874,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_037",
+      "accepted": true,
+      "seed": 32113037,
+      "family": "formal_021",
+      "takeover_tick": 298,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 182,
+        "dp_anchors": 16,
+        "first_valid_expert_tick": 300,
+        "initial_valid_segment_ticks": 182,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 298,
+      "switch_observable_sha256": "0b12337bf11a5a9b8970ac46f14838fc0aa37706025a7aeff6c5a35cbb6b2ea5",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "native_lift_observed",
+      "native_stage_step": 298,
+      "native_lift": true,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.06961894035339355,
+        "arm_tracking_rmse_rad": 0.006266200914978981,
+        "hand_tracking_rmse_rad": 0.04562841355800629,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_038",
+      "accepted": true,
+      "seed": 32113038,
+      "family": "formal_006",
+      "takeover_tick": 358,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 290,
+        "dp_anchors": 25,
+        "first_valid_expert_tick": 360,
+        "initial_valid_segment_ticks": 290,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 358,
+      "switch_observable_sha256": "a675414f738b811edf1c3d61b905483b8dffeec5d9aa4d95c7e54dd549a28734",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 358,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.04448658227920532,
+        "arm_tracking_rmse_rad": 0.01016306597739458,
+        "hand_tracking_rmse_rad": 0.06249986216425896,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_039",
+      "accepted": false,
+      "seed": 32113039,
+      "family": "formal_034",
+      "takeover_tick": 418,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 181,
+        "dp_anchors": 16,
+        "first_valid_expert_tick": 420,
+        "initial_valid_segment_ticks": 181,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 418,
+      "switch_observable_sha256": "2b0dbba5b376c2ff260a66184b6cd03cfa84391c4c3dd90bd510739c532a4a81",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 418,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09137153625488281,
+        "arm_tracking_rmse_rad": 0.005380154121667147,
+        "hand_tracking_rmse_rad": 0.039966657757759094,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_040",
+      "accepted": true,
+      "seed": 32113040,
+      "family": "formal_051",
+      "takeover_tick": 58,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 256,
+        "dp_anchors": 22,
+        "first_valid_expert_tick": 60,
+        "initial_valid_segment_ticks": 256,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 58,
+      "switch_observable_sha256": "de12e6f7971ac3738f1e9f7b87aed2ca76de5783df6e644d36b92dfdb334a0ca",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 58,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.08618032932281494,
+        "arm_tracking_rmse_rad": 0.002715066075325012,
+        "hand_tracking_rmse_rad": 0.01348127145320177,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_041",
+      "accepted": true,
+      "seed": 32113041,
+      "family": "formal_036",
+      "takeover_tick": 94,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 201,
+        "dp_anchors": 17,
+        "first_valid_expert_tick": 96,
+        "initial_valid_segment_ticks": 201,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 94,
+      "switch_observable_sha256": "70785b7505fa874bb2b460519557e5427a858c41075f0ec1af6c61c43a2e02a7",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 94,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09145760536193848,
+        "arm_tracking_rmse_rad": 0.00506829097867012,
+        "hand_tracking_rmse_rad": 0.029172556474804878,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_042",
+      "accepted": true,
+      "seed": 32113042,
+      "family": "formal_031",
+      "takeover_tick": 130,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 163,
+        "dp_anchors": 14,
+        "first_valid_expert_tick": 132,
+        "initial_valid_segment_ticks": 163,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 130,
+      "switch_observable_sha256": "ef2cc50660fbfdc7f69f9f58de66d5144d9d24bc4c2d3320c509fb7568e5f81d",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 130,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.05102348327636719,
+        "arm_tracking_rmse_rad": 0.004673517309129238,
+        "hand_tracking_rmse_rad": 0.09738414734601974,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_043",
+      "accepted": true,
+      "seed": 32113043,
+      "family": "formal_023",
+      "takeover_tick": 178,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 200,
+        "dp_anchors": 17,
+        "first_valid_expert_tick": 180,
+        "initial_valid_segment_ticks": 200,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 178,
+      "switch_observable_sha256": "15aec8ea23c7e02c9f82b5e1725df9fbfaa66324782bb6926b248df724cb56e8",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 178,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09028071165084839,
+        "arm_tracking_rmse_rad": 0.003583383746445179,
+        "hand_tracking_rmse_rad": 0.029358457773923874,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_044",
+      "accepted": true,
+      "seed": 32113044,
+      "family": "formal_043",
+      "takeover_tick": 238,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 293,
+        "dp_anchors": 25,
+        "first_valid_expert_tick": 240,
+        "initial_valid_segment_ticks": 293,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 238,
+      "switch_observable_sha256": "903b81a4413304e2254e0d62754f6afde7f5c623e7f8404c103b3d99fdb26649",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "contact_observed",
+      "native_stage_step": 238,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": true,
+      "deviation": {
+        "contact_loss_before_switch": false,
+        "object_height_change_from_initial_m": -0.0689924955368042,
+        "arm_tracking_rmse_rad": 0.006562049500644207,
+        "hand_tracking_rmse_rad": 0.08160528540611267,
+        "expert_trajectory_deviation": null,
+        "type": "unclassified",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_045",
+      "accepted": true,
+      "seed": 32113045,
+      "family": "formal_007",
+      "takeover_tick": 298,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 559,
+        "dp_anchors": 47,
+        "first_valid_expert_tick": 300,
+        "initial_valid_segment_ticks": 559,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 298,
+      "switch_observable_sha256": "6f580287d54db77eae24be40aa1caac501eb626ec18b618fffe807033b48ce73",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 298,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.09057778120040894,
+        "arm_tracking_rmse_rad": 0.0036073646042495966,
+        "hand_tracking_rmse_rad": 0.04537281021475792,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    },
+    {
+      "identity": "dagger_r02_QG01_046",
+      "accepted": false,
+      "seed": 32113046,
+      "family": "formal_037",
+      "takeover_tick": 358,
+      "takeover_starts": 1,
+      "population": {
+        "valid_expert_ticks": 241,
+        "dp_anchors": 21,
+        "first_valid_expert_tick": 360,
+        "initial_valid_segment_ticks": 241,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 24,
+          "dp_anchors": 2,
+          "valid_h24_window_targets": 48
+        },
+        "first48": {
+          "valid_expert_ticks": 48,
+          "dp_anchors": 4,
+          "valid_h24_window_targets": 96
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": 358,
+      "switch_observable_sha256": "f4e3f2139a891ff55939135d85cc796d7b33447a8e95b731d1e484a722bb8e05",
+      "switch_hash_fields": [
+        "transition/diagnostics_before/joint_position_rad",
+        "transition/diagnostics_before/joint_velocity_rad_s",
+        "transition/diagnostics_before/object_pose_w",
+        "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+        "obs/actuator_target_rad",
+        "obs/contact_substeps_w_N",
+        "obs/contact_valid"
+      ],
+      "switch_hash_missing_fields": [],
+      "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+      "phase": "noncontact_observed",
+      "native_stage_step": 358,
+      "native_lift": false,
+      "native_subgoals": 0.0,
+      "contact_valid": true,
+      "observed_contact": false,
+      "deviation": {
+        "contact_loss_before_switch": true,
+        "object_height_change_from_initial_m": -0.08988231420516968,
+        "arm_tracking_rmse_rad": 0.0026199868880212307,
+        "hand_tracking_rmse_rad": 0.029544079676270485,
+        "expert_trajectory_deviation": null,
+        "type": "observed_contact_loss",
+        "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+      }
+    }
+  ],
+  "scope": "Observed switch states and legal recovery-prefix population; stages/deviations are diagnostics, not established causal failure types"
+}

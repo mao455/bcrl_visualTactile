@@ -251,6 +251,19 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
     if saved.get('residual_version')!=model.version or trained_source_updates(saved)<1 or saved.get('disposable',False):
         raise ValueError('Selected trained Transformer checkpoint required')
     source=saved.get('configuration',{})
+    from .models.native_dp import validate_residual_loss_contract, validate_residual_history_contract
+    source_loss=validate_residual_loss_contract(source.get('loss_contract'))
+    target_loss=getattr(model,'loss_contract',None)
+    if saved.get('residual_loss_version')!=(source_loss or {}).get('version'):
+        raise ValueError('Residual continuation source loss identity differs')
+    if source_loss is not None and target_loss is None:
+        raise ValueError('Residual continuation cannot silently discard explicit loss semantics')
+    source_history=validate_residual_history_contract(source.get('history_contract'))
+    target_history=getattr(model,'history_contract',None)
+    if saved.get('residual_history_version')!=(source_history or {}).get('version'):
+        raise ValueError('Residual continuation source history identity differs')
+    if source_history is not None and target_history is None:
+        raise ValueError('Residual continuation cannot silently discard explicit history semantics')
     if source.get('residual_statistics_sha256')!=statistics_sha256:
         raise ValueError('Residual continuation command statistics changed')
     state=dict(saved['model']);adaptation=None
@@ -276,11 +289,20 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
     if any(not torch.isfinite(value).all() for value in state.values()):
         raise ValueError('Nonfinite selected Transformer parameters')
     model.load_state_dict(state,strict=True)
-    return dict(source_updates=trained_source_updates(saved),source_checkpoint_updates=saved['updates'],new_optimizer_updates=0,parameters='all prior selected Transformer parameters',
+    audit=dict(source_updates=trained_source_updates(saved),source_checkpoint_updates=saved['updates'],new_optimizer_updates=0,parameters='all prior selected Transformer parameters',
         statistics_and_delta_buffers_unchanged=adaptation is None,
         command_normalizer_unchanged=True,scale_adaptation=adaptation,
         execution_adapter_before=source.get('execution_adapter'),execution_adapter_after=execution_adapter,
         requires_training_before_deployment=adaptation is not None,optimizer_state_restored=False)
+    if source_loss is not None or target_loss is not None:
+        audit.update(loss_contract_before=source_loss,loss_contract_after=target_loss,
+            loss_contract_changed=source_loss!=target_loss,
+            loss_change_preserves_forward_execution=True)
+    if source_history is not None or target_history is not None:
+        audit.update(history_contract_before=source_history,history_contract_after=target_history,
+            history_contract_changed=source_history!=target_history,
+            history_change_preserves_deployment_recurrence=True)
+    return audit
 
 
 def restore_residual_training(saved,model,optimizer,generator,configuration,train_ids):
@@ -290,6 +312,10 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
         'next_episode_group','episode_order','supervised_ticks','control_ticks','contact_anchors','best','history')
     if any(k not in saved for k in required) or saved.get('configuration')!=configuration or saved.get('disposable'):
         raise ValueError('Invalid residual same-round restore identity or incomplete state')
+    for contract_key,version_key in (('loss_contract','residual_loss_version'),('history_contract','residual_history_version')):
+        expected=getattr(model,contract_key,None)
+        if configuration.get(contract_key)!=expected or saved.get(version_key)!=(expected or {}).get('version'):
+            raise ValueError('Residual restore '+contract_key+' identity differs')
     order=saved['episode_order'];next_group=saved['next_episode_group']
     stratified=bool(configuration.get('sampling_strata'))
     valid_order=bool(order) and set(order)<=set(train_ids) if stratified else len(order)==len(train_ids) and set(order)==set(train_ids)
@@ -1012,7 +1038,8 @@ def residual_setup(root, *, selected=False, smoke=False):
     for key in ('robot_mean','robot_std'):
         if not torch.equal(stats[key],base_stats[key]):raise ValueError('Residual/base robot normalization differs')
     scale=amplitudes['scales']
-    torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,scale,execution_adapter=v.get('execution_adapter'))
+    torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,scale,execution_adapter=v.get('execution_adapter'),
+        loss_contract=v.get('loss_contract'),history_contract=v.get('history_contract'))
     configuration=dict(v,group=root.name,base_checkpoint=base['checkpoint'],base_sha256=base['sha256'],
         statistics_sha256=sha256(root/'state_data/statistics.pt'),data_sha256=sha256(root/'state_data/data.json'),
         residual_statistics_sha256=residual_statistics_sha256,residual_normalization_identity=residual_normalization_identity,
@@ -1032,6 +1059,14 @@ def residual_setup(root, *, selected=False, smoke=False):
         if not data.get('sampling_strata'):raise ValueError('Recovery-prefix backend requires correction sampling strata')
         configuration.update(recovery_prefix=recovery,loss_id='recovery_weighted_all_tick_equal_arm_hand_plus_1e-4_residual',
             loss_weight_normalization='per optimizer update actual masked weight sum; physical tick exposure remains unweighted')
+    if model.loss_contract is not None:
+        configuration.update(loss_contract=model.loss_contract,
+            loss_id=('recovery_weighted_' if recovery else '')+model.loss_contract['version'],
+            preclip_supervision='absolute composed command before joint limits and reachable projection; common command affine',
+            loss_weight_normalization='both fits use per optimizer update actual masked weight sum; physical tick exposure remains unweighted')
+    if model.history_contract is not None:
+        configuration.update(history_contract=model.history_contract,
+            history='full actual causal prefix replayed with current backend parameters before each supervised chunk; prefix no_grad; 32tick loss gradient')
     if v.get('continuation_from'):
         from .native_data import supervision_mask_sha256
         saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)
@@ -1040,6 +1075,8 @@ def residual_setup(root, *, selected=False, smoke=False):
         configuration.update(continuation_audit=audit,teacher_supervision='u_expert',
             history='complete actual student-prefix/expert-suffix history; only expert-executed suffix supplies supervision',
             normalization_train_ids=normalization_train,normalizer_recomputed=False)
+        if model.history_contract is not None:
+            configuration['history']='full actual student/expert prefix replayed with current backend parameters before each supervised chunk; prefix no_grad; 32tick loss gradient'
         if index.get('supervision_mask_sha256')!=supervision_mask_sha256(records):
             raise ValueError('Aggregated nominal cache supervision mask identity differs')
         binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=sha256(root/'state_data/statistics.pt'),
@@ -1065,6 +1102,21 @@ def residual_aux(records,start,stop,key,device):
         if n:padded[:n]=value[start:start+n]
         values.append(padded)
     return torch.stack(values).to(device)
+
+
+@torch.no_grad()
+def residual_prefix_state(model, prefix_inputs, *, state_only=True):
+    """Recompute current-weight state from t0; never cache learned hidden state.
+
+    ``prefix_inputs`` contains only immutable frozen-DP/recorded input batches
+    already visited in this episode group. Keeping those batches on device
+    avoids repeated CPU transfers. They must not contain the current/future
+    chunk; every invocation discards old state and uses current model weights.
+    """
+    state=None
+    for inputs in prefix_inputs:
+        _,state=model(inputs,state,state_only=state_only)
+    return state
 
 
 @torch.no_grad()
@@ -1175,6 +1227,8 @@ def residual_train(root, *, smoke=False, probe=False):
     signal.signal(signal.SIGTERM,lambda *_:request.append('SIGTERM'))
     def snapshot(epoch,next_group):
         return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
+            **({'residual_loss_version':model.loss_contract['version']} if getattr(model,'loss_contract',None) else {}),
+            **({'residual_history_version':model.history_contract['version']} if getattr(model,'history_contract',None) else {}),
             configuration=configuration,model=model.state_dict(),optimizer=opt.state_dict(),updates=updates,
             formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
             new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),
@@ -1228,17 +1282,24 @@ def residual_train(root, *, smoke=False, probe=False):
             if (out/'STOP').exists() or (root/'STOP').exists() or request:
                 stop='requested_stop';break
             group_began=time.time()
-            selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None
+            selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None;prefix_inputs=[]
             for start in range(0,max(len(r['robot']) for r in selected),32):
                 end=min(start+32,max(len(r['robot']) for r in selected))
                 with lease.block():
                     model.train();inputs=residual_batch(selected,start,end,device)
-                    raw,state=model(inputs,state)
                     supervised=residual_supervision_mask(selected,start,end,device)&inputs['valid']
+                    if getattr(model,'history_contract',None) and supervised.any():
+                        state=residual_prefix_state(model,prefix_inputs)
+                    raw,state=model(inputs,state)
                     gate=residual_aux(selected,start,end,'gate',device)&inputs['valid']
-                    action,delta=model.compose(residual_aux(selected,start,end,'base',device),raw,gate,
-                        torch.stack([r['limits'] for r in selected]).to(device)[:,None],
-                        **({'previous':inputs['robot'][...,58:87]} if getattr(model,'execution_adapter',None) else {}))
+                    compose_args=(residual_aux(selected,start,end,'base',device),raw,gate,
+                        torch.stack([r['limits'] for r in selected]).to(device)[:,None])
+                    compose_kwargs=({'previous':inputs['robot'][...,58:87]} if getattr(model,'execution_adapter',None) else {})
+                    if getattr(model,'loss_contract',None):
+                        chain=model.compose_chain(*compose_args,**compose_kwargs)
+                        action,delta=chain['u_exec'],chain['delta']
+                    else:
+                        action,delta=model.compose(*compose_args,**compose_kwargs)
                     loss_mask=supervised;weight_report={}
                     if recovery:
                         loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in order[offset:offset+len(selected)]],
@@ -1246,7 +1307,13 @@ def residual_train(root, *, smoke=False, probe=False):
                         weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
                             remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
                             recovery_prefix_weight=recovery['backend_weight'],loss_weight_mass_is_exposure=False)
-                    loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
+                    if getattr(model,'loss_contract',None):
+                        components=model.objective_components(action,residual_aux(selected,start,end,'target',device),
+                            delta,loss_mask,u_pre=chain['u_pre'])
+                        loss=components['total']
+                        weight_report['loss_components']={k:float(value.detach()) for k,value in components.items() if k!='total'}
+                    else:
+                        loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
                     if supervised.any():
                         opt.zero_grad(set_to_none=True);loss.backward()
@@ -1259,6 +1326,8 @@ def residual_train(root, *, smoke=False, probe=False):
                     ticks+=int(inputs['valid'].sum())
                     def detach(x):return {k:detach(z) for k,z in x.items()} if isinstance(x,dict) else x.detach()
                     state=detach(state)
+                    if getattr(model,'history_contract',None):
+                        prefix_inputs.append(inputs)
                 if updates%32==0:
                     elapsed=time.time()-began;rate=draws/max(elapsed,1e-6)
                     atomic_json(out/'progress.json',dict(update=updates,epoch=epoch,control_tick_epochs=draws/population,

@@ -1,5 +1,10 @@
 # Play2Perfect / Tight-Insertion：现行工作约定
 
+## 最新覆盖 — 2026-11-12 裁剪梯度快检（候选未采用）
+
+读STATE_DP_RESULTS中的梯度诊断与DAGGER_METHOD 4.1。隔离gradient_diag树真实固定6轨迹/1873合法tick及A/B各旧/新200更新已完成。lambda_pre=1恢复u_pre梯度但dev/Core执行误差退化，不能接入正式队列、自动调参或扩展训练；新损失/当前权重prefix历史均为显式opt-in，缺字段旧行为。matched run仍按perf树源码380a20b正常继续第二轮，原2026-11-13 11:22:40截止不变。后端旧hidden近似如实报告，合法数据/旧结果不作废。无可靠同状态恢复闭环，禁止把离线probe说成自主成功。只推小代码/证据到指定feature分支，权重及源数据保留本机。
+
+
 ## 最新覆盖 — 2026-11-12 吞吐优化与同run安全接续
 
 读 [DAGGER_PERFORMANCE](research_docs/DAGGER_PERFORMANCE.md)。性能改动在 `bc+rl_RSS_dagger_perf` 已做真实输入探针，尚待`r01_QG01_predictions`完成边界、原owner及自有worker退出后接入同一matched run；不热改旧树、不重设2026-11-13 11:22:40绝对截止。仅第2轮两组DP并行；缓存、后端、Kit采集与评估继续顺序。第一轮A/B保持共同旧DP数值配置，下一共同轮才启micro16/effective64和不可变特征GPU缓存，扩散RNG保留原micro4顺序；每worker2CPU/2线程、nice19不变。第一轮A已prepared缓存不动，B新准备可用逐位等价缓存路径。未来采集A/B共同使用已验收lossless LZF及全部源字段校验，磁盘成本约增加30%的实测范围见报告。Transformer搬运候选已撤回；不启4线程、多env、AMP、TF32或compile。保持两类监督、真实历史、几何范围、配对曝光/endpoint、test22隔离与全部保护数据；短探针不是正式曝光或自主成功证据。

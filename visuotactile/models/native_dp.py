@@ -1,5 +1,6 @@
 """Three independently initialized policies sharing the native-command contract."""
 from dataclasses import dataclass, field
+import math
 
 import torch
 from torch import nn
@@ -436,6 +437,33 @@ class LegacyTargetResidual(nn.Module):
         return ((fit+1e-4*penalty)*contact).sum()/contact.sum().clamp_min(1)
 
 
+PRECLIP_RESIDUAL_LOSS_VERSION = 'exec_preclip_equal_arm_hand_v1'
+CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION = 'current_weight_prefix_v1'
+
+
+def validate_residual_loss_contract(value):
+    """Absent identity preserves historical exec-only fitting, including its math."""
+    if value is None:
+        return None
+    if (not isinstance(value, dict) or set(value) != {'version', 'lambda_pre'}
+            or value['version'] != PRECLIP_RESIDUAL_LOSS_VERSION):
+        raise ValueError('Unknown residual loss contract')
+    weight = value['lambda_pre']
+    if (isinstance(weight, bool) or not isinstance(weight, (int, float))
+            or not math.isfinite(weight) or weight <= 0):
+        raise ValueError('Preclip command supervision needs a finite positive weight')
+    return dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=float(weight))
+
+
+def validate_residual_history_contract(value):
+    """Historical checkpoints retain carry-and-detach TBPTT unless explicit."""
+    if value is None:
+        return None
+    if value != dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION):
+        raise ValueError('Unknown residual history training contract')
+    return dict(value)
+
+
 class TargetResidual(nn.Module):
     """60 Hz Transformer plan/feedback fusion with persistent sensor memory.
 
@@ -454,10 +482,12 @@ class TargetResidual(nn.Module):
                   'plan_valid', 'plan_cursor', 'previous_nominal',
                   'previous_nominal_valid', 'valid'}
 
-    def __init__(self, statistics, scales, *, execution_adapter=None):
+    def __init__(self, statistics, scales, *, execution_adapter=None, loss_contract=None, history_contract=None):
         super().__init__()
         from ..position_control import validate_execution_adapter
         self.execution_adapter = validate_execution_adapter(execution_adapter)
+        self.loss_contract = validate_residual_loss_contract(loss_contract)
+        self.history_contract = validate_residual_history_contract(history_contract)
         self.visual = nn.GRUCell(512, 64)
         self.tactile = FingerTactileEncoder()
         self.motion = nn.GRUCell(ROBOT_DIM, 64)
@@ -492,7 +522,7 @@ class TargetResidual(nn.Module):
             parameters=sum(p.numel() for p in self.parameters()),
             trainable_parameters=sum(p.numel() for p in self.parameters() if p.requires_grad))
 
-    def forward(self, inputs, state=None, *, mask_force=False):
+    def forward(self, inputs, state=None, *, mask_force=False, state_only=False):
         if set(inputs) != self.input_keys:
             raise ValueError('Transformer residual sensor/plan allowlist differs')
         state = {} if state is None else state
@@ -537,14 +567,22 @@ class TargetResidual(nn.Module):
             feedback = self.feedback(torch.cat((visual_state, tactile[:, tick], motion_state,
                 previous_nominal[:, tick], previous_valid[:, tick, None].to(robot.dtype)), -1))
             memory_state = torch.where(active, self.memory(feedback, memory_state), memory_state)
-            queries.append(feedback + memory_state + self.plan_cursor(cursor[:, tick]))
-            summaries.append(memory_state)
-            histories.append(history)
-            history_masks.append(history_valid)
+            if not state_only:
+                queries.append(feedback + memory_state + self.plan_cursor(cursor[:, tick]))
+                summaries.append(memory_state)
+                histories.append(history)
+                history_masks.append(history_valid)
             # The query sees only preceding feedback tokens. Current feedback
             # becomes history only for the next native observation.
             history = torch.where(active[..., None], torch.cat((history[:, 1:], feedback[:, None]), 1), history)
             history_valid = torch.where(active, torch.cat((history_valid[:, 1:], valid[:, tick, None]), 1), history_valid)
+        next_state = dict(visual=visual_state, tactile=ts, motion=motion_state,
+            memory=memory_state, history=history, history_valid=history_valid)
+        if state_only:
+            # The decoder/output head never feed the recurrent state. Recompute
+            # all current-parameter sensor/history modules, then skip only the
+            # unused plan/query readout during a causal prefix replay.
+            return None, next_state
         plan = inputs['plans'].detach()*self.action_scale+self.action_offset
         positions = (torch.arange(24, device=robot.device)[None, None]+cursor[..., None]).clamp_max(23)
         plan_tokens = self.intent(plan)+self.plan_position(positions)+self.token_type.weight[0]
@@ -556,27 +594,65 @@ class TargetResidual(nn.Module):
         query = torch.stack(queries, 1).reshape(batch*steps, 1, self.width)
         fused = self.transformer(query, tokens, memory_key_padding_mask=padding).reshape(batch, steps, self.width)
         raw = torch.where(valid[..., None], self.policy(fused), 0.)
-        return raw, dict(visual=visual_state, tactile=ts, motion=motion_state,
-            memory=memory_state, history=history, history_valid=history_valid)
+        return raw, next_state
 
-    def compose(self, base, raw, contact, limits, *, previous=None):
-        """Observed contact remains a diagnostic argument, never a hard switch."""
+    def compose_chain(self, base, raw, contact, limits, *, previous=None):
+        """Expose the real command chain without changing final execution math.
+
+        u_pre is an absolute command in rad, before *both* hard clips. delta is
+        the bounded correction in command-normalizer units, not a command.
+        Observed contact remains diagnostic and never becomes a hard switch.
+        """
         delta = self.scales*raw.tanh()
-        proposal = base+delta/self.action_scale
-        proposal = torch.maximum(torch.minimum(proposal, limits[..., 1]), limits[..., 0])
+        u_pre = base+delta/self.action_scale
+        u_joint = torch.maximum(torch.minimum(u_pre, limits[..., 1]), limits[..., 0])
+        proposal = u_joint
         if self.execution_adapter is not None:
             from ..position_control import project_processed_position_targets
             if previous is None:
                 raise ValueError('Reachable residual composition requires real pre-action targets')
             proposal = project_processed_position_targets(proposal, previous, limits, self.execution_adapter)
-        return proposal, delta
+        return dict(raw=raw, delta=delta, u_pre=u_pre, u_joint=u_joint, u_exec=proposal)
 
-    def objective(self, action, target, delta, valid):
-        """Equal total arm/hand fit on all valid control ticks, not contact only."""
+    def compose(self, base, raw, contact, limits, *, previous=None):
+        chain = self.compose_chain(base, raw, contact, limits, previous=previous)
+        return chain['u_exec'], chain['delta']
+
+    def objective_components(self, action, target, delta, valid, *, u_pre=None):
+        """Separate main fits from the historical residual regularizer.
+
+        ``valid`` is the legal supervision mask or its recovery-weighted form.
+        The same weights/denominator and command affine apply to both fits.
+        An absent loss contract retains the exact legacy total arithmetic.
+        """
         error = ((action-target)*self.action_scale).square()
         fit = .5*error[..., :7].mean(-1)+.5*error[..., 7:].mean(-1)
         penalty = .5*delta[..., :7].square().mean(-1)+.5*delta[..., 7:].square().mean(-1)
-        return ((fit+1e-4*penalty)*valid).sum()/valid.sum().clamp_min(1)
+        denominator = valid.sum().clamp_min(1)
+        loss_contract = getattr(self, 'loss_contract', None)
+        pre_fit = torch.zeros_like(fit)
+        if loss_contract is not None:
+            if u_pre is None or u_pre.shape != action.shape:
+                raise ValueError('Preclip loss requires the unclipped absolute composed command')
+            error_pre = ((u_pre-target)*self.action_scale).square()
+            pre_fit = .5*error_pre[..., :7].mean(-1)+.5*error_pre[..., 7:].mean(-1)
+            total = ((fit+loss_contract['lambda_pre']*pre_fit+1e-4*penalty)*valid).sum()/denominator
+        else:
+            total = ((fit+1e-4*penalty)*valid).sum()/denominator
+        return dict(exec_fit=(fit*valid).sum()/denominator,
+            pre_fit=(pre_fit*valid).sum()/denominator,
+            regularizer=(1e-4*penalty*valid).sum()/denominator, total=total)
+
+    def objective(self, action, target, delta, valid, *, u_pre=None):
+        """Equal Arm/Hand command fitting; optional explicit preclip supervision."""
+        if getattr(self, 'loss_contract', None) is None:
+            # Keep the historical training path's reductions and arithmetic;
+            # extra component reductions are opt-in diagnostics/new training.
+            error = ((action-target)*self.action_scale).square()
+            fit = .5*error[..., :7].mean(-1)+.5*error[..., 7:].mean(-1)
+            penalty = .5*delta[..., :7].square().mean(-1)+.5*delta[..., 7:].square().mean(-1)
+            return ((fit+1e-4*penalty)*valid).sum()/valid.sum().clamp_min(1)
+        return TargetResidual.objective_components(self, action, target, delta, valid, u_pre=u_pre)['total']
 
 
 def load_residual(payload, device='cpu'):
@@ -591,9 +667,18 @@ def load_residual(payload, device='cpu'):
     state = payload['model']
     cls = versions[payload['residual_version']]
     adapter = payload.get('configuration', {}).get('execution_adapter')
+    loss_contract = payload.get('configuration', {}).get('loss_contract')
+    history_contract = payload.get('configuration', {}).get('history_contract')
+    if payload.get('residual_loss_version') != (loss_contract or {}).get('version'):
+        raise ValueError('Residual checkpoint loss identity differs from configuration')
+    if payload.get('residual_history_version') != (history_contract or {}).get('version'):
+        raise ValueError('Residual checkpoint history identity differs from configuration')
     if cls is LegacyTargetResidual and adapter is not None:
         raise ValueError('Legacy GRU residual cannot acquire a new execution adapter')
-    kwargs = dict(execution_adapter=adapter) if cls is TargetResidual else {}
+    if cls is LegacyTargetResidual and (loss_contract is not None or history_contract is not None):
+        raise ValueError('Legacy GRU residual cannot acquire Transformer training semantics')
+    kwargs = dict(execution_adapter=adapter, loss_contract=loss_contract,
+        history_contract=history_contract) if cls is TargetResidual else {}
     model = cls(state, state['scales'], **kwargs).to(device)
     model.load_state_dict(state)
     return model.eval()

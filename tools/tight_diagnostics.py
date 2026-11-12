@@ -2683,13 +2683,124 @@ def control_audit_publish(root, output=None):
     return summary
 
 
+
+def dagger_publication_follow(root, request_path):
+    """Wait for the existing owner to exit, then publish scoped CPU readback once.
+
+    This helper never signals a worker, creates STOP, resumes an experiment or
+    changes its source, data, models or deadline. Its only waiting allowance is
+    the registered run deadline plus 600 seconds for terminal publication.
+    """
+    from tools.runtime import proc
+    from tools.tight_finish import matrix_worker_absence
+    root=Path(root).resolve();request_path=Path(request_path).resolve()
+    request=read(request_path);target='refs/heads/feature/tight-state-foundation'
+    status_path=root/'terminal_publication_status.json'
+    receipt_path=root/'terminal_publication_git.json'
+    def require(condition,message):
+        if not condition:raise ValueError(message)
+    def git(*args):
+        remaining=deadline-time.time()
+        if remaining<=0:raise TimeoutError('Registered deadline plus 600-second publication window expired')
+        return subprocess.run(['git',*args],cwd=CODE,check=True,text=True,
+            stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=min(120.,remaining)).stdout.strip()
+    def report(state,**values):
+        write(status_path,dict(state=state,utc=time.time(),pid=os.getpid(),**values))
+    def clean():
+        require(not git('status','--porcelain'),'Reviewed publication checkout must remain clean')
+    require(request.get('version')=='dagger_terminal_publication_follow_v1','Unknown publication follow request')
+    require(request.get('target')==target,'Publication target differs from the authorized research branch')
+    deployment=Path(request['deployment_tree']).resolve()
+    require(deployment!=CODE.resolve(),'Use an isolated report checkout; never the running deployment tree')
+    owner=request['owner'];require(isinstance(owner.get('pid'),int) and isinstance(owner.get('start_ticks'),int),
+        'Exact owner process identity is required')
+    session=read(root/'session.json');deadline=session['deadline']+600
+    require(request['deadline']==session['deadline'],'Publication cannot reset the registered deadline')
+    prepared=request['prepared_source']
+    require(git('rev-parse','HEAD')==prepared,'Reviewed publication source changed')
+    clean()
+    prefix='research_docs/evidence/'+root.name+'/'
+    documents={'research_docs/STATE_DP_RESULTS.md','research_docs/CLEANUP_AUDIT.md'}
+    def allowed(name):return name in documents or name.startswith(prefix)
+    def bounded():
+        if time.time()>deadline:raise TimeoutError('Registered deadline plus 600-second publication window expired')
+    def frozen():
+        require(sha(root/'source_freeze.json')==request['source_freeze_sha256'],'Running source registration changed')
+        live_session=read(root/'session.json')
+        require(live_session['deadline']==request['deadline'] and
+            live_session['source_head']==request['deployment_source_head'],'Running session identity changed')
+        require(all(sha(deployment/name)==digest for name,digest in read(root/'source_freeze.json').items()),
+            'Frozen deployment source changed')
+    frozen()
+    with (root/'terminal_publication.lock').open('a') as lock:
+        fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+        try:
+            report('WAITING_OWNER_EXIT',owner=owner,run_deadline=request['deadline'],publication_deadline=deadline)
+            terminal={'COMPLETE','PARTIAL','FAILED','BUDGET_STOP','STOPPED'}
+            while True:
+                bounded()
+                current=proc(owner['pid'])
+                alive=current is not None and current.get('start_ticks')==owner['start_ticks'] and current.get('state')!='Z'
+                state=read(root/'status.json')
+                if not alive and state.get('state') in terminal and state.get('owned_workers_exited') is True:
+                    ledger=root/'worker_processes.json'
+                    require(ledger.is_file(),'Owned worker ledger is missing')
+                    workers_gone,workers=matrix_worker_absence(read(ledger))
+                    if workers_gone:break
+                time.sleep(min(5.,max(.01,deadline-time.time())))
+            frozen();bounded()
+            require(git('rev-parse','HEAD')==prepared,'Publication checkout advanced while waiting')
+            clean();report('PUBLISHING_CPU_REPORT',owner_exited=True,owned_workers_exited=True)
+            git('fetch','origin',target);remote=git('rev-parse','FETCH_HEAD')
+            git('merge-base','--is-ancestor',prepared,remote)
+            remote_changes=git('diff','--name-only',prepared,remote).splitlines()
+            require(all(allowed(name) for name in remote_changes),'Unrelated remote changes; no automatic merge or overwrite')
+            if remote!=prepared:git('merge','--ff-only',remote)
+            clean();bounded();frozen()
+            summary=dagger_publish(root)
+            changed=git('diff','--name-only').splitlines()
+            untracked=git('ls-files','--others','--exclude-standard').splitlines()
+            require(all(allowed(name) for name in changed+untracked),'CPU publisher produced changes outside its report scope')
+            require(not git('diff','--cached','--name-only'),'Index changed during CPU publication')
+            output=CODE/prefix
+            public_files=[p for p in output.rglob('*') if p.is_file()]
+            require(all(not p.is_symlink() and (p.suffix in ('.json','.csv','.png','.md') or p.name.endswith(('.csv.gz','.json.gz')))
+                and p.stat().st_size<=(50 if p==output/'summary.json' else 25)*1024**2
+                for p in public_files),'Unexpected or oversized public artifact')
+            require(sum(p.stat().st_size for p in public_files)<=100*1024**2,'Report exceeds 100 MiB')
+            bounded();frozen()
+            files=sorted(set(changed+untracked))
+            if files:
+                git('add','--',*files)
+                require(all(allowed(name) for name in git('diff','--cached','--name-only').splitlines()),'Unrelated staged changes')
+                git('commit','-m','Publish completed DAgger run after bounded diagnostic review')
+            bounded();git('push','origin','HEAD:'+target)
+            head=git('rev-parse','HEAD')
+            require(git('ls-remote','origin',target).split()[0]==head,'Remote publication SHA differs')
+            receipt=dict(version=request['version'],complete=True,pushed=True,head=head,target=target,
+                request_sha256=sha(request_path),prepared_source=prepared,previous_remote=remote,
+                source_head=request['deployment_source_head'],run_deadline=request['deadline'],
+                publication_deadline=deadline,utc=time.time(),owner_exited=True,owned_workers_exited=True,
+                verified_round_complete=summary.get('verified_round_complete'),files=files,
+                experiment_mutations=0,training_or_rollouts=0)
+            write(receipt_path,receipt)
+            write(root/'public_git.json',dict(pushed=True,head=head,target=target,utc=time.time(),
+                scope='Terminal CPU report; runtime and original deadline unchanged'))
+            report('COMPLETE',head=head,pushed=True,owner_exited=True,owned_workers_exited=True)
+            return receipt
+        except BaseException:
+            report('FAILED',traceback=traceback.format_exc(),experiment_mutations=0)
+            raise
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish', 'qg_publish', 'control_audit_publish'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish', 'dagger_publication_follow', 'qg_publish', 'control_audit_publish'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
     parser.add_argument('--evaluation', type=Path)
     parser.add_argument('--output', type=Path)
+    parser.add_argument('--request', type=Path)
     args = parser.parse_args(); root = args.root.resolve()
     if args.mode == 'prepare': prepare(root, args.config)
     elif args.mode == 'status': print(json.dumps(read(root/'status.json'), indent=2))
@@ -2697,6 +2808,9 @@ def main():
         if args.output is None: parser.error('matrix_publish requires --output')
         matrix_publish(root, args.output.resolve())
     elif args.mode == 'dagger_publish':dagger_publish(root,args.output)
+    elif args.mode == 'dagger_publication_follow':
+        if args.request is None:parser.error('dagger_publication_follow requires --request')
+        dagger_publication_follow(root,args.request)
     elif args.mode == 'qg_publish':qg_publish(root,args.output)
     elif args.mode == 'control_audit_publish':control_audit_publish(root,args.output)
     elif args.mode == 'publish':

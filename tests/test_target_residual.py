@@ -5,6 +5,7 @@ import pytest
 import torch
 
 from visuotactile.models.native_dp import LegacyTargetResidual, TargetResidual, load_residual
+from visuotactile.models.native_dp import PRECLIP_RESIDUAL_LOSS_VERSION
 
 
 def statistics():
@@ -145,6 +146,156 @@ def test_noncontact_correction_and_full_tick_objective_have_gradients():
     assert raw.grad[:, 2:].abs().sum() == 0
     zero, _ = model.compose(base, raw.detach()*0, torch.ones_like(valid), limits)
     assert torch.equal(zero, base)
+
+
+@pytest.mark.parametrize('frontend_supervision', ['q_reached', 'u_expert'])
+@pytest.mark.parametrize('location', ['inside', 'reachable_outside', 'joint_outside', 'boundary_near'])
+def test_preclip_loss_preserves_execution_and_recovers_only_main_fit_gradient(frontend_supervision, location):
+    from visuotactile.position_control import (REACHABLE_POSITION_EXECUTION,
+        project_processed_position_targets, reachable_position_bounds)
+    adapter = REACHABLE_POSITION_EXECUTION
+    model = TargetResidual(statistics(), [.2]*7+[.9]*22, execution_adapter=adapter,
+        loss_contract=dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=1.))
+    previous = torch.zeros(1, 1, 29)
+    limits = torch.tensor([[-1., 1.]]).expand(29, 2)
+    bounds = reachable_position_bounds(previous, limits, adapter)
+    sign = 1 if frontend_supervision == 'q_reached' else -1
+    # Both frontend meanings end in the same *expert command* supervision.
+    # A's nominal configuration is deliberately not substituted for the label.
+    target = previous.clone()
+    u_pre = (dict(inside=bounds[..., 1]*.25, reachable_outside=bounds[..., 1]+.1,
+        joint_outside=torch.ones_like(previous)*2., boundary_near=bounds[..., 1]+2e-6)[location])*sign
+    raw = torch.full_like(previous, .13, requires_grad=True)
+    base = u_pre-model.scales*raw.detach().tanh()/model.action_scale
+    chain = model.compose_chain(base, raw, torch.ones(1, 1, dtype=torch.bool), limits, previous=previous)
+    # Reconstruct the pre-change execution formula verbatim, independently of
+    # compose_chain. New supervision must not relax either hard constraint.
+    old_delta = model.scales*raw.tanh()
+    old_joint = torch.maximum(torch.minimum(base+old_delta/model.action_scale, limits[..., 1]), limits[..., 0])
+    old_action = project_processed_position_targets(old_joint, previous, limits, adapter)
+    assert torch.equal(chain['u_exec'], old_action)
+    assert torch.equal(chain['u_joint'], old_joint)
+    assert torch.equal(chain['delta'], old_delta)
+    composed, delta = model.compose(base, raw, torch.ones(1, 1, dtype=torch.bool), limits, previous=previous)
+    assert torch.equal(composed, old_action) and torch.equal(delta, old_delta)
+    terms = model.objective_components(chain['u_exec'], target, chain['delta'], torch.ones(1, 1),
+        u_pre=chain['u_pre'])
+    exec_gradient = torch.autograd.grad(terms['exec_fit'], chain['u_pre'], retain_graph=True)[0]
+    pre_gradient = torch.autograd.grad(terms['pre_fit'], chain['u_pre'], retain_graph=True)[0]
+    if location == 'inside':
+        assert torch.count_nonzero(exec_gradient) == 29
+    else:
+        assert torch.count_nonzero(exec_gradient) == 0
+        assert torch.count_nonzero((chain['u_exec']-target).abs()>1e-6) == 29
+    assert torch.all(pre_gradient*(chain['u_pre']-target)>0)
+    # Main supervision is distinguished from the small residual regularizer.
+    main = terms['exec_fit']+terms['pre_fit']
+    main_gradient = torch.autograd.grad(main, raw, retain_graph=True)[0]
+    assert torch.all(main_gradient*(chain['u_pre']-target)>0)
+    torch.testing.assert_close(terms['total'], main+terms['regularizer'])
+
+
+def test_preclip_loss_uses_same_mask_recovery_weights_and_command_affine_for_both_terms():
+    model = TargetResidual(statistics(), [.2]*7+[.9]*22,
+        loss_contract=dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=1.))
+    u_pre = torch.tensor([1., 2., 10.])[None, :, None].expand(1, 3, 29).clone().requires_grad_()
+    action = (u_pre*.5)
+    target = torch.zeros_like(u_pre)
+    weights = torch.tensor([[3., 1., 0.]])  # Early recovery, later expert, student prefix.
+    terms = model.objective_components(action, target, torch.zeros_like(u_pre), weights, u_pre=u_pre)
+    joint_factor = .5*model.action_scale[:7].square().mean()+.5*model.action_scale[7:].square().mean()
+    expected = (3*1.+1*4.)/4*joint_factor
+    torch.testing.assert_close(terms['pre_fit'], expected)
+    torch.testing.assert_close(terms['exec_fit'], expected*.25)
+    terms['total'].backward(retain_graph=True)
+    assert torch.count_nonzero(u_pre.grad[:, 2]) == 0
+    assert torch.all(u_pre.grad[:, :2]>0)
+    none = model.objective(action, target, torch.zeros_like(u_pre), torch.zeros_like(weights), u_pre=u_pre)
+    assert none.item() == 0.
+    assert torch.count_nonzero(torch.autograd.grad(none, u_pre)[0]) == 0
+
+
+def test_missing_loss_contract_keeps_legacy_objective_bitwise():
+    model = TargetResidual(statistics(), [.1]*29)
+    generator = torch.Generator().manual_seed(381)
+    action, target, delta = [torch.randn(2, 4, 29, generator=generator) for _ in range(3)]
+    weights = torch.tensor([[3., 1., 0., 1.], [1., 1., 0., 0.]])
+    error = ((action-target)*model.action_scale).square()
+    fit = .5*error[..., :7].mean(-1)+.5*error[..., 7:].mean(-1)
+    penalty = .5*delta[..., :7].square().mean(-1)+.5*delta[..., 7:].square().mean(-1)
+    expected = ((fit+1e-4*penalty)*weights).sum()/weights.sum().clamp_min(1)
+    assert torch.equal(model.objective(action, target, delta, weights), expected)
+    assert model.loss_contract is None
+
+
+def test_preclip_loss_checkpoint_identity_and_legacy_load_are_explicit():
+    model = TargetResidual(statistics(), [.1]*29)
+    old = dict(updates=1, residual_version=model.version, model=model.state_dict(), configuration={})
+    loaded = load_residual(old)
+    assert loaded.loss_contract is None
+    loss_contract = dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=1.)
+    new = dict(old, configuration=dict(loss_contract=loss_contract), residual_loss_version=loss_contract['version'])
+    loaded_new = load_residual(new)
+    assert loaded_new.loss_contract == loss_contract
+    inputs = observations(steps=2, batch=1)
+    with torch.no_grad():
+        raw_old, _ = loaded(inputs)
+        raw_new, _ = loaded_new(inputs)
+    assert torch.equal(raw_old, raw_new)
+    with pytest.raises(ValueError, match='loss identity'):
+        load_residual(dict(new, residual_loss_version='incorrect'))
+    with pytest.raises(ValueError, match='loss identity'):
+        load_residual(dict(old, configuration=dict(loss_contract=loss_contract)))
+    with pytest.raises(ValueError, match='unclipped absolute'):
+        loaded_new.objective(torch.zeros(1, 29), torch.zeros(1, 29), torch.zeros(1, 29), torch.ones(1))
+
+
+@pytest.mark.parametrize('weight', [0, -1, float('inf'), float('nan'), True])
+def test_preclip_loss_rejects_invalid_weight(weight):
+    with pytest.raises(ValueError, match='positive weight'):
+        TargetResidual(statistics(), [.1]*29,
+            loss_contract=dict(version=PRECLIP_RESIDUAL_LOSS_VERSION, lambda_pre=weight))
+
+
+def test_current_weight_prefix_state_only_matches_full_forward_after_weight_update(active_model):
+    from visuotactile.anchor_continue import residual_prefix_state
+    inputs = observations(steps=65, batch=2)
+    inputs['valid'][1, 50:] = False
+    chunks = [segment(inputs, start, stop) for start, stop in ((0, 32), (32, 64), (64, 65))]
+    def tensors(value):
+        return [tensor for item in value.values() for tensor in tensors(item)] if isinstance(value, dict) else [value]
+    old_state = residual_prefix_state(active_model, chunks)
+    with torch.no_grad():
+        active_model.motion.weight_ih.add_(.03)
+        active_model.feedback[0].weight.mul_(1.02)
+    refreshed = residual_prefix_state(active_model, chunks)
+    full = residual_prefix_state(active_model, chunks, state_only=False)
+    assert any(not torch.equal(a,b) for a,b in zip(tensors(old_state),tensors(refreshed)))
+    assert all(torch.equal(a,b) for a,b in zip(tensors(full),tensors(refreshed)))
+    assert all(not tensor.requires_grad for tensor in tensors(refreshed))
+    assert residual_prefix_state(active_model, []) is None
+    with torch.no_grad():
+        raw, state = active_model(inputs, state_only=True)
+        _, expected = active_model(inputs)
+    assert raw is None
+    assert all(torch.equal(a,b) for a,b in zip(tensors(state), tensors(expected)))
+
+
+def test_history_checkpoint_identity_is_explicit_and_does_not_change_deployment(active_model):
+    from visuotactile.models.native_dp import CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
+    payload = dict(updates=1, residual_version=active_model.version, model=active_model.state_dict(),
+        configuration=dict(history_contract=dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION)),
+        residual_history_version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION)
+    loaded = load_residual(payload)
+    assert loaded.history_contract == dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION)
+    inputs = observations(steps=4, batch=1)
+    with torch.no_grad():
+        old, _ = active_model(inputs)
+        new, _ = loaded(inputs)
+    assert torch.equal(old, new)
+    del payload['residual_history_version']
+    with pytest.raises(ValueError, match='history identity'):
+        load_residual(payload)
 
 
 def test_controller_keeps_correction_and_memory_across_contact_loss(active_model, monkeypatch):

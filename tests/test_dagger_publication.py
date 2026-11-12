@@ -331,3 +331,144 @@ def test_matched_protocol_keeps_phase0_separate_and_preserves_old_pool_block(pub
     text=document.read_text();assert old in text and 'tight-dagger-matched-results:start' in text
     assert 'A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1' not in text
     assert (out/'phase0.json').is_file() and (out/'method_rounds.csv').is_file()
+
+
+@pytest.fixture
+def terminal_follow(tmp_path, monkeypatch):
+    """Real local Git/bare remote, with only process/time/publication substituted."""
+    import subprocess
+    from tools import runtime, tight_finish
+    code=tmp_path/'reviewed';code.mkdir()
+    deploy=tmp_path/'frozen';deploy.mkdir();(deploy/'worker.py').write_text('frozen runtime\n')
+    remote=tmp_path/'origin.git'
+    def command(*args, cwd=code):
+        return subprocess.run(list(args),cwd=cwd,check=True,text=True,stdout=subprocess.PIPE,stderr=subprocess.PIPE).stdout.strip()
+    command('git','init','--bare',str(remote),cwd=tmp_path)
+    command('git','init','--initial-branch=feature/tight-state-foundation')
+    command('git','config','user.name','Publication Test');command('git','config','user.email','test@example.invalid')
+    doc=code/'research_docs/STATE_DP_RESULTS.md';doc.parent.mkdir();doc.write_text('Reviewed diagnosis\n')
+    command('git','add','.');command('git','commit','-m','Reviewed code and report')
+    command('git','remote','add','origin',str(remote));command('git','push','origin','HEAD:refs/heads/feature/tight-state-foundation')
+    prepared=command('git','rev-parse','HEAD')
+    root=tmp_path/'run';root.mkdir();clock=[1000.];calls=[]
+    write(root/'session.json',dict(deadline=1200.,source_head='frozen-head'))
+    write(root/'source_freeze.json',{'worker.py':diagnostics.sha(deploy/'worker.py')})
+    write(root/'status.json',dict(state='COMPLETE',owned_workers_exited=True))
+    write(root/'worker_processes.json',[dict(pid=8,start_ticks=80)])
+    request=root/'publication_request.json'
+    write(request,dict(version='dagger_terminal_publication_follow_v1',owner=dict(pid=7,start_ticks=70),
+        deployment_tree=str(deploy),prepared_source=prepared,target='refs/heads/feature/tight-state-foundation',
+        deadline=1200.,deployment_source_head='frozen-head',source_freeze_sha256=diagnostics.sha(root/'source_freeze.json')))
+    monkeypatch.setattr(diagnostics,'CODE',code)
+    # Patch only the publisher's reference. subprocess timeout polling and other
+    # imported libraries must keep their real process-global time module.
+    from types import SimpleNamespace
+    monkeypatch.setattr(diagnostics,'time',SimpleNamespace(time=lambda:clock[0],
+        sleep=lambda seconds:clock.__setitem__(0,clock[0]+seconds)))
+    monkeypatch.setattr(runtime,'proc',lambda pid:None)
+    monkeypatch.setattr(tight_finish,'matrix_worker_absence',lambda rows:(True,rows))
+    def publish(run):
+        calls.append('publish');assert run==root
+        doc.write_text(doc.read_text()+'Terminal numerical readback\n')
+        output=code/'research_docs/evidence'/root.name
+        write(output/'summary.json',dict(state='COMPLETE',successes=0))
+        # The real exporter emits both scalar CSV and nested validation JSON gzip.
+        with gzip.open(output/'round_01_QG01_backend_validation.json.gz','wt') as stream:
+            json.dump([dict(update=32,validation=dict(arm_rmse_rad=.01,hand_rmse_rad=.02))],stream)
+        return dict(verified_round_complete=True)
+    monkeypatch.setattr(diagnostics,'dagger_publish',publish)
+    return dict(code=code,deploy=deploy,root=root,request=request,clock=clock,calls=calls,
+        command=command,prepared=prepared,doc=doc,runtime=runtime,tight_finish=tight_finish)
+
+
+def test_terminal_publication_waits_for_owner_and_workers_without_stopping_them(terminal_follow,monkeypatch):
+    s=terminal_follow;start_sha=diagnostics.sha(s['root']/'session.json')
+    monkeypatch.setattr(s['runtime'],'proc',lambda pid:dict(start_ticks=70,state='R') if s['clock'][0]<1010 else None)
+    monkeypatch.setattr(s['tight_finish'],'matrix_worker_absence',lambda rows:(s['clock'][0]>=1015,rows))
+    receipt=diagnostics.dagger_publication_follow(s['root'],s['request'])
+    assert receipt['complete'] and receipt['pushed'] and s['clock'][0]>=1015
+    assert s['calls']==['publish'] and receipt['experiment_mutations']==0
+    assert not (s['root']/'STOP').exists() and diagnostics.sha(s['root']/'session.json')==start_sha
+    assert receipt['head']==s['command']('git','ls-remote','origin','refs/heads/feature/tight-state-foundation').split()[0]
+    assert all(name.startswith('research_docs/') for name in receipt['files'])
+    compressed='research_docs/evidence/run/round_01_QG01_backend_validation.json.gz'
+    assert compressed in receipt['files']
+    with gzip.open(s['code']/compressed,'rt') as stream:
+        assert json.load(stream)[0]['validation']['arm_rmse_rad']==.01
+
+
+def test_terminal_publication_admits_only_scoped_remote_report_advance(terminal_follow):
+    s=terminal_follow;git=s['command']
+    s['doc'].write_text(s['doc'].read_text()+'Owner terminal report\n')
+    git('git','add','.');git('git','commit','-m','Scoped owner report');remote=git('git','rev-parse','HEAD')
+    git('git','push','origin','HEAD:refs/heads/feature/tight-state-foundation')
+    git('git','reset','--hard',s['prepared'])
+    receipt=diagnostics.dagger_publication_follow(s['root'],s['request'])
+    assert receipt['previous_remote']==remote and 'Owner terminal report' in s['doc'].read_text()
+    assert s['calls']==['publish']
+
+
+def test_terminal_publication_rejects_unrelated_remote_code_before_readback(terminal_follow):
+    s=terminal_follow;git=s['command'];(s['code']/'unreviewed.py').write_text('changed\n')
+    git('git','add','.');git('git','commit','-m','Unrelated code');git('git','push','origin','HEAD:refs/heads/feature/tight-state-foundation')
+    git('git','reset','--hard',s['prepared'])
+    with pytest.raises(ValueError,match='Unrelated remote'):
+        diagnostics.dagger_publication_follow(s['root'],s['request'])
+    assert not s['calls'] and git('git','rev-parse','HEAD')==s['prepared']
+    assert not (s['root']/'STOP').exists()
+
+
+def test_terminal_publication_stops_waiting_at_original_deadline_plus_600(terminal_follow,monkeypatch):
+    s=terminal_follow;s['clock'][0]=1799.
+    monkeypatch.setattr(s['runtime'],'proc',lambda pid:dict(start_ticks=70,state='R'))
+    with pytest.raises(TimeoutError,match='600-second'):
+        diagnostics.dagger_publication_follow(s['root'],s['request'])
+    assert not s['calls'] and not (s['root']/'STOP').exists()
+    assert s['clock'][0]<=1800.1
+
+
+@pytest.mark.parametrize('change',['deployment','dirty_reviewed_tree','freeze_registration'])
+def test_terminal_publication_rejects_source_drift_without_touching_run(terminal_follow,change):
+    s=terminal_follow
+    if change=='deployment':(s['deploy']/'worker.py').write_text('hot changed\n')
+    elif change=='dirty_reviewed_tree':(s['code']/'unexpected.txt').write_text('unreviewed\n')
+    else:write(s['root']/'source_freeze.json',{})
+    before=diagnostics.sha(s['root']/'session.json')
+    with pytest.raises(ValueError):diagnostics.dagger_publication_follow(s['root'],s['request'])
+    assert not s['calls'] and diagnostics.sha(s['root']/'session.json')==before
+    assert not (s['root']/'STOP').exists()
+
+
+@pytest.mark.parametrize('sizes,accepted',[
+    ({'summary.json':49},True),
+    ({'summary.json':51},False),
+    ({'other.json':26},False),
+    ({'model.pt':1},False),
+    ({'summary.json':49,'a.csv':24,'b.csv':24,'c.csv':4},False),
+])
+def test_terminal_publication_has_larger_summary_only_and_keeps_other_limits(terminal_follow,monkeypatch,sizes,accepted):
+    """Exercise size admission without storing/pushing artificial huge fixtures."""
+    import os
+    from pathlib import Path
+    s=terminal_follow;output=s['code']/'research_docs/evidence'/s['root'].name
+    publish=diagnostics.dagger_publish;original_stat=Path.stat
+    def generate(root):
+        result=publish(root)
+        for name in sizes:
+            path=output/name
+            if not path.exists():path.write_text('0\n')
+        return result
+    def measured_stat(path,*args,**kwargs):
+        result=original_stat(path,*args,**kwargs)
+        if path.parent==output and path.name in sizes:
+            fields=list(result);fields[6]=sizes[path.name]*1024**2
+            return os.stat_result(fields)
+        return result
+    monkeypatch.setattr(diagnostics,'dagger_publish',generate)
+    monkeypatch.setattr(Path,'stat',measured_stat)
+    if accepted:
+        assert diagnostics.dagger_publication_follow(s['root'],s['request'])['pushed']
+    else:
+        with pytest.raises(ValueError,match='oversized|100 MiB'):
+            diagnostics.dagger_publication_follow(s['root'],s['request'])
+        assert s['command']('git','rev-parse','HEAD')==s['prepared']

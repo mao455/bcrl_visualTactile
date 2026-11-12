@@ -1,0 +1,594 @@
+{
+  "version": "tight_gradient_diagnosis_v1",
+  "created_utc": 1794492534.8760524,
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01",
+  "thresholds": {
+    "arm_error_rad": 0.0001,
+    "hand_error_rad": 0.001,
+    "local_fit_gradient_per_rad": 1e-10,
+    "clip_change_rad": 1e-07,
+    "tanh_saturation_abs": 0.95,
+    "label_feasibility_rad": 1e-06,
+    "arm_movement_rad": 0.0001,
+    "hand_movement_rad": 0.001
+  },
+  "sample_rule": "Lexicographically first 2 Core training IDs; first current-round correction training ID and first held-out current-round correction-dev ID from each collection source. Entire episodes retained. No model error used for selection.",
+  "selection": [
+    {
+      "identity": "formal_000_slow_1",
+      "partition": "train",
+      "kind": "core",
+      "cache": {
+        "QG01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/nominal/formal_000_slow_1.pt",
+          "sha256": "7e58a8e9c905ed3cdef8f5aab92fdb858d5b9d8c44cd4b96e7c4c64a2c02e993"
+        },
+        "G01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/nominal/formal_000_slow_1.pt",
+          "sha256": "a4e93d8371b8fc575105fd20ea74e9804ee5aff3fcdb9358b0249cc30507d211"
+        }
+      },
+      "ticks": 366,
+      "valid_supervised_ticks": 366,
+      "recovery_initial48_ticks": 0,
+      "first_supervised_tick": 0,
+      "last_supervised_tick": 365,
+      "source_entry": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_state_20261107_01/composition_06/episodes/formal_000_slow_1/demonstration/data.h5",
+        "episode": "formal_000_slow_1",
+        "length": 366,
+        "family": "formal_000",
+        "source_sha256": "f3e23a30690e651f8e822d8a9d0b200865d14e664645e6a31cb6d5181166a133"
+      }
+    },
+    {
+      "identity": "formal_000_slow_3",
+      "partition": "train",
+      "kind": "core",
+      "cache": {
+        "QG01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/nominal/formal_000_slow_3.pt",
+          "sha256": "19666efd3f071f77de524c5059555b4512d38b0a54541b8babf843f5a93cf7f2"
+        },
+        "G01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/nominal/formal_000_slow_3.pt",
+          "sha256": "c1d30249514d15287513fe8aff4f6bd94e5a897a5d16a3747abd465e2e004003"
+        }
+      },
+      "ticks": 331,
+      "valid_supervised_ticks": 331,
+      "recovery_initial48_ticks": 0,
+      "first_supervised_tick": 0,
+      "last_supervised_tick": 330,
+      "source_entry": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_state_20261107_01/composition_06/episodes/formal_000_slow_3/demonstration/data.h5",
+        "episode": "formal_000_slow_3",
+        "length": 331,
+        "family": "formal_000",
+        "source_sha256": "dfb4a5c99dbdb0e6168d0c9e678206b647e59dbfa8aa8c0c80f3e542f498906c"
+      }
+    },
+    {
+      "identity": "tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_000__daf458c79dfa",
+      "partition": "train",
+      "kind": "correction",
+      "source": "QG01",
+      "cache": {
+        "QG01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/nominal/tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_000__daf458c79dfa.pt",
+          "sha256": "b019592220d1033ab85269585df3f136adda2596c329138fa272786a69400a91"
+        },
+        "G01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/nominal/tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_000__daf458c79dfa.pt",
+          "sha256": "6e5dedad9de8f0e2d319d56e8af42a362f20659e93da8aaf54edd702eb3c812a"
+        }
+      },
+      "ticks": 412,
+      "valid_supervised_ticks": 364,
+      "recovery_initial48_ticks": 48,
+      "first_supervised_tick": 48,
+      "last_supervised_tick": 411,
+      "source_entry": {
+        "acquisition": {
+          "actual_takeover_tick": 46,
+          "event_seed": 33112000,
+          "native_success": true,
+          "seed": 32112000,
+          "takeover_reason": "registered_tick"
+        },
+        "admission_receipt_sha256": "4ab4b5665ece69c8b09a046a89a76e8d33c69f2a776c3707755640381385104b",
+        "backend_sha256": "03f70d7206f24505a9a9a920addfa6b20ed605cf349421d0b4aea505287c3a10",
+        "cohort": "train",
+        "compatibility": {
+          "G01": {
+            "compatible": true,
+            "reasons": []
+          },
+          "G11": {
+            "compatible": true,
+            "reasons": []
+          },
+          "QG01": {
+            "compatible": true,
+            "reasons": []
+          }
+        },
+        "content_hash_scope": "Complete actual numeric robot/command/time/limits, both labels/masks/segments and tactile history; images protected by whole-file SHA and original collector acceptance",
+        "episode": "dagger_r01_QG01_000",
+        "execution_content_sha256": "a63109cfef0e8129a5fdf271d661f91ed70c755cd6854fcdc57e39ca8873ee27",
+        "exposure": {
+          "episodes": 1,
+          "history_ticks": 412,
+          "supervised_anchors": 31,
+          "supervised_ticks": 364,
+          "supervised_window_targets": 716
+        },
+        "family": "formal_051",
+        "frontend_sha256": "29b8ab97a84795b037eda3b5c2243b9150125bbce8a0e7c48aa8cf1cb9779ec3",
+        "length": 412,
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/episodes/dagger_r01_QG01_000/demonstration/data.h5",
+        "pool_partition": "train",
+        "pool_source": {
+          "group": "QG01",
+          "round_index": 1,
+          "run_id": "tight_dagger_matched_20261112_01",
+          "source_backend_sha256": "03f70d7206f24505a9a9a920addfa6b20ed605cf349421d0b4aea505287c3a10",
+          "source_frontend_sha256": "29b8ab97a84795b037eda3b5c2243b9150125bbce8a0e7c48aa8cf1cb9779ec3",
+          "source_identity": "dagger_r01_QG01_000"
+        },
+        "round_index": 1,
+        "seed": 32112000,
+        "source_collection_plan_sha256": "f92a22cbb698fc40ad621e9ebb93ee2d5b53cf4dce2847e9640b0e4a961ab0a3",
+        "source_group": "QG01",
+        "source_sha256": "8f7e287696d42e3b21fde4eec58fa4c0d4ed2d2dd01a537ff6a3ce399587ce84",
+        "split": "train",
+        "supervision_boundary": {
+          "first_24_valid_expert_ticks": [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          "first_backend_supervised_tick": 48,
+          "first_dp_supervised_anchor": 48,
+          "first_expert_label_tick": 48,
+          "queue_clean_tick": 48,
+          "takeover_tick": 46,
+          "valid_expert_ticks_before_first_dp_anchor": 0
+        },
+        "takeover_tick": 46,
+        "trajectory_kind": "expert_takeover_v1"
+      }
+    },
+    {
+      "identity": "tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_001__9b1a2f5b8e51",
+      "partition": "dev",
+      "kind": "correction",
+      "source": "QG01",
+      "cache": {
+        "QG01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/nominal/tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_001__9b1a2f5b8e51.pt",
+          "sha256": "28e121feb54af3171d9ebfcf5ac807dea3b4b5d075808c385e9df8c79dafaf62"
+        },
+        "G01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/nominal/tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_001__9b1a2f5b8e51.pt",
+          "sha256": "5252c8500cbb153b918e04e51c92bb7eb760b8f309e10f0b02ca8fcaa0fec441"
+        }
+      },
+      "ticks": 323,
+      "valid_supervised_ticks": 251,
+      "recovery_initial48_ticks": 48,
+      "first_supervised_tick": 72,
+      "last_supervised_tick": 322,
+      "source_entry": {
+        "acquisition": {
+          "actual_takeover_tick": 70,
+          "event_seed": 33112001,
+          "native_success": true,
+          "seed": 32112001,
+          "takeover_reason": "registered_tick"
+        },
+        "admission_receipt_sha256": "1f1a0bafa962efef87de2f891806a4e788570f878165e9ad4d8fd97a58db8cf8",
+        "backend_sha256": "03f70d7206f24505a9a9a920addfa6b20ed605cf349421d0b4aea505287c3a10",
+        "cohort": "correction_dev",
+        "compatibility": {
+          "G01": {
+            "compatible": true,
+            "reasons": []
+          },
+          "G11": {
+            "compatible": true,
+            "reasons": []
+          },
+          "QG01": {
+            "compatible": true,
+            "reasons": []
+          }
+        },
+        "content_hash_scope": "Complete actual numeric robot/command/time/limits, both labels/masks/segments and tactile history; images protected by whole-file SHA and original collector acceptance",
+        "episode": "dagger_r01_QG01_001",
+        "execution_content_sha256": "beeb228c19ae1a52e1a7dd2f11705029f6ddb068295c2aaaf446c2c12cfa7c72",
+        "exposure": {
+          "episodes": 1,
+          "history_ticks": 323,
+          "supervised_anchors": 21,
+          "supervised_ticks": 251,
+          "supervised_window_targets": 490
+        },
+        "family": "formal_005",
+        "frontend_sha256": "29b8ab97a84795b037eda3b5c2243b9150125bbce8a0e7c48aa8cf1cb9779ec3",
+        "length": 323,
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/episodes/dagger_r01_QG01_001/demonstration/data.h5",
+        "pool_partition": "correction_dev",
+        "pool_source": {
+          "group": "QG01",
+          "round_index": 1,
+          "run_id": "tight_dagger_matched_20261112_01",
+          "source_backend_sha256": "03f70d7206f24505a9a9a920addfa6b20ed605cf349421d0b4aea505287c3a10",
+          "source_frontend_sha256": "29b8ab97a84795b037eda3b5c2243b9150125bbce8a0e7c48aa8cf1cb9779ec3",
+          "source_identity": "dagger_r01_QG01_001"
+        },
+        "round_index": 1,
+        "seed": 32112001,
+        "source_collection_plan_sha256": "f92a22cbb698fc40ad621e9ebb93ee2d5b53cf4dce2847e9640b0e4a961ab0a3",
+        "source_group": "QG01",
+        "source_sha256": "276a227a175ac4a0eef6bdda60642739764f0be0e30d5af1385b85c2f522e256",
+        "split": "train",
+        "supervision_boundary": {
+          "first_24_valid_expert_ticks": [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ],
+          "first_backend_supervised_tick": 72,
+          "first_dp_supervised_anchor": 72,
+          "first_expert_label_tick": 72,
+          "queue_clean_tick": 72,
+          "takeover_tick": 70,
+          "valid_expert_ticks_before_first_dp_anchor": 0
+        },
+        "takeover_tick": 70,
+        "trajectory_kind": "expert_takeover_v1"
+      }
+    },
+    {
+      "identity": "tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_000__85d38fde99a2",
+      "partition": "train",
+      "kind": "correction",
+      "source": "G01",
+      "cache": {
+        "QG01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/nominal/tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_000__85d38fde99a2.pt",
+          "sha256": "ead5ef02ebba8b11b939e8a2caa40e0435b4f227e2afcbd48f5a434f1c256c73"
+        },
+        "G01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/nominal/tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_000__85d38fde99a2.pt",
+          "sha256": "194086e08ba05c423e295521fb4864a1eb9c1d2f40fc6903bb02bf5a79f87225"
+        }
+      },
+      "ticks": 384,
+      "valid_supervised_ticks": 336,
+      "recovery_initial48_ticks": 48,
+      "first_supervised_tick": 48,
+      "last_supervised_tick": 383,
+      "source_entry": {
+        "acquisition": {
+          "actual_takeover_tick": 46,
+          "event_seed": 33112000,
+          "native_success": true,
+          "seed": 32112000,
+          "takeover_reason": "registered_tick"
+        },
+        "admission_receipt_sha256": "eaa694c0c0d454866b41de2e7b112223ac2f2b200fc294b85e4c7713c8245b6d",
+        "backend_sha256": "9a1bf81d6e35e10ffe942452ec83b6243b3378a4d7969fd80db2d48187c80d62",
+        "cohort": "train",
+        "compatibility": {
+          "G01": {
+            "compatible": true,
+            "reasons": []
+          },
+          "G11": {
+            "compatible": true,
+            "reasons": []
+          },
+          "QG01": {
+            "compatible": true,
+            "reasons": []
+          }
+        },
+        "content_hash_scope": "Complete actual numeric robot/command/time/limits, both labels/masks/segments and tactile history; images protected by whole-file SHA and original collector acceptance",
+        "episode": "dagger_r01_G01_000",
+        "execution_content_sha256": "d37008a95749634ed1be8d6f6083bed7542c7a614fa123eae57c4246b132f4cd",
+        "exposure": {
+          "episodes": 1,
+          "history_ticks": 384,
+          "supervised_anchors": 28,
+          "supervised_ticks": 336,
+          "supervised_window_targets": 660
+        },
+        "family": "formal_051",
+        "frontend_sha256": "9b83e3193985a1361118c0b1648ca9b2a21f15b2adbe506405cb45a252de15d4",
+        "length": 384,
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/episodes/dagger_r01_G01_000/demonstration/data.h5",
+        "pool_partition": "train",
+        "pool_source": {
+          "group": "G01",
+          "round_index": 1,
+          "run_id": "tight_dagger_matched_20261112_01",
+          "source_backend_sha256": "9a1bf81d6e35e10ffe942452ec83b6243b3378a4d7969fd80db2d48187c80d62",
+          "source_frontend_sha256": "9b83e3193985a1361118c0b1648ca9b2a21f15b2adbe506405cb45a252de15d4",
+          "source_identity": "dagger_r01_G01_000"
+        },
+        "round_index": 1,
+        "seed": 32112000,
+        "source_collection_plan_sha256": "76601d7b7cec9767a0d10371888f902ade6733c3a5904a206caa19224c8e996d",
+        "source_group": "G01",
+        "source_sha256": "0997cdc7abafc881e57d420d6bf73806e67fbd1c38a35fc7ff49b55b36dd2783",
+        "split": "train",
+        "supervision_boundary": {
+          "first_24_valid_expert_ticks": [
+            48,
+            49,
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60,
+            61,
+            62,
+            63,
+            64,
+            65,
+            66,
+            67,
+            68,
+            69,
+            70,
+            71
+          ],
+          "first_backend_supervised_tick": 48,
+          "first_dp_supervised_anchor": 48,
+          "first_expert_label_tick": 48,
+          "queue_clean_tick": 48,
+          "takeover_tick": 46,
+          "valid_expert_ticks_before_first_dp_anchor": 0
+        },
+        "takeover_tick": 46,
+        "trajectory_kind": "expert_takeover_v1"
+      }
+    },
+    {
+      "identity": "tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_001__1999b7d540a9",
+      "partition": "dev",
+      "kind": "correction",
+      "source": "G01",
+      "cache": {
+        "QG01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/nominal/tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_001__1999b7d540a9.pt",
+          "sha256": "68eee2c07039dc0ddd4e45dfbb4b7c8a41d438100a9d66e793dde70af506de6a"
+        },
+        "G01": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/nominal/tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_001__1999b7d540a9.pt",
+          "sha256": "20b17a737a5e41575f652877499284b151a2ffbc3d9692d4a0ae5183886e6cfd"
+        }
+      },
+      "ticks": 297,
+      "valid_supervised_ticks": 225,
+      "recovery_initial48_ticks": 48,
+      "first_supervised_tick": 72,
+      "last_supervised_tick": 296,
+      "source_entry": {
+        "acquisition": {
+          "actual_takeover_tick": 70,
+          "event_seed": 33112001,
+          "native_success": true,
+          "seed": 32112001,
+          "takeover_reason": "registered_tick"
+        },
+        "admission_receipt_sha256": "caf692f9d792f8420acdc5474f1f5a9004c26e511de64a373823d659c08dd270",
+        "backend_sha256": "9a1bf81d6e35e10ffe942452ec83b6243b3378a4d7969fd80db2d48187c80d62",
+        "cohort": "correction_dev",
+        "compatibility": {
+          "G01": {
+            "compatible": true,
+            "reasons": []
+          },
+          "G11": {
+            "compatible": true,
+            "reasons": []
+          },
+          "QG01": {
+            "compatible": true,
+            "reasons": []
+          }
+        },
+        "content_hash_scope": "Complete actual numeric robot/command/time/limits, both labels/masks/segments and tactile history; images protected by whole-file SHA and original collector acceptance",
+        "episode": "dagger_r01_G01_001",
+        "execution_content_sha256": "d6e45ba6f38b605b9f8cc37abd6ddd08d9ebc22f3eb9c9504a12037d6585152f",
+        "exposure": {
+          "episodes": 1,
+          "history_ticks": 297,
+          "supervised_anchors": 19,
+          "supervised_ticks": 225,
+          "supervised_window_targets": 438
+        },
+        "family": "formal_005",
+        "frontend_sha256": "9b83e3193985a1361118c0b1648ca9b2a21f15b2adbe506405cb45a252de15d4",
+        "length": 297,
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/episodes/dagger_r01_G01_001/demonstration/data.h5",
+        "pool_partition": "correction_dev",
+        "pool_source": {
+          "group": "G01",
+          "round_index": 1,
+          "run_id": "tight_dagger_matched_20261112_01",
+          "source_backend_sha256": "9a1bf81d6e35e10ffe942452ec83b6243b3378a4d7969fd80db2d48187c80d62",
+          "source_frontend_sha256": "9b83e3193985a1361118c0b1648ca9b2a21f15b2adbe506405cb45a252de15d4",
+          "source_identity": "dagger_r01_G01_001"
+        },
+        "round_index": 1,
+        "seed": 32112001,
+        "source_collection_plan_sha256": "76601d7b7cec9767a0d10371888f902ade6733c3a5904a206caa19224c8e996d",
+        "source_group": "G01",
+        "source_sha256": "13496067f5ca6d60331a384af4cf4634fde851f0527912efa92c50ec5acc0059",
+        "split": "train",
+        "supervision_boundary": {
+          "first_24_valid_expert_ticks": [
+            72,
+            73,
+            74,
+            75,
+            76,
+            77,
+            78,
+            79,
+            80,
+            81,
+            82,
+            83,
+            84,
+            85,
+            86,
+            87,
+            88,
+            89,
+            90,
+            91,
+            92,
+            93,
+            94,
+            95
+          ],
+          "first_backend_supervised_tick": 72,
+          "first_dp_supervised_anchor": 72,
+          "first_expert_label_tick": 72,
+          "queue_clean_tick": 72,
+          "takeover_tick": 70,
+          "valid_expert_ticks_before_first_dp_anchor": 0
+        },
+        "takeover_tick": 70,
+        "trajectory_kind": "expert_takeover_v1"
+      }
+    }
+  ],
+  "models": {
+    "QG01": {
+      "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/training/best.pt",
+      "checkpoint_sha256": "8a3471f383adfc3bf81359102dfaa009c7d863cd30db5f863a0e5505322703c4",
+      "dp_checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/dp/training/best.pt",
+      "dp_sha256": "f25a3895135db02f9f9e23e1df3bea1f6711e7328f7c30d97503ee5e6fef0824",
+      "cache_index_sha256": "41bcad522682a6b26848cbb3c4cd2b406b52b0ae9d5485eed9ea9c6ae85657a9",
+      "data_sha256": "553d7f7faea848e741dd9176dc3c5072eac8ef0999ee8b2c9b23b1b73a79407a",
+      "command_statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "original_loss_id": "recovery_weighted_all_tick_equal_arm_hand_plus_1e-4_residual",
+      "dp_supervision": "q_reached",
+      "backend_supervision": "u_expert"
+    },
+    "G01": {
+      "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/training/best.pt",
+      "checkpoint_sha256": "1cf9201ab96bc2d7d8bab20f50108800a16fd13d42216d2b835b301039293ac4",
+      "dp_checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/dp/training/best.pt",
+      "dp_sha256": "2a3e9f2bc1feecbfbe3aa796c99b03fc47124adc27cc35744fd7d23fcc351946",
+      "cache_index_sha256": "757b88d7c77020bccd82f75e4c1d2cd8aa352fef07474d8156677ce31daad830",
+      "data_sha256": "ddc69b328e1eb74df8120c14e191f50067b495a95920f33397cd6d1f3902aaaf",
+      "command_statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "original_loss_id": "recovery_weighted_all_tick_equal_arm_hand_plus_1e-4_residual",
+      "dp_supervision": "u_expert",
+      "backend_supervision": "u_expert"
+    }
+  },
+  "test_episodes_read": 0,
+  "formal_optimizer_updates": 0,
+  "history": "Every current model replays the complete actual prefix from tick0; detached history is rebuilt after every optimizer update.",
+  "gradient_definition": "Autograd of command-scale-normalized equal Arm/Hand MSE only, before residual regularizer. Local gradients remove masked-weight/sum-weight reduction, so the threshold does not depend on episode length. Lost fraction denominator is explicitly all valid joint coordinates and separately errorful coordinates.",
+  "probe": {
+    "maximum_updates_per_group_per_loss": 200,
+    "lambda_pre": 1.0,
+    "learning_rate": 0.0003,
+    "weight_decay": 0.0001,
+    "optimizer": "fresh identical AdamW states per paired candidate",
+    "chunk_ticks": 32,
+    "train_ids": [
+      "formal_000_slow_1",
+      "formal_000_slow_3",
+      "tight_dagger_matched_20261112_01__QG01__r1__dagger_r01_QG01_000__daf458c79dfa",
+      "tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_000__85d38fde99a2"
+    ],
+    "selection": "fixed final update, never dev-selected",
+    "disposable": true
+  }
+}

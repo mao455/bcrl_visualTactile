@@ -1,6 +1,6 @@
 {
   "passed": true,
-  "scope": "CPU numeric replay of actual recorded targets/history; no new physics or success claim",
+  "scope": "Performance-only source rebinding: original numeric control replay retained; control/deployment math unchanged; new cache/DP implementation covered by separate real-input parity and CPU tests",
   "execution_adapter": {
     "version": "expert_reachable_postprocessed_v1",
     "input_space": "postprocessed_absolute_joint_target_rad",
@@ -42,13 +42,13 @@
     "visuotactile/position_control.py": "0e3026f3f0a2957a49fc542f95c16f743e80505721ea7b65351ab00365c45b4a",
     "visuotactile/expert_speed.py": "0431086bac241778ebbc0cad33c254e821c45f0e89f16e89001530f6596de2c6",
     "visuotactile/sim/expert_speed_environment.py": "3de63bfd85f6f187b49dffe3943bc0c4e5062f983fbda564413064f2e323febf",
-    "visuotactile/models/native_dp.py": "367776b5c990511f9a1ec5cbc78fe3f46580cc550b9c0515597bd0cea071fca1",
+    "visuotactile/models/native_dp.py": "87d15f36652e6c6e3be129ce768254c4cbfd31ba285323843ac1757dcd4a4815",
     "visuotactile/native_controller.py": "e4d9c53c5e8f90a1419dfb9be0abe80320d044eee9f6adc4432a98f046763767",
     "visuotactile/state_benchmark.py": "0f2b24d706cfe1884cb9e79a74dd7ebe9061039e579e607c22754ef2f75083e9",
-    "visuotactile/anchor_continue.py": "98bf0551d1b18d7c0848196dd8e536b70742e41db863633e0d8e48093c1bbd87",
+    "visuotactile/anchor_continue.py": "f5c32baff8c176490f86941716c139e1edc1b87e5ee81ffd20dd93d1fad3d402",
     "isaacsimenvs/tasks/play/utils/action_utils.py": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3",
-    "tools/tight_dagger.py": "a73e0f28122bc21e761729112d8d198951e5aaa12155b110e1840214bfeda37e",
-    "tools/tight_finish.py": "3214d8a3866ee596cdf0f1d6730f3274b725d38374bd81e3c8741aa31ad2c1b8"
+    "tools/tight_dagger.py": "5bd9a88e40b37a9d5a741ebd3489fba824ce223b8fa2b288b7eff1b69c76c49a",
+    "tools/tight_finish.py": "0a3f94b9f88b353a80b699115c61e87262adad8f81e6b2e8729d56269b31200b"
   },
   "data_manifest": {
     "path": "outputs/visuotactile/run/tight_dagger_pool_20261111_01/round_03/QG01/dp/state_data/data.json",
@@ -66,8 +66,51 @@
     {
       "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_model_acceptance.json",
       "sha256": "5d4418fe5e70da756a61d50690f7888205bb40b10c784fd09203bc1c7958658b"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/acceptance_tests.json",
+      "sha256": "4384c3c4feccecf8db7d561cb7a4308473a049fa25b96c4972a74cf25ba5004e"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/dp_benchmark.json",
+      "sha256": "9f0d59fc105170a273b04c44b73dc127c30bdc8bb6e3b896a5d4ab00ce5c49c1"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/cache_benchmark.json",
+      "sha256": "edd4c339ac0db18ea1d9c9c531062b1bd3cca7b1de464f20ac97642b6bfd0f3a"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/paired_dp_benchmark.json",
+      "sha256": "3d8a9ef0306649b50a8218359fdce799f55f40f8e612ec33e19b372f73c17bea"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/transformer_benchmark.json",
+      "sha256": "973e130ce08013b7b7aeafca04780cf3e86c0ce66dc855faf6be0e277763416d"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/io_benchmark.json",
+      "sha256": "333e222f6d5fe15608863371b2e1e47bb84d4cfa788004d2cae1aaafe48fe4e5"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/current_collection_control.json",
+      "sha256": "6d59e4e184265c100b659224ed662ab698cbff8f6108869d8b46db8a719000e5"
     }
   ],
   "backend_fit_gradient_verified": true,
-  "backend_model_check_scope": "Actual trained A r03 and B r02 weights; real Core and recovery initial inputs; CPU forward/backward only, zero optimizer updates"
+  "backend_model_check_scope": "Actual trained A r03 and B r02 weights; real Core and recovery initial inputs; CPU forward/backward only, zero optimizer updates",
+  "parent_acceptance": {
+    "path": "~/docs/bc+rl_RSS_dagger_perf/outputs/visuotactile/run/control_consistency_20261112_01/execution_acceptance.json",
+    "sha256": "7da38710140b2da71d582509a9ee27a5d0ce3c9c347bdf865972661bab7078d4"
+  },
+  "unchanged_control_sources": {
+    "visuotactile/position_control.py": "0e3026f3f0a2957a49fc542f95c16f743e80505721ea7b65351ab00365c45b4a",
+    "visuotactile/expert_speed.py": "0431086bac241778ebbc0cad33c254e821c45f0e89f16e89001530f6596de2c6",
+    "visuotactile/sim/expert_speed_environment.py": "3de63bfd85f6f187b49dffe3943bc0c4e5062f983fbda564413064f2e323febf",
+    "visuotactile/native_controller.py": "e4d9c53c5e8f90a1419dfb9be0abe80320d044eee9f6adc4432a98f046763767",
+    "visuotactile/state_benchmark.py": "0f2b24d706cfe1884cb9e79a74dd7ebe9061039e579e607c22754ef2f75083e9",
+    "isaacsimenvs/tasks/play/utils/action_utils.py": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3"
+  },
+  "performance_revision": "dagger_throughput_v1",
+  "new_control_replay_episodes": 0,
+  "utc": 1794473596.276302
 }
