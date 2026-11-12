@@ -1,3 +1,10 @@
+## 2026-11-13 追加自主修复：真实输出域、扩展配对与普通脚本接续
+
+- `residual_output.py`新增显式真实线性尾部；`native_dp/anchor_continue`分别绑定输出/loss/history身份，实际forward/objective/保存恢复接入。中心区旧行为，最终执行器/物理/A-B标签不变。`tight_execution_capacity`用原缓存计算实际v1含容差下界：A33.4600%、B0，最大.02618rad；不是旧raw数值匹配判据。
+- 初始旧/FY各200更新、各5745监督tick已实际完成；FY A/B dev比1.13893/1.18148，原门槛未过。`tight_execution_adaptive`实际开始old800/tail800配对，old800两组已各800更新/22954tick，尾部候选在训；条件下一候选reg0/LR1e-4/1600明确混合因素，失败不自动终止整个修复。
+- `tight_execution_follow`在隔离树接续全量后端、每组10完整策略验证及最多两轮12机会/组定向DAgger，后者更新DP/缓存/Transformer。启动仅等待本地短训，Git发布等待旧发布完成；原24h不重置。阶段实际曝光/未完成/技术失败保留；原模型不被候选覆盖。
+- 97项模型/输出/loss/训练/控制定向回归通过，另有follow编排测试。新文件不热改活动短训源码；旧WAITING服务已退出并归档原登记。当前未获得新完整学生自主结果，未推送源码；旧发布器仍活动。以下原“GPU尚未开始、唯一候选、双门槛硬停止”快照已过时。
+
 ## 2026-11-13 执行等价后端监督候选与有界后台队列
 
 - `visuotactile/execution_learning.py`新增稳定两倍FY、理想nested-box检查及实际v1容差原像/开放tanh可表达性；`models/native_dp.py`和`anchor_continue.py`实际训练调用接入独立loss身份，旧缺字段行为不变。输入为真实pre-action target、共同命令normalizer、原标签与合法mask；输出为主项/真实exec误差/正则和舍入量。没有改native动作、delay、减速、PD、A前端标签或output head。

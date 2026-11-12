@@ -1,3 +1,9 @@
+### 2026-11-13 自主修复补充：提案尾部与有界接续
+
+新 `output_contract=reachable_tanh_linear_tail_v1` 独立于loss/history/执行器版本。阈值c=atanh(.95)，中心z_c=clip(z,-c,c)，rad斜率k=max((scales/action_scale)*(1-.95²), upper-lower)。delta=scales*tanh(z_c)+action_scale*k*(z-z_c)。中心区数学及Tensor输出保持旧行为；尾部是真实线性导数，没有STE。提案域不再被旧归一化幅度截断，最终joint clamp和expert_reachable_postprocessed_v1完全保留。A/B同原则；历史缺字段仍用旧tanh。旧权重可显式热启动，output身份变更须实际训练后才能作开发验证，不作为旧模型静默解释。现有loss版本允许明确记录0到1e-4的残差正则权重，其他FY常量保持；缺字段旧行为不变。
+
+200更新是检查点，原门槛仍如实报告；允许有证据的后续800/1600更新与优化调整。新的完整数据适配来自原已训练配套pair，短探针权重不部署。完整自主仍每组10机会；必要时最多两轮定向纠偏，每轮12机会/组，均更新DP→重建其缓存→训练后端→完整学生开发。原24h绝对截止不变，任何等待/发布占用同一预算，test22隔离。所有候选与旧证据保留；开发候选没有覆盖受保护正式权重。
+
 ## 2026-11-13 执行学习修复覆盖（独立新任务）
 
 新授权覆盖已失败lambda1阶段不再探索的限制，旧matched run及原截止继续保护。数学和实际证据集中在[DAGGER_METHOD 4.2](DAGGER_METHOD.md#execution-learning-repair)。

@@ -1,10 +1,11 @@
 <!-- EXECUTION_LEARNING_STATUS_START -->
-## 2026-11-13 执行学习修复：机器状态
+## 2026-11-13 自主执行学习修复：实际状态
 
-状态 **WAITING / parent_workers_and_terminal_publication**；新 run `tight_execution_learning_20261113_01`，绝对截止 **2026-11-14T00:05:15.106664+08:00**。
-旧 matched run 的冻结源码及原截止不变；本轮只有一个FY候选，先配对200更新，双组门槛通过后才做共同预算后端重训与每组10次完整学生开发验证。
-短探针固定第一轮；后端正式适配复用旧run最新完整配套前端/缓存与共享数据快照，A仍学习q_reached、B仍学习u_expert。test22隔离；等待/启动不是训练或闭环完成。
-[数学、执行链与边界](DAGGER_METHOD.md#execution-learning-repair) · [实际状态](evidence/tight_execution_learning_20261113/status.json) · [诊断数值](evidence/tight_execution_learning_20261113/execution_summary.json) · [梯度图](evidence/tight_execution_learning_20261113/loss_and_parameter_gradients.png)。
+状态 **PREPARED / reviewed_follower_not_started**；原绝对截止 **2026-11-14 00:05:15 UTC+8** 不变。
+首个旧/FY各200更新已完成，FY的A/B dev执行误差比1.139/1.181，未通过原门槛。固定DP输出域下界占A归一化错误33.46%，B为0；据此比较保持共同执行器的线性尾部提案。
+配对延长、必要优化调整、完整混合数据后端训练、完整DP+Transformer开发评估分层记录；若闭环失败且剩余预算允许，最多两轮、每轮12机会/组的定向DAgger同时更新DP、缓存和后端。初始门槛失败不结束整个修复，也不改写旧结果。
+GPU工作与Git发布分别调度；未完成阶段不能称为成功。test22隔离、源数据和旧checkpoint保留。
+[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/adaptive/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/adaptive/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/adaptive/capacity.json)。
 <!-- EXECUTION_LEARNING_STATUS_END -->
 
 <!-- TIGHT_GRADIENT_DIAGNOSTIC_START -->
