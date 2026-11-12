@@ -204,7 +204,8 @@ def paired_probe(out):
             opt=torch.optim.AdamW(model.parameters(),lr=3e-4,weight_decay=1e-4);rows=[];began=time.time()
             for update,item in enumerate(sequence,1):
                 with lease.block():
-                    if active_parent_processes():raise RuntimeError('Parent process returned during repair GPU stage')
+                    if active_parent_processes() and not registration.get('allow_concurrent_parent_memory_safe',False):
+                        raise RuntimeError('Parent process returned during repair GPU stage')
                     r=records[item['identity']];a,b=item['start'],item['stop'];model.train()
                     prefix=[residual_batch([r],t,min(t+32,a),'cuda:0') for t in range(0,a,32)]
                     state=residual_prefix_state(model,prefix);inp=residual_batch([r],a,b,'cuda:0');z,_=model(inp,state)
