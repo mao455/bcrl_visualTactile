@@ -258,6 +258,13 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
         raise ValueError('Residual continuation source loss identity differs')
     if source_loss is not None and target_loss is None:
         raise ValueError('Residual continuation cannot silently discard explicit loss semantics')
+    from .residual_output import validate_output_contract
+    source_output=validate_output_contract(source.get('output_contract'))
+    target_output=getattr(model,'output_contract',None)
+    if saved.get('residual_output_version')!=(source_output or {}).get('version'):
+        raise ValueError('Residual continuation source output identity differs')
+    if source_output is not None and target_output is None:
+        raise ValueError('Residual continuation cannot silently discard output semantics')
     source_history=validate_residual_history_contract(source.get('history_contract'))
     target_history=getattr(model,'history_contract',None)
     if saved.get('residual_history_version')!=(source_history or {}).get('version'):
@@ -294,6 +301,8 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
         command_normalizer_unchanged=True,scale_adaptation=adaptation,
         execution_adapter_before=source.get('execution_adapter'),execution_adapter_after=execution_adapter,
         requires_training_before_deployment=adaptation is not None,optimizer_state_restored=False)
+    audit.update(output_contract_before=source_output,output_contract_after=target_output,
+        output_contract_changed=source_output!=target_output,requires_training_before_deployment=adaptation is not None or source_output!=target_output)
     if source_loss is not None or target_loss is not None:
         audit.update(loss_contract_before=source_loss,loss_contract_after=target_loss,
             loss_contract_changed=source_loss!=target_loss,
@@ -312,7 +321,7 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
         'next_episode_group','episode_order','supervised_ticks','control_ticks','contact_anchors','best','history')
     if any(k not in saved for k in required) or saved.get('configuration')!=configuration or saved.get('disposable'):
         raise ValueError('Invalid residual same-round restore identity or incomplete state')
-    for contract_key,version_key in (('loss_contract','residual_loss_version'),('history_contract','residual_history_version')):
+    for contract_key,version_key in (('loss_contract','residual_loss_version'),('history_contract','residual_history_version'),('output_contract','residual_output_version')):
         expected=getattr(model,contract_key,None)
         if configuration.get(contract_key)!=expected or saved.get(version_key)!=(expected or {}).get('version'):
             raise ValueError('Residual restore '+contract_key+' identity differs')
@@ -1039,7 +1048,7 @@ def residual_setup(root, *, selected=False, smoke=False):
         if not torch.equal(stats[key],base_stats[key]):raise ValueError('Residual/base robot normalization differs')
     scale=amplitudes['scales']
     torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,scale,execution_adapter=v.get('execution_adapter'),
-        loss_contract=v.get('loss_contract'),history_contract=v.get('history_contract'))
+        loss_contract=v.get('loss_contract'),history_contract=v.get('history_contract'),output_contract=v.get('output_contract'))
     configuration=dict(v,group=root.name,base_checkpoint=base['checkpoint'],base_sha256=base['sha256'],
         statistics_sha256=sha256(root/'state_data/statistics.pt'),data_sha256=sha256(root/'state_data/data.json'),
         residual_statistics_sha256=residual_statistics_sha256,residual_normalization_identity=residual_normalization_identity,
@@ -1064,8 +1073,8 @@ def residual_setup(root, *, selected=False, smoke=False):
             loss_id=('recovery_weighted_' if recovery else '')+model.loss_contract['version'],
             preclip_supervision='absolute composed command before joint limits and reachable projection; common command affine',
             loss_weight_normalization='both fits use per optimizer update actual masked weight sum; physical tick exposure remains unweighted')
-    from .execution_learning import PROJECTION_FY_LOSS
-    if model.loss_contract == PROJECTION_FY_LOSS:
+    from .execution_learning import is_projection_fy_loss
+    if is_projection_fy_loss(model.loss_contract):
         configuration.pop('preclip_supervision', None)
         configuration.update(main_supervision='twice ideal-box Fenchel-Young; <=1e-6 rad label roundoff explicit; actual v1 exec MSE diagnostic only',
             loss_weight_normalization='common command affine squared; equal Arm/Hand; legal recovery-weight sum denominator')
@@ -1234,6 +1243,7 @@ def residual_train(root, *, smoke=False, probe=False):
         return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
             **({'residual_loss_version':model.loss_contract['version']} if getattr(model,'loss_contract',None) else {}),
             **({'residual_history_version':model.history_contract['version']} if getattr(model,'history_contract',None) else {}),
+            **({'residual_output_version':model.output_contract['version']} if getattr(model,'output_contract',None) else {}),
             configuration=configuration,model=model.state_dict(),optimizer=opt.state_dict(),updates=updates,
             formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
             new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),

@@ -445,8 +445,14 @@ def validate_residual_loss_contract(value):
     """Absent identity preserves historical exec-only fitting, including its math."""
     if value is None:
         return None
-    from ..execution_learning import PROJECTION_FY_LOSS
-    if value == PROJECTION_FY_LOSS:
+    from ..execution_learning import PROJECTION_FY_LOSS,is_projection_fy_loss
+    if is_projection_fy_loss(value):
+        weight=value.get('regularizer_weight')
+        if (set(value)!=set(PROJECTION_FY_LOSS) or value.get('multiplier')!=2.
+                or value.get('idealization_tolerance_rad')!=1e-6
+                or isinstance(weight,bool) or not isinstance(weight,(int,float))
+                or not math.isfinite(weight) or not 0<=weight<=1e-4):
+            raise ValueError('Invalid explicit projection loss weights or rad tolerance')
         return dict(value)
     if (not isinstance(value, dict) or set(value) != {'version', 'lambda_pre'}
             or value['version'] != PRECLIP_RESIDUAL_LOSS_VERSION):
@@ -485,14 +491,16 @@ class TargetResidual(nn.Module):
                   'plan_valid', 'plan_cursor', 'previous_nominal',
                   'previous_nominal_valid', 'valid'}
 
-    def __init__(self, statistics, scales, *, execution_adapter=None, loss_contract=None, history_contract=None):
+    def __init__(self, statistics, scales, *, execution_adapter=None, loss_contract=None, history_contract=None, output_contract=None):
         super().__init__()
         from ..position_control import validate_execution_adapter
         self.execution_adapter = validate_execution_adapter(execution_adapter)
         self.loss_contract = validate_residual_loss_contract(loss_contract)
         self.history_contract = validate_residual_history_contract(history_contract)
-        from ..execution_learning import PROJECTION_FY_LOSS
-        if self.loss_contract == PROJECTION_FY_LOSS and self.execution_adapter is None:
+        from ..residual_output import validate_output_contract
+        self.output_contract=validate_output_contract(output_contract)
+        from ..execution_learning import is_projection_fy_loss
+        if (is_projection_fy_loss(self.loss_contract) or self.output_contract is not None) and self.execution_adapter is None:
             raise ValueError('Projection loss requires an explicit execution adapter')
         self.visual = nn.GRUCell(512, 64)
         self.tactile = FingerTactileEncoder()
@@ -609,7 +617,13 @@ class TargetResidual(nn.Module):
         the bounded correction in command-normalizer units, not a command.
         Observed contact remains diagnostic and never becomes a hard switch.
         """
-        delta = self.scales*raw.tanh()
+        from ..residual_output import proposal_delta
+        from ..execution_learning import is_projection_fy_loss,ideal_execution_bounds
+        bounds=None
+        if getattr(self,'output_contract',None) is not None or is_projection_fy_loss(self.loss_contract):
+            if previous is None:raise ValueError('Conditional proposal requires actual previous target')
+            bounds=ideal_execution_bounds(previous,limits,self.execution_adapter)
+        delta = proposal_delta(raw,self.scales,self.action_scale,bounds,getattr(self,'output_contract',None))
         u_pre = base+delta/self.action_scale
         u_joint = torch.maximum(torch.minimum(u_pre, limits[..., 1]), limits[..., 0])
         proposal = u_joint
@@ -619,9 +633,7 @@ class TargetResidual(nn.Module):
                 raise ValueError('Reachable residual composition requires real pre-action targets')
             proposal = project_processed_position_targets(proposal, previous, limits, self.execution_adapter)
         result = dict(raw=raw, delta=delta, u_pre=u_pre, u_joint=u_joint, u_exec=proposal)
-        from ..execution_learning import PROJECTION_FY_LOSS, ideal_execution_bounds
-        if self.loss_contract == PROJECTION_FY_LOSS:
-            result['execution_bounds'] = ideal_execution_bounds(previous, limits, self.execution_adapter)
+        if bounds is not None:result['execution_bounds']=bounds
         return result
 
     def compose(self, base, raw, contact, limits, *, previous=None):
@@ -641,8 +653,8 @@ class TargetResidual(nn.Module):
         denominator = valid.sum().clamp_min(1)
         loss_contract = getattr(self, 'loss_contract', None)
         pre_fit = torch.zeros_like(fit)
-        from ..execution_learning import PROJECTION_FY_LOSS, projection_fy_elements
-        if loss_contract == PROJECTION_FY_LOSS:
+        from ..execution_learning import is_projection_fy_loss, projection_fy_elements
+        if is_projection_fy_loss(loss_contract):
             if u_pre is None or execution_bounds is None:
                 raise ValueError('Projection loss needs real precommand and conditional execution bounds')
             elements, roundoff = projection_fy_elements(u_pre, target, execution_bounds, valid,
@@ -650,7 +662,7 @@ class TargetResidual(nn.Module):
             elements = elements*self.action_scale.square()
             fy = .5*elements[..., :7].mean(-1)+.5*elements[..., 7:].mean(-1)
             main = (fy*valid).sum()/denominator
-            regularizer = (1e-4*penalty*valid).sum()/denominator
+            regularizer = (loss_contract['regularizer_weight']*penalty*valid).sum()/denominator
             return dict(exec_fit=(fit*valid).sum()/denominator, fy_fit=main,
                 label_roundoff_max_rad=roundoff.max(), regularizer=regularizer, total=main+regularizer)
         if loss_contract is not None:
@@ -691,16 +703,19 @@ def load_residual(payload, device='cpu'):
     adapter = payload.get('configuration', {}).get('execution_adapter')
     loss_contract = payload.get('configuration', {}).get('loss_contract')
     history_contract = payload.get('configuration', {}).get('history_contract')
+    output_contract = payload.get('configuration', {}).get('output_contract')
+    if payload.get('residual_output_version') != (output_contract or {}).get('version'):
+        raise ValueError('Residual checkpoint output identity differs from configuration')
     if payload.get('residual_loss_version') != (loss_contract or {}).get('version'):
         raise ValueError('Residual checkpoint loss identity differs from configuration')
     if payload.get('residual_history_version') != (history_contract or {}).get('version'):
         raise ValueError('Residual checkpoint history identity differs from configuration')
     if cls is LegacyTargetResidual and adapter is not None:
         raise ValueError('Legacy GRU residual cannot acquire a new execution adapter')
-    if cls is LegacyTargetResidual and (loss_contract is not None or history_contract is not None):
+    if cls is LegacyTargetResidual and (loss_contract is not None or history_contract is not None or output_contract is not None):
         raise ValueError('Legacy GRU residual cannot acquire Transformer training semantics')
     kwargs = dict(execution_adapter=adapter, loss_contract=loss_contract,
-        history_contract=history_contract) if cls is TargetResidual else {}
+        history_contract=history_contract,output_contract=output_contract) if cls is TargetResidual else {}
     model = cls(state, state['scales'], **kwargs).to(device)
     model.load_state_dict(state)
     return model.eval()

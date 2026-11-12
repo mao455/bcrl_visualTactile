@@ -11,6 +11,10 @@ PROJECTION_FY_LOSS = dict(version='ideal_box_fy_roundoff_v1',
     idealization_tolerance_rad=1e-6, multiplier=2., regularizer_weight=1e-4)
 
 
+def is_projection_fy_loss(value):
+    return isinstance(value,dict) and value.get('version')==PROJECTION_FY_LOSS['version']
+
+
 def ideal_execution_bounds(previous, limits, adapter):
     from .position_control import reachable_position_bounds
     tolerance = adapter['roundoff_tolerance_rad']
