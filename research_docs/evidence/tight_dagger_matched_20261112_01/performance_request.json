@@ -1,0 +1,62 @@
+{
+  "version": "dagger_throughput_v1",
+  "prepared_source": "e60319d399e5cca7a312a0d747234f4bf8d68b81",
+  "prepared_parent": "78dc92f3429bf3efc16f6ab4e919a009df703be5",
+  "deployment_tree": "/home/CNS2025331827/docs/bc+rl_RSS_control_audit",
+  "owner": {
+    "pid": 1973241,
+    "start_ticks": 151045948
+  },
+  "boundary_stage": "r01_QG01_predictions",
+  "started": 1794453760.7487526,
+  "deadline": 1794540160.7487526,
+  "compute_deadline": 1794539560.7487526,
+  "configuration_sha256": "99ceddc791a542849cc8fae93728b0c80d835243320822a69fa0a09c9fe4788e",
+  "evaluation_plan_sha256": "c4c7d626ead04c6f572127d083c2c6a659594d84f7efdc39c97ff68d66fdf32f",
+  "acceptance": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS_dagger_perf/research_docs/evidence/tight_performance_20261112/performance_acceptance.json",
+    "sha256": "1222e523af0982352bd5eb853c2bd6adbccc58c5a178810abc0c45b05952ce4f"
+  },
+  "control_acceptance": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS_dagger_perf/research_docs/evidence/tight_performance_20261112/control_acceptance.json",
+    "sha256": "3e5b153f5d700f78a2aecf05467df71185af11436d831bfd6b712fe7c0d0a8a7"
+  },
+  "profile": {
+    "version": "dagger_throughput_v1",
+    "first_frontend_round": 2,
+    "parallel_frontends": true,
+    "frontend": {
+      "version": "fp32_legacy_rng_microbatch_v1",
+      "microbatch": 16,
+      "diffusion_rng_microbatch": 4,
+      "raw_frame_device_cache": true
+    },
+    "cache": {
+      "transfer_mode": "episode",
+      "scheduler_index_mode": "host"
+    },
+    "collection": {
+      "capture_compression": "lzf"
+    },
+    "process_environment": {
+      "frontend": {
+        "RESEARCH_THREADS": "2"
+      },
+      "cache": {
+        "RESEARCH_CPUS": "12,13",
+        "RESEARCH_THREADS": "2"
+      }
+    },
+    "frontend_process_environment": {
+      "QG01": {
+        "RESEARCH_CPUS": "16,17"
+      },
+      "G01": {
+        "RESEARCH_CPUS": "18,19"
+      }
+    }
+  },
+  "resume_service": "tight-dagger-matched-20261112-01-performance.service",
+  "authorization": "2026-11-12 user: whole GPU, measured implementation optimizations, continue same finite A/B protocol and push reviewed source; preserve current completed work and deadline",
+  "created": 1794473691.8873103
+}

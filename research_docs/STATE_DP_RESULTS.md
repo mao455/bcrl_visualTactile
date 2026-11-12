@@ -6,6 +6,8 @@
 
 性能短测保持正式学习语义：单DP更新1.228×、真实前端缓存1.489×、双DP计算并行1.935×；完整DAgger轮、采集及自主评估加速仍未测。实现与原始数值、A已完成曲线集中在 [性能与进展报告](DAGGER_PERFORMANCE.md)。已审阅代码先推送，普通后台交接在当前`r01_QG01_predictions`正常完成后保存/退出旧worker，再接续同run；第2轮才共同改变A/B的DP数值配置并启用双DP并行。原始绝对截止2026-11-13 11:22:40不变，不新开一轮预算。该带时间快照不代替下方自动发布的完整结果。
 
+16:55:27实际启动验收：原实验owner与普通交接service均active，A新DP缓存492/647条，原268个冻结源码文件未变。交接状态为`WAITING_REGISTERED_STAGE`，**尚未迁移性能版本**；原deadline不变。见[后台启动与当前阶段凭据](evidence/tight_dagger_matched_20261112_01/performance_startup_acceptance.json)及[冻结迁移请求](evidence/tight_dagger_matched_20261112_01/performance_request.json)。
+
 ## 2026-11-11 完整策略 A/B：原run安全边界修订
 
 后续活动矩阵已收敛为两个 **DP＋Transformer完整策略**。A使用本run首轮QG01选定pair，DP继续学习`q_reached`并保留既定手部几何软惩罚；B使用已训练G00/G01选定pair，DP学习`u_expert`。两组前端均为G00视觉/本体模态，触觉在同容量Transformer后端读取；最终组合命令均以`u_expert`监督。裸Q/QG继续训练和离线验证，不再独立采集或考核任务成功率。
