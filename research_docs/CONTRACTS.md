@@ -1,3 +1,15 @@
+## 2026-11-13 执行学习修复覆盖（独立新任务）
+
+新授权覆盖已失败lambda1阶段不再探索的限制，旧matched run及原截止继续保护。数学和实际证据集中在[DAGGER_METHOD 4.2](DAGGER_METHOD.md#execution-learning-repair)。
+
+新增后端显式loss `ideal_box_fy_roundoff_v1`：两倍稳定分段FY、共同action_scale²与Arm/Hand等权、原合法mask/恢复初48权重3、独立1e-4 delta正则。执行v1的1e-6rad容差分支不变，loss声明理想box近似；合法标签只允许≤1e-6rad端点舍入，超界报错，真实执行MSE仍对原标签。无STE、无第二delay/减速。
+
+历史沿用独立`current_weight_prefix_v1`，参数更新前重算实际完整prefix，prefix no_grad、仅当前32tick反传；旧checkpoint缺字段保持旧数学。output仍原有bounded tanh与容量，execution/head/history/loss身份分别记录；新增loss不套A的q_reached前端。训练/加载/恢复/离线/部署沿同一TargetResidual契约。
+
+新任务从2026-11-13 00:05:15起最多24h，23:55:15停止计算、11月14日00:05:15绝对终止；含准备等待，不重置旧截止。只登记单一候选的A/B各旧/新200更新。双组优化门槛通过后可依据实测吞吐登记共同1/3/6有效tick遍后端适配，再每组固定10完整学生开发机会；本轮新DAgger轮/采集预算为0。旧run最新完整共同轮的前后端/数据/缓存SHA分别绑定；不拼装不同DP后端、不删有效纠偏，test22不读取。
+
+普通后台等待原owner/worker和终局发布退出后才使用GPU/推送；数学通过不表示短训通过或闭环已完成。CPU原像分类明确区分执行不可达、极限/浮点饱和与非饱和稳定表达，不能再把raw命令超范围计数当执行不可达。
+
 # Tight-Insertion 现行合同：成功筛选的专家接管式 DAgger
 
 ## 2026-11-12 梯度快检的显式候选身份（未正式采用）

@@ -1,3 +1,12 @@
+<!-- EXECUTION_LEARNING_STATUS_START -->
+## 2026-11-13 执行学习修复：机器状态
+
+状态 **PREPARED / CPU_complete_GPU_not_started**；新 run `tight_execution_learning_20261113_01`，绝对截止 **2026-11-14T00:05:15.106664+08:00**。
+旧 matched run 的冻结源码及原截止不变；本轮只有一个FY候选，先配对200更新，双组门槛通过后才做共同预算后端重训与每组10次完整学生开发验证。
+短探针固定第一轮；后端正式适配复用旧run最新完整配套前端/缓存与共享数据快照，A仍学习q_reached、B仍学习u_expert。test22隔离；等待/启动不是训练或闭环完成。
+[数学、执行链与边界](DAGGER_METHOD.md#execution-learning-repair) · [实际状态](evidence/tight_execution_learning_20261113/status.json) · [诊断数值](evidence/tight_execution_learning_20261113/execution_summary.json) · [梯度图](evidence/tight_execution_learning_20261113/loss_and_parameter_gradients.png)。
+<!-- EXECUTION_LEARNING_STATUS_END -->
+
 # Tight-Insertion 研究入口
 
 **2026-11-12最新工作**：[DAgger性能实测与有限队列修订](DAGGER_PERFORMANCE.md)记录已测局部加速、未测完整轮收益及待安全边界接入状态。控制匹配run已实际采集，A第一轮前端完成；新配套后端和自主评估尚未完成。完整算法、控制与监督规则见 [DAGGER_METHOD](DAGGER_METHOD.md)，实际进程/阶段见 [交接](SESSION_HANDOFF.md)；专家接管成功不等于学生自主成功。

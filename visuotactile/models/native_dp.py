@@ -445,6 +445,9 @@ def validate_residual_loss_contract(value):
     """Absent identity preserves historical exec-only fitting, including its math."""
     if value is None:
         return None
+    from ..execution_learning import PROJECTION_FY_LOSS
+    if value == PROJECTION_FY_LOSS:
+        return dict(value)
     if (not isinstance(value, dict) or set(value) != {'version', 'lambda_pre'}
             or value['version'] != PRECLIP_RESIDUAL_LOSS_VERSION):
         raise ValueError('Unknown residual loss contract')
@@ -488,6 +491,9 @@ class TargetResidual(nn.Module):
         self.execution_adapter = validate_execution_adapter(execution_adapter)
         self.loss_contract = validate_residual_loss_contract(loss_contract)
         self.history_contract = validate_residual_history_contract(history_contract)
+        from ..execution_learning import PROJECTION_FY_LOSS
+        if self.loss_contract == PROJECTION_FY_LOSS and self.execution_adapter is None:
+            raise ValueError('Projection loss requires an explicit execution adapter')
         self.visual = nn.GRUCell(512, 64)
         self.tactile = FingerTactileEncoder()
         self.motion = nn.GRUCell(ROBOT_DIM, 64)
@@ -612,13 +618,17 @@ class TargetResidual(nn.Module):
             if previous is None:
                 raise ValueError('Reachable residual composition requires real pre-action targets')
             proposal = project_processed_position_targets(proposal, previous, limits, self.execution_adapter)
-        return dict(raw=raw, delta=delta, u_pre=u_pre, u_joint=u_joint, u_exec=proposal)
+        result = dict(raw=raw, delta=delta, u_pre=u_pre, u_joint=u_joint, u_exec=proposal)
+        from ..execution_learning import PROJECTION_FY_LOSS, ideal_execution_bounds
+        if self.loss_contract == PROJECTION_FY_LOSS:
+            result['execution_bounds'] = ideal_execution_bounds(previous, limits, self.execution_adapter)
+        return result
 
     def compose(self, base, raw, contact, limits, *, previous=None):
         chain = self.compose_chain(base, raw, contact, limits, previous=previous)
         return chain['u_exec'], chain['delta']
 
-    def objective_components(self, action, target, delta, valid, *, u_pre=None):
+    def objective_components(self, action, target, delta, valid, *, u_pre=None, execution_bounds=None):
         """Separate main fits from the historical residual regularizer.
 
         ``valid`` is the legal supervision mask or its recovery-weighted form.
@@ -631,6 +641,18 @@ class TargetResidual(nn.Module):
         denominator = valid.sum().clamp_min(1)
         loss_contract = getattr(self, 'loss_contract', None)
         pre_fit = torch.zeros_like(fit)
+        from ..execution_learning import PROJECTION_FY_LOSS, projection_fy_elements
+        if loss_contract == PROJECTION_FY_LOSS:
+            if u_pre is None or execution_bounds is None:
+                raise ValueError('Projection loss needs real precommand and conditional execution bounds')
+            elements, roundoff = projection_fy_elements(u_pre, target, execution_bounds, valid,
+                tolerance=loss_contract['idealization_tolerance_rad'])
+            elements = elements*self.action_scale.square()
+            fy = .5*elements[..., :7].mean(-1)+.5*elements[..., 7:].mean(-1)
+            main = (fy*valid).sum()/denominator
+            regularizer = (1e-4*penalty*valid).sum()/denominator
+            return dict(exec_fit=(fit*valid).sum()/denominator, fy_fit=main,
+                label_roundoff_max_rad=roundoff.max(), regularizer=regularizer, total=main+regularizer)
         if loss_contract is not None:
             if u_pre is None or u_pre.shape != action.shape:
                 raise ValueError('Preclip loss requires the unclipped absolute composed command')
@@ -643,7 +665,7 @@ class TargetResidual(nn.Module):
             pre_fit=(pre_fit*valid).sum()/denominator,
             regularizer=(1e-4*penalty*valid).sum()/denominator, total=total)
 
-    def objective(self, action, target, delta, valid, *, u_pre=None):
+    def objective(self, action, target, delta, valid, *, u_pre=None, execution_bounds=None):
         """Equal Arm/Hand command fitting; optional explicit preclip supervision."""
         if getattr(self, 'loss_contract', None) is None:
             # Keep the historical training path's reductions and arithmetic;
@@ -652,7 +674,7 @@ class TargetResidual(nn.Module):
             fit = .5*error[..., :7].mean(-1)+.5*error[..., 7:].mean(-1)
             penalty = .5*delta[..., :7].square().mean(-1)+.5*delta[..., 7:].square().mean(-1)
             return ((fit+1e-4*penalty)*valid).sum()/valid.sum().clamp_min(1)
-        return TargetResidual.objective_components(self, action, target, delta, valid, u_pre=u_pre)['total']
+        return TargetResidual.objective_components(self, action, target, delta, valid, u_pre=u_pre, execution_bounds=execution_bounds)['total']
 
 
 def load_residual(payload, device='cpu'):

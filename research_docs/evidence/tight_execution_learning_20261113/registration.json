@@ -1,0 +1,46 @@
+{
+  "version": "execution_learning_repair_v1",
+  "started_utc": 1794499515.106664,
+  "absolute_deadline": 1794585915.106664,
+  "compute_deadline": 1794585315.106664,
+  "parent_run": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01",
+  "source_manifest_sha256": "91056f4a130435b2e3db9e39f3eac1640d70b8b0ca54f45a84643573d79611e5",
+  "parent_deadline": 1794540160.7487526,
+  "loss_contract": {
+    "version": "ideal_box_fy_roundoff_v1",
+    "idealization_tolerance_rad": 1e-06,
+    "multiplier": 2.0,
+    "regularizer_weight": 0.0001
+  },
+  "history_contract": {
+    "version": "current_weight_prefix_v1"
+  },
+  "output_version": "target_residual_transformer60_v1",
+  "execution_adapter": {
+    "version": "expert_reachable_postprocessed_v1",
+    "input_space": "postprocessed_absolute_joint_target_rad",
+    "reference": "actual_pre_action_actuator_target_rad",
+    "control_dt": 0.016666666666666666,
+    "dof_speed_scale": 1.5,
+    "arm_moving_average": 0.1,
+    "hand_moving_average": 0.1,
+    "arm_progress": 0.5,
+    "hand_progress": 1.0,
+    "hand_target_cap_rad_s": 2.0,
+    "roundoff_tolerance_rad": 1e-06,
+    "delay": "already_resolved_in_supervision_no_second_queue"
+  },
+  "maximum_probe_updates": 200,
+  "maximum_new_dagger_rounds": 0,
+  "maximum_collection_opportunities": 0,
+  "proposed_backend_tick_epochs": 6,
+  "maximum_autonomous_development_per_group": 10,
+  "resource_policy": "full_gpu_v1",
+  "min_gpu_free_mib": 6144,
+  "min_ram_gib": 14,
+  "min_disk_gib": 60,
+  "test22_reads": 0,
+  "frontends_frozen": true,
+  "formal_retraining_requires_both_probe_gates": true,
+  "budget": "Preparation/waits included; no new GPU work while parent workers/owner active. Bound full backend work by measured replay throughput; never extend 24h."
+}

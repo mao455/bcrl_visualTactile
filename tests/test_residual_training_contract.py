@@ -470,3 +470,25 @@ def test_contact_phases_reuse_actions_and_mask_only_expert_error():
     assert all(r['raw_saturation_fraction'] is None for r in rows)
     missing=anchor_continue.contact_phase_metrics(pred,rec,identity='one',split='train')
     assert all(not r['force_zero_available'] and r['force_zero_output_rms_rad'] is None for r in missing)
+
+
+def test_actual_trainer_calls_projection_objective_and_persists_identity(trainer, monkeypatch):
+    from visuotactile.execution_learning import PROJECTION_FY_LOSS
+    root, _, model, _ = trainer
+    setup=anchor_continue.residual_setup(root)
+    for r in setup[3].values():r['target'].fill_(.005)
+    model.loss_contract=dict(PROJECTION_FY_LOSS);setup[5]['loss_contract']=dict(PROJECTION_FY_LOSS)
+    monkeypatch.setattr(anchor_continue,'residual_setup',lambda *a,**kw:setup)
+    def compose(base,raw,contact,limits):
+        pre=base+raw+1
+        bounds=torch.stack((torch.full_like(pre,-.01),torch.full_like(pre,.01)),-1)
+        return dict(u_exec=pre.clamp(-.01,.01),delta=raw,u_pre=pre,execution_bounds=bounds)
+    monkeypatch.setattr(model,'compose_chain',compose,raising=False)
+    monkeypatch.setattr(model,'objective_components',lambda *a,**kw:TargetResidual.objective_components(model,*a,**kw),raising=False)
+    anchor_continue.residual_train(root,probe=True)
+    saved=torch.load(root/'training_probe/last.pt',map_location='cpu',weights_only=False)
+    rows=[json.loads(r) for r in (root/'training_probe/loss.jsonl').read_text().splitlines()]
+    assert saved['residual_loss_version']==PROJECTION_FY_LOSS['version']
+    assert saved['configuration']['loss_contract']==PROJECTION_FY_LOSS
+    assert rows[0]['loss_components']['fy_fit']>rows[0]['loss_components']['exec_fit']
+    assert (saved['model']['weight']<0).all()

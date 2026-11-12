@@ -101,6 +101,130 @@ Arm1e-4rad/Hand1e-3rad误差容差下，误差存在但主拟合对u_pre局部�
 
 尚无可靠的同状态专家/旧学生/新学生配对恢复闭环证据。现有导出不包含完整PhysX/contact/broadphase/传感延迟内部状态，前缀重放偏差未专项量化；没有把记录后缀施加到另一偏离轨迹冒充专家对照。旧损失200更新已改善训练恢复初段拟合及运动方向，但隔离dev变化很小，不能据此声称自主恢复已学会。现阶段继续现有容量，主要待查是损失尺度/短探针泛化与恢复阶段覆盖；这些是下一步假设，不是新增调参或训练授权预算。
 
+<a id="execution-learning-repair"></a>
+## 4.2 2026-11-13：执行等价主监督修复（独立候选，效果待验）
+
+本次用户新授权覆盖4.1中已结束阶段的“不追加修复”限制，不能据此采用失败lambda1。
+隔离树`bc+rl_RSS_execution_fix`从远端`36587a3`建立；IDE旧树`3e11d62`及其中未提交文档不动。
+旧matched运行树HEAD为`8707757`，实际冻结源码仍`380a20b`，274文件SHA全部匹配。
+`session.cwd`继承了更早palm_eval目录，第一次检查误用它得到41个不匹配；保留该本地检查，
+随后依据活跃owner/worker `/proc/PID/cwd`定位perf树并重新核验0不匹配。
+Git HEAD、运行源码与session历史字段因此明确分开。旧run原截止2026-11-13 11:22:40不变。
+
+**执行映射。** 令环境/传感器状态为s，全部因果历史为h，
+`(u_exec,h_next)=Psi(s,h,u)`。专家native raw经[-1,1]裁剪、持续shadow队列与既定随机索引，
+再经Arm增量/Hand affine、EMA、关节限位，最后一次Arm progress .5/Hand1及Hand2rad/s目标cap。
+这些产生的postprocessed绝对rad命令与学生最终命令进入同一位置执行器、相同两个120Hz物理子步。
+标签已经delay/EMA/减速处理；新loss没有第二次delay、减速、PD或物理改变。
+学生的H24计划先做joint-limit clamp（缓存/部署相同），后端
+`delta=s*tanh(z)`，`x=u_pre=base+delta/action_scale`，再做joint clamp和可达映射。
+后端无接触硬门控；A前端既定手部几何是可微软惩罚，不是执行投影，也不是本轮后端标签。
+
+给定合法实际previous target p，Arm原生幅度1.5rad/s、dt=1/60、EMA=.1和progress=.5，
+远离关节边界时可达增量是±.00125rad；靠近边界按native两次clamp与EMA精确重建。
+Hand affine先映到joint范围、EMA=.1，再限制|目标-p|≤2/60rad。
+`reachable_position_bounds`是逐坐标单调native映射的端点像。新候选显式检查finite、previous在joint内、
+端点顺序和reachable⊆joint；只有≤1e-6rad端点舍入可与joint相交，真空/反向区间报错。
+退化区间是合法固定坐标，FY恒零；异常区间、非法previous、超容差专家标签不静默修补。
+理想嵌套box两个clamp因此可归约为一个clip，无非凸几何假设。
+
+**三层边界。** (1)相同最终命令、实际pre-action target和下游控制状态使用同一物理接口；
+已有双子步/实际issued与applied审计范围保留。(2)该可达box包含专家单步合法标签，有限tanh残差域
+是否覆盖目标另算，不能仅由输出29D或raw范围证明。(3)固定专家shadow队列与延迟索引后，
+选中非当前槽的动作受先前native建议约束；学生直接postprocessed输出并不等价于完整原生延迟策略。
+此项时间能力不对称仍明确存在，不宣称完整历史可达集合相同，也不靠重复delay“修复”。
+本轮选择已登记共同postprocessed接口进行条件监督，不改变队列、标签来源或已有实验解释。
+后端head的z/delta/u_pre不写回GRU/history；私有previous_nominal来自固定前端，实际反馈是最终issued/applied。
+固定同一网络内部状态、名义计划和真实输入历史时，执行等价命令不会因未裁剪x不同改变下一状态。
+不同网络参数/hidden仅单步输出相同不构成长期等价；PhysX/contact/broadphase和传感延迟隐藏态仍未导出。
+
+**候选目标与实际容差。** 保留执行`expert_reachable_postprocessed_v1`：当clip改变量≤1e-6rad时返回输入。
+它在阈值处可向下跳变，并非标准单调clip。精确边界原像有单点加严格外侧射线；其闭包距离为零
+不等于确实执行相同。新执行器没有被悄悄换成理想投影。独立loss版本`ideal_box_fy_roundoff_v1`
+显式使用理想clip P0；真实u_exec与原标签的MSE一直独立记录。
+监督y只有越界≤1e-6rad时允许数值规范化为ỹ=clip(y)，并记录最大改变量；超过即拒绝。
+这不是对不可达错误标签的重新标注，原始y/数据不修改，学生prefix mask=0不参与合法性监督。
+固定六轨迹实测y规范化最大1.49e-8rad，实际执行与理想P0最大9.99008e-7rad。
+
+单坐标使用两倍Fenchel–Young投影损失，以匹配旧MSE在内部的系数：
+
+\[
+p=P_0(x),\quad F(x,\tilde y)=(p-\tilde y)^2+2(x-p)(p-\tilde y),
+\qquad\partial_xF=2(p-\tilde y).
+\]
+
+等价于`(x-ỹ)^2-dist(x,box)^2`，但实际实现使用上述非负分段式，避免两大数相减。
+这是实际可微标量的导数，没有straight-through或自定义伪梯度。
+归约为`sum(w*[.5 meanArm(a²F)+.5 meanHand(a²F)])/sum(w)`，a是共同命令action_scale，
+w为合法mask且纠偏初48tick权重3。它替换主拟合项，实际exec-MSE只作诊断/选模，
+保留原`1e-4*(.5 meanArm(delta²)+.5 meanHand(delta²))`并单独记录。
+正则仍偏好小残差，确实区分执行等价的x；不能把总loss非零判作FY主项错误。
+
+理想执行等价时F=0；固定状态下真实执行相同的合法y亦落入所承认的等价/舍入情形。
+F=0保证实际执行误差≤2e-6rad的明确上界，不声称与非单调v1在阈值处完全一致。
+y为内部点时梯度在外侧为2(bound-y)，随着y接近边界连续趋零；恰为边界且在正确射线上时F=0。
+与精确原像距离平方相比，不会在接近边界时保留与巨大x偏差成比例的梯度或在边界标签处跳变。
+对无界x损失值仍可能随距离线性增长；这里保证纠错导数尺度，不宣称所有微小执行误差的F都相同。
+一般原理参见[Fenchel–Young losses](https://jmlr.org/papers/volume21/19-021/19-021.pdf)，
+此处性质由标量推导和实际Torch调用测试支持，不由文献推断机器人成功。
+
+**执行可表达性与梯度。** 按P(U_model)重算，U_model=(base-radius,base+radius)，radius=scales/a。
+分别检查有限logit开放域、仅tanh闭端点/浮点饱和、|tanh|≤.95的稳定表达区。
+另实现包含joint逆像及v1容差“单点+严格射线”的实际映射分类，避免把非闭集合距离当作可执行性。
+本批实际/理想分类计数相同：
+
+|组/部位|合法坐标|旧raw-range超界|真实执行不可达|仅极限可达|有限但需> .95 tanh|稳定可表达|
+|---|---:|---:|---:|---:|---:|---:|
+|A Arm|13111|23|23|0|11|13077|
+|A Hand|41206|473|467|0|47|40692|
+|B Arm|13111|0|0|0|0|13111|
+|B Hand|41206|0|0|0|0|41206|
+
+A原473中6项实际上在执行边界稳定可达；不能沿用旧473解释幅度需求。其余A490项仍不可达，
+FY不会拓展tanh域；本轮保留共同输出幅度和756581参数结构，先隔离损失效果，
+不声称已解决这些坐标的可表达性，也不把其小比例当作全部零成功根因。
+在超Arm1e-4/Hand1e-3rad错误坐标中，旧主项u_pre失效A2688/4562、B2831/4380，
+新FY均0且方向错误0。logit是不同层：按实际加权梯度≤1e-10计，A Hand仍41个近零，
+因此不宣称tanh/共享参数梯度处处非零。`previous.detach()`是固定历史条件监督，不是已证明的bug。
+
+**失败lambda1的机制证据。** 重用相同真实Core及恢复块，当前权重prefix相同：
+四个块中pre-MSE共享全参数梯度L2是旧主项约54–85倍（此前10–12倍仅指输出logit层）。
+pre与旧梯度cos为-.143至.113，FY与旧为.788至.951，FY范数约为旧1.36–1.72倍。
+匹配fresh AdamW单步中，pre使A Core和B恢复块实际MSE高于初始；FY与旧主项四块均下降。
+这些块未触发全局norm1裁剪，正则参数范数约4.3e-6–1.18e-5，旧主项约6.95e-4–1.20e-3。
+分别按Core/初48/后段、Arm/Hand、训练/dev记录正确执行分量所受logit压力、真实错误方向及三层梯度。
+这能说明“强pre信号不等同正确执行信号”，不证明大样本泛化或闭环失败的完整因果链。
+CPU单步使用独立内存模型，不落正式checkpoint，原lambda1的200更新结果不重跑/不采用。
+
+**验证与有限接续。** 测试覆盖内部正确、正确外侧射线、错误边界、内部目标、近/正边界、
+两级clamp、degenerate/非法区间、容差阈值两侧、tanh饱和、实际表达反例、checkpoint契约、
+实际trainer loss调用及当前权重prefix。光滑FY可中心差分；v1跳变明确用分支值测试。
+新loss缺字段仍为历史行为；执行/head不变，loss/history分别绑定checkpoint/restore/continuation。
+历史复用已有`current_weight_prefix_v1`，prefix no_grad、当前32tick反传，不重新发明历史实现。
+原固定六轨迹已有标签/时序/issued/applied/双物理子步审计复用，不能外推全库；teacher-forced和自主
+状态分布、接触前/接触/抬升恢复覆盖仍是独立未解决因素。
+
+新root `outputs/visuotactile/run/tight_execution_learning_20261113_01`，
+开始2026-11-13 00:05:15、计算截止23:55:15、绝对截止2026-11-14 00:05:15（UTC+8），准备与等待计入。
+先等待旧owner/worker及其终局报告退出；GPU不能与原正式双前端争抢，源代码推送亦等旧发布后安全合并。
+同六轨迹、同起点/顺序/合法mask/normalizer/Arm-Hand归约/新AdamW、相同当前权重prefix，
+旧loss与FY每组各200更新；不以pre-MSE选模。采用门槛两组共同为dev执行MSE比≤1.02、
+Core≤1.05、初48 Hand方向下降≤1个百分点、tanh饱和率增加≤1个百分点。
+这是开发用重复诊断集，不是独立泛化检验，也不是自动强制采用数学正确的loss。
+
+通过后以旧run最新完整共同轮的前端/后端/全量合法快照和严格SHA配套缓存作正式起点，
+独立登记该来源与第一轮probe起点的区别。两组继续全部Core及该快照的合法纠偏；不删后续未完成轮数据。
+冻结DP，只做后端适配：根据实测prefix吞吐两倍保守估计与至少2h评估/I/O预留，
+在6、3、1有效tick遍中按时间确定最大共同预算，训练前冻结，不根据dev结果追加。
+先完成两组并核验真实曝光一致，再执行每组原登记10个完整DP+Transformer自主开发机会。
+固定曝光endpoint，validation-best另留；test22隔离，不新增DAgger轮/采集，不把后端适配称为完整DAgger。
+若短训不通过、资源/标签/软件门控失败或预算不足，保存实际结果退出，不递归追加probe或重置24h。
+
+普通脚本`tools.tight_execution_learning`负责等待、阶段推进、有限停止及小报告发布；
+只推origin/feature/tight-state-foundation，不force。原数据/初始化/当前/恢复权重和历史成败保留本机，
+完整命令NPZ索引仍见上一诊断publication。新短训权重不可部署，正式重训checkpoint才可进开发验证。
+数学验收、优化门槛和物理闭环三层分别报告，实际状态见STATE_DP_RESULTS页首与本轮机器JSON。
+
 ## 5. 聚合、两阶段更新与公平预算
 
 原Core train166、全部合格旧纠偏和本轮新纠偏持续累积，按内容SHA去重；correction-dev在整episode采集计划中预登记并永久隔离。原validation30用于开发，test22不参与采集、训练、选模或本次评估。同轮A/B读同一不可变快照，采集率不同如实保留，拒绝或失败不补seed。

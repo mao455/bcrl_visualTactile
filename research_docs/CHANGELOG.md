@@ -1,3 +1,10 @@
+## 2026-11-13 执行等价后端监督候选与有界后台队列
+
+- `visuotactile/execution_learning.py`新增稳定两倍FY、理想nested-box检查及实际v1容差原像/开放tanh可表达性；`models/native_dp.py`和`anchor_continue.py`实际训练调用接入独立loss身份，旧缺字段行为不变。输入为真实pre-action target、共同命令normalizer、原标签与合法mask；输出为主项/真实exec误差/正则和舍入量。没有改native动作、delay、减速、PD、A前端标签或output head。
+- `tools/tight_execution_learning.py`复用上一固定清单/NPZ与已有prefix实现，记录三层梯度和共享参数单步。新增普通脚本负责有限配对probe、门槛后最新共同快照的后端适配/开发及安全发布；新24h包含准备等待，旧run不变。测试覆盖真实trainer、边界/退化/容差/tanh/不可表达、版本与阶段防重跑。
+- 实测固定六轨迹：FY错误坐标u_pre零梯度/错误方向均0；A实际不可表达Arm23/Hand467，B0，旧A Hand473中6项其实执行可表达。A Hand有41个加权logit梯度仍≤1e-10，未声称所有梯度恢复。共享参数pre项约旧54–85倍，FY约1.36–1.72倍；单步结果和范围见DAGGER_METHOD。GPU短训、正式后端与自主闭环尚未开始，后台需等待旧owner及报告退出。
+- CPU 100项定向测试通过（5.72秒，已有requests依赖警告）。原数据/模型SHA绑定；runtime实际274源码哈希匹配。初查误用历史session.cwd的结果本机保留并以活跃PID/cwd重查纠正。没有继续旧日期清理或推送大数据。
+
 ## 2026-11-12 — 真实裁剪梯度快检、最小监督候选与否定结果
 
 - 隔离`bc+rl_RSS_gradient_diag`，实际新A/B第一轮均0/10、lift3/1；正式第二轮继续原配置。固定6episode/1873合法tick真实模型检查发现大量有误差但主拟合梯度为零的分量；旧网络并非全部无梯度，执行误差优于hold。原始逐阶段数值集中`evidence/tight_gradient_20261112`。

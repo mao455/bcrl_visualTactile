@@ -1,3 +1,9 @@
+# 2026-11-13 最新覆盖：执行学习修复
+
+用户授权独立loss修复、200更新配对短训、门槛后有限后端适配与每组10完整学生开发，覆盖失败lambda1后的阶段限制。读DAGGER_METHOD 4.2和STATE_DP_RESULTS页首。新root tight_execution_learning_20261113_01，24h从00:05:15 UTC+8开始，计算23:55:15、绝对11月14日00:05:15，不重置。旧matched owner/worker及原11:22:40截止、源码和数据只读。先等其终局报告完成，再安全合并和推唯一origin/feature/tight-state-foundation；提前推源码会触发旧发布器的远端允许路径守卫，禁止这样做。
+
+FY主项显式声明理想box与1e-6rad容差，执行器不变，无STE。原head/scales/两种前端标签保持；当前权重prefix复用已有history版本。六轨迹检查不代表泛化。新run没有采集/新DAgger轮预算；短训旧/FY两臂同历史/初始化/曝光，双组门槛通过后按吞吐确定1/3/6共同有效tick遍，随后固定开发10/组，失败不递归追加。普通service负责等待/阶段/发布，Codex仅一次启动核验后返回，不对话轮询。旧清理请求不再延续；保护全部原始证据。
+
 # Play2Perfect / Tight-Insertion：现行工作约定
 
 ## 最新覆盖 — 2026-11-12 裁剪梯度快检（候选未采用）

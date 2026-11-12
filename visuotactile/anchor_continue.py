@@ -1064,6 +1064,11 @@ def residual_setup(root, *, selected=False, smoke=False):
             loss_id=('recovery_weighted_' if recovery else '')+model.loss_contract['version'],
             preclip_supervision='absolute composed command before joint limits and reachable projection; common command affine',
             loss_weight_normalization='both fits use per optimizer update actual masked weight sum; physical tick exposure remains unweighted')
+    from .execution_learning import PROJECTION_FY_LOSS
+    if model.loss_contract == PROJECTION_FY_LOSS:
+        configuration.pop('preclip_supervision', None)
+        configuration.update(main_supervision='twice ideal-box Fenchel-Young; <=1e-6 rad label roundoff explicit; actual v1 exec MSE diagnostic only',
+            loss_weight_normalization='common command affine squared; equal Arm/Hand; legal recovery-weight sum denominator')
     if model.history_contract is not None:
         configuration.update(history_contract=model.history_contract,
             history='full actual causal prefix replayed with current backend parameters before each supervised chunk; prefix no_grad; 32tick loss gradient')
@@ -1309,7 +1314,8 @@ def residual_train(root, *, smoke=False, probe=False):
                             recovery_prefix_weight=recovery['backend_weight'],loss_weight_mass_is_exposure=False)
                     if getattr(model,'loss_contract',None):
                         components=model.objective_components(action,residual_aux(selected,start,end,'target',device),
-                            delta,loss_mask,u_pre=chain['u_pre'])
+                            delta,loss_mask,u_pre=chain['u_pre'],
+                            **({'execution_bounds':chain['execution_bounds']} if 'execution_bounds' in chain else {}))
                         loss=components['total']
                         weight_report['loss_components']={k:float(value.detach()) for k,value in components.items() if k!='total'}
                     else:
