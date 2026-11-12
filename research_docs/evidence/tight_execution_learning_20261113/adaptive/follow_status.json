@@ -1,6 +1,8 @@
 {
-  "state": "RUNNING",
-  "stage": "awaiting_adaptive_probe_dependency",
-  "utc": 1794509080.5704646,
-  "pid": 2482909
+  "state": "FAILED",
+  "stage": "technical_or_budget_stop",
+  "utc": 1794510290.7764385,
+  "pid": 2482909,
+  "error": "RuntimeError('Bounded stage failed: QG01_formal_train')",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_execution_fix/tools/tight_execution_follow.py\", line 337, in run\n    run_child(root,group+'_formal_train',['-m','visuotactile.anchor_continue','residual-train','--root',str(dest/group)],reg['compute_deadline']-21600)\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_execution_fix/tools/tight_execution_learning.py\", line 342, in run_child\n    if code!=0:raise RuntimeError('Bounded stage failed: '+name)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Bounded stage failed: QG01_formal_train\n"
 }

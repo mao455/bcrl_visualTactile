@@ -1,0 +1,331 @@
+{
+  "chosen": {
+    "name": "tail_tuned1600",
+    "loss_contract": {
+      "version": "ideal_box_fy_roundoff_v1",
+      "idealization_tolerance_rad": 1e-06,
+      "multiplier": 2.0,
+      "regularizer_weight": 0.0
+    },
+    "output_contract": {
+      "version": "reachable_tanh_linear_tail_v1",
+      "tanh_threshold": 0.95,
+      "tail_span_gain": 1.0
+    },
+    "lr": 0.0001,
+    "clip": 1.0,
+    "updates": 1600
+  },
+  "comparisons": {
+    "QG01": {
+      "dev_exec_ratio": 0.9885680131517043,
+      "core_exec_ratio": 0.4247993874220927,
+      "recovery_hand_direction_difference": -0.003469210754553309,
+      "saturation_fraction_difference": -0.0018410442402930945,
+      "pass_all": true,
+      "tail_note": "For linear tails, |tanh(z)|>=.95 marks tail occupancy, not vanishing tail gradient"
+    },
+    "G01": {
+      "dev_exec_ratio": 1.1654448160638584,
+      "core_exec_ratio": 0.9434962873944696,
+      "recovery_hand_direction_difference": 0.002601908065914982,
+      "saturation_fraction_difference": 1.841044240293094e-05,
+      "pass_all": false,
+      "tail_note": "For linear tails, |tanh(z)|>=.95 marks tail occupancy, not vanishing tail gradient"
+    }
+  },
+  "paired_probe_passed": false,
+  "next_stage": "Full mixed-data conditional adaptation from protected original trained pair; disposable weights never deployed",
+  "candidate_status": "research candidate, not replacement of protected original model",
+  "results": {
+    "old800": {
+      "QG01": {
+        "summary": {
+          "dev": 0.34615955643307467,
+          "core": 0.15129549572752282,
+          "train": 0.40444230570082934,
+          "direction": 0.9627059843885516,
+          "saturation": 0.014912458346374063
+        },
+        "checkpoints": [
+          {
+            "update": 200,
+            "summary": {
+              "dev": 0.3412825850310264,
+              "core": 0.17276740324526252,
+              "train": 0.46491360455122466,
+              "direction": 0.9496964440589766,
+              "saturation": 0.01579615958171475
+            }
+          },
+          {
+            "update": 400,
+            "summary": {
+              "dev": 0.3509250567717985,
+              "core": 0.1655429494385789,
+              "train": 0.44276076973742473,
+              "direction": 0.9592367736339983,
+              "saturation": 0.01504133144319458
+            }
+          },
+          {
+            "update": 800,
+            "summary": {
+              "dev": 0.34615955643307467,
+              "core": 0.15129549572752282,
+              "train": 0.40444230570082934,
+              "direction": 0.9627059843885516,
+              "saturation": 0.014912458346374063
+            }
+          }
+        ],
+        "updates": 800,
+        "supervised_ticks": 22954,
+        "optimization_wall_s": 223.9681839942932,
+        "gradient_clip_fraction": 0.0,
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive/old800/QG01/probe.pt",
+        "sha256": "a31dfa113e9fd8f0febc5dbcf833e8f80bc52ee23f02d06f0130a778cd6f1039"
+      },
+      "G01": {
+        "summary": {
+          "dev": 0.3151965192700555,
+          "core": 0.06457849635512798,
+          "train": 0.17239981269850943,
+          "direction": 0.9609713790112749,
+          "saturation": 0.0
+        },
+        "checkpoints": [
+          {
+            "update": 200,
+            "summary": {
+              "dev": 0.31161072628887054,
+              "core": 0.08142272944187189,
+              "train": 0.23400945225488634,
+              "direction": 0.9549002601908065,
+              "saturation": 0.00014728353922344753
+            }
+          },
+          {
+            "update": 400,
+            "summary": {
+              "dev": 0.3114261543620136,
+              "core": 0.07188316378984358,
+              "train": 0.19550759308402993,
+              "direction": 0.9627059843885516,
+              "saturation": 0.0
+            }
+          },
+          {
+            "update": 800,
+            "summary": {
+              "dev": 0.3151965192700555,
+              "core": 0.06457849635512798,
+              "train": 0.17239981269850943,
+              "direction": 0.9609713790112749,
+              "saturation": 0.0
+            }
+          }
+        ],
+        "updates": 800,
+        "supervised_ticks": 22954,
+        "optimization_wall_s": 225.25402283668518,
+        "gradient_clip_fraction": 0.0,
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive/old800/G01/probe.pt",
+        "sha256": "1c49c380be515639918120c947f6a701f39fe8d703303e1b1e64445f86345ea6"
+      }
+    },
+    "tail800": {
+      "QG01": {
+        "summary": {
+          "dev": 0.3542761517833773,
+          "core": 0.07317829802148529,
+          "train": 0.16161376496099614,
+          "direction": 0.9635732870771899,
+          "saturation": 0.012150891985934421
+        },
+        "checkpoints": [
+          {
+            "update": 200,
+            "summary": {
+              "dev": 0.33115305313719556,
+              "core": 0.10006492553496515,
+              "train": 0.2522686285559427,
+              "direction": 0.9392888117953165,
+              "saturation": 0.014231271977465619
+            }
+          },
+          {
+            "update": 400,
+            "summary": {
+              "dev": 0.3381765280765566,
+              "core": 0.0837166059230055,
+              "train": 0.2003683383129053,
+              "direction": 0.9496964440589766,
+              "saturation": 0.013163466318095623
+            }
+          },
+          {
+            "update": 800,
+            "summary": {
+              "dev": 0.3542761517833773,
+              "core": 0.07317829802148529,
+              "train": 0.16161376496099614,
+              "direction": 0.9635732870771899,
+              "saturation": 0.012150891985934421
+            }
+          }
+        ],
+        "updates": 800,
+        "supervised_ticks": 22954,
+        "optimization_wall_s": 250.06785893440247,
+        "gradient_clip_fraction": 0.0,
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive/tail800/QG01/probe.pt",
+        "sha256": "48965fdd987e809fcec4a6477b59ec70673c2c672ce2a19382e17874e423cf0c"
+      },
+      "G01": {
+        "summary": {
+          "dev": 0.38170506282673256,
+          "core": 0.06191988959424682,
+          "train": 0.16094647663609163,
+          "direction": 0.9670424978317432,
+          "saturation": 0.0
+        },
+        "checkpoints": [
+          {
+            "update": 200,
+            "summary": {
+              "dev": 0.36816248782704786,
+              "core": 0.078582141282303,
+              "train": 0.2553723202413553,
+              "direction": 0.9496964440589766,
+              "saturation": 0.0
+            }
+          },
+          {
+            "update": 400,
+            "summary": {
+              "dev": 0.36216553353837555,
+              "core": 0.07017396724262795,
+              "train": 0.19793838120440577,
+              "direction": 0.9549002601908065,
+              "saturation": 0.0
+            }
+          },
+          {
+            "update": 800,
+            "summary": {
+              "dev": 0.38170506282673256,
+              "core": 0.06191988959424682,
+              "train": 0.16094647663609163,
+              "direction": 0.9670424978317432,
+              "saturation": 0.0
+            }
+          }
+        ],
+        "updates": 800,
+        "supervised_ticks": 22954,
+        "optimization_wall_s": 242.7138876914978,
+        "gradient_clip_fraction": 0.0,
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive/tail800/G01/probe.pt",
+        "sha256": "d861f2620c268f2f08b156db7b7e1225ccf8e866212218599a6ec98cebba6613"
+      }
+    },
+    "tail_tuned1600": {
+      "QG01": {
+        "summary": {
+          "dev": 0.3422022649365199,
+          "core": 0.06427023390477354,
+          "train": 0.1445911829178403,
+          "direction": 0.9592367736339983,
+          "saturation": 0.013071414106080969
+        },
+        "checkpoints": [
+          {
+            "update": 200,
+            "summary": {
+              "dev": 0.30914924978339053,
+              "core": 0.11530557090972926,
+              "train": 0.28992358204461155,
+              "direction": 0.9280138768430182,
+              "saturation": 0.015335898521641475
+            }
+          },
+          {
+            "update": 400,
+            "summary": {
+              "dev": 0.319326298831442,
+              "core": 0.10172915289347823,
+              "train": 0.2526338186671401,
+              "direction": 0.9358196010407632,
+              "saturation": 0.014396965959091996
+            }
+          },
+          {
+            "update": 1600,
+            "summary": {
+              "dev": 0.3422022649365199,
+              "core": 0.06427023390477354,
+              "train": 0.1445911829178403,
+              "direction": 0.9592367736339983,
+              "saturation": 0.013071414106080969
+            }
+          }
+        ],
+        "updates": 1600,
+        "supervised_ticks": 45924,
+        "optimization_wall_s": 478.7360589504242,
+        "gradient_clip_fraction": 0.0,
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive/tail_tuned1600/QG01/probe.pt",
+        "sha256": "305c05d5f6c5770a8975ba42db4da6010262edf4a4aca26455ae54b2c26b2587"
+      },
+      "G01": {
+        "summary": {
+          "dev": 0.3673441494246582,
+          "core": 0.060929571556580533,
+          "train": 0.1513817716184278,
+          "direction": 0.9635732870771899,
+          "saturation": 1.841044240293094e-05
+        },
+        "checkpoints": [
+          {
+            "update": 200,
+            "summary": {
+              "dev": 0.35714915820530485,
+              "core": 0.08537772290602133,
+              "train": 0.28654280503873125,
+              "direction": 0.9392888117953165,
+              "saturation": 0.0
+            }
+          },
+          {
+            "update": 400,
+            "summary": {
+              "dev": 0.354982364438958,
+              "core": 0.08046987725349217,
+              "train": 0.25346886237188204,
+              "direction": 0.9462272333044233,
+              "saturation": 0.0
+            }
+          },
+          {
+            "update": 1600,
+            "summary": {
+              "dev": 0.3673441494246582,
+              "core": 0.060929571556580533,
+              "train": 0.1513817716184278,
+              "direction": 0.9635732870771899,
+              "saturation": 1.841044240293094e-05
+            }
+          }
+        ],
+        "updates": 1600,
+        "supervised_ticks": 45924,
+        "optimization_wall_s": 484.0199863910675,
+        "gradient_clip_fraction": 0.0,
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive/tail_tuned1600/G01/probe.pt",
+        "sha256": "d3b3126a77da09ccc958d3669d74ebfc1ed1aa070a7bc88bd5a2d541eb761a57"
+      }
+    }
+  },
+  "reason": "Capacity bottleneck demonstrated; broader legal mixture tests whether fixed-six conflict generalizes; first gate failure is not terminal"
+}

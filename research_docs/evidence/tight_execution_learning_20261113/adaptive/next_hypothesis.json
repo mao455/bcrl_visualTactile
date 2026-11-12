@@ -1,0 +1,40 @@
+{
+  "observed": {
+    "QG01": {
+      "dev_exec_ratio": 1.0234475553237308,
+      "core_exec_ratio": 0.48367796853170364,
+      "recovery_hand_direction_difference": 0.0008673026886383273,
+      "saturation_fraction_difference": -0.0027615663604396417,
+      "pass_all": false,
+      "tail_note": "For linear tails, |tanh(z)|>=.95 marks tail occupancy, not vanishing tail gradient"
+    },
+    "G01": {
+      "dev_exec_ratio": 1.2110065926828766,
+      "core_exec_ratio": 0.9588313926316736,
+      "recovery_hand_direction_difference": 0.006071118820468291,
+      "saturation_fraction_difference": 0.0,
+      "pass_all": false,
+      "tail_note": "For linear tails, |tanh(z)|>=.95 marks tail occupancy, not vanishing tail gradient"
+    }
+  },
+  "hypothesis": "Large normalized tail residual regularization and larger FY update can conflict with real execution/Core; remove non-equivalence penalty and reduce optimizer step",
+  "changes": {
+    "name": "tail_tuned1600",
+    "loss_contract": {
+      "version": "ideal_box_fy_roundoff_v1",
+      "idealization_tolerance_rad": 1e-06,
+      "multiplier": 2.0,
+      "regularizer_weight": 0.0
+    },
+    "output_contract": {
+      "version": "reachable_tanh_linear_tail_v1",
+      "tanh_threshold": 0.95,
+      "tail_span_gain": 1.0
+    },
+    "lr": 0.0001,
+    "clip": 1.0,
+    "updates": 1600
+  },
+  "not_a_single_variable_FY_claim": true,
+  "comparison_budget_difference": "1600 candidate versus 800 old: exposure difference explicit"
+}
