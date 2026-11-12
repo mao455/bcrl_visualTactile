@@ -605,7 +605,7 @@ Finite evaluation/video queue finished; no additional starts；索引：`/home/C
 <!-- tight-dagger-pool-results:start -->
 ## 2026-11-11 DAgger：共享持久纠偏池与多轮增量续训
 
-本轮 owner 状态为 **RUNNING**；产物核验尚不完整。以下按已有凭据整理，缺失项不记为零成功。
+本轮 owner 状态为 **COMPLETE**；产物核验完整。以下按已有凭据整理，缺失项不记为零成功。
 
 |组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|
 |---|---:|---:|---:|---:|---:|---:|
@@ -613,8 +613,8 @@ Finite evaluation/video queue finished; no additional starts；索引：`/home/C
 |round_01/QG01 (A / historical)|32 / 32|27 / 32|27 / 8260 / 698|804 / 8.029|12212 / 12.000|0 / 10 / 10|
 |round_02/G01 (B / historical)|48 / 48|37 / 48|37 / 10173 / 869|800 / 5.930|17504 / 12.002|0 / 4 / 10|
 |round_02/QG01 (A / historical)|96 / 96|71 / 96|71 / 19632 / 1666|800 / 5.930|17504 / 12.002|0 / 4 / 10|
-|round_03/G01 (B / active)|0 / 0|0 / 0|0 / 0 / 0|未测 / 未测|未测 / 未测|未测 / 0 / 10|
-|round_03/QG01 (A / active)|3 / 96|2 / 3|2 / 569 / 48|未测 / 未测|未测 / 未测|未测 / 0 / 10|
+|round_03/G01 (B / active)|96 / 96|90 / 96|90 / 24271 / 2061|800 / 4.080|24112 / 12.005|0 / 4 / 10|
+|round_03/QG01 (A / active)|96 / 96|90 / 96|90 / 27132 / 2300|800 / 4.080|24112 / 12.005|0 / 4 / 10|
 
 旧池 CPU 读回准入 21 条成功纠偏；同轮实际调度的组使用共同不可变快照，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。
 [池与快照身份](evidence/tight_dagger_pool_20261111_01/pool_identity.json) · [各轮选择与决定](evidence/tight_dagger_pool_20261111_01/round_decisions.json)。
@@ -628,7 +628,7 @@ A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1，历史和本轮曝光不
 
 采集成功包含专家接管，不等于学生自主成功；只接纳成功专家纠偏会产生选择偏差。学生前缀保留作真实历史，不监督；前端沿各组既有监督语义续训，后端监督仍为 `u_expert`。
 自主列为预登记十次开发机会；非法、软件中断、模型身份未核验和未启动均单列保留，不替换样本，也不作为正式 test22 成功率。
-整卡时间加权利用率：26.013%；资源样本 44746 条，>8s 内部缺口 1222.658s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
+整卡时间加权利用率：26.925%；资源样本 77753 条，>8s 内部缺口 1222.658s。这不是每进程利用率；头尾未覆盖时间及原 monitor 汇总见机器结果。
 
 [原始机器结果](evidence/tight_dagger_pool_20261111_01/summary.json) · [采集逐次记录](evidence/tight_dagger_pool_20261111_01/collection.csv) · [自主逐次记录](evidence/tight_dagger_pool_20261111_01/closed_loop.csv) · [两阶段曝光](evidence/tight_dagger_pool_20261111_01/training_stages.csv) · [权重/视频本地索引](evidence/tight_dagger_pool_20261111_01/local_artifacts.json)。
 
