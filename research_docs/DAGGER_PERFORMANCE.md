@@ -1,5 +1,7 @@
 # Tight-Insertion：DAgger 吞吐实测与有限队列修订
 
+**19:17更新：同run性能交接已于17:05:40完成，优化版owner正在运行。A第一轮已完成两部分训练和10次自主开发评估（0成功、3原生lift、2稳定抓持诊断、10超时），B正在前端训练。第一轮B保持micro4匹配A；micro16与双DP并行尚待第2轮。** [最新运行与逐例结果](STATE_DP_RESULTS.md)。以下16时基准和“待接入”文字保留为当时快照，不代表当前仍未交接。
+
 本轮在 `bc+rl_RSS_dagger_perf` 隔离树完成真实数据吞吐探针与局部实现优化。**已测得单组DP更新1.228×、前端预测缓存1.489×、双组DP计算并行1.935×；尚未测得完整采集、完整DAgger轮次或自主评估的加速比。** 队列接入仍等待当前已分配阶段正常结束及自有worker退出，不能把准备代码或短探针写成正式加速运行完成。
 
 沿用 `tight_dagger_matched_20261112_01` 的数据、已完成训练与绝对截止：2026-11-13 **11:22:40 北京时间**，末10分钟留给发布。探针目录 `outputs/visuotactile/run/tight_performance_20261112_01` 仅存可丢弃测量，不能据其新名称重获实验预算。A仍为q_reached＋既定手部软几何＋Transformer，B仍为u_expert＋同容量Transformer；完整学生、标签/mask、H24/commit12、5/60/120Hz、固定DINO、监督曝光和开发协议见 [DAGGER_METHOD](DAGGER_METHOD.md)。

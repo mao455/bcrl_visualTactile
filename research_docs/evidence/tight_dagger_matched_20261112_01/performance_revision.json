@@ -1,0 +1,58 @@
+{
+  "version": "dagger_throughput_v1",
+  "previous_source": "78dc92f3429bf3efc16f6ab4e919a009df703be5",
+  "source_head": "380a20bccbaecfebfb186a65e7041cc0df493ad6",
+  "stage_receipts": {
+    "phase0_G01_cache.json": "3f456ec105cb0ab20dc2927564915897c73e89bd6745899511d30bf4595b5f3b",
+    "r01_QG01_input_check.json": "d85eb63a9e6af1a0d67e7562e0aa1d780df468992940ef9ba91c086004b7efcf",
+    "round_01_QG01_collect.json": "e5d7c0c7dcdb73a2c904f4bfe72ab49e8f24b90b4daa9cba96442b884f8709ff",
+    "phase0_QG01_backend.json": "0cf5c1c54846ca05d8fa0f2ff0e15b874750f8da138172652925caad8cdc0571",
+    "r01_QG01_predictions.json": "8cc1f91a91f45a12deeedb7c004981f3e7e7a1b780d5366960d073d0caa362ca",
+    "phase0_G01_backend.json": "c16caee62eeb4963acd76d94b9b455c290f649514a39e3924305cc08a30bc8b5",
+    "phase0_QG01_cache.json": "0971e0a5e8735a7b9fe883e437d8760f1d304910de99c89f83c4ecfc15629eaf",
+    "r01_QG01_frontend.json": "65a4a061f522e965314d3c805d1e080df31dcdffac29f7831fa6f8c93af695d2",
+    "round_01_G01_collect.json": "82ef80ff689d53ca68601c446f396509429364aeaf249e67a1fd9565baa76402",
+    "r01_QG01_features.json": "f641b4bccb25fd628726af525451296e41f84ec2659c09ce324c329322e04691"
+  },
+  "acceptance": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS_dagger_perf/research_docs/evidence/tight_performance_20261112/performance_acceptance.json",
+    "sha256": "1222e523af0982352bd5eb853c2bd6adbccc58c5a178810abc0c45b05952ce4f"
+  },
+  "profile": {
+    "version": "dagger_throughput_v1",
+    "first_frontend_round": 2,
+    "parallel_frontends": true,
+    "frontend": {
+      "version": "fp32_legacy_rng_microbatch_v1",
+      "microbatch": 16,
+      "diffusion_rng_microbatch": 4,
+      "raw_frame_device_cache": true
+    },
+    "cache": {
+      "transfer_mode": "episode",
+      "scheduler_index_mode": "host"
+    },
+    "collection": {
+      "capture_compression": "lzf"
+    },
+    "process_environment": {
+      "frontend": {
+        "RESEARCH_THREADS": "2"
+      },
+      "cache": {
+        "RESEARCH_CPUS": "12,13",
+        "RESEARCH_THREADS": "2"
+      }
+    },
+    "frontend_process_environment": {
+      "QG01": {
+        "RESEARCH_CPUS": "16,17"
+      },
+      "G01": {
+        "RESEARCH_CPUS": "18,19"
+      }
+    }
+  },
+  "utc": 1794474332.9852493,
+  "deadline_reset": false
+}

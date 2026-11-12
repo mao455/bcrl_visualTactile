@@ -1,0 +1,185 @@
+{
+  "utc": 1794482280.369189,
+  "local_time": "2026-11-12T19:18:00.369191+08:00",
+  "state": "RUNNING",
+  "active_stage": {
+    "name": "r01_G01_frontend",
+    "pid": 2199649,
+    "deadline": 1794488103.940489,
+    "utc": 1794482279.2743418,
+    "active_stages": [
+      {
+        "name": "r01_G01_frontend",
+        "pid": 2199649,
+        "deadline": 1794488103.940489,
+        "utc": 1794482279.2743418
+      }
+    ]
+  },
+  "source_head": "380a20bccbaecfebfb186a65e7041cc0df493ad6",
+  "handoff": {
+    "state": "RUNNING",
+    "utc": 1794474340.0775137,
+    "pid": 2168374,
+    "source_head": "380a20bccbaecfebfb186a65e7041cc0df493ad6",
+    "owner": {
+      "pid": 2173822,
+      "start_ticks": 153410815,
+      "utc": 1794474335.2497733,
+      "original_deadline": 1794540160.7487526
+    },
+    "deadline": 1794540160.7487526,
+    "no_new_run": true,
+    "completed_stage_receipts_preserved": true
+  },
+  "deadline": 1794540160.7487526,
+  "source_frozen_verified": true,
+  "A": {
+    "round": 1,
+    "complete": true,
+    "dp_updates": 1355,
+    "backend_updates": 28192,
+    "pair": {
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/dp/training/best.pt",
+      "frontend_sha256": "f25a3895135db02f9f9e23e1df3bea1f6711e7328f7c30d97503ee5e6fef0824",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/training/best.pt",
+      "backend_sha256": "8a3471f383adfc3bf81359102dfaa009c7d863cd30db5f863a0e5505322703c4",
+      "frontend_updates": 1355,
+      "backend_updates": 28192,
+      "supervision": "q_reached",
+      "modality": "G00",
+      "data_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_transformer_20261110_02/configuration/state_data",
+      "statistics_sha256": "d6b65e41ca99262958c386516b37e7d34981eb9241b9b109b028c8ce9926c2ef",
+      "scales": [
+        0.20000000298023224,
+        0.20000000298023224,
+        0.20000000298023224,
+        0.20000000298023224,
+        0.20000000298023224,
+        0.20000000298023224,
+        0.20000000298023224,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421,
+        0.8999999761581421
+      ],
+      "residual_statistics_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_pool_20261111_01/round_03/QG01/command_statistics/statistics.pt",
+      "residual_statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+      "normalization_identity": "q_reached_train166_affine_v1",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "strategy_role": "A",
+      "geometry": true,
+      "evaluation_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation"
+    },
+    "evaluation": {
+      "valid": 10,
+      "successes": 0,
+      "subgoals": 0,
+      "lifts": 3,
+      "falls": 0,
+      "dropped": 0,
+      "timeouts": 10
+    },
+    "stable_grasp_diagnostic": 2,
+    "object_contact": 10,
+    "result_sources": [
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_000/result.json",
+        "sha256": "d64c8b1bc252bc3169b176986e95cf98336adafd2f646b9793e0602d0943c9f0"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_001/result.json",
+        "sha256": "5d6a97a3eb74173ef6adeb5fc39dbb1c7a0b5c0ca492140d8bf37028ae43db40"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_002/result.json",
+        "sha256": "f8fd20c7596faa823c0bc57512e67c88f0bd2644fbddf8e8da871598a95a8dfa"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_003/result.json",
+        "sha256": "ac557fcfeb08b29ee6264cbb8e1c07510fa5d7994e1a041cf9c3f99c38f30fd3"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_004/result.json",
+        "sha256": "afe97d577035f48b2232b25e6d9e1818c25d623cd5c481b7bd05cbf91f8a4ea0"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_005/result.json",
+        "sha256": "e780e9d63f95dde70033f712198aabb04eebae77f328a54ebab3e4e64a9d069d"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_006/result.json",
+        "sha256": "af9c8e5ae9786be38312a4d11c175856453aa3d81f65b0477f9cbad84578e3b2"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_007/result.json",
+        "sha256": "0bec61b9377b7f71cc8b5107c6d5e20ee51ede7d4a3a94040320342ddc8847f8"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_008/result.json",
+        "sha256": "65ecaa8c24ea165b130e66f0b10ddf914c73358b28f2529ff30c04b01976c517"
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/evaluation/palm_fresh_009/result.json",
+        "sha256": "fecb1371c55472baeb359ffa2ad0fee7cde2fbca5aa81cec34c2e86f95cbab64"
+      }
+    ]
+  },
+  "B": {
+    "round": 1,
+    "dp_progress": {
+      "update": 921,
+      "target": 1355,
+      "loss": 0.0017262989495065995,
+      "anchor_equivalent_epochs": 4.08001661244549,
+      "seconds_per_update": 4.901148557662964,
+      "remaining_seconds_estimate": 2342.7331562275217,
+      "estimated_completion_utc": 1794484623.0376434,
+      "utc": 1794482280.2922356
+    },
+    "backend_complete": false,
+    "autonomous_evaluation": "not_started"
+  },
+  "warnings": [
+    {
+      "stage": "A autonomous evaluation",
+      "message": "OgnSdOnNewFrame: frames discarded",
+      "utc": "2026-11-12T09:42:15Z",
+      "impact": "not specially audited; ten numeric trials completed"
+    }
+  ],
+  "historical_errors": "Old owner publication refusal after remote advanced was handled by handoff. Earlier rear STOP interruption recovered; not a new training failure.",
+  "performance_scope": "same-run migration complete; first-round B DP remains legacy to match A. Exact cache applies to B preparation; both DP micro16/rawcache and parallel training begin round2.",
+  "test22_used": false
+}
