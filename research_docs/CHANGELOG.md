@@ -5,6 +5,8 @@
 - 实测固定六轨迹：FY错误坐标u_pre零梯度/错误方向均0；A实际不可表达Arm23/Hand467，B0，旧A Hand473中6项其实执行可表达。A Hand有41个加权logit梯度仍≤1e-10，未声称所有梯度恢复。共享参数pre项约旧54–85倍，FY约1.36–1.72倍；单步结果和范围见DAGGER_METHOD。GPU短训、正式后端与自主闭环尚未开始，后台需等待旧owner及报告退出。
 - CPU 100项定向测试通过（5.72秒，已有requests依赖警告）。原数据/模型SHA绑定；runtime实际274源码哈希匹配。初查误用历史session.cwd的结果本机保留并以活跃PID/cwd重查纠正。没有继续旧日期清理或推送大数据。
 
+- 启动核验：`tight-execution-learning-20261113-01.service` active，PID2406625，冻结源码`bf7d9ee8de097e421092a2e171d2ac90f8b47198`的279文件哈希通过；状态WAITING/parent_workers_and_terminal_publication，gpu_started=false。新计算截止11月13日23:55:15、绝对11月14日00:05:15（UTC+8）。后台无自动restart，等待旧发布完成才推新源码；当前尚未推送，不将等待称作已训练。
+
 ## 2026-11-12 — 真实裁剪梯度快检、最小监督候选与否定结果
 
 - 隔离`bc+rl_RSS_gradient_diag`，实际新A/B第一轮均0/10、lift3/1；正式第二轮继续原配置。固定6episode/1873合法tick真实模型检查发现大量有误差但主拟合梯度为零的分量；旧网络并非全部无梯度，执行误差优于hold。原始逐阶段数值集中`evidence/tight_gradient_20261112`。
