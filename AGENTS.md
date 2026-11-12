@@ -1,5 +1,15 @@
 # Play2Perfect / Tight-Insertion：现行工作约定
 
+## 最新覆盖 — 2026-11-12 控制一致性与配对持续实验
+
+用户最新附件授权证据驱动修复和有限继续，覆盖下文旧run结束后不得继续的限制。读 [DAGGER_METHOD](research_docs/DAGGER_METHOD.md) 和最新交接。合法旧run `tight_dagger_pool_20261111_01` 按原冻结源码和13:24:31截止完成；新树 `bc+rl_RSS_control_audit` 准备 `tight_dagger_matched_20261112_01`，旧owner/worker退出并发布后才接续，不热改。
+
+已确认旧学生可超专家同历史目标可达集合。新显式 `expert_reachable_postprocessed_v1` 共同用于训练和部署；post-speed专家u标签不重复减速/delay，A标签必须来自实际专家执行后态。保留native物理/PD/资产、旧合法数据/normalizer/负结果，不能把新控制约束称为已证实成功收益。
+
+新有限安排：先双组后端共同控制/幅度适配6有效tick遍（phase0不算DAgger轮），再最多2个完整配对轮次；各48配对机会、共享快照、DP6有效anchor遍→新DP缓存→rear12有效tick遍、固定10开发机会。共同Arm.2/Hand.9幅度、共同曝光endpoint配套；历史初始化仍不同，validation-best单独保存。两组未完整完成或实际曝光不匹配，不得单组进入更多轮。test22隔离。
+
+旧owner退出及验收后，新admission开始24h绝对计时，CPU准备、等待和末10min发布均计入，不重设旧deadline或递归追加。普通service顺序推进；首2次正常采集内做实际新执行链验收。注册等待、CPU验证、真实GPU启动与闭环完成分别报告。只推origin/feature/tight-state-foundation，大数据/视频/权重留本地。
+
 先读 [研究方向](research_docs/USER_RESEARCH_DIRECTION.md)、[合同](research_docs/CONTRACTS.md)、[交接](research_docs/SESSION_HANDOFF.md) 和 [实际结果](research_docs/STATE_DP_RESULTS.md)。当前授权与实现配置位于 `configs/tight_state.json` 的 `dagger`；历史结果不构成重启旧队列的指令。
 
 ## 当前覆盖 — 2026-11-12 零成功时仅追加一轮

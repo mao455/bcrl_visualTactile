@@ -165,6 +165,8 @@ class ResidualController:
         self.base=NativeController(base,metadata,dino,device)
         self.model=self.base.model.eval().requires_grad_(False)
         self.residual=load_residual(saved,device).requires_grad_(False)
+        from .position_control import validate_execution_environment
+        validate_execution_environment(getattr(self.residual,'execution_adapter',None),metadata)
         normalizers=('robot_mean','robot_std','action_scale','action_offset')
         if self.residual.version==TargetResidual.version:
             from pathlib import Path
@@ -218,7 +220,10 @@ class ResidualController:
         residual_measured=self.timings.begin('residual_forward_compose',tick)
         raw,self.state=self.residual(inputs,self.state)
         gate=packet['contact_valid'][0].bool()&(packet['contact_w_N'][0].norm(dim=-1).amax()>.1)
-        command,delta=self.residual.compose(nominal.to(self.device),raw[:,0],gate.reshape(1).to(self.device),self.base.limits.to(self.device))
+        compose_kwargs = (dict(previous=inputs['robot'][:,0,58:87])
+            if self.residual.version==TargetResidual.version else {})
+        command,delta=self.residual.compose(nominal.to(self.device),raw[:,0],gate.reshape(1).to(self.device),
+            self.base.limits.to(self.device),**compose_kwargs)
         self.nominal=nominal;self.delta=delta.cpu();self.contact_gate=bool(gate)
         # This is the base prediction issued at t, separate from the mixed
         # submitted command that the next acknowledgement puts in robot178.
@@ -232,6 +237,11 @@ class ResidualController:
             clip_mask=(unbounded<self.base.limits[:,0])|(unbounded>self.base.limits[:,1]),
             tanh_fraction=self.delta.abs()/self.residual_scales_cpu,
             contact_valid=packet['contact_valid'][0].cpu().bool())
+        if getattr(self.residual,'execution_adapter',None) is not None:
+            bounded = bounded_targets(unbounded,self.base.limits)
+            self.residual_diagnostics.update(execution_projection_rad=self.command-bounded,
+                execution_preprojection_target_rad=bounded,
+                execution_previous_target_rad=inputs['robot'][:,0,58:87].cpu())
         # Actual submitted mixed targets, never private base targets, become
         # strict-past history after the real environment acknowledgement.
         self.base.command=self.command

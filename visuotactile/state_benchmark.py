@@ -86,12 +86,15 @@ def dagger_policy_identity(saved, checkpoint):
         supervision = 'u_expert'; inference = 'legacy_v4_command_contract'
     if supervision not in ('u_expert', 'q_reached'):
         raise ValueError('DAgger complete policy requires known frontend supervision')
+    from .position_control import validate_execution_adapter
+    adapter = validate_execution_adapter(cfg.get('execution_adapter'))
     return dict(version='complete_student_policy_v1', controller='ResidualController',
         frontend=str(frontend.resolve()), frontend_sha256=cfg['base_sha256'],
         backend=str(Path(checkpoint).resolve()), backend_sha256=sha256(checkpoint),
         residual_version=saved['residual_version'], supervision=supervision, supervision_inference=inference,
         modality=contract.get('modality'), output='absolute_joint_position_target_rad',
         composition='bounded nominal plus Transformer correction; actual issued/applied feedback',
+        execution_adapter=adapter,
         zero_correction_is_valid=True)
 
 
@@ -180,6 +183,9 @@ def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True):
     pair = expected_pair or identity
     if pair is None:
         raise ValueError('Historical DAgger capture requires its explicit paired checkpoint ledger')
+    adapter = (identity or pair).get('execution_adapter')
+    if 'execution_adapter' in pair and pair['execution_adapter'] != adapter:
+        raise ValueError('DAgger recorded execution adapter differs from expected pair')
     for name in ('frontend', 'backend'):
         if identity is not None and (Path(identity[name]).resolve() != Path(pair[name]).resolve()
                 or identity[name+'_sha256'] != pair[name+'_sha256']):
@@ -223,6 +229,13 @@ def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True):
         match('issued_to_applied', issued, applied); match('applied_to_actuator_target', applied, target)
         match('trace_issued', arrays['command'], issued)
         match('expert_command_to_applied', data['u_expert'][:][valid], target[valid])
+        if adapter is not None:
+            from .position_control import project_processed_position_targets
+            metadata=json.loads(stream.attrs['metadata_json'])
+            previous=torch.from_numpy(transition['target_before_rad'][:])
+            limits=torch.tensor(metadata['joint_limits_rad'][0])
+            projected=project_processed_position_targets(torch.from_numpy(target),previous,limits,adapter)
+            match('new_shared_reachable_command_identity',target,projected.numpy())
         match('q_reached_to_observed_after', data['q_reached'][:], transition['diagnostics_after/joint_position_rad'][:])
         match('physics_substep_targets', transition['actuator_substep_target_rad'][:],
             np.repeat(target[:, None], transition['actuator_substep_target_rad'].shape[1], axis=1))
@@ -255,6 +268,13 @@ def record_dagger_transition(controller, transition, previous_nominal):
         raise ValueError('DAgger target was not applied at every physics substep')
     if expert.any() and not torch.equal(target[expert], value['expert_mapped_target_rad'][expert]):
         raise ValueError('DAgger expert mapping differs from actual actuator target')
+    adapter=getattr(getattr(controller,'residual',None),'execution_adapter',None)
+    if adapter is not None:
+        from .position_control import project_processed_position_targets
+        projected=project_processed_position_targets(target,transition['target_before_rad'],
+            controller.base.limits.to(target.device),adapter)
+        if not torch.equal(projected,target):
+            raise ValueError('DAgger actual command violates shared expert reachable targets')
     reached = transition['diagnostics_after']['joint_position_rad']
     if not torch.isfinite(reached).all():
         raise ValueError('Nonfinite actual reached configuration')
@@ -276,6 +296,9 @@ def record_dagger_transition(controller, transition, previous_nominal):
         previous_nominal=torch.zeros_like(nominal) if previous_nominal is None else previous_nominal.to(target.device).clone(),
         previous_nominal_valid=torch.full_like(expert, previous_nominal is not None),
         actual_issued=requested.clone(), actual_applied=applied.clone())
+    if adapter is not None:
+        value.update({key:controller.residual_diagnostics[key].to(target.device).clone() for key in
+            ('execution_projection_rad','execution_preprojection_target_rad','execution_previous_target_rad')})
     # During the expert suffix the student's proposal remains a diagnostic.
     # Its next history must contain the command the position executor received.
     controller.base.command = requested.detach().cpu().clone()
@@ -470,6 +493,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             atomic_json(output/'result.json', result)
             return result
         metadata = env.research_metadata(); metadata['config'] = env.cfg.to_dict()
+        if saved is not None and saved.get('configuration',{}).get('execution_adapter') is not None:
+            from .position_control import validate_execution_environment
+            metadata['execution_adapter']=saved['configuration']['execution_adapter']
+            validate_execution_environment(metadata['execution_adapter'],metadata)
         metadata['env_origins_w'] = env.scene.env_origins.cpu().tolist()
         metadata['expert_model_sha256'] = sha256(checkpoint if expert_checkpoint is None else expert_checkpoint)
         if expert_checkpoint is not None:
@@ -648,6 +675,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                         residual_clip_mask=take(diagnostics['clip_mask']),
                         residual_tanh_fraction=take(diagnostics['tanh_fraction']),
                         residual_contact_valid=np.asarray(bool(diagnostics['contact_valid'])))
+                    if 'execution_projection_rad' in diagnostics:
+                        rows[-1].update({key:take(diagnostics[key]) for key in
+                            ('execution_projection_rad','execution_preprojection_target_rad','execution_previous_target_rad')})
             if tick % 100 == 0:
                 atomic_json(output/'progress.json', dict(tick=tick, utc=time.time()))
             if first_success_tick is not None or bool((terminated | truncated)[0]):

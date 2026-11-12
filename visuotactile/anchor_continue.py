@@ -218,14 +218,30 @@ def trained_source_updates(saved):
     return trained_continuation_updates(saved)
 
 
-def load_residual_continuation(model, saved, statistics_sha256):
-    """Reuse every Transformer parameter and fixed action/delta buffer exactly."""
+def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptation=None):
+    """Reuse trained parameters; only explicit pre-deployment adaptation changes bounds."""
     if saved.get('residual_version')!=model.version or trained_source_updates(saved)<1 or saved.get('disposable',False):
         raise ValueError('Selected trained Transformer checkpoint required')
     source=saved.get('configuration',{})
     if source.get('residual_statistics_sha256')!=statistics_sha256:
         raise ValueError('Residual continuation command statistics changed')
-    state=saved['model']
+    state=dict(saved['model']);adaptation=None
+    if scale_adaptation is not None:
+        spec=scale_adaptation
+        if (spec.get('version')!='matched_ab_scales_v1' or spec.get('requires_training_before_deployment') is not True
+                or 'old' not in spec or 'new' not in spec):
+            raise ValueError('Explicit matched residual adaptation and training requirement needed')
+        old=torch.as_tensor(spec['old'],dtype=model.scales.dtype)
+        new=torch.as_tensor(spec['new'],dtype=model.scales.dtype)
+        if (old.shape!=(29,) or new.shape!=(29,) or not torch.isfinite(new).all() or not (new>0).all()
+                or not torch.equal(old,state['scales'].detach().cpu())
+                or not torch.equal(new,model.scales.detach().cpu())):
+            raise ValueError('Matched residual adaptation scales differ from pinned source or target')
+        adaptation=dict(spec)
+        state['scales']=model.scales.detach().cpu().clone()
+    execution_adapter=getattr(model,'execution_adapter',None)
+    if source.get('execution_adapter')!=execution_adapter and adaptation is None:
+        raise ValueError('Execution adapter change requires explicit pre-deployment adaptation')
     for name,value in model.named_buffers():
         if name not in state or not torch.equal(value.detach().cpu(),state[name].detach().cpu()):
             raise ValueError('Residual continuation cannot change action/delta/normalizer buffer: '+name)
@@ -233,7 +249,10 @@ def load_residual_continuation(model, saved, statistics_sha256):
         raise ValueError('Nonfinite selected Transformer parameters')
     model.load_state_dict(state,strict=True)
     return dict(source_updates=trained_source_updates(saved),source_checkpoint_updates=saved['updates'],new_optimizer_updates=0,parameters='all prior selected Transformer parameters',
-        statistics_and_delta_buffers_unchanged=True,optimizer_state_restored=False)
+        statistics_and_delta_buffers_unchanged=adaptation is None,
+        command_normalizer_unchanged=True,scale_adaptation=adaptation,
+        execution_adapter_before=source.get('execution_adapter'),execution_adapter_after=execution_adapter,
+        requires_training_before_deployment=adaptation is not None,optimizer_state_restored=False)
 
 
 def restore_residual_training(saved,model,optimizer,generator,configuration,train_ids):
@@ -957,7 +976,7 @@ def residual_setup(root, *, selected=False, smoke=False):
     for key in ('robot_mean','robot_std'):
         if not torch.equal(stats[key],base_stats[key]):raise ValueError('Residual/base robot normalization differs')
     scale=amplitudes['scales']
-    torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,scale)
+    torch.manual_seed(v['initialization_seed']);model=TargetResidual(stats,scale,execution_adapter=v.get('execution_adapter'))
     configuration=dict(v,group=root.name,base_checkpoint=base['checkpoint'],base_sha256=base['sha256'],
         statistics_sha256=sha256(root/'state_data/statistics.pt'),data_sha256=sha256(root/'state_data/data.json'),
         residual_statistics_sha256=residual_statistics_sha256,residual_normalization_identity=residual_normalization_identity,
@@ -980,7 +999,8 @@ def residual_setup(root, *, selected=False, smoke=False):
     if v.get('continuation_from'):
         from .native_data import supervision_mask_sha256
         saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)
-        audit=load_residual_continuation(model,saved,residual_statistics_sha256)
+        audit=load_residual_continuation(model,saved,residual_statistics_sha256,
+            scale_adaptation=v.get('residual_scale_adaptation'))
         configuration.update(continuation_audit=audit,teacher_supervision='u_expert',
             history='complete actual student-prefix/expert-suffix history; only expert-executed suffix supplies supervision',
             normalization_train_ids=normalization_train,normalizer_recomputed=False)
@@ -1021,7 +1041,8 @@ def residual_prediction(model,record,lease,*,mask_force=False):
             inputs=residual_batch([record],start,stop,device)
             raw,state=model(inputs,state,mask_force=mask_force)
             action,_=model.compose(record['base'][None,start:stop].to(device),raw,
-                record['gate'][None,start:stop].to(device),record['limits'].to(device))
+                record['gate'][None,start:stop].to(device),record['limits'].to(device),
+                **({'previous':inputs['robot'][...,58:87]} if getattr(model,'execution_adapter',None) else {}))
             if not torch.isfinite(action).all():raise FloatingPointError('Nonfinite residual prediction')
             predictions.append(action[0].cpu())
     return torch.cat(predictions)
@@ -1180,7 +1201,8 @@ def residual_train(root, *, smoke=False, probe=False):
                     supervised=residual_supervision_mask(selected,start,end,device)&inputs['valid']
                     gate=residual_aux(selected,start,end,'gate',device)&inputs['valid']
                     action,delta=model.compose(residual_aux(selected,start,end,'base',device),raw,gate,
-                        torch.stack([r['limits'] for r in selected]).to(device)[:,None])
+                        torch.stack([r['limits'] for r in selected]).to(device)[:,None],
+                        **({'previous':inputs['robot'][...,58:87]} if getattr(model,'execution_adapter',None) else {}))
                     loss_mask=supervised;weight_report={}
                     if recovery:
                         loss_mask,early=residual_recovery_weights([recovery_masks[i] for i in order[offset:offset+len(selected)]],

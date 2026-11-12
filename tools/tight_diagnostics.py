@@ -1119,7 +1119,8 @@ def dagger_publish(root, output=None):
         with path.open(newline='') as stream:return list(csv.DictReader(stream))
     cfg=optional(root/'configuration.json',{});status=optional(root/'status.json',{})
     pool_mode=cfg.get('version')=='successful_takeover_pool_v1'
-    revised_scope=pool_mode and cfg.get('scope_revision')=='complete_strategy_ab_v1'
+    matched_protocol=cfg.get('matched_protocol',{}).get('version')=='matched_control_ab_v1'
+    revised_scope=pool_mode and (cfg.get('scope_revision')=='complete_strategy_ab_v1' or matched_protocol)
     conditional_names=('conditional_extension_request','conditional_extension_decision',
         'conditional_extension','conditional_extension_status','conditional_extension_service',
         'conditional_extension_deployment','conditional_extension_follow_finished','conditional_extension_error')
@@ -1142,7 +1143,7 @@ def dagger_publish(root, output=None):
     if pool_mode:round_names=sorted(set(round_names)|{p.name for p in root.glob('round_[0-9][0-9]') if p.is_dir()})
     round_reports={name:dict(status=optional(root/name/'round_status.json'),
         finished=optional(root/name/'round_finished.json'),decision=optional(root/name/'decision.json'),
-        snapshot=optional(root/name/'snapshot.json'),groups={}) for name in round_names} if pool_mode else {}
+        snapshot=optional(root/name/'snapshot.json'),matched_exposure=optional(root/name/'matched_exposure.json'),groups={}) for name in round_names} if pool_mode else {}
     def round_groups(name):
         if not revised_scope:return [(group,True,'active') for group in groups]
         index=int(name.rsplit('_',1)[1]);record=round_reports[name]
@@ -1332,6 +1333,8 @@ def dagger_publish(root, output=None):
             report=dict(state=train_state,updates=done.get('updates',progress.get('update')),exposure=exposure,exposure_unit=unit,
                 target=target,finished=done,progress=progress,configuration=configuration,budget=budget,selection=selected,
                 selected_checkpoint=checkpoint,restore=optional(node/'restore.json'),
+                validation_selected=optional(node/'validation_selected.json'),
+                validation_best_checkpoint=evidence(node/'validation_best.pt','checkpoint') if (node/'validation_best.pt').is_file() else None,
                 continuation_audit=configuration.get('continuation_audit'),sampling_exposure=sampling,
                 probe=optional(job/('dp/throughput_probe.json' if stage=='frontend' else 'backend/throughput_probe.json')))
             stages[stage]=report
@@ -1429,6 +1432,62 @@ def dagger_publish(root, output=None):
             if receipt is not None:write(output/(name+'.json'),public(receipt))
         receipts['preparation']=preparation
         if receipts['cleanup'] is not None:write(output/'cleanup.json',public(receipts['cleanup']))
+    phase0=None
+    if matched_protocol:
+        phase0_receipt=optional(root/'phase0/finished.json',{})
+        phase0_groups={}
+        for group in groups:
+            node=root/'phase0'/group/'backend'/group/'training'
+            done=optional(node/'finished.json',{});progress=optional(node/'progress.json',{})
+            phase0_groups[group]=dict(finished=done,progress=progress,selected=optional(node/'selected.json'),
+                pair=(phase0_receipt.get('groups',{}).get(group) or {}).get('pair'),
+                frontend_updates=0,frontend_update_scope='Rear-only adaptation; not a completed DAgger round',
+                backend_updates=done.get('new_optimizer_updates',done.get('updates',progress.get('update'))),
+                backend_control_tick_epochs=done.get('control_tick_epochs',progress.get('control_tick_epochs')),
+                checkpoint=evidence(node/'best.pt','checkpoint'),configuration=optional(node/'configuration.json'))
+            emit('phase0_'+group+'_backend_every_update.csv.gz',[numeric(r) for r in lines(node/'loss.jsonl')])
+            validation=optional(node/'validation.json',[])
+            emit('phase0_'+group+'_backend_validation.csv',[numeric(r) for r in validation])
+        phase0=dict(kind='rear_control_scale_adaptation_not_dagger_round',counts_as_dagger_round=False,
+            reported_complete=phase0_receipt.get('complete') is True,
+            complete=phase0_receipt.get('complete') is True and bool(phase0_groups) and all(
+                v['finished'] and not v['finished'].get('disposable') and v['checkpoint'].get('exists')
+                and (v['backend_updates'] or 0)>0 and (v['backend_control_tick_epochs'] or 0)>0
+                for v in phase0_groups.values()),receipt=phase0_receipt,groups=phase0_groups)
+        receipts['matched_admission']=optional(root/'matched_admission.json')
+        request=optional(root/'continuation_request.json',{})
+        control_identity=request.get('control_acceptance') or {}
+        receipts['control_acceptance']=optional(Path(control_identity['path'])) if control_identity.get('path') else optional(root/'control_acceptance.json')
+        if control_identity.get('path') and control_identity.get('sha256'):
+            evidence(Path(control_identity['path']),declared=control_identity['sha256'])
+        write(output/'phase0.json',public(phase0))
+        for name in ('matched_admission','control_acceptance'):
+            if receipts[name] is not None:write(output/(name+'.json'),public(receipts[name]))
+    method_rows=[]
+    for key,report in group_reports.items():
+        c=report['collection'];f=report['stages']['frontend'];b=report['stages']['backend'];e=report['autonomous_development']
+        coverage=report.get('recovery_coverage') or {};prefix=coverage.get('accepted_recovery_prefix',{}).get('48',{})
+        autonomous=[x for x in closed_rows if x['round']==report['round'] and x['group']==report['group']
+            and x['cohort']=='autonomous_development_after_dagger' and x['registered'] and x['classification']=='valid']
+        method_rows.append(dict(round=report['round'],group=report['group'],role=report['role'],
+            participation=report['participation'],collection_opportunities=c['planned'],collection_attempts=c['attempted'],
+            student_autonomous_collection_success=c['student_autonomous_successes'],expert_takeover_success=c['expert_takeover_successes'],
+            accepted_correction_episodes=c['accepted_episodes'],independent_takeover_starts=coverage.get('independent_observed_takeover_starts'),
+            effective_expert_ticks=c['effective_expert_ticks'],dp_anchor_population=c['effective_dp_anchors'],
+            first48_expert_ticks=prefix.get('valid_expert_ticks'),first48_dp_anchors=prefix.get('dp_anchors'),
+            dp_updates=f['updates'],dp_anchor_epochs=f['exposure'],backend_updates=b['updates'],backend_tick_epochs=b['exposure'],
+            autonomous_successes=e['successes'],autonomous_valid=e['valid'],autonomous_planned=e['planned'],
+            autonomous_native_lift=sum(x['native_lift'] is True for x in autonomous) if autonomous else None,
+            autonomous_first_subgoal=sum((x['native_subgoals'] or 0)>=1 for x in autonomous) if autonomous else None,
+            autonomous_second_subgoal=sum((x['native_subgoals'] or 0)>=2 for x in autonomous) if autonomous else None,
+            autonomous_stable_grasp=sum(x['stable_grasp'] is True for x in autonomous) if autonomous else None,
+            autonomous_timeout=sum('timeout' in x['termination'].split(',') for x in autonomous) if autonomous else None,
+            autonomous_fall=sum('fall' in x['termination'].split(',') for x in autonomous) if autonomous else None,
+            autonomous_dropped=sum('dropped' in x['termination'].split(',') for x in autonomous) if autonomous else None,
+            phase_counts=json.dumps(coverage.get('phase_counts'),sort_keys=True),
+            deviation_counts=json.dumps(coverage.get('observed_deviation_counts'),sort_keys=True),
+            matched_protocol=matched_protocol,counts_as_dagger_round=True))
+    emit('method_rounds.csv',method_rows)
     required_reports=[r for r in group_reports.values() if r['current_scope_required']]
     required_rounds={r['round'] for r in required_reports}
     verified_complete=status.get('state')=='COMPLETE' and bool(required_reports) and not issues and status.get('owned_workers_exited') is True and (receipts.get('owned_cleanup') or {}).get('verified') is True and all(
@@ -1440,12 +1499,15 @@ def dagger_publish(root, output=None):
         verified_complete=verified_complete and all((r.get('finished') or {}).get('state')=='RESOLVED'
             and r.get('snapshot') and r.get('decision') is not None for name,r in round_reports.items() if name in required_rounds)
     if conditional_requested:verified_complete=verified_complete and conditional_ready
+    if matched_protocol:verified_complete=verified_complete and phase0['complete'] and all(
+        (round_reports[name].get('matched_exposure') or {}).get('passed') is True for name in required_rounds)
     pool_path=Path(cfg.get('pool_root',CODE/'outputs/visuotactile/data/tight_dagger_pool')) if pool_mode else None
     if pool_path is not None and not pool_path.is_absolute():pool_path=CODE/pool_path
     pool_receipts={name:optional(pool_path/name) for name in ('manifest.json','acceptance/readback.json','acceptance/imported_legacy_snapshot.json')} if pool_mode else None
     summary=dict(schema='dagger_pool_cpu_publication_v1' if pool_mode else 'dagger_cpu_publication_v1',status=status,verified_round_complete=verified_complete,configuration=cfg,
         registration=registration,session=session,source_run=str(root),source_commit=launch.get('source_head',session.get('source_head')),
         groups=group_reports,rounds=round_reports if pool_mode else None,pool=pool_receipts,
+        matched_protocol=cfg.get('matched_protocol') if matched_protocol else None,phase0=phase0,method_rounds=method_rows,
         completion_scope=dict(revision=cfg.get('scope_revision'),first_round=first_round,
             required_groups=[r['round']+'/'+r['group'] for r in required_reports],
             excluded_historical_or_unscheduled=[key for key,r in group_reports.items() if not r['current_scope_required']],
@@ -1474,7 +1536,7 @@ def dagger_publish(root, output=None):
     emit('validation_curves.csv',curves);emit('training_loss.csv.gz',losses);emit('offline_metrics.csv',errors);emit('sampling_exposure.csv',sampling_rows)
     if pool_mode:
         write(output/'round_decisions.json',public({key:dict(decision=value['decision'],finished=value['finished'],
-            snapshot_id=(value.get('snapshot') or {}).get('snapshot_id'),
+            snapshot_id=(value.get('snapshot') or {}).get('snapshot_id'),matched_exposure=value.get('matched_exposure'),
             groups={g:r.get('selection') for g,r in value['groups'].items()}) for key,value in round_reports.items()}))
         write(output/'pool_identity.json',public(pool_receipts))
     emit('video_index.csv',videos);emit('log_counts.csv',log_rows);emit('physx_errors.csv',physx)
@@ -1484,13 +1546,13 @@ def dagger_publish(root, output=None):
     write(output/'artifacts.json',{str(p.relative_to(output)):dict(bytes=p.stat().st_size,sha256=sha(p))
         for p in sorted(output.iterdir()) if p.is_file() and p.name!='artifacts.json'})
     document=CODE/'research_docs/STATE_DP_RESULTS.md'
-    marker='tight-dagger-pool-results' if pool_mode else 'tight-dagger-results'
+    marker='tight-dagger-matched-results' if matched_protocol else 'tight-dagger-pool-results' if pool_mode else 'tight-dagger-results'
     start_marker='<!-- '+marker+':start -->';end_marker='<!-- '+marker+':end -->'
     text=document.read_text() if document.exists() else ''
     if text.count(start_marker)!=text.count(end_marker) or text.count(start_marker)>1:
         raise ValueError('Malformed DAgger managed block; preserve existing document')
     relative=os.path.relpath(output,document.parent)
-    lines_out=[start_marker,'## 2026-11-11 DAgger：共享持久纠偏池与多轮增量续训' if pool_mode else '## 2026-11-11 DAgger：一轮前端与后端增量续训','',
+    lines_out=[start_marker,'## 2026-11-12 DAgger：统一控制的配对 A/B 续训' if matched_protocol else '## 2026-11-11 DAgger：共享持久纠偏池与多轮增量续训' if pool_mode else '## 2026-11-11 DAgger：一轮前端与后端增量续训','',
         f"本轮 owner 状态为 **{status.get('state','UNMEASURED')}**；产物核验{'完整' if verified_complete else '尚不完整'}。以下按已有凭据整理，缺失项不记为零成功。",'',
         '|组|采集已启动 / 机会|接管成功 / 已启动|准入纠偏 episode / 有效专家 tick / DP anchor|新 DP 更新 / anchor 遍|新后端更新 / tick 遍|自主开发成功 / 有效 / 计划|',
         '|---|---:|---:|---:|---:|---:|---:|']
@@ -1504,7 +1566,11 @@ def dagger_publish(root, output=None):
         legacy=(pool_receipts or {}).get('acceptance/readback.json') or {}
         lines_out+=['',f"旧池 CPU 读回准入 {show(legacy.get('pool_entries'))} 条成功纠偏；同轮实际调度的组使用共同不可变快照，预登记 correction-dev 按完整 episode 与训练隔离。实际抽样曝光、update0 候选、轮次继续/停止决定见机器凭据；尚未发生的轮次均标作未测。",
             f'[池与快照身份]({relative}/pool_identity.json) · [各轮选择与决定]({relative}/round_decisions.json)。']
-        if revised_scope:lines_out+=['','当前仅A（QG01来源，q_reached＋既定几何）与B（G01来源，u_expert）完整策略；均G00前端模态＋同容量Transformer。历史G11及首轮停止证据保留；各轮活动组、条件等待及未调度状态按机器凭据分别列出。实际起点和绝对截止见session与追加决定，不从run名称推算。',
+        if matched_protocol:
+            lines_out+=['','仅A（q_reached＋几何）与B（u_expert）完整策略；新序列约定相同执行投影、Arm0.2/Hand0.9残差幅度、共享快照、配对采集机会、DP anchor与后端tick曝光目标及固定10例开发评价。历史初始化与旧曝光仍不同，不能抹去这些差异。',
+                f"Phase0 为后端控制/幅度适配，前端新增更新0；完成凭据={show(phase0['complete'])}。它不计作完整DAgger轮次。之后每轮仍先更新DP、刷新缓存，再更新后端；共同曝光检查与未完成项见机器记录。",
+                f'[Phase0单独记录]({relative}/phase0.json) · [论文逐轮统计]({relative}/method_rounds.csv)。']
+        elif revised_scope:lines_out+=['','当前仅A（QG01来源，q_reached＋既定几何）与B（G01来源，u_expert）完整策略；均G00前端模态＋同容量Transformer。历史G11及首轮停止证据保留；各轮活动组、条件等待及未调度状态按机器凭据分别列出。实际起点和绝对截止见session与追加决定，不从run名称推算。',
             'A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1，历史和本轮曝光不同，不能解释为严格单变量或同预算对照。完整策略采集验收、独立恢复起点/阶段/偏离描述与初段合法监督人口见对应JSON/CSV；接管覆盖不等于自主恢复能力。']
         if conditional_requested:
             lines_out+=['',f"条件追加：评估已完整核验={show(conditional_ready)}；触发={show(conditional_decision.get('triggered'))}；后继进程实际启动={show(summary['conditional_extension']['continuation_started'])}；实际采集启动验收={show(conditional_status.get('state')=='STARTUP_VERIFIED')}。状态 **{conditional_status.get('state','UNMEASURED')}**。请求不等于触发，触发不等于已经采集或训练。",
@@ -2351,9 +2417,275 @@ def qg_publish(root, output=None):
     return summary
 
 
+def control_audit_masks(source, valid, segment, trace):
+    """Disjoint control provenance plus observed stage masks; no relabeling."""
+    import numpy as np
+    source=np.asarray(source);valid=np.asarray(valid,dtype=bool);segment=np.asarray(segment)
+    if source.shape!=valid.shape or segment.shape!=valid.shape or np.any(valid&(source!=1)):
+        raise ValueError('Invalid expert authority/label mask')
+    early=np.zeros_like(valid);indices=np.flatnonzero(valid)
+    if len(indices):
+        start=indices[0]
+        for t in range(start,min(start+48,len(valid))):
+            if not valid[t] or segment[t]!=segment[start]:break
+            early[t]=True
+    phases=np.full(len(valid),'noncontact',dtype=object)
+    fingers=(np.linalg.norm(trace['object_contact'],axis=-1)>.1).any(axis=1).sum(axis=-1)
+    phases[fingers>0]='contact';phases[fingers>=2]='multifinger_contact'
+    phases[np.asarray(trace['lifted'],bool)]='native_lift'
+    phases[np.asarray(trace['subgoals'])>=1]='first_subgoal'
+    phases[np.asarray(trace['subgoals'])>=2]='native_complete'
+    return dict(student_prefix=source==0,expert_flush=(source==1)&~valid,
+        expert_early48=early,expert_later=valid&~early),phases
+
+
+def control_audit_metrics(arrays, mask):
+    """Per-joint squared sums retain the true tick denominator when aggregating."""
+    import numpy as np
+    n=int(np.asarray(mask).sum())
+    if not n:return None
+    result={'ticks':n}
+    for key,value in arrays.items():
+        selected=np.asarray(value)[mask]
+        if selected.shape!=(n,29) or not np.isfinite(selected).all():
+            raise ValueError('Nonfinite or malformed control metric: '+key)
+        result[key]=selected.astype(np.float64).sum(0)
+    return result
+
+
+def control_audit_publish(root, output=None):
+    """CPU audit of retained r02/r03 A/B numeric logs; never starts a model/Kit."""
+    import gzip
+    import h5py
+    import numpy as np
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    root=Path(root).resolve();output=Path(output or CODE/'research_docs/evidence/control_consistency_20261112').resolve()
+    if output==root or root in output.parents:raise ValueError('Audit must not overwrite source logs')
+    output.mkdir(parents=True,exist_ok=True)
+    sources={};groups=[];cases=[];evaluations=[];exposure=[];buckets={};representatives={};issues=[];joints=None
+    def register(path):
+        path=Path(path);key=str(path.relative_to(root))
+        sources[key]=dict(bytes=path.stat().st_size,sha256=sha(path));return path
+    def optional(path,default=None):return read(register(path)) if path.is_file() else default
+    def accumulate(key,arrays,mask):
+        value=control_audit_metrics(arrays,mask)
+        if value is None:return
+        dest=buckets.setdefault(key,dict(ticks=0,**{k:np.zeros(29) for k in arrays}))
+        dest['ticks']+=value.pop('ticks')
+        for name,number in value.items():dest[name]+=number
+    def flatten(value,prefix=''):
+        result={}
+        for k,v in value.items():
+            if isinstance(v,dict):result.update(flatten(v,prefix+k+'.'))
+            elif isinstance(v,(int,float,str,bool)) or v is None:result[prefix+k]=v
+        return result
+    for round_index in (2,3):
+        for group,role in [('QG01','A'),('G01','B')]:
+            directory=root/f'round_{round_index:02d}'/group
+            coverage=optional(directory/'recovery_coverage.json',{})
+            row=dict(round=round_index,group=group,role=role,**{k:v for k,v in coverage.items() if k!='rows'})
+            groups.append(row);accepted={r['identity']:r for r in coverage.get('rows',[])}
+            for stage,path in [('DP',directory/'dp/training/progress.json'),
+                               ('Transformer',directory/f'backend/{group}/training/finished.json')]:
+                receipt=optional(path,{})
+                for stratum,detail in receipt.get('coverage',{}).get('strata',{}).items():
+                    exposure.append(dict(round=round_index,group=group,stage=stage,stratum=stratum,
+                        updates=receipt.get('new_optimizer_updates',receipt.get('updates',receipt.get('update'))),
+                        receipt_complete=stage=='Transformer' or (directory/'dp/COMPLETE.json').is_file(),**flatten(detail)))
+            for episode in sorted((directory/'episodes').glob('*')):
+                result=optional(episode/'result.json',{})
+                if not result:continue
+                identity=episode.name;cv=accepted.get(identity,{})
+                case=dict(round=round_index,group=group,identity=identity,seed=result.get('seed'),family=result.get('family'),
+                    legal=result.get('legal') is True,accepted=cv.get('accepted') is True,
+                    student_autonomous_success=result.get('dagger',{}).get('student_autonomous_success'),
+                    expert_takeover_success=result.get('dagger',{}).get('expert_takeover_success'),
+                    switch_phase=cv.get('phase'),switch_deviation=(cv.get('deviation') or {}).get('type'),
+                    switch_tick=result.get('takeover_tick'),steps=result.get('steps'),
+                    outcome='success' if result.get('success') else next((k for k,v in result.get('reasons',{}).items() if v),'invalid'),
+                    **flatten(cv.get('population') or {},'population.'))
+                cases.append(case)
+                path=episode/'numeric.h5';tracepath=episode/'trace.npz'
+                if not path.is_file() or not tracepath.is_file():
+                    case['numeric_audited']=False;continue
+                with np.load(register(tracepath)) as z:trace={k:z[k] for k in z.files}
+                with h5py.File(register(path),'r') as h:
+                    metadata=json.loads(h.attrs['metadata_json']);names=metadata['joint_order']
+                    if joints is None:joints=names
+                    if names!=joints:raise ValueError('Canonical joint order changed')
+                    d=h['episode/transition/dagger'];n=len(trace['joint'])
+                    source=d['control_source'][:];valid=d['expert_label_valid'][:].astype(bool);segment=d['segment_id'][:]
+                    qbefore=h['episode/transition/diagnostics_before/joint_position_rad'][:]
+                    qafter=d['q_reached'][:];actual=d['actual_applied'][:];issued=d['actual_issued'][:]
+                    previous=d['previous_issued'][:];nominal=d['nominal'][:];student=d['student_proposed_target_rad'][:]
+                    expert=d['expert_mapped_target_rad'][:];raw=d['expert_raw_action'][:];clipped=d['expert_clipped_action'][:]
+                    clean=d['switch_clean'][:].astype(bool);queue=d['expert_queue_length'][:];ticks=np.arange(n)
+                    switch=int(result['takeover_tick']);expected=(source==1)&(ticks>=switch+queue-1)&d['expert_source_is_expert_issued'][:].astype(bool)
+                    checks=dict(raw_clip_matches=np.array_equal(np.clip(raw,-1,1),clipped),
+                        mask_exact_queue_flush=np.array_equal(valid,expected),student_prefix_mask_zero=not bool(valid[source==0].any()),
+                        u_label_matches_actual=np.array_equal(d['u_expert'][:][valid],actual[valid]),
+                        q_label_matches_after=np.array_equal(qafter,h['episode/transition/diagnostics_after/joint_position_rad'][:]),
+                        mixed_previous_issued_exact=np.array_equal(previous[1:],issued[:-1]),
+                        issued_applied_exact=np.array_equal(issued,actual),student_proposal_executed=np.array_equal(student[source==0],actual[source==0]),
+                        expert_mapped_executed=np.array_equal(expert[source==1],actual[source==1]),
+                        substep_targets_exact=np.array_equal(trace['actuator_targets'],np.repeat(actual[:,None],2,axis=1)),
+                        trace_mask_matches=np.array_equal(valid,trace['dagger_expert_label_valid']))
+                    if not all(checks.values()):issues.append(dict(identity=identity,failed_checks=[k for k,v in checks.items() if not v]))
+                    masks,phases=control_audit_masks(source,valid,segment,trace)
+                    case.update(numeric_audited=True,all_provenance_checks_pass=all(checks.values()),
+                        raw_shadow_ticks=n,masked_student_ticks=int((source==0).sum()),flush_ticks=int(((source==1)&~valid).sum()),
+                        valid_expert_ticks=int(valid.sum()),early48_ticks=int(masks['expert_early48'].sum()),
+                        raw_shadow_clip_fraction=float((np.abs(raw)>1).mean()))
+                    arrays=dict(student_vs_delayed_expert_squared=(student-expert)**2,
+                        nominal_vs_delayed_expert_squared=(nominal-expert)**2,
+                        tracking_squared=(actual-qafter)**2,motion_squared=(qafter-qbefore)**2,
+                        target_change_squared=(actual-previous)**2,
+                        residual_applied_squared=trace['residual_applied_rad']**2,
+                        residual_proposed_squared=trace['residual_proposed_rad']**2,
+                        residual_clip=trace['residual_clip_mask'].astype(float),
+                        residual_tanh95=(trace['residual_tanh_fraction']>=.95).astype(float),
+                        student_change_above2rad_s=(np.abs(student-previous)>2/60+1e-6).astype(float),
+                        required_residual_oob=trace['dagger_required_expert_residual_out_of_bounds'].astype(float))
+                    for name,mask in masks.items():
+                        accumulate((round_index,group,'collection',name),arrays,mask)
+                        for phase in np.unique(phases[mask]):accumulate((round_index,group,'collection',name+'/'+phase),arrays,mask&(phases==phase))
+                    key=(round_index,group)
+                    # First accepted observed-contact takeover by fixed identity order.
+                    if key not in representatives and case['accepted'] and cv.get('phase')=='contact_observed':
+                        representatives[key]=dict(identity=identity,switch=switch,nominal=nominal,student=student,expert=expert,
+                            applied=actual,reached=qafter,source=source,valid=valid,phases=phases,object_z=trace['object'][:,2],
+                            contact_fingers=(np.linalg.norm(trace['object_contact'],axis=-1)>.1).any(1).sum(-1),
+                            residual=trace['residual_applied_rad'])
+            # Pure student outcomes stay separate; no expert-queried q_reached is inferred here.
+            for episode in sorted((directory/f'backend/{group}/evaluation').glob('*')):
+                result=optional(episode/'result.json',{})
+                if not result:continue
+                event=dict(round=round_index,group=group,identity=episode.name,legal=result.get('legal'),success=result.get('success'),
+                    steps=result.get('steps'),native_lift=result.get('native_lift'),native_subgoals=result.get('native_subgoals'),
+                    native_alignment=result.get('native_alignment'),outcome='success' if result.get('success') else next((k for k,v in result.get('reasons',{}).items() if v),'unknown'),
+                    checkpoint_sha256=result.get('checkpoint_sha256'))
+                evaluations.append(event)
+                tracepath=episode/'trace.npz'
+                if not tracepath.is_file():continue
+                with np.load(register(tracepath)) as z:a={k:z[k] for k in z.files}
+                n=len(a['joint']);dummy=np.zeros(n,dtype=int)
+                _,phases=control_audit_masks(dummy,np.zeros(n,bool),dummy,a)
+                event['last_observed_phase']=str(phases[-1]);event['max_contact_fingers']=int((np.linalg.norm(a['object_contact'],axis=-1)>.1).sum(-1).max())
+                event['any_joint_limit_clip_ticks']=int(a['residual_clip_mask'].any(-1).sum())
+                event['any_tanh95_ticks']=int((a['residual_tanh_fraction']>=.95).any(-1).sum())
+                arrays=dict(tracking_squared=(a['target']-a['joint'])**2,residual_applied_squared=a['residual_applied_rad']**2,
+                    residual_proposed_squared=a['residual_proposed_rad']**2,residual_clip=a['residual_clip_mask'].astype(float),
+                    residual_tanh95=(a['residual_tanh_fraction']>=.95).astype(float))
+                accumulate((round_index,group,'autonomous','all'),arrays,np.ones(n,bool))
+                for phase in np.unique(phases):accumulate((round_index,group,'autonomous',str(phase)),arrays,phases==phase)
+    rows=[]
+    for (round_index,group,cohort,stage),values in buckets.items():
+        for j,name in enumerate(joints or []):
+            row=dict(round=round_index,group=group,cohort=cohort,stage=stage,joint=j,joint_name=name,ticks=values['ticks'])
+            for key,value in values.items():
+                if key=='ticks':continue
+                if key.endswith('_squared'):row[key[:-8]+'_rms_rad']=float(np.sqrt(value[j]/values['ticks']))
+                else:row[key+'_fraction']=None if key=='required_residual_oob' and stage.startswith('student_prefix') else float(value[j]/values['ticks'])
+            rows.append(row)
+    def emit(name,values):
+        if not values:return
+        fields=list(dict.fromkeys(k for row in values for k in row));clean=[{k:row.get(k) for k in fields} for row in values]
+        table(output/name,clean)
+    emit('recovery_cases.csv',cases);emit('autonomous_cases.csv',evaluations);emit('joint_stage_metrics.csv',rows);emit('training_exposure.csv',exposure)
+    # Compact experiment table retains missing/in-progress stages without manufacturing zeroes.
+    experiments=[]
+    for group in groups:
+        r,g=group['round'],group['group'];ev=[x for x in evaluations if (x['round'],x['group'])==(r,g)]
+        c=[x for x in cases if (x['round'],x['group'])==(r,g)]
+        experiments.append(dict(round=r,group=g,attempts=group.get('attempts'),accepted=group.get('accepted'),
+            independent_observed_takeover_starts=group.get('independent_observed_takeover_starts'),
+            valid_expert_ticks=group.get('accepted_population',{}).get('valid_expert_ticks'),
+            dp_anchors=group.get('accepted_population',{}).get('dp_anchors'),
+            early48_ticks=group.get('accepted_recovery_prefix',{}).get('48',{}).get('valid_expert_ticks'),
+            student_prefix_supervised_ticks=0 if all(x.get('all_provenance_checks_pass') for x in c if x.get('numeric_audited')) else None,
+            evaluation_recorded=len(ev),autonomous_success=sum(x.get('success') is True for x in ev) if ev else None,
+            native_lift=sum(x.get('native_lift') is True for x in ev) if ev else None,
+            first_subgoal=sum((x.get('native_subgoals') or 0)>=1 for x in ev) if ev else None,
+            timeouts=sum(x.get('outcome')=='timeout' for x in ev) if ev else None))
+    emit('experiments.csv',experiments)
+    # Joint error and saturation diagrams from population-weighted sums, not averaged episode RMSE.
+    fig,axes=plt.subplots(2,2,figsize=(14,8),layout='constrained')
+    panels=[('student_vs_delayed_expert_rms_rad','Student vs delayed expert suggestion (rad)'),
+            ('tracking_rms_rad','Applied target vs reached configuration (rad)'),
+            ('residual_clip_fraction','Joint-limit clipping fraction'),('residual_tanh95_fraction','Residual tanh >= 0.95 fraction')]
+    for ax,(metric,title) in zip(axes.flat,panels):
+        for r,g in [(2,'QG01'),(2,'G01'),(3,'QG01'),(3,'G01')]:
+            selected=[x for x in rows if x['round']==r and x['group']==g and x['cohort']=='collection' and x['stage']=='student_prefix']
+            if selected:ax.plot([x['joint'] for x in selected],[x[metric] for x in selected],label=f'r{r} {g}')
+        ax.axvline(6.5,color='grey',ls=':',lw=1);ax.set(xlabel='Canonical joint index (0–6 arm, 7–28 hand)',title=title);ax.grid(alpha=.2)
+    axes[0,0].legend();fig.suptitle('Executed student prefixes only; expert suggestion is delayed, not counterfactual motion')
+    fig.savefig(output/'student_prefix_joint_metrics.png',dpi=150);plt.close(fig)
+    fig,axes=plt.subplots(1,2,figsize=(12,4),layout='constrained')
+    labels=[];fractions=[];phase_names=sorted({phase for x in groups for phase in x.get('phase_counts',{})});bottom=np.zeros(len(groups))
+    for stage in phase_names:
+        count=np.array([x.get('phase_counts',{}).get(stage,0) for x in groups]);axes[0].bar(np.arange(len(groups)),count,bottom=bottom,label=stage);bottom+=count
+    axes[0].set(xticks=np.arange(len(groups)),xticklabels=[f"r{x['round']} {x['group']}" for x in groups],ylabel='Registered attempts',title='Observed takeover-stage coverage');axes[0].legend(fontsize=7)
+    for x in experiments:
+        labels.append(f"r{x['round']} {x['group']}");fractions.append((x['early48_ticks'] or 0)/max(x['valid_expert_ticks'] or 0,1))
+    axes[1].bar(labels,fractions);axes[1].set(ylabel='Fraction of accepted expert ticks',title='First 48 clean ticks: unique population, before resampling')
+    fig.savefig(output/'recovery_coverage.png',dpi=150);plt.close(fig)
+    fig,axes=plt.subplots(2,2,figsize=(13,7),layout='constrained')
+    observed=['noncontact','contact','multifinger_contact','native_lift','first_subgoal','native_complete']
+    for col,cohort in enumerate(('collection','autonomous')):
+        for r,g in [(2,'QG01'),(2,'G01'),(3,'QG01'),(3,'G01')]:
+            if not any(x['round']==r and x['group']==g and x['cohort']==cohort for x in rows):continue
+            errors=[];counts=[]
+            for phase in observed:
+                stage='student_prefix/'+phase if cohort=='collection' else phase
+                selected=[x for x in rows if x['round']==r and x['group']==g and x['cohort']==cohort and x['stage']==stage and x['joint']>=7]
+                errors.append(float(np.sqrt(np.mean([x['tracking_rms_rad']**2 for x in selected]))) if selected else np.nan)
+                counts.append(selected[0]['ticks'] if selected else 0)
+            axes[0,col].plot(np.arange(len(observed)),errors,marker='o',label=f'r{r} {g}')
+            axes[1,col].plot(np.arange(len(observed)),counts,marker='o',label=f'r{r} {g}')
+        axes[0,col].set(title='Executed student prefixes' if cohort=='collection' else 'Pure student development evaluation',ylabel='Hand target–reached RMSE (rad)')
+        axes[1,col].set(ylabel='Recorded control ticks')
+        for ax in axes[:,col]:ax.set_xticks(np.arange(len(observed)),observed,rotation=25,ha='right');ax.grid(alpha=.2)
+    axes[0,0].legend(fontsize=8);fig.suptitle('Observed post-transition stages; no-contact does not identify a causal failure')
+    fig.savefig(output/'observed_stage_tracking.png',dpi=150);plt.close(fig)
+    representative_index=[]
+    for (r,g),a in representatives.items():
+        n=len(a['source']);err=((a['student']-a['expert'])[:a['switch']]**2).mean(0)
+        chosen=[int(np.argmax(err[:7])),7+int(np.argmax(err[7:]))]
+        fig,axes=plt.subplots(3,1,figsize=(11,8),layout='constrained',sharex=True);t=np.arange(n)/60
+        for ax,j in zip(axes[:2],chosen):
+            for key,label,style in [('nominal','Nominal','--'),('student','Student proposal','-'),('expert','Delayed expert suggestion',':'),('applied','Actually applied','-'),('reached','Reached configuration','-')]:ax.plot(t,a[key][:,j],style,label=label,lw=1)
+            ax.set(ylabel='rad',title=joints[j]);ax.axvline(a['switch']/60,color='black',ls=':');ax.grid(alpha=.2)
+        axes[0].legend(fontsize=8,ncol=3);axes[2].plot(t,a['object_z'],label='Object z (m)');axes[2].set(ylabel='Object z (m)',xlabel='Control time (s)');ax2=axes[2].twinx();ax2.plot(t,a['contact_fingers'],color='tab:orange',alpha=.65,label='Contact fingers');ax2.set(ylabel='Contact fingers',ylim=(-.1,5.1));axes[2].axvline(a['switch']/60,color='black',ls=':')
+        fig.suptitle(f"r{r} {g} {a['identity']}: accepted expert recovery; vertical line = takeover")
+        name=f'representative_r{r:02d}_{g}';fig.savefig(output/(name+'.png'),dpi=150);plt.close(fig)
+        fields=['tick','time_s','control_source','expert_label_valid','observed_phase','object_z_m','contact_fingers']+[f'{k}_joint{j}_rad' for j in chosen for k in ('nominal','student','expert','applied','reached','residual')]
+        with gzip.open(output/(name+'.csv.gz'),'wt',newline='') as stream:
+            writer=csv.DictWriter(stream,fieldnames=fields);writer.writeheader()
+            for i in range(n):writer.writerow(dict(tick=i,time_s=i/60,control_source=int(a['source'][i]),expert_label_valid=bool(a['valid'][i]),observed_phase=a['phases'][i],object_z_m=float(a['object_z'][i]),contact_fingers=int(a['contact_fingers'][i]),**{f'{k}_joint{j}_rad':float(a[k][i,j]) for j in chosen for k in ('nominal','student','expert','applied','reached','residual')}))
+        representative_index.append(dict(round=r,group=g,identity=a['identity'],joints=chosen,selection='First accepted contact-observed switch in sorted episode IDs; largest prefix disagreement arm and hand joint'))
+    summary=dict(schema='control_consistency_cpu_audit_v1',source_run=root.name,generated_utc=time.time(),exporter_sha256=sha(Path(__file__)),
+        groups=groups,experiments=experiments,provenance_issues=issues,
+        numeric_episodes_audited=sum(x.get('numeric_audited',False) for x in cases),
+        all_audited_provenance_passed=not issues,raw_shadow_recorded=True,
+        source_fields='numeric.h5 episode/transition/dagger; no images, model deserialization, GPU or simulation',
+        qualifiers=['Expert shadow target uses the recorded delay selection and actual previous target; not immediate current-raw advice.',
+            'Student prefix has mask zero. Its q_after is observed student motion, never an expert q_reached label.',
+            'Failed takeovers remain excluded from successful-recovery training; their valid executed suffix is diagnostic here.',
+            'Expert-suffix student proposals are unexecuted diagnostics; only student_prefix rows measure executed student control.',
+            'Stage labels use recorded post-transition force/native events; they do not diagnose causal failure.',
+            'Required residual out-of-bounds is defined only in expert-controlled ticks; student-prefix zero is a recording sentinel.',
+            'Residual scales and earlier exposure differ historically between A/B; these are not a single-variable causal comparison.',
+            'Missing B round3 evaluation/training receipts are pending, not counted as failures.'],
+        joint_order=joints,representatives=representative_index,sources=sources,test22_used=False,training_or_new_rollouts=0)
+    write(output/'summary.json',summary)
+    return summary
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish', 'qg_publish'])
+    parser.add_argument('mode', choices=['prepare', 'check', 'run', 'status', 'final', 'publish', 'matrix_publish', 'dagger_publish', 'qg_publish', 'control_audit_publish'])
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--config', type=Path, default=CODE/'configs/tight_dp3_diagnostics.json')
     parser.add_argument('--evaluation', type=Path)
@@ -2366,6 +2698,7 @@ def main():
         matrix_publish(root, args.output.resolve())
     elif args.mode == 'dagger_publish':dagger_publish(root,args.output)
     elif args.mode == 'qg_publish':qg_publish(root,args.output)
+    elif args.mode == 'control_audit_publish':control_audit_publish(root,args.output)
     elif args.mode == 'publish':
         if args.evaluation is None or args.output is None:
             parser.error('publish requires --evaluation and --output')

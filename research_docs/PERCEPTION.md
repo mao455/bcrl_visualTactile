@@ -1,6 +1,6 @@
 # 当前视觉、触觉与执行历史
 
-G11 前端使用三路 RGB-D、robot178 和直接触觉，QG01 的 QG00 前端使用三路 RGB-D 与 robot178；两组 Transformer 后端均读取观测触觉。前端保留现有 U-Net，DINOv2-S/14 backbone 冻结，既有视觉投影、深度编码、持续历史和策略参数参与本轮前端微调。旧 StateDP 的 Actor141/geometry85 不进入这两组学生输入。
+当前完整策略 A/QG01 与 B/G01 的前端均使用三路 RGB-D 与 robot178，触觉均由同容量 Transformer 后端读取。历史 G11 前端直接融合触觉的定义保持，但已退出本轮活动矩阵。前端保留现有 U-Net，DINOv2-S/14 backbone 冻结，既有视觉投影、深度编码、持续历史和策略参数参与每轮前端微调。旧 StateDP 的 Actor141/geometry85 不进入这两组学生输入。
 
 相机顺序固定为 `fixed_high/fixed_side/wrist_rgbd`，每路448×252。冻结 DINO 特征和确定性深度网格按12控制tick采样；共享缓存须核验源轨迹、backbone、内容 SHA、相机顺序、分辨率、stride 和无随机增强。模型更新后不能复用旧可训练投影、hidden、condition 或名义计划。
 

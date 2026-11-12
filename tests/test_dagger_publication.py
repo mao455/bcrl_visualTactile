@@ -307,3 +307,27 @@ def test_not_triggered_requires_completed_evaluation_to_resolve_future_round(con
         assert row['participation']==participation and not row['current_scope_required']
         assert row['autonomous_development']['successes'] is None
     assert 'round_03,G01,autonomous_development_after_dagger' not in (out/'closed_loop.csv').read_text()
+
+
+def test_matched_protocol_keeps_phase0_separate_and_preserves_old_pool_block(publication):
+    root,out,document=publication
+    old='<!-- tight-dagger-pool-results:start -->\nHistorical A/B unequal rounds remain.\n<!-- tight-dagger-pool-results:end -->\n'
+    document.write_text(document.read_text()+old)
+    write(root/'configuration.json',dict(version='successful_takeover_pool_v1',scope_revision='matched_control_ab_v1',
+        first_round=1,rounds=2,groups={'QG01':{'strategy_role':'A'},'G01':{'strategy_role':'B'}},
+        round_schedule={'1':{'active_groups':['QG01','G01']},'2':{'active_groups':['QG01','G01']}},
+        matched_protocol={'version':'matched_control_ab_v1'},pool_root=str(root/'pool')))
+    write(root/'phase0/finished.json',dict(complete=True,kind='rear_control_scale_adaptation_not_dagger_round',
+        groups={'QG01':{'pair':{'frontend_sha256':'oldfront','backend_sha256':'adaptedrear'}}}))
+    write(root/'phase0/QG01/backend/QG01/training/finished.json',dict(updates=10,new_optimizer_updates=10,control_tick_epochs=6))
+    report=diagnostics.dagger_publish(root,out)
+    assert report['phase0']['reported_complete'] and not report['phase0']['complete']
+    assert not report['phase0']['counts_as_dagger_round']
+    assert report['phase0']['groups']['QG01']['frontend_updates']==0
+    assert report['phase0']['groups']['QG01']['backend_updates']==10
+    assert len(report['method_rounds'])==4 and all(r['counts_as_dagger_round'] for r in report['method_rounds'])
+    assert not report['verified_round_complete']
+    assert all(v['stages']['frontend']['updates'] is None for v in report['groups'].values())
+    text=document.read_text();assert old in text and 'tight-dagger-matched-results:start' in text
+    assert 'A/B已训练残差幅度分别Arm0.2/Hand0.9与全0.1' not in text
+    assert (out/'phase0.json').is_file() and (out/'method_rounds.csv').is_file()

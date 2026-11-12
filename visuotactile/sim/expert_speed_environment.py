@@ -1,6 +1,6 @@
 """Versioned execution-only expert experiment; ordinary native env is unchanged."""
 from .native_diagnostics import NativeDiagnosticEnv
-from visuotactile.expert_speed import progress_target, cap_hand_target
+from visuotactile.position_control import processed_expert_target
 
 
 class SpeedLimitedDiagnosticEnv(NativeDiagnosticEnv):
@@ -23,11 +23,11 @@ class SpeedLimitedDiagnosticEnv(NativeDiagnosticEnv):
         active=self.speed_config.get('phase','all')=='all' or bool((self._successes>=1).all())
         arm=self.speed_config['arm'] if active else 1.
         hand=self.speed_config['hand'] if active else 1.
-        executed=progress_target(previous,native,arm,hand)
         cap=self.speed_config.get('hand_target_cap_rad_s') if active else None
+        progressed,executed=processed_expert_target(previous,native,
+            dict(arm=arm,hand=hand,hand_target_cap_rad_s=cap),self.step_dt)
         if cap is not None:
-            self.last_transition['speed_before_hand_cap_target_rad']=executed.clone()
-            executed=cap_hand_target(previous,executed,cap,self.step_dt)
+            self.last_transition['speed_before_hand_cap_target_rad']=progressed.clone()
         if arm!=1 or hand!=1 or cap is not None:
             self._cur_targets[:]=executed[:,self._perm_canon_to_lab]
             self._prev_targets=self._cur_targets.clone()

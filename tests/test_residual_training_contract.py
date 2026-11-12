@@ -230,6 +230,49 @@ def test_incremental_probe_keeps_formal_scheduler_horizon():
     with pytest.raises(ValueError,match='shorten'):anchor_continue.incremental_schedule(schedule,8)
 
 
+def test_matched_adaptation_preserves_learned_parameters_and_command_statistics():
+    class Small(torch.nn.Module):
+        version=TargetResidual.version
+        def __init__(self,scales,adapter=None):
+            super().__init__();self.layer=torch.nn.Linear(2,29);self.execution_adapter=adapter
+            self.register_buffer('scales',torch.tensor(scales))
+            self.register_buffer('action_scale',torch.arange(1,30).float())
+    source=Small([.1]*29);target=Small([.2]*7+[.9]*22,{'version':'test'})
+    saved=dict(residual_version=TargetResidual.version,updates=20,
+        configuration={'residual_statistics_sha256':'fixed'},model=source.state_dict())
+    with pytest.raises(ValueError,match='adapter change'):
+        anchor_continue.load_residual_continuation(target,saved,'fixed')
+    spec=dict(version='matched_ab_scales_v1',old=[.1]*29,new=[.2]*7+[.9]*22,
+        requires_training_before_deployment=True)
+    audit=anchor_continue.load_residual_continuation(target,saved,'fixed',scale_adaptation=spec)
+    assert audit['requires_training_before_deployment'] and audit['new_optimizer_updates']==0
+    assert torch.equal(source.layer.weight,target.layer.weight)
+    assert torch.equal(source.layer.bias,target.layer.bias)
+    assert torch.equal(source.action_scale,target.action_scale)
+    assert torch.equal(saved['model']['scales'],torch.full((29,),.1))
+    assert torch.equal(target.scales,torch.tensor(spec['new']))
+    target.action_scale[0]=0
+    with pytest.raises(ValueError,match='buffer'):
+        anchor_continue.load_residual_continuation(target,saved,'fixed',scale_adaptation=spec)
+    with pytest.raises(ValueError,match='scales differ'):
+        anchor_continue.load_residual_continuation(target,saved,'fixed',scale_adaptation=dict(spec,old=[.2]*29))
+
+
+def test_residual_offline_projection_uses_actual_pre_action_target():
+    class Projected(TinyResidual):
+        execution_adapter={'version':'test'}
+        def forward(self,inputs,state,*,mask_force=False):
+            return super().forward(inputs,state)
+        def compose(self,base,raw,contact,limits,*,previous):
+            assert torch.equal(previous,torch.full_like(previous,.37))
+            return previous+raw,raw
+    r=record(0,2);r['robot']=torch.zeros(2,178)
+    r['robot'][:,58:87]=.37;r['robot'][:,116:145]=-.72
+    model=Projected();lease=SimpleNamespace(block=nullcontext)
+    predicted=anchor_continue.residual_prediction(model,r,lease)
+    assert torch.equal(predicted,torch.full((2,29),.37))
+
+
 def test_selection_metric_excludes_unlabeled_prefix(monkeypatch):
     model=TinyResidual();records={'a':dict(target=torch.zeros(2,29),gate=torch.tensor([True,True]),
         supervision_mask=torch.tensor([False,True]))}

@@ -447,8 +447,10 @@ class TargetResidual(nn.Module):
                   'plan_valid', 'plan_cursor', 'previous_nominal',
                   'previous_nominal_valid', 'valid'}
 
-    def __init__(self, statistics, scales):
+    def __init__(self, statistics, scales, *, execution_adapter=None):
         super().__init__()
+        from ..position_control import validate_execution_adapter
+        self.execution_adapter = validate_execution_adapter(execution_adapter)
         self.visual = nn.GRUCell(512, 64)
         self.tactile = FingerTactileEncoder()
         self.motion = nn.GRUCell(ROBOT_DIM, 64)
@@ -550,11 +552,17 @@ class TargetResidual(nn.Module):
         return raw, dict(visual=visual_state, tactile=ts, motion=motion_state,
             memory=memory_state, history=history, history_valid=history_valid)
 
-    def compose(self, base, raw, contact, limits):
+    def compose(self, base, raw, contact, limits, *, previous=None):
         """Observed contact remains a diagnostic argument, never a hard switch."""
         delta = self.scales*raw.tanh()
         proposal = base+delta/self.action_scale
-        return torch.maximum(torch.minimum(proposal, limits[..., 1]), limits[..., 0]), delta
+        proposal = torch.maximum(torch.minimum(proposal, limits[..., 1]), limits[..., 0])
+        if self.execution_adapter is not None:
+            from ..position_control import project_processed_position_targets
+            if previous is None:
+                raise ValueError('Reachable residual composition requires real pre-action targets')
+            proposal = project_processed_position_targets(proposal, previous, limits, self.execution_adapter)
+        return proposal, delta
 
     def objective(self, action, target, delta, valid):
         """Equal total arm/hand fit on all valid control ticks, not contact only."""
@@ -574,6 +582,11 @@ def load_residual(payload, device='cpu'):
     if payload.get('residual_version') not in versions:
         raise ValueError('Unknown residual architecture identity')
     state = payload['model']
-    model = versions[payload['residual_version']](state, state['scales']).to(device)
+    cls = versions[payload['residual_version']]
+    adapter = payload.get('configuration', {}).get('execution_adapter')
+    if cls is LegacyTargetResidual and adapter is not None:
+        raise ValueError('Legacy GRU residual cannot acquire a new execution adapter')
+    kwargs = dict(execution_adapter=adapter) if cls is TargetResidual else {}
+    model = cls(state, state['scales'], **kwargs).to(device)
     model.load_state_dict(state)
     return model.eval()

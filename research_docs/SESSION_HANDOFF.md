@@ -1,3 +1,15 @@
+# 2026-11-12：控制一致性审计与配对 continuation
+
+隔离树 `/home/CNS2025331827/docs/bc+rl_RSS_control_audit`。最新附件授权修复后有限继续；旧run不停止：第3轮A已完成800/24112更新、自主0/4，B在10:06读取时725/800前端更新，后续由原owner推进，13:24:31截止不改。此为带时间快照，不能替代最新机器状态。
+
+CPU审计：327条数值轨迹11项provenance检查通过；564非test轨迹169,853合法专家tick投影改变0、原映射重算误差0。旧学生目标可超专家同历史可达范围是实际问题，尚未证明是零成功的唯一原因。原标签已经减速/delay，不能二次处理。[Method与算法](DAGGER_METHOD.md) · [逐阶段数值](evidence/control_consistency_20261112/summary.json)。
+
+新root `outputs/visuotactile/run/tight_dagger_matched_20261112_01`，普通service `tight-dagger-matched-20261112-01.service`。实际状态读registration、continuation_request、successor_service、status、integration、phase0/finished、round*/matched_exposure、public_git；准备文档不等于启动。等待旧owner/worker退出与发布，核验控制验收和源码SHA，整合原报告推送后admission计24h。无新增仿真来重复旧诊断。
+
+新共同安排：最近共同完成旧轮的candidate与同快照，先双组rear6tick遍适配（DP更新0，仅此phase0不是完整DAgger），复用SHA完全匹配的预测缓存；然后最多2轮，每组48配对机会，DP6anchor遍→刷新缓存→rear12tick遍→固定10纯学生开发。共同.2/.9幅度、新执行投影、endpoint与采样种子；历史初始化仍不同。每轮两组真实曝光一致且完整完成才继续。原合法数据/权重保留，无伪q或全部旧池隔离。
+
+准备：`bash visuotactile/run_cpu.sh -m tools.tight_finish dagger_matched_prepare --root <newroot>`；普通后继 `dagger_follow --root <newroot>`；admit后恢复 `dagger_resume --root <newroot>`。首次正常采集首2例验收新执行器，失败显式停止。新结果使用独立managed block，旧结果与大文件留原处。下面是此前已登记的条件追加历史，不能改写为新公平协议。
+
 # 2026-11-12：完成当前评估后，零成功条件下追加一次
 
 本次准备在`/home/CNS2025331827/docs/bc+rl_RSS_dagger_continue`隔离树进行；原`bc+rl_RSS_qg_report`的当前B训练/评估继续按冻结配置完成。本页新段是授权与实现边界，不声称条件已触发、迁移或真实新采集已经启动；实际状态以同一run的`conditional_extension_request.json`、`conditional_extension.json`、`conditional_extension_status.json`及service凭据为准。

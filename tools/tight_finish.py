@@ -1095,7 +1095,7 @@ def dagger_evaluation_rules(root, session, settings):
     if rules is None:return None
     expected={'initial_trials','max_trials','expand_if_success','expand_if_subgoal','expand_if_native_lift'}
     require(set(rules)==expected and all(type(x) is int and x>0 for x in rules.values()),'Invalid DAgger evaluation limits')
-    require(rules['initial_trials']==4 and rules['max_trials']==10,'DAgger evaluation requires frozen 4 then at most10')
+    require(rules['initial_trials'] in (4,10) and rules['max_trials']==10,'DAgger evaluation requires frozen 4 then at most10, or fixed10')
     require(settings.get('cohort','development')=='development','Adaptive evaluation is development-only, never test')
     return rules
 
@@ -1110,7 +1110,8 @@ def dagger_evaluation(root, groups, plan, rules, run_trial, verify_video):
     require(len(plan)==rules['max_trials'] and len({c['identity'] for c in plan})==len(plan) and all(c['identity']==c['spec'].get('identity') for c in plan),'Freeze exactly ten distinct development cases')
     require(all(c['spec'].get('cohort') not in ('formal_test','test') and c['spec'].get('split')!='test' for c in plan),'Held-out tests cannot drive expansion')
     checkpoints={g:root/g/'training/best.pt' for g in groups}
-    frozen=dict(version='dagger_development_4_then_10_v1',plan_sha256=sha(root/'evaluation_plan.json'),rules=rules,
+    fixed=rules['initial_trials']==rules['max_trials']
+    frozen=dict(version='dagger_development_fixed10_v1' if fixed else 'dagger_development_4_then_10_v1',plan_sha256=sha(root/'evaluation_plan.json'),rules=rules,
         checkpoints={g:sha(p) for g,p in checkpoints.items()},groups=groups,videos_per_group=1,expert_takeover=False)
     freeze=root/'dagger_evaluation_freeze.json'
     if freeze.exists():require(read(freeze)==frozen,'Frozen evaluation plan, rules or selected checkpoint changed')
@@ -1178,7 +1179,7 @@ def dagger_evaluation(root, groups, plan, rules, run_trial, verify_video):
         row=summary(group);reasons=[]
         for metric,key in (('successes','expand_if_success'),('first_subgoal_reached','expand_if_subgoal'),('native_lifts','expand_if_native_lift')):
             if row[metric]>=rules[key]:reasons.append(metric+' >= '+str(rules[key]))
-        decisions[group]=dict(expanded=bool(reasons) and not failures[group],reason='software_failure' if failures[group] else '; '.join(reasons) if reasons else 'initial four below every preregistered expansion threshold',initial_trials=rules['initial_trials'])
+        decisions[group]=dict(expanded=False if fixed else bool(reasons) and not failures[group],reason='software_failure' if failures[group] else 'fixed ten attempts; no outcome-dependent expansion' if fixed else '; '.join(reasons) if reasons else 'initial four below every preregistered expansion threshold',initial_trials=rules['initial_trials'])
     for index in range(rules['initial_trials'],len(plan)):
         for group in groups:
             if decisions[group]['expanded']:perform(group,index)
@@ -1689,12 +1690,12 @@ def residual_check(root):
         with lease.block():
             inputs=residual_batch([r],0,len(r['robot']),'cuda:0')
             with torch.no_grad():
-                raw,_=model(inputs);initial,_=model.compose(r['base'][None].cuda(),raw,r['gate'][None].cuda(),r['limits'].cuda())
+                raw,_=model(inputs);initial,_=model.compose(r['base'][None].cuda(),raw,r['gate'][None].cuda(),r['limits'].cuda(),previous=inputs['robot'][...,58:87])
                 require(torch.equal(initial.cpu()[0],r['base']),'Zero residual changed nominal')
             losses=[]
             for _ in range(2):
                 opt.zero_grad(set_to_none=True);raw,_=model(inputs)
-                command,delta=model.compose(r['base'][None].cuda(),raw,r['gate'][None].cuda(),r['limits'].cuda())
+                command,delta=model.compose(r['base'][None].cuda(),raw,r['gate'][None].cuda(),r['limits'].cuda(),previous=inputs['robot'][...,58:87])
                 loss=model.objective(command,r['target'][None].cuda(),delta,inputs['valid']);loss.backward()
                 require(torch.isfinite(loss),'Residual loss nonfinite');torch.nn.utils.clip_grad_norm_(model.parameters(),1.);opt.step();losses.append(float(loss))
             grads={name:sum(float(p.grad.abs().sum()) for p in module.parameters() if p.grad is not None)
@@ -1709,7 +1710,7 @@ def residual_check(root):
         fresh=TargetResidual(stats,[.1]*29).cuda();fresh.load_state_dict(loaded['model']);fresh_opt=torch.optim.AdamW(fresh.parameters(),lr=1e-3,weight_decay=1e-4);fresh_opt.load_state_dict(loaded['optimizer'])
         expected=residual_prediction(model,r,lease);restored=residual_prediction(fresh,r,lease)
         require(torch.equal(expected,restored),'Residual save/load prediction differs')
-        with torch.no_grad():full,_=model(inputs);full,_=model.compose(r['base'][None].cuda(),full,r['gate'][None].cuda(),r['limits'].cuda())
+        with torch.no_grad():full,_=model(inputs);full,_=model.compose(r['base'][None].cuda(),full,r['gate'][None].cuda(),r['limits'].cuda(),previous=inputs['robot'][...,58:87])
         chunk_error=float((full.cpu()[0]-restored).abs().max());require(chunk_error<2e-5,'Persistent residual chunks differ')
         tick_now=[0];controller=ResidualController(loaded,metadata,dino=lambda rgb:episode.frame(tick_now[0],'cuda')['patches'])
         maximum=nominal_error=robot_error=0.;before={k:p.detach().cpu().clone() for k,p in controller.model.state_dict().items()}
@@ -2473,7 +2474,7 @@ def matrix_run(root):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_follow','dagger_run','dagger_resume','dagger_revise','dagger_conditional_follow','dagger_conditional_extend','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_matched_prepare','dagger_follow','dagger_run','dagger_resume','dagger_revise','dagger_conditional_follow','dagger_conditional_extend','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)

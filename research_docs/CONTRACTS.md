@@ -1,5 +1,13 @@
 # Tight-Insertion 现行合同：成功筛选的专家接管式 DAgger
 
+## 2026-11-12 新控制/配对协议覆盖
+
+`matched_control_ab_v1` 是独立有限continuation，集中数学、算法与预算见 [DAGGER_METHOD](DAGGER_METHOD.md)。原run按已登记截止完成，新owner admission开始最多24h（含CPU准备和等待），不改旧历史。
+
+新 `expert_reachable_postprocessed_v1` 显式绑定checkpoint，在后端训练/离线/部署共享最终命令可达投影，参考真实robot58:87 pre-action actuator target。原native-mapped目标只做一次速度处理；最终u_expert不重复减速或delay。固定float32边界容差1e-6rad，全169,853合法专家tick投影改变0，CPU端点最大漂移1.49e-8rad。A q_reached/B u_expert语义、原normalizer、native物理/PD不变；旧checkpoint缺该identity仍为legacy。
+
+两组先在phase0从原Transformer参数适配至共同Arm.2/Hand.9及新执行器，6有效tick遍完成后才部署；只有这项显式适配允许变scales buffer，其余参数初值/normalizer沿原身份。随后最多2轮，每组48配对机会、共享快照、DP6anchor遍、rear12tick遍、固定10开发机会、共同曝光endpoint。validation-best诊断单独保留，未完成或实际曝光不配对不进入后续轮。历史初始化差异仍披露。以下为旧协议保留细节，冲突项仅对新身份由本节覆盖，不热改旧运行。
+
 本页约束 `complete_strategy_ab_v1`：只调度A、B完整学生，每轮依次更新前端与后端；以原run的持久状态、安全边界和绝对截止推进。历史 `_02`、单轮DAgger和本run首轮的原始结果保留。实现、CPU验证、真实采集与研究效果分别报告，授权不等于验收。[实际结果](STATE_DP_RESULTS.md)。
 
 ## 范围、来源与执行顺序

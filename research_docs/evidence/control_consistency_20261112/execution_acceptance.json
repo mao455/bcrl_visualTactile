@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "scope": "CPU numeric replay of actual recorded targets/history; no new physics or success claim",
+  "execution_adapter": {
+    "version": "expert_reachable_postprocessed_v1",
+    "input_space": "postprocessed_absolute_joint_target_rad",
+    "reference": "actual_pre_action_actuator_target_rad",
+    "control_dt": 0.016666666666666666,
+    "dof_speed_scale": 1.5,
+    "arm_moving_average": 0.1,
+    "hand_moving_average": 0.1,
+    "arm_progress": 0.5,
+    "hand_progress": 1.0,
+    "hand_target_cap_rad_s": 2.0,
+    "roundoff_tolerance_rad": 1e-06,
+    "delay": "already_resolved_in_supervision_no_second_queue"
+  },
+  "expert_student_applied_equivalent": true,
+  "equivalence_scope": "Same native-mapped absolute proposal and actual history, one speed mapping, then shared final position target",
+  "supervision_semantics_preserved": true,
+  "expert_valid_ticks": 169853,
+  "mapped_expert_ticks": 169853,
+  "actual_physics_substep_target_max_error_rad": 0.0,
+  "expert_changed_ticks": 0,
+  "expert_mapping_max_error_rad": 0.0,
+  "maximum_fp32_endpoint_roundoff_rad": 1.4901161193847656e-08,
+  "training_development_episodes": 564,
+  "test_episodes_read": 0,
+  "student_ticks": 59742,
+  "student_outside_shared_reachable_ticks": 59736,
+  "native_control_changed": false,
+  "new_simulator_rollouts": 0,
+  "finding": "Legacy postprocessed student commands can exceed the expert reachable target set; labels already include speed/delay and must not be slowed twice",
+  "double_speed_application_found": false,
+  "valid_expert_labels_invalidated": false,
+  "historical_introduction": {
+    "direct_postprocessed_position_executor": "c7fcbb0e2d27e21fa5c818171014413d2b067d0a",
+    "hand_target_slew_cap": "024cdaabf420b26565fb173ea2c917ddff7e98f2",
+    "dagger_expert_position_bridge": "01ce8d6ba785f73e8737f6598f4ceb4e13515b35"
+  },
+  "sources": {
+    "visuotactile/position_control.py": "0e3026f3f0a2957a49fc542f95c16f743e80505721ea7b65351ab00365c45b4a",
+    "visuotactile/expert_speed.py": "0431086bac241778ebbc0cad33c254e821c45f0e89f16e89001530f6596de2c6",
+    "visuotactile/sim/expert_speed_environment.py": "3de63bfd85f6f187b49dffe3943bc0c4e5062f983fbda564413064f2e323febf",
+    "visuotactile/models/native_dp.py": "367776b5c990511f9a1ec5cbc78fe3f46580cc550b9c0515597bd0cea071fca1",
+    "visuotactile/native_controller.py": "e4d9c53c5e8f90a1419dfb9be0abe80320d044eee9f6adc4432a98f046763767",
+    "visuotactile/state_benchmark.py": "0f2b24d706cfe1884cb9e79a74dd7ebe9061039e579e607c22754ef2f75083e9",
+    "visuotactile/anchor_continue.py": "98bf0551d1b18d7c0848196dd8e536b70742e41db863633e0d8e48093c1bbd87",
+    "isaacsimenvs/tasks/play/utils/action_utils.py": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3",
+    "tools/tight_dagger.py": "a73e0f28122bc21e761729112d8d198951e5aaa12155b110e1840214bfeda37e",
+    "tools/tight_finish.py": "3214d8a3866ee596cdf0f1d6730f3274b725d38374bd81e3c8741aa31ad2c1b8"
+  },
+  "data_manifest": {
+    "path": "outputs/visuotactile/run/tight_dagger_pool_20261111_01/round_03/QG01/dp/state_data/data.json",
+    "sha256": "e9a6dcadfcc75d9a28ccba9f75133a23dcf08c4a38ae99be3382cda283979c34"
+  },
+  "evidence": [
+    {
+      "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_rows.json",
+      "sha256": "cc4ccd111e09d2284a679ca648fdb031b6b9dfba27f9647635bfdee916abd7eb"
+    },
+    {
+      "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_joints.csv",
+      "sha256": "6ff78257d62b383ccaa5c4165fc025a464fe872d5cc42c29e6452f9af4add5f6"
+    },
+    {
+      "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_model_acceptance.json",
+      "sha256": "5d4418fe5e70da756a61d50690f7888205bb40b10c784fd09203bc1c7958658b"
+    }
+  ],
+  "backend_fit_gradient_verified": true,
+  "backend_model_check_scope": "Actual trained A r03 and B r02 weights; real Core and recovery initial inputs; CPU forward/backward only, zero optimizer updates"
+}

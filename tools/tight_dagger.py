@@ -49,6 +49,15 @@ def takeover_plan(data, families, policy):
     return jobs
 
 
+def assert_paired_plans(plans):
+    require(set(plans)=={'QG01','G01'},'Matched collection requires both complete strategy plans')
+    keys=('family','seed','event_seed','takeover_tick','pool_partition','source_identity')
+    left,right=(plans[g] for g in ('QG01','G01'))
+    require(len(left)==len(right) and all(all(a[k]==b[k] for k in keys) for a,b in zip(left,right)),
+        'A/B collection opportunity family/seed/takeover/partition differs')
+    return dict(passed=True,attempts_each=len(left),fields=list(keys),hidden_simulator_state_bitwise_paired=False)
+
+
 def pool_mode(cfg):
     return cfg.get('version')=='successful_takeover_pool_v1'
 
@@ -87,10 +96,111 @@ def prepare(root):
     write(root/'status.json', dict(state='PREPARED', stage='awaiting_registered_successor', groups={}, gpu_started=False))
 
 
+def matched_configuration(previous, policy, predecessor):
+    """One explicit finite sequence; historical configuration remains untouched."""
+    cfg=copy.deepcopy(previous)
+    for key in ('conditional_extension','conditional_extension_policy'):
+        cfg.pop(key,None)
+    require(set(cfg['groups'])=={'QG01','G01'},'Matched continuation requires complete A/B only')
+    require({g:s['supervision'] for g,s in cfg['groups'].items()}=={'QG01':'q_reached','G01':'u_expert'},'Matched A/B target semantics differ')
+    require({s['modality'] for s in cfg['groups'].values()}=={'G00'},'Matched A/B frontend modalities differ')
+    cfg.update(matched_protocol=copy.deepcopy(policy),predecessor=str(predecessor),first_round=1,
+        rounds=policy['rounds'],maximum_hours=policy['maximum_hours'],scope_revision=policy['version'])
+    cfg['round_schedule']={str(r):dict(active_groups=['QG01','G01'],attempts={g:policy['attempts_per_group'] for g in cfg['groups']})
+        for r in range(1,policy['rounds']+1)}
+    cfg['frontend'].update(maximum_updates=None,minimum_updates=None,validation_updates=None,
+        maximum_anchor_epochs=policy['frontend_anchor_epochs'],minimum_anchor_epochs=policy['frontend_anchor_epochs'],
+        validation_anchor_epochs=2,maximum_hours=3)
+    cfg['backend'].update(maximum_control_tick_epochs=policy['backend_tick_epochs'],
+        minimum_control_tick_epochs=policy['backend_tick_epochs'],maximum_hours=1)
+    cfg['evaluation'].update(attempts_per_group=10,maximum_attempts_per_group=10,
+        expansion='Fixed ten registered development attempts per group per round; no replacements or outcome-dependent expansion',
+        rollback='Common fixed-exposure endpoints deploy together; validation-best checkpoints remain diagnostic; incomplete pair stops subsequent rounds')
+    cfg['collection'].update(attempts_per_group=policy['attempts_per_group'],plan_seed=2026111204,
+        seed_start=32112000,event_seed_start=33112000)
+    cfg['training_seed']=2026111203
+    cfg['planning'].update(pair_stage_reserve_seconds=policy['pair_stage_reserve_seconds'])
+    cfg['stopping']='Two matched rounds only, after common rear-only control/scale adaptation; finite new identity and absolute 24h maximum, never resets the predecessor deadline'
+    cfg['comparison_limitations']=[
+        'Historical A/B initialization and accumulated exposure differ; this sequence matches incremental protocol, not all prior training',
+        'Matching family/spec/seed does not prove bitwise matching hidden simulator state',
+        'Phase0 adapts both rear policies to common residual bounds and execution adapter before collection; original weights and results remain unchanged']
+    return cfg
+
+
+def control_acceptance(root):
+    request=read(root/'continuation_request.json');binding=request['control_acceptance']
+    path=Path(binding['path']);require(sha(path)==binding['sha256'],'Control acceptance receipt changed')
+    value=read(path)
+    require(value.get('passed') is True and value.get('expert_student_applied_equivalent') is True and
+        value.get('supervision_semantics_preserved') is True,'Control/supervision acceptance not passed')
+    require(bool(value.get('sources')) and bool(value.get('evidence')),'Control acceptance lacks reproducible source/evidence binding')
+    require(all(sha(CODE/p)==digest for p,digest in value['sources'].items()),'Control acceptance source changed')
+    require(all(sha(CODE/Path(e['path']))==e['sha256'] for e in value['evidence']),'Control acceptance evidence changed')
+    if value.get('data_manifest'):
+        require(sha(CODE/Path(value['data_manifest']['path']))==value['data_manifest']['sha256'],'Control acceptance data manifest changed')
+    return value
+
+
+def matched_prepare(root):
+    """Register a successor without mutating the live predecessor or its budget."""
+    root=Path(root).resolve();request=read(root/'continuation_request.json')
+    require(not (root/'configuration.json').exists(),'Matched successor already registered')
+    require(not git('status','--porcelain'),'Matched preparation requires committed reviewed code')
+    control_acceptance(root)
+    parent=Path(request['predecessor']).resolve();prior=read(parent/'configuration.json')
+    require(parent!=root and (parent/'launch.json').is_file(),'Explicit distinct actual predecessor required')
+    policy=read(CODE/'configs/tight_state.json')['dagger']['matched_continuation_policy']
+    require(policy['rounds']==2 and policy['attempts_per_group']==48 and policy['maximum_hours']==24,'Unregistered matched opportunity/wall budget')
+    cfg=matched_configuration(prior,policy,parent)
+    evaluation=read(parent/'evaluation_plan.json');require(len(evaluation)==10,'Expected original fixed ten development specs')
+    owner=read(parent/'resume.json') if (parent/'resume.json').exists() else read(parent/'launch.json')
+    published=read(parent/'public_git.json')
+    write(root/'configuration.json',cfg);write(root/'evaluation_plan.json',evaluation)
+    write(root/'collection_plan.json',dict(version=policy['version'],rounds=2,attempts_per_group=48,
+        paired=True,materialization='each round after phase0/new complete pair, before any collection'))
+    write(root/'registration.json',dict(predecessor=str(parent),predecessor_launch=owner,
+        predecessor_process=proc(owner['pid']),predecessor_source=published['head'],
+        prepared_source=git('rev-parse','HEAD'),configuration_sha256=sha(root/'configuration.json'),
+        evaluation_plan_sha256=sha(root/'evaluation_plan.json'),collection_plan_sha256=sha(root/'collection_plan.json'),
+        waiting_deadline=read(parent/'session.json')['deadline']+7200,created=time.time(),
+        request_sha256=sha(root/'continuation_request.json'),template_root=str(template_root(parent)),
+        start_rule='old owner/owned workers exit and publication, control acceptance, then common phase0',
+        deadline_rule='new 24h absolute clock starts at admission including CPU assembly; predecessor deadline remains immutable'))
+    write(root/'status.json',dict(state='PREPARED',stage='matched_predecessor_exit',gpu_started=False))
+
+
+def matched_admit(root):
+    """Pin the latest complete shared old round only after its owner exits."""
+    require(predecessor_finished(root),'Old owner/workers still live')
+    control_acceptance(root);registration=read(root/'registration.json')
+    require(sha(root/'continuation_request.json')==registration['request_sha256'],'Matched request changed')
+    cfg=read(root/'configuration.json');parent=Path(registration['predecessor'])
+    indices=sorted((int(p.name.split('_')[-1]) for p in parent.glob('round_*') if p.is_dir()),reverse=True)
+    index=next((r for r in indices if all((parent/f'round_{r:02d}'/g/'selection.json').is_file() and
+        (parent/f'round_{r:02d}'/g/'backend/evaluation_complete.json').is_file() and
+        read(parent/f'round_{r:02d}'/g/'backend/evaluation_complete.json').get('complete') for g in cfg['groups'])),None)
+    require(index is not None,'No completed common predecessor A/B round; no one-sided initialization')
+    pairs={}
+    for g in cfg['groups']:
+        job=parent/f'round_{index:02d}'/g;pair=candidate_pair(job)
+        pairs[g]=validate_selected_pair(pair,Path('/'),g)
+        cfg['groups'][g].update({k:pair[k] for k in ('frontend','backend','frontend_sha256','backend_sha256','data_root','evaluation_root')})
+    cfg['initial_dino_reuse_index']=str(parent/f'round_{index:02d}'/'G01/dp/cache_index.json')
+    cfg['matched_protocol']['predecessor_round']=index
+    cfg['matched_protocol']['phase0_snapshot']=str(parent/f'round_{index:02d}'/'snapshot.json')
+    cfg['matched_protocol']['phase0_snapshot_sha256']=sha(parent/f'round_{index:02d}'/'snapshot.json')
+    write(root/'configuration.json',cfg);registration['configuration_sha256']=sha(root/'configuration.json')
+    write(root/'registration.json',registration)
+    write(root/'matched_admission.json',dict(pairs=pairs,predecessor_round=index,
+        predecessor_session_sha256=sha(parent/'session.json'),predecessor_deadline=read(parent/'session.json')['deadline'],
+        control_acceptance=read(root/'continuation_request.json')['control_acceptance'],utc=time.time()))
+
+
 def predecessor_finished(root):
     registration = read(root/'registration.json'); parent = Path(registration['predecessor'])
     status = read(parent/'status.json')
-    terminal = status.get('state') in ('COMPLETE', 'FAILED', 'BUDGET_STOP')
+    terminal = status.get('state') in ('COMPLETE', 'PARTIAL', 'FAILED', 'BUDGET_STOP', 'STOPPED')
     owner = proc(registration['predecessor_launch']['pid'])
     original = registration.get('predecessor_process')
     owner_alive = owner is not None and (original is None or owner['start_ticks'] == original['start_ticks'])
@@ -110,18 +220,21 @@ def integrate_predecessor(root):
     remote = git('rev-parse', 'FETCH_HEAD')
     git('merge-base', '--is-ancestor', base, remote)
     changed = git('diff', '--name-only', base, remote).splitlines()
-    prefix = 'research_docs/evidence/tight_transformer_20261110_02/'
-    require(all(p == 'research_docs/STATE_DP_RESULTS.md' or p.startswith(prefix) for p in changed),
+    matched=bool(read(root/'configuration.json').get('matched_protocol'))
+    prefix = 'research_docs/evidence/'+(Path(registration['predecessor']).name if matched else 'tight_transformer_20261110_02')+'/'
+    allowed={'research_docs/STATE_DP_RESULTS.md'}|({'research_docs/CLEANUP_AUDIT.md'} if matched else set())
+    require(all(p in allowed or p.startswith(prefix) for p in changed),
         'Remote includes unrelated changes; preserve both worktrees for review')
     git('merge', '--no-edit', remote)
     parent = Path(registration['predecessor'])
     published = read(parent/'public_git.json') if (parent/'public_git.json').exists() else {}
     if not published.get('pushed'):
         # A report-only failure does not invalidate usable trained models.
-        from tools.tight_diagnostics import matrix_publish
+        from tools.tight_diagnostics import matrix_publish,dagger_publish
         output = CODE/prefix
-        matrix_publish(parent, output)
-        git('add', '--', 'research_docs/STATE_DP_RESULTS.md', prefix)
+        if matched:dagger_publish(parent)
+        else:matrix_publish(parent, output)
+        git('add', '--', *sorted(allowed), prefix)
         if git('diff', '--cached', '--name-only'):
             git('commit', '-m', 'Publish predecessor evidence before takeover aggregation')
     git('push', 'origin', 'HEAD:refs/heads/feature/tight-state-foundation')
@@ -146,6 +259,7 @@ def follow(root):
                 dependency=registration['predecessor'], gpu_started=False, utc=time.time()))
             time.sleep(15)
         integrate_predecessor(root)
+        if read(root/'configuration.json').get('matched_protocol'):matched_admit(root)
         run(root)
 
 
@@ -159,6 +273,8 @@ def validate_selected_pair(spec,parent,group):
     import torch
     frontend = (parent/spec['frontend']).resolve(); backend = (parent/spec['backend']).resolve()
     require(frontend.is_file() and backend.is_file(), 'Missing selected initialization for ' + group)
+    for name,path in (('frontend',frontend),('backend',backend)):
+        if spec.get(name+'_sha256'):require(sha(path)==spec[name+'_sha256'],'Pinned selected '+name+' changed')
     front = torch.load(frontend, map_location='cpu', weights_only=False)
     back = torch.load(backend, map_location='cpu', weights_only=False)
     require(front.get('updates', 0) > 0 and back.get('updates', 0) > 0, 'Initialization has no real optimizer updates')
@@ -177,6 +293,7 @@ def validate_selected_pair(spec,parent,group):
         residual_statistics_path=back['configuration']['residual_statistics_path'],
         residual_statistics_sha256=back['configuration']['residual_statistics_sha256'],
         normalization_identity=front['contract'].get('normalization_identity', 'u_expert_train166_affine_v1'),
+        execution_adapter=back['configuration'].get('execution_adapter'),
         strategy_role=spec.get('strategy_role'),geometry=bool(spec.get('geometry',group=='QG01')),
         evaluation_root=spec.get('evaluation_root',str(parent/'round_01'/group/'backend'/group/'evaluation')))
 
@@ -909,6 +1026,9 @@ def prepare_backend(root, group, round_index=1):
         stop_rule='registered finite incremental exposure, validation trend and absolute wall budget; update0 included',
         cache_definition='current paired frozen DP; complete actual prefixes, separate previous_nominal, expert supervision mask',
         training_hours=1.5,maximum_hours=4,cache_hours=1.5,offline_hours=.5,evaluation_hours=1)
+    if cfg.get('matched_protocol'):
+        from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
+        v.update(execution_adapter=REACHABLE_POSITION_EXECUTION,initialization_seed=cfg['training_seed']+round_index-1)
     if pool_mode(cfg):
         v['sampling_weights']=cfg['sampling_weights']
         if cfg.get('recovery_prefix'):v['recovery_prefix']=cfg['recovery_prefix']
@@ -950,6 +1070,16 @@ def round_decision(cfg, previous, remaining_seconds, round_index=None):
     attempts=d['default_attempts_per_group'] if remaining_seconds>=5*3600 else d['minimum_attempts_per_group']
     result=dict(attempts_per_group=attempts,clean_ticks=clean,takeover_ticks=[t-cfg['collection']['expected_expert_delay_queue']+1 for t in clean],
         reason=reason,remaining_seconds=remaining_seconds,weights=cfg['sampling_weights'],zero_student_success_is_stop=False)
+    if cfg.get('matched_protocol'):
+        require(round_index is not None,'Matched round needs explicit identity')
+        policy=cfg['matched_protocol'];count=policy['attempts_per_group'];active=list(cfg['groups'])
+        rounds_left=cfg['rounds']-round_index+1
+        reserve=rounds_left*len(active)*(cfg['planning']['pair_stage_reserve_seconds']+count*cfg['planning']['seconds_per_attempt'])
+        reserve+=cfg['planning']['transition_reserve_seconds']
+        require(remaining_seconds>=reserve,'Insufficient remaining budget for all registered matched rounds; no one-sided or reduced-budget substitute')
+        result.update(active_groups=active,attempts_by_group={g:count for g in active},requested_attempts={g:count for g in active},
+            reserved_compute_seconds=reserve,matched_protocol=policy['version'],unequal_exposure_exploration=False,not_scheduled=[])
+        return result
     if cfg.get('scope_revision'):
         require(round_index is not None,'Scope schedule needs explicit round identity')
         schedule=cfg['round_schedule'][str(round_index)];active=list(schedule['active_groups']);p=cfg['planning']
@@ -1035,6 +1165,125 @@ def execute_bounded(stages,name,args,seconds,completion=None,restarts=0):
             if not transient or len(history)>restarts:raise
 
 
+def select_exposure_endpoint(directory, kind):
+    """Deploy the registered exposure endpoint; retain validation-best evidence."""
+    import torch
+    directory=Path(directory);receipt=directory/'exposure_endpoint.json'
+    if receipt.exists():
+        result=read(receipt);require(sha(directory/'best.pt')==result['checkpoint_sha256'],'Fixed endpoint changed');return result
+    done=read(directory/'finished.json')
+    require(done.get('target_reached') is True and done.get('new_optimizer_updates',0)>0 and not done.get('disposable'),
+        'Incomplete formal exposure cannot become matched endpoint')
+    saved=torch.load(directory/'last.pt',map_location='cpu',weights_only=False)
+    require(saved['updates']==done['updates'],'Endpoint optimizer receipt differs')
+    prior=read(directory/'selected.json')
+    require(not (directory/'validation_best.pt').exists(),'Uncommitted endpoint selection requires inspection')
+    (directory/'best.pt').rename(directory/'validation_best.pt')
+    write(directory/'validation_selected.json',prior)
+    os.link(directory/'last.pt',directory/'best.pt')
+    result=dict(kind=kind,selection='registered common effective exposure endpoint; development outcomes do not select weights',
+        checkpoint_sha256=sha(directory/'best.pt'),update=done['updates'],epoch=saved.get('epoch'),
+        target_reached=True,initialization_candidate=False,validation_best_sha256=sha(directory/'validation_best.pt'),
+        validation_best=prior,coverage=done.get('coverage'),supervised_ticks=done.get('supervised_ticks'),utc=time.time())
+    write(directory/'selected.json',result);write(receipt,result)
+    return result
+
+
+def reuse_nominal_cache(source, destination, base, data_root, command_statistics_sha):
+    """Reuse only exact old-front prediction identities; never relabel records."""
+    source=Path(source);destination=Path(destination);index=read(source/'index.json')
+    require(index['base_sha256']==base['sha256'] and index['data_sha256']==sha(data_root/'data.json') and
+        index['statistics_sha256']==sha(data_root/'statistics.pt') and
+        index['residual_statistics_sha256']==command_statistics_sha,'Phase0 nominal cache identity differs')
+    destination.mkdir(parents=True,exist_ok=True)
+    for identity,row in index['episodes'].items():
+        path=source/(identity+'.pt');require(sha(path)==row['sha256'],'Phase0 nominal cache episode changed')
+        target=destination/path.name
+        if not target.exists():target.symlink_to(path.resolve())
+        require(sha(target)==row['sha256'],'Phase0 reused nominal cache differs')
+    if (destination/'index.json').exists():require(read(destination/'index.json')==index,'Phase0 cache index differs')
+    else:write(destination/'index.json',index)
+    write(destination/'reuse.json',dict(source=str(source),source_index_sha256=sha(source/'index.json'),
+        episodes=len(index['episodes']),all_episode_sha256_checked=True,frontend_updates=0,recomputed_nominal_episodes=0,utc=time.time()))
+
+
+def prepare_matched_phase0(root, group, pair):
+    """CPU-only source binding and exact nominal reuse; no policy deployment."""
+    from tools.tight_finish import residual_prepare
+    from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
+    cfg=read(root/'configuration.json');policy=cfg['matched_protocol'];directory=root/'phase0'
+    require(sha(Path(policy['phase0_snapshot']))==policy['phase0_snapshot_sha256'],'Phase0 shared snapshot changed')
+    scales=policy['residual_scales']
+    job=directory/group;out=job/'backend';job.mkdir(parents=True,exist_ok=True)
+    write(job/'initial_pair.json',pair)
+    old_back=Path(pair['backend']).parents[2];front=Path(pair['frontend']).parents[1]
+    require(read(front/'state_data/data.json')['snapshot_id']==read(Path(policy['phase0_snapshot']))['snapshot_id'],
+        'Phase0 frontend data differs from common predecessor snapshot')
+    expected=dict(pair=pair,scales=scales,execution_adapter=REACHABLE_POSITION_EXECUTION,
+        snapshot_sha256=policy['phase0_snapshot_sha256'],frontend_updates=0)
+    if (out/'phase0_prepared.json').exists():
+        require(read(out/'phase0_prepared.json')==expected,'Phase0 preparation identity changed')
+        settings=read(out/'configuration.json')['residual_pair']
+        require(settings['execution_adapter']==REACHABLE_POSITION_EXECUTION and settings['fixed_residual_scales']==scales,
+            'Phase0 prepared controls or residual bounds changed')
+    if not (out/'phase0_prepared.json').exists():
+        require(not out.exists(),'Uncommitted phase0 preparation requires inspection')
+        configuration=copy.deepcopy(read(old_back/'configuration.json'));v=configuration['residual_pair']
+        v.update(source_root=str(front),groups=[group],dagger_round=policy['predecessor_round'],
+            bases={group:dict(group=pair['modality'],modality=pair['modality'],checkpoint=pair['frontend'],sha256=pair['frontend_sha256'])},
+            fixed_residual_scales=scales,execution_adapter=REACHABLE_POSITION_EXECUTION,
+            residual_scale_adaptation=dict(version='matched_ab_scales_v1',old=pair['scales'],new=scales,requires_training_before_deployment=True),
+            continuation_from=dict(path=pair['backend'],sha256=pair['backend_sha256'],teacher_supervision='u_expert',
+                statistics_sha256=pair['residual_statistics_sha256'],normalization_identity='u_expert_train166_affine_v1',round_index=1,source_group=group),
+            maximum_control_tick_epochs=policy['phase0_backend_tick_epochs'],minimum_control_tick_epochs=policy['phase0_backend_tick_epochs'],
+            comparison_control_tick_epochs=[3,policy['phase0_backend_tick_epochs']],validation_epoch_interval=3,
+            initialization_seed=cfg['training_seed'],learning_rate=cfg['backend']['learning_rate'],
+            dagger_evaluation=dict(initial_trials=10,max_trials=10,expand_if_success=1,expand_if_subgoal=1,expand_if_native_lift=2))
+        residual_prepare(out,configuration=configuration)
+        reuse_nominal_cache(old_back/group/'nominal',out/group/'nominal',v['bases'][group],out/'state_data',pair['residual_statistics_sha256'])
+        write(out/'phase0_prepared.json',expected)
+    return out
+
+
+def validate_matched_pairs(pairs, policy):
+    import torch
+    from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
+    require(set(pairs)=={'QG01','G01'},'Matched complete pair identities differ')
+    for pair in pairs.values():
+        require(pair.get('execution_adapter')==REACHABLE_POSITION_EXECUTION,'Matched pair lacks accepted execution adapter')
+        require(torch.equal(torch.tensor(pair['scales']),torch.tensor(policy['residual_scales'])),'Matched rear correction bounds differ')
+
+
+def matched_phase0(root, pairs, stages):
+    """Adapt both existing rear policies before any new student state collection."""
+    cfg=read(root/'configuration.json');policy=cfg['matched_protocol'];directory=root/'phase0'
+    if (directory/'finished.json').exists():
+        value=read(directory/'finished.json');require(value.get('complete') is True,'Incomplete phase0 receipt')
+        result={g:validate_selected_pair(row['pair'],Path('/'),g) for g,row in value['groups'].items()}
+        validate_matched_pairs(result,policy)
+        return result
+    groups={};adapted={}
+    for group,pair in pairs.items():
+        out=prepare_matched_phase0(root,group,pair)
+        share_monitor(root,out);phase_deadlines(root,out,cache_deadline=1800,training_deadline=3600)
+        execute_bounded(stages,'phase0_'+group+'_cache',['-m','tools.tight_finish','residual_cache','--root',str(out)],1800,out/'cache_complete.json')
+        execute_bounded(stages,'phase0_'+group+'_backend',['-m','visuotactile.anchor_continue','residual-train','--job','state','--root',str(out/group),
+            '--output',str(out/group/'training/launch')],3600,out/group/'training/finished.json',cfg['recovery']['maximum_training_worker_restarts'])
+        endpoint=select_exposure_endpoint(out/group/'training','backend')
+        updated=dict(pair,backend=str(out/group/'training/best.pt'),backend_sha256=sha(out/group/'training/best.pt'),
+            evaluation_root=str(out/group/'evaluation'))
+        adapted[group]=validate_selected_pair(updated,Path('/'),group)
+        done=read(out/group/'training/finished.json')
+        groups[group]=dict(pair=adapted[group],backend_supervised_ticks=done['supervised_ticks'],backend_updates=done['updates'],
+            backend_tick_population=done['supervised_tick_population'],frontend_updates=0,wall_s=done['wall_s'],endpoint=endpoint)
+    require(len({v['backend_supervised_ticks'] for v in groups.values()})==1 and
+        len({v['backend_tick_population'] for v in groups.values()})==1,'Phase0 A/B effective rear exposure differs')
+    validate_matched_pairs(adapted,policy)
+    write(directory/'finished.json',dict(complete=True,groups=groups,kind='rear_control_scale_adaptation_not_dagger_round',
+        snapshot_sha256=policy['phase0_snapshot_sha256'],utc=time.time()))
+    return adapted
+
+
 def train_pair(root,group,round_index,stages,snapshot,reuse_index):
     cfg=read(root/'configuration.json');job=root/f'round_{round_index:02d}'/group;tag=f'r{round_index:02d}_{group}'
     front=prepare_frontend(root,group,round_index,snapshot,reuse_index)
@@ -1050,12 +1299,14 @@ def train_pair(root,group,round_index,stages,snapshot,reuse_index):
         '--data',str(front/'state_data'),'--target',str(budget['total_updates']),'--output',str(front/'training/launch')],allocation,
         front/'training/finished.json',cfg['recovery']['maximum_training_worker_restarts'])
     done=read(front/'training/finished.json');require(done['updates']>0,'No real frontend optimizer updates')
+    if cfg.get('matched_protocol'):select_exposure_endpoint(front/'training','frontend')
     back=prepare_backend(root,group,round_index);phase_deadlines(root,back,cache_deadline=3600)
     execute_bounded(stages,tag+'_predictions',['-m','tools.tight_finish','residual_cache','--root',str(back)],3600)
     allocation=cfg['backend']['maximum_hours']*3600;phase_deadlines(root,back,training_deadline=allocation)
     execute_bounded(stages,tag+'_backend',['-m','visuotactile.anchor_continue','residual-train','--job','state','--root',str(back/group),
         '--output',str(back/group/'training/launch')],allocation,back/group/'training/finished.json',cfg['recovery']['maximum_training_worker_restarts'])
     require(read(back/group/'training/finished.json')['updates']>0,'No real backend optimizer updates')
+    if cfg.get('matched_protocol'):select_exposure_endpoint(back/group/'training','backend')
     phase_deadlines(root,back,offline_deadline=1800)
     stages.execute(tag+'_offline',['-m','visuotactile.anchor_continue','residual-offline','--job','state','--root',str(back/group),
         '--output',str(back/group/'offline_launch')],1800)
@@ -1067,7 +1318,18 @@ def train_pair(root,group,round_index,stages,snapshot,reuse_index):
     new_rows=policy_metrics(pair['evaluation_root'],plan,pair['backend_sha256'])
     a=read(front/'training/selected.json');b=read(back/group/'training/selected.json')
     validation_ok=a.get('selection_score',float('inf'))<=1.000001 and b.get('validation_score',b.get('selection_score',float('inf')))<=1.000001
-    choice=paired_policy_selection(previous,pair,old_rows,new_rows,validation_ok)
+    if cfg.get('matched_protocol'):
+        summary=read(back/group/'evaluation_summary.json')
+        require(summary['attempts']==10 and summary['completed']==10 and summary['software_failures']==0,'Matched evaluation did not resolve all ten fixed attempts')
+        metrics=dict(valid=summary['valid'],successes=summary['successes'],subgoals=summary['first_subgoal_reached'],
+            lifts=summary['native_lifts'],falls=sum(bool(r.get('reasons',{}).get('fall')) for r in summary['results']),
+            dropped=sum(bool(r.get('reasons',{}).get('dropped')) for r in summary['results']),
+            timeouts=sum(bool(r.get('reasons',{}).get('timeout')) for r in summary['results']))
+        choice=dict(selected_pair=pair,candidate_pair=pair,previous_pair=previous,selected='matched_exposure_endpoint',
+            candidate_metrics=metrics,matching_ids=sorted(new_rows),validation_acceptable=None,
+            reason='Registered common exposure endpoints; no outcome-based rollback or checkpoint selection',
+            scope='Matched incremental A/B protocol; historical initialization remains different')
+    else:choice=paired_policy_selection(previous,pair,old_rows,new_rows,validation_ok)
     choice.update(frontend_selected=a,backend_selected=b,snapshot_sha256=sha(snapshot),utc=time.time())
     write(job/'selection.json',choice)
     return choice
@@ -1107,6 +1369,26 @@ def previous_round_groups(root, cfg):
     return previous
 
 
+def matched_round_exposure(directory, groups):
+    """Require real completed training populations, not nominal update equality."""
+    evidence={}
+    for group in groups:
+        job=directory/group;front=read(job/'dp/training/finished.json');back=read(job/'backend'/group/'training/finished.json')
+        require(front.get('target_reached') is True and back.get('target_reached') is True,'Matched pair stopped before registered effective exposure')
+        evidence[group]=dict(dp_updates=front['updates'],dp_sampled_anchors=front['coverage']['sampled_anchors'],
+            dp_anchor_population=front['coverage']['anchor_population'],dp_supervised_target_ticks=front['supervised_target_ticks'],
+            dp_strata=front['coverage'].get('strata'),rear_updates=back['updates'],rear_supervised_ticks=back['supervised_ticks'],
+            rear_tick_population=back['supervised_tick_population'],rear_coverage=back.get('coverage'),
+            snapshot_sha256=read(job/'dp/prepared.json')['snapshot_sha256'])
+    keys=('dp_sampled_anchors','dp_anchor_population','dp_supervised_target_ticks','rear_supervised_ticks','rear_tick_population','snapshot_sha256')
+    passed=all(len({row[k] for row in evidence.values()})==1 for k in keys)
+    value=dict(passed=passed,groups=evidence,compared_fields=list(keys),
+        scope='new formal effective supervision exposure; historical initialization differs',utc=time.time())
+    write(directory/'matched_exposure.json',value)
+    require(passed,'Actual matched A/B effective supervision exposure differs; preserve both results and stop next round')
+    return value
+
+
 @supervised_owner
 def run(root,recover=False):
     """Finite shared-pool rounds, durable stage receipts and paired rollback."""
@@ -1118,6 +1400,7 @@ def run(root,recover=False):
     registration=read(root/'registration.json')
     require(sha(root/'configuration.json')==registration['configuration_sha256'],'Registered queue configuration changed')
     require(sha(root/'evaluation_plan.json')==registration['evaluation_plan_sha256'],'Registered developer cohort changed')
+    if cfg.get('matched_protocol'):control_acceptance(root)
     now=time.time();source=git('rev-parse','HEAD')
     if recover:
         session=read(root/'session.json');source=session['source_head']
@@ -1131,7 +1414,8 @@ def run(root,recover=False):
             resource_policy='full_gpu_v1',resource_target_percent=None,resources=cfg['resources'],reserve_bytes=cfg['resources']['min_disk_gib']*1024**3,
             compute_deadline=now+cfg['maximum_hours']*3600-600,report_reserve_seconds=600,
             owned_worker_roots=[str(root)]+[str(root/f'round_{r:02d}'/g/p) for r in range(1,cfg['rounds']+1)
-                for g in cfg['groups'] for p in ('','dp','dp/training','backend','backend/'+g)],dagger=cfg)
+                for g in cfg['groups'] for p in ('','dp','dp/training','backend','backend/'+g)]+
+                ([str(root/'phase0'/g/'backend') for g in cfg['groups']] if cfg.get('matched_protocol') else []),dagger=cfg)
         write(root/'session.json',session);write(root/'launch.json',dict(pid=os.getpid(),start_ticks=proc(os.getpid())['start_ticks'],
             started=now,deadline=session['deadline'],source_head=source,session_sha256=sha(root/'session.json')))
         files=git('ls-files','*.py','configs/tight_state.json','visuotactile/run_cpu.sh').splitlines()
@@ -1156,6 +1440,9 @@ def run(root,recover=False):
             if (root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json').get('utc_epoch',0)<4:break
             time.sleep(1)
         require((root/'shared_resources.json').exists() and time.time()-read(root/'shared_resources.json').get('utc_epoch',0)<4,'Fresh shared resource monitor missing')
+        if cfg.get('matched_protocol'):
+            stage='phase0_common_rear_control_scale_adaptation';status()
+            pairs=matched_phase0(root,pairs,stages)
         previous=previous_round_groups(root,cfg)
         reuse_index=Path(cfg['initial_dino_reuse_index']) if cfg.get('initial_dino_reuse_index') else None
         for round_index in range(cfg.get('first_round',1),cfg['rounds']+1):
@@ -1192,6 +1479,10 @@ def run(root,recover=False):
                     if cfg.get('scope_revision'):
                         policy['development_indices']=list(range(policy['development_offset'],count,policy['development_stride']))
                     local=dict(cfg,collection=policy);plan=takeover_plan(read(Path(pair['data_root'])/'data.json'),families,policy)
+                    if cfg.get('matched_protocol'):
+                        plans={other:takeover_plan(read(Path(pairs[other]['data_root'])/'data.json'),families,dict(policy,source_group=other))
+                            for other in active_groups}
+                        write(directory/'paired_opportunities.json',assert_paired_plans(plans))
                     write(job/'initial_pair.json',pair);write(job/'configuration.json',local);write(job/'collection_plan.json',plan)
                     write(job/'session.json',dict(session,source_root=pair['data_root'],collection_deadline=session['compute_deadline']))
                     write(job/'collector_registration.json',{name:sha(job/name) for name in ('initial_pair.json','configuration.json','collection_plan.json')})
@@ -1230,12 +1521,19 @@ def run(root,recover=False):
                     value.update(state='FAILED',error=repr(error))
                     write(job/'failure.json',dict(error=repr(error),traceback=traceback.format_exc(),previous_pair_retained=read(job/'initial_pair.json')))
                 status()
+            if cfg.get('matched_protocol'):
+                complete=all(rounds[key]['groups'][g]['state']=='COMPLETE' for g in active_groups)
+                if complete:matched_round_exposure(directory,active_groups)
+                else:
+                    write(directory/'matched_exposure.json',dict(passed=False,reason='At least one complete strategy stage is unresolved; later matched rounds are not admitted',utc=time.time()))
             result=dict(state='RESOLVED',groups=rounds[key]['groups'],snapshot_id=frozen['snapshot_id'],utc=time.time(),
                 active_groups=active_groups,not_scheduled=[g for g in cfg['groups'] if g not in active_groups],
                 retained_complete_pairs={g:pairs[g] for g in cfg['groups'] if g not in active_groups})
             write(directory/'round_finished.json',result);rounds[key]=result;previous=result['groups'];write(root/'rounds.json',rounds)
             from tools.tight_diagnostics import dagger_publish
             dagger_publish(root)  # CPU-only stage evidence; final push follows owned-worker exit.
+            if cfg.get('matched_protocol') and not complete:
+                state='PARTIAL';stage='matched_round_incomplete_no_one_sided_continuation';break
         else:
             required=[r for key,r in rounds.items() if int(key.removeprefix('round_'))>=cfg.get('first_round',1)]
             state='COMPLETE' if required and all(v['state']=='COMPLETE' for r in required for v in r['groups'].values()) else 'PARTIAL'
