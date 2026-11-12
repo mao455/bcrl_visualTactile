@@ -1,5 +1,7 @@
 # Tight-Insertion：完整策略的成功筛选接管学习
 
+**2026-11-12性能修订**：控制匹配run已实际启动，当前局部吞吐优化已测试、待安全边界接入；详情见 [DAGGER_PERFORMANCE](DAGGER_PERFORMANCE.md)。它保留下面的学习算法、标签与曝光，只允许第2轮两组DP计算并行，随后缓存/后端/评估顺序；不把局部1.228×/1.489×/1.935×写成整轮加速或任务成功。原run与旧审计快照均保留其时间范围。
+
 本文区分三层证据：已经执行的历史协议、2026-11-12 控制/监督审计，以及新登记的公平 continuation。新算法实现、CPU验收、实际启动和闭环收益分别以机器凭据为准；尚未完成的实验不填成功率。当前结果入口为 [STATE_DP_RESULTS](STATE_DP_RESULTS.md)，动作及几何细节见 [CONTRACTS](CONTRACTS.md)。
 
 ## 1. 研究对象与完整学生
@@ -127,8 +129,11 @@ for k = 1,...,2 within the registered absolute deadline:
             switch control continuously; retain real command/queue provenance
             save all outcomes; admit only successful, valid expert suffixes
     freeze one shared snapshot; keep development episodes isolated
+    if admitted_performance_revision and k >= 2:
+        train both DPs in parallel for common anchor exposure, each with its own label semantics
+        wait for both registered DP jobs to finish
     for g in [A,B]:
-        train DP for common anchor exposure using g's own q_reached/u_expert semantics
+        if not parallel_frontends: train DP for common exposure using g's own labels
         freeze new endpoint DP; refresh every DP-dependent backend cache
         train backend for common valid-tick exposure against final expert commands
         save coupled endpoint; run 10 fixed pure-student development attempts
@@ -140,7 +145,7 @@ export all actual denominators, provenance, curves, failures and local artifact 
 
 可复现实验数据在 [逐轮表](evidence/control_consistency_20261112/experiments.csv)、[训练曝光](evidence/control_consistency_20261112/training_exposure.csv)、[独立恢复案例](evidence/control_consistency_20261112/recovery_cases.csv) 与 [自主逐例结果](evidence/control_consistency_20261112/autonomous_cases.csv)。采集机会、合法起点、真实接管、成功纠偏、初段有效tick/anchor、训练实际曝光和自主分母分别列出；未完成字段保持空值。
 
-截至本次审计读取时，历史round2 A/B各0/4自主完整成功；round3 A亦0/4，全601tick超时，无lift/子目标，B仍在训练。round3采集A/B各96机会、93合法、90条成功纠偏；180新纠偏聚合后池共368条（333train/35dev），加Core后训练499条。专家恢复率高并不表示学生能自主完成任务。
+以下是控制审计生成时的旧run快照，不是当前matched run结果。该时刻历史round2 A/B各0/4自主完整成功；round3 A亦0/4，全601tick超时，无lift/子目标，B仍在训练。round3采集A/B各96机会、93合法、90条成功纠偏；180新纠偏聚合后池共368条（333train/35dev），加Core后训练499条。专家恢复率高并不表示学生能自主完成任务。
 
 与经典逐状态标注DAgger相比，本方法让学生产生接管前状态，但训练监督集中于**成功恢复后的实际专家执行后缀**，不是对所有学生访问状态都采集训练标签。经典算法聚合学生诱导分布上的专家标签；其保证不能直接转用于当前成功筛选方案。[Ross等，AISTATS 2011](https://proceedings.mlr.press/v15/ross11a.html)。
 

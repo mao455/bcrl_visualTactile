@@ -128,8 +128,8 @@ def matched_configuration(previous, policy, predecessor):
     return cfg
 
 
-def control_acceptance(root):
-    request=read(root/'continuation_request.json');binding=request['control_acceptance']
+def control_acceptance(root, *, binding=None):
+    if binding is None:binding=read(root/'continuation_request.json')['control_acceptance']
     path=Path(binding['path']);require(sha(path)==binding['sha256'],'Control acceptance receipt changed')
     value=read(path)
     require(value.get('passed') is True and value.get('expert_student_applied_equivalent') is True and
@@ -559,8 +559,21 @@ def revise(root):
 class Stages:
     """Owned worker ledger and bounded waits; all compute uses existing entries."""
     def __init__(self, root):
+        import threading
         self.root = root; self.children = []
         self.records = read(root/'worker_processes.json') if (root/'worker_processes.json').exists() else []
+        self.ledger_lock=threading.RLock();self.active={}
+
+    def active_update(self,name,value=None):
+        """A single durable ledger writer even when two independent DPs run."""
+        with self.ledger_lock:
+            if value is None:self.active.pop(name,None)
+            else:self.active[name]=value
+            if len(self.active)==1:state=dict(next(iter(self.active.values())))
+            else:state=dict(name='parallel_frontends' if self.active else 'idle',pid=None,
+                deadline=min((v['deadline'] for v in self.active.values()),default=None),utc=time.time())
+            state['active_stages']=list(self.active.values())
+            write(self.root/'active_stage.json',state)
 
     def execute(self, name, args, seconds, completion=None):
         session = read(self.root/'session.json')
@@ -573,7 +586,11 @@ class Stages:
         receipt=self.root/'stages'/(name+'.json')
         if durable and receipt.exists():
             prior=read(receipt)
-            require(prior['args']==args and prior['source_head']==session['source_head'],'Completed stage identity differs')
+            inherited=any(revision.get('stage_receipts',{}).get(receipt.name)==sha(receipt)
+                and revision['previous_source']==prior['source_head']
+                for revision in session.get('performance_revisions',[]))
+            require(prior['args']==args and (prior['source_head']==session['source_head'] or inherited),
+                'Completed stage identity differs')
             if prior.get('completion'):
                 require(sha(prior['completion'])==prior['completion_sha256'],'Completed receipt changed')
             return prior
@@ -586,13 +603,14 @@ class Stages:
         if limit<=time.time():raise TimeoutError('Original stage deadline exhausted: '+name)
         with (self.root/(name+'.log')).open('a') as stream:
             worker = subprocess.Popen(RUN+args, cwd=CODE, stdin=subprocess.DEVNULL, stdout=stream,
-                stderr=subprocess.STDOUT, start_new_session=True)
-        self.children.append(worker)
-        record=dict(pid=worker.pid,start_ticks=None,process_group=worker.pid,phase=name);self.records.append(record)
+                stderr=subprocess.STDOUT, start_new_session=True,env=performance_environment(self.root,name))
+        record=dict(pid=worker.pid,start_ticks=None,process_group=worker.pid,phase=name)
+        with self.ledger_lock:self.children.append(worker);self.records.append(record)
         try:
             identity = proc(worker.pid)
-            if identity is not None:record.update(identity)
-            write(self.root/'worker_processes.json', self.records)
+            with self.ledger_lock:
+                if identity is not None:record.update(identity)
+                write(self.root/'worker_processes.json', self.records)
             while worker.poll() is None:
                 if (self.root/'STOP').exists():
                     # Trainers save at their own complete boundary before the
@@ -605,14 +623,15 @@ class Stages:
                     except subprocess.TimeoutExpired:pass
                     raise InterruptedError('DAgger STOP; preserve durable stage state')
                 if time.time() >= limit:raise TimeoutError(name+' exceeded finite budget')
-                write(self.root/'active_stage.json', dict(name=name, pid=worker.pid, deadline=limit, utc=time.time()))
+                self.active_update(name,dict(name=name,pid=worker.pid,deadline=limit,utc=time.time()))
                 time.sleep(2)
             require(worker.returncode == 0, name+' exited '+str(worker.returncode))
         finally:
             kill_owned(worker)
             from tools.tight_finish import matrix_worker_absence
-            gone, rows = matrix_worker_absence([self.records[-1]])
+            gone, rows = matrix_worker_absence([record])
             write(self.root/(name+'_reaped.json'), dict(verified=gone, workers=rows))
+            self.active_update(name)
             require(gone, 'Owned worker exit unverified: '+name)
         if durable:
             record=dict(args=args,source_head=session['source_head'],utc=time.time(),exit_code=0)
@@ -631,6 +650,28 @@ class Stages:
         gone, rows = matrix_worker_absence(self.records)
         write(self.root/'owned_cleanup.json', dict(verified=gone and not errors, workers=rows,errors=errors))
         return gone and not errors
+
+
+def performance_environment(root, stage):
+    """Process-local resources only; unchanged in-flight workers keep their settings."""
+    environment=os.environ.copy();policy=read(Path(root)/'configuration.json').get('performance',{})
+    if not policy:return environment
+    # The first round already trained A with the original numerical profile.
+    # Both frontends switch together in the next round; no batch-size retuning
+    # halfway through one optimizer state or an A/B comparison.
+    import re
+    match=re.match(r'r(\d+)_.*_frontend$',stage)
+    if match and int(match.group(1))<policy.get('first_frontend_round',2):return environment
+    scope=('frontend' if stage.endswith('_frontend') else 'backend' if stage.endswith('_backend')
+        else 'cache' if stage.endswith('_predictions') else 'collection' if stage.endswith('_collect')
+        else 'evaluation' if stage.endswith('_evaluation') else 'other')
+    values=policy.get('process_environment',{}).get(scope,{})
+    if scope=='frontend' and match:
+        group=stage.split('_')[1]
+        values=dict(values,**policy.get('frontend_process_environment',{}).get(group,{}))
+    require(set(values)<= {'RESEARCH_CPUS','RESEARCH_THREADS'},'Unexpected performance process setting')
+    environment.update({k:str(v) for k,v in values.items()})
+    return environment
 
 
 def share_monitor(root, destination):
@@ -701,7 +742,7 @@ def collect(root):
             row=dict(attempt,result=dict(software_complete=False,success=False),accepted=False)
             result=trial(env,lease,out,spec,source,player,pair['backend'],
                 saved=saved,position=True,video=index<2,expert_checkpoint=s['expert_checkpoint'],capture_dataset=True,
-                capture_compression='gzip4_lossless_v1',dagger=cfg['bridge'])
+                capture_compression=cfg['collection'].get('capture_compression','gzip4_lossless_v1'),dagger=cfg['bridge'])
             row['result']=result
             if result.get('legal') and result.get('software_complete'):
                 if cfg.get('scope_revision'):
@@ -913,6 +954,9 @@ def prepare_frontend(root, group, round_index=1, snapshot=None, reuse_index=None
         incremental_schedule=dict(maximum_updates=target,minimum_updates=minimum,warmup_updates=100,
             lr_peak=policy['learning_rate'],lr_floor=policy['learning_rate']/10,validation_interval=interval))
     if profile:runtime['hand_geometry']=profile
+    performance=cfg.get('performance',{})
+    if performance and round_index>=performance['first_frontend_round']:
+        runtime['training_performance']=performance['frontend']
     if snapshot:runtime['sampling_weights']=cfg['sampling_weights']
     if cfg.get('recovery_prefix'):runtime['recovery_prefix']=cfg['recovery_prefix']
     write(out/'training/session.json',runtime)
@@ -1029,6 +1073,10 @@ def prepare_backend(root, group, round_index=1):
     if cfg.get('matched_protocol'):
         from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
         v.update(execution_adapter=REACHABLE_POSITION_EXECUTION,initialization_seed=cfg['training_seed']+round_index-1)
+    if cfg.get('performance'):
+        performance=cfg['performance']
+        v.update(cache_transfer_mode=performance['cache']['transfer_mode'],
+            cache_scheduler_index_mode=performance['cache']['scheduler_index_mode'])
     if pool_mode(cfg):
         v['sampling_weights']=cfg['sampling_weights']
         if cfg.get('recovery_prefix'):v['recovery_prefix']=cfg['recovery_prefix']
@@ -1284,11 +1332,16 @@ def matched_phase0(root, pairs, stages):
     return adapted
 
 
-def train_pair(root,group,round_index,stages,snapshot,reuse_index):
+def prepare_frontend_stages(root,group,round_index,stages,snapshot,reuse_index):
     cfg=read(root/'configuration.json');job=root/f'round_{round_index:02d}'/group;tag=f'r{round_index:02d}_{group}'
     front=prepare_frontend(root,group,round_index,snapshot,reuse_index)
     execute_bounded(stages,tag+'_features',['-m','tools.tight_finish','dagger_cache_visual','--root',str(front)],3600)
     stages.execute(tag+'_input_check',['-m','tools.tight_finish','dagger_check','--root',str(front)],900,front/'vision_acceptance.json')
+    return front
+
+
+def train_frontend_stage(root,group,round_index,stages,front):
+    cfg=read(root/'configuration.json');tag=f'r{round_index:02d}_{group}'
     budget=read(front/'budget.json');runtime=read(front/'training/session.json')
     # The previous same-architecture real measurements determine admission;
     # new per-update timings are recorded by the formal trainer itself.
@@ -1300,6 +1353,67 @@ def train_pair(root,group,round_index,stages,snapshot,reuse_index):
         front/'training/finished.json',cfg['recovery']['maximum_training_worker_restarts'])
     done=read(front/'training/finished.json');require(done['updates']>0,'No real frontend optimizer updates')
     if cfg.get('matched_protocol'):select_exposure_endpoint(front/'training','frontend')
+    return front
+
+
+def parallel_frontends_enabled(cfg,round_index,active_groups):
+    policy=cfg.get('performance',{})
+    if not policy.get('parallel_frontends',False):return False
+    require(policy['parallel_frontends'] is True and cfg.get('matched_protocol'),
+        'Parallel frontends require explicit matched complete-strategy protocol')
+    if round_index<policy.get('first_frontend_round',2):return False
+    require(set(active_groups)=={'QG01','G01'} and len(active_groups)==2,'Parallel DPs require both A/B groups')
+    return True
+
+
+def train_frontends_parallel(root,round_index,groups,stages,snapshot,reuse_index):
+    """Only two DP workers overlap; shared frozen data and durable stages remain."""
+    from concurrent.futures import ThreadPoolExecutor
+    cfg=read(root/'configuration.json')
+    require(parallel_frontends_enabled(cfg,round_index,groups),'Parallel DP stage not admitted')
+    prepared={};errors={};reuse=reuse_index;started=time.time()
+    # DINO construction and the real input gate are sequential and reusable.
+    # Each frontend retains its own q_reached/u_expert dataset and normalizer.
+    for group in groups:
+        prepared[group]=prepare_frontend_stages(root,group,round_index,stages,snapshot,reuse)
+        reuse=prepared[group]/'cache_index.json'
+    executor=ThreadPoolExecutor(max_workers=2,thread_name_prefix='dagger-dp')
+    try:
+        pending={group:executor.submit(train_frontend_stage,root,group,round_index,stages,front)
+            for group,front in prepared.items()}
+        for group,future in pending.items():
+            try:future.result()
+            except BaseException as error:
+                errors[group]=error
+                if isinstance(error,InterruptedError) or not isinstance(error,Exception):
+                    (root/'STOP').touch()
+    except BaseException:
+        (root/'STOP').touch()
+        raise
+    finally:executor.shutdown(wait=True,cancel_futures=True)
+    path=root/f'round_{round_index:02d}'/'parallel_frontends.json'
+    write(path,dict(version='matched_parallel_dp_only_v1',started=started,ended=time.time(),
+        snapshot_sha256=sha(snapshot),groups={g:dict(frontend=str(prepared[g]),complete=g not in errors,
+            error=repr(errors[g]) if g in errors else None) for g in groups},
+        dependency='DINO/input checks sequential; independent DPs parallel; new-DP cache/backend/evaluation sequential',
+        limits='Original per-stage allocation and absolute deadline preserved; no changed updates or exposure'))
+    # STOP/deadline still unwind the ordinary owner after both children have
+    # saved and reaped. A normal one-group failure retains the other result.
+    for error in errors.values():
+        if isinstance(error,(InterruptedError,TimeoutError)) or not isinstance(error,Exception):raise error
+    return prepared,errors
+
+
+def train_pair(root,group,round_index,stages,snapshot,reuse_index,*,completed_frontend=None):
+    cfg=read(root/'configuration.json');job=root/f'round_{round_index:02d}'/group;tag=f'r{round_index:02d}_{group}'
+    if completed_frontend is None:
+        front=prepare_frontend_stages(root,group,round_index,stages,snapshot,reuse_index)
+        train_frontend_stage(root,group,round_index,stages,front)
+    else:
+        front=Path(completed_frontend)
+        require(front==job/'dp' and read(front/'training/finished.json')['target_reached'],
+            'Parallel frontend must be this group full exposure endpoint')
+        require((root/'stages'/(tag+'_frontend.json')).exists(),'Parallel frontend completion receipt missing')
     back=prepare_backend(root,group,round_index);phase_deadlines(root,back,cache_deadline=3600)
     execute_bounded(stages,tag+'_predictions',['-m','tools.tight_finish','residual_cache','--root',str(back)],3600)
     allocation=cfg['backend']['maximum_hours']*3600;phase_deadlines(root,back,training_deadline=allocation)
@@ -1348,9 +1462,150 @@ def resume(root):
     from tools.tight_finish import matrix_worker_absence
     gone,_=matrix_worker_absence(read(root/'worker_processes.json'))
     require(gone,'Original owned worker is still live')
-    for path in [root/'STOP']+list(root.glob('round_*/*/dp/STOP'))+list(root.glob('round_*/*/dp/training/STOP'))+list(root.glob('round_*/*/backend/*/STOP'))+list(root.glob('round_*/*/backend/*/training/STOP')):
+    for path in [root/'STOP']+list(root.glob('round_*/*/dp/STOP'))+list(root.glob('round_*/*/dp/training/STOP'))+list(root.glob('round_*/*/backend/STOP'))+list(root.glob('round_*/*/backend/*/STOP'))+list(root.glob('round_*/*/backend/*/training/STOP')):
         path.unlink(missing_ok=True)
     run(root,recover=True)
+
+
+def performance_migrate(root):
+    """Version a measured implementation change at an exited owner boundary.
+
+    Completed stage receipts keep their original source and checksums. A bounded
+    inherited-receipt map permits re-entry without pretending those stages used
+    the optimized code, and without replaying any collection or optimizer work.
+    """
+    from tools.tight_finish import matrix_worker_absence
+    root=Path(root).resolve();request=read(root/'performance_request.json')
+    require(request['version']=='dagger_throughput_v1','Unrecognized performance revision')
+    revision=root/'revisions'/request['version']
+    require(not revision.exists(),'Performance revision already applied')
+    require(not git('status','--porcelain'),'Performance migration needs committed source')
+    status=read(root/'status.json');require(status.get('state')=='STOPPED' and status.get('owned_workers_exited') is True,
+        'Performance migration requires saved STOP boundary')
+    require(matrix_worker_absence(read(root/'worker_processes.json'))[0],'Performance migration still has live owned workers')
+    session=read(root/'session.json');launch=read(root/'launch.json');registration=read(root/'registration.json')
+    require(sha(root/'session.json')==launch['session_sha256'],'Prior session changed')
+    require(session['started']==request['started'] and session['deadline']==request['deadline'] and
+        session['compute_deadline']==request['compute_deadline'],'Performance changes cannot reset deadlines')
+    owner=read(root/'resume.json') if (root/'resume.json').exists() else launch
+    live=proc(owner['pid']);require(live is None or live['start_ticks']!=owner.get('start_ticks'),'Prior owner remains live')
+    require(time.time()<session['compute_deadline'],'No remaining registered compute window')
+    acceptance=request['acceptance'];path=Path(acceptance['path'])
+    require(sha(path)==acceptance['sha256'],'Performance acceptance changed')
+    gate=read(path)
+    require(gate.get('passed') is True and gate.get('formal_exposure_unchanged') is True,
+        'Measured correctness/performance acceptance missing')
+    require(bool(gate.get('sources')) and bool(gate.get('evidence')),'Unbound performance acceptance')
+    require(all(sha(CODE/p)==digest for p,digest in gate['sources'].items()),'Performance source changed')
+    require(all(sha(CODE/Path(e['path']))==e['sha256'] for e in gate['evidence']),'Performance evidence changed')
+    cfg=read(root/'configuration.json');require(not cfg.get('performance'),'Performance already enabled')
+    require(sha(root/'configuration.json')==request['configuration_sha256'] and
+        sha(root/'evaluation_plan.json')==request['evaluation_plan_sha256'],'Registered policy or evaluation changed')
+    require(gate['profile']==request['profile'],'Accepted performance profile differs')
+    require(request['profile']['first_frontend_round']==2,'Both current first-round DP profiles must remain unchanged')
+    require(request['profile']['collection']['capture_compression'] in ('gzip4_lossless_v1','lzf'),
+        'Performance revision requires supported lossless recording')
+    control_acceptance(root,binding=request['control_acceptance'])
+    # Archive identities before making the new version visible. Original weights,
+    # data, model semantics, stage deadlines and attempt ledgers are untouched.
+    revision.mkdir(parents=True);preserved={}
+    for name in ('configuration.json','session.json','registration.json','launch.json','source_freeze.json',
+                 'status.json','rounds.json','public_git.json','continuation_request.json','performance_request.json'):
+        if (root/name).exists():shutil.copyfile(root/name,revision/name);preserved[name]=sha(revision/name)
+    inherited={p.name:sha(p) for p in (root/'stages').glob('*.json') if not p.name.endswith('_allocation.json')}
+    source=git('rev-parse','HEAD');previous=session['source_head']
+    change=dict(version=request['version'],previous_source=previous,source_head=source,stage_receipts=inherited,
+        acceptance=acceptance,profile=request['profile'],utc=time.time(),deadline_reset=False)
+    cfg['performance']=request['profile']
+    cfg['collection']['capture_compression']=request['profile']['collection']['capture_compression']
+    session=dict(session,source_head=source,dagger=cfg,
+        performance_revisions=session.get('performance_revisions',[])+[change])
+    write(root/'configuration.json',cfg);write(root/'session.json',session)
+    write(root/'registration.json',dict(registration,configuration_sha256=sha(root/'configuration.json'),performance_revision=change))
+    write(root/'launch.json',dict(launch,source_head=source,session_sha256=sha(root/'session.json')))
+    continuation=read(root/'continuation_request.json');continuation['control_acceptance']=request['control_acceptance']
+    write(root/'continuation_request.json',continuation)
+    files=git('ls-files','*.py','configs/tight_state.json','visuotactile/run_cpu.sh').splitlines()
+    write(root/'source_freeze.json',{p:sha(CODE/p) for p in files})
+    control_acceptance(root)
+    write(revision/'applied.json',dict(change,preserved_metadata=preserved,started=session['started'],
+        deadline=session['deadline'],compute_deadline=session['compute_deadline'],same_root=str(root)))
+    write(root/'performance_revision.json',change)
+    write(root/'status.json',dict(status,state='STOPPED',stage='performance_revision_ready',source_head=source,
+        performance_revision=change,utc=time.time(),failure=None))
+
+
+def performance_follow(root):
+    """Ordinary bounded handoff: finish one registered stage, migrate, resume."""
+    root=Path(root).resolve();request=read(root/'performance_request.json');deployment=Path(request['deployment_tree'])
+    require(deployment.resolve()!=CODE.resolve(),'Never hot-edit the frozen deployment')
+    require(git('rev-parse','HEAD')==request['prepared_source'] and not git('status','--porcelain'),
+        'Reviewed performance checkout changed')
+    lock=(root/'performance_handoff.lock').open('a');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
+    owner=request['owner'];boundary=root/'stages'/(request['boundary_stage']+'.json')
+    def alive():
+        p=proc(owner['pid']);return p is not None and p['start_ticks']==owner['start_ticks'] and p['state']!='Z'
+    def report(state,**values):write(root/'performance_status.json',dict(state=state,utc=time.time(),pid=os.getpid(),**values))
+    report('WAITING_REGISTERED_STAGE',boundary_stage=request['boundary_stage'])
+    while not boundary.exists():
+        require(alive(),'Owner exited before registered performance boundary')
+        require(time.time()<request['compute_deadline']-600,'No bounded time remains for migration')
+        time.sleep(1)
+    require(read(boundary).get('exit_code')==0,'Boundary stage did not complete normally')
+    frozen=read(root/'source_freeze.json')
+    require(all(sha(deployment/p)==v for p,v in frozen.items()),'Live runtime source drifted')
+    report('STOPPING_AFTER_COMPLETED_STAGE',boundary_sha256=sha(boundary))
+    (root/'STOP').touch()
+    until=min(request['compute_deadline'],time.time()+300)
+    while alive():
+        require(time.time()<until,'Owner did not finish durable shutdown/publication')
+        time.sleep(1)
+    require(read(root/'status.json').get('owned_workers_exited') is True,'Owned shutdown incomplete')
+    require(read(root/'status.json').get('state')=='STOPPED','Owner stopped for another reason; preserve it for review')
+    # Reviewed implementation may already be public while the old frozen owner
+    # finishes. Admit only later report changes from that prepared source, or
+    # report-only changes from the old public parent when code is not yet pushed.
+    report('INTEGRATING_AND_PUBLISHING')
+    git('fetch','origin','feature/tight-state-foundation');remote=git('rev-parse','FETCH_HEAD')
+    base=request['prepared_source']
+    try:
+        git('merge-base','--is-ancestor',base,remote)
+    except subprocess.CalledProcessError as error:
+        if error.returncode!=1:raise
+        base=request['prepared_parent']
+        git('merge-base','--is-ancestor',base,remote)
+    prefix='research_docs/evidence/'+root.name+'/'
+    allowed={'research_docs/STATE_DP_RESULTS.md','research_docs/CLEANUP_AUDIT.md'}
+    require(all(p in allowed or p.startswith(prefix) for p in git('diff','--name-only',base,remote).splitlines()),
+        'Unrelated remote changes; no automatic overwrite')
+    git('merge','--no-edit',remote)
+    # An older pushed=True receipt does not prove that this STOP snapshot was
+    # published; refresh the scoped CPU report unconditionally and idempotently.
+    from tools.tight_diagnostics import dagger_publish
+    dagger_publish(root);git('add','--',*sorted(allowed),prefix)
+    if git('diff','--cached','--name-only'):git('commit','-m','Publish saved DAgger boundary before performance revision')
+    git('push','origin','HEAD:refs/heads/feature/tight-state-foundation')
+    write(root/'public_git.json',dict(pushed=True,head=git('rev-parse','HEAD'),target='feature/tight-state-foundation',utc=time.time()))
+    performance_migrate(root)
+    report('RESUMING_SAME_RUN',source_head=git('rev-parse','HEAD'),deadline=request['deadline'])
+    with (root/'performance_owner.log').open('a') as stream:
+        subprocess.run(['systemd-run','--user','--unit='+request['resume_service'],'--collect',
+            '--property=WorkingDirectory='+str(CODE),'--property=KillMode=mixed','--property=TimeoutStopSec=120',
+            '--property=StandardOutput=append:'+str(root/'owner.log'),'--property=StandardError=append:'+str(root/'owner.log'),
+            '/usr/bin/bash',str(CODE/'visuotactile/run_cpu.sh'),'-m','tools.tight_finish','dagger_resume','--root',str(root)],
+            cwd=CODE,stdout=stream,stderr=subprocess.STDOUT,check=True,timeout=60)
+    until=min(request['compute_deadline'],time.time()+180)
+    while True:
+        status=read(root/'status.json')
+        require(status.get('state') not in ('FAILED','PARTIAL','BUDGET_STOP'),'Resumed owner failed during startup')
+        if status.get('state')=='RUNNING' and (root/'resume.json').exists():
+            identity=read(root/'resume.json');p=proc(identity['pid'])
+            if p and p['start_ticks']==identity['start_ticks']:break
+        require(time.time()<until,'Resumed owner startup not verified')
+        time.sleep(1)
+    report('RUNNING',source_head=git('rev-parse','HEAD'),owner=identity,deadline=request['deadline'],
+        no_new_run=True,completed_stage_receipts_preserved=True)
+    lock.close()
 
 
 def previous_round_groups(root, cfg):
@@ -1506,6 +1761,12 @@ def run(root,recover=False):
             current_anchors=sum(e['exposure']['supervised_anchors'] for e in current)
             write(directory/'current_supervision.json',dict(episodes=len(current),supervised_ticks=current_ticks,supervised_anchors=current_anchors,
                 minimum_ticks=cfg['collection']['minimum_expert_ticks'],minimum_anchors=cfg['collection']['minimum_dp_anchors']))
+            parallel_fronts={};frontend_errors={}
+            if (parallel_frontends_enabled(cfg,round_index,active_groups) and frozen['correction_dev_ids']
+                    and current_ticks>=cfg['collection']['minimum_expert_ticks']
+                    and current_anchors>=cfg['collection']['minimum_dp_anchors']):
+                stage=key+'_parallel_frontends';status()
+                parallel_fronts,frontend_errors=train_frontends_parallel(root,round_index,active_groups,stages,snapshot,reuse_index)
             for g in active_groups:
                 job=directory/g;value=rounds[key]['groups'][g];stage=key+'_'+g+'_two_stage_training';status()
                 if not frozen['correction_dev_ids']:
@@ -1513,7 +1774,9 @@ def run(root,recover=False):
                 if current_ticks<cfg['collection']['minimum_expert_ticks'] or current_anchors<cfg['collection']['minimum_dp_anchors']:
                     value.update(state='INSUFFICIENT_NEW_DP_SUPERVISION',reason='Retain old pair; no backend-only substitute for a complete DAgger round');continue
                 try:
-                    choice=train_pair(root,g,round_index,stages,snapshot,reuse_index)
+                    if g in frontend_errors:raise frontend_errors[g]
+                    choice=train_pair(root,g,round_index,stages,snapshot,reuse_index,
+                        **({'completed_frontend':parallel_fronts[g]} if g in parallel_fronts else {}))
                     value.update(state='COMPLETE',selection=choice);pairs[g]=choice['selected_pair']
                     reuse_index=job/'dp/cache_index.json'
                 except (TimeoutError,InterruptedError):raise

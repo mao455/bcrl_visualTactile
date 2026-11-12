@@ -1636,9 +1636,12 @@ def residual_cache(root, *, acceptance=False):
                 def progress(**kw):
                     write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                         elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed if completed else None,**kw))
-                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,cache_identity=binding)
+                record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,cache_identity=binding,
+                    transfer_mode=v.get('cache_transfer_mode','tick'),scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy'))
                 require(all(p.grad is None for p in model.parameters()),'Frozen base received gradient')
-                save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12))
+                save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12),
+                    implementation=dict(transfer_mode=v.get('cache_transfer_mode','tick'),
+                        scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy')))
                 write(index_path,index)
             completed+=1
             write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
@@ -2474,7 +2477,7 @@ def matrix_run(root):
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_matched_prepare','dagger_follow','dagger_run','dagger_resume','dagger_revise','dagger_conditional_follow','dagger_conditional_extend','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['run','refine','collect','freeze_extension','evaluate','actuator_worker','validate_speed','baseline_evaluate','hand_cap_pilot','vision_prepare','vision_check','vision_cache','vision_run','vision_resume','vision_evaluate','residual_prepare','residual_check','residual_cache','residual_run','residual_evaluate','residual_training_check','matrix_prepare','matrix_gate','matrix_group_run','matrix_run','dagger_prepare','dagger_matched_prepare','dagger_follow','dagger_run','dagger_resume','dagger_revise','dagger_performance_follow','dagger_performance_migrate','dagger_conditional_follow','dagger_conditional_extend','dagger_collect','dagger_cache_visual','dagger_check']);p.add_argument('--root',type=Path,required=True);p.add_argument('--refinement',action='store_true');p.add_argument('--speed-validation',action='store_true');p.add_argument('--baseline',action='store_true');p.add_argument('--mechanism',action='store_true');p.add_argument('--group')
     a=p.parse_args();root=a.root.resolve()
     if a.mode=='run':
         try:pipeline(root,a.refinement,a.speed_validation,a.baseline,a.mechanism)
@@ -2496,6 +2499,8 @@ if __name__=='__main__':
             else:globals()[a.mode](root)
         except BaseException:
             write(root/(a.mode+'_error.json'),dict(traceback=traceback.format_exc()));code=1
+            if a.mode=='dagger_performance_follow':
+                write(root/'performance_status.json',dict(state='FAILED',utc=time.time(),traceback=traceback.format_exc()))
             if a.mode in ('dagger_follow','dagger_run','dagger_resume'):
                 previous=read(root/'status.json') if (root/'status.json').exists() else {}
                 if previous.get('state') in ('WAITING','PREPARED','RUNNING'):

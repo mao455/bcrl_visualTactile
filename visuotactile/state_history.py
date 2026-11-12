@@ -308,6 +308,13 @@ class PersistentImage(NativePolicy):
             episode=Episode(record['source_root'],key,self.group)
             # Keep only image acquisition metadata, never State/Actor arrays.
             episode.record={k:episode.record[k] for k in ('camera_time','camera_valid')}
+            if getattr(self,'raw_frame_device_cache',False):
+                # Only immutable DINO/depth and timestamps move once. Learned
+                # projections and all recurrent updates are still recomputed at
+                # current weights in the original tick order below. LRU stays 2.
+                device=next(self.parameters()).device
+                episode.record={k:v.to(device) for k,v in episode.record.items()}
+                episode.perception={k:v.to(device) for k,v in episode.perception.items()}
             self._episodes[key]=episode
             while len(self._episodes)>2:self._episodes.popitem(last=False)
         episode=self._episodes[key]

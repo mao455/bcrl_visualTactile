@@ -193,18 +193,57 @@ def verify_stream_fields(path):
     with EpisodeFile(path) as f:
         specs=json.loads(f.attrs['source_field_digests_json'])
         g=f['episodes'][next(iter(f['episodes']))];n=int(g.attrs['length'])
-        actual=[]
+        actual=[];virtual=[]
         def verify(key,obj):
             if not isinstance(obj,(h5py.Dataset,VirtualArray)):return
             actual.append(key);spec=specs[key]
             if obj.dtype.str!=spec['dtype'] or obj.shape!=(n,*spec['row_shape']):
                 raise ValueError('Source/reconstruction shape or dtype differs: '+key)
+            if isinstance(obj,VirtualArray):
+                virtual.append(key)
+                return
             digest=hashlib.sha256()
             for start in range(0,n,8):digest.update(np.ascontiguousarray(obj[start:start+8]).tobytes())
             if digest.hexdigest()!=spec['sha256']:raise ValueError('Source/reconstruction content differs: '+key)
         g.visititems(verify)
         if set(actual)!=set(specs):raise ValueError('Source/reconstruction fields differ')
+        if virtual:
+            _verify_compact_image_fields(g,n,specs,virtual)
         return len(actual)
+
+
+def _verify_compact_image_fields(group,length,specs,keys):
+    """Decode each bounded frame batch once for all five source image fields.
+
+    Verification still hashes every reconstructed byte, including terminal zero
+    placeholders. Sharing the lossless decode avoids repeatedly decompressing
+    RGB/depth for pre-image, pre-depth, post-image and their validity masks.
+    """
+    frames=group.g['frames'];post_index=frames['post_index'][:]
+    digests={key:hashlib.sha256() for key in keys}
+    image_shape=VirtualArray(group.g,'obs/image').shape[1:]
+    for start in range(0,length,8):
+        pre_ids=np.arange(start,min(length,start+8));post_ids=post_index[pre_ids]
+        unique=np.unique(np.concatenate((pre_ids,post_ids[post_ids>=0])))
+        contiguous=len(unique)==1 or np.all(np.diff(unique)==1)
+        selection=slice(int(unique[0]),int(unique[-1])+1) if contiguous else unique
+        rgb=frames['rgb_u8'][selection];depth=frames['depth_m'][selection]
+        valid=frames['depth_valid'][selection]
+        images=np.empty((len(rgb),*image_shape),dtype=np.float32)
+        np.divide(rgb,np.float32(255),out=images[:,:,:3],dtype=np.float32)
+        images[:,:,3:]=depth
+        pre=np.searchsorted(unique,pre_ids);available=post_ids>=0
+        post=np.searchsorted(unique,post_ids[available])
+        post_images=np.zeros((len(pre),*image_shape),dtype=np.float32)
+        post_valid=np.zeros((len(pre),*valid.shape[1:]),dtype=valid.dtype)
+        post_images[available]=images[post];post_valid[available]=valid[post]
+        values={'obs/image':images[pre],'obs/depth_m':depth[pre],
+            'obs/depth_valid':valid[pre],'transition/observation_after/image':post_images,
+            'transition/observation_after/depth_valid':post_valid}
+        for key in keys:digests[key].update(np.ascontiguousarray(values[key]).tobytes())
+    for key,digest in digests.items():
+        if digest.hexdigest()!=specs[key]['sha256']:
+            raise ValueError('Source/reconstruction content differs: '+key)
 
 
 def post_observation(packet,done):

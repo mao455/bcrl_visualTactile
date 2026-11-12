@@ -1,3 +1,13 @@
+# 2026-11-12 16:35：性能实测完成，等待同run安全边界接入
+
+性能准备树 `/home/CNS2025331827/docs/bc+rl_RSS_dagger_perf`；详见 [DAGGER_PERFORMANCE](DAGGER_PERFORMANCE.md) 和 `evidence/tight_performance_20261112`。单DP1.228×、预测缓存1.489×、双DP计算1.935×均为局部真实输入探针；完整采集、完整轮和自主评估加速未测。只计划第2轮DP并行，缓存/rear/eval顺序；不启额外线程、多env、AMP、TF32或compile，后端约2%候选已撤回。
+
+同一 `tight_dagger_matched_20261112_01` 的A第一轮前端已于16:24完成1,355更新、6.00263 anchor遍、86,720anchors/2,015,081监督target ticks，目前进入新DP缓存。B第一轮DP及两组新后端、固定10次自主评估尚未完成。A/B已48次采集机会各准入42/41专家恢复，不能写作学生自主成功；旧0/4不属于本次控制匹配结果。完成/验证数值见 [时间快照](evidence/tight_performance_20261112/state_snapshot.json)，不由末次train loss推断收敛。
+
+性能迁移指定在`r01_QG01_predictions`完成边界，仍须核验原owner/自有worker退出，保留所有已完成凭据、原起点和2026-11-13 11:22:40绝对截止。第一轮B继续A所用micro4；第二轮两组共同micro16/effective64/rawcache并行，每worker2CPU/2线程、nice19不变。第一轮A已prepared缓存保留，B准备新缓存时可用逐位等价新路径；后续采集共同LZF。`performance_request/revision/status`与实际启动凭据区分准备、迁移和运行，当前文档不代替它们。16份临时CPU基准HDF5共447.3MB及一份1.1649GB重复disposable训练checkpoint已删除，逻辑合计1.6122GB；已分配块另记，所有正式源文件SHA不变。集成176项定向测试通过（17.77s），不能代替生产接入凭据。
+
+以下为之前控制修订的准备时快照和历史方案，不是当前运行状态。
+
 # 2026-11-12：控制一致性审计与配对 continuation
 
 隔离树 `/home/CNS2025331827/docs/bc+rl_RSS_control_audit`。最新附件授权修复后有限继续；旧run不停止：第3轮A已完成800/24112更新、自主0/4，B在10:06读取时725/800前端更新，后续由原owner推进，13:24:31截止不改。此为带时间快照，不能替代最新机器状态。

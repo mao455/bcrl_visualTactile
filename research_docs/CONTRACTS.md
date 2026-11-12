@@ -1,5 +1,11 @@
 # Tight-Insertion 现行合同：成功筛选的专家接管式 DAgger
 
+## 2026-11-12 性能修订覆盖（已测试，待安全边界接入）
+
+性能实测、范围和未完成项集中于 [DAGGER_PERFORMANCE](DAGGER_PERFORMANCE.md)。同一matched run保留绝对截止与已完成阶段；只在第2轮共同DP训练阶段允许两个独立learner并行，其后缓存、Transformer和评估顺序。第一轮A/B不在半轮改变数值设置，B继续micro4；第二轮共同micro16。每个worker保持2CPU/2线程和nice19，双DP用不同核。A第一轮已准备的缓存不动，B第一轮新准备时可用逐位等价的新缓存路径。显式 `fp32_legacy_rng_microbatch_v1` 保持effective64、原micro4 noise/timestep抽样顺序和全部监督人口，下一轮计算micro16；只能缓存不可变原始DINO/depth/时间输入，可训练投影、GRU和名义预测仍随新DP刷新。新缓存路径必须保持实际执行历史及31字段同值，真实checkpoint/data/normalizer身份继续绑定。
+
+未来采集的 `collection.capture_compression='lzf'` 仅改无损编码；与gzip4逐值等价，184源字段SHA全部验证，不改图像分辨率、相机数或有效mask。增加磁盘开销须纳入原reserve。Transformer候选已撤回，2线程/FP32保持；无多env、AMP/TF32/compile。性能probe权重均disposable，不能部署或计入正式DAgger更新。
+
 ## 2026-11-12 新控制/配对协议覆盖
 
 `matched_control_ab_v1` 是独立有限continuation，集中数学、算法与预算见 [DAGGER_METHOD](DAGGER_METHOD.md)。原run按已登记截止完成，新owner admission开始最多24h（含CPU准备和等待），不改旧历史。

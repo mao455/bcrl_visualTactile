@@ -194,6 +194,34 @@ def incremental_schedule(spec, target, *, smoke=False):
     return dict(spec)
 
 
+def diffusion_draws(batch, horizon, generator, device, *, legacy_microbatch=4, dtype=torch.float32):
+    """Preserve legacy per-four-anchor RNG order when computing larger microbatches.
+
+    Noise and timestep draws are interleaved exactly as before, including a short
+    final group. Encoder execution has no dependency on this separate generator.
+    """
+    if batch < 1 or horizon != 24 or legacy_microbatch != 4:
+        raise ValueError('Explicit H24 legacy-micro4 diffusion draw contract required')
+    noise=[];steps=[]
+    for start in range(0,batch,legacy_microbatch):
+        count=min(legacy_microbatch,batch-start)
+        noise.append(torch.randn((count,horizon,29),device=device,dtype=dtype,generator=generator))
+        steps.append(torch.randint(100,(count,),device=device,generator=generator))
+    return torch.cat(noise),torch.cat(steps)
+
+
+def dp_performance(spec, effective_batch):
+    """An explicit runtime identity; legacy checkpoints retain their original path."""
+    if spec is None:return None
+    if (not isinstance(spec,dict) or set(spec)!={'version','microbatch','diffusion_rng_microbatch','raw_frame_device_cache'}
+            or spec['version']!='fp32_legacy_rng_microbatch_v1' or spec['diffusion_rng_microbatch']!=4
+            or isinstance(spec['microbatch'],bool) or not isinstance(spec['microbatch'],int)
+            or spec['microbatch'] not in (4,8,16,32,64) or effective_batch!=64
+            or not isinstance(spec['raw_frame_device_cache'],bool)):
+        raise ValueError('Explicit FP32 effective64 / legacy-micro4 RNG performance profile required')
+    return dict(spec)
+
+
 def continuation_source(spec, supervision, statistics_path, normalization_identity):
     """Pin a selected prior-round checkpoint and unchanged label/statistics semantics."""
     if not isinstance(spec,dict) or not all(k in spec for k in
@@ -566,6 +594,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         config.update(version='dagger_same_semantics_incremental_dp_v1',normalizer_recomputed=False,
             trainable_scope='all existing encoder/history/conditional U-Net parameters; shared DINO features frozen',
             history='complete actual student-prefix/expert-suffix observations; expert suffix only supervises targets')
+    performance=dp_performance(runtime.get('training_performance'),config['effective_batch'])
+    if performance:
+        config.update(training_performance=performance,microbatch=performance['microbatch'])
+        model.raw_frame_device_cache=performance['raw_frame_device_cache']
     strata=data.get('sampling_strata') if not smoke else None
     if strata:
         sampling_strata(ids,strata,runtime.get('sampling_weights'))
@@ -747,6 +779,9 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 weights['hand_geometry']=objective.weights['hand_geometry']*geometry_gain
                 selected_geometry,geometry_report=geometry_selection(objective,selected,sampler.lengths,seed+1000003*(step+1))
             objective.current_loss_weights=weights
+            draws=None
+            if performance:
+                with block():draws=diffusion_draws(len(selected),model.horizon,noise,device)
             for start in range(0,len(selected),config['microbatch']):
                 with block():
                     selected_micro=selected[start:start+config['microbatch']]
@@ -754,7 +789,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                     context=projection_batch(objective,selected_micro,c.device,
                         selected_mask=selected_geometry[start:start+config['microbatch']] if direct_geometry else None,
                         update_selected_count=geometry_report.get('selected_count'),active=geometry_gain>0 if direct_geometry else True)
-                    _,parts,prediction=objective.forward(model,c,y,m,noise,geometry_context=context)
+                    _,parts,prediction=objective.forward(model,c,y,m,noise,geometry_context=context,
+                        **({'diffusion_inputs':tuple(x[start:start+config['microbatch']] for x in draws)} if performance else {}))
                     if objective.last_geometry_metrics is not None:
                         geometry_wall+=objective.last_geometry_metrics.get('elapsed_s',0.)
                         with (root/'geometry_projection.jsonl').open('a') as f:f.write(json.dumps(dict(update=step+1,

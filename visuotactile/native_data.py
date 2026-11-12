@@ -283,9 +283,18 @@ def supervision_mask_sha256(records,identities=None):
 
 
 @torch.no_grad()
-def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None):
+def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None,transfer_mode='tick',scheduler_index_mode='legacy'):
+    """Replay every native observation; optionally consolidate transfer-only work.
+
+    ``tick`` retains the historical implementation for measured comparisons.
+    ``episode`` transfers numeric inputs once and copies only complete replans
+    back to CPU. Cursor expansion changes no inference, recurrence or RNG draws.
+    Neither mode reuses a prediction from another checkpoint.
+    """
     from .position_control import bounded_targets
     device=next(base.parameters()).device
+    if transfer_mode not in ('tick','episode'):raise ValueError('Unknown residual cache transfer implementation')
+    if scheduler_index_mode not in ('legacy','host'):raise ValueError('Unknown DDIM scheduler index implementation')
     if base.training or any(p.requires_grad for p in base.parameters()):raise ValueError('Base must be completely frozen')
     binding={'base_checkpoint_sha256','statistics_sha256','data_sha256','residual_statistics_sha256'}
     if entry.get('trajectory_kind')=='expert_takeover_v1' and cache_identity is None:
@@ -299,20 +308,45 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
     generator=torch.Generator(device=device).manual_seed(7091);memory=None
     result=residual_observations(entry,record['robot'],record['time'])
     plans=[];masks=[];commands=[];features=[]
+    inputs=record
+    if transfer_mode=='episode':
+        # At most a few MB of numeric observations; frozen image shards continue
+        # to transfer only at their actual observation tick. This is not a batch
+        # of recurrent updates and never writes back to issued/applied history.
+        with lease.block():
+            inputs={key:record[key].to(device) for key in ('robot','time','joint_limits')}
+            if base.modality=='G10':inputs['tactile']=record['tactile'].to(device)
     for tick in range(len(record['time'])):
         with lease.block():
-            stamp=record['time'][tick].to(device)
-            memory=base.observe(record['robot'][tick].to(device),stamp,tick,episode.frame(tick,device) if tick%12==0 else None,
-                memory,tactile=record['tactile'][tick].to(device) if base.modality=='G10' else None)
+            stamp=inputs['time'][tick].to(device)
+            memory=base.observe(inputs['robot'][tick].to(device),stamp,tick,episode.frame(tick,device) if tick%12==0 else None,
+                memory,tactile=inputs['tactile'][tick].to(device) if base.modality=='G10' else None)
             if tick%12==0:
-                plan=base.predict(base.condition(memory,stamp),generator)
-                plan=bounded_targets(plan[0],record['joint_limits'].to(device))[None]
-                visual=residual_visual(base,memory,stamp).cpu()[0]
-            remaining,valid=remaining_target_plan(plan,tick%12)
-            plans.append(remaining[0].cpu());masks.append(valid.cpu());commands.append(plan[0,tick%12].cpu());features.append(visual)
+                sampling={} if scheduler_index_mode=='legacy' else dict(scheduler_index_mode=scheduler_index_mode)
+                plan=base.predict(base.condition(memory,stamp),generator,**sampling)
+                plan=bounded_targets(plan[0],inputs['joint_limits'].to(device))[None]
+                visual=residual_visual(base,memory,stamp)[0]
+                if transfer_mode=='episode':
+                    plans.append(plan[0]);features.append(visual)
+                else:visual=visual.cpu()
+            if transfer_mode=='tick':
+                remaining,valid=remaining_target_plan(plan,tick%12)
+                plans.append(remaining[0].cpu());masks.append(valid.cpu());commands.append(plan[0,tick%12].cpu());features.append(visual)
         if tick%60==0:progress(tick=tick+1,plans=tick//12+1)
-    result.update(plans=torch.stack(plans),plan_valid=torch.stack(masks),base=torch.stack(commands),
-        visual=torch.stack(features),target=record.get('expert_command',record['command']).cpu(),limits=record['joint_limits'].cpu(),
+    if transfer_mode=='episode':
+        # Expand unchanged H24 plans on CPU instead of copying a 24x29 tensor
+        # on every one of the 12 committed ticks. The final partial chunk is
+        # selected by n, with the same repeated-final-row/valid-mask convention.
+        with lease.block():
+            compact=torch.stack(plans).cpu();visual=torch.stack(features).cpu()
+        rows=torch.arange(len(record['time']));ordinal=rows//12;cursor=rows%12
+        indices=cursor[:,None]+torch.arange(24)[None]
+        planned=compact[ordinal[:,None],indices.clamp_max(23)]
+        valid=indices<24;commands=compact[ordinal,cursor];visual=visual[ordinal]
+    else:
+        planned=torch.stack(plans);valid=torch.stack(masks);commands=torch.stack(commands);visual=torch.stack(features)
+    result.update(plans=planned,plan_valid=valid,base=commands,
+        visual=visual,target=record.get('expert_command',record['command']).cpu(),limits=record['joint_limits'].cpu(),
         identity=record['identity'],time=record['time'].cpu(),
         nominal_source='frozen_EMA_DDIM16_seed7091_predictions_on_complete_recorded_observation_prefix',
         history_source='strictly_past_actual_executed_targets_including_student_prefix; never regenerated nominal labels')

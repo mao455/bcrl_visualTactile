@@ -236,17 +236,24 @@ class NativePolicy(nn.Module):
         return base
 
     @torch.no_grad()
-    def predict(self, condition, generator, *, inference_steps=16, clip_sample=False):
+    def predict(self, condition, generator, *, inference_steps=16, clip_sample=False, scheduler_index_mode='legacy'):
         if inference_steps not in (16, 32, 100) or not isinstance(clip_sample, bool):
             raise ValueError('Explicit registered DDIM sampling configuration required')
+        if scheduler_index_mode not in ('legacy','host'):
+            raise ValueError('Unknown DDIM scheduler index implementation')
         sample = torch.randn((len(condition), self.horizon, 29), device=condition.device, generator=generator)
         # Clip predicted x0 in train-normalized coordinates, before inverse affine.
         # A fresh scheduler prevents one ablation leaking settings into another.
         sampler = DDIMScheduler.from_config(self.noise.config, clip_sample=clip_sample)
         sampler.set_timesteps(inference_steps, device=condition.device)
-        for timestep in sampler.timesteps:
+        # Diffusers' alpha table is on CPU. Passing a CUDA scalar to step()
+        # synchronizes for each index and branch repeatedly. Host indices retain
+        # that table and its arithmetic exactly; denoising still receives the
+        # identical device timestep. Opt-in only after measured cache parity.
+        indices=sampler.timesteps.cpu().tolist() if scheduler_index_mode=='host' else sampler.timesteps
+        for timestep,index in zip(sampler.timesteps,indices):
             prediction = self.denoiser(sample, timestep, global_cond=condition)
-            sample = sampler.step(prediction, timestep, sample, eta=0.).prev_sample
+            sample = sampler.step(prediction, index, sample, eta=0.).prev_sample
         return (sample-self.action_offset)/self.action_scale
 
 

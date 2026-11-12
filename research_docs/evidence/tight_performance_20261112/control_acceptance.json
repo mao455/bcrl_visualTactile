@@ -1,0 +1,116 @@
+{
+  "passed": true,
+  "scope": "Performance-only source rebinding: original numeric control replay retained; control/deployment math unchanged; new cache/DP implementation covered by separate real-input parity and CPU tests",
+  "execution_adapter": {
+    "version": "expert_reachable_postprocessed_v1",
+    "input_space": "postprocessed_absolute_joint_target_rad",
+    "reference": "actual_pre_action_actuator_target_rad",
+    "control_dt": 0.016666666666666666,
+    "dof_speed_scale": 1.5,
+    "arm_moving_average": 0.1,
+    "hand_moving_average": 0.1,
+    "arm_progress": 0.5,
+    "hand_progress": 1.0,
+    "hand_target_cap_rad_s": 2.0,
+    "roundoff_tolerance_rad": 1e-06,
+    "delay": "already_resolved_in_supervision_no_second_queue"
+  },
+  "expert_student_applied_equivalent": true,
+  "equivalence_scope": "Same native-mapped absolute proposal and actual history, one speed mapping, then shared final position target",
+  "supervision_semantics_preserved": true,
+  "expert_valid_ticks": 169853,
+  "mapped_expert_ticks": 169853,
+  "actual_physics_substep_target_max_error_rad": 0.0,
+  "expert_changed_ticks": 0,
+  "expert_mapping_max_error_rad": 0.0,
+  "maximum_fp32_endpoint_roundoff_rad": 1.4901161193847656e-08,
+  "training_development_episodes": 564,
+  "test_episodes_read": 0,
+  "student_ticks": 59742,
+  "student_outside_shared_reachable_ticks": 59736,
+  "native_control_changed": false,
+  "new_simulator_rollouts": 0,
+  "finding": "Legacy postprocessed student commands can exceed the expert reachable target set; labels already include speed/delay and must not be slowed twice",
+  "double_speed_application_found": false,
+  "valid_expert_labels_invalidated": false,
+  "historical_introduction": {
+    "direct_postprocessed_position_executor": "c7fcbb0e2d27e21fa5c818171014413d2b067d0a",
+    "hand_target_slew_cap": "024cdaabf420b26565fb173ea2c917ddff7e98f2",
+    "dagger_expert_position_bridge": "01ce8d6ba785f73e8737f6598f4ceb4e13515b35"
+  },
+  "sources": {
+    "visuotactile/position_control.py": "0e3026f3f0a2957a49fc542f95c16f743e80505721ea7b65351ab00365c45b4a",
+    "visuotactile/expert_speed.py": "0431086bac241778ebbc0cad33c254e821c45f0e89f16e89001530f6596de2c6",
+    "visuotactile/sim/expert_speed_environment.py": "3de63bfd85f6f187b49dffe3943bc0c4e5062f983fbda564413064f2e323febf",
+    "visuotactile/models/native_dp.py": "87d15f36652e6c6e3be129ce768254c4cbfd31ba285323843ac1757dcd4a4815",
+    "visuotactile/native_controller.py": "e4d9c53c5e8f90a1419dfb9be0abe80320d044eee9f6adc4432a98f046763767",
+    "visuotactile/state_benchmark.py": "0f2b24d706cfe1884cb9e79a74dd7ebe9061039e579e607c22754ef2f75083e9",
+    "visuotactile/anchor_continue.py": "f5c32baff8c176490f86941716c139e1edc1b87e5ee81ffd20dd93d1fad3d402",
+    "isaacsimenvs/tasks/play/utils/action_utils.py": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3",
+    "tools/tight_dagger.py": "5bd9a88e40b37a9d5a741ebd3489fba824ce223b8fa2b288b7eff1b69c76c49a",
+    "tools/tight_finish.py": "0a3f94b9f88b353a80b699115c61e87262adad8f81e6b2e8729d56269b31200b"
+  },
+  "data_manifest": {
+    "path": "outputs/visuotactile/run/tight_dagger_pool_20261111_01/round_03/QG01/dp/state_data/data.json",
+    "sha256": "e9a6dcadfcc75d9a28ccba9f75133a23dcf08c4a38ae99be3382cda283979c34"
+  },
+  "evidence": [
+    {
+      "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_rows.json",
+      "sha256": "cc4ccd111e09d2284a679ca648fdb031b6b9dfba27f9647635bfdee916abd7eb"
+    },
+    {
+      "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_joints.csv",
+      "sha256": "6ff78257d62b383ccaa5c4165fc025a464fe872d5cc42c29e6452f9af4add5f6"
+    },
+    {
+      "path": "outputs/visuotactile/run/control_consistency_20261112_01/execution_model_acceptance.json",
+      "sha256": "5d4418fe5e70da756a61d50690f7888205bb40b10c784fd09203bc1c7958658b"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/acceptance_tests.json",
+      "sha256": "4384c3c4feccecf8db7d561cb7a4308473a049fa25b96c4972a74cf25ba5004e"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/dp_benchmark.json",
+      "sha256": "9f0d59fc105170a273b04c44b73dc127c30bdc8bb6e3b896a5d4ab00ce5c49c1"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/cache_benchmark.json",
+      "sha256": "edd4c339ac0db18ea1d9c9c531062b1bd3cca7b1de464f20ac97642b6bfd0f3a"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/paired_dp_benchmark.json",
+      "sha256": "3d8a9ef0306649b50a8218359fdce799f55f40f8e612ec33e19b372f73c17bea"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/transformer_benchmark.json",
+      "sha256": "973e130ce08013b7b7aeafca04780cf3e86c0ce66dc855faf6be0e277763416d"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/io_benchmark.json",
+      "sha256": "333e222f6d5fe15608863371b2e1e47bb84d4cfa788004d2cae1aaafe48fe4e5"
+    },
+    {
+      "path": "research_docs/evidence/tight_performance_20261112/current_collection_control.json",
+      "sha256": "6d59e4e184265c100b659224ed662ab698cbff8f6108869d8b46db8a719000e5"
+    }
+  ],
+  "backend_fit_gradient_verified": true,
+  "backend_model_check_scope": "Actual trained A r03 and B r02 weights; real Core and recovery initial inputs; CPU forward/backward only, zero optimizer updates",
+  "parent_acceptance": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS_dagger_perf/outputs/visuotactile/run/control_consistency_20261112_01/execution_acceptance.json",
+    "sha256": "7da38710140b2da71d582509a9ee27a5d0ce3c9c347bdf865972661bab7078d4"
+  },
+  "unchanged_control_sources": {
+    "visuotactile/position_control.py": "0e3026f3f0a2957a49fc542f95c16f743e80505721ea7b65351ab00365c45b4a",
+    "visuotactile/expert_speed.py": "0431086bac241778ebbc0cad33c254e821c45f0e89f16e89001530f6596de2c6",
+    "visuotactile/sim/expert_speed_environment.py": "3de63bfd85f6f187b49dffe3943bc0c4e5062f983fbda564413064f2e323febf",
+    "visuotactile/native_controller.py": "e4d9c53c5e8f90a1419dfb9be0abe80320d044eee9f6adc4432a98f046763767",
+    "visuotactile/state_benchmark.py": "0f2b24d706cfe1884cb9e79a74dd7ebe9061039e579e607c22754ef2f75083e9",
+    "isaacsimenvs/tasks/play/utils/action_utils.py": "ef367ff0013661e3e535a36b0e475fd902a10c4e9c6dd418440665eaf8a480f3"
+  },
+  "performance_revision": "dagger_throughput_v1",
+  "new_control_replay_episodes": 0,
+  "utc": 1794473596.276302
+}

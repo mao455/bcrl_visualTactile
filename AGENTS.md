@@ -1,5 +1,9 @@
 # Play2Perfect / Tight-Insertion：现行工作约定
 
+## 最新覆盖 — 2026-11-12 吞吐优化与同run安全接续
+
+读 [DAGGER_PERFORMANCE](research_docs/DAGGER_PERFORMANCE.md)。性能改动在 `bc+rl_RSS_dagger_perf` 已做真实输入探针，尚待`r01_QG01_predictions`完成边界、原owner及自有worker退出后接入同一matched run；不热改旧树、不重设2026-11-13 11:22:40绝对截止。仅第2轮两组DP并行；缓存、后端、Kit采集与评估继续顺序。第一轮A/B保持共同旧DP数值配置，下一共同轮才启micro16/effective64和不可变特征GPU缓存，扩散RNG保留原micro4顺序；每worker2CPU/2线程、nice19不变。第一轮A已prepared缓存不动，B新准备可用逐位等价缓存路径。未来采集A/B共同使用已验收lossless LZF及全部源字段校验，磁盘成本约增加30%的实测范围见报告。Transformer搬运候选已撤回；不启4线程、多env、AMP、TF32或compile。保持两类监督、真实历史、几何范围、配对曝光/endpoint、test22隔离与全部保护数据；短探针不是正式曝光或自主成功证据。
+
 ## 最新覆盖 — 2026-11-12 控制一致性与配对持续实验
 
 用户最新附件授权证据驱动修复和有限继续，覆盖下文旧run结束后不得继续的限制。读 [DAGGER_METHOD](research_docs/DAGGER_METHOD.md) 和最新交接。合法旧run `tight_dagger_pool_20261111_01` 按原冻结源码和13:24:31截止完成；新树 `bc+rl_RSS_control_audit` 准备 `tight_dagger_matched_20261112_01`，旧owner/worker退出并发布后才接续，不热改。

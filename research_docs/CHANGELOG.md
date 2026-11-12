@@ -1,3 +1,11 @@
+## 2026-11-12 — DAgger吞吐实测与有限性能修订（待接入）
+
+- 隔离perf树实测真实数据。`anchor_continue/state_image_loss/state_history`支持FP32 effective64、micro16、原micro4扩散RNG顺序与两episode不可变原始特征GPU缓存；可训练历史仍按当前权重从真实前缀重算。单组完整update8.4565→6.8877s（1.228×），梯度/参数差保持在记录的浮点重排范围，监督/几何不减量。
+- `native_data/models/native_dp`将固定输入按episode搬运并避免DDIM timestep主机同步，两个完整真实episode共1,297tick、31字段逐位相等，18.9380→12.7174s（1.489×）。Transformer搬运热身后只约2%收益，候选已撤回；4线程不启用。
+- `recording.verify_stream_fields`共享RGB/depth解码，完整412tick仍校验184源字段，均值10.3229→7.5134s（1.374×）；13项针对性测试通过，坏图像/索引/数值仍拒绝。既有lossless LZF在64tick交错测量中写入更快、文件增加30.08%；`tight_dagger.collect`增加显式编码配置，未来A/B共同采用，不改图像内容。
+- `tight_dagger/tight_finish`准备同run安全边界迁移与第2轮双DP并行，保留deadline/已完成阶段/配对曝光。真实双learner计算探针29.7539→15.3796s（1.935×），不代表完整DAgger轮加速；缓存、后端和评估继续顺序。没有多env、AMP、TF32或compile。
+- 新增唯一 [DAGGER_PERFORMANCE](DAGGER_PERFORMANCE.md)，原位更新Method/合同/入口/交接/AGENTS。小JSON公开于`evidence/tight_performance_20261112`；实际队列接入和闭环效果仍未完成，不将探针计正式曝光。集成176项定向测试通过（17.77s，含迁移9/并行6），保留既有requests兼容warning。删除16份已验证自有benchmark HDF5及一份重复disposable checkpoint，逻辑大小合计1.6122GB；已分配块口径和保留副本详见性能报告。正式源数据、模型、有效缓存和历史结果保留。
+
 ## 2026-11-12 — 控制一致性审计与两轮匹配DAgger接续
 
 - 在独立工作树准备，当前旧run及冻结源码未热改。327条round2/3数值轨迹的11项来源/标签检查通过，未发现裸DP回退、学生后态冒充专家q_reached、真实issued/applied被新预测覆盖或重复减速。564条非test轨迹的169,853个合法专家tick经CPU执行链读回，映射误差0、专家标签改变0。旧学生最终目标仅受关节限位，存在超出相同真实pre-action target下专家可达范围的跃变；手部学生前缀超2rad/s目标变化分量约11%–16%。这是控制条件差异的证据，未证明为零成功唯一原因。

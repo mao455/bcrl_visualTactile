@@ -147,12 +147,18 @@ class GeometryObjective:
         self.last_geometry_metrics = report
         return values.sum()/count
 
-    def forward(self, model, condition, command, valid, generator, geometry_context=None):
+    def forward(self, model, condition, command, valid, generator, geometry_context=None, *, diffusion_inputs=None):
         if model.noise.config.prediction_type != 'sample' or model.horizon != 24:
             raise ValueError('New geometry objective is explicitly H24 sample only')
         target = torch.where(valid[..., None], command*model.action_scale+model.action_offset, 0.)
-        noise = torch.randn(target.shape, device=target.device, generator=generator)
-        ticks = torch.randint(100, (len(target),), device=target.device, generator=generator)
+        if diffusion_inputs is None:
+            noise = torch.randn(target.shape, device=target.device, generator=generator)
+            ticks = torch.randint(100, (len(target),), device=target.device, generator=generator)
+        else:
+            noise, ticks = diffusion_inputs
+            if (noise.shape != target.shape or noise.dtype != target.dtype or noise.device != target.device
+                    or ticks.shape != (len(target),) or ticks.dtype != torch.long or ticks.device != target.device):
+                raise ValueError('Precomputed diffusion draws must match this exact microbatch')
         prediction = model.denoiser(model.noise.add_noise(target, noise, ticks), ticks, global_cond=condition)
         values = self.components(prediction, command, valid, model.action_scale, model.action_offset, geometry_context)
         total = values['base']+self.gain*sum(self.weights[k]*values[k] for k in self.weights)
