@@ -29,7 +29,7 @@ HISTORY=dict(version='current_weight_prefix_v1')
 
 def write_csv(path,rows):
     with path.open('w',newline='') as f:
-        w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+        w=csv.DictWriter(f,fieldnames=list(rows[0]),lineterminator='\n');w.writeheader();w.writerows(rows)
 
 
 def bind(out):
@@ -369,8 +369,10 @@ def export_small_artifacts(out,target):
             source=root/relative
             if source.is_file():
                 if source.stat().st_size>2*1024**2:raise ValueError('Public report too large: '+str(source))
-                name=group+'_'+relative.replace('/','_');shutil.copy2(source,target/name)
-                artifacts.append(dict(local=str(source),public=name,sha256=sha256(source)))
+                name=group+'_'+relative.replace('/','_')
+                if source.suffix=='.csv':(target/name).write_text(source.read_text())
+                else:shutil.copy2(source,target/name)
+                artifacts.append(dict(local=str(source),public=name,sha256=sha256(source),public_sha256=sha256(target/name)))
         for source in sorted((root/'evaluation').glob('**/*')):
             if source.is_file() and source.suffix in {'.mp4','.npz'}:
                 artifacts.append(dict(local=str(source),public=None,bytes=source.stat().st_size,sha256=sha256(source)))
@@ -386,7 +388,8 @@ def update_public(out):
         p=out/name
         if p.exists():
             if p.is_symlink() or p.stat().st_size>2*1024**2:raise ValueError('Unexpected public evidence')
-            shutil.copy2(p,target/name)
+            if p.suffix=='.csv':(target/name).write_text(p.read_text())
+            else:shutil.copy2(p,target/name)
     export_small_artifacts(out,target)
     if (out/'probe_results.json').exists():
         r=read(out/'probe_results.json');small={g:{k:{key:value for key,value in v.items() if key!='metrics'} for k,v in arms.items()} for g,arms in r['groups'].items()}
