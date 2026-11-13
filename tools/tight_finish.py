@@ -1216,7 +1216,7 @@ def vision_evaluate(root, residual=False):
                 live['initialization_attempted']=True;live['environment']=environment(root,True,lease=lease)
             app,env,player,owned_lease=live['environment'];checkpoint=root/group/'training/best.pt'
             return trial(env,owned_lease,out,case['spec'],{},player,str(checkpoint),saved=saved[group],position=True,video=record,
-                expert_checkpoint=s['expert_checkpoint'],video_title=f'{group} | development seed {case["spec"]["seed"]}')
+                expert_checkpoint=s['expert_checkpoint'],expert_shadow=False,video_title=f'{group} | development seed {case["spec"]["seed"]}')
         report=dagger_evaluation(root,available,plan,rules,bounded_trial,verify_video)
         write(root/'result.json',dict(software_complete=True,worker_error=None,stage='bounded_evaluation_accounted',
             evaluation_complete=report['complete'],trial_software_failures=report['software_failures'],utc=time.time()))
@@ -1229,7 +1229,7 @@ def vision_evaluate(root, residual=False):
             record=index<v['videos_per_group']
             write(root/'evaluation_progress.json',dict(group=group,case=index,completed=sum(map(len,results.values())),utc=time.time()))
             result=trial(env,lease,out,case['spec'],{},player,str(checkpoint),saved=saved[group],position=True,video=record,
-                expert_checkpoint=s['expert_checkpoint'],video_title=f'{group} {"60Hz Transformer residual" if saved[group].get("residual_version") else "visual DP"} | {v.get("cohort","development")} seed {case["spec"]["seed"]}')
+                expert_checkpoint=s['expert_checkpoint'],expert_shadow=False,video_title=f'{group} {"60Hz Transformer residual" if saved[group].get("residual_version") else "visual DP"} | {v.get("cohort","development")} seed {case["spec"]["seed"]}')
             if result.get('legal') and record:write(out/'video_verified.json',verify_video(out/'rollout.mp4',expected_frames=result['steps']))
             results[group].append(result)
             valid=[r for r in results[group] if r.get('legal') and r.get('software_complete')]

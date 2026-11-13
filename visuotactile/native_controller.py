@@ -87,6 +87,7 @@ class NativeController:
         if step != self.next_step:
             raise ValueError('Native tick skipped or duplicated')
         measured = self.timings.begin('native_planning' if step%12==0 else 'native_history',step)
+        observation_measured = self.timings.begin('robot_history_input',step)
         stamp = packet['time_s'][0].cpu()
         if self.position_mode:
             past=torch.zeros(61)
@@ -106,6 +107,7 @@ class NativeController:
         else:proprio = proprio_radians(packet['proprio'][0].cpu(), self.limits)
         robot = robot_rows(proprio[:29], proprio[29:], packet['actuator_target_rad'][0].cpu(), past, stamp-self.started)
         self.last_robot = robot
+        self.timings.finish(observation_measured)
         frame = None
         if step % self.model.contract.get('visual_stride',12) == 0:
             frame = dict(time=packet['camera_time_s'][0].to(self.device), valid=packet['camera_valid'][0].to(self.device))
@@ -114,8 +116,15 @@ class NativeController:
                     raise ValueError('State baseline requires current allowlisted geometry')
                 frame['geometry'] = geometry(diagnostics, self.dimensions)[0].to(self.device)
             elif self.model.group == 'I-HistoryDP':
-                frame.update(patches=self.dino(packet['image'][0, :, :3].to(self.device)),
-                    depth=depth_grid(packet['image'][0, :, 3:].cpu(), packet['depth_valid'][0].cpu()).to(self.device))
+                transfer_measured = self.timings.begin('rgb_transfer',step)
+                rgb = packet['image'][0, :, :3].to(self.device)
+                self.timings.finish(transfer_measured)
+                dino_measured = self.timings.begin('dino_rgb',step)
+                frame['patches'] = self.dino(rgb)
+                self.timings.finish(dino_measured)
+                depth_measured = self.timings.begin('depth_grid_and_transfer',step)
+                frame['depth'] = depth_grid(packet['image'][0, :, 3:].cpu(), packet['depth_valid'][0].cpu()).to(self.device)
+                self.timings.finish(depth_measured)
             else:
                 frame.update(rgb=packet['image'][0, :, :3].to(self.device),
                     depth=packet['image'][0, :, 3:].to(self.device), depth_valid=packet['depth_valid'][0].to(self.device))
@@ -124,7 +133,9 @@ class NativeController:
             from .native_data import tactile_values
             touch=tactile_values(packet['contact_substeps_w_N'][0].cpu(),packet['contact_substeps_local_N'][0].cpu(),
                 packet['contact_time_s'][0].cpu(),stamp,packet['contact_valid'][0].cpu()).to(self.device)
+        history_measured = self.timings.begin('learned_visual_and_history',step)
         self.memory = self.model.observe(robot.to(self.device), stamp.to(self.device), step, frame, self.memory,tactile=touch)
+        self.timings.finish(history_measured)
         if step % 12 == 0:
             self.last_condition = self.model.condition(self.memory, stamp.to(self.device))
             diffusion_measured = self.timings.begin('ddim_plan',step)
@@ -204,6 +215,7 @@ class ResidualController:
         if tick==0:self.timings=InferenceTimings(self.device)
         measured=self.timings.begin('combined_controller',tick)
         nominal=self.base.act(packet,diagnostics)
+        input_measured=self.timings.begin('backend_input_and_transfer',tick)
         if tick%self.model.contract.get('visual_stride',12)==0:self.visual=residual_visual(self.model,self.base.memory,packet['time_s'][0].to(self.device)).cpu()
         plan=bounded_targets(self.base.plan[0],self.base.limits)[None]
         remaining,valid=remaining_target_plan(plan,tick%12)
@@ -218,6 +230,7 @@ class ResidualController:
                 previous_nominal=torch.zeros_like(nominal) if self.previous_nominal is None else self.previous_nominal,
                 previous_nominal_valid=torch.tensor([self.previous_nominal is not None]))
         inputs=residual_batch([record],0,1,self.device)
+        self.timings.finish(input_measured)
         residual_measured=self.timings.begin('residual_forward_compose',tick)
         raw,self.state=self.residual(inputs,self.state)
         gate=packet['contact_valid'][0].bool()&(packet['contact_w_N'][0].norm(dim=-1).amax()>.1)

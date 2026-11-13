@@ -37,6 +37,17 @@ class NativeDinoSpatial(FrozenDinoSpatial):
     def forward(self, rgb):
         if rgb.shape != (3, 3, 252, 448):
             raise ValueError('Native DINO requires one current three-camera observation')
+        return self.forward_lanes(rgb[None])[0]
+
+    @torch.no_grad()
+    def forward_lanes(self, rgb):
+        """Independent current observations, paired into the same six-image kernel.
+
+        An odd final lane is duplicated only for padding. There is no temporal
+        pooling and no image from another lane enters an attention sequence.
+        """
+        if rgb.ndim != 5 or rgb.shape[1:] != (3, 3, 252, 448) or len(rgb) < 1:
+            raise ValueError('Expected N current three-camera observations')
         if rgb.is_floating_point():
             if not torch.isfinite(rgb).all() or rgb.min() < 0 or rgb.max() > 1:
                 raise ValueError('Native camera RGB must be finite in [0,1]')
@@ -48,6 +59,13 @@ class NativeDinoSpatial(FrozenDinoSpatial):
         try:
             torch.backends.cuda.matmul.allow_tf32 = False
             with torch.backends.cudnn.flags(enabled=True, benchmark=False, deterministic=False, allow_tf32=True):
-                return super().forward(torch.stack((rgb, rgb)))[0]
+                results = []
+                for start in range(0, len(rgb), 2):
+                    pair = rgb[start:start+2]
+                    count = len(pair)
+                    if count == 1:
+                        pair = torch.cat((pair, pair))
+                    results.append(super().forward(pair)[:count])
+                return torch.cat(results)
         finally:
             torch.backends.cuda.matmul.allow_tf32 = matmul
