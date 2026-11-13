@@ -75,3 +75,30 @@ def test_experiment_cli_and_immutable_deadline(monkeypatch,tmp_path):
     assert experiment.COMPUTE_DEADLINE==1794585315.106664
     assert experiment.ABSOLUTE_DEADLINE==1794585915.106664
     with pytest.raises(ValueError,match='Unique registered'):experiment.checked_root(tmp_path)
+
+
+def test_unequal_episode_padding_does_not_invalidate_execution_bounds():
+    from visuotactile.native_data import residual_batch,residual_previous_targets
+    def record(length):
+        robot=torch.zeros(length,178);robot[:,58:87]=.5
+        return dict(robot=robot,visual=torch.zeros(length,512),plans=torch.zeros(length,24,29),
+            plan_valid=torch.ones(length,24,dtype=torch.bool),tactile={'dummy':torch.zeros(length*2,1)},
+            tactile_valid=torch.ones(length*2,dtype=torch.bool))
+    inputs=residual_batch([record(3),record(1)],0,3,'cpu')
+    limits=torch.tensor([.1,1.]).expand(2,1,29,2)
+    previous=residual_previous_targets(inputs,limits)
+    assert torch.equal(previous[inputs['valid']],inputs['robot'][...,58:87][inputs['valid']])
+    stats=dict(robot_mean=torch.zeros(178),robot_std=torch.ones(178),action_scale=torch.ones(29),action_offset=torch.zeros(29))
+    model=TargetResidual(stats,[.9]*29,execution_adapter=REACHABLE_POSITION_EXECUTION,
+        loss_contract=dict(PROJECTION_FY_LOSS,regularizer_weight=0.),output_contract=REACHABLE_CENTERED_OUTPUT)
+    base=torch.full((2,3,29),.5);raw=torch.zeros_like(base,requires_grad=True)
+    with pytest.raises(ValueError,match='legal'):
+        model.compose_chain(base,raw,None,limits,previous=inputs['robot'][...,58:87])
+    chain=model.compose_chain(base,raw,None,limits,previous=previous)
+    loss=model.objective(chain['u_exec'],base,chain['delta'],inputs['valid'],
+        u_pre=chain['u_pre'],execution_bounds=chain['execution_bounds'])
+    assert loss==0
+    assert torch.isfinite(torch.autograd.grad(loss,raw)[0]).all()
+    inputs['robot'][0,0,58]=0.  # Real invalid targets must still be rejected.
+    with pytest.raises(ValueError,match='legal'):
+        model.compose_chain(base,raw,None,limits,previous=residual_previous_targets(inputs,limits))

@@ -255,6 +255,17 @@ def residual_batch(records,start,stop,device):
     return inputs
 
 
+def residual_previous_targets(inputs, limits):
+    """Give padding a legal target without changing any actual observation.
+
+    Padded robot fields are zero, which need not lie inside a joint's limits.
+    The execution map validates its entire batch before the supervision mask
+    is applied. Only nonexistent ticks receive a joint-limit placeholder.
+    """
+    previous = inputs['robot'][..., 58:87]
+    return torch.where(inputs['valid'][..., None], previous, limits[..., 0])
+
+
 def residual_supervision_mask(records,start,stop,device):
     """Loss/exposure mask only; residual_batch.valid keeps the real student prefix."""
     from .anchor_sampling import supervision_rows

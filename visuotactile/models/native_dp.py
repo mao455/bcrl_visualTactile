@@ -614,7 +614,8 @@ class TargetResidual(nn.Module):
         """Expose the real command chain without changing final execution math.
 
         u_pre is an absolute command in rad, before *both* hard clips. delta is
-        the bounded correction in command-normalizer units, not a command.
+        the correction in command-normalizer units, not a command. Only the
+        legacy tanh map bounds delta by scales; versioned linear maps do not.
         Observed contact remains diagnostic and never becomes a hard switch.
         """
         from ..residual_output import proposal_delta,centered_proposal,REACHABLE_CENTERED_OUTPUT

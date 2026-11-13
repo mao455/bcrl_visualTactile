@@ -1,3 +1,7 @@
+### 2026-11-13 12:16 padding及输出诊断修订
+
+无效padding槽的执行previous可以替换为合法joint lower占位，实际有效tick仍使用原58:87字段并严格校验；该占位不进入模型历史、不变更监督和控制数学。输出contract为线性/线性尾部时，旧`residual_tanh_fraction`原始字段仅是|delta|/历史scales，新汇总以`legacy_normalized_amplitude`标注，`tanh_saturation.applicable=false`；旧trace和旧默认bounded-tanh统计保持。该修订不表示原loss或真实执行梯度改变。
+
 ### 2026-11-13 10:40 最新自主科研覆盖
 
 下文固定更新数、双门槛、候选和两轮上限均是历史实验设计，最新用户授权允许按实际证据自主修订，不作为停止研究的机械条件。当前训练与完整闭环优先完成；独立事件监督只监测和交接，真实Agent决定后续实验。原始数据/历史证据、无关任务、冻结源码、物理执行与成功标准、A=q_reached＋既定几何/B=u_expert/后端最终u_expert、test22隔离、资源储备和原计算/绝对截止仍为硬约束。参见[DAGGER_METHOD](DAGGER_METHOD.md#execution-learning-repair)及[最新交接](SESSION_HANDOFF.md)。

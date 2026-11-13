@@ -1,0 +1,135 @@
+{
+  "utc": 1794543336.7107837,
+  "status": "review_complete_fixes_tested",
+  "hard_findings": [
+    "03:04 CLI failure to09:57 recovery gap6.879h was not training",
+    "Current-weight prefix replay repeats2237985 valid recurrent ticks per171133 supervised ticks; no unsupervised-only chunks in actual deck, so skip-empty fastpath has no measured value",
+    "Per-update weighted normalization changes effective stratum importance relative to physical50/20/30tick exposure; weights3 cancel on all-early chunks",
+    "All four compared formal trainers have0 gradient-clipping incidence; clip1 is not responsible for regression",
+    "Centered inverse maps all checked feasible targets to raw[-1,1]; current FY projection gradients are direction-correct except documented1e-6rad idealization",
+    "Fixed selection uses first4 Core validation episodes; full offline30 needed before broad generalization claims"
+  ],
+  "code_change_plan": "Independent CPU review running; do not add unmeasured empty-chunk optimization or more epochs reflexively",
+  "recommended_next_decision": "Complete current full-policy results, compare earliest deviation with existing baseline/expert; consider explicit sample-weight normalization and an efficient recurrent-update schedule only as registered changes, no stale hidden caching",
+  "timing": {
+    "centered_pair_training_seconds": 1125.5603981018066,
+    "previous_pair_training_seconds": 3264.531015396118,
+    "previous_eval20_seconds": 1483.5973181724548,
+    "previous_fault_gap_hours": 6.879148515396648
+  },
+  "independent_review_complete": true,
+  "code_fixes": [
+    "Padding previous targets use legal placeholder only for invalid slots; real invalid targets still rejected",
+    "Versioned linear/linear-tail amplitude diagnostic no longer claims tanh saturation"
+  ],
+  "patch_tree": "/home/CNS2025331827/docs/bc+rl_RSS_efficiency_review_01",
+  "latest_closed_loop": {
+    "QG01": {
+      "completed": 10,
+      "successes": 0,
+      "native_lifts": 3,
+      "first_subgoal_reached": 0,
+      "software_failures": 0
+    },
+    "G01": {
+      "completed": 10,
+      "successes": 0,
+      "native_lifts": 5,
+      "first_subgoal_reached": 0,
+      "software_failures": 0
+    }
+  },
+  "sampling_measurement": {
+    "counts": {
+      "all_chunks": 2349,
+      "allocated_rows": 291014,
+      "valid_rows": 214711,
+      "supervised_chunks": 2349,
+      "supervised_ticks": 171133,
+      "replay_allocated_rows": 2588288,
+      "replay_valid_rows": 2237985,
+      "single_tick_updates": 3,
+      "le8_tick_updates": 41
+    },
+    "per_tick_source_fraction": {
+      "core": 0.498863457077244,
+      "current_correction": 0.30014666954941477,
+      "historical_correction": 0.2009898733733412
+    },
+    "per_update_unweighted_source_fraction": {
+      "core": 0.4361337039436755,
+      "current_correction": 0.3391232164481979,
+      "historical_correction": 0.22474307960812656
+    },
+    "notes": [
+      "source fractions here exclude extra recovery weights and Adam effects",
+      "replay_rows are recurrent rows, not measured GPU time",
+      "padded rows state-masked but still computed"
+    ]
+  },
+  "recovery_weight_measurement": {
+    "physical_initial_fraction": 0.08162072773807506,
+    "global_weighted_fraction_if_single_denominator": 0.21049987692709562,
+    "actual_mean_per_update_weighted_fraction": 0.11412830611050423,
+    "all_early_updates": 1,
+    "total_updates": 2349,
+    "scope": "Loss coefficients only; Adam and gradients prevent claiming actual parameter-contribution shares"
+  },
+  "tests": {
+    "existing_focused": {
+      "passed": 55,
+      "seconds": 8.58
+    },
+    "post_fix_focused": {
+      "passed": 28,
+      "seconds": 2.37
+    },
+    "counts_overlap": true,
+    "warning": "existing requests dependency version warning"
+  },
+  "note_fault_gap": "This repair follower did not train for6.879h between failure and recovery. Old matched work still ran during part of it; not whole-GPU idle time.",
+  "centered_stage_durations": [
+    {
+      "stage": "QG01_train_receipt",
+      "exit_code": 0,
+      "duration_seconds": 571.3889427185059
+    },
+    {
+      "stage": "QG01_offline_receipt",
+      "exit_code": 0,
+      "duration_seconds": 36.6868462562561
+    },
+    {
+      "stage": "G01_train_receipt",
+      "exit_code": 0,
+      "duration_seconds": 564.1449549198151
+    },
+    {
+      "stage": "G01_offline_receipt",
+      "exit_code": 0,
+      "duration_seconds": 36.38404846191406
+    },
+    {
+      "stage": "QG01_eval_receipt",
+      "exit_code": 0,
+      "duration_seconds": 754.6654803752899
+    },
+    {
+      "stage": "G01_eval_receipt",
+      "exit_code": 0,
+      "duration_seconds": 743.3683469295502
+    }
+  ],
+  "frozen_source_audit": {
+    "adaptive_recovery_01": {
+      "files": 286,
+      "changed": []
+    },
+    "adaptive_centered_01": {
+      "files": 290,
+      "changed": []
+    }
+  },
+  "next_step": "Real agent002 already reviewing completed centered A/B0/10 and these findings; no new GPU experiment launched by this reviewer; registered efficiency/sampling decisions remain evidence-driven",
+  "patch_active_in_current_worker": false
+}
