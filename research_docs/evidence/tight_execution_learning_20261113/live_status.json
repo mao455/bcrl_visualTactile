@@ -1,6 +1,6 @@
 {
   "absolute_deadline_utc": 1794585915.106664,
-  "completion_record_present": true,
+  "completion_record_present": false,
   "evaluations": [
     {
       "comparison": "A/B matched increment",
@@ -26,58 +26,6 @@
       "software_failures": 0,
       "successes": 0,
       "summary_sha256": "e82aa7b797cf479124b52d118fee052ed3b25bcaf3e9c4dcd15b926bf54f4957",
-      "valid": 10
-    },
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": true,
-      "completed": 10,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 3,
-      "path": "rear_replay_balance_01/control/G01/backend/G01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "a9635f06386f3115c7833a1ebfcc3f3363b79cbd1c00d776fd73899e981f601c",
-      "valid": 10
-    },
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": true,
-      "completed": 10,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 4,
-      "path": "rear_replay_balance_01/control/QG01/backend/QG01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "1148dde7ba0843e7b75d2c9c20001b6718468c70afcfb6093e785ec598c00fda",
-      "valid": 10
-    },
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": true,
-      "completed": 10,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 5,
-      "path": "rear_replay_balance_01/population/G01/backend/G01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "33dc651273a26d38bed5d2f930e136753d64f17658a1c2e93dab4d707f4e24d8",
-      "valid": 10
-    },
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": true,
-      "completed": 10,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 3,
-      "path": "rear_replay_balance_01/population/QG01/backend/QG01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "d6c5536c88f8da6d2645544be83b9f73a436638b8348ad7c5db360fdea331603",
       "valid": 10
     },
     {
@@ -168,11 +116,11 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794573651.2505817,
+  "published_utc": 1794575048.3485136,
   "session": "tight_execution_learning_20261113_01",
   "state": {
-    "stage": "awaiting_research_decision",
-    "state": "COMPLETE"
+    "stage": "waiting_for_healthy_source_training",
+    "state": "RUNNING"
   },
   "training": [
     {
@@ -198,32 +146,8 @@
       "supervised_target_ticks": 765303,
       "target_reached": true,
       "updates": 514
-    },
-    {
-      "path": "rear_replay_balance_01/control/G01/backend/G01/training/finished.json",
-      "supervised_ticks": 193690,
-      "target_reached": true,
-      "updates": 1363
-    },
-    {
-      "path": "rear_replay_balance_01/control/QG01/backend/QG01/training/finished.json",
-      "supervised_ticks": 193690,
-      "target_reached": true,
-      "updates": 1363
-    },
-    {
-      "path": "rear_replay_balance_01/population/G01/backend/G01/training/finished.json",
-      "supervised_ticks": 193520,
-      "target_reached": true,
-      "updates": 1314
-    },
-    {
-      "path": "rear_replay_balance_01/population/QG01/backend/QG01/training/finished.json",
-      "supervised_ticks": 193520,
-      "target_reached": true,
-      "updates": 1314
     }
   ],
   "version": 1,
-  "watch": "rear_replay_balance_01"
+  "watch": "rear_span_metric_eval_recovery_01"
 }

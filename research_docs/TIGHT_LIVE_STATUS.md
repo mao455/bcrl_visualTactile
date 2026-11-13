@@ -1,12 +1,12 @@
 # Tight-Insertion 自动进度
 
-证据读取时间：2026-11-13T20:40:51+08:00。
+证据读取时间：2026-11-13T21:04:08+08:00。
 
 本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
 每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
 
-当前阶段：`rear_replay_balance_01`；状态：`{"stage": "awaiting_research_decision", "state": "COMPLETE"}`。
-完成凭据：True；失败凭据：False。
+当前阶段：`rear_span_metric_eval_recovery_01`；状态：`{"stage": "waiting_for_healthy_source_training", "state": "RUNNING"}`。
+完成凭据：False；失败凭据：False。
 
 公平规则见 [AB_COMPARISON_POLICY](AB_COMPARISON_POLICY.md)。最近 contact 周期增量审计：通过；历史初始化/曝光仍不等同。
 
@@ -14,10 +14,6 @@
 | --- | --- | ---: | ---: | ---: | --- |
 | `adaptive_contact_recovery_01/round_01/G01/backend/G01` | A/B matched increment | 10/10 | 10 | 1 | True |
 | `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | A/B matched increment | 10/10 | 10 | 0 | True |
-| `rear_replay_balance_01/control/G01/backend/G01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | True |
-| `rear_replay_balance_01/control/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | True |
-| `rear_replay_balance_01/population/G01/backend/G01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | True |
-| `rear_replay_balance_01/population/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_00_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_00_previous/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_01_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
@@ -31,10 +27,6 @@
 | `adaptive_contact_recovery_01/round_01/G01/dp` | 514 | 765303 |
 | `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | 1362 | 193581 |
 | `adaptive_contact_recovery_01/round_01/QG01/dp` | 514 | 765303 |
-| `rear_replay_balance_01/control/G01/backend/G01` | 1363 | 193690 |
-| `rear_replay_balance_01/control/QG01/backend/QG01` | 1363 | 193690 |
-| `rear_replay_balance_01/population/G01/backend/G01` | 1314 | 193520 |
-| `rear_replay_balance_01/population/QG01/backend/QG01` | 1314 | 193520 |
 
 未通过凭据检查的条目：0；此类条目不发布成功统计。
 
