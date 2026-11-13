@@ -72,6 +72,37 @@ def configure_direct_reset(env, configuration):
         setattr(env.cfg.precise_assembly if key.startswith('hole_') else env.cfg.reset,key,value)
 
 
+def configure_direct_reset_lanes(env, configurations):
+    """Dispatch native resets with each lane's registered configuration.
+
+    This changes only which existing reset parameters are active for a lane's
+    native reset call. It writes no state and does not reseed the event stream.
+    Native batched RNG order differs from a serial one-lane experiment.
+    """
+    import copy
+    if len(configurations) != env.num_envs or hasattr(env, '_direct_lane_reset_original'):
+        raise ValueError('One immutable configuration per lane, installed once')
+    configurations = copy.deepcopy(configurations)
+    expected = set(configurations[0])
+    if not expected or any(set(c) != expected for c in configurations):
+        raise ValueError('Each lane requires the same explicit native reset fields')
+    original = env._reset_idx
+    env._direct_lane_reset_original = original
+    def reset(env_ids):
+        ids = list(range(env.num_envs)) if env_ids is None else env_ids.tolist()
+        saved = {key:copy.deepcopy(getattr(env.cfg.precise_assembly if key.startswith('hole_') else env.cfg.reset,key))
+            for key in expected}
+        try:
+            for lane in ids:
+                for key,value in configurations[lane].items():
+                    setattr(env.cfg.precise_assembly if key.startswith('hole_') else env.cfg.reset,key,value)
+                original(torch.tensor([lane],device=env.device,dtype=torch.long))
+        finally:
+            for key,value in saved.items():
+                setattr(env.cfg.precise_assembly if key.startswith('hole_') else env.cfg.reset,key,value)
+    env._reset_idx = reset
+
+
 def initial_row(identity, diagnostics, origin):
     d = {k: np.asarray(v) for k,v in diagnostics.items()}
     origin = np.asarray(origin)

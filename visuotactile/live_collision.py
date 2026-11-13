@@ -51,13 +51,13 @@ def mesh_inventory(env):
     return result
 
 
-def clearance(env):
-    if env.num_envs!=1:raise ValueError('Single-lane initial clearance only')
+def clearance(env, *, lane=0):
+    if not 0 <= lane < env.num_envs:raise ValueError('Invalid collision-admission lane')
     if not hasattr(env,'_initial_collision_mesh_inventory'):
         env._initial_collision_mesh_inventory=mesh_inventory(env)
     # This accessor updates kinematics without integrating simulation time.
-    poses=env.robot.data.body_link_pose_w[0].cpu().numpy()
-    initial={k:v[0].cpu().numpy() for k,v in env._diagnostics().items()}
+    poses=env.robot.data.body_link_pose_w[lane].cpu().numpy()
+    initial={k:v[lane].cpu().numpy() for k,v in env._diagnostics().items()}
     objects=boxes(env.cfg.assets.object_urdf,initial['object_pose_w'])
     report=[]
     for mesh in env._initial_collision_mesh_inventory:

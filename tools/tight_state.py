@@ -89,7 +89,7 @@ def capture(root,env,player,lease,spec,alpha,*,speed_scheme=None):
     return row
 
 
-def environment(root,evaluation=False,*,camera_content_validation=None,lease=None):
+def environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1):
     from visuotactile.native_evaluation import client_startup_controls,make_env
     from visuotactile.state_resources import lease_for
     from visuotactile.expert import create_expert
@@ -107,7 +107,7 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
             '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
             '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
     import isaacsimenvs
-    env=make_env(True,lease,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
+    env=make_env(True,lease,num_envs=num_envs,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
         camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation))
     if sha(s['expert_checkpoint'])!=s['expert_sha256']:raise RuntimeError('Expert source drift')
     with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
