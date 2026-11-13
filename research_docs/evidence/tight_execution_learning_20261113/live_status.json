@@ -1,6 +1,6 @@
 {
   "absolute_deadline_utc": 1794585915.106664,
-  "completion_record_present": true,
+  "completion_record_present": false,
   "evaluations": [
     {
       "comparison": "A/B matched increment",
@@ -81,24 +81,7 @@
       "valid": 10
     }
   ],
-  "evidence_errors": [
-    {
-      "error": "KeyError",
-      "path": "rear_span_metric_eval_recovery_02/reference/G01/backend/G01/evaluation_summary.json"
-    },
-    {
-      "error": "KeyError",
-      "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/evaluation_summary.json"
-    },
-    {
-      "error": "KeyError",
-      "path": "rear_span_metric_eval_recovery_02/span/G01/backend/G01/evaluation_summary.json"
-    },
-    {
-      "error": "KeyError",
-      "path": "rear_span_metric_eval_recovery_02/span/QG01/backend/QG01/evaluation_summary.json"
-    }
-  ],
+  "evidence_errors": [],
   "failure_record_present": false,
   "fairness": {
     "actual": {
@@ -133,11 +116,12 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794578543.1500463,
+  "published_utc": 1794579393.4573846,
   "session": "tight_execution_learning_20261113_01",
   "state": {
-    "stage": "awaiting_research_decision",
-    "state": "COMPLETE"
+    "group": "QG01",
+    "stage": "common_two_exposure_training",
+    "state": "RUNNING"
   },
   "training": [
     {
@@ -165,30 +149,18 @@
       "updates": 514
     },
     {
-      "path": "rear_span_metric_eval_recovery_02/reference/G01/backend/G01/training/finished.json",
+      "path": "rear_span_dose_02/reference/G01/backend/G01/training/finished.json",
       "supervised_ticks": 193520,
       "target_reached": true,
       "updates": 1314
     },
     {
-      "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/training/finished.json",
-      "supervised_ticks": 193520,
-      "target_reached": true,
-      "updates": 1314
-    },
-    {
-      "path": "rear_span_metric_eval_recovery_02/span/G01/backend/G01/training/finished.json",
-      "supervised_ticks": 193520,
-      "target_reached": true,
-      "updates": 1314
-    },
-    {
-      "path": "rear_span_metric_eval_recovery_02/span/QG01/backend/QG01/training/finished.json",
+      "path": "rear_span_dose_02/reference/QG01/backend/QG01/training/finished.json",
       "supervised_ticks": 193520,
       "target_reached": true,
       "updates": 1314
     }
   ],
   "version": 1,
-  "watch": "rear_span_metric_eval_recovery_02"
+  "watch": "rear_span_dose_02"
 }
