@@ -1,3 +1,7 @@
+## 2026-11-14 显式后端增量初始化
+
+新fresh aggregate可选--continue-rear，绑定其continuation.json中的previous_backend与继承的旧frontend SHA，使用全部已选后端参数且新optimizer。原30命令统计、执行域、history/loss/output与buffers不变；新前端、新数据每episode计划和可训练visual全部重算，不能复用旧参数依赖cache。默认仍为显式随机后端，旧实验不改写；准备记录random_initialization/inherited_student_parameters及来源。
+
 ## 2026-11-14 可选因果阶段接管合同
 
 stable_grasp_then_delay_v1仅为采集调度诊断。参考高是已完成ticks25–48的median z；稳定窗12tick、每tick两个120Hz样本均至少2指object-contact >0.1N、整窗高于参考2cm、物体掌中相对位姿漂移<=1cm/0.2rad。稳定窗完成计数N，调度zero-based action N+delay，最迟登记fallback；无稳定窗或提前自然结束单独记录。它只观察已经实际执行的学生transition，不读专家后态，不影响网络输入或原生成功。

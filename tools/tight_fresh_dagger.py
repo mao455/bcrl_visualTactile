@@ -63,6 +63,11 @@ def prepare_aggregate(root, collection, output):
     entries=read(collection/'correction_entries.json')
     if not entries:raise ValueError('No successful actual expert recovery; analyze before training')
     plan=read(collection/'plan.json')
+    if any(c.get('dagger',{}).get('trigger') is not None for c in plan['cases']):
+        from tools.tight_fresh_report import audit_trigger_case
+        for row in read(collection/'results.json'):
+            if row['result'].get('legal'):
+                audit_trigger_case(collection/row['case'],row['result'])
     output.mkdir(parents=True)
     for name in ['session.json','metadata.json']:shutil.copyfile(root/name,output/name)
     (output/'shared_resources.json').symlink_to(root/'shared_resources.json')

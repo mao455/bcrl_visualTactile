@@ -16,7 +16,7 @@ from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
 
 
-def run(root, collection, output, epochs, rear_epochs, count, seed):
+def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False):
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
@@ -27,7 +27,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed):
     registration=dict(source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256=sources,source_root=str(root),collection=str(collection),output=str(output),
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
-        frontend_epochs=epochs,backend_epochs=rear_epochs,development_count_per_role=count,seed=seed,
+        frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
     atomic_json(ledger/'registration.json',registration)
     stages=[]
@@ -55,7 +55,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed):
             execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs],output/role/'training/finished.json')
         for role in ['A','B']:
             rear=output/role/'backend'
-            execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',rear_epochs],rear/'prepared.json')
+            execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',rear_epochs]+(['--continue-rear'] if continue_rear else []),rear/'prepared.json')
             execute('backend_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json')
             execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,'--job','image','--output',rear/role/'training'],rear/role/'training/finished.json')
             execute('backend_offline_'+role,['visuotactile.anchor_continue','residual-offline','--root',rear/role,'--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json')
@@ -73,9 +73,10 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--collection',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--epochs',type=int,default=10)
     p.add_argument('--rear-epochs',type=int,default=5);p.add_argument('--count',type=int,default=4);p.add_argument('--seed',type=int,default=28140000)
+    p.add_argument('--continue-rear',action='store_true')
     a=p.parse_args()
     if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or not 1<=a.count<=32:p.error('Positive finite stage exposure required')
-    run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed)
+    run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,continue_rear=a.continue_rear)
 
 
 if __name__=='__main__':main()

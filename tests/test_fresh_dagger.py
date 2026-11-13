@@ -46,7 +46,7 @@ def test_aggregate_prepares_live_resource_links_for_both_cache_workers(tmp_path,
     write(collection/'result.json',{'software_complete':True})
     write(collection/'correction_entries.json',{'new':{}})
     pair=dict(frontend='actual.pt',frontend_sha256='source',backend='rear.pt',backend_sha256='rear')
-    write(collection/'plan.json',{'pairs':{'A':pair,'B':pair}})
+    write(collection/'plan.json',{'pairs':{'A':pair,'B':pair},'cases':[]})
     def aggregate(source,entries,destination,supervision,**kwargs):
         assert kwargs['include_frontend_tactile'] is False
         destination.mkdir()

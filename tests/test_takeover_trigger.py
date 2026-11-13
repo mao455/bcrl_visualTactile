@@ -63,3 +63,24 @@ def test_offline_window_and_causal_online_agree_after_reference_available():
         if event is not None:break
     first=int(np.flatnonzero(offline & (np.arange(120)>=47))[0]+1)
     assert trigger.first_stable_completed_tick==first==60 and event==first+30
+
+
+def test_recorded_trigger_audit_rejects_receipt_and_actual_boundary_changes(tmp_path):
+    import copy,h5py
+    from tools.tight_fresh_report import audit_trigger_case
+    config=dict(version=VERSION,delay_ticks=0)
+    trigger=StableGraspTrigger(config,80)
+    rows=[sample(t) for t in range(70)]
+    for tick in range(60):trigger.observe(tick,*rows[tick])
+    with h5py.File(tmp_path/'numeric.h5','w') as f:
+        t=f.create_group('episode/transition');d=t.create_group('diagnostics_after');g=t.create_group('dagger')
+        pose,palm,force=[np.stack(x) for x in zip(*rows)]
+        d['object_pose_w']=pose;d['palm_body_pose_w']=palm;t['object_contact_force_w']=force
+        g['control_source']=(np.arange(70)>=60).astype(int)
+    result=dict(dagger=dict(configuration=dict(trigger=config,takeover_tick=80),
+        trigger_receipt=trigger.receipt(),recovery_coverage=dict(switch_tick=60)))
+    assert audit_trigger_case(tmp_path,result)['category']=='student_stable_then_takeover'
+    changed=copy.deepcopy(result);changed['dagger']['trigger_receipt']['settled_height_m']+=.01
+    with pytest.raises(ValueError,match='cannot be reproduced'):audit_trigger_case(tmp_path,changed)
+    changed=copy.deepcopy(result);changed['dagger']['recovery_coverage']['switch_tick']=61
+    with pytest.raises(ValueError,match='authority switch'):audit_trigger_case(tmp_path,changed)

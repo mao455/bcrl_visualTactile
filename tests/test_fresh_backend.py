@@ -13,7 +13,8 @@ from visuotactile.models.native_dp import TargetResidual
 from visuotactile.native_data import supervision_mask_sha256
 
 
-def test_random_fresh_rear_accepts_original_affine_and_checks_all_cache_bindings(tmp_path,monkeypatch):
+@pytest.mark.parametrize('continued', [False, True])
+def test_random_fresh_rear_accepts_original_affine_and_checks_all_cache_bindings(tmp_path,monkeypatch,continued):
     root=tmp_path/'A';data_root=root/'state_data';data_root.mkdir(parents=True)
     nominal=root/'nominal';nominal.mkdir();common=tmp_path/'command';common.mkdir()
     write=lambda path,value:path.write_text(json.dumps(value))
@@ -32,6 +33,15 @@ def test_random_fresh_rear_accepts_original_affine_and_checks_all_cache_bindings
     pair=dict(version=TargetResidual.version,fresh_data_contract=FRESH_AGGREGATE_CONTRACT,
         bases={'A':dict(checkpoint=str(base),sha256=sha256(base))},
         residual_statistics_path=str(common/'statistics.pt'),initialization_seed=3)
+    prior = None
+    if continued:
+        torch.manual_seed(112)
+        prior=TargetResidual(stats,[1.]*29)
+        previous=tmp_path/'previous_rear.pt'
+        torch.save(dict(residual_version=TargetResidual.version,updates=17,model=prior.state_dict(),
+            configuration=dict(residual_statistics_sha256=sha256(common/'statistics.pt'))),previous)
+        pair['continuation_from']=dict(path=str(previous),sha256=sha256(previous),teacher_supervision='u_expert',
+            statistics_sha256=sha256(common/'statistics.pt'),normalization_identity=identity,round_index=2,source_group='A')
     write(root/'configuration.json',dict(residual_pair=pair))
     write(root/'session.json',dict(dino_sha256='fixed',resource_root=str(tmp_path),training_deadline=123))
     binding=dict(base_checkpoint_sha256=sha256(base),statistics_sha256=sha256(data_root/'statistics.pt'),
@@ -50,13 +60,16 @@ def test_random_fresh_rear_accepts_original_affine_and_checks_all_cache_bindings
         _,_,sample,records,model,configuration,_=anchor_continue.residual_setup(root,smoke=smoke)
         assert configuration['normalization_train_ids']==old
         assert torch.equal(model.action_scale,stats['action_scale'])
+        if continued:
+            assert all(torch.equal(value,prior.state_dict()[key]) for key,value in model.state_dict().items())
+            assert configuration['continuation_audit']['source_updates']==17
         assert set(records)==set(rows), 'Even a smoke run verifies every cache source'
         assert len(sample['splits']['train'])==(1 if smoke else 31)
     # Rehashing a stale cache must not make it acceptable.
     rows['new']['cache_identity']['base_checkpoint_sha256']='old DP'
     torch.save(rows['new'],nominal/'new.pt');index['episodes']['new']['sha256']=sha256(nominal/'new.pt')
     write(nominal/'index.json',index)
-    with pytest.raises(ValueError,match='cache binding'):anchor_continue.residual_setup(root)
+    with pytest.raises(ValueError,match='cache binding|cache source identity'):anchor_continue.residual_setup(root)
     rows['new']['cache_identity']=binding
     rows['new']['supervision_mask'][0]=True
     torch.save(rows['new'],nominal/'new.pt');index['episodes']['new']['sha256']=sha256(nominal/'new.pt')

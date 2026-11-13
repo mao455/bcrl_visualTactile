@@ -18,7 +18,7 @@ def read(path):
     return json.loads(Path(path).read_text())
 
 
-def prepare(root, role, epochs):
+def prepare(root, role, epochs, *, continue_rear=False):
     import torch
     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
@@ -65,12 +65,32 @@ def prepare(root, role, epochs):
         v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
     if command_data['normalization_identity'] != v['residual_normalization_identity']:
         raise ValueError('Fresh common command affine required')
+    previous_rear = None
+    if continue_rear:
+        from visuotactile.anchor_continue import continuation_source, load_residual_continuation
+        if not data.get('aggregation'):
+            raise ValueError('Backend continuation requires an actual fresh DAgger aggregate')
+        prior = read(source / 'continuation.json')
+        previous_rear = Path(prior['previous_backend'])
+        v['continuation_from'] = dict(path=str(previous_rear), sha256=prior['previous_backend_sha256'],
+            teacher_supervision='u_expert', statistics_sha256=v['residual_statistics_sha256'],
+            normalization_identity=v['residual_normalization_identity'],
+            round_index=v['dagger_round'], source_group=role)
+        prior_saved = continuation_source(v['continuation_from'], 'u_expert', stats, v['residual_normalization_identity'])
+        if prior_saved['configuration']['base_sha256'] != prior['sha256']:
+            raise ValueError('Prior backend was not paired with the inherited frontend')
+        candidate = TargetResidual(torch.load(stats, map_location='cpu', weights_only=False), v['fixed_residual_scales'],
+            execution_adapter=v['execution_adapter'], loss_contract=v['loss_contract'],
+            history_contract=v['history_contract'], output_contract=v['output_contract'])
+        load_residual_continuation(candidate, prior_saved, v['residual_statistics_sha256'])
+        del candidate, prior_saved
     session = copy.deepcopy(read(root / 'session.json'))
     session.update(residual_pair=v, base_contracts={role: saved['contract']}, source_root=str(source),
         cache_deadline=session['deadline'], training_deadline=session['deadline'],
         offline_deadline=session['deadline'], source_head=v['source_commit'])
     protected = {str(p): sha256(p) for p in [front, stats, source / 'state_data/data.json',
         source / 'state_data/statistics.pt', source / 'cache_index.json']}
+    if previous_rear is not None: protected[str(previous_rear)] = sha256(previous_rear)
     destination.mkdir()
     (destination / 'state_data').symlink_to(source / 'state_data', target_is_directory=True)
     (destination / 'shared_resources.json').symlink_to(root / 'shared_resources.json')
@@ -85,8 +105,8 @@ def prepare(root, role, epochs):
     atomic_json(child / 'configuration.json', dict(residual_pair=v))
     atomic_json(child / 'session.json', dict(session, resource_root=str(destination), modality=role))
     atomic_json(destination / 'prepared.json', dict(role=role, source_frontend_sha256=sha256(front),
-        command_statistics_sha256=sha256(stats), random_initialization=True,
-        inherited_student_parameters=False, train=len(data['splits']['train']), validation=6, epochs=epochs, utc=time.time()))
+        command_statistics_sha256=sha256(stats), random_initialization=not continue_rear,
+        inherited_student_parameters=continue_rear, continuation_from=v.get('continuation_from'), train=len(data['splits']['train']), validation=6, epochs=epochs, utc=time.time()))
     print(str(destination), flush=True)
 
 
@@ -95,8 +115,9 @@ def main():
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--role', choices=['A', 'B'], required=True)
     parser.add_argument('--epochs', type=int, default=5)
+    parser.add_argument('--continue-rear', action='store_true')
     args = parser.parse_args()
-    prepare(args.root, args.role, args.epochs)
+    prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,33 @@ from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
 
 
+def audit_trigger_case(directory, result):
+    """Recompute scheduling solely from saved completed student transitions."""
+    import h5py
+    import numpy as np
+    from visuotactile.takeover_trigger import StableGraspTrigger
+    dagger=result.get('dagger',{})
+    config=dagger.get('configuration',{})
+    if config.get('trigger') is None: return None
+    trigger=StableGraspTrigger(config['trigger'], config['takeover_tick'])
+    with h5py.File(directory/'numeric.h5') as f:
+        t=f['episode/transition'];source=t['dagger/control_source'][:]
+        for tick in np.flatnonzero(source==0):
+            trigger.observe(int(tick),t['diagnostics_after/object_pose_w'][tick],
+                t['diagnostics_after/palm_body_pose_w'][tick],t['object_contact_force_w'][tick])
+    if trigger.receipt()!=dagger['trigger_receipt']:
+        raise ValueError('Recorded causal takeover trigger cannot be reproduced')
+    actual=dagger['recovery_coverage']['switch_tick']
+    if actual is not None and actual!=trigger.scheduled_tick:
+        raise ValueError('Actual authority switch differs from causal schedule')
+    category=('ended_before_takeover' if actual is None else
+        'student_stable_then_takeover' if trigger.reason=='completed_student_stable_window_plus_delay' else
+        'fallback_before_requested_delay' if trigger.first_stable_completed_tick is not None else
+        'fallback_without_stable_grasp')
+    return dict(passed=True,category=category,receipt=trigger.receipt(),actual_switch_tick=actual,
+        numeric_sha256=sha256(directory/'numeric.h5'),student_input=False)
+
+
 def takeover(collection,output):
     result=read(collection/'result.json');plan=read(collection/'plan.json')
     if not result.get('software_complete'):raise ValueError('Collection is incomplete')
@@ -18,7 +45,12 @@ def takeover(collection,output):
         if accepted!=(row['case'] in entries):raise ValueError('Retained subset differs')
         if x.get('legal') and not read(collection/row['case']/'capture_audit.json')['passed']:
             raise ValueError('Capture audit failed')
-        cases.append(dict(case=row['case'],role=row['role'],takeover_tick=x.get('takeover_tick'),
+        trigger=audit_trigger_case(collection/row['case'],x)
+        if trigger is not None: atomic_json(collection/row['case']/'trigger_audit.json',trigger)
+        dagger=x.get('dagger',{})
+        cases.append(dict(case=row['case'],role=row['role'],
+            takeover_tick=dagger.get('recovery_coverage',{}).get('switch_tick'),trigger=trigger,
+            expert_takeover_success=dagger.get('expert_takeover_success',False),
             legal=x.get('legal'),software_complete=x.get('software_complete'),success=x.get('success'),
             accepted=accepted,steps=x.get('steps'),reasons=x.get('reasons'),native_subgoals=x.get('native_subgoals'),
             contact=x.get('contact'),actual_exposure=x.get('actual_exposure'),
@@ -28,7 +60,9 @@ def takeover(collection,output):
     retained=[c for c in cases if c['accepted']]
     counts={role:dict(opportunities=sum(c['role']==role for c in cases),
         legal=sum(c['role']==role and bool(c['legal']) for c in cases),
-        expert_successes=sum(c['role']==role and bool(c['success']) for c in cases),
+        expert_successes=sum(c['role']==role and bool(c['expert_takeover_success']) for c in cases),
+        trigger_categories={kind:sum(c['role']==role and c['trigger'] is not None and c['trigger']['category']==kind for c in cases)
+            for kind in ['student_stable_then_takeover','fallback_without_stable_grasp','fallback_before_requested_delay','ended_before_takeover']},
         accepted=sum(c['role']==role for c in retained)) for role in ['A','B']}
     exposure={key:sum(c['actual_exposure'][key] for c in retained)
         for key in ['history_ticks','supervised_ticks','supervised_anchors','supervised_window_targets']}
