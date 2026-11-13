@@ -1,3 +1,7 @@
+## 2026-11-13 17:48 冻结完整B复验登记
+
+contact周期A0/10、B1/10后不机械追加DAgger。`success_replication_01`固定当前/上一B完整pair各20同规格新开发机会，两批反向顺序；不训练、不更改loss/执行/物理/成功标准、不补拒绝/软件失败、不按结果增加尝试、test22隔离。普通owner只执行登记，研究解释交真实Agent。原始数据、checkpoint/cache/源码保留；新隔离树、full_gpu_v1储备不变，最长2h且不越原23:55:15计算/次日00:05:15绝对截止。
+
 ## 2026-11-13 13:12 完整tick-window结果与接触恢复新登记
 
 本次新身份`adaptive_contact_recovery_01`仅登记一个有限完整双模块恢复实验，不改旧活动源码。固定实际tick-window完整pair采集每组12机会(58/70/82tick)，成功筛选、共享不可变池快照、DP2 anchor遍/新cache/rear1 tick遍/完整开发10次；新DP使用已审查recovery_onset_commit12_v1。Core/合法全部历史保留，后端使用centered/FY与fixed128tick，真实当前权重因果prefix，无stale-state缓存。所有原执行/标签/几何/test22约束保留。6h子截止不重置原23:55:15/次日00:05:15；不足完整阶段预留则交回真实Agent，不自动补机会或开启下一轮。

@@ -1,3 +1,13 @@
+## 2026-11-13 17:48 接触恢复完成：B成功与独立复验
+
+`adaptive_contact_recovery_01`正常完成，旧owner已退出；A/B完整DP+Transformer各10次合法自主开发分别0/10、1/10，lift2/3、首子目标0/1、软件失败0。B `palm_fresh_001`（seed27150001）原生tick274成功并终止，post-success动作0；结果/trace凭据SHA及前后端绑定核验通过，完整评估明确`expert_takeover=false`。这是一个真实开发成功，不是接管成功，也不足以证明稳定收益。
+
+两组DP各514更新/765303监督target槽，wall3105.77/3150.55秒；新配套cache后的rear各1362更新/193581合法tick，训练wall327.44/324.39秒。一轮总耗时约4h19min包含采集、两个前端、全量cache、后端、离线与20个仿真；不能把elapsed都归因于loss反传。后端历史纠偏仅覆盖144/480条、当前16条全覆盖且重复，不能称完整逐episode遍历。沿用已完成CPU自查，不重复宽审计或为补phase盲增训练。
+
+真实Agent选择冻结复验`success_replication_01`：仅B当前完整pair与紧邻tick-window完整pair，预登记20个全新开发seed27160000–27160019，同原domain直接采样、相同reset规格和seed；两批各10，顺序current/previous、previous/current。共40次固定机会，拒绝不补、软件失败不算0成功、不按结果扩展；A和全部模型/cache保持原样，无新训练/纠偏/自动采用。只复用原fixed10原生入口，比较整个contact周期，不能隔离数据、窗口、前端或后端因果，也非等训练预算或未触碰test。
+
+隔离树基于已发布b431c3b，未修改活动监督器/旧源码。24项CPU测试及真实prepare CLI通过；此为启动前记录，GPU验收看本地launch/status/startup_acceptance。独立systemd cgroup最长2h，且受原计算11月13日23:55:15、绝对次日00:05:15 UTC+8约束；下一研究决策交现有真实Agent事件监督器。小证据见`evidence/tight_execution_learning_20261113/success_replication/`。
+
 ## 2026-11-13 控制步学习与复杂度自查（当前训练未中断）
 
 结论：当前训练快照的全部193,520个合法控制步都能成为DP监督，包括原12步计划真正执行的前12个位置；没有phase1–11整体失效。**可以训练不等于本轮已经训练到**：下面按实际checkpoint计数，而不是按采样概率估算。当前没有发现需要再修改执行器或叠加mask的确定性问题。
