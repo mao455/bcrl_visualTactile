@@ -1,0 +1,33 @@
+# Tight-Insertion 自动进度
+
+证据读取时间：2026-11-13T18:29:39+08:00。
+
+本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
+每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
+
+当前阶段：`success_replication_01`；状态：`{"batch": 1, "label": "contact", "stage": "paired_complete_student_replication", "state": "RUNNING"}`。
+完成凭据：False；失败凭据：False。
+
+公平规则见 [AB_COMPARISON_POLICY](AB_COMPARISON_POLICY.md)。最近 contact 周期增量审计：通过；历史初始化/曝光仍不等同。
+
+| 评估队列 | 范围 | 已完成/计划 | 合法 | 已观察成功 | 整队列完成 |
+| --- | --- | ---: | ---: | ---: | --- |
+| `adaptive_contact_recovery_01/round_01/G01/backend/G01` | A/B matched increment | 10/10 | 10 | 1 | True |
+| `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | A/B matched increment | 10/10 | 10 | 0 | True |
+| `success_replication_01/batch_00_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
+| `success_replication_01/batch_00_previous/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
+| `success_replication_01/batch_01_contact/G01` | B current/previous only; not A/B | 1/10 | 1 | 0 | False |
+| `success_replication_01/batch_01_previous/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
+
+未完成队列只报告进度，不计算最终成功率。B 新旧模型复验不能用于与 A 排名，也不加入原 A0/10、B1/10 的分母。
+
+| 已完成训练 | 更新 | 有效监督量 |
+| --- | ---: | ---: |
+| `adaptive_contact_recovery_01/round_01/G01/backend/G01` | 1362 | 193581 |
+| `adaptive_contact_recovery_01/round_01/G01/dp` | 514 | 765303 |
+| `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | 1362 | 193581 |
+| `adaptive_contact_recovery_01/round_01/QG01/dp` | 514 | 765303 |
+
+未通过凭据检查的条目：0；此类条目不发布成功统计。
+
+[机器可读证据](evidence/tight_execution_learning_20261113/live_status.json)。脚本不上传原数据、模型或视频；网络失败保留待发布状态，恢复后重试。
