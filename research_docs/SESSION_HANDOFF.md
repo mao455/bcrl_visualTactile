@@ -1,3 +1,9 @@
+## 2026-11-13 22:14 共同曝光接续已真实启动
+
+独立`tight-span-dose-20261113-02.service`已active；owner3070479/start_ticks163893784。`rear_span_dose_02`首组A已实际224更新/32976合法监督tick，313冻结源码SHA无漂移，6GiB VRAM/14GiB RAM/60GiB磁盘储备检查通过。启动源码`aadbad1`已正常推送，活动工作树只读；本条在独立publication树更新。36测试与准备审计不是自主成功，新40机会尚待完成；参考不重训，候选A/B共同两遍。
+
+真实Agent下一watch为`rear_span_dose_02/{status,launch,finished,failure}.json`。阶段23:47:57、原计算23:55:15/绝对次日00:05:15不变；常规owner只执行已登记步骤，不自行判断科学路线。CPU准备01错误和startup收据临时JSON序列化错误均未影响活动训练，原现场保留，不重启健康worker。publisher专属live文件和监督器未改。
+
 ## 2026-11-13 22:12 Agent009：完整metric终局与有限曝光接续
 
 `rear_span_metric_eval_recovery_02`40个固定机会已完成；reference/span各A/B均9合法、1初态拒绝、0软件失败、0完整成功、0第一子目标，不能写成每组10个合法失败。两arm完成fairness通过；拒绝机会不补种子。原FY metric与span metric之间，完整离线arm误差小幅下降，hand未见共同收益；这不是闭环成功改善或A/B排名证据。

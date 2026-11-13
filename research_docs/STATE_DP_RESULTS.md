@@ -1,3 +1,7 @@
+## 2026-11-13 22:14 实际更新验收
+
+`rear_span_dose_02` A实际224次新增optimizer更新、32976合法tick；owner3070479/start_ticks163893784，313冻结源码无漂移，资源储备通过。B和新40例完整评估尚未完成，不提前给成功率。两组共同追加2人口遍，旧span1遍参考不重训；程序不自动采用模型。详见[启动收据](evidence/tight_execution_learning_20261113/rear_span_dose_02/startup_acceptance.json)。源码`aadbad1`已推送，启动文档另树发布，不热改。阶段23:47:57和原硬截止不变。
+
 ## 2026-11-13 22:12 metric完整结果与下一有限实验
 
 40固定机会全部完成；reference-A/B与span-A/B各9合法、1拒绝、0软件失败、0成功/0第一子目标，native lift分别4/3/2/2。两arm实际增量fairness通过，拒绝种子不补；不能宣称span闭环改善。既有contact B1/10与后续B-only、A补齐cohort保持各自独立分母。
