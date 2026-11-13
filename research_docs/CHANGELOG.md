@@ -1,3 +1,10 @@
+## 2026-11-13 真实接管监督覆盖与原时钟onset窗口
+
+- `target_windows.py`/`anchor_sampling.py`：显式opt-in原12tick anchor内前导mask，首个合法连续段监督；补21旧anchor/210独立tick，恢复抽样及target/pair/commit几何分母按实际mask。没有修改在线时钟/执行器/原数据。
+- `native_data.py`/`state_history.py`/`anchor_continue.py`/`tools/tight_dagger.py`：训练loss元数据、预算、配置/checkpoint贯通，同run恢复拒绝版本切换，缺字段兼容；新前端才启用。
+- `tools/tight_takeover_phase_audit.py`读取真实train mask、已训练checkpoint采样计数、HDF5与6个实际EMA编码器/batch；后端缓存另查2418tick。所有当前76纠偏已对齐；旧21条各缺10tick。后端本次只见194/409条是加权采样事实，不是mask遗漏。
+- 53项CPU测试通过17.09秒；首次新测试fixture漏空current stratum导致1失败，修正fixture后全组通过；既有requests警告保持。292活动源码hash无漂移，无新增GPU/仿真/训练，test22隔离。候选尚未训练，不作任务成功声明；证据见DAGGER_METHOD页首与takeover_phase_review。
+
 ## 2026-11-13 12:24 显式合法tick优化器窗口
 
 - 启动验收：实际日志116更新、完整group checkpoint111更新/15723合法tick；独立service已运行，292份冻结源码保持。99项定向CPU测试通过；源码/登记已安全合并远端review并推`origin/feature/tight-state-foundation`，无force。新闭环待后台完成，机器decision把下一边界交给既有真实Agent监督，不新增监督服务。

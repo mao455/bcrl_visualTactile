@@ -171,7 +171,7 @@ def tactile_values(world, local, stamps, observed, valid):
     return torch.where(mask[...,None],torch.cat((values,age[...,None],mask[...,None].float()),-1),0.)
 
 
-def visual_records(data_root, identities, modality, device='cpu'):
+def visual_records(data_root, identities, modality, device='cpu', *, target_window_contract=None):
     """Strict dataset boundary: G00 never loads the separate tactile file."""
     root=Path(data_root)
     cache=torch.load(root/'numeric.pt',map_location='cpu',weights_only=False)
@@ -197,7 +197,8 @@ def visual_records(data_root, identities, modality, device='cpu'):
             records[identity].update(supervision=supervision,expert_command=raw.get('u_expert',raw['command']).to(device))
         records[identity].update(identity=identity,source_root=str(root))
         if touch is not None:records[identity]['tactile']=touch[identity].to(device)
-    return records
+    from .target_windows import with_target_window
+    return with_target_window(records,target_window_contract)
 
 
 def residual_observations(entry, robot, time):

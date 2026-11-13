@@ -1,3 +1,23 @@
+## 2026-11-13 接管相位到真实batch：局部旧遗漏与隔离修复
+
+核对当前 `adaptive_tick_window_01` 的冻结DP/cache、575条train（166 Core＋409纠偏），读取两个实际已训练DP checkpoint的1355更新采样计数，以及后端1191更新的episode计数。全量仅枚举既有训练numeric mask；各组3个原始HDF5样本通过实际EMA编码器和 `anchor_batch`、`residual_batch` 验证，未新增GPU/Kit/参数更新，test22未读。
+
+|真实样本（episode尾名）|接管tick|首个合法tick|旧DP首监督anchor|Transformer首监督tick|修复后的DP窗口|
+|---|---:|---:|---:|---:|---|
+|旧G11 `dagger_r01_000`|60|62|72|62|原anchor60，仅offset2–23监督62–83|
+|历史G01 `dagger_r02_G01_000`|58|60|60|60|保持anchor60|
+|当前QG01/G01 `dagger_r01_*_000`|46|48|48|48|保持anchor48|
+
+388/409条已经使用接管phase10、合法起点phase0，包括全部76条current纠偏。21条最早记录是接管phase0、合法起点phase2；各有10个合法tick永远不是旧DP序列target，共210个。实际已完成DP采样覆盖初12/24/48合法tick分别4698/4908、9606/9816、19422/19632；排除“恢复初段全部漏掉”。旧例tick62观测确实随完整0–72 prefix进入anchor72条件，已发出的tick62命令从tick63进入过去历史，但label62本身未被作为当前/未来条件。后端在原32tick块start32、offset30监督tick62；原cursor2保留。当前一轮1191更新/171133合法tick仅见到194/409条纠偏（历史118/333，当前76/76），初48独立覆盖9312/19632、重复抽样13968tick；“1有效遍”不等于逐episode完整遍历，未被抽到与窗口永久漏标须分开。
+
+新增显式训练合同 `recovery_onset_commit12_v1`：仅给包含首个合法tick的原12步anchor增加窗口；前导非法位置mask0，之后只监督首个连续合法segment，遇洞/segment变化立即截断，不桥接更早计划/后续段。默认缺字段保留旧行为，新合同只能在新的前端continuation登记，禁止同run恢复时静默切换。`target_windows`、`anchor_sampling`补齐onset anchor、初段抽样分类、真实target/邻接/commit几何分母；`native_data`/`state_history`只传loss元数据，不改变编码器输入；`anchor_continue`与`tight_dagger.prepare_frontend`贯通配置、checkpoint和曝光预算。A仍q_reached＋原几何，B仍u_expert，后端命令标签不变。
+
+实际batch修复新增21个anchor/462个序列target槽，其中210个是新覆盖的独立合法tick，252个与后续窗口重叠。初12/24/48覆盖恢复到4908/4908、9816/9816、19632/19632；真实EMA条件有限、目标逐tensor等于原HDF5合法值。53项定向CPU测试通过17.09秒，包括12种起点相位、洞/段边界、尾部、几何归一化/选点、非法槽零梯度、恢复拒绝与旧路径。实现尚未训练新权重，不能声称成功率改善；210tick只占当前全部纠偏合法tick0.182%，不足以单独解释此前0成功。
+
+独立缓存抽查两组共2418tick：完整robot/time/mask与numeric相同，plan全部来自全局floor(t/12)*12、cursor=t%12、visual按12步持有、previous_nominal为严格前一tick；从tick62截取真实后端batch仍为cursor2，未重置相位。在线计划和缓存均每tickobserve，仅t%12==0 predict；没有发现用每步新计划替代旧计划。该证据是实际缓存张量/调用路径一致，不是重跑完整DDIM浮点同一性或物理回放证明。
+
+当前正常训练/完整闭环未中断，292份冻结源码hash保持。新修复在隔离树准备，已交现有真实Agent监督器，下一次新的前端训练启用并刷新配套缓存；不热改当前rear/eval。相位只有0/10，绝对接管时刻多样不代表phase覆盖充分；不为补210tick立即扩大采集，后续是否有限增加相位由完整学生偏离证据决定。原计算23:55:15/绝对次日00:05:15截止不变。[真实batch与覆盖](evidence/tight_execution_learning_20261113/takeover_phase_review/batch_evidence.json) · [缓存](evidence/tight_execution_learning_20261113/takeover_phase_review/cache_evidence.json) · [验收](evidence/tight_execution_learning_20261113/takeover_phase_review/validation.json)。
+
 ## 2026-11-13 12:16 损失与效率复查：耗时归因及两处修复
 
 本次沿真实`TargetResidual→compose_chain→objective_components→residual_train`复核，没有发现新的确定性反向梯度错误。FY的理想box梯度为2(P(x)−y)，错误裁剪区保持方向，合法端点等价提案不要求裁剪前数值相等；实际执行器的1e-6rad容差与理想box不是严格逐点等价。centered线性输出有有限逆解，但action_scale²、共享参数和32tick截断仍影响学习，不保证闭环成功。无当前/未来专家标签作为输入；合法mask、完整历史、source/cache配对及同轮optimizer/RNG恢复链核对合理。

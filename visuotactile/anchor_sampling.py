@@ -22,16 +22,19 @@ class AnchorSampler:
         self.order=[];self.cursor=0;self.decks={};self.positions={}
         self.anchors={i:list(range(0,n,12)) for i,n in lengths.items()}
         self.supervised_ticks=sum(lengths.values())
-        supervision={}
+        target_masks={}
         if records is not None:
             self.supervised_ticks=0
             for identity,n in lengths.items():
                 mask,_=supervision_rows(records[identity])
                 mask=mask.cpu()
                 if len(mask)!=n:raise ValueError('Sampler record length mismatch')
-                self.anchors[identity]=[t for t in self.anchors[identity] if bool(mask[t])]
+                self.anchors[identity]=planning_anchors(records[identity]).cpu().tolist()
                 self.supervised_ticks+=int(mask.sum())
-                _,segment=supervision_rows(records[identity]);supervision[identity]=(mask.tolist(),segment.cpu().tolist())
+                from .target_windows import window_mask
+                _,segment=supervision_rows(records[identity])
+                target_masks[identity]=window_mask(mask,segment.cpu(),torch.tensor(self.anchors[identity],dtype=torch.long),24,
+                    records[identity].get('target_window_contract'))
             if any(not a for a in self.anchors.values()):
                 raise ValueError('Every training episode needs a supervised native planning anchor')
         self.counts={i:[0]*len(a) for i,a in self.anchors.items()}
@@ -47,22 +50,17 @@ class AnchorSampler:
                 if name=='core':continue
                 for identity in identities:
                     prefix=recovery_prefix_rows(records[identity],self.recovery_prefix['ticks']).cpu()
-                    pools={key:[j for j,t in enumerate(self.anchors[identity]) if bool(prefix[t])==early]
+                    offsets=torch.tensor(self.anchors[identity],dtype=torch.long)[:,None]+torch.arange(24)
+                    early_targets=target_masks[identity] & prefix[offsets.clamp_max(len(prefix)-1)]
+                    initial=early_targets[:,:12].any(-1).tolist()
+                    pools={key:[j for j,t in enumerate(self.anchors[identity]) if initial[j]==early]
                         for key,early in (('initial',True),('remaining',False))}
                     self.recovery_pools[identity]={k:v for k,v in pools.items() if v}
                     self.recovery_draws[identity]={k:0 for k in self.recovery_pools[identity]}
                     self.recovery_decks[identity]={};self.recovery_positions[identity]={}
-                    self.recovery_target_counts[identity]=[int(prefix[t:t+24].sum()) for t in self.anchors[identity]]
-        self.target_counts={}
-        for i in self.ids:
-            values=[]
-            for t in self.anchors[i]:
-                count=min(24,lengths[i]-t)
-                if i in supervision:
-                    mask,segment=supervision[i]
-                    count=next((j for j in range(count) if not mask[t+j] or segment[t+j]!=segment[t]),count)
-                values.append(count)
-            self.target_counts[i]=values
+                    self.recovery_target_counts[identity]=early_targets.sum(-1).tolist()
+        self.target_counts={i:(target_masks[i].sum(-1).tolist() if records is not None else
+            [min(24,lengths[i]-t) for t in self.anchors[i]]) for i in self.ids}
 
     def draw(self):
         if self.strata:
@@ -310,9 +308,12 @@ def anchor_batch(model,records,selected):
 
 
 def mask_totals(lengths,selected,geometry_commit=None,*,records=None):
-    n=([int(labels(records[i],torch.tensor([t],device=records[i]['command'].device),24)[1].sum())
-        for i,t in selected] if records is not None else [min(24,lengths[i]-t) for i,t in selected])
-    totals = (sum(n),sum(max(0,x-1) for x in n))
+    if records is not None:
+        masks=[labels(records[i],torch.tensor([t],device=records[i]['command'].device),24)[1] for i,t in selected]
+        totals=(sum(int(m.sum()) for m in masks),sum(int((m[:,1:]&m[:,:-1]).sum()) for m in masks))
+        return totals if geometry_commit is None else totals+(sum(int(m[:,:geometry_commit].sum()) for m in masks),)
+    n=[min(24,lengths[i]-t) for i,t in selected]
+    totals=(sum(n),sum(max(0,x-1) for x in n))
     return totals if geometry_commit is None else totals+(sum(min(geometry_commit,x) for x in n),)
 
 
@@ -360,8 +361,7 @@ def supervision_population(records,horizon=24):
         supervised_anchors=0,supervised_window_targets=0)
     for record in records.values():
         mask,_=supervision_rows(record)
-        anchors=torch.arange(0,len(mask),12,device=record['command'].device)
-        anchors=anchors[mask[anchors]]
+        anchors=planning_anchors(record)
         counts['history_ticks']+=len(mask);counts['supervised_ticks']+=int(mask.sum())
         counts['supervised_anchors']+=len(anchors)
         if len(anchors):counts['supervised_window_targets']+=int(labels(record,anchors,horizon)[1].sum())
@@ -372,11 +372,18 @@ def labels(record, anchors, horizon=64):
     if horizon<1 or anchors.ndim!=1 or (anchors<0).any() or (anchors>=len(record['time'])).any():
         raise ValueError('Invalid native label anchor')
     indices = anchors[:, None]+torch.arange(horizon, device=anchors.device)
-    valid = indices < len(record['time'])
     safe=indices.clamp_max(len(record['time'])-1)
     supervised,segment=supervision_rows(record)
-    valid &= supervised[safe] & (segment[safe]==segment[anchors,None])
-    # An invalid row ends this target window, even if valid labels resume later.
-    valid=valid.long().cumprod(-1).bool()
+    from .target_windows import window_mask
+    valid=window_mask(supervised,segment,anchors,horizon,record.get('target_window_contract'))
     commands = record.get('clean_sample',record['command'])[safe]
     return torch.where(valid[..., None], commands, 0.), valid
+
+
+def planning_anchors(record):
+    """Native anchors with eligible targets in their actual committed prefix."""
+    mask,_=supervision_rows(record)
+    anchors=torch.arange(0,len(mask),12,device=mask.device)
+    if record.get('target_window_contract') is None:
+        return anchors[mask[anchors]]
+    return anchors[labels(record,anchors,12)[1].any(-1)]

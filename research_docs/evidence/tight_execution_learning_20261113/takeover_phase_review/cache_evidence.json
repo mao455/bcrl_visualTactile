@@ -1,0 +1,331 @@
+{
+  "scope": "read-only real cache and actual residual_batch; no model inference or GPU",
+  "groups": {
+    "QG01": {
+      "sampler": {
+        "steps": 16,
+        "seed": 7091,
+        "horizon": 24,
+        "commit": 12,
+        "prediction": "sample"
+      },
+      "distribution": {
+        "historical_correction": {
+          "episodes": 333,
+          "takeover_phase_counts": {
+            "0": 21,
+            "10": 312
+          },
+          "first_label_phase_counts": {
+            "2": 21,
+            "0": 312
+          }
+        },
+        "current_correction": {
+          "episodes": 76,
+          "takeover_phase_counts": {
+            "10": 76
+          },
+          "first_label_phase_counts": {
+            "0": 76
+          }
+        }
+      },
+      "samples": [
+        {
+          "identity": "tight_dagger_20261111_01__G11__r1__dagger_r01_000__7fd6bba5108d",
+          "stratum": "historical_correction",
+          "takeover_tick": 60,
+          "first_supervised_tick": 62,
+          "first_cursor": 2,
+          "n": 503,
+          "source_time0": 0.0,
+          "checks": {
+            "whole_episode_robot_equal_numeric": true,
+            "whole_episode_time_equal_numeric": true,
+            "whole_episode_supervision_equal_numeric": true,
+            "all_plan_slots_shifted_from_global_anchor": true,
+            "all_base_slots_equal_held_plan": true,
+            "all_plan_valid_use_global_cursor": true,
+            "all_visual_held_per12": true,
+            "all_cursor_matches_global_tick": true,
+            "all_previous_nominal_is_previous_base": true,
+            "actual_suffix_batch_preserves_cursor": true,
+            "actual_suffix_batch_preserves_plan": true,
+            "actual_suffix_batch_preserves_robot": true,
+            "actual_suffix_mask_keeps_first_legal_tick": true,
+            "actual_suffix_batch_first_cursor_equals_original_phase": true,
+            "full_length_equals_raw_hdf5": true,
+            "time0_equals_raw_hdf5": true
+          },
+          "first_14_cursors": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "identity": "tight_dagger_pool_20261111_01__G01__r2__dagger_r02_G01_000__71326211b834",
+          "stratum": "historical_correction",
+          "takeover_tick": 58,
+          "first_supervised_tick": 60,
+          "first_cursor": 0,
+          "n": 322,
+          "source_time0": 0.0,
+          "checks": {
+            "whole_episode_robot_equal_numeric": true,
+            "whole_episode_time_equal_numeric": true,
+            "whole_episode_supervision_equal_numeric": true,
+            "all_plan_slots_shifted_from_global_anchor": true,
+            "all_base_slots_equal_held_plan": true,
+            "all_plan_valid_use_global_cursor": true,
+            "all_visual_held_per12": true,
+            "all_cursor_matches_global_tick": true,
+            "all_previous_nominal_is_previous_base": true,
+            "actual_suffix_batch_preserves_cursor": true,
+            "actual_suffix_batch_preserves_plan": true,
+            "actual_suffix_batch_preserves_robot": true,
+            "actual_suffix_mask_keeps_first_legal_tick": true,
+            "actual_suffix_batch_first_cursor_equals_original_phase": true,
+            "full_length_equals_raw_hdf5": true,
+            "time0_equals_raw_hdf5": true
+          },
+          "first_14_cursors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            0,
+            1
+          ]
+        },
+        {
+          "identity": "tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_000__85d38fde99a2",
+          "stratum": "current_correction",
+          "takeover_tick": 46,
+          "first_supervised_tick": 48,
+          "first_cursor": 0,
+          "n": 384,
+          "source_time0": 0.0,
+          "checks": {
+            "whole_episode_robot_equal_numeric": true,
+            "whole_episode_time_equal_numeric": true,
+            "whole_episode_supervision_equal_numeric": true,
+            "all_plan_slots_shifted_from_global_anchor": true,
+            "all_base_slots_equal_held_plan": true,
+            "all_plan_valid_use_global_cursor": true,
+            "all_visual_held_per12": true,
+            "all_cursor_matches_global_tick": true,
+            "all_previous_nominal_is_previous_base": true,
+            "actual_suffix_batch_preserves_cursor": true,
+            "actual_suffix_batch_preserves_plan": true,
+            "actual_suffix_batch_preserves_robot": true,
+            "actual_suffix_mask_keeps_first_legal_tick": true,
+            "actual_suffix_batch_first_cursor_equals_original_phase": true,
+            "full_length_equals_raw_hdf5": true,
+            "time0_equals_raw_hdf5": true
+          },
+          "first_14_cursors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            0,
+            1
+          ]
+        }
+      ],
+      "sample_ticks": 1209
+    },
+    "G01": {
+      "sampler": {
+        "steps": 16,
+        "seed": 7091,
+        "horizon": 24,
+        "commit": 12,
+        "prediction": "sample"
+      },
+      "distribution": {
+        "historical_correction": {
+          "episodes": 333,
+          "takeover_phase_counts": {
+            "0": 21,
+            "10": 312
+          },
+          "first_label_phase_counts": {
+            "2": 21,
+            "0": 312
+          }
+        },
+        "current_correction": {
+          "episodes": 76,
+          "takeover_phase_counts": {
+            "10": 76
+          },
+          "first_label_phase_counts": {
+            "0": 76
+          }
+        }
+      },
+      "samples": [
+        {
+          "identity": "tight_dagger_20261111_01__G11__r1__dagger_r01_000__7fd6bba5108d",
+          "stratum": "historical_correction",
+          "takeover_tick": 60,
+          "first_supervised_tick": 62,
+          "first_cursor": 2,
+          "n": 503,
+          "source_time0": 0.0,
+          "checks": {
+            "whole_episode_robot_equal_numeric": true,
+            "whole_episode_time_equal_numeric": true,
+            "whole_episode_supervision_equal_numeric": true,
+            "all_plan_slots_shifted_from_global_anchor": true,
+            "all_base_slots_equal_held_plan": true,
+            "all_plan_valid_use_global_cursor": true,
+            "all_visual_held_per12": true,
+            "all_cursor_matches_global_tick": true,
+            "all_previous_nominal_is_previous_base": true,
+            "actual_suffix_batch_preserves_cursor": true,
+            "actual_suffix_batch_preserves_plan": true,
+            "actual_suffix_batch_preserves_robot": true,
+            "actual_suffix_mask_keeps_first_legal_tick": true,
+            "actual_suffix_batch_first_cursor_equals_original_phase": true,
+            "full_length_equals_raw_hdf5": true,
+            "time0_equals_raw_hdf5": true
+          },
+          "first_14_cursors": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "identity": "tight_dagger_pool_20261111_01__G01__r2__dagger_r02_G01_000__71326211b834",
+          "stratum": "historical_correction",
+          "takeover_tick": 58,
+          "first_supervised_tick": 60,
+          "first_cursor": 0,
+          "n": 322,
+          "source_time0": 0.0,
+          "checks": {
+            "whole_episode_robot_equal_numeric": true,
+            "whole_episode_time_equal_numeric": true,
+            "whole_episode_supervision_equal_numeric": true,
+            "all_plan_slots_shifted_from_global_anchor": true,
+            "all_base_slots_equal_held_plan": true,
+            "all_plan_valid_use_global_cursor": true,
+            "all_visual_held_per12": true,
+            "all_cursor_matches_global_tick": true,
+            "all_previous_nominal_is_previous_base": true,
+            "actual_suffix_batch_preserves_cursor": true,
+            "actual_suffix_batch_preserves_plan": true,
+            "actual_suffix_batch_preserves_robot": true,
+            "actual_suffix_mask_keeps_first_legal_tick": true,
+            "actual_suffix_batch_first_cursor_equals_original_phase": true,
+            "full_length_equals_raw_hdf5": true,
+            "time0_equals_raw_hdf5": true
+          },
+          "first_14_cursors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            0,
+            1
+          ]
+        },
+        {
+          "identity": "tight_dagger_matched_20261112_01__G01__r1__dagger_r01_G01_000__85d38fde99a2",
+          "stratum": "current_correction",
+          "takeover_tick": 46,
+          "first_supervised_tick": 48,
+          "first_cursor": 0,
+          "n": 384,
+          "source_time0": 0.0,
+          "checks": {
+            "whole_episode_robot_equal_numeric": true,
+            "whole_episode_time_equal_numeric": true,
+            "whole_episode_supervision_equal_numeric": true,
+            "all_plan_slots_shifted_from_global_anchor": true,
+            "all_base_slots_equal_held_plan": true,
+            "all_plan_valid_use_global_cursor": true,
+            "all_visual_held_per12": true,
+            "all_cursor_matches_global_tick": true,
+            "all_previous_nominal_is_previous_base": true,
+            "actual_suffix_batch_preserves_cursor": true,
+            "actual_suffix_batch_preserves_plan": true,
+            "actual_suffix_batch_preserves_robot": true,
+            "actual_suffix_mask_keeps_first_legal_tick": true,
+            "actual_suffix_batch_first_cursor_equals_original_phase": true,
+            "full_length_equals_raw_hdf5": true,
+            "time0_equals_raw_hdf5": true
+          },
+          "first_14_cursors": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            0,
+            1
+          ]
+        }
+      ],
+      "sample_ticks": 1209
+    }
+  }
+}

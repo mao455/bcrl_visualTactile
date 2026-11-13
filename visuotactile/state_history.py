@@ -298,7 +298,7 @@ class PersistentImage(NativePolicy):
         allowed={'robot','command','time','joint_limits','identity','source_root'}
         if self.contract.get('supervision') is not None:allowed.add('clean_sample')
         if self.modality == 'G10':allowed.add('tactile')
-        supervision_fields={'supervision_mask','control_segment','supervision','expert_command'}
+        supervision_fields={'supervision_mask','control_segment','supervision','expert_command','target_window_contract'}
         if not allowed<=set(record) or set(record)-allowed-supervision_fields:
             raise ValueError('Image record contains non-allowlisted fields')
         if 'supervision' in record and record['supervision']!=self.contract.get('supervision','u_expert'):

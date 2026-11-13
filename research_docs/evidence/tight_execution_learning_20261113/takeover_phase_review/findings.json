@@ -1,0 +1,59 @@
+{
+  "state": "VERIFIED_PENDING_PUBLICATION",
+  "active_worker_unchanged": true,
+  "test22": false,
+  "gpu_diagnostic": false,
+  "evidence": "outputs/visuotactile/run/tight_execution_learning_20261113_01/takeover_phase_review_01/batch_evidence.json",
+  "key_findings": {
+    "correction_train_episodes": 409,
+    "aligned_episodes": 388,
+    "current_aligned_episodes": 76,
+    "legacy_omitted_episodes": 21,
+    "legacy_missing_dp_target_ticks": 210,
+    "initial12_coverage_before": 4698,
+    "initial12_population": 4908,
+    "first_legal_in_rear": true,
+    "cache_phase_mismatch_found": false,
+    "rear_actual_distinct_corrections_in_one_weighted_exposure": 194,
+    "rear_total_corrections": 409
+  },
+  "fix": {
+    "tree": "/home/CNS2025331827/docs/bc+rl_RSS_takeover_phase_01",
+    "target_window_contract": "recovery_onset_commit12_v1",
+    "deployment_commit": 12,
+    "actual_real_encoder_and_batch_verified": true,
+    "new_missing_targets": 0,
+    "applied_to_running_worker": false,
+    "trained_new_weights": false,
+    "new_anchors": 21,
+    "new_target_slots_including_overlap": 462
+  },
+  "research_decision": "No mass recovery loss in current76. Fix21 old onset holes on next fresh frontend training, not current frozen rear/eval. Only takeover phases0/10 exist; do not equate absolute-time diversity with phase diversity. At next collection consider bounded phase variety only if full-policy divergence supports it; not an automatic large collection.",
+  "validation": {
+    "tests": {
+      "passed": 53,
+      "wall_seconds": 17.09,
+      "command": "pytest tests/test_recovery_onset_windows.py tests/test_anchor_sampling.py tests/test_dagger_stratified_training.py tests/test_target_supervision.py tests/test_dagger_data.py",
+      "initial_attempt": "52 passed, 1 failed: new fixture omitted mandatory empty current stratum; fixture corrected and whole set passed",
+      "warning": "existing requests dependency version warning"
+    },
+    "actual_batch_evidence": {
+      "groups": 2,
+      "real_frozen_EMA_encoder_samples_per_group": 3,
+      "all_finite": true,
+      "raw_HDF5_masks_time_targets_equal": true,
+      "new_unique_DP_target_ticks": 210,
+      "new_optimizer_updates": 0,
+      "new_simulations": 0
+    },
+    "cache_evidence": {
+      "sampled_cached_ticks": 2418,
+      "all_schedule_history_suffix_batch_checks_passed": true,
+      "full_DDIM_checkpoint_inference_parity_rerun": false
+    },
+    "frozen_source_files": 292,
+    "frozen_source_mismatches": 0,
+    "test22_used": false,
+    "timestamp": 1794545507.1459067
+  }
+}

@@ -564,7 +564,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
             continuation_audit.update(source=str(Path(continuation_from['path']).resolve()),source_sha256=continuation_from['sha256'],
                 round_index=continuation_from['round_index'])
             del saved
-        records=visual_records(data_root,ids+vals+devs,modality)
+        records=visual_records(data_root,ids+vals+devs,modality,
+            target_window_contract=runtime.get('target_window_contract'))
     else:
         model=PersistentState('dp',contract(24,True))
         expert=torch.load(session['expert_checkpoint'],map_location='cpu',weights_only=False)[0]['model']
@@ -629,6 +630,10 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
         config.update(version='dagger_same_semantics_incremental_dp_v1',normalizer_recomputed=False,
             trainable_scope='all existing encoder/history/conditional U-Net parameters; shared DINO features frozen',
             history='complete actual student-prefix/expert-suffix observations; expert suffix only supervises targets')
+    if runtime.get('target_window_contract') is not None:
+        if not vision:raise ValueError('Recovery onset windows require the explicit visual DP trainer')
+        from .target_windows import validate_target_window
+        config['target_window_contract']=validate_target_window(runtime['target_window_contract'])
     performance=dp_performance(runtime.get('training_performance'),config['effective_batch'])
     if performance:
         config.update(training_performance=performance,microbatch=performance['microbatch'])
@@ -701,6 +706,8 @@ def fresh(root, data_root, output, target, smoke=False, smoke_device='cpu'):
                 source=Path(continuation['path'])
                 assert sha256(source)==continuation['sha256'],'Continuation source changed'
                 old=torch.load(source,map_location='cpu',weights_only=False)
+                if old['configuration'].get('target_window_contract')!=config.get('target_window_contract'):
+                    raise ValueError('Same-run continuation cannot change DP target windows')
                 for key in ('contract','data_sha256','statistics_sha256','loss_id','loss_weights','effective_batch','microbatch','sampler'):
                     assert old['configuration'][key]==config[key],('Continuation contract mismatch',key)
                 restore_training(old,model,averaged,opt,ema,generator,noise);sampler.load_state_dict(old['anchor_sampler'])

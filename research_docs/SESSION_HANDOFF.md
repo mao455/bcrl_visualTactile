@@ -1,3 +1,11 @@
+## 2026-11-13 接管相位优先诊断完成，当前worker继续
+
+409 train纠偏中388条（含当前全部76）合法起点已对齐DP；21条旧phase0接管各漏10个早期合法DP target，共210。它们仍进入历史/后端；实际checkpoint采样与真实EMA/batch逐tensor验证。隔离实现 `recovery_onset_commit12_v1`，补原anchor的合法后缀、保留前导mask和原12tick时钟，53项CPU通过。尚无新参数更新，不声称成功率提升。
+
+下一次新的视觉DP前端continuation在frontend配置登记 `target_window_contract: recovery_onset_commit12_v1`，经prepare_frontend传至training/session和checkpoint配置；只允许fresh continuation，旧同run恢复不得切换。更新DP后必须重建其后端缓存再训练。当前tick-window完整闭环继续，其292份冻结源码未变。监督器prompt/findings已登记本诊断，原截止保持。
+
+两组当前后端各1191更新/171133合法tick；本次1有效曝光实际见到194/409纠偏（118历史＋76当前），不是整池逐episode一遍。缓存抽查2418tick、原HDF5及真实suffix batch无相位/历史错配；全DDIM重算未做。详情与样本表见DAGGER_METHOD页首，证据 `takeover_phase_review`；当前实验结果仍读真实status/finished，不把本次窗口修复当已训练或已部署。
+
 ## 2026-11-13 12:24 Agent002后续：tick-window试验准备
 
 **已完成启动核验**：owner PID2735439/start_ticks160362062，独立service/cgroup、RuntimeMax约1h58m，子阶段均早于原计算截止。A实际日志116更新，已持久化111更新/15723合法tick；新root `launch.json/status.json/active_stage.json/startup_acceptance.json`是真实凭据，未来以`finished.json`或`failure.json`交回现有supervisor。agent_002/decision.json登记`tick_window_01_full_policy`和实际owner身份，不沿用centered已完成事件。99项CPU回归通过，292个冻结源码hash无漂移；未改活动源码或supervisor，尚不报告B完成/新成功率。

@@ -928,7 +928,9 @@ def prepare_frontend(root, group, round_index=1, snapshot=None, reuse_index=None
         manifest_sha256=sha(out/'manifest.json'),include_geometry=bool(cfg['groups'][group].get('geometry',group=='QG01')),
         snapshot=snapshot,consumer_group=group)
     raw=torch.load(out/'state_data/numeric.pt',map_location='cpu',weights_only=False)
-    records={i:raw['records'][i] for i in data['splits']['train']};exposure=supervision_population(records)
+    from visuotactile.target_windows import with_target_window
+    records=with_target_window({i:raw['records'][i] for i in data['splits']['train']},cfg['frontend'].get('target_window_contract'))
+    exposure=supervision_population(records)
     count=len(records);mean_batch=64 if data.get('sampling_strata') else count/math.ceil(count/64);policy=cfg['frontend']
     target=policy.get('maximum_updates') or math.ceil(policy['maximum_anchor_epochs']*exposure['supervised_anchors']/mean_batch)
     minimum=policy.get('minimum_updates') or math.ceil(policy['minimum_anchor_epochs']*exposure['supervised_anchors']/mean_batch)
@@ -953,6 +955,7 @@ def prepare_frontend(root, group, round_index=1, snapshot=None, reuse_index=None
         comparison_updates=sorted({min(target,interval*k) for k in range(1,5)}),deterministic_validation_loss=True,
         incremental_schedule=dict(maximum_updates=target,minimum_updates=minimum,warmup_updates=100,
             lr_peak=policy['learning_rate'],lr_floor=policy['learning_rate']/10,validation_interval=interval))
+    if policy.get('target_window_contract') is not None:runtime['target_window_contract']=policy['target_window_contract']
     if profile:runtime['hand_geometry']=profile
     performance=cfg.get('performance',{})
     if performance and round_index>=performance['first_frontend_round']:

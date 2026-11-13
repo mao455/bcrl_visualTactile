@@ -1,3 +1,7 @@
+### 2026-11-13 恢复起点DP窗口（新训练显式启用）
+
+`target_window_contract=recovery_onset_commit12_v1`是训练loss窗口身份，非模型输入或在线控制合同。设首个合法专家tick为s，额外允许a=floor(s/12)*12的原生规划点；仅s>a时新增，a..s−1全mask，s以后只取同一连续合法segment直至首个洞/段变化，最多H24。更早规划点不跨无效段获取监督。A目标仍实际q_reached/B仍u_expert，历史保持完整真实prefix；当前/未来标签不得进入条件。commit12几何分母、邻接/target数按实际valid位置，新增anchor归初段抽样。旧字段缺省行为不变；原run配置/optimizer恢复禁止改变该字段，必须新登记前端continuation。缓存仍完整t0重放、每12tick predict、逐tick旧计划cursor，后端标签mask不变。
+
 ### 2026-11-13 12:24 显式tick-window训练协议（准备）
 
 `fixed_supervised_tick_window_v1`仅在新登记continuation启用，缺字段维持逐chunk旧行为。梯度按固定128未加权合法tick分母累积，恢复权重只进分子；达到阈值的完整32tick块或完整episode-group尾部提交优化器。尾部不缩分母、不丢监督；物理曝光与优化器更新分别记录。参数未变时使用相同权重下detached历史，参数更新后重放真实完整prefix；不是stale-hidden缓存。仍为原FY真实梯度与共同最终执行器，A/B前端标签、后端final u_expert、test22、资源及截止均不变。该试验不构成新DAgger。
