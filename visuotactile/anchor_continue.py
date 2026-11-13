@@ -1081,6 +1081,14 @@ def residual_setup(root, *, selected=False, smoke=False):
     if model.history_contract is not None:
         configuration.update(history_contract=model.history_contract,
             history='full actual causal prefix replayed with current backend parameters before each supervised chunk; prefix no_grad; 32tick loss gradient')
+    from .residual_tick_window import validate_tick_window
+    tick_window = validate_tick_window(v.get('tick_window_contract'))
+    if tick_window is not None:
+        if model.history_contract is None or not is_projection_fy_loss(model.loss_contract):
+            raise ValueError('Tick-window experiment requires current-weight history and FY')
+        configuration.update(tick_window_contract=tick_window,
+            loss_weight_normalization='weighted FY numerator / fixed128 unweighted ticks per optimizer window; short group tail retains denominator128',
+            history='current-weight full prefix only after optimizer update; unchanged-weight detached carry between32tick chunks')
     if v.get('continuation_from'):
         from .native_data import supervision_mask_sha256
         saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)
@@ -1099,6 +1107,8 @@ def residual_setup(root, *, selected=False, smoke=False):
             raise ValueError('DAgger nominal episode cache source identity differs')
         configuration['supervision_mask_sha256']=index['supervision_mask_sha256']
         del saved
+    if tick_window is not None:
+        configuration['history']='current-weight full prefix only after optimizer update; unchanged-weight detached carry between32tick chunks'
     if selected:
         saved=torch.load(root/('training_smoke' if smoke else 'training')/'best.pt',map_location='cpu',weights_only=False)
         if saved.get('disposable',False) and not smoke:raise ValueError('Disposable residual cannot become a selected formal checkpoint')
@@ -1202,6 +1212,8 @@ def residual_train(root, *, smoke=False, probe=False):
     decay=v.get('weight_decay',1e-4)
     if not isinstance(decay,(float,int)) or not math.isfinite(decay) or decay<0:raise ValueError('Finite nonnegative residual weight decay required')
     opt=torch.optim.AdamW(model.parameters(),lr=lr,weight_decay=decay)
+    from .residual_tick_window import ResidualTickWindow
+    window=(ResidualTickWindow(v['tick_window_contract']) if v.get('tick_window_contract') else None)
     device=next(model.parameters()).device
     ids=probe_ids if probe else data['splits']['train']
     vals=data['splits']['validation'][:4]
@@ -1298,13 +1310,15 @@ def residual_train(root, *, smoke=False, probe=False):
                 stop='requested_stop';break
             group_began=time.time()
             selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None;prefix_inputs=[]
+            history_dirty=False
             for start in range(0,max(len(r['robot']) for r in selected),32):
                 end=min(start+32,max(len(r['robot']) for r in selected))
                 with lease.block():
                     model.train();inputs=residual_batch(selected,start,end,device)
                     supervised=residual_supervision_mask(selected,start,end,device)&inputs['valid']
-                    if getattr(model,'history_contract',None) and supervised.any():
+                    if getattr(model,'history_contract',None) and supervised.any() and (window is None or history_dirty):
                         state=residual_prefix_state(model,prefix_inputs)
+                        history_dirty=False
                     raw,state=model(inputs,state)
                     gate=residual_aux(selected,start,end,'gate',device)&inputs['valid']
                     compose_args=(residual_aux(selected,start,end,'base',device),raw,gate,
@@ -1332,13 +1346,22 @@ def residual_train(root, *, smoke=False, probe=False):
                         loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
                     if supervised.any():
-                        opt.zero_grad(set_to_none=True);loss.backward()
-                        norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
-                        if not torch.isfinite(norm):raise FloatingPointError('Nonfinite residual gradient')
-                        opt.step();updates+=1;draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
-                        with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
-                            loss=float(loss.detach()),contact_ticks=int((gate&supervised).sum()),supervised_ticks=int(supervised.sum()),
-                            history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm),**weight_report))+'\n')
+                        if window is None:
+                            opt.zero_grad(set_to_none=True);loss.backward()
+                            norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+                            if not torch.isfinite(norm):raise FloatingPointError('Nonfinite residual gradient')
+                            opt.step();updates+=1
+                            with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,
+                                loss=float(loss.detach()),contact_ticks=int((gate&supervised).sum()),supervised_ticks=int(supervised.sum()),
+                                history_ticks=int(inputs['valid'].sum()),gradient_norm=float(norm),**weight_report))+'\n')
+                        else:
+                            window.backward(loss,opt,weight_mass=float(loss_mask.sum()),
+                                supervised_ticks=int(supervised.sum()),contact_ticks=int((gate&supervised).sum()),
+                                history_ticks=int(inputs['valid'].sum()),weight_report=weight_report)
+                        draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
+                    if window is not None and window.pending and (window.ready or end==max(len(r['robot']) for r in selected)):
+                        report=window.step(model,opt);updates+=1;history_dirty=True
+                        with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,**report))+'\n')
                     ticks+=int(inputs['valid'].sum())
                     def detach(x):return {k:detach(z) for k,z in x.items()} if isinstance(x,dict) else x.detach()
                     state=detach(state)

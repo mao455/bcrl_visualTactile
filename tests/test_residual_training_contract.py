@@ -85,6 +85,23 @@ def test_probe_is_four_complete_train_episodes_and_disposable(trainer):
     with pytest.raises(ValueError,match='second residual'):anchor_continue.residual_train(root,probe=True)
 
 
+def test_tick_window_actual_trainer_flushes_short_group_tail(trainer,monkeypatch):
+    from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
+    root,_,_,_=trainer
+    setup=anchor_continue.residual_setup
+    def configured(*args,**kwargs):
+        session,config,data,records,model,configuration,lease=setup(*args,**kwargs)
+        config=dict(config,tick_window_contract=TICK_WINDOW_CONTRACT)
+        return session,config,data,records,model,configuration,lease
+    monkeypatch.setattr(anchor_continue,'residual_setup',configured)
+    anchor_continue.residual_train(root,probe=True)
+    finished=json.loads((root/'training_probe/finished.json').read_text())
+    rows=[json.loads(row) for row in (root/'training_probe/loss.jsonl').read_text().splitlines()]
+    assert finished['supervised_ticks']==10 and finished['updates']==1
+    assert rows[0]['group_tail'] and rows[0]['supervised_ticks']==10
+    assert rows[0]['fixed_denominator']==128
+
+
 def test_trainer_persists_explicit_preclip_loss_and_records_components(trainer, monkeypatch):
     from visuotactile.models.native_dp import PRECLIP_RESIDUAL_LOSS_VERSION
     root, _, model, _ = trainer

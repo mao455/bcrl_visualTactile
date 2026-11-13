@@ -13,6 +13,7 @@ from tools.tight_execution_follow import residual_command,select_safe_candidate
 from tools.tight_execution_learning import GROUPS,HISTORY,run_child
 from visuotactile.execution_learning import PROJECTION_FY_LOSS
 from visuotactile.residual_output import REACHABLE_CENTERED_OUTPUT
+from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
 
 ORIGINAL=Path('/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01')
 COMPUTE_DEADLINE=1794585315.106664
@@ -21,12 +22,12 @@ ABSOLUTE_DEADLINE=1794585915.106664
 
 def checked_root(root):
     root=root.resolve()
-    if root.parent!=ORIGINAL or root.name!='adaptive_centered_01':
+    if root.parent!=ORIGINAL or root.name not in ('adaptive_centered_01','adaptive_tick_window_01'):
         raise ValueError('Unique registered continuation root required')
     return root
 
 
-def configuration_for(source):
+def configuration_for(source, *, tick_window=False):
     configuration=copy.deepcopy(read(source/'configuration.json'))
     pair=configuration['residual_pair']
     pair.update(output_contract=REACHABLE_CENTERED_OUTPUT,
@@ -34,6 +35,8 @@ def configuration_for(source):
         learning_rate=1e-4,maximum_control_tick_epochs=1,minimum_control_tick_epochs=1,
         comparison_control_tick_epochs=[1],validation_epoch_interval=1,
         initialization_seed=2026111301)
+    if tick_window:
+        pair['tick_window_contract']=dict(TICK_WINDOW_CONTRACT)
     return configuration
 
 
@@ -45,17 +48,24 @@ def prepare(root):
     now=time.time()
     if now>=COMPUTE_DEADLINE-7200:raise TimeoutError('Insufficient original budget for registered complete experiment')
     previous=ORIGINAL/'adaptive_recovery_01'
+    tick_window=root.name=='adaptive_tick_window_01'
     boundary=read(ORIGINAL/'agent_supervisor/initial_boundary.json')
     if not boundary.get('complete'):raise ValueError('Previous complete-policy boundary required')
+    if tick_window and not (ORIGINAL/'adaptive_centered_01/finished.json').is_file():
+        raise ValueError('Completed centered comparator required')
     root.mkdir()
     write(root/'registration.json',dict(started_utc=now,compute_deadline=COMPUTE_DEADLINE,
         absolute_deadline=ABSOLUTE_DEADLINE,stage_deadline=min(now+7200,COMPUTE_DEADLINE-300),
-        hypothesis='Reachable-normalized proposal removes cancellation of large absolute nominal error; not proven causal',
+        hypothesis=('Fixed128tick gradient windows restore explicit recovery weighting and reduce exact current-weight prefix replay; benefit unproven'
+            if tick_window else 'Reachable-normalized proposal removes cancellation of large absolute nominal error; not proven causal'),
         source_attempt=str(previous),epochs_each=1,frontend_updates=0,new_collection=False,test22=False,
         prior_results={group:{key:boundary['summaries'][group][key] for key in
             ('successes','completed','native_lifts','alignments','software_failures')} for group in GROUPS},
         original_failure='Intentional coordinator handoff, not evaluation failure',
-        comparison_limit='Output map and exposure differ; same original round01 parameters, FY reg0 LR1e-4 and cache; no success claim'))
+        comparison_limit=('Same centered output, original round01 parameters, sampling deck, exposure, FY reg0 LR1e-4; optimizer count and loss normalization change together, not equal-update'
+            if tick_window else 'Output map and exposure differ; same original round01 parameters, FY reg0 LR1e-4 and cache; no success claim'),
+        comparator=str(ORIGINAL/'adaptive_centered_01') if tick_window else str(previous),
+        tick_window_contract=dict(TICK_WINDOW_CONTRACT) if tick_window else None))
     session=copy.deepcopy(read(previous/'formal/QG01/backend/session.json'))
     session.update(resource_root=str(root),matrix_owner=str(root),owned_worker_roots=[str(root)],
         started=now,deadline=ABSOLUTE_DEADLINE,compute_deadline=COMPUTE_DEADLINE)
@@ -63,7 +73,7 @@ def prepare(root):
     for group in GROUPS:
         source=previous/'formal'/group/'backend'
         destination=root/'formal'/group/'backend'
-        configuration=configuration_for(source)
+        configuration=configuration_for(source,tick_window=tick_window)
         pair=configuration['residual_pair']
         residual_prepare(destination,configuration=configuration)
         reuse_nominal_cache(source/group/'nominal',destination/group/'nominal',
@@ -114,7 +124,7 @@ def run(root):
         end=registration['stage_deadline']
         for group in GROUPS:
             destination=root/'formal'/group/'backend'
-            status('centered_backend_training',group=group)
+            status('tick_window_backend_training' if registration.get('tick_window_contract') else 'centered_backend_training',group=group)
             run_child(root,group+'_train',residual_command('residual-train',destination/group),end-2400)
             choice=select_safe_candidate(destination/group/'training')
             write(destination/'candidate_selection.json',choice)
