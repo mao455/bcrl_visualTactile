@@ -1,3 +1,9 @@
+## 2026-11-13 12:24 显式合法tick优化器窗口
+
+- 新增`residual_tick_window.py`显式协议；固定128未加权合法tick分母，完整chunk累积、group尾部flush，日志区分窗口、物理监督量、实际更新与权重质量；旧字段缺失时逐chunk旧行为不变。
+- 参数未变时沿用当前权重detached状态，参数更新后完整真实prefix重放；仅在无待提交梯度的episode-group边界保存。定向CPU测试覆盖梯度分子等价、3倍权重、尾部固定分母、真实trainer和参数更新后的历史刷新；不把CPU测试当GPU训练或任务成功。
+- 完整centered闭环均0/10且离线改善。下一登记保留FY/centered/LR/原数据与pair/cache，改变优化器度量/频率，不追加数据、不改最终执行器、不宣称等更新预算或因果成功。新root原run下`adaptive_tick_window_01`，原截止和test22隔离保持。
+
 ## 2026-11-13 12:16 训练正确性/效率复查与诊断修复
 
 - 复核真实FY、centered、mask/history、AdamW和断点恢复；没有新方向梯度错误，1e-6rad理想化边界仍明确。训练pair18.76分钟；旧故障接续间隔6.879小时另计。记录实际2237985前缀重放ticks、26.22%padding和稀疏chunk/恢复系数，未声称这些已被优化。

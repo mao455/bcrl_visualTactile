@@ -1,3 +1,7 @@
+## 2026-11-13 12:24 Agent002后续：tick-window试验准备
+
+已读centered的两组finished/evaluation_complete及12:16独立findings：合法自主均0/10，lift3/5、第一子目标0/0，无软件失败；不重复旧cohort。选择独立`bc+rl_RSS_tick_window_01`/原run下`adaptive_tick_window_01`，从同原round01初始化、同DP/cache进行1有效tick遍的固定128tick梯度窗口对照，随后离线与各10完整学生开发。FY、centered、LR、数据不变；优化器更新数和loss归一化共同变化。复用review commit的padding/诊断修复，不热改supervisor或旧树。启动前须真实CLI/回归与资源检查；launch/progress才证明GPU进展，普通脚本只执行这项登记、结束交还Agent，不自动DAgger。截止保持11月13日23:55:15/次日00:05:15 UTC+8。
+
 ## 2026-11-13 12:16 损失与效率复查：耗时归因及两处修复
 
 本次沿真实`TargetResidual→compose_chain→objective_components→residual_train`复核，没有发现新的确定性反向梯度错误。FY的理想box梯度为2(P(x)−y)，错误裁剪区保持方向，合法端点等价提案不要求裁剪前数值相等；实际执行器的1e-6rad容差与理想box不是严格逐点等价。centered线性输出有有限逆解，但action_scale²、共享参数和32tick截断仍影响学习，不保证闭环成功。无当前/未来专家标签作为输入；合法mask、完整历史、source/cache配对及同轮optimizer/RNG恢复链核对合理。

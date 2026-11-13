@@ -1,0 +1,178 @@
+{
+  "utc": 1794543808.6749616,
+  "event": {
+    "key": "centered_01_full_policy:finished.json:efc05335b53a24a53baf25de4e53306136c5da28081dbfdde631f16b2f11aae1",
+    "kind": "stage_result",
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_centered_01/finished.json"
+  },
+  "previous_complete": true,
+  "groups": {
+    "QG01": {
+      "complete_student": {
+        "planned": 10,
+        "attempts": 10,
+        "completed": 10,
+        "valid": 10,
+        "rejected": 0,
+        "software_failures": 0,
+        "invalid_total": 0,
+        "successes": 0,
+        "native_lifts": 3,
+        "first_subgoal_reached": 0,
+        "alignments": 0,
+        "unrun": 0,
+        "unrun_identities": [],
+        "expansion": {
+          "expanded": false,
+          "reason": "fixed ten attempts; no outcome-dependent expansion",
+          "initial_trials": 10
+        },
+        "development_only": true,
+        "formal_test22_used": false,
+        "paired_specs_and_sampler_seed": true,
+        "bitwise_hidden_state_pairing_proven": false,
+        "expert_takeover": false,
+        "complete": true
+      },
+      "exposure": {
+        "updates": 2349,
+        "supervised_ticks": 171133,
+        "wall_s": 566.2960550785065,
+        "training_wall_s": 532.8048543930054
+      },
+      "validation_score": [
+        {
+          "update": 0,
+          "selection_score": 1.0
+        },
+        {
+          "update": 2349,
+          "selection_score": 0.38816295737120576
+        }
+      ],
+      "termination_causes": {
+        "timeout": 10
+      },
+      "stable_grasp_diagnostic": 0,
+      "offline_full_validation": [
+        {
+          "split": "validation",
+          "phase": "all",
+          "group": "arm",
+          "motion": "all",
+          "ticks": 10238,
+          "episodes": 30,
+          "rmse_rad": 0.0008572328960431777,
+          "hold_rmse_rad": 0.0077639229117655514,
+          "ee_rmse_mm": 0.9290155664694482,
+          "fingertip_rmse_mm": 1.955758913610481,
+          "palm_angle_mean_deg": 0.11768609346045947
+        },
+        {
+          "split": "validation",
+          "phase": "all",
+          "group": "hand",
+          "motion": "all",
+          "ticks": 10238,
+          "episodes": 30,
+          "rmse_rad": 0.01281758073683919,
+          "hold_rmse_rad": 0.11628535264269428,
+          "ee_rmse_mm": 0.9290155664694482,
+          "fingertip_rmse_mm": 1.955758913610481,
+          "palm_angle_mean_deg": 0.11768609346045947
+        }
+      ]
+    },
+    "G01": {
+      "complete_student": {
+        "planned": 10,
+        "attempts": 10,
+        "completed": 10,
+        "valid": 10,
+        "rejected": 0,
+        "software_failures": 0,
+        "invalid_total": 0,
+        "successes": 0,
+        "native_lifts": 5,
+        "first_subgoal_reached": 0,
+        "alignments": 0,
+        "unrun": 0,
+        "unrun_identities": [],
+        "expansion": {
+          "expanded": false,
+          "reason": "fixed ten attempts; no outcome-dependent expansion",
+          "initial_trials": 10
+        },
+        "development_only": true,
+        "formal_test22_used": false,
+        "paired_specs_and_sampler_seed": true,
+        "bitwise_hidden_state_pairing_proven": false,
+        "expert_takeover": false,
+        "complete": true
+      },
+      "exposure": {
+        "updates": 2349,
+        "supervised_ticks": 171133,
+        "wall_s": 559.2643430233002,
+        "training_wall_s": 526.524172782898
+      },
+      "validation_score": [
+        {
+          "update": 0,
+          "selection_score": 1.0
+        },
+        {
+          "update": 2349,
+          "selection_score": 0.6078245545328298
+        }
+      ],
+      "termination_causes": {
+        "timeout": 9,
+        "fall": 1
+      },
+      "stable_grasp_diagnostic": 3,
+      "offline_full_validation": [
+        {
+          "split": "validation",
+          "phase": "all",
+          "group": "arm",
+          "motion": "all",
+          "ticks": 10238,
+          "episodes": 30,
+          "rmse_rad": 0.0010125816390207539,
+          "hold_rmse_rad": 0.0077639229117655514,
+          "ee_rmse_mm": 1.1432472001068228,
+          "fingertip_rmse_mm": 2.3393894154151047,
+          "palm_angle_mean_deg": 0.1429702909662069
+        },
+        {
+          "split": "validation",
+          "phase": "all",
+          "group": "hand",
+          "motion": "all",
+          "ticks": 10238,
+          "episodes": 30,
+          "rmse_rad": 0.015021155566095668,
+          "hold_rmse_rad": 0.11628535264269428,
+          "ee_rmse_mm": 1.1432472001068228,
+          "fingertip_rmse_mm": 2.3393894154151047,
+          "palm_angle_mean_deg": 0.1429702909662069
+        }
+      ]
+    }
+  },
+  "review_source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/review_20261113_1208/findings.json",
+  "hypothesis": "Recovery-prefix coefficients are diluted by chunk-wise normalization; a fixed supervised-tick optimizer window tests the intended weighting and avoids replay when parameters did not change. Not proven causal for zero success.",
+  "next_attempt": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01",
+  "fixed_deadlines": {
+    "compute": 1794585315.106664,
+    "absolute": 1794585915.106664
+  },
+  "test22": false,
+  "limitations": [
+    "No matched simulator-state expert replay; termination categories do not establish earliest causal deviation",
+    "No new collection or DP training; this is a rear-policy schedule comparison, not DAgger",
+    "Same physical exposure/deck as centered; optimizer update count and objective denominator differ",
+    "The original recovery InterruptedError was intentional handoff; the centered cohort completed normally"
+  ]
+}

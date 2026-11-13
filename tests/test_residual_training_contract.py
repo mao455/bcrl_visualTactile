@@ -180,6 +180,40 @@ def test_trainer_current_weight_history_replays_prefix_after_each_update(trainer
     assert not torch.equal(main_states[1][1], main_states[2][1])
 
 
+def test_tick_window_refreshes_history_only_after_parameter_updates(trainer,monkeypatch):
+    from visuotactile.models.native_dp import CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
+    from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
+    root,_,model,_=trainer
+    setup=anchor_continue.residual_setup(root)
+    _,config,data,records,_,configuration,_=setup
+    monkeypatch.setattr(anchor_continue,'residual_setup',lambda *args,**kwargs:setup)
+    data['splits']['train']=['t0']
+    config.update(maximum_control_tick_epochs=1,minimum_control_tick_epochs=1,
+        microbatch=1,tick_window_contract=TICK_WINDOW_CONTRACT)
+    records['t0']=record(7,320)
+    records['t0']['time']=torch.arange(320)/60
+    records['t0']['supervision_mask']=torch.arange(320)>=32
+    model.history_contract=dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION)
+    configuration['history_contract']=dict(model.history_contract)
+    original=model.forward
+    main_states=[];replays=[]
+    def forward(inputs,state=None,*,state_only=False):
+        if state_only:replays.append(len(inputs['valid'][0]))
+        else:main_states.append((None if state is None else state['last'].clone(),model.weight.detach().clone()))
+        raw,next_state=original(inputs,state)
+        return (None if state_only else raw),{key:value.clone() for key,value in next_state.items()}
+    monkeypatch.setattr(model,'forward',forward)
+    anchor_continue.residual_train(root)
+    saved=torch.load(root/'training/last.pt',map_location='cpu',weights_only=False)
+    rows=[json.loads(row) for row in (root/'training/loss.jsonl').read_text().splitlines()]
+    assert saved['updates']==3 and saved['supervised_ticks']==288
+    assert [row['supervised_ticks'] for row in rows]==[128,128,32]
+    assert replays==[32]*14 and len(main_states)==10
+    assert all(torch.equal(state[0],weight) for state,weight in main_states[1:])
+    assert torch.equal(main_states[1][1],main_states[4][1])
+    assert not torch.equal(main_states[4][1],main_states[5][1])
+
+
 def test_flat_validation_stops_after_registered_minimum_and_four_checks(trainer):
     root,_,_,_=trainer
     anchor_continue.residual_train(root)

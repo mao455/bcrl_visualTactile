@@ -1,3 +1,9 @@
+## 2026-11-13 12:24 centered闭环已完成，下一流程试验准备
+
+`adaptive_centered_01`：A/B均已完成2349更新、171133合法tick和10次完整DP+Transformer自主开发；成功0/10、0/10，native lift3/5、第一子目标0/0、软件失败0。A/B相对各自centered update0的选模分数0.388/0.608，不能推断旧参数化的同功能初值收益，更不等于自主成功。训练分别566.30/559.26秒，完整物理评估另计；旧03:04故障至09:57恢复的6.879小时不是训练。
+
+真实Agent结合12:16复查选择`adaptive_tick_window_01`：相同centered/FY/LR/原pair与cache/物理曝光下，改变为固定128合法tick梯度窗口与统一分母，减少无参数变化时的重复prefix计算；不缓存旧权重hidden，不新增采集或DP更新。归一化与optimizer次数一起变化，收益待真实结果。此条登记不等于已启动；实际launch/progress/startup_acceptance及后续finished位于原run对应目录。原截止不变。
+
 ## 2026-11-13 11:25 已完成闭环与下一假设
 
 `adaptive_recovery_01`：A/B各7017次后端更新，验证均不及各自update0，diagnostic endpoint完整自主各0/10；native lift2/1，alignment0/0，软件失败0。不是接管结果，也不是缺失试验。监督有意交接不作技术失败计。选择`adaptive_centered_01`检验窄可达区间的输出条件化，11:29已验证A真实256更新/18057监督tick，新成功结果仍待评估；前端与cache不变，FY reg0/LR1e-4/当前prefix不变，1遍后完整评估。参数化改变且旧endpoint3遍，不能称严格单变量等曝光收益；不自动追加DAgger。详细证据以本地原run下同名目录及`agent_supervisor/initial_boundary.json`为准。

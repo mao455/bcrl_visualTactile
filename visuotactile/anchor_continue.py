@@ -1403,6 +1403,7 @@ def residual_train(root, *, smoke=False, probe=False):
         formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
         target_reached=draws>=target_ticks,required_supervised_ticks=target_ticks,
         new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),
+        tick_window_contract=v.get('tick_window_contract'),
         schedule_maximum_control_tick_epochs=formal_epochs,
         required_control_tick_epochs=v['maximum_control_tick_epochs'],train_episode_count=len(ids),effective_batch=v['microbatch'],
         minimum_control_tick_epochs=v['minimum_control_tick_epochs'],minimum_exposure_reached=draws>=v['minimum_control_tick_epochs']*population,

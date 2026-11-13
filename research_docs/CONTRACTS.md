@@ -1,3 +1,7 @@
+### 2026-11-13 12:24 显式tick-window训练协议（准备）
+
+`fixed_supervised_tick_window_v1`仅在新登记continuation启用，缺字段维持逐chunk旧行为。梯度按固定128未加权合法tick分母累积，恢复权重只进分子；达到阈值的完整32tick块或完整episode-group尾部提交优化器。尾部不缩分母、不丢监督；物理曝光与优化器更新分别记录。参数未变时使用相同权重下detached历史，参数更新后重放真实完整prefix；不是stale-hidden缓存。仍为原FY真实梯度与共同最终执行器，A/B前端标签、后端final u_expert、test22、资源及截止均不变。该试验不构成新DAgger。
+
 ### 2026-11-13 12:16 padding及输出诊断修订
 
 无效padding槽的执行previous可以替换为合法joint lower占位，实际有效tick仍使用原58:87字段并严格校验；该占位不进入模型历史、不变更监督和控制数学。输出contract为线性/线性尾部时，旧`residual_tanh_fraction`原始字段仅是|delta|/历史scales，新汇总以`legacy_normalized_amplitude`标注，`tanh_saturation.applicable=false`；旧trace和旧默认bounded-tanh统计保持。该修订不表示原loss或真实执行梯度改变。
