@@ -1,3 +1,9 @@
+## 2026-11-13 21:21 — Actual complete-policy recovery progress
+
+- Independent bounded service owner3037113/start_ticks163579189; first reference-A case reaches actual native tick300.
+- Verified311 frozen source hashes and full_gpu_v1 memory/disk reserves;63 focused tests pass.
+- Publish startup receipts from a separate worktree; retain original40 opportunities and all deadlines. No completed-cohort success claim.
+
 ## 2026-11-13 21:18 — Preserve checkpoint-bound offline evidence across evaluation recovery
 
 - Diagnose missing offline admission evidence before any simulator launch; retain the failure and completed A/B1314-update endpoints.

@@ -1,3 +1,9 @@
+## 2026-11-13 21:21 恢复评估已真实推进
+
+`tight-span-metric-eval-recovery-20261113-02.service`独立cgroup已active；owner3037113/start_ticks163579189。首个reference-A完整DP+Transformer评估实际推进到tick300，311冻结源码文件无漂移，GPU/RAM/磁盘储备均通过。源码`2e5d85d`及63项测试已发布；这不是仅PREPARED/加载，也不是完整cohort成功结果。
+
+监督器下一watch应为`rear_span_metric_eval_recovery_02/{status,launch,finished,failure}.json`，不再监控已失败的01。原40机会、22:50:03阶段截止与23:55:15计算/次日00:05:15绝对截止保持；完成后由真实Agent判断。启动证据在独立publication树提交，活动worker和bot专属live路径未改。[启动验收](evidence/tight_execution_learning_20261113/rear_span_metric_eval_recovery_02/startup_acceptance.json)。
+
 ## 2026-11-13 21:18 Agent008诊断并恢复同一固定评估
 
 事件为`rear_span_metric_eval_recovery_01/failure.json`。真正异常是offline准入文件未继承；组分母guard在任何仿真前拒绝，不是训练新失败。A/B span各1314更新/193520tick已完成，四份对应checkpoint的完整离线结果都存在。无新训练/推理，按SHA及实际data/cache身份复用原结果；新root `rear_span_metric_eval_recovery_02`，隔离源码`bc+rl_RSS_span_eval_fix_02`。原失败现场保留，监督器/发布器不修改。

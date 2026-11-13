@@ -1,3 +1,7 @@
+## 2026-11-13 21:21 实际评估启动，不新增训练预算
+
+恢复02首个reference-A完整学生已实际运行300tick；owner3037113/start_ticks163579189，311源码SHA不变，资源储备通过。63测试、两arm准备fairness与四cell真实CPU前置检查均已验收，source `2e5d85d`已推送。仍是原固定40机会，未有本cohort完整成功率结论；训练和offline推理均未重复。记录位于[启动收据](evidence/tight_execution_learning_20261113/rear_span_metric_eval_recovery_02/startup_acceptance.json)，未来结果以新root的finished/failure为准，原失败现场保持。
+
 ## 2026-11-13 21:18 训练完成；评估准入衔接故障已定位
 
 span A/B实际各1314更新、193520合法监督tick、1.0有效遍，原完整offline结果已保存。`rear_span_metric_eval_recovery_01`遗漏继承这些结果，使首cell在仿真前触发组分母保护；实际新自主机会0，不计0/10。恢复`rear_span_metric_eval_recovery_02`逐SHA继承四份checkpoint匹配且非test的真实offline结果，验证其data/cache同源；不重训，不重复offline推理，不调整模型/seed/标准/截止。两arm准备fairness和四个实际评估入口CPU前置检查通过；后者不运行Kit、不能替代自主结果。保留所有既有失败与原分母，等待实际固定40机会结果再判断loss条件化假说。

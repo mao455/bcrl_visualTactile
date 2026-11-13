@@ -1,0 +1,162 @@
+{
+  "utc": 1794576091.862673,
+  "actual_full_policy_progress": {
+    "tick": 300,
+    "utc": 1794576080.2453096
+  },
+  "progress_file": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/evaluation/span_metric_fresh_000/progress.json",
+  "owner_identity": {
+    "pid": 3037113,
+    "start_ticks": 163579189
+  },
+  "child_processes": [
+    {
+      "pid": 3037184,
+      "ppid": 3037113,
+      "process_group": 3037184,
+      "start_ticks": 163579472,
+      "state": "S",
+      "rss_kib": 13976,
+      "threads": 1,
+      "fds": 3,
+      "watches": 0,
+      "inotify_instances": 0,
+      "telemetry_missing": []
+    },
+    {
+      "pid": 3037216,
+      "ppid": 3037113,
+      "process_group": 3037216,
+      "start_ticks": 163579763,
+      "state": "R",
+      "rss_kib": 7452592,
+      "threads": 132,
+      "fds": 319,
+      "watches": 14,
+      "inotify_instances": 2,
+      "telemetry_missing": []
+    },
+    {
+      "pid": 3037535,
+      "ppid": 3037216,
+      "process_group": 3037216,
+      "start_ticks": 163580452,
+      "state": "Z",
+      "rss_kib": 0,
+      "threads": 1,
+      "fds": null,
+      "watches": null,
+      "inotify_instances": null,
+      "telemetry_missing": [
+        "fd_directory_permission_denied"
+      ]
+    }
+  ],
+  "source_commit": "2e5d85d6728048e713a52bc93d8185f6b169d4cb",
+  "source_freeze_files": 311,
+  "source_drift": [],
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_metric_eval_recovery_02",
+  "service": "RuntimeMaxUSec=1h 29min 46s\nMainPID=3037113\nControlGroup=/user.slice/user-1001.slice/user@1001.service/app.slice/tight-span-metric-eval-recovery-20261113-02.service\nKillMode=control-group\nActiveState=active\n",
+  "stage_deadline": 1794581403.0230262,
+  "compute_deadline": 1794585315.106664,
+  "absolute_deadline": 1794585915.106664,
+  "resources": {
+    "pid": 3037184,
+    "utc_epoch": 1794576091.738118,
+    "elapsed_s": 72.09416741179302,
+    "gpu_util_percent": 14.0,
+    "gpu_used_mib": 4173.0,
+    "gpu_free_mib": 19911.0,
+    "ram_available_bytes": 29599293440,
+    "process_rss_bytes": 14311424,
+    "cuda_allocated_bytes": null,
+    "cuda_reserved_bytes": null,
+    "rolling_60s_percent": 20.125574803041914,
+    "rolling_300s_percent": null,
+    "gpu_processes": [
+      {
+        "pid": 3037216,
+        "name": ".venv_isaacsim/bin/python",
+        "vram_mib": 3579,
+        "owned": false
+      }
+    ],
+    "external_gpu_processes": [
+      {
+        "pid": 3037216,
+        "name": ".venv_isaacsim/bin/python",
+        "vram_mib": 3579,
+        "owned": false
+      }
+    ],
+    "process_telemetry_errors": [],
+    "external_throughput_available": false,
+    "target_pacing_ratio": 0.0,
+    "pause_reasons": [],
+    "pacing_ratio": 0.0
+  },
+  "disk_free_bytes": 387853815808,
+  "focused_tests_passed": 63,
+  "actual_cpu_entrypoint_preflight": {
+    "utc": 1794575873.2288558,
+    "rows": [
+      {
+        "arm": "reference",
+        "group": "QG01",
+        "actual_entrypoint": "tools.tight_finish.residual_evaluate",
+        "group_denominator_passed": true,
+        "real_checkpoint_loaded_cpu": true,
+        "normalizer_and_dino_checks_passed": true,
+        "fixed10_plan_verified": true,
+        "simulator_started": false,
+        "inference": false,
+        "trial_results_written": false
+      },
+      {
+        "arm": "span",
+        "group": "G01",
+        "actual_entrypoint": "tools.tight_finish.residual_evaluate",
+        "group_denominator_passed": true,
+        "real_checkpoint_loaded_cpu": true,
+        "normalizer_and_dino_checks_passed": true,
+        "fixed10_plan_verified": true,
+        "simulator_started": false,
+        "inference": false,
+        "trial_results_written": false
+      },
+      {
+        "arm": "span",
+        "group": "QG01",
+        "actual_entrypoint": "tools.tight_finish.residual_evaluate",
+        "group_denominator_passed": true,
+        "real_checkpoint_loaded_cpu": true,
+        "normalizer_and_dino_checks_passed": true,
+        "fixed10_plan_verified": true,
+        "simulator_started": false,
+        "inference": false,
+        "trial_results_written": false
+      },
+      {
+        "arm": "reference",
+        "group": "G01",
+        "actual_entrypoint": "tools.tight_finish.residual_evaluate",
+        "group_denominator_passed": true,
+        "real_checkpoint_loaded_cpu": true,
+        "normalizer_and_dino_checks_passed": true,
+        "fixed10_plan_verified": true,
+        "simulator_started": false,
+        "inference": false,
+        "trial_results_written": false
+      }
+    ],
+    "passed": true,
+    "limitation": "CPU-only actual evaluation entrypoint through checkpoint/normalizer checks; trial dispatcher substituted with sentinel, not autonomous success"
+  },
+  "new_optimizer_updates": 0,
+  "new_offline_inference": false,
+  "original_fixed_opportunities": 40,
+  "repeated_evaluation": false,
+  "test22": false,
+  "source_published": true,
+  "limitation": "First ongoing complete DP+Transformer evaluation has actual native ticks; not a completed cohort or a new success result."
+}
