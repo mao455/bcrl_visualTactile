@@ -22,6 +22,10 @@ def read(p):return json.loads(Path(p).read_text())
 def inputs(root,role):
     data_root=root/role/'state_data';data=read(data_root/'data.json');ids=data['splits']['train']+data['splits']['validation']
     records=visual_records(data_root,ids,'G00',device='cuda:0')
+    continuation=root/role/'continuation.json'
+    if continuation.exists():
+        from visuotactile.target_windows import with_target_window
+        records=with_target_window(records,read(continuation).get('target_window_contract'))
     return data_root,data,records,torch.load(data_root/'statistics.pt',weights_only=False,map_location='cpu')
 
 
@@ -31,6 +35,16 @@ def new_model(role,statistics):
     model.contract=continuous_image_contract('q_reached' if role=='A' else 'u_expert')
     for k,v in statistics.items():getattr(model,k).copy_(v)
     return model.cuda()
+
+
+def supervised_conditions(model,record):
+    """All frames update history; only actual legal target windows train DP."""
+    c,a=encode_dense(model,record)
+    from visuotactile.anchor_sampling import planning_anchors
+    permitted=planning_anchors(record).to(a.device)
+    keep=torch.isin(a,permitted)
+    if not keep.any():raise ValueError('No legal expert planning windows')
+    return c[keep],a[keep]
 
 
 @torch.no_grad()
@@ -67,7 +81,7 @@ def gate(root):
 def metrics(model,records,identities):
     model.eval();errors=[];normalized=[];rows=[]
     for i in identities:
-        rec=records[i];c,a=encode_dense(model,rec)
+        rec=records[i];c,a=supervised_conditions(model,rec)
         # Online draws one H24 noise tensor per replan. Keep that RNG order.
         g=torch.Generator(device='cuda').manual_seed(7091)
         plans=[]
@@ -91,10 +105,19 @@ def train(root,role,epochs):
     if not read(root/'gate.json')['passed'] or not read(root/role/'cache_index.json')['complete']:raise ValueError('Gate incomplete')
     state_fp32();session=read(root/'session.json');lease=lease_for(root,deadline=session['deadline'])
     out=root/role/'training';out.mkdir(exist_ok=True)
+    continuation=read(root/role/'continuation.json') if (root/role/'continuation.json').exists() else None
     with lease.block():
         dr,data,records,stats=inputs(root,role);model=new_model(role,stats)
+        if continuation:
+            path=Path(continuation['path'])
+            if sha256(path)!=continuation['sha256'] or sha256(dr/'statistics.pt')!=continuation['statistics_sha256']:
+                raise ValueError('Frozen frontend continuation or affine changed')
+            source=torch.load(path,map_location='cpu',weights_only=False)
+            if source['contract']!=model.contract:raise ValueError('Continuation frontend contract differs')
+            model.load_state_dict(source['ema'],strict=True)
         averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
-        opt=torch.optim.AdamW(model.parameters(),lr=1e-4,betas=(.95,.999),weight_decay=1e-6)
+        learning_rate=continuation['learning_rate'] if continuation else 1e-4
+        opt=torch.optim.AdamW(model.parameters(),lr=learning_rate,betas=(.95,.999),weight_decay=1e-6)
     meta=read(root/'metadata.json');objective=GeometryObjective(meta,mode=PALM_LOSS_ID)
     objective.weights=dict(position=.3342396121814294,rotation=.029946394754032265)
     geometry=None
@@ -111,12 +134,13 @@ def train(root,role,epochs):
     generator=torch.Generator().manual_seed(2026111402);noise=torch.Generator(device='cuda').manual_seed(2026111403)
     config=dict(version='fresh30_continuous_episode_v1',data_sha256=sha256(dr/'data.json'),statistics_sha256=sha256(dr/'statistics.pt'),
         dino_sha256=session['dino_sha256'],cache_index_sha256=sha256(root/role/'cache_index.json'),
-        initialization='random identical shared parameter seed; fresh AdamW/EMA',learning_rate=1e-4,weight_decay=1e-6,
+        initialization=continuation['initialization'] if continuation else 'random identical shared parameter seed; fresh AdamW/EMA',learning_rate=learning_rate,weight_decay=1e-6,
         history='full actual episode prefix at current weights; every frame; full episode gradients',
         exposure='each episode and every legal planning anchor once per epoch; loss equal episode weight',
         validation='all six fixed families DDIM16 commit12; fixed train2 diagnostics',hand_geometry=geometry,
         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
+    if continuation:config['continuation']=continuation
     begin_epoch=updates=anchors_seen=target_ticks=0;best=float('inf');history=[]
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
@@ -129,13 +153,19 @@ def train(root,role,epochs):
             updates=updates,epoch=epoch,configuration=config,best=best,history=history,anchors_seen=anchors_seen,target_ticks=target_ticks,
             train_ids=data['splits']['train'],validation_ids=data['splits']['validation']))
     started=time.perf_counter()
+    if continuation and not (out/'initial_metrics.json').exists():
+        with lease.block():
+            initial=dict(validation=metrics(averaged,records,data['splits']['validation']),
+                train=metrics(averaged,records,data['splits']['train'][:2]),
+                correction=metrics(averaged,records,data['aggregation']['new_training_ids']))
+        atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
         order=torch.randperm(len(data['splits']['train']),generator=generator).tolist();losses=[]
         for order_index,j in enumerate(order):
             i=data['splits']['train'][j];rec=records[i];began=time.perf_counter()
             with lease.block():
                 model.train();opt.zero_grad(set_to_none=True)
-                cond,a=encode_dense(model,rec);truth,valid=labels(rec,a,24)
+                cond,a=supervised_conditions(model,rec);truth,valid=labels(rec,a,24)
                 selected=[(i,int(t)) for t in a]
                 context=projection_batch(objective,selected,'cuda:0')
                 loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
@@ -153,6 +183,8 @@ def train(root,role,epochs):
             val=metrics(averaged,records,data['splits']['validation']);tr=metrics(averaged,records,data['splits']['train'][:2])
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
+        if continuation and epoch+1==epochs:
+            with lease.block():report['correction']=metrics(averaged,records,data['aggregation']['new_training_ids'])
         history.append(report);improved=val['selection']<best;best=min(best,val['selection'])
         checkpoint(epoch+1)
         if improved:checkpoint(epoch+1,'best.pt')

@@ -11,7 +11,7 @@ from pathlib import Path
 
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
-from visuotactile.fresh_contracts import FRESH_DATA_CONTRACT, residual_normalization
+from visuotactile.fresh_contracts import FRESH_DATA_CONTRACT, FRESH_AGGREGATE_CONTRACT, residual_normalization
 
 
 def read(path):
@@ -44,7 +44,8 @@ def prepare(root, role, epochs):
     if saved['configuration']['statistics_sha256'] != sha256(source / 'state_data/statistics.pt'):
         raise ValueError('Selected frontend normalizer differs')
     stats = root / 'B/state_data/statistics.pt'
-    v = dict(version=TargetResidual.version, fresh_data_contract=FRESH_DATA_CONTRACT,
+    identity=FRESH_AGGREGATE_CONTRACT if data.get('aggregation') else FRESH_DATA_CONTRACT
+    v = dict(version=TargetResidual.version, fresh_data_contract=identity,
         groups=[role], source_root=str(source), bases={role: dict(group='G00', modality='G00',
             checkpoint=str(front), sha256=sha256(front))},
         residual_statistics_path=str(stats), residual_statistics_sha256=sha256(stats),
@@ -83,7 +84,7 @@ def prepare(root, role, epochs):
     atomic_json(child / 'session.json', dict(session, resource_root=str(destination), modality=role))
     atomic_json(destination / 'prepared.json', dict(role=role, source_frontend_sha256=sha256(front),
         command_statistics_sha256=sha256(stats), random_initialization=True,
-        inherited_student_parameters=False, train=30, validation=6, epochs=epochs, utc=time.time()))
+        inherited_student_parameters=False, train=len(data['splits']['train']), validation=6, epochs=epochs, utc=time.time()))
     print(str(destination), flush=True)
 
 

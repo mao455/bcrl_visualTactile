@@ -1,3 +1,7 @@
+## 2026-11-14 fresh30的真实专家后段聚合
+
+新身份fresh30_actual_takeover_aggregate_v1保留原30 affine和6验证family，额外数据必须expert_takeover_v1。所有控制步更新真实视觉/本体/触觉/命令历史，仅合法专家后段做监督。显式继续自当前DP EMA、fresh optimizer/EMA；恢复起点窗口保持原生12tick规划，队列冲刷/无效洞之前不生成标签。两组共享成功后段；后端依赖当前新DP重新缓存并同seed重训。原fresh初始和历史合同不静默改变。
+
 ## 2026-11-14 新后端与共同train30统计
 
 新后端准备入口`tools.tight_fresh_backend`只接受明确fresh30/every-native-frame身份，保持原历史166条入口。A/B后端随机同种子初始化，共用B的train30命令normalizer，绑定各自当前DP SHA、全部逐帧缓存、数据与统计哈希；验证覆盖6个独立family。现有Transformer/每步实际反馈/当前权重前缀重算继续复用。

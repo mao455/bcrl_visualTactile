@@ -86,7 +86,7 @@ def run(output):
             finally:totals[key]+=time.perf_counter()-t
         setattr(obj,name,call)
     wrap(env.sim,'step','physics_step_s');wrap(env.sim,'render','render_s');wrap(env.scene,'update','scene_update_s')
-    results=[]
+    results=[];entries={}
     for case in plan['cases']:
         pair=plan['pairs'][case['role']];before=dict(totals);start=time.perf_counter();wait=lease.wait_s
         directory=output/case['name']
@@ -101,6 +101,32 @@ def run(output):
         atomic_json(directory/'runtime_profile.json',timing)
         if row.get('legal') and (row.get('residual_ticks')!=row['steps'] or not row.get('software_complete')):
             raise ValueError('Incomplete full-student control')
+        if plan['kind']=='takeover' and row.get('legal') and row.get('software_complete'):
+            from visuotactile.state_benchmark import audit_dagger_capture
+            from visuotactile.narrow_data import dagger_record
+            from visuotactile.camera_validity import inspect_capture
+            from visuotactile.anchor_sampling import supervision_population
+            audit=audit_dagger_capture(directory,pair)
+            if not audit['passed']:raise ValueError('Actual takeover provenance failed')
+            atomic_json(directory/'capture_audit.json',audit)
+            row['accepted_for_training']=False
+            if row['dagger']['expert_valid_ticks']:
+                path=Path(row['dataset_capture']['path'])
+                entry=dict(path=str(path.resolve()),episode=case['spec']['identity'],length=row['steps'],
+                    family=case['spec']['family'],split='train',source_sha256=sha256(path),
+                    trajectory_kind='expert_takeover_v1',source_group=case['role'],round_index=plan['round_index'],
+                    seed=case['spec']['seed'],takeover_tick=case['spec']['takeover_tick'],
+                    frontend_sha256=pair['frontend_sha256'],backend_sha256=pair['backend_sha256'])
+                record,_,_=dagger_record(entry,include_geometry=False)
+                row['actual_exposure']=supervision_population({entry['episode']:record})
+                if row['actual_exposure']['supervised_ticks']!=row['dagger']['expert_valid_ticks']:
+                    raise ValueError('Expert suffix denominator differs')
+                if row['success'] and row['dagger']['expert_takeover_success']:
+                    visual=inspect_capture(path)
+                    atomic_json(directory/'camera_acceptance.json',visual)
+                    if not visual['passed']:raise ValueError('Actual correction camera content invalid')
+                    entries[case['spec']['identity']]=entry;row['accepted_for_training']=True
+            atomic_json(output/'correction_entries.json',entries)
         results.append(dict(role=case['role'],case=case['name'],result=row,timing=timing))
         atomic_json(output/'results.json',results)
         print(json.dumps(dict(role=case['role'],case=case['name'],legal=row['legal'],steps=row.get('steps'),
