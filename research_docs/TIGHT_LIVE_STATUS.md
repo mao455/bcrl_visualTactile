@@ -1,6 +1,6 @@
 # Tight-Insertion 自动进度
 
-证据读取时间：2026-11-13T22:33:57+08:00。
+证据读取时间：2026-11-13T22:39:05+08:00。
 
 本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
 每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
@@ -59,7 +59,7 @@
 | `rear_span_metric_eval_recovery_02/span/G01/backend/G01` | 1314 | 193520 | True |
 | `rear_span_metric_eval_recovery_02/span/QG01/backend/QG01` | 1314 | 193520 | True |
 
-当前训练 `rear_span_dose_02/continued/G01/backend/G01/training/progress.json`：1088 更新，159498 合法监督tick，约 0.82 遍。
+当前训练 `rear_span_dose_02/continued/G01/backend/G01/training/progress.json`：2048 更新，302542 合法监督tick，约 1.56 遍。
 
 未通过凭据检查的条目：0；此类条目不发布成功统计。
 
