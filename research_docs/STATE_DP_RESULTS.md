@@ -1,6 +1,6 @@
 ## 2026-11-13 11:25 已完成闭环与下一假设
 
-`adaptive_recovery_01`：A/B各7017次后端更新，验证均不及各自update0，diagnostic endpoint完整自主各0/10；native lift2/1，alignment0/0，软件失败0。不是接管结果，也不是缺失试验。监督有意交接不作技术失败计。选择`adaptive_centered_01`检验窄可达区间的输出条件化，尚无训练/成功结果；前端与cache不变，FY reg0/LR1e-4/当前prefix不变，1遍后完整评估。参数化改变且旧endpoint3遍，不能称严格单变量等曝光收益；不自动追加DAgger。详细证据以本地原run下同名目录及`agent_supervisor/initial_boundary.json`为准。
+`adaptive_recovery_01`：A/B各7017次后端更新，验证均不及各自update0，diagnostic endpoint完整自主各0/10；native lift2/1，alignment0/0，软件失败0。不是接管结果，也不是缺失试验。监督有意交接不作技术失败计。选择`adaptive_centered_01`检验窄可达区间的输出条件化，11:29已验证A真实256更新/18057监督tick，新成功结果仍待评估；前端与cache不变，FY reg0/LR1e-4/当前prefix不变，1遍后完整评估。参数化改变且旧endpoint3遍，不能称严格单变量等曝光收益；不自动追加DAgger。详细证据以本地原run下同名目录及`agent_supervisor/initial_boundary.json`为准。
 
 <!-- EXECUTION_LEARNING_STATUS_START -->
 ## 2026-11-13 自主执行学习修复：实际状态
