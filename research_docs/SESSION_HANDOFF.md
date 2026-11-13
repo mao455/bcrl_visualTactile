@@ -1,3 +1,9 @@
+## 2026-11-13 19:20 Agent006完成复验判读，登记单一采样问题
+
+已读事件、三份现有审计、公平政策和发布器收据；不再重复宽审计。A补齐owner正常退出，实际新20例A/B均0/20；没有继续B单组调参或混合旧分母。下一阶段`rear_replay_balance_01`，隔离树`bc+rl_RSS_replay_balance_01`：冻结contact完整pair前端/cache，以原50/20/30为继续训练对照，人口比例为候选，各组同初始tensor/新AdamW、共同FY和1遍，固定最终endpoint，各10新完整策略开发机会。不是DAgger、无新前端训练或采集。真实CPU预采样人口比例覆盖全部662训练episode，对照319；实际训练尚待验收。
+
+新增frozen-frontend fairness准备/完成模式，旧DP曝光不会冒充本次更新。28测试、真实prepare与两arm准备审计通过。机器root内`registration/status/launch/finished/failure`为准；下一监督watch使用真实owner身份，不能监控旧已完成文件。阶段21:48:09、原计算23:55:15/绝对次日00:05:15均不变。发布器两专属路径和监督器源码未改。
+
 ## 2026-11-13 18:48 A补齐评估已真实推进
 
 `tight-ab-complement-20261113-01.service`独立cgroup已运行；owner2945216/start_ticks162656356，首个冻结A完整学生case实际推进到tick400，非仅注册或Kit启动。297个以上受检源码文件无漂移，具体数量见startup_acceptance；源码commit c8d3dd3已推送指定分支。GPU空闲约19GiB、RAM可用约29GiB，监测无暂停原因。固定子截止19:43:57 UTC+8，原计算23:55:15/绝对次日00:05:15不变。

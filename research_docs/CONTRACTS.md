@@ -1,3 +1,7 @@
+## 2026-11-13 19:20 固定后端采样分布诊断
+
+`rear_replay_balance_01`只训练后端，不采集、不改变冻结DP/commit12配套cache，不称DAgger。原配比与人口比例均对A/B生效，每cell同组同初始化tensor、新AdamW、共同学习率/loss/窗口/历史，1有效tick遍后固定最终endpoint评估；保留validation-best。每cell固定10相同新开发机会、共40，原生成功和自然终止，不结果驱动扩展。跨arm整episode取整/更新数不保证相等，真实账本必须披露；arm内A/B实际曝光/数据mask/公共修复/选模和机会必须匹配。frozen-frontend fairness验证冻结SHA及新DP0更新，准备合同不是完成证据。源数据/所有旧checkpoint及结果保护。阶段截止21:48:09不替代原23:55:15计算、次日00:05:15绝对截止；资源保护与test22隔离不变。
+
 ## 2026-11-13 18:45 当前contact A/B复验分母补齐
 
 只在新`ab_replication_completion_01`运行contact A对应的20固定完整自主机会，原B contact20与previous20均不重复。完全复用B contact计划/seed/reset与评估代码，禁止修改pair、补拒绝、结果驱动扩展或混入旧10例分母；previous保持B版本诊断。训练增量公平审计启动前/完成后均保留，完成收据核对真实机会和合法分母；不匹配结果保留并标注，禁止强行通过。A事后补齐和历史曝光不等仍是局限。1h子预算、独立systemd cgroup、原计算/绝对截止、资源保护与test22隔离不变，无额外训练或采集。

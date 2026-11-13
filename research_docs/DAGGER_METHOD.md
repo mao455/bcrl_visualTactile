@@ -1,3 +1,13 @@
+## 2026-11-13 19:20 完整复验与后端重放分布实验
+
+`ab_replication_completion_01`已完成：相同20个新开发机会，contact A0/20、B0/20，全部合法，无软件失败；lift分别3/8、首子目标均0。原A0/10、B1/10与B previous0/20独立保存，不能混分母或宣称B稳定领先。A事后补齐、历史初始化/曝光不同仍须披露。
+
+下一独立`rear_replay_balance_01`不是新DAgger：冻结两组contact DP、对应完整commit12缓存与共同FY/可达中心化/128tick窗口/current-weight历史；只比较后端原50/20/30重放与按合法tick人口比例重放。实测旧后端current仅16条却12.879遍、history480条仅144条出现；这支持检验分布偏置，不证明零成功根因。真实记录与固定种子CPU预采样：原配比193690tick/319独立episode，history137/480、current12.930遍；人口比例193520tick/662独立episode，三个层均恰好1遍。预采样不算训练曝光，完成后必须核对真实账本。
+
+每种采样中A/B均从各自同一contact后端tensor重新建AdamW、共同1有效tick遍、固定最终endpoint评估；validation-best另存，不据结果选有利checkpoint。每cell10新开发seed27170000–09、共40机会，规格/自然结束/native成功标准相同，无替换或扩展。两个采样arm实际整episode取整与更新数可能不同，必须披露；A/B各arm内要求相等，不能称全历史公平或纯等更新因果。前端本次0更新、无新数据、无缓存刷新必要，不称DAgger或解决了全部DP覆盖。
+
+新增fairness显式`--frozen-frontend`：核验实际冻结SHA与后端初始化、准备合同不能冒充完成证据，DP新曝光报0而不复用旧514。28项CPU测试与真实prepare CLI通过，两arm准备审计通过；本节尚非启动证据。独立service最长到21:48:09，仍服从原23:55:15计算/次日00:05:15绝对截止。普通脚本只执行登记，下一判断交原真实Agent监督器。
+
 ## 2026-11-13 18:45 复验未重现成功，补齐当前完整策略A机会
 
 B current/previous在20个相同全新开发seed上均0/20合法完整成功；这不是稳定改善证据，也不证明FY或接触恢复的单独因果。避免立刻再加训练矩阵；先按最新公平要求只补齐冻结contact A的同20规格/seed，复用B现有结果，B previous与原10例cohort均独立保存。

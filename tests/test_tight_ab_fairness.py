@@ -56,6 +56,44 @@ class FairnessTests(unittest.TestCase):
         self.assertTrue(audit(self.root)['matched_increment_passed'])
         self.assertTrue(audit(self.root,complete=False)['matched_increment_passed'])
 
+    def frozen_fixture(self):
+        frozen = {}
+        for group in ('QG01', 'G01'):
+            checkpoint = self.root / group / 'best.pt'
+            checkpoint.write_bytes(group.encode())
+            hashed = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+            rear_path = group + '/backend/' + group + '/training/configuration.json'
+            rear = json.loads((self.root / rear_path).read_text())
+            rear.update(base_sha256=hashed, continuation_from=dict(path=str(checkpoint), sha256=hashed),
+                continuation_optimizer_policy='fresh', evaluation_selection_policy='endpoint')
+            cache_path = group + '/backend/' + group + '/nominal/index.json'
+            self.change(cache_path, 'base_sha256', hashed)
+            rear['cache_index_sha256'] = hashlib.sha256((self.root / cache_path).read_bytes()).hexdigest()
+            self.save(rear_path, rear)
+            frozen[group] = dict(checkpoint=str(checkpoint), sha256=hashed, new_optimizer_updates=0)
+        self.save('frozen_frontends.json', frozen)
+
+    def test_frozen_frontend_reports_zero_new_dp_exposure(self):
+        self.frozen_fixture()
+        result = audit(self.root, frozen_frontend=True)
+        self.assertTrue(result['matched_increment_passed'])
+        self.assertEqual(result['actual']['G01']['dp_updates'], 0)
+        self.assertEqual(result['actual']['QG01']['dp_target_slots'], 0)
+
+    def test_frozen_frontend_checks_actual_checkpoint(self):
+        self.frozen_fixture()
+        (self.root / 'G01/best.pt').write_bytes(b'drift')
+        self.assertIn('G01.frozen_frontend', audit(self.root, frozen_frontend=True)['failed'])
+
+    def test_frozen_prepared_contract_is_not_completed_evidence(self):
+        self.frozen_fixture()
+        for group in ('QG01', 'G01'):
+            directory = self.root / group / 'backend' / group
+            (directory / 'training/configuration.json').rename(directory / 'prepared_training_contract.json')
+        self.assertTrue(audit(self.root, complete=False, frozen_frontend=True)['matched_increment_passed'])
+        with self.assertRaises(FileNotFoundError):
+            audit(self.root, complete=True, frozen_frontend=True)
+
     def test_equal_updates_cannot_hide_unequal_exposure(self):
         self.change('G01/backend/G01/training/finished.json','supervised_ticks',193580)
         self.assertIn('rear_done.supervised_ticks',audit(self.root)['failed'])

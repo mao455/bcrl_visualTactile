@@ -1,3 +1,9 @@
+## 2026-11-13 19:20 A/B新20例复验均0成功
+
+补齐已完成：contact A0/20、B0/20，合法分母各20，lift3/8，首子目标均0，无软件失败。对应相同规格/seed；事后补齐和历史初始化/曝光不同仍有限制。原10例A0/10、B1/10不合并；B previous0/20单列。现有成功没有稳定复现，不采用单例成功作为优势结论。
+
+登记`rear_replay_balance_01`冻结DP/cache，仅后端原重采样与人口比例两arm，各A/B1遍＋固定10完整学生机会。旧history实际144/480、current16条12.879遍；新人口比例预采样662/662独立episode，尚非实际训练。28测试与两准备fairness通过，尚待启动验收。详见DAGGER_METHOD页首与[evidence](evidence/tight_execution_learning_20261113/replay_balance/registration_summary.json)。所有原截止、执行器与test22隔离不变。
+
 ## 2026-11-13 18:48 固定A补齐已真实运行
 
 首个完整DP+Transformer自主case已到tick400，owner/source/资源/独立服务均实际验收；新20例尚未完成，不能把启动作为成功证据。见[启动收据](evidence/tight_execution_learning_20261113/ab_replication_completion/startup_acceptance.json)。原B当前/上一版本各0/20及旧B1/10仍各自单列。

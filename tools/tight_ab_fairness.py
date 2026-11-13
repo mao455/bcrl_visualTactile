@@ -13,15 +13,19 @@ def digest(value):
     return hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()
 
 
-def audit(round_root, *, complete=True):
+def audit(round_root, *, complete=True, frozen_frontend=False):
     root = Path(round_root)
     checks = {}
     groups = {}
+    frozen = read(root / 'frozen_frontends.json') if frozen_frontend else None
     for group in ('QG01', 'G01'):
         job = root / group
+        rear_path = job / 'backend' / group / 'training/configuration.json'
+        if frozen_frontend and not complete and not rear_path.exists():
+            rear_path = job / 'backend' / group / 'prepared_training_contract.json'
         groups[group] = dict(
             dp=read(job / 'dp/training/configuration.json'),
-            rear=read(job / 'backend' / group / 'training/configuration.json'),
+            rear=read(rear_path),
             data=read(job / 'dp/state_data/data.json'),
             cache=read(job / 'backend' / group / 'nominal/index.json'),
             plan=read(job / 'backend/evaluation_plan.json'))
@@ -47,6 +51,18 @@ def audit(round_root, *, complete=True):
                    'residual_hz', 'horizon', 'commit', 'tbptt_ticks'])
     equal('cache', ['sampler', 'inputs', 'supervision_mask_sha256',
                     'residual_statistics_sha256', 'residual_normalization_identity'])
+    if frozen_frontend:
+        equal('rear', ['continuation_optimizer_policy', 'evaluation_selection_policy'])
+        for group, record in groups.items():
+            binding = frozen[group]
+            checks[f'{group}.frozen_frontend'] = (
+                binding['new_optimizer_updates'] == 0
+                and Path(binding['checkpoint']).resolve() == Path(record['rear']['base_checkpoint']).resolve()
+                and hashlib.sha256(Path(binding['checkpoint']).read_bytes()).hexdigest()
+                == binding['sha256'] == record['rear']['base_sha256'])
+            source = record['rear']['continuation_from']
+            checks[f'{group}.rear_initialization'] = (
+                hashlib.sha256(Path(source['path']).read_bytes()).hexdigest() == source['sha256'])
     # Plans embed different group names; the externally specified opportunity must agree.
     plans = [[{'identity': row['identity'], 'spec': row['spec']} for row in g['plan']]
              for g in (a, b)]
@@ -77,8 +93,8 @@ def audit(round_root, *, complete=True):
             g['receipt'] = read(job / 'backend/evaluation_complete.json')
             checks[f'{group}.selected_frontend_pair'] = (
                 Path(g['dp_done']['best_checkpoint']).resolve() == Path(g['rear']['base_checkpoint']).resolve())
-            counters[group] = dict(dp_updates=g['dp_done']['updates'],
-                dp_target_slots=g['dp_done']['supervised_target_ticks'],
+            counters[group] = dict(dp_updates=0 if frozen_frontend else g['dp_done']['updates'],
+                dp_target_slots=0 if frozen_frontend else g['dp_done']['supervised_target_ticks'],
                 rear_updates=g['rear_done']['updates'], rear_ticks=g['rear_done']['supervised_ticks'],
                 completed=g['eval']['completed'], successes=g['eval']['successes'])
             checks[f'{group}.complete'] = (g['dp_done']['target_reached']
@@ -94,6 +110,7 @@ def audit(round_root, *, complete=True):
         equal('rear_done', ['updates', 'supervised_ticks', 'coverage'])
         checks['evaluation.same_valid_denominator'] = a['eval']['valid'] == b['eval']['valid']
     return dict(version='matched_increment_ab_audit_v1', phase='completed' if complete else 'prepared',
+        frontend_mode='frozen_existing_pair_zero_new_updates' if frozen_frontend else 'incremental_training',
         matched_increment_passed=all(checks.values()), checks=checks,
         failed=[k for k, v in checks.items() if not v], actual=counters,
         same_plan_digest=digest(plans[0]) if plans[0] == plans[1] else None,
@@ -110,9 +127,10 @@ def main():
     parser.add_argument('--round', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--prepared', action='store_true')
+    parser.add_argument('--frozen-frontend', action='store_true')
     args = parser.parse_args()
     try:
-        result = audit(args.round, complete=not args.prepared)
+        result = audit(args.round, complete=not args.prepared, frozen_frontend=args.frozen_frontend)
     except (OSError, ValueError, KeyError, TypeError) as exc:
         result = dict(matched_increment_passed=False, failed=['missing_or_invalid_evidence'],
                       actual={}, error=type(exc).__name__)

@@ -1,0 +1,138 @@
+{
+  "status": "prepared_not_started",
+  "started_utc": 1794568689.5333683,
+  "stage_deadline": 1794577689.5333683,
+  "compute_deadline": 1794585315.106664,
+  "absolute_deadline": 1794585915.106664,
+  "hypothesis": "Current16 corrections received12.879 exposures while only144/480 historical episodes appeared. Test population-proportional rear replay against another equal-budget old-mixture increment; stable success benefit is unproven.",
+  "weights": {
+    "control": {
+      "core": 0.5,
+      "historical_correction": 0.2,
+      "current_correction": 0.3
+    },
+    "population": {
+      "core": 0.28623398098387764,
+      "historical_correction": 0.6905126085159157,
+      "current_correction": 0.023253410500206698
+    }
+  },
+  "optimizer": "fresh AdamW from the same per-group selected contact tensors in both arms; exact resume within an attempt only",
+  "selection": "fixed final trained endpoint in all four cells; validation-best retained separately, never outcome-dependent adoption",
+  "limits": [
+    "All-history initialization differs between A/B.",
+    "Whole-episode rounding and optimizer counts can differ across sampling arms; report actual counts, not exact equal-update causality.",
+    "Frozen frontends/cache; this tests rear weighting only and is not DAgger or an all-module coverage fix.",
+    "Ten development opportunities per cell, no test22, no outcome-dependent expansion."
+  ],
+  "new_frontend_updates": 0,
+  "total_evaluations": 40,
+  "test22": false,
+  "prospective_coverage": {
+    "control": {
+      "supervised_ticks": 193690,
+      "unique_episodes": 319,
+      "repeated_samples": 315,
+      "episode_draws": 634,
+      "strata": {
+        "core": {
+          "supervised_tick_population": 55392,
+          "supervised_ticks": 96773,
+          "unique_supervised_ticks": 55392,
+          "repeated_supervised_ticks": 41381,
+          "actual_fraction": 0.49962827198100057,
+          "requested_fraction": 0.5,
+          "effective_tick_exposures": 1.747057336799538,
+          "unique_episodes": 166,
+          "episode_population": 166,
+          "episode_draws": 290,
+          "repeated_samples": 124,
+          "initial_24_supervised_tick_draws": 6960
+        },
+        "historical_correction": {
+          "supervised_tick_population": 133628,
+          "supervised_ticks": 38733,
+          "unique_supervised_ticks": 38733,
+          "repeated_supervised_ticks": 0,
+          "actual_fraction": 0.19997418555423616,
+          "requested_fraction": 0.2,
+          "effective_tick_exposures": 0.28985691621516446,
+          "unique_episodes": 137,
+          "episode_population": 480,
+          "episode_draws": 137,
+          "repeated_samples": 0,
+          "initial_24_supervised_tick_draws": 3288
+        },
+        "current_correction": {
+          "supervised_tick_population": 4500,
+          "supervised_ticks": 58184,
+          "unique_supervised_ticks": 4500,
+          "repeated_supervised_ticks": 53684,
+          "actual_fraction": 0.3003975424647633,
+          "requested_fraction": 0.3,
+          "effective_tick_exposures": 12.929777777777778,
+          "unique_episodes": 16,
+          "episode_population": 16,
+          "episode_draws": 207,
+          "repeated_samples": 191,
+          "initial_24_supervised_tick_draws": 4968
+        }
+      }
+    },
+    "population": {
+      "supervised_ticks": 193520,
+      "unique_episodes": 662,
+      "repeated_samples": 0,
+      "episode_draws": 662,
+      "strata": {
+        "core": {
+          "supervised_tick_population": 55392,
+          "supervised_ticks": 55392,
+          "unique_supervised_ticks": 55392,
+          "repeated_supervised_ticks": 0,
+          "actual_fraction": 0.28623398098387764,
+          "requested_fraction": 0.28623398098387764,
+          "effective_tick_exposures": 1.0,
+          "unique_episodes": 166,
+          "episode_population": 166,
+          "episode_draws": 166,
+          "repeated_samples": 0,
+          "initial_24_supervised_tick_draws": 3984
+        },
+        "historical_correction": {
+          "supervised_tick_population": 133628,
+          "supervised_ticks": 133628,
+          "unique_supervised_ticks": 133628,
+          "repeated_supervised_ticks": 0,
+          "actual_fraction": 0.6905126085159157,
+          "requested_fraction": 0.6905126085159157,
+          "effective_tick_exposures": 1.0,
+          "unique_episodes": 480,
+          "episode_population": 480,
+          "episode_draws": 480,
+          "repeated_samples": 0,
+          "initial_24_supervised_tick_draws": 11520
+        },
+        "current_correction": {
+          "supervised_tick_population": 4500,
+          "supervised_ticks": 4500,
+          "unique_supervised_ticks": 4500,
+          "repeated_supervised_ticks": 0,
+          "actual_fraction": 0.023253410500206698,
+          "requested_fraction": 0.023253410500206698,
+          "effective_tick_exposures": 1.0,
+          "unique_episodes": 16,
+          "episode_population": 16,
+          "episode_draws": 16,
+          "repeated_samples": 0,
+          "initial_24_supervised_tick_draws": 384
+        }
+      }
+    }
+  },
+  "tests": {
+    "passed": 28,
+    "seconds": 2.09,
+    "warning": "existing requests dependency version warning"
+  }
+}
