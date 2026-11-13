@@ -1,3 +1,8 @@
+# 2026-11-13 10:30 最新自主科研授权
+
+用户明确撤销旧提示词中200/800/1600、双组门槛、候选/架构/两轮等机械限制；研究方法、训练、采样与流程由证据决定，FY不是必选。硬约束仍是原数据/历史证据、其他任务、冻结worker、原物理执行/成功标准、A=q_reached+既定几何/B=u_expert/后端最终u_expert、test22隔离和原绝对截止。优先完成当前adaptive_recovery_01训练与完整闭环，然后真实Agent判断下一实验，不盲接定向DAgger。
+独立tools/tight_research_supervisor按事件监控并用本机codex exec重新调用真实Agent；当前worker源码只读。最后G01完整评估运行时只暂停协调owner，评估子进程正常结束后有序退出owner，把下一步交给Agent。故障/无进展需读actual状态判断；代码fault进入诊断，恢复不重复已完成更新/试验。原截止计算11月13日23:55:15、绝对次日00:05:15 UTC+8不变。后续准确状态另读同run/agent_supervisor/status.json及latest_decision.json，不将有意交接的InterruptedError误判为实验失效。
+
 # 2026-11-13 09:55 接续故障恢复
 
 旧adaptive短训完成，tail_tuned1600 A原门槛过/B未过；full follow因遗漏CLI --job/--output在03:04退出，0正式更新，无新自主结果。旧owner/publisher均退出并完成推送。只修CLI/编排，独立adaptive_recovery_01复用所有probe并固定round01 pair/cache，按剩余预算再登记共同6/3/1曝光，不重置原计算23:55:15/绝对次日00:05:15。真实参数解析测试后启动并确认实际更新；旧失败现场全部保留。状态必须读新root follow_status/progress，不用旧adaptive/status最后RUNNING。发布仍origin/feature/tight-state-foundation，无force。

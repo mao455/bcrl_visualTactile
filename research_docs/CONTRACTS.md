@@ -1,3 +1,7 @@
+### 2026-11-13 10:40 最新自主科研覆盖
+
+下文固定更新数、双门槛、候选和两轮上限均是历史实验设计，最新用户授权允许按实际证据自主修订，不作为停止研究的机械条件。当前训练与完整闭环优先完成；独立事件监督只监测和交接，真实Agent决定后续实验。原始数据/历史证据、无关任务、冻结源码、物理执行与成功标准、A=q_reached＋既定几何/B=u_expert/后端最终u_expert、test22隔离、资源储备和原计算/绝对截止仍为硬约束。参见[DAGGER_METHOD](DAGGER_METHOD.md#execution-learning-repair)及[最新交接](SESSION_HANDOFF.md)。
+
 ### 2026-11-13 自主修复补充：提案尾部与有界接续
 
 新 `output_contract=reachable_tanh_linear_tail_v1` 独立于loss/history/执行器版本。阈值c=atanh(.95)，中心z_c=clip(z,-c,c)，rad斜率k=max((scales/action_scale)*(1-.95²), upper-lower)。delta=scales*tanh(z_c)+action_scale*k*(z-z_c)。中心区数学及Tensor输出保持旧行为；尾部是真实线性导数，没有STE。提案域不再被旧归一化幅度截断，最终joint clamp和expert_reachable_postprocessed_v1完全保留。A/B同原则；历史缺字段仍用旧tanh。旧权重可显式热启动，output身份变更须实际训练后才能作开发验证，不作为旧模型静默解释。现有loss版本允许明确记录0到1e-4的残差正则权重，其他FY常量保持；缺字段旧行为不变。
