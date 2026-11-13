@@ -1,19 +1,19 @@
 # Tight-Insertion 自动进度
 
-证据读取时间：2026-11-13T19:09:28+08:00。
+证据读取时间：2026-11-13T19:11:34+08:00。
 
 本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
 每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
 
-当前阶段：`ab_replication_completion_01`；状态：`{"batch": 1, "group": "QG01", "stage": "frozen_A_cohort_completion", "state": "RUNNING"}`。
-完成凭据：False；失败凭据：False。
+当前阶段：`ab_replication_completion_01`；状态：`{"stage": "awaiting_research_decision", "state": "COMPLETE"}`。
+完成凭据：True；失败凭据：False。
 
 公平规则见 [AB_COMPARISON_POLICY](AB_COMPARISON_POLICY.md)。最近 contact 周期增量审计：通过；历史初始化/曝光仍不等同。
 
 | 评估队列 | 范围 | 已完成/计划 | 合法 | 已观察成功 | 整队列完成 |
 | --- | --- | ---: | ---: | ---: | --- |
 | `ab_replication_completion_01/batch_00_contact/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | True |
-| `ab_replication_completion_01/batch_01_contact/QG01` | new stage; A/B comparability requires its own audit | 8/10 | 8 | 0 | False |
+| `ab_replication_completion_01/batch_01_contact/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | True |
 | `adaptive_contact_recovery_01/round_01/G01/backend/G01` | A/B matched increment | 10/10 | 10 | 1 | True |
 | `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | A/B matched increment | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_00_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
