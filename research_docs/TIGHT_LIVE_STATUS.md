@@ -1,6 +1,6 @@
 # Tight-Insertion 自动进度
 
-证据读取时间：2026-11-13T21:23:24+08:00。
+证据读取时间：2026-11-13T21:28:31+08:00。
 
 本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
 每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
@@ -14,7 +14,6 @@
 | --- | --- | ---: | ---: | ---: | --- |
 | `adaptive_contact_recovery_01/round_01/G01/backend/G01` | A/B matched increment | 10/10 | 10 | 1 | True |
 | `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | A/B matched increment | 10/10 | 10 | 0 | True |
-| `rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 2/10 | 2 | 0 | False |
 | `success_replication_01/batch_00_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_00_previous/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_01_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
@@ -33,6 +32,6 @@
 | `rear_span_metric_eval_recovery_02/span/G01/backend/G01` | 1314 | 193520 |
 | `rear_span_metric_eval_recovery_02/span/QG01/backend/QG01` | 1314 | 193520 |
 
-未通过凭据检查的条目：0；此类条目不发布成功统计。
+未通过凭据检查的条目：1；此类条目不发布成功统计。
 
 [机器可读证据](evidence/tight_execution_learning_20261113/live_status.json)。脚本不上传原数据、模型或视频；网络失败保留待发布状态，恢复后重试。

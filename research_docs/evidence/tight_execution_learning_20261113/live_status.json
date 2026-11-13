@@ -29,19 +29,6 @@
       "valid": 10
     },
     {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": false,
-      "completed": 2,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 1,
-      "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "f3ba869b06b3b5491b067b68bb53bd3defddd228d9b2d1a49e057f24284963de",
-      "valid": 2
-    },
-    {
       "comparison": "B current/previous only; not A/B",
       "complete": true,
       "completed": 10,
@@ -94,7 +81,12 @@
       "valid": 10
     }
   ],
-  "evidence_errors": [],
+  "evidence_errors": [
+    {
+      "error": "KeyError",
+      "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/evaluation_summary.json"
+    }
+  ],
   "failure_record_present": false,
   "fairness": {
     "actual": {
@@ -129,7 +121,7 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794576204.8468738,
+  "published_utc": 1794576511.3519518,
   "session": "tight_execution_learning_20261113_01",
   "state": {
     "group": "QG01",
