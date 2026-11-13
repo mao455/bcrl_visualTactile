@@ -104,6 +104,12 @@ Arm1e-4rad/Hand1e-3rad误差容差下，误差存在但主拟合对u_pre局部�
 <a id="execution-learning-repair"></a>
 ## 4.2 2026-11-13：执行等价主监督与输出域修复（自主有界实验）
 
+**11:25真实Agent接续：单一中心化条件提案实验，尚无结果。** 已读独立监督的`initial_boundary.json`：旧`adaptive_recovery_01`两组均完成7017更新、各10次完整DP＋Transformer开发，A/B完整成功均0，native lift分别2/1，alignment均0，无软件失败。两组update0都优于训练endpoint；旧owner的InterruptedError来自评估结束后的有意交接，不是新故障。不重复已完成cohort，也不自动进入旧定向DAgger。
+
+新身份`adaptive_centered_01`检验“将大绝对名义误差抵消到窄可达区间导致条件化不良”这一未证实假设。设理想既定可达区间`[l,h]`、`a=clip(u_nominal,l,h)`，新提案`u_pre=a+(h-l)*z`，再走完全相同joint clamp与实际执行器；输出身份`reachable_nominal_centered_linear_v1`。非退化区间中每个合法目标均有`z*=(u_expert-a)/(h-l)`且`|z*|<=1`；logit的真实导数为区间宽度，不是STE。FY仍提供错误饱和区的方向梯度；区间宽度0时没有可纠正自由度。直接构造u_pre，delta仅为与原nominal的差，不再通过大数相减恢复u_pre。DP仍作为前端计划/Transformer输入及投影锚点，A/B标签、几何、物理、速度与最终成功标准不变。
+
+隔离`bc+rl_RSS_centered_01`，不改活动supervisor或旧冻结源码。从同一原round01完整pair初始化所有已有参数（不重置head），复用各自完整不可变cache；FY reg0、LR1e-4、AdamW/采样/当前权重prefix保持恢复实验设置。只改变提案参数化，先共同1有效tick遍，再离线和各10完整策略开发；这与旧3遍endpoint不是等曝光因果对照，旧1遍validation可作参考，但初始化输出已经改变。此阶段不采集、不更新前端，因此是后端参数化诊断而非新DAgger。若update0最优，训练endpoint仅诊断、不采用；已完成阶段后回交真实Agent，无自动追加。保留原计算23:55:15/绝对次日00:05:15，内部阶段至多2h，资源6GiB/14GiB/60GiB。旧`tanh_saturation`指标在新线性输出下只表示相对旧scales的幅度，不能再解释为tanh导数饱和。
+
 本次用户新授权覆盖4.1中已结束阶段的“不追加修复”限制，不能据此采用失败lambda1。
 隔离树`bc+rl_RSS_execution_fix`从远端`36587a3`建立；IDE旧树`3e11d62`及其中未提交文档不动。
 旧matched运行树HEAD为`8707757`，实际冻结源码仍`380a20b`，274文件SHA全部匹配。

@@ -238,3 +238,6 @@ imitation 将交互收集、轨迹保存与后续 BC 训练分离；其 Interact
 只推 `origin/feature/tight-state-foundation`；新小型结果写现有文档，大数据/权重/视频留本地。按实际依赖清理不再使用的旧代码、checkpoint、缓存和报告，记录文件数与实际释放量；保护原400/仍用Core、专家/资产、活动/排队依赖、选定及恢复模型和必要比较结果。不能整树删除仍被manifest引用的历史run，不通过归档搬家冒充删除。
 
 当前已完成的CPU数据与接口验收见 [SESSION_HANDOFF](SESSION_HANDOFF.md)。它不构成真实接管成功、正式训练完成或自主成功证据。
+# 2026-11-13 11:25 中心化提案显式契约
+
+`reachable_nominal_centered_linear_v1`仅为opt-in后端提案：实际前动作target定义理想可达box，投影nominal为锚点、box宽度乘raw；最终joint clamp/position adapter不变。原affine/scales缓冲及参数保留，但新输出不再以旧scales限制提案；历史幅度比不解释为tanh饱和。FY reg0保留真实非平坦梯度；非法/不可达标签仍拒绝，学生前缀不监督，test22不读。`adaptive_centered_01`只诊断后端，非DAgger，无采集、无前端更新；完整DP＋Transformer仍用于所有任务评估。新源码在隔离树，旧worker/supervisor冻结保护，原deadline不重置。

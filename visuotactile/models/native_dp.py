@@ -617,14 +617,18 @@ class TargetResidual(nn.Module):
         the bounded correction in command-normalizer units, not a command.
         Observed contact remains diagnostic and never becomes a hard switch.
         """
-        from ..residual_output import proposal_delta
+        from ..residual_output import proposal_delta,centered_proposal,REACHABLE_CENTERED_OUTPUT
         from ..execution_learning import is_projection_fy_loss,ideal_execution_bounds
         bounds=None
         if getattr(self,'output_contract',None) is not None or is_projection_fy_loss(self.loss_contract):
             if previous is None:raise ValueError('Conditional proposal requires actual previous target')
             bounds=ideal_execution_bounds(previous,limits,self.execution_adapter)
-        delta = proposal_delta(raw,self.scales,self.action_scale,bounds,getattr(self,'output_contract',None))
-        u_pre = base+delta/self.action_scale
+        if getattr(self,'output_contract',None)==REACHABLE_CENTERED_OUTPUT:
+            u_pre=centered_proposal(base,raw,bounds,self.output_contract)
+            delta=(u_pre-base)*self.action_scale
+        else:
+            delta = proposal_delta(raw,self.scales,self.action_scale,bounds,getattr(self,'output_contract',None))
+            u_pre = base+delta/self.action_scale
         u_joint = torch.maximum(torch.minimum(u_pre, limits[..., 1]), limits[..., 0])
         proposal = u_joint
         if self.execution_adapter is not None:

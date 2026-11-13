@@ -1,3 +1,9 @@
+## 2026-11-13 11:25 真实研究交接（覆盖下方旧owner自动FAILED汇总）
+
+旧恢复实验已合法完成：A/B各7017次更新、各10完整自主开发，成功0/10与0/10，lift2/1、alignment0/0、软件失败0。两组训练endpoint均未获采用。监督在最后评估子进程退出后有意终止协调owner；`InterruptedError`不构成新训练/评估失败。完整机器回执在原run的`agent_supervisor/initial_boundary.json`，不重复评估。
+
+真实Agent选择唯一有界`adaptive_centered_01`：投影名义锚点＋可达区间宽度缩放的线性提案，FY保留错误饱和区梯度；同原round01权重/cache，1有效tick遍后各10完整学生开发，不自动DAgger。方法/可证伪限制见DAGGER_METHOD 4.2。当前为准备态，实际启动以新root的`launch.json/status.json`和训练`progress.json`为准；任务结束再次交由现有supervisor调用真实Agent。原deadline、资源储备、test22隔离均未变。旧FAILED字段只保留历史现场，不是当前科研终局。
+
 <!-- EXECUTION_LEARNING_STATUS_START -->
 ## 2026-11-13 自主执行学习修复：实际状态
 
