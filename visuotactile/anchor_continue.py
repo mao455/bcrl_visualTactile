@@ -1028,7 +1028,8 @@ def residual_setup(root, *, selected=False, smoke=False):
     if index['base_sha256']!=base['sha256'] or index['data_sha256']!=sha256(root/'state_data/data.json'):
         raise ValueError('Nominal cache identity mismatch')
     residual_statistics_path=Path(v['residual_statistics_path'])
-    residual_normalization_identity='u_expert_train166_affine_v1'
+    from .fresh_contracts import residual_normalization
+    residual_normalization_identity=residual_normalization(read(root/'state_data/data.json'),v)
     if not residual_statistics_path.is_absolute():raise ValueError('Residual statistics path must be absolute')
     residual_data=read(residual_statistics_path.parent/'data.json')
     if residual_data.get('normalization_identity')!=residual_normalization_identity:
@@ -1223,7 +1224,7 @@ def residual_train(root, *, smoke=False, probe=False):
     window=(ResidualTickWindow(v['tick_window_contract']) if v.get('tick_window_contract') else None)
     device=next(model.parameters()).device
     ids=probe_ids if probe else data['splits']['train']
-    vals=data['splits']['validation'][:4]
+    vals=data['splits']['validation'] if v.get('fresh_data_contract') else data['splits']['validation'][:4]
     devs=data['splits'].get('correction_dev',[])
     strata=data.get('sampling_strata') if not disposable else None
     if strata and not devs:raise ValueError('Multi-round residual selection requires held correction_dev episodes')
