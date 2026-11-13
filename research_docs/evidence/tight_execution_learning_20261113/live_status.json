@@ -1,7 +1,20 @@
 {
   "absolute_deadline_utc": 1794585915.106664,
-  "completion_record_present": true,
+  "completion_record_present": false,
   "evaluations": [
+    {
+      "comparison": "new stage; A/B comparability requires its own audit",
+      "complete": false,
+      "completed": 2,
+      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
+      "native_lifts": 0,
+      "path": "ab_replication_completion_01/batch_00_contact/QG01/evaluation_summary.json",
+      "planned": 10,
+      "software_failures": 0,
+      "successes": 0,
+      "summary_sha256": "401eb79f41538b49473cb06ab31b8a90d713438ab0a4e58a8ba3c75e641f2cb8",
+      "valid": 2
+    },
     {
       "comparison": "A/B matched increment",
       "complete": true,
@@ -116,11 +129,13 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794566392.6514294,
+  "published_utc": 1794567000.3469498,
   "session": "tight_execution_learning_20261113_01",
   "state": {
-    "stage": "awaiting_research_decision",
-    "state": "COMPLETE"
+    "batch": 0,
+    "group": "QG01",
+    "stage": "frozen_A_cohort_completion",
+    "state": "RUNNING"
   },
   "training": [
     {
@@ -149,5 +164,5 @@
     }
   ],
   "version": 1,
-  "watch": "success_replication_01"
+  "watch": "ab_replication_completion_01"
 }
