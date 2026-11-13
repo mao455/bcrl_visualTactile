@@ -59,6 +59,7 @@ def prepare_aggregate(root, collection, output):
     (output/'shared_resources.json').symlink_to(root/'shared_resources.json')
     for role in ['A','B']:
         destination=output/role;destination.mkdir()
+        (destination/'shared_resources.json').symlink_to(root/'shared_resources.json')
         data=build_dagger_aggregate(root/role/'state_data',entries,destination/'state_data',
             'q_reached' if role=='A' else 'u_expert',include_geometry=role=='A',include_frontend_tactile=False)
         residual_normalization(data,dict(fresh_data_contract=FRESH_AGGREGATE_CONTRACT))
