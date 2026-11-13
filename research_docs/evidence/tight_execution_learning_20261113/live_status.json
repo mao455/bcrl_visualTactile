@@ -29,6 +29,19 @@
       "valid": 10
     },
     {
+      "comparison": "new stage; A/B comparability requires its own audit",
+      "complete": false,
+      "completed": 2,
+      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
+      "native_lifts": 1,
+      "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/evaluation_summary.json",
+      "planned": 10,
+      "software_failures": 0,
+      "successes": 0,
+      "summary_sha256": "f3ba869b06b3b5491b067b68bb53bd3defddd228d9b2d1a49e057f24284963de",
+      "valid": 2
+    },
+    {
       "comparison": "B current/previous only; not A/B",
       "complete": true,
       "completed": 10,
@@ -82,7 +95,7 @@
     }
   ],
   "evidence_errors": [],
-  "failure_record_present": true,
+  "failure_record_present": false,
   "fairness": {
     "actual": {
       "G01": {
@@ -116,11 +129,12 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794575536.1508021,
+  "published_utc": 1794576204.8468738,
   "session": "tight_execution_learning_20261113_01",
   "state": {
-    "stage": "recovery_requires_diagnosis",
-    "state": "FAILED"
+    "group": "QG01",
+    "stage": "complete_student_development",
+    "state": "RUNNING"
   },
   "training": [
     {
@@ -148,30 +162,30 @@
       "updates": 514
     },
     {
-      "path": "rear_span_metric_eval_recovery_01/reference/G01/backend/G01/training/finished.json",
+      "path": "rear_span_metric_eval_recovery_02/reference/G01/backend/G01/training/finished.json",
       "supervised_ticks": 193520,
       "target_reached": true,
       "updates": 1314
     },
     {
-      "path": "rear_span_metric_eval_recovery_01/reference/QG01/backend/QG01/training/finished.json",
+      "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/training/finished.json",
       "supervised_ticks": 193520,
       "target_reached": true,
       "updates": 1314
     },
     {
-      "path": "rear_span_metric_eval_recovery_01/span/G01/backend/G01/training/finished.json",
+      "path": "rear_span_metric_eval_recovery_02/span/G01/backend/G01/training/finished.json",
       "supervised_ticks": 193520,
       "target_reached": true,
       "updates": 1314
     },
     {
-      "path": "rear_span_metric_eval_recovery_01/span/QG01/backend/QG01/training/finished.json",
+      "path": "rear_span_metric_eval_recovery_02/span/QG01/backend/QG01/training/finished.json",
       "supervised_ticks": 193520,
       "target_reached": true,
       "updates": 1314
     }
   ],
   "version": 1,
-  "watch": "rear_span_metric_eval_recovery_01"
+  "watch": "rear_span_metric_eval_recovery_02"
 }
