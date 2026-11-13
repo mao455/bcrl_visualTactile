@@ -1,3 +1,5 @@
+**2026-11-13控制步自查已完成，contact-recovery仍正常训练。** [逐步使用方式、真实phase覆盖与复杂度结论](DAGGER_METHOD.md)见页首；下方旧FAILED块仅属历史owner，不能代替当前状态。旧遗漏修复已启用，当前A update300新增目标已见150/210；没有重启训练。
+
 <!-- EXECUTION_LEARNING_STATUS_START -->
 ## 2026-11-13 自主执行学习修复：实际状态
 
