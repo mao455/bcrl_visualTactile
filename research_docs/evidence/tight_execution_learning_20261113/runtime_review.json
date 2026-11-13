@@ -1,0 +1,676 @@
+{
+  "created_utc": 1794581963.686041,
+  "scope": "Eight diagnostic starts, zero new training. Existing span-dose cohort continues independently.",
+  "groups": {
+    "A": "QG01 experimental: q_reached + hand geometry + Transformer; shared palm pose loss also present",
+    "B": "G01 control: u_expert DP + Transformer"
+  },
+  "original_success": {
+    "seed": 27150001,
+    "tick": 274,
+    "checkpoint_sha256": "9b9476340d54c6f0de9f7d03f64e2f2f0bf31cfffa68c1d7f8226f46079b42ed",
+    "trace_sha256": "2d8261c66db0798c972cb27a00fa19ca9e5550f700428a1ee306d1ae89db5737",
+    "preserved": true
+  },
+  "initializations": {
+    "baseline": {
+      "total_s": 14.09723560186103,
+      "components": {
+        "environment_create_s": 4.599706304026768,
+        "expert_load_s": 0.3167224139906466
+      }
+    },
+    "optimized": {
+      "total_s": 19.746390390209854,
+      "components": {
+        "environment_create_s": 5.622102469904348,
+        "expert_load_s": 0.38328187190927565
+      }
+    }
+  },
+  "cases": [
+    {
+      "phase": "baseline",
+      "name": "B_original",
+      "mode": "student",
+      "steps": 349,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": true,
+      "reasons": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "wall_s": 48.74256169912405,
+      "profile": {
+        "expert_inference_s": 4.312295957235619,
+        "environment_step_render_s": 24.580342178000137,
+        "numeric_write_s": 7.545982686104253,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 1.9584975431207567,
+        "through_result_s": 48.72739500296302,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.4856548155657947,
+        "render_s": 12.553620079066604,
+        "prepare_s": 0.3514806421007961,
+        "dino_construct_nested_s": 0.2047276538796723,
+        "controller_construct_s": 1.295173134887591,
+        "physics_step_s": 0.47012157551944256,
+        "scene_update_s": 2.0227348054759204
+      },
+      "policy_inference_s": 8.883375639794394,
+      "resource_wait_s": 0.21830878732725978,
+      "video": false
+    },
+    {
+      "phase": "baseline",
+      "name": "A_original",
+      "mode": "student",
+      "steps": 601,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "wall_s": 81.57554027694277,
+      "profile": {
+        "expert_inference_s": 7.649760803207755,
+        "environment_step_render_s": 42.92826711316593,
+        "numeric_write_s": 13.051586795132607,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 1.6168752750381827,
+        "through_result_s": 81.55841380893253,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.48855471913702786,
+        "render_s": 21.836757658515126,
+        "prepare_s": 0.09046685113571584,
+        "dino_construct_nested_s": 0.1949972400907427,
+        "controller_construct_s": 1.234635456930846,
+        "physics_step_s": 0.7939007626846433,
+        "scene_update_s": 3.471802298678085
+      },
+      "policy_inference_s": 13.869079595897347,
+      "resource_wait_s": 0.3717494031880051,
+      "video": false
+    },
+    {
+      "phase": "baseline",
+      "name": "B_previous",
+      "mode": "student",
+      "steps": 601,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "wall_s": 82.58977826614864,
+      "profile": {
+        "expert_inference_s": 7.9454528510104865,
+        "environment_step_render_s": 43.12604235019535,
+        "numeric_write_s": 13.094911338062957,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 1.5355099400039762,
+        "through_result_s": 82.57166875083931,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.4506024019792676,
+        "render_s": 21.58690592739731,
+        "prepare_s": 0.07710111304186285,
+        "dino_construct_nested_s": 0.1595077640376985,
+        "controller_construct_s": 1.2009876060765237,
+        "physics_step_s": 0.7932313384953886,
+        "scene_update_s": 3.5008509994950145
+      },
+      "policy_inference_s": 14.37658215034753,
+      "resource_wait_s": 0.3856594536919147,
+      "video": false
+    },
+    {
+      "phase": "baseline",
+      "name": "successful_branch_replay",
+      "mode": "replay",
+      "steps": 503,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "wall_s": 56.95841864799149,
+      "profile": {
+        "expert_inference_s": 8.252063358435407,
+        "environment_step_render_s": 36.71188412117772,
+        "numeric_write_s": 11.023684492800385,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 0.22659560106694698,
+        "through_result_s": 56.949864795897156,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.0,
+        "render_s": 17.918903921497986,
+        "prepare_s": 0.07449167291633785,
+        "dino_construct_nested_s": 0.0,
+        "controller_construct_s": 0.0,
+        "physics_step_s": 0.866498801857233,
+        "scene_update_s": 3.0321801966056228
+      },
+      "policy_inference_s": 0.0,
+      "resource_wait_s": 0.310591543558985,
+      "video": false
+    },
+    {
+      "phase": "optimized",
+      "name": "B_original",
+      "mode": "student",
+      "steps": 601,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": true,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "wall_s": 114.749764385866,
+      "profile": {
+        "expert_inference_s": 7.703728298889473,
+        "environment_step_render_s": 83.1826638749335,
+        "numeric_write_s": 1.5540982792153955,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 2.6739824421238154,
+        "through_result_s": 114.56824464397505,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.48836079705506563,
+        "render_s": 24.105017493478954,
+        "prepare_s": 0.48785063019022346,
+        "dino_construct_nested_s": 0.27553734299726784,
+        "controller_construct_s": 1.7891006239224225,
+        "physics_step_s": 0.9090841074939817,
+        "scene_update_s": 3.811688416171819
+      },
+      "policy_inference_s": 15.855937547748908,
+      "resource_wait_s": 0.4146512299776077,
+      "video": false
+    },
+    {
+      "phase": "optimized",
+      "name": "A_original",
+      "mode": "student",
+      "steps": 601,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "wall_s": 70.87733125197701,
+      "profile": {
+        "expert_inference_s": 5.974983738735318,
+        "environment_step_render_s": 45.38979776552878,
+        "numeric_write_s": 1.4307461821008474,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 1.918165089096874,
+        "through_result_s": 70.67320619011298,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.5375581721309572,
+        "render_s": 21.86828546365723,
+        "prepare_s": 0.08767841919325292,
+        "dino_construct_nested_s": 0.2406030900310725,
+        "controller_construct_s": 1.3239563959650695,
+        "physics_step_s": 0.8180454079993069,
+        "scene_update_s": 3.512650053948164
+      },
+      "policy_inference_s": 13.563392741139978,
+      "resource_wait_s": 0.371378683950752,
+      "video": false
+    },
+    {
+      "phase": "optimized",
+      "name": "B_branch_student",
+      "mode": "student",
+      "steps": 601,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": false,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "wall_s": 70.94464694801718,
+      "profile": {
+        "expert_inference_s": 6.511569483671337,
+        "environment_step_render_s": 45.97776761674322,
+        "numeric_write_s": 1.4498635921627283,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 1.593220136128366,
+        "through_result_s": 70.75038264715113,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.40119920508004725,
+        "render_s": 21.46530920965597,
+        "prepare_s": 0.07826649607159197,
+        "dino_construct_nested_s": 0.18661479302681983,
+        "controller_construct_s": 1.208303258055821,
+        "physics_step_s": 0.8077331196982414,
+        "scene_update_s": 3.5700785643421113
+      },
+      "policy_inference_s": 12.719531493727118,
+      "resource_wait_s": 0.37626447062939405,
+      "video": false
+    },
+    {
+      "phase": "optimized",
+      "name": "A_branch_student",
+      "mode": "student",
+      "steps": 601,
+      "success": false,
+      "native_subgoals": 0,
+      "native_lift": true,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "wall_s": 70.47795022884384,
+      "profile": {
+        "expert_inference_s": 6.071569443447515,
+        "environment_step_render_s": 45.20889660669491,
+        "numeric_write_s": 1.4495995775796473,
+        "compact_append_s": 0.0,
+        "finalize_verify_s": 0.0,
+        "setup_s": 1.4922061748802662,
+        "through_result_s": 70.27906046900898,
+        "scope": "Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded"
+      },
+      "components": {
+        "environment_create_s": 0.0,
+        "expert_load_s": 0.0,
+        "torch_load_nested_s": 0.4512325651012361,
+        "render_s": 21.057794207008556,
+        "prepare_s": 0.08119398611597717,
+        "dino_construct_nested_s": 0.18043352104723454,
+        "controller_construct_s": 1.1322386041283607,
+        "physics_step_s": 0.8428678207565099,
+        "scene_update_s": 3.5557215297594666
+      },
+      "policy_inference_s": 13.547060166252777,
+      "resource_wait_s": 0.3797988570295274,
+      "video": false
+    }
+  ],
+  "success_reproduction": {
+    "compared_ticks": 274,
+    "initial_observable_equal": true,
+    "fields": {
+      "command": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 0,
+        "first_step_max": 0.00979716144502163,
+        "max": 0.7604731321334839
+      },
+      "nominal": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 0,
+        "first_step_max": 0.009707856923341751,
+        "max": 0.802926778793335
+      },
+      "target": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 0,
+        "first_step_max": 0.00979716144502163,
+        "max": 0.7604731321334839
+      },
+      "joint": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 0,
+        "first_step_max": 0.0015585161745548248,
+        "max": 0.7931740283966064
+      },
+      "object": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 59,
+        "first_step_max": 0.0,
+        "max": 0.4950252175331116
+      },
+      "force": {
+        "equal": true,
+        "first_above_1e_minus6_zero_based": null,
+        "first_step_max": 0.0,
+        "max": 0.0
+      }
+    },
+    "limitation": "Same observable reset is not full PhysX/sensor/render state replay; no original images saved for first-plan input attribution"
+  },
+  "branch_command_replay": {
+    "compared_ticks": 503,
+    "initial_observable_equal": true,
+    "fields": {
+      "command": {
+        "equal": true,
+        "first_above_1e_minus6_zero_based": null,
+        "first_step_max": 0.0,
+        "max": 0.0
+      },
+      "target": {
+        "equal": true,
+        "first_above_1e_minus6_zero_based": null,
+        "first_step_max": 0.0,
+        "max": 0.0
+      },
+      "joint": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 81,
+        "first_step_max": 0.0,
+        "max": 0.5769915580749512
+      },
+      "object": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 79,
+        "first_step_max": 0.0,
+        "max": 0.7842825651168823
+      },
+      "force": {
+        "equal": false,
+        "first_above_1e_minus6_zero_based": 415,
+        "first_step_max": 0.0,
+        "max": 2.1989872455596924
+      }
+    },
+    "limitation": "Same observable reset is not full PhysX/sensor/render state replay; no original images saved for first-plan input attribution"
+  },
+  "writer_full_rollout": {
+    "before_s": 81.57554027694277,
+    "after_s": 70.87733125197701,
+    "before_numeric_s": 13.051586795132607,
+    "after_numeric_s": 1.4307461821008474,
+    "saved_wall_s": 10.69820902496576,
+    "saved_numeric_s": 11.62084061303176,
+    "scope": "A same seed/model601ticks; physical traces not exact and concurrent evaluator remains, not randomized pure speed effect",
+    "B_excluded": "different termination lengths and completed baseline Kit remained alive during part of optimized B; its114.75s is not speedup evidence"
+  },
+  "numeric_microbenchmark": {
+    "source": "outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_contact_recovery_01/round_01/G01/backend/G01/evaluation/palm_fresh_001/numeric.h5",
+    "steps": 274,
+    "fields": 132,
+    "input_bytes": 5147090,
+    "results": [
+      {
+        "mode": "legacy",
+        "seconds": 4.788508872035891,
+        "bytes": 6073442,
+        "exact_arrays": true
+      },
+      {
+        "mode": "buffer32",
+        "seconds": 0.42390884598717093,
+        "bytes": 6071977,
+        "exact_arrays": true
+      },
+      {
+        "mode": "legacy",
+        "seconds": 4.808284448925406,
+        "bytes": 6073442,
+        "exact_arrays": true
+      },
+      {
+        "mode": "buffer32",
+        "seconds": 0.41644721012562513,
+        "bytes": 6071977,
+        "exact_arrays": true
+      }
+    ]
+  },
+  "video_encoding": {
+    "frames": 503,
+    "reading_s": 1.8090566371101886,
+    "encoding_s": 6.132552128052339,
+    "closing_s": 0.13139337091706693,
+    "total_s": 8.07473819795996,
+    "decode_verify_s": 0.2695128610357642,
+    "verified": {
+      "decoded_frames": 503,
+      "frame_rate": 60.0,
+      "shape": [
+        316,
+        1344,
+        3
+      ],
+      "backend": "PyAV full RGB decode"
+    },
+    "scope": "CPU encoding actual saved three-camera503tick branch; no new rendering, simulation, training or success claim"
+  },
+  "branch_training": {
+    "utc": 1794580975.6765108,
+    "source": "bc+rl_RSS_span_dose_01 aadbad1",
+    "new_gpu_work": 0,
+    "checks": [
+      {
+        "group": "QG01",
+        "identity": "tight_dagger_20261111_01__G11__r1__dagger_r01_000__7fd6bba5108d",
+        "path": "<workspace>/outputs/visuotactile/run/tight_dagger_20261111_01/round_01/G11/episodes/dagger_r01_000/demonstration/data.h5",
+        "source_sha256": "cb6a3cd41d0283a5428b8b4c8f9e5aae9cc823223b4fdeffcdaef4ec425ce65d",
+        "raw_ticks": 503,
+        "record_ticks": 503,
+        "cache_ticks": 503,
+        "prefix_ticks": 60,
+        "first_valid": 62,
+        "expert_valid_ticks": 441,
+        "prefix_loss_ticks": 0,
+        "onset_anchor": 60,
+        "onset_target_ticks": [
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83
+        ],
+        "history_target_equal": true,
+        "clock_equal": true,
+        "legal_target_equal": true,
+        "cache_history_equal": true,
+        "cache_clock_equal": true,
+        "cache_mask_equal": true,
+        "cache_cursor_equal": true,
+        "cache_held_plan_shift_all": true,
+        "cache_shift_checks": 460,
+        "rear_target_equal": true,
+        "rear_first_actual_batch_valid_ticks": [
+          62,
+          63
+        ],
+        "q_label_data": "q_reached"
+      },
+      {
+        "group": "G01",
+        "identity": "tight_dagger_20261111_01__G11__r1__dagger_r01_000__7fd6bba5108d",
+        "path": "<workspace>/outputs/visuotactile/run/tight_dagger_20261111_01/round_01/G11/episodes/dagger_r01_000/demonstration/data.h5",
+        "source_sha256": "cb6a3cd41d0283a5428b8b4c8f9e5aae9cc823223b4fdeffcdaef4ec425ce65d",
+        "raw_ticks": 503,
+        "record_ticks": 503,
+        "cache_ticks": 503,
+        "prefix_ticks": 60,
+        "first_valid": 62,
+        "expert_valid_ticks": 441,
+        "prefix_loss_ticks": 0,
+        "onset_anchor": 60,
+        "onset_target_ticks": [
+          62,
+          63,
+          64,
+          65,
+          66,
+          67,
+          68,
+          69,
+          70,
+          71,
+          72,
+          73,
+          74,
+          75,
+          76,
+          77,
+          78,
+          79,
+          80,
+          81,
+          82,
+          83
+        ],
+        "history_target_equal": true,
+        "clock_equal": true,
+        "legal_target_equal": true,
+        "cache_history_equal": true,
+        "cache_clock_equal": true,
+        "cache_mask_equal": true,
+        "cache_cursor_equal": true,
+        "cache_held_plan_shift_all": true,
+        "cache_shift_checks": 460,
+        "rear_target_equal": true,
+        "rear_first_actual_batch_valid_ticks": [
+          62,
+          63
+        ],
+        "q_label_data": "u_expert"
+      }
+    ],
+    "limits": [
+      "CPU audit through real dataset and residual batch only; no new physical replay",
+      "Prefix action labels intentionally masked; no proof student learns prefix from this branch",
+      "Held-plan values checked, fresh DDIM inference not repeated"
+    ]
+  },
+  "timeline": {
+    "window": {
+      "start": "2026-11-13T12:30:00+08:00",
+      "end": "2026-11-13T22:30:00+08:00",
+      "seconds": 36000
+    },
+    "category_seconds": {
+      "transformer_training": 4610.234172344208,
+      "physical_evaluation": 12841.459601163864,
+      "dp_training": 6256.323812961578,
+      "cache_generation": 4936.283514261246,
+      "expert_collection": 1345.6548504829407,
+      "offline_diagnostics": 436.72223019599915,
+      "agent_analysis_active": 6346.5762140750885
+    },
+    "experiment_union_s": 30426.678181409836,
+    "agent_only_s": 4769.792923212051,
+    "unclassified_s": 803.5288953781128,
+    "recorded_training_wait_s": 53.28200932801701,
+    "limits": "No historical wall component split exists for physics/render/serialization/model load; Agent-active overlaps useful work. Resource wait_s is trainer-local; whole-card resources logs report monitoring wait_s, not worker wait."
+  },
+  "cleanup": {
+    "baseline": {
+      "reason": "All four trials durable; missing root result.json caused cleanup helper exception; no trial rerun",
+      "pid": 3091722,
+      "utc": 1794581527.9106429,
+      "requested_signal": "SIGTERM",
+      "sigkill_utc": 1794581648.4714317,
+      "reason_escalation": "SIGTERM did not release completed Kit worker; all trial files closed and numeric checked"
+    },
+    "baseline_reaped": {
+      "pid": 3091722,
+      "proc_absent": true,
+      "checked_utc": 1794581924.348245
+    },
+    "optimized_reaped": {
+      "pid": 3095805,
+      "proc_absent": true,
+      "checked_utc": 1794581924.3483965
+    }
+  },
+  "limits": [
+    "No stable success increase established",
+    "No new training or test22 use",
+    "Eight diagnostic starts are not new formal performance cohorts",
+    "Buffered diagnostic writer may lose last31rows on native process abort; ordinary exceptions flush and compact training recorder is unchanged",
+    "First baseline shutdown helper missed root result.json; fixed for subsequent runner, no trial rerun"
+  ],
+  "existing_worker_check": {
+    "utc": 1794582084.8302236,
+    "frozen_files": 313,
+    "drift": [],
+    "completed_opportunities": 13,
+    "successes": 0,
+    "still_running": true
+  }
+}

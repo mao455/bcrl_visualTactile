@@ -19,7 +19,7 @@ from .native_data import CAMERAS
 from .native_evaluation import client_startup_controls, make_env, kit_process_snapshot, exit_completed_kit_worker
 from .expert import create_expert, environment_identity, export_initial
 from .state_resources import lease_for
-from .recording import append_numeric
+from .recording import append_numeric, BufferedNumericWriter
 from .state_history import HistoryController
 from .state_motion import plan_metrics, distribution
 from .training_resources import atomic_json
@@ -484,7 +484,7 @@ def prepare(env, isolated, spec, source, output):
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
           inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
-          capture_compression='lzf', expert_checkpoint=None, dagger=None):
+          capture_compression='lzf', expert_checkpoint=None, dagger=None, numeric_buffer_steps=32):
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     dagger = dagger_configuration(dagger, spec, source) if dagger is not None else None
@@ -492,6 +492,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             or replay is not None or takeover_steps is not None or expert_speed is not None or expert_checkpoint is None):
         raise ValueError('DAgger requires a trained combined position student, compact capture and explicit expert identity')
     complete_identity = dagger_policy_identity(saved, checkpoint) if dagger is not None else None
+    trial_started = time.perf_counter()
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
     isolated = IsolatedEnvironment(env, spec['seed'])
@@ -538,11 +539,13 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             else:controller=NativeController(saved,metadata,dino=dino)
         else:
             controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
+    setup_wall_s = time.perf_counter()-trial_started
     rows = []; plans = []; raw_plans = []; timings = []; first_success_tick = None
     profile=dict(expert_inference_s=0.,environment_step_render_s=0.,numeric_write_s=0.,compact_append_s=0.,finalize_verify_s=0.)
     numeric = h5py.File(output/'numeric.h5', 'w')
     numeric.attrs['metadata_json'] = json.dumps(metadata, default=str)
     group = numeric.create_group('episode')
+    numeric_writer = BufferedNumericWriter(group, numeric_buffer_steps) if numeric_buffer_steps else None
     stream=None
     if capture_dataset:
         from .recording import CompactEpisodeStream,flatten,numpy_tree,verify_stream_fields
@@ -639,7 +642,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 before_packet = {k: v for k, v in packet.items() if torch.is_tensor(v)
                     and k not in ('image', 'depth_m', 'depth_valid')}
                 measured=time.perf_counter()
-                append_numeric(group, dict(obs=before_packet, transition=transition), tick)
+                if numeric_writer is None:
+                    append_numeric(group, dict(obs=before_packet, transition=transition), tick)
+                else:
+                    numeric_writer.append(dict(obs=before_packet, transition=transition), tick)
                 profile['numeric_write_s']+=time.perf_counter()-measured
                 if stream is not None:
                     measured=time.perf_counter()
@@ -694,6 +700,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 atomic_json(output/'progress.json', dict(tick=tick, utc=time.time()))
             if first_success_tick is not None or bool((terminated | truncated)[0]):
                 break
+        measured=time.perf_counter()
+        if numeric_writer is not None:numeric_writer.flush()
+        profile['numeric_write_s']+=time.perf_counter()-measured
         arrays = {k: np.stack([row[k] for row in rows]) for k in rows[0]}
         np.savez_compressed(output/'trace.npz', **arrays)
         if plans:
@@ -790,13 +799,16 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 result['dataset_capture'].update(sha256=sha256(output/'demonstration/data.h5'),
                     trajectory_kind='expert_takeover_v1', accepted_success=bool(
                         result['dagger']['expert_takeover_success'] and result['dagger']['expert_valid_ticks']>0))
-            result['wall_profile']=dict(profile,scope='Observed synchronous call wall times; env step includes physics, render and sensors; compact includes encode/I/O; resource waits excluded')
+        result['wall_profile']=dict(profile,setup_s=setup_wall_s,through_result_s=time.perf_counter()-trial_started,scope='Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O.')
         atomic_json(output/'result.json', result)
         return result
     finally:
         if bridge is not None and getattr(env, '_dagger_position_bridge', None) is bridge:
             del env._dagger_position_bridge
-        numeric.close()
+        try:
+            if numeric_writer is not None:numeric_writer.flush()
+        finally:
+            numeric.close()
         if raw_handle is not None:raw_handle.remove()
         if stream is not None and stream.file.id.valid:stream.file.close()
         if movie:

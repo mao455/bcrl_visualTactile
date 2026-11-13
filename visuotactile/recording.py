@@ -347,3 +347,55 @@ def append_numeric(group, values, step):
         dataset=group[name]
         dataset.resize(step+1,axis=0)
         dataset[step]=array
+
+
+class BufferedNumericWriter:
+    """Bounded diagnostic writes with the same arrays/schema as append_numeric.
+
+    Call flush before publishing a result and in the trial's finally block.
+    This writer owns no simulator state and never changes control cadence.
+    """
+    def __init__(self, group, buffer_steps=32):
+        if not isinstance(buffer_steps, int) or buffer_steps < 1:
+            raise ValueError('buffer_steps must be a positive integer')
+        self.group = group
+        self.buffer_steps = buffer_steps
+        self.datasets = {}
+        self.pending = {}
+        self.steps = 0
+        self.written = 0
+
+    def append(self, values, step):
+        if step != self.steps:
+            raise ValueError('Numeric diagnostics require consecutive zero-based steps')
+        row = {name: np.asarray(value)[0].copy()
+               for name, value in flatten(numpy_tree(values)).items()}
+        if not self.datasets:
+            for name, array in row.items():
+                parent, _, leaf = name.rpartition('/')
+                target = self.group.require_group(parent) if parent else self.group
+                self.datasets[name] = target.create_dataset(
+                    leaf, shape=(0, *array.shape), maxshape=(None, *array.shape),
+                    dtype=array.dtype, chunks=(1, *array.shape), compression='lzf')
+                self.pending[name] = []
+        if row.keys() != self.datasets.keys():
+            raise ValueError('Numeric diagnostic fields changed within a trial')
+        for name, array in row.items():
+            dataset = self.datasets[name]
+            if array.shape != dataset.shape[1:] or array.dtype != dataset.dtype:
+                raise ValueError(f'Numeric diagnostic shape/dtype changed: {name}')
+        for name, array in row.items():
+            self.pending[name].append(array)
+        self.steps += 1
+        if self.steps - self.written >= self.buffer_steps:
+            self.flush()
+
+    def flush(self):
+        if self.written == self.steps:
+            return
+        for name, arrays in self.pending.items():
+            dataset = self.datasets[name]
+            dataset.resize(self.steps, axis=0)
+            dataset[self.written:self.steps] = np.stack(arrays)
+            arrays.clear()
+        self.written = self.steps

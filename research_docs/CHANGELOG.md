@@ -1,3 +1,11 @@
+## 2026-11-13 — 真实运行计时与numeric批写
+
+- `visuotactile/recording.py`新增BufferedNumericWriter：同schema/dtype/value的32tick批写及显式flush；旧append_numeric保留。
+- `visuotactile/state_benchmark.py`默认使用bounded writer，成功统计读取前和finally刷尾；自主评估也输出wall_profile/setup/总耗时。控制、标签、60Hz/12tick、compact训练记录不变。
+- `tools/tight_runtime_probe.py`为一次性有限计划诊断入口，复用Kit并测量真实完整策略/命令回放，无新服务；保留首轮退出助手异常并修复root完成回执/错误退出。
+- 23定向测试；274tick真实132字段逐数组相等，4.80→0.42秒。8次真实诊断完成；A601tick numeric13.05→1.43秒，总81.58→70.88秒，物理轨迹非精确配对。原B成功没有复现，所有失败保留。
+- 更新DAGGER_METHOD/SESSION_HANDOFF及小证据runtime_review.json；原始数据、模型与旧结果不变，现有正式worker未热修改。基线诊断进程退出残留的短暂资源竞争明确排除速度结论。
+
 ## 2026-11-13 22:23 自动页拒绝机会与阶段保留修复
 
 采样对照四cell各0/10已完成；后续span metric对照四cell各10个机会中9合法、1初态拒绝、0成功/0软件失败，不能当成10个合法失败。当前`rear_span_dose_02`按原登记A/B共同追加两遍后端训练，再各自与冻结参考做同10新机会；本轮尚无新闭环结论。前端/cache不更新；313冻结源码文件SHA无漂移。A/B准备配置及评估spec一致，最终实际曝光仍待完成审计。

@@ -3,7 +3,8 @@ import h5py
 import numpy as np
 import pytest
 
-from visuotactile.recording import CompactEpisodeStream, verify_stream_fields
+from visuotactile.recording import (CompactEpisodeStream, verify_stream_fields,
+                                   append_numeric, BufferedNumericWriter)
 
 
 def capture(tmp_path,codec,terminal):
@@ -47,3 +48,41 @@ def test_corruption_still_rejected(tmp_path,field):
         ds[0]=value
     with pytest.raises(ValueError,match='content differs'):
         verify_stream_fields(path)
+
+
+def test_buffered_numeric_preserves_snapshot_and_final_partial_block(tmp_path):
+    with h5py.File(tmp_path/'numeric.h5', 'w') as f:
+        legacy = f.create_group('legacy')
+        buffered = f.create_group('buffered')
+        writer = BufferedNumericWriter(buffered, buffer_steps=3)
+        values = {'obs': {'state': np.zeros((1, 2), dtype=np.float32),
+                          'valid': np.zeros((1,), dtype=bool)}}
+        for step in range(5):
+            values['obs']['state'][:] = [step, np.nan if step == 4 else -0.]
+            values['obs']['valid'][:] = step % 2
+            append_numeric(legacy, values, step)
+            writer.append(values, step)
+        values['obs']['state'][:] = -999  # snapshots must survive caller reuse
+        writer.flush()
+        writer.flush()  # exception/finalization cleanup may flush twice
+        for field in ('obs/state', 'obs/valid'):
+            actual, expected = buffered[field], legacy[field]
+            assert actual.shape == expected.shape
+            assert actual.dtype == expected.dtype
+            assert actual.chunks == expected.chunks
+            assert actual.compression == expected.compression
+            assert actual[:].tobytes() == expected[:].tobytes()
+
+
+def test_buffered_numeric_rejects_drift_without_losing_accepted_rows(tmp_path):
+    with h5py.File(tmp_path/'numeric.h5', 'w') as f:
+        writer = BufferedNumericWriter(f.create_group('episode'))
+        writer.append({'state': np.asarray([[1.]], dtype=np.float32)}, 0)
+        with pytest.raises(ValueError, match='consecutive'):
+            writer.append({'state': np.asarray([[2.]], dtype=np.float32)}, 2)
+        with pytest.raises(ValueError, match='fields changed'):
+            writer.append({'other': np.asarray([[2.]], dtype=np.float32)}, 1)
+        with pytest.raises(ValueError, match='shape/dtype'):
+            writer.append({'state': np.asarray([[2.]], dtype=np.float64)}, 1)
+        writer.flush()
+        assert f['episode/state'][:].tolist() == [[1.]]
