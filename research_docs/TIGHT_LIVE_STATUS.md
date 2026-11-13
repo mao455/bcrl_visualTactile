@@ -1,6 +1,6 @@
 # Tight-Insertion 自动进度
 
-证据读取时间：2026-11-13T23:21:27+08:00。
+证据读取时间：2026-11-13T23:26:36+08:00。
 
 本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
 每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
@@ -26,6 +26,7 @@
 | `rear_replay_balance_01/population/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | 0 | True |
 | `rear_span_dose_02/continued/G01/backend/G01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | 0 | True |
 | `rear_span_dose_02/continued/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | 0 | True |
+| `rear_span_dose_02/reference/G01/backend/G01` | new stage; A/B comparability requires its own audit | 4/10 | 4 | 0 | 0 | False |
 | `rear_span_dose_02/reference/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 10 | 0 | 0 | True |
 | `rear_span_metric_eval_recovery_02/reference/G01/backend/G01` | new stage; A/B comparability requires its own audit | 10/10 | 9 | 1 | 0 | True |
 | `rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01` | new stage; A/B comparability requires its own audit | 10/10 | 9 | 1 | 0 | True |
