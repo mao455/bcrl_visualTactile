@@ -94,7 +94,26 @@ def role_report(root, role):
         rear_history = read(rear / 'training/validation.json')
         result['backend_history'] = rear_history
         result['backend_selected_metrics'] = next(r for r in rear_history if r['update'] == chosen['update'])
-        result['backend_actual_validation_ids'] = data['splits']['validation']
+        last_rear = torch.load(rear / 'training/last.pt', map_location='cpu', weights_only=False)
+        numeric = torch.load(directory / 'state_data/numeric.pt', map_location='cpu', weights_only=False)['records']
+        rear_exposure = {key: dict(episode_draws=0, supervised_ticks=0, history_ticks=0) for key in ('original', 'correction')}
+        if set(last_rear['episode_counts']) != set(data['splits']['train']):
+            raise ValueError('Backend episode population differs')
+        for identity, count in last_rear['episode_counts'].items():
+            record = numeric[identity]
+            ticks = len(record['time'])
+            supervised = int(record['supervision_mask'].sum()) if 'supervision_mask' in record else ticks
+            bucket = rear_exposure['correction' if identity in corrections else 'original']
+            bucket['episode_draws'] += count
+            bucket['supervised_ticks'] += count * supervised
+            bucket['history_ticks'] += count * ticks
+        if sum(v['supervised_ticks'] for v in rear_exposure.values()) != result['backend_finished']['supervised_ticks']:
+            raise ValueError('Backend actual episode use does not match legal tick exposure')
+        result['backend_actual_episode_counts'] = last_rear['episode_counts']
+        result['backend_actual_exposure_by_source'] = rear_exposure
+        result['backend_actual_validation_ids'] = last_rear['validation_ids']
+        if result['backend_actual_validation_ids'] != data['splits']['validation']:
+            raise ValueError('Actual selected validation population differs')
         result['backend_legacy_scope_note'] = 'Historical validation4 description is stale; actual fixed validation has six independent families.'
     if (rear / 'offline/result.json').exists():
         offline = read(rear / 'offline/result.json')
