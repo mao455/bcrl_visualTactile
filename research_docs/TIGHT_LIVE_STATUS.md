@@ -1,6 +1,6 @@
 # Tight-Insertion 自动进度
 
-证据读取时间：2026-11-13T18:50:00+08:00。
+证据读取时间：2026-11-13T18:55:07+08:00。
 
 本页由独立 CPU 脚本更新；只发布有凭据的新进展，不启动训练或解释科研结论。
 每分钟检查，有变化时通常五分钟内推送；阶段完成/失败优先推送。原截止北京时间 11月14日 00:05:15 不变。
@@ -12,7 +12,7 @@
 
 | 评估队列 | 范围 | 已完成/计划 | 合法 | 已观察成功 | 整队列完成 |
 | --- | --- | ---: | ---: | ---: | --- |
-| `ab_replication_completion_01/batch_00_contact/QG01` | new stage; A/B comparability requires its own audit | 2/10 | 2 | 0 | False |
+| `ab_replication_completion_01/batch_00_contact/QG01` | new stage; A/B comparability requires its own audit | 6/10 | 6 | 0 | False |
 | `adaptive_contact_recovery_01/round_01/G01/backend/G01` | A/B matched increment | 10/10 | 10 | 1 | True |
 | `adaptive_contact_recovery_01/round_01/QG01/backend/QG01` | A/B matched increment | 10/10 | 10 | 0 | True |
 | `success_replication_01/batch_00_contact/G01` | B current/previous only; not A/B | 10/10 | 10 | 0 | True |
