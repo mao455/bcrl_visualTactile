@@ -1,3 +1,7 @@
+## 2026-11-13 17:53 冻结复验真实启动验收
+
+`success_replication_01`独立systemd服务active，owner PID2908611/start_ticks162322839；首个全新case已实际推进至tick400，不是仅注册/Kit启动。源码冻结73b2e97，hash无漂移；24项测试通过，GPU/RAM资源监测正常。子截止19:45:35 UTC+8，原计算23:55:15/次日00:05:15绝对截止未改。普通owner执行固定40机会后退出；既有监督器根据本轮decision继续监控，真实Agent再解释结果。当前尚无新复验成功率结论，先前B1/10保留原分母。
+
 ## 2026-11-13 17:48 contact周期已完成，登记冻结B复验
 
 实际`adaptive_contact_recovery_01/finished.json`：A0/10、B1/10，全部合法/软件完成；B seed27150001原生tick274成功，非专家接管。两组前端514更新、后端1362更新，新cache完整。旧owner正常退出，不重跑已完成20例。loss/phase/历史覆盖根审计均已读，无需再宽审计。

@@ -1,3 +1,7 @@
+## 2026-11-13 17:53 冻结复验已实际推进
+
+独立`success_replication_01`owner PID2908611/start_ticks162322839，首个新seed完整学生已推进tick400；冻结73b2e97源码无漂移。24测试与真实启动分别记录，未新增训练。子截止19:45:35 UTC+8，原截止不变；结果待固定40机会完成后由真实Agent判读，不自动扩大。启动凭据见同目录`startup_acceptance.json`。
+
 ## 2026-11-13 17:48 接触恢复完成：B成功与独立复验
 
 `adaptive_contact_recovery_01`正常完成，旧owner已退出；A/B完整DP+Transformer各10次合法自主开发分别0/10、1/10，lift2/3、首子目标0/1、软件失败0。B `palm_fresh_001`（seed27150001）原生tick274成功并终止，post-success动作0；结果/trace凭据SHA及前后端绑定核验通过，完整评估明确`expert_takeover=false`。这是一个真实开发成功，不是接管成功，也不足以证明稳定收益。
