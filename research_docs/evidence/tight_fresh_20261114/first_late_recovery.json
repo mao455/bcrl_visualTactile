@@ -1,0 +1,67 @@
+{
+  "trigger": {
+    "passed": true,
+    "category": "student_stable_then_takeover",
+    "receipt": {
+      "configuration": {
+        "version": "stable_grasp_then_delay_v1",
+        "delay_ticks": 72
+      },
+      "fallback_tick": 360,
+      "actual_scheduled_takeover_tick": 257,
+      "reason": "completed_student_stable_window_plus_delay",
+      "completed_student_transitions_observed": 257,
+      "settled_height_m": 0.5721657276153564,
+      "first_stable_window_end_completed_tick": 185,
+      "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+      "indices": "Schedule is zero-based action index; stable end is completed transition count",
+      "diagnostic_only": true,
+      "student_inputs_changed": false
+    },
+    "actual_switch_tick": 257,
+    "numeric_sha256": "0ff55f794ce111724250c59b5ab845f2c8c6d47a106adbaeaf78479be61abaa3",
+    "student_input": false
+  },
+  "phase": {
+    "case": "r02_B_formal_051_slow_5_stable_d72",
+    "legal": true,
+    "steps": 437,
+    "success": true,
+    "reasons": {
+      "fall": false,
+      "max_successes": true,
+      "hand_far": false,
+      "dropped": false,
+      "timeout": false
+    },
+    "numeric_sha256": "0ff55f794ce111724250c59b5ab845f2c8c6d47a106adbaeaf78479be61abaa3",
+    "result_sha256": "3a53886cff16681d00a3a6452325bf5f11f3590421391a50c7c456fd07ab4e93",
+    "first_contact_tick": 70,
+    "first_two_fingers_both_substeps_tick": 72,
+    "original_height_stable_grasp": true,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 185,
+    "max_later_rise_over_settled_m": 0.15368324518203735,
+    "later_rise_with_two_fingers_max_m": 0.15345048904418945,
+    "native_alignment_first_tick": 393,
+    "native_near_goal_first_tick": 384,
+    "native_first_subgoal_tick": 393,
+    "native_subgoals": 2,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.0011173418024554849,
+    "first_goal_min_quaternion_angle_rad": 0.05853069946169853,
+    "first_goal_min_keypoint_gap_m": -0.008553976193070412,
+    "post_contact_arm_tracking_rmse_rad": 0.004121617879718542,
+    "post_contact_hand_tracking_rmse_rad": 0.06518785655498505
+  },
+  "student": {
+    "ticks": 257,
+    "stable_windows": 37,
+    "stable_window_at_last_student_transition": false,
+    "max_native_subgoals": 0,
+    "any_native_alignment": false,
+    "last_object_height_m": 0.7092463970184326,
+    "expert_valid_ticks": 178
+  },
+  "meaning": "Actual complete student stabilized grasp and executed another72 control ticks before real expert recovery. Expert completion is not student autonomous success."
+}
