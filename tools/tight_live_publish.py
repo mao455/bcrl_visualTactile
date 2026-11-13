@@ -46,6 +46,10 @@ def checked_summary(path):
     summary = read(path)
     plan_path = path.parent.parent / 'evaluation_plan.json'
     plan = {r['identity']: r['spec'] for r in read(plan_path)}
+    frozen = read(path.parent.parent / 'dagger_evaluation_freeze.json')
+    if frozen['plan_sha256'] != sha(plan_path):
+        raise ValueError('evaluation freeze/plan mismatch')
+    expected_checkpoint = frozen['checkpoints'][path.parent.name]
     rows = summary['results']
     seen = set()
     for result in rows:
@@ -60,8 +64,15 @@ def checked_summary(path):
         if (sha(case / 'result.json') != receipt['result_sha256'] or actual != result
                 or binding['spec'] != plan[identity]
                 or binding['plan_sha256'] != sha(plan_path)
-                or binding['checkpoint_sha256'] != result['checkpoint_sha256']):
+                or binding['checkpoint_sha256'] != expected_checkpoint):
             raise ValueError('evaluation result/plan binding mismatch')
+        if result.get('legal') is True:
+            if result.get('checkpoint_sha256') != expected_checkpoint:
+                raise ValueError('legal result lacks frozen checkpoint binding')
+        elif not (result.get('legal') is False and result.get('software_complete') is True
+                  and result.get('not_started') is True and result.get('success') is False
+                  and receipt.get('trace_sha256') is None):
+            raise ValueError('unverified rejected opportunity')
         for k, value in plan[identity].items():
             if result.get(k) != value:
                 raise ValueError('actual opportunity differs from plan')
@@ -70,6 +81,9 @@ def checked_summary(path):
     counts = dict(completed=len(complete_rows), valid=len(valid),
                   successes=sum(bool(r['success']) for r in valid),
                   planned=len(plan))
+    rejected = len(complete_rows)-len(valid)
+    if summary.get('rejected', rejected) != rejected:
+        raise ValueError('summary rejected count mismatch')
     for key, value in counts.items():
         if summary[key] != value:
             raise ValueError('summary count mismatch: ' + key)
@@ -77,7 +91,7 @@ def checked_summary(path):
         raise ValueError('incomplete cohort marked complete')
     if summary.get('formal_test22_used') is not False or summary.get('expert_takeover') is not False:
         raise ValueError('not an autonomous development cohort')
-    return dict(counts, complete=summary['complete'], software_failures=summary['software_failures'],
+    return dict(counts, rejected=rejected, complete=summary['complete'], software_failures=summary['software_failures'],
                 native_lifts=summary['native_lifts'], summary_sha256=sha(path),
                 evidence='result hashes and plan bindings checked; physical hidden-state equality unproven')
 
@@ -91,10 +105,13 @@ def snapshot(config):
     status = read(watched / watch.get('status_file', 'status.json'), {})
     # Explicit allowlist excludes local paths, PID, logs, secrets and arbitrary text.
     state = {k: status[k] for k in ('state', 'stage', 'batch', 'label', 'round', 'group',
-             'updates', 'epoch') if k in status and isinstance(status[k], (str, int, float, bool))}
+             'updates', 'epoch', 'arm') if k in status and isinstance(status[k], (str, int, float, bool))}
     roots = {outer / 'adaptive_contact_recovery_01', outer / 'success_replication_01', watched}
+    # Completed stages remain visible after the supervisor advances to a new watch.
+    roots.update(r for r in outer.iterdir() if r.is_dir() and (r/'finished.json').is_file())
     evaluations = []
     training = []
+    progress = []
     errors = []
     files = sorted({p for r in roots for p in r.rglob('evaluation_summary.json')})
     for path in files:
@@ -108,8 +125,17 @@ def snapshot(config):
             errors.append(dict(path=identity, error=type(exc).__name__))
     for path in sorted({p for r in roots for p in r.rglob('training/finished.json')}):
         d = read(path)
-        training.append(dict(path=str(path.relative_to(outer)), **{k:d[k] for k in
-            ('updates', 'supervised_target_ticks', 'supervised_ticks', 'target_reached') if k in d}))
+        stage = outer / path.relative_to(outer).parts[0]
+        started = read(stage/'registration.json', {}).get('started_utc')
+        training.append(dict(path=str(path.relative_to(outer)),
+            new_to_stage=(d.get('utc', 0) >= started) if started is not None else None,
+            **{k:d[k] for k in ('updates', 'supervised_target_ticks', 'supervised_ticks', 'target_reached') if k in d}))
+    started = read(watched/'registration.json', {}).get('started_utc', float('inf'))
+    for path in sorted(watched.rglob('training/progress.json')):
+        d = read(path)
+        if d.get('utc', 0) >= started and not (path.parent/'finished.json').exists():
+            progress.append(dict(path=str(path.relative_to(outer)), **{k:d[k] for k in
+                ('update', 'supervised_ticks', 'control_tick_epochs') if k in d}))
     audit = read(Path(config['audit']))
     fairness = {k:audit[k] for k in ('matched_increment_passed', 'failed', 'actual',
                'strict_all_history_equality', 'limitations')}
@@ -117,7 +143,7 @@ def snapshot(config):
         watch=watched.name, state=state, completion_record_present=(watched/'finished.json').exists(),
         failure_record_present=(watched/'failure.json').exists(),
         fairness=dict(round='adaptive_contact_recovery_01/round_01', **fairness),
-        training=training, evaluations=evaluations, evidence_errors=errors,
+        training=training, progress=progress, evaluations=evaluations, evidence_errors=errors,
         limitations=['B-only replication is separate from A/B; never pool denominators.',
           'Matched incremental budgets do not erase historical initialization/exposure differences.',
           'New stages require a fresh A/B audit; this publisher does not certify future comparisons.'])
@@ -132,14 +158,17 @@ def render(data):
         f"完成凭据：{data['completion_record_present']}；失败凭据：{data['failure_record_present']}。", '',
         '公平规则见 [AB_COMPARISON_POLICY](AB_COMPARISON_POLICY.md)。最近 contact 周期增量审计：'
         + ('通过' if data['fairness']['matched_increment_passed'] else '未通过') + '；历史初始化/曝光仍不等同。', '',
-        '| 评估队列 | 范围 | 已完成/计划 | 合法 | 已观察成功 | 整队列完成 |',
-        '| --- | --- | ---: | ---: | ---: | --- |']
+        '| 评估队列 | 范围 | 已完成/计划 | 合法 | 拒绝 | 已观察成功 | 整队列完成 |',
+        '| --- | --- | ---: | ---: | ---: | ---: | --- |']
     for row in data['evaluations']:
-        lines.append(f"| `{row['path'].replace('/evaluation_summary.json', '')}` | {row['comparison']} | {row['completed']}/{row['planned']} | {row['valid']} | {row['successes']} | {row['complete']} |")
+        lines.append(f"| `{row['path'].replace('/evaluation_summary.json', '')}` | {row['comparison']} | {row['completed']}/{row['planned']} | {row['valid']} | {row['rejected']} | {row['successes']} | {row['complete']} |")
     lines += ['', '未完成队列只报告进度，不计算最终成功率。B 新旧模型复验不能用于与 A 排名，也不加入原 A0/10、B1/10 的分母。', '',
-              '| 已完成训练 | 更新 | 有效监督量 |', '| --- | ---: | ---: |']
+              '训练收据可能由参考模型继承，不把跨目录重复收据累计为新增训练。', '',
+              '| 训练收据 | 更新 | 有效监督量 | 本阶段新增 |', '| --- | ---: | ---: | --- |']
     for row in data['training']:
-        lines.append(f"| `{row['path'].replace('/training/finished.json','')}` | {row.get('updates','?')} | {row.get('supervised_target_ticks',row.get('supervised_ticks','?'))} |")
+        lines.append(f"| `{row['path'].replace('/training/finished.json','')}` | {row.get('updates','?')} | {row.get('supervised_target_ticks',row.get('supervised_ticks','?'))} | {row.get('new_to_stage')} |")
+    for row in data.get('progress', []):
+        lines += ['', f"当前训练 `{row['path']}`：{row.get('update')} 更新，{row.get('supervised_ticks')} 合法监督tick，约 {row.get('control_tick_epochs', 0):.2f} 遍。"]
     lines += ['', f"未通过凭据检查的条目：{len(data['evidence_errors'])}；此类条目不发布成功统计。", '',
         '[机器可读证据](evidence/tight_execution_learning_20261113/live_status.json)。脚本不上传原数据、模型或视频；网络失败保留待发布状态，恢复后重试。', '']
     return '\n'.join(lines)

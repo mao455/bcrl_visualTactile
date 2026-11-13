@@ -93,6 +93,7 @@ class PublicationTests(unittest.TestCase):
         root=self.root/'eval';group=root/'G01';case=group/'evaluation'/'case0';case.mkdir(parents=True)
         spec=dict(identity='case0',seed=17)
         p.write(root/'evaluation_plan.json',[dict(identity='case0',spec=spec)])
+        p.write(root/'dagger_evaluation_freeze.json',dict(plan_sha256=p.sha(root/'evaluation_plan.json'),checkpoints={'G01':'frozen'}))
         result=dict(spec,software_complete=True,legal=True,success=False,checkpoint_sha256='frozen')
         p.write(case/'result.json',result)
         receipt=dict(result_sha256=p.sha(case/'result.json'),binding=dict(spec=spec,checkpoint_sha256='frozen',plan_sha256=p.sha(root/'evaluation_plan.json')))
@@ -105,6 +106,49 @@ class PublicationTests(unittest.TestCase):
         summary['successes']=0;p.write(path,summary)
         result['seed']=18;p.write(case/'result.json',result)
         with self.assertRaisesRegex(ValueError,'binding mismatch'):p.checked_summary(path)
+
+    def test_preaction_rejection_uses_receipt_and_freeze_not_missing_result_hash(self):
+        root=self.root/'rejected';group=root/'G01';case=group/'evaluation'/'case0';case.mkdir(parents=True)
+        spec=dict(identity='case0',seed=17)
+        p.write(root/'evaluation_plan.json',[dict(identity='case0',spec=spec)])
+        plan_hash=p.sha(root/'evaluation_plan.json')
+        p.write(root/'dagger_evaluation_freeze.json',dict(plan_sha256=plan_hash,checkpoints={'G01':'frozen'}))
+        result=dict(spec,software_complete=True,legal=False,success=False,not_started=True)
+        p.write(case/'result.json',result)
+        receipt=dict(result_sha256=p.sha(case/'result.json'),trace_sha256=None,
+                     binding=dict(spec=spec,checkpoint_sha256='frozen',plan_sha256=plan_hash))
+        p.write(case/'evaluation_receipt.json',receipt)
+        summary=dict(results=[result],completed=1,valid=0,rejected=1,successes=0,planned=1,
+                     complete=True,software_failures=0,native_lifts=0,expert_takeover=False,formal_test22_used=False)
+        path=group/'evaluation_summary.json';p.write(path,summary)
+        actual=p.checked_summary(path)
+        self.assertEqual((actual['completed'],actual['valid'],actual['rejected']),(1,0,1))
+        receipt['binding']['checkpoint_sha256']='wrong';p.write(case/'evaluation_receipt.json',receipt)
+        with self.assertRaisesRegex(ValueError,'binding mismatch'):p.checked_summary(path)
+        receipt['binding']['checkpoint_sha256']='frozen'
+        result['not_started']=False;p.write(case/'result.json',result)
+        summary['results']=[result];p.write(path,summary)
+        receipt['result_sha256']=p.sha(case/'result.json');p.write(case/'evaluation_receipt.json',receipt)
+        with self.assertRaisesRegex(ValueError,'unverified rejected'):p.checked_summary(path)
+
+    def test_watch_advance_retains_completed_stages_and_excludes_inherited_progress(self):
+        outer=self.root/'outer';old=outer/'finished_stage';current=outer/'current'
+        p.write(old/'finished.json',{})
+        p.write(outer/'agent_supervisor/watch_plan.json',dict(root=str(current)))
+        p.write(current/'registration.json',dict(started_utc=100))
+        p.write(current/'reference/G01/training/finished.json',dict(utc=99,updates=10))
+        p.write(current/'reference/G01/training/progress.json',dict(utc=99,update=10))
+        p.write(current/'continued/G01/training/progress.json',dict(utc=101,update=2,supervised_ticks=256,control_tick_epochs=.1))
+        p.write(old/'G01/evaluation_summary.json',{})
+        audit=self.root/'audit.json'
+        p.write(audit,dict(matched_increment_passed=True,failed=[],actual={},strict_all_history_equality=False,limitations=[]))
+        config=dict(outer=str(outer),audit=str(audit),deadline=time.time()+100)
+        with patch.object(p,'checked_summary',return_value=dict(complete=True,completed=10,valid=9,rejected=1)):
+            data=p.snapshot(config)
+        self.assertEqual(len(data['evaluations']),1)
+        self.assertFalse(data['training'][0]['new_to_stage'])
+        self.assertEqual(len(data['progress']),1)
+        self.assertEqual(data['progress'][0]['update'],2)
 
     def test_unchanged_snapshot_never_republishes_timestamp(self):
         config=dict(runtime=str(self.root),deadline=time.time()+30,worktree='unused')

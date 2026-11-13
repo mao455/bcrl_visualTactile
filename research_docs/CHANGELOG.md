@@ -1,3 +1,11 @@
+## 2026-11-13 22:23 自动页拒绝机会与阶段保留修复
+
+采样对照四cell各0/10已完成；后续span metric对照四cell各10个机会中9合法、1初态拒绝、0成功/0软件失败，不能当成10个合法失败。当前`rear_span_dose_02`按原登记A/B共同追加两遍后端训练，再各自与冻结参考做同10新机会；本轮尚无新闭环结论。前端/cache不更新；313冻结源码文件SHA无漂移。A/B准备配置及评估spec一致，最终实际曝光仍待完成审计。
+
+修复独立CPU发布器：初态拒绝无result checkpoint字段，必须核验receipt与frozen plan/checkpoint绑定及not_started，单列拒绝分母；合法试验仍要求模型哈希。完成阶段保留，继承训练收据标记非本阶段新增，实时训练进度仅读本阶段时间戳。9项测试通过，真实20份summary全部验收，原漏报4份均恢复9合法/1拒绝。原失败证据和bot历史提交保留。
+
+新源码在隔离树审查，发布器在共享Git锁的空闲边界切换独立新runtime；活动训练/监督器不改。原计算23:55:15/绝对次日00:05:15不变，真实替换启动看publication_fairness_01内v2收据。
+
 ## 2026-11-13 21:21 — Actual complete-policy recovery progress
 
 - Independent bounded service owner3037113/start_ticks163579189; first reference-A case reaches actual native tick300.
