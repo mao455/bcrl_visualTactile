@@ -445,11 +445,13 @@ def validate_residual_loss_contract(value):
     """Absent identity preserves historical exec-only fitting, including its math."""
     if value is None:
         return None
-    from ..execution_learning import PROJECTION_FY_LOSS,is_projection_fy_loss
+    from ..execution_learning import PROJECTION_FY_LOSS,SPAN_PROJECTION_FY_LOSS,is_projection_fy_loss
     if is_projection_fy_loss(value):
         weight=value.get('regularizer_weight')
-        if (set(value)!=set(PROJECTION_FY_LOSS) or value.get('multiplier')!=2.
+        expected = SPAN_PROJECTION_FY_LOSS if value['version']==SPAN_PROJECTION_FY_LOSS['version'] else PROJECTION_FY_LOSS
+        if (set(value)!=set(expected) or value.get('multiplier')!=2.
                 or value.get('idealization_tolerance_rad')!=1e-6
+                or (expected is SPAN_PROJECTION_FY_LOSS and value != SPAN_PROJECTION_FY_LOSS)
                 or isinstance(weight,bool) or not isinstance(weight,(int,float))
                 or not math.isfinite(weight) or not 0<=weight<=1e-4):
             raise ValueError('Invalid explicit projection loss weights or rad tolerance')
@@ -664,7 +666,8 @@ class TargetResidual(nn.Module):
                 raise ValueError('Projection loss needs real precommand and conditional execution bounds')
             elements, roundoff = projection_fy_elements(u_pre, target, execution_bounds, valid,
                 tolerance=loss_contract['idealization_tolerance_rad'])
-            elements = elements*self.action_scale.square()
+            from ..execution_learning import projection_loss_scale
+            elements = elements*projection_loss_scale(self.action_scale, execution_bounds, loss_contract).square()
             fy = .5*elements[..., :7].mean(-1)+.5*elements[..., 7:].mean(-1)
             main = (fy*valid).sum()/denominator
             regularizer = (loss_contract['regularizer_weight']*penalty*valid).sum()/denominator

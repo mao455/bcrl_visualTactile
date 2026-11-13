@@ -9,10 +9,20 @@ import torch
 
 PROJECTION_FY_LOSS = dict(version='ideal_box_fy_roundoff_v1',
     idealization_tolerance_rad=1e-6, multiplier=2., regularizer_weight=1e-4)
+SPAN_PROJECTION_FY_LOSS = dict(version='ideal_box_span_fy_roundoff_v1',
+    idealization_tolerance_rad=1e-6, multiplier=2., regularizer_weight=0.,
+    minimum_span_rad=1e-6)
 
 
 def is_projection_fy_loss(value):
-    return isinstance(value,dict) and value.get('version')==PROJECTION_FY_LOSS['version']
+    return isinstance(value,dict) and value.get('version') in (
+        PROJECTION_FY_LOSS['version'], SPAN_PROJECTION_FY_LOSS['version'])
+
+
+def projection_loss_scale(action_scale, bounds, contract):
+    if contract['version'] == SPAN_PROJECTION_FY_LOSS['version']:
+        return (bounds[..., 1]-bounds[..., 0]).detach().clamp_min(contract['minimum_span_rad']).reciprocal()
+    return action_scale
 
 
 def ideal_execution_bounds(previous, limits, adapter):

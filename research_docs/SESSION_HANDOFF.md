@@ -1,3 +1,11 @@
+## 2026-11-13 20:53 Agent007：完整重放终局与单一metric实验登记
+
+`rear_replay_balance_01`四cell均合法完成10例且0成功，无软件失败，两arm完成fairness均通过。人口比例真实覆盖全部662训练episode、每层恰好1遍，不能把此候选失败说成未采历史纠偏，也不能据单次试验排除所有覆盖问题。旧50/20/30的A/B lift4/3、首目标0/2；人口比例A/B lift3/5、首目标0/1。原单例成功、B-only复验和全部失败独立保留，不宣称稳定A/B优劣。
+
+复用三份既有CPU审计、公平政策及发布器收据。全193520合法训练tick的centered头FY系数(action_scale×reachable_span)^2，其逐joint中位数跨1551.14倍；这是loss条件化证据，不是已证明成功瓶颈。登记原run下`rear_span_metric_01`，隔离树`bc+rl_RSS_span_metric_01`，保留FY错误饱和区真实非零方向梯度，只换可达比例metric。A/B各从同一contact后端起点、fresh AdamW、相同人口比例全1遍，固定endpoint；参考直接复用已完成population endpoint与训练收据，不重训。两arm×A/B各10个全新seed27190000–09，共40完整DP+Transformer机会，无替换/扩展/自动采用；不是DAgger，前端和配套cache冻结。历史A/B初始化不同仍披露。
+
+真实prepare、71项测试、两arm准备fairness通过，本条不代表GPU启动。实际看新root的startup_acceptance/status/launch/finished/failure；独立service登记2h，仍受原23:55:15计算、次日00:05:15绝对截止限制。活动监督器/发布器及其专属文件未改；所有Git事务持共享tight-publication.lock。
+
 ## 2026-11-13 19:23 后端重放实验已真实启动
 
 独立`tight-replay-balance-20261113-01.service`已active，owner2967509/start_ticks162865736；首个control-A实际288更新、41271合法监督tick，不是仅准备或模型加载。308个冻结源码文件无漂移，资源储备通过，两准备fairness通过；后续真实结果尚未产生。源码74c8006已推送指定分支，活动研究树只读；本条在另一publication树更新。下一watch为`rear_replay_balance_01/{status,launch,finished,failure}.json`，由既有真实Agent监督器接续；阶段21:48:09、原23:55:15/次日00:05:15不变。

@@ -1,3 +1,11 @@
+## 2026-11-13 20:53 可达比例FY：有界优化metric假设
+
+完成重放四cell均0/10，population逐层完整1遍。对全部662训练episode/193520合法tick测量：令w=h−l、anchor=clip(base,l,h)、x=anchor+wz，原FY raw梯度为2(P(x)−y)/w × (action_scale·w)^2，再乘Arm/Hand均值系数。逐joint系数中位数跨1551.14倍，Arm整体中位数.00019710、Hand .00594924；不等于共享参数实际梯度贡献，更不证明失败因果。
+
+新增opt-in `ideal_box_span_fy_roundoff_v1`用1/max(w,1e−6rad)^2替代action_scale²，仅换训练metric，不重拟合/替换冻结normalizer、delta buffers或执行器。2FY元素仍为(P(x)−y)²+2(x−P(x))(P(x)−y)，真实autograd、无STE；错误饱和区仍有方向梯度，已经等价到达端点的提案可零loss。零宽box的FY为零，floor防除零；标签只允许原1e−6rad端点舍入。真实executed-MSE仍原metric/原标签，不直接比较两类FY数值。
+
+regularizer固定0，其余centered输出、current-weight prefix、128tick窗口、LR1e−4和优化参数不变。候选A/B各从同一contact起点，以与已完成population相同deck训练1遍；冻结旧population endpoint为参考，不重复已完成训练。预登记新seed27190000–09，四cell共40完整DP+Transformer机会，顺序reference-A/span-B/span-A/reference-B；无扩展或自动采用。不是DAgger，无DP更新/采集，cache精确复用。metric全局尺度也改变，Adam epsilon/clip可能中介效果；候选在先前开发结果后提出，不是未见结果的总体研究。A/B历史初始化差异和全部原截止保留。
+
 ## 2026-11-13 19:20 完整复验与后端重放分布实验
 
 `ab_replication_completion_01`已完成：相同20个新开发机会，contact A0/20、B0/20，全部合法，无软件失败；lift分别3/8、首子目标均0。原A0/10、B1/10与B previous0/20独立保存，不能混分母或宣称B稳定领先。A事后补齐、历史初始化/曝光不同仍须披露。

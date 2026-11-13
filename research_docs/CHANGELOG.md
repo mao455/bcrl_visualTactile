@@ -1,3 +1,10 @@
+## 2026-11-13 20:53 — Replay boundary and reachable-span metric
+
+- Recorded four valid replay cells, all0/10; passing A/B audits and actual population coverage662/662.
+- Added opt-in span-normalized FY, preserving executor/statistics/default losses and direction-correct nonflat gradients.
+- Registered matched A/B candidate versus frozen population references: reuse reference training, fixed40 new full-policy opportunities, no DAgger/automatic expansion.
+- Real preparation, two prepared fairness checks and71 focused tests pass; startup/completion remain separate receipts.
+
 ## 2026-11-13 19:23 重放实验真实启动与独立发布
 
 源commit74c8006已发布，独立限时service owner2967509/start_ticks162865736；实际288更新/41271监督tick，308受检源码无漂移。只在独立publication树增加启动收据与交接，没有热改worker、监督器或两bot专属文件。原截止与固定40机会未变，下一判断仍交真实Agent。

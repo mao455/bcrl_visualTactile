@@ -1,3 +1,7 @@
+### 2026-11-13 20:53 显式可达比例监督metric
+
+`ideal_box_span_fy_roundoff_v1`固定multiplier2、原1e−6rad理想化容差、regularizer0、minimum_span_rad1e−6；FY元素除以max(upper−lower,minimum_span_rad)²。旧身份和缺省路径保持。centered输出、最终执行链、normalizer和所有buffer、物理/PD/时钟/native成功不变。A仍实际q_reached+既定几何，B和两后端最终标签仍各自既定u_expert。无STE/重复delay，真实executed-MSE继续原metric。新loss写checkpoint，显式continuation允许、同attempt恢复身份必须匹配。研究`rear_span_metric_01`仅训练候选rear，参考训练只读复用；A/B准备与完成审计、test22隔离、原截止仍为硬约束。
+
 ## 2026-11-13 19:20 固定后端采样分布诊断
 
 `rear_replay_balance_01`只训练后端，不采集、不改变冻结DP/commit12配套cache，不称DAgger。原配比与人口比例均对A/B生效，每cell同组同初始化tensor、新AdamW、共同学习率/loss/窗口/历史，1有效tick遍后固定最终endpoint评估；保留validation-best。每cell固定10相同新开发机会、共40，原生成功和自然终止，不结果驱动扩展。跨arm整episode取整/更新数不保证相等，真实账本必须披露；arm内A/B实际曝光/数据mask/公共修复/选模和机会必须匹配。frozen-frontend fairness验证冻结SHA及新DP0更新，准备合同不是完成证据。源数据/所有旧checkpoint及结果保护。阶段截止21:48:09不替代原23:55:15计算、次日00:05:15绝对截止；资源保护与test22隔离不变。
