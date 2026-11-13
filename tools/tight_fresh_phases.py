@@ -15,6 +15,22 @@ def first(mask):
 from visuotactile.takeover_trigger import stable_windows
 
 
+def authority_phases(source, stable, near, alignment, subgoals):
+    source=np.asarray(source).reshape(-1)
+    student=source==0
+    if not np.isin(source,[0,1]).all() or not np.array_equal(student,np.arange(len(source))<student.sum()):
+        raise ValueError('Expected one actual student prefix followed by expert authority')
+    n=int(student.sum())
+    return dict(student_ticks=n,expert_ticks=int((source==1).sum()),
+        student_first_stable_window_end_tick=first(stable & student),
+        student_stable_window_at_last_tick=bool(stable[n-1]) if n else False,
+        student_near_goal_first_tick=first(near & student),
+        student_alignment_first_tick=first(alignment & student),
+        student_max_subgoals=int(subgoals[student].max()) if n else 0,
+        expert_first_stable_window_end_tick=first(stable & ~student),
+        scope='Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes.')
+
+
 def case(directory):
     import h5py
     result=json.loads((directory/'result.json').read_text())
@@ -40,7 +56,11 @@ def case(directory):
         tolerance=t['native_success_diagnostic/insertion_tolerance_m'][:]
         subgoals=d['successes'][:]
         initial_goal=subgoals==0
+        source=t['dagger/control_source'][:] if 'dagger/control_source' in t else np.zeros(len(pose),dtype=int)
+        authority=authority_phases(source,relative_stable,t['native_success_diagnostic/near_goal'][:],
+            t['native_alignment_condition'][:],subgoals)
         return dict(case=directory.name,legal=True,steps=len(pose),success=bool(result['success']),
+            authority=authority,
             reasons=result['reasons'],numeric_sha256=sha256(path),result_sha256=sha256(directory/'result.json'),
             first_contact_tick=first(contacts),first_two_fingers_both_substeps_tick=first(two),
             original_height_stable_grasp=bool(native_stable.any()),settled_height_stable_grasp=bool(relative_stable.any()),

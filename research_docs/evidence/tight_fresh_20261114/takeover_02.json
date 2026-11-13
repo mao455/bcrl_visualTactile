@@ -1,0 +1,1508 @@
+{
+  "source_commit": "b0917f11375eda0a60fd36f3c70ddf31ce0bc6e5",
+  "plan_sha256": "aab09bb4a48cab5d3ba241450249189884f2c5739b729fb6c17afa48f8b3ab89",
+  "results_sha256": "68aab5cb4875b38cffa0afe14377ab47ffb509fb4a894134dd8abb99050ac25c",
+  "entries_sha256": "e611d1c0c1ee4ea29f669823eff547a16cb44a09502f0cd4d1a8c975b2b2e8af",
+  "counts": {
+    "A": {
+      "opportunities": 12,
+      "legal": 12,
+      "expert_successes": 4,
+      "trigger_categories": {
+        "student_stable_then_takeover": 1,
+        "fallback_without_stable_grasp": 11,
+        "fallback_before_requested_delay": 0,
+        "ended_before_takeover": 0
+      },
+      "accepted": 4
+    },
+    "B": {
+      "opportunities": 12,
+      "legal": 12,
+      "expert_successes": 6,
+      "trigger_categories": {
+        "student_stable_then_takeover": 1,
+        "fallback_without_stable_grasp": 11,
+        "fallback_before_requested_delay": 0,
+        "ended_before_takeover": 0
+      },
+      "accepted": 6
+    }
+  },
+  "accepted": 10,
+  "retained_exposure": {
+    "history_ticks": 6084,
+    "supervised_ticks": 2620,
+    "supervised_anchors": 216,
+    "supervised_window_targets": 4944
+  },
+  "cases": [
+    {
+      "case": "r02_A_formal_050_slow_3_stable_d0",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5408599376678467,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "ab06f85a3cf307059a91fca5a60715aae73880a42a85a2f6a27dcbf3d4d7af6a",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 5,
+        "two_finger_continuous_s": 0.6333333333333333,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_B_formal_050_slow_3_stable_d0",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5408599376678467,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "f631f933319c3bac7a2c3f6c57cd354a693b8bd09d1a309243f05f4c2fc5bf4c",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 644,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 5,
+        "two_finger_continuous_s": 2.7416666666666667,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 644,
+        "supervised_ticks": 282,
+        "supervised_anchors": 23,
+        "supervised_window_targets": 532
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": "a82514d821b625535c67051e5c82a0f12e0d57120c2e26415781f509acc2e57f"
+    },
+    {
+      "case": "r02_B_formal_029_slow_6_stable_d24",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 24
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5402852892875671,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "b1710409764dad1e81b567b8c94fea946465345d252859cef83ba84e9d7d638e",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.7083333333333334,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_029_slow_6_stable_d24",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 24
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5402852892875671,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "96c44ac840ae1bc932f54e40ebeedb50e3c8ddf94787717c4b07e6b3e5decd70",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.425,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_047_slow_4_stable_d48",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 48
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5726350545883179,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "5b0fe2368216fa3155850fe97b84c23ed10239dfd817463516eee9e9d7c0d3d9",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 618,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.7333333333333333,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 618,
+        "supervised_ticks": 256,
+        "supervised_anchors": 21,
+        "supervised_window_targets": 480
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": "5be8030ac13322fa3ca3034ef1e883f4a59c13729d4ea6740a95ad7d46dbb19b"
+    },
+    {
+      "case": "r02_B_formal_047_slow_4_stable_d48",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 48
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5726350545883179,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "762d467d64905f9f05565e44771c3248d2602f2b01d9d6b113fd6faf02cecc16",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.5833333333333334,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_B_formal_051_slow_5_stable_d72",
+      "role": "B",
+      "takeover_tick": 257,
+      "trigger": {
+        "passed": true,
+        "category": "student_stable_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 72
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 257,
+          "reason": "completed_student_stable_window_plus_delay",
+          "completed_student_transitions_observed": 257,
+          "settled_height_m": 0.5721657276153564,
+          "first_stable_window_end_completed_tick": 185,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 257,
+        "numeric_sha256": "0ff55f794ce111724250c59b5ab845f2c8c6d47a106adbaeaf78479be61abaa3",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 437,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.8166666666666667,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 437,
+        "supervised_ticks": 178,
+        "supervised_anchors": 15,
+        "supervised_window_targets": 334
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": "7785d8eb7edc955ef2a1356ea1c7d4d3a77d0764c4a0f32d54a04b224f5d87d3"
+    },
+    {
+      "case": "r02_A_formal_051_slow_5_stable_d72",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 72
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5721657276153564,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "8531f86e15f23fed95fa889d2c63b22fc794af65068e536573bd2917083cc932",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 628,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.7416666666666667,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 628,
+        "supervised_ticks": 266,
+        "supervised_anchors": 22,
+        "supervised_window_targets": 500
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": "2aff9ffc2b3c0fbaf010e1572400db95e5b2f90117fa0247d0b8c46b51eb84b5"
+    },
+    {
+      "case": "r02_A_formal_025_slow_0_stable_d96",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 96
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5400731563568115,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "bd3af3ce21f59ff5e826372bcb34591eb871b75fc29355b05345433ba55733c1",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.45,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_B_formal_025_slow_0_stable_d96",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 96
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5400731563568115,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "2dedb7afeeee4bb61f8f452199675ff187856d7342379267eb9cfd66a0225990",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.5833333333333334,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_B_formal_039_slow_5_stable_d120",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 120
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5396445989608765,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "1441074b4306030df3c5a14ad10239a0e1226eae9cbedd9f79c3d69faf0fbb8a",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 533,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 2.375,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 533,
+        "supervised_ticks": 171,
+        "supervised_anchors": 14,
+        "supervised_window_targets": 310
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": "ce3b042dfdab2b9556ad6367af537ba848914a3c85b29e90dd5c5aeae9fbaf05"
+    },
+    {
+      "case": "r02_A_formal_039_slow_5_stable_d120",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 120
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5396445989608765,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "6eef874390da1d504c828344bb1d5bf01e4e93d299e0cf3adcc149689d8dc2d2",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 1.0083333333333333,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_041_slow_3_stable_d0",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5701450705528259,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "8a803189faadce1eedac1d6fcee107e94514b687208a6dc688f91b7efb1d650d",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.6,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_B_formal_041_slow_3_stable_d0",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5701450705528259,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "604bb83ac914635f7792b07c6fd79ad0b9b9f46cb2f150a4931005d337f00e59",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 859,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 1.4416666666666667,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 859,
+        "supervised_ticks": 497,
+        "supervised_anchors": 41,
+        "supervised_window_targets": 962
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": "1f20ea22eb42b072bc66b3cc3cb36cbf37de26b295499be2a30fa314f3145f4b"
+    },
+    {
+      "case": "r02_B_formal_045_slow_0_stable_d24",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 24
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5407181978225708,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "bad5c7aca3c5a435d388700a23f5359ae22b88e68e8bd46023c6f436bef3618a",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.4583333333333333,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_045_slow_0_stable_d24",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 24
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5407181978225708,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "13137d491ac24097e0a436847ad5a1c635c48e36c49c96a6fa9cba0500fc429d",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.75,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_046_slow_5_stable_d48",
+      "role": "A",
+      "takeover_tick": 307,
+      "trigger": {
+        "passed": true,
+        "category": "student_stable_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 48
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 307,
+          "reason": "completed_student_stable_window_plus_delay",
+          "completed_student_transitions_observed": 307,
+          "settled_height_m": 0.5719728469848633,
+          "first_stable_window_end_completed_tick": 259,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 307,
+        "numeric_sha256": "b040317145668baec46841e8d1bca2e495a362fca6e533b8bb4ff43640f752c8",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 493,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 0.725,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 493,
+        "supervised_ticks": 184,
+        "supervised_anchors": 16,
+        "supervised_window_targets": 350
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": "37f54578ece71aeca7a72cae1ee8bdc83cfaba7f0ea307d685d2fedeffc8d5bd"
+    },
+    {
+      "case": "r02_B_formal_046_slow_5_stable_d48",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 48
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5719728469848633,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "7fe2cf1fc0b88344e12ee575a431e231761d8302451a38adf8734fc59df09178",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 623,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 1.3083333333333333,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 623,
+        "supervised_ticks": 261,
+        "supervised_anchors": 21,
+        "supervised_window_targets": 490
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": "d3fdece26388f361675fa3c058e35038d858a53d43bee9cb7c029d89ea4fb30e"
+    },
+    {
+      "case": "r02_B_formal_015_slow_3_stable_d72",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 72
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5505597591400146,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "ce83ff4afc692bafc9f690a649d6f84aae77e300b9ff10d3462647c8ce08af86",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.4,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_015_slow_3_stable_d72",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 72
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5505597591400146,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "9c9a91f469035280cef329743a8552935e3281c02f385a977527e706aada0a24",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.36666666666666664,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_020_slow_1_stable_d96",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 96
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5703380703926086,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "e9f9550561d9c8bd1bfb4415270947e2984bfc18274137a3956f1571ac5c9a32",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 607,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 2.341666666666667,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 607,
+        "supervised_ticks": 245,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 458
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": "bb10f7a5b769ac7e0ec9402abcd9756abf0a2180f719d0e1f5fb746866a4e3aa"
+    },
+    {
+      "case": "r02_B_formal_020_slow_1_stable_d96",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 96
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5703380703926086,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "54e80338380cb7ba8b9bf551db6cc9d397028eee546cf3c3c75434dcc47b05e0",
+        "student_input": false
+      },
+      "expert_takeover_success": true,
+      "legal": true,
+      "software_complete": true,
+      "success": true,
+      "accepted": true,
+      "steps": 642,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "native_subgoals": 2,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 4,
+        "two_finger_continuous_s": 1.25,
+        "stable_grasp_diagnostic": true,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 642,
+        "supervised_ticks": 280,
+        "supervised_anchors": 23,
+        "supervised_window_targets": 528
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": "1526adcaea591d28fc3dd67a490d92d1992ed00eae3589fc7fa33e5c42dd9a25"
+    },
+    {
+      "case": "r02_B_formal_003_slow_7_stable_d120",
+      "role": "B",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 120
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5408482551574707,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "281a2c8ae89547e23a7ebd114f10d97a45440e9cde02fe060614034cfa19facf",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.5833333333333334,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "62e0a43144394975bf696314d1f8df60bd0414a00ba22a2126b8c53445a6c33b",
+      "backend_sha256": "ac698ce6062c3ae383042151df982ea1e833bb51c0779e4486e5f7bbe99184ea",
+      "capture_sha256": null
+    },
+    {
+      "case": "r02_A_formal_003_slow_7_stable_d120",
+      "role": "A",
+      "takeover_tick": 360,
+      "trigger": {
+        "passed": true,
+        "category": "fallback_without_stable_grasp",
+        "receipt": {
+          "configuration": {
+            "version": "stable_grasp_then_delay_v1",
+            "delay_ticks": 120
+          },
+          "fallback_tick": 360,
+          "actual_scheduled_takeover_tick": 360,
+          "reason": "fallback_no_completed_stable_window",
+          "completed_student_transitions_observed": 360,
+          "settled_height_m": 0.5408482551574707,
+          "first_stable_window_end_completed_tick": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+          "indices": "Schedule is zero-based action index; stable end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false
+        },
+        "actual_switch_tick": 360,
+        "numeric_sha256": "0b7510b1243fa7d555e11d10530900ac53b5d8d8486a1063aafdbb96c8d4fd30",
+        "student_input": false
+      },
+      "expert_takeover_success": false,
+      "legal": true,
+      "software_complete": true,
+      "success": false,
+      "accepted": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "native_subgoals": 0,
+      "contact": {
+        "object_contact": true,
+        "max_fingers": 3,
+        "two_finger_continuous_s": 0.6583333333333333,
+        "stable_grasp_diagnostic": false,
+        "object_contact_threshold_N": 0.1,
+        "stable_window_s": 0.2,
+        "scope": "filtered normal forces; not native success"
+      },
+      "actual_exposure": {
+        "episodes": 1,
+        "history_ticks": 601,
+        "supervised_ticks": 239,
+        "supervised_anchors": 20,
+        "supervised_window_targets": 446
+      },
+      "frontend_sha256": "3297aa1478f1dcac116c97832c31d4534cc25b45f008e1f8f2db9e9683262871",
+      "backend_sha256": "ed11086b3b48fd513ad1042964be4913f406558abca89b0ab01c4daeb95c1002",
+      "capture_sha256": null
+    }
+  ],
+  "test_used": false,
+  "meaning": "Actual expert rescues after complete student prefixes; not autonomous student successes. All failed attempts retained locally.",
+  "learning_exposure": "Source population only; optimizer exposure is recorded by the following trainers."
+}
