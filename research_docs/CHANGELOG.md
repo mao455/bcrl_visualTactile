@@ -1,3 +1,7 @@
+## 2026-11-13 13:12 完整tick-window结果与接触恢复新登记
+
+新增隔离有限contact-recovery编排入口与4项入口/合同测试，整组44测试通过。复用现有采集器、DP/rear训练、缓存与完整评估，不改模型执行器；集成已发布58ed6e1。记录tick-window实际A/B0/10、训练wall365.41/358.82秒及20条contact事件，独立登记小规模当前策略恢复实验。此时仅准备，实际启动以startup_acceptance为准。
+
 ## 2026-11-13 真实接管监督覆盖与原时钟onset窗口
 
 - `target_windows.py`/`anchor_sampling.py`：显式opt-in原12tick anchor内前导mask，首个合法连续段监督；补21旧anchor/210独立tick，恢复抽样及target/pair/commit几何分母按实际mask。没有修改在线时钟/执行器/原数据。

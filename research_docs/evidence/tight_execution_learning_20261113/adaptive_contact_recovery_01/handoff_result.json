@@ -1,0 +1,599 @@
+{
+  "previous": {
+    "groups": {
+      "QG01": {
+        "exposure": {
+          "stop_reason": "maximum_control_tick_exposure",
+          "updates": 1191,
+          "control_tick_epochs": 1.003365404346883,
+          "formal_updates": 1191,
+          "disposable": false,
+          "run_kind": "formal",
+          "target_reached": true,
+          "required_supervised_ticks": 170559,
+          "new_optimizer_updates": 1191,
+          "continuation_from": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/QG01/backend/QG01/training/best.pt",
+            "sha256": "8a3471f383adfc3bf81359102dfaa009c7d863cd30db5f863a0e5505322703c4",
+            "teacher_supervision": "u_expert",
+            "statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+            "normalization_identity": "u_expert_train166_affine_v1",
+            "round_index": 1,
+            "source_group": "QG01"
+          },
+          "tick_window_contract": {
+            "version": "fixed_supervised_tick_window_v1",
+            "target_supervised_ticks": 128,
+            "denominator": "fixed_unweighted_target_ticks",
+            "flush": "complete_episode_group",
+            "chunk_boundary": "unsplit_32tick"
+          },
+          "schedule_maximum_control_tick_epochs": 1,
+          "required_control_tick_epochs": 1,
+          "train_episode_count": 575,
+          "effective_batch": 4,
+          "minimum_control_tick_epochs": 1,
+          "minimum_exposure_reached": true,
+          "sampled_contact_anchors": 129131,
+          "contact_anchor_population": 132058,
+          "control_tick_population": 232533,
+          "supervised_tick_population": 170559,
+          "supervised_ticks": 171133,
+          "control_ticks": 214711,
+          "control_equivalent_epochs": 0.9233571149041211,
+          "wall_s": 365.40971302986145,
+          "supervised_ticks_per_wall_s": 468.3318292528827,
+          "setup_wall_s": 2.3223822116851807,
+          "training_wall_s": 331.37634801864624,
+          "supervised_ticks_per_training_wall_s": 516.4309433163604,
+          "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+          "wait_s": 1.9602065454237163,
+          "work_s": 359.75417511025444,
+          "selection": "update0-relative old_validation .5 + correction_dev .25 + correction_initial24 .25",
+          "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+          "excess_supervised_ticks": 574,
+          "coverage": {
+            "supervised_ticks": 171133,
+            "unique_episodes": 360,
+            "repeated_samples": 186,
+            "episode_draws": 546,
+            "strata": {
+              "core": {
+                "supervised_tick_population": 55392,
+                "supervised_ticks": 85372,
+                "unique_supervised_ticks": 55392,
+                "repeated_supervised_ticks": 29980,
+                "actual_fraction": 0.498863457077244,
+                "requested_fraction": 0.5,
+                "effective_tick_exposures": 1.5412333911034084,
+                "unique_episodes": 166,
+                "episode_population": 166,
+                "episode_draws": 255,
+                "repeated_samples": 89,
+                "initial_24_supervised_tick_draws": 6120,
+                "recovery_prefix": {
+                  "ticks": 48,
+                  "initial_supervised_tick_population": 0,
+                  "initial_supervised_tick_draws": 0,
+                  "remaining_supervised_tick_draws": 85372,
+                  "backend_weight": 3.0,
+                  "loss_weight_mass": 85372.0,
+                  "loss_weight_mass_is_exposure": false
+                }
+              },
+              "historical_correction": {
+                "supervised_tick_population": 92783,
+                "supervised_ticks": 34396,
+                "unique_supervised_ticks": 34396,
+                "repeated_supervised_ticks": 0,
+                "actual_fraction": 0.2009898733733412,
+                "requested_fraction": 0.2,
+                "effective_tick_exposures": 0.3707144627787418,
+                "unique_episodes": 118,
+                "episode_population": 333,
+                "episode_draws": 118,
+                "repeated_samples": 0,
+                "initial_24_supervised_tick_draws": 2832,
+                "recovery_prefix": {
+                  "ticks": 48,
+                  "initial_supervised_tick_population": 15984,
+                  "initial_supervised_tick_draws": 5664,
+                  "remaining_supervised_tick_draws": 28732,
+                  "backend_weight": 3.0,
+                  "loss_weight_mass": 45724.0,
+                  "loss_weight_mass_is_exposure": false
+                }
+              },
+              "current_correction": {
+                "supervised_tick_population": 22384,
+                "supervised_ticks": 51365,
+                "unique_supervised_ticks": 22384,
+                "repeated_supervised_ticks": 28981,
+                "actual_fraction": 0.30014666954941477,
+                "requested_fraction": 0.3,
+                "effective_tick_exposures": 2.294719442458899,
+                "unique_episodes": 76,
+                "episode_population": 76,
+                "episode_draws": 173,
+                "repeated_samples": 97,
+                "initial_24_supervised_tick_draws": 4152,
+                "recovery_prefix": {
+                  "ticks": 48,
+                  "initial_supervised_tick_population": 3648,
+                  "initial_supervised_tick_draws": 8304,
+                  "remaining_supervised_tick_draws": 43061,
+                  "backend_weight": 3.0,
+                  "loss_weight_mass": 67973.0,
+                  "loss_weight_mass_is_exposure": false
+                }
+              }
+            }
+          },
+          "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/training/last.pt",
+          "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/training/best.pt",
+          "utc": 1794544217.3582182,
+          "base_optimizer_updates": 0
+        },
+        "selection": {
+          "selection": "validation-selected actual executed error",
+          "checkpoint": "efefd9ef8b4061adc120df3446893ea996a664ff98774260d7cd50e72c88cd92",
+          "updates": 1191
+        },
+        "evaluation_receipt": {
+          "complete": true,
+          "groups": [
+            "QG01"
+          ],
+          "maximum_attempts_each": 10,
+          "planned": 10,
+          "completed": 10,
+          "unrun": 0,
+          "software_failures": 0,
+          "group_summary": {
+            "QG01": {
+              "planned": 10,
+              "completed": 10,
+              "unrun": 0,
+              "complete": true,
+              "expansion": {
+                "expanded": false,
+                "reason": "fixed ten attempts; no outcome-dependent expansion",
+                "initial_trials": 10
+              },
+              "software_failures": 0
+            }
+          },
+          "utc": 1794545480.2770433
+        },
+        "summary": {
+          "planned": 10,
+          "attempts": 10,
+          "completed": 10,
+          "valid": 10,
+          "rejected": 0,
+          "software_failures": 0,
+          "invalid_total": 0,
+          "successes": 0,
+          "native_lifts": 3,
+          "first_subgoal_reached": 0,
+          "alignments": 0,
+          "unrun": 0,
+          "unrun_identities": [],
+          "expansion": {
+            "expanded": false,
+            "reason": "fixed ten attempts; no outcome-dependent expansion",
+            "initial_trials": 10
+          },
+          "development_only": true,
+          "formal_test22_used": false,
+          "paired_specs_and_sampler_seed": true,
+          "bitwise_hidden_state_pairing_proven": false,
+          "expert_takeover": false,
+          "complete": true
+        }
+      },
+      "G01": {
+        "exposure": {
+          "stop_reason": "maximum_control_tick_exposure",
+          "updates": 1191,
+          "control_tick_epochs": 1.003365404346883,
+          "formal_updates": 1191,
+          "disposable": false,
+          "run_kind": "formal",
+          "target_reached": true,
+          "required_supervised_ticks": 170559,
+          "new_optimizer_updates": 1191,
+          "continuation_from": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_dagger_matched_20261112_01/round_01/G01/backend/G01/training/best.pt",
+            "sha256": "1cf9201ab96bc2d7d8bab20f50108800a16fd13d42216d2b835b301039293ac4",
+            "teacher_supervision": "u_expert",
+            "statistics_sha256": "53ecc092bb2234c726f608e1ae0118539d8f5129dce7c5f898c3b893d0f4f9b2",
+            "normalization_identity": "u_expert_train166_affine_v1",
+            "round_index": 1,
+            "source_group": "G01"
+          },
+          "tick_window_contract": {
+            "version": "fixed_supervised_tick_window_v1",
+            "target_supervised_ticks": 128,
+            "denominator": "fixed_unweighted_target_ticks",
+            "flush": "complete_episode_group",
+            "chunk_boundary": "unsplit_32tick"
+          },
+          "schedule_maximum_control_tick_epochs": 1,
+          "required_control_tick_epochs": 1,
+          "train_episode_count": 575,
+          "effective_batch": 4,
+          "minimum_control_tick_epochs": 1,
+          "minimum_exposure_reached": true,
+          "sampled_contact_anchors": 129131,
+          "contact_anchor_population": 132058,
+          "control_tick_population": 232533,
+          "supervised_tick_population": 170559,
+          "supervised_ticks": 171133,
+          "control_ticks": 214711,
+          "control_equivalent_epochs": 0.9233571149041211,
+          "wall_s": 358.8249168395996,
+          "supervised_ticks_per_wall_s": 476.926187118602,
+          "setup_wall_s": 2.303687810897827,
+          "training_wall_s": 325.59191966056824,
+          "supervised_ticks_per_training_wall_s": 525.605795679473,
+          "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+          "wait_s": 1.9636499648913741,
+          "work_s": 353.1212131588254,
+          "selection": "update0-relative old_validation .5 + correction_dev .25 + correction_initial24 .25",
+          "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+          "excess_supervised_ticks": 574,
+          "coverage": {
+            "supervised_ticks": 171133,
+            "unique_episodes": 360,
+            "repeated_samples": 186,
+            "episode_draws": 546,
+            "strata": {
+              "core": {
+                "supervised_tick_population": 55392,
+                "supervised_ticks": 85372,
+                "unique_supervised_ticks": 55392,
+                "repeated_supervised_ticks": 29980,
+                "actual_fraction": 0.498863457077244,
+                "requested_fraction": 0.5,
+                "effective_tick_exposures": 1.5412333911034084,
+                "unique_episodes": 166,
+                "episode_population": 166,
+                "episode_draws": 255,
+                "repeated_samples": 89,
+                "initial_24_supervised_tick_draws": 6120,
+                "recovery_prefix": {
+                  "ticks": 48,
+                  "initial_supervised_tick_population": 0,
+                  "initial_supervised_tick_draws": 0,
+                  "remaining_supervised_tick_draws": 85372,
+                  "backend_weight": 3.0,
+                  "loss_weight_mass": 85372.0,
+                  "loss_weight_mass_is_exposure": false
+                }
+              },
+              "historical_correction": {
+                "supervised_tick_population": 92783,
+                "supervised_ticks": 34396,
+                "unique_supervised_ticks": 34396,
+                "repeated_supervised_ticks": 0,
+                "actual_fraction": 0.2009898733733412,
+                "requested_fraction": 0.2,
+                "effective_tick_exposures": 0.3707144627787418,
+                "unique_episodes": 118,
+                "episode_population": 333,
+                "episode_draws": 118,
+                "repeated_samples": 0,
+                "initial_24_supervised_tick_draws": 2832,
+                "recovery_prefix": {
+                  "ticks": 48,
+                  "initial_supervised_tick_population": 15984,
+                  "initial_supervised_tick_draws": 5664,
+                  "remaining_supervised_tick_draws": 28732,
+                  "backend_weight": 3.0,
+                  "loss_weight_mass": 45724.0,
+                  "loss_weight_mass_is_exposure": false
+                }
+              },
+              "current_correction": {
+                "supervised_tick_population": 22384,
+                "supervised_ticks": 51365,
+                "unique_supervised_ticks": 22384,
+                "repeated_supervised_ticks": 28981,
+                "actual_fraction": 0.30014666954941477,
+                "requested_fraction": 0.3,
+                "effective_tick_exposures": 2.294719442458899,
+                "unique_episodes": 76,
+                "episode_population": 76,
+                "episode_draws": 173,
+                "repeated_samples": 97,
+                "initial_24_supervised_tick_draws": 4152,
+                "recovery_prefix": {
+                  "ticks": 48,
+                  "initial_supervised_tick_population": 3648,
+                  "initial_supervised_tick_draws": 8304,
+                  "remaining_supervised_tick_draws": 43061,
+                  "backend_weight": 3.0,
+                  "loss_weight_mass": 67973.0,
+                  "loss_weight_mass_is_exposure": false
+                }
+              }
+            }
+          },
+          "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/training/last.pt",
+          "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/training/best.pt",
+          "utc": 1794544617.8759909,
+          "base_optimizer_updates": 0
+        },
+        "selection": {
+          "selection": "validation-selected actual executed error",
+          "checkpoint": "65d72bb7337397cc8908f142461bd0e040528a3b283c88e0250a3101ab2ab34b",
+          "updates": 1191
+        },
+        "evaluation_receipt": {
+          "complete": true,
+          "groups": [
+            "G01"
+          ],
+          "maximum_attempts_each": 10,
+          "planned": 10,
+          "completed": 10,
+          "unrun": 0,
+          "software_failures": 0,
+          "group_summary": {
+            "G01": {
+              "planned": 10,
+              "completed": 10,
+              "unrun": 0,
+              "complete": true,
+              "expansion": {
+                "expanded": false,
+                "reason": "fixed ten attempts; no outcome-dependent expansion",
+                "initial_trials": 10
+              },
+              "software_failures": 0
+            }
+          },
+          "utc": 1794546268.6360505
+        },
+        "summary": {
+          "planned": 10,
+          "attempts": 10,
+          "completed": 10,
+          "valid": 10,
+          "rejected": 0,
+          "software_failures": 0,
+          "invalid_total": 0,
+          "successes": 0,
+          "native_lifts": 4,
+          "first_subgoal_reached": 0,
+          "alignments": 0,
+          "unrun": 0,
+          "unrun_identities": [],
+          "expansion": {
+            "expanded": false,
+            "reason": "fixed ten attempts; no outcome-dependent expansion",
+            "initial_trials": 10
+          },
+          "development_only": true,
+          "formal_test22_used": false,
+          "paired_specs_and_sampler_seed": true,
+          "bitwise_hidden_state_pairing_proven": false,
+          "expert_takeover": false,
+          "complete": true
+        }
+      }
+    },
+    "utc": 1794546269.382902,
+    "test22": false,
+    "research_decision": "Return completed experiment to real Agent; no automatic DAgger or adoption"
+  },
+  "contact": {
+    "rows": [
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_000",
+        "ticks": 601,
+        "first_contact": 80,
+        "first_contact_loss": 96,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_000/trace.npz",
+        "sha256": "0fb1a13d97091ff07edfb96624b64e28175920a897a6f492890d3b509ded8c4a"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_001",
+        "ticks": 601,
+        "first_contact": 67,
+        "first_contact_loss": 127,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_001/trace.npz",
+        "sha256": "1df69e8834763d9b599ff61f9a92082dc5ba21d1dde4a88b121cf4f78d1f6d3e"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_002",
+        "ticks": 601,
+        "first_contact": 64,
+        "first_contact_loss": 99,
+        "first_lift": 247,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_002/trace.npz",
+        "sha256": "5286a8b076db320d3aa058c19c7ab161df5c60c94c512ff029d0c6f2c50525cf"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_003",
+        "ticks": 601,
+        "first_contact": 62,
+        "first_contact_loss": 84,
+        "first_lift": 254,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_003/trace.npz",
+        "sha256": "3955e57e2a72a4d92e0299c9b4adeefa4ab452c542cd3b6d5580227acd9cfd6e"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_004",
+        "ticks": 601,
+        "first_contact": 72,
+        "first_contact_loss": 88,
+        "first_lift": 347,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_004/trace.npz",
+        "sha256": "5b7f75b2658c2d66bb1b8a371c86472423570e7f6aeeb88b69a9eba4c5786865"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_005",
+        "ticks": 601,
+        "first_contact": 74,
+        "first_contact_loss": 96,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_005/trace.npz",
+        "sha256": "605e99804374dcc75ba3242ea3c4371a41a2017f83e979304ed4f1b4172a1d92"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_006",
+        "ticks": 601,
+        "first_contact": 76,
+        "first_contact_loss": 89,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_006/trace.npz",
+        "sha256": "818efd69dc285901708d2a94a1acdeb2a27e7a2a9d1ea6b770c9ef210fae4587"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_007",
+        "ticks": 601,
+        "first_contact": 65,
+        "first_contact_loss": 72,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_007/trace.npz",
+        "sha256": "294e94b6396203f6c1e27ebc3c22771e63d85da8758d9182f4a5f2fa6c836629"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_008",
+        "ticks": 601,
+        "first_contact": 63,
+        "first_contact_loss": 81,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_008/trace.npz",
+        "sha256": "d081f809bd5339323d2ad826f498345c1f9f2df7e464f5dd57e15b53daf9b722"
+      },
+      {
+        "group": "QG01",
+        "identity": "palm_fresh_009",
+        "ticks": 601,
+        "first_contact": 53,
+        "first_contact_loss": 58,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/QG01/backend/QG01/evaluation/palm_fresh_009/trace.npz",
+        "sha256": "552a24f6b312bfacbdfa261bc3394bf11247f5b0df57d4e87b30b45c5c0de76c"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_000",
+        "ticks": 601,
+        "first_contact": 73,
+        "first_contact_loss": 90,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_000/trace.npz",
+        "sha256": "4d0592d053b94a0c7daabac146afe71bdfc224f0e8490b1b82a48ddd8e9c9c5a"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_001",
+        "ticks": 601,
+        "first_contact": 63,
+        "first_contact_loss": 81,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_001/trace.npz",
+        "sha256": "376a416838741bd1450f8c287df034bdaf310977e17aa2eb9d15bd9eeda5ff7a"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_002",
+        "ticks": 601,
+        "first_contact": 60,
+        "first_contact_loss": 75,
+        "first_lift": 364,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_002/trace.npz",
+        "sha256": "b65346dd5d49690f7f32aaefbe59c188c081199b5a8e88a22f8006856f4554bd"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_003",
+        "ticks": 601,
+        "first_contact": 60,
+        "first_contact_loss": 73,
+        "first_lift": 224,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_003/trace.npz",
+        "sha256": "88efaadd5f4d2b1b69183b8cf707f3305386d4c789cbf12f6aa4d624a7c4ebdd"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_004",
+        "ticks": 601,
+        "first_contact": 66,
+        "first_contact_loss": 82,
+        "first_lift": 261,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_004/trace.npz",
+        "sha256": "5fec20bdc164022bc9073f05bc0a623d41c45b0faa8ee52cdde2057c3952dc69"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_005",
+        "ticks": 601,
+        "first_contact": 61,
+        "first_contact_loss": 71,
+        "first_lift": 189,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_005/trace.npz",
+        "sha256": "e3763cc953ba4bb545330d2b451332845f558d4c625d43ab3e63581c20911dec"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_006",
+        "ticks": 601,
+        "first_contact": 72,
+        "first_contact_loss": 87,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_006/trace.npz",
+        "sha256": "14b68a4bb2b1b0d8afb910fa82f60e31dc5ff523d1493cef8532566d28b0058e"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_007",
+        "ticks": 601,
+        "first_contact": 60,
+        "first_contact_loss": 64,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_007/trace.npz",
+        "sha256": "9757a983ce9c8ebe07f1214affdbfd6fd8a9c419dc012f710ef0fc9483013a6f"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_008",
+        "ticks": 601,
+        "first_contact": 62,
+        "first_contact_loss": 79,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_008/trace.npz",
+        "sha256": "b59cd6400e98bc2d2ad3d4550729e745732191fb603dbc5133cf9f9b993feea8"
+      },
+      {
+        "group": "G01",
+        "identity": "palm_fresh_009",
+        "ticks": 601,
+        "first_contact": 54,
+        "first_contact_loss": 67,
+        "first_lift": null,
+        "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/adaptive_tick_window_01/formal/G01/backend/G01/evaluation/palm_fresh_009/trace.npz",
+        "sha256": "e5e89b37c1da9311218c71580ae980cd212396edcd1cff5f9f857b4db76911d7"
+      }
+    ],
+    "contact_threshold": 0.1,
+    "test22": false,
+    "limitation": "Observable contact transitions, not proof of failure causality or hidden-state counterfactual"
+  },
+  "intentional_old_handoff": "adaptive_recovery_01 InterruptedError is not a failed simulation"
+}

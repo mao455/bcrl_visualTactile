@@ -1,3 +1,7 @@
+## 2026-11-13 13:12 完整tick-window结果与接触恢复新登记
+
+本次新身份`adaptive_contact_recovery_01`仅登记一个有限完整双模块恢复实验，不改旧活动源码。固定实际tick-window完整pair采集每组12机会(58/70/82tick)，成功筛选、共享不可变池快照、DP2 anchor遍/新cache/rear1 tick遍/完整开发10次；新DP使用已审查recovery_onset_commit12_v1。Core/合法全部历史保留，后端使用centered/FY与fixed128tick，真实当前权重因果prefix，无stale-state缓存。所有原执行/标签/几何/test22约束保留。6h子截止不重置原23:55:15/次日00:05:15；不足完整阶段预留则交回真实Agent，不自动补机会或开启下一轮。
+
 ### 2026-11-13 恢复起点DP窗口（新训练显式启用）
 
 `target_window_contract=recovery_onset_commit12_v1`是训练loss窗口身份，非模型输入或在线控制合同。设首个合法专家tick为s，额外允许a=floor(s/12)*12的原生规划点；仅s>a时新增，a..s−1全mask，s以后只取同一连续合法segment直至首个洞/段变化，最多H24。更早规划点不跨无效段获取监督。A目标仍实际q_reached/B仍u_expert，历史保持完整真实prefix；当前/未来标签不得进入条件。commit12几何分母、邻接/target数按实际valid位置，新增anchor归初段抽样。旧字段缺省行为不变；原run配置/optimizer恢复禁止改变该字段，必须新登记前端continuation。缓存仍完整t0重放、每12tick predict、逐tick旧计划cursor，后端标签mask不变。
