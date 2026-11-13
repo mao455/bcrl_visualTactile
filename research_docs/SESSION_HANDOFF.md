@@ -1,3 +1,7 @@
+## 2026-11-13 19:23 后端重放实验已真实启动
+
+独立`tight-replay-balance-20261113-01.service`已active，owner2967509/start_ticks162865736；首个control-A实际288更新、41271合法监督tick，不是仅准备或模型加载。308个冻结源码文件无漂移，资源储备通过，两准备fairness通过；后续真实结果尚未产生。源码74c8006已推送指定分支，活动研究树只读；本条在另一publication树更新。下一watch为`rear_replay_balance_01/{status,launch,finished,failure}.json`，由既有真实Agent监督器接续；阶段21:48:09、原23:55:15/次日00:05:15不变。
+
 ## 2026-11-13 19:20 Agent006完成复验判读，登记单一采样问题
 
 已读事件、三份现有审计、公平政策和发布器收据；不再重复宽审计。A补齐owner正常退出，实际新20例A/B均0/20；没有继续B单组调参或混合旧分母。下一阶段`rear_replay_balance_01`，隔离树`bc+rl_RSS_replay_balance_01`：冻结contact完整pair前端/cache，以原50/20/30为继续训练对照，人口比例为候选，各组同初始tensor/新AdamW、共同FY和1遍，固定最终endpoint，各10新完整策略开发机会。不是DAgger、无新前端训练或采集。真实CPU预采样人口比例覆盖全部662训练episode，对照319；实际训练尚待验收。
