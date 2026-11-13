@@ -517,7 +517,7 @@ def _shared_pool_tactile(frozen,touch):
 
 
 def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,manifest_sha256=None,include_geometry=True,
-        snapshot=None,consumer_group=None):
+        snapshot=None,consumer_group=None,include_frontend_tactile=True):
     """Append accepted train takeovers; keep original validation/test and affine.
 
     Both roots name state_data directories. Selection/native success admission
@@ -528,6 +528,7 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
     from .native_data import target_supervision
     source=Path(source_root).resolve();out=Path(output_root).resolve()
     frozen=read_dagger_snapshot(snapshot) if snapshot is not None else None
+    if frozen and not include_frontend_tactile:raise ValueError('Shared historical pools require their registered tactile artifacts')
     if source==out:raise ValueError('Aggregate must be a new independent dataset')
     kind=target_supervision(supervision);old=read(source/'data.json')
     if target_supervision(old.get('supervision','u_expert'))!=kind:raise ValueError('Aggregate target semantics changed')
@@ -554,7 +555,7 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
     elif (out/'data.json').exists():raise ValueError('Aggregate must be a new independent dataset')
     raw=torch.load(source/'numeric.pt',map_location='cpu',weights_only=False)
     if raw['data_sha256']!=sha256(source/'data.json'):raise ValueError('Source numeric cache identity differs')
-    touched=torch.load(source/'tactile.pt',map_location='cpu',weights_only=False)
+    touched=torch.load(source/'tactile.pt',map_location='cpu',weights_only=False) if include_frontend_tactile else None
     base_splits=frozen['core']['splits'] if frozen else old['splits']
     ids=base_splits['train']+base_splits['validation']
     records={};touch={};contexts={}
@@ -570,7 +571,8 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
         # Aggregating an already aggregated pool retains its real masks/labels.
         for key in ('u_expert','supervision_mask','control_segment'):
             if key in raw['records'][identity]:row[key]=raw['records'][identity][key]
-        records[identity]=row;touch[identity]=touched[identity]
+        records[identity]=row
+        if include_frontend_tactile:touch[identity]=touched[identity]
         if include_geometry:
             if identity in old_context:contexts[identity]=old_context[identity]
             else:
@@ -609,13 +611,13 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
                 for g in ('G11','QG01')+tuple(sorted({e['pool_source']['group'] for e in new_entries.values()}-{'G11','QG01'}))})
         if compatibility_aliases:data['aggregation']['legacy_compatibility_qualifications']=compatibility_aliases
     out.mkdir(parents=True,exist_ok=True)
-    for name in ('statistics.pt','tactile_statistics.pt'):
+    for name in ('statistics.pt','tactile_statistics.pt') if include_frontend_tactile else ('statistics.pt',):
         shutil.copyfile(source/name,out/name)
         if sha256(source/name)!=sha256(out/name):raise ValueError('Fixed aggregate affine copy changed')
     atomic_json(out/'data.json',data)
     save(out/'numeric.pt',dict(contract=raw['contract'],data_sha256=sha256(out/'data.json'),records=records))
     if frozen:(out/'tactile.pt').symlink_to(_shared_pool_tactile(frozen,touch))
-    else:save(out/'tactile.pt',touch)
+    elif include_frontend_tactile:save(out/'tactile.pt',touch)
     if include_geometry:save(out/'loss_context.pt',contexts)
     if frozen:
         names=['data.json','numeric.pt','tactile.pt','statistics.pt','tactile_statistics.pt']+(['loss_context.pt'] if include_geometry else [])

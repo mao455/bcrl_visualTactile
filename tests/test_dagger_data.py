@@ -98,7 +98,8 @@ def test_residual_history_mask_keeps_prefix_while_loss_ignores_it():
         residual_supervision_mask([dict(legacy,supervision_mask=row['supervision_mask'])],0,36,'cpu')
 
 
-def test_aggregate_copies_frozen_affine_and_never_opens_test_source(tmp_path):
+@pytest.mark.parametrize('include_tactile',[True,False])
+def test_aggregate_copies_frozen_affine_and_never_opens_test_source(tmp_path,include_tactile):
     entry=takeover(tmp_path);new,touch,_=dagger_record(entry,include_geometry=False)
     source=tmp_path/'source';source.mkdir();out=tmp_path/'aggregate'
     old={k:new[k].clone() for k in ('robot','command','time','joint_limits','q_reached')}
@@ -107,9 +108,13 @@ def test_aggregate_copies_frozen_affine_and_never_opens_test_source(tmp_path):
         families={'train_takeover':'train'},supervision='q_reached',normalization_identity='q_reached_train166_affine_v1')
     (source/'data.json').write_text(json.dumps(data))
     torch.save(dict(contract={},data_sha256=sha256(source/'data.json'),records={'old':old,'val':old}),source/'numeric.pt')
-    torch.save({'old':touch,'val':touch},source/'tactile.pt')
-    torch.save({'action_scale':torch.rand(29)},source/'statistics.pt');torch.save({'fixed':torch.rand(30)},source/'tactile_statistics.pt')
-    result=build_dagger_aggregate(source,{'new':entry},out,'configuration',include_geometry=False)
+    if include_tactile:
+        torch.save({'old':touch,'val':touch},source/'tactile.pt')
+        torch.save({'fixed':torch.rand(30)},source/'tactile_statistics.pt')
+    torch.save({'action_scale':torch.rand(29)},source/'statistics.pt')
+    result=build_dagger_aggregate(source,{'new':entry},out,'configuration',include_geometry=False,include_frontend_tactile=include_tactile)
+    assert (out/'tactile.pt').exists()==include_tactile
+    assert (out/'tactile_statistics.pt').exists()==include_tactile
     assert result['splits']=={'train':['old','new'],'validation':['val'],'test':['heldout']}
     assert result['normalization_train_ids']==['old']
     assert sha256(source/'statistics.pt')==sha256(out/'statistics.pt')

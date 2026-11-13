@@ -60,7 +60,7 @@ def prepare_aggregate(root, collection, output):
     for role in ['A','B']:
         destination=output/role;destination.mkdir()
         data=build_dagger_aggregate(root/role/'state_data',entries,destination/'state_data',
-            'q_reached' if role=='A' else 'u_expert',include_geometry=role=='A')
+            'q_reached' if role=='A' else 'u_expert',include_geometry=role=='A',include_frontend_tactile=False)
         residual_normalization(data,dict(fresh_data_contract=FRESH_AGGREGATE_CONTRACT))
         atomic_json(destination/'session.json',dict(read(root/'session.json'),resource_root=str(output),
             cache_deadline=read(root/'session.json')['deadline']))
