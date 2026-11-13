@@ -1,20 +1,18 @@
+<!-- EXECUTION_LEARNING_STATUS_START -->
+## 2026-11-13 自主执行学习修复：实际状态
+
+状态 **FAILED / technical_or_budget_stop**；原绝对截止 **2026-11-14 00:05:15 UTC+8** 不变。
+首个旧/FY各200更新已完成，FY的A/B dev执行误差比1.139/1.181，未通过原门槛。固定DP输出域下界占A归一化错误33.46%，B为0；据此比较保持共同执行器的线性尾部提案。
+配对延长、必要优化调整、完整混合数据后端训练、完整DP+Transformer开发评估分层记录；若闭环失败且剩余预算允许，最多两轮、每轮12机会/组的定向DAgger同时更新DP、缓存和后端。初始门槛失败不结束整个修复，也不改写旧结果。
+GPU工作与Git发布分别调度；未完成阶段不能称为成功。test22隔离、源数据和旧checkpoint保留。
+[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/adaptive_recovery_01/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/adaptive_recovery_01/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/adaptive_recovery_01/capacity.json)。
+<!-- EXECUTION_LEARNING_STATUS_END -->
+
 <!-- AUTONOMOUS_RESEARCH_SUPERVISION_START -->
 **2026-11-13 10:44 最新接续：独立研究事件监督已实际启动。** `tight-research-agent-supervisor-20261113-01.service` 为active，真实Codex工具调用与service运行环境均已验证，286份旧worker源码未改。当前A已完成7017更新但验证退化；B仍正常更新，最新启动快照为4512次/328737监督tick。先完成本次两组完整学生评估，再触发真实Agent做下一研究决策。下面旧owner的自动汇总只描述它自身；有意交接的InterruptedError不代表评估软件失败，也不意味着研究结束。15min无实际进展或异常退出同样触发诊断；普通脚本不宣称具备科研推理能力。原计算23:55:15/绝对次日00:05:15 UTC+8不延长。
 
 [实际启动验收](evidence/tight_execution_learning_20261113/agent_supervisor/startup_acceptance.json) · 本地实时 `outputs/visuotactile/run/tight_execution_learning_20261113_01/agent_supervisor/{status,latest_decision}.json`。后者仅在真实决策发生后存在。
 <!-- AUTONOMOUS_RESEARCH_SUPERVISION_END -->
-
-<!-- EXECUTION_LEARNING_STATUS_START -->
-## 2026-11-13 10:40 自主执行学习修复：训练实测与决策接续
-
-A完整混合后端已完成 **7017更新、512402监督tick、3.00425有效遍**；旧validation/纠偏dev/恢复初24执行误差较update0增加 **19.76%/22.10%/26.78%**。起点与旧正式模型保留，退化终点只作闭环诊断，不宣布采用。B持续实际更新；此快照更新数见下方机器凭据。两组本次完整DP＋Transformer自主结果尚未产生。
-
-用户最新授权解除旧200/800/1600、双门槛、候选和固定两轮的机械限制。先完成当前训练及完整闭环，再按真实结果自主决定优化、结构、采样或DAgger；不因零成功自动追加。新增独立事件监督器只监测/安全交接，真实科研判断由本机 `codex exec` 重新调用Agent；已验证工具读取实际训练结果。监督器6项测试通过，service实际启动及真实CLI环境已验收；科研决策调用将在实验事件发生时触发。
-
-原计算截止 **11月13日23:55:15**、绝对截止 **11月14日00:05:15 UTC+8** 不变。286份活动worker冻结源码核验未变；test22、原始数据与历史证据受保护。A/B标签及共同物理执行/成功约束保持。
-
-[方法与结果边界](DAGGER_METHOD.md#execution-learning-repair) · [训练与验证快照](evidence/tight_execution_learning_20261113/agent_supervisor/startup_preparation.json) · [真实Agent预检](evidence/tight_execution_learning_20261113/agent_supervisor/read_only_preflight.json) · [接续登记](evidence/tight_execution_learning_20261113/agent_supervisor/registration.json)。实时状态以本地 `outputs/visuotactile/run/tight_execution_learning_20261113_01/agent_supervisor/status.json` 为准。
-<!-- EXECUTION_LEARNING_STATUS_END -->
 
 # 2026-11-12 16:35：性能实测完成，等待同run安全边界接入
 

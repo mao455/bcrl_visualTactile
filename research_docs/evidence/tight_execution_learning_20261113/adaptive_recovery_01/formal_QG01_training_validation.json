@@ -177,5 +177,542 @@
       }
     },
     "selection_score": 1.0
+  },
+  {
+    "epoch": 1,
+    "update": 2349,
+    "control_tick_epochs": 1.003365404346883,
+    "control_epoch": 0.9233571149041211,
+    "train": {
+      "all": {
+        "ticks": 648,
+        "arm_rmse_rad": 0.0008273626444861293,
+        "hand_rmse_rad": 0.009970290586352348,
+        "normalized_equal_mse": 0.00015861833526287228
+      },
+      "contact": {
+        "ticks": 431,
+        "arm_rmse_rad": 0.0008578097331337631,
+        "hand_rmse_rad": 0.011109666898846626,
+        "normalized_equal_mse": 0.00020033087639603764
+      },
+      "noncontact": {
+        "ticks": 217,
+        "arm_rmse_rad": 0.0007632964407093823,
+        "hand_rmse_rad": 0.00719046127051115,
+        "normalized_equal_mse": 7.576994539704174e-05
+      },
+      "initial24": {
+        "ticks": 48,
+        "arm_rmse_rad": 0.000652414804790169,
+        "hand_rmse_rad": 0.005319909192621708,
+        "normalized_equal_mse": 3.5251145163783804e-05
+      }
+    },
+    "validation": {
+      "all": {
+        "ticks": 1303,
+        "arm_rmse_rad": 0.000922565464861691,
+        "hand_rmse_rad": 0.016072316095232964,
+        "normalized_equal_mse": 0.0004952779272571206
+      },
+      "contact": {
+        "ticks": 877,
+        "arm_rmse_rad": 0.0009683501557447016,
+        "hand_rmse_rad": 0.017184818163514137,
+        "normalized_equal_mse": 0.0006172980647534132
+      },
+      "noncontact": {
+        "ticks": 426,
+        "arm_rmse_rad": 0.0008203026955015957,
+        "hand_rmse_rad": 0.013496330007910728,
+        "normalized_equal_mse": 0.0002440768585074693
+      },
+      "initial24": {
+        "ticks": 96,
+        "arm_rmse_rad": 0.0008105777087621391,
+        "hand_rmse_rad": 0.01074252836406231,
+        "normalized_equal_mse": 0.00014651031233370304
+      }
+    },
+    "wall_s": 544.7728116512299,
+    "wait_s": 0.6909416518174112,
+    "correction_dev": {
+      "all": {
+        "ticks": 13219,
+        "arm_rmse_rad": 0.0011453032493591309,
+        "hand_rmse_rad": 0.017606006935238838,
+        "normalized_equal_mse": 0.0006071387324482203
+      },
+      "contact": {
+        "ticks": 10547,
+        "arm_rmse_rad": 0.0011259852908551693,
+        "hand_rmse_rad": 0.01767495647072792,
+        "normalized_equal_mse": 0.0006318574887700379
+      },
+      "noncontact": {
+        "ticks": 2672,
+        "arm_rmse_rad": 0.0012185691157355905,
+        "hand_rmse_rad": 0.017331168055534363,
+        "normalized_equal_mse": 0.0005095676751807332
+      },
+      "initial24": {
+        "ticks": 1008,
+        "arm_rmse_rad": 0.0012367237359285355,
+        "hand_rmse_rad": 0.01938682422041893,
+        "normalized_equal_mse": 0.000570658128708601
+      }
+    },
+    "selection_components": {
+      "old_validation": 0.0004952779272571206,
+      "correction_dev": 0.0006071387324482203,
+      "correction_initial24": 0.000570658128708601
+    },
+    "selection_ratios": {
+      "old_validation": 1.2181269759304674,
+      "correction_dev": 1.2202728419974844,
+      "correction_initial24": 1.2666488070086517
+    },
+    "selection_baseline": {
+      "old_validation": 0.0004065897373948246,
+      "correction_dev": 0.0004975434276275337,
+      "correction_initial24": 0.00045052592759020627
+    },
+    "coverage": {
+      "supervised_ticks": 171133,
+      "unique_episodes": 360,
+      "repeated_samples": 186,
+      "episode_draws": 546,
+      "strata": {
+        "core": {
+          "supervised_tick_population": 55392,
+          "supervised_ticks": 85372,
+          "unique_supervised_ticks": 55392,
+          "repeated_supervised_ticks": 29980,
+          "actual_fraction": 0.498863457077244,
+          "requested_fraction": 0.5,
+          "effective_tick_exposures": 1.5412333911034084,
+          "unique_episodes": 166,
+          "episode_population": 166,
+          "episode_draws": 255,
+          "repeated_samples": 89,
+          "initial_24_supervised_tick_draws": 6120,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 0,
+            "initial_supervised_tick_draws": 0,
+            "remaining_supervised_tick_draws": 85372,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 85372.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        },
+        "historical_correction": {
+          "supervised_tick_population": 92783,
+          "supervised_ticks": 34396,
+          "unique_supervised_ticks": 34396,
+          "repeated_supervised_ticks": 0,
+          "actual_fraction": 0.2009898733733412,
+          "requested_fraction": 0.2,
+          "effective_tick_exposures": 0.3707144627787418,
+          "unique_episodes": 118,
+          "episode_population": 333,
+          "episode_draws": 118,
+          "repeated_samples": 0,
+          "initial_24_supervised_tick_draws": 2832,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 15984,
+            "initial_supervised_tick_draws": 5664,
+            "remaining_supervised_tick_draws": 28732,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 45724.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        },
+        "current_correction": {
+          "supervised_tick_population": 22384,
+          "supervised_ticks": 51365,
+          "unique_supervised_ticks": 22384,
+          "repeated_supervised_ticks": 28981,
+          "actual_fraction": 0.30014666954941477,
+          "requested_fraction": 0.3,
+          "effective_tick_exposures": 2.294719442458899,
+          "unique_episodes": 76,
+          "episode_population": 76,
+          "episode_draws": 173,
+          "repeated_samples": 97,
+          "initial_24_supervised_tick_draws": 4152,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 3648,
+            "initial_supervised_tick_draws": 8304,
+            "remaining_supervised_tick_draws": 43061,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 67973.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        }
+      }
+    },
+    "selection_score": 1.2307939002167678
+  },
+  {
+    "epoch": 2,
+    "update": 4691,
+    "control_tick_epochs": 2.0050012019301238,
+    "control_epoch": 1.849255804552472,
+    "train": {
+      "all": {
+        "ticks": 648,
+        "arm_rmse_rad": 0.0008149230852723122,
+        "hand_rmse_rad": 0.009780495427548885,
+        "normalized_equal_mse": 0.00014655904669780284
+      },
+      "contact": {
+        "ticks": 431,
+        "arm_rmse_rad": 0.000845319707877934,
+        "hand_rmse_rad": 0.010888103395700455,
+        "normalized_equal_mse": 0.00018358136003371328
+      },
+      "noncontact": {
+        "ticks": 217,
+        "arm_rmse_rad": 0.0007509100250899792,
+        "hand_rmse_rad": 0.007084432989358902,
+        "normalized_equal_mse": 7.302623271243647e-05
+      },
+      "initial24": {
+        "ticks": 48,
+        "arm_rmse_rad": 0.0006313021294772625,
+        "hand_rmse_rad": 0.005419887602329254,
+        "normalized_equal_mse": 3.4287237212993205e-05
+      }
+    },
+    "validation": {
+      "all": {
+        "ticks": 1303,
+        "arm_rmse_rad": 0.0009203851222991943,
+        "hand_rmse_rad": 0.0161115899682045,
+        "normalized_equal_mse": 0.000486112228827551
+      },
+      "contact": {
+        "ticks": 877,
+        "arm_rmse_rad": 0.0009616464376449585,
+        "hand_rmse_rad": 0.01708849146962166,
+        "normalized_equal_mse": 0.0006042257300578058
+      },
+      "noncontact": {
+        "ticks": 426,
+        "arm_rmse_rad": 0.0008290003170259297,
+        "hand_rmse_rad": 0.013885730877518654,
+        "normalized_equal_mse": 0.00024295375624205917
+      },
+      "initial24": {
+        "ticks": 96,
+        "arm_rmse_rad": 0.0007962043164297938,
+        "hand_rmse_rad": 0.011084161698818207,
+        "normalized_equal_mse": 0.00015213486040011048
+      }
+    },
+    "wall_s": 1083.0574793815613,
+    "wait_s": 1.3352870794478804,
+    "correction_dev": {
+      "all": {
+        "ticks": 13219,
+        "arm_rmse_rad": 0.0011576112592592835,
+        "hand_rmse_rad": 0.017784995958209038,
+        "normalized_equal_mse": 0.0006055519916117191
+      },
+      "contact": {
+        "ticks": 10547,
+        "arm_rmse_rad": 0.001133882557041943,
+        "hand_rmse_rad": 0.017746416851878166,
+        "normalized_equal_mse": 0.00062570656882599
+      },
+      "noncontact": {
+        "ticks": 2672,
+        "arm_rmse_rad": 0.0012468721251934767,
+        "hand_rmse_rad": 0.017936473712325096,
+        "normalized_equal_mse": 0.0005259976023808122
+      },
+      "initial24": {
+        "ticks": 1008,
+        "arm_rmse_rad": 0.0012687412090599537,
+        "hand_rmse_rad": 0.01979365572333336,
+        "normalized_equal_mse": 0.0005888439482077956
+      }
+    },
+    "selection_components": {
+      "old_validation": 0.000486112228827551,
+      "correction_dev": 0.0006055519916117191,
+      "correction_initial24": 0.0005888439482077956
+    },
+    "selection_ratios": {
+      "old_validation": 1.1955841087929502,
+      "correction_dev": 1.2170836915668028,
+      "correction_initial24": 1.307014562641114
+    },
+    "selection_baseline": {
+      "old_validation": 0.0004065897373948246,
+      "correction_dev": 0.0004975434276275337,
+      "correction_initial24": 0.00045052592759020627
+    },
+    "coverage": {
+      "supervised_ticks": 341971,
+      "unique_episodes": 434,
+      "repeated_samples": 660,
+      "episode_draws": 1094,
+      "strata": {
+        "core": {
+          "supervised_tick_population": 55392,
+          "supervised_ticks": 170742,
+          "unique_supervised_ticks": 55392,
+          "repeated_supervised_ticks": 115350,
+          "actual_fraction": 0.49928795131750936,
+          "requested_fraction": 0.5,
+          "effective_tick_exposures": 3.0824306759098787,
+          "unique_episodes": 166,
+          "episode_population": 166,
+          "episode_draws": 512,
+          "repeated_samples": 346,
+          "initial_24_supervised_tick_draws": 12288,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 0,
+            "initial_supervised_tick_draws": 0,
+            "remaining_supervised_tick_draws": 170742,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 170742.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        },
+        "historical_correction": {
+          "supervised_tick_population": 92783,
+          "supervised_ticks": 68591,
+          "unique_supervised_ticks": 55156,
+          "repeated_supervised_ticks": 13435,
+          "actual_fraction": 0.20057548739513,
+          "requested_fraction": 0.2,
+          "effective_tick_exposures": 0.7392625804296046,
+          "unique_episodes": 192,
+          "episode_population": 333,
+          "episode_draws": 237,
+          "repeated_samples": 45,
+          "initial_24_supervised_tick_draws": 5688,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 15984,
+            "initial_supervised_tick_draws": 11376,
+            "remaining_supervised_tick_draws": 57215,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 91343.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        },
+        "current_correction": {
+          "supervised_tick_population": 22384,
+          "supervised_ticks": 102638,
+          "unique_supervised_ticks": 22384,
+          "repeated_supervised_ticks": 80254,
+          "actual_fraction": 0.3001365612873606,
+          "requested_fraction": 0.3,
+          "effective_tick_exposures": 4.585328806290208,
+          "unique_episodes": 76,
+          "episode_population": 76,
+          "episode_draws": 345,
+          "repeated_samples": 269,
+          "initial_24_supervised_tick_draws": 8280,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 3648,
+            "initial_supervised_tick_draws": 16560,
+            "remaining_supervised_tick_draws": 86078,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 135758.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        }
+      }
+    },
+    "selection_score": 1.2288166179484543
+  },
+  {
+    "epoch": 3,
+    "update": 7017,
+    "control_tick_epochs": 3.0042507284869164,
+    "control_epoch": 2.776577948076187,
+    "train": {
+      "all": {
+        "ticks": 648,
+        "arm_rmse_rad": 0.0008290003170259297,
+        "hand_rmse_rad": 0.009780708700418472,
+        "normalized_equal_mse": 0.00014608709898311645
+      },
+      "contact": {
+        "ticks": 431,
+        "arm_rmse_rad": 0.0008674290147610009,
+        "hand_rmse_rad": 0.010936112143099308,
+        "normalized_equal_mse": 0.000183286247192882
+      },
+      "noncontact": {
+        "ticks": 217,
+        "arm_rmse_rad": 0.0007468331605195999,
+        "hand_rmse_rad": 0.0069368998520076275,
+        "normalized_equal_mse": 7.220307452371344e-05
+      },
+      "initial24": {
+        "ticks": 48,
+        "arm_rmse_rad": 0.0006473295507021248,
+        "hand_rmse_rad": 0.005167723633348942,
+        "normalized_equal_mse": 3.261249730712734e-05
+      }
+    },
+    "validation": {
+      "all": {
+        "ticks": 1303,
+        "arm_rmse_rad": 0.0009376799571327865,
+        "hand_rmse_rad": 0.016073064878582954,
+        "normalized_equal_mse": 0.00048692020936869085
+      },
+      "contact": {
+        "ticks": 877,
+        "arm_rmse_rad": 0.0009820261038839817,
+        "hand_rmse_rad": 0.017156723886728287,
+        "normalized_equal_mse": 0.0006105637876316905
+      },
+      "noncontact": {
+        "ticks": 426,
+        "arm_rmse_rad": 0.0008390378206968307,
+        "hand_rmse_rad": 0.013572419993579388,
+        "normalized_equal_mse": 0.0002323771914234385
+      },
+      "initial24": {
+        "ticks": 96,
+        "arm_rmse_rad": 0.0008109494810923934,
+        "hand_rmse_rad": 0.010732238180935383,
+        "normalized_equal_mse": 0.00014245476631913334
+      }
+    },
+    "wall_s": 1607.883531332016,
+    "wait_s": 1.9745420615654439,
+    "correction_dev": {
+      "all": {
+        "ticks": 13219,
+        "arm_rmse_rad": 0.0011686414945870638,
+        "hand_rmse_rad": 0.017739133909344673,
+        "normalized_equal_mse": 0.0006075139390304685
+      },
+      "contact": {
+        "ticks": 10547,
+        "arm_rmse_rad": 0.0011503704590722919,
+        "hand_rmse_rad": 0.0178031288087368,
+        "normalized_equal_mse": 0.0006345127476379275
+      },
+      "noncontact": {
+        "ticks": 2672,
+        "arm_rmse_rad": 0.0012381316628307104,
+        "hand_rmse_rad": 0.017484242096543312,
+        "normalized_equal_mse": 0.000500943569932133
+      },
+      "initial24": {
+        "ticks": 1008,
+        "arm_rmse_rad": 0.001269093481823802,
+        "hand_rmse_rad": 0.019510777667164803,
+        "normalized_equal_mse": 0.0005711883422918618
+      }
+    },
+    "selection_components": {
+      "old_validation": 0.00048692020936869085,
+      "correction_dev": 0.0006075139390304685,
+      "correction_initial24": 0.0005711883422918618
+    },
+    "selection_ratios": {
+      "old_validation": 1.1975713221110158,
+      "correction_dev": 1.2210269602541306,
+      "correction_initial24": 1.26782568396687
+    },
+    "selection_baseline": {
+      "old_validation": 0.0004065897373948246,
+      "correction_dev": 0.0004975434276275337,
+      "correction_initial24": 0.00045052592759020627
+    },
+    "coverage": {
+      "supervised_ticks": 512402,
+      "unique_episodes": 489,
+      "repeated_samples": 1165,
+      "episode_draws": 1654,
+      "strata": {
+        "core": {
+          "supervised_tick_population": 55392,
+          "supervised_ticks": 255983,
+          "unique_supervised_ticks": 55392,
+          "repeated_supervised_ticks": 200591,
+          "actual_fraction": 0.499574552792534,
+          "requested_fraction": 0.5,
+          "effective_tick_exposures": 4.621299104563836,
+          "unique_episodes": 166,
+          "episode_population": 166,
+          "episode_draws": 768,
+          "repeated_samples": 602,
+          "initial_24_supervised_tick_draws": 18432,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 0,
+            "initial_supervised_tick_draws": 0,
+            "remaining_supervised_tick_draws": 255983,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 255983.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        },
+        "historical_correction": {
+          "supervised_tick_population": 92783,
+          "supervised_ticks": 102685,
+          "unique_supervised_ticks": 69461,
+          "repeated_supervised_ticks": 33224,
+          "actual_fraction": 0.2003992958653557,
+          "requested_fraction": 0.2,
+          "effective_tick_exposures": 1.1067221365982993,
+          "unique_episodes": 247,
+          "episode_population": 333,
+          "episode_draws": 367,
+          "repeated_samples": 120,
+          "initial_24_supervised_tick_draws": 8808,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 15984,
+            "initial_supervised_tick_draws": 17616,
+            "remaining_supervised_tick_draws": 85069,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 137917.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        },
+        "current_correction": {
+          "supervised_tick_population": 22384,
+          "supervised_ticks": 153734,
+          "unique_supervised_ticks": 22384,
+          "repeated_supervised_ticks": 131350,
+          "actual_fraction": 0.3000261513421103,
+          "requested_fraction": 0.3,
+          "effective_tick_exposures": 6.868030736240171,
+          "unique_episodes": 76,
+          "episode_population": 76,
+          "episode_draws": 519,
+          "repeated_samples": 443,
+          "initial_24_supervised_tick_draws": 12456,
+          "recovery_prefix": {
+            "ticks": 48,
+            "initial_supervised_tick_population": 3648,
+            "initial_supervised_tick_draws": 24912,
+            "remaining_supervised_tick_draws": 128822,
+            "backend_weight": 3.0,
+            "loss_weight_mass": 203558.0,
+            "loss_weight_mass_is_exposure": false
+          }
+        }
+      }
+    },
+    "selection_score": 1.220998822110758
   }
 ]

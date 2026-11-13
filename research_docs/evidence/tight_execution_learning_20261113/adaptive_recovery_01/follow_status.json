@@ -1,7 +1,8 @@
 {
-  "state": "RUNNING",
-  "stage": "formal_backend_training",
-  "utc": 1794535062.9994068,
+  "state": "FAILED",
+  "stage": "technical_or_budget_stop",
+  "utc": 1794539893.8535323,
   "pid": 2647278,
-  "group": "QG01"
+  "error": "InterruptedError('Owner received SIGTERM; preserve evidence and stop owned workers')",
+  "traceback": "Traceback (most recent call last):\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_execution_fix/tools/tight_execution_follow.py\", line 360, in run\n    run_child(root,group+'_formal_eval',['-m','tools.tight_finish','residual_evaluate','--root',str(root/'formal'/group/'backend')],reg['compute_deadline']-14400)\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_execution_fix/tools/tight_execution_learning.py\", line 337, in run_child\n    try:code=child.wait(timeout=deadline-time.time())\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/subprocess.py\", line 1264, in wait\n    return self._wait(timeout=timeout)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/subprocess.py\", line 2047, in _wait\n    time.sleep(delay)\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_execution_fix/tools/runtime.py\", line 35, in terminate\n    raise InterruptedError('Owner received SIGTERM; preserve evidence and stop owned workers')\nInterruptedError: Owner received SIGTERM; preserve evidence and stop owned workers\n"
 }
