@@ -1,3 +1,9 @@
+## 2026-11-13 18:48 A补齐评估已真实推进
+
+`tight-ab-complement-20261113-01.service`独立cgroup已运行；owner2945216/start_ticks162656356，首个冻结A完整学生case实际推进到tick400，非仅注册或Kit启动。297个以上受检源码文件无漂移，具体数量见startup_acceptance；源码commit c8d3dd3已推送指定分支。GPU空闲约19GiB、RAM可用约29GiB，监测无暂停原因。固定子截止19:43:57 UTC+8，原计算23:55:15/绝对次日00:05:15不变。
+
+既有真实Agent监督器继续监测新root的status/launch/finished/failure，无第二监督器。普通owner只执行固定20机会及公平收据检查。发布启动验收在另一个隔离发布树完成，不修改运行源码或bot所有的live文件；A新cohort未完成，不提前给成功率结论。
+
 ## 2026-11-13 18:45 B复验完成；仅补齐当前A固定20机会
 
 `success_replication_01/finished.json`实际完成：B contact **0/20**、B previous **0/20**，两者均20合法/无软件失败；native lift分别8/6、第一子目标0/1。先前B1/10仍保留独立分母，不能声称稳定提升，也不能将额外B样本用于未匹配的A/B排名。旧owner已退出，不重跑已完成40次。

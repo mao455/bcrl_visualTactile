@@ -1,3 +1,7 @@
+## 2026-11-13 18:48 固定A补齐已真实运行
+
+首个完整DP+Transformer自主case已到tick400，owner/source/资源/独立服务均实际验收；新20例尚未完成，不能把启动作为成功证据。见[启动收据](evidence/tight_execution_learning_20261113/ab_replication_completion/startup_acceptance.json)。原B当前/上一版本各0/20及旧B1/10仍各自单列。
+
 ## 2026-11-13 18:45 已完成B复验与A机会补齐登记
 
 实际B新20seed复验：contact成功0/20、previous成功0/20（两者20合法、软件失败0），native lift8/6、第一子目标0/1。之前B1/10保留，不混合成A/B比较，也不称收益已复现。当前两种B完整pair均无本cohort成功。
