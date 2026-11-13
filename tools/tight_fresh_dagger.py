@@ -12,11 +12,16 @@ from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read, completed_pair
 
 
-def prepare_collection(root, output, ticks, round_index):
+def prepare_collection(root, output, ticks, round_index, *, stable_delays=None, fallback_tick=360):
     import h5py
     from visuotactile.position_control import ExpertPositionBridge
     from visuotactile.state_benchmark import dagger_configuration
     if output.exists():raise FileExistsError('Preserve started collection identity')
+    if stable_delays is not None:
+        from visuotactile.takeover_trigger import VERSION, validate_trigger
+        if not stable_delays: raise ValueError('Nonempty stable-delay opportunities required')
+        for delay in stable_delays: validate_trigger(dict(version=VERSION,delay_ticks=delay),fallback_tick)
+        ticks=[fallback_tick]*len(stable_delays)
     if not ticks or any(t<1 for t in ticks):raise ValueError('Positive takeover ticks required')
     session=read(root/'session.json');pairs={r:completed_pair(root,r) for r in ['A','B']}
     data={r:read(root/r/'state_data/data.json') for r in pairs}
@@ -28,12 +33,15 @@ def prepare_collection(root, output, ticks, round_index):
         identity=originals[index];entry=data['A']['entries'][identity]
         with h5py.File(entry['path']) as f:original=json.loads(f.attrs['result_json'])
         for role in (['A','B'] if index%2==0 else ['B','A']):
-            name=f'r{round_index:02d}_{role}_{identity}_t{tick}'
+            suffix=f't{tick}' if stable_delays is None else f'stable_d{stable_delays[index]}'
+            name=f'r{round_index:02d}_{role}_{identity}_{suffix}'
             spec=dict(identity=name,family=entry['family'],split='train',cohort='dagger_train',
                 source_identity=identity,seed=original['seed'],event_seed=28150000+1000*round_index+index,
                 narrow_reset=original['narrow_reset'],collision_gate='live_collision_mesh_bounds_v1',
                 takeover_tick=tick)
             bridge=dict(version=ExpertPositionBridge.version,expert_speed=ExpertPositionBridge.speed_scheme)
+            if stable_delays is not None:
+                bridge['trigger']=dict(version=VERSION,delay_ticks=stable_delays[index])
             dagger_configuration(bridge,spec,data[role])
             cases.append(dict(name=name,role=role,spec=spec,dagger=bridge,video=index==0,
                 source_data=str((root/role/'state_data/data.json').resolve())))
@@ -42,7 +50,8 @@ def prepare_collection(root, output, ticks, round_index):
     atomic_json(output/'plan.json',dict(kind='takeover',round_index=round_index,pairs=pairs,cases=cases,
         resource_root=str(root),test_used=False,source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ['tools','visuotactile'] for p in sorted(Path(folder).rglob('*.py'))},
-        reason='Initial complete students contact at ticks50-70, never lift; sample approach/contact and later deviations',
+        reason=('Sample completed student stable-grasp states and subsequent deviations, fallback separately reported'
+            if stable_delays is not None else 'Sample registered fixed-time approach/contact and later deviations'),
         selection='Native-successful real expert suffix only; all unsuccessful attempts retained',utc=time.time()))
 
 
@@ -92,8 +101,10 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','aggregate','cache'])
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--collection',type=Path);p.add_argument('--ticks',type=int,nargs='+',default=[46,58,70,84,120,180])
-    p.add_argument('--round',type=int,default=1);a=p.parse_args()
-    if a.stage=='prepare':prepare_collection(a.root.resolve(),a.output.resolve(),a.ticks,a.round)
+    p.add_argument('--round',type=int,default=1)
+    p.add_argument('--stable-delays',type=int,nargs='+');p.add_argument('--fallback-tick',type=int,default=360);a=p.parse_args()
+    if a.stage=='prepare':prepare_collection(a.root.resolve(),a.output.resolve(),a.ticks,a.round,
+        stable_delays=a.stable_delays,fallback_tick=a.fallback_tick)
     elif a.stage=='aggregate':prepare_aggregate(a.root.resolve(),a.collection.resolve(),a.output.resolve())
     else:cache(a.output.resolve())
 

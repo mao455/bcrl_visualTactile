@@ -12,24 +12,7 @@ def first(mask):
     return int(found[0]+1) if len(found) else None
 
 
-def stable_windows(pose,palm,force,height):
-    """Original 12tick contact/relative-pose thresholds, explicit height reference."""
-    contact=np.linalg.norm(force,axis=-1)>.1
-    two=(contact.sum(-1)>=2).all(-1)
-    inverse=palm[:,3:].copy();inverse[:,1:]*=-1
-    qv=inverse[:,1:];v=pose[:,:3]-palm[:,:3];cross=2*np.cross(qv,v)
-    relative=v+inverse[:,:1]*cross+np.cross(qv,cross)
-    q=pose[:,3:]
-    relative_q=np.concatenate((inverse[:,:1]*q[:,:1]-(qv*q[:,1:]).sum(-1,keepdims=True),
-        inverse[:,:1]*q[:,1:]+q[:,:1]*qv+np.cross(qv,q[:,1:])),axis=-1)
-    stable=np.zeros(len(pose),bool)
-    for stop in range(12,len(pose)+1):
-        start=stop-12
-        if not two[start:stop].all() or not (pose[start:stop,2]>=height+.02).all():continue
-        drift=np.linalg.norm(relative[start:stop]-relative[start],axis=-1).max()
-        cosine=np.clip(np.abs((relative_q[start:stop]*relative_q[start]).sum(-1)),0,1)
-        stable[stop-1]=drift<=.01 and (2*np.arccos(cosine)).max()<=.2
-    return stable,contact
+from visuotactile.takeover_trigger import stable_windows
 
 
 def case(directory):

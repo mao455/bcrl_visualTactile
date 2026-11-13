@@ -117,7 +117,9 @@ def run(output):
                 entry=dict(path=str(path.resolve()),episode=case['spec']['identity'],length=row['steps'],
                     family=case['spec']['family'],split='train',source_sha256=sha256(path),
                     trajectory_kind='expert_takeover_v1',source_group=case['role'],round_index=plan['round_index'],
-                    seed=case['spec']['seed'],takeover_tick=case['spec']['takeover_tick'],
+                    seed=case['spec']['seed'],takeover_tick=row['dagger']['recovery_coverage']['switch_tick'],
+                    registered_takeover_tick=case['spec']['takeover_tick'],
+                    trigger_receipt=row['dagger'].get('trigger_receipt'),
                     frontend_sha256=pair['frontend_sha256'],backend_sha256=pair['backend_sha256'])
                 record,_,_=dagger_record(entry,include_geometry=False)
                 row['actual_exposure']=supervision_population({entry['episode']:record})

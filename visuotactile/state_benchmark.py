@@ -53,6 +53,9 @@ def dagger_configuration(configuration, spec, source):
         raise ValueError('DAgger family must come from the training split')
     if spec.get('event_seed') is None:
         raise ValueError('A separately registered new event seed is required')
+    if configuration.get('trigger') is not None:
+        from .takeover_trigger import validate_trigger
+        validate_trigger(configuration['trigger'], tick)
     return dict(configuration, takeover_tick=tick, trajectory_kind='expert_takeover_v1',
         control_source_codes=dict(student=0, expert=1),
         segment_rule='Increase at control-source or supervision-validity changes; never join across episode reset',
@@ -566,7 +569,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         def capture_raw_mean(module,inputs,result):
             raw_policy['mean']=result['mus'].detach().clone()
         raw_handle=player.model.register_forward_hook(capture_raw_mean)
-    bridge = None; previous_nominal = None
+    bridge = None; previous_nominal = None; takeover_trigger = None
     try:
         if dagger is not None:
             from .position_control import ExpertPositionBridge
@@ -574,6 +577,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 raise ValueError('A prior DAgger bridge is still attached')
             bridge = ExpertPositionBridge(env, dagger['takeover_tick'], dagger['expert_speed'])
             env._dagger_position_bridge = bridge
+            if dagger.get('trigger') is not None:
+                from .takeover_trigger import StableGraspTrigger
+                takeover_trigger = StableGraspTrigger(dagger['trigger'], dagger['takeover_tick'])
         bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
         if replay is not None and expert_speed is None:
             bound = len(replay)
@@ -641,6 +647,12 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 if bridge is not None:
                     previous_nominal = record_dagger_transition(controller, transition, previous_nominal)
                     command = transition['position_requested_rad']
+                    if takeover_trigger is not None and not bool(transition['dagger']['control_source'][0]):
+                        actual = transition['diagnostics_after']
+                        def observed(value): return value[0].detach().cpu().numpy()
+                        scheduled = takeover_trigger.observe(tick, observed(actual['object_pose_w']),
+                            observed(actual['palm_body_pose_w']), observed(transition['object_contact_force_w']))
+                        if scheduled is not None: bridge.schedule_takeover(scheduled)
                 elif controller is not None and (takeover_steps is None or tick < takeover_steps):
                     controller.observe_execution(transition)
                 before_packet = {k: v for k, v in packet.items() if torch.is_tensor(v)
@@ -789,6 +801,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             result['residual_executed_ticks'] = len(rows)-expert_ticks
             result['complete_student_policy'] = complete_identity
             result['dagger']['recovery_coverage'] = dagger_recovery_coverage(arrays, group)
+            if takeover_trigger is not None:
+                result['dagger']['trigger_receipt'] = takeover_trigger.receipt()
             result['residual_diagnostics']['scope'] = 'Student proposals at every tick, including unexecuted expert-suffix shadow proposals'
         if movie:
             movie.close(complete=True)

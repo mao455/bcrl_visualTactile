@@ -246,6 +246,16 @@ class ExpertPositionBridge:
             cfg=SimpleNamespace(action=env.cfg.action,
                 domain_randomization=SimpleNamespace(use_action_delay=False, action_delay_max=0)))
 
+    def schedule_takeover(self, tick):
+        """One causal rescheduling after a completed student tick, before submit."""
+        if (isinstance(tick, bool) or not isinstance(tick, int) or self.pending is not None
+                or self.tick > tick or tick > self.takeover_tick
+                or getattr(self, '_rescheduled', False)
+                or (self.previous_phase is not None and self.previous_phase[0])):
+            raise ValueError('Takeover may be scheduled once before expert authority')
+        self.takeover_tick = tick
+        self._rescheduled = True
+
     def submit(self, raw_action, clipped_action, tick):
         if tick != self.tick or self.pending is not None:
             raise ValueError('Expert shadow must advance exactly once per real control tick')

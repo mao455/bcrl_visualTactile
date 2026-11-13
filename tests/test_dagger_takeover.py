@@ -148,9 +148,10 @@ def test_train_only_frozen_takeover_job_validation():
         dagger_configuration(dict(config, expert_speed=dict(ExpertPositionBridge.speed_scheme, arm=.67)), spec, source)
 
 
+@pytest.mark.parametrize('triggered', [False, True])
 @pytest.mark.parametrize('steps,native_success,accepted', [(8, True, True), (1, True, False), (8, False, False)])
 def test_existing_trial_writes_full_compact_episode_and_separates_mixed_success(
-        tmp_path, monkeypatch, steps, native_success, accepted):
+        tmp_path, monkeypatch, steps, native_success, accepted, triggered):
     """Execute the shared runner with CPU fake physics, not a second collector."""
     import contextlib
     import json
@@ -247,12 +248,22 @@ def test_existing_trial_writes_full_compact_episode_and_separates_mixed_success(
         configuration=dict(base_checkpoint=str(frontend), base_sha256=sha256(frontend)), contract=contract)
     checkpoint = tmp_path/'student.pt'; torch.save(saved, checkpoint)
     expert = tmp_path/'expert.pt'; expert.write_bytes(b'test_expert_identity')
+    trigger_config = {}
+    if triggered:
+        import visuotactile.takeover_trigger as trigger_module
+        class Scheduler:
+            def __init__(self, configuration, fallback): assert fallback == 48
+            def observe(self, tick, pose, palm, force): return 2 if tick == 0 else None
+            def receipt(self): return dict(actual_scheduled_takeover_tick=2)
+        monkeypatch.setattr(trigger_module, 'StableGraspTrigger', Scheduler)
+        trigger_config = dict(trigger=dict(version=trigger_module.VERSION, delay_ticks=0))
     result = benchmark.trial(env, NS(block=lambda: contextlib.nullcontext()), tmp_path/'trial',
         dict(identity='attempt', seed=99, cohort='dagger_train', split='train', source_identity='train_a',
-            narrow_reset={}, event_seed=1001, takeover_tick=2), dict(splits=dict(train=['train_a'])),
+            narrow_reset={}, event_seed=1001, takeover_tick=48 if triggered else 2), dict(splits=dict(train=['train_a'])),
         player, str(checkpoint), saved=saved,
         position=True, capture_dataset=True, expert_checkpoint=str(expert),
-        dagger=dict(version=original_bridge.version, expert_speed=original_bridge.speed_scheme))
+        dagger=dict(version=original_bridge.version, expert_speed=original_bridge.speed_scheme, **trigger_config))
+    if triggered: assert result['dagger']['trigger_receipt']['actual_scheduled_takeover_tick'] == 2
     assert calls == list(range(steps)) and len(instances[0].seen) == steps
     assert not hasattr(env, '_dagger_position_bridge')
     assert result['success'] == native_success
@@ -375,3 +386,17 @@ def test_recovery_initial_windows_never_join_across_mask_or_segment_boundary(bou
     else:
         assert population['initial_valid_segment_ticks'] == 0 and population['first_valid_expert_tick'] is None
         assert population['first24'] == population['first48'] == dict(valid_expert_ticks=0, dp_anchors=0, valid_h24_window_targets=0)
+
+
+def test_dynamic_schedule_preserves_actual_source_and_queue_flush():
+    env=environment();bridge=ExpertPositionBridge(env,80,ExpertPositionBridge.speed_scheme,pipeline=native_pipeline())
+    env._dagger_position_bridge=bridge
+    sources=[];valid=[]
+    for tick in range(8):
+        bridge.submit(torch.zeros(1,29),torch.zeros(1,29),tick)
+        apply_position_targets(env,torch.zeros(1,29))
+        sources.append(int(bridge.trace['control_source'][0]));valid.append(bool(bridge.trace['expert_label_valid'][0]))
+        if tick==1:bridge.schedule_takeover(3)
+    assert sources==[0,0,0,1,1,1,1,1]
+    assert valid==[False]*6+[True]*2
+    with pytest.raises(ValueError):bridge.schedule_takeover(8)

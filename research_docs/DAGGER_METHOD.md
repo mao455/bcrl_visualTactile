@@ -1,3 +1,9 @@
+## 2026-11-14 可选因果阶段接管合同
+
+stable_grasp_then_delay_v1仅为采集调度诊断。参考高是已完成ticks25–48的median z；稳定窗12tick、每tick两个120Hz样本均至少2指object-contact >0.1N、整窗高于参考2cm、物体掌中相对位姿漂移<=1cm/0.2rad。稳定窗完成计数N，调度zero-based action N+delay，最迟登记fallback；无稳定窗或提前自然结束单独记录。它只观察已经实际执行的学生transition，不读专家后态，不影响网络输入或原生成功。
+
+bridge仅在submit之前且未进入专家authority时允许一次向前调度。result保留fallback、首次稳定窗、实际调度及实际source switch；前缀trace的takeover_tick表示当时登记的未来schedule，可能在触发后缩短。最终训练entry.takeover_tick来自真实source切换，而非fallback。合法标签仍要求实际专家queue完全冲洗，A用真实q[t+1]，B/rear用真实专家target。初始/固定时刻接管合同不改变。
+
 ## 2026-11-14 拿稳与后半段失败的可复盘分类
 
 新增只读tools.tight_fresh_phases，以真实object/palm/两物理子步object-contact和原生goal事件复算阶段。原稳定窗阈值保留，另明确报告settled高度参考（完成ticks25–48中位数），因为reset起始物体在空中。该诊断不改变原生成功，也不以单一lift flag代替拿稳。八个初始自主轨迹在两种参考下均未拿稳、原生子目标0。
