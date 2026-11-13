@@ -1,3 +1,9 @@
+## 2026-11-13 21:01 — Safe evaluation-only recovery
+
+- Fix cross-metric audit to recognize derived loss_id; no hot edit or interruption of healthy trainers.
+- Register bounded evaluation-only successor with original deadline, frozen trained endpoints and unchanged40 opportunities; reject already-evaluated or unrecognized-failure sources.
+- 74 focused tests pass, including3 recovery guard tests; real training verified separately from evaluation.
+
 ## 2026-11-13 20:53 — Replay boundary and reachable-span metric
 
 - Recorded four valid replay cells, all0/10; passing A/B audits and actual population coverage662/662.

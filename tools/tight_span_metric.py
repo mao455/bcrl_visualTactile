@@ -19,6 +19,7 @@ from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
 
 
 ROOT = ORIGINAL / 'rear_span_metric_01'
+RECOVERY_ROOT = ORIGINAL / 'rear_span_metric_eval_recovery_01'
 REFERENCE = ORIGINAL / 'rear_replay_balance_01/population'
 CONTACT = ORIGINAL / 'adaptive_contact_recovery_01'
 GROUPS = ('QG01', 'G01')
@@ -27,8 +28,8 @@ ORDER = (('reference', 'QG01'), ('span', 'G01'),
          ('span', 'QG01'), ('reference', 'G01'))
 
 
-def checked_root(root):
-    if root.resolve() != ROOT:
+def checked_root(root, recovery=False):
+    if root.resolve() != (RECOVERY_ROOT if recovery else ROOT):
         raise ValueError('Only the unique registered replay root is allowed')
     return root.resolve()
 
@@ -210,13 +211,13 @@ def endpoint_selection(directory):
 
 
 @supervised_owner
-def run(root):
-    root = checked_root(root)
+def run(root, evaluation_only=False):
+    root = checked_root(root, recovery=evaluation_only)
     registration = read(root / 'registration.json')
     end = registration['stage_deadline']
     if (root / 'launch.json').exists():
         raise ValueError('No implicit rerun; recovery must use a unique identity')
-    if time.time() + 6000 >= min(end, COMPUTE_DEADLINE):
+    if time.time() + (4200 if evaluation_only else 6000) >= min(end, COMPUTE_DEADLINE):
         raise TimeoutError('Insufficient stage reserve at admission')
     if subprocess.check_output(['git', 'status', '--porcelain'], text=True).strip():
         raise ValueError('Reviewed clean committed source required')
@@ -244,7 +245,7 @@ def run(root):
                 raise RuntimeError('Resource monitor unavailable')
             time.sleep(.2)
         for arm, group in ORDER:
-            if arm == 'reference':
+            if arm == 'reference' or evaluation_only:
                 continue
             verify_bindings(registration)
             if time.time() >= min(end - 4200, COMPUTE_DEADLINE):
@@ -265,7 +266,7 @@ def run(root):
             reference = read(root / 'reference' / group / 'backend' / group / 'training/configuration.json')
             candidate = read(root / 'span' / group / 'backend' / group / 'training/configuration.json')
             changed = sorted(key for key in set(reference) | set(candidate) if reference.get(key) != candidate.get(key))
-            unexpected = sorted(set(changed)-{'loss_contract', 'continuation_audit'})
+            unexpected = sorted(set(changed)-{'loss_contract', 'loss_id', 'continuation_audit'})
             cross_metric[group] = dict(changed=changed, unexpected=unexpected, matched_except_loss=not unexpected)
         write(root / 'cross_metric_trained_check.json', cross_metric)
         if not all(item['matched_except_loss'] for item in cross_metric.values()):
@@ -284,11 +285,12 @@ def run(root):
             for group in GROUPS:
                 backend = root / arm / group / 'backend'
                 summary = read(backend / group / 'evaluation_summary.json')
-                results[arm]['groups'][group] = dict(new_training_this_attempt=arm == 'span', exposure=read(backend / group / 'training/finished.json'),
+                results[arm]['groups'][group] = dict(new_training_this_attempt=arm == 'span' and not evaluation_only, exposure=read(backend / group / 'training/finished.json'),
                     summary={key: value for key, value in summary.items() if key != 'results'},
                     selection=read(backend / 'candidate_selection.json'))
         write(root / 'finished.json', dict(arms=results, utc=time.time(), test22=False,
-            new_frontend_updates=0, research_decision='Return to real Agent; no automatic adoption or extra opportunities'))
+            evaluation_only_recovery=evaluation_only, new_frontend_updates=0,
+            research_decision='Return to real Agent; no automatic adoption or extra opportunities'))
         write(root / 'status.json', dict(state='COMPLETE', stage='awaiting_research_decision', utc=time.time()))
     except BaseException as error:
         write(root / 'failure.json', dict(error=repr(error), traceback=traceback.format_exc(), utc=time.time()))
@@ -300,12 +302,100 @@ def run(root):
             kill_owned(monitor)
 
 
+def prepare_recovery(root):
+    root = checked_root(root, recovery=True)
+    if root.exists():
+        raise ValueError('Never overwrite a recovery identity')
+    source = read(ROOT / 'registration.json')
+    if time.time()+4800 >= min(source['stage_deadline'], COMPUTE_DEADLINE):
+        raise TimeoutError('No reserve for the existing evaluation cohort')
+    launch = read(ROOT / 'launch.json')
+    write(root / 'registration.json', dict(source, recovery_source=str(ROOT),
+        source_owner=dict(pid=launch['pid'], start_ticks=launch['process']['start_ticks']),
+        new_optimizer_updates=0, original_stage_deadline_preserved=True,
+        recovery_reason='loss_id is derived from the intentional loss contract; old guard omitted this allowed metadata field'))
+    write(root / 'status.json', dict(state='PREPARED', stage='awaiting_safe_source_exit', utc=time.time()))
+
+
+@supervised_owner
+def recover(root):
+    from tools.tight_finish import residual_prepare
+    root = checked_root(root, recovery=True)
+    registration = read(root / 'registration.json')
+    if (root / 'wait_launch.json').exists():
+        raise ValueError('No implicit recovery rerun')
+    write(root / 'wait_launch.json', dict(pid=os.getpid(), process=proc(os.getpid()), utc=time.time(),
+        cwd=str(Path.cwd()), source_head=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
+        stage_deadline=registration['stage_deadline']))
+    try:
+        while True:
+            source_owner = proc(registration['source_owner']['pid'])
+            if not source_owner or source_owner['start_ticks'] != registration['source_owner']['start_ticks']:
+                break
+            if time.time()+4200 >= min(registration['stage_deadline'], COMPUTE_DEADLINE):
+                raise TimeoutError('Insufficient remaining fixed-cohort reserve; source training not interrupted')
+            source_status = read(ROOT / 'status.json')
+            progress = ROOT / 'span' / source_status.get('group', 'G01') / 'backend' / source_status.get('group', 'G01') / 'training/progress.json'
+            if progress.exists():
+                write(root / 'source_training/progress.json', dict(read(progress), source=str(progress), source_group=source_status.get('group')))
+            write(root / 'status.json', dict(state='RUNNING', stage='waiting_for_healthy_source_training',
+                pid=os.getpid(), source_status=source_status, utc=time.time()))
+            time.sleep(5)
+        failure = read(ROOT / 'failure.json')
+        if 'Unexpected cross-metric training difference' not in failure['error']:
+            raise ValueError('Unrecognized source failure, do not silently recover')
+        if list(ROOT.glob('*/*/backend/evaluation_complete.json')) or list(ROOT.glob('*/*/backend/*/evaluation_summary.json')):
+            raise ValueError('Source evaluated samples exist; reconcile without repeating them')
+        for group in GROUPS:
+            done = read(ROOT / 'span' / group / 'backend' / group / 'training/finished.json')
+            if not done['target_reached']:
+                raise ValueError('Source candidate training incomplete')
+        for path, expected in read(ROOT / 'source_freeze.json').items():
+            if sha(path) != expected:
+                raise ValueError('Source freeze drift')
+        session = read(ROOT / 'session.json')
+        session.update(resource_root=str(root), matrix_owner=str(root), owned_worker_roots=[str(root)], cwd=str(Path.cwd()))
+        write(root / 'session.json', session)
+        for arm in ARMS:
+            write(root / arm / 'frozen_frontends.json', read(ROOT / arm / 'frozen_frontends.json'))
+            for group in GROUPS:
+                source = ROOT / arm / group / 'backend'
+                destination = root / arm / group / 'backend'
+                residual_prepare(destination, configuration=read(source / 'configuration.json'))
+                (root / arm / group / 'dp').symlink_to((ROOT / arm / group / 'dp').resolve(), target_is_directory=True)
+                for name in ('training', 'nominal'):
+                    (destination / group / name).rmdir()
+                    (destination / group / name).symlink_to((source / group / name).resolve(), target_is_directory=True)
+                for name in ('evaluation_plan.json', 'candidate_selection.json', 'cache_complete.json'):
+                    write(destination / name, read(source / name))
+                share_monitor(root, destination)
+                for path in (destination / 'session.json', destination / group / 'session.json'):
+                    current = read(path)
+                    current.update(resource_root=str(root), matrix_owner=str(root), owned_worker_roots=[str(root)],
+                        cwd=str(Path.cwd()), evaluation_deadline=registration['stage_deadline'], compute_deadline=COMPUTE_DEADLINE)
+                    write(path, current)
+                for path in (source / group / 'training/best.pt', destination / 'evaluation_plan.json', destination / 'configuration.json'):
+                    registration['bindings'][str(path)] = sha(path)
+            result = audit(root / arm, complete=False, frozen_frontend=True)
+            write(root / arm / 'prepared_audit.json', result)
+            if not result['matched_increment_passed']:
+                raise ValueError('Recovery prepared fairness mismatch')
+        write(root / 'registration.json', registration)
+        write(root / 'source_handoff.json', dict(source_failure=failure, training_preserved=True,
+            original_opportunities_preserved=True, repeated_training=False, repeated_evaluation=False, utc=time.time()))
+        run(root, evaluation_only=True)
+    except BaseException as error:
+        write(root / 'failure.json', dict(error=repr(error), traceback=traceback.format_exc(), utc=time.time()))
+        write(root / 'status.json', dict(state='FAILED', stage='recovery_requires_diagnosis', error=repr(error), utc=time.time()))
+        raise
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('prepare', 'run'))
+    parser.add_argument('mode', choices=('prepare', 'run', 'prepare-recovery', 'recover'))
     parser.add_argument('--root', type=Path, required=True)
     arguments = parser.parse_args()
-    (prepare if arguments.mode == 'prepare' else run)(arguments.root)
+    dict(prepare=prepare, run=run, **{'prepare-recovery': prepare_recovery, 'recover': recover})[arguments.mode](arguments.root)
 
 
 if __name__ == '__main__':
