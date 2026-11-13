@@ -1,6 +1,6 @@
 {
   "absolute_deadline_utc": 1794585915.106664,
-  "completion_record_present": false,
+  "completion_record_present": true,
   "evaluations": [
     {
       "comparison": "A/B matched increment",
@@ -27,19 +27,6 @@
       "successes": 0,
       "summary_sha256": "e82aa7b797cf479124b52d118fee052ed3b25bcaf3e9c4dcd15b926bf54f4957",
       "valid": 10
-    },
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": false,
-      "completed": 4,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 2,
-      "path": "rear_span_metric_eval_recovery_02/reference/G01/backend/G01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "12a47d41a313f862facae7034aaad9debdc1ea44f349ca53e3669d40dfe87489",
-      "valid": 4
     },
     {
       "comparison": "B current/previous only; not A/B",
@@ -97,6 +84,10 @@
   "evidence_errors": [
     {
       "error": "KeyError",
+      "path": "rear_span_metric_eval_recovery_02/reference/G01/backend/G01/evaluation_summary.json"
+    },
+    {
+      "error": "KeyError",
       "path": "rear_span_metric_eval_recovery_02/reference/QG01/backend/QG01/evaluation_summary.json"
     },
     {
@@ -142,12 +133,11 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794578235.755787,
+  "published_utc": 1794578543.1500463,
   "session": "tight_execution_learning_20261113_01",
   "state": {
-    "group": "G01",
-    "stage": "complete_student_development",
-    "state": "RUNNING"
+    "stage": "awaiting_research_decision",
+    "state": "COMPLETE"
   },
   "training": [
     {
