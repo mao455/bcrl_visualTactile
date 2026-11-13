@@ -1,5 +1,7 @@
 ## 2026-11-13 12:24 Agent002后续：tick-window试验准备
 
+**已完成启动核验**：owner PID2735439/start_ticks160362062，独立service/cgroup、RuntimeMax约1h58m，子阶段均早于原计算截止。A实际日志116更新，已持久化111更新/15723合法tick；新root `launch.json/status.json/active_stage.json/startup_acceptance.json`是真实凭据，未来以`finished.json`或`failure.json`交回现有supervisor。agent_002/decision.json登记`tick_window_01_full_policy`和实际owner身份，不沿用centered已完成事件。99项CPU回归通过，292个冻结源码hash无漂移；未改活动源码或supervisor，尚不报告B完成/新成功率。
+
 已读centered的两组finished/evaluation_complete及12:16独立findings：合法自主均0/10，lift3/5、第一子目标0/0，无软件失败；不重复旧cohort。选择独立`bc+rl_RSS_tick_window_01`/原run下`adaptive_tick_window_01`，从同原round01初始化、同DP/cache进行1有效tick遍的固定128tick梯度窗口对照，随后离线与各10完整学生开发。FY、centered、LR、数据不变；优化器更新数和loss归一化共同变化。复用review commit的padding/诊断修复，不热改supervisor或旧树。启动前须真实CLI/回归与资源检查；launch/progress才证明GPU进展，普通脚本只执行这项登记、结束交还Agent，不自动DAgger。截止保持11月13日23:55:15/次日00:05:15 UTC+8。
 
 ## 2026-11-13 12:16 损失与效率复查：耗时归因及两处修复

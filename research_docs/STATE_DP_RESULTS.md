@@ -1,5 +1,7 @@
 ## 2026-11-13 12:24 centered闭环已完成，下一流程试验准备
 
+**实际启动已验收**：独立systemd `tight-tick-window-20261113-01`已启动，不是仅登记。A已记录116次真实更新，完整group checkpoint持久化111次/15723合法tick；292份冻结源码SHA无漂移，VRAM/RAM/磁盘余量满足6/14/60GiB。B及新闭环结果仍未完成，不宣称成功或整体加速。源码与登记已推指定分支，普通service在本次约2小时子预算内完成配对训练/离线/各10完整开发，然后由既有supervisor重新调用Agent；无新监督器、无自动DAgger。见[实际启动验收](evidence/tight_execution_learning_20261113/adaptive_tick_window_01/startup_acceptance.json)。
+
 `adaptive_centered_01`：A/B均已完成2349更新、171133合法tick和10次完整DP+Transformer自主开发；成功0/10、0/10，native lift3/5、第一子目标0/0、软件失败0。A/B相对各自centered update0的选模分数0.388/0.608，不能推断旧参数化的同功能初值收益，更不等于自主成功。训练分别566.30/559.26秒，完整物理评估另计；旧03:04故障至09:57恢复的6.879小时不是训练。
 
 真实Agent结合12:16复查选择`adaptive_tick_window_01`：相同centered/FY/LR/原pair与cache/物理曝光下，改变为固定128合法tick梯度窗口与统一分母，减少无参数变化时的重复prefix计算；不缓存旧权重hidden，不新增采集或DP更新。归一化与optimizer次数一起变化，收益待真实结果。此条登记不等于已启动；实际launch/progress/startup_acceptance及后续finished位于原run对应目录。原截止不变。
