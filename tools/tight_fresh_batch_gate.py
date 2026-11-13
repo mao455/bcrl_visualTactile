@@ -30,6 +30,10 @@ def gate(root,output):
                 image=torch.cat((torch.from_numpy(g['frames/rgb_u8'][:25]).float()/255,torch.from_numpy(g['frames/depth_m'][:25])),2),
                 depth_valid=torch.from_numpy(g['frames/depth_valid'][:25]),
                 target=torch.from_numpy(g['transition/target_after_rad'][:25])))
+    source_control_mode=metadata['action_control_mode']
+    # Offline controller comparison only: source expert labels were postprocessed
+    # native targets. No simulator is present or being reconfigured by this gate.
+    metadata['action_control_mode']='absolute_joint_position_target_rad'
     metadata['joint_limits_rad']=metadata['joint_limits_rad']*2
     rows=[]
     with lease.block():
@@ -59,6 +63,7 @@ def gate(root,output):
             batch.observe_execution(dict(position_applied_rad=torch.cat(targets)),[True,True])
         rows.append(dict(tick=tick,max_abs_command_rad=error,steps=indices))
     atomic_json(output,dict(passed=True,pair=pair,source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
+        source_control_mode=source_control_mode,offline_controller_mode=metadata['action_control_mode'],
         max_abs_command_rad=max(row['max_abs_command_rad'] for row in rows),
         scope='Real recorded RGB-D and expert actual-history acknowledgements; lane0 reset while lane1 continues; no simulation outcome or speed claim'))
 
