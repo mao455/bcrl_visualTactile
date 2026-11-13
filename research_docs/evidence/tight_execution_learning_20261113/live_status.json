@@ -1,33 +1,7 @@
 {
   "absolute_deadline_utc": 1794585915.106664,
-  "completion_record_present": true,
+  "completion_record_present": false,
   "evaluations": [
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": true,
-      "completed": 10,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 2,
-      "path": "ab_replication_completion_01/batch_00_contact/QG01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "6131e071259c3d9221d6165520df917c64e1f2c42cbe5821960318fb33a659de",
-      "valid": 10
-    },
-    {
-      "comparison": "new stage; A/B comparability requires its own audit",
-      "complete": true,
-      "completed": 10,
-      "evidence": "result hashes and plan bindings checked; physical hidden-state equality unproven",
-      "native_lifts": 1,
-      "path": "ab_replication_completion_01/batch_01_contact/QG01/evaluation_summary.json",
-      "planned": 10,
-      "software_failures": 0,
-      "successes": 0,
-      "summary_sha256": "1cae8949248fbafa4cb97783b0b7aca06115867f5b327280b97757bd29a3a92c",
-      "valid": 10
-    },
     {
       "comparison": "A/B matched increment",
       "complete": true,
@@ -142,11 +116,12 @@
     "Matched incremental budgets do not erase historical initialization/exposure differences.",
     "New stages require a fresh A/B audit; this publisher does not certify future comparisons."
   ],
-  "published_utc": 1794568294.1534905,
+  "published_utc": 1794569143.9563673,
   "session": "tight_execution_learning_20261113_01",
   "state": {
-    "stage": "awaiting_research_decision",
-    "state": "COMPLETE"
+    "group": "QG01",
+    "stage": "rear_replay_training",
+    "state": "RUNNING"
   },
   "training": [
     {
@@ -175,5 +150,5 @@
     }
   ],
   "version": 1,
-  "watch": "ab_replication_completion_01"
+  "watch": "rear_replay_balance_01"
 }
