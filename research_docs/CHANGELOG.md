@@ -1,3 +1,10 @@
+## 2026-11-13 12:16 训练正确性/效率复查与诊断修复
+
+- 复核真实FY、centered、mask/history、AdamW和断点恢复；没有新方向梯度错误，1e-6rad理想化边界仍明确。训练pair18.76分钟；旧故障接续间隔6.879小时另计。记录实际2237985前缀重放ticks、26.22%padding和稀疏chunk/恢复系数，未声称这些已被优化。
+- `visuotactile/native_data.py`、`anchor_continue.py`：无效padding的previous用合法占位，防止正下限关节误拒绝；真实观测/合法监督不变。`state_benchmark.py`：版本化线性输出的旧幅度比例不再称tanh饱和；`models/native_dp.py`纠正delta始终有界的过时注释。
+- 不等长轨迹/正关节下限、真实非法previous、两个线性输出的诊断兼容回归在`test_execution_centered.py`、`test_target_residual.py`；修复后28项通过2.37秒，已有55项通过8.58秒且有重叠。仅既有requests依赖版本警告。旧286/新290活动源码无漂移，未启动额外GPU。
+- 最新闭环A/B均0/10，lift3/5不计成功。真实后台Agent002已接续并收到效率复查；原截止/数据/test22保持。详见DAGGER_METHOD页首与training_efficiency_review证据。
+
 ## 2026-11-13 自主研究接续，完成当前闭环后再决策
 
 - A后端真实7017更新/512402合法监督tick，3.00425有效遍；旧validation/纠偏dev/初24执行误差比update0为1.19757/1.22103/1.26783，诊断endpoint没有替换原模型。B持续训练，尚无新闭环结果。六轨迹probe改善不能替代全量泛化；FY overshoot与共享参数冲突是待验证假设。

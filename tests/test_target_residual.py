@@ -468,3 +468,11 @@ def test_residual_diagnostics_separate_recontact_unknown_and_open_loss():
     # Labels/future outcomes do not enter even these read-only event statistics.
     arrays['success'] = np.ones(9, dtype=bool)
     assert residual_episode_metrics(arrays) == result
+    from visuotactile.residual_output import REACHABLE_CENTERED_OUTPUT, REACHABLE_TAIL_OUTPUT
+    arrays['residual_tanh_fraction'][:] = 100.
+    for contract in (REACHABLE_CENTERED_OUTPUT, REACHABLE_TAIL_OUTPUT):
+        revised = residual_episode_metrics(arrays, output_contract=contract)
+        assert revised['tanh_saturation']['applicable'] is False
+        assert revised['legacy_normalized_amplitude']['maximum_fraction'] == 100.
+        assert revised['joint_limit_clip'] == result['joint_limit_clip']
+        assert revised['observed_contact_loss_regain'] == result['observed_contact_loss_regain']

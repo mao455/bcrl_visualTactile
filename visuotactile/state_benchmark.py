@@ -306,7 +306,7 @@ def record_dagger_transition(controller, transition, previous_nominal):
     return nominal.detach().cpu().clone()
 
 
-def residual_episode_metrics(arrays, control_hz=60):
+def residual_episode_metrics(arrays, control_hz=60, *, output_contract=None):
     """Read-only correction/contact diagnostics, never inputs or success gates."""
     contact=np.asarray(arrays['residual_contact_gate'],dtype=bool)
     valid=np.asarray(arrays['residual_contact_valid'],dtype=bool)
@@ -337,7 +337,7 @@ def residual_episode_metrics(arrays, control_hz=60):
                 correction_active_ticks=int((np.abs(applied[start:tick]).max(-1)>1e-8).sum())))
             start=None
         previous=bool(seen)
-    return dict(all_ticks=amplitudes(np.ones(len(contact),dtype=bool)),
+    result = dict(all_ticks=amplitudes(np.ones(len(contact),dtype=bool)),
         observed_contact=amplitudes(valid&contact),observed_noncontact=amplitudes(valid&~contact),
         unknown_contact_ticks=int((~valid).sum()),
         joint_limit_clip=dict(joint_components=int(clipped.sum()),ticks=int(clipped.any(-1).sum()),
@@ -350,6 +350,18 @@ def residual_episode_metrics(arrays, control_hz=60):
             tick_index='zero-based pre-action observation tick',force_threshold_N=.1,
             definition='Any finger observed normal resultant >0.1N, valid current observation; gaps require uninterrupted valid observations',
             interpretation='Recontact is a sensor event, not successful recovery; no recovery supervision or causal capability is established'))
+    if output_contract is not None:
+        from .residual_output import validate_output_contract
+        validate_output_contract(output_contract)
+        # This legacy trace records |delta|/old_scales, not tanh(raw), for
+        # linear-tail and centered proposals. Large ratios cannot establish
+        # saturation or a vanishing logit gradient under either new map.
+        result['legacy_normalized_amplitude'] = result['tanh_saturation']
+        result['legacy_normalized_amplitude']['definition'] = 'abs(proposed_delta_normalized)/historical_scales; not a derivative or model bound'
+        result['tanh_saturation'] = dict(applicable=False,
+            reason='Versioned proposal is linear or has a true linear tail; legacy amplitude ratio does not measure saturation')
+        result['output_contract'] = output_contract
+    return result
 
 
 def collision_evidence(env):
@@ -725,7 +737,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             result['residual_version']=saved['residual_version']
             result['residual_ticks']=len(rows)
             result['contact_gate_ticks']=int(arrays['residual_contact_gate'].sum())
-            result['residual_diagnostics']=residual_episode_metrics(arrays)
+            result['residual_diagnostics']=residual_episode_metrics(arrays,
+                output_contract=saved.get('configuration',{}).get('output_contract'))
         if inference is not None:
             from .native_evaluation import stable_grasp
             initial=json.loads((output/'initial_observable.json').read_text())

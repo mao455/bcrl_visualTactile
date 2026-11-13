@@ -1181,7 +1181,7 @@ def residual_metrics(model,records,ids,lease,*,mask_force=False):
 
 def residual_train(root, *, smoke=False, probe=False):
     """Full native-tick command supervision, complete histories, no base optimizer."""
-    from .native_data import residual_batch,residual_supervision_mask
+    from .native_data import residual_batch,residual_supervision_mask,residual_previous_targets
     from .checkpointing import cpu_snapshot
     if smoke and probe:raise ValueError('Choose residual smoke or throughput probe, not both')
     setup_began=time.time()
@@ -1323,7 +1323,8 @@ def residual_train(root, *, smoke=False, probe=False):
                     gate=residual_aux(selected,start,end,'gate',device)&inputs['valid']
                     compose_args=(residual_aux(selected,start,end,'base',device),raw,gate,
                         torch.stack([r['limits'] for r in selected]).to(device)[:,None])
-                    compose_kwargs=({'previous':inputs['robot'][...,58:87]} if getattr(model,'execution_adapter',None) else {})
+                    compose_kwargs=({'previous':residual_previous_targets(inputs,compose_args[-1])}
+                        if getattr(model,'execution_adapter',None) else {})
                     if getattr(model,'loss_contract',None):
                         chain=model.compose_chain(*compose_args,**compose_kwargs)
                         action,delta=chain['u_exec'],chain['delta']
