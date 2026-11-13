@@ -1,3 +1,9 @@
+## 2026-11-13 18:45 已完成B复验与A机会补齐登记
+
+实际B新20seed复验：contact成功0/20、previous成功0/20（两者20合法、软件失败0），native lift8/6、第一子目标0/1。之前B1/10保留，不混合成A/B比较，也不称收益已复现。当前两种B完整pair均无本cohort成功。
+
+仅登记冻结contact A的同20seed补齐，`ab_replication_completion_01`；不重跑B、不训练、不增加采集。训练增量公平审计prepared/completed均通过，评估当前尚未产生A新结果。历史模型/曝光差异、A事后补齐的顺序局限仍披露。测试29项及真实prepare通过，启动与后续结果另看机器收据。小证据：`evidence/tight_execution_learning_20261113/ab_replication_completion/`。
+
 ## 2026-11-13 17:53 新seed冻结复验运行中
 
 `success_replication_01`独立owner/评估子进程已运行，首例实际tick400；当前/上一B各20新开发机会，尚无完成结论。源码73b2e97、子截止19:45:35，原预算未重置。详见最新交接和startup_acceptance。

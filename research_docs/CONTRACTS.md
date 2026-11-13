@@ -1,3 +1,7 @@
+## 2026-11-13 18:45 当前contact A/B复验分母补齐
+
+只在新`ab_replication_completion_01`运行contact A对应的20固定完整自主机会，原B contact20与previous20均不重复。完全复用B contact计划/seed/reset与评估代码，禁止修改pair、补拒绝、结果驱动扩展或混入旧10例分母；previous保持B版本诊断。训练增量公平审计启动前/完成后均保留，完成收据核对真实机会和合法分母；不匹配结果保留并标注，禁止强行通过。A事后补齐和历史曝光不等仍是局限。1h子预算、独立systemd cgroup、原计算/绝对截止、资源保护与test22隔离不变，无额外训练或采集。
+
 ## 2026-11-13 17:48 冻结完整B复验登记
 
 contact周期A0/10、B1/10后不机械追加DAgger。`success_replication_01`固定当前/上一B完整pair各20同规格新开发机会，两批反向顺序；不训练、不更改loss/执行/物理/成功标准、不补拒绝/软件失败、不按结果增加尝试、test22隔离。普通owner只执行登记，研究解释交真实Agent。原始数据、checkpoint/cache/源码保留；新隔离树、full_gpu_v1储备不变，最长2h且不越原23:55:15计算/次日00:05:15绝对截止。

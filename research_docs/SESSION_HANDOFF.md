@@ -1,3 +1,11 @@
+## 2026-11-13 18:45 B复验完成；仅补齐当前A固定20机会
+
+`success_replication_01/finished.json`实际完成：B contact **0/20**、B previous **0/20**，两者均20合法/无软件失败；native lift分别8/6、第一子目标0/1。先前B1/10仍保留独立分母，不能声称稳定提升，也不能将额外B样本用于未匹配的A/B排名。旧owner已退出，不重跑已完成40次。
+
+新登记`ab_replication_completion_01`只运行冻结contact A完整DP+Transformer的20机会，逐字复用B contact两份计划（seed27160000–19）；B previous仍仅作B版本诊断，不另给A previous预算。不训练、不采集、不改变模型/cache/执行器/原生成功标准、不按结果扩展或替换。A计划是在B结果之后冻结，明确是回顾性补齐，不称前瞻随机平衡执行顺序或全历史公平；原10例cohort不混入。
+
+准备/完成两种contact训练公平审计均通过：每组DP514更新/765303 target槽，rear1362更新/193581合法tick。评估运行源码逐文件与已完成B相同；A/B实际checkpoint均绑定正确前端。29项CPU测试及真实prepare入口通过。新独立树与最长1h服务，`status/launch/finished/failure.json`交既有事件监督器；初始记录为PREPARED，实际启动以startup_acceptance为准。原计算23:55:15/次日00:05:15绝对截止不变。发布器保有两条live文件的独占写权，其他Git事务用共享锁。
+
 ## 2026-11-13 18:29 自动发布服务实际验收
 
 独立CPU服务 `tight-live-publish-20261113-01.service` 已active，首份自动报告29afde1已核实到达远端；[自动进度页](TIGHT_LIVE_STATUS.md)与JSON由冻结普通脚本持续维护。每60秒检查、有变化通常5分钟内推送，阶段结束/失败优先；无变化不提交，断网保留待推内容，截止北京时间11月14日00:05:15。
