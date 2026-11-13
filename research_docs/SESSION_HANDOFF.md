@@ -1,3 +1,11 @@
+## 2026-11-13 22:12 Agent009：完整metric终局与有限曝光接续
+
+`rear_span_metric_eval_recovery_02`40个固定机会已完成；reference/span各A/B均9合法、1初态拒绝、0软件失败、0完整成功、0第一子目标，不能写成每组10个合法失败。两arm完成fairness通过；拒绝机会不补种子。原FY metric与span metric之间，完整离线arm误差小幅下降，hand未见共同收益；这不是闭环成功改善或A/B排名证据。
+
+下一单一问题为一遍span训练是否曝光不足，而非再换损失/网络。独立`bc+rl_RSS_span_dose_01`登记`rear_span_dose_02`：各组从自己的span一遍endpoint共同追加2人口比例遍，fresh AdamW处理一致，保持loss/输出/执行器/真实历史/DP及cache。参考直接复用一遍权重，不重复训练；两arm×A/B各10全新seed27200000–09，共40完整策略机会。跨arm有意改变总曝光和optimizer重启，不能称纯曝光单变量；arm内A/B增量匹配但历史不同。不称DAgger、不开新前端训练、不读test22、不自动采用或追加。
+
+36项测试、真实训练/离线CLI解析、参考完整评估入口CPU前置检查及两准备fairness已通过；candidate必须训练和完整offline后才准入。CPU准备01错读base_checkpoint所在配置层，0更新/0仿真，保留现场后在02修复；错误解释不冒充学习失败。阶段截止23:47:57、计算23:55:15/绝对次日00:05:15不变，100min含准备；实测一遍训练约7.2min/组、40仿真约42min。当前记录为准备完成，启动和实际更新另见`launch/startup_acceptance/status`，不把准备写成训练成功。监督器/发布器及bot专属文件不修改。
+
 ## 2026-11-13 21:21 恢复评估已真实推进
 
 `tight-span-metric-eval-recovery-20261113-02.service`独立cgroup已active；owner3037113/start_ticks163579189。首个reference-A完整DP+Transformer评估实际推进到tick300，311冻结源码文件无漂移，GPU/RAM/磁盘储备均通过。源码`2e5d85d`及63项测试已发布；这不是仅PREPARED/加载，也不是完整cohort成功结果。

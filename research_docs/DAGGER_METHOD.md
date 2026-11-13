@@ -1,3 +1,9 @@
+## 2026-11-13 22:12 单一共同曝光问题
+
+可达跨度metric完整固定cohort四cell均0/9合法成功、另各1初态拒绝，无软件失败；十次是机会数不是合法任务分母。旧metric对照与span同为1314更新/193520监督tick。完整离线span相对reference的arm RMSE：A train/validation为0.000767/0.000798，reference为0.000811/0.000831；B为0.000731/0.000895，reference为0.000779/0.000950。hand未共同改善，闭环无第一子目标，不能把条件化修正当作已解决瓶颈。
+
+`rear_span_dose_02`检验有限额外训练是否有用：原span1遍为冻结参考，各A/B从该endpoint共同fresh AdamW追加2遍，其他科学配置不改；当前权重prefix仍重放，不缓存过时学习态。历史与optimizer重启限制显式披露，不把总3遍vs1遍说成等曝光loss比较。新40机会预先冻结，对照不重训，四cell完整DP+Transformer，固定最终checkpoint；validation-best独立保护。先准备fairness再完成fairness，任何缺失/不等保留并标注。两遍依据实测吞吐与剩余绝对时间而选，不是新的机械最低门槛或递归预算。
+
 ## 2026-11-13 21:18 评估证据接续，不重训或重复机会
 
 span候选A/B均已完成1314更新、193520合法监督tick、1.0遍，完整离线验证已完成。首次evaluation-only恢复遗漏offline/result.json，真实residual_evaluate在Kit启动前因组分母保护退出；不是训练失败或自主0成功。四cell的既有离线结果逐一绑定选定checkpoint SHA，并验证state_data与nominal实际同源，才可只读复用至新身份。不得伪造offline准入结果或绕过组分母保护。

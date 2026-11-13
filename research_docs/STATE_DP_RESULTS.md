@@ -1,3 +1,9 @@
+## 2026-11-13 22:12 metric完整结果与下一有限实验
+
+40固定机会全部完成；reference-A/B与span-A/B各9合法、1拒绝、0软件失败、0成功/0第一子目标，native lift分别4/3/2/2。两arm实际增量fairness通过，拒绝种子不补；不能宣称span闭环改善。既有contact B1/10与后续B-only、A补齐cohort保持各自独立分母。
+
+`rear_span_dose_02`准备完成：两组共同追加2遍span后端人口重放，冻结原一遍参考与两组DP/cache，40新完整评估机会。工程36测试/真实parser/参考CPU入口/准备fairness通过，不等于真实更新或自主成功。跨arm曝光和optimizer重启有意不同，arm内新增协议相同，历史初始化仍不同。接续证据位于`evidence/tight_execution_learning_20261113/rear_span_dose_02`；真实启动须另看startup_acceptance。未把CPU准备01错误当作候选失败，原错误与全部历史保留。
+
 ## 2026-11-13 21:21 实际评估启动，不新增训练预算
 
 恢复02首个reference-A完整学生已实际运行300tick；owner3037113/start_ticks163579189，311源码SHA不变，资源储备通过。63测试、两arm准备fairness与四cell真实CPU前置检查均已验收，source `2e5d85d`已推送。仍是原固定40机会，未有本cohort完整成功率结论；训练和offline推理均未重复。记录位于[启动收据](evidence/tight_execution_learning_20261113/rear_span_metric_eval_recovery_02/startup_acceptance.json)，未来结果以新root的finished/failure为准，原失败现场保持。

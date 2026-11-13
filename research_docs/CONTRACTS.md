@@ -1,3 +1,7 @@
+### 2026-11-13 22:12 有限共同曝光与冻结参考
+
+`rear_span_dose_02`只在原run内、原绝对截止下追加共同2后端人口遍；原span一遍reference新增0更新，所有继承曝光明确区分。A/B相同数据mask/排序seed/公共处理/optimizer重启/预算/选模机会，前端和配套cache冻结且SHA绑定；无DAgger或新采集。每arm固定10同seed/family/spec机会，初态拒绝不替换；各组历史初始化不同，跨arm剂量与optimizer重启不同。真实parser和参考CPU入口只验证工程前置，candidate须真实完整训练及offline后准入；旧失败保留，不热改运行源码。固定阶段23:47:57，计算23:55:15/绝对次日00:05:15，独立cgroup到时保存退出并回交真实Agent。
+
 ### 2026-11-13 21:18 只读offline证据接续
 
 评估恢复不得缩小注册组分母或伪造offline/result.json。复用必须complete=true、test_used=false、checkpoint SHA等于实际选定best，且state_data/nominal实际指向原验证依赖；不同既有结果拒绝覆盖。存在任何已启动trial/失败标记/部分轨迹时禁止整队重新登记执行。`rear_span_metric_eval_recovery_02`只续原40固定机会，原阶段和绝对截止不变，训练/离线推理新增0；实际入口CPU检查与真实仿真验收分开。

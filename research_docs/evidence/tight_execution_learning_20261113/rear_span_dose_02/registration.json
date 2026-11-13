@@ -1,0 +1,63 @@
+{
+  "started_utc": 1794578877.4226673,
+  "stage_deadline": 1794584877.4226673,
+  "compute_deadline": 1794585315.106664,
+  "absolute_deadline": 1794585915.106664,
+  "hypothesis": "One span-normalized pass improved arm offline errors in both groups but produced no first subgoal. Test whether two additional common population exposures improve the complete policy, without another loss change.",
+  "frontend_updates": 0,
+  "new_collection": false,
+  "new_dagger_round": false,
+  "test22": false,
+  "additional_epochs_each": 2,
+  "attempts_per_cell": 10,
+  "total_evaluations": 40,
+  "order": [
+    [
+      "reference",
+      "QG01"
+    ],
+    [
+      "continued",
+      "G01"
+    ],
+    [
+      "continued",
+      "QG01"
+    ],
+    [
+      "reference",
+      "G01"
+    ]
+  ],
+  "optimizer": "Common fresh AdamW from each one-pass span endpoint; not an exact optimizer continuation or a pure exposure-only causal comparison",
+  "selection": "Fixed last endpoint; retain validation-best, no outcome-dependent expansion or adoption",
+  "limitations": [
+    "Historical A/B initialization/exposure differs.",
+    "Within-arm incremental A/B protocol is matched; between arms training dose and optimizer restart intentionally differ.",
+    "Reference has zero new updates; its inherited one-pass receipts are not new exposure.",
+    "Old cohort has nine valid and one rejected opportunity per cell; do not call it ten legal task failures."
+  ],
+  "bindings": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_metric_eval_recovery_02/finished.json": "222ad4a063984224eee9337294d381326ba01a797b00747fc7b927d567297328",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_metric_01/span/QG01/backend/QG01/training/best.pt": "a760a866892aa182d8de77be5b2c83419eb4515a7006d9d6c73ec8a20583734f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_metric_01/span/G01/backend/G01/training/best.pt": "f2683952916426859ce8c3fe1dae856870fe810774a91e7d37900d1785def56a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/frozen_frontends.json": "af5cfd3989be9f8754dd808565088a757533c45d78aaff2a1c3ccf7a5768809a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/frozen_frontends.json": "af5cfd3989be9f8754dd808565088a757533c45d78aaff2a1c3ccf7a5768809a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/G01/backend/configuration.json": "3ea7855865f2b815c99ec76228be33b3ccc8bc75502593dbadc499871e048b05",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/QG01/backend/configuration.json": "78dc2e585edb920fdad89bdb055467e3928c06b5c375c2d742c7f079723ce93c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/G01/backend/configuration.json": "6e6e66809c56edf0b6112d88f8cea6bdff2e5d8e52e8cdebcc2aa0751da2cb3b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/QG01/backend/configuration.json": "a39026842cc62a26ea8654201473b9cb8c407df996ebe80511b60fe9dc58be72",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/G01/backend/evaluation_plan.json": "fd52215fe5d64cb521afffde876d2f66f93c7572879ded90c79340bf3217e052",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/QG01/backend/evaluation_plan.json": "fd52215fe5d64cb521afffde876d2f66f93c7572879ded90c79340bf3217e052",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/G01/backend/evaluation_plan.json": "fd52215fe5d64cb521afffde876d2f66f93c7572879ded90c79340bf3217e052",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/QG01/backend/evaluation_plan.json": "fd52215fe5d64cb521afffde876d2f66f93c7572879ded90c79340bf3217e052",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/G01/backend/G01/configuration.json": "3ea7855865f2b815c99ec76228be33b3ccc8bc75502593dbadc499871e048b05",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/QG01/backend/QG01/configuration.json": "78dc2e585edb920fdad89bdb055467e3928c06b5c375c2d742c7f079723ce93c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/G01/backend/G01/configuration.json": "6e6e66809c56edf0b6112d88f8cea6bdff2e5d8e52e8cdebcc2aa0751da2cb3b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/QG01/backend/QG01/configuration.json": "a39026842cc62a26ea8654201473b9cb8c407df996ebe80511b60fe9dc58be72",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/G01/backend/G01/prepared_training_contract.json": "bf46d0a86baaf04c42d6f1b30f0f587449de44a832906c562706bb311ce2912d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/continued/QG01/backend/QG01/prepared_training_contract.json": "854db9c89c9ead02e1989fb97b08ec505a477ade90da57767a801daf303bed88",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/G01/backend/G01/prepared_training_contract.json": "bfbaee6c016d75bb57495558d99134804d87dfb412a8075b932f97b752ca6f49",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_execution_learning_20261113_01/rear_span_dose_02/reference/QG01/backend/QG01/prepared_training_contract.json": "b309d670f796c116e304be8e67263548237d8522367bebf96a9c8a800383f347"
+  }
+}
