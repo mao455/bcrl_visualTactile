@@ -1,3 +1,10 @@
+## 2026-11-13 09:55 接续CLI错误与同截止恢复
+
+- 真实状态核实：短训03:04完成；正式A训练因`anchor_continue`必需`--job/--output`遗漏在argparse阶段退出，两组全量更新均0，未发生新闭环。不是训练继续运行；旧失败状态和日志保留。旧matched第二轮已结束，两组各0/10（A lift1/fall1，B lift2/fall2），旧发布器05:43完成；修复旧失败报告也已推送。
+- 调整候选各1600更新/45924监督tick：A dev比.988568、Core比.424799，通过原门槛；B dev比1.165445、Core比.943496，未过。不是等曝光单变量FY因果证据；完整数据混合验证仍必要。
+- `tight_execution_follow.residual_command`统一正式/定向训练与离线CLI，真实`anchor_continue.argument_parser`解析回归覆盖四种调用，模型和loss未改。恢复使用`adaptive_recovery_01`，固定同round01起点/cache，复用所有短训；余下时长重新决定共同6/3/1曝光预算，预留6h，不重置原23:55:15计算/次日00:05:15绝对截止。
+- 修复阶段状态落盘与独立恢复证据导出，发布包含真实首次更新边界，防止旧短训RUNNING被误读为全量活跃。当前仅准备恢复，实际更新须启动验证。
+
 ## 2026-11-13 追加自主修复：真实输出域、扩展配对与普通脚本接续
 
 - `residual_output.py`新增显式真实线性尾部；`native_dp/anchor_continue`分别绑定输出/loss/history身份，实际forward/objective/保存恢复接入。中心区旧行为，最终执行器/物理/A-B标签不变。`tight_execution_capacity`用原缓存计算实际v1含容差下界：A33.4600%、B0，最大.02618rad；不是旧raw数值匹配判据。

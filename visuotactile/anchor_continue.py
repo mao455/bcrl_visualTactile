@@ -1524,12 +1524,16 @@ def residual_offline(root, *, smoke=False):
         scope='Expert observation/past-command history; complete frozen DDIM16 plans, each native tick residual; no autonomous action-label comparison',test_used=False))
 
 
-if __name__=='__main__':
+def argument_parser():
     p=argparse.ArgumentParser();p.add_argument('mode',choices=['contract','train','fresh-smoke','fresh-train','residual-probe','residual-train','residual-offline']);p.add_argument('--root',type=Path,required=True)
     p.add_argument('--data',type=Path)
     p.add_argument('--smoke-device',choices=['cpu','cuda:0'],default='cpu')
     p.add_argument('--job',choices=['state','image'],required=True);p.add_argument('--target',type=int);p.add_argument('--output',type=Path,required=True)
-    a=p.parse_args();a.output.mkdir(parents=True,exist_ok=a.mode.startswith(('fresh-','residual-')));torch.set_num_threads(2)
+    return p
+
+
+if __name__=='__main__':
+    p=argument_parser();a=p.parse_args();a.output.mkdir(parents=True,exist_ok=a.mode.startswith(('fresh-','residual-')));torch.set_num_threads(2)
     torch.backends.cuda.matmul.allow_tf32=False;torch.backends.cudnn.allow_tf32=False
     if a.mode.startswith('residual-'):
         if a.mode=='residual-probe':residual_train(a.root,probe=True)

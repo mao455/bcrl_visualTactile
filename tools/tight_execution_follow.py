@@ -8,7 +8,18 @@ from tools.tight_execution_learning import GROUPS,PARENT,HISTORY,run_child,publi
 
 def state(root,stage,**kw):
     value=dict(state=kw.pop('state','RUNNING'),stage=stage,utc=time.time(),pid=os.getpid(),**kw)
-    write(root/'follow_status.json',value);write(root.parent/'status.json',value)
+    write(root/'follow_status.json',value);write(root/'status.json',value);write(root.parent/'status.json',value)
+
+
+def residual_command(mode,root):
+    if mode not in {'residual-train','residual-offline'}:raise ValueError('Unexpected residual stage')
+    return ['-m','visuotactile.anchor_continue',mode,'--job','state','--root',str(root),
+        '--output',str(root/('training/launch' if mode=='residual-train' else 'offline/launch'))]
+
+
+def evidence_directory(root):
+    if not root.name.startswith('adaptive'):raise ValueError('Unexpected repair identity')
+    return Path('research_docs/evidence/tight_execution_learning_20261113')/root.name
 
 
 def prepare(root):
@@ -19,7 +30,9 @@ def prepare(root):
         (p/g/'backend/evaluation_complete.json').exists() and read(p/g/'backend/evaluation_complete.json').get('complete') and
         (p/g/'backend'/g/'training/exposure_endpoint.json').exists() for g in GROUPS)]
     if not candidates:raise ValueError('No complete original pair/cache snapshot')
-    source=candidates[-1];models={};populations={};shared=None
+    source=Path(reg['formal_source_round']) if reg.get('formal_source_round') else candidates[-1]
+    if source not in candidates:raise ValueError('Pinned repair source is not a complete pair')
+    models={};populations={};shared=None
     for group in GROUPS:
         old=source/group/'backend';checkpoint=old/group/'training/best.pt';saved=torch.load(checkpoint,map_location='cpu',weights_only=False)
         cfg=saved['configuration'];data=read(old/'state_data/data.json');index=read(old/group/'nominal/index.json')
@@ -190,10 +203,10 @@ def targeted_recovery(root,ticks,attempt=1):
             phase_deadlines(out,backend,cache_deadline=3600)
             run_child(root,f'targeted{attempt}_'+group+'_cache',['-m','tools.tight_finish','residual_cache','--root',str(backend)],min(reg['compute_deadline']-7200,time.time()+3600))
             phase_deadlines(out,backend,training_deadline=min(7200,reg['compute_deadline']-time.time()-3600))
-            run_child(root,f'targeted{attempt}_'+group+'_train',['-m','visuotactile.anchor_continue','residual-train','--root',str(backend/group)],reg['compute_deadline']-3600)
+            run_child(root,f'targeted{attempt}_'+group+'_train',residual_command('residual-train',backend/group),reg['compute_deadline']-3600)
             select_safe_candidate(backend/group/'training')
             phase_deadlines(out,backend,offline_deadline=min(1800,reg['compute_deadline']-time.time()-1800))
-            run_child(root,f'targeted{attempt}_'+group+'_offline',['-m','visuotactile.anchor_continue','residual-offline','--root',str(backend/group)],reg['compute_deadline']-1800)
+            run_child(root,f'targeted{attempt}_'+group+'_offline',residual_command('residual-offline',backend/group),reg['compute_deadline']-1800)
             phase_deadlines(out,backend,evaluation_deadline=min(3600,reg['compute_deadline']-time.time()))
             run_child(root,f'targeted{attempt}_'+group+'_eval',['-m','tools.tight_finish','residual_evaluate','--root',str(backend)],reg['compute_deadline'])
         exposure={g:dict(frontend=read(directory/g/'dp/training/finished.json'),
@@ -209,10 +222,10 @@ def targeted_recovery(root,ticks,attempt=1):
 
 def export(root):
     """Small evidence and existing documentation; no raw trajectories or models."""
-    target=Path('research_docs/evidence/tight_execution_learning_20261113/adaptive');target.mkdir(parents=True,exist_ok=True)
+    target=evidence_directory(root);target.mkdir(parents=True,exist_ok=True)
     names=['registration.json','capacity.json','probe_gates.json','adaptive_probe_plan.json','adaptive_probe_budget.json',
         'tail800_comparison.json','next_hypothesis.json','adaptive_selection.json','adaptive_probe_complete.json',
-        'autonomy_authorization.json','follow_launch.json','follow_status.json','formal_sources.json','formal_budget.json','formal_exposure_comparison.json','formal_results.json',
+        'autonomy_authorization.json','recovery_registration.json','follow_launch.json','follow_status.json','formal_sources.json','formal_budget.json','formal_exposure_comparison.json','formal_results.json',
         'physical_diagnosis.json','recovery_1_not_admitted.json','recovery_2_not_admitted.json','follow_exit.json','final_results.json']
     for name in names:
         p=root/name
@@ -241,7 +254,7 @@ def export(root):
         '首个旧/FY各200更新已完成，FY的A/B dev执行误差比1.139/1.181，未通过原门槛。固定DP输出域下界占A归一化错误33.46%，B为0；据此比较保持共同执行器的线性尾部提案。\n'
         '配对延长、必要优化调整、完整混合数据后端训练、完整DP+Transformer开发评估分层记录；若闭环失败且剩余预算允许，最多两轮、每轮12机会/组的定向DAgger同时更新DP、缓存和后端。初始门槛失败不结束整个修复，也不改写旧结果。\n'
         'GPU工作与Git发布分别调度；未完成阶段不能称为成功。test22隔离、源数据和旧checkpoint保留。\n'
-        '[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/adaptive/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/adaptive/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/adaptive/capacity.json)。\n'
+        f'[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/{root.name}/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/{root.name}/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/{root.name}/capacity.json)。\n'
         '<!-- EXECUTION_LEARNING_STATUS_END -->\n\n')
     for name in ['STATE_DP_RESULTS.md','SESSION_HANDOFF.md','README.md']:
         p=Path('research_docs')/name;old=p.read_text();start=old.find('<!-- EXECUTION_LEARNING_STATUS_START -->');end=old.find('<!-- EXECUTION_LEARNING_STATUS_END -->')
@@ -292,10 +305,10 @@ def publish(root):
     previous=None
     while time.time()<reg['absolute_deadline']-45:
         status=read(root/'follow_status.json') if (root/'follow_status.json').exists() else {}
-        terminal=(root/'follow_exit.json').exists();boundary='final' if terminal else 'formal' if (root/'formal_results.json').exists() else 'probe' if (root/'adaptive_selection.json').exists() else None
+        terminal=(root/'follow_exit.json').exists();boundary='final' if terminal else 'formal' if (root/'formal_results.json').exists() else 'training_started' if any((root/'formal'/g/'backend'/g/'training/progress.json').exists() for g in GROUPS) else 'probe' if (root/'adaptive_selection.json').exists() else None
         if boundary and boundary!=previous:
             export(root)
-            paths=['research_docs/evidence/tight_execution_learning_20261113/adaptive','research_docs/STATE_DP_RESULTS.md','research_docs/SESSION_HANDOFF.md','research_docs/README.md']
+            paths=[str(evidence_directory(root)),'research_docs/STATE_DP_RESULTS.md','research_docs/SESSION_HANDOFF.md','research_docs/README.md']
             subprocess.run(['git','add','--',*paths],check=True)
             check=subprocess.run(['git','diff','--cached','--quiet'])
             if check.returncode==1:subprocess.run(['git','commit','-m','Record autonomous execution repair '+boundary+' results'],check=True)
@@ -334,9 +347,9 @@ def run(root):
         state(root,'formal_data_and_budget_binding');prepare(root)
         for group in GROUPS:
             dest=root/'formal'/group/'backend';state(root,'formal_backend_training',group=group)
-            run_child(root,group+'_formal_train',['-m','visuotactile.anchor_continue','residual-train','--root',str(dest/group)],reg['compute_deadline']-21600)
+            run_child(root,group+'_formal_train',residual_command('residual-train',dest/group),reg['compute_deadline']-21600)
             choice=select_safe_candidate(dest/group/'training');write(dest/'candidate_selection.json',choice)
-            run_child(root,group+'_formal_offline',['-m','visuotactile.anchor_continue','residual-offline','--root',str(dest/group)],reg['compute_deadline']-18000)
+            run_child(root,group+'_formal_offline',residual_command('residual-offline',dest/group),reg['compute_deadline']-18000)
         exposure={g:read(root/'formal'/g/'backend'/g/'training/finished.json') for g in GROUPS}
         differences={k:[exposure[g].get(k) for g in GROUPS] for k in ['updates','supervised_ticks','target_reached']
             if exposure['QG01'].get(k)!=exposure['G01'].get(k)}

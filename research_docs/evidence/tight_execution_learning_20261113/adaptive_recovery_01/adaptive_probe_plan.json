@@ -1,0 +1,33 @@
+{
+  "specs": [
+    {
+      "name": "old800",
+      "loss_contract": null,
+      "output_contract": null,
+      "lr": 0.0003,
+      "clip": 1.0,
+      "updates": 800
+    },
+    {
+      "name": "tail800",
+      "loss_contract": {
+        "version": "ideal_box_fy_roundoff_v1",
+        "idealization_tolerance_rad": 1e-06,
+        "multiplier": 2.0,
+        "regularizer_weight": 0.0001
+      },
+      "output_contract": {
+        "version": "reachable_tanh_linear_tail_v1",
+        "tanh_threshold": 0.95,
+        "tail_span_gain": 1.0
+      },
+      "lr": 0.0003,
+      "clip": 1.0,
+      "updates": 800
+    }
+  ],
+  "conditional_adjustment": "If executed dev/Core/direction fail, compare tail with zero residual penalty and LR1e-4, 1600 updates; preserve every comparison",
+  "maximum_total_wall_s": 7200,
+  "original_gates_preserved": true,
+  "capacity_floor_fraction_A": 0.3346004632594539
+}

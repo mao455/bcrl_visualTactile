@@ -1,3 +1,7 @@
+# 2026-11-13 09:55 接续故障恢复
+
+旧adaptive短训完成，tail_tuned1600 A原门槛过/B未过；full follow因遗漏CLI --job/--output在03:04退出，0正式更新，无新自主结果。旧owner/publisher均退出并完成推送。只修CLI/编排，独立adaptive_recovery_01复用所有probe并固定round01 pair/cache，按剩余预算再登记共同6/3/1曝光，不重置原计算23:55:15/绝对次日00:05:15。真实参数解析测试后启动并确认实际更新；旧失败现场全部保留。状态必须读新root follow_status/progress，不用旧adaptive/status最后RUNNING。发布仍origin/feature/tight-state-foundation，无force。
+
 # 2026-11-13 02:23 最新追加授权：自主执行学习修复
 
 用户允许证据驱动调整loss/LR/正则/clip/训练曝光/必要输出参数化，200仅第一检查点；双组门槛失败不得机械终止。执行约束、两种前端语义、test22隔离不变。原新run绝对截止11月14日00:05:15 UTC+8不变；GPU资源与Git发布分别调度，冻结pair/cache可在内存余量满足时先短训。必要时仅本项目旧任务完整保存后有序停止，保护历史。旧WAITING owner已先退出，修订在同run/adaptive，原登记/launch保留。普通脚本接续，源码发布仍等旧发布器结束；不热改活动代码。

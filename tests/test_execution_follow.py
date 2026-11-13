@@ -73,3 +73,17 @@ def test_publication_preserves_parent_report_and_rejects_other_local_edits():
     merged=follow.merge_parent_status(base,ours,theirs)
     assert 'new' in merged and 'parent finished' in merged and 'body' in merged and 'old' not in merged
     with pytest.raises(ValueError):follow.merge_parent_status(base,ours+'unreviewed',theirs)
+
+
+def test_real_trainer_parser_accepts_formal_and_recovery_commands(tmp_path):
+    from visuotactile.anchor_continue import argument_parser
+    for mode in ('residual-train','residual-offline'):
+        for root in (tmp_path/'formal/QG01/backend/QG01',tmp_path/'targeted_01/round_01/G01/backend/G01'):
+            command=follow.residual_command(mode,root)
+            args=argument_parser().parse_args(command[2:])
+            assert args.mode==mode and args.job=='state' and args.root==root
+            assert args.output.is_relative_to(root)
+
+
+def test_recovery_exports_do_not_replace_failed_attempt_evidence(tmp_path):
+    assert follow.evidence_directory(tmp_path/'adaptive')!=follow.evidence_directory(tmp_path/'adaptive_recovery_01')

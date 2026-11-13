@@ -1,11 +1,11 @@
 <!-- EXECUTION_LEARNING_STATUS_START -->
 ## 2026-11-13 自主执行学习修复：实际状态
 
-状态 **FAILED / technical_or_budget_stop**；原绝对截止 **2026-11-14 00:05:15 UTC+8** 不变。
+状态 **PREPARED / CLI_recovery_not_started**；原绝对截止 **2026-11-14 00:05:15 UTC+8** 不变。
 首个旧/FY各200更新已完成，FY的A/B dev执行误差比1.139/1.181，未通过原门槛。固定DP输出域下界占A归一化错误33.46%，B为0；据此比较保持共同执行器的线性尾部提案。
 配对延长、必要优化调整、完整混合数据后端训练、完整DP+Transformer开发评估分层记录；若闭环失败且剩余预算允许，最多两轮、每轮12机会/组的定向DAgger同时更新DP、缓存和后端。初始门槛失败不结束整个修复，也不改写旧结果。
 GPU工作与Git发布分别调度；未完成阶段不能称为成功。test22隔离、源数据和旧checkpoint保留。
-[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/adaptive/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/adaptive/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/adaptive/capacity.json)。
+[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/adaptive_recovery_01/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/adaptive_recovery_01/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/adaptive_recovery_01/capacity.json)。
 <!-- EXECUTION_LEARNING_STATUS_END -->
 
 # Tight-Insertion 研究入口
