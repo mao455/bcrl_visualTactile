@@ -1,3 +1,9 @@
+## 2026-11-13 21:18 评估证据接续，不重训或重复机会
+
+span候选A/B均已完成1314更新、193520合法监督tick、1.0遍，完整离线验证已完成。首次evaluation-only恢复遗漏offline/result.json，真实residual_evaluate在Kit启动前因组分母保护退出；不是训练失败或自主0成功。四cell的既有离线结果逐一绑定选定checkpoint SHA，并验证state_data与nominal实际同源，才可只读复用至新身份。不得伪造offline准入结果或绕过组分母保护。
+
+`rear_span_metric_eval_recovery_02`原样续原40机会、四组固定模型/seed/顺序与22:50:03子截止；新训练和离线推理均0。已有任何trial启动标记、失败标记或部分轨迹都拒绝整队重放。两arm准备fairness通过；四个真实residual_evaluate入口已CPU加载实际checkpoint并通过normalizer/DINO/组分母检查，trial dispatcher以sentinel替代，明确不是仿真验收。原计算23:55:15、绝对次日00:05:15及test22隔离不变；完成后再据完整策略结果判断span metric，不增实验矩阵。
+
 ## 2026-11-13 20:53 可达比例FY：有界优化metric假设
 
 完成重放四cell均0/10，population逐层完整1遍。对全部662训练episode/193520合法tick测量：令w=h−l、anchor=clip(base,l,h)、x=anchor+wz，原FY raw梯度为2(P(x)−y)/w × (action_scale·w)^2，再乘Arm/Hand均值系数。逐joint系数中位数跨1551.14倍，Arm整体中位数.00019710、Hand .00594924；不等于共享参数实际梯度贡献，更不证明失败因果。

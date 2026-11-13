@@ -20,6 +20,7 @@ from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
 
 ROOT = ORIGINAL / 'rear_span_metric_01'
 RECOVERY_ROOT = ORIGINAL / 'rear_span_metric_eval_recovery_01'
+OFFLINE_RECOVERY_ROOT = ORIGINAL / 'rear_span_metric_eval_recovery_02'
 REFERENCE = ORIGINAL / 'rear_replay_balance_01/population'
 CONTACT = ORIGINAL / 'adaptive_contact_recovery_01'
 GROUPS = ('QG01', 'G01')
@@ -29,9 +30,45 @@ ORDER = (('reference', 'QG01'), ('span', 'G01'),
 
 
 def checked_root(root, recovery=False):
-    if root.resolve() != (RECOVERY_ROOT if recovery else ROOT):
+    allowed = (RECOVERY_ROOT, OFFLINE_RECOVERY_ROOT) if recovery else (ROOT,)
+    if root.resolve() not in allowed:
         raise ValueError('Only the unique registered replay root is allowed')
     return root.resolve()
+
+
+def reuse_selected_offline(group_root):
+    source = (group_root / 'training').resolve().parent
+    result_path = source / 'offline/result.json'
+    result = read(result_path)
+    checkpoint = group_root / 'training/best.pt'
+    if not result.get('complete') or result.get('test_used') is not False:
+        raise ValueError('Require complete non-test offline evidence')
+    if result.get('checkpoint_sha256') != sha(checkpoint):
+        raise ValueError('Offline evidence does not match the selected checkpoint')
+    for name in ('state_data', 'nominal'):
+        if not (group_root / name).samefile(source / name):
+            raise ValueError('Offline data/cache identity differs: ' + name)
+    destination = group_root / 'offline/result.json'
+    if destination.exists():
+        if read(destination) != result:
+            raise ValueError('Do not overwrite different offline evidence')
+    else:
+        write(destination, result)
+    receipt = dict(source=str(result_path), source_sha256=sha(result_path),
+        checkpoint_sha256=result['checkpoint_sha256'], exact_reuse=True,
+        new_inference=False, new_optimizer_updates=0, test22=False)
+    write(group_root / 'offline_reuse.json', receipt)
+    return receipt
+
+
+def require_unstarted_evaluation(root):
+    evidence = list(root.glob('*/*/backend/evaluation_complete.json'))
+    evidence += list(root.glob('*/*/backend/*/evaluation_summary.json'))
+    evidence += [path for path in root.glob('*/*/backend/*/evaluation/**/*') if path.is_file()]
+    evidence += list(root.glob('*/*/backend/*/evaluation_started/*.json'))
+    evidence += list(root.glob('*/*/backend/*/evaluation_failures/*.json'))
+    if evidence:
+        raise ValueError('Source evaluated samples exist; reconcile without repeating them')
 
 
 def population_weights(coverage):
@@ -172,6 +209,7 @@ def prepare(root):
                 (destination / group / 'training').rmdir()
                 (destination / group / 'training').symlink_to(inherited / group / 'training', target_is_directory=True)
                 write(destination / 'candidate_selection.json', dict(read(inherited / 'candidate_selection.json'), inherited_training=True, new_optimizer_updates_this_attempt=0))
+                reuse_selected_offline(destination / group)
                 for name in ('best.pt', 'finished.json', 'configuration.json'):
                     path = inherited / group / 'training' / name
                     registration['bindings'][str(path)] = sha(path)
@@ -306,22 +344,28 @@ def prepare_recovery(root):
     root = checked_root(root, recovery=True)
     if root.exists():
         raise ValueError('Never overwrite a recovery identity')
-    source = read(ROOT / 'registration.json')
+    source_root = RECOVERY_ROOT if root == OFFLINE_RECOVERY_ROOT else ROOT
+    source = read(source_root / 'registration.json')
     if time.time()+4800 >= min(source['stage_deadline'], COMPUTE_DEADLINE):
         raise TimeoutError('No reserve for the existing evaluation cohort')
-    launch = read(ROOT / 'launch.json')
-    write(root / 'registration.json', dict(source, recovery_source=str(ROOT),
+    launch = read(source_root / 'launch.json')
+    write(root / 'registration.json', dict(source, recovery_source=str(source_root),
         source_owner=dict(pid=launch['pid'], start_ticks=launch['process']['start_ticks']),
         new_optimizer_updates=0, original_stage_deadline_preserved=True,
-        recovery_reason='loss_id is derived from the intentional loss contract; old guard omitted this allowed metadata field'))
+        recovery_reason=('Reuse existing checkpoint-bound offline evidence omitted from the prior handoff'
+            if root == OFFLINE_RECOVERY_ROOT else
+            'loss_id is derived from the intentional loss contract; old guard omitted this allowed metadata field')))
     write(root / 'status.json', dict(state='PREPARED', stage='awaiting_safe_source_exit', utc=time.time()))
 
 
 @supervised_owner
-def recover(root):
+def recover(root, prepare_only=False):
     from tools.tight_finish import residual_prepare
     root = checked_root(root, recovery=True)
     registration = read(root / 'registration.json')
+    source_root = RECOVERY_ROOT if root == OFFLINE_RECOVERY_ROOT else ROOT
+    if registration['recovery_source'] != str(source_root):
+        raise ValueError('Recovery source identity differs')
     if (root / 'wait_launch.json').exists():
         raise ValueError('No implicit recovery rerun')
     write(root / 'wait_launch.json', dict(pid=os.getpid(), process=proc(os.getpid()), utc=time.time(),
@@ -334,47 +378,52 @@ def recover(root):
                 break
             if time.time()+4200 >= min(registration['stage_deadline'], COMPUTE_DEADLINE):
                 raise TimeoutError('Insufficient remaining fixed-cohort reserve; source training not interrupted')
-            source_status = read(ROOT / 'status.json')
-            progress = ROOT / 'span' / source_status.get('group', 'G01') / 'backend' / source_status.get('group', 'G01') / 'training/progress.json'
+            source_status = read(source_root / 'status.json')
+            progress = source_root / 'span' / source_status.get('group', 'G01') / 'backend' / source_status.get('group', 'G01') / 'training/progress.json'
             if progress.exists():
                 write(root / 'source_training/progress.json', dict(read(progress), source=str(progress), source_group=source_status.get('group')))
             write(root / 'status.json', dict(state='RUNNING', stage='waiting_for_healthy_source_training',
                 pid=os.getpid(), source_status=source_status, utc=time.time()))
             time.sleep(5)
-        failure = read(ROOT / 'failure.json')
-        if 'Unexpected cross-metric training difference' not in failure['error']:
+        failure = read(source_root / 'failure.json')
+        if root == OFFLINE_RECOVERY_ROOT:
+            detail = read(source_root / 'reference/QG01/backend/residual_evaluate_error.json')
+            if ('Bounded stage failed: reference_QG01_eval' not in failure['error'] or
+                    'ValueError: DAgger evaluation cannot shrink the registered group denominator' not in detail['traceback']):
+                raise ValueError('Unrecognized offline handoff failure')
+        elif 'Unexpected cross-metric training difference' not in failure['error']:
             raise ValueError('Unrecognized source failure, do not silently recover')
-        if list(ROOT.glob('*/*/backend/evaluation_complete.json')) or list(ROOT.glob('*/*/backend/*/evaluation_summary.json')):
-            raise ValueError('Source evaluated samples exist; reconcile without repeating them')
+        require_unstarted_evaluation(source_root)
         for group in GROUPS:
-            done = read(ROOT / 'span' / group / 'backend' / group / 'training/finished.json')
+            done = read(source_root / 'span' / group / 'backend' / group / 'training/finished.json')
             if not done['target_reached']:
                 raise ValueError('Source candidate training incomplete')
-        for path, expected in read(ROOT / 'source_freeze.json').items():
+        for path, expected in read(source_root / 'source_freeze.json').items():
             if sha(path) != expected:
                 raise ValueError('Source freeze drift')
-        session = read(ROOT / 'session.json')
+        session = read(source_root / 'session.json')
         session.update(resource_root=str(root), matrix_owner=str(root), owned_worker_roots=[str(root)], cwd=str(Path.cwd()))
         write(root / 'session.json', session)
         for arm in ARMS:
-            write(root / arm / 'frozen_frontends.json', read(ROOT / arm / 'frozen_frontends.json'))
+            write(root / arm / 'frozen_frontends.json', read(source_root / arm / 'frozen_frontends.json'))
             for group in GROUPS:
-                source = ROOT / arm / group / 'backend'
+                source = source_root / arm / group / 'backend'
                 destination = root / arm / group / 'backend'
                 residual_prepare(destination, configuration=read(source / 'configuration.json'))
-                (root / arm / group / 'dp').symlink_to((ROOT / arm / group / 'dp').resolve(), target_is_directory=True)
+                (root / arm / group / 'dp').symlink_to((source_root / arm / group / 'dp').resolve(), target_is_directory=True)
                 for name in ('training', 'nominal'):
                     (destination / group / name).rmdir()
                     (destination / group / name).symlink_to((source / group / name).resolve(), target_is_directory=True)
                 for name in ('evaluation_plan.json', 'candidate_selection.json', 'cache_complete.json'):
                     write(destination / name, read(source / name))
+                reuse_selected_offline(destination / group)
                 share_monitor(root, destination)
                 for path in (destination / 'session.json', destination / group / 'session.json'):
                     current = read(path)
                     current.update(resource_root=str(root), matrix_owner=str(root), owned_worker_roots=[str(root)],
                         cwd=str(Path.cwd()), evaluation_deadline=registration['stage_deadline'], compute_deadline=COMPUTE_DEADLINE)
                     write(path, current)
-                for path in (source / group / 'training/best.pt', destination / 'evaluation_plan.json', destination / 'configuration.json'):
+                for path in (source / group / 'training/best.pt', destination / 'evaluation_plan.json', destination / 'configuration.json', destination / group / 'offline/result.json'):
                     registration['bindings'][str(path)] = sha(path)
             result = audit(root / arm, complete=False, frozen_frontend=True)
             write(root / arm / 'prepared_audit.json', result)
@@ -383,7 +432,10 @@ def recover(root):
         write(root / 'registration.json', registration)
         write(root / 'source_handoff.json', dict(source_failure=failure, training_preserved=True,
             original_opportunities_preserved=True, repeated_training=False, repeated_evaluation=False, utc=time.time()))
-        run(root, evaluation_only=True)
+        if prepare_only:
+            write(root / 'status.json', dict(state='PREPARED', stage='offline_evidence_restored_awaiting_launch', utc=time.time()))
+        else:
+            run(root, evaluation_only=True)
     except BaseException as error:
         write(root / 'failure.json', dict(error=repr(error), traceback=traceback.format_exc(), utc=time.time()))
         write(root / 'status.json', dict(state='FAILED', stage='recovery_requires_diagnosis', error=repr(error), utc=time.time()))
@@ -392,10 +444,12 @@ def recover(root):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('mode', choices=('prepare', 'run', 'prepare-recovery', 'recover'))
+    parser.add_argument('mode', choices=('prepare', 'run', 'prepare-recovery', 'recover', 'prepare-evaluation', 'evaluate'))
     parser.add_argument('--root', type=Path, required=True)
     arguments = parser.parse_args()
-    dict(prepare=prepare, run=run, **{'prepare-recovery': prepare_recovery, 'recover': recover})[arguments.mode](arguments.root)
+    dict(prepare=prepare, run=run, **{'prepare-recovery': prepare_recovery, 'recover': recover,
+        'prepare-evaluation': lambda root: recover(root, prepare_only=True),
+        'evaluate': lambda root: run(root, evaluation_only=True)})[arguments.mode](arguments.root)
 
 
 if __name__ == '__main__':

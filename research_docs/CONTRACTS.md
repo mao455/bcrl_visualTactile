@@ -1,3 +1,7 @@
+### 2026-11-13 21:18 只读offline证据接续
+
+评估恢复不得缩小注册组分母或伪造offline/result.json。复用必须complete=true、test_used=false、checkpoint SHA等于实际选定best，且state_data/nominal实际指向原验证依赖；不同既有结果拒绝覆盖。存在任何已启动trial/失败标记/部分轨迹时禁止整队重新登记执行。`rear_span_metric_eval_recovery_02`只续原40固定机会，原阶段和绝对截止不变，训练/离线推理新增0；实际入口CPU检查与真实仿真验收分开。
+
 ### 2026-11-13 20:53 显式可达比例监督metric
 
 `ideal_box_span_fy_roundoff_v1`固定multiplier2、原1e−6rad理想化容差、regularizer0、minimum_span_rad1e−6；FY元素除以max(upper−lower,minimum_span_rad)²。旧身份和缺省路径保持。centered输出、最终执行链、normalizer和所有buffer、物理/PD/时钟/native成功不变。A仍实际q_reached+既定几何，B和两后端最终标签仍各自既定u_expert。无STE/重复delay，真实executed-MSE继续原metric。新loss写checkpoint，显式continuation允许、同attempt恢复身份必须匹配。研究`rear_span_metric_01`仅训练候选rear，参考训练只读复用；A/B准备与完成审计、test22隔离、原截止仍为硬约束。

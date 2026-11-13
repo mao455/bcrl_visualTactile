@@ -1,3 +1,10 @@
+## 2026-11-13 21:18 — Preserve checkpoint-bound offline evidence across evaluation recovery
+
+- Diagnose missing offline admission evidence before any simulator launch; retain the failure and completed A/B1314-update endpoints.
+- Reuse complete non-test offline results only with selected-checkpoint and actual data/cache identity checks; never bypass the group-denominator guard.
+- Add unique second recovery identity, preparation-only boundary, explicit evaluation entrypoint and partial-start replay refusal; retain all original opportunities/deadlines.
+- Both prepared fairness audits and actual four-cell CPU entrypoint preconditions pass; no GPU inference or autonomous result is claimed by these checks.
+
 ## 2026-11-13 21:01 — Safe evaluation-only recovery
 
 - Fix cross-metric audit to recognize derived loss_id; no hot edit or interruption of healthy trainers.

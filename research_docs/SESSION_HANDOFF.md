@@ -1,3 +1,9 @@
+## 2026-11-13 21:18 Agent008诊断并恢复同一固定评估
+
+事件为`rear_span_metric_eval_recovery_01/failure.json`。真正异常是offline准入文件未继承；组分母guard在任何仿真前拒绝，不是训练新失败。A/B span各1314更新/193520tick已完成，四份对应checkpoint的完整离线结果都存在。无新训练/推理，按SHA及实际data/cache身份复用原结果；新root `rear_span_metric_eval_recovery_02`，隔离源码`bc+rl_RSS_span_eval_fix_02`。原失败现场保留，监督器/发布器不修改。
+
+新身份保持原40固定机会和22:50:03阶段截止，不重复已开始样本。两准备fairness和四cell实际评估入口CPU前置检查通过；模拟dispatcher不产生结果，不作为自主成功。实际运行以新root `launch/status/startup_acceptance/finished/failure.json`为准，不以PREPARED冒充GPU启动。后续真实Agent应先完成该cohort，不按工程故障机械否定loss候选。原计算23:55:15/绝对次日00:05:15、资源储备和历史A/B不等同限制保持。
+
 ## 2026-11-13 21:01 实际训练与安全评估接续
 
 `rear_span_metric_01`真实训练已验收：G01达到1088更新/159498合法tick，owner3022906/start_ticks163431464，310个冻结源码无漂移，资源储备通过。74项定向测试通过；新完整自主结果尚未产生，不把启动说成成功。

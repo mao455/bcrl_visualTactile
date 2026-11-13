@@ -1,3 +1,7 @@
+## 2026-11-13 21:18 训练完成；评估准入衔接故障已定位
+
+span A/B实际各1314更新、193520合法监督tick、1.0有效遍，原完整offline结果已保存。`rear_span_metric_eval_recovery_01`遗漏继承这些结果，使首cell在仿真前触发组分母保护；实际新自主机会0，不计0/10。恢复`rear_span_metric_eval_recovery_02`逐SHA继承四份checkpoint匹配且非test的真实offline结果，验证其data/cache同源；不重训，不重复offline推理，不调整模型/seed/标准/截止。两arm准备fairness和四个实际评估入口CPU前置检查通过；后者不运行Kit、不能替代自主结果。保留所有既有失败与原分母，等待实际固定40机会结果再判断loss条件化假说。
+
 ## 2026-11-13 21:01 实际训练与安全评估接续
 
 `rear_span_metric_01`真实训练已验收：G01达到1088更新/159498合法tick，owner3022906/start_ticks163431464，310个冻结源码无漂移，资源储备通过。74项定向测试通过；新完整自主结果尚未产生，不把启动说成成功。
