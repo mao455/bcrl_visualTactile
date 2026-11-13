@@ -1,3 +1,9 @@
+## 2026-11-13 23:35 剂量实验终局与授权边界
+
+- 完整40机会全部合法，四cell各0/10成功、0首子目标；不采用端点，不追加训练/评估。
+- 明确continued各2620新rear更新/387040tick，reference零新更新及四cell零DP更新；冻结前端终局公平性审计均通过。
+- 保存继承收据解释、泛化/物理复现限制与primary交接；不改活动源码或bot独占文件，原截止不变。
+
 ## 2026-11-13 — 真实运行计时与numeric批写
 
 - `visuotactile/recording.py`新增BufferedNumericWriter：同schema/dtype/value的32tick批写及显式flush；旧append_numeric保留。

@@ -1,3 +1,15 @@
+## 2026-11-13 23:35 后端增量剂量完整终局：四cell各0/10，不追加计算
+
+`rear_span_dose_02`已于23:33完成，owner3070479已退出；不是训练故障或有意交接InterruptedError。reference A/B与continued A/B均完成同一固定10机会：每cell **10合法、0拒绝、0软件失败、0完整成功、0首子目标**。lift依次为3/4/3/5，不能代替完整成功。
+
+continued每组新增2620后端更新、387040监督tick、2.0人口遍，训练墙钟A865.11秒/B853.26秒。reference为原span1冻结端点，本次新增训练为0；继承收据的1314更新/193520tick不能计入本次。四cell前端更新0、cache不刷新，不是新DAgger轮。端点仅诊断、不采用；没有观察到追加剂量带来的成功收益，也不能据此宣称所有欠训练假说已被排除。
+
+终局重新运行`tools.tight_ab_fairness --frozen-frontend`，reference与continued各自A/B均通过，四cell共享相同plan摘要。审计仅覆盖登记合同、缓存绑定和实际曝光/覆盖收据，不证明历史初始化相等、逐步optimizer/采样顺序或隐藏物理状态逐位相同；reference/continued的训练剂量与optimizer重启有意不同。初次终局CLI遗漏该flag、误把继承DP514显示为增量的本地输出保留但已由frozen审计替代；reference继承rear曝光也明确不计本次新增。不混入B-only复现或上一轮9合法/1拒绝分母。
+
+复用主Agent已发布8次诊断，不重复：原B274tick成功保留但未稳定复现，503命令回放命令/target精确而物理轨迹不精确。当前证据不足以归因到某个损失/晚期动作，也不足以宣布A/B优劣。按22:39用户要求，完成此边界后不新开训练、大评估、service或矩阵；剩余窗口交回主Agent。此次监督器结论为授权边界`external_block`，不是科研成功或任务不可能。原23:55:15计算/次日00:05:15绝对截止不变，保护全部证据与test22隔离。publisher与supervisor不改动。
+
+小证据：[终局交接](evidence/tight_execution_learning_20261113/rear_span_dose_02/final_handoff.json)。
+
 ## 2026-11-13 22:14 实际更新验收
 
 `rear_span_dose_02` A实际224次新增optimizer更新、32976合法tick；owner3070479/start_ticks163893784，313冻结源码无漂移，资源储备通过。B和新40例完整评估尚未完成，不提前给成功率。两组共同追加2人口遍，旧span1遍参考不重训；程序不自动采用模型。详见[启动收据](evidence/tight_execution_learning_20261113/rear_span_dose_02/startup_acceptance.json)。源码`aadbad1`已推送，启动文档另树发布，不热改。阶段23:47:57和原硬截止不变。
