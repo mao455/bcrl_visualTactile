@@ -1,9 +1,15 @@
+<!-- AUTONOMOUS_RESEARCH_SUPERVISION_START -->
+**2026-11-13 10:44 最新接续：独立研究事件监督已实际启动。** `tight-research-agent-supervisor-20261113-01.service` 为active，真实Codex工具调用与service运行环境均已验证，286份旧worker源码未改。当前A已完成7017更新但验证退化；B仍正常更新，最新启动快照为4512次/328737监督tick。先完成本次两组完整学生评估，再触发真实Agent做下一研究决策。下面旧owner的自动汇总只描述它自身；有意交接的InterruptedError不代表评估软件失败，也不意味着研究结束。15min无实际进展或异常退出同样触发诊断；普通脚本不宣称具备科研推理能力。原计算23:55:15/绝对次日00:05:15 UTC+8不延长。
+
+[实际启动验收](evidence/tight_execution_learning_20261113/agent_supervisor/startup_acceptance.json) · 本地实时 `outputs/visuotactile/run/tight_execution_learning_20261113_01/agent_supervisor/{status,latest_decision}.json`。后者仅在真实决策发生后存在。
+<!-- AUTONOMOUS_RESEARCH_SUPERVISION_END -->
+
 <!-- EXECUTION_LEARNING_STATUS_START -->
 ## 2026-11-13 10:40 自主执行学习修复：训练实测与决策接续
 
 A完整混合后端已完成 **7017更新、512402监督tick、3.00425有效遍**；旧validation/纠偏dev/恢复初24执行误差较update0增加 **19.76%/22.10%/26.78%**。起点与旧正式模型保留，退化终点只作闭环诊断，不宣布采用。B持续实际更新；此快照更新数见下方机器凭据。两组本次完整DP＋Transformer自主结果尚未产生。
 
-用户最新授权解除旧200/800/1600、双门槛、候选和固定两轮的机械限制。先完成当前训练及完整闭环，再按真实结果自主决定优化、结构、采样或DAgger；不因零成功自动追加。新增独立事件监督器只监测/安全交接，真实科研判断由本机 `codex exec` 重新调用Agent；已验证工具读取实际训练结果。当前监督器准备通过6项测试，实际service启动另读启动凭据，不把准备等同运行。
+用户最新授权解除旧200/800/1600、双门槛、候选和固定两轮的机械限制。先完成当前训练及完整闭环，再按真实结果自主决定优化、结构、采样或DAgger；不因零成功自动追加。新增独立事件监督器只监测/安全交接，真实科研判断由本机 `codex exec` 重新调用Agent；已验证工具读取实际训练结果。监督器6项测试通过，service实际启动及真实CLI环境已验收；科研决策调用将在实验事件发生时触发。
 
 原计算截止 **11月13日23:55:15**、绝对截止 **11月14日00:05:15 UTC+8** 不变。286份活动worker冻结源码核验未变；test22、原始数据与历史证据受保护。A/B标签及共同物理执行/成功约束保持。
 
