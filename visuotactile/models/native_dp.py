@@ -153,7 +153,7 @@ class NativePolicy(nn.Module):
         if memory is None and self.group == 'I-HistoryDP' and tick != 0:
             raise ValueError('History memory requires the complete causal episode prefix')
         memory = Memory(next_tick=tick) if memory is None else memory
-        if tick != memory.next_tick or (frame is not None) != (tick % 12 == 0):
+        if tick != memory.next_tick or (frame is not None) != (tick % getattr(self, 'contract', {}).get('visual_stride', 12) == 0):
             raise ValueError('Skipped native observation or incorrect visual update')
         if robot.shape != (ROBOT_DIM,):
             raise ValueError('Strict robot input contract differs')
@@ -267,7 +267,7 @@ def encode_segment(model, episode, start, stop):
         with torch.set_grad_enabled(model.training and tick >= start):
             robot = record['robot'][tick].to(device)
             stamp = record['time'][tick].to(device)
-            frame = episode.frame(tick, device) if tick % 12 == 0 else None
+            frame = episode.frame(tick, device) if tick % getattr(model, 'contract', {}).get('visual_stride', 12) == 0 else None
             touch = record['tactile'][tick].to(device) if model.modality == 'G10' else None
             memory = model.observe(robot, stamp, tick, frame, memory, tactile=touch)
             if tick >= start and tick % 12 == 0:
@@ -282,11 +282,14 @@ def load_policy(payload, device='cpu', ema=True):
         from ..state_history import trained_continuation_updates
         if trained_continuation_updates(payload)<1:
             raise ValueError('Update-zero policy requires a trained hash-bound continuation source')
-    from ..position_control import image_contract
+    from ..position_control import image_contract, continuous_image_contract
+    continuous=[continuous_image_contract(s) for s in ('u_expert','q_reached')]
     allowed=[CONTRACT]+[image_contract(g,h) for g in ('I-OfficialDP','I-HistoryDP') for h in (24,32)]
     allowed += [image_contract('I-HistoryDP',24,m) for m in ('G00','G10')]
     allowed += [image_contract('I-HistoryDP',24,m,s) for m in ('G00','G10') for s in ('u_expert','q_reached')]
-    if stored not in allowed or group not in GROUPS or (stored != CONTRACT and stored!=image_contract(group,stored['horizon'],stored.get('modality'),stored.get('supervision'))):
+    allowed += continuous
+    if stored in continuous and group!='I-HistoryDP':raise ValueError('Continuous vision requires I-HistoryDP')
+    if stored not in allowed or group not in GROUPS or (stored not in continuous and stored != CONTRACT and stored!=image_contract(group,stored['horizon'],stored.get('modality'),stored.get('supervision'))):
         raise ValueError('Not a native-command v1 checkpoint; old weights cannot be reinterpreted')
     model = NativePolicy(group,stored['horizon'],modality=stored.get('modality')).to(device)
     model.contract=stored

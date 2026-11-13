@@ -1,3 +1,17 @@
+## 2026-11-14 当前重启：逐帧视觉与train30
+
+本轮授权替代旧截止、旧初始化和只启动后返回要求；当前指令集中在根AGENTS.md。研究机CNS202533182702；远端feature/tight-state-foundation核验为506d185，旧主工作区3e11d62及其未提交文档未改。新隔离树continuous_vision_20261114。
+
+确认旧视觉每12tick一次，后端重复旧visual。新独立version6/visual_stride1合同把每60Hz真实RGB-D送入训练、在线视觉GRU和后端缓存；DP仍5Hz。旧合同保留。q_reached为transition后的q(t+1)、间隔1/60秒，不是稳定姿态；u_expert是当步实际执行目标。新模型尚未训练，不宣称任务改善。
+
+原Core有36训练family；一家族一条中位时长完整成功，再按实际初态标准化最远点选择30条，原validation独立family取6条，test22未打开。36条共12,460tick，原文件SHA和q_after/q_before时序逐条通过；统计只用train30，未加载旧学生权重。原始数据与专家保留。详见evidence/tight_fresh_20261114/selection.json；标准化混合坐标距离只用于选取与去重，不作物理精确重放声明。
+
+实现当前处于接口验收/全帧缓存准备。初始完整A/B训练、后端、真实多环境吞吐及DAgger研究循环尚未完成，不能把准备记为科研成功。新本地root：outputs/visuotactile/run/tight_fresh_20261114_01。
+
+---
+
+以下为历史记录，当前状态以上文和机器收据为准。
+
 ### 2026-11-13 22:12 有限共同曝光与冻结参考
 
 `rear_span_dose_02`只在原run内、原绝对截止下追加共同2后端人口遍；原span一遍reference新增0更新，所有继承曝光明确区分。A/B相同数据mask/排序seed/公共处理/optimizer重启/预算/选模机会，前端和配套cache冻结且SHA绑定；无DAgger或新采集。每arm固定10同seed/family/spec机会，初态拒绝不替换；各组历史初始化不同，跨arm剂量与optimizer重启不同。真实parser和参考CPU入口只验证工程前置，candidate须真实完整训练及offline后准入；旧失败保留，不热改运行源码。固定阶段23:47:57，计算23:55:15/绝对次日00:05:15，独立cgroup到时保存退出并回交真实Agent。

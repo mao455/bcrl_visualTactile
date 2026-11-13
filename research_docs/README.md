@@ -1,58 +1,7 @@
-**2026-11-13控制步自查已完成，contact-recovery仍正常训练。** [逐步使用方式、真实phase覆盖与复杂度结论](DAGGER_METHOD.md)见页首；下方旧FAILED块仅属历史owner，不能代替当前状态。旧遗漏修复已启用，当前A update300新增目标已见150/210；没有重启训练。
+# Tight-Insertion 当前研究入口
 
-<!-- EXECUTION_LEARNING_STATUS_START -->
-## 2026-11-13 自主执行学习修复：实际状态
+2026-11-14开始新一轮：约30条不同初态成功示范、DP/后端从零训练、每60Hz真实三视角视觉入网，5Hz规划。A预测下一控制步实际构型并配几何与后端；B预测专家目标并配同类后端。研究结论以完整学生“拿起、拿稳、转正、对孔、插入”的实际结果为准。
 
-状态 **FAILED / technical_or_budget_stop**；原绝对截止 **2026-11-14 00:05:15 UTC+8** 不变。
-首个旧/FY各200更新已完成，FY的A/B dev执行误差比1.139/1.181，未通过原门槛。固定DP输出域下界占A归一化错误33.46%，B为0；据此比较保持共同执行器的线性尾部提案。
-配对延长、必要优化调整、完整混合数据后端训练、完整DP+Transformer开发评估分层记录；若闭环失败且剩余预算允许，最多两轮、每轮12机会/组的定向DAgger同时更新DP、缓存和后端。初始门槛失败不结束整个修复，也不改写旧结果。
-GPU工作与Git发布分别调度；未完成阶段不能称为成功。test22隔离、源数据和旧checkpoint保留。
-[方法与限制](DAGGER_METHOD.md#execution-learning-repair) · [阶段状态](evidence/tight_execution_learning_20261113/adaptive_recovery_01/follow_status.json) · [配对计划](evidence/tight_execution_learning_20261113/adaptive_recovery_01/adaptive_probe_plan.json) · [表达下界](evidence/tight_execution_learning_20261113/adaptive_recovery_01/capacity.json)。
-<!-- EXECUTION_LEARNING_STATUS_END -->
+有效授权集中于[AGENTS](../AGENTS.md)，实际进度见[交接](SESSION_HANDOFF.md)与[结果](STATE_DP_RESULTS.md)。[合同](CONTRACTS.md)、[感知](PERCEPTION.md)、[方法](DAGGER_METHOD.md)、[性能](DAGGER_PERFORMANCE.md)、[变更](CHANGELOG.md)分别维护事实。下层文档的旧日期段落是历史证据，不重新授权旧run或恢复旧截止。
 
-<!-- AUTONOMOUS_RESEARCH_SUPERVISION_START -->
-**2026-11-13 10:44 最新接续：独立研究事件监督已实际启动。** `tight-research-agent-supervisor-20261113-01.service` 为active，真实Codex工具调用与service运行环境均已验证，286份旧worker源码未改。当前A已完成7017更新但验证退化；B仍正常更新，最新启动快照为4512次/328737监督tick。先完成本次两组完整学生评估，再触发真实Agent做下一研究决策。下面旧owner的自动汇总只描述它自身；有意交接的InterruptedError不代表评估软件失败，也不意味着研究结束。15min无实际进展或异常退出同样触发诊断；普通脚本不宣称具备科研推理能力。原计算23:55:15/绝对次日00:05:15 UTC+8不延长。
-
-[实际启动验收](evidence/tight_execution_learning_20261113/agent_supervisor/startup_acceptance.json) · 本地实时 `outputs/visuotactile/run/tight_execution_learning_20261113_01/agent_supervisor/{status,latest_decision}.json`。后者仅在真实决策发生后存在。
-<!-- AUTONOMOUS_RESEARCH_SUPERVISION_END -->
-
-# Tight-Insertion 研究入口
-
-**2026-11-12最新工作**：[DAgger性能实测与有限队列修订](DAGGER_PERFORMANCE.md)记录已测局部加速、未测完整轮收益及待安全边界接入状态。控制匹配run已实际采集，A第一轮前端完成；新配套后端和自主评估尚未完成。完整算法、控制与监督规则见 [DAGGER_METHOD](DAGGER_METHOD.md)，实际进程/阶段见 [交接](SESSION_HANDOFF.md)；专家接管成功不等于学生自主成功。
-
-以下保留此前条件追加的来源和历史范围；最新合同覆盖见[CONTRACTS](CONTRACTS.md)。
-
-当前范围是两个完整学生策略：**A：q_reached配置前端＋既定几何软惩罚＋Transformer；B：u_expert命令前端＋同容量Transformer**。两组前端同为RGB-D＋robot178的G00模态，触觉均由后端读取；裸配置前端保留训练/离线验证，不承担独立DAgger或任务考核。G11等旧变体保留证据并退出活动队列。
-
-原 `tight_dagger_pool_20261111_01` 的第2轮按原配置完成A/B训练与有限自主评估。新授权仅当两组本轮新candidate的实际合法自主评估完整完成且都0成功，才用新配套DP＋Transformer追加一次第3轮，各最多96次真实接管，再分别更新DP（最多800）、刷新缓存和更新后端（最多12有效tick遍）。原Core与全部合格纠偏持续累积；数据不足只是待检验假说。
-
-触发后最多延长6小时：绝对截止2026-11-12 **13:24:31**，计算13:14:31停止；原起点不变，无递归、无新run预算。任一组成功不追加，未完成/软件错误不作零成功。机会按完整训练预留裁减，原4→10自主协议和test22隔离保持。隔离准备、触发判定、实际进程启动与采集验收分别记载，见[交接](SESSION_HANDOFF.md)及实际机器凭据。
-
-安全停止前QG01首轮804/12212次前后端更新、自主0/10成功和2次lift；G11前端754次更新及已有80条纠偏均保留。当前修订的实现/验收与运行状态分开记录，见[交接](SESSION_HANDOFF.md)及[实际结果](STATE_DP_RESULTS.md)。A/B旧残差幅度和历史训练曝光不同，此次不是严格单变量或同预算实验；test22不使用。详细标签、预算和证据边界见[合同](CONTRACTS.md)。
-
-|入口|内容|
-|---|---|
-|[性能实测](DAGGER_PERFORMANCE.md)|组件与调度对照、未采用候选、实际接入边界|
-|[研究方向](USER_RESEARCH_DIRECTION.md)|最新用户授权与比较范围|
-|[合同](CONTRACTS.md)|标签/历史/缓存/预算、模块职责与官方结构对照|
-|[交接](SESSION_HANDOFF.md)|原运行与后继队列的实际边界、接手核验|
-|[实际结果](STATE_DP_RESULTS.md)|训练曝光、自主分母、错误和本地视频索引|
-|[感知](PERCEPTION.md)|三路RGB-D、触觉与实际执行历史|
-|[变更记录](CHANGELOG.md)|已实施修改与测试；历史条目不重新授权旧阶段|
-|[清理记录](CLEANUP_AUDIT.md)|按依赖检查的实际删除和释放空间|
-|[配置](../configs/tight_state.json)|`dagger` 与原实验的分别冻结配置|
-
-必要历史对照保留如下。它们属于不同模型和阶段，不直接合并为 DAgger 的前后变化。
-
-|历史阶段|训练/模型|开发原生完整成功|
-|---|---|---|
-|2026-11-09 StateDP掌部损失|19,865更新，234.374 anchor等效遍历|0/10|
-|2026-11-09 G00/G10视觉基础|10,132/6,929更新；119.541/81.753 anchor等效遍历|各0/10|
-|2026-11-10旧G01/G11 GRU残差|各98,610更新，200接触tick等效遍历|0/10、1/10|
-|已完成 `tight_transformer_20261110_02`|复用视觉前端、Q配置适配及Transformer后端|由该轮实际结果单独报告|
-
-旧 G11 唯一成功为 seed27150000，279tick/4.65s，`native_lift=false`；不能反推原生抬升或稳定改善。旧GRU与新Transformer同时改变监督范围和失触门控，不能把差异全归于网络结构。历史日志/资源问题、FAILED收尾和成功分母见结果页；不因后继阶段改写。
-
-当前CPU数据验收覆盖真实196条 train/validation：train166共55,392tick、4,690有效原生规划anchor，原统计字节一致，test源未读；新增接管 mask/标签/历史与缓存刷新测试通过。这些不证明真实专家能救回，也不证明学生自主性能已改善。
-
-代码和小型结果公开到 `origin/feature/tight-state-foundation`；大 checkpoint、数据与视频留本机。项目基础和上游安装说明见[根 README](../README.md)。
+首批已选择30训练/6验证，12,460个真实控制tick，标签时序与原始文件哈希通过。尚未完成新训练或新自主评估。新源码与精简证据持续推origin/feature/tight-state-foundation，原始数据/权重留本机。

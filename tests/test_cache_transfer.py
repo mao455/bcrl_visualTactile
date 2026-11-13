@@ -8,16 +8,17 @@ import torch
 from visuotactile import native_data
 
 
+@pytest.mark.parametrize('stride',[1,12])
 @pytest.mark.parametrize('length,modality,supervision', [(25,'G00','u_expert'),(47,'G10','q_reached')])
-def test_episode_transfer_preserves_all_outputs_and_causal_calls(tmp_path,monkeypatch,length,modality,supervision):
+def test_episode_transfer_preserves_all_outputs_and_causal_calls(tmp_path,monkeypatch,length,modality,supervision,stride):
     class Base(torch.nn.Module):
         group='I-HistoryDP'
         def __init__(self):
             super().__init__();self.weight=torch.nn.Parameter(torch.tensor(.1),requires_grad=False)
-            self.modality=modality;self.contract={'supervision':supervision};self.calls=[];self.eval()
+            self.modality=modality;self.contract={'supervision':supervision,'visual_stride':stride};self.calls=[];self.eval()
         def observe(self,robot,stamp,tick,frame,memory,*,tactile):
             assert (memory is None)==(tick==0)
-            assert (frame is not None)==(tick%12==0)
+            assert (frame is not None)==(tick%stride==0)
             assert (tactile is not None)==(modality=='G10')
             total=(0 if memory is None else memory.total)+robot[0]*self.weight
             self.calls.append(('observe',tick,float(total),float(robot[116])))

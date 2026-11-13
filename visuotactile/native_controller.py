@@ -107,7 +107,7 @@ class NativeController:
         robot = robot_rows(proprio[:29], proprio[29:], packet['actuator_target_rad'][0].cpu(), past, stamp-self.started)
         self.last_robot = robot
         frame = None
-        if step % 12 == 0:
+        if step % self.model.contract.get('visual_stride',12) == 0:
             frame = dict(time=packet['camera_time_s'][0].to(self.device), valid=packet['camera_valid'][0].to(self.device))
             if self.model.group == 'S-NativeDP':
                 if diagnostics is None:
@@ -171,7 +171,8 @@ class ResidualController:
         if self.residual.version==TargetResidual.version:
             from pathlib import Path
             path=Path(config.get('residual_statistics_path',''))
-            if config.get('residual_normalization_identity')!='u_expert_train166_affine_v1' or not path.is_absolute():
+            expected_normalization=('u_expert_fresh_train_only_affine_v1' if saved['contract'].get('visual_stride')==1 else 'u_expert_train166_affine_v1')
+            if config.get('residual_normalization_identity')!=expected_normalization or not path.is_absolute():
                 raise ValueError('New residual requires an explicit common u_expert affine')
             if sha256(path)!=config.get('residual_statistics_sha256'):
                 raise ValueError('Residual statistics identity changed')
@@ -203,7 +204,7 @@ class ResidualController:
         if tick==0:self.timings=InferenceTimings(self.device)
         measured=self.timings.begin('combined_controller',tick)
         nominal=self.base.act(packet,diagnostics)
-        if tick%12==0:self.visual=residual_visual(self.model,self.base.memory,packet['time_s'][0].to(self.device)).cpu()
+        if tick%self.model.contract.get('visual_stride',12)==0:self.visual=residual_visual(self.model,self.base.memory,packet['time_s'][0].to(self.device)).cpu()
         plan=bounded_targets(self.base.plan[0],self.base.limits)[None]
         remaining,valid=remaining_target_plan(plan,tick%12)
         touch={target:packet[source][0].cpu() for source,target in (

@@ -174,6 +174,14 @@ def image_contract(group, horizon=32, modality=None, supervision=None):
     return value
 
 
+def continuous_image_contract(supervision):
+    """Fresh 60Hz visual model identity; never reinterpret a sparse checkpoint."""
+    return dict(image_contract('I-HistoryDP',24,'G00',supervision),version=6,
+        visual_stride=1,visual_history_hz=60,
+        observation='robot178_dino_rgb_depth_every_native_tick_v1',
+        normalization_identity=supervision+'_fresh_train_only_affine_v1')
+
+
 def bounded_targets(actions, limits):
     if actions.ndim != 2 or actions.shape[-1] != 29 or not torch.isfinite(actions).all():
         raise ValueError('Finite canonical [N,29] absolute radians required')

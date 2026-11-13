@@ -124,6 +124,8 @@ class Episode:
         root = Path(root)
         info = json.loads((root/'data.json').read_text())
         index = info['entries'][identity]
+        self.visual_stride = info.get('visual_stride',12)
+        if self.visual_stride not in (1,12):raise ValueError('Unknown visual sampling stride')
         if info.get('visual_pair'):
             shard = torch.load(root/'perception'/(identity+'.pt'),map_location='cpu',weights_only=False,mmap=True)
             self.record = {k:shard[k] for k in ('camera_time','camera_valid')}
@@ -145,7 +147,8 @@ class Episode:
         return len(self.record['time'])
 
     def frame(self, tick, device):
-        ordinal = tick//12
+        if tick % self.visual_stride:raise ValueError('Frame requested outside cache clock')
+        ordinal = tick//self.visual_stride
         result = dict(time=self.record['camera_time'][ordinal].to(device),
                       valid=self.record['camera_valid'][ordinal].to(device))
         if self.group == 'S-NativeDP':
@@ -331,16 +334,17 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
     for tick in range(len(record['time'])):
         with lease.block():
             stamp=inputs['time'][tick].to(device)
-            memory=base.observe(inputs['robot'][tick].to(device),stamp,tick,episode.frame(tick,device) if tick%12==0 else None,
+            memory=base.observe(inputs['robot'][tick].to(device),stamp,tick,episode.frame(tick,device) if tick%base.contract.get('visual_stride',12)==0 else None,
                 memory,tactile=inputs['tactile'][tick].to(device) if base.modality=='G10' else None)
             if tick%12==0:
                 sampling={} if scheduler_index_mode=='legacy' else dict(scheduler_index_mode=scheduler_index_mode)
                 plan=base.predict(base.condition(memory,stamp),generator,**sampling)
                 plan=bounded_targets(plan[0],inputs['joint_limits'].to(device))[None]
+                if transfer_mode=='episode':plans.append(plan[0])
+            if tick%base.contract.get('visual_stride',12)==0:
                 visual=residual_visual(base,memory,stamp)[0]
-                if transfer_mode=='episode':
-                    plans.append(plan[0]);features.append(visual)
-                else:visual=visual.cpu()
+            if transfer_mode=='episode':features.append(visual)
+            else:visual=visual.cpu()
             if transfer_mode=='tick':
                 remaining,valid=remaining_target_plan(plan,tick%12)
                 plans.append(remaining[0].cpu());masks.append(valid.cpu());commands.append(plan[0,tick%12].cpu());features.append(visual)
@@ -354,7 +358,7 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
         rows=torch.arange(len(record['time']));ordinal=rows//12;cursor=rows%12
         indices=cursor[:,None]+torch.arange(24)[None]
         planned=compact[ordinal[:,None],indices.clamp_max(23)]
-        valid=indices<24;commands=compact[ordinal,cursor];visual=visual[ordinal]
+        valid=indices<24;commands=compact[ordinal,cursor]
     else:
         planned=torch.stack(plans);valid=torch.stack(masks);commands=torch.stack(commands);visual=torch.stack(features)
     result.update(plans=planned,plan_valid=valid,base=commands,
@@ -390,9 +394,11 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
     lease=lease_for(root,deadline=plan['cache_deadline'])
     dino=None
     (out/'perception').mkdir(exist_ok=True);entries={};started=time.time();frames_done=0
-    total=sum((info['entries'][i]['length']+11)//12 for i in ids)
+    stride=info.get('visual_stride',12)
+    if stride not in (1,12):raise ValueError('Unknown visual cache cadence')
+    total=sum((info['entries'][i]['length']+stride-1)//stride for i in ids)
     cache_contract=dict(dino_revision=DINO_REVISION,dino_sha256=plan['dino_sha256'],data_sha256=sha256(out/'data.json'),
-        cameras=CAMERAS,resolution=[448,252],patches=[384,18,32],depth=[2,18,32],stride=12,
+        cameras=CAMERAS,resolution=[448,252],patches=[384,18,32],depth=[2,18,32],stride=stride,
         random_augmentation=False,trainable_projection_cached=False)
     # Only a committed per-episode index proves a reusable payload. A worker
     # can die after any episode; the next worker must retain its measured work.
@@ -414,7 +420,7 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
             complete=False,requested_ids=ids,preserved_orphans=orphans,utc=time.time()))
     reusable=json.loads(Path(reuse_index).read_text()) if reuse_index is not None else None
     if reusable and (reusable['dino_sha256']!=plan['dino_sha256'] or reusable.get('dino_revision')!=DINO_REVISION
-            or reusable.get('stride')!=12 or reusable.get('cameras')!=CAMERAS
+            or reusable.get('stride')!=stride or reusable.get('cameras')!=CAMERAS
             or reusable.get('resolution')!=[448,252] or reusable.get('patches')!=[384,18,32]
             or reusable.get('depth')!=[2,18,32] or reusable.get('random_augmentation') is not False
             or reusable.get('trainable_projection_cached') is not False or reusable.get('complete') is not True):
@@ -427,7 +433,7 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
         old=prior['entries'].get(identity)
         if old is not None:
             if (not path.is_file() or old['sha256']!=sha256(path) or old['source_sha256']!=entry['source_sha256']
-                    or old['frames']!=(entry['length']+11)//12):
+                    or old['frames']!=(entry['length']+stride-1)//stride):
                 raise ValueError('Committed DINO payload/source identity changed: '+identity)
             entries[identity]=old;total-=old['frames'];checkpoint_progress();continue
         shared=reusable['entries'].get(identity) if reusable else None
@@ -446,7 +452,7 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
                 source=next((p for p in candidates if p.is_file()),source)
             if shared['source_sha256']!=entry['source_sha256'] or sha256(source)!=shared['sha256']:
                 raise ValueError('Shared DINO payload/source identity changed: '+identity)
-            if shared['frames']!=(entry['length']+11)//12:raise ValueError('Shared DINO temporal coverage differs')
+            if shared['frames']!=(entry['length']+stride-1)//stride:raise ValueError('Shared DINO temporal coverage differs')
             if path.exists() and sha256(path)!=shared['sha256']:raise ValueError('Existing DINO payload differs')
             if not path.exists():path.symlink_to(source.resolve())
             entries[identity]=dict(shared,path=str(path.resolve()));total-=shared['frames'];checkpoint_progress();continue
@@ -458,7 +464,7 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
         with h5py.File(entry['path'],'r') as f:
             g=f['episodes'][entry['episode']];meta=json.loads(f.attrs['metadata_json'])
             if meta['camera_ids']!=CAMERAS:raise ValueError('Camera order differs')
-            ticks=np.arange(0,entry['length'],12)
+            ticks=np.arange(0,entry['length'],stride)
             times=torch.from_numpy(g['obs/time_s'][ticks]);ct=torch.from_numpy(g['obs/camera_time_s'][ticks]);cv=torch.from_numpy(g['obs/camera_valid'][ticks])
             if not cv.all() or ((times[:,None]-ct)<-1e-6).any():raise ValueError('Invalid/future camera')
             for tick in ticks:

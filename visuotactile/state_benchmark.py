@@ -484,7 +484,7 @@ def prepare(env, isolated, spec, source, output):
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
           inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
-          capture_compression='lzf', expert_checkpoint=None, dagger=None, numeric_buffer_steps=32):
+          capture_compression='lzf', expert_checkpoint=None, dagger=None, numeric_buffer_steps=32, expert_shadow=True):
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     dagger = dagger_configuration(dagger, spec, source) if dagger is not None else None
@@ -492,6 +492,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             or replay is not None or takeover_steps is not None or expert_speed is not None or expert_checkpoint is None):
         raise ValueError('DAgger requires a trained combined position student, compact capture and explicit expert identity')
     complete_identity = dagger_policy_identity(saved, checkpoint) if dagger is not None else None
+    shadow_required = saved is None or dagger is not None or takeover_steps is not None or expert_shadow
     trial_started = time.perf_counter()
     output.mkdir(parents=True, exist_ok=False)
     atomic_json(output/'started.json', dict(spec=spec, utc=time.time(), checkpoint=checkpoint))
@@ -583,7 +584,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 # Expert shadow follows the actual observed student trajectory;
                 # it never executes and its RNG is outside the environment stream.
                 measured=time.perf_counter()
-                expert_command = player.get_action(actor, is_deterministic=True).clamp(-1, 1)
+                expert_command = (player.get_action(actor, is_deterministic=True).clamp(-1, 1)
+                    if shadow_required else torch.zeros((1,29),device=actor.device))
                 profile['expert_inference_s']+=time.perf_counter()-measured
                 if replay is not None:
                     index=min(tick,len(replay)-1)
@@ -799,6 +801,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 result['dataset_capture'].update(sha256=sha256(output/'demonstration/data.h5'),
                     trajectory_kind='expert_takeover_v1', accepted_success=bool(
                         result['dagger']['expert_takeover_success'] and result['dagger']['expert_valid_ticks']>0))
+        result['expert_shadow_computed']=shadow_required
+        result['expert_shadow_placeholder_zero']=not shadow_required
         result['wall_profile']=dict(profile,setup_s=setup_wall_s,through_result_s=time.perf_counter()-trial_started,scope='Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O.')
         atomic_json(output/'result.json', result)
         return result

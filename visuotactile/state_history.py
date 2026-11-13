@@ -286,8 +286,8 @@ class PersistentImage(NativePolicy):
     """Existing visual architectures under the shared V2 trainer; no State branch."""
     def __init__(self, group, action_contract):
         from collections import OrderedDict
-        from .position_control import image_contract
-        if action_contract != image_contract(group,action_contract['horizon'],action_contract.get('modality'),action_contract.get('supervision')):
+        from .position_control import image_contract, continuous_image_contract
+        if action_contract not in [continuous_image_contract(s) for s in ('u_expert','q_reached')] and action_contract != image_contract(group,action_contract['horizon'],action_contract.get('modality'),action_contract.get('supervision')):
             raise ValueError('Image position contract mismatch')
         super().__init__(group,action_contract['horizon'],modality=action_contract.get('modality'))
         self.contract=action_contract

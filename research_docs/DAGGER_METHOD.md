@@ -1,3 +1,17 @@
+## 2026-11-14 当前重启：逐帧视觉与train30
+
+本轮授权替代旧截止、旧初始化和只启动后返回要求；当前指令集中在根AGENTS.md。研究机CNS202533182702；远端feature/tight-state-foundation核验为506d185，旧主工作区3e11d62及其未提交文档未改。新隔离树continuous_vision_20261114。
+
+确认旧视觉每12tick一次，后端重复旧visual。新独立version6/visual_stride1合同把每60Hz真实RGB-D送入训练、在线视觉GRU和后端缓存；DP仍5Hz。旧合同保留。q_reached为transition后的q(t+1)、间隔1/60秒，不是稳定姿态；u_expert是当步实际执行目标。新模型尚未训练，不宣称任务改善。
+
+原Core有36训练family；一家族一条中位时长完整成功，再按实际初态标准化最远点选择30条，原validation独立family取6条，test22未打开。36条共12,460tick，原文件SHA和q_after/q_before时序逐条通过；统计只用train30，未加载旧学生权重。原始数据与专家保留。详见evidence/tight_fresh_20261114/selection.json；标准化混合坐标距离只用于选取与去重，不作物理精确重放声明。
+
+实现当前处于接口验收/全帧缓存准备。初始完整A/B训练、后端、真实多环境吞吐及DAgger研究循环尚未完成，不能把准备记为科研成功。新本地root：outputs/visuotactile/run/tight_fresh_20261114_01。
+
+---
+
+以下为历史记录，当前状态以上文和机器收据为准。
+
 ## 2026-11-13 23:00 实际运行自查与写盘优化
 
 本次只做8次有界诊断，零新训练；已有span-dose训练/40机会评估不中断。A仍是QG01：q_reached + 独有手部环境几何 + Transformer；B仍是G01：u_expert DP + Transformer。两组共有palm位姿拟合项，不能说B完全没有几何相关loss。历史初始化差异仍披露，本次每组各3次完整学生诊断；旧B版本与命令回放各1次独立，不合并为性能分母。

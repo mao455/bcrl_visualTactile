@@ -316,7 +316,7 @@ def test_controller_keeps_correction_and_memory_across_contact_loss(active_model
     base.act=nominal
     monkeypatch.setattr(native_data,'residual_visual',lambda *args:data['visual'][:,0])
     controller=ResidualController.__new__(ResidualController)
-    controller.base=base;controller.model=SimpleNamespace();controller.residual=active_model
+    controller.base=base;controller.model=SimpleNamespace(contract={});controller.residual=active_model
     controller.device=torch.device('cpu');controller.state=None;controller.episode=None
     controller.previous_nominal=None;controller.timings=InferenceTimings('cpu')
     controller.action_scale_cpu=active_model.action_scale;controller.residual_scales_cpu=active_model.scales
