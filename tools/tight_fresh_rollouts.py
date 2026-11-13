@@ -55,7 +55,8 @@ def prepare(root, output, count, seed):
     atomic_json(output/'plan.json',dict(kind='autonomous',pairs=pairs,cases=cases,
         resource_root=str(root),source_commit=__import__('subprocess').check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))},
-        test_used=False,cohort='new development states; same narrow domain; no exact hidden-state pairing claim',utc=time.time()))
+        inference_scheduler_index_mode='host',
+        test_used=False,cohort='registered development reset opportunities; same narrow domain; no exact hidden-state pairing claim',utc=time.time()))
 
 
 def run(output):
@@ -94,6 +95,7 @@ def run(output):
         row=trial(env,lease,directory,case['spec'],source,player,pair['backend'],saved=saved[case['role']],
             position=True,video=case.get('video',False),expert_checkpoint=session['expert_checkpoint'],
             expert_shadow=False,capture_dataset=plan['kind']=='takeover',dagger=case.get('dagger'),
+            scheduler_index_mode=plan.get('inference_scheduler_index_mode','legacy'),
             video_title=case['role']+' fresh every-frame complete student')
         timing=dict(total_seconds=time.perf_counter()-start,resource_wait_seconds=lease.wait_s-wait,
             nested_environment_components={k:totals[k]-before.get(k,0) for k in totals},

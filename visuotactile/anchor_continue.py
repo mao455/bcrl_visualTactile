@@ -1035,7 +1035,8 @@ def residual_setup(root, *, selected=False, smoke=False):
     if residual_data.get('normalization_identity')!=residual_normalization_identity:
         raise ValueError('New residual requires common u_expert training affine')
     expected_train=read(root/'state_data/data.json')['splits']['train']
-    normalization_train=data.get('normalization_train_ids',expected_train) if v.get('continuation_from') else expected_train
+    fresh_aggregate=v.get('fresh_data_contract')=='fresh30_actual_takeover_aggregate_v1'
+    normalization_train=data.get('normalization_train_ids',expected_train) if v.get('continuation_from') or fresh_aggregate else expected_train
     residual_normalization_train=residual_data.get('normalization_train_ids',residual_data['splits']['train'])
     if residual_normalization_train!=normalization_train or not set(normalization_train)<=set(expected_train) or not set(normalization_train)<=set(residual_data['splits']['train']):
         raise ValueError('Residual normalization training population differs')
@@ -1045,7 +1046,7 @@ def residual_setup(root, *, selected=False, smoke=False):
         if artifact.get('residual_statistics_sha256')!=residual_statistics_sha256 or artifact.get('residual_normalization_identity')!=residual_normalization_identity:
             raise ValueError('Residual cache/scales normalization identity differs')
     records={}
-    cache_splits=all_splits if v.get('continuation_from') else data['splits']
+    cache_splits=all_splits if v.get('continuation_from') or fresh_aggregate else data['splits']
     for identity in cache_splits['train']+cache_splits['validation']+cache_splits.get('correction_dev',[]):
         path=root/'nominal'/(identity+'.pt')
         if sha256(path)!=index['episodes'][identity]['sha256']:raise ValueError('Nominal cache drift')
@@ -1097,6 +1098,16 @@ def residual_setup(root, *, selected=False, smoke=False):
         configuration.update(tick_window_contract=tick_window,
             loss_weight_normalization='weighted FY numerator / fixed128 unweighted ticks per optimizer window; short group tail retains denominator128',
             history='current-weight full prefix only after optimizer update; unchanged-weight detached carry between32tick chunks')
+    if fresh_aggregate and not v.get('continuation_from'):
+        from .native_data import supervision_mask_sha256
+        if index.get('supervision_mask_sha256')!=supervision_mask_sha256(records):
+            raise ValueError('Fresh aggregated nominal cache mask identity differs')
+        binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=sha256(root/'state_data/statistics.pt'),
+            data_sha256=sha256(root/'state_data/data.json'),residual_statistics_sha256=residual_statistics_sha256)
+        if any(record.get('cache_identity')!=binding for record in records.values()):
+            raise ValueError('Fresh aggregated nominal cache binding differs')
+        configuration.update(supervision_mask_sha256=index['supervision_mask_sha256'],
+            normalization_train_ids=normalization_train,normalizer_recomputed=False)
     if v.get('continuation_from'):
         from .native_data import supervision_mask_sha256
         saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)

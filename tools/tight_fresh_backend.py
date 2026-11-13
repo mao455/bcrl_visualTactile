@@ -61,6 +61,8 @@ def prepare(root, role, epochs):
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
     v['residual_normalization_identity'] = residual_normalization(data, v)
+    if data.get('aggregation'):
+        v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
     if command_data['normalization_identity'] != v['residual_normalization_identity']:
         raise ValueError('Fresh common command affine required')
     session = copy.deepcopy(read(root / 'session.json'))

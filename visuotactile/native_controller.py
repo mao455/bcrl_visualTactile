@@ -57,13 +57,15 @@ class InferenceTimings:
 
 
 class NativeController:
-    def __init__(self, saved, metadata, dino=None, device='cuda:0'):
+    def __init__(self, saved, metadata, dino=None, device='cuda:0', scheduler_index_mode='legacy'):
         from .state_history import trained_continuation_updates
         if trained_continuation_updates(saved) < 1:
             raise ValueError('An untrained native policy cannot control')
         with torch.random.fork_rng(devices=[]):
             self.model = load_policy(saved, device)
         self.device, self.dino = torch.device(device), dino
+        if scheduler_index_mode not in ('legacy','host'):raise ValueError('Unknown inference scheduler index mode')
+        self.scheduler_index_mode=scheduler_index_mode
         self.limits = torch.tensor(metadata['joint_limits_rad'][0])
         self.dimensions = object_dimensions(metadata) if self.model.group=='S-NativeDP' else None
         self.position_mode = self.model.contract['action']=='absolute_joint_position_target_rad'
@@ -139,7 +141,8 @@ class NativeController:
         if step % 12 == 0:
             self.last_condition = self.model.condition(self.memory, stamp.to(self.device))
             diffusion_measured = self.timings.begin('ddim_plan',step)
-            self.plan = self.model.predict(self.last_condition, self.generator).cpu()
+            self.plan = self.model.predict(self.last_condition, self.generator,
+                **({'scheduler_index_mode':'host'} if self.scheduler_index_mode=='host' else {})).cpu()
             self.timings.finish(diffusion_measured)
         if self.position_mode:
             from .position_control import bounded_targets
@@ -163,7 +166,7 @@ class NativeController:
 
 class ResidualController:
     """One frozen DP tick followed by one independent 60Hz residual tick."""
-    def __init__(self,saved,metadata,dino=None,device='cuda:0'):
+    def __init__(self,saved,metadata,dino=None,device='cuda:0',scheduler_index_mode='legacy'):
         from .compact import sha256
         from .models.native_dp import TargetResidual, LegacyTargetResidual, load_residual
         from .state_history import trained_continuation_updates
@@ -173,7 +176,7 @@ class ResidualController:
         if sha256(config['base_checkpoint'])!=config['base_sha256']:raise ValueError('Frozen base identity changed')
         base=torch.load(config['base_checkpoint'],map_location='cpu',weights_only=False)
         if base['contract']!=saved['contract']:raise ValueError('Residual/base contract differs')
-        self.base=NativeController(base,metadata,dino,device)
+        self.base=NativeController(base,metadata,dino,device,scheduler_index_mode=scheduler_index_mode)
         self.model=self.base.model.eval().requires_grad_(False)
         self.residual=load_residual(saved,device).requires_grad_(False)
         from .position_control import validate_execution_environment

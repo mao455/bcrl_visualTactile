@@ -484,7 +484,8 @@ def prepare(env, isolated, spec, source, output):
 @torch.no_grad()
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
           inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
-          capture_compression='lzf', expert_checkpoint=None, dagger=None, numeric_buffer_steps=32, expert_shadow=True):
+          capture_compression='lzf', expert_checkpoint=None, dagger=None, numeric_buffer_steps=32, expert_shadow=True,
+          scheduler_index_mode='legacy'):
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     dagger = dagger_configuration(dagger, spec, source) if dagger is not None else None
@@ -507,6 +508,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             atomic_json(output/'result.json', result)
             return result
         metadata = env.research_metadata(); metadata['config'] = env.cfg.to_dict()
+        metadata['inference_scheduler_index_mode']=scheduler_index_mode
         if saved is not None and saved.get('configuration',{}).get('execution_adapter') is not None:
             from .position_control import validate_execution_environment
             metadata['execution_adapter']=saved['configuration']['execution_adapter']
@@ -536,8 +538,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 dino=NativeDinoSpatial().to('cuda:0').eval()
             if saved.get('residual_version'):
                 from .native_controller import ResidualController
-                controller=ResidualController(saved,metadata,dino=dino)
-            else:controller=NativeController(saved,metadata,dino=dino)
+                controller=ResidualController(saved,metadata,dino=dino,scheduler_index_mode=scheduler_index_mode)
+            else:controller=NativeController(saved,metadata,dino=dino,scheduler_index_mode=scheduler_index_mode)
         else:
             controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
     setup_wall_s = time.perf_counter()-trial_started
