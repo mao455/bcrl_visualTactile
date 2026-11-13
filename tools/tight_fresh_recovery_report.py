@@ -123,10 +123,11 @@ def main():
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
+    existed = args.output.exists()
     try:
         run(args.root.resolve(), args.output.resolve())
     except BaseException as error:
-        if args.output.exists() and not (args.output / 'result.json').exists():
+        if not existed and args.output.exists() and not (args.output / 'result.json').exists():
             atomic_json(args.output / 'failure.json', dict(error=repr(error), traceback=traceback.format_exc(), utc=time.time()))
         raise
 
