@@ -17,6 +17,8 @@ from visuotactile.training_resources import atomic_json
 
 BINS = ('first12', 'next12', 'after24')
 PARTS = {'arm': slice(0, 7), 'hand': slice(7, 29)}
+COHORTS = ('expert_success', 'expert_failure', 'no_expert_takeover',
+           'student_success_without_takeover', 'no_legal_expert_labels')
 
 
 def array_sha(value):
@@ -37,6 +39,22 @@ def finish(sums, ticks):
     return result
 
 
+def fit_eligible(row):
+    """Successful expert control alone is insufficient without executed labels."""
+    return bool(row['expert_takeover_success'] and row['legal_expert_ticks'] > 0)
+
+
+def population(cases):
+    """Keep the registered opportunity denominator separate from fitting rows."""
+    return dict(completed_opportunities=len(cases),
+        takeover_cases=sum(row['masked_expert_transition_ticks'] + row['legal_expert_ticks'] > 0 for row in cases),
+        legal_label_cases=sum(row['legal_expert_ticks'] > 0 for row in cases),
+        zero_label_cases=sum(row['legal_expert_ticks'] == 0 for row in cases),
+        successful_legal_suffix_cases=sum(fit_eligible(row) for row in cases),
+        legal_expert_ticks=sum(row['legal_expert_ticks'] for row in cases),
+        cohorts={cohort: sum(row['cohort'] == cohort for row in cases) for cohort in COHORTS})
+
+
 def read_case(collection, case, pair):
     directory = collection / case['name']
     result = json.loads((directory / 'result.json').read_text())
@@ -55,36 +73,55 @@ def read_case(collection, case, pair):
             raise ValueError('Invalid legal supervision mask')
         mask = mask_raw.astype(bool)
         source = dagger['control_source'][:]
+        if mask.ndim != 1 or not len(mask) or source.shape != mask.shape:
+            raise ValueError('Expected nonempty complete control-source and mask arrays')
         indices = np.flatnonzero(mask)
         student_ticks = int((source == 0).sum())
+        expert_ticks = len(mask) - student_ticks
         if (not np.isin(source, (0, 1)).all()
                 or not np.array_equal(source == 0, np.arange(len(source)) < student_ticks)
-                or not len(indices) or not (source[mask] == 1).all()
-                or not np.array_equal(indices, np.arange(indices[0], len(mask)))):
+                or not (source[mask] == 1).all()
+                or (len(indices) and not np.array_equal(indices, np.arange(indices[0], len(mask))))):
             raise ValueError('Expected one student prefix and continuous legal expert suffix')
         segment = dagger['segment_id'][:]
-        if len(np.unique(segment[mask])) != 1:
+        if segment.shape != mask.shape or (len(indices) and len(np.unique(segment[mask])) != 1):
             raise ValueError('Recovery bins must not bridge control segments')
-        if not (dagger['switch_clean'][:][mask].astype(bool).all()
-                and dagger['expert_source_is_expert_issued'][:][mask].astype(bool).all()):
-            raise ValueError('Selected labels include an uncleared expert queue')
+        for name in ('switch_clean', 'expert_source_is_expert_issued'):
+            provenance = dagger[name][:]
+            if (provenance.shape != mask.shape or not np.isin(provenance, (0, 1)).all()
+                    or not provenance[mask].astype(bool).all()):
+                raise ValueError('Selected labels include an uncleared expert queue')
         predicted = dagger['student_proposed_target_rad'][:].astype(np.float64)
         target = dagger['u_expert'][:].astype(np.float64)
         previous = f['episode/obs/actuator_target_rad'][:].astype(np.float64)
         actual = transition['target_after_rad'][:].astype(np.float64)
         if any(x.shape != (len(mask), 29) for x in (predicted, target, previous, actual)):
             raise ValueError('Expected complete absolute target arrays')
-        if not all(np.isfinite(x[mask]).all() for x in (predicted, target, previous, actual)):
+        if (not all(np.isfinite(x).all() for x in (predicted, previous, actual))
+                or not np.isfinite(target[mask]).all()):
             raise ValueError('Nonfinite recovery command')
         if not np.array_equal(actual[:-1], previous[1:]):
             raise ValueError('Previous-target baseline lacks actual execution continuity')
-        label_error = float(np.abs(target[mask] - actual[mask]).max())
-        if label_error > 1e-6:
+        label_error = float(np.abs(target[mask] - actual[mask]).max()) if len(indices) else None
+        if label_error is not None and label_error > 1e-6:
             raise ValueError('Expert label differs from actual executed target')
         if (len(mask) != result['steps'] or result['residual_forward_ticks'] != len(mask)
                 or result['dagger']['expert_valid_ticks'] != len(indices)
                 or result['dagger']['student_ticks'] != student_ticks):
             raise ValueError('Saved result and numeric exposure differ')
+        expert_success = bool(result['success'] and expert_ticks > 0)
+        expected = dict(expert_ticks=expert_ticks, takeover_triggered=expert_ticks > 0,
+            expert_switch_masked_ticks=expert_ticks - len(indices),
+            expert_takeover_success=expert_success,
+            student_autonomous_success=bool(result['success'] and expert_ticks == 0))
+        if any(key in result['dagger'] and result['dagger'][key] != value for key, value in expected.items()):
+            raise ValueError('Saved result and actual takeover outcome differ')
+        if not expert_ticks:
+            cohort = 'student_success_without_takeover' if result['success'] else 'no_expert_takeover'
+        elif not len(indices):
+            cohort = 'no_legal_expert_labels'
+        else:
+            cohort = 'expert_success' if expert_success else 'expert_failure'
         bins = {}
         for name, rows in zip(BINS, (indices[:12], indices[12:24], indices[24:])):
             sums = {part: [float(np.square(predicted[rows, section] - target[rows, section]).sum()),
@@ -94,9 +131,8 @@ def read_case(collection, case, pair):
                 first_completed_tick=int(rows[0]) + 1 if len(rows) else None,
                 last_completed_tick=int(rows[-1]) + 1 if len(rows) else None)
         return dict(case=case['name'], role=case['role'], family=result['family'],
-            expert_takeover_success=bool(result['success']),
-            cohort='expert_success' if result['success'] else 'expert_failure',
-            student_ticks=student_ticks, masked_expert_transition_ticks=int(indices[0]) - student_ticks,
+            expert_takeover_success=expert_success, cohort=cohort,
+            student_ticks=student_ticks, masked_expert_transition_ticks=expert_ticks - len(indices),
             legal_expert_ticks=len(indices), bins=bins,
             frontend_sha256=pair['frontend_sha256'], backend_sha256=pair['backend_sha256'],
             numeric_sha256=sha256(numeric), result_sha256=sha256(directory / 'result.json'),
@@ -120,8 +156,8 @@ def report(collection):
     cases = [read_case(collection, case, plan['pairs'][case['role']]) for case in plan['cases']]
     roles = {}
     for role in sorted(plan['pairs']):
-        roles[role] = {}
-        for cohort in ('expert_success', 'expert_failure'):
+        roles[role] = {'population': population([row for row in cases if row['role'] == role])}
+        for cohort in COHORTS:
             selected = [row for row in cases if row['role'] == role and row['cohort'] == cohort]
             bins = {}
             for name in BINS:
@@ -133,16 +169,17 @@ def report(collection):
             roles[role][cohort] = dict(cases=len(selected), bins=bins,
                 first12_hand_worse_than_previous_target_cases=sum(
                     row['bins']['first12']['hand']['shadow_rmse_rad'] > row['bins']['first12']['hand']['previous_target_rmse_rad']
-                    for row in selected))
+                    for row in selected if row['bins']['first12']['ticks']))
     return dict(version='recorded_full_student_recovery_onset_v1',
         collection_source_commit=plan['source_commit'],
         report_source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         report_source_sha256=sha256(Path(__file__)),
         plan_sha256=sha256(collection / 'plan.json'), results_sha256=sha256(collection / 'results.json'),
-        completed_cases=len(cases), roles=roles, cases=cases,
+        completed_cases=len(cases), population=population(cases), roles=roles, cases=cases,
         bin_definition='Ordinal first 12 legal expert ticks, next 12, remaining ticks. Masked queue transitions excluded; one contiguous legal segment required.',
         aggregation='Squared errors summed over actual ticks and joint dimensions, then square root; not an average of per-case RMSE.',
         tick_index='1-based completed control transitions; mask and index hashes explicitly name byte encoding.',
+        empty_label_rule='All completed opportunities remain in the denominator. No takeover and no legal expert labels are separate cohorts; empty-bin RMSE and label discrepancy are null, and these cases never enter suffix fitting.',
         scope='Saved old full DP+backend shadow proposals on actual expert recovery observations and actual executed history. After takeover the student proposals do not control the robot. Expert completion and shadow error are not autonomous student outcomes. Different bins contain different physical states, so an error difference does not establish its cause.',
         optimizer_updates=0, model_forward_calls=0, simulator_starts=0, test_used=False)
 

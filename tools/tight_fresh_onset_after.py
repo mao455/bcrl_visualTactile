@@ -12,7 +12,7 @@ import traceback
 import h5py
 import numpy as np
 
-from tools.tight_fresh_onset_report import BINS, PARTS, array_sha, finish, read_case
+from tools.tight_fresh_onset_report import BINS, PARTS, array_sha, finish, fit_eligible, population, read_case
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 
@@ -97,8 +97,8 @@ def role_inputs(root, role, plan, references):
     data_path = directory / 'state_data/data.json'
     data = read(data_path)
     identities = [case['name'] for case in plan['cases']
-                  if case['role'] == role and references[case['name']]['expert_takeover_success']]
-    all_successes = {name for name, row in references.items() if row['expert_takeover_success']}
+                  if case['role'] == role and fit_eligible(references[case['name']])]
+    all_successes = {name for name, row in references.items() if fit_eligible(row)}
     if (set(data.get('aggregation', {}).get('new_training_ids', [])) != all_successes
             or not set(identities) <= set(data['splits']['train'])
             or set(identities) & set(data['splits']['validation'] + data['splits'].get('test', []))):
@@ -156,7 +156,7 @@ def role_inputs(root, role, plan, references):
         frontend_sha256=binding['base_checkpoint_sha256'], backend_sha256=sha256(rear_path),
         statistics_sha256=binding['statistics_sha256'], residual_statistics_sha256=binding['residual_statistics_sha256'],
         data_sha256=binding['data_sha256'], index_sha256=sha256(index_path), finished_sha256=sha256(finished_path),
-        sampler=sampler, identity_selection='Only successful own-role recorded roll-ins, exactly matching old shadow predictions')
+        sampler=sampler, identity_selection='Only successful own-role recorded roll-ins with nonzero legal expert labels, exactly matching old shadow predictions')
 
 
 def run(root, collection, before_path, output, *, preflight_only=False):
@@ -199,7 +199,7 @@ def run(root, collection, before_path, output, *, preflight_only=False):
             raise ValueError('Diagnostic source drift')
         saved, data, identities, index_path, index, binding, identity = role_inputs(root, role, plan, references)
         model = None
-        if not preflight_only:
+        if not preflight_only and identities:
             with lease.block():
                 model = load_residual(saved, 'cuda:0').eval().requires_grad_(False)
         cases = []
@@ -222,15 +222,23 @@ def run(root, collection, before_path, output, *, preflight_only=False):
                 case['prediction_sha256_float32_le'] = array_sha(prediction.astype('<f4'))
             cases.append(case)
             atomic_json(output / 'progress.json', dict(role=role, identity=name, completed=len(cases), utc=time.time()))
-        roles[role] = dict(identity=identity, cases=cases)
-        if not preflight_only:
+        own_references = [references[case['name']] for case in plan['cases'] if case['role'] == role]
+        roles[role] = dict(identity=identity, cases=cases, population=population(own_references),
+            fitting_cases=len(cases), selected_legal_ticks=sum(case['legal_ticks'] for case in cases),
+            model_loaded=model is not None,
+            comparison_status=('no_successful_legal_own_role_suffix' if not identities else
+                               'validated_for_fitting' if preflight_only else 'fitted_on_recorded_histories'),
+            excluded_cases=[dict(case=row['case'], cohort=row['cohort'], legal_expert_ticks=row['legal_expert_ticks'])
+                            for row in own_references if not fit_eligible(row)])
+        if not preflight_only or not cases:
             roles[role]['bins'] = aggregate(cases)
         atomic_json(output / (role + '.json'), roles[role])
         del model, saved
     atomic_json(output / ('preflight.json' if preflight_only else 'result.json'), dict(
         complete=True, preflight_only=preflight_only, roles=roles, before_report_sha256=sha256(before_path),
+        population=population(list(references.values())), fitting_cases=sum(row['fitting_cases'] for row in roles.values()),
         plan_sha256=sha256(collection / 'plan.json'),
-        scope='Same recorded actual student prefixes and expert suffixes; only legal executed expert labels, first12/next12/after24 matched exactly. Before is the recorded old full-student shadow; after reuses exact current-DP cached plans/features and replays the selected new backend on complete actual histories. Both use the same recorded family and mask; learned histories are recomputed by the new models. These successful corrections entered new training, so this measures fitting, not independent generalization or autonomous success. No claim of bitwise equivalence between live raw-image inference and cached inference.',
+        scope='All completed collection opportunities remain in population counts. Only successful own-role suffixes with legal executed expert labels enter first12/next12/after24 fitting; absent own-role suffixes have null errors and no model inference. Before is the recorded old full-student shadow; after reuses exact current-DP cached plans/features and replays the selected new backend on complete actual histories. Both use the same recorded family and mask; learned histories are recomputed by the new models. These successful corrections entered new training, so this measures fitting, not independent generalization or autonomous success. No claim of bitwise equivalence between live raw-image inference and cached inference.',
         optimizer_updates=0, old_pair_forward_calls=0, simulator_starts=0, test_used=False))
 
 
