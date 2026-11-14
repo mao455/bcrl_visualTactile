@@ -1,3 +1,13 @@
+## 2026-11-14 20:33 选中B新后段拟合与批量渲染资源候选
+
+第六轮双DP、99条依赖刷新和双后端均已完成，8次完整自主正在原冻结3e648db运行，不能提前晋升。只读重新执行B实际选中epoch3 EMA对新9条训练后段的原冻结指标：arm/hand RMSE 0.00438868/0.0368985rad，来源起点0.00716645/0.0658879；选中时每条6次访问，最终epoch10的20次访问及更低误差不能赋给选中模型。完整真实历史重算、180源码及数据/缓存SHA核验，20.61秒、零optimizer/validation/test；见round06_selected_B_train_fit.json。
+
+ff555ce的8lane视觉micro8对原串行micro2真实观测门槛通过：A/B最大目标差8.64267e-7/8.27014e-7rad，均小于原2e-5，每组200lane观察完整进入历史。不是新物理数据或速度结果。
+
+Tiled8在15.80秒环境构造后首次reset取图发生renderer descriptor/ParameterBlock分配失败；standard16也在控制前发生同类错误。均0动作，已保留日志和operator_stop并只清理自有worker，不能计为任务失败。不是显存不足的证据。新增显式backend v2登记/两次严格读回descriptorSets360000、reservedDescriptors900000（取安装相机测试配置），画质/标定/物理不变；尚未真实测试，不宣称修复。异步capture wave新增实际payload/queue峰值收据；测试覆盖真实HDF5完整验证后的统计。
+
+CPU新后端/readback/fit/writer检查通过；合并检查发现旧cycle失败fixture没有新增worker身份所需pid，已修正fixture而未放宽运行审计。原session05截止21:54:21不变。下一步验证容量候选，并把已通过的8环境标准路径用于真实完整接管采集。
+
 ## 2026-11-14 八环境真实观测通过与视觉批次候选
 
 冻结7c27553的A/B各8lane×25真实训练观测完成完整DP＋后端逐lane/批量检查，lane0独立reset；最大目标差A5.55068e-7、B8.34465e-7rad，小于预登记2e-5，全部400个lane观察进入持续历史。仅teacher-forced记录输入门槛，不是物理自主或速度结果；证据batch8_observation_gate.json。

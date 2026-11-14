@@ -6,7 +6,8 @@ import pytest
 import torch
 
 from tools.tight_state import kit_startup_scheduling
-from visuotactile.execution_backend import execution_backend, backend_receipt, startup_arguments
+from visuotactile.execution_backend import (execution_backend, backend_receipt, startup_arguments,
+    DESCRIPTOR_VERSION, renderer_resource_readback, require_renderer_resources)
 from visuotactile.environment_rng import RandomStream, DeviceRandomStream, LaneRandomStreams, IsolatedEnvironment
 from visuotactile.camera_calibration import ordered_camera_paths, renderer_poses
 
@@ -39,6 +40,44 @@ def test_backend_identity_and_environment_count_have_no_four_lane_cap():
     assert startup_arguments(b['configuration'], num_envs=200).endswith('--/rtx/viewTile/limit=200')
     with pytest.raises(ValueError):
         backend_receipt(execution_backend(), num_envs=True)
+
+
+def test_descriptor_capacity_is_explicit_v2_with_unchanged_v1_arguments():
+    ordinary=execution_backend(dict(camera_backend='tiled'))
+    candidate=execution_backend(dict(ordinary,version=DESCRIPTOR_VERSION))
+    assert candidate['renderer_descriptor_sets']==360000 and candidate['renderer_reserved_descriptors']==900000
+    expected=startup_arguments(ordinary,num_envs=8)+' --/rtx/descriptorSets=360000 --/rtx/reservedDescriptors=900000'
+    assert startup_arguments(candidate,num_envs=8)==expected
+    args,receipt=kit_startup_scheduling({},execution_backend=candidate,num_envs=8)
+    assert args==expected and receipt['execution_backend']==candidate
+    custom=execution_backend(dict(candidate,renderer_descriptor_sets=60000,renderer_reserved_descriptors=500000))
+    assert startup_arguments(custom,num_envs=8).endswith('--/rtx/descriptorSets=60000 --/rtx/reservedDescriptors=500000')
+    assert backend_receipt(candidate,num_envs=8)['configuration_sha256']!=backend_receipt(custom,num_envs=8)['configuration_sha256']
+    with pytest.raises(ValueError,match='Unknown execution_backend fields'):
+        execution_backend(dict(renderer_descriptor_sets=360000))
+    assert renderer_resource_readback(ordinary,lambda path:pytest.fail('v1 must not read extra settings')) is None
+    require_renderer_resources(None)
+
+
+@pytest.mark.parametrize('value',[0,-1,True,3.5,'360000',2147483648])
+def test_v2_descriptor_counts_reject_invalid_or_injected_values(value):
+    for field in ('renderer_descriptor_sets','renderer_reserved_descriptors'):
+        with pytest.raises(ValueError,match='signed 32-bit integer'):
+            execution_backend(dict(version=DESCRIPTOR_VERSION,**{field:value}))
+
+
+def test_capacity_readback_rejects_missing_coerced_or_overridden_values():
+    config=execution_backend(dict(version=DESCRIPTOR_VERSION))
+    settings={'/rtx/descriptorSets':360000,'/rtx/reservedDescriptors':900000,'/rtx/viewTile/limit':8}
+    receipt=renderer_resource_readback(config,settings.get)
+    require_renderer_resources(receipt)
+    assert receipt['matched'] and receipt['view_tile_limit_observed']==8
+    for value in (None,True,360000.,60000):
+        settings['/rtx/descriptorSets']=value
+        receipt=renderer_resource_readback(config,settings.get)
+        assert not receipt['matched']
+        with pytest.raises(RuntimeError,match='Renderer resource settings'):
+            require_renderer_resources(receipt)
 
 
 def test_lane_stream_replacement_preserves_other_lane_and_external_rng():

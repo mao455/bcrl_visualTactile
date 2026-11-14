@@ -328,6 +328,11 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
             if isinstance(result,_PendingCapture):
                 t=time.perf_counter();results[lane]=result.finalize()
                 profile['finish_audit_s']+=time.perf_counter()-t
+        if pool is not None:
+            profile['capture_writer']=dict(pool.statistics(),
+                stage='all_started_capture_lanes_verified_before_close',
+                queue_scope='Shared writer jobs, not trajectories or observations; excludes the currently executing job',
+                memory_scope='Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch')
         profile.update(seconds=time.perf_counter()-start,control_ticks=sum(len(r) for r in rows),cases=len(cases),
             vision_execution=controller.vision_execution_report())
         profile['aggregate_control_ticks_per_second']=profile['control_ticks']/profile['seconds']

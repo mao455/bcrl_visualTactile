@@ -1,5 +1,6 @@
 """An incomplete or failed finite stage cannot silently advance the research cycle."""
 import json
+import os
 import time
 from types import SimpleNamespace
 import pytest
@@ -21,7 +22,7 @@ def test_failed_stage_retains_evidence_and_never_advances(tmp_path,monkeypatch,f
             output.mkdir()
             (output/'prepared.json').write_text(json.dumps({'complete':fault!='incomplete'}))
         code=1 if fault=='exit' else 0
-        return SimpleNamespace(returncode=code,poll=lambda:code)
+        return SimpleNamespace(pid=os.getpid(),returncode=code,poll=lambda:code)
     monkeypatch.setattr(cycle.subprocess,'Popen',execute)
     if fault=='deadline':monkeypatch.setattr(cycle,'wait_owned',lambda *a,**kw:'original_session_deadline')
     with pytest.raises(RuntimeError):cycle.run(root,collection,output,10,5,4,123)

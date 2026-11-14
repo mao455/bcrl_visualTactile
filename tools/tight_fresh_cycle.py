@@ -89,6 +89,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if type(evaluation_lanes) is not int or evaluation_lanes<1:
         raise ValueError('Positive evaluation concurrency required')
     if type(vision_microbatch) is not int or vision_microbatch<1:raise ValueError('Positive vision microbatch required')
+    if evaluation_lanes==1 and vision_microbatch!=2:
+        raise ValueError('Serial evaluation retains vision microbatch2; choose batch evaluation to apply another size')
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')

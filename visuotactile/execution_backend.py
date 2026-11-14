@@ -10,8 +10,12 @@ import re
 
 
 VERSION = 'tight_execution_backend_v1'
+DESCRIPTOR_VERSION = 'tight_execution_backend_v2'
 DEFAULT = dict(version=VERSION, physics_device='cpu', camera_backend='standard',
                kit_tasking_threads=2, physics_threads=2)
+DESCRIPTOR_DEFAULTS = dict(renderer_descriptor_sets=360000, renderer_reserved_descriptors=900000)
+DESCRIPTOR_SETTINGS = dict(renderer_descriptor_sets='/rtx/descriptorSets',
+                           renderer_reserved_descriptors='/rtx/reservedDescriptors')
 
 
 def execution_backend(value=None, *, available_cpus=None):
@@ -19,12 +23,20 @@ def execution_backend(value=None, *, available_cpus=None):
     if value is not None and not isinstance(value, dict):
         raise ValueError('execution_backend must be a registered object')
     value = {} if value is None else dict(value)
-    unknown = set(value)-set(DEFAULT)
+    version = value.get('version', VERSION)
+    if version not in (VERSION, DESCRIPTOR_VERSION):
+        raise ValueError('Unknown execution backend version')
+    defaults = dict(DEFAULT)
+    if version == DESCRIPTOR_VERSION:
+        defaults.update(DESCRIPTOR_DEFAULTS)
+    unknown = set(value)-set(defaults)
     if unknown:
         raise ValueError('Unknown execution_backend fields: '+str(sorted(unknown)))
-    result = dict(DEFAULT, **value)
-    if result['version'] != VERSION:
-        raise ValueError('Unknown execution backend version')
+    result = dict(defaults, **value)
+    if version == DESCRIPTOR_VERSION:
+        for field in DESCRIPTOR_DEFAULTS:
+            if type(result[field]) is not int or not 1 <= result[field] <= 2147483647:
+                raise ValueError(field+' must be a positive signed 32-bit integer')
     device = result['physics_device']
     if not isinstance(device, str) or not re.fullmatch(r'cpu|cuda:(0|[1-9][0-9]*)', device):
         raise ValueError('physics_device must be cpu or an explicit cuda:N device')
@@ -38,6 +50,24 @@ def execution_backend(value=None, *, available_cpus=None):
         if type(count) is not int or not 1 <= count <= available_cpus:
             raise ValueError(f'{field} must be an integer between 1 and available CPUs ({available_cpus})')
     return result
+
+
+def renderer_resource_readback(value, getter):
+    """Read capacity only for v2; no extra setting access on the v1 path."""
+    config = execution_backend(value)
+    if config['version'] != DESCRIPTOR_VERSION:
+        return None
+    requested = {path:config[field] for field,path in DESCRIPTOR_SETTINGS.items()}
+    observed = {path:getter(path) for path in requested}
+    return dict(requested=requested, observed=observed,
+        matched=all(type(observed[path]) is int and observed[path] == number for path,number in requested.items()),
+        view_tile_limit_observed=getter('/rtx/viewTile/limit'),
+        scope='Process-local renderer capacity; no image quality, camera calibration or physics change')
+
+
+def require_renderer_resources(receipt):
+    if receipt is not None and receipt['matched'] is not True:
+        raise RuntimeError('Renderer resource settings differ from the registered request: '+str(receipt))
 
 
 def backend_receipt(value, *, num_envs):
@@ -66,6 +96,8 @@ def startup_arguments(value, *, num_envs=None):
         # Replicator otherwise enforces an installation-specific tile ceiling.
         # Resource admission remains the runner's responsibility, not a lane cap.
         args += f' --/rtx/viewTile/limit={num_envs}'
+    if config['version'] == DESCRIPTOR_VERSION:
+        args += ''.join(f' --{path}={config[field]}' for field,path in DESCRIPTOR_SETTINGS.items())
     return args
 
 

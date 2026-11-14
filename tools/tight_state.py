@@ -124,7 +124,8 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
     if execution_backend is not None and registered_backend is not None and execution_backend != registered_backend:
         raise ValueError('Requested backend differs from registered session backend')
     selected_backend = registered_backend if execution_backend is None else execution_backend
-    from visuotactile.execution_backend import execution_backend as resolve_backend, backend_receipt
+    from visuotactile.execution_backend import (execution_backend as resolve_backend, backend_receipt,
+        renderer_resource_readback, require_renderer_resources)
     backend = resolve_backend(selected_backend)
     if selected_backend is not None:
         write(root/'execution_backend_requested.json', backend_receipt(backend, num_envs=num_envs))
@@ -144,19 +145,26 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
         settings = carb.settings.get_settings()
         observed = dict(kit_tasking_threads=settings.get('/plugins/carb.tasking.plugin/threadCount'),
             physics_threads=settings.get('/persistent/physics/numThreads'))
+        renderer_readback = renderer_resource_readback(backend,settings.get)
+        renderer_receipt = {} if renderer_readback is None else dict(renderer_resources=renderer_readback)
         write(root/'kit_started.json', dict(requested=scheduling, observed_settings=observed,
-            note='Kit configuration readback, not a count of active OS threads or completed physics initialization', utc=time.time()))
+            note='Kit configuration readback, not a count of active OS threads or completed physics initialization', utc=time.time(),
+            **renderer_receipt))
         if observed != dict(kit_tasking_threads=scheduling['kit_tasking_threads'], physics_threads=scheduling['physics_threads']):
             raise RuntimeError('Kit scheduler/physics thread settings differ from the registered request')
+        require_renderer_resources(renderer_readback)
     import isaacsimenvs
     env=make_env(True,lease,num_envs=num_envs,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
         camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation),
         execution_backend=selected_backend)
     if selected_backend is not None:
+        renderer_readback = renderer_resource_readback(backend,settings.get)
+        renderer_receipt = {} if renderer_readback is None else dict(renderer_resources=renderer_readback)
         write(root/'execution_backend_observed.json', dict(requested=backend_receipt(backend, num_envs=num_envs),
             physics_device=str(env.device), camera_backend=env.cfg.student_obs.camera_backend,
             physics_dt=float(env.physics_dt), control_dt=float(env.step_dt), num_envs=env.num_envs,
-            note='Constructed configuration, not live task acceptance', utc=time.time()))
+            note='Constructed configuration, not live task acceptance', utc=time.time(),**renderer_receipt))
+        require_renderer_resources(renderer_readback)
     if sha(s['expert_checkpoint'])!=s['expert_sha256']:raise RuntimeError('Expert source drift')
     with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
     return app,env,player,lease

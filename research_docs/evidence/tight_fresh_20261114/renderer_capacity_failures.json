@@ -1,0 +1,98 @@
+{
+  "attempts": [
+    {
+      "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_t16_n8_01",
+      "source_commit": "ff555cec5d3edd565a3cd7d24299a982611afefd",
+      "backend": {
+        "configuration": {
+          "version": "tight_execution_backend_v1",
+          "physics_device": "cpu",
+          "camera_backend": "tiled",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2
+        },
+        "configuration_sha256": "fc15571a90f2706b78343da58b36d0e8f109d1bed95f9839777be382275cb8a3",
+        "num_envs": 8,
+        "camera_calibration": "same_camera_1x1_render_product_camera_params_v1",
+        "rng_contract": "registered_device_batch_stream_v2",
+        "live_accepted": false,
+        "limitation": "Execution candidate only; requires measured contact/control/sensor/task acceptance. Native random draws are batch-owned, not independent lane streams or backend-exact replay."
+      },
+      "owner": {
+        "software_complete": false,
+        "stop_reason": null,
+        "error": null,
+        "returncode": -9,
+        "seconds": 197.07428908348083,
+        "ended": 1794658999.4723797,
+        "startup_complete": true,
+        "partial_roles": [],
+        "result_sha256": null
+      },
+      "operator_stop": {
+        "utc": 1794658988.315243,
+        "worker_pid": 3796349,
+        "proc_start_ticks": "171857750",
+        "reason": "Renderer descriptor allocation/RenderGraph failures followed by no first control progress; stop failed engineering candidate and preserve evidence",
+        "startup_complete": true,
+        "control_progress": false,
+        "command": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable02_20261114/.venv_isaacsim/bin/python",
+          "-m",
+          "tools.tight_fresh_batch_eval",
+          "run",
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_t16_n8_01",
+          ""
+        ]
+      },
+      "worker_log_sha256": "4265ed906aa24d98a4c21544f835e2ba2cb31626c2f39877997bfd179e68c18e",
+      "control_steps": 0,
+      "autonomous_task_failure": false
+    },
+    {
+      "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_standard_t16_n16_m8_01",
+      "source_commit": "ff555cec5d3edd565a3cd7d24299a982611afefd",
+      "backend": {
+        "configuration": {
+          "version": "tight_execution_backend_v1",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2
+        },
+        "configuration_sha256": "e8fb721c4beb1b4a6e5f10f95a468ff18ccd962f80550108eb702569737bf87f",
+        "num_envs": 16,
+        "camera_calibration": "same_rgbd_render_product_camera_params_v1",
+        "rng_contract": "registered_device_batch_stream_v2",
+        "live_accepted": false,
+        "limitation": "Execution candidate only; requires measured contact/control/sensor/task acceptance. Native random draws are batch-owned, not independent lane streams or backend-exact replay."
+      },
+      "owner": {
+        "software_complete": false,
+        "stop_reason": null,
+        "error": null,
+        "returncode": -9,
+        "seconds": 253.10256624221802,
+        "ended": 1794659406.8612509,
+        "startup_complete": false,
+        "partial_roles": [],
+        "result_sha256": null
+      },
+      "operator_stop": {
+        "reason": "Persistent renderer descriptor allocation errors, before any control; preserve failure and inspect explicit descriptor-capacity candidate",
+        "pid": 3800213,
+        "proc_start_ticks": "171892886",
+        "command": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable02_20261114/.venv_isaacsim/bin/python -m tools.tight_fresh_batch_eval run --root /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05 --output /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_standard_t16_n16_m8_01 ",
+        "utc": 1794659390.0650723,
+        "actions_completed": 0
+      },
+      "worker_log_sha256": "c432d0ac30611703278b3ab846f1e56108177faf1edb862b47c224bdf67d28e3",
+      "control_steps": 0,
+      "autonomous_task_failure": false
+    }
+  ],
+  "diagnosis": "Descriptor allocation errors observed. Renderer capacity hypothesis requires explicit candidate test; VRAM exhaustion not established."
+}

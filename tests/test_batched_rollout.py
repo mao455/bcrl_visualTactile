@@ -177,6 +177,13 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
     assert wait_steps==[8,8] and [b.tick for b in created[0].bridges]==[3,8,0]
     assert profile['control_ticks']==11
     assert profile['vision_execution']['consumed_observations_per_lane']==[3,8,0]
+    writer=profile['capture_writer']
+    assert writer['stage']=='all_started_capture_lanes_verified_before_close'
+    assert writer['max_pending_bytes']==32<<20
+    assert writer['reserved_bytes']==0
+    assert 0<writer['peak_reserved_bytes']<=writer['max_pending_bytes']
+    assert 1<=writer['peak_queued_or_copying']<=writer['max_queue']
+    assert writer['worker_alive'] and not writer['failed']
     for lane,count in enumerate((3,8)):
         result=finished[lane][1];directory=tmp_path/f'case_{lane}'
         assert result['dagger']['expert_valid_ticks']==(0 if lane==0 else 3)
