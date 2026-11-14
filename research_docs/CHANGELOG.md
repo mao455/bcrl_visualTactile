@@ -1,3 +1,8 @@
+## 2026-11-15 00:38 — 完整采集、训练、缓存、自主吞吐核算
+
+- `tools/tight_fresh_cycle_throughput.py` / `tests/test_cycle_throughput.py`：CPU JSON/文件stat报告，严格完成、输入绑定和累计计数，实际并行区间并集、读盘未知值和数据量差异；未完成或失败不能宣称完整周期。
+- 主Agent定向29项测试通过；真实第八轮76.15分钟训练缓存评估、19条采集45.07条/小时与阶段工作量写入 `cycle_throughput_review/round08.json`。未增加GPU工作、未修改当前冻结87577e8作业。
+
 ## 2026-11-15 00:24 — 采集阶段汇总与B前端组件诊断
 
 - `tools/tight_collection_summary.py` / `tests/test_tight_collection_summary.py`：JSON-only partial和完整审核分开，严格accepted manifest/policy/source绑定，held重查/实际专家阶段分母；15项CPU通过，首波真实小证据发布。

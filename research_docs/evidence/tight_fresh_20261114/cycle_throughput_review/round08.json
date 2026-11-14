@@ -1,0 +1,535 @@
+{
+  "version": "fresh_cycle_throughput_public_v1",
+  "complete": true,
+  "round": 8,
+  "provenance": {
+    "private_report": "outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/cycle_throughput_round08_02/report.json",
+    "private_report_sha256": "db8e78d419e0471bd3b889730427f59229b2a6581c82661f12409e9dac4fcbdf",
+    "report_created_utc": 1794673982.241427,
+    "generator_path": "tools/tight_fresh_cycle_throughput.py",
+    "generator_sha256": "d09c9a4379270b80654297b4446991052e1ca6d7e67de14a4c60a81012561e8d",
+    "frozen_cycle_commit": "82d505241d2910b96c9b7f562dfe41bd2e111dad",
+    "json_input_bindings_count": 35,
+    "validation": "29 focused CPU tests passed; metadata/stat only, no new GPU or Kit execution"
+  },
+  "population": {
+    "before": {
+      "train": {
+        "trajectories": 99,
+        "families": 30,
+        "full_history_ticks": 38246
+      },
+      "validation": {
+        "trajectories": 6,
+        "families": 6,
+        "full_history_ticks": 2062
+      },
+      "test": {
+        "trajectories": 0,
+        "families": 0,
+        "full_history_ticks": 0
+      }
+    },
+    "after": {
+      "train": {
+        "trajectories": 118,
+        "families": 42,
+        "full_history_ticks": 45952
+      },
+      "validation": {
+        "trajectories": 6,
+        "families": 6,
+        "full_history_ticks": 2062
+      },
+      "test": {
+        "trajectories": 0,
+        "families": 0,
+        "full_history_ticks": 0
+      }
+    },
+    "added_training_trajectories": 19,
+    "added_training_families": 12,
+    "validation_unchanged": true
+  },
+  "timeline": {
+    "stages": [
+      {
+        "stage": "aggregate",
+        "seconds": 10.503879308700562
+      },
+      {
+        "stage": "visual_cache",
+        "seconds": 214.57543921470642
+      },
+      {
+        "stage": "frontend_B",
+        "seconds": 1166.3658401966095
+      },
+      {
+        "stage": "frontend_A",
+        "seconds": 1274.4074034690857
+      },
+      {
+        "stage": "backend_prepare_A",
+        "seconds": 4.002166032791138
+      },
+      {
+        "stage": "backend_cache_A",
+        "seconds": 543.2052516937256
+      },
+      {
+        "stage": "backend_train_A",
+        "seconds": 714.2278029918671
+      },
+      {
+        "stage": "backend_offline_A",
+        "seconds": 36.01408886909485
+      },
+      {
+        "stage": "backend_prepare_B",
+        "seconds": 3.502908706665039
+      },
+      {
+        "stage": "backend_cache_B",
+        "seconds": 611.6963713169098
+      },
+      {
+        "stage": "backend_train_B",
+        "seconds": 648.7003681659698
+      },
+      {
+        "stage": "backend_offline_B",
+        "seconds": 8.004586935043335
+      },
+      {
+        "stage": "development_prepare",
+        "seconds": 2.5025086402893066
+      },
+      {
+        "stage": "development",
+        "seconds": 496.15839433670044
+      }
+    ],
+    "stage_worker_seconds": 5733.867009878159,
+    "stage_interval_union_seconds": 4567.503023386002,
+    "overlapping_worker_seconds": 1166.363986492157,
+    "frontends": {
+      "stage_worker_seconds": 2440.773243665695,
+      "stage_interval_union_seconds": 1274.4092571735382,
+      "overlapping_worker_seconds": 1166.363986492157
+    },
+    "backend_cache": {
+      "stage_worker_seconds": 1154.9016230106354,
+      "stage_interval_union_seconds": 1154.9016230106354,
+      "overlapping_worker_seconds": 0.0
+    },
+    "backend_training": {
+      "stage_worker_seconds": 1362.928171157837,
+      "stage_interval_union_seconds": 1362.928171157837,
+      "overlapping_worker_seconds": 0.0
+    },
+    "cycle_start_utc": 1794667106.8949113,
+    "cycle_end_utc": 1794671675.611789,
+    "cycle_wall_seconds": 4568.716877698898,
+    "cycle_definition": "aggregate owner start through development stage owner exit; concurrent workers counted once",
+    "cycle_unclassified_or_other_work_seconds": 1.2138543128967285,
+    "collection_to_evaluation_envelope_seconds": 7159.740758657455,
+    "observed_collection_and_cycle_interval_union_seconds": 6085.021277427673,
+    "envelope_unclassified_or_other_work_seconds": 1074.719481229782,
+    "end_of_collection_to_aggregate_seconds": 1073.5056269168854,
+    "cycle_ledger_finalization_seconds": 0.0005993843078613281
+  },
+  "collection": {
+    "registered_attempts": 32,
+    "registered_families": 16,
+    "counts": {
+      "attempts": 32,
+      "legal_attempts": 29,
+      "accepted_trajectories": 19,
+      "all_control_ticks": 13716,
+      "all_valid_expert_ticks": 5795,
+      "accepted_valid_expert_ticks": 5795,
+      "student_autonomous_successes": 0,
+      "actual_takeovers": 19,
+      "accepted_families": 12,
+      "attempted_families": 16
+    },
+    "owner_seconds": 1517.5182535648346,
+    "worker_elapsed_seconds": 1512.9282874499913,
+    "throughput": {
+      "attempts_per_hour": 75.91341964380409,
+      "accepted_trajectories_per_hour": 45.07359291350868,
+      "accepted_valid_expert_ticks_per_second": 3.818734955172263,
+      "aggregate_control_ticks_per_second": 9.038441526340426
+    },
+    "denominator": "collection owner start through completion, including startup and output validation"
+  },
+  "frontend_aggregate": {
+    "counters": {
+      "optimizer_updates": 2740,
+      "anchors": 66680,
+      "legal_horizon_target_slots": 1528020,
+      "full_history_frame_visits": 1073160,
+      "episode_visits": 2740
+    },
+    "stage_interval_union_seconds": 1274.4092571735382,
+    "rates_per_stage_union_second": {
+      "optimizer_updates": 2.1500157697197975,
+      "anchors": 52.32228157843653,
+      "legal_horizon_target_slots": 1199.0025899442498,
+      "full_history_frame_visits": 842.0842786249992,
+      "episode_visits": 2.1500157697197975
+    },
+    "training_epoch_process_read_bytes": 1255735787520,
+    "observed_training_epoch_process_read_bytes": 1255735787520,
+    "training_epoch_interval_union_seconds": 938.1581797599792,
+    "rates_per_training_epoch_union_second": {
+      "optimizer_updates": 2.9206162234827056,
+      "anchors": 71.0754342269441,
+      "legal_horizon_target_slots": 1628.7445262065855,
+      "full_history_frame_visits": 1143.9009147418615,
+      "episode_visits": 2.9206162234827056
+    }
+  },
+  "backend_aggregate": {
+    "cache": {
+      "counters": {
+        "episodes": 248,
+        "native_history_ticks": 96028,
+        "plans": 8106
+      },
+      "stage_interval_union_seconds": 1154.9016230106354,
+      "rates_per_stage_union_second": {
+        "episodes": 0.2147369049092731,
+        "native_history_ticks": 83.14820767995032,
+        "plans": 7.01877964191358
+      }
+    },
+    "training": {
+      "counters": {
+        "new_optimizer_updates": 6778,
+        "supervised_ticks": 987600,
+        "control_ticks": 1378560
+      },
+      "stage_interval_union_seconds": 1362.928171157837,
+      "rates_per_stage_union_second": {
+        "new_optimizer_updates": 4.973116077160503,
+        "supervised_ticks": 724.616323075201,
+        "control_ticks": 1011.4692976291506
+      }
+    }
+  },
+  "backends": {
+    "A": {
+      "cache": {
+        "complete": true,
+        "counters": {
+          "episodes": 124,
+          "native_history_ticks": 48014,
+          "plans": 4053
+        },
+        "wall_seconds": 541.1203010082245,
+        "rates_per_worker_wall_second": {
+          "episodes": 0.22915421906914435,
+          "native_history_ticks": 88.73073124504755,
+          "plans": 7.490016531348726
+        },
+        "planning_profile": null,
+        "scope": "Train plus validation dependency cache; no parameter updates."
+      },
+      "training": {
+        "complete": true,
+        "counters": {
+          "new_optimizer_updates": 3389,
+          "supervised_ticks": 493800,
+          "control_ticks": 689280,
+          "control_tick_population": 45952,
+          "supervised_tick_population": 32920,
+          "train_episode_count": 118
+        },
+        "wall_seconds": 711.332953453064,
+        "training_wall_seconds": 680.9624016284943,
+        "setup_seconds": 0.8103539943695068,
+        "control_tick_epochs": 15.0,
+        "legal_expert_ticks_per_worker_wall_second": 694.1896865636811,
+        "legal_expert_ticks_per_training_wall_second": 725.1501680843129,
+        "scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup"
+      }
+    },
+    "B": {
+      "cache": {
+        "complete": true,
+        "counters": {
+          "episodes": 124,
+          "native_history_ticks": 48014,
+          "plans": 4053
+        },
+        "wall_seconds": 609.4377884864807,
+        "rates_per_worker_wall_second": {
+          "episodes": 0.20346621483375693,
+          "native_history_ticks": 78.78408741151617,
+          "plans": 6.65039168323562
+        },
+        "planning_profile": null,
+        "scope": "Train plus validation dependency cache; no parameter updates."
+      },
+      "training": {
+        "complete": true,
+        "counters": {
+          "new_optimizer_updates": 3389,
+          "supervised_ticks": 493800,
+          "control_ticks": 689280,
+          "control_tick_population": 45952,
+          "supervised_tick_population": 32920,
+          "train_episode_count": 118
+        },
+        "wall_seconds": 645.7293219566345,
+        "training_wall_seconds": 619.4846761226654,
+        "setup_seconds": 0.7839922904968262,
+        "control_tick_epochs": 15.0,
+        "legal_expert_ticks_per_worker_wall_second": 764.716705915923,
+        "legal_expert_ticks_per_training_wall_second": 797.1141483122364,
+        "scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup"
+      }
+    }
+  },
+  "development": {
+    "complete": true,
+    "per_role": {
+      "A": {
+        "attempts": 8,
+        "legal_attempts": 7,
+        "successes": 0,
+        "aggregate_control_ticks": 4207
+      },
+      "B": {
+        "attempts": 8,
+        "legal_attempts": 8,
+        "successes": 0,
+        "aggregate_control_ticks": 4516
+      }
+    },
+    "aggregate_control_ticks": 8723,
+    "families": 8,
+    "worker_elapsed_seconds": 492.74134908709675,
+    "aggregate_control_ticks_per_worker_second": 17.70299979119091,
+    "legal_evaluations_per_hour": 109.59096511799943,
+    "scope": "Complete repeated development cohort, not new test generalization; invalid starts are separate from legal failures.",
+    "waves": [
+      {
+        "role": "A",
+        "wave": 0,
+        "seconds": 220.13607747014612,
+        "control_ticks": 4207,
+        "controller_s": 48.82877657818608,
+        "environment_s": 158.72075235145167
+      },
+      {
+        "role": "B",
+        "wave": 1,
+        "seconds": 228.32827853085473,
+        "control_ticks": 4516,
+        "controller_s": 50.43706349772401,
+        "environment_s": 164.55204496043734
+      }
+    ]
+  },
+  "limitations": [
+    "Multiple implementation settings, data volume, learning difficulty and cache temperature can differ; rates are descriptive, not causal speedup evidence.",
+    "Process read_bytes is per-process kernel accounting; shared I/O attribution cannot be equated with independent physical disk traffic.",
+    "An anchor, overlapping legal horizon target slot, full-history observation and legal rear action tick are distinct units.",
+    "The collection-to-evaluation envelope may include other registered autonomous/gate work and human review; unclassified gaps are not scheduling losses.",
+    "JSON receipt and source bindings are verified here; model, DINO, image and trajectory payloads are not read."
+  ],
+  "configuration": {
+    "source_commit": "82d505241d2910b96c9b7f562dfe41bd2e111dad",
+    "parallel_frontends": true,
+    "parallel_backends": false,
+    "paired_episode_io": false,
+    "payload_audit_memo": false,
+    "frontend_offline_planning": null,
+    "backend_offline_planning": null,
+    "frontend_epochs": 10,
+    "backend_epochs": 15,
+    "frontend_latest_repeat": 2,
+    "backend_latest_repeat": 1,
+    "episode_io": {
+      "version": "frozen_episode_prefetch_v1",
+      "max_bytes": 1073741824,
+      "minimum_available_bytes": 10737418240
+    },
+    "evaluation_lanes": 8,
+    "vision_microbatch": 8,
+    "execution_backend": {
+      "version": "tight_execution_backend_v2",
+      "physics_device": "cpu",
+      "camera_backend": "standard",
+      "kit_tasking_threads": 16,
+      "physics_threads": 2,
+      "renderer_descriptor_sets": 360000,
+      "renderer_reserved_descriptors": 900000
+    },
+    "frozen_visual_reuse": {
+      "enabled": true,
+      "source": "session05/pool07_untrained/A/cache_index.json",
+      "sha256": "d1fb7fcdbaa594fbe37eeaa4596d46fafe7ab0632b745a34ba156733e8f216f2"
+    }
+  },
+  "frozen_visual_storage": {
+    "per_role": {
+      "A": {
+        "episodes": 124,
+        "frames": 48014,
+        "logical_bytes": 64053098002
+      },
+      "B": {
+        "episodes": 124,
+        "frames": 48014,
+        "logical_bytes": 64053098002
+      }
+    },
+    "combined_logical_bytes": 128106196004,
+    "unique_file_bytes": 64053098002,
+    "unique_files": 124,
+    "measurement": "Small JSON indexes and filesystem stat only; no payload reread or content revalidation.",
+    "cache_temperature": "Unknown. Existing cache files and prior execution do not measure resident OS page-cache warmth."
+  },
+  "frontends": {
+    "A": {
+      "epochs": 10,
+      "counters": {
+        "optimizer_updates": 1370,
+        "anchors": 33340,
+        "legal_horizon_target_slots": 764010,
+        "full_history_frame_visits": 536580,
+        "episode_visits": 1370
+      },
+      "wall_seconds": 1251.4782589878887,
+      "rates_per_worker_wall_second": {
+        "optimizer_updates": 1.0947053935303388,
+        "anchors": 26.640494759344158,
+        "legal_horizon_target_slots": 610.4860348256308,
+        "full_history_frame_visits": 428.7569489492768,
+        "episode_visits": 1.0947053935303388
+      },
+      "training_epoch_seconds": 770.2198925423436,
+      "other_frontend_seconds": 481.2583664455451,
+      "other_frontend_scope": "Initial/validation/final-correction metrics, checkpointing, setup and waits; not pure DDIM.",
+      "process_io_totals": {
+        "minor_faults": 182073091,
+        "major_faults": 50858,
+        "read_bytes": 629079388160,
+        "rchar": 267040625,
+        "syscr": 42473
+      },
+      "process_io_epoch_coverage": {
+        "expected": 10,
+        "observed": 10,
+        "read_bytes_observed": 10
+      },
+      "prefetch_totals": {
+        "visits": 1370,
+        "peak_owned_clone_bytes": 1071236529,
+        "clone_bytes": 704361363570,
+        "consumer_wait_s": 292.3361953315325,
+        "load_s": 630.3645364171825,
+        "budget_wait_s": 191.25652808649465,
+        "mmap_fallbacks": 10
+      },
+      "prefetch_scope": "Worker/background timing attribution; overlapping load/wait/clone components are not additive.",
+      "paired_episode_io": null,
+      "offline_planning": null,
+      "metric_timing_scope": "Only explicit train/validation timings when logged; excludes initial and final-correction metrics.",
+      "dose_scope": "Completed training, not only selected checkpoint. Target slots include horizon overlap and repeat visits; not unique action ticks.",
+      "longest_training_epoch": {
+        "epoch": 6,
+        "seconds": 225.80967694404535,
+        "process_read_bytes": 60794077184,
+        "prefetch": {
+          "version": "frozen_episode_prefetch_v1",
+          "visits": 137,
+          "peak_owned_clone_bytes": 1067234400,
+          "clone_bytes": 70436136357,
+          "consumer_wait_s": 187.66199313034303,
+          "load_s": 217.65406109951437,
+          "budget_wait_s": 13.8521002701018,
+          "mmap_fallbacks": 1,
+          "scope": "Exact frozen CPU features only; no pooled representation or learned hidden state cache"
+        }
+      }
+    },
+    "B": {
+      "epochs": 10,
+      "counters": {
+        "optimizer_updates": 1370,
+        "anchors": 33340,
+        "legal_horizon_target_slots": 764010,
+        "full_history_frame_visits": 536580,
+        "episode_visits": 1370
+      },
+      "wall_seconds": 1161.1562641980127,
+      "rates_per_worker_wall_second": {
+        "optimizer_updates": 1.1798584240909482,
+        "anchors": 28.712759021308187,
+        "legal_horizon_target_slots": 657.9734559049091,
+        "full_history_frame_visits": 462.1083454005263,
+        "episode_visits": 1.1798584240909482
+      },
+      "training_epoch_seconds": 679.5292416717857,
+      "other_frontend_seconds": 481.62702252622694,
+      "other_frontend_scope": "Initial/validation/final-correction metrics, checkpointing, setup and waits; not pure DDIM.",
+      "process_io_totals": {
+        "minor_faults": 182065507,
+        "major_faults": 54122,
+        "read_bytes": 626656399360,
+        "rchar": 267043313,
+        "syscr": 42469
+      },
+      "process_io_epoch_coverage": {
+        "expected": 10,
+        "observed": 10,
+        "read_bytes_observed": 10
+      },
+      "prefetch_totals": {
+        "visits": 1370,
+        "peak_owned_clone_bytes": 1071236529,
+        "clone_bytes": 704361363570,
+        "consumer_wait_s": 294.17571457102895,
+        "load_s": 581.4498238118831,
+        "budget_wait_s": 144.80660409736447,
+        "mmap_fallbacks": 10
+      },
+      "prefetch_scope": "Worker/background timing attribution; overlapping load/wait/clone components are not additive.",
+      "paired_episode_io": null,
+      "offline_planning": null,
+      "metric_timing_scope": "Only explicit train/validation timings when logged; excludes initial and final-correction metrics.",
+      "dose_scope": "Completed training, not only selected checkpoint. Target slots include horizon overlap and repeat visits; not unique action ticks.",
+      "longest_training_epoch": {
+        "epoch": 7,
+        "seconds": 221.09011079696938,
+        "process_read_bytes": 61580615680,
+        "prefetch": {
+          "version": "frozen_episode_prefetch_v1",
+          "visits": 137,
+          "peak_owned_clone_bytes": 1069902486,
+          "clone_bytes": 70436136357,
+          "consumer_wait_s": 188.308214541059,
+          "load_s": 215.2783698628191,
+          "budget_wait_s": 12.039664648007601,
+          "mmap_fallbacks": 1,
+          "scope": "Exact frozen CPU features only; no pooled representation or learned hidden state cache"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "anchors": "Completed optimizer exposure to actual 5 Hz planning anchors, including repeated episodes.",
+    "legal_horizon_target_slots": "Legal expert action slots in H24 supervision; overlapping horizon slots and repeated visits are counted, not unique action ticks.",
+    "rear_supervised_ticks": "Legal expert action supervision consumed by the backend; history-only student prefix is excluded.",
+    "full_history_frame_visits": "Every real 60 Hz history frame re-encoded per episode visit; repeated visits count again.",
+    "elapsed": "Per-worker wall for a single stage; union of actual stage intervals for parallel aggregate rates.",
+    "gap": "Unclassified/other work may include separately registered source autonomy, engineering gates and human review. It is not measured scheduling loss.",
+    "process_io": "Kernel per-process read_bytes during the 10 training epochs only; excludes other frontend metrics windows and cannot be equated with independently attributed physical NVMe bytes.",
+    "comparison": "Round08 baseline only. Later round09 has different data volume and several simultaneous changes; do not infer one switch caused a speedup."
+  }
+}

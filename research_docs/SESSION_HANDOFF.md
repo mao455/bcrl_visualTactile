@@ -1,3 +1,9 @@
+## 2026-11-15 00:38 完整周期吞吐基线已按真实阶段核清
+
+新增CPU-only tight_fresh_cycle_throughput，逐项绑定阶段完成凭据、学习日志、采集准入与原计划；重叠worker用时间区间并集，累计anchors/target槽只读最终值，缺失I/O保持unknown、未完成cycle不生成完整耗时。29项主Agent CPU检查通过。实际第八轮aggregate→自主owner退出4568.717秒（76.15分钟），前端双组总2740更新/66680 anchors/1528020合法H24槽；前端stage并集1274.409秒、后端缓存1154.902秒、后端训练1362.928秒。第八轮完整自主8723控制步/492.741秒，15合法执行、0成功。
+
+此前32机会采集19条/12新family/5795合法专家步，1517.518秒、45.074条/小时；池99→118、30→42family，6validation不变。采集起点→自主结束7159.741秒，其中1074.719秒未归类/其他工作含来源自主、工程门控与分析，不叫调度浪费。训练epoch A/B进程read_bytes合计1.256TB，不能当作物理NVMe独立流量；固定视觉缓存124文件64.05GB共享，缓存驻留温度未知。第九轮将按相同定义统计，但数据量和多个设置同时改变，不作单因素因果提速结论。公开摘要见[evidence/tight_fresh_20261114/cycle_throughput_review/round08.json](evidence/tight_fresh_20261114/cycle_throughput_review/round08.json)，本机完整report保留源JSON SHA。
+
 ## 2026-11-15 00:24 首波真实后段纠偏与有限组件诊断实现
 
 新tight_collection_summary默认JSON-only snapshot，仅以已提交results索引的accepted_for_training计入池，capture_verified/提前entry不算；完整模式先验owner退出与全部机会，再复用原numeric/时钟/标签/触发审核。新增按schedule重叠专家动作阶段与held60/120不触发原因、接管边界，两者和原生lift/掉落分开。15项CPU测试通过；首A波6个closed held记录已1.38秒独立回放，未读活动HDF，证据见collection09_registration/first_wave.json。本批128仍运行中。
