@@ -1,3 +1,9 @@
+## 2026-11-14 有界Kit启动调度诊断准备
+
+两次contact06启动均卡在仿真初始化之前，未开始任何case；独立owner保持180秒启动界限，SIGTERM无响应再回收自有进程组。资源遥测无等待原因，native main futex等待/全进程约200%CPU；gdb取栈被系统ptrace限制拒绝。去掉本次额外PXR/OPENBLAS环境设置未解决，根因尚未确认。
+
+tools/tight_state增加显式TIGHT_KIT_TASKING_THREADS=2/4，缺省与原Kit参数字符串逐字相同；仅carb.tasking调度线程可选4，PhysX配置仍2，原任务/资产/120Hz物理/60Hz控制/5Hz规划/模型不变。请求参数与Kit实际配置readback分别写eval_startup/kit_started，后者不等于完成物理初始化。7项参数/拒绝注入测试及18项collection_owner检查通过。拟在新冻结源码/新目录、同16机会/pair/deadline下仅做一次4线程启动诊断；成功不证明饥饿是根因，也不声称隐藏轨迹精确配对。失败则保留现场做更具体调查，不遍历线程数或重置截止。
+
 ## 2026-11-14 可选接触与抬升采集触发（尚未真实执行）
 
 `contact_height_then_delay_v1`是新的采集调度合同，不替换拿稳诊断或原生成功条件：学生连续12个真实控制transition、每个transition两个物理子步均至少两指物体接触>0.1N、物体root高度均超过已完成25–48步median z至少2cm，即可在该完成计数后0/12步接管。掌中位移和转动不作为该采集条件，但触发时仍记录原拿稳窗真值，不能把旋转中的接触称为已经拿稳。仅观察已完成学生动作，标签和专家未来状态不进触发器或学生条件。

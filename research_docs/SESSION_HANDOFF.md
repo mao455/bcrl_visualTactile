@@ -1,3 +1,9 @@
+## 2026-11-14 有界Kit启动调度诊断准备
+
+两次contact06启动均卡在仿真初始化之前，未开始任何case；独立owner保持180秒启动界限，SIGTERM无响应再回收自有进程组。资源遥测无等待原因，native main futex等待/全进程约200%CPU；gdb取栈被系统ptrace限制拒绝。去掉本次额外PXR/OPENBLAS环境设置未解决，根因尚未确认。
+
+tools/tight_state增加显式TIGHT_KIT_TASKING_THREADS=2/4，缺省与原Kit参数字符串逐字相同；仅carb.tasking调度线程可选4，PhysX配置仍2，原任务/资产/120Hz物理/60Hz控制/5Hz规划/模型不变。请求参数与Kit实际配置readback分别写eval_startup/kit_started，后者不等于完成物理初始化。7项参数/拒绝注入测试及18项collection_owner检查通过。拟在新冻结源码/新目录、同16机会/pair/deadline下仅做一次4线程启动诊断；成功不证明饥饿是根因，也不声称隐藏轨迹精确配对。失败则保留现场做更具体调查，不遍历线程数或重置截止。
+
 ## 2026-11-14 账号接续：视觉辅助对照完整结案，保留第五轮模型
 
 机器实查session04已在17:58完成全部四cell训练/缓存/后端与16自主，账号中断没有中断它；没有重训或重跑。执行树fresh_visual_aux_20261114冻结6780cea，开发树continuous_vision_20261114/本地feature/tight-continuous-vision-20261114，公开目标仍origin/feature/tight-state-foundation；narrow_followup与原项目目录内交接较旧。开始时仅余monitor3670509，现已通过STOP_MONITOR正常退出，原实验现场保留。

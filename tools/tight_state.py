@@ -89,6 +89,21 @@ def capture(root,env,player,lease,spec,alpha,*,speed_scheme=None):
     return row
 
 
+def kit_startup_scheduling(environ=None):
+    """Explicit process-local scheduler choice; PhysX threads remain two."""
+    environ = os.environ if environ is None else environ
+    value = environ.get('TIGHT_KIT_TASKING_THREADS', '2')
+    if value not in ('2', '4'):
+        raise ValueError('TIGHT_KIT_TASKING_THREADS must be explicitly 2 or 4')
+    threads = int(value)
+    args = ('--/renderer/multiGpu/enabled=false '
+        f'--/plugins/carb.tasking.plugin/threadCount={threads} '
+        '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')
+    return args, dict(kit_tasking_threads=threads, physics_threads=2, requested_kit_args=args,
+        explicit_override='TIGHT_KIT_TASKING_THREADS' in environ,
+        scope='Kit task scheduler only; native control, physics settings, assets and success unchanged')
+
+
 def environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1):
     from visuotactile.native_evaluation import client_startup_controls,make_env
     from visuotactile.state_resources import lease_for
@@ -100,12 +115,20 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
     if s.get('precision_policy') == 'unified_fp32':
         from visuotactile.precision import state_fp32
         write(root/'precision.json',state_fp32())
-    write(root/('eval_startup.json' if evaluation else 'startup.json'),client_startup_controls('kit_managed'))
+    kit_args, scheduling = kit_startup_scheduling()
+    write(root/('eval_startup.json' if evaluation else 'startup.json'),
+        dict(client_startup_controls('kit_managed'), scheduling=scheduling))
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
-        app=AppLauncher(headless=True,enable_cameras=True,device='cpu',fast_shutdown=False,kit_args=(
-            '--/renderer/multiGpu/enabled=false --/plugins/carb.tasking.plugin/threadCount=2 '
-            '--/persistent/physics/numThreads=2 --/app/extensions/fsWatcherEnabled=false')).app
+        app=AppLauncher(headless=True,enable_cameras=True,device='cpu',fast_shutdown=False,kit_args=kit_args).app
+        import carb.settings
+        settings = carb.settings.get_settings()
+        observed = dict(kit_tasking_threads=settings.get('/plugins/carb.tasking.plugin/threadCount'),
+            physics_threads=settings.get('/persistent/physics/numThreads'))
+        write(root/'kit_started.json', dict(requested=scheduling, observed_settings=observed,
+            note='Kit configuration readback, not a count of active OS threads or completed physics initialization', utc=time.time()))
+        if observed != dict(kit_tasking_threads=scheduling['kit_tasking_threads'], physics_threads=2):
+            raise RuntimeError('Kit scheduler/physics thread settings differ from the registered request')
     import isaacsimenvs
     env=make_env(True,lease,num_envs=num_envs,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
         camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation))
