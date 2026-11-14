@@ -1,3 +1,7 @@
+## 2026-11-14 阶段拟合的因果保持基线
+
+train_only_selected_frontend_stage_fit_v2沿用新增train-only投影与独立source/selected完整历史前向，在实际规划anchor取robot[0:29]的q并保持commit12；B额外取robot[58:87]的动作前执行器target保持。两基线与DP严格共用同一合法label槽；不能用每个未来控制tick刷新后的观测冒充5Hz预测。source/selected的保持值和分母必须完全一致。v1旧compare仍保留身份，不补造基线结果。这些是预测误差参照，不是已经部署过的保持策略。
+
 ## 2026-11-14 显式Tiled位姿候选与失败后渲染诊断
 
 execution_backend_v3必须CUDA+tiled+tiled_fixed_camera_usd_sync=true，固定已审安装源码SHA，仅修改两个固定相机现有view实例的USD镜像布尔；腕部不改，class/module/shared安装不改。仅证明配置readback，不代表实际外参或画面正确。旧v1/v2保持。failure_render_calls默认0，只有max_control_ticks=1且失败control_tick0可启用至多4次sim.render；保留原坏包/异常，不调用step/reset/controller/camera.update，不替代正式60Hz观测。每次可观察物理、目标、队列、时钟、packet/frame与已初始化RNG变化则停止；不宣称完整隐藏PhysX相等。

@@ -108,6 +108,65 @@ def test_each_frontend_reencodes_entire_student_prefix_and_legal_history():
     assert second['holding']['arm_squared_sum']==4*first['holding']['arm_squared_sum']
 
 
+@pytest.mark.parametrize('role',['A','B'])
+def test_anchor_hold_uses_only_anchor_observation_on_identical_legal_onset_slots(role):
+    from test_identity_target_audit import record as make_record
+    from visuotactile.anchor_sampling import planning_anchors,labels
+    from visuotactile.target_windows import RECOVERY_ONSET_WINDOW
+    record=make_record();record['target_window_contract']=RECOVERY_ONSET_WINDOW
+    record['clean_sample']=record['q_reached' if role=='A' else 'u_expert']
+    # Distinguish measured q, actuator state, and future observed q by a wide margin.
+    record['robot'][:,58:87]=record['robot'][:,:29]+.2
+    stage,_=masks();matrix=np.stack([stage[key] for key in (*fit.STAGES,'legal_expert')])
+    anchors=planning_anchors(record);truth,valid=labels(record,anchors,24)
+    assert anchors.tolist()==[36,48,60,72]
+    names=fit.baseline_names(role)
+    held=fit.anchor_hold_totals(record,anchors,truth,valid,matrix,names)
+    for name in names:
+        start,stop=fit.BASELINE_COLUMNS[name]
+        expected=[]
+        for tick in range(42,80):
+            anchor=tick//12*12
+            expected.append(record['robot'][anchor,start:stop]-record['clean_sample'][tick])
+        expected=torch.stack(expected).numpy()
+        reference=fit.error_totals(expected,np.arange(42,80),matrix)
+        assert held[name]==reference
+        assert held[name]['legal_expert']['evaluated_commit_slots']==38
+    # Copying each target-tick observation would leak later observations into the
+    # earlier commitment and gives a different (artificially easier) score.
+    refreshed=(record['robot'][42:,:29]-record['clean_sample'][42:]).numpy()
+    assert held['hold_anchor_q']!=fit.error_totals(refreshed,np.arange(42,80),matrix)
+    changed=copy.deepcopy(record)
+    nonanchor=torch.ones(80,dtype=torch.bool);nonanchor[anchors]=False
+    changed['robot'][nonanchor]=9999
+    assert fit.anchor_hold_totals(changed,anchors,truth,valid,matrix,names)==held
+    # An all-masked stage is unknown, not a manufactured zero-error success.
+    assert fit.finalized(held['hold_anchor_q'])['after_first_native_subgoal']['arm_rmse_rad'] is None
+
+
+def test_optional_baselines_share_exact_frontend_labels_without_extra_model_forward():
+    from test_identity_target_audit import record as make_record
+    from visuotactile.anchor_sampling import planning_anchors,labels
+    from visuotactile.target_windows import RECOVERY_ONSET_WINDOW
+    record=make_record();record.update(target_window_contract=RECOVERY_ONSET_WINDOW,clean_sample=record['u_expert'])
+    record['robot'][:,58:87]=record['robot'][:,:29]+.2
+    stage,_=masks();matrix=np.stack([stage[key] for key in (*fit.STAGES,'legal_expert')]);calls=[]
+    def encode(model,actual):
+        assert actual is record and len(actual['time'])==80
+        calls.append(('encode_full_history',model.scale))
+        anchors=planning_anchors(actual)
+        return torch.full((len(anchors),1),model.scale),anchors
+    def predict(model,conditions,anchors):
+        calls.append(('predict',model.scale));return conditions[:,:,None].expand(-1,24,29)
+    trainer=SimpleNamespace(supervised_conditions=encode,predict_on_native_clock=predict,
+        bounded_targets=lambda p,limits:p,labels=labels)
+    first,held1=fit.frontend_episode(trainer,SimpleNamespace(scale=1.),record,matrix,baselines=fit.baseline_names('B'))
+    second,held2=fit.frontend_episode(trainer,SimpleNamespace(scale=2.),record,matrix,baselines=fit.baseline_names('B'))
+    assert calls==[('encode_full_history',1.),('predict',1.),('encode_full_history',2.),('predict',2.)]
+    assert held1==held2 and first!=second
+    assert first['legal_expert']['evaluated_commit_slots']==held1['hold_anchor_q']['legal_expert']['evaluated_commit_slots']==38
+
+
 def test_complete_cpu_admission_binds_real_stage_masks_selected_exposure_and_train_projection(artifacts,tmp_path):
     import h5py
     root,frozen,selected=artifacts;role=root/'B';collection=tmp_path/'collection'
@@ -151,11 +210,12 @@ def test_complete_cpu_admission_binds_real_stage_masks_selected_exposure_and_tra
     assert exposure['actual_training_anchor_target_slots_by_stage'] is None
     assert exposure['selected_legal_action_visible_count']['holding']==6*21
     assert proof['train_projection']['identities']==['new1']
+    assert proof['version']==fit.VERSION and proof['baseline_names']==['hold_anchor_q','hold_anchor_actuator_target']
 
 
 def test_compare_requires_identical_stage_population_and_bound_checkpoints(tmp_path):
     registration=tmp_path/'registration.json'
-    plan=dict(source=dict(sha256='old',epoch=5),selected=dict(sha256='new',epoch=3),
+    plan=dict(version=fit.LEGACY_VERSION,source=dict(sha256='old',epoch=5),selected=dict(sha256='new',epoch=3),
         episodes={},scope='frontend only')
     write(registration,plan)
     for arm in ('source','selected'):
@@ -164,8 +224,32 @@ def test_compare_requires_identical_stage_population_and_bound_checkpoints(tmp_p
                 arm_rmse_rad=.2 if arm=='source' else .1,hand_rmse_rad=.4 if arm=='source' else .3)
                 for key in (*fit.STAGES,'legal_expert')}))
     result=fit.compare(registration)
+    assert result['version']==fit.LEGACY_VERSION and 'baselines' not in result['stages']['holding']
     assert result['selected_epoch']==3 and not result['rear_evaluated']
     assert result['stages']['holding']['delta_rad']['arm_rmse_rad']==-.1
     wrong=fit.read(tmp_path/'selected/result.json');wrong['stages']['holding']['evaluated_commit_slots']=1
     write(tmp_path/'selected/result.json',wrong)
     with pytest.raises(ValueError,match='populations differ'):fit.compare(registration)
+
+
+def test_v2_comparison_binds_hold_values_and_population_across_model_arms(tmp_path):
+    registration=tmp_path/'registration.json'
+    plan=dict(version=fit.VERSION,role='B',baseline_names=fit.baseline_names('B'),
+        source=dict(sha256='old',epoch=5),selected=dict(sha256='new',epoch=3),episodes={},scope='frontend only')
+    write(registration,plan)
+    stages={key:dict(evaluated_commit_slots=2,arm_rmse_rad=.2,hand_rmse_rad=.4)
+        for key in (*fit.STAGES,'legal_expert')}
+    baselines={name:dict(stages=copy.deepcopy(stages)) for name in plan['baseline_names']}
+    for arm in ('source','selected'):
+        actual=copy.deepcopy(stages)
+        if arm=='selected':actual['holding']['hand_rmse_rad']=.3
+        write(tmp_path/arm/'result.json',dict(complete=True,registration_sha256=fit.sha256(registration),
+            checkpoint_sha256=plan[arm]['sha256'],stages=actual,baselines=baselines))
+    result=fit.compare(registration)
+    assert result['stages']['holding']['model_minus_hold_rmse_rad']['hold_anchor_q']['selected']['hand_rmse_rad']==pytest.approx(-.1)
+    wrong=fit.read(tmp_path/'selected/result.json')
+    wrong['baselines']['hold_anchor_q']['stages']['holding']['arm_rmse_rad']=.19
+    write(tmp_path/'selected/result.json',wrong)
+    with pytest.raises(ValueError,match='Causal hold inputs/target populations'):fit.compare(registration)
+    wrong['baselines']={};write(tmp_path/'selected/result.json',wrong)
+    with pytest.raises(ValueError,match='baseline result missing'):fit.compare(registration)

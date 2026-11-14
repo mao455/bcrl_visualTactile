@@ -1,0 +1,200 @@
+{
+  "version": "train_only_q_next_identity_summary_v1",
+  "full_report": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/q_next_identity02.json",
+  "full_report_sha256": "18717dab2f4dd7459364b7a9a0e2bd38a2f82d21b670dac26a9e186505136e76",
+  "dataset": {
+    "train_episodes": 99,
+    "original_demonstrations": 30,
+    "train_families": 30,
+    "phase_episodes": 15
+  },
+  "pool_legal_expert_ticks": 27125,
+  "units": "radian; actual control interval1/60s; no pressure interpretation",
+  "one_step_rmse_rad": {
+    "arm": {
+      "A_q_next_minus_q_before": 0.001197169612601914,
+      "B_u_minus_q_before": 0.006825884242016123,
+      "u_minus_q_next": 0.006146725249154005
+    },
+    "hand": {
+      "A_q_next_minus_q_before": 0.017546007749450823,
+      "B_u_minus_q_before": 0.10001305026241901,
+      "u_minus_q_next": 0.09130390774484586
+    }
+  },
+  "anchor_hold_q_forecast_rmse_rad": {
+    "1": {
+      "legal_target_slots": 2266,
+      "arm": {
+        "A_q_target_minus_anchor_q": 0.001184522488429282,
+        "B_u_target_minus_anchor_q": 0.0068010142352647055
+      },
+      "hand": {
+        "A_q_target_minus_anchor_q": 0.01746435991149667,
+        "B_u_target_minus_anchor_q": 0.0996661312181733
+      }
+    },
+    "6": {
+      "legal_target_slots": 2261,
+      "arm": {
+        "A_q_target_minus_anchor_q": 0.006737768638170582,
+        "B_u_target_minus_anchor_q": 0.010846816801282567
+      },
+      "hand": {
+        "A_q_target_minus_anchor_q": 0.09740259017015841,
+        "B_u_target_minus_anchor_q": 0.15472188797272943
+      }
+    },
+    "12": {
+      "legal_target_slots": 2239,
+      "arm": {
+        "A_q_target_minus_anchor_q": 0.01267188948885096,
+        "B_u_target_minus_anchor_q": 0.015851221193896273
+      },
+      "hand": {
+        "A_q_target_minus_anchor_q": 0.173046019624986,
+        "B_u_target_minus_anchor_q": 0.21712922765197973
+      }
+    },
+    "24": {
+      "legal_target_slots": 2140,
+      "arm": {
+        "A_q_target_minus_anchor_q": 0.02297594244314721,
+        "B_u_target_minus_anchor_q": 0.025444584015082528
+      },
+      "hand": {
+        "A_q_target_minus_anchor_q": 0.2812387425537193,
+        "B_u_target_minus_anchor_q": 0.3141134215568117
+      }
+    }
+  },
+  "stage_one_step_rmse_rad": {
+    "round06_07_legal_expert": {
+      "legal_expert_ticks": 3210,
+      "arm": {
+        "A_q_next_minus_q_before": 0.001166639872397077,
+        "B_u_minus_q_before": 0.006395657069756767,
+        "u_minus_q_next": 0.005677102094672561
+      },
+      "hand": {
+        "A_q_next_minus_q_before": 0.01730558363977629,
+        "B_u_minus_q_before": 0.09893358010875801,
+        "u_minus_q_next": 0.09042196826397843
+      }
+    },
+    "round06_07_before_first_native_lift": {
+      "legal_expert_ticks": 2283,
+      "arm": {
+        "A_q_next_minus_q_before": 0.0011770969444604442,
+        "B_u_minus_q_before": 0.006000507805593629,
+        "u_minus_q_next": 0.005234719617063628
+      },
+      "hand": {
+        "A_q_next_minus_q_before": 0.01730494446519644,
+        "B_u_minus_q_before": 0.09607512801150288,
+        "u_minus_q_next": 0.08709067523657574
+      }
+    },
+    "round06_07_sustained_contact_height12": {
+      "legal_expert_ticks": 1132,
+      "arm": {
+        "A_q_next_minus_q_before": 0.0010501857996184133,
+        "B_u_minus_q_before": 0.007275290400505301,
+        "u_minus_q_next": 0.006755169347436539
+      },
+      "hand": {
+        "A_q_next_minus_q_before": 0.016664034489355887,
+        "B_u_minus_q_before": 0.12788830164927437,
+        "u_minus_q_next": 0.12214614095284843
+      }
+    },
+    "round06_07_held_near_hole60": {
+      "legal_expert_ticks": 766,
+      "arm": {
+        "A_q_next_minus_q_before": 0.0010075908360051141,
+        "B_u_minus_q_before": 0.007707749409335573,
+        "u_minus_q_next": 0.00724094468110752
+      },
+      "hand": {
+        "A_q_next_minus_q_before": 0.015330558203291314,
+        "B_u_minus_q_before": 0.12900749937155212,
+        "u_minus_q_next": 0.12458927796901809
+      }
+    }
+  },
+  "existing_frontend_evidence": {
+    "path": "research_docs/evidence/tight_fresh_20261114/round03_frontend_baselines.json",
+    "sha256": "2dd2f4e286fbf3f4d8687b2bdf44e3d4b8e221d53a395a13a2b7a712c9ec3d7b",
+    "roles": {
+      "A": {
+        "selected_DP_commit12": {
+          "ticks": 2062,
+          "arm_rmse_rad": 0.008511760457602777,
+          "hand_rmse_rad": 0.06269591200018453
+        },
+        "hold_plan_start_observation": {
+          "ticks": 2062,
+          "arm_rmse_rad": 0.0077867314685471055,
+          "hand_rmse_rad": 0.10652412499874742
+        },
+        "hold_current_control_observation": {
+          "ticks": 2062,
+          "arm_rmse_rad": 0.0011658604876996885,
+          "hand_rmse_rad": 0.016949495346203727
+        }
+      },
+      "B": {
+        "selected_DP_commit12": {
+          "ticks": 2062,
+          "arm_rmse_rad": 0.008743439931989757,
+          "hand_rmse_rad": 0.07294430930685983
+        },
+        "hold_plan_start_observation": {
+          "ticks": 2062,
+          "arm_rmse_rad": 0.007800622227573044,
+          "hand_rmse_rad": 0.11535475556082268
+        },
+        "hold_current_control_observation": {
+          "ticks": 2062,
+          "arm_rmse_rad": 0.0011775274932258751,
+          "hand_rmse_rad": 0.019414858140840603
+        }
+      }
+    },
+    "interpretation": "A hold uses observed q, B hold uses observed pre-action actuator target; native5Hz anchor holds differ from60Hz current-control holds. No round06/08 frontend-hold result found in the searched output/public evidence."
+  },
+  "conclusions": [
+    "A arm one-step target is very close to current q:99.893% of legal arm joint values change <=0.005rad. Hand is not uniformly identity:49.042% <=0.005rad.",
+    "This does not make the actual24step plan trivial: anchor-copy arm error rises from0.001185 to0.022976rad and hand from0.017464 to0.281239rad over1 to24steps.",
+    "Near-hole held hand motion is weakly aligned with requested motion (median vector cosine0.382638); descriptive tracking/contact mix, not identified pressure.",
+    "Earlier round03 validation already found DP hand forecasts better than5Hz hold, with arm slightly worse. Do not repeat old validation or substitute a60Hz refreshed hold as a5Hz forecast baseline.",
+    "Next discriminator is source/selected/anchor-hold on identical latest train corrections and actual onset-aware legal commit12 slots, then full-student round08 behavior. No architecture or training change justified by this audit alone."
+  ],
+  "scope": {
+    "validation_raw_opened": false,
+    "test_evaluated": false,
+    "dino_opened": false,
+    "gpu_used": false,
+    "model_forward_calls": 0,
+    "optimizer_updates": 0,
+    "old_validation_results": "Only existing small published statistics read; no held-out trajectory/shard opened."
+  },
+  "stage_fit_candidate": {
+    "version": "train_only_selected_frontend_stage_fit_v2",
+    "files": [
+      "tools/tight_fresh_stage_fit.py",
+      "tests/test_frontend_stage_fit.py"
+    ],
+    "baselines": {
+      "A": [
+        "hold_anchor_q"
+      ],
+      "B": [
+        "hold_anchor_q",
+        "hold_anchor_actuator_target"
+      ]
+    },
+    "cpu_tests": "26 passed in1.91s across stage_fit/selected_fit/identity_audit. No actual model baseline execution yet.",
+    "scope": "No extra model forward; q or actuator target sampled only at actual planning anchor and held throughcommit12; masks exactly shared withDP labels. Full-history source/selected re-encoding unchanged."
+  }
+}

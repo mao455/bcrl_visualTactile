@@ -1,3 +1,9 @@
+## 2026-11-14 22:16 一步构型标签与真正规划跨度的CPU核对
+
+train99的27125合法专家tick核验q_before、同transition q_next、实际u和1/60s时钟。复制当前q的一步arm/hand RMSE为0.001197/0.017546rad；99.893%手臂单关节步差<=0.005rad，但手指仅49.042%，不能笼统称整手恒等。真实onset-aware 5Hz anchor固定当前q到未来24步，误差增到0.022976/0.281239rad，完整计划并非由一步小变化即可判断无意义。u-q_next包含动态跟踪、限制和接触，不是压力标签；本次没有据此贸然改变A监督。
+
+已复用旧round03_frontend_baselines：同2062验证tick，A/B手指DP均胜过5Hz保持，手臂稍差；没有重新读取验证轨迹。新增train-only stage_fit v2在相同合法commit12槽加入anchor处q保持，B另有anchor处实际执行器target保持，不使用未来tick观测、不额外模型前向；供round08选中模型与来源逐阶段比较。26项CPU检查通过，实际模型比较尚待。小证据q_next_identity.json绑定完整本机报告及其SHA，原15条06/07阶段统计与99池总量分开；不以离线误差代替抓持/转正/插入行为。
+
 ## 2026-11-14 22:06 资源归属统计修正
 
 state_resources只为明确batch_run run的唯一--output及batch_eval run的唯一--root/--output增加窄识别，解析真实路径且后者必须属于前者，相似模块/prepare/重复参数/越界路径拒绝；这是遥测分类，不是发信号授权。53项CPU检查通过，当前冻结monitor不热改。主Agent一次回归命令误写不存在test_state_resources.py而未执行，改为实际新测试后27项通过。

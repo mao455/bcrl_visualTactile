@@ -13,9 +13,16 @@ import time
 from tools.tight_fresh_selected_fit import (read,sha256,checked_hash,exclusive_json,
     validate_inputs,validate_checkpoint,import_frozen_trainer)
 
-VERSION='train_only_selected_frontend_stage_fit_v1'
+LEGACY_VERSION='train_only_selected_frontend_stage_fit_v1'
+VERSION='train_only_selected_frontend_stage_fit_v2'
 STAGES=('grasp_before_first_hold','holding','hand_rotation','near_hole60',
     'after_first_native_subgoal','native_alignment','native_subgoal_increment')
+BASELINE_COLUMNS=dict(hold_anchor_q=(0,29),hold_anchor_actuator_target=(58,87))
+
+
+def baseline_names(role):
+    require(role in ('A','B'),'Unknown frontend role')
+    return ['hold_anchor_q']+(['hold_anchor_actuator_target'] if role=='B' else [])
 
 
 def require(value,message):
@@ -157,6 +164,7 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output):
                 epoch=selected['epoch'],updates=selected['updates'],checkpoint_weights='ema',
                 frozen_source_root=receipt['frozen_source_root'],configuration=receipt['configuration']),
             stages=list(STAGES),identities=receipt['identities'],episodes=episodes,
+            baseline_names=baseline_names(role),
             masks_path=str(output/'stage_masks.npz'),masks_sha256=sha256(output/'stage_masks.npz'),
             collection_entries_sha256=sha256(collection/'correction_entries.json'),
             evaluator_sha256=sha256(__file__),cuda_initialized=torch.cuda.is_initialized(),
@@ -168,6 +176,9 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output):
                 after_first_native_subgoal='Pre-action native stage>0; later-goal/insertion-stage proxy, not proof of actual insertion.',
                 overlap='Masks overlap and are retrospective diagnostics only. Privileged geometry never enters model inputs.',
                 teacher_forcing='Recorded actual observations/actions including complete student prefix; not autonomous execution.'),
+            baseline_definitions=dict(hold_anchor_q='Actual pre-action q at each admitted 5Hz/onset planning anchor, held through its commit12. Same legal target slots as both DPs; no target-tick q.',
+                hold_anchor_actuator_target='B only: actual pre-action actuator target at the planning anchor, held through commit12. This matches the earlier frontend-baseline B input semantics; it is not the current expert target.',
+                limits='Forecast-error diagnostics only, no executed hold policy. No 60Hz observation refresh inside a commitment. Different A/B labels must not be ranked by raw RMSE.'),
             rear_evaluated=False,validation_evaluated=False,test_evaluated=False,optimizer_updates=0)
         exclusive_json(output/'registration.json',registered)
         return registered
@@ -199,7 +210,30 @@ def finalized(rows):
         if value['evaluated_commit_slots'] else None) for key,value in rows.items()}
 
 
-def frontend_episode(trainer,model,record,masks):
+def anchor_hold_totals(record,anchors,truth,valid,masks,names):
+    """Only anchor observations; even a legal suffix uses its earlier anchor q."""
+    import torch
+    require(names and len(set(names))==len(names) and all(name in BASELINE_COLUMNS for name in names),
+        'Unknown or duplicate causal hold baseline')
+    require(truth.shape==(len(anchors),24,29) and valid.shape==(len(anchors),24) and
+        valid.dtype==torch.bool,'Expected actual horizon24 label windows')
+    robot=record['robot'];mask=valid[:,:12]
+    require(robot.ndim==2 and robot.shape[1]>=max(BASELINE_COLUMNS[name][1] for name in names),
+        'Canonical actual joint/actuator observations required')
+    require(anchors.ndim==1 and anchors.dtype==torch.int64 and (anchors>=0).all() and
+        (anchors<len(robot)).all(),'Invalid real planning anchors')
+    ticks=(anchors[:,None]+torch.arange(12,device=anchors.device))[mask].cpu().numpy()
+    results={}
+    for name in names:
+        start,stop=BASELINE_COLUMNS[name]
+        observed=robot[anchors,start:stop]
+        require(torch.isfinite(observed).all(),'Nonfinite anchor observation')
+        errors=(observed[:,None,:]-truth[:,:12])[mask].cpu().numpy()
+        results[name]=error_totals(errors,ticks,masks)
+    return results
+
+
+def frontend_episode(trainer,model,record,masks,*,baselines=()):
     """One independent full-prefix encoding under this arm's actual parameters."""
     import torch
     conditions,anchors=trainer.supervised_conditions(model,record)
@@ -208,7 +242,14 @@ def frontend_episode(trainer,model,record,masks):
     truth,valid=trainer.labels(record,anchors,24);mask=valid[:,:12]
     ticks=(anchors[:,None]+torch.arange(12,device=anchors.device))[mask].cpu().numpy()
     errors=(predictions[:,:12]-truth[:,:12])[mask].cpu().numpy()
-    return error_totals(errors,ticks,masks)
+    result=error_totals(errors,ticks,masks)
+    if baselines:return result,anchor_hold_totals(record,anchors,truth,valid,masks,baselines)
+    return result
+
+
+def sum_episode_totals(episodes):
+    return {key:{field:sum(row[key][field] for row in episodes.values()) for field in
+        ('evaluated_commit_slots','arm_squared_sum','hand_squared_sum')} for key in (*STAGES,'legal_expert')}
 
 
 def run_arm(registration,arm):
@@ -219,6 +260,7 @@ def run_arm(registration,arm):
     exclusive_json(out/'started.json',dict(pid=os.getpid(),utc=time.time(),arm=arm,registration_sha256=sha256(path)))
     try:
         require(plan['version']==VERSION and arm in ('source','selected'),'Unknown stage-fit arm')
+        require(plan['baseline_names']==baseline_names(plan['role']),'Registered baseline semantics changed')
         checked_hash(__file__,plan['evaluator_sha256'])
         receipt=plan['selected_receipt'];weights=plan[arm]
         checked_hash(receipt['evaluator_source'],receipt['evaluator_sha256'])
@@ -253,16 +295,21 @@ def run_arm(registration,arm):
             require(model.contract==saved['contract'],'Frozen constructor/checkpoint contract differs')
             model.load_state_dict(saved['ema'],strict=True);model.eval().requires_grad_(False)
             archive=np.load(plan['masks_path'],allow_pickle=False);episodes={}
+            baseline_episodes={name:{} for name in plan['baseline_names']}
             for identity in plan['identities']:
                 record=records[identity]
                 require(len(record['time'])==plan['episodes'][identity]['history_frames'],'Full-history length changed')
-                episodes[identity]=frontend_episode(trainer,model,record,archive[identity])
+                episodes[identity],held=frontend_episode(trainer,model,record,archive[identity],
+                    baselines=plan['baseline_names'])
+                for name,values in held.items():baseline_episodes[name][identity]=values
             archive.close();torch.cuda.synchronize()
-        totals={key:{field:sum(row[key][field] for row in episodes.values()) for field in
-            ('evaluated_commit_slots','arm_squared_sum','hand_squared_sum')} for key in (*STAGES,'legal_expert')}
+        totals=sum_episode_totals(episodes)
         result=dict(complete=True,arm=arm,epoch=weights['epoch'],updates=weights['updates'],
             checkpoint_sha256=weights['sha256'],registration_sha256=sha256(path),
             stages=finalized(totals),episodes={identity:finalized(row) for identity,row in episodes.items()},
+            baselines={name:dict(stages=finalized(sum_episode_totals(values)),
+                episodes={identity:finalized(row) for identity,row in values.items()})
+                for name,values in baseline_episodes.items()},
             full_history_recomputed_each_episode=True,learned_hidden_state_cached=False,
             target_window=receipt['target_window'],seconds=time.perf_counter()-start,
             optimizer_updates=0,rear_evaluated=False,validation_evaluated=False,test_evaluated=False,
@@ -274,9 +321,14 @@ def run_arm(registration,arm):
 
 def compare(registration):
     path=Path(registration);plan=read(path);arms={arm:read(path.parent/arm/'result.json') for arm in ('source','selected')}
+    version=plan.get('version',LEGACY_VERSION)
+    require(version in (VERSION,LEGACY_VERSION),'Unknown stage-fit comparison version')
+    names=baseline_names(plan['role']) if version==VERSION else []
+    if names:require(plan['baseline_names']==names,'Registered baseline semantics changed')
     for arm,result in arms.items():
         require(result['complete'] and result['registration_sha256']==sha256(path) and
             result['checkpoint_sha256']==plan[arm]['sha256'],'Stage-fit result binding differs')
+        if names:require(set(result.get('baselines',{}))==set(names),'Causal hold baseline result missing')
     rows={}
     for key in (*STAGES,'legal_expert'):
         source,selected=(arms[arm]['stages'][key] for arm in ('source','selected'))
@@ -284,7 +336,18 @@ def compare(registration):
         rows[key]=dict(evaluated_commit_slots=source['evaluated_commit_slots'],source=source,selected=selected,
             delta_rad={metric:selected[metric]-source[metric] if source[metric] is not None else None
                 for metric in ('arm_rmse_rad','hand_rmse_rad')})
-    result=dict(version=VERSION,registration_sha256=sha256(path),stages=rows,
+        if names:
+            rows[key]['baselines']={};rows[key]['model_minus_hold_rmse_rad']={}
+            for name in names:
+                held=arms['source']['baselines'][name]['stages'][key]
+                require(held==arms['selected']['baselines'][name]['stages'][key] and
+                    held['evaluated_commit_slots']==source['evaluated_commit_slots'],
+                    'Causal hold inputs/target populations differ between arms')
+                rows[key]['baselines'][name]=held
+                rows[key]['model_minus_hold_rmse_rad'][name]={arm:{metric:arms[arm]['stages'][key][metric]-held[metric]
+                    if held[metric] is not None else None for metric in ('arm_rmse_rad','hand_rmse_rad')}
+                    for arm in ('source','selected')}
+    result=dict(version=version,registration_sha256=sha256(path),stages=rows,
         source_epoch=plan['source']['epoch'],selected_epoch=plan['selected']['epoch'],episodes=plan['episodes'],
         scope=plan['scope'],rear_evaluated=False,optimizer_updates=0,validation_evaluated=False,test_evaluated=False)
     exclusive_json(path.parent/'comparison.json',result);return result
