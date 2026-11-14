@@ -1,0 +1,1211 @@
+{
+  "complete": true,
+  "source_collection": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01",
+  "plan_sha256": "d9c02e73617902f6d33d83f079a2f359f228e6fefee03cef1eaae7b5d2e6e034",
+  "cases": [
+    {
+      "case": "r06_B_formal_050_slow_3_contact_height_only_d12",
+      "role": "B",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_B_formal_050_slow_3_contact_height_only_d12.json",
+      "source_audit_sha256": "b44aaf7bf3d4d68a71bd003dc91392ac32ecba5bb0adad488b771aa05048b8dd",
+      "snapshots": [
+        {
+          "completed_tick": 123,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.0006176643073558807,
+          "palm_relative_root_max_translation_m": 0.031304169446229935,
+          "palm_relative_max_rotation_rad": 1.348004937171936,
+          "goal_root_distance_m": 0.15327833592891693,
+          "goal_quaternion_angle_rad": 1.8132440096859557,
+          "native_keypoint_max_distance_m": 0.3026139438152313,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        },
+        {
+          "completed_tick": 135,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.06063060089945793,
+          "palm_relative_root_max_translation_m": 0.023755714297294617,
+          "palm_relative_max_rotation_rad": 0.550797700881958,
+          "goal_root_distance_m": 0.10595415532588959,
+          "goal_quaternion_angle_rad": 1.7226840997485207,
+          "native_keypoint_max_distance_m": 0.23768633604049683,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 311,
+        "student_last_completed_tick": 135,
+        "expert_first_action_index": 135,
+        "expert_first_completed_tick": 136,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 135,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 135,
+          "settled_height_m": 0.5408599376678467,
+          "first_contact_height_window_end_completed_tick": 123,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 137,
+        "first_legal_expert_completed_tick": 138,
+        "legal_expert_ticks": 174,
+        "full_window_component_checks": 300
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 199,
+          "completed_tick": 200,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.04193367809057236,
+            -0.03879959136247635,
+            0.7168599367141724,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04193367809057236,
+            -0.03879959508776665,
+            0.6668599843978882,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 310,
+          "completed_tick": 311,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.04193367809057236,
+            -0.03879959136247635,
+            0.6668599843978882,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04193367809057236,
+            -0.03879959136247635,
+            0.6668599843978882,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "874e2262fd09ea549c3f4bfab4e83220617025961bea0fa58089728be07ffe17",
+      "numeric_sha256": "bf638241cd1e74424f8a81789e3474f7eda4fbd73199518029ad977f3793c7a7"
+    },
+    {
+      "case": "r06_B_formal_051_slow_5_contact_height_only_d0",
+      "role": "B",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_B_formal_051_slow_5_contact_height_only_d0.json",
+      "source_audit_sha256": "a50e8a534cb55d086777a245d94ca349191577eb5d30f3fb2a6320751ca6a90b",
+      "snapshots": [
+        {
+          "completed_tick": 137,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.002586524933576584,
+          "palm_relative_root_max_translation_m": 0.029067205265164375,
+          "palm_relative_max_rotation_rad": 0.7250099778175354,
+          "goal_root_distance_m": 0.15044456720352173,
+          "goal_quaternion_angle_rad": 2.3345033394519374,
+          "native_keypoint_max_distance_m": 0.3252880573272705,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 336,
+        "student_last_completed_tick": 137,
+        "expert_first_action_index": 137,
+        "expert_first_completed_tick": 138,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 137,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 137,
+          "settled_height_m": 0.5721657276153564,
+          "first_contact_height_window_end_completed_tick": 137,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 139,
+        "first_legal_expert_completed_tick": 140,
+        "legal_expert_ticks": 197,
+        "full_window_component_checks": 325
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 293,
+          "completed_tick": 294,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.7162351608276367,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.6662352085113525,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 335,
+          "completed_tick": 336,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.6662352085113525,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.6662352085113525,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "a10dc3af2611cdda406136ebeec9440dbc00ca50fdb5045dd670671db476d505",
+      "numeric_sha256": "9ca0be86e4877b2cae0c99bb74ff326c674b4d4a4dfc00650a2e3a298164dd15"
+    },
+    {
+      "case": "r06_A_formal_051_slow_5_contact_height_only_d0",
+      "role": "A",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_A_formal_051_slow_5_contact_height_only_d0.json",
+      "source_audit_sha256": "5b39a9d565268a07dededcc430676f9d5156c75a9152df1ad3661b8c26d1dd69",
+      "snapshots": [
+        {
+          "completed_tick": 139,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.001160603016614914,
+          "palm_relative_root_max_translation_m": 0.03507861867547035,
+          "palm_relative_max_rotation_rad": 0.9322214126586914,
+          "goal_root_distance_m": 0.15795207023620605,
+          "goal_quaternion_angle_rad": 2.361994464807816,
+          "native_keypoint_max_distance_m": 0.3341115713119507,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 320,
+        "student_last_completed_tick": 139,
+        "expert_first_action_index": 139,
+        "expert_first_completed_tick": 140,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 139,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 139,
+          "settled_height_m": 0.5721657276153564,
+          "first_contact_height_window_end_completed_tick": 139,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 141,
+        "first_legal_expert_completed_tick": 142,
+        "legal_expert_ticks": 179,
+        "full_window_component_checks": 309
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 247,
+          "completed_tick": 248,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.7162351608276367,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.6662352085113525,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 313,
+          "completed_tick": 314,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.6662352085113525,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04537438601255417,
+            -0.042495645582675934,
+            0.6662352085113525,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "e1aea9a872c770039205181feaf89455a8479a3584d0a859ffe814c6dc5d1706",
+      "numeric_sha256": "7da093dafd5dac896607750d52b1d69c017677556ee607cd9ed6fe9be7d5055d"
+    },
+    {
+      "case": "r06_A_formal_007_slow_3_contact_height_only_d12",
+      "role": "A",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_A_formal_007_slow_3_contact_height_only_d12.json",
+      "source_audit_sha256": "e7e557859685e77c135957879a756d70ce86ba1af05ba1534fd63f8617484221",
+      "snapshots": [
+        {
+          "completed_tick": 127,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.004245143383741379,
+          "palm_relative_root_max_translation_m": 0.027323994785547256,
+          "palm_relative_max_rotation_rad": 0.5239939093589783,
+          "goal_root_distance_m": 0.1824626624584198,
+          "goal_quaternion_angle_rad": 3.046423199175943,
+          "native_keypoint_max_distance_m": 0.3714185357093811,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        },
+        {
+          "completed_tick": 139,
+          "conditions": {
+            "two_contact_fingers_every_substep": false,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.014471333473920822,
+          "palm_relative_root_max_translation_m": 0.030291948467493057,
+          "palm_relative_max_rotation_rad": 0.8450708985328674,
+          "goal_root_distance_m": 0.19237583875656128,
+          "goal_quaternion_angle_rad": 3.1263506474989806,
+          "native_keypoint_max_distance_m": 0.38653621077537537,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 410,
+        "student_last_completed_tick": 139,
+        "expert_first_action_index": 139,
+        "expert_first_completed_tick": 140,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 139,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 139,
+          "settled_height_m": 0.539077639579773,
+          "first_contact_height_window_end_completed_tick": 127,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 141,
+        "first_legal_expert_completed_tick": 142,
+        "legal_expert_ticks": 269,
+        "full_window_component_checks": 399
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 367,
+          "completed_tick": 368,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.7150775194168091,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.6650775671005249,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 409,
+          "completed_tick": 410,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.6650775671005249,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.6650775671005249,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "c2d8385454e37dfc4cee2fc94f0ab74d87f711fba0f7056eb17e2452c9a91098",
+      "numeric_sha256": "8b21329fe8be522f9e266394a31122af3bb532fc449238bc43e2f3b1c91b6e9f"
+    },
+    {
+      "case": "r06_B_formal_007_slow_3_contact_height_only_d12",
+      "role": "B",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_B_formal_007_slow_3_contact_height_only_d12.json",
+      "source_audit_sha256": "c2d47700e53b8d5be115d596971c3fd780381e8b3c84e63051991d455286ed36",
+      "snapshots": [
+        {
+          "completed_tick": 122,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.003918211907148361,
+          "palm_relative_root_max_translation_m": 0.03608106076717377,
+          "palm_relative_max_rotation_rad": 1.2365771532058716,
+          "goal_root_distance_m": 0.19001026451587677,
+          "goal_quaternion_angle_rad": 2.4263702856178786,
+          "native_keypoint_max_distance_m": 0.37252527475357056,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        },
+        {
+          "completed_tick": 134,
+          "conditions": {
+            "two_contact_fingers_every_substep": false,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.05628858134150505,
+          "palm_relative_root_max_translation_m": 0.03127080202102661,
+          "palm_relative_max_rotation_rad": 0.529074490070343,
+          "goal_root_distance_m": 0.14660973846912384,
+          "goal_quaternion_angle_rad": 2.072248485781955,
+          "native_keypoint_max_distance_m": 0.30928969383239746,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 328,
+        "student_last_completed_tick": 134,
+        "expert_first_action_index": 134,
+        "expert_first_completed_tick": 135,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 134,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 134,
+          "settled_height_m": 0.539077639579773,
+          "first_contact_height_window_end_completed_tick": 122,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 136,
+        "first_legal_expert_completed_tick": 137,
+        "legal_expert_ticks": 192,
+        "full_window_component_checks": 317
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 285,
+          "completed_tick": 286,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.7150775194168091,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.6650775671005249,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 325,
+          "completed_tick": 326,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.6650775671005249,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.045502789318561554,
+            -0.04059195518493652,
+            0.6650775671005249,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "c53c221ff09e6f4a0d408370b3c07c74452f72bdb5877d9018030d474c6ddcd1",
+      "numeric_sha256": "53d27d6fc71c1361ad004becf71dff32667865c67014b127b5dd7ac8b354c73b"
+    },
+    {
+      "case": "r06_B_formal_053_slow_0_contact_height_only_d0",
+      "role": "B",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_B_formal_053_slow_0_contact_height_only_d0.json",
+      "source_audit_sha256": "fbcb766064dccd58a9c2cdb0684be0325835559f410a73fd2d44bfcd2c5e956c",
+      "snapshots": [
+        {
+          "completed_tick": 127,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.003055613487958908,
+          "palm_relative_root_max_translation_m": 0.035045597702264786,
+          "palm_relative_max_rotation_rad": 1.1636464595794678,
+          "goal_root_distance_m": 0.19424554705619812,
+          "goal_quaternion_angle_rad": 2.5268091466588167,
+          "native_keypoint_max_distance_m": 0.3784638047218323,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 298,
+        "student_last_completed_tick": 127,
+        "expert_first_action_index": 127,
+        "expert_first_completed_tick": 128,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 127,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 127,
+          "settled_height_m": 0.5400092601776123,
+          "first_contact_height_window_end_completed_tick": 127,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 129,
+        "first_legal_expert_completed_tick": 130,
+        "legal_expert_ticks": 169,
+        "full_window_component_checks": 287
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 253,
+          "completed_tick": 254,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.716009259223938,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.6660093069076538,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 297,
+          "completed_tick": 298,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.6660093069076538,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.6660093069076538,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "26886cb1006eb69e678df841a1ed3c8fc73a37d7c7c04cf536a432d84274fe05",
+      "numeric_sha256": "269c94f1b8b5f1cff65b4dba39bf027061709379061b6de48a4295c85ca33bc4"
+    },
+    {
+      "case": "r06_A_formal_053_slow_0_contact_height_only_d0",
+      "role": "A",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_A_formal_053_slow_0_contact_height_only_d0.json",
+      "source_audit_sha256": "023127eb8b14e90b2b4f211bffb402ed048f611d727a09aee2563e52b2b0c76a",
+      "snapshots": [
+        {
+          "completed_tick": 127,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.002425890415906906,
+          "palm_relative_root_max_translation_m": 0.023179011419415474,
+          "palm_relative_max_rotation_rad": 1.2818655967712402,
+          "goal_root_distance_m": 0.18470382690429688,
+          "goal_quaternion_angle_rad": 2.4714383245214218,
+          "native_keypoint_max_distance_m": 0.3711559772491455,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 372,
+        "student_last_completed_tick": 127,
+        "expert_first_action_index": 127,
+        "expert_first_completed_tick": 128,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 127,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 127,
+          "settled_height_m": 0.5400092601776123,
+          "first_contact_height_window_end_completed_tick": 127,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 129,
+        "first_legal_expert_completed_tick": 130,
+        "legal_expert_ticks": 243,
+        "full_window_component_checks": 361
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 323,
+          "completed_tick": 324,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.716009259223938,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.6660093069076538,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 371,
+          "completed_tick": 372,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.6660093069076538,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.04538315534591675,
+            -0.04034947603940964,
+            0.6660093069076538,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "c80f560e08ab73313aa75fae61afa3ae2441c420fea84af25fd15db385881aaf",
+      "numeric_sha256": "08de1819e67e30306997a8fa764327d5c5ace0f2daab3d6dfcf6e0a774c8554f"
+    },
+    {
+      "case": "r06_A_formal_031_slow_4_contact_height_only_d12",
+      "role": "A",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_A_formal_031_slow_4_contact_height_only_d12.json",
+      "source_audit_sha256": "4773ec465741e8e577925d085f3eccffdd99a9a88370fb2d21a75b52867223bc",
+      "snapshots": [
+        {
+          "completed_tick": 115,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.0005098991096019745,
+          "palm_relative_root_max_translation_m": 0.029147520661354065,
+          "palm_relative_max_rotation_rad": 1.1292555332183838,
+          "goal_root_distance_m": 0.19013698399066925,
+          "goal_quaternion_angle_rad": 2.503111298852296,
+          "native_keypoint_max_distance_m": 0.377407044172287,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        },
+        {
+          "completed_tick": 127,
+          "conditions": {
+            "two_contact_fingers_every_substep": false,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.04603586718440056,
+          "palm_relative_root_max_translation_m": 0.03593434765934944,
+          "palm_relative_max_rotation_rad": 0.5185835361480713,
+          "goal_root_distance_m": 0.15399307012557983,
+          "goal_quaternion_angle_rad": 2.180470810225167,
+          "native_keypoint_max_distance_m": 0.32757022976875305,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 312,
+        "student_last_completed_tick": 127,
+        "expert_first_action_index": 127,
+        "expert_first_completed_tick": 128,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 127,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 127,
+          "settled_height_m": 0.5397782325744629,
+          "first_contact_height_window_end_completed_tick": 115,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 129,
+        "first_legal_expert_completed_tick": 130,
+        "legal_expert_ticks": 183,
+        "full_window_component_checks": 301
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 265,
+          "completed_tick": 266,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.0410822369158268,
+            -0.037446193397045135,
+            0.7157782316207886,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.0410822369158268,
+            -0.037446193397045135,
+            0.6657782793045044,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 311,
+          "completed_tick": 312,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.0410822369158268,
+            -0.037446193397045135,
+            0.6657782793045044,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.0410822369158268,
+            -0.037446193397045135,
+            0.6657782793045044,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "0f02e12ea1ace846d19558a580f1ccf5234897bdeb1378eb490bec04270c3745",
+      "numeric_sha256": "2e2388ec86e37a1afcd5bb953eea22ba282cca88c042792cf9a7e467c2f108a0"
+    },
+    {
+      "case": "r06_A_formal_046_slow_5_contact_height_only_d0",
+      "role": "A",
+      "source_audit_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/pose_audits_final/r06_A_formal_046_slow_5_contact_height_only_d0.json",
+      "source_audit_sha256": "42bc32dca3c56bbb69b7153fad141f45ab39d6e657322c5e99e48071fad1bdf3",
+      "snapshots": [
+        {
+          "completed_tick": 105,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": true,
+            "rotation": true
+          },
+          "stable_window": true,
+          "height_margin_m": 0.0010615400969982147,
+          "palm_relative_root_max_translation_m": 0.009010830894112587,
+          "palm_relative_max_rotation_rad": 0.10635700076818466,
+          "goal_root_distance_m": 0.1511528491973877,
+          "goal_quaternion_angle_rad": 2.8190200099741336,
+          "native_keypoint_max_distance_m": 0.33277857303619385,
+          "native_insertion_tolerance_m": 0.014999999664723873
+        }
+      ],
+      "timeline_checks": {
+        "passed": true,
+        "control_hz": 60,
+        "transitions": 351,
+        "student_last_completed_tick": 105,
+        "expert_first_action_index": 105,
+        "expert_first_completed_tick": 106,
+        "time_and_step_alignment": true,
+        "adjacent_observed_state_continuity": true,
+        "trigger_replay_exact": true,
+        "trigger_receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 105,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 105,
+          "settled_height_m": 0.5719728469848633,
+          "first_contact_height_window_end_completed_tick": 105,
+          "frozen_stable_window_at_trigger": true,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "first_legal_expert_action_index": 107,
+        "first_legal_expert_completed_tick": 108,
+        "legal_expert_ticks": 244,
+        "full_window_component_checks": 340
+      },
+      "subgoal_transition_boundaries": [
+        {
+          "action_index": 306,
+          "completed_tick": 307,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 0,
+          "subgoals_after": 1,
+          "goal_root_before": [
+            0.03815105929970741,
+            -0.03530161455273628,
+            0.7165814638137817,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.03815105929970741,
+            -0.03530161455273628,
+            0.6665815114974976,
+            0.7071067690849304,
+            0.0,
+            -0.7071067690849304,
+            0.0
+          ],
+          "goal_root_changed_during_transition": true
+        },
+        {
+          "action_index": 350,
+          "completed_tick": 351,
+          "authority": "expert",
+          "expert_label_valid": true,
+          "native_alignment": true,
+          "subgoals_before": 1,
+          "subgoals_after": 2,
+          "goal_root_before": [
+            0.03815105929970741,
+            -0.03530161455273628,
+            0.6665815114974976,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_after": [
+            0.03815105929970741,
+            -0.03530161455273628,
+            0.6665815114974976,
+            0.7071068286895752,
+            1.862645149230957e-09,
+            -0.7071068286895752,
+            -1.862645149230957e-09
+          ],
+          "goal_root_changed_during_transition": false
+        }
+      ],
+      "student_native_termination_flags": {
+        "dropped": false,
+        "fall": false,
+        "hand_far": false,
+        "max_successes": false,
+        "timeout": false
+      },
+      "result_sha256": "95332f14cb8041bbfb244be4dacec7a7bab151eb3d21119a0a40d07ddc738c76",
+      "numeric_sha256": "9a5836dea4e36f1925a1a7085e730c4ec1f448e6c37c3b213c5a6a1ab8a09636"
+    }
+  ],
+  "interpretation": "Trigger qualification, actual switch contact state and native success are separate. Expert completion is not autonomous student success. Quaternion angles ignore shape symmetry; native keypoint criteria remain authoritative.",
+  "test_used": false
+}

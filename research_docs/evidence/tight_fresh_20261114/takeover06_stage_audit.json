@@ -1,0 +1,1659 @@
+{
+  "version": "completed_contact_height_takeover_audit_v1",
+  "created_unix": 1794655587.55947,
+  "plan_sha256": "d9c02e73617902f6d33d83f079a2f359f228e6fefee03cef1eaae7b5d2e6e034",
+  "collector_source_commit": "93eff18df4240dde3245fd77cdb49ba3cbc619bc",
+  "completed_index_snapshot_sha256": "a826f7d84d4e2f78c84a6361eb6ec315e7b6b21b2332319d2e7d2ae4b17de1da",
+  "retained_index_snapshot_sha256": "9a51e72d0106ab23e3247751bf96ab1e9b15bed8a6d53b7eaaa3db050f821022",
+  "planned": 16,
+  "completed": 16,
+  "pending": [],
+  "collection_complete": true,
+  "cases": [
+    {
+      "case": "r06_A_formal_050_slow_3_contact_height_only_d12",
+      "role": "A",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "6ddb97165546f6d095b233b4a27a4d5a9021df266cc56adb5a37aa90f7d59818",
+      "stage_audit_sha256": "40e6b023762b6e2004bb8111752959ccd2c0541c06bbfa3191189ea1c21a514d",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.26241829991340637,
+          "goal_quaternion_angle_rad": 1.5708732604980469,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 62,
+        "student_first_two_fingers_completed_tick": 68,
+        "student_max_later_rise_over_settled_m": 0.008459508419036865,
+        "student_max_later_rise_with_two_fingers_m": 0.008088111877441406,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 0,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5408599376678467
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5408599376678467,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "f97968f417ad14e1b2eccf6045d91a63baf08212a55debfa3f490a15464b11a8",
+        "student_input": false
+      },
+      "numeric_sha256": "f97968f417ad14e1b2eccf6045d91a63baf08212a55debfa3f490a15464b11a8"
+    },
+    {
+      "case": "r06_B_formal_050_slow_3_contact_height_only_d12",
+      "role": "B",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "874e2262fd09ea549c3f4bfab4e83220617025961bea0fa58089728be07ffe17",
+      "stage_audit_sha256": "6fd569c5cd27c1ddeefcc3655122d3219ded86606fc422f22fff1f9023d44e58",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 135,
+        "first_legal_label_action_index": 137,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 135,
+        "expert_ticks": 176,
+        "legal_expert_ticks": 174,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 135,
+          "expert_ticks": 176,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 151,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 123,
+        "last_student_transition": {
+          "completed_tick": 135,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.10595415532588959,
+          "goal_quaternion_angle_rad": 1.7226841449737549,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 60,
+        "student_first_two_fingers_completed_tick": 65,
+        "student_max_later_rise_over_settled_m": 0.11123251914978027,
+        "student_max_later_rise_with_two_fingers_m": 0.11123251914978027,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 22,
+          "elevation_at_least_2cm": 13,
+          "contact_and_elevation": 13,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 72,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 200,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5408599376678467
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 135,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 135,
+          "settled_height_m": 0.5408599376678467,
+          "first_contact_height_window_end_completed_tick": 123,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 135,
+        "numeric_sha256": "bf638241cd1e74424f8a81789e3474f7eda4fbd73199518029ad977f3793c7a7",
+        "student_input": false
+      },
+      "numeric_sha256": "bf638241cd1e74424f8a81789e3474f7eda4fbd73199518029ad977f3793c7a7",
+      "capture_sha256": "afd35fac499f4529406a31ce8bf4b9dd07798bb15ead3aefd3d49c5a94812ca5"
+    },
+    {
+      "case": "r06_B_formal_051_slow_5_contact_height_only_d0",
+      "role": "B",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "a10dc3af2611cdda406136ebeec9440dbc00ca50fdb5045dd670671db476d505",
+      "stage_audit_sha256": "f5e3f0de0bf074d4410a527bf4e8be5b1f9518756365301c1ed47ddc416ff872",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 137,
+        "first_legal_label_action_index": 139,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 137,
+        "expert_ticks": 199,
+        "legal_expert_ticks": 197,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 137,
+          "expert_ticks": 199,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 291,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 137,
+        "last_student_transition": {
+          "completed_tick": 137,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.15044456720352173,
+          "goal_quaternion_angle_rad": 2.334503412246704,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 66,
+        "student_first_two_fingers_completed_tick": 114,
+        "student_max_later_rise_over_settled_m": 0.06260323524475098,
+        "student_max_later_rise_with_two_fingers_m": 0.06260323524475098,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 13,
+          "elevation_at_least_2cm": 1,
+          "contact_and_elevation": 1,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 21,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 294,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5721657276153564
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 137,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 137,
+          "settled_height_m": 0.5721657276153564,
+          "first_contact_height_window_end_completed_tick": 137,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 137,
+        "numeric_sha256": "9ca0be86e4877b2cae0c99bb74ff326c674b4d4a4dfc00650a2e3a298164dd15",
+        "student_input": false
+      },
+      "numeric_sha256": "9ca0be86e4877b2cae0c99bb74ff326c674b4d4a4dfc00650a2e3a298164dd15",
+      "capture_sha256": "abb31e54a674fc2979d9ec74c2d4bd8852821916ff221e8dc138bd6e58415d73"
+    },
+    {
+      "case": "r06_A_formal_051_slow_5_contact_height_only_d0",
+      "role": "A",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "e1aea9a872c770039205181feaf89455a8479a3584d0a859ffe814c6dc5d1706",
+      "stage_audit_sha256": "44b2e266a6fb7385af6efc681866e60d10c479a4b30a340d5ce0fa2860af126d",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 139,
+        "first_legal_label_action_index": 141,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 139,
+        "expert_ticks": 181,
+        "legal_expert_ticks": 179,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 139,
+          "expert_ticks": 181,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 247,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 139,
+        "last_student_transition": {
+          "completed_tick": 139,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.15795207023620605,
+          "goal_quaternion_angle_rad": 2.361994504928589,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 73,
+        "student_first_two_fingers_completed_tick": 82,
+        "student_max_later_rise_over_settled_m": 0.06027501821517944,
+        "student_max_later_rise_with_two_fingers_m": 0.06027501821517944,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 14,
+          "elevation_at_least_2cm": 1,
+          "contact_and_elevation": 1,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 36,
+        "expert_legal_near_goal_ticks": 26,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 248,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5721657276153564
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 139,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 139,
+          "settled_height_m": 0.5721657276153564,
+          "first_contact_height_window_end_completed_tick": 139,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 139,
+        "numeric_sha256": "7da093dafd5dac896607750d52b1d69c017677556ee607cd9ed6fe9be7d5055d",
+        "student_input": false
+      },
+      "numeric_sha256": "7da093dafd5dac896607750d52b1d69c017677556ee607cd9ed6fe9be7d5055d",
+      "capture_sha256": "0e00da59dff27a32584db03a69f462e85f5701ad7b363c7eb2fc88ece614d341"
+    },
+    {
+      "case": "r06_A_formal_007_slow_3_contact_height_only_d12",
+      "role": "A",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "c2d8385454e37dfc4cee2fc94f0ab74d87f711fba0f7056eb17e2452c9a91098",
+      "stage_audit_sha256": "769f55dd91f456a1d296361021cc8b662e83b294227c33145c6b08d2bc449e51",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 139,
+        "first_legal_label_action_index": 141,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 139,
+        "expert_ticks": 271,
+        "legal_expert_ticks": 269,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 139,
+          "expert_ticks": 271,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 341,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 127,
+        "last_student_transition": {
+          "completed_tick": 139,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.19237583875656128,
+          "goal_quaternion_angle_rad": 3.1263506412506104,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 66,
+        "student_first_two_fingers_completed_tick": 76,
+        "student_max_later_rise_over_settled_m": 0.056321680545806885,
+        "student_max_later_rise_with_two_fingers_m": 0.056321680545806885,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 11,
+          "elevation_at_least_2cm": 13,
+          "contact_and_elevation": 5,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 44,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 368,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.539077639579773
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 139,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 139,
+          "settled_height_m": 0.539077639579773,
+          "first_contact_height_window_end_completed_tick": 127,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 139,
+        "numeric_sha256": "8b21329fe8be522f9e266394a31122af3bb532fc449238bc43e2f3b1c91b6e9f",
+        "student_input": false
+      },
+      "numeric_sha256": "8b21329fe8be522f9e266394a31122af3bb532fc449238bc43e2f3b1c91b6e9f",
+      "capture_sha256": "779fcf25f9e31f3f2a3d6df5c21c43288ab80cbe242643021b299d1f0c7f8a88"
+    },
+    {
+      "case": "r06_B_formal_007_slow_3_contact_height_only_d12",
+      "role": "B",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "c53c221ff09e6f4a0d408370b3c07c74452f72bdb5877d9018030d474c6ddcd1",
+      "stage_audit_sha256": "710582f7c68134a2c6fe90558ecece8ee221d172ace278a6ce9d8a6f9e348e4e",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 134,
+        "first_legal_label_action_index": 136,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 134,
+        "expert_ticks": 194,
+        "legal_expert_ticks": 192,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 134,
+          "expert_ticks": 194,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 262,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 122,
+        "last_student_transition": {
+          "completed_tick": 134,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.14660973846912384,
+          "goal_quaternion_angle_rad": 2.0722484588623047,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 67,
+        "student_first_two_fingers_completed_tick": 73,
+        "student_max_later_rise_over_settled_m": 0.10747134685516357,
+        "student_max_later_rise_with_two_fingers_m": 0.1024940013885498,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 15,
+          "elevation_at_least_2cm": 13,
+          "contact_and_elevation": 10,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 30,
+        "expert_legal_near_goal_ticks": 22,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 286,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.539077639579773
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 134,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 134,
+          "settled_height_m": 0.539077639579773,
+          "first_contact_height_window_end_completed_tick": 122,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 134,
+        "numeric_sha256": "53d27d6fc71c1361ad004becf71dff32667865c67014b127b5dd7ac8b354c73b",
+        "student_input": false
+      },
+      "numeric_sha256": "53d27d6fc71c1361ad004becf71dff32667865c67014b127b5dd7ac8b354c73b",
+      "capture_sha256": "26ff47f89e88940b0afffc421b6f783aadef84228b1035a1bb792449059a658d"
+    },
+    {
+      "case": "r06_B_formal_053_slow_0_contact_height_only_d0",
+      "role": "B",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "26886cb1006eb69e678df841a1ed3c8fc73a37d7c7c04cf536a432d84274fe05",
+      "stage_audit_sha256": "81db803261b61d984bc9a3f86d2464eca9361f3f70d1fccdc2e0f91e36e61708",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 127,
+        "first_legal_label_action_index": 129,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 127,
+        "expert_ticks": 171,
+        "legal_expert_ticks": 169,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 127,
+          "expert_ticks": 171,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 243,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 127,
+        "last_student_transition": {
+          "completed_tick": 127,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.19424554705619812,
+          "goal_quaternion_angle_rad": 2.5268092155456543,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 72,
+        "student_first_two_fingers_completed_tick": 75,
+        "student_max_later_rise_over_settled_m": 0.07185792922973633,
+        "student_max_later_rise_with_two_fingers_m": 0.07185792922973633,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 6,
+          "elevation_at_least_2cm": 1,
+          "contact_and_elevation": 1,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 28,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 254,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5400092601776123
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 127,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 127,
+          "settled_height_m": 0.5400092601776123,
+          "first_contact_height_window_end_completed_tick": 127,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 127,
+        "numeric_sha256": "269c94f1b8b5f1cff65b4dba39bf027061709379061b6de48a4295c85ca33bc4",
+        "student_input": false
+      },
+      "numeric_sha256": "269c94f1b8b5f1cff65b4dba39bf027061709379061b6de48a4295c85ca33bc4",
+      "capture_sha256": "c4021225379309cd25674704c721dffc9002297017bdfa52a7f0c881ecd0bc79"
+    },
+    {
+      "case": "r06_A_formal_053_slow_0_contact_height_only_d0",
+      "role": "A",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "c80f560e08ab73313aa75fae61afa3ae2441c420fea84af25fd15db385881aaf",
+      "stage_audit_sha256": "0cb123038cd063938768f68c3e04e633a3391353e7649b05be8b27e668506182",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 127,
+        "first_legal_label_action_index": 129,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 127,
+        "expert_ticks": 245,
+        "legal_expert_ticks": 243,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 127,
+          "expert_ticks": 245,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 299,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 127,
+        "last_student_transition": {
+          "completed_tick": 127,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.18470382690429688,
+          "goal_quaternion_angle_rad": 2.471438407897949,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 71,
+        "student_first_two_fingers_completed_tick": 73,
+        "student_max_later_rise_over_settled_m": 0.06593114137649536,
+        "student_max_later_rise_with_two_fingers_m": 0.06593114137649536,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 7,
+          "elevation_at_least_2cm": 1,
+          "contact_and_elevation": 1,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 28,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 324,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5400092601776123
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 127,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 127,
+          "settled_height_m": 0.5400092601776123,
+          "first_contact_height_window_end_completed_tick": 127,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 127,
+        "numeric_sha256": "08de1819e67e30306997a8fa764327d5c5ace0f2daab3d6dfcf6e0a774c8554f",
+        "student_input": false
+      },
+      "numeric_sha256": "08de1819e67e30306997a8fa764327d5c5ace0f2daab3d6dfcf6e0a774c8554f",
+      "capture_sha256": "48c219d2726d1eb4acbb0cb691f4faa2b64ad74e5356ff6fc99b9b7424aaa85b"
+    },
+    {
+      "case": "r06_A_formal_031_slow_4_contact_height_only_d12",
+      "role": "A",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "0f02e12ea1ace846d19558a580f1ccf5234897bdeb1378eb490bec04270c3745",
+      "stage_audit_sha256": "911574d1c5c26436454d4473c92b69f0b3861ed915ac9996a4fba962fcd1b2e3",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 127,
+        "first_legal_label_action_index": 129,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 127,
+        "expert_ticks": 185,
+        "legal_expert_ticks": 183,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 127,
+          "expert_ticks": 185,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 244,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": 115,
+        "last_student_transition": {
+          "completed_tick": 127,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.15399307012557983,
+          "goal_quaternion_angle_rad": 2.1804709434509277,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 64,
+        "student_first_two_fingers_completed_tick": 99,
+        "student_max_later_rise_over_settled_m": 0.10037839412689209,
+        "student_max_later_rise_with_two_fingers_m": 0.10037839412689209,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 16,
+          "elevation_at_least_2cm": 13,
+          "contact_and_elevation": 11,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 39,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 266,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5397782325744629
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 127,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 127,
+          "settled_height_m": 0.5397782325744629,
+          "first_contact_height_window_end_completed_tick": 115,
+          "frozen_stable_window_at_trigger": false,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 127,
+        "numeric_sha256": "2e2388ec86e37a1afcd5bb953eea22ba282cca88c042792cf9a7e467c2f108a0",
+        "student_input": false
+      },
+      "numeric_sha256": "2e2388ec86e37a1afcd5bb953eea22ba282cca88c042792cf9a7e467c2f108a0",
+      "capture_sha256": "37749f27a1e447022b3757e01271ebde7de2bae0c08f7cbd9290fadf32fc68fb"
+    },
+    {
+      "case": "r06_B_formal_031_slow_4_contact_height_only_d12",
+      "role": "B",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "0d1587e8f711b346bc467000e50b6fc438f11f6d3ef1ef12cb6e8df744758421",
+      "stage_audit_sha256": "d5b95ed2bcb53a0b27e5c62876967cefb23c6b41f07cca49df7f79269814782b",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.20588932931423187,
+          "goal_quaternion_angle_rad": 2.197690963745117,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 59,
+        "student_first_two_fingers_completed_tick": 145,
+        "student_max_later_rise_over_settled_m": 0.012319087982177734,
+        "student_max_later_rise_with_two_fingers_m": 0.0103532075881958,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 0,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5397782325744629
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 12
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5397782325744629,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "15efdcc958db9a98f7df7fd4fcf3ba9aa523ec0c9d6836bfe1a86ee559073734",
+        "student_input": false
+      },
+      "numeric_sha256": "15efdcc958db9a98f7df7fd4fcf3ba9aa523ec0c9d6836bfe1a86ee559073734"
+    },
+    {
+      "case": "r06_B_formal_047_slow_4_contact_height_only_d0",
+      "role": "B",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "3e29f39e69eb22b736353fe5541d385b778e15e10e8591f8b7f32aaad208dba2",
+      "stage_audit_sha256": "ecfee73c89ed2b2c0b9e99ea43b1313e3c4b59acaea8d672ba93e8dbb033ce1e",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.23496778309345245,
+          "goal_quaternion_angle_rad": 2.5119433403015137,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 57,
+        "student_first_two_fingers_completed_tick": 64,
+        "student_max_later_rise_over_settled_m": 0.012377917766571045,
+        "student_max_later_rise_with_two_fingers_m": 0.012377917766571045,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 0,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5726350545883179
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5726350545883179,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "e2a9c7ec7a055050d173c8718235a2820a33f93f94ac67262e29776fee477020",
+        "student_input": false
+      },
+      "numeric_sha256": "e2a9c7ec7a055050d173c8718235a2820a33f93f94ac67262e29776fee477020"
+    },
+    {
+      "case": "r06_A_formal_047_slow_4_contact_height_only_d0",
+      "role": "A",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "8971358a8b4e79c8939650481fdd7cd8df7c3fd5a96bceed8f4360aa210f9816",
+      "stage_audit_sha256": "225f7e3127d2f25c0afab7d6a810ee069446ec8789548634e80e429a8b5f9a62",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.24606531858444214,
+          "goal_quaternion_angle_rad": 2.526743173599243,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 65,
+        "student_first_two_fingers_completed_tick": 80,
+        "student_max_later_rise_over_settled_m": 0.03347653150558472,
+        "student_max_later_rise_with_two_fingers_m": 0.01094508171081543,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 0,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5726350545883179
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5726350545883179,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "074b228d1fd232d413cec7988d3455fa969c31d8724e478b662aba286fcaf336",
+        "student_input": false
+      },
+      "numeric_sha256": "074b228d1fd232d413cec7988d3455fa969c31d8724e478b662aba286fcaf336"
+    },
+    {
+      "case": "r06_A_formal_039_slow_5_contact_height_only_d0",
+      "role": "A",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "6aa062a91fe1453c9f8d9faab13f02c2d4ce3198fafc8dd01ca347f464168164",
+      "stage_audit_sha256": "1655e1b146f3ac6b4babff6c0cb5ae21477edee23d22ed90a4db14e3d43e9c14",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.2331758439540863,
+          "goal_quaternion_angle_rad": 1.8486526012420654,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 57,
+        "student_first_two_fingers_completed_tick": 76,
+        "student_max_later_rise_over_settled_m": 0.0024275779724121094,
+        "student_max_later_rise_with_two_fingers_m": 0.0018537640571594238,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 1,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5396445989608765
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5396445989608765,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "86e27fe8a92a58386a7633dfcddd831c1f09c5159759644ac9f1a4b1272e9a49",
+        "student_input": false
+      },
+      "numeric_sha256": "86e27fe8a92a58386a7633dfcddd831c1f09c5159759644ac9f1a4b1272e9a49"
+    },
+    {
+      "case": "r06_B_formal_039_slow_5_contact_height_only_d0",
+      "role": "B",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "1448e7ea387f497bf69976e341e00f8a9f41e8c95eae330ef6b5111b1032f57d",
+      "stage_audit_sha256": "06835613498ba2f443ac63e5a5b7cb3235c0cbdca25638f329ee7512c0aae904",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.20018362998962402,
+          "goal_quaternion_angle_rad": 2.48995041847229,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 60,
+        "student_first_two_fingers_completed_tick": 111,
+        "student_max_later_rise_over_settled_m": 0.00019472837448120117,
+        "student_max_later_rise_with_two_fingers_m": -2.3245811462402344e-06,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 0,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5396445989608765
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5396445989608765,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "a3982659c0d786e4c42824f6e3c7cf8f2392830327fe845594d6871495570c24",
+        "student_input": false
+      },
+      "numeric_sha256": "a3982659c0d786e4c42824f6e3c7cf8f2392830327fe845594d6871495570c24"
+    },
+    {
+      "case": "r06_B_formal_046_slow_5_contact_height_only_d0",
+      "role": "B",
+      "category": "ended_without_student_contact_height_window",
+      "accepted": false,
+      "success": false,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "result_sha256": "d5c80795810e665947d7f67842419d8474919caa90532c3ec65e275134ae7034",
+      "stage_audit_sha256": "c589a8443fdca962a44122f24d351f836c901cddc835037dee7c0a4e9260a51b",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": null,
+        "first_legal_label_action_index": null,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 0,
+        "student_history_ticks": 601,
+        "expert_ticks": 0,
+        "legal_expert_ticks": 0,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": null,
+        "student_first_contact_height_window_end_tick": null,
+        "last_student_transition": {
+          "completed_tick": 601,
+          "stable_window": false,
+          "two_contact_fingers_both_substeps": false,
+          "goal_distance_m": 0.18929116427898407,
+          "goal_quaternion_angle_rad": 2.3464295864105225,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": null,
+        "student_after_stable_same_goal_smallest_angle": null,
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 54,
+        "student_first_two_fingers_completed_tick": 72,
+        "student_max_later_rise_over_settled_m": 0.0,
+        "student_max_later_rise_with_two_fingers_m": -0.03117823600769043,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 0,
+          "elevation_at_least_2cm": 0,
+          "contact_and_elevation": 0,
+          "complete_stable_with_relative_pose_bounds": 0
+        },
+        "expert_legal_stable_ticks": 0,
+        "expert_legal_near_goal_ticks": 0,
+        "expert_legal_alignment_ticks": 0,
+        "expert_first_subgoal_completed_tick": null,
+        "final_native_subgoals": 0,
+        "settled_reference_m": 0.5719728469848633
+      },
+      "trigger": {
+        "passed": true,
+        "category": "ended_before_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "fallback_no_completed_contact_height_window",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5719728469848633,
+          "first_contact_height_window_end_completed_tick": null,
+          "frozen_stable_window_at_trigger": null,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": null,
+        "numeric_sha256": "b177fba0f17ebbe5c201abfa507e5909e079321d8bb1e77d3e8421f49a869258",
+        "student_input": false
+      },
+      "numeric_sha256": "b177fba0f17ebbe5c201abfa507e5909e079321d8bb1e77d3e8421f49a869258"
+    },
+    {
+      "case": "r06_A_formal_046_slow_5_contact_height_only_d0",
+      "role": "A",
+      "category": "expert_rescue_after_contact_height",
+      "accepted": true,
+      "success": true,
+      "native_terminal_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "result_sha256": "95332f14cb8041bbfb244be4dacec7a7bab151eb3d21119a0a40d07ddc738c76",
+      "stage_audit_sha256": "502e1564a4a2a7928d6814c016927e2af9aa3698a905460734b9c0cf6023bb64",
+      "label_alignment": {
+        "passed": true,
+        "switch_action_index": 105,
+        "first_legal_label_action_index": 107,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 105,
+        "expert_ticks": 246,
+        "legal_expert_ticks": 244,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "phases": {
+        "authority": {
+          "student_ticks": 105,
+          "expert_ticks": 246,
+          "student_first_stable_window_end_tick": 105,
+          "student_stable_window_at_last_tick": true,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": 106,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_student_stable": {
+          "completed_tick": 105,
+          "stable_window": true,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.1511528491973877,
+          "goal_quaternion_angle_rad": 2.8190200328826904,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_first_contact_height_window_end_tick": 105,
+        "last_student_transition": {
+          "completed_tick": 105,
+          "stable_window": true,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.1511528491973877,
+          "goal_quaternion_angle_rad": 2.8190200328826904,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_closest_center": {
+          "completed_tick": 105,
+          "stable_window": true,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.1511528491973877,
+          "goal_quaternion_angle_rad": 2.8190200328826904,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_after_stable_same_goal_smallest_angle": {
+          "completed_tick": 105,
+          "stable_window": true,
+          "two_contact_fingers_both_substeps": true,
+          "goal_distance_m": 0.1511528491973877,
+          "goal_quaternion_angle_rad": 2.8190200328826904,
+          "native_near_goal": false,
+          "native_alignment": false,
+          "native_subgoals": 0
+        },
+        "student_native_lift": false,
+        "student_first_contact_completed_tick": 72,
+        "student_first_two_fingers_completed_tick": 81,
+        "student_max_later_rise_over_settled_m": 0.03494572639465332,
+        "student_max_later_rise_with_two_fingers_m": 0.03494572639465332,
+        "student_window_counts": {
+          "contact_at_least_two_fingers": 8,
+          "elevation_at_least_2cm": 1,
+          "contact_and_elevation": 1,
+          "complete_stable_with_relative_pose_bounds": 1
+        },
+        "expert_legal_stable_ticks": 12,
+        "expert_legal_near_goal_ticks": 20,
+        "expert_legal_alignment_ticks": 2,
+        "expert_first_subgoal_completed_tick": 307,
+        "final_native_subgoals": 2,
+        "settled_reference_m": 0.5719728469848633
+      },
+      "trigger": {
+        "passed": true,
+        "category": "student_contact_height_then_takeover",
+        "receipt": {
+          "configuration": {
+            "version": "contact_height_then_delay_v1",
+            "delay_ticks": 0
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 105,
+          "reason": "completed_student_contact_height_window_plus_delay",
+          "completed_student_transitions_observed": 105,
+          "settled_height_m": 0.5719728469848633,
+          "first_contact_height_window_end_completed_tick": 105,
+          "frozen_stable_window_at_trigger": true,
+          "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+          "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "stable_grasp_claim": false,
+          "native_success_changed": false
+        },
+        "actual_switch_tick": 105,
+        "numeric_sha256": "9a5836dea4e36f1925a1a7085e730c4ec1f448e6c37c3b213c5a6a1ab8a09636",
+        "student_input": false
+      },
+      "numeric_sha256": "9a5836dea4e36f1925a1a7085e730c4ec1f448e6c37c3b213c5a6a1ab8a09636",
+      "capture_sha256": "e004263cdc838a4995051fcf46b5bbeff34d7219835b9d7ee1179bcbbf894726"
+    }
+  ],
+  "by_role": {
+    "A": {
+      "opportunities": 8,
+      "completed": 8,
+      "categories": {
+        "ended_without_student_contact_height_window": 3,
+        "expert_rescue_after_contact_height": 5
+      },
+      "accepted": 5,
+      "retained_legal_expert_ticks": 1118
+    },
+    "B": {
+      "opportunities": 8,
+      "completed": 8,
+      "categories": {
+        "expert_rescue_after_contact_height": 4,
+        "ended_without_student_contact_height_window": 4
+      },
+      "accepted": 4,
+      "retained_legal_expert_ticks": 732
+    }
+  },
+  "scope": "Only cases committed to results.json are opened; pending active HDF5 files are never read. No GPU, policy update or trial.",
+  "interpretation": "Expert rescue is not autonomous success. Angles ignore shape symmetry; native alignment/near-goal remain separate. Delays are assigned to different families and do not identify a causal delay effect. Legal source ticks are not optimizer exposure.",
+  "test_used": false
+}
