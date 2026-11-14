@@ -33,7 +33,8 @@ def setup(tmp_path,monkeypatch):
     pair=dict(frontend='source_front.pt',frontend_sha256='front',backend='source_back.pt',backend_sha256='back')
     monkeypatch.setattr(stage,'completed_pair',lambda root,role:dict(pair,role=role))
     options=dict(lanes=8,identities=identities[:8],delays=[12,0,12,0,12,0,0,0],
-        round_index=7,seed=28140700,vision_microbatch=8,writer_bytes=512<<20)
+        round_index=7,seed=28140700,vision_microbatch=8,writer_bytes=512<<20,
+        verification_workers=2,verification_max_pending=4)
     return SimpleNamespace(source=source,active=active,output=tmp_path/'collection',
         options=options,current=current,expired=expired)
 
@@ -51,6 +52,7 @@ def test_active_session_registers_expired_source_without_changing_either(setup):
     assert (x.output/'session.json').read_bytes()==before[x.active/'session.json']
     assert sha256(x.output/'session.json')==sha256(x.active/'session.json')==plan['source_session_sha256']
     assert plan['batch']['vision_microbatch']==8 and plan['batch']['writer_bytes']==512<<20
+    assert plan['batch']['verification_workers']==2 and plan['batch']['verification_max_pending']==4
     assert all(path.read_bytes()==value for path,value in before.items())
     assert not (x.output/'run_started.json').exists()
 
@@ -81,9 +83,19 @@ def test_cli_forwards_explicit_session_and_rejects_runtime_override(setup,monkey
     x=setup;calls=[]
     monkeypatch.setattr(batch,'prepare',lambda *args,**kwargs:calls.append((args,kwargs)))
     monkeypatch.setattr(sys,'argv',['batch','prepare','--root',str(x.source),'--output',str(x.output),
-        '--session-root',str(x.active),'--identities','original0','--delays','0','--lanes','8'])
+        '--session-root',str(x.active),'--identities','original0','--delays','0','--lanes','8',
+        '--verification-workers','2','--verification-max-pending','4'])
     batch.main()
     assert calls[0][1]['session_root']==x.active
+    assert calls[0][1]['verification_workers']==2 and calls[0][1]['verification_max_pending']==4
     monkeypatch.setattr(sys,'argv',['batch','run','--output',str(x.output),'--session-root',str(x.active)])
     with pytest.raises(SystemExit) as error:batch.main()
     assert error.value.code==2
+
+
+@pytest.mark.parametrize('workers,pending',[(True,4),(-1,4),(2,1),(0,0),(0,False)])
+def test_invalid_verifier_budgets_fail_before_registration(setup,workers,pending):
+    x=setup
+    options=dict(x.options,verification_workers=workers,verification_max_pending=pending)
+    with pytest.raises(ValueError):batch.prepare(x.source,x.output,**options,session_root=x.active)
+    assert not x.output.exists()

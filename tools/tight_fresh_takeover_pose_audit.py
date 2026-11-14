@@ -9,7 +9,7 @@ import numpy as np
 from tools.tight_fresh_phases import case
 from tools.tight_fresh_stage_audit import audit_numeric
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import make_trigger, stable_windows
+from visuotactile.takeover_trigger import make_trigger, observe_transition, stable_windows
 from visuotactile.training_resources import atomic_json
 
 
@@ -68,7 +68,7 @@ def timeline_checks(transition, observation, result, pose, palm, force):
         raise ValueError('Result authority/length differs from actual numeric rows')
     receipt=result['dagger']['trigger_receipt']
     trigger=make_trigger(receipt['configuration'],receipt['fallback_tick'])
-    for tick in range(count):trigger.observe(tick,pose[tick],palm[tick],force[tick])
+    for tick in range(count):observe_transition(trigger,tick,transition,index=tick)
     if trigger.receipt()!=receipt or trigger.scheduled_tick!=count:
         raise ValueError('Recorded actual trigger receipt or takeover boundary differs')
     return dict(passed=True,control_hz=60,transitions=n,student_last_completed_tick=count,

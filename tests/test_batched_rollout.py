@@ -45,7 +45,8 @@ def test_lane_metadata_binds_own_pose_intrinsics_and_tiled_calibration_without_m
 
 
 @pytest.mark.parametrize('microbatch',[None,8])
-def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_labels(tmp_path,monkeypatch,microbatch):
+@pytest.mark.parametrize('verification_workers',[0,2])
+def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_labels(tmp_path,monkeypatch,microbatch,verification_workers):
     import visuotactile.batched_rollout as rollout
     import visuotactile.batched_position_bridge as bridges
     import visuotactile.narrow_data as narrow
@@ -171,6 +172,7 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
     saved=dict(residual_version='test',configuration={})
     plan=dict(kind='takeover',batch=dict(seed=23,writer_bytes=32<<20),expert_sha256='e')
     if microbatch is not None:plan['batch']['vision_microbatch']=microbatch
+    if verification_workers:plan['batch'].update(verification_workers=verification_workers,verification_max_pending=4)
     finished,profile=rollout.run_wave(env,player,NS(block=contextlib.nullcontext),tmp_path,cases,pair,saved,None,plan,0)
     assert [r['steps'] for _,r in finished]==[3,8]
     assert len(expert_calls)==8 and [len(s.seen) for s in students]==[3,8,0]
@@ -184,6 +186,12 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
     assert 0<writer['peak_reserved_bytes']<=writer['max_pending_bytes']
     assert 1<=writer['peak_queued_or_copying']<=writer['max_queue']
     assert writer['worker_alive'] and not writer['failed']
+    assert writer['verification_workers']==verification_workers
+    assert writer['verification_pending']==0
+    assert writer['verification_failed']==0
+    if verification_workers:
+        assert writer['verification_submitted']==writer['verification_completed']==2
+        assert len(writer['verification_process_pids'])>=1
     for lane,count in enumerate((3,8)):
         result=finished[lane][1];directory=tmp_path/f'case_{lane}'
         assert result['dagger']['expert_valid_ticks']==(0 if lane==0 else 3)

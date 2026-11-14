@@ -1,10 +1,12 @@
-"""Bounded, lossless multi-lane capture with one owner of every HDF5 handle.
+"""Bounded, lossless multi-lane capture with one HDF5 writer thread.
 
 Only detached CPU arrays cross this boundary. ``submit`` snapshots them before
 returning; no simulator, policy, CUDA, or reset operation runs in the worker.
 The byte cap includes copying, queued/in-flight payloads and retained writer
 arrays. HDF5/compressor allocations and bounded NumPy flush temporaries are
 outside that payload cap; measure process RAM when choosing block sizes.
+Optional spawn workers verify already closed files with independent HDF5 locks;
+their bounded decode buffers are separate from the write-payload byte budget.
 
 Worker time overlaps simulation and submission. Component times must therefore
 not be added together as elapsed rollout time. A returned capture has passed
@@ -12,10 +14,11 @@ the existing complete source-field verification; unfinished/error captures
 remain on disk and are never reported as verified.
 """
 from collections import deque
-from concurrent.futures import Future
+from concurrent.futures import Future, ProcessPoolExecutor
 from dataclasses import dataclass
 import hashlib
 import json
+import multiprocessing
 import os
 from pathlib import Path
 import threading
@@ -105,6 +108,43 @@ def _publish_receipt(path, value):
     temporary.unlink()
 
 
+def validate_verification_parameters(workers, max_pending):
+    """Explicit process/task bounds; zero workers preserves serial verification."""
+    if type(workers) is not int or workers < 0:
+        raise ValueError('verification_workers must be a nonnegative integer')
+    if type(max_pending) is not int or max_pending < 1 or max_pending < workers:
+        raise ValueError('verification_max_pending must be positive and at least verification_workers')
+
+
+def _verify_closed_capture(receipt, process_worker=False):
+    """Only closed file paths and small metadata cross the spawn boundary.
+
+    A process owns its read handles independently of the writer's HDF5 lock.
+    Every original field digest and the complete compact-file SHA are retained.
+    Publish in the verifier, so completed evidence survives parent interruption.
+    """
+    if process_worker:
+        receipt['profile']['verification_queue_wait_s'] = (
+            time.perf_counter() - receipt.pop('_verification_enqueued_at'))
+        _publish_receipt(Path(receipt['numeric_path']).parent/'verification_started.json', dict(
+            pid=os.getpid(), utc=time.time(), process_start_method='spawn',
+            status='reading_closed_capture', compact_path=receipt['dataset_capture']['path']))
+    binding = receipt['dataset_capture']
+    if binding is not None:
+        started = time.perf_counter()
+        binding['verified_source_fields'] = verify_stream_fields(binding['path'])
+        receipt['profile']['worker_verify_s'] += time.perf_counter() - started
+        started = time.perf_counter()
+        binding['sha256'] = _sha256(binding['path'])
+        receipt['profile']['worker_hash_s'] += time.perf_counter() - started
+    if process_worker:
+        receipt.update(verification_process_pid=os.getpid(), verification_execution='spawn_process_v1')
+    receipt.update(_verified_at=time.perf_counter(),
+        status='source_verified' if binding is not None else 'numeric_complete')
+    _publish_receipt(Path(receipt['numeric_path']).parent / 'capture_complete.json', receipt)
+    return receipt
+
+
 @dataclass
 class _Job:
     kind: str
@@ -122,13 +162,17 @@ class SharedCaptureWriter:
     If mandatory previous-frame state plus one incoming row cannot fit, fail
     explicitly instead of waiting forever for a frame that cannot be admitted.
     """
-    def __init__(self, max_pending_bytes=512 << 20, max_queue=64):
+    def __init__(self, max_pending_bytes=512 << 20, max_queue=64,
+                 verification_workers=0, verification_max_pending=4):
         if type(max_pending_bytes) is not int or max_pending_bytes < 1:
             raise ValueError('max_pending_bytes must be a positive integer')
         if type(max_queue) is not int or max_queue < 1:
             raise ValueError('max_queue must be a positive integer')
+        validate_verification_parameters(verification_workers, verification_max_pending)
         self.max_pending_bytes = max_pending_bytes
         self.max_queue = max_queue
+        self.verification_workers = verification_workers
+        self.verification_max_pending = verification_max_pending
         self._condition = threading.Condition()
         self._queue = deque()
         self._lanes = []
@@ -140,6 +184,13 @@ class SharedCaptureWriter:
         self._error = None
         self._closed = False
         self._closing = False
+        self._verification_jobs = {}
+        self._verification_pending = self._verification_peak = 0
+        self._verification_submitted = self._verification_completed = self._verification_failed = 0
+        self._verification_slot_wait_s = 0.
+        self._verification_pids = set()
+        self._verification_executor = (ProcessPoolExecutor(max_workers=verification_workers,
+            mp_context=multiprocessing.get_context('spawn')) if verification_workers else None)
         self._thread = threading.Thread(target=self._run, name='tight-capture-writer', daemon=True)
         self._thread.start()
 
@@ -160,7 +211,18 @@ class SharedCaptureWriter:
                 reserved_bytes=self._reserved, peak_reserved_bytes=self._peak_bytes,
                 peak_queued_or_copying=self._peak_queue,
                 byte_scope='owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch',
-                worker_alive=self._thread.is_alive(), failed=self._error is not None)
+                worker_alive=self._thread.is_alive(), failed=self._error is not None,
+                verification_workers=self.verification_workers,
+                verification_max_pending=self.verification_max_pending,
+                verification_pending=self._verification_pending,
+                verification_peak_pending=self._verification_peak,
+                verification_submitted=self._verification_submitted,
+                verification_completed=self._verification_completed,
+                verification_failed=self._verification_failed,
+                verification_slot_wait_s=self._verification_slot_wait_s,
+                verification_process_pids=sorted(self._verification_pids),
+                verification_scope='Bound includes queued and running closed-file tasks; only paths/metadata sent. '
+                    'Spawned verifier decode buffers/RSS are separate from payload byte budget.')
 
     def _reserve(self, size):
         if size > self.max_pending_bytes:
@@ -260,13 +322,76 @@ class SharedCaptureWriter:
         lane._profile['worker_flush_s'] += time.perf_counter() - started
         self._reaccount(lane)
 
+    def _verification_done(self, future):
+        """Executor callback never accesses open writer handles."""
+        with self._condition:
+            lane, ticket = self._verification_jobs[future]
+        failure = None
+        try:
+            receipt = future.result()
+        except BaseException as error:
+            # This lane has already closed every handle; preserve its failed
+            # verification input and wake producers/full-queue waiters promptly.
+            lane._abort_worker(repr(error))
+            failure = error
+        with self._condition:
+            del self._verification_jobs[future]
+            self._verification_pending -= 1
+            if failure is not None:
+                self._verification_failed += 1
+                if self._error is None:
+                    self._error = failure
+                if not ticket.done():
+                    ticket.set_exception(CaptureWorkerError(str(failure)))
+            else:
+                self._verification_completed += 1
+                self._verification_pids.add(receipt['verification_process_pid'])
+                if not ticket.done():
+                    ticket.set_result(receipt)
+            self._condition.notify_all()
+
+    def _dispatch_verification(self, job, receipt):
+        started = time.perf_counter()
+        with self._condition:
+            while self._verification_pending >= self.verification_max_pending:
+                if self._error is not None:
+                    raise CaptureWorkerError(str(self._error)) from self._error
+                self._condition.wait(.1)
+            if self._error is not None:
+                raise CaptureWorkerError(str(self._error)) from self._error
+            waited = time.perf_counter() - started
+            self._verification_slot_wait_s += waited
+            self._verification_pending += 1
+            self._verification_submitted += 1
+            self._verification_peak = max(self._verification_peak, self._verification_pending)
+        receipt['profile']['verification_slot_wait_s'] = waited
+        receipt['_verification_enqueued_at'] = time.perf_counter()
+        try:
+            _publish_receipt(job.lane.directory/'verification_queued.json', dict(
+                status='closed_pending_source_verification', numeric_path=receipt['numeric_path'],
+                compact_path=receipt['dataset_capture']['path'], steps=receipt['steps'],
+                process_start_method='spawn', verification_workers=self.verification_workers,
+                verification_max_pending=self.verification_max_pending, utc=time.time()))
+            future = self._verification_executor.submit(_verify_closed_capture, receipt, True)
+        except BaseException as error:
+            with self._condition:
+                self._verification_pending -= 1
+                self._condition.notify_all()
+            job.lane._abort_worker(repr(error))
+            raise
+        with self._condition:
+            self._verification_jobs[future] = (job.lane, job.future)
+        future.add_done_callback(self._verification_done)
+
     def _run(self):
         job = None
         try:
             while True:
                 with self._condition:
-                    while not self._queue and not self._flush_requested:
+                    while not self._queue and not self._flush_requested and self._error is None:
                         self._condition.wait()
+                    if self._error is not None:
+                        raise CaptureWorkerError(str(self._error)) from self._error
                     if self._queue:
                         job = self._queue.popleft()
                     else:
@@ -307,9 +432,13 @@ class SharedCaptureWriter:
                     job.payload = None
                     del numeric, compact
                 elif job.kind == 'finish':
-                    result = job.lane._finish_worker(job.payload)
+                    deferred = self._verification_executor is not None and job.lane.capture
+                    result = job.lane._finish_worker(job.payload, defer_verification=deferred)
                     self._reaccount(job.lane)
-                    job.future.set_result(result)
+                    if deferred:
+                        self._dispatch_verification(job, result)
+                    else:
+                        job.future.set_result(result)
                 with self._condition:
                     self._inflight = False
                     self._condition.notify_all()
@@ -320,7 +449,7 @@ class SharedCaptureWriter:
                     job.future.set_exception(CaptureWorkerError(str(error)))
                 for pending in self._queue:
                     self._reserved -= pending.reserved
-                    if pending.future is not None:
+                    if pending.future is not None and not pending.future.done():
                         pending.future.set_exception(CaptureWorkerError(str(error)))
                 self._queue.clear()
                 if job is not None:
@@ -328,7 +457,9 @@ class SharedCaptureWriter:
                 self._inflight = False
                 self._condition.notify_all()
             for lane in self._lanes:
-                if not lane._worker_finished:
+                closed_current_finalizer = (job is not None and job.kind == 'finish' and job.lane is lane
+                    and not (lane.directory/'capture_complete.json').exists())
+                if not lane._worker_finished or closed_current_finalizer:
                     lane._abort_worker(repr(error))
                     self._reaccount(lane)
 
@@ -355,6 +486,10 @@ class SharedCaptureWriter:
                     future.result()
         finally:
             self._thread.join()
+            if self._verification_executor is not None:
+                # Running read-only jobs finish or surface child failures;
+                # owner process-group termination also reaches spawned workers.
+                self._verification_executor.shutdown(wait=True, cancel_futures=False)
             with self._condition:
                 self._closed = True
                 self._condition.notify_all()
@@ -439,13 +574,14 @@ class AsyncLaneRecorder:
             self._profile['copy_s'] += copied
             self._submitted += 1
 
-    def _finish_worker(self, result):
+    def _finish_worker(self, result, *, defer_verification=False):
         if self._accepted != self._submitted or not self._accepted:
             raise ValueError('Cannot finish empty or incomplete submission sequence')
         self.writer._flush(self)
         self._file.attrs['async_recording_status'] = 'complete'
         self._file.flush()
         self._file.close()
+        self._file = None
         self._numeric = None
         binding = None
         if self._stream is not None:
@@ -453,13 +589,7 @@ class AsyncLaneRecorder:
             self._stream.finish(result)
             self._profile['worker_finish_s'] += time.perf_counter() - started
             path = self.directory / 'demonstration/data.h5'
-            started = time.perf_counter()
-            count = verify_stream_fields(path)
-            self._profile['worker_verify_s'] += time.perf_counter() - started
-            started = time.perf_counter()
-            digest = _sha256(path)
-            self._profile['worker_hash_s'] += time.perf_counter() - started
-            binding = dict(path=str(path), verified_source_fields=count, sha256=digest)
+            binding = dict(path=str(path))
             if 'checkpoint_sha256' in result:
                 binding['checkpoint_sha256'] = result['checkpoint_sha256']
             if 'dagger' in result:
@@ -470,10 +600,10 @@ class AsyncLaneRecorder:
                 binding['accepted_success'] = bool(result.get('success'))
             self._stream = None
         receipt = dict(numeric_path=str(self.directory / 'numeric.h5'), dataset_capture=binding,
-            steps=self._accepted, profile=dict(self._profile), _verified_at=time.perf_counter(),
-            recording_contract='shared_async_capture_v1',
-            status='source_verified' if binding is not None else 'numeric_complete')
-        _publish_receipt(self.directory / 'capture_complete.json', receipt)
+            steps=self._accepted, profile=dict(self._profile),
+            recording_contract='shared_async_capture_v2' if defer_verification else 'shared_async_capture_v1')
+        if not defer_verification:
+            receipt = _verify_closed_capture(receipt)
         self._worker_finished = True
         return receipt
 

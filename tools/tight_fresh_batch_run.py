@@ -13,9 +13,12 @@ from visuotactile.training_resources import atomic_json
 
 
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
-            execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None):
+            execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None,
+            verification_workers=0,verification_max_pending=4):
     from visuotactile.models.native_vision import validate_vision_microbatch
+    from visuotactile.async_recording import validate_verification_parameters
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
+    validate_verification_parameters(verification_workers,verification_max_pending)
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
     if type(writer_bytes) is not int or writer_bytes<32<<20:
@@ -35,6 +38,7 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
     plan=read(output/'plan.json');session=read(output/'session.json')
     plan.update(batch=dict(version='whole_wave_complete_student_v1',lanes=lanes,seed=seed,
         neural_batch=True,writer_bytes=writer_bytes,vision_microbatch=vision_microbatch,
+        verification_workers=verification_workers,verification_max_pending=verification_max_pending,
         ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend,expert_sha256=session['expert_sha256'])
     atomic_json(output/'plan.json',plan)
@@ -117,9 +121,12 @@ def admit_capture(output,case,result,pair,plan,entries):
     else:
         audit_name,category,stage_audit=classify_capture(directory,case,result,plan)
     causal=case.get('dagger',{}).get('trigger') is not None
+    from visuotactile.takeover_trigger import HELD_NEAR_GOAL_VERSION
+    near_goal=(case.get('dagger',{}).get('trigger') or {}).get('version')==HELD_NEAR_GOAL_VERSION
     atomic_json(directory/audit_name,dict(category=category,causal_trigger=stage_audit,
         source_plan_sha256=sha256(output/'plan.json'),no_expert_fallback=True if causal else None,
-        expert_schedule='causal_contact_window' if causal else 'preregistered_fixed_tick',
+        expert_schedule=('causal_held_near_goal_window' if near_goal else
+            'causal_contact_window' if causal else 'preregistered_fixed_tick'),
         expansion_schedule=case.get('expansion_schedule'),training_expansion=case['spec'].get('training_expansion'),
         not_autonomous_success=bool(result.get('dagger',{}).get('expert_ticks',0))))
     atomic_json(directory/'result.json',result)
@@ -132,9 +139,12 @@ def run(output):
     from visuotactile.batched_rollout import waves,run_wave
     from visuotactile.state_resources import lease_for
     from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch
+    from visuotactile.async_recording import validate_verification_parameters
     from visuotactile.native_evaluation import exit_completed_kit_worker
     output=Path(output).resolve();plan=read(output/'plan.json');session=read(output/'session.json')
     vision_microbatch=validate_vision_microbatch(plan['batch'].get('vision_microbatch',2))
+    validate_verification_parameters(plan['batch'].get('verification_workers',0),
+        plan['batch'].get('verification_max_pending',4))
     if plan.get('test_used') is not False or plan['batch']['version']!='whole_wave_complete_student_v1':
         raise ValueError('Explicit non-test batch registration required')
     if plan['kind']=='takeover':
@@ -164,10 +174,14 @@ def run(output):
     for index,cases in enumerate(waves(plan['cases'],plan['batch']['lanes'])):
         role=cases[0]['role'];pair=plan['pairs'][role]
         finished,profile=run_wave(env,player,lease,output,cases,pair,saved[role],dino,plan,index)
+        profile.update(admission_s=0.,admission_scope='Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds')
         for case,result in finished:
             if result.get('legal') and (result.get('residual_ticks')!=result['steps'] or not result.get('software_complete')):
                 raise ValueError('Incomplete full-student execution')
-            if plan['kind']=='takeover':admit_capture(output,case,result,pair,plan,entries)
+            if plan['kind']=='takeover':
+                before_admission=time.perf_counter()
+                admit_capture(output,case,result,pair,plan,entries)
+                profile['admission_s']+=time.perf_counter()-before_admission
             results.append(dict(role=role,case=case['name'],result=result,
                 timing=dict(batch_wave=index,total_seconds=result.get('wall_profile',{}).get('through_result_s'),
                     interpretation='Lane lifetimes overlap; use batch wave total for throughput')))
@@ -192,6 +206,8 @@ def main():
     p.add_argument('--identities',nargs='+');p.add_argument('--delays',nargs='+',type=int);p.add_argument('--round',type=int,default=7)
     p.add_argument('--backend-json',type=Path);p.add_argument('--writer-mib',type=int,default=512)
     p.add_argument('--vision-microbatch',type=int,default=2)
+    p.add_argument('--verification-workers',type=int,default=0)
+    p.add_argument('--verification-max-pending',type=int,default=4)
     a=p.parse_args()
     if a.stage=='run' and a.session_root is not None:
         p.error('run uses the immutable registered session; --session-root requires prepare')
@@ -201,7 +217,8 @@ def main():
         prepare(a.root.resolve(),a.output.resolve(),lanes=a.lanes,count=a.count,seed=a.seed,
             identities=a.identities,delays=a.delays,round_index=a.round,
             execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20,
-            vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None)
+            vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None,
+            verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending)
 
 
 if __name__=='__main__':

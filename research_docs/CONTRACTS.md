@@ -6,6 +6,12 @@ independent_followup_binding_v3分别绑定每角色已完成自主的完整DP/�
 
 异步采集始终先完成真实执行、再对关闭文件进行全部源字段校验/完整hash、最后通过原控制/相机/成功审核入池。execution_complete、record_verified、accepted_for_training三者分开；软件partial与未触发不是新的成功数据。计时以完整owner总wall和实际入池轨迹/合法专家步为主，异步重叠时间不相加。
 
+## 2026-11-14 near60 持物接近当前目标的采集合同
+
+`held_near_goal_then_delay_v1`显式固定60mm、delay0、无fallback哨兵1,000,000,000；它只筛选采集状态，不改变原生15mm关键点成功、掉落或终止。已完成学生transition须满足原contact-height连续12tick（两物理子步均双指>0.1N，物体高于已完成25–48tick中位高2cm，允许掌中转动），且当前transition的原生最大关键点距离<=60mm。该距离对应动作前当前目标，因此目标pose与stage在transition前后必须完全一致；目标切换时拒绝触发。完成计数N合格后由下一动作index N接管，只用当前与过去信息，真值只用于调度，不进入学生条件。
+
+串行、批量与HDF5审计通过同一`observe_transition`读取真实已完成记录；逐lane独立窗口与历史。mixed expansion使用显式`near60` schedule，与fixed40/80、contact0/12分别记账，禁止阈值或fallback漂移；旧stable/contact入口不静默改语义。原生成功、真实专家恢复、完整校验、实际入池及优化器曝光分别报告。B06历史回看选择60mm的事前证据保留为near60_design_01.json；回看的后续持物长度只解释设计，在线触发器不读取未来。实现及CPU回读通过不等于真实新批专家恢复或自主行为提升。
+
 ## 2026-11-14 latest_takeover_repeat_v1 前端访问合同
 
 可选sampling_contract={version:latest_takeover_repeat_v1, latest_repeat:1/2/4}仅用于真实DAgger aggregate的本次新增训练episode。原30统计不重算，旧84等历史每遍一次，latest按登记次数完整重放当前权重历史；student prefix与队列flush仍无动作标签，A几何和DP监督共用原合法mask。前端每次episode访问一次optimizer更新，记录episode次数、合法anchor/目标槽，不把步份额称精确梯度份额。每个epoch的实际访问总数随repeat改变，A/B预算相同。
@@ -395,10 +401,14 @@ imitation 将交互收集、轨迹保存与后续 BC 训练分离；其 Interact
 
 `batched_expert_takeover_position_wave_v1`只包装原单lane桥，复用同一次原生N维delay draw；逐lane的实际专家建议队列、source-step、source/valid segment和完整queue flush保持原语义。inactive lane保持其实际当前原生目标，`bridge_active=False`且无专家标签，不进入旧episode。学生在专家后段仍按新真实观测处理历史，实际issued/applied写回下一tick；学生前缀始终mask0。成功、触发、专家救回、相机/标签验收及入训练分别统计。
 
-新`SharedCaptureWriter`由唯一worker拥有HDF5句柄，主线程提交独立CPU快照；共同字节上限覆盖队列、正在写入和保留的行缓冲，压缩临时工作区另列。全部源字段重建SHA/相机内容/控制来源验收仍是入训练前置；软件中断保留partial和完成case清单，不把异步提交返回当完成落盘。吞吐以完整batch含启动、drain与验收入账的墙钟为准，lane计时重叠不能相加。
+新`SharedCaptureWriter`由唯一写线程拥有可写HDF5句柄，主线程提交独立CPU快照；共同字节上限覆盖队列、正在写入和保留的行缓冲，压缩临时工作区另列。`verification_workers=0`保留原线程内完整验证；显式登记`2`及`verification_max_pending=4`时，`shared_async_capture_v2`先关闭该lane全部文件，仅把路径与小型凭据交给有界spawn进程池。上限包含排队及正在验证的任务，不跨进程传RGB数组；各验证进程独立持有只读HDF5锁，逐块解码内存另计，不纳入512MiB写入payload上限。默认和正式计划的参数均校验，不向已运行批次热替换。
+
+验证子进程继续调用原`verify_stream_fields`重建并比对全部源字段SHA（batch07为185项），再计算完整compact文件SHA；验证成功后才原子发布`capture_complete.json`并完成ticket。`verification_queued.json`、`verification_started.json`保留关闭文件路径和真实验证PID；文件关闭、验证完成、相机/控制/动作来源验收、最终入训练是不同阶段。任一child异常同时传到ticket、writer.check和close，唤醒容量等待，保留失败输入及`capture_error.json`；正常close等待并回收进程。正式`python -m tools.tight_fresh_batch_run`的Kit入口处于`__main__`保护内，spawn的`__mp_main__`导入不启动Kit；此启动路径已做CPU检查，实际Kit吞吐仍须新批次验收。
+
+`tight_batch_owner`在启动时绑定自己创建的worker PID/start_ticks/PGID/SID/UID；即使native异常使leader先退出，finally仍清理同一有据可查的组内存活后代并保存`owner_group_cleanup.json`。检测到PID重用、session/UID不一致即拒绝发信号。旧session、冻结worker与其他owner的通用停止行为保持。全部源字段重建SHA/相机内容/控制来源验收仍是入训练前置；软件中断保留partial和完成case清单，不把异步提交返回当完成落盘。吞吐以完整batch含启动、drain、验收与退出的墙钟为准；lane/写入/验证计时重叠不能相加，短CPU测试不是实际采集加速证据。
 
 仿真候选另登记`execution_backend`，参见[后端合同](EXECUTION_BACKEND_SCALING.md)。上述为实现合同；真实Kit与完整研究周期是否通过必须读新run结果，不能由CPU测试推断。
 
-`preregistered_training_families_v1`在结果发生前固定新增train family、seed及float32请求初态hash，明确排除已有和原验证/测试配置；不代表扩大质量/摩擦域。`registered_training_expansion_takeover_v1`允许事前明确的fixed40/80或contact0/12机会；固定时刻与接触触发分开审核，真实学生前缀没有专家标签。registry、初态hash和来源身份贯穿metadata/entry/aggregate；缺省未知family仍拒绝。六验证family、test22、原统计不变；不读取测试轨迹。固定接管也必须专家实际救回及完整来源/传感验收，不能将登记机会算成新数据。
+`preregistered_training_families_v1`在结果发生前固定新增train family、seed及float32请求初态hash，明确排除已有和原验证/测试配置；不代表扩大质量/摩擦域。`registered_training_expansion_takeover_v1`允许事前明确的fixed40/80、contact0/12或near60机会；固定时刻、接触触发与持物接近目标分开审核，真实学生前缀没有专家标签。registry、初态hash和来源身份贯穿metadata/entry/aggregate；缺省未知family仍拒绝。六验证family、test22、原统计不变；不读取测试轨迹。固定接管也必须专家实际救回及完整来源/传感验收，不能将登记机会算成新数据。
 
 `frozen_episode_prefetch_v1`只对冻结CPU原特征做有界精确clone，不缓存可学习GRU；每次完整历史按当前权重重算。训练前显式登记，已开始不可热替换；吞吐必须含等待及验证，不能把重叠预取和计算相加。短吞吐探针使用独立engineering身份，控制上限截断单列，不计自然失败、成功或新增轨迹。

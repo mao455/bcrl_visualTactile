@@ -198,7 +198,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
     from .narrow_data import configure_direct_reset_lanes
     from .live_collision import clearance
     from .state_benchmark import dagger_configuration, record_dagger_transition
-    from .takeover_trigger import make_trigger
+    from .takeover_trigger import make_trigger,observe_transition
     from .position_control import ExpertPositionBridge
     from .batched_position_bridge import BatchedExpertPositionBridge
     from .async_recording import SharedCaptureWriter, AsyncLaneRecorder
@@ -233,7 +233,9 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
         active=[clearance(env,lane=i)['legal'] if i<len(cases) else False for i in range(n)]
     daggers=[];triggers=[];directories=[];recorders=[];numerics=[];writers=[]
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n;results={}
-    pool=SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes']) if capture else None
+    pool=SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes'],
+        verification_workers=plan['batch'].get('verification_workers',0),
+        verification_max_pending=plan['batch'].get('verification_max_pending',4)) if capture else None
     raw={};hook=None;bridge=None
     profile=dict(controller_s=0.,environment_s=0.,expert_s=0.,record_submit_s=0.,finish_audit_s=0.)
     try:
@@ -295,9 +297,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                     if capture:
                         previous[lane]=record_dagger_transition(c,tr,previous[lane])
                         if triggers[lane] is not None and not bool(tr['dagger']['control_source'][0]):
-                            observed=lambda v:v[0].cpu().numpy()
-                            schedule=triggers[lane].observe(tick,observed(tr['diagnostics_after']['object_pose_w']),
-                                observed(tr['diagnostics_after']['palm_body_pose_w']),observed(tr['object_contact_force_w']))
+                            schedule=observe_transition(triggers[lane],tick,tr)
                             if schedule is not None:bridge.schedule_takeover(lane,schedule)
                     else:c.observe_execution(tr)
                     if tick%12==0:plans[lane].append(c.plan[0].cpu().numpy().copy())

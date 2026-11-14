@@ -1,6 +1,8 @@
 """Real HDF5 equivalence, bounded backpressure and preserved capture failures."""
 import hashlib
 import json
+import os
+from pathlib import Path
 import threading
 import time
 from concurrent.futures import TimeoutError
@@ -10,6 +12,7 @@ import numpy as np
 import pytest
 
 from visuotactile.async_recording import AsyncLaneRecorder, CaptureWorkerError, SharedCaptureWriter
+from visuotactile.async_recording import _verify_closed_capture as verify_closed_capture_original
 from visuotactile.compact import EpisodeFile
 from visuotactile.recording import BufferedNumericWriter, CompactEpisodeStream, verify_stream_fields
 
@@ -59,11 +62,13 @@ def contents(path, compact=False):
 
 
 @pytest.mark.parametrize('compression', ['lzf', 'gzip4_lossless_v1'])
-def test_two_lanes_match_sync_source_fields_and_numeric(tmp_path, compression):
+@pytest.mark.parametrize('verification_workers', [0, 2])
+def test_two_lanes_match_sync_source_fields_and_numeric(tmp_path, compression, verification_workers):
     metadata = {'camera_rig': {'version': 3}, 'trace_version': 2}
     result = {'success': True, 'checkpoint_sha256': 'fixture',
         'dagger': {'expert_takeover_success': True, 'expert_valid_ticks': 7}}
-    with SharedCaptureWriter(max_pending_bytes=50_000, max_queue=3) as pool:
+    with SharedCaptureWriter(max_pending_bytes=50_000, max_queue=3,
+            verification_workers=verification_workers, verification_max_pending=4) as pool:
         lanes = [AsyncLaneRecorder(tmp_path / f'async_{i}', metadata, 'episode', writer=pool,
             compression=compression, numeric_buffer_steps=4, block_size=3) for i in range(2)]
         material = [list(rows(identity=17+i)) for i in range(2)]
@@ -76,6 +81,10 @@ def test_two_lanes_match_sync_source_fields_and_numeric(tmp_path, compression):
         assert stats['peak_reserved_bytes'] <= 50_000
         assert stats['peak_queued_or_copying'] <= 3
         assert stats['reserved_bytes'] == 0
+        if verification_workers:
+            assert stats['verification_completed'] == 2
+            assert stats['verification_pending'] == 0
+            assert stats['verification_peak_pending'] <= 4
     for i in range(2):
         directory = tmp_path / f'sync_{i}'
         directory.mkdir()
@@ -101,6 +110,9 @@ def test_two_lanes_match_sync_source_fields_and_numeric(tmp_path, compression):
         assert receipt['steps'] == 11 and receipt['profile']['worker_verify_s'] > 0
         persisted = json.loads((tmp_path/f'async_{i}/capture_complete.json').read_text())
         assert persisted['dataset_capture'] == binding and persisted['status'] == 'source_verified'
+        if verification_workers:
+            assert persisted['verification_process_pid'] != os.getpid()
+            assert persisted['verification_execution'] == 'spawn_process_v1'
 
 
 def test_caller_array_mutation_cannot_change_accepted_snapshot(tmp_path, monkeypatch):
@@ -317,3 +329,129 @@ def test_compact_verification_failure_never_returns_success_binding(tmp_path, mo
     assert not evidence['verified']
     assert (tmp_path/'verify/demonstration/data.h5').exists()  # preserved failed verification input
     assert not (tmp_path/'verify/capture_complete.json').exists()
+
+
+def _paused_spawn_verifier(receipt, process_worker):
+    """Spawn-importable test fault, with filesystem synchronization only."""
+    root = Path(receipt['numeric_path']).parent.parent
+    (root/('entered_'+Path(receipt['numeric_path']).parent.name)).touch()
+    deadline = time.monotonic()+10
+    while not (root/'release_verifiers').exists():
+        if time.monotonic() >= deadline:
+            raise TimeoutError('Test did not release spawned verifier')
+        time.sleep(.01)
+    if (root/'crash_verifier').exists():
+        os._exit(23)
+    return verify_closed_capture_original(receipt, process_worker)
+
+
+def wait_until(predicate, seconds=5):
+    deadline = time.monotonic()+seconds
+    while not predicate():
+        if time.monotonic() >= deadline:
+            raise AssertionError('Timed out waiting for a bounded test condition')
+        time.sleep(.01)
+
+
+def test_spawn_verification_does_not_block_other_lane_append_and_is_bounded(tmp_path, monkeypatch):
+    monkeypatch.setattr('visuotactile.async_recording._verify_closed_capture', _paused_spawn_verifier)
+    pool = SharedCaptureWriter(verification_workers=1, verification_max_pending=1)
+    try:
+        first = AsyncLaneRecorder(tmp_path/'first', {}, 'episode', writer=pool)
+        second = AsyncLaneRecorder(tmp_path/'second', {}, 'episode', writer=pool)
+        first.submit(*next(rows(n=1)), 0)
+        a = first.finish_async({'success': True})
+        wait_until(lambda:(tmp_path/'entered_first').exists())
+        assert not a.done() and not (tmp_path/'first/capture_complete.json').exists()
+        second.submit(*next(rows(n=1, identity=19)), 0)
+        # The shared writer actually appends, rather than merely accepting a
+        # queued copy while HDF verification monopolizes its thread/PHIL lock.
+        wait_until(lambda:second._accepted == 1)
+        b = second.finish_async({'success': False})
+        wait_until(lambda:(tmp_path/'second/demonstration/data.h5').exists())
+        assert pool.statistics()['verification_pending'] == 1
+        assert pool.statistics()['verification_peak_pending'] == 1
+        assert not (tmp_path/'entered_second').exists()
+        (tmp_path/'release_verifiers').touch()
+        assert a.result(timeout=5)['dataset_capture']['accepted_success']
+        assert not b.result(timeout=5)['dataset_capture']['accepted_success']
+        processes = list(pool._verification_executor._processes.values())
+        pool.close()
+        assert all(not process.is_alive() for process in processes)
+        assert pool.statistics()['verification_completed'] == 2
+        assert pool.statistics()['verification_pending'] == 0
+    finally:
+        (tmp_path/'release_verifiers').touch(exist_ok=True)
+        pool.close()
+
+
+def test_spawn_digest_failure_never_publishes_and_reaches_check_ticket_close(tmp_path, monkeypatch):
+    original = AsyncLaneRecorder._finish_worker
+    def corrupt_after_close(self, result, **kwargs):
+        receipt = original(self, result, **kwargs)
+        with h5py.File(receipt['dataset_capture']['path'], 'r+') as stream:
+            stream['episodes/episode/transition/target_after_rad'][0, 0] += 1
+        return receipt
+    monkeypatch.setattr(AsyncLaneRecorder, '_finish_worker', corrupt_after_close)
+    pool = SharedCaptureWriter(verification_workers=2, verification_max_pending=4)
+    lane = AsyncLaneRecorder(tmp_path/'corrupt', {}, 'episode', writer=pool)
+    lane.submit(*next(rows(n=1)), 0)
+    ticket = lane.finish_async({'success': True})
+    with pytest.raises(CaptureWorkerError, match='content differs'):
+        ticket.result(timeout=5)
+    with pytest.raises(CaptureWorkerError, match='content differs'):
+        pool.check()
+    with pytest.raises(CaptureWorkerError, match='content differs'):
+        pool.close()
+    assert not (tmp_path/'corrupt/capture_complete.json').exists()
+    assert (tmp_path/'corrupt/demonstration/data.h5').exists()
+    assert not json.loads((tmp_path/'corrupt/capture_error.json').read_text())['verified']
+    assert pool.statistics()['verification_failed'] == 1
+    assert pool.statistics()['verification_pending'] == 0
+
+
+def test_spawn_child_crash_unblocks_full_writer_queue_and_preserves_files(tmp_path, monkeypatch):
+    monkeypatch.setattr('visuotactile.async_recording._verify_closed_capture', _paused_spawn_verifier)
+    pool = SharedCaptureWriter(max_queue=1, verification_workers=1, verification_max_pending=1)
+    first = AsyncLaneRecorder(tmp_path/'first', {}, 'episode', writer=pool)
+    second = AsyncLaneRecorder(tmp_path/'second', {}, 'episode', writer=pool)
+    third = AsyncLaneRecorder(tmp_path/'third', {}, 'episode', writer=pool, capture=False)
+    first.submit(*next(rows(n=1)), 0)
+    a = first.finish_async({'success': True})
+    wait_until(lambda:(tmp_path/'entered_first').exists())
+    second.submit(*next(rows(n=1, identity=19)), 0)
+    b = second.finish_async({'success': True})
+    wait_until(lambda:(tmp_path/'second/demonstration/data.h5').exists())
+    third.submit({'state':np.zeros((1, 4), np.float32)}, None, 0)
+    errors, done = [], threading.Event()
+    def blocked_submit():
+        try: third.submit({'state':np.ones((1, 4), np.float32)}, None, 1)
+        except BaseException as error: errors.append(error)
+        finally: done.set()
+    producer = threading.Thread(target=blocked_submit, daemon=True)
+    producer.start()
+    assert not done.wait(.05)
+    (tmp_path/'crash_verifier').touch()
+    (tmp_path/'release_verifiers').touch()
+    assert done.wait(5)
+    producer.join()
+    assert len(errors) == 1 and isinstance(errors[0], CaptureWorkerError)
+    for ticket in (a, b):
+        with pytest.raises(CaptureWorkerError): ticket.result(timeout=5)
+    with pytest.raises(CaptureWorkerError): pool.check()
+    with pytest.raises(CaptureWorkerError): pool.close()
+    for name in ('first', 'second', 'third'):
+        assert (tmp_path/name/'capture_error.json').exists()
+        assert not (tmp_path/name/'capture_complete.json').exists()
+    assert pool.statistics()['verification_pending'] == 0
+    assert not pool.statistics()['worker_alive']
+
+
+def test_numeric_only_mode_never_starts_verifier_processes(tmp_path):
+    with SharedCaptureWriter(verification_workers=2, verification_max_pending=4) as pool:
+        lane = AsyncLaneRecorder(tmp_path/'numeric', {}, 'episode', writer=pool, capture=False)
+        lane.submit({'state':np.zeros((1, 4), np.float32)}, None, 0)
+        receipt = lane.finish({'success': False})
+        assert receipt['dataset_capture'] is None
+        assert pool.statistics()['verification_submitted'] == 0
+        assert pool._verification_executor._processes == {}

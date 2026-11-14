@@ -3,9 +3,21 @@ import numpy as np
 
 VERSION = 'stable_grasp_then_delay_v1'
 CONTACT_HEIGHT_VERSION = 'contact_height_then_delay_v1'
+HELD_NEAR_GOAL_VERSION = 'held_near_goal_then_delay_v1'
+NEVER_FALLBACK = 1_000_000_000
 
 
 def validate_trigger(configuration, fallback_tick):
+    if isinstance(configuration,dict) and configuration.get('version')==HELD_NEAR_GOAL_VERSION:
+        if (set(configuration)!={'version','delay_ticks','max_keypoint_distance_m'}
+                or type(configuration['delay_ticks']) is not int or configuration['delay_ticks']!=0
+                or type(fallback_tick) is not int or fallback_tick!=NEVER_FALLBACK
+                or isinstance(configuration['max_keypoint_distance_m'],bool)
+                or not isinstance(configuration['max_keypoint_distance_m'],(int,float))
+                or not np.isfinite(configuration['max_keypoint_distance_m'])
+                or configuration['max_keypoint_distance_m']!=.06):
+            raise ValueError('Held near-goal v1 requires explicit60mm, delay0 and no fallback')
+        return dict(configuration)
     if not isinstance(configuration, dict) or set(configuration) != {'version', 'delay_ticks'}:
         raise ValueError('Explicit stable-grasp trigger version and delay required')
     delay = configuration['delay_ticks']
@@ -161,7 +173,83 @@ class ContactHeightTrigger:
             native_success_changed=False)
 
 
+class HeldNearGoalTrigger:
+    """A completed contact-height window near the same current native target.
+
+    Keypoint distance belongs to the transition's pre-action goal. Reject a
+    goal/stage change in that transition; no future state or expert action is
+    inspected. The12tick holding window permits rotation within the hand.
+    """
+    def __init__(self,configuration,fallback_tick):
+        self.configuration=validate_trigger(configuration,fallback_tick)
+        if self.configuration['version']!=HELD_NEAR_GOAL_VERSION:
+            raise ValueError('HeldNearGoalTrigger requires its explicit contract')
+        self.fallback_tick=fallback_tick;self.scheduled_tick=fallback_tick
+        self.poses=[];self.palms=[];self.forces=[];self.height=None
+        self.first_contact_height_completed_tick=None;self.first_held_near_goal_completed_tick=None
+        self.reason='no_completed_held_near_goal_window';self.near_goal_at_trigger=None
+        self.target_change_transitions=0
+
+    def observe(self,tick,pose,palm,force,*,keypoint_max_distance_m,goal_index_before,goal_index_after,
+                goal_pose_before,goal_pose_after):
+        if tick!=len(self.poses) or tick>=self.scheduled_tick:
+            raise ValueError('Trigger observes each completed student transition exactly once')
+        values=[np.asarray(x).copy() for x in (pose,palm,force,goal_pose_before,goal_pose_after)]
+        if ([x.shape for x in values]!=[(7,),(7,),(2,5,3),(7,),(7,)]
+                or not all(np.isfinite(x).all() for x in values)):
+            raise ValueError('Finite actual object/palm/contact and current native goal poses required')
+        scalars=[np.asarray(x) for x in (keypoint_max_distance_m,goal_index_before,goal_index_after)]
+        if any(x.shape!=() or not np.isfinite(x) or float(x)<0 for x in scalars):
+            raise ValueError('Finite nonnegative native keypoint distance and goal indices required')
+        distance,before,after=map(float,scalars)
+        if not before.is_integer() or not after.is_integer():raise ValueError('Native goal stages must be integers')
+        unchanged=before==after and np.array_equal(values[3],values[4])
+        self.target_change_transitions+=not unchanged
+        self.poses.append(values[0]);self.palms.append(values[1]);self.forces.append(values[2])
+        completed=len(self.poses)
+        if completed==48:self.height=float(np.median(np.asarray(self.poses)[24:48,2]))
+        if self.height is None:return None
+        held=contact_height_windows(np.asarray(self.poses[-12:]),np.asarray(self.forces[-12:]),self.height)[-1]
+        if held and self.first_contact_height_completed_tick is None:self.first_contact_height_completed_tick=completed
+        if not held or not unchanged or distance>self.configuration['max_keypoint_distance_m']:return None
+        self.first_held_near_goal_completed_tick=completed;self.scheduled_tick=completed
+        self.reason='completed_student_held_near_goal_window_plus_delay'
+        self.near_goal_at_trigger=dict(native_keypoint_max_distance_m=distance,active_goal_index=int(before),
+            goal_pose_w=values[3].tolist(),pre_post_goal_unchanged=True)
+        return self.scheduled_tick
+
+    def receipt(self):
+        return dict(configuration=self.configuration,fallback_tick=self.fallback_tick,
+            actual_scheduled_takeover_tick=self.scheduled_tick,reason=self.reason,
+            completed_student_transitions_observed=len(self.poses),settled_height_m=self.height,
+            first_contact_height_window_end_completed_tick=self.first_contact_height_completed_tick,
+            first_held_near_goal_window_end_completed_tick=self.first_held_near_goal_completed_tick,
+            near_goal_at_trigger=self.near_goal_at_trigger,target_change_transitions=self.target_change_transitions,
+            rule='12 completed ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; current native keypoint max<=60mm; unchanged pre/post goal pose and stage; next action takeover',
+            indices='Zero-based action index; a window ending at completed count N schedules action N',
+            diagnostic_only=True,student_inputs_changed=False,stable_grasp_claim=False,
+            native_success_changed=False,no_expert_fallback=True,future_information_used=False)
+
+
+def observe_transition(trigger,tick,transition,index=0):
+    """Shared live singleton-lane and HDF5 audit reader; extra truth is trigger-only."""
+    def value(path):
+        current=transition
+        for key in path.split('/'):current=current[key]
+        current=current[index]
+        if hasattr(current,'detach'):current=current.detach().cpu().numpy()
+        return current
+    extra={}
+    if getattr(trigger,'configuration',{}).get('version')==HELD_NEAR_GOAL_VERSION:
+        extra=dict(keypoint_max_distance_m=value('native_keypoints_max_dist'),
+            goal_index_before=value('diagnostics_before/successes'),goal_index_after=value('diagnostics_after/successes'),
+            goal_pose_before=value('diagnostics_before/goal_pose_w'),goal_pose_after=value('diagnostics_after/goal_pose_w'))
+    return trigger.observe(tick,value('diagnostics_after/object_pose_w'),value('diagnostics_after/palm_body_pose_w'),
+        value('object_contact_force_w'),**extra)
+
+
 def make_trigger(configuration, fallback_tick):
     validated = validate_trigger(configuration, fallback_tick)
-    cls = StableGraspTrigger if validated['version'] == VERSION else ContactHeightTrigger
+    cls = {VERSION:StableGraspTrigger,CONTACT_HEIGHT_VERSION:ContactHeightTrigger,
+        HELD_NEAR_GOAL_VERSION:HeldNearGoalTrigger}[validated['version']]
     return cls(validated, fallback_tick)

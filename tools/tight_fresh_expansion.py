@@ -15,18 +15,20 @@ from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 from visuotactile.training_expansion import (COLLECTION_CONTRACT, NEVER_FALLBACK,
     canonical_digest, make_registry, read_registry, registry_binding,
-    validate_collection_plan, validate_schedule)
+    validate_collection_plan, validate_schedule,schedule_trigger)
 
 
 def prepare(source, output, *, session_root, registry_id, seeds, partition_manifest,
             frozen_families, schedules, lanes, event_seed, round_index,
-            existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2):
+            existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2,
+            verification_workers=0,verification_max_pending=4):
     from visuotactile.execution_backend import normalize_backend
     from visuotactile.models.native_vision import validate_vision_microbatch
+    from visuotactile.async_recording import validate_verification_parameters
     from visuotactile.position_control import ExpertPositionBridge
     from visuotactile.state_benchmark import dagger_configuration
-    from visuotactile.takeover_trigger import CONTACT_HEIGHT_VERSION
     vision_microbatch = validate_vision_microbatch(vision_microbatch)
+    validate_verification_parameters(verification_workers,verification_max_pending)
     source = Path(source).resolve()
     output = Path(output).resolve()
     session_root = Path(session_root).resolve()
@@ -92,8 +94,8 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
                 spec.update(training_expansion=copy.deepcopy(binding),
                     initial_configuration_sha256=row['configuration_sha256'])
             bridge = dict(version=ExpertPositionBridge.version, expert_speed=ExpertPositionBridge.speed_scheme)
-            if schedule.startswith('contact'):
-                bridge['trigger'] = dict(version=CONTACT_HEIGHT_VERSION, delay_ticks=int(schedule[7:]))
+            trigger=schedule_trigger(schedule)
+            if trigger is not None:bridge['trigger']=trigger
             dagger_configuration(bridge, spec, data[role])
             cases.append(dict(name=name, role=role, spec=spec, dagger=bridge, video=False,
                 source_data=str(manifests[role]), expansion_schedule=schedule))
@@ -107,6 +109,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
             for path in sorted(Path(folder).rglob('*.py'))},
         batch=dict(version='whole_wave_complete_student_v1', lanes=lanes, seed=event_seed,
             neural_batch=True, writer_bytes=writer_bytes, vision_microbatch=vision_microbatch,
+            verification_workers=verification_workers,verification_max_pending=verification_max_pending,
             ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend, expert_sha256=session['expert_sha256'],
         inference_scheduler_index_mode='host', first_plan_forensics=False,
@@ -129,7 +132,7 @@ def main():
     parser.add_argument('--initial-seeds', type=int, nargs='+', required=True)
     parser.add_argument('--partition-manifest', type=Path, required=True)
     parser.add_argument('--frozen-families', type=Path, required=True)
-    parser.add_argument('--schedule-cycle', choices=['fixed40', 'fixed80', 'contact0', 'contact12'], nargs='+', required=True)
+    parser.add_argument('--schedule-cycle', choices=['fixed40', 'fixed80', 'contact0', 'contact12','near60'], nargs='+', required=True)
     parser.add_argument('--existing-identities', nargs='*', default=[])
     parser.add_argument('--lanes', type=int, required=True)
     parser.add_argument('--event-seed', type=int, required=True)
@@ -137,13 +140,16 @@ def main():
     parser.add_argument('--backend-json', type=Path)
     parser.add_argument('--writer-mib', type=int, default=512)
     parser.add_argument('--vision-microbatch', type=int, default=2)
+    parser.add_argument('--verification-workers',type=int,default=0)
+    parser.add_argument('--verification-max-pending',type=int,default=4)
     args = parser.parse_args()
     prepare(args.source, args.output, session_root=args.session_root, registry_id=args.registry_id,
         seeds=args.initial_seeds, partition_manifest=args.partition_manifest, frozen_families=args.frozen_families,
         schedules=args.schedule_cycle, lanes=args.lanes, event_seed=args.event_seed, round_index=args.round,
         existing_identities=args.existing_identities,
         execution_backend=read(args.backend_json) if args.backend_json else None, writer_bytes=args.writer_mib << 20,
-        vision_microbatch=args.vision_microbatch)
+        vision_microbatch=args.vision_microbatch,verification_workers=args.verification_workers,
+        verification_max_pending=args.verification_max_pending)
 
 
 if __name__ == '__main__':

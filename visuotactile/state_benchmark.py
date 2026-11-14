@@ -614,7 +614,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             bridge = ExpertPositionBridge(env, dagger['takeover_tick'], dagger['expert_speed'])
             env._dagger_position_bridge = bridge
             if dagger.get('trigger') is not None:
-                from .takeover_trigger import make_trigger
+                from .takeover_trigger import make_trigger,observe_transition
                 takeover_trigger = make_trigger(dagger['trigger'], dagger['takeover_tick'])
         bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
         if replay is not None and expert_speed is None:
@@ -684,10 +684,7 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                     previous_nominal = record_dagger_transition(controller, transition, previous_nominal)
                     command = transition['position_requested_rad']
                     if takeover_trigger is not None and not bool(transition['dagger']['control_source'][0]):
-                        actual = transition['diagnostics_after']
-                        def observed(value): return value[0].detach().cpu().numpy()
-                        scheduled = takeover_trigger.observe(tick, observed(actual['object_pose_w']),
-                            observed(actual['palm_body_pose_w']), observed(transition['object_contact_force_w']))
+                        scheduled = observe_transition(takeover_trigger,tick,transition)
                         if scheduled is not None: bridge.schedule_takeover(scheduled)
                 elif controller is not None and (takeover_steps is None or tick < takeover_steps):
                     controller.observe_execution(transition)

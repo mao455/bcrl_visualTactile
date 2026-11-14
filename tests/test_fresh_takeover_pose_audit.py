@@ -70,22 +70,29 @@ def test_rejects_malformed_or_nonfinite_window(mutation):
 
 
 @pytest.mark.parametrize('mutation',[None,'time','episode','pose','authority','result','receipt'])
-@pytest.mark.parametrize('version',['stable_grasp_then_delay_v1','contact_height_then_delay_v1'])
+@pytest.mark.parametrize('version',['stable_grasp_then_delay_v1','contact_height_then_delay_v1','held_near_goal_then_delay_v1'])
 def test_actual_h5_timeline_checks_native_counts_and_expert_switch(tmp_path,mutation,version):
-    n=72;student=67
+    near=version=='held_near_goal_then_delay_v1'
+    n=72;student=60 if near else 67
     pose=np.zeros((n,7));pose[:,3]=1;pose[48:,2]=.1
     palm=np.zeros_like(pose);palm[:,3]=1
     force=np.zeros((n,2,5,3));force[:,:,:2,2]=1
-    trigger=make_trigger(dict(version=version,delay_ticks=7),1000)
-    receipt_key=('first_stable_window_end_completed_tick' if version=='stable_grasp_then_delay_v1'
+    trigger=make_trigger(dict(version=version,delay_ticks=0,max_keypoint_distance_m=.06) if near else
+        dict(version=version,delay_ticks=7),1_000_000_000 if near else 1000)
+    receipt_key=('first_held_near_goal_window_end_completed_tick' if near else
+        'first_stable_window_end_completed_tick' if version=='stable_grasp_then_delay_v1'
         else 'first_contact_height_window_end_completed_tick')
-    for tick in range(student):trigger.observe(tick,pose[tick],palm[tick],force[tick])
+    for tick in range(student):
+        extra=dict(keypoint_max_distance_m=.05,goal_index_before=0,goal_index_after=0,
+            goal_pose_before=pose[max(tick-1,0)],goal_pose_after=pose[tick]) if near else {}
+        trigger.observe(tick,pose[tick],palm[tick],force[tick],**extra)
     result=dict(steps=n,dagger=dict(student_ticks=student,expert_ticks=n-student,trigger_receipt=trigger.receipt()))
     expected=copy.deepcopy(result)
     with h5py.File(tmp_path/'numeric.h5','w') as stream:
         t=stream.create_group('transition');o=stream.create_group('obs');before=t.create_group('diagnostics_before');after=t.create_group('diagnostics_after')
         t['time_before_s']=np.arange(n)/60;t['time_after_s']=np.arange(1,n+1)/60;o['time_s']=np.arange(n)/60
         t['step_id']=np.arange(n);t['episode_id']=np.full(n,42)
+        t['object_contact_force_w']=force;t['native_keypoints_max_dist']=np.full(n,.05)
         for key,value in [('object_pose_w',pose),('palm_body_pose_w',palm),('goal_pose_w',pose),('successes',np.zeros(n))]:
             after[key]=value;before[key]=np.concatenate((value[:1],value[:-1]))
         t.create_group('dagger')['control_source']=(np.arange(n)>=student).astype(int)
@@ -98,8 +105,8 @@ def test_actual_h5_timeline_checks_native_counts_and_expert_switch(tmp_path,muta
         if mutation is None:
             checked=timeline_checks(t,o,result,pose,palm,force)
             assert checked['trigger_replay_exact'] and result==expected
-            assert checked['student_last_completed_tick']==67
-            assert checked['expert_first_action_index']==67 and checked['expert_first_completed_tick']==68
+            assert checked['student_last_completed_tick']==student
+            assert checked['expert_first_action_index']==student and checked['expert_first_completed_tick']==student+1
             assert checked['trigger_receipt'][receipt_key]==60
         else:
             with pytest.raises(ValueError):timeline_checks(t,o,result,pose,palm,force)

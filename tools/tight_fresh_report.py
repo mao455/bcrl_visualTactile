@@ -10,7 +10,7 @@ def audit_trigger_case(directory, result):
     """Recompute scheduling solely from saved completed student transitions."""
     import h5py
     import numpy as np
-    from visuotactile.takeover_trigger import make_trigger, CONTACT_HEIGHT_VERSION
+    from visuotactile.takeover_trigger import make_trigger, observe_transition, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION
     dagger=result.get('dagger',{})
     config=dagger.get('configuration',{})
     if config.get('trigger') is None: return None
@@ -18,14 +18,17 @@ def audit_trigger_case(directory, result):
     with h5py.File(directory/'numeric.h5') as f:
         t=f['episode/transition'];source=t['dagger/control_source'][:]
         for tick in np.flatnonzero(source==0):
-            trigger.observe(int(tick),t['diagnostics_after/object_pose_w'][tick],
-                t['diagnostics_after/palm_body_pose_w'][tick],t['object_contact_force_w'][tick])
+            observe_transition(trigger,int(tick),t,index=int(tick))
     if trigger.receipt()!=dagger['trigger_receipt']:
         raise ValueError('Recorded causal takeover trigger cannot be reproduced')
     actual=dagger['recovery_coverage']['switch_tick']
     if actual is not None and actual!=trigger.scheduled_tick:
         raise ValueError('Actual authority switch differs from causal schedule')
-    if config['trigger']['version'] == CONTACT_HEIGHT_VERSION:
+    if config['trigger']['version'] == HELD_NEAR_GOAL_VERSION:
+        category='ended_before_takeover' if actual is None else 'student_held_near_goal_then_takeover'
+        if actual is not None and trigger.reason!='completed_student_held_near_goal_window_plus_delay':
+            raise ValueError('Near-goal expert switch lacks a completed causal window')
+    elif config['trigger']['version'] == CONTACT_HEIGHT_VERSION:
         category=('ended_before_takeover' if actual is None else
             'student_contact_height_then_takeover' if trigger.reason=='completed_student_contact_height_window_plus_delay' else
             'fallback_before_requested_delay' if trigger.first_contact_height_completed_tick is not None else
@@ -68,7 +71,7 @@ def takeover(collection,output):
         legal=sum(c['role']==role and bool(c['legal']) for c in cases),
         expert_successes=sum(c['role']==role and bool(c['expert_takeover_success']) for c in cases),
         trigger_categories={kind:sum(c['role']==role and c['trigger'] is not None and c['trigger']['category']==kind for c in cases)
-            for kind in ['student_stable_then_takeover','student_contact_height_then_takeover',
+            for kind in ['student_stable_then_takeover','student_contact_height_then_takeover','student_held_near_goal_then_takeover',
                 'fallback_without_stable_grasp','fallback_without_contact_height',
                 'fallback_before_requested_delay','ended_before_takeover']},
         accepted=sum(c['role']==role for c in retained)) for role in ['A','B']}

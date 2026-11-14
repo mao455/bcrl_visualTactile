@@ -1,0 +1,1388 @@
+{
+  "version": "actual_collection_throughput_v1",
+  "created_utc": 1794660864.0491996,
+  "serial": {
+    "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01",
+    "complete": true,
+    "execution": "serial",
+    "counts": {
+      "attempts": 16,
+      "legal_attempts": 16,
+      "triggered_attempts": 9,
+      "accepted_trajectories": 9,
+      "all_control_ticks": 7245,
+      "all_valid_expert_ticks": 1850,
+      "accepted_valid_expert_ticks": 1850,
+      "student_autonomous_successes": 0
+    },
+    "profile": {
+      "owner_seconds": 1218.4167845249176,
+      "initialization_seconds": 72.21340428502299,
+      "owner_timing_scope": "Owned worker startup, execution, output and admission until owner completion",
+      "primary_rates": {
+        "attempts_per_hour": 47.27446365773701,
+        "accepted_trajectories_per_hour": 26.591885807477066,
+        "accepted_valid_expert_ticks_per_hour": 5466.109860425841,
+        "all_valid_expert_ticks_per_hour": 5466.109860425841,
+        "aggregate_control_ticks_per_second": 5.946241131949733
+      },
+      "serial_case_seconds": 1109.222499982221,
+      "serial_case_rates": {
+        "attempts_per_hour": 51.92826506938259,
+        "accepted_trajectories_per_hour": 29.209649101527706,
+        "accepted_valid_expert_ticks_per_hour": 6004.205648647362,
+        "all_valid_expert_ticks_per_hour": 6004.205648647362,
+        "aggregate_control_ticks_per_second": 6.531602090758279
+      },
+      "serial_case_scope": "Sum of sequential case execution; excludes initial Kit startup and outer admission/report overhead",
+      "synchronous_profile_sums": {
+        "expert_inference_s": 22.393199022859335,
+        "environment_step_render_s": 354.26932637183927,
+        "numeric_write_s": 14.437753016129136,
+        "compact_append_s": 223.39481697743759,
+        "finalize_verify_s": 247.65951067092828,
+        "setup_s": 27.117850789334625,
+        "through_result_s": 1100.6727502832655
+      }
+    },
+    "measurement_sources": {
+      "owner_seconds": "owner_finished.json: seconds",
+      "initialization_seconds": "initialization.json: seconds",
+      "counts": "results.json: each result steps, dagger and actual_exposure; accepted set must equal correction_entries.json",
+      "primary_rates": "counts divided by owner_finished.json: seconds, scaled to seconds or hours",
+      "serial_case_seconds": "results.json: sum of each timing.total_seconds",
+      "synchronous_profile_sums": "results.json: sum of each result.wall_profile component; nested components are not additive"
+    },
+    "bindings": {
+      "owner_finished.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/owner_finished.json",
+        "sha256": "b98fe2715982154e3dbf7eb16207e8e4fae35ae0c15ad7d644f155999e20dea5"
+      },
+      "result.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/result.json",
+        "sha256": "af843e367d4595cfccc7cddc4c8f3717d60a4593296df0756fefe3a3a467b9bb"
+      },
+      "plan.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/plan.json",
+        "sha256": "d9c02e73617902f6d33d83f079a2f359f228e6fefee03cef1eaae7b5d2e6e034"
+      },
+      "results.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/results.json",
+        "sha256": "a826f7d84d4e2f78c84a6361eb6ec315e7b6b21b2332319d2e7d2ae4b17de1da"
+      },
+      "correction_entries.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/correction_entries.json",
+        "sha256": "9a51e72d0106ab23e3247751bf96ab1e9b15bed8a6d53b7eaaa3db050f821022"
+      },
+      "session.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/session.json",
+        "sha256": "0a24d0f0fa6c7a0644148069ecbded31284da7d2e8e7d9803ef41d6cd3668a07"
+      },
+      "initialization.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01/initialization.json",
+        "sha256": "b2a43a387eb8fca67c12270600adee28d349a7efb9441d0a3fbc67d8cc51eaa4"
+      }
+    },
+    "source_commit": "93eff18df4240dde3245fd77cdb49ba3cbc619bc",
+    "source_population_sha256": {
+      "A": "294ce50d58fdd31defff1b758f586690bb5e19bc7de0ae3c23c18b7699fb583b",
+      "B": "c3220ec6585cbf4de204ee857c2b829819d0a17e1ba99da5c7db517d0a4afcc7"
+    },
+    "pairs": {
+      "A": {
+        "frontend_sha256": "95007e3843109c1caea84c8fa34bb4df275d05290e4e8ed49ce15202650a1bb8",
+        "backend_sha256": "607baeae778e88094656edba082c0dcb2d78d271d63d3567d8715edde809f52c"
+      },
+      "B": {
+        "frontend_sha256": "58fd2c458df2b2b2df840b3d691811ccde8fa2f21527ab2528c2181965071bea",
+        "backend_sha256": "c6ecbe60900e3cfcacc56017ff558e75ab4defe2c4752678a9c8dae0afaa7da9"
+      }
+    },
+    "registered_case_conditions": [
+      {
+        "role": "A",
+        "source_identity": "formal_050_slow_3",
+        "family": "formal_050",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030735940750345886,
+            -0.010263904608043951,
+            0.6300693384241924,
+            0.12827028941373375,
+            0.8915458698044822,
+            -0.3785728381572251,
+            0.2130150490552634
+          ],
+          "table_reset_z": 0.3808599191933132,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041933677711767786,
+            0.041933677711767786
+          ],
+          "hole_y_range": [
+            -0.038799593643777025,
+            -0.038799593643777025
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_050_slow_3",
+        "family": "formal_050",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030735940750345886,
+            -0.010263904608043951,
+            0.6300693384241924,
+            0.12827028941373375,
+            0.8915458698044822,
+            -0.3785728381572251,
+            0.2130150490552634
+          ],
+          "table_reset_z": 0.3808599191933132,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041933677711767786,
+            0.041933677711767786
+          ],
+          "hole_y_range": [
+            -0.038799593643777025,
+            -0.038799593643777025
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_051_slow_5",
+        "family": "formal_051",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030842482269334587,
+            -0.011684625386154467,
+            0.6312045085125615,
+            0.12395358142992827,
+            0.8863509505479543,
+            -0.3917012546870073,
+            0.21351285492026673
+          ],
+          "table_reset_z": 0.38023513007640386,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045374384634640275,
+            0.045374384634640275
+          ],
+          "hole_y_range": [
+            -0.042495645777485075,
+            -0.042495645777485075
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_051_slow_5",
+        "family": "formal_051",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030842482269334587,
+            -0.011684625386154467,
+            0.6312045085125615,
+            0.12395358142992827,
+            0.8863509505479543,
+            -0.3917012546870073,
+            0.21351285492026673
+          ],
+          "table_reset_z": 0.38023513007640386,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045374384634640275,
+            0.045374384634640275
+          ],
+          "hole_y_range": [
+            -0.042495645777485075,
+            -0.042495645777485075
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_007_slow_3",
+        "family": "formal_007",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030358272826562862,
+            -0.01063289754541369,
+            0.6296551589273327,
+            0.1177601716776781,
+            0.8893128628332801,
+            -0.38754686327250226,
+            0.2122797982840341
+          ],
+          "table_reset_z": 0.379077529994514,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045502790246048225,
+            0.045502790246048225
+          ],
+          "hole_y_range": [
+            -0.04059195338974092,
+            -0.04059195338974092
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_007_slow_3",
+        "family": "formal_007",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030358272826562862,
+            -0.01063289754541369,
+            0.6296551589273327,
+            0.1177601716776781,
+            0.8893128628332801,
+            -0.38754686327250226,
+            0.2122797982840341
+          ],
+          "table_reset_z": 0.379077529994514,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045502790246048225,
+            0.045502790246048225
+          ],
+          "hole_y_range": [
+            -0.04059195338974092,
+            -0.04059195338974092
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_053_slow_0",
+        "family": "formal_053",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03156981101680881,
+            -0.011340732754298057,
+            0.6311958123281722,
+            0.12809687727337818,
+            0.8932409170153194,
+            -0.38193605138241254,
+            0.1995916252827209
+          ],
+          "table_reset_z": 0.38000927796648154,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.04538315461458574,
+            0.04538315461458574
+          ],
+          "hole_y_range": [
+            -0.04034947782864973,
+            -0.04034947782864973
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_053_slow_0",
+        "family": "formal_053",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03156981101680881,
+            -0.011340732754298057,
+            0.6311958123281722,
+            0.12809687727337818,
+            0.8932409170153194,
+            -0.38193605138241254,
+            0.1995916252827209
+          ],
+          "table_reset_z": 0.38000927796648154,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.04538315461458574,
+            0.04538315461458574
+          ],
+          "hole_y_range": [
+            -0.04034947782864973,
+            -0.04034947782864973
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_031_slow_4",
+        "family": "formal_031",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.032404797090402976,
+            -0.009101820096972859,
+            0.6315690092243507,
+            0.11896865022313025,
+            0.8909610261284103,
+            -0.3824082870833665,
+            0.21400682741540897
+          ],
+          "table_reset_z": 0.3797782418490756,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041082237965231305,
+            0.041082237965231305
+          ],
+          "hole_y_range": [
+            -0.037446193676477925,
+            -0.037446193676477925
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_031_slow_4",
+        "family": "formal_031",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.032404797090402976,
+            -0.009101820096972859,
+            0.6315690092243507,
+            0.11896865022313025,
+            0.8909610261284103,
+            -0.3824082870833665,
+            0.21400682741540897
+          ],
+          "table_reset_z": 0.3797782418490756,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041082237965231305,
+            0.041082237965231305
+          ],
+          "hole_y_range": [
+            -0.037446193676477925,
+            -0.037446193676477925
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_047_slow_4",
+        "family": "formal_047",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03324894572988725,
+            -0.012749162623729618,
+            0.6296939085035433,
+            0.11743940799147144,
+            0.8975566380562525,
+            -0.36973561136911526,
+            0.20951313716190523
+          ],
+          "table_reset_z": 0.38081852068833255,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.042998262863643236,
+            0.042998262863643236
+          ],
+          "hole_y_range": [
+            -0.04385955710076979,
+            -0.04385955710076979
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_047_slow_4",
+        "family": "formal_047",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03324894572988725,
+            -0.012749162623729618,
+            0.6296939085035433,
+            0.11743940799147144,
+            0.8975566380562525,
+            -0.36973561136911526,
+            0.20951313716190523
+          ],
+          "table_reset_z": 0.38081852068833255,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.042998262863643236,
+            0.042998262863643236
+          ],
+          "hole_y_range": [
+            -0.04385955710076979,
+            -0.04385955710076979
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_039_slow_5",
+        "family": "formal_039",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030383614368239005,
+            -0.011561770406998063,
+            0.6277799277987888,
+            0.1328320606472294,
+            0.8875313582880623,
+            -0.3848868650868117,
+            0.21565236569384258
+          ],
+          "table_reset_z": 0.37964456641885763,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.0427337185121421,
+            0.0427337185121421
+          ],
+          "hole_y_range": [
+            -0.04205475608516783,
+            -0.04205475608516783
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_039_slow_5",
+        "family": "formal_039",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030383614368239005,
+            -0.011561770406998063,
+            0.6277799277987888,
+            0.1328320606472294,
+            0.8875313582880623,
+            -0.3848868650868117,
+            0.21565236569384258
+          ],
+          "table_reset_z": 0.37964456641885763,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.0427337185121421,
+            0.0427337185121421
+          ],
+          "hole_y_range": [
+            -0.04205475608516783,
+            -0.04205475608516783
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_046_slow_5",
+        "family": "formal_046",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03364069510349281,
+            -0.009069223867527652,
+            0.6316618600751482,
+            0.12283367592435682,
+            0.8882459642028628,
+            -0.38222853655339717,
+            0.22323183242233038
+          ],
+          "table_reset_z": 0.3805815020783065,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.038151058275345776,
+            0.038151058275345776
+          ],
+          "hole_y_range": [
+            -0.0353016152106017,
+            -0.0353016152106017
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_046_slow_5",
+        "family": "formal_046",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03364069510349281,
+            -0.009069223867527652,
+            0.6316618600751482,
+            0.12283367592435682,
+            0.8882459642028628,
+            -0.38222853655339717,
+            0.22323183242233038
+          ],
+          "table_reset_z": 0.3805815020783065,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.038151058275345776,
+            0.038151058275345776
+          ],
+          "hole_y_range": [
+            -0.0353016152106017,
+            -0.0353016152106017
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      }
+    ],
+    "backend": null,
+    "batch": null,
+    "first_plan_forensics": true,
+    "session_deadline": 1794664461.6238303
+  },
+  "scope": "Complete physical collection and accepted training entries; not student autonomous success or optimizer exposure",
+  "caveats": [
+    "Source initials and trigger assignments can match; native batch RNG is not a serial replay.",
+    "Concurrency, kernel microbatch, threading, forensic recording and I/O can differ together; ratios are whole-pipeline observations.",
+    "Accepted expert-tick rates exclude rejected recoveries; all valid expert ticks are reported separately.",
+    "One short batch does not establish stable throughput or autonomous behavior improvement."
+  ],
+  "batch": {
+    "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01",
+    "complete": true,
+    "execution": "batch",
+    "counts": {
+      "attempts": 16,
+      "legal_attempts": 16,
+      "triggered_attempts": 7,
+      "accepted_trajectories": 6,
+      "all_control_ticks": 8229,
+      "all_valid_expert_ticks": 1387,
+      "accepted_valid_expert_ticks": 1360,
+      "student_autonomous_successes": 0
+    },
+    "profile": {
+      "owner_seconds": 1059.374853849411,
+      "initialization_seconds": 20.79729451285675,
+      "owner_timing_scope": "Owned worker startup, execution, output and admission until owner completion",
+      "primary_rates": {
+        "attempts_per_hour": 54.37168891700706,
+        "accepted_trajectories_per_hour": 20.38938334387765,
+        "accepted_valid_expert_ticks_per_hour": 4621.593557945601,
+        "all_valid_expert_ticks_per_hour": 4713.34578299305,
+        "aggregate_control_ticks_per_second": 7.767788682257832
+      },
+      "worker_elapsed_seconds": 1055.6936775560025,
+      "worker_rates": {
+        "attempts_per_hour": 54.561281576818416,
+        "accepted_trajectories_per_hour": 20.460480591306904,
+        "accepted_valid_expert_ticks_per_hour": 4637.708934029565,
+        "all_valid_expert_ticks_per_hour": 4729.781096690446,
+        "aggregate_control_ticks_per_second": 7.7948747586048395
+      },
+      "wave_seconds": 1003.359908382874,
+      "wave_rates": {
+        "attempts_per_hour": 57.407117345195246,
+        "accepted_trajectories_per_hour": 21.527669004448217,
+        "accepted_valid_expert_ticks_per_hour": 4879.604974341596,
+        "all_valid_expert_ticks_per_hour": 4976.479484861613,
+        "aggregate_control_ticks_per_second": 8.201443899889092
+      },
+      "wave_timing_scope": "Reset/controller/real simulation and recording through lane verification; excludes subsequent admission",
+      "admission_seconds": null,
+      "outside_wave_after_initialization_seconds": 31.53647466027178,
+      "outside_wave_scope": "Admission plus model loading, per-wave setup and manifest/report overhead; not pure admission",
+      "async_profile_sums": {
+        "submission_wait_s": 92.33683092123829,
+        "copy_s": 13.889785046689212,
+        "worker_numeric_append_s": 22.39525420195423,
+        "worker_compact_append_s": 367.6404449143447,
+        "worker_flush_s": 0.44336435361765325,
+        "worker_finish_s": 0.3014732876326889,
+        "worker_verify_s": 371.29696986451745,
+        "worker_hash_s": 2.9422604178544134,
+        "drain_and_finalize_wait_s": 268.32881290395744
+      },
+      "async_scope": "Attribution only. Worker and producer timings overlap; do not sum them into elapsed time.",
+      "writers": [
+        {
+          "wave": 0,
+          "statistics": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 536506207,
+            "peak_queued_or_copying": 36,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "stage": "all_started_capture_lanes_verified_before_close",
+            "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+            "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+          }
+        },
+        {
+          "wave": 1,
+          "statistics": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 536674975,
+            "peak_queued_or_copying": 36,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "stage": "all_started_capture_lanes_verified_before_close",
+            "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+            "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+          }
+        }
+      ]
+    },
+    "measurement_sources": {
+      "owner_seconds": "owner_finished.json: seconds",
+      "initialization_seconds": "initialization.json: seconds",
+      "counts": "results.json: each result steps, dagger and actual_exposure; accepted set must equal correction_entries.json",
+      "primary_rates": "counts divided by owner_finished.json: seconds, scaled to seconds or hours",
+      "worker_elapsed_seconds": "result.json: elapsed_seconds",
+      "wave_seconds": "wave_profiles.json: sum of seconds",
+      "admission_seconds": "wave_profiles.json: sum of admission_s only when present in every wave",
+      "async_profile_sums": "results.json: sum of each result.async_capture.profile component; attribution only",
+      "writers": "wave_profiles.json: capture_writer snapshots after verification and before close"
+    },
+    "bindings": {
+      "owner_finished.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/owner_finished.json",
+        "sha256": "d8843fb9f4fd8feb1837c1e89ddd21adc80a056ea5336c43cfdfe5f47b12cd79"
+      },
+      "result.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/result.json",
+        "sha256": "11e4f2bac6ebd3e824a376766015f7fdddd9e7cb04cfd946d09b49a87a7c24b3"
+      },
+      "plan.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/plan.json",
+        "sha256": "d468f9bb392634859d8b7aea473f2c75936ee621ee5bafa23a586ecba51b55e4"
+      },
+      "results.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/results.json",
+        "sha256": "6067bc32b2a3cfb7c796cfa8743508c6aee8e1e8c62fd6e1548c89760203f4a4"
+      },
+      "correction_entries.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/correction_entries.json",
+        "sha256": "4d1c0cf5df947a5fc3767ebe84a63755f787746d36e305efe91aa2c632a65537"
+      },
+      "session.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/session.json",
+        "sha256": "0a24d0f0fa6c7a0644148069ecbded31284da7d2e8e7d9803ef41d6cd3668a07"
+      },
+      "initialization.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/initialization.json",
+        "sha256": "726206cda4d8ad41dd4c4cb0f6ca8dc890664177c468ba047333e71e50d9698a"
+      },
+      "wave_profiles.json": {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/wave_profiles.json",
+        "sha256": "ce55bfb0e11bd013501713017e806dcf9c9d3d9ffec64c806747fd736ca20bb2"
+      }
+    },
+    "source_commit": "2be05334909027f257901890fb13087508f66a36",
+    "source_population_sha256": {
+      "A": "294ce50d58fdd31defff1b758f586690bb5e19bc7de0ae3c23c18b7699fb583b",
+      "B": "c3220ec6585cbf4de204ee857c2b829819d0a17e1ba99da5c7db517d0a4afcc7"
+    },
+    "pairs": {
+      "A": {
+        "frontend_sha256": "95007e3843109c1caea84c8fa34bb4df275d05290e4e8ed49ce15202650a1bb8",
+        "backend_sha256": "607baeae778e88094656edba082c0dcb2d78d271d63d3567d8715edde809f52c"
+      },
+      "B": {
+        "frontend_sha256": "58fd2c458df2b2b2df840b3d691811ccde8fa2f21527ab2528c2181965071bea",
+        "backend_sha256": "c6ecbe60900e3cfcacc56017ff558e75ab4defe2c4752678a9c8dae0afaa7da9"
+      }
+    },
+    "registered_case_conditions": [
+      {
+        "role": "A",
+        "source_identity": "formal_050_slow_3",
+        "family": "formal_050",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030735940750345886,
+            -0.010263904608043951,
+            0.6300693384241924,
+            0.12827028941373375,
+            0.8915458698044822,
+            -0.3785728381572251,
+            0.2130150490552634
+          ],
+          "table_reset_z": 0.3808599191933132,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041933677711767786,
+            0.041933677711767786
+          ],
+          "hole_y_range": [
+            -0.038799593643777025,
+            -0.038799593643777025
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_050_slow_3",
+        "family": "formal_050",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030735940750345886,
+            -0.010263904608043951,
+            0.6300693384241924,
+            0.12827028941373375,
+            0.8915458698044822,
+            -0.3785728381572251,
+            0.2130150490552634
+          ],
+          "table_reset_z": 0.3808599191933132,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041933677711767786,
+            0.041933677711767786
+          ],
+          "hole_y_range": [
+            -0.038799593643777025,
+            -0.038799593643777025
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_051_slow_5",
+        "family": "formal_051",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030842482269334587,
+            -0.011684625386154467,
+            0.6312045085125615,
+            0.12395358142992827,
+            0.8863509505479543,
+            -0.3917012546870073,
+            0.21351285492026673
+          ],
+          "table_reset_z": 0.38023513007640386,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045374384634640275,
+            0.045374384634640275
+          ],
+          "hole_y_range": [
+            -0.042495645777485075,
+            -0.042495645777485075
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_051_slow_5",
+        "family": "formal_051",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030842482269334587,
+            -0.011684625386154467,
+            0.6312045085125615,
+            0.12395358142992827,
+            0.8863509505479543,
+            -0.3917012546870073,
+            0.21351285492026673
+          ],
+          "table_reset_z": 0.38023513007640386,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045374384634640275,
+            0.045374384634640275
+          ],
+          "hole_y_range": [
+            -0.042495645777485075,
+            -0.042495645777485075
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_007_slow_3",
+        "family": "formal_007",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030358272826562862,
+            -0.01063289754541369,
+            0.6296551589273327,
+            0.1177601716776781,
+            0.8893128628332801,
+            -0.38754686327250226,
+            0.2122797982840341
+          ],
+          "table_reset_z": 0.379077529994514,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045502790246048225,
+            0.045502790246048225
+          ],
+          "hole_y_range": [
+            -0.04059195338974092,
+            -0.04059195338974092
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_007_slow_3",
+        "family": "formal_007",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030358272826562862,
+            -0.01063289754541369,
+            0.6296551589273327,
+            0.1177601716776781,
+            0.8893128628332801,
+            -0.38754686327250226,
+            0.2122797982840341
+          ],
+          "table_reset_z": 0.379077529994514,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.045502790246048225,
+            0.045502790246048225
+          ],
+          "hole_y_range": [
+            -0.04059195338974092,
+            -0.04059195338974092
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_053_slow_0",
+        "family": "formal_053",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03156981101680881,
+            -0.011340732754298057,
+            0.6311958123281722,
+            0.12809687727337818,
+            0.8932409170153194,
+            -0.38193605138241254,
+            0.1995916252827209
+          ],
+          "table_reset_z": 0.38000927796648154,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.04538315461458574,
+            0.04538315461458574
+          ],
+          "hole_y_range": [
+            -0.04034947782864973,
+            -0.04034947782864973
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_053_slow_0",
+        "family": "formal_053",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03156981101680881,
+            -0.011340732754298057,
+            0.6311958123281722,
+            0.12809687727337818,
+            0.8932409170153194,
+            -0.38193605138241254,
+            0.1995916252827209
+          ],
+          "table_reset_z": 0.38000927796648154,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.04538315461458574,
+            0.04538315461458574
+          ],
+          "hole_y_range": [
+            -0.04034947782864973,
+            -0.04034947782864973
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_031_slow_4",
+        "family": "formal_031",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.032404797090402976,
+            -0.009101820096972859,
+            0.6315690092243507,
+            0.11896865022313025,
+            0.8909610261284103,
+            -0.3824082870833665,
+            0.21400682741540897
+          ],
+          "table_reset_z": 0.3797782418490756,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041082237965231305,
+            0.041082237965231305
+          ],
+          "hole_y_range": [
+            -0.037446193676477925,
+            -0.037446193676477925
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_031_slow_4",
+        "family": "formal_031",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.032404797090402976,
+            -0.009101820096972859,
+            0.6315690092243507,
+            0.11896865022313025,
+            0.8909610261284103,
+            -0.3824082870833665,
+            0.21400682741540897
+          ],
+          "table_reset_z": 0.3797782418490756,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.041082237965231305,
+            0.041082237965231305
+          ],
+          "hole_y_range": [
+            -0.037446193676477925,
+            -0.037446193676477925
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 12
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_047_slow_4",
+        "family": "formal_047",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03324894572988725,
+            -0.012749162623729618,
+            0.6296939085035433,
+            0.11743940799147144,
+            0.8975566380562525,
+            -0.36973561136911526,
+            0.20951313716190523
+          ],
+          "table_reset_z": 0.38081852068833255,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.042998262863643236,
+            0.042998262863643236
+          ],
+          "hole_y_range": [
+            -0.04385955710076979,
+            -0.04385955710076979
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_047_slow_4",
+        "family": "formal_047",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03324894572988725,
+            -0.012749162623729618,
+            0.6296939085035433,
+            0.11743940799147144,
+            0.8975566380562525,
+            -0.36973561136911526,
+            0.20951313716190523
+          ],
+          "table_reset_z": 0.38081852068833255,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.042998262863643236,
+            0.042998262863643236
+          ],
+          "hole_y_range": [
+            -0.04385955710076979,
+            -0.04385955710076979
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_039_slow_5",
+        "family": "formal_039",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030383614368239005,
+            -0.011561770406998063,
+            0.6277799277987888,
+            0.1328320606472294,
+            0.8875313582880623,
+            -0.3848868650868117,
+            0.21565236569384258
+          ],
+          "table_reset_z": 0.37964456641885763,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.0427337185121421,
+            0.0427337185121421
+          ],
+          "hole_y_range": [
+            -0.04205475608516783,
+            -0.04205475608516783
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_039_slow_5",
+        "family": "formal_039",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.030383614368239005,
+            -0.011561770406998063,
+            0.6277799277987888,
+            0.1328320606472294,
+            0.8875313582880623,
+            -0.3848868650868117,
+            0.21565236569384258
+          ],
+          "table_reset_z": 0.37964456641885763,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.0427337185121421,
+            0.0427337185121421
+          ],
+          "hole_y_range": [
+            -0.04205475608516783,
+            -0.04205475608516783
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "B",
+        "source_identity": "formal_046_slow_5",
+        "family": "formal_046",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03364069510349281,
+            -0.009069223867527652,
+            0.6316618600751482,
+            0.12283367592435682,
+            0.8882459642028628,
+            -0.38222853655339717,
+            0.22323183242233038
+          ],
+          "table_reset_z": 0.3805815020783065,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.038151058275345776,
+            0.038151058275345776
+          ],
+          "hole_y_range": [
+            -0.0353016152106017,
+            -0.0353016152106017
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      },
+      {
+        "role": "A",
+        "source_identity": "formal_046_slow_5",
+        "family": "formal_046",
+        "narrow_reset": {
+          "fixed_start_pose": [
+            -0.03364069510349281,
+            -0.009069223867527652,
+            0.6316618600751482,
+            0.12283367592435682,
+            0.8882459642028628,
+            -0.38222853655339717,
+            0.22323183242233038
+          ],
+          "table_reset_z": 0.3805815020783065,
+          "table_reset_z_range": 0.0,
+          "reset_dof_pos_random_interval_arm": 0.0075,
+          "reset_dof_pos_random_interval_fingers": 0.0075,
+          "reset_dof_vel_random_interval": 0.03,
+          "hole_x_range": [
+            0.038151058275345776,
+            0.038151058275345776
+          ],
+          "hole_y_range": [
+            -0.0353016152106017,
+            -0.0353016152106017
+          ]
+        },
+        "trigger": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "takeover_tick": 1000000000
+      }
+    ],
+    "backend": {
+      "version": "tight_execution_backend_v1",
+      "physics_device": "cpu",
+      "camera_backend": "standard",
+      "kit_tasking_threads": 16,
+      "physics_threads": 2
+    },
+    "batch": {
+      "version": "whole_wave_complete_student_v1",
+      "lanes": 8,
+      "seed": 28140700,
+      "neural_batch": true,
+      "writer_bytes": 536870912,
+      "vision_microbatch": 8,
+      "ordering": "Role-grouped whole waves; no dynamic recycling; all opportunities retained"
+    },
+    "first_plan_forensics": false,
+    "session_deadline": 1794664461.6238303
+  },
+  "comparison": {
+    "same_pairs": true,
+    "same_registered_case_conditions": true,
+    "ratios_batch_over_serial": {
+      "attempts_per_hour": 1.1501280968654313,
+      "accepted_trajectories_per_hour": 0.7667520645769543,
+      "accepted_valid_expert_ticks_per_hour": 0.8454995739118848,
+      "all_valid_expert_ticks_per_hour": 0.8622852272174883,
+      "aggregate_control_ticks_per_second": 1.306335970891047
+    },
+    "ratio_scope": "Owner-to-owner complete run denominators; descriptive, not causal or exact paired replay"
+  }
+}

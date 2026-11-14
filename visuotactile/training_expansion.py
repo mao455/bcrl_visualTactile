@@ -233,13 +233,22 @@ def validate_capture_binding(entry, metadata):
 
 
 def validate_schedule(schedule):
-    if schedule in ('fixed40', 'fixed80', 'contact0', 'contact12'):
+    if schedule in ('fixed40', 'fixed80', 'contact0', 'contact12','near60'):
         return schedule
-    raise ValueError('Schedule must be fixed40, fixed80, contact0 or contact12')
+    raise ValueError('Schedule must be fixed40, fixed80, contact0, contact12 or near60')
+
+
+def schedule_trigger(schedule):
+    from .takeover_trigger import CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION
+    validate_schedule(schedule)
+    if schedule=='near60':
+        return dict(version=HELD_NEAR_GOAL_VERSION,delay_ticks=0,max_keypoint_distance_m=.06)
+    if schedule.startswith('contact'):
+        return dict(version=CONTACT_HEIGHT_VERSION,delay_ticks=int(schedule[7:]))
+    return None
 
 
 def validate_collection_plan(plan):
-    from .takeover_trigger import CONTACT_HEIGHT_VERSION
     if plan.get('stage_takeover_contract') != COLLECTION_CONTRACT or plan.get('test_used') is not False:
         raise ValueError('Explicit non-test expansion collection contract required')
     binding = plan.get('training_expansion_registry')
@@ -271,9 +280,8 @@ def validate_collection_plan(plan):
         if schedule.startswith('fixed'):
             if spec['takeover_tick'] != int(schedule[5:]) or case['dagger'].get('trigger') is not None:
                 raise ValueError('Fixed-time opportunity changed its preregistered takeover')
-        elif (spec['takeover_tick'] != NEVER_FALLBACK or case['dagger'].get('trigger') !=
-                dict(version=CONTACT_HEIGHT_VERSION, delay_ticks=int(schedule[7:]))):
-            raise ValueError('Contact-height opportunity changed its trigger or acquired a fallback')
+        elif spec['takeover_tick'] != NEVER_FALLBACK or case['dagger'].get('trigger') != schedule_trigger(schedule):
+            raise ValueError('Contact/near-goal opportunity changed its trigger or acquired a fallback')
     planned_new = {case['spec']['family'] for case in cases if case['spec'].get('training_expansion') is not None}
     if planned_new != set(registry['families']):
         raise ValueError('Every preregistered new family must retain its opportunities')
@@ -287,10 +295,10 @@ def classify_case(case, result, trigger_audit=None):
         return 'invalid_initialization'
     if not result.get('software_complete'):
         return 'software_incomplete'
-    if case['expansion_schedule'].startswith('contact'):
+    if schedule_trigger(case['expansion_schedule']) is not None:
         from tools.tight_fresh_stage_takeover import classify
         if trigger_audit is None:
-            raise ValueError('Contact-height opportunity requires actual trigger audit')
+            raise ValueError('Contact/near-goal opportunity requires actual trigger audit')
         return classify(result, trigger_audit)
     dagger = result['dagger']
     switched = bool(dagger['expert_ticks'])
