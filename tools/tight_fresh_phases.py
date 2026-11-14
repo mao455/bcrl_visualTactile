@@ -6,6 +6,19 @@ import numpy as np
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 
+ROOT_POSE_SEMANTICS = ('Object and goal root_state_w reference origins, not collision-AABB centers. '
+    'Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.')
+KEYPOINT_GAP_SEMANTICS = ('keypoint_gap_m = native maximum keypoint distance minus native insertion '
+    'tolerance; positive values are excess beyond tolerance, not the full distance.')
+SETTLED_REFERENCE = 'Median recorded object root z at completed ticks25-48; descriptive alternative because reset starts in midair'
+LEGACY_SETTLED_REFERENCE = SETTLED_REFERENCE.replace('object root z', 'object center z')
+
+
+def canonical_settled_reference(value):
+    # These two documented strings describe the same historical root-state code.
+    # Do not silently normalize other definitions or numerical thresholds.
+    return SETTLED_REFERENCE if value == LEGACY_SETTLED_REFERENCE else value
+
 
 def first(mask):
     found=np.flatnonzero(mask)
@@ -80,12 +93,15 @@ def case(directory, *, numeric_path=None, result=None, case_name=None):
             if len(indices):
                 tick=int(indices[np.argmin(metric[initial_goal])])
                 simultaneous[label]=dict(tick=tick+1,center_distance_m=float(distance[tick]),
+                    root_origin_distance_m=float(distance[tick]),
                     quaternion_angle_rad=float(angle[tick]),keypoint_gap_m=float(keypoint[tick]-tolerance[tick]),
+                    keypoint_distance_m=float(keypoint[tick]),keypoint_tolerance_m=float(tolerance[tick]),
                     stable_window=bool(relative_stable[tick]),two_contact_fingers_both_substeps=bool(two[tick]))
         source=t['dagger/control_source'][:] if 'dagger/control_source' in t else np.zeros(len(pose),dtype=int)
         authority=authority_phases(source,relative_stable,t['native_success_diagnostic/near_goal'][:],
             t['native_alignment_condition'][:],subgoals)
         return dict(case=case_name,legal=True,steps=len(pose),success=bool(result['success']),
+            pose_reference_semantics=ROOT_POSE_SEMANTICS,keypoint_gap_semantics=KEYPOINT_GAP_SEMANTICS,
             authority=authority,first_goal_simultaneous=simultaneous,
             grasp_progress=grasp_progress(relative_stable,distance,angle,subgoals),
             reasons=result['reasons'],numeric_sha256=sha256(path),result_sha256=sha256(directory/'result.json'),
@@ -112,7 +128,8 @@ def main():
     atomic_json(a.output,dict(cases=cases,planned=len(plan['cases']),completed=len(cases),
         source_plan_sha256=sha256(a.rollouts/'plan.json'),tick_index='1-based completed control transitions',
         stable_rule='12 ticks, both physics samples >=2 object-contact fingers above0.1N, >=2cm elevation, palm-relative drift<=1cm/0.2rad',
-        settled_reference='Median recorded object center z at completed ticks25-48; descriptive alternative because reset starts in midair',
+        settled_reference=SETTLED_REFERENCE,pose_reference_semantics=ROOT_POSE_SEMANTICS,
+        keypoint_gap_semantics=KEYPOINT_GAP_SEMANTICS,
         limits='Phase diagnostics only, no new success criterion. Goal-angle minima need not coincide with position minima and ignore shape symmetry. Same reset seed is not exact replay.'))
 
 if __name__=='__main__':main()

@@ -8,6 +8,7 @@ import numpy as np
 
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
+from tools.tight_fresh_phases import ROOT_POSE_SEMANTICS
 
 
 def read(path):
@@ -44,6 +45,7 @@ def case(directory, pair):
         contact = np.linalg.norm(force, axis=-1) > .1
         first = np.flatnonzero(contact.any(axis=(1, 2)))
         output = dict(case=directory.name, steps=len(obj), success=result['success'],
+            pose_reference_semantics=ROOT_POSE_SEMANTICS,
             native_subgoals=result['native_subgoals'], numeric_sha256=sha256(numeric),
             result_sha256=sha256(directory / 'result.json'),
             initial_observable_sha256=sha256(directory / 'initial_observable.json'),
@@ -68,6 +70,7 @@ def case(directory, pair):
                 object_vertical_displacement_m=float(obj[tick, 2] - origin[2]),
                 palm_vertical_displacement_m=float(palm[tick, 2] - palm[onset, 2]),
                 palm_object_center_distance_m=float(np.linalg.norm(palm[tick, :3] - obj[tick, :3])),
+                palm_body_to_object_root_distance_m=float(np.linalg.norm(palm[tick, :3] - obj[tick, :3])),
                 object_contact_fingers_per_physics_sample=contact[tick].sum(-1).tolist(),
                 observed_ticks=tick - onset + 1)
         return dict(output, first_detected_contact_tick=onset + 1,

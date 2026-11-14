@@ -8,6 +8,7 @@ import numpy as np
 import h5py
 from visuotactile.takeover_trigger import stable_windows
 from visuotactile.training_resources import atomic_json
+from tools.tight_fresh_phases import ROOT_POSE_SEMANTICS
 
 def sha(path):
     digest = hashlib.sha256()
@@ -77,7 +78,7 @@ def build(root):
             rank = np.argsort(abs(delta[7:]))[-6:][::-1] + 7
             return dict(start_tick=a, end_tick=b, arm_target_change_rms=rms(delta[:7]), hand_target_change_rms=rms(delta[7:]), largest_hand_target_changes=[dict(joint=names[j], delta_rad=float(delta[j]), actual_delta_rad=float(q[hi - 1, j] - q[lo, j])) for j in rank], arm_tracking_rmse=rms(target[sl, :7] - q[sl, :7]), hand_tracking_rmse=rms(target[sl, 7:] - q[sl, 7:]), mean_object_force_per_finger_N=fn[sl].mean((0, 1)).tolist(), contact_finger_fraction=contact[sl].mean((0, 1)).tolist(), both_two_ticks=int(two[sl].sum()), palm_translation_m=float(np.linalg.norm(palm[hi - 1, :3] - palm[lo, :3])), object_relative_palm_drift_m=float(np.linalg.norm(rel[hi - 1] - rel[lo])), relative_angle_change_rad=float(2 * np.arccos(np.clip(abs(rq[hi - 1] @ rq[lo]), 0, 1))), goal_distance_start_end=[float(dist[lo]), float(dist[hi - 1])])
         contact_tick = first(contact.any((1, 2)))
-        r = dict(case=directory.name, numeric_sha256=sha(directory / 'numeric.h5'), result_sha256=sha(directory / 'result.json'), metadata_sha256=sha(directory / 'metadata.json'), contact=contact_tick, stable_window_ticks=(np.flatnonzero(stable) + 1).tolist(), first20_after_contact=window(contact_tick, min(contact_tick + 19, n)) if contact_tick else None, post_contact_tracking_arm=rms((target - q)[contact_tick - 1:, :7]) if contact_tick else None)
+        r = dict(case=directory.name, pose_reference_semantics=ROOT_POSE_SEMANTICS, numeric_sha256=sha(directory / 'numeric.h5'), result_sha256=sha(directory / 'result.json'), metadata_sha256=sha(directory / 'metadata.json'), contact=contact_tick, stable_window_ticks=(np.flatnonzero(stable) + 1).tolist(), first20_after_contact=window(contact_tick, min(contact_tick + 19, n)) if contact_tick else None, post_contact_tracking_arm=rms((target - q)[contact_tick - 1:, :7]) if contact_tick else None)
         if stable.any():
             ends = np.flatnonzero(stable)
             last = int(ends[-1] + 1)

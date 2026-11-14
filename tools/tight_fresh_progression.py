@@ -9,6 +9,7 @@ from pathlib import Path
 
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
+from tools.tight_fresh_phases import canonical_settled_reference
 
 
 def read(path):
@@ -105,7 +106,7 @@ def report(specification):
             cohorts={role: (value['validation_ids'], value['train_diagnostic_ids']) for role, value in roles.items()},
             statistics={role: learning['roles'][role]['statistics_sha256'] for role in roles},
             development=[(case['name'], case['role'], case['spec']) for case in plan['cases']],
-            stable_rule=phases['stable_rule'], settled_reference=phases['settled_reference'])
+            stable_rule=phases['stable_rule'], settled_reference=canonical_settled_reference(phases['settled_reference']))
         if reference is None:
             reference = comparison
         require(comparison == reference, 'Fixed cohorts or diagnostic definitions changed across rounds')
