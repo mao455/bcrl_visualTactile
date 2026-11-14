@@ -46,6 +46,40 @@ def aggregate(rows):
     return result
 
 
+def command_motion_sum(prediction, target, previous, mask):
+    """Diagnose a hold-target shortcut using the exact pre-action target, in rad."""
+    error_sum(prediction, target, mask)
+    if previous.shape != target.shape or not torch.isfinite(previous[mask]).all():
+        raise ValueError('Finite aligned actual pre-action targets required')
+    predicted = (prediction.double()-previous.double())[mask]
+    actual = (target.double()-previous.double())[mask]
+    parts = {}
+    for part, selection in [('arm', slice(0,7)), ('hand', slice(7,29))]:
+        p, a = predicted[:,selection], actual[:,selection]
+        active = a.abs()>1e-6
+        parts[part] = dict(predicted_delta_squared_rad2=float(p.square().sum()),
+            target_delta_squared_rad2=float(a.square().sum()),
+            effective_gt_components=int(active.sum()),
+            same_direction_components=int(((p*a>0)&active).sum()))
+    return dict(ticks=len(actual), parts=parts)
+
+
+def aggregate_command_motion(rows):
+    ticks = sum(r['ticks'] for r in rows)
+    parts = {}
+    for part, dofs in [('arm',7), ('hand',22)]:
+        predicted = sum(r['parts'][part]['predicted_delta_squared_rad2'] for r in rows)
+        actual = sum(r['parts'][part]['target_delta_squared_rad2'] for r in rows)
+        active = sum(r['parts'][part]['effective_gt_components'] for r in rows)
+        same = sum(r['parts'][part]['same_direction_components'] for r in rows)
+        parts[part] = dict(predicted_command_delta_rms_rad=math.sqrt(predicted/(ticks*dofs)) if ticks else None,
+            actual_expert_command_delta_rms_rad=math.sqrt(actual/(ticks*dofs)) if ticks else None,
+            hold_previous_target_rmse_rad=math.sqrt(actual/(ticks*dofs)) if ticks else None,
+            effective_gt_components=active, same_direction_components=same,
+            same_direction_fraction=same/active if active else None)
+    return dict(ticks=ticks, parts=parts)
+
+
 def recovery_bins(record):
     from visuotactile.anchor_sampling import recovery_prefix_rows, supervision_rows
     mask, _ = supervision_rows(record)
@@ -139,13 +173,17 @@ def run(study, arm, output):
                 bin_mask_sha256={name: array_sha(selected_mask.numpy()) for name, selected_mask in bins.items()},
                 prediction_sha256=array_sha(prediction.numpy()),
                 bins={name: error_sum(prediction, record['target'], selected_mask)
-                      for name, selected_mask in bins.items()}))
+                      for name, selected_mask in bins.items()},
+                command_motion_bins={name: command_motion_sum(prediction, record['target'],
+                    record['robot'][:,58:87], selected_mask) for name,selected_mask in bins.items()}))
         summaries = {}
         for cohort, chosen in [('all53', cases), ('new12', [c for c in cases if c['current_correction']])]:
             summaries[cohort] = dict(episodes=len(chosen),
                 source_group_counts={group: sum(c['source_group'] == group for c in chosen) for group in ('A', 'B')},
                 bins={name: aggregate([c['bins'][name] for c in chosen])
-                                                              for name in ('first12', 'next12', 'remaining')})
+                                                              for name in ('first12', 'next12', 'remaining')},
+                command_motion_bins={name: aggregate_command_motion([c['command_motion_bins'][name] for c in chosen])
+                    for name in ('first12','next12','remaining')})
         roles[role] = dict(frontend_sha256=index['base_sha256'], backend_sha256=rear_sha,
             data_sha256=sha256(data_path), numeric_sha256=sha256(numeric_path), cache_index_sha256=sha256(index_path),
             selected=selected, summaries=summaries, cases=cases)
@@ -155,6 +193,10 @@ def run(study, arm, output):
     atomic_json(output, dict(complete=True, arm=arm, roles=roles, seconds=time.time() - began,
         registration_sha256=sha256(study / 'registration.json'), source_sha256=sha256(__file__),
         error_contract='physical_command_rmse_first_contiguous_legal12_next12_remaining_v1',
+        command_motion_contract=dict(version='actual_pre_action_target_delta_v1',
+            previous='Same-tick actual pre-action target robot[58:87], rad; never shifted q or future target',
+            effective_gt_delta_threshold_rad=1e-6, direction='Positive prediction_delta*expert_delta on effective GT components; zero prediction counts as not same-direction',
+            scope='Already learned53 corrections; hold baseline and command deltas do not establish autonomous motion or validation generalization'),
         dependency_sha256={str(path): sha256(path) for path in (
             Path(__file__).resolve().parents[1] / 'visuotactile' / name for name in
             ('anchor_continue.py', 'anchor_sampling.py', 'native_data.py', 'models/native_dp.py'))},
@@ -167,7 +209,7 @@ def run(study, arm, output):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--study', type=Path, required=True)
-    parser.add_argument('--arm', choices=['source', 'control', 'weighted'], required=True)
+    parser.add_argument('--arm', choices=['source', 'control', 'weighted', 'previous'], required=True)
     parser.add_argument('--output', type=Path, required=True)
     args = parser.parse_args()
     run(args.study.resolve(), args.arm, args.output.resolve())

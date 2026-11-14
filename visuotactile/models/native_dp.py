@@ -628,14 +628,15 @@ class TargetResidual(nn.Module):
         legacy tanh map bounds delta by scales; versioned linear maps do not.
         Observed contact remains diagnostic and never becomes a hard switch.
         """
-        from ..residual_output import proposal_delta,centered_proposal,REACHABLE_CENTERED_OUTPUT
+        from ..residual_output import (proposal_delta,centered_proposal,REACHABLE_CENTERED_OUTPUT,
+            REACHABLE_PREVIOUS_TARGET_OUTPUT)
         from ..execution_learning import is_projection_fy_loss,ideal_execution_bounds
         bounds=None
         if getattr(self,'output_contract',None) is not None or is_projection_fy_loss(self.loss_contract):
             if previous is None:raise ValueError('Conditional proposal requires actual previous target')
             bounds=ideal_execution_bounds(previous,limits,self.execution_adapter)
-        if getattr(self,'output_contract',None)==REACHABLE_CENTERED_OUTPUT:
-            u_pre=centered_proposal(base,raw,bounds,self.output_contract)
+        if getattr(self,'output_contract',None) in (REACHABLE_CENTERED_OUTPUT,REACHABLE_PREVIOUS_TARGET_OUTPUT):
+            u_pre=centered_proposal(base,raw,bounds,self.output_contract,previous=previous)
             delta=(u_pre-base)*self.action_scale
         else:
             delta = proposal_delta(raw,self.scales,self.action_scale,bounds,getattr(self,'output_contract',None))
@@ -707,6 +708,20 @@ class TargetResidual(nn.Module):
 
 def load_residual(payload, device='cpu'):
     """Dispatch historical evidence explicitly; GRU weights never become Transformer."""
+    from ..residual_output import validate_head_reset, REACHABLE_PREVIOUS_TARGET_OUTPUT
+    configuration=payload.get('configuration',{})
+    head_reset=validate_head_reset(configuration.get('continuation_head_reset'))
+    if head_reset is not None or configuration.get('output_contract')==REACHABLE_PREVIOUS_TARGET_OUTPUT:
+        updates=payload.get('updates',0)
+        if not isinstance(updates,int) or isinstance(updates,bool) or updates<1:
+            raise ValueError('Reset-head/previous-target residual requires new training before deployment')
+    if head_reset is not None:
+        audit=configuration.get('continuation_audit',{})
+        if (audit.get('continuation_head_reset')!=head_reset
+                or audit.get('reset_parameter_names')!=['policy.2.weight','policy.2.bias']
+                or audit.get('requires_training_before_deployment') is not True
+                or audit.get('optimizer_state_restored') is not False):
+            raise ValueError('Residual checkpoint common head-reset initialization audit differs')
     if payload.get('updates')==0:
         from ..state_history import trained_continuation_updates
         if trained_continuation_updates(payload)<1:

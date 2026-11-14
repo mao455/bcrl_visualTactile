@@ -18,15 +18,23 @@ def read(path):
     return json.loads(Path(path).read_text())
 
 
-def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None):
+def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None,
+            output_contract=None, continuation_head_reset=None):
     import torch
     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
-    from visuotactile.residual_output import REACHABLE_CENTERED_OUTPUT
+    from visuotactile.residual_output import (REACHABLE_CENTERED_OUTPUT,REACHABLE_PREVIOUS_TARGET_OUTPUT,
+        validate_output_contract,validate_head_reset)
     from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
     from visuotactile.models.native_dp import TargetResidual, CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
     from visuotactile.fresh_recovery import fresh_recovery_weighting_config
     fresh_recovery_weighting=fresh_recovery_weighting_config(fresh_recovery_weighting)
+    output_contract=validate_output_contract(REACHABLE_CENTERED_OUTPUT if output_contract is None else output_contract)
+    continuation_head_reset=validate_head_reset(continuation_head_reset)
+    if continuation_head_reset is not None and not continue_rear:
+        raise ValueError('Common head reset requires explicit backend continuation')
+    if output_contract==REACHABLE_PREVIOUS_TARGET_OUTPUT and (not continue_rear or continuation_head_reset is None):
+        raise ValueError('Previous-target comparison requires explicit common head reset and continuation')
     if epochs < 1:
         raise ValueError('Positive shared training exposure required')
     root = root.resolve()
@@ -54,7 +62,7 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         initialization_seed=2026111404, fixed_residual_scales=[1.] * 29,
         execution_adapter=REACHABLE_POSITION_EXECUTION, loss_contract=SPAN_PROJECTION_FY_LOSS,
         history_contract=dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION),
-        output_contract=REACHABLE_CENTERED_OUTPUT, tick_window_contract=TICK_WINDOW_CONTRACT,
+        output_contract=output_contract, tick_window_contract=TICK_WINDOW_CONTRACT,
         learning_rate=1e-4, weight_decay=1e-4, microbatch=4, fresh_validation_count_metadata=True,
         maximum_control_tick_epochs=epochs, minimum_control_tick_epochs=epochs,
         validation_epoch_interval=1, comparison_control_tick_epochs=[epochs],
@@ -63,6 +71,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
     v['residual_normalization_identity'] = residual_normalization(data, v)
+    if continuation_head_reset is not None:
+        v['continuation_head_reset']=continuation_head_reset
     if fresh_recovery_weighting is not None:
         if not continue_rear or not data.get('aggregation'):
             raise ValueError('Fresh onset comparison requires an explicit aggregate backend continuation')
@@ -88,7 +98,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         candidate = TargetResidual(torch.load(stats, map_location='cpu', weights_only=False), v['fixed_residual_scales'],
             execution_adapter=v['execution_adapter'], loss_contract=v['loss_contract'],
             history_contract=v['history_contract'], output_contract=v['output_contract'])
-        load_residual_continuation(candidate, prior_saved, v['residual_statistics_sha256'])
+        load_residual_continuation(candidate, prior_saved, v['residual_statistics_sha256'],
+            head_reset=continuation_head_reset)
         del candidate, prior_saved
     session = copy.deepcopy(read(root / 'session.json'))
     session.update(residual_pair=v, base_contracts={role: saved['contract']}, source_root=str(source),
@@ -112,7 +123,9 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
     atomic_json(child / 'session.json', dict(session, resource_root=str(destination), modality=role))
     atomic_json(destination / 'prepared.json', dict(role=role, source_frontend_sha256=sha256(front),
         command_statistics_sha256=sha256(stats), random_initialization=not continue_rear,
-        inherited_student_parameters=continue_rear, continuation_from=v.get('continuation_from'), train=len(data['splits']['train']), validation=6, epochs=epochs, utc=time.time()))
+        inherited_student_parameters=continue_rear, continuation_from=v.get('continuation_from'),
+        **({'continuation_head_reset':continuation_head_reset} if continuation_head_reset is not None else {}),
+        train=len(data['splits']['train']), validation=6, epochs=epochs, utc=time.time()))
     print(str(destination), flush=True)
 
 

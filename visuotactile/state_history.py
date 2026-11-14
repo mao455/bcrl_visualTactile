@@ -395,6 +395,12 @@ def trained_continuation_updates(saved):
     if isinstance(updates,int) and not isinstance(updates,bool) and updates>0:return updates
     if updates!=0 or saved.get('new_optimizer_updates')!=0:return 0
     audit=cfg.get('continuation_audit',{});source=cfg.get('continuation_from',{})
+    # A jointly reset output head is an untrained model even when its trunk is
+    # hash-bound to a selected trained parent. Its zero-output prior changed.
+    if cfg.get('continuation_head_reset') is not None or audit.get('continuation_head_reset') is not None:
+        return 0
+    if (cfg.get('output_contract') or {}).get('version')=='reachable_previous_actual_target_linear_v1':
+        return 0
     inherited=audit.get('source_updates',0);checkpoint_updates=audit.get('source_checkpoint_updates')
     if not isinstance(inherited,int) or isinstance(inherited,bool) or inherited<=0:return 0
     if not isinstance(checkpoint_updates,int) or isinstance(checkpoint_updates,bool) or checkpoint_updates<0:return 0

@@ -246,7 +246,7 @@ def trained_source_updates(saved):
     return trained_continuation_updates(saved)
 
 
-def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptation=None):
+def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptation=None, head_reset=None):
     """Reuse trained parameters; only explicit pre-deployment adaptation changes bounds."""
     if saved.get('residual_version')!=model.version or trained_source_updates(saved)<1 or saved.get('disposable',False):
         raise ValueError('Selected trained Transformer checkpoint required')
@@ -258,13 +258,18 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
         raise ValueError('Residual continuation source loss identity differs')
     if source_loss is not None and target_loss is None:
         raise ValueError('Residual continuation cannot silently discard explicit loss semantics')
-    from .residual_output import validate_output_contract
+    from .residual_output import (validate_output_contract,validate_head_reset,
+        REACHABLE_CENTERED_OUTPUT,REACHABLE_PREVIOUS_TARGET_OUTPUT)
+    head_reset=validate_head_reset(head_reset)
     source_output=validate_output_contract(source.get('output_contract'))
     target_output=getattr(model,'output_contract',None)
     if saved.get('residual_output_version')!=(source_output or {}).get('version'):
         raise ValueError('Residual continuation source output identity differs')
     if source_output is not None and target_output is None:
         raise ValueError('Residual continuation cannot silently discard output semantics')
+    if (source_output!=target_output and REACHABLE_PREVIOUS_TARGET_OUTPUT in (source_output,target_output)
+            and head_reset is None):
+        raise ValueError('Previous-target coordinate change requires explicit common head reset and retraining')
     source_history=validate_residual_history_contract(source.get('history_contract'))
     target_history=getattr(model,'history_contract',None)
     if saved.get('residual_history_version')!=(source_history or {}).get('version'):
@@ -273,6 +278,15 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
         raise ValueError('Residual continuation cannot silently discard explicit history semantics')
     if source.get('residual_statistics_sha256')!=statistics_sha256:
         raise ValueError('Residual continuation command statistics changed')
+    if head_reset is not None:
+        if (source_output!=REACHABLE_CENTERED_OUTPUT
+                or target_output not in (REACHABLE_CENTERED_OUTPUT,REACHABLE_PREVIOUS_TARGET_OUTPUT)
+                or source_loss!=target_loss or source_history!=target_history or scale_adaptation is not None):
+            raise ValueError('Matched head reset requires the same nominal source, loss, history and scales')
+        final=model.policy[-1]
+        if (not isinstance(final,torch.nn.Linear) or final.in_features!=128 or final.out_features!=29
+                or final.bias is None):
+            raise ValueError('Matched head reset requires the exact final Linear(128,29)')
     state=dict(saved['model']);adaptation=None
     if scale_adaptation is not None:
         spec=scale_adaptation
@@ -296,6 +310,10 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
     if any(not torch.isfinite(value).all() for value in state.values()):
         raise ValueError('Nonfinite selected Transformer parameters')
     model.load_state_dict(state,strict=True)
+    if head_reset is not None:
+        with torch.no_grad():
+            model.policy[-1].weight.zero_()
+            model.policy[-1].bias.zero_()
     audit=dict(source_updates=trained_source_updates(saved),source_checkpoint_updates=saved['updates'],new_optimizer_updates=0,parameters='all prior selected Transformer parameters',
         statistics_and_delta_buffers_unchanged=adaptation is None,
         command_normalizer_unchanged=True,scale_adaptation=adaptation,
@@ -303,6 +321,10 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
         requires_training_before_deployment=adaptation is not None,optimizer_state_restored=False)
     audit.update(output_contract_before=source_output,output_contract_after=target_output,
         output_contract_changed=source_output!=target_output,requires_training_before_deployment=adaptation is not None or source_output!=target_output)
+    if head_reset is not None:
+        audit.update(continuation_head_reset=head_reset,reset_parameter_names=['policy.2.weight','policy.2.bias'],
+            parameters='Selected Transformer trunk and all buffers; final Linear(128,29) jointly reset to zero',
+            requires_training_before_deployment=True)
     if source_loss is not None or target_loss is not None:
         audit.update(loss_contract_before=source_loss,loss_contract_after=target_loss,
             loss_contract_changed=source_loss!=target_loss,
@@ -1021,6 +1043,10 @@ def residual_setup(root, *, selected=False, smoke=False):
     from .state_resources import lease_for
     s=read(root/'session.json');cfg=read(root/'configuration.json');v=cfg['residual_pair']
     if v['version']!=TargetResidual.version:raise ValueError('Residual architecture/configuration identity differs')
+    from .residual_output import validate_head_reset
+    head_reset=validate_head_reset(v.get('continuation_head_reset'))
+    if head_reset is not None and not v.get('continuation_from'):
+        raise ValueError('Explicit common head reset requires a trained continuation source')
     if smoke and v.get('fresh_recovery_weighting') is not None:
         raise ValueError('Fresh recovery weighting retains the complete validation6 cohort')
     data=read(root/'state_data/data.json');index=read(root/'nominal/index.json');all_splits=data['splits']
@@ -1116,7 +1142,7 @@ def residual_setup(root, *, selected=False, smoke=False):
         from .native_data import supervision_mask_sha256
         saved=continuation_source(v['continuation_from'],'u_expert',residual_statistics_path,residual_normalization_identity)
         audit=load_residual_continuation(model,saved,residual_statistics_sha256,
-            scale_adaptation=v.get('residual_scale_adaptation'))
+            scale_adaptation=v.get('residual_scale_adaptation'),head_reset=head_reset)
         configuration.update(continuation_audit=audit,teacher_supervision='u_expert',
             history='complete actual student-prefix/expert-suffix history; only expert-executed suffix supplies supervision',
             normalization_train_ids=normalization_train,normalizer_recomputed=False)
