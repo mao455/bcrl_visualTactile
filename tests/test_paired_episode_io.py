@@ -215,10 +215,17 @@ def test_default_train_dispatch_has_no_pairing_and_serial_cycle_rejected(tmp_pat
 @pytest.mark.parametrize('admitted', [False, True])
 def test_cycle_registers_after_cache_and_requires_joint_admission(tmp_path, monkeypatch, admitted):
     from tools import tight_fresh_cycle as cycle
+    from test_fresh_parallel_cycle import admission_clock
+    clock=admission_clock(monkeypatch)
     root, collection, output = (tmp_path / name for name in ('source', 'collection', 'next'))
     write(root / 'session.json', dict(deadline=time.time()+60, resource_policy='full_gpu_v1'))
     write(root / 'shared_resources.json', dict(utc_epoch=time.time(),
         gpu_free_mib=32*1024 if admitted else 1024, ram_available_bytes=32*1024**3))
+    def fresh_sample(duration):
+        clock[0]+=duration
+        write(root / 'shared_resources.json', dict(utc_epoch=clock[0],
+            gpu_free_mib=32*1024 if admitted else 1024, ram_available_bytes=32*1024**3))
+    monkeypatch.setattr(cycle.time,'sleep',fresh_sample)
     write(collection / 'result.json', dict(software_complete=True))
     write(collection / 'correction_entries.json', {'real': {}})
     monkeypatch.chdir(tmp_path)
@@ -241,3 +248,5 @@ def test_cycle_registers_after_cache_and_requires_joint_admission(tmp_path, monk
         cycle.run(root, collection, output, 2, 1, 4, 1, parallel_frontends=True, paired_episode_io=True)
     assert len(calls) == 2  # Neither branch launches a real frontend in this CPU test.
     assert (output / 'paired_episode_io.json').exists() == admitted
+    admission=cycle.read(output.with_name(output.name+'_stages')/'parallel_admission.json')
+    assert admission['frontend_mode']==('parallel' if admitted else 'paired_rejected_no_serial_fallback')

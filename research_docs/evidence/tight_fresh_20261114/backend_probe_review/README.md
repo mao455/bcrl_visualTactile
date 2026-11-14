@@ -19,3 +19,18 @@ GPU16 的 15 条合法轨迹都曾接触物体、都曾在同一控制步的两�
 建议下一批使用 CPU standard、16 lanes、M8，让第一完整 wave 经过已有真实学生前缀、专家续接、HDF5 校验及入池检查；已验收的 CPU8 保留回退。CPU32 的本次控制吞吐较 CPU16 低约 9%，初始化约 4.45 倍，暂无采用依据。GPU16 已通过接触阶段的部分验收，但需先完成一次完整专家续接及真实数据准入，再决定扩大。180 与 36 步的工作量、合法 lane 数和物理 RNG 不同，不能把 24.76/21.76 宣称为公平 GPU 加速比。
 
 64 环境第一次在实际文件描述符限制 2450 附近发生 `Too many open files`，由操作记录保全后终止。第二次单作业申请 65536 文件描述符，日志不再出现该错误，但仍出现 `ProjectedAreaCullingData::PerViewState` GPU slot 申请失败，最终在预登记初始化时限后退出，0 个动作。两次日志及 owner 状态有 SHA256 绑定。它们证明这些具体配置未通过初始化，不能据此设通用 32/64 环境硬上限；也不能算已验证 64 环境吞吐。
+
+追加的 `scaling_cpu_tiled_n8_raw_diagnostic_02` 使用冻结 b59baf3，在首个动作前因 RGB 无效退出：owner 46.52 秒，初始化完成 40.52 秒，其中环境构造 30.82 秒。8 个 numeric 文件的 episode 组均为空，控制步为 0；原始失败 packet 的 SHA256 已复核。
+
+新证据把黑图定位到 Lab 拆片之前：三个 atlas 的 raw RGBA 和 cached RGBA 在全部 24 个有效 tile 逐值相等，独立 CPU 拆片差值为 0，深度也全部相等。视角 0 正常；视角 1/2 在原始 `LdrColorSDhostPtr` 输出处 RGB 已全为 0，但每个有效 tile 的 alpha 恒为 255，深度有效。这排除了本次观测中的 tile 缓存拆片错误，尚不能进一步区分原生着色与 annotator 主机传输。
+
+视角 1/2 的 raw 后读分别发生在失败快照开始约 0.224/0.256 秒后，仍为黑图；期间没有增加 render、update 或物理步。读取时刻是主机时间，不能证明它们属于不同曝光，也不能泛化为“额外 render 后不会恢复”。本机多 atlas RGB 测试源码确实检查多个产品非黑且视角互异，但 fixture 使用默认 CUDA 设备并先推进 5 步等待纹理；本次只读审查没有运行这些测试。Tiled 仍未采用，单 atlas 方案尚未实现。
+追加的 `scaling_gpu_tiled_n8_raw_diagnostic_03` 同样使用冻结 b59baf3，首帧三视角检查未通过，owner 返回 1；8 个 numeric 文件仍为空，0 动作。GPU 初态 lane 6 被拒绝，剩余 7 条也没有一条具备完整有效三视角。失败 packet SHA256 已复核。环境正常初始化完成，尚未触发 120 秒启动栈采样。
+
+GPU 这次呈现不同的无效图像：两个固定视角的 16 个 live tile 均为恒定 RGB=(238,238,238)、alpha=255，raw 深度没有有限像素；腕部视角大部分 RGB 为黑，只有 lane 3/4 分别有 342/118 个灰色像素，深度大部分有效。raw `LdrColorSDbuffPtr` 的 24 张 RGBA 与深度逐 tile 都和 cached 输出完全相等，CPU 独立拆片差值为 0。切换 CUDA annotator 没有解决问题，不能再把全部失败仅归因于 CPU host 输出路径；仍未定位到单一渲染或 annotator 根因。
+
+GPU raw 后读在快照开始约 0.460/0.490/0.520 秒后仍得到上述图像，期间没有新增 render/update/物理步；这不是不同曝光或未来 render 的测试。CPU02 和 GPU03 都只用于定位首帧无效图像，不比较耗时或吞吐，CPU02 还与存储审计重叠。Tiled 保持未采用，不实现单 atlas，不放宽有效性检查。
+
+`tiled_calibration_review.json` 进一步核对了相机坐标。CPU tiled02 与正常 CPU standard8 的 24 个首帧相机位姿、8 个腕部 parent 位姿逐值相同。GPU tiled03 的两个固定视角却仍处默认出生位姿，与目标位置相差约 0.807/1.106m；普通 GPU standard8 的固定视角正确。本机普通 Camera 明确开启 Fabric 写入同步 USD，TiledCamera 未开启，源码分支与 GPU 这项差异吻合，尚未做修改后现场验证。该缺陷不能解释 CPU 的黑图。
+
+GPU tiled 腕部与实际 parent 下的配置安装位置误差小于 0.5µm；正常 GPU standard 腕部与其 parent 有约 0.173mm/0.000977rad 的微小差异，因此不把两者小差别归为 tiled 错装。全部 image RP 和 1×1 CameraParams RP 的 lane/view 绑定正确；两次 tiled 的内参逐值相同，后读 CameraParams 也与失败 packet 位姿相同。正常 standard 探针未保存内参原始快照，不能补称完整内参比对。文件同时保留一个最多 4 次、物理状态与任务时间必须不变的额外 render 诊断提案；它尚未实现或运行，不产生控制帧或训练数据。

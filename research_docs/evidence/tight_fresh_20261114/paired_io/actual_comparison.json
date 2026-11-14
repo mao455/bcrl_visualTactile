@@ -1,0 +1,178 @@
+{
+  "software_complete": true,
+  "deployable": false,
+  "old_study_remains_failed": true,
+  "independent_recovery_window": true,
+  "seconds": 196.65793704986572,
+  "original_plain_result": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/paired_io_compare01/plain_result.json",
+    "sha256": "fe2c70da166eca46092869ac0d0c5f03d45faf69eada9c9d4d116a50e521cec0"
+  },
+  "confounds": {
+    "metadata_scan_local_start": "2026-11-14 21:26:37 Asia/Shanghai",
+    "metadata_scan_local_end": "2026-11-14 21:29:02 Asia/Shanghai",
+    "plain_metadata_scan_overlap_seconds": 134.76,
+    "page_cache_warmth_uncontrolled": true,
+    "interpretation": "Plain overlapped the read-only metadata scan; paired is a later recovery with warm OS page cache and changed I/O contention. This is not a fair causal speed comparison, formal model selection, deployment, or evidence of autonomous improvement."
+  },
+  "paired_over_plain_epoch_throughput": 1.2104638933484062,
+  "decision": "Keep paired_episode_io disabled: total arm time worsened and comparison is confounded; epoch-only/read-byte improvement is insufficient.",
+  "arms": {
+    "plain": {
+      "arm": "plain",
+      "aggregate_updates": 204,
+      "joint_epoch_wall_seconds": 66.39799547195435,
+      "aggregate_updates_per_second": 3.0723819077665824,
+      "summed_process_training_read_bytes": 77774598144,
+      "scope": "Two independent complete train93/latest-repeat2 episodes decks; epoch interval includes pair waits. Process read_bytes are kernel-accounted worker deltas, not unique device I/O or causal attribution.",
+      "full_arm_wall_seconds": 181.37854409217834,
+      "full_arm_aggregate_updates_per_second": 1.1247195803728869,
+      "roles": {
+        "A": {
+          "updates": 102,
+          "anchors": 2373,
+          "target_ticks": 54368,
+          "training_epoch_io": {
+            "process_io": {
+              "minor_faults": 866212,
+              "major_faults": 1357,
+              "read_bytes": 31434743808,
+              "rchar": 14600887,
+              "syscr": 2963
+            },
+            "wall_seconds": 48.85366858309135,
+            "started_utc": 1794662883.4390335,
+            "ended_utc": 1794662932.2927024,
+            "prefetch": null,
+            "scope": "Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution"
+          },
+          "paired_waits": null
+        },
+        "B": {
+          "updates": 102,
+          "anchors": 2373,
+          "target_ticks": 54368,
+          "training_epoch_io": {
+            "process_io": {
+              "minor_faults": 857920,
+              "major_faults": 1135,
+              "read_bytes": 46339854336,
+              "rchar": 14592488,
+              "syscr": 2959
+            },
+            "wall_seconds": 49.3986730419565,
+            "started_utc": 1794662865.894707,
+            "ended_utc": 1794662915.29338,
+            "prefetch": null,
+            "scope": "Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution"
+          },
+          "paired_waits": null
+        }
+      }
+    },
+    "paired": {
+      "arm": "paired",
+      "aggregate_updates": 204,
+      "joint_epoch_wall_seconds": 54.85334658622742,
+      "aggregate_updates_per_second": 3.7190073659283414,
+      "summed_process_training_read_bytes": 46578130944,
+      "scope": "Two independent complete train93/latest-repeat2 episodes decks; epoch interval includes pair waits. Process read_bytes are kernel-accounted worker deltas, not unique device I/O or causal attribution.",
+      "full_arm_wall_seconds": 196.03285384178162,
+      "full_arm_aggregate_updates_per_second": 1.0406418924281369,
+      "roles": {
+        "A": {
+          "updates": 102,
+          "anchors": 2373,
+          "target_ticks": 54368,
+          "training_epoch_io": {
+            "process_io": {
+              "minor_faults": 953633,
+              "major_faults": 9952,
+              "read_bytes": 22692700160,
+              "rchar": 14908424,
+              "syscr": 4591
+            },
+            "wall_seconds": 49.39703599503264,
+            "started_utc": 1794663906.839528,
+            "ended_utc": 1794663956.2365642,
+            "prefetch": null,
+            "scope": "Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution",
+            "paired_episode_io": {
+              "version": "paired_episode_io_v1",
+              "registration_sha256": "55cb2e937154826dd60f80960e337a5107bfb30ca1aaa5859b2144b6d78a4ab7",
+              "role": "A",
+              "visits": 102,
+              "startup_wait_s": 6.285496056079865e-05,
+              "ready_wait_s": 2.062794334255159,
+              "done_wait_s": 0.011833392782136798,
+              "total_wait_s": 2.0746277270372957,
+              "optimizer_and_ema_updates_unchanged": true,
+              "learned_state_cached": false
+            }
+          },
+          "paired_waits": {
+            "version": "paired_episode_io_v1",
+            "registration_sha256": "55cb2e937154826dd60f80960e337a5107bfb30ca1aaa5859b2144b6d78a4ab7",
+            "role": "A",
+            "visits": 102,
+            "startup_wait_s": 6.285496056079865e-05,
+            "ready_wait_s": 2.062794334255159,
+            "done_wait_s": 0.011833392782136798,
+            "total_wait_s": 2.0746277270372957,
+            "optimizer_and_ema_updates_unchanged": true,
+            "learned_state_cached": false
+          }
+        },
+        "B": {
+          "updates": 102,
+          "anchors": 2373,
+          "target_ticks": 54368,
+          "training_epoch_io": {
+            "process_io": {
+              "minor_faults": 945899,
+              "major_faults": 10761,
+              "read_bytes": 23885430784,
+              "rchar": 15206428,
+              "syscr": 6267
+            },
+            "wall_seconds": 54.85334680695087,
+            "started_utc": 1794663901.3848464,
+            "ended_utc": 1794663956.238193,
+            "prefetch": null,
+            "scope": "Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution",
+            "paired_episode_io": {
+              "version": "paired_episode_io_v1",
+              "registration_sha256": "55cb2e937154826dd60f80960e337a5107bfb30ca1aaa5859b2144b6d78a4ab7",
+              "role": "B",
+              "visits": 102,
+              "startup_wait_s": 0.020287279970943928,
+              "ready_wait_s": 5.47607537987642,
+              "done_wait_s": 5.14376604789868,
+              "total_wait_s": 10.6198414277751,
+              "optimizer_and_ema_updates_unchanged": true,
+              "learned_state_cached": false
+            }
+          },
+          "paired_waits": {
+            "version": "paired_episode_io_v1",
+            "registration_sha256": "55cb2e937154826dd60f80960e337a5107bfb30ca1aaa5859b2144b6d78a4ab7",
+            "role": "B",
+            "visits": 102,
+            "startup_wait_s": 0.020287279970943928,
+            "ready_wait_s": 5.47607537987642,
+            "done_wait_s": 5.14376604789868,
+            "total_wait_s": 10.6198414277751,
+            "optimizer_and_ema_updates_unchanged": true,
+            "learned_state_cached": false
+          }
+        }
+      }
+    }
+  },
+  "source": {
+    "outputs/visuotactile/run/tight_fresh_20261114_05/paired_io_recovery01/plan.json": "e28d07e3a86d2f95378476f7fb14a711a1d8dd0b356e7931fb616bf44112093a",
+    "outputs/visuotactile/run/tight_fresh_20261114_05/paired_io_recovery01/result.json": "3470f825017d9a7d2861d728ff963432c1d947a382c6d330a4fc8322fbfe5771",
+    "outputs/visuotactile/run/tight_fresh_20261114_05/paired_io_compare01/plan.json": "98b9aaffdd3a8d9a83d8e822ef9e9fee8e83caf1ba7fcfbcb89a5d60de866df6",
+    "outputs/visuotactile/run/tight_fresh_20261114_05/paired_io_compare01/failure.json": "c7993341841a509b4be6ebb59b17aac71fb4aa38a618e0314a6d1b3ea182a449"
+  }
+}

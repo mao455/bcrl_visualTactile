@@ -83,13 +83,18 @@ def audit_numeric(path, result):
         after = transition['diagnostics_after']
         pose = after['object_pose_w'][:]; palm = after['palm_body_pose_w'][:]
         force = transition['object_contact_force_w'][:]
-        require(len(pose) >= 48, 'Settled reference requires complete first 48 actual transitions')
-        height = float(np.median(pose[24:48, 2]))
+        reference_available=len(pose)>=48
+        height = float(np.median(pose[24:48, 2])) if reference_available else float('inf')
+        student_reference_available=reference_available and bool(student[:48].all())
         stable, contact = stable_windows(pose, palm, force, height)
         # The causal trigger cannot qualify before the reference is available.
         stable[:47] = False
-        contact_height=contact_height_windows(pose,force,height)
+        contact_height=contact_height_windows(pose,force,height) if reference_available else np.zeros(len(pose),bool)
         contact_height[:47]=False
+        # A fixed40 intervention precedes the established 48-tick reference.
+        # Do not use subsequent expert-controlled frames to qualify its prefix.
+        if not student_reference_available:
+            stable[student]=False;contact_height[student]=False
         two = (contact.sum(-1) >= 2).all(-1)
         goal = after['goal_pose_w'][:]
         distance = np.linalg.norm(pose[:, :3] - goal[:, :3], axis=-1)
@@ -135,7 +140,15 @@ def audit_numeric(path, result):
             expert_legal_near_goal_ticks=int((near & valid).sum()),
             expert_legal_alignment_ticks=int((align & valid).sum()),
             expert_first_subgoal_completed_tick=first((subgoals > 0) & ~student),
-            final_native_subgoals=int(subgoals.max()), settled_reference_m=height)
+            final_native_subgoals=int(subgoals.max()), settled_reference_m=height if reference_available else None)
+        phase['student_settled_reference_available']=student_reference_available
+        phase['settled_reference_authority']=('student_only' if student_reference_available else
+            'includes_expert_ticks' if reference_available else 'unavailable')
+        if not student_reference_available:
+            phase['student_max_later_rise_over_settled_m']=None
+            phase['student_max_later_rise_with_two_fingers_m']=None
+            for key in ('elevation_at_least_2cm','contact_and_elevation','complete_stable_with_relative_pose_bounds'):
+                phase['student_window_counts'][key]=None
     dagger = result['dagger']
     require(alignment['switch_action_index'] == dagger['recovery_coverage']['switch_tick'],
         'Actual numeric switch differs from result')
@@ -148,10 +161,14 @@ def audit_numeric(path, result):
 
 def report(collection):
     collection = Path(collection)
-    plan = read(collection/'plan.json'); validate_plan(plan)
+    from visuotactile.training_expansion import COLLECTION_CONTRACT,validate_collection_plan,classify_case
+    plan = read(collection/'plan.json')
+    expanded=plan.get('stage_takeover_contract')==COLLECTION_CONTRACT
+    if expanded:validate_collection_plan(plan)
+    else:validate_plan(plan)
     contact_contract=plan.get('stage_takeover_contract')==CONTACT_HEIGHT_CONTRACT
     event='contact_height' if contact_contract else 'stable'
-    audit_name=event+'_stage_audit.json'
+    audit_name='training_expansion_audit.json' if expanded else event+'_stage_audit.json'
     # Snapshot the final marker first: a worker finishing during this audit must
     # not turn an earlier partial index into a purported final denominator.
     finished = (collection/'result.json').exists() and read(collection/'result.json').get('software_complete', False)
@@ -166,25 +183,42 @@ def report(collection):
     for row in rows:
         name = row['case']; result = row['result']; directory = collection/name
         require(row['role'] == cases[name]['role'], 'Completed case role differs')
+        # Historical serial collections published admission fields only in the
+        # final index. Expansion writes the same admitted result to both files.
+        if expanded:
+            require(read(directory/'result.json') == result, 'Completed result bytes/index values disagree')
         require(result.get('software_complete'), 'Incomplete case must not enter completed audit')
         stage = read(directory/audit_name)
         require(stage['source_plan_sha256'] == sha256(collection/'plan.json'), 'Case audit is bound to another plan')
-        trigger = audit_trigger_case(directory, result) if result.get('legal') else None
-        category = classify(result, trigger)
+        causal=cases[name].get('dagger',{}).get('trigger') is not None if expanded else True
+        trigger = audit_trigger_case(directory, result) if result.get('legal') and causal else None
+        category = classify_case(cases[name],result,trigger) if expanded else classify(result, trigger)
         require(category == stage['category'] and trigger == stage['causal_trigger'], 'Causal stage audit differs')
         accepted = bool(result.get('accepted_for_training'))
         require(accepted == (name in entries), 'Recorded retained subset disagrees')
-        require(not accepted or category == 'expert_rescue_after_'+event, 'Retained record is not a successful registered-stage rescue')
+        require(not accepted or (category.startswith('expert_rescue_after_') if expanded else
+            category == 'expert_rescue_after_'+event), 'Retained record is not a successful registered-stage rescue')
         item = dict(case=name, role=row['role'], category=category, accepted=accepted,
+            legal=bool(result.get('legal')), causal_trigger=causal,
             success=bool(result.get('success')), native_terminal_reasons=result.get('reasons'),
             result_sha256=sha256(directory/'result.json'), stage_audit_sha256=sha256(directory/audit_name))
+        if expanded:
+            item.update(legal=bool(result.get('legal')),schedule=cases[name]['expansion_schedule'],
+                causal_trigger=causal,training_expansion=cases[name]['spec'].get('training_expansion'))
+            require(stage.get('expansion_schedule')==cases[name]['expansion_schedule'] and
+                stage.get('training_expansion')==cases[name]['spec'].get('training_expansion'),
+                'Expansion audit schedule/registry differs')
         if result.get('legal'):
+            require(result['dagger'].get('configuration',{}).get('trigger') ==
+                cases[name].get('dagger',{}).get('trigger'), 'Recorded trigger differs from registered opportunity')
             require(read(directory/'capture_audit.json')['passed'], 'Collector capture provenance failed')
             alignment, phase = audit_numeric(directory/'numeric.h5', result)
-            first_window=(phase['student_first_contact_height_window_end_tick'] if contact_contract else
-                phase['authority']['student_first_stable_window_end_tick'])
-            require(first_window == trigger['receipt']['first_'+event+'_window_end_completed_tick'],
-                'Full numeric registered window disagrees with causal trigger')
+            if causal:
+                first_window=(phase['student_first_contact_height_window_end_tick'] if contact_contract or expanded else
+                    phase['authority']['student_first_stable_window_end_tick'])
+                receipt_key='first_contact_height_window_end_completed_tick' if expanded else 'first_'+event+'_window_end_completed_tick'
+                require(first_window == trigger['receipt'][receipt_key],
+                    'Full numeric registered window disagrees with causal trigger')
             item.update(label_alignment=alignment, phases=phase, trigger=trigger,
                 numeric_sha256=sha256(directory/'numeric.h5'))
             if accepted:
@@ -193,7 +227,7 @@ def report(collection):
         receipts.append(item)
     if finished:
         require(len(receipts) == len(cases) and set(entries) <= set(names), 'Final opportunity accounting is incomplete')
-    return dict(version='completed_'+event+'_takeover_audit_v1', created_unix=time.time(),
+    return dict(version='completed_training_expansion_takeover_audit_v1' if expanded else 'completed_'+event+'_takeover_audit_v1', created_unix=time.time(),
         plan_sha256=sha256(collection/'plan.json'), collector_source_commit=plan['source_commit'],
         completed_index_snapshot_sha256=hashlib.sha256(index_bytes).hexdigest() if index_bytes is not None else None,
         retained_index_snapshot_sha256=hashlib.sha256(entry_bytes).hexdigest() if entry_bytes is not None else None,

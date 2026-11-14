@@ -4346,5 +4346,1757 @@
     "cpu32": "36tick loop throughput is lower than CPU16 and startup much slower; no evidence to choose32 now.",
     "tiled": "Not accepted: view1/2 RGB black at tick0; diagnostic patch is pending a separate new identity.",
     "no_hard_cap": true
+  },
+  "tiled_raw_failure": {
+    "name": "scaling_cpu_tiled_n8_raw_diagnostic_02",
+    "local_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_n8_raw_diagnostic_02",
+    "owner": {
+      "software_complete": false,
+      "stop_reason": null,
+      "error": null,
+      "returncode": 1,
+      "seconds": 46.518258571624756,
+      "ended": 1794663264.6637464,
+      "startup_complete": true,
+      "partial_roles": [],
+      "result_sha256": null
+    },
+    "control_tick_at_rejection": 0,
+    "completed_control_ticks": 0,
+    "numeric_files": 8,
+    "all_numeric_episode_groups_empty": true,
+    "source_commit": "b59baf365e4de7570b3eec95e65abe1e076d87d6",
+    "hashes": {
+      "plan.json": "99a631acf128017c9abc33e6f6d39569b99521cbc848cdbc92ac279eb5d3f88b",
+      "owner_finished.json": "8af6cba73878c7d69ec4eed7f36de3037e9e088215e7ac058461faa5cb363466",
+      "A/sensor_failure/report.json": "52a1e52e96bcbcba8d4b070dd1cee3a16bf402aa962862fcde8732e09fe28ab7",
+      "A/sensor_failure/packet.npz": "f96b1caf399bfa8118a42e7ebe9b0a6a29dbed49dcd684756089ab173ad9bfc7",
+      "environment_initialization.json": "2d03d11dc85e5d36c06cca824b0f476e8aba601aff856d94cee8dde82779bb96",
+      "worker.log": "0da3298547c18237cbd3f4132cf51b9d682f3ca9a4bc37022f9608df5f568e00"
+    },
+    "initialization": {
+      "version": "probe_environment_startup_v1",
+      "diagnostic_only": true,
+      "pid": 3849482,
+      "interval_s": 120,
+      "current_stage": "environment_ready",
+      "events": [
+        {
+          "stage": "startup_diagnostics_started",
+          "utc": 1794663219.5501368,
+          "elapsed_s": 2.85981222987175e-05
+        },
+        {
+          "stage": "environment_imports_started",
+          "utc": 1794663219.550316,
+          "elapsed_s": 0.00020793103612959385
+        },
+        {
+          "stage": "environment_imports_complete",
+          "utc": 1794663219.5531852,
+          "elapsed_s": 0.003077215049415827
+        },
+        {
+          "stage": "kit_resource_wait_started",
+          "utc": 1794663219.5700557,
+          "elapsed_s": 0.019947641994804144
+        },
+        {
+          "stage": "kit_app_launch_started",
+          "utc": 1794663219.5710306,
+          "elapsed_s": 0.020922396099194884
+        },
+        {
+          "stage": "kit_app_launch_complete",
+          "utc": 1794663228.6009185,
+          "elapsed_s": 9.050810907967389
+        },
+        {
+          "stage": "task_registration_import_started",
+          "utc": 1794663228.6042328,
+          "elapsed_s": 9.054124690126628
+        },
+        {
+          "stage": "task_registration_import_complete",
+          "utc": 1794663228.7305405,
+          "elapsed_s": 9.180432921973988
+        },
+        {
+          "stage": "make_env_imports_started",
+          "utc": 1794663228.7308493,
+          "elapsed_s": 9.180741322925314
+        },
+        {
+          "stage": "make_env_config_load_started",
+          "utc": 1794663228.7397845,
+          "elapsed_s": 9.189676501089707
+        },
+        {
+          "stage": "make_env_resource_wait_started",
+          "utc": 1794663228.748845,
+          "elapsed_s": 9.198737068101764
+        },
+        {
+          "stage": "environment_constructor_started",
+          "utc": 1794663228.7493896,
+          "elapsed_s": 9.199281451990828,
+          "environment_class": "NativeDiagnosticEnv",
+          "num_envs": 8
+        },
+        {
+          "stage": "environment_constructor_complete",
+          "utc": 1794663259.5696702,
+          "elapsed_s": 40.0195629640948
+        },
+        {
+          "stage": "camera_view_configuration_started",
+          "utc": 1794663259.5702505,
+          "elapsed_s": 40.020142385037616
+        },
+        {
+          "stage": "camera_view_configuration_complete",
+          "utc": 1794663259.5731814,
+          "elapsed_s": 40.02307370910421
+        },
+        {
+          "stage": "expert_checkpoint_verification_started",
+          "utc": 1794663259.577291,
+          "elapsed_s": 40.02718293503858
+        },
+        {
+          "stage": "expert_resource_wait_started",
+          "utc": 1794663259.7408671,
+          "elapsed_s": 40.190759980119765
+        },
+        {
+          "stage": "expert_creation_started",
+          "utc": 1794663259.741713,
+          "elapsed_s": 40.191605208907276
+        },
+        {
+          "stage": "expert_creation_complete",
+          "utc": 1794663260.072876,
+          "elapsed_s": 40.522769069997594
+        },
+        {
+          "stage": "environment_ready",
+          "utc": 1794663260.073596,
+          "elapsed_s": 40.52348792203702,
+          "error": null
+        }
+      ],
+      "traceback_file": "startup_tracebacks.log",
+      "semantics": "Python stacks and host stages only; no render, physics step or retry. A native call can remain opaque. Owner status determines interrupted attempts."
+    },
+    "views": [
+      {
+        "view": 0,
+        "rgba_node_path": "/Render/PostProcess/SDGPipeline/Replicator_LdrColorSDhostPtr",
+        "image_render_products": [
+          "/Render/OmniverseKit/HydraTextures/Replicator"
+        ],
+        "raw_rgba_shape": [
+          756,
+          1344,
+          4
+        ],
+        "raw_rgb_nonzero_counts": [
+          903152,
+          903151,
+          903148
+        ],
+        "raw_rgba_channel_ranges": [
+          [
+            0.0,
+            244.0
+          ],
+          [
+            0.0,
+            243.0
+          ],
+          [
+            0.0,
+            245.0
+          ],
+          [
+            0.0,
+            255.0
+          ]
+        ],
+        "live_tile_alpha_255": true,
+        "all8_raw_cached_rgba_equal": true,
+        "all8_raw_cached_depth_equal": true,
+        "cached_read_finished_utc": 1794663263.4054878,
+        "raw_read_finished_utc": 1794663263.4061723,
+        "raw_read_after_snapshot_started_s": 0.19101858139038086,
+        "unused_tile_slots": 1
+      },
+      {
+        "view": 1,
+        "rgba_node_path": "/Render/PostProcess/SDGPipeline/Replicator_01_LdrColorSDhostPtr",
+        "image_render_products": [
+          "/Render/OmniverseKit/HydraTextures/Replicator_01"
+        ],
+        "raw_rgba_shape": [
+          756,
+          1344,
+          4
+        ],
+        "raw_rgb_nonzero_counts": [
+          0,
+          0,
+          0
+        ],
+        "raw_rgba_channel_ranges": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            255.0
+          ]
+        ],
+        "live_tile_alpha_255": true,
+        "all8_raw_cached_rgba_equal": true,
+        "all8_raw_cached_depth_equal": true,
+        "cached_read_finished_utc": 1794663263.4386282,
+        "raw_read_finished_utc": 1794663263.4393008,
+        "raw_read_after_snapshot_started_s": 0.22414708137512207,
+        "unused_tile_slots": 1
+      },
+      {
+        "view": 2,
+        "rgba_node_path": "/Render/PostProcess/SDGPipeline/Replicator_02_LdrColorSDhostPtr",
+        "image_render_products": [
+          "/Render/OmniverseKit/HydraTextures/Replicator_02"
+        ],
+        "raw_rgba_shape": [
+          756,
+          1344,
+          4
+        ],
+        "raw_rgb_nonzero_counts": [
+          0,
+          0,
+          0
+        ],
+        "raw_rgba_channel_ranges": [
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            0.0
+          ],
+          [
+            0.0,
+            255.0
+          ]
+        ],
+        "live_tile_alpha_255": true,
+        "all8_raw_cached_rgba_equal": true,
+        "all8_raw_cached_depth_equal": true,
+        "cached_read_finished_utc": 1794663263.470767,
+        "raw_read_finished_utc": 1794663263.4714212,
+        "raw_read_after_snapshot_started_s": 0.2562675476074219,
+        "unused_tile_slots": 1
+      }
+    ],
+    "decision": "Rejected before policy control; not adopted.",
+    "inference": "All24 live tiles have raw host RGBA equal to the cached sensor RGBA. Views1/2 are already black at LdrColorSDhostPtr output, before Lab tile reshaping; no evidence of tile-cache copying error. Alpha255 and valid depth remain present.",
+    "limits": [
+      "The observation exposure identity is not separately verified for later annotator reads; host timestamps only.",
+      "Views1/2 remained black when reread0.224/0.256s after failure snapshot began, with no additional render/update/physics call. This does not establish behavior after an additional render.",
+      "Evidence localizes the failure upstream of Lab reshaping to the renderer/annotator host-output boundary; it does not isolate the native shading pipeline versus annotator host transfer.",
+      "Local multi-atlas RGB tests use default CUDA SimulationCfg and five warmup simulation steps. Test definitions are source evidence, not tests executed in this review.",
+      "CPU02 overlapped storage audit; do not compare its wall time with GPU03 as backend throughput."
+    ]
+  },
+  "tiled_gpu_raw_failure": {
+    "name": "scaling_gpu_tiled_n8_raw_diagnostic_03",
+    "local_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_gpu_tiled_n8_raw_diagnostic_03",
+    "owner": {
+      "software_complete": false,
+      "stop_reason": null,
+      "error": null,
+      "returncode": 1,
+      "seconds": 24.51175045967102,
+      "ended": 1794663411.0130522,
+      "startup_complete": true,
+      "partial_roles": [],
+      "result_sha256": null
+    },
+    "control_tick_at_rejection": 0,
+    "completed_control_ticks": 0,
+    "numeric_files": 8,
+    "all_numeric_episode_groups_empty": true,
+    "source_commit": "b59baf365e4de7570b3eec95e65abe1e076d87d6",
+    "hashes": {
+      "plan.json": "eccccfe80dbb26efa63361091353896e21a00b939d5e487744e83a911b08bf6d",
+      "owner_finished.json": "9d545a0fa49d9226ba67b462a25abf1806d58aa306201885f91cf0b743623afa",
+      "A/sensor_failure/report.json": "05df7dd88b821026f078283dfbc8f593988d16f10c9b13997fc5634cc0312561",
+      "A/sensor_failure/packet.npz": "bc8d8e079638da2a27b2d9fa8124d12de393785b03e1a7078b4c0c92a4c60a5f",
+      "environment_initialization.json": "e364d5bc123c1cf80c1c12d36afe2e43282de74391551632a4c0012054b64eb3",
+      "worker.log": "7b9e52c16007421aa16605040164858a0247d99250b8d20bbc3f8df1a8a4accf"
+    },
+    "initialization": {
+      "version": "probe_environment_startup_v1",
+      "diagnostic_only": true,
+      "pid": 3851702,
+      "interval_s": 120,
+      "current_stage": "environment_ready",
+      "events": [
+        {
+          "stage": "startup_diagnostics_started",
+          "utc": 1794663387.9814065,
+          "elapsed_s": 5.4304953664541245e-05
+        },
+        {
+          "stage": "environment_imports_started",
+          "utc": 1794663387.9816535,
+          "elapsed_s": 0.00030142394825816154
+        },
+        {
+          "stage": "environment_imports_complete",
+          "utc": 1794663387.9820247,
+          "elapsed_s": 0.0006727869622409344
+        },
+        {
+          "stage": "kit_resource_wait_started",
+          "utc": 1794663387.991256,
+          "elapsed_s": 0.009904774138703942
+        },
+        {
+          "stage": "kit_app_launch_started",
+          "utc": 1794663387.992429,
+          "elapsed_s": 0.011077296920120716
+        },
+        {
+          "stage": "kit_app_launch_complete",
+          "utc": 1794663394.2332857,
+          "elapsed_s": 6.251934248022735
+        },
+        {
+          "stage": "task_registration_import_started",
+          "utc": 1794663394.2393372,
+          "elapsed_s": 6.257985441945493
+        },
+        {
+          "stage": "task_registration_import_complete",
+          "utc": 1794663394.2522502,
+          "elapsed_s": 6.270898337941617
+        },
+        {
+          "stage": "make_env_imports_started",
+          "utc": 1794663394.2526407,
+          "elapsed_s": 6.271288912044838
+        },
+        {
+          "stage": "make_env_config_load_started",
+          "utc": 1794663394.3679342,
+          "elapsed_s": 6.386582964099944
+        },
+        {
+          "stage": "make_env_resource_wait_started",
+          "utc": 1794663394.3771102,
+          "elapsed_s": 6.395758904982358
+        },
+        {
+          "stage": "environment_constructor_started",
+          "utc": 1794663394.3777757,
+          "elapsed_s": 6.396423550089821,
+          "environment_class": "NativeDiagnosticEnv",
+          "num_envs": 8
+        },
+        {
+          "stage": "environment_constructor_complete",
+          "utc": 1794663405.1932724,
+          "elapsed_s": 17.21192135103047
+        },
+        {
+          "stage": "camera_view_configuration_started",
+          "utc": 1794663405.1939454,
+          "elapsed_s": 17.212593293050304
+        },
+        {
+          "stage": "camera_view_configuration_complete",
+          "utc": 1794663405.243926,
+          "elapsed_s": 17.262574896914884
+        },
+        {
+          "stage": "expert_checkpoint_verification_started",
+          "utc": 1794663405.2473366,
+          "elapsed_s": 17.265984585974365
+        },
+        {
+          "stage": "expert_resource_wait_started",
+          "utc": 1794663405.4344711,
+          "elapsed_s": 17.453120195074007
+        },
+        {
+          "stage": "expert_creation_started",
+          "utc": 1794663405.4353232,
+          "elapsed_s": 17.453971170121804
+        },
+        {
+          "stage": "expert_creation_complete",
+          "utc": 1794663405.792201,
+          "elapsed_s": 17.81085007591173
+        },
+        {
+          "stage": "environment_ready",
+          "utc": 1794663405.7929316,
+          "elapsed_s": 17.811579704051837,
+          "error": null
+        }
+      ],
+      "traceback_file": "startup_tracebacks.log",
+      "semantics": "Python stacks and host stages only; no render, physics step or retry. A native call can remain opaque. Owner status determines interrupted attempts."
+    },
+    "active_lanes": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true
+    ],
+    "camera_frame_all": 1,
+    "camera_time_s_all": 0,
+    "views": [
+      {
+        "view": 0,
+        "rgba_node_path": "/Render/PostProcess/SDGPipeline/Replicator_LdrColorSDbuffPtr",
+        "image_render_products": [
+          "/Render/OmniverseKit/HydraTextures/Replicator"
+        ],
+        "raw_rgba_shape": [
+          756,
+          1344,
+          4
+        ],
+        "raw_rgb_nonzero_counts": [
+          903168,
+          903168,
+          903168
+        ],
+        "raw_rgba_channel_ranges": [
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            255.0
+          ]
+        ],
+        "live_tile_alpha_255": true,
+        "all8_raw_cached_rgba_equal": true,
+        "all8_raw_cached_depth_equal": true,
+        "cached_read_finished_utc": 1794663409.3028183,
+        "raw_read_finished_utc": 1794663409.304256,
+        "raw_read_after_snapshot_started_s": 0.4595670700073242,
+        "unused_tile_slots": 1,
+        "lanes": [
+          {
+            "lane": 0,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 1,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 2,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 3,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 4,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 5,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 6,
+            "active": false,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 7,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          }
+        ]
+      },
+      {
+        "view": 1,
+        "rgba_node_path": "/Render/PostProcess/SDGPipeline/Replicator_01_LdrColorSDbuffPtr",
+        "image_render_products": [
+          "/Render/OmniverseKit/HydraTextures/Replicator_01"
+        ],
+        "raw_rgba_shape": [
+          756,
+          1344,
+          4
+        ],
+        "raw_rgb_nonzero_counts": [
+          903168,
+          903168,
+          903168
+        ],
+        "raw_rgba_channel_ranges": [
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            255.0
+          ]
+        ],
+        "live_tile_alpha_255": true,
+        "all8_raw_cached_rgba_equal": true,
+        "all8_raw_cached_depth_equal": true,
+        "cached_read_finished_utc": 1794663409.3336675,
+        "raw_read_finished_utc": 1794663409.3344722,
+        "raw_read_after_snapshot_started_s": 0.48978328704833984,
+        "unused_tile_slots": 1,
+        "lanes": [
+          {
+            "lane": 0,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 1,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 2,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 3,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 4,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 5,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 6,
+            "active": false,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 7,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 238.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 0,
+                "nonzero_count": 112896,
+                "min": null,
+                "max": null
+              }
+            ],
+            "original_camera_valid": false
+          }
+        ]
+      },
+      {
+        "view": 2,
+        "rgba_node_path": "/Render/PostProcess/SDGPipeline/Replicator_02_LdrColorSDbuffPtr",
+        "image_render_products": [
+          "/Render/OmniverseKit/HydraTextures/Replicator_02"
+        ],
+        "raw_rgba_shape": [
+          756,
+          1344,
+          4
+        ],
+        "raw_rgb_nonzero_counts": [
+          460,
+          460,
+          460
+        ],
+        "raw_rgba_channel_ranges": [
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            238.0
+          ],
+          [
+            0.0,
+            255.0
+          ]
+        ],
+        "live_tile_alpha_255": true,
+        "all8_raw_cached_rgba_equal": true,
+        "all8_raw_cached_depth_equal": true,
+        "cached_read_finished_utc": 1794663409.363341,
+        "raw_read_finished_utc": 1794663409.3642178,
+        "raw_read_after_snapshot_started_s": 0.519528865814209,
+        "unused_tile_slots": 1,
+        "lanes": [
+          {
+            "lane": 0,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 0.13468928635120392,
+                "max": 2.615682363510132
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 1,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 0.1346902847290039,
+                "max": 2.9960227012634277
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 2,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 0.1346893310546875,
+                "max": 2.4039907455444336
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 3,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 342,
+                "min": 0.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 342,
+                "min": 0.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 342,
+                "min": 0.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112554,
+                "nonzero_count": 112896,
+                "min": 0.1346898078918457,
+                "max": 2.999262809753418
+              }
+            ],
+            "original_camera_valid": true
+          },
+          {
+            "lane": 4,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 118,
+                "min": 0.0,
+                "max": 238.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 118,
+                "min": 0.0,
+                "max": 238.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 118,
+                "min": 0.0,
+                "max": 238.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112778,
+                "nonzero_count": 112896,
+                "min": 0.1346883773803711,
+                "max": 2.999558448791504
+              }
+            ],
+            "original_camera_valid": true
+          },
+          {
+            "lane": 5,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 0.1346902847290039,
+                "max": 2.9301810264587402
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 6,
+            "active": false,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 0.1346893310546875,
+                "max": 2.5847110748291016
+              }
+            ],
+            "original_camera_valid": false
+          },
+          {
+            "lane": 7,
+            "active": true,
+            "raw_rgba_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 1,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 2,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              {
+                "channel": 3,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 255.0,
+                "max": 255.0
+              }
+            ],
+            "raw_depth_channels": [
+              {
+                "channel": 0,
+                "count": 112896,
+                "finite_count": 112896,
+                "nonzero_count": 112896,
+                "min": 0.1346902847290039,
+                "max": 2.689840316772461
+              }
+            ],
+            "original_camera_valid": false
+          }
+        ]
+      }
+    ],
+    "decision": "rejected before first action; no formal collection or training data",
+    "inference": "GPU physics / CUDA annotator does not resolve first-frame three-view validity. All 24 independently split RGBA and depth tiles equal their cache, localizing these invalid outputs before Lab tile/cache rearrangement. Unlike CPU02, fixed views are uniform RGB238 with no finite live depth; wrist view is mostly black with mostly valid depth.",
+    "limits": [
+      "GPU03 and CPU02 are failure-localization probes, not throughput comparisons; CPU02 overlapped storage audit.",
+      "Raw reads follow failed packet creation without additional render/update/physics; host times do not identify distinct exposures or establish whether later renders would recover.",
+      "GPU buffPtr and CPU hostPtr both produce invalid outputs, which rules out CPU-only failure as the complete explanation but does not establish a common exact renderer/annotator root cause.",
+      "Lane6 is inactive following initial-state legality rejection; the other seven lanes still fail the required all-three-view check.",
+      "Local installed multi-atlas test source uses CUDA and five warm-up steps; those tests were not executed by this read-only review."
+    ]
   }
 }

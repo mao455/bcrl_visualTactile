@@ -28,6 +28,49 @@ def parallel_admission(row, now):
         scope='Conservative joint startup admission; per-worker 4GiB VRAM/10GiB RAM checks continue; not a hard allocation quota')
 
 
+def wait_parallel_admission(resource_path, receipt_path, *, deadline, stop_paths=()):
+    """Wait at most 30 seconds for a post-stage sample without extending the session.
+
+    A fresh sample must be newer than this admission attempt, so a just-finished
+    GPU stage cannot be rejected solely on its last still-allocated sample.
+    """
+    began=time.time(); started=time.monotonic(); end=min(deadline,began+30)
+    samples=[]; latest={}; stop_paths=tuple(Path(path) for path in stop_paths)
+    def save(reason, admitted=False):
+        receipt=dict(latest,admitted=admitted,reason=reason,started_utc=began,
+            ended_utc=time.time() if reason!='waiting' else None,deadline=deadline,
+            admission_deadline=end,max_wait_seconds=30,wait_seconds=time.monotonic()-started,
+            samples=samples,required_free_gpu_mib=22*1024,required_available_ram_bytes=24*1024**3,
+            semantics='Require a sample newer than admission start and age 0–8s; thresholds unchanged; no deadline reset')
+        atomic_json(receipt_path,receipt)
+        return receipt
+    while True:
+        now=time.time()
+        if any(path.exists() for path in stop_paths):
+            save('requested_stop')
+            raise InterruptedError('Fresh cycle STOP during joint resource admission')
+        if now>=deadline:
+            save('original_session_deadline')
+            raise TimeoutError('Original fresh session deadline during joint resource admission')
+        if time.monotonic()-started>=30 or now>=end:
+            return save('wait_exhausted')
+        try:
+            row=read(resource_path);latest=parallel_admission(row,now)
+            latest.update(observed_utc=row['utc_epoch'],sample_after_admission_start=row['utc_epoch']>began)
+            latest['admitted']=latest['admitted'] and latest['sample_after_admission_start']
+            latest['gate_reason']=('admitted' if latest['admitted'] else
+                'waiting_for_post_admission_sample' if not latest['sample_after_admission_start'] else
+                'stale_or_future_sample' if not 0<=latest['telemetry_age_seconds']<=8 else
+                'insufficient_joint_headroom')
+        except (OSError,ValueError,KeyError,TypeError) as error:
+            latest=dict(admitted=False,gate_reason='telemetry_unavailable',error=repr(error))
+        samples.append(dict(latest,checked_utc=now))
+        if latest['admitted']:
+            return save('admitted',True)
+        save('waiting')
+        time.sleep(min(.25,max(.001,end-time.time()),max(.001,30-(time.monotonic()-started))))
+
+
 def paired_frontends(execute, output, epochs):
     """Join both independent learners before admitting any dependent stage.
 
@@ -108,6 +151,9 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
         frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
         parallel_frontends=parallel_frontends,
+        parallel_admission_contract=dict(version='fresh_stage_sample_wait_v1',max_wait_seconds=30,
+            sample_newer_than_admission=True,minimum_free_gpu_mib=22*1024,minimum_available_ram_bytes=24*1024**3)
+            if parallel_frontends else None,
         paired_episode_io=paired_episode_io,
         frontend_latest_repeat=latest_repeat,backend_latest_repeat=1,
         development_startup_seconds=300 if evaluation_lanes>1 else 180,
@@ -157,7 +203,11 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             (['--reuse-index',reuse_index] if reuse_index is not None else []),output/'B/cache_index.json')
         admitted=False
         if parallel_frontends:
-            admission=parallel_admission(read(root/'shared_resources.json'),time.time())
+            atomic_json(ledger/'status.json',dict(stage='parallel_admission',started=time.time(),deadline=deadline))
+            admission=wait_parallel_admission(root/'shared_resources.json',ledger/'parallel_admission.json',
+                deadline=deadline,stop_paths=(root/'STOP',output/'STOP',ledger/'STOP'))
+            admission['frontend_mode']=('parallel' if admission['admitted'] else
+                'paired_rejected_no_serial_fallback' if paired_episode_io else 'serial_fallback')
             atomic_json(ledger/'parallel_admission.json',admission)
             admitted=admission['admitted']
         if paired_episode_io:
