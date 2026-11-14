@@ -1,3 +1,7 @@
+## 2026-11-14 抓持持续性与同一时刻对孔诊断
+
+扩展tools/tight_fresh_phases：在原成功/稳定窗规则不变的前提下，报告稳定窗连续长度、末次稳定和首次拿稳后的第一目标进展；最近中心和最小keypoint误差附同一tick角度/接触，避免把不同时刻最小值拼成对准。16项阶段/接管测试通过。真实round01 A稳定23tick、B累计63/最长54tick，最终均失稳。B中心最近341tick仅0.91mm，但角度1.363rad且没有双指接触；最小keypoint差279tick仍高于容差18.84mm。接近孔中心不能称对准或插入。公开round01_grasp_progress绑定原numeric/result/plan SHA，无新增仿真。
+
 ## 2026-11-14 批量DP/后端推理准备与CPU验证
 
 visuotactile/native_controller拆分观察更新、计划读取与后端输入/组成，serial act保留同一运算路径；models/native_dp.predict支持每lane独立generator列表。batched_controller新增可选neural_batch和嵌套state合并，tools/tight_fresh_batch_gate/eval可登记启用。此前仅DINO批量，DP/后端逐lane；现在可真正合并DDIM及Transformer，训练/活动round02源码未修改。76项定向CPU测试通过；尚未实测GPU一致性和吞吐。各lane计时重叠明确标注。真实效果待后续冻结源码验收，不预告速度或自主改善。

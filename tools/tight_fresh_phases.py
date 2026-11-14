@@ -31,6 +31,23 @@ def authority_phases(source, stable, near, alignment, subgoals):
         scope='Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes.')
 
 
+def grasp_progress(stable,distance,angle,subgoals):
+    """Describe what happens after the first actual stable window, before goal change."""
+    stable=np.asarray(stable,dtype=bool);found=np.flatnonzero(stable)
+    if not len(found):return dict(stable_ticks=0,first_tick=None,last_tick=None,longest_continuous_stable_ticks=0)
+    start=int(found[0]);runs=np.split(found,np.flatnonzero(np.diff(found)>1)+1)
+    after=(np.arange(len(stable))>=start)&(np.asarray(subgoals)==0)
+    selected=np.flatnonzero(after)
+    return dict(stable_ticks=int(stable.sum()),first_tick=start+1,last_tick=int(found[-1])+1,
+        longest_continuous_stable_ticks=max(map(len,runs)),
+        first_stable_goal_distance_m=float(distance[start]),first_stable_goal_angle_rad=float(angle[start]),
+        subsequent_first_goal_min_distance_m=float(distance[after].min()) if after.any() else None,
+        subsequent_first_goal_min_angle_rad=float(angle[after].min()) if after.any() else None,
+        first_goal_last_distance_m=float(distance[selected[-1]]) if len(selected) else None,
+        first_goal_last_angle_rad=float(angle[selected[-1]]) if len(selected) else None,
+        stable_at_final_tick=bool(stable[-1]))
+
+
 def case(directory):
     import h5py
     result=json.loads((directory/'result.json').read_text())
@@ -56,11 +73,20 @@ def case(directory):
         tolerance=t['native_success_diagnostic/insertion_tolerance_m'][:]
         subgoals=d['successes'][:]
         initial_goal=subgoals==0
+        simultaneous={}
+        for label,metric in [('closest_center',distance),('smallest_keypoint_gap',keypoint-tolerance)]:
+            indices=np.flatnonzero(initial_goal)
+            if len(indices):
+                tick=int(indices[np.argmin(metric[initial_goal])])
+                simultaneous[label]=dict(tick=tick+1,center_distance_m=float(distance[tick]),
+                    quaternion_angle_rad=float(angle[tick]),keypoint_gap_m=float(keypoint[tick]-tolerance[tick]),
+                    stable_window=bool(relative_stable[tick]),two_contact_fingers_both_substeps=bool(two[tick]))
         source=t['dagger/control_source'][:] if 'dagger/control_source' in t else np.zeros(len(pose),dtype=int)
         authority=authority_phases(source,relative_stable,t['native_success_diagnostic/near_goal'][:],
             t['native_alignment_condition'][:],subgoals)
         return dict(case=directory.name,legal=True,steps=len(pose),success=bool(result['success']),
-            authority=authority,
+            authority=authority,first_goal_simultaneous=simultaneous,
+            grasp_progress=grasp_progress(relative_stable,distance,angle,subgoals),
             reasons=result['reasons'],numeric_sha256=sha256(path),result_sha256=sha256(directory/'result.json'),
             first_contact_tick=first(contacts),first_two_fingers_both_substeps_tick=first(two),
             original_height_stable_grasp=bool(native_stable.any()),settled_height_stable_grasp=bool(relative_stable.any()),
