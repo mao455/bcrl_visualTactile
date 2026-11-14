@@ -1,3 +1,13 @@
+## 2026-11-14 23:22 后段接管重查与下一轮吞吐候选
+
+第八轮82d5052两前端均完成10轮/1370更新；A选epoch9，B选epoch5。cache_A已543.205秒完成，当前后端A训练，尚无第八轮自主结论。前端A/B进程read_bytes分别629.079/626.656GB（精确值见offline_planning_review），同一时段出现187.66/188.31秒consumer等待，slow row主要停在mmap clone之前/期间，resource pacing为0；这些是进程计数，不能当作独立物理盘读量。旧单epoch paired I/O整体慢的结论保留，下一较大规模需重新判断摊销，不自动采用。
+
+新增held60/held120显式接管：首次12步持续抬升与双指接触后至少等待60/120控制步，真正接手前最新12步必须再次满足；允许期间失去条件后恢复、允许原生goal变化，不用距离/成功/掉落判断替代触发，无fallback。真实串/批入口和HDF仅重放学生控制段，完整保留专家后段。旧contact0/12和near60不改；回看delay12有6次实际接手，仅3次在接手边界仍满足held，旧成功记录不重分类为学生拿稳。
+
+下一cycle可显式--parallel-backends：两前端完成后使用新遥测做22GiB显存/24GiB RAM联合准入，A/B各自prepare→cache→train→offline，全部结束才自主评估；不通过则顺序运行，剂量/参数不变，原deadline/STOP与systemd cgroup清理保留。仅候选，当前活动冻结树不改，尚无并行收益测量。
+
+新增独立offline_planning helper/gate，完整60Hz历史重建后将连续5Hz anchors按M1/M8/M32推理，共享generator逐行原形状draw保留prefix/gap噪声消耗；固定raw/bounded目标差2e-5rad，train-only best EMA，默认训练路径不改。主Agent本批104项CPU检查通过（含离线门控、后段接管、并行后端和配对身份），CUDA验收尚待；metrics阶段28.62%/29.84%含编码/I/O/租约，不能全归DDIM。round_compare把inactive-render显式配置纳入执行身份，防止不同渲染策略冒充同配置配对。
+
 ## 2026-11-14 23:03 第八轮新增数据曝光与合集阶段拟合
 
 已按不可变source SHA、源checkpoint train_ids与当前合法mask核实118条/42训练family/32920合法专家步。A05首次接触06/07/08共34条、9005步；B06首次接触07/08共25条、7155步，双方真正新增初态均12family。B06选中epoch3对第六批每条6次完整历史，last epoch10为20次，不能混算。详见evidence/tight_fresh_20261114/round08_exposure_review。

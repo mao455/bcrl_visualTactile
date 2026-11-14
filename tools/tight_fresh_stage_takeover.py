@@ -10,7 +10,7 @@ import time
 
 from tools.tight_fresh_rollouts import completed_pair, read
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION
+from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION
 from visuotactile.training_resources import atomic_json
 
 CONTRACT = 'stable_only_takeover_v1'
@@ -25,6 +25,8 @@ def trigger_contract(version):
         return CONTACT_HEIGHT_CONTRACT, 'contact_height_only', 'contact_height', 'first_contact_height_window_end_completed_tick'
     if version == HELD_NEAR_GOAL_VERSION:
         return 'held_near_goal_only_takeover_v1','held_near_goal_only','held_near_goal','first_held_near_goal_window_end_completed_tick'
+    if version == HELD_RECHECK_VERSION:
+        return 'held_recheck_only_takeover_v1','held_recheck_only','held_recheck','first_rechecked_contact_height_window_end_completed_tick'
     raise ValueError('Unknown explicit stage trigger version')
 
 
@@ -156,7 +158,14 @@ def classify(result, audit):
     switched = audit['actual_switch_tick'] is not None
     if switched:
         first = receipt[first_key]
-        expected = None if first is None else first + receipt['configuration']['delay_ticks']
+        if receipt['configuration']['version']==HELD_RECHECK_VERSION:
+            original=receipt['first_contact_height_window_end_completed_tick']
+            expected=first
+            if (original is None or expected is None or receipt['latest_contact_height_window'] is not True
+                    or receipt['earliest_allowed_completed_tick']!=original+receipt['configuration']['min_delay_ticks']
+                    or expected<receipt['earliest_allowed_completed_tick']):
+                raise ValueError('Expert authority lacks a rechecked held window after its minimum delay')
+        else:expected = None if first is None else first + receipt['configuration']['delay_ticks']
         if (audit['category'] != f'student_{event}_then_takeover'
                 or audit['actual_switch_tick'] != expected or expected >= NEVER_FALLBACK):
             raise ValueError('Expert authority lacks the registered causal stage trigger')
@@ -165,6 +174,13 @@ def classify(result, audit):
         raise ValueError('Unswitched trajectory contains expert authority or labels')
     if dagger['student_autonomous_success']:
         return 'student_success_without_takeover'
+    if receipt['configuration']['version']==HELD_RECHECK_VERSION:
+        if receipt[first_key] is not None:return 'ended_after_held_recheck_before_scheduled_takeover'
+        if receipt['first_contact_height_window_end_completed_tick'] is None:
+            return 'ended_without_student_contact_height_window'
+        if receipt['completed_student_transitions_observed']<receipt['earliest_allowed_completed_tick']:
+            return 'ended_after_first_held_before_minimum_delay'
+        return 'ended_after_minimum_delay_without_current_held_window'
     return (f'ended_after_{event}_before_scheduled_takeover'
         if receipt[first_key] is not None else f'ended_without_student_{event}_window')
 

@@ -4,10 +4,17 @@ import numpy as np
 VERSION = 'stable_grasp_then_delay_v1'
 CONTACT_HEIGHT_VERSION = 'contact_height_then_delay_v1'
 HELD_NEAR_GOAL_VERSION = 'held_near_goal_then_delay_v1'
+HELD_RECHECK_VERSION = 'contact_height_recheck_after_min_delay_v1'
 NEVER_FALLBACK = 1_000_000_000
 
 
 def validate_trigger(configuration, fallback_tick):
+    if isinstance(configuration,dict) and configuration.get('version')==HELD_RECHECK_VERSION:
+        if (set(configuration)!={'version','min_delay_ticks'}
+                or type(configuration['min_delay_ticks']) is not int or configuration['min_delay_ticks'] not in (60,120)
+                or type(fallback_tick) is not int or fallback_tick!=NEVER_FALLBACK):
+            raise ValueError('Held recheck v1 requires explicit minimum60/120 ticks and no fallback')
+        return dict(configuration)
     if isinstance(configuration,dict) and configuration.get('version')==HELD_NEAR_GOAL_VERSION:
         if (set(configuration)!={'version','delay_ticks','max_keypoint_distance_m'}
                 or type(configuration['delay_ticks']) is not int or configuration['delay_ticks']!=0
@@ -173,6 +180,79 @@ class ContactHeightTrigger:
             native_success_changed=False)
 
 
+class HeldRecheckTrigger:
+    """Wait from the first held window, then require a current held window.
+
+    Elapsed time alone never schedules authority. A contact interruption may
+    recover; twelve latest completed transitions must qualify again. Native
+    goal changes are recorded, but do not reset the delay or veto collection.
+    Neither goal distance nor a native success/dropped decision is inferred.
+    """
+    def __init__(self,configuration,fallback_tick):
+        self.configuration=validate_trigger(configuration,fallback_tick)
+        if self.configuration['version']!=HELD_RECHECK_VERSION:
+            raise ValueError('HeldRecheckTrigger requires its explicit contract')
+        self.fallback_tick=fallback_tick;self.scheduled_tick=fallback_tick
+        self.poses=[];self.palms=[];self.forces=[];self.height=None
+        self.first_contact_height_completed_tick=None;self.first_rechecked_contact_height_completed_tick=None
+        self.earliest_allowed_completed_tick=None;self.latest_contact_height_window=None
+        self.first_contact_height_goal=None;self.latest_goal=None;self.target_change_transitions=0
+        self.nonheld_windows_after_first=0;self.reason='no_completed_contact_height_window'
+
+    def observe(self,tick,pose,palm,force,*,goal_index_before,goal_index_after,goal_pose_before,goal_pose_after):
+        if type(tick) is not int or tick!=len(self.poses) or tick>=self.scheduled_tick:
+            raise ValueError('Trigger observes each completed student transition exactly once')
+        values=[np.asarray(x).copy() for x in (pose,palm,force,goal_pose_before,goal_pose_after)]
+        if ([x.shape for x in values]!=[(7,),(7,),(2,5,3),(7,),(7,)]
+                or not all(np.isfinite(x).all() for x in values)):
+            raise ValueError('Finite actual object/palm/contact and recorded native goal poses required')
+        indices=[np.asarray(x) for x in (goal_index_before,goal_index_after)]
+        if any(x.shape!=() or not np.isfinite(x) or float(x)<0 or not float(x).is_integer() for x in indices):
+            raise ValueError('Finite nonnegative integer native goal indices required')
+        before,after=map(int,indices);completed=len(self.poses)+1
+        self.latest_goal=dict(completed_tick=completed,index_before=before,index_after=after,
+            pose_before_w=values[3].tolist(),pose_after_w=values[4].tolist())
+        self.target_change_transitions+=before!=after or not np.array_equal(values[3],values[4])
+        self.poses.append(values[0]);self.palms.append(values[1]);self.forces.append(values[2])
+        if completed==48:self.height=float(np.median(np.asarray(self.poses)[24:48,2]))
+        if self.height is None:return None
+        held=bool(contact_height_windows(np.asarray(self.poses[-12:]),np.asarray(self.forces[-12:]),self.height)[-1])
+        self.latest_contact_height_window=held
+        if self.first_contact_height_completed_tick is None:
+            if not held:return None
+            self.first_contact_height_completed_tick=completed
+            self.first_contact_height_goal=dict(self.latest_goal)
+            self.earliest_allowed_completed_tick=completed+self.configuration['min_delay_ticks']
+        elif not held:self.nonheld_windows_after_first+=1
+        if completed<self.earliest_allowed_completed_tick:
+            self.reason='waiting_minimum_delay_after_first_contact_height'
+            return None
+        if not held:
+            self.reason='minimum_delay_elapsed_without_current_contact_height_window'
+            return None
+        self.first_rechecked_contact_height_completed_tick=completed;self.scheduled_tick=completed
+        self.reason='completed_student_contact_height_rechecked_after_min_delay'
+        return completed
+
+    def receipt(self):
+        return dict(configuration=self.configuration,fallback_tick=self.fallback_tick,
+            actual_scheduled_takeover_tick=self.scheduled_tick,reason=self.reason,
+            completed_student_transitions_observed=len(self.poses),settled_height_m=self.height,
+            first_contact_height_window_end_completed_tick=self.first_contact_height_completed_tick,
+            earliest_allowed_completed_tick=self.earliest_allowed_completed_tick,
+            first_rechecked_contact_height_window_end_completed_tick=self.first_rechecked_contact_height_completed_tick,
+            latest_contact_height_window=self.latest_contact_height_window,
+            nonheld_windows_after_first=self.nonheld_windows_after_first,
+            first_contact_height_goal=self.first_contact_height_goal,latest_goal=self.latest_goal,
+            target_change_transitions=self.target_change_transitions,cross_goal_wait_allowed=True,
+            rule='At least minimum60/120 ticks after the first12tick contact-height window, latest12 completed student transitions again satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation and intervening loss/recovery allowed',
+            indices='Completed transition count N schedules zero-based action N; earliest time alone never schedules a switch',
+            missing_window_interpretation='Collection condition absent, not a native drop/fall or task failure decision',
+            goal_interpretation='Recorded native goal before/after only; no distance criterion, no same-goal veto, no success inference',
+            diagnostic_only=True,student_inputs_changed=False,stable_grasp_claim=False,
+            native_success_changed=False,no_expert_fallback=True,future_information_used=False)
+
+
 class HeldNearGoalTrigger:
     """A completed contact-height window near the same current native target.
 
@@ -244,6 +324,9 @@ def observe_transition(trigger,tick,transition,index=0):
         extra=dict(keypoint_max_distance_m=value('native_keypoints_max_dist'),
             goal_index_before=value('diagnostics_before/successes'),goal_index_after=value('diagnostics_after/successes'),
             goal_pose_before=value('diagnostics_before/goal_pose_w'),goal_pose_after=value('diagnostics_after/goal_pose_w'))
+    elif getattr(trigger,'configuration',{}).get('version')==HELD_RECHECK_VERSION:
+        extra=dict(goal_index_before=value('diagnostics_before/successes'),goal_index_after=value('diagnostics_after/successes'),
+            goal_pose_before=value('diagnostics_before/goal_pose_w'),goal_pose_after=value('diagnostics_after/goal_pose_w'))
     return trigger.observe(tick,value('diagnostics_after/object_pose_w'),value('diagnostics_after/palm_body_pose_w'),
         value('object_contact_force_w'),**extra)
 
@@ -251,5 +334,5 @@ def observe_transition(trigger,tick,transition,index=0):
 def make_trigger(configuration, fallback_tick):
     validated = validate_trigger(configuration, fallback_tick)
     cls = {VERSION:StableGraspTrigger,CONTACT_HEIGHT_VERSION:ContactHeightTrigger,
-        HELD_NEAR_GOAL_VERSION:HeldNearGoalTrigger}[validated['version']]
+        HELD_NEAR_GOAL_VERSION:HeldNearGoalTrigger,HELD_RECHECK_VERSION:HeldRecheckTrigger}[validated['version']]
     return cls(validated, fallback_tick)

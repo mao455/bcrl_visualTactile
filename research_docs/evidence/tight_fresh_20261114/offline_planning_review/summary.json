@@ -1,0 +1,186 @@
+{
+  "version": "offline_planning_candidate_review_v1",
+  "status": "implemented_cpu_tested_not_live_accepted_or_adopted",
+  "private_timing_evidence": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/offline_planning_timing01.json",
+    "bytes": 42767,
+    "sha256": "ddb6a46c69ea1889b84c14ebe20ed3ed94d91524deb605dadf4c7bf30c2e13cd"
+  },
+  "source_files": {
+    "visuotactile/offline_planning.py": "09733406b9ab65e00350093084312ccd9fe518a89a5723a06fd0ece371c2fb33",
+    "tools/tight_offline_planning_gate.py": "87066032aa983f5ad6ea6cec367fe9aeb8598df0cbf04374bff9c65d5ef7c5ea",
+    "tests/test_offline_planning.py": "7cdf1b385cb6559e770f07229b3ba8fd487d9d9511d3967abc86a46c28fdb07d"
+  },
+  "tested": {
+    "command": "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m pytest -q tests/test_offline_planning.py",
+    "passed": 37,
+    "seconds": 2.06,
+    "scope": "CPU; includes existing NativePolicy.predict DDIM loop with independent toy denoiser, prefix/gap noise parity, admission/selected best/train-only projection, metric threshold and failure preservation; no CUDA model acceptance"
+  },
+  "roles": {
+    "A": {
+      "training_phase_total_s": 770.2198925423436,
+      "post_training_metrics_total_s": 308.8305389881134,
+      "metrics_share_of_epoch_train_plus_metrics": 0.28620584354902456,
+      "prefetch_consumer_wait_total_s": 292.3361953315325,
+      "training_read_bytes_total": 629079388160,
+      "finished_wall_seconds": 1251.4782589878887,
+      "inferred_initial_metrics_phase_s": 112.23214411735535,
+      "other_checkpoint_interepoch_final_correction_s": 60.19568334007636,
+      "anomalous_epoch": 6,
+      "standard_metric_predict_calls": {
+        "serial": 241,
+        "M8": 35,
+        "M32": 11
+      },
+      "anomalous_epoch_timing": {
+        "epoch": 6,
+        "training_phase_s": 225.80967694404535,
+        "post_training_metrics_phase_s": 37.637900829315186,
+        "consumer_wait_s": 187.66199313034303,
+        "prefetch_load_s": 217.65406109951437,
+        "prefetch_clone_s": 202.61567316856235,
+        "prefetch_budget_wait_s": 13.8521002701018,
+        "training_read_bytes": 60794077184,
+        "started_utc": 1794667933.5124004,
+        "training_ended_utc": 1794668159.3220778
+      },
+      "slowest_row": {
+        "episode": "r01_B_formal_029_slow_6_t58",
+        "episode_index": 33,
+        "updates": 718,
+        "started_utc": 1794667949.6983209,
+        "ended_utc": 1794667990.5171645,
+        "row_seconds": 40.818843562854454,
+        "process_io": {
+          "minor_faults": 184623,
+          "major_faults": 687,
+          "read_bytes": 717795328,
+          "rchar": 194322,
+          "syscr": 26
+        },
+        "episode_io": {
+          "identity": "r01_B_formal_029_slow_6_t58",
+          "visit_index": 32,
+          "mode": "cpu_clone",
+          "clone_bytes": 717715134,
+          "budget_wait_s": 0.035749621922150254,
+          "load_s": 40.71501303417608,
+          "feature_bytes": 717715134,
+          "clone_s": 40.543702775845304,
+          "consumer_wait_s": 40.55073483008891
+        },
+        "row_minus_consumer_wait_s": 0.2681087327655405
+      }
+    },
+    "B": {
+      "training_phase_total_s": 679.5292416717857,
+      "post_training_metrics_total_s": 288.97213196754456,
+      "metrics_share_of_epoch_train_plus_metrics": 0.2983703893797034,
+      "prefetch_consumer_wait_total_s": 294.17571457102895,
+      "training_read_bytes_total": 626656399360,
+      "finished_wall_seconds": 1161.1562641980127,
+      "inferred_initial_metrics_phase_s": 110.82427716255188,
+      "other_checkpoint_interepoch_final_correction_s": 81.8306133961305,
+      "anomalous_epoch": 7,
+      "standard_metric_predict_calls": {
+        "serial": 241,
+        "M8": 35,
+        "M32": 11
+      },
+      "anomalous_epoch_timing": {
+        "epoch": 7,
+        "training_phase_s": 221.09011079696938,
+        "post_training_metrics_phase_s": 39.5942177772522,
+        "consumer_wait_s": 188.308214541059,
+        "prefetch_load_s": 215.2783698628191,
+        "prefetch_clone_s": 201.96131183742546,
+        "prefetch_budget_wait_s": 12.039664648007601,
+        "training_read_bytes": 61580615680,
+        "started_utc": 1794667934.76194,
+        "training_ended_utc": 1794668155.8520508
+      },
+      "slowest_row": {
+        "episode": "r08_B_expanded_session06_new16_s28400010_contact0",
+        "episode_index": 40,
+        "updates": 862,
+        "started_utc": 1794668011.1019788,
+        "ended_utc": 1794668040.310684,
+        "row_seconds": 29.20870525902137,
+        "process_io": {
+          "minor_faults": 232114,
+          "major_faults": 13,
+          "read_bytes": 899321856,
+          "rchar": 194504,
+          "syscr": 28
+        },
+        "episode_io": {
+          "identity": "r08_B_expanded_session06_new16_s28400010_contact0",
+          "visit_index": 39,
+          "mode": "cpu_clone",
+          "clone_bytes": 899144982,
+          "budget_wait_s": 0.1345232268795371,
+          "load_s": 29.12909222091548,
+          "feature_bytes": 899144982,
+          "clone_s": 28.880739599000663,
+          "consumer_wait_s": 28.883692990988493
+        },
+        "row_minus_consumer_wait_s": 0.32501226803287864
+      }
+    }
+  },
+  "aggregate_training_process_read_bytes": 1255735787520,
+  "anomaly_resources": {
+    "samples": 182,
+    "first_utc": 1794667949.9976103,
+    "last_utc": 1794668131.0557196,
+    "max_sampling_gap_s": 1.005781888961792,
+    "gpu_util_median_percent": 1.0,
+    "gpu_util_min_percent": 0.0,
+    "gpu_util_max_percent": 70.0,
+    "gpu_free_mib_min": 9440.0,
+    "ram_available_gib_min": 22.922195434570312,
+    "pause_reason_samples": 0,
+    "positive_pacing_samples": 0,
+    "external_gpu_process_samples": 0,
+    "telemetry_error_samples": 0
+  },
+  "interpretation": [
+    "All ten completed epochs, 137 episode updates per epoch per role. Training phase includes loader/encoding/backprop/optimizer/writes/resource entry; it is not pure GPU compute.",
+    "Metrics phase includes val6+train2 full-history encoding, feature reads, serial DDIM and aggregation. Its 28.62%/29.84% share does not establish the DDIM-only fraction.",
+    "A epoch6 and B epoch7 overlap. Their 187.66/188.31s consumer waits happen at prefetch future.result before lease entry. Slow rows spend nearly all load time in CPU clone touching mmap pages. Observed consumer wait dominates these stalls.",
+    "Budget, loader clone and consumer waits overlap; never add them to produce total wall time. Normal producer budget waits across many rows differ from the exceptional long clone waits.",
+    "read_bytes is the per-process Linux I/O counter, including overlapping prefetch and OS cache effects. The A+B sum is not an independently measured physical-disk total or unique bytes; shared-page/device attribution and CPU/disk root cause remain unresolved.",
+    "Resource samples during the central slow window show GPU median1%, RAM>=22.92GiB, VRAM>=9440MiB and no recorded pauses/pacing/external GPU processes. There is no per-row exact lease timer; do not claim one.",
+    "Initial/final correction metrics and checkpoint work are separate from per-epoch metrics totals. No new validation/test payload or evaluation was performed for this CPU audit.",
+    "Candidate retains every 60Hz history update, teacher-forced actual past commands, native5Hz skipped noise draws and legal commit12 masks. It only groups consecutive independent offline anchor conditions. No optimizer budget or default trainer/cycle path changed.",
+    "CPU exact-noise parity does not establish CUDA denoiser numerical parity. Fixed M1/M8/M32 must pass raw and bounded final-target max_abs<=2e-5 rad; per-profile metric differences and actual CUDA timings are recorded before any adoption.",
+    "Gate timing order is serial then M1/M8/M32; warm kernels/cache and concurrent work affect timing. Standalone inference gate is not a completed production-throughput improvement.",
+    "Earlier one-epoch paired-I/O arm was slower and remains unadopted. That result does not settle a future explicitly registered multi-epoch larger-pool comparison; this review starts no paired run."
+  ],
+  "gate": {
+    "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114",
+    "command_argv": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_offline_planning_gate",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+      "--role",
+      "B",
+      "--frozen-source-root",
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+      "--resource-root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/offline_planning_B_gate01",
+      "--max-seconds",
+      "600"
+    ],
+    "default_train_cohort": "First training original and first latest correction, deduplicated; explicit --identity may select 1..4 train episodes only",
+    "completed_checkpoint": "Exact best.pt SHA bound to finished.json; arbitrary last.pt fallback forbidden. --root and --frozen-source-root may name another completed source or selected round.",
+    "check_only": "Add --check-only and use a different fresh --output. CPU admission still hashes selected checkpoint/shards and copies only selected train numeric tensors; avoid concurrent I/O-sensitive work.",
+    "bounded": "Fixed cohort and profiles; max600s checked between calls, active session resource lease/deadline respected. Persistent owner should impose external deadline for hung CUDA calls. Existing output refuses overwrite; no automatic retry.",
+    "ran": false
+  }
+}

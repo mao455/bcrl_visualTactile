@@ -97,6 +97,7 @@ def execution_identity(plan):
     return dict(mode='whole_wave' if batch else 'serial',lanes=batch['lanes'] if batch else 1,
         vision_microbatch=batch.get('vision_microbatch',2) if batch else 2,
         vision_tail_profile=batch.get('vision_tail_profile') if batch else None,
+        inactive_render_profile=batch.get('inactive_render_profile') if batch else None,
         batch_seed=batch['seed'] if batch else None,
         inference_scheduler_index_mode=plan.get('inference_scheduler_index_mode','legacy'),
         execution_backend=plan.get('execution_backend',dict(version='tight_execution_backend_v1',
@@ -133,7 +134,8 @@ def verify_execution_receipt(directory,plan):
         'Observed execution backend differs from plan')
     require(initial['execution_backend']==identity['execution_backend'] and
         initial['vision_microbatch']==identity['vision_microbatch'] and
-        initial.get('vision_tail_profile')==identity['vision_tail_profile'],'Observed visual batching differs')
+        initial.get('vision_tail_profile')==identity['vision_tail_profile'] and
+        initial.get('inactive_render_profile')==identity['inactive_render_profile'],'Observed visual batching differs')
     require(abs(observed['physics_dt']-1/120)<1e-8 and abs(observed['control_dt']-1/60)<1e-8,
         'Observed native clocks differ')
     return dict(identity,observed_sha256=sha256(directory/'execution_backend_observed.json'))

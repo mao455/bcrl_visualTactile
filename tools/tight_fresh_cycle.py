@@ -90,6 +90,55 @@ def paired_frontends(execute, output, epochs):
         complete=not errors,scope='Two independent DP processes only; unchanged per-role data, RNG and epoch budgets; dependent stages wait for both')
 
 
+def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_status=True, stop_paths=()):
+    """The same per-role commands and dependencies in serial and parallel modes."""
+    rear=output/role/'backend'
+    options=dict(update_status=update_status)
+    if stop_paths:options['stop_paths']=stop_paths
+    execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',epochs]+
+        (['--continue-rear'] if continue_rear else []),rear/'prepared.json',**options)
+    execute('backend_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json',**options)
+    execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,
+        '--job','image','--output',rear/role/'training'],rear/role/'training/finished.json',**options)
+    execute('backend_offline_'+role,['visuotactile.anchor_continue','residual-offline','--root',rear/role,
+        '--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json',**options)
+
+
+def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=()):
+    """Join independent complete backend chains; one failure does not cancel its peer."""
+    from concurrent.futures import ThreadPoolExecutor
+    errors={};outcomes={};began=time.time()
+    def role_chain(role):
+        start=time.time()
+        try:
+            backend_chain(execute,output,role,epochs,continue_rear=continue_rear,
+                update_status=False,stop_paths=stop_paths)
+        except Exception as error:
+            return dict(complete=False,error=repr(error),started=start,ended=time.time(),seconds=time.time()-start)
+        return dict(complete=True,started=start,ended=time.time(),seconds=time.time()-start)
+    with ThreadPoolExecutor(max_workers=2,thread_name_prefix='fresh-backend') as pool:
+        jobs={role:pool.submit(role_chain,role) for role in ('A','B')}
+        for role,future in jobs.items():
+            outcomes[role]=future.result()
+            if not outcomes[role]['complete']:errors[role]=outcomes[role]['error']
+    return dict(started=began,ended=time.time(),seconds=time.time()-began,roles=['A','B'],errors=errors,
+        outcomes=outcomes,complete=not errors,
+        scope='Per-role prepare/cache/train/offline commands unchanged; two frontend completions required; both chains join before development; actual overlap is not a speed claim')
+
+
+def wait_backend_owned(process, deadline, stop_paths):
+    """Keep the ordinary absolute bound and process-group cleanup, adding cycle STOP."""
+    try:
+        while process.poll() is None:
+            if any(Path(path).exists() for path in stop_paths):return 'requested_stop'
+            now=time.time()
+            if now>=deadline:return 'original_session_deadline'
+            time.sleep(min(.5,max(.001,deadline-now)))
+    finally:
+        if process.poll() is None:stop_owned(process)
+    return None
+
+
 def configure_frontend_sampling(output, repeat):
     """Bind optional latest-episode reuse before either learner starts."""
     from visuotactile.latest_takeover_sampling import SAMPLING_VERSION,sampling_plan
@@ -129,12 +178,14 @@ def configure_episode_io(output, config):
 
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
-        paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False):
+        paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
+        parallel_backends=False):
     from visuotactile.models.native_vision import validate_vision_tail_profile
     tail=validate_vision_tail_profile(vision_tail_profile)
     from tools.tight_fresh_batch_run import validate_inactive_render_request
     inactive=validate_inactive_render_request(inactive_render_profile,execution_backend)
     if type(payload_audit_memo) is not bool:raise ValueError('Payload audit memo must be an explicit boolean')
+    if type(parallel_backends) is not bool:raise ValueError('Parallel backends must be an explicit boolean')
     if paired_episode_io and not parallel_frontends:
         raise ValueError('Paired episode I/O requires two parallel independent frontends')
     if type(evaluation_lanes) is not int or evaluation_lanes<1:
@@ -153,6 +204,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     session=read(root/'session.json');deadline=session['deadline']
     if parallel_frontends and session.get('resource_policy')!='full_gpu_v1':
         raise ValueError('Parallel frontends require the explicit full-GPU resource contract')
+    if parallel_backends and session.get('resource_policy')!='full_gpu_v1':
+        raise ValueError('Parallel backends require the explicit full-GPU resource contract')
     sources={str(p):sha256(p) for folder in ['tools','visuotactile'] for p in sorted(Path(folder).rglob('*.py'))}
     ledger.mkdir(parents=True)
     registration=dict(source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
@@ -171,12 +224,21 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if tail is not None:registration['vision_tail_profile']=tail
     if inactive is not None:registration['inactive_render_profile']=inactive
     if payload_audit_memo:registration['payload_audit_memo']=True
+    if parallel_backends:
+        registration['parallel_backends']=True
+        registration['parallel_backend_contract']=dict(version='independent_backend_chains_v1',
+            depends_on=['frontend_A','frontend_B'],role_stages=['prepare','cache','train','offline'],
+            join_before='development_prepare',ordinary_role_failure='preserve_peer_chain',
+            admission=dict(version='fresh_stage_sample_wait_v1',max_wait_seconds=30,
+                sample_newer_than_admission=True,minimum_free_gpu_mib=22*1024,minimum_available_ram_bytes=24*1024**3),
+            fallback='serial',deadline=deadline,stop_paths=[str(p/'STOP') for p in (root,output,ledger)])
     if reuse_index is not None:
         if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
         registration['reuse_visual_index']=dict(path=str(reuse_index),sha256=sha256(reuse_index))
     atomic_json(ledger/'registration.json',registration)
     stages=[]
-    def execute(name,args,completion,*,update_status=True):
+    def execute(name,args,completion,*,update_status=True,stop_paths=()):
+        if any(Path(path).exists() for path in stop_paths):raise InterruptedError('Fresh cycle STOP before '+name)
         if time.time()>=deadline:raise TimeoutError('Original fresh session deadline exhausted')
         if any(sha256(p)!=s for p,s in sources.items()):raise ValueError('Active cycle source drift')
         command=[sys.executable,'-m']+list(map(str,args))
@@ -190,9 +252,12 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
                 atomic_json(ledger/(name+'_worker.json'),dict(stage=name,command=command,pid=proc.pid,
                     proc_start_ticks=int(proc_stat[19]),cwd=str(Path.cwd()),
                     started=start,deadline=deadline,completion=str(completion)))
-                reason=wait_owned(proc,deadline,
-                    startup_marker=completion.parent/'initialization.json' if name=='development' else None,
-                    startup_seconds=registration['development_startup_seconds'] if name=='development' else None)
+                if stop_paths:
+                    reason=wait_backend_owned(proc,deadline,stop_paths)
+                else:
+                    reason=wait_owned(proc,deadline,
+                        startup_marker=completion.parent/'initialization.json' if name=='development' else None,
+                        startup_seconds=registration['development_startup_seconds'] if name=='development' else None)
             finally:
                 if proc.poll() is None:stop_owned(proc)
         receipt=dict(stage=name,command=command,returncode=proc.returncode,started=start,seconds=time.time()-start,
@@ -236,12 +301,24 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         else:
             for role in ['A','B']:
                 execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs],output/role/'training/finished.json')
-        for role in ['A','B']:
-            rear=output/role/'backend'
-            execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',rear_epochs]+(['--continue-rear'] if continue_rear else []),rear/'prepared.json')
-            execute('backend_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json')
-            execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,'--job','image','--output',rear/role/'training'],rear/role/'training/finished.json')
-            execute('backend_offline_'+role,['visuotactile.anchor_continue','residual-offline','--root',rear/role,'--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json')
+        backends_admitted=False
+        backend_stop_paths=(root/'STOP',output/'STOP',ledger/'STOP') if parallel_backends else ()
+        if parallel_backends:
+            atomic_json(ledger/'status.json',dict(stage='parallel_backend_admission',started=time.time(),deadline=deadline))
+            admission=wait_parallel_admission(root/'shared_resources.json',ledger/'parallel_backend_admission.json',
+                deadline=deadline,stop_paths=backend_stop_paths)
+            admission['backend_mode']='parallel' if admission['admitted'] else 'serial_fallback'
+            atomic_json(ledger/'parallel_backend_admission.json',admission)
+            backends_admitted=admission['admitted']
+        if backends_admitted:
+            atomic_json(ledger/'status.json',dict(stage='parallel_backends',roles=['A','B'],started=time.time()))
+            paired=paired_backends(execute,output,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths)
+            atomic_json(ledger/'parallel_backends.json',paired)
+            if not paired['complete']:raise RuntimeError('Backend stage failed: '+str(paired['errors']))
+        else:
+            for role in ['A','B']:
+                backend_chain(execute,output,role,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths)
+        if any(path.exists() for path in backend_stop_paths):raise InterruptedError('Fresh cycle STOP before development')
         development=output/'development'
         if evaluation_lanes>1:
             arguments=['tools.tight_fresh_batch_run','prepare','--root',output,'--output',development,
@@ -272,6 +349,8 @@ def main():
     p.add_argument('--continue-rear',action='store_true')
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
+    p.add_argument('--parallel-backends',action='store_true',
+        help='Opt-in independent A/B backend chains after both frontends finish and fresh joint admission; serial fallback')
     p.add_argument('--paired-episode-io',action='store_true',
         help='Opt-in same-deck A/B I/O rendezvous; requires parallel frontends and shared frozen shards')
     p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
@@ -299,7 +378,7 @@ def main():
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,
         vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,
-        inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo)
+        inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo,parallel_backends=a.parallel_backends)
 
 
 if __name__=='__main__':main()

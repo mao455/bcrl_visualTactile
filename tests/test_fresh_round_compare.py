@@ -85,7 +85,7 @@ def batch_plan(count=8):
             renderer_descriptor_sets=360000,renderer_reserved_descriptors=900000))
 
 
-@pytest.mark.parametrize('change', ['spec','lanes','microbatch','backend','seed','tail','scheduler','duplicate','split'])
+@pytest.mark.parametrize('change', ['spec','lanes','microbatch','backend','seed','tail','inactive_render','scheduler','duplicate','split'])
 def test_explicit_comparison_rejects_mismatched_opportunities_or_execution(change):
     old=batch_plan();new=copy.deepcopy(old)
     if change=='spec':new['cases'][0]['spec']['seed']+=1
@@ -94,6 +94,7 @@ def test_explicit_comparison_rejects_mismatched_opportunities_or_execution(chang
     if change=='backend':new['execution_backend']['physics_device']='cuda:0'
     if change=='seed':new['batch']['seed']+=1
     if change=='tail':new['batch']['vision_tail_profile']={'version':'current_observation_exact_tail_v1'}
+    if change=='inactive_render':new['batch']['inactive_render_profile']={'version':'standard_inactive_render_products_v1'}
     if change=='scheduler':new['inference_scheduler_index_mode']='legacy'
     if change=='duplicate':new['cases'][1]['name']=new['cases'][0]['name']
     if change=='split':new['cases'][0]['spec']['split']='train'

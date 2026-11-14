@@ -94,7 +94,7 @@ def review(root):
             rows.append(dict(common, boundary=None, expert_recovery_success=False,causal_condition_met=None))
             continue
         receipt=(audit.get('trigger') or {}).get('receipt',{})
-        event_key=next((key for key in ('first_held_near_goal_window_end_completed_tick',
+        event_key=next((key for key in ('first_rechecked_contact_height_window_end_completed_tick','first_held_near_goal_window_end_completed_tick',
             'first_contact_height_window_end_completed_tick','first_stable_window_end_completed_tick') if key in receipt),None)
         causal_condition_met=receipt[event_key] is not None if event_key is not None else None
         require(result['residual_ticks'] == result['steps'] and result['residual_forward_ticks'] == result['steps'],

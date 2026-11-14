@@ -1,3 +1,11 @@
+# 显式当前持物重查接管与并行后端候选
+
+`contact_height_recheck_after_min_delay_v1`配置仅version、min_delay_ticks=60或120，fallback必须NEVER_FALLBACK。已完成学生transition数N满足首次12步持物后最少延时且当前12步仍持物时，才安排zero-based action N接手。高度参考仍completed25–48的中位数+2cm，双物理子步至少两指>0.1N。触发与原生成功/掉落判定独立；跨goal等待只记before/after/current及变化，不限制距离。所有训练历史来自真实学生/专家记录，动作监督仍合法专家mask。
+
+`--parallel-backends`只改变独立A/B后端链的调度，不改变每链依赖、配置、数据或更新量。两前端完整后联合fresh telemetry准入；不足则serial fallback。两链都完成才允许development。systemd KillMode=control-group为继承的leader退出后子孙清理边界提供外部兜底，独立CLI不能凭leader退出宣称没有子孙。
+
+`offline_contiguous_anchor_batch_v1`仅独立离线候选，不进入现有train/cache/online默认路径。输入条件由对应模型完整因果历史生成，H24/commit12/16step DDIM/no clipping/host scheduler；逐行相同seed7091的(1,24,29)噪声，包括未监督prefix/gaps。连续段按显式max_anchors切分，不能跨缺失anchor拼接；批形状浮点差须实际CUDA固定2e-5rad验收。目标度量是相同合法commit12槽，非自主成功。
+
 # 显式训练合集阶段拟合v3
 
 `train_only_selected_frontend_stage_fit_v3`仅由stage_fit prepare的重复`--include-collection`启用，主collection仍精确等于当前latest IDs；新增collection按immutable source SHA绑定当前train entries与真实成功接管凭据，验证family隔离与全历史/合法mask一致。source seen/unseen按源选中checkpoint实际train manifest的同SHA判定，source阶段访问数与当前selected访问数分开，不补造累计继承剂量。报告all/latest/每批/seen/unseen重叠分层，各层累加平方误差/合法槽数后求RMSE；空层为0计数/未知误差。每个模型独立完整重建记忆、同一5Hz anchor保持基线，旧v1/v2比较身份不变。
