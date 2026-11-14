@@ -6,6 +6,7 @@ worker executes two 36-tick waves (A then B), with diagnostic active lanes
 """
 import argparse
 import copy
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -102,6 +103,36 @@ def camera_inventory(env):
     return [dict(sensor_id=id(camera),render_products=list(camera.render_product_paths),
         annotators={name:[id(item) for item in items] for name,items in camera._rep_registry.items()})
         for camera in env.research_cameras]
+
+
+def verify_worker_session(plan,directory):
+    """Environment reads its local session, while its lease uses resource_root."""
+    source=Path(plan['resource_root'])/'session.json';local=Path(directory)/'session.json'
+    if local.is_symlink() or not local.is_file():
+        raise ValueError('Gate worker requires its own byte-identical local session file')
+    if sha256(source)!=plan['session_sha256'] or sha256(local)!=plan['session_sha256']:
+        raise ValueError('Gate resource/local session bytes changed')
+    session=read(local)
+    if (plan['deadline']>session['deadline'] or plan['work_deadline']!=plan['deadline']-30):
+        raise ValueError('Gate work/session deadline binding changed')
+    return dict(source=str(source.resolve()),local=str(local.resolve()),sha256=plan['session_sha256'],
+        session_deadline=session['deadline'],gate_deadline=plan['deadline'],work_deadline=plan['work_deadline'],
+        scope='Exact session bytes, no rewritten deadline/backend/precision/expert fields; resource lease remains at original root')
+
+
+def prepare_worker_session(plan,directory):
+    """Create once after plan admission, before imports that can enter Kit."""
+    source=Path(plan['resource_root'])/'session.json';local=Path(directory)/'session.json'
+    raw=source.read_bytes()
+    if hashlib.sha256(raw).hexdigest()!=plan['session_sha256']:
+        raise ValueError('Registered resource session bytes changed before worker copy')
+    # Exclusive creation preserves a prior/partial attempt. Do not reserialize:
+    # the original session's exact byte hash is part of the registered gate.
+    with local.open('xb') as stream:
+        stream.write(raw);stream.flush();os.fsync(stream.fileno())
+    receipt=verify_worker_session(plan,directory)
+    atomic_json(Path(directory)/'session_binding.json',receipt)
+    return receipt
 
 
 def run_wave(env,lease,guard,controller,isolated,directory,plan,arm,wave,*,synchronize,legal=None):
@@ -208,6 +239,13 @@ def run_wave(env,lease,guard,controller,isolated,directory,plan,arm,wave,*,synch
 
 
 def worker(root,output,arm):
+    output=output.resolve();plan=read(output/'plan.json');directory=output/arm
+    if arm not in ARMS or root.resolve()!=Path(plan['resource_root']):raise ValueError('Registered arm/resource root required')
+    verify_plan(plan,Path.cwd());check_bounds(plan,output)
+    session_binding=prepare_worker_session(plan,directory)
+    with (directory/'run_started.json').open('x') as stream:
+        json.dump(dict(pid=os.getpid(),utc=time.time(),plan_sha256=sha256(output/'plan.json'),
+            session_sha256=session_binding['sha256']),stream)
     import torch
     from tools.tight_state import environment
     from visuotactile.state_resources import lease_for
@@ -217,11 +255,8 @@ def worker(root,output,arm):
     from visuotactile.narrow_data import configure_direct_reset_lanes
     from visuotactile.live_collision import clearance
     from visuotactile.native_evaluation import exit_completed_kit_worker
-    output=output.resolve();plan=read(output/'plan.json');directory=output/arm
-    if arm not in ARMS or root.resolve()!=Path(plan['resource_root']):raise ValueError('Registered arm/resource root required')
-    verify_plan(plan,Path.cwd());check_bounds(plan,output)
-    with (directory/'run_started.json').open('x') as stream:json.dump(dict(pid=os.getpid(),utc=time.time(),plan_sha256=sha256(output/'plan.json')),stream)
     lease=lease_for(root,deadline=plan['work_deadline']);began=time.perf_counter()
+    verify_worker_session(plan,directory);check_bounds(plan,output)
     app,env,_,lease=environment(directory,evaluation=True,lease=lease,num_envs=LANES,
         camera_content_validation=True,startup_diagnostics=True,execution_backend=plan['execution_backend'])
     atomic_json(directory/'initialization.json',dict(seconds=time.perf_counter()-began))

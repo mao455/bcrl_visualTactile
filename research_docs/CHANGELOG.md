@@ -1,3 +1,9 @@
+## 2026-11-14 23:25 两组离线批量规划实际门控与渲染诊断包装修复
+
+A_gate01/B_gate02均用第八轮已选best EMA、各原始/新增两条train实际完成M1/M8/M32 CUDA对照，固定raw/bounded 2e-5rad全通过；无参数更新、无验证/测试轨迹。原B_gate01的split失败仍保留。B两条serial DDIM3.610/6.483秒、M32为0.169/0.466秒，最大目标差9.574e-7rad；同时有后端/阶段拟合作业，不能外推整轮速度。明确采用M32作为下一正式前端metrics的显式候选，尚未进入正式训练；后端逐tick视觉/完整计划缓存需另门控。详见offline_planning_review/live_gate02.json。
+
+inactive_render_gate普通arm缺session的包装错误已修：verify frozen plan后exclusive byte-copy原session，源/本地SHA核验、保留精度/专家/后端/原deadline，环境前再验；不重写配置。23项新旧CPU检查通过；原01的0控制/无Kit证据在inactive_render_gate_review/gate01.json。修复尚未真实Kit验收。第八轮A后端15轮及离线已结束，B缓存准备中；四臂阶段拟合已完成A来源、正在A选中模型，未产生自主结论。
+
 ## 2026-11-14 23:21 实际门控失败与四臂阶段拟合监督
 
 offline_planning_B_gate01在0.657秒CPU清单准入时因原始entry无split失败，0优化/0CUDA验收；当前state_data.splits才是权威分区。修复兼容缺省字段，存在矛盾字段仍拒绝，train ID/family隔离不放松；真实A/B各6validation拒绝检查通过，38项CPU测试通过。原01保留，后续只用新编号。inactive_render_gate01普通arm在2.271秒因缺少arm/session.json启动失败，未进入Kit或控制；这是诊断包装错误，不是渲染候选物理结论，原现场保留，修复尚待。
