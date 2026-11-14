@@ -1,0 +1,2387 @@
+{
+ "version": "round09_behavior_public_v1",
+ "complete": true,
+ "origin": {
+  "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_behavior01/report.json",
+  "sha256": "ad9e4772ca4d5360bd71613bdd5fd60395d3e89db96050f8167219f80f716292",
+  "bytes": 258184
+ },
+ "executed_script": {
+  "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_behavior01/summarize.py",
+  "sha256": "1fec505964b0aa9c7604b1d66719da178d23f37dd88c8a741eb59472e331fc22",
+  "bytes": 13344
+ },
+ "export_scope": "Projection of completed JSON only; no behavior recomputation or numeric/model/image reads during export.",
+ "started_utc": 1794682637.1400044,
+ "finished_utc": 1794682638.2696264,
+ "decision": {
+  "status": "mixed_behavior_no_overall_adoption",
+  "next_collection_source09": "Use round09 to collect corrections of its actual deviations; this is not a claim of overall improvement over A08/B06.",
+  "observations": [
+   "A contact-height12 holding decreased from 3/7 to 2/7 legal starts; B increased from 4/8 to 5/8.",
+   "Native lift decreased from 1 to 0 for A and from 2 to 1 for B.",
+   "Original alignment, first subgoal and success remain zero for both roles. B has two natural fall terminations."
+  ]
+ },
+ "sources_by_role": {
+  "A": {
+   "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+   "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/development",
+   "execution": {
+    "mode": "whole_wave",
+    "lanes": 8,
+    "vision_microbatch": 8,
+    "vision_tail_profile": null,
+    "inactive_render_profile": null,
+    "batch_seed": 28500000,
+    "inference_scheduler_index_mode": "host",
+    "execution_backend": {
+     "version": "tight_execution_backend_v2",
+     "physics_device": "cpu",
+     "camera_backend": "standard",
+     "kit_tasking_threads": 16,
+     "physics_threads": 2,
+     "renderer_descriptor_sets": 360000,
+     "renderer_reserved_descriptors": 900000
+    },
+    "observed_sha256": "8f6cba9ae42e8741219bf6179d60a6481f4e510077cb87c88d3a7c0326ead3e5"
+   },
+   "plan_sha256": "402d35ccca54c127d08494b3a572d273900c1df7063eecf29917b6db20e324db",
+   "results_sha256": "edbf1116b1de441e2d21bbee18a518856f48e099ba1fd6be3525da1bdd39f935",
+   "completion_sha256": "e0b9b3dc24d41ad95348e4c3f3589c9568c9216beff2e6374f76e97d545745d0",
+   "pairs": {
+    "A": {
+     "version": "complete_student_policy_v1",
+     "controller": "ResidualController",
+     "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/A/training/best.pt",
+     "frontend_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+     "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/A/backend/A/training/best.pt",
+     "backend_sha256": "17ddc0ecc309350c8be55a64058993d5d30905bc74b1fa252fbe501ce5692b81",
+     "residual_version": "target_residual_transformer60_v1",
+     "supervision": "q_reached",
+     "supervision_inference": null,
+     "modality": "G00",
+     "output": "absolute_joint_position_target_rad",
+     "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+     "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+     },
+     "zero_correction_is_valid": true
+    }
+   },
+   "totals": {
+    "A": {
+     "opportunities": 8,
+     "successes": 0,
+     "native_lift_cases": 1,
+     "old_stable_window_cases": 2,
+     "contact_height12_cases": 3,
+     "native_alignment_cases": 0,
+     "native_near_goal_cases": 0,
+     "first_subgoal_cases": 0,
+     "termination_reasons": {
+      "timeout": 7
+     },
+     "total_control_ticks": 4207,
+     "overlapping_lane_lifetime_seconds": 1535.8883069755975,
+     "legal_initializations": 7,
+     "invalid_initializations": 1,
+     "autonomous_success_rate_among_legal": 0.0,
+     "raw_successes_per_registered_opportunity": {
+      "numerator": 0,
+      "denominator": 8,
+      "ratio": 0.0,
+      "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+     },
+     "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+    }
+   },
+   "label": "A08"
+  },
+  "B": {
+   "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06",
+   "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/development_source08",
+   "execution": {
+    "mode": "whole_wave",
+    "lanes": 8,
+    "vision_microbatch": 8,
+    "vision_tail_profile": null,
+    "inactive_render_profile": null,
+    "batch_seed": 28500000,
+    "inference_scheduler_index_mode": "host",
+    "execution_backend": {
+     "version": "tight_execution_backend_v2",
+     "physics_device": "cpu",
+     "camera_backend": "standard",
+     "kit_tasking_threads": 16,
+     "physics_threads": 2,
+     "renderer_descriptor_sets": 360000,
+     "renderer_reserved_descriptors": 900000
+    },
+    "observed_sha256": "6111f8ba60d061f48acaf19cd1eef32ff58b869d89a3afeca2decd16889007ff"
+   },
+   "plan_sha256": "461f3e2b5c1c7b831953a1d92576665566da5de13cbaa17e77ef4968fe1d8495",
+   "results_sha256": "e8b67b779cf04c34ac5620811af69e19225bb2f2c7d63de97937dd37c7a828ee",
+   "completion_sha256": "de25e08194f02b4e5829198384bc98174014b13d3ef2f3dd543736072105a7cd",
+   "pairs": {
+    "B": {
+     "version": "complete_student_policy_v1",
+     "controller": "ResidualController",
+     "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/B/training/best.pt",
+     "frontend_sha256": "281266def7e6f9ced8344fe9a560ac522fb037eaeca28e1eeda3604bd9fc4ed1",
+     "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/B/backend/B/training/best.pt",
+     "backend_sha256": "a4aa41f91fa31adbbe16771f5c42aa57aaf6f9eecb7da292f920b66328aec476",
+     "residual_version": "target_residual_transformer60_v1",
+     "supervision": "u_expert",
+     "supervision_inference": null,
+     "modality": "G00",
+     "output": "absolute_joint_position_target_rad",
+     "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+     "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+     },
+     "zero_correction_is_valid": true
+    }
+   },
+   "totals": {
+    "B": {
+     "opportunities": 8,
+     "successes": 0,
+     "native_lift_cases": 2,
+     "old_stable_window_cases": 2,
+     "contact_height12_cases": 4,
+     "native_alignment_cases": 0,
+     "native_near_goal_cases": 0,
+     "first_subgoal_cases": 0,
+     "termination_reasons": {
+      "timeout": 8
+     },
+     "total_control_ticks": 4808,
+     "overlapping_lane_lifetime_seconds": 1830.6570420092903,
+     "legal_initializations": 8,
+     "invalid_initializations": 0,
+     "autonomous_success_rate_among_legal": 0.0,
+     "raw_successes_per_registered_opportunity": {
+      "numerator": 0,
+      "denominator": 8,
+      "ratio": 0.0,
+      "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+     },
+     "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+    }
+   },
+   "label": "B06"
+  }
+ },
+ "candidate": {
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09",
+  "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development",
+  "execution": {
+   "mode": "whole_wave",
+   "lanes": 8,
+   "vision_microbatch": 8,
+   "vision_tail_profile": null,
+   "inactive_render_profile": null,
+   "batch_seed": 28500000,
+   "inference_scheduler_index_mode": "host",
+   "execution_backend": {
+    "version": "tight_execution_backend_v2",
+    "physics_device": "cpu",
+    "camera_backend": "standard",
+    "kit_tasking_threads": 16,
+    "physics_threads": 2,
+    "renderer_descriptor_sets": 360000,
+    "renderer_reserved_descriptors": 900000
+   },
+   "observed_sha256": "1168ef3c66e651a80707f30abd875fed62456418d384ee19cf3317f0212dfac2"
+  },
+  "pairs": {
+   "A": {
+    "version": "complete_student_policy_v1",
+    "controller": "ResidualController",
+    "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/A/training/best.pt",
+    "frontend_sha256": "3db1c72ae257364bb551fabd196468c3c7a246dfbc9025c49e560fd247551ebf",
+    "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/A/backend/A/training/best.pt",
+    "backend_sha256": "98e657760418936c26bc5d9a268b7e198e566bc0a988e86111eac524678117a8",
+    "residual_version": "target_residual_transformer60_v1",
+    "supervision": "q_reached",
+    "supervision_inference": null,
+    "modality": "G00",
+    "output": "absolute_joint_position_target_rad",
+    "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+    "execution_adapter": {
+     "version": "expert_reachable_postprocessed_v1",
+     "input_space": "postprocessed_absolute_joint_target_rad",
+     "reference": "actual_pre_action_actuator_target_rad",
+     "control_dt": 0.016666666666666666,
+     "dof_speed_scale": 1.5,
+     "arm_moving_average": 0.1,
+     "hand_moving_average": 0.1,
+     "arm_progress": 0.5,
+     "hand_progress": 1.0,
+     "hand_target_cap_rad_s": 2.0,
+     "roundoff_tolerance_rad": 1e-06,
+     "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "zero_correction_is_valid": true
+   },
+   "B": {
+    "version": "complete_student_policy_v1",
+    "controller": "ResidualController",
+    "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/B/training/best.pt",
+    "frontend_sha256": "4ac67a6e08326c72b6d57645a049dde21e13dccb23912e2a4859e441f2fb3a2c",
+    "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/B/backend/B/training/best.pt",
+    "backend_sha256": "856d55c143bdddcbe5db83d86fec7bf43ce5bd92f89751bf76aa4ba0e3329830",
+    "residual_version": "target_residual_transformer60_v1",
+    "supervision": "u_expert",
+    "supervision_inference": null,
+    "modality": "G00",
+    "output": "absolute_joint_position_target_rad",
+    "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+    "execution_adapter": {
+     "version": "expert_reachable_postprocessed_v1",
+     "input_space": "postprocessed_absolute_joint_target_rad",
+     "reference": "actual_pre_action_actuator_target_rad",
+     "control_dt": 0.016666666666666666,
+     "dof_speed_scale": 1.5,
+     "arm_moving_average": 0.1,
+     "hand_moving_average": 0.1,
+     "arm_progress": 0.5,
+     "hand_progress": 1.0,
+     "hand_target_cap_rad_s": 2.0,
+     "roundoff_tolerance_rad": 1e-06,
+     "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "zero_correction_is_valid": true
+   }
+  },
+  "totals": {
+   "A": {
+    "opportunities": 8,
+    "successes": 0,
+    "native_lift_cases": 0,
+    "old_stable_window_cases": 2,
+    "contact_height12_cases": 2,
+    "native_alignment_cases": 0,
+    "native_near_goal_cases": 0,
+    "first_subgoal_cases": 0,
+    "termination_reasons": {
+     "timeout": 7
+    },
+    "total_control_ticks": 4207,
+    "overlapping_lane_lifetime_seconds": 1561.8911162093282,
+    "legal_initializations": 7,
+    "invalid_initializations": 1,
+    "autonomous_success_rate_among_legal": 0.0,
+    "raw_successes_per_registered_opportunity": {
+     "numerator": 0,
+     "denominator": 8,
+     "ratio": 0.0,
+     "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+    },
+    "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+   },
+   "B": {
+    "opportunities": 8,
+    "successes": 0,
+    "native_lift_cases": 1,
+    "old_stable_window_cases": 4,
+    "contact_height12_cases": 5,
+    "native_alignment_cases": 0,
+    "native_near_goal_cases": 0,
+    "first_subgoal_cases": 0,
+    "termination_reasons": {
+     "timeout": 6,
+     "fall": 2
+    },
+    "total_control_ticks": 4460,
+    "overlapping_lane_lifetime_seconds": 1713.5522936049383,
+    "legal_initializations": 8,
+    "invalid_initializations": 0,
+    "autonomous_success_rate_among_legal": 0.0,
+    "raw_successes_per_registered_opportunity": {
+     "numerator": 0,
+     "denominator": 8,
+     "ratio": 0.0,
+     "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+    },
+    "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+   }
+  },
+  "cases": [
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500000",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.11697772145271301,
+      "root_origin_distance_m": 0.11697772145271301,
+      "quaternion_angle_rad": 2.431135654449463,
+      "keypoint_gap_m": 0.19032491743564606,
+      "keypoint_distance_m": 0.2053249180316925,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.11697772145271301,
+      "root_origin_distance_m": 0.11697772145271301,
+      "quaternion_angle_rad": 2.431135654449463,
+      "keypoint_gap_m": 0.19032491743564606,
+      "keypoint_distance_m": 0.2053249180316925,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "bff7c0b29199ebce777be58a906c82589beda027b8b26faf0694358c5c8a997f",
+    "first_contact_tick": 57,
+    "first_two_fingers_both_substeps_tick": 65,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": -0.00015670061111450195,
+    "later_rise_with_two_fingers_max_m": -0.01947730779647827,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.11697772145271301,
+    "first_goal_min_quaternion_angle_rad": 1.8100061416625977,
+    "first_goal_min_keypoint_gap_m": 0.19032491743564606,
+    "post_contact_arm_tracking_rmse_rad": 0.00762054743245244,
+    "post_contact_hand_tracking_rmse_rad": 0.03948734700679779,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 0,
+     "longest_contact_and_height_run_ticks": 0,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 222.35888891899958
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500000",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.11697772145271301,
+      "root_origin_distance_m": 0.11697772145271301,
+      "quaternion_angle_rad": 2.431135654449463,
+      "keypoint_gap_m": 0.19032491743564606,
+      "keypoint_distance_m": 0.2053249180316925,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.11697772145271301,
+      "root_origin_distance_m": 0.11697772145271301,
+      "quaternion_angle_rad": 2.431135654449463,
+      "keypoint_gap_m": 0.19032491743564606,
+      "keypoint_distance_m": 0.2053249180316925,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "68463f2cac9f1481577102a436d2b7be5bcd33253e054f520ab72bf907f7b517",
+    "first_contact_tick": 60,
+    "first_two_fingers_both_substeps_tick": 62,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.04341745376586914,
+    "later_rise_with_two_fingers_max_m": 0.033537983894348145,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.11697772145271301,
+    "first_goal_min_quaternion_angle_rad": 2.2549643516540527,
+    "first_goal_min_keypoint_gap_m": 0.19032491743564606,
+    "post_contact_arm_tracking_rmse_rad": 0.004036282654851675,
+    "post_contact_hand_tracking_rmse_rad": 0.040988028049468994,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 2,
+     "longest_contact_and_height_run_ticks": 1,
+     "elevated_without_two_finger_contact_ticks_after_reference": 61,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 230.16503746109083
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500001",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 287,
+      "center_distance_m": 0.007775819860398769,
+      "root_origin_distance_m": 0.007775819860398769,
+      "quaternion_angle_rad": 1.5220770835876465,
+      "keypoint_gap_m": 0.06444147974252701,
+      "keypoint_distance_m": 0.07944148033857346,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 219,
+      "center_distance_m": 0.02567550726234913,
+      "root_origin_distance_m": 0.02567550726234913,
+      "quaternion_angle_rad": 1.5364935398101807,
+      "keypoint_gap_m": 0.044607821851968765,
+      "keypoint_distance_m": 0.05960782244801521,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": true
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 1,
+     "first_tick": 237,
+     "last_tick": 237,
+     "longest_continuous_stable_ticks": 1,
+     "first_stable_goal_distance_m": 0.022134294733405113,
+     "first_stable_goal_angle_rad": 1.8231064081192017,
+     "subsequent_first_goal_min_distance_m": 0.007775819860398769,
+     "subsequent_first_goal_min_angle_rad": 1.3533755540847778,
+     "first_goal_last_distance_m": 0.24606430530548096,
+     "first_goal_last_angle_rad": 1.8141056299209595,
+     "stable_at_final_tick": false
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "213dce380a402f831498102937a1b9eb51c5812fcb27beba625ee83b5716c2b3",
+    "first_contact_tick": 66,
+    "first_two_fingers_both_substeps_tick": 72,
+    "original_height_stable_grasp": true,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 237,
+    "max_later_rise_over_settled_m": 0.15887713432312012,
+    "later_rise_with_two_fingers_max_m": 0.15887713432312012,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.007775819860398769,
+    "first_goal_min_quaternion_angle_rad": 0.47040948271751404,
+    "first_goal_min_keypoint_gap_m": 0.044607821851968765,
+    "post_contact_arm_tracking_rmse_rad": 0.00470745237544179,
+    "post_contact_hand_tracking_rmse_rad": 0.05786094442009926,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 138,
+     "qualifying_window_ends": 63,
+     "contact_and_height_ticks_after_reference": 96,
+     "longest_contact_and_height_run_ticks": 65,
+     "elevated_without_two_finger_contact_ticks_after_reference": 85,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 224,
+      "active_goal_index": 0,
+      "root_angle_rad": 1.5762439309753158,
+      "root_distance_m": 0.026332564651966095,
+      "native_keypoint_distance_m": 0.062382206320762634,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 63,
+     "first": {
+      "completed_tick": 138,
+      "root_angle_rad": 1.5138535499572754,
+      "root_distance_m": 0.16302506625652313,
+      "native_keypoint_distance_m": 0.2838335335254669,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 205,
+      "root_angle_rad": 0.8200395107269287,
+      "root_distance_m": 0.052064649760723114,
+      "native_keypoint_distance_m": 0.12389159947633743,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 0.6938140392303467,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 230.41862249094993
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500001",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 463,
+      "center_distance_m": 0.027501918375492096,
+      "root_origin_distance_m": 0.027501918375492096,
+      "quaternion_angle_rad": 3.075451135635376,
+      "keypoint_gap_m": 0.17767412960529327,
+      "keypoint_distance_m": 0.19267413020133972,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": true,
+      "two_contact_fingers_both_substeps": true
+     },
+     "smallest_keypoint_gap": {
+      "tick": 461,
+      "center_distance_m": 0.027926959097385406,
+      "root_origin_distance_m": 0.027926959097385406,
+      "quaternion_angle_rad": 3.075315475463867,
+      "keypoint_gap_m": 0.17587397992610931,
+      "keypoint_distance_m": 0.19087398052215576,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": true,
+      "two_contact_fingers_both_substeps": true
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 464,
+     "first_tick": 117,
+     "last_tick": 601,
+     "longest_continuous_stable_ticks": 450,
+     "first_stable_goal_distance_m": 0.15556107461452484,
+     "first_stable_goal_angle_rad": 2.9071059226989746,
+     "subsequent_first_goal_min_distance_m": 0.027501918375492096,
+     "subsequent_first_goal_min_angle_rad": 2.859623432159424,
+     "first_goal_last_distance_m": 0.10278208553791046,
+     "first_goal_last_angle_rad": 3.059419870376587,
+     "stable_at_final_tick": true
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "cf852085c73790f40834677a03fee81e2982dba725a5fb896a1027195d30b000",
+    "first_contact_tick": 68,
+    "first_two_fingers_both_substeps_tick": 83,
+    "original_height_stable_grasp": true,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 117,
+    "max_later_rise_over_settled_m": 0.14395993947982788,
+    "later_rise_with_two_fingers_max_m": 0.14395993947982788,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.027501918375492096,
+    "first_goal_min_quaternion_angle_rad": 2.414478302001953,
+    "first_goal_min_keypoint_gap_m": 0.17587397992610931,
+    "post_contact_arm_tracking_rmse_rad": 0.0032234713435173035,
+    "post_contact_hand_tracking_rmse_rad": 0.3095117211341858,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 117,
+     "qualifying_window_ends": 485,
+     "contact_and_height_ticks_after_reference": 496,
+     "longest_contact_and_height_run_ticks": 496,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": true,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 461,
+      "active_goal_index": 0,
+      "root_angle_rad": 3.0753155367393985,
+      "root_distance_m": 0.027926959097385406,
+      "native_keypoint_distance_m": 0.19087398052215576,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 485,
+     "first": {
+      "completed_tick": 117,
+      "root_angle_rad": 2.9071059226989746,
+      "root_distance_m": 0.15556107461452484,
+      "native_keypoint_distance_m": 0.3291124999523163,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 128,
+      "root_angle_rad": 2.859623432159424,
+      "root_distance_m": 0.12102212011814117,
+      "native_keypoint_distance_m": 0.2968703806400299,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 0.04748249053955078,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 222.6251179690007
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500002",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.11670183390378952,
+      "root_origin_distance_m": 0.11670183390378952,
+      "quaternion_angle_rad": 2.4250974655151367,
+      "keypoint_gap_m": 0.1895751655101776,
+      "keypoint_distance_m": 0.20457516610622406,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.11670183390378952,
+      "root_origin_distance_m": 0.11670183390378952,
+      "quaternion_angle_rad": 2.4250974655151367,
+      "keypoint_gap_m": 0.1895751655101776,
+      "keypoint_distance_m": 0.20457516610622406,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "6beba140e3884fc2e6388301abec07e17631bba22ec4548e9d72c47c72cd85a3",
+    "first_contact_tick": 70,
+    "first_two_fingers_both_substeps_tick": 76,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.06724429130554199,
+    "later_rise_with_two_fingers_max_m": 0.055199265480041504,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.11670183390378952,
+    "first_goal_min_quaternion_angle_rad": 1.5505890846252441,
+    "first_goal_min_keypoint_gap_m": 0.1895751655101776,
+    "post_contact_arm_tracking_rmse_rad": 0.005121605005115271,
+    "post_contact_hand_tracking_rmse_rad": 0.0533130019903183,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 9,
+     "longest_contact_and_height_run_ticks": 7,
+     "elevated_without_two_finger_contact_ticks_after_reference": 198,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 222.8779171470087
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500002",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.11670183390378952,
+      "root_origin_distance_m": 0.11670183390378952,
+      "quaternion_angle_rad": 2.4250974655151367,
+      "keypoint_gap_m": 0.1895751655101776,
+      "keypoint_distance_m": 0.20457516610622406,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.11670183390378952,
+      "root_origin_distance_m": 0.11670183390378952,
+      "quaternion_angle_rad": 2.4250974655151367,
+      "keypoint_gap_m": 0.1895751655101776,
+      "keypoint_distance_m": 0.20457516610622406,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "ae70cdd402f4be30a824904d52353f976338cbcbfd83eadbd4f7251932866920",
+    "first_contact_tick": 64,
+    "first_two_fingers_both_substeps_tick": 67,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.00573354959487915,
+    "later_rise_with_two_fingers_max_m": 0.002988576889038086,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.11670183390378952,
+    "first_goal_min_quaternion_angle_rad": 1.8650007247924805,
+    "first_goal_min_keypoint_gap_m": 0.1895751655101776,
+    "post_contact_arm_tracking_rmse_rad": 0.010879648849368095,
+    "post_contact_hand_tracking_rmse_rad": 0.08213209360837936,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 0,
+     "longest_contact_and_height_run_ticks": 0,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 230.67514467495494
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500003",
+    "legal": true,
+    "steps": 367,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 222,
+      "center_distance_m": 0.0014553774381056428,
+      "root_origin_distance_m": 0.0014553774381056428,
+      "quaternion_angle_rad": 1.3582555055618286,
+      "keypoint_gap_m": 0.03763284906744957,
+      "keypoint_distance_m": 0.05263284966349602,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": true,
+      "two_contact_fingers_both_substeps": true
+     },
+     "smallest_keypoint_gap": {
+      "tick": 212,
+      "center_distance_m": 0.008347271010279655,
+      "root_origin_distance_m": 0.008347271010279655,
+      "quaternion_angle_rad": 1.2352516651153564,
+      "keypoint_gap_m": 0.03511665016412735,
+      "keypoint_distance_m": 0.0501166507601738,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": true
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 49,
+     "first_tick": 221,
+     "last_tick": 281,
+     "longest_continuous_stable_ticks": 30,
+     "first_stable_goal_distance_m": 0.0015070366207510233,
+     "first_stable_goal_angle_rad": 1.34502112865448,
+     "subsequent_first_goal_min_distance_m": 0.0014553774381056428,
+     "subsequent_first_goal_min_angle_rad": 1.2324389219284058,
+     "first_goal_last_distance_m": 0.7065738439559937,
+     "first_goal_last_angle_rad": 2.5272698402404785,
+     "stable_at_final_tick": false
+    },
+    "reasons": {
+     "fall": true,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": false
+    },
+    "result_sha256": "444bc03a72d82fdb9488c1480a624235d1bb4f3745cf716a6c5830f1bda9ac58",
+    "first_contact_tick": 64,
+    "first_two_fingers_both_substeps_tick": 114,
+    "original_height_stable_grasp": true,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 221,
+    "max_later_rise_over_settled_m": 0.16101384162902832,
+    "later_rise_with_two_fingers_max_m": 0.16101384162902832,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.0014553774381056428,
+    "first_goal_min_quaternion_angle_rad": 1.2324389219284058,
+    "first_goal_min_keypoint_gap_m": 0.03511665016412735,
+    "post_contact_arm_tracking_rmse_rad": 0.007132432423532009,
+    "post_contact_hand_tracking_rmse_rad": 0.09262505918741226,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 181,
+     "qualifying_window_ends": 124,
+     "contact_and_height_ticks_after_reference": 150,
+     "longest_contact_and_height_run_ticks": 135,
+     "elevated_without_two_finger_contact_ticks_after_reference": 76,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 212,
+      "active_goal_index": 0,
+      "root_angle_rad": 1.2352516458055782,
+      "root_distance_m": 0.008347271010279655,
+      "native_keypoint_distance_m": 0.0501166507601738,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 124,
+     "first": {
+      "completed_tick": 181,
+      "root_angle_rad": 2.2373578548431396,
+      "root_distance_m": 0.0817350372672081,
+      "native_keypoint_distance_m": 0.17935627698898315,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 298,
+      "root_angle_rad": 1.2324389219284058,
+      "root_distance_m": 0.013480328023433685,
+      "native_keypoint_distance_m": 0.06410034000873566,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 1.0049189329147339,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 141.68408433301374
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500003",
+    "legal": false,
+    "initial_rejection": {
+     "classification": "invalid_initialization",
+     "task_outcome": null,
+     "raw_success_field": false,
+     "not_started": true,
+     "reason": "pre-action collision rejection; no outcome replacement",
+     "collision": {
+      "version": "live_collision_mesh_bounds_v1",
+      "legal": false,
+      "minimum_gap_m": -0.005213060708083188,
+      "margin_m": 0.001,
+      "limitation": "Conservative mesh bounds may reject free configurations; no claim of signed mesh penetration depth"
+     },
+     "evidence_sha256": {
+      "result.json": "fb50d18be62a56d45b692a4d4a9416eff8e97a897a2ccf0309b437c9fd4aedf9",
+      "started.json": "f9392edba929859c1c90697a7c042e5f2c8588edf26ca0db6a221823b688fafe",
+      "initial_collision.json": "5f43101b9e2fc945e867e3b815f6fa5268a7b920699a1213e700673801d61f2e",
+      "initial_observable.json": "12a9598eeb9131a6e36abbf0aec732aec4e3e10251ff9c8785bfeeac5ba33521"
+     },
+     "interpretation": "Registered opportunity rejected before control; not an autonomous task failure or replacement opportunity."
+    }
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500004",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.11888521164655685,
+      "root_origin_distance_m": 0.11888521164655685,
+      "quaternion_angle_rad": 2.415818691253662,
+      "keypoint_gap_m": 0.19178110361099243,
+      "keypoint_distance_m": 0.20678110420703888,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.11888521164655685,
+      "root_origin_distance_m": 0.11888521164655685,
+      "quaternion_angle_rad": 2.415818691253662,
+      "keypoint_gap_m": 0.19178110361099243,
+      "keypoint_distance_m": 0.20678110420703888,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "e5398c5dc603a5f320205d739edf65ab02726be75cad5be17868754a078d3dfe",
+    "first_contact_tick": 53,
+    "first_two_fingers_both_substeps_tick": 70,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 5.960464477539063e-08,
+    "later_rise_with_two_fingers_max_m": -0.030740201473236084,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.11888521164655685,
+    "first_goal_min_quaternion_angle_rad": 2.415818691253662,
+    "first_goal_min_keypoint_gap_m": 0.19178110361099243,
+    "post_contact_arm_tracking_rmse_rad": 0.008080994710326195,
+    "post_contact_hand_tracking_rmse_rad": 0.047321174293756485,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 0,
+     "longest_contact_and_height_run_ticks": 0,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 223.12856510514393
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500004",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.11888521164655685,
+      "root_origin_distance_m": 0.11888521164655685,
+      "quaternion_angle_rad": 2.415818691253662,
+      "keypoint_gap_m": 0.19178110361099243,
+      "keypoint_distance_m": 0.20678110420703888,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.11888521164655685,
+      "root_origin_distance_m": 0.11888521164655685,
+      "quaternion_angle_rad": 2.415818691253662,
+      "keypoint_gap_m": 0.19178110361099243,
+      "keypoint_distance_m": 0.20678110420703888,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "98b715e2bc5ab303b1af245cff6ac2308de1f95b34dff6c81ca7cf0e4490299b",
+    "first_contact_tick": 60,
+    "first_two_fingers_both_substeps_tick": 62,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.012507438659667969,
+    "later_rise_with_two_fingers_max_m": 0.012507438659667969,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.11888521164655685,
+    "first_goal_min_quaternion_angle_rad": 1.6013915538787842,
+    "first_goal_min_keypoint_gap_m": 0.19178110361099243,
+    "post_contact_arm_tracking_rmse_rad": 0.0074824863113462925,
+    "post_contact_hand_tracking_rmse_rad": 0.054586123675107956,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 0,
+     "longest_contact_and_height_run_ticks": 0,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 230.9386506699957
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500005",
+    "legal": true,
+    "steps": 487,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 231,
+      "center_distance_m": 0.01133487094193697,
+      "root_origin_distance_m": 0.01133487094193697,
+      "quaternion_angle_rad": 2.0152199268341064,
+      "keypoint_gap_m": 0.11136017739772797,
+      "keypoint_distance_m": 0.12636017799377441,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": true
+     },
+     "smallest_keypoint_gap": {
+      "tick": 234,
+      "center_distance_m": 0.01495125237852335,
+      "root_origin_distance_m": 0.01495125237852335,
+      "quaternion_angle_rad": 1.8474329710006714,
+      "keypoint_gap_m": 0.10762438923120499,
+      "keypoint_distance_m": 0.12262438982725143,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 2,
+     "first_tick": 176,
+     "last_tick": 177,
+     "longest_continuous_stable_ticks": 2,
+     "first_stable_goal_distance_m": 0.08590451627969742,
+     "first_stable_goal_angle_rad": 1.9409798383712769,
+     "subsequent_first_goal_min_distance_m": 0.01133487094193697,
+     "subsequent_first_goal_min_angle_rad": 0.9445560574531555,
+     "first_goal_last_distance_m": 0.6824114322662354,
+     "first_goal_last_angle_rad": 2.6409008502960205,
+     "stable_at_final_tick": false
+    },
+    "reasons": {
+     "fall": true,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": false
+    },
+    "result_sha256": "4f6b9bd5d4ae56fc944f02e826408b93590ebaa858b1d7555295d55e64a5013c",
+    "first_contact_tick": 61,
+    "first_two_fingers_both_substeps_tick": 65,
+    "original_height_stable_grasp": true,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 176,
+    "max_later_rise_over_settled_m": 0.16104066371917725,
+    "later_rise_with_two_fingers_max_m": 0.16104066371917725,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": true,
+    "first_goal_min_center_distance_m": 0.01133487094193697,
+    "first_goal_min_quaternion_angle_rad": 0.9445560574531555,
+    "first_goal_min_keypoint_gap_m": 0.10762438923120499,
+    "post_contact_arm_tracking_rmse_rad": 0.003939238376915455,
+    "post_contact_hand_tracking_rmse_rad": 0.049483772367239,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 135,
+     "qualifying_window_ends": 22,
+     "contact_and_height_ticks_after_reference": 75,
+     "longest_contact_and_height_run_ticks": 22,
+     "elevated_without_two_finger_contact_ticks_after_reference": 56,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 233,
+      "active_goal_index": 0,
+      "root_angle_rad": 1.942544880723187,
+      "root_distance_m": 0.013804202899336815,
+      "native_keypoint_distance_m": 0.12402775883674622,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 22,
+     "first": {
+      "completed_tick": 135,
+      "root_angle_rad": 2.3925397396087646,
+      "root_distance_m": 0.1598721593618393,
+      "native_keypoint_distance_m": 0.3351740837097168,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 223,
+      "root_angle_rad": 1.831364631652832,
+      "root_distance_m": 0.022216003388166428,
+      "native_keypoint_distance_m": 0.13734737038612366,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 0.5611751079559326,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 186.98598576593213
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500005",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.1195719763636589,
+      "root_origin_distance_m": 0.1195719763636589,
+      "quaternion_angle_rad": 2.430638551712036,
+      "keypoint_gap_m": 0.19162951409816742,
+      "keypoint_distance_m": 0.20662951469421387,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.1195719763636589,
+      "root_origin_distance_m": 0.1195719763636589,
+      "quaternion_angle_rad": 2.430638551712036,
+      "keypoint_gap_m": 0.19162951409816742,
+      "keypoint_distance_m": 0.20662951469421387,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "422c748c8bf0107a47d7f6741620f216438ea46819b6635cdf582db411426628",
+    "first_contact_tick": 47,
+    "first_two_fingers_both_substeps_tick": 67,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.009006738662719727,
+    "later_rise_with_two_fingers_max_m": 0.009006738662719727,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.1195719763636589,
+    "first_goal_min_quaternion_angle_rad": 2.2344627380371094,
+    "first_goal_min_keypoint_gap_m": 0.19162951409816742,
+    "post_contact_arm_tracking_rmse_rad": 0.010055926628410816,
+    "post_contact_hand_tracking_rmse_rad": 0.07211943715810776,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 0,
+     "longest_contact_and_height_run_ticks": 0,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 223.38210116093978
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500006",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.1177866980433464,
+      "root_origin_distance_m": 0.1177866980433464,
+      "quaternion_angle_rad": 2.407360076904297,
+      "keypoint_gap_m": 0.1913049966096878,
+      "keypoint_distance_m": 0.20630499720573425,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.1177866980433464,
+      "root_origin_distance_m": 0.1177866980433464,
+      "quaternion_angle_rad": 2.407360076904297,
+      "keypoint_gap_m": 0.1913049966096878,
+      "keypoint_distance_m": 0.20630499720573425,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "69d86fde6ed71f7d65e4e15cfc6098a5e7373ba1d80528fcfad2f042487be1fb",
+    "first_contact_tick": 67,
+    "first_two_fingers_both_substeps_tick": 78,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.009981513023376465,
+    "later_rise_with_two_fingers_max_m": 0.009981513023376465,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.1177866980433464,
+    "first_goal_min_quaternion_angle_rad": 1.8241955041885376,
+    "first_goal_min_keypoint_gap_m": 0.1913049966096878,
+    "post_contact_arm_tracking_rmse_rad": 0.006317963358014822,
+    "post_contact_hand_tracking_rmse_rad": 0.038359250873327255,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": null,
+     "qualifying_window_ends": 0,
+     "contact_and_height_ticks_after_reference": 0,
+     "longest_contact_and_height_run_ticks": 0,
+     "elevated_without_two_finger_contact_ticks_after_reference": 0,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": null
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 0
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 223.63241976709105
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500006",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 1,
+      "center_distance_m": 0.1177866980433464,
+      "root_origin_distance_m": 0.1177866980433464,
+      "quaternion_angle_rad": 2.407360076904297,
+      "keypoint_gap_m": 0.1913049966096878,
+      "keypoint_distance_m": 0.20630499720573425,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.1177866980433464,
+      "root_origin_distance_m": 0.1177866980433464,
+      "quaternion_angle_rad": 2.407360076904297,
+      "keypoint_gap_m": 0.1913049966096878,
+      "keypoint_distance_m": 0.20630499720573425,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 0,
+     "first_tick": null,
+     "last_tick": null,
+     "longest_continuous_stable_ticks": 0
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "ea33a6d944d23dc7cb7f8199802099c4e02c0002c48825e2b2980dd8c107e9c1",
+    "first_contact_tick": 74,
+    "first_two_fingers_both_substeps_tick": 109,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": false,
+    "first_settled_height_stable_window_end_tick": null,
+    "max_later_rise_over_settled_m": 0.1139371395111084,
+    "later_rise_with_two_fingers_max_m": 0.10896956920623779,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.1177866980433464,
+    "first_goal_min_quaternion_angle_rad": 1.5720689296722412,
+    "first_goal_min_keypoint_gap_m": 0.1913049966096878,
+    "post_contact_arm_tracking_rmse_rad": 0.005189130548387766,
+    "post_contact_hand_tracking_rmse_rad": 0.04519959166646004,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 149,
+     "qualifying_window_ends": 2,
+     "contact_and_height_ticks_after_reference": 41,
+     "longest_contact_and_height_run_ticks": 13,
+     "elevated_without_two_finger_contact_ticks_after_reference": 37,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 150,
+      "active_goal_index": 0,
+      "root_angle_rad": 2.415802222489194,
+      "root_distance_m": 0.1777377724647522,
+      "native_keypoint_distance_m": 0.3320358395576477,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 2,
+     "first": {
+      "completed_tick": 149,
+      "root_angle_rad": 2.414216995239258,
+      "root_distance_m": 0.17894525825977325,
+      "native_keypoint_distance_m": 0.33490651845932007,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 149,
+      "root_angle_rad": 2.414216995239258,
+      "root_distance_m": 0.17894525825977325,
+      "native_keypoint_distance_m": 0.33490651845932007,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 0.0,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 231.20891862991266
+   },
+   {
+    "group": "candidate",
+    "role": "B",
+    "case": "B_development_28500007",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 218,
+      "center_distance_m": 0.011581494472920895,
+      "root_origin_distance_m": 0.011581494472920895,
+      "quaternion_angle_rad": 1.8024146556854248,
+      "keypoint_gap_m": 0.11223255097866058,
+      "keypoint_distance_m": 0.12723255157470703,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": true
+     },
+     "smallest_keypoint_gap": {
+      "tick": 228,
+      "center_distance_m": 0.02134864591062069,
+      "root_origin_distance_m": 0.02134864591062069,
+      "quaternion_angle_rad": 1.5857489109039307,
+      "keypoint_gap_m": 0.09643545746803284,
+      "keypoint_distance_m": 0.11143545806407928,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 14,
+     "first_tick": 252,
+     "last_tick": 278,
+     "longest_continuous_stable_ticks": 10,
+     "first_stable_goal_distance_m": 0.03889881446957588,
+     "first_stable_goal_angle_rad": 1.69843590259552,
+     "subsequent_first_goal_min_distance_m": 0.03551724925637245,
+     "subsequent_first_goal_min_angle_rad": 1.5708976984024048,
+     "first_goal_last_distance_m": 0.19822141528129578,
+     "first_goal_last_angle_rad": 2.219257354736328,
+     "stable_at_final_tick": false
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "836d932a7999f4bd7e7306bf07d8bf23e61b3766491d4e80755477d6e73d38a8",
+    "first_contact_tick": 61,
+    "first_two_fingers_both_substeps_tick": 63,
+    "original_height_stable_grasp": true,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 252,
+    "max_later_rise_over_settled_m": 0.1510840654373169,
+    "later_rise_with_two_fingers_max_m": 0.1506209373474121,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.011581494472920895,
+    "first_goal_min_quaternion_angle_rad": 1.5450718402862549,
+    "first_goal_min_keypoint_gap_m": 0.09643545746803284,
+    "post_contact_arm_tracking_rmse_rad": 0.006943545304238796,
+    "post_contact_hand_tracking_rmse_rad": 0.07916374504566193,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 134,
+     "qualifying_window_ends": 52,
+     "contact_and_height_ticks_after_reference": 102,
+     "longest_contact_and_height_run_ticks": 52,
+     "elevated_without_two_finger_contact_ticks_after_reference": 337,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 258,
+      "active_goal_index": 0,
+      "root_angle_rad": 1.7403512507230965,
+      "root_distance_m": 0.03558529540896416,
+      "native_keypoint_distance_m": 0.1130070760846138,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 52,
+     "first": {
+      "completed_tick": 134,
+      "root_angle_rad": 2.8788516521453857,
+      "root_distance_m": 0.1599222868680954,
+      "native_keypoint_distance_m": 0.3275015354156494,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 274,
+      "root_angle_rad": 1.5757014751434326,
+      "root_distance_m": 0.04732949286699295,
+      "native_keypoint_distance_m": 0.1209496334195137,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 1.3031501770019531,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 231.4758495790884
+   },
+   {
+    "group": "candidate",
+    "role": "A",
+    "case": "A_development_28500007",
+    "legal": true,
+    "steps": 601,
+    "success": false,
+    "first_goal_simultaneous": {
+     "closest_center": {
+      "tick": 140,
+      "center_distance_m": 0.10973180830478668,
+      "root_origin_distance_m": 0.10973180830478668,
+      "quaternion_angle_rad": 2.9323112964630127,
+      "keypoint_gap_m": 0.2989608943462372,
+      "keypoint_distance_m": 0.31396088004112244,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": true
+     },
+     "smallest_keypoint_gap": {
+      "tick": 1,
+      "center_distance_m": 0.1193859800696373,
+      "root_origin_distance_m": 0.1193859800696373,
+      "quaternion_angle_rad": 2.391789197921753,
+      "keypoint_gap_m": 0.19196555018424988,
+      "keypoint_distance_m": 0.20696555078029633,
+      "keypoint_tolerance_m": 0.014999999664723873,
+      "stable_window": false,
+      "two_contact_fingers_both_substeps": false
+     }
+    },
+    "grasp_progress": {
+     "stable_ticks": 5,
+     "first_tick": 110,
+     "last_tick": 114,
+     "longest_continuous_stable_ticks": 5,
+     "first_stable_goal_distance_m": 0.1403416395187378,
+     "first_stable_goal_angle_rad": 2.854342222213745,
+     "subsequent_first_goal_min_distance_m": 0.10973180830478668,
+     "subsequent_first_goal_min_angle_rad": 2.3726179599761963,
+     "first_goal_last_distance_m": 0.24643202126026154,
+     "first_goal_last_angle_rad": 2.6741783618927,
+     "stable_at_final_tick": false
+    },
+    "reasons": {
+     "fall": false,
+     "max_successes": false,
+     "hand_far": false,
+     "dropped": false,
+     "timeout": true
+    },
+    "result_sha256": "9d259b8e3a1fdeac4b4c7fcf3d49e930ea820ee5c59494ccde0672d8faa48d18",
+    "first_contact_tick": 64,
+    "first_two_fingers_both_substeps_tick": 74,
+    "original_height_stable_grasp": false,
+    "settled_height_stable_grasp": true,
+    "first_settled_height_stable_window_end_tick": 110,
+    "max_later_rise_over_settled_m": 0.058107972145080566,
+    "later_rise_with_two_fingers_max_m": 0.058107972145080566,
+    "native_alignment_first_tick": null,
+    "native_near_goal_first_tick": null,
+    "native_first_subgoal_tick": null,
+    "native_subgoals": 0,
+    "native_lift": false,
+    "first_goal_min_center_distance_m": 0.10973180830478668,
+    "first_goal_min_quaternion_angle_rad": 2.3726179599761963,
+    "first_goal_min_keypoint_gap_m": 0.19196555018424988,
+    "post_contact_arm_tracking_rmse_rad": 0.0048265908844769,
+    "post_contact_hand_tracking_rmse_rad": 0.0767657682299614,
+    "contact_motion": {
+     "first_contact_height_window_end_tick": 110,
+     "qualifying_window_ends": 32,
+     "contact_and_height_ticks_after_reference": 44,
+     "longest_contact_and_height_run_ticks": 43,
+     "elevated_without_two_finger_contact_ticks_after_reference": 19,
+     "contact_and_height_at_final_tick": false,
+     "first_goal_best_keypoint_during_contact_height_window": {
+      "completed_tick": 138,
+      "active_goal_index": 0,
+      "root_angle_rad": 2.9341624827638704,
+      "root_distance_m": 0.11084645986557007,
+      "native_keypoint_distance_m": 0.3133220374584198,
+      "tolerance_m": 0.014999999664723873,
+      "both_substeps_two_finger_contact": true
+     }
+    },
+    "held_orientation": {
+     "eligible_contact_height_windows": 32,
+     "first": {
+      "completed_tick": 110,
+      "root_angle_rad": 2.854342222213745,
+      "root_distance_m": 0.1403416395187378,
+      "native_keypoint_distance_m": 0.3239292800426483,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "smallest_root_angle": {
+      "completed_tick": 118,
+      "root_angle_rad": 2.7327938079833984,
+      "root_distance_m": 0.13700532913208008,
+      "native_keypoint_distance_m": 0.32685625553131104,
+      "native_tolerance_m": 0.014999999664723873
+     },
+     "angle_decrease_from_first_window_rad": 0.12154841423034668,
+     "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+    },
+    "numeric_sha256_recomputed": false,
+    "wall_seconds": 223.8861061411444
+   }
+  ]
+ },
+ "candidate_case_semantics": {
+  "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+  "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+  "authority": {
+   "student_ticks": 601,
+   "expert_ticks": 0,
+   "student_first_stable_window_end_tick": null,
+   "student_stable_window_at_last_tick": false,
+   "student_near_goal_first_tick": null,
+   "student_alignment_first_tick": null,
+   "student_max_subgoals": 0,
+   "expert_first_stable_window_end_tick": null,
+   "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+  }
+ },
+ "population_by_role": {
+  "A": {
+   "role": "A",
+   "opportunities": 8,
+   "case_specs_identical": true,
+   "wave_lane_assignments_identical": true,
+   "execution_identity": {
+    "mode": "whole_wave",
+    "lanes": 8,
+    "vision_microbatch": 8,
+    "vision_tail_profile": null,
+    "inactive_render_profile": null,
+    "batch_seed": 28500000,
+    "inference_scheduler_index_mode": "host",
+    "execution_backend": {
+     "version": "tight_execution_backend_v2",
+     "physics_device": "cpu",
+     "camera_backend": "standard",
+     "kit_tasking_threads": 16,
+     "physics_threads": 2,
+     "renderer_descriptor_sets": 360000,
+     "renderer_reserved_descriptors": 900000
+    }
+   },
+   "exact_hidden_state_pairing": false
+  },
+  "B": {
+   "role": "B",
+   "opportunities": 8,
+   "case_specs_identical": true,
+   "wave_lane_assignments_identical": true,
+   "execution_identity": {
+    "mode": "whole_wave",
+    "lanes": 8,
+    "vision_microbatch": 8,
+    "vision_tail_profile": null,
+    "inactive_render_profile": null,
+    "batch_seed": 28500000,
+    "inference_scheduler_index_mode": "host",
+    "execution_backend": {
+     "version": "tight_execution_backend_v2",
+     "physics_device": "cpu",
+     "camera_backend": "standard",
+     "kit_tasking_threads": 16,
+     "physics_threads": 2,
+     "renderer_descriptor_sets": 360000,
+     "renderer_reserved_descriptors": 900000
+    }
+   },
+   "exact_hidden_state_pairing": false
+  }
+ },
+ "matched_legal_comparison": {
+  "A": {
+   "registered_opportunities": 8,
+   "matched_legal_opportunities": 7,
+   "matched_legal_cases": [
+    "A_development_28500000",
+    "A_development_28500001",
+    "A_development_28500002",
+    "A_development_28500004",
+    "A_development_28500005",
+    "A_development_28500006",
+    "A_development_28500007"
+   ],
+   "source_only_legal_cases": [],
+   "candidate_only_legal_cases": [],
+   "both_invalid_cases": [
+    "A_development_28500003"
+   ],
+   "source": {
+    "opportunities": 7,
+    "successes": 0,
+    "native_lift_cases": 1,
+    "old_stable_window_cases": 2,
+    "contact_height12_cases": 3,
+    "native_alignment_cases": 0,
+    "native_near_goal_cases": 0,
+    "first_subgoal_cases": 0,
+    "termination_reasons": {
+     "timeout": 7
+    },
+    "total_control_ticks": 4207,
+    "overlapping_lane_lifetime_seconds": 1535.8883069755975,
+    "legal_initializations": 7,
+    "invalid_initializations": 0,
+    "autonomous_success_rate_among_legal": 0.0,
+    "raw_successes_per_registered_opportunity": {
+     "numerator": 0,
+     "denominator": 7,
+     "ratio": 0.0,
+     "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+    },
+    "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+   },
+   "candidate": {
+    "opportunities": 7,
+    "successes": 0,
+    "native_lift_cases": 0,
+    "old_stable_window_cases": 2,
+    "contact_height12_cases": 2,
+    "native_alignment_cases": 0,
+    "native_near_goal_cases": 0,
+    "first_subgoal_cases": 0,
+    "termination_reasons": {
+     "timeout": 7
+    },
+    "total_control_ticks": 4207,
+    "overlapping_lane_lifetime_seconds": 1561.8911162093282,
+    "legal_initializations": 7,
+    "invalid_initializations": 0,
+    "autonomous_success_rate_among_legal": 0.0,
+    "raw_successes_per_registered_opportunity": {
+     "numerator": 0,
+     "denominator": 7,
+     "ratio": 0.0,
+     "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+    },
+    "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+   }
+  },
+  "B": {
+   "registered_opportunities": 8,
+   "matched_legal_opportunities": 8,
+   "matched_legal_cases": [
+    "B_development_28500000",
+    "B_development_28500001",
+    "B_development_28500002",
+    "B_development_28500003",
+    "B_development_28500004",
+    "B_development_28500005",
+    "B_development_28500006",
+    "B_development_28500007"
+   ],
+   "source_only_legal_cases": [],
+   "candidate_only_legal_cases": [],
+   "both_invalid_cases": [],
+   "source": {
+    "opportunities": 8,
+    "successes": 0,
+    "native_lift_cases": 2,
+    "old_stable_window_cases": 2,
+    "contact_height12_cases": 4,
+    "native_alignment_cases": 0,
+    "native_near_goal_cases": 0,
+    "first_subgoal_cases": 0,
+    "termination_reasons": {
+     "timeout": 8
+    },
+    "total_control_ticks": 4808,
+    "overlapping_lane_lifetime_seconds": 1830.6570420092903,
+    "legal_initializations": 8,
+    "invalid_initializations": 0,
+    "autonomous_success_rate_among_legal": 0.0,
+    "raw_successes_per_registered_opportunity": {
+     "numerator": 0,
+     "denominator": 8,
+     "ratio": 0.0,
+     "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+    },
+    "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+   },
+   "candidate": {
+    "opportunities": 8,
+    "successes": 0,
+    "native_lift_cases": 1,
+    "old_stable_window_cases": 4,
+    "contact_height12_cases": 5,
+    "native_alignment_cases": 0,
+    "native_near_goal_cases": 0,
+    "first_subgoal_cases": 0,
+    "termination_reasons": {
+     "timeout": 6,
+     "fall": 2
+    },
+    "total_control_ticks": 4460,
+    "overlapping_lane_lifetime_seconds": 1713.5522936049383,
+    "legal_initializations": 8,
+    "invalid_initializations": 0,
+    "autonomous_success_rate_among_legal": 0.0,
+    "raw_successes_per_registered_opportunity": {
+     "numerator": 0,
+     "denominator": 8,
+     "ratio": 0.0,
+     "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+    },
+    "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+   }
+  }
+ },
+ "initial_observation_comparison_by_role": {
+  "A": {
+   "all_cases_equal": true,
+   "scope": "Saved observable state only; equality does not establish identical hidden PhysX, renderer, contact solver or RNG state.",
+   "compared_fields": [
+    "joint_position_rad",
+    "joint_velocity_rad_s",
+    "object_pose_w",
+    "goal_pose_w",
+    "hole_pose_w",
+    "table_pose_w",
+    "successes",
+    "retract_phase",
+    "retract_succeeded",
+    "max_goals",
+    "lifted_object",
+    "object_initial_z_m",
+    "object_velocity_w_m_s_rad_s",
+    "goal_velocity_w_m_s_rad_s",
+    "base_pose_w",
+    "palm_body_pose_w",
+    "native_stage_step",
+    "is_random_goal",
+    "finger_position_w",
+    "finger_quat_wxyz",
+    "fk_position_error_m"
+   ],
+   "cases": {
+    "A_development_28500000": {
+     "all_fields_equal": true,
+     "source_sha256": "b430a0889771333e39e4fa8490a6fbfee8c0d5f7b534f8d9a958de02cfb8c1b8",
+     "candidate_sha256": "b430a0889771333e39e4fa8490a6fbfee8c0d5f7b534f8d9a958de02cfb8c1b8",
+     "unequal_fields": {}
+    },
+    "A_development_28500001": {
+     "all_fields_equal": true,
+     "source_sha256": "ec4530148fee1243a99d26b0b16a9254c655b31b9908cd4db0a490a5286d2b3f",
+     "candidate_sha256": "ec4530148fee1243a99d26b0b16a9254c655b31b9908cd4db0a490a5286d2b3f",
+     "unequal_fields": {}
+    },
+    "A_development_28500002": {
+     "all_fields_equal": true,
+     "source_sha256": "a6ddd859654f877610e7401bfaaaeb050b614afdd165951d11865d958667c449",
+     "candidate_sha256": "a6ddd859654f877610e7401bfaaaeb050b614afdd165951d11865d958667c449",
+     "unequal_fields": {}
+    },
+    "A_development_28500003": {
+     "all_fields_equal": true,
+     "source_sha256": "12a9598eeb9131a6e36abbf0aec732aec4e3e10251ff9c8785bfeeac5ba33521",
+     "candidate_sha256": "12a9598eeb9131a6e36abbf0aec732aec4e3e10251ff9c8785bfeeac5ba33521",
+     "unequal_fields": {}
+    },
+    "A_development_28500004": {
+     "all_fields_equal": true,
+     "source_sha256": "8bab0df26cf759a5603beaeb9d5465782515e78f9b1d098dceaa9901ed681486",
+     "candidate_sha256": "8bab0df26cf759a5603beaeb9d5465782515e78f9b1d098dceaa9901ed681486",
+     "unequal_fields": {}
+    },
+    "A_development_28500005": {
+     "all_fields_equal": true,
+     "source_sha256": "4f6425df1b125f2c8886a19906d93d8695d8661db6f7d901a3b4a2990f9465d7",
+     "candidate_sha256": "4f6425df1b125f2c8886a19906d93d8695d8661db6f7d901a3b4a2990f9465d7",
+     "unequal_fields": {}
+    },
+    "A_development_28500006": {
+     "all_fields_equal": true,
+     "source_sha256": "acd34a581d0a87faff6825fa0997374f83a33d09ab8ac29e233c64460bd894c4",
+     "candidate_sha256": "acd34a581d0a87faff6825fa0997374f83a33d09ab8ac29e233c64460bd894c4",
+     "unequal_fields": {}
+    },
+    "A_development_28500007": {
+     "all_fields_equal": true,
+     "source_sha256": "de50297c905531b2b48f579e551c2f8a57481caef243fa87a76a941897be1c47",
+     "candidate_sha256": "de50297c905531b2b48f579e551c2f8a57481caef243fa87a76a941897be1c47",
+     "unequal_fields": {}
+    }
+   }
+  },
+  "B": {
+   "all_cases_equal": true,
+   "scope": "Saved observable state only; equality does not establish identical hidden PhysX, renderer, contact solver or RNG state.",
+   "compared_fields": [
+    "joint_position_rad",
+    "joint_velocity_rad_s",
+    "object_pose_w",
+    "goal_pose_w",
+    "hole_pose_w",
+    "table_pose_w",
+    "successes",
+    "retract_phase",
+    "retract_succeeded",
+    "max_goals",
+    "lifted_object",
+    "object_initial_z_m",
+    "object_velocity_w_m_s_rad_s",
+    "goal_velocity_w_m_s_rad_s",
+    "base_pose_w",
+    "palm_body_pose_w",
+    "native_stage_step",
+    "is_random_goal",
+    "finger_position_w",
+    "finger_quat_wxyz",
+    "fk_position_error_m"
+   ],
+   "cases": {
+    "B_development_28500000": {
+     "all_fields_equal": true,
+     "source_sha256": "eb2193fe7e693d8f0332b648399de7b5bd8c0d33bdf8b441806c325176ee44d7",
+     "candidate_sha256": "eb2193fe7e693d8f0332b648399de7b5bd8c0d33bdf8b441806c325176ee44d7",
+     "unequal_fields": {}
+    },
+    "B_development_28500001": {
+     "all_fields_equal": true,
+     "source_sha256": "43bf94061f98dbc4d6c5974a67c8fe2b0a77c2c450fb5c4b58e2f05b864bf9bb",
+     "candidate_sha256": "43bf94061f98dbc4d6c5974a67c8fe2b0a77c2c450fb5c4b58e2f05b864bf9bb",
+     "unequal_fields": {}
+    },
+    "B_development_28500002": {
+     "all_fields_equal": true,
+     "source_sha256": "ff82f54f0ae4123da8f4ef4b29d9b4e85cf62c61419f1256596cc012988347bb",
+     "candidate_sha256": "ff82f54f0ae4123da8f4ef4b29d9b4e85cf62c61419f1256596cc012988347bb",
+     "unequal_fields": {}
+    },
+    "B_development_28500003": {
+     "all_fields_equal": true,
+     "source_sha256": "894590ff458a1a20798e1c9e755d18592ed5ecc6c457c972d54f8c6a8dce1835",
+     "candidate_sha256": "894590ff458a1a20798e1c9e755d18592ed5ecc6c457c972d54f8c6a8dce1835",
+     "unequal_fields": {}
+    },
+    "B_development_28500004": {
+     "all_fields_equal": true,
+     "source_sha256": "83eafc6de0bfc1cdd846dd7b6c4409033bbd6bbcef11acb2cc27589719249b0d",
+     "candidate_sha256": "83eafc6de0bfc1cdd846dd7b6c4409033bbd6bbcef11acb2cc27589719249b0d",
+     "unequal_fields": {}
+    },
+    "B_development_28500005": {
+     "all_fields_equal": true,
+     "source_sha256": "672ea95d640c6f68553f94f2c29fb8fa2c0caa5ae0f2a09f7b6d84c6786f93ea",
+     "candidate_sha256": "672ea95d640c6f68553f94f2c29fb8fa2c0caa5ae0f2a09f7b6d84c6786f93ea",
+     "unequal_fields": {}
+    },
+    "B_development_28500006": {
+     "all_fields_equal": true,
+     "source_sha256": "b5a8ff6ecf306b297aa69b03fdcbb9c158e6a7aae48da491211c124983d9b373",
+     "candidate_sha256": "b5a8ff6ecf306b297aa69b03fdcbb9c158e6a7aae48da491211c124983d9b373",
+     "unequal_fields": {}
+    },
+    "B_development_28500007": {
+     "all_fields_equal": true,
+     "source_sha256": "34ecf80c6f8be323913689e7b3b1c0e0b289b00f7f7964e2cafb2c430dcf77d2",
+     "candidate_sha256": "34ecf80c6f8be323913689e7b3b1c0e0b289b00f7f7964e2cafb2c430dcf77d2",
+     "unequal_fields": {}
+    }
+   }
+  }
+ },
+ "source_preflight_reused": true,
+ "phase_helper_binding": {
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+  "source_sha256": {
+   "tools/tight_fresh_phases.py": "0cda7628593954cac85adf528a68085fe44fcc5e331e0469455cf3cd8f666eaf",
+   "tools/tight_fresh_visual_closeout.py": "4374e4f3e569aa54c211a1293d57799894750765e3a2ec7a89b2ad6a38ae7b1e",
+   "tools/tight_fresh_contact_height_coverage.py": "7aca3a1040acda8cf4efa66e7fd9e80f44bfc57405c66381d69387786869d1e6",
+   "visuotactile/takeover_trigger.py": "4ac571e0b7b01e81850942edd1aec362ac6842c35b3efb09661e14c3a4e1d69c"
+  },
+  "verification": "Carried from completed source preflight; no repeat scan of old frozen source trees"
+ },
+ "input_and_code_small_sha256": {
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09_stages/finished.json": {
+   "sha256": "58468bc8656008f8b58ebb8baa69d0b465e2aea0cc2b5ca87f775b8adb64ca30",
+   "bytes": 13078
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/result.json": {
+   "sha256": "652fce6f30c7db8046661638dba42c5fdb17b7fadc2271fdc360f6d60d18f6b5",
+   "bytes": 276
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_source_manifest.json": {
+   "sha256": "718aa6fec67849236283788acde209899db298cc910817e69738837cdb9e6234",
+   "bytes": 722
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_source_preflight_01/source_preflight.json": {
+   "sha256": "697ae8416db051a5b21aac70d7f023e7ff431d10c0299fe49c46dc73d2144e35",
+   "bytes": 91940
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/plan.json": {
+   "sha256": "51ad20604d9992151cb948606cf90b352f7f30115914d77ccac85ea9aad25ce0",
+   "bytes": 46248
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/results.json": {
+   "sha256": "f93a6092124b5b7feca3bb6f07a63cb17d5117cfb5a441a4a989a891a79f136a",
+   "bytes": 268563
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/run_started.json": {
+   "sha256": "1567324730f9df90a9f5a37736d9480caa0bcbb6a7395463ece6ad2e5cc9f441",
+   "bytes": 126
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/tools/tight_fresh_round_compare.py": {
+   "sha256": "9d18392f9a600675f398c50119b1adfba1f7cb101bd309ff9f462cd96ce01f83",
+   "bytes": 39290
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_behavior01/summarize.py": {
+   "sha256": "1fec505964b0aa9c7604b1d66719da178d23f37dd88c8a741eb59472e331fc22",
+   "bytes": 13344
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/execution_backend_observed.json": {
+   "sha256": "1168ef3c66e651a80707f30abd875fed62456418d384ee19cf3317f0212dfac2",
+   "bytes": 1419
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/initialization.json": {
+   "sha256": "3207b61cdca985f0f2e3a59401b9a15ece911a76203b450203862428548a082d",
+   "bytes": 354
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/development/plan.json": {
+   "sha256": "402d35ccca54c127d08494b3a572d273900c1df7063eecf29917b6db20e324db",
+   "bytes": 45008
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/development/result.json": {
+   "sha256": "e0b9b3dc24d41ad95348e4c3f3589c9568c9216beff2e6374f76e97d545745d0",
+   "bytes": 275
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/development/results.json": {
+   "sha256": "edbf1116b1de441e2d21bbee18a518856f48e099ba1fd6be3525da1bdd39f935",
+   "bytes": 265687
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/development_source08/plan.json": {
+   "sha256": "461f3e2b5c1c7b831953a1d92576665566da5de13cbaa17e77ef4968fe1d8495",
+   "bytes": 44550
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/development_source08/result.json": {
+   "sha256": "de25e08194f02b4e5829198384bc98174014b13d3ef2f3dd543736072105a7cd",
+   "bytes": 276
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/development_source08/results.json": {
+   "sha256": "e8b67b779cf04c34ac5620811af69e19225bb2f2c7d63de97937dd37c7a828ee",
+   "bytes": 267546
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500000/result.json": {
+   "sha256": "bff7c0b29199ebce777be58a906c82589beda027b8b26faf0694358c5c8a997f",
+   "bytes": 15584
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500000/started.json": {
+   "sha256": "707579438289df3b9a6a4c1586952d02c7f68c27fc573d361e9a3b8ce4e3738e",
+   "bytes": 1299
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500000/metadata.json": {
+   "sha256": "78f5cd8e404e753f8176061ac318c9c7e0481fe47a565901ee8a1c1d4ba6b416",
+   "bytes": 26647
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500000/result.json": {
+   "sha256": "68463f2cac9f1481577102a436d2b7be5bcd33253e054f520ab72bf907f7b517",
+   "bytes": 16480
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500000/started.json": {
+   "sha256": "a9a486b50e386461c5abb368684b66ffb5fa078faf4911fa5173f162a2c28e52",
+   "bytes": 1299
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500000/metadata.json": {
+   "sha256": "bd11f70d93d30299411d8e4db22dee9ed60db4551dba8e9bed1a4403762bfee0",
+   "bytes": 26649
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500001/result.json": {
+   "sha256": "213dce380a402f831498102937a1b9eb51c5812fcb27beba625ee83b5716c2b3",
+   "bytes": 16076
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500001/started.json": {
+   "sha256": "d6ff21a0d594e323851a2d5c5dac2e79deebf465b5a5887bf96a2141b29b7bc5",
+   "bytes": 1300
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500001/metadata.json": {
+   "sha256": "02a506521bd0f29a087123e5e33a982f0823dbd39471b0726dbe1ea4a9aa73f0",
+   "bytes": 26649
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500001/result.json": {
+   "sha256": "cf852085c73790f40834677a03fee81e2982dba725a5fb896a1027195d30b000",
+   "bytes": 14044
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500001/started.json": {
+   "sha256": "0111b3be8ac410bb85589f912c41878231715c67d38b470509836de66aca9079",
+   "bytes": 1300
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500001/metadata.json": {
+   "sha256": "aaf4c3e906a039d93b8f69e0fb7c1ec4928882e0aa6e3df19cfcf1411aa938b9",
+   "bytes": 26650
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500002/result.json": {
+   "sha256": "6beba140e3884fc2e6388301abec07e17631bba22ec4548e9d72c47c72cd85a3",
+   "bytes": 15055
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500002/started.json": {
+   "sha256": "da4893b0189fe256dda3c7f85664f5ab5eb5d79f9e490052023f7267381aa777",
+   "bytes": 1298
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500002/metadata.json": {
+   "sha256": "308d117e986a55422cc54520609b93920b50f4eb50f6cc7600e17b7641352685",
+   "bytes": 26650
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500002/result.json": {
+   "sha256": "ae70cdd402f4be30a824904d52353f976338cbcbfd83eadbd4f7251932866920",
+   "bytes": 16695
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500002/started.json": {
+   "sha256": "a3f809ffc7d32d3242780a93eee088983726637696cfd6c82f1b5f9d789bae46",
+   "bytes": 1298
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500002/metadata.json": {
+   "sha256": "c4a64cd72b16fc10e3e93d583dc359e6d510688e6a5a6f6bdc4c9e815078b46d",
+   "bytes": 26644
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500003/result.json": {
+   "sha256": "444bc03a72d82fdb9488c1480a624235d1bb4f3745cf716a6c5830f1bda9ac58",
+   "bytes": 14463
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500003/started.json": {
+   "sha256": "60151f5eedc0409c03768e9e10f93fe40bb8795824c12160a8f1041e02e2fc3f",
+   "bytes": 1299
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500003/metadata.json": {
+   "sha256": "fc83f5d50e92f5b2ac51b5afa1eb82c6ebf07cf11f9bec16488761961c2ba83a",
+   "bytes": 26649
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500003/result.json": {
+   "sha256": "fb50d18be62a56d45b692a4d4a9416eff8e97a897a2ccf0309b437c9fd4aedf9",
+   "bytes": 1352
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500003/started.json": {
+   "sha256": "f9392edba929859c1c90697a7c042e5f2c8588edf26ca0db6a221823b688fafe",
+   "bytes": 1299
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500003/metadata.json": {
+   "sha256": "af70b913b824c25daa2210cb6efb321d3d12568df993101d2680782867d505aa",
+   "bytes": 26648
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500003/initial_collision.json": {
+   "sha256": "5f43101b9e2fc945e867e3b815f6fa5268a7b920699a1213e700673801d61f2e",
+   "bytes": 17501
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500004/result.json": {
+   "sha256": "e5398c5dc603a5f320205d739edf65ab02726be75cad5be17868754a078d3dfe",
+   "bytes": 16904
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500004/started.json": {
+   "sha256": "ac7651be16b00387674695297c78f2c0475fe6d3525dea00cd764036b40b8d64",
+   "bytes": 1297
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500004/metadata.json": {
+   "sha256": "97c5844c144fc8414138ef1ef81838d726d9cfc9986c62c3a97a22745c2a10b9",
+   "bytes": 26649
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500004/result.json": {
+   "sha256": "98b715e2bc5ab303b1af245cff6ac2308de1f95b34dff6c81ca7cf0e4490299b",
+   "bytes": 15656
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500004/started.json": {
+   "sha256": "d6b5b168cdaa285ba8a6873417726d75a6f1b4a68e4cd53c0981efe997e17b8c",
+   "bytes": 1296
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500004/metadata.json": {
+   "sha256": "eb22ecb8ea89a16d827a315478029379dc0bcbab83a7ece13a1733618778f6ab",
+   "bytes": 26647
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500005/result.json": {
+   "sha256": "4f6b9bd5d4ae56fc944f02e826408b93590ebaa858b1d7555295d55e64a5013c",
+   "bytes": 15658
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500005/started.json": {
+   "sha256": "6811f2ac1d5c58b9d6a546ef3424a7022808972ddc7b31f6ae8e46c3228bd786",
+   "bytes": 1298
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500005/metadata.json": {
+   "sha256": "ccf86f39e7000b915c82a701e1596e025c491eb7b70385dd33e1df1b64ec3435",
+   "bytes": 26649
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500005/result.json": {
+   "sha256": "422c748c8bf0107a47d7f6741620f216438ea46819b6635cdf582db411426628",
+   "bytes": 16029
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500005/started.json": {
+   "sha256": "60f3512a5656d62a6be874d06b52ed0f4caecff574e3cb99645948c362e6af22",
+   "bytes": 1298
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500005/metadata.json": {
+   "sha256": "b94292455c4ad4706b0274d06fd2d8a3e45106a9e02a44e345a03d11667e001d",
+   "bytes": 26648
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500006/result.json": {
+   "sha256": "69d86fde6ed71f7d65e4e15cfc6098a5e7373ba1d80528fcfad2f042487be1fb",
+   "bytes": 15247
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500006/started.json": {
+   "sha256": "0675acc16b55d81812cc1bf86ffa32686e9d2e46c0cd8328a63454a610c51e76",
+   "bytes": 1295
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500006/metadata.json": {
+   "sha256": "786f513656b0c82cdc5605afad269e16af5ccb59f5cc9d78d87a26e3b207eace",
+   "bytes": 26649
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500006/result.json": {
+   "sha256": "ea33a6d944d23dc7cb7f8199802099c4e02c0002c48825e2b2980dd8c107e9c1",
+   "bytes": 15651
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500006/started.json": {
+   "sha256": "9f5ae4b96da75653eca80691831854502fe08daa8e2efaf23bfd272aec838e25",
+   "bytes": 1295
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500006/metadata.json": {
+   "sha256": "cda06a04cf5355c0d381be6be9817979e25f70f25d269c3b808033a990b70d1c",
+   "bytes": 26648
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500007/result.json": {
+   "sha256": "836d932a7999f4bd7e7306bf07d8bf23e61b3766491d4e80755477d6e73d38a8",
+   "bytes": 15054
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500007/started.json": {
+   "sha256": "e70db633c47d177eac83797c709623a5807806c9f52d6e10981b2ab52b8e1c30",
+   "bytes": 1300
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/B_development_28500007/metadata.json": {
+   "sha256": "ee1b60cb5b3130322c3b676c7476d49457aaa16dce410daabe7b2a678e7b0de2",
+   "bytes": 26651
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500007/result.json": {
+   "sha256": "9d259b8e3a1fdeac4b4c7fcf3d49e930ea820ee5c59494ccde0672d8faa48d18",
+   "bytes": 15664
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500007/started.json": {
+   "sha256": "d9eb0e31d7b7faa4e59adabda730f30c7d71634245da31f28d59dbc275d8eb20",
+   "bytes": 1299
+  },
+  "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/A_development_28500007/metadata.json": {
+   "sha256": "21ff8bdc7927a7930eac1ebed035cf7999f7bec0a9b4c5b12bdc3d2cf60acd94",
+   "bytes": 26650
+  }
+ },
+ "initial_file_hash_location": "Per-case source/candidate initial-observable SHA values appear in initial_observation_comparison_by_role; duplicate absolute path entries are omitted here.",
+ "model_hash_semantics": "Checkpoint SHA256 values are declared identities carried from existing audited plans/receipts. This behavior report and export do not open or rehash checkpoints.",
+ "analysis_scope": {
+  "candidate_numeric_files": 15,
+  "source_numeric_files_opened": 0,
+  "checkpoint_files_opened": 0,
+  "RGB_or_DINO_payloads_opened": 0,
+  "numeric_payload_hashes_recomputed": 0,
+  "simulator_starts": 0,
+  "optimizer_updates": 0,
+  "test_used": false
+ },
+ "limits": [
+  "Source A08 and B06 behavior comes from two already audited original runs; no synthetic mixed-source execution was created.",
+  "This is a behavior summary, not a repeated model-byte or complete camera/control provenance audit. Model identity is bound by existing small plan/metadata/result receipts; candidate numeric stability uses stat before/after, not SHA.",
+  "Native lift, old stable, rotation-permitting contact-height12, turning, original alignment/subgoal and original success remain separate measurements; missing a held window does not prove a drop.",
+  "Direction summaries use the same first native goal; minima retain their actual ticks. Quaternion angles ignore object symmetry and improvement does not by itself establish insertion.",
+  "All registered opportunities and illegal starts remain visible; behavior comparison additionally uses each role's matched-legal intersection.",
+  "Equality of saved visible initial states does not prove identical PhysX/contact/renderer/RNG hidden states. Repeated development starts are not an independent held-out generalization estimate.",
+  "No learning or selected-versus-last fitting claim is made by this report."
+ ]
+}

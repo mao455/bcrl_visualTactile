@@ -1,3 +1,15 @@
+## 2026-11-15 修复GPU相机RGB严格保存
+
+- sim/environment.py + sensor_rgb.py：CUDA真实uint8采用1KiB canonical lookup，CPU旧路不动；metadata显式身份。compact/recording原严格lossless判据未改。
+- tools/tight_rgb_storage_check统一CPU/CUDA全灰度及真实compact写入读取检查通过，0Kit/0训练；旧GPU126/256灰度1ULP不一致已实证，修复全部逐位/原像素一致。只执行一次必要检查，不重复控制/历史/训练验收。
+- 原new_family_10首波16环境各1控制步后软件中断，0完整轨迹/0入池，不能算任务失败；新attempt沿用相同初态和固定14:58:38.966截止。
+
+## 2026-11-15 第九轮完整行为与周期结果
+
+- 发布round09_behavior逐次结果/实际分析脚本、cycle_throughput_review/round09整批耗时及round09_front_learning/fit_report；复用既有结果，不重读模型/RGB或重跑旧评估。
+- 新52成功纠偏入170条训练池；A0/7、B0/8完整自主成功，持物机会结果混合、仍无对孔/子目标，不整体晋升。前端、后端输入、后端、自主及全部周期时间分别报告。
+- 新独立12小时session已实际启动，但GPU16采集因RGB浮点归一化的严格无损保存错误停止，0新完整轮/0新训练。原失败现场和固定截止保留；后续修复采用新身份。
+
 ## 2026-11-15 02:31 第九轮前端学习与统一读取证据
 
 新52/held13的selected及last实际监督曝光、验证selection及B selected无纠偏cohort指标分别记录；复用小JSON，不重读模型/旧numeric。统一865帧读取对比完成，后端M32刷新176条各263.19秒已进入正式流程；完整周期和自主结果待收尾。

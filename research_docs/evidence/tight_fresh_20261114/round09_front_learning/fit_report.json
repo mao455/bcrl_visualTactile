@@ -1,0 +1,1612 @@
+{
+  "version": "round09_recorded_correction_fit_v1",
+  "created_utc": 1794681657.5522816,
+  "source_commit": "87577e84f5f9183ba739e483b34729029629bb99",
+  "metric_scope": "Already measured DDIM16 predictions on complete teacher-forced real prefixes; legal first12 slots of each H24 chunk.",
+  "aggregation": {
+    "macro": "Arithmetic mean of episode RMSE, equal weight per trajectory; before and after use exactly the same identities.",
+    "full52_pooled": "Original logged metric concatenates legal commit12 errors before RMSE; copied without reweighting.",
+    "held13_pooled": null,
+    "held13_pooled_reason": "Per-episode receipts lack the exact legal commit12 error count needed for pooled weighting; no numeric payloads reopened."
+  },
+  "interpretation": "These are training-data fit errors, not autonomous success or proof of holding, turning, alignment or insertion improvement.",
+  "cross_role_comparison": "A targets actual q[t+1], one control step later (1/60 s), not final settled joints. B targets expert actually executed absolute command u. Their errors are not interchangeable or direct cross-label rankings.",
+  "method": "87577e8 legacy single-trajectory fixed-anchor training; no B2/random-anchor/eager-I/O training in this round.",
+  "roles": {
+    "A": {
+      "label": "q[t+1]",
+      "measured_epoch": 10,
+      "measured_updates": 2220,
+      "selected_epoch": 10,
+      "matches_selected": true,
+      "selected_new_correction_metrics_available": true,
+      "selected_new_correction_metrics": {
+        "latest52": {
+          "episodes": 52,
+          "families": 34,
+          "scope": "All legal expert suffix predictions for these trajectories; not a per-tick held-state mask.",
+          "by_joint_group": {
+            "arm": {
+              "before_macro_rmse_rad": 0.008889169763558758,
+              "after_macro_rmse_rad": 0.0036367766532258918,
+              "relative_change": -0.590875554190123,
+              "improved_episodes": 52,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            },
+            "hand": {
+              "before_macro_rmse_rad": 0.06927077937871218,
+              "after_macro_rmse_rad": 0.024855495251428623,
+              "relative_change": -0.6411835484693992,
+              "improved_episodes": 52,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            }
+          },
+          "both_arm_and_hand_improved": 52,
+          "logged_pooled": {
+            "before": {
+              "arm_rmse_rad": 0.009881840087473392,
+              "hand_rmse_rad": 0.07370739430189133,
+              "selection": 0.012640872038900852
+            },
+            "after": {
+              "arm_rmse_rad": 0.004034682642668486,
+              "hand_rmse_rad": 0.027720801532268524,
+              "selection": 0.001443983637727797
+            }
+          }
+        },
+        "held13": {
+          "episodes": 13,
+          "families": 12,
+          "scope": "All legal expert suffix predictions for these trajectories; not a per-tick held-state mask.",
+          "by_joint_group": {
+            "arm": {
+              "before_macro_rmse_rad": 0.010796643507022124,
+              "after_macro_rmse_rad": 0.0035089278020537817,
+              "relative_change": -0.6749982714746876,
+              "improved_episodes": 13,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            },
+            "hand": {
+              "before_macro_rmse_rad": 0.08096165811786285,
+              "after_macro_rmse_rad": 0.02295484049962117,
+              "relative_change": -0.7164726979009763,
+              "improved_episodes": 13,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            }
+          },
+          "both_arm_and_hand_improved": 13
+        }
+      },
+      "groups": {
+        "latest52": {
+          "episodes": 52,
+          "families": 34,
+          "scope": "All legal expert suffix predictions for these trajectories; not a per-tick held-state mask.",
+          "by_joint_group": {
+            "arm": {
+              "before_macro_rmse_rad": 0.008889169763558758,
+              "after_macro_rmse_rad": 0.0036367766532258918,
+              "relative_change": -0.590875554190123,
+              "improved_episodes": 52,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            },
+            "hand": {
+              "before_macro_rmse_rad": 0.06927077937871218,
+              "after_macro_rmse_rad": 0.024855495251428623,
+              "relative_change": -0.6411835484693992,
+              "improved_episodes": 52,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            }
+          },
+          "both_arm_and_hand_improved": 52,
+          "logged_pooled": {
+            "before": {
+              "arm_rmse_rad": 0.009881840087473392,
+              "hand_rmse_rad": 0.07370739430189133,
+              "selection": 0.012640872038900852
+            },
+            "after": {
+              "arm_rmse_rad": 0.004034682642668486,
+              "hand_rmse_rad": 0.027720801532268524,
+              "selection": 0.001443983637727797
+            }
+          }
+        },
+        "held13": {
+          "episodes": 13,
+          "families": 12,
+          "scope": "All legal expert suffix predictions for these trajectories; not a per-tick held-state mask.",
+          "by_joint_group": {
+            "arm": {
+              "before_macro_rmse_rad": 0.010796643507022124,
+              "after_macro_rmse_rad": 0.0035089278020537817,
+              "relative_change": -0.6749982714746876,
+              "improved_episodes": 13,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            },
+            "hand": {
+              "before_macro_rmse_rad": 0.08096165811786285,
+              "after_macro_rmse_rad": 0.02295484049962117,
+              "relative_change": -0.7164726979009763,
+              "improved_episodes": 13,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            }
+          },
+          "both_arm_and_hand_improved": 13
+        }
+      },
+      "per_episode": [
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600002_contact0",
+          "family": "expanded_session06_new64_s28600002",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006134237162768841,
+            "hand_rmse": 0.052948493510484695
+          },
+          "after": {
+            "arm_rmse": 0.0032382491044700146,
+            "hand_rmse": 0.020247403532266617
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600003_fixed80",
+          "family": "expanded_session06_new64_s28600003",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.008662935346364975,
+            "hand_rmse": 0.07797485589981079
+          },
+          "after": {
+            "arm_rmse": 0.004459966905415058,
+            "hand_rmse": 0.032562531530857086
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600005_held60",
+          "family": "expanded_session06_new64_s28600005",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.009967625141143799,
+            "hand_rmse": 0.07217828184366226
+          },
+          "after": {
+            "arm_rmse": 0.0034959688782691956,
+            "hand_rmse": 0.023273872211575508
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600007_fixed80",
+          "family": "expanded_session06_new64_s28600007",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007985704578459263,
+            "hand_rmse": 0.0691177248954773
+          },
+          "after": {
+            "arm_rmse": 0.0031855632551014423,
+            "hand_rmse": 0.02374168671667576
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600012_fixed80",
+          "family": "expanded_session06_new64_s28600012",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006309403572231531,
+            "hand_rmse": 0.0589110292494297
+          },
+          "after": {
+            "arm_rmse": 0.0034047646913677454,
+            "hand_rmse": 0.02269582450389862
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600013_held60",
+          "family": "expanded_session06_new64_s28600013",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.00964073184877634,
+            "hand_rmse": 0.08572342246770859
+          },
+          "after": {
+            "arm_rmse": 0.003941630013287067,
+            "hand_rmse": 0.02216135710477829
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600016_fixed40",
+          "family": "expanded_session06_new64_s28600016",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.004709930624812841,
+            "hand_rmse": 0.043214716017246246
+          },
+          "after": {
+            "arm_rmse": 0.0029733895789831877,
+            "hand_rmse": 0.023368937894701958
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600019_fixed80",
+          "family": "expanded_session06_new64_s28600019",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.010338908061385155,
+            "hand_rmse": 0.08249346911907196
+          },
+          "after": {
+            "arm_rmse": 0.004728368483483791,
+            "hand_rmse": 0.03373938798904419
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600023_fixed80",
+          "family": "expanded_session06_new64_s28600023",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00953615177422762,
+            "hand_rmse": 0.06650929152965546
+          },
+          "after": {
+            "arm_rmse": 0.00452309288084507,
+            "hand_rmse": 0.031557463109493256
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600024_held120",
+          "family": "expanded_session06_new64_s28600024",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.013308839872479439,
+            "hand_rmse": 0.08893667161464691
+          },
+          "after": {
+            "arm_rmse": 0.0033635501749813557,
+            "hand_rmse": 0.021019883453845978
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600028_fixed80",
+          "family": "expanded_session06_new64_s28600028",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00731709785759449,
+            "hand_rmse": 0.06716816872358322
+          },
+          "after": {
+            "arm_rmse": 0.003265198552981019,
+            "hand_rmse": 0.022577477619051933
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600032_fixed40",
+          "family": "expanded_session06_new64_s28600032",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006092473864555359,
+            "hand_rmse": 0.05371197685599327
+          },
+          "after": {
+            "arm_rmse": 0.0031114635057747364,
+            "hand_rmse": 0.021507782861590385
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600035_fixed80",
+          "family": "expanded_session06_new64_s28600035",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.012365605682134628,
+            "hand_rmse": 0.06114087626338005
+          },
+          "after": {
+            "arm_rmse": 0.00570727838203311,
+            "hand_rmse": 0.028244370594620705
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600039_fixed80",
+          "family": "expanded_session06_new64_s28600039",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006045830436050892,
+            "hand_rmse": 0.05637417361140251
+          },
+          "after": {
+            "arm_rmse": 0.0027940303552895784,
+            "hand_rmse": 0.021291982382535934
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600044_fixed80",
+          "family": "expanded_session06_new64_s28600044",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.009687679819762707,
+            "hand_rmse": 0.07271149754524231
+          },
+          "after": {
+            "arm_rmse": 0.004068437498062849,
+            "hand_rmse": 0.025908656418323517
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600046_contact0",
+          "family": "expanded_session06_new64_s28600046",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.009154322557151318,
+            "hand_rmse": 0.06267395615577698
+          },
+          "after": {
+            "arm_rmse": 0.0037441484164446592,
+            "hand_rmse": 0.024874858558177948
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600048_fixed40",
+          "family": "expanded_session06_new64_s28600048",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.0075630308128893375,
+            "hand_rmse": 0.05919792875647545
+          },
+          "after": {
+            "arm_rmse": 0.0030479184351861477,
+            "hand_rmse": 0.02304559201002121
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600051_fixed80",
+          "family": "expanded_session06_new64_s28600051",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00727575970813632,
+            "hand_rmse": 0.0675087422132492
+          },
+          "after": {
+            "arm_rmse": 0.003223528154194355,
+            "hand_rmse": 0.024208927527070045
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600053_held60",
+          "family": "expanded_session06_new64_s28600053",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.006174948066473007,
+            "hand_rmse": 0.06225183978676796
+          },
+          "after": {
+            "arm_rmse": 0.002574160462245345,
+            "hand_rmse": 0.018882889300584793
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600055_fixed80",
+          "family": "expanded_session06_new64_s28600055",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.005748467054218054,
+            "hand_rmse": 0.04946359246969223
+          },
+          "after": {
+            "arm_rmse": 0.002774633001536131,
+            "hand_rmse": 0.01970553584396839
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600060_fixed80",
+          "family": "expanded_session06_new64_s28600060",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.011653438210487366,
+            "hand_rmse": 0.0729287639260292
+          },
+          "after": {
+            "arm_rmse": 0.003921346738934517,
+            "hand_rmse": 0.025756455957889557
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600061_held60",
+          "family": "expanded_session06_new64_s28600061",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.008318541571497917,
+            "hand_rmse": 0.06854675710201263
+          },
+          "after": {
+            "arm_rmse": 0.002633637050166726,
+            "hand_rmse": 0.017946390435099602
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600063_held60",
+          "family": "expanded_session06_new64_s28600063",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.014278619550168514,
+            "hand_rmse": 0.09941435605287552
+          },
+          "after": {
+            "arm_rmse": 0.004526149015873671,
+            "hand_rmse": 0.0272988248616457
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600000_fixed40",
+          "family": "expanded_session06_new64_s28600000",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.0067018624395132065,
+            "hand_rmse": 0.05105798691511154
+          },
+          "after": {
+            "arm_rmse": 0.0034804821480065584,
+            "hand_rmse": 0.0229378379881382
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600001_held60",
+          "family": "expanded_session06_new64_s28600001",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.013913765549659729,
+            "hand_rmse": 0.11188924312591553
+          },
+          "after": {
+            "arm_rmse": 0.004325846675783396,
+            "hand_rmse": 0.02805936336517334
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600002_contact0",
+          "family": "expanded_session06_new64_s28600002",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007679792586714029,
+            "hand_rmse": 0.06115668639540672
+          },
+          "after": {
+            "arm_rmse": 0.0037311397027224302,
+            "hand_rmse": 0.022556819021701813
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600003_fixed80",
+          "family": "expanded_session06_new64_s28600003",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007407572120428085,
+            "hand_rmse": 0.054305415600538254
+          },
+          "after": {
+            "arm_rmse": 0.003462763736024499,
+            "hand_rmse": 0.026204191148281097
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600006_contact0",
+          "family": "expanded_session06_new64_s28600006",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00941768754273653,
+            "hand_rmse": 0.08275527507066727
+          },
+          "after": {
+            "arm_rmse": 0.003402591682970524,
+            "hand_rmse": 0.027308087795972824
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600007_fixed80",
+          "family": "expanded_session06_new64_s28600007",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.005652735009789467,
+            "hand_rmse": 0.060820430517196655
+          },
+          "after": {
+            "arm_rmse": 0.00308426097035408,
+            "hand_rmse": 0.022808505222201347
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600008_held120",
+          "family": "expanded_session06_new64_s28600008",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.008711579255759716,
+            "hand_rmse": 0.07885555177927017
+          },
+          "after": {
+            "arm_rmse": 0.0026601154822856188,
+            "hand_rmse": 0.020692506805062294
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600012_fixed80",
+          "family": "expanded_session06_new64_s28600012",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.014151857234537601,
+            "hand_rmse": 0.08572082221508026
+          },
+          "after": {
+            "arm_rmse": 0.005468569230288267,
+            "hand_rmse": 0.03767955303192139
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600016_fixed40",
+          "family": "expanded_session06_new64_s28600016",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.013759855180978775,
+            "hand_rmse": 0.09463921934366226
+          },
+          "after": {
+            "arm_rmse": 0.005600433796644211,
+            "hand_rmse": 0.03968871757388115
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600018_contact0",
+          "family": "expanded_session06_new64_s28600018",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.013988173566758633,
+            "hand_rmse": 0.08818104863166809
+          },
+          "after": {
+            "arm_rmse": 0.00490688206627965,
+            "hand_rmse": 0.030695920810103416
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600019_fixed80",
+          "family": "expanded_session06_new64_s28600019",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.005141983740031719,
+            "hand_rmse": 0.04259900748729706
+          },
+          "after": {
+            "arm_rmse": 0.003063283395022154,
+            "hand_rmse": 0.02123662643134594
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600021_held60",
+          "family": "expanded_session06_new64_s28600021",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.012047804892063141,
+            "hand_rmse": 0.09639847278594971
+          },
+          "after": {
+            "arm_rmse": 0.0039010148029774427,
+            "hand_rmse": 0.024919752031564713
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600023_fixed80",
+          "family": "expanded_session06_new64_s28600023",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006100986618548632,
+            "hand_rmse": 0.05738236382603645
+          },
+          "after": {
+            "arm_rmse": 0.0033240707125514746,
+            "hand_rmse": 0.022209590300917625
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600024_held120",
+          "family": "expanded_session06_new64_s28600024",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.008073871955275536,
+            "hand_rmse": 0.06232839077711105
+          },
+          "after": {
+            "arm_rmse": 0.003433734178543091,
+            "hand_rmse": 0.021479399874806404
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600028_fixed80",
+          "family": "expanded_session06_new64_s28600028",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00994312483817339,
+            "hand_rmse": 0.08116313815116882
+          },
+          "after": {
+            "arm_rmse": 0.0037746764719486237,
+            "hand_rmse": 0.025103503838181496
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600029_held60",
+          "family": "expanded_session06_new64_s28600029",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.008637647144496441,
+            "hand_rmse": 0.06359516829252243
+          },
+          "after": {
+            "arm_rmse": 0.0038660226855427027,
+            "hand_rmse": 0.02340325340628624
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600032_fixed40",
+          "family": "expanded_session06_new64_s28600032",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006496455054730177,
+            "hand_rmse": 0.0638178214430809
+          },
+          "after": {
+            "arm_rmse": 0.0034644706174731255,
+            "hand_rmse": 0.02470383606851101
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600035_fixed80",
+          "family": "expanded_session06_new64_s28600035",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.008599058724939823,
+            "hand_rmse": 0.05799516290426254
+          },
+          "after": {
+            "arm_rmse": 0.0033064400777220726,
+            "hand_rmse": 0.020650342106819153
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600039_fixed80",
+          "family": "expanded_session06_new64_s28600039",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.005908092018216848,
+            "hand_rmse": 0.06076682731509209
+          },
+          "after": {
+            "arm_rmse": 0.0031650804448872805,
+            "hand_rmse": 0.021791711449623108
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600042_contact0",
+          "family": "expanded_session06_new64_s28600042",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.011959963478147984,
+            "hand_rmse": 0.1025262176990509
+          },
+          "after": {
+            "arm_rmse": 0.004641065839678049,
+            "hand_rmse": 0.03631935268640518
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600044_fixed80",
+          "family": "expanded_session06_new64_s28600044",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.011975082568824291,
+            "hand_rmse": 0.08489491045475006
+          },
+          "after": {
+            "arm_rmse": 0.0044646295718848705,
+            "hand_rmse": 0.03055601567029953
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600046_contact0",
+          "family": "expanded_session06_new64_s28600046",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.004815815016627312,
+            "hand_rmse": 0.047332774847745895
+          },
+          "after": {
+            "arm_rmse": 0.002619584556668997,
+            "hand_rmse": 0.02010376565158367
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600048_fixed40",
+          "family": "expanded_session06_new64_s28600048",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.0050495401956140995,
+            "hand_rmse": 0.03915666788816452
+          },
+          "after": {
+            "arm_rmse": 0.0029013087041676044,
+            "hand_rmse": 0.02069593407213688
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600049_held60",
+          "family": "expanded_session06_new64_s28600049",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.013418460264801979,
+            "hand_rmse": 0.08671577274799347
+          },
+          "after": {
+            "arm_rmse": 0.0030611895490437746,
+            "hand_rmse": 0.025307515636086464
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600051_fixed80",
+          "family": "expanded_session06_new64_s28600051",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007265831343829632,
+            "hand_rmse": 0.0576176792383194
+          },
+          "after": {
+            "arm_rmse": 0.003286483697593212,
+            "hand_rmse": 0.02189457416534424
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600055_fixed80",
+          "family": "expanded_session06_new64_s28600055",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.010998553596436977,
+            "hand_rmse": 0.09626182913780212
+          },
+          "after": {
+            "arm_rmse": 0.004299868829548359,
+            "hand_rmse": 0.03224802017211914
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600057_held60",
+          "family": "expanded_session06_new64_s28600057",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.013863930478692055,
+            "hand_rmse": 0.07566762715578079
+          },
+          "after": {
+            "arm_rmse": 0.0038330424576997757,
+            "hand_rmse": 0.023967918008565903
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600058_contact0",
+          "family": "expanded_session06_new64_s28600058",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006553525570780039,
+            "hand_rmse": 0.050285566598176956
+          },
+          "after": {
+            "arm_rmse": 0.0029147921595722437,
+            "hand_rmse": 0.018878111615777016
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600060_fixed80",
+          "family": "expanded_session06_new64_s28600060",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.005731936544179916,
+            "hand_rmse": 0.055092863738536835
+          },
+          "after": {
+            "arm_rmse": 0.0029620681889355183,
+            "hand_rmse": 0.02276693470776081
+          }
+        }
+      ]
+    },
+    "B": {
+      "label": "u_expert_actual_absolute_command",
+      "measured_epoch": 10,
+      "measured_updates": 2220,
+      "selected_epoch": 9,
+      "matches_selected": false,
+      "selected_new_correction_metrics_available": false,
+      "selected_new_correction_metrics": null,
+      "groups": {
+        "latest52": {
+          "episodes": 52,
+          "families": 34,
+          "scope": "All legal expert suffix predictions for these trajectories; not a per-tick held-state mask.",
+          "by_joint_group": {
+            "arm": {
+              "before_macro_rmse_rad": 0.01006895237459013,
+              "after_macro_rmse_rad": 0.004168632108933077,
+              "relative_change": -0.5859914761884285,
+              "improved_episodes": 52,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            },
+            "hand": {
+              "before_macro_rmse_rad": 0.08424351543474656,
+              "after_macro_rmse_rad": 0.03137965235286034,
+              "relative_change": -0.6275125486997699,
+              "improved_episodes": 52,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            }
+          },
+          "both_arm_and_hand_improved": 52,
+          "logged_pooled": {
+            "before": {
+              "arm_rmse_rad": 0.011251650750637054,
+              "hand_rmse_rad": 0.08957721292972565,
+              "selection": 0.014249831438064575
+            },
+            "after": {
+              "arm_rmse_rad": 0.004631296265870333,
+              "hand_rmse_rad": 0.03490718454122543,
+              "selection": 0.0019838486332446337
+            }
+          }
+        },
+        "held13": {
+          "episodes": 13,
+          "families": 12,
+          "scope": "All legal expert suffix predictions for these trajectories; not a per-tick held-state mask.",
+          "by_joint_group": {
+            "arm": {
+              "before_macro_rmse_rad": 0.011828568047628952,
+              "after_macro_rmse_rad": 0.0041125980384934405,
+              "relative_change": -0.6523164915707769,
+              "improved_episodes": 13,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            },
+            "hand": {
+              "before_macro_rmse_rad": 0.0975443090383823,
+              "after_macro_rmse_rad": 0.029050066637305114,
+              "relative_change": -0.7021859406900476,
+              "improved_episodes": 13,
+              "unchanged_episodes": 0,
+              "worsened_episodes": 0
+            }
+          },
+          "both_arm_and_hand_improved": 13
+        }
+      },
+      "per_episode": [
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600002_contact0",
+          "family": "expanded_session06_new64_s28600002",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007871424779295921,
+            "hand_rmse": 0.06848780065774918
+          },
+          "after": {
+            "arm_rmse": 0.003686778713017702,
+            "hand_rmse": 0.025715071707963943
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600003_fixed80",
+          "family": "expanded_session06_new64_s28600003",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.009785352274775505,
+            "hand_rmse": 0.08756304532289505
+          },
+          "after": {
+            "arm_rmse": 0.004508553072810173,
+            "hand_rmse": 0.040355321019887924
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600005_held60",
+          "family": "expanded_session06_new64_s28600005",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.011778834275901318,
+            "hand_rmse": 0.08983585983514786
+          },
+          "after": {
+            "arm_rmse": 0.003953027538955212,
+            "hand_rmse": 0.028516758233308792
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600007_fixed80",
+          "family": "expanded_session06_new64_s28600007",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.009741063229739666,
+            "hand_rmse": 0.0872967541217804
+          },
+          "after": {
+            "arm_rmse": 0.0036273293662816286,
+            "hand_rmse": 0.03212681785225868
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600012_fixed80",
+          "family": "expanded_session06_new64_s28600012",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007550437934696674,
+            "hand_rmse": 0.0727352499961853
+          },
+          "after": {
+            "arm_rmse": 0.003643799340352416,
+            "hand_rmse": 0.028891682624816895
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600013_held60",
+          "family": "expanded_session06_new64_s28600013",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.009889690205454826,
+            "hand_rmse": 0.10230359435081482
+          },
+          "after": {
+            "arm_rmse": 0.004220747854560614,
+            "hand_rmse": 0.025810208171606064
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600016_fixed40",
+          "family": "expanded_session06_new64_s28600016",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00532697094604373,
+            "hand_rmse": 0.0554548054933548
+          },
+          "after": {
+            "arm_rmse": 0.0031941840425133705,
+            "hand_rmse": 0.03142644464969635
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600019_fixed80",
+          "family": "expanded_session06_new64_s28600019",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.012502891011536121,
+            "hand_rmse": 0.09271561354398727
+          },
+          "after": {
+            "arm_rmse": 0.005287452135235071,
+            "hand_rmse": 0.04222312197089195
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600023_fixed80",
+          "family": "expanded_session06_new64_s28600023",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.010289148427546024,
+            "hand_rmse": 0.08383594453334808
+          },
+          "after": {
+            "arm_rmse": 0.005012366455048323,
+            "hand_rmse": 0.038259297609329224
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600024_held120",
+          "family": "expanded_session06_new64_s28600024",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.013698674738407135,
+            "hand_rmse": 0.10445311665534973
+          },
+          "after": {
+            "arm_rmse": 0.004480054136365652,
+            "hand_rmse": 0.026574205607175827
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600028_fixed80",
+          "family": "expanded_session06_new64_s28600028",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007543480955064297,
+            "hand_rmse": 0.07886768132448196
+          },
+          "after": {
+            "arm_rmse": 0.00362500362098217,
+            "hand_rmse": 0.026987623423337936
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600032_fixed40",
+          "family": "expanded_session06_new64_s28600032",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.00758863240480423,
+            "hand_rmse": 0.06428652256727219
+          },
+          "after": {
+            "arm_rmse": 0.0033890160266309977,
+            "hand_rmse": 0.027942396700382233
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600035_fixed80",
+          "family": "expanded_session06_new64_s28600035",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.019809288904070854,
+            "hand_rmse": 0.0913241058588028
+          },
+          "after": {
+            "arm_rmse": 0.0063614631071686745,
+            "hand_rmse": 0.03637923300266266
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600039_fixed80",
+          "family": "expanded_session06_new64_s28600039",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007203665096312761,
+            "hand_rmse": 0.06950465589761734
+          },
+          "after": {
+            "arm_rmse": 0.0034075016155838966,
+            "hand_rmse": 0.02851182594895363
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600044_fixed80",
+          "family": "expanded_session06_new64_s28600044",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.010416310280561447,
+            "hand_rmse": 0.08084142208099365
+          },
+          "after": {
+            "arm_rmse": 0.004557431675493717,
+            "hand_rmse": 0.030993551015853882
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600046_contact0",
+          "family": "expanded_session06_new64_s28600046",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.01193036325275898,
+            "hand_rmse": 0.08179259300231934
+          },
+          "after": {
+            "arm_rmse": 0.004161148797720671,
+            "hand_rmse": 0.03090898133814335
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600048_fixed40",
+          "family": "expanded_session06_new64_s28600048",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007834985852241516,
+            "hand_rmse": 0.0672222301363945
+          },
+          "after": {
+            "arm_rmse": 0.003566795028746128,
+            "hand_rmse": 0.026767579838633537
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600051_fixed80",
+          "family": "expanded_session06_new64_s28600051",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007864109240472317,
+            "hand_rmse": 0.0809803456068039
+          },
+          "after": {
+            "arm_rmse": 0.0037370570935308933,
+            "hand_rmse": 0.029123427346348763
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600053_held60",
+          "family": "expanded_session06_new64_s28600053",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.008035958744585514,
+            "hand_rmse": 0.07540528476238251
+          },
+          "after": {
+            "arm_rmse": 0.0030320892110466957,
+            "hand_rmse": 0.02668745443224907
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600055_fixed80",
+          "family": "expanded_session06_new64_s28600055",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006783211603760719,
+            "hand_rmse": 0.057812485843896866
+          },
+          "after": {
+            "arm_rmse": 0.0030873757787048817,
+            "hand_rmse": 0.024646934121847153
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600060_fixed80",
+          "family": "expanded_session06_new64_s28600060",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.010727309621870518,
+            "hand_rmse": 0.08433650434017181
+          },
+          "after": {
+            "arm_rmse": 0.004741087090224028,
+            "hand_rmse": 0.03343161568045616
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600061_held60",
+          "family": "expanded_session06_new64_s28600061",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.009031019173562527,
+            "hand_rmse": 0.09196638315916061
+          },
+          "after": {
+            "arm_rmse": 0.0026489554438740015,
+            "hand_rmse": 0.024161633104085922
+          }
+        },
+        {
+          "identity": "r09_A_expanded_session06_new64_s28600063_held60",
+          "family": "expanded_session06_new64_s28600063",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.016102641820907593,
+            "hand_rmse": 0.10984150320291519
+          },
+          "after": {
+            "arm_rmse": 0.00445837527513504,
+            "hand_rmse": 0.033562544733285904
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600000_fixed40",
+          "family": "expanded_session06_new64_s28600000",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007399105466902256,
+            "hand_rmse": 0.06183026731014252
+          },
+          "after": {
+            "arm_rmse": 0.003924806136637926,
+            "hand_rmse": 0.029757048934698105
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600001_held60",
+          "family": "expanded_session06_new64_s28600001",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.01599651761353016,
+            "hand_rmse": 0.13417425751686096
+          },
+          "after": {
+            "arm_rmse": 0.005762036889791489,
+            "hand_rmse": 0.037277236580848694
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600002_contact0",
+          "family": "expanded_session06_new64_s28600002",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.008417530916631222,
+            "hand_rmse": 0.07770247012376785
+          },
+          "after": {
+            "arm_rmse": 0.0041875154711306095,
+            "hand_rmse": 0.028656262904405594
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600003_fixed80",
+          "family": "expanded_session06_new64_s28600003",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.008255915716290474,
+            "hand_rmse": 0.06824370473623276
+          },
+          "after": {
+            "arm_rmse": 0.004210727754980326,
+            "hand_rmse": 0.036761652678251266
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600006_contact0",
+          "family": "expanded_session06_new64_s28600006",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.01118825189769268,
+            "hand_rmse": 0.10100501775741577
+          },
+          "after": {
+            "arm_rmse": 0.004142879042774439,
+            "hand_rmse": 0.03324431926012039
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600007_fixed80",
+          "family": "expanded_session06_new64_s28600007",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007259970065206289,
+            "hand_rmse": 0.06897692382335663
+          },
+          "after": {
+            "arm_rmse": 0.003698813496157527,
+            "hand_rmse": 0.028050022199749947
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600008_held120",
+          "family": "expanded_session06_new64_s28600008",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.009241382591426373,
+            "hand_rmse": 0.09274465590715408
+          },
+          "after": {
+            "arm_rmse": 0.0032228485215455294,
+            "hand_rmse": 0.026002367958426476
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600012_fixed80",
+          "family": "expanded_session06_new64_s28600012",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.015153239481151104,
+            "hand_rmse": 0.10519719123840332
+          },
+          "after": {
+            "arm_rmse": 0.006289330776780844,
+            "hand_rmse": 0.04667958244681358
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600016_fixed40",
+          "family": "expanded_session06_new64_s28600016",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.015502126887440681,
+            "hand_rmse": 0.11591587960720062
+          },
+          "after": {
+            "arm_rmse": 0.006916464306414127,
+            "hand_rmse": 0.04939718544483185
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600018_contact0",
+          "family": "expanded_session06_new64_s28600018",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.014680829830467701,
+            "hand_rmse": 0.10467967391014099
+          },
+          "after": {
+            "arm_rmse": 0.004946850705891848,
+            "hand_rmse": 0.03817720338702202
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600019_fixed80",
+          "family": "expanded_session06_new64_s28600019",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.0060694869607687,
+            "hand_rmse": 0.0557851567864418
+          },
+          "after": {
+            "arm_rmse": 0.003396546933799982,
+            "hand_rmse": 0.029145561158657074
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600021_held60",
+          "family": "expanded_session06_new64_s28600021",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.012565040029585361,
+            "hand_rmse": 0.11832854896783829
+          },
+          "after": {
+            "arm_rmse": 0.0039112805388867855,
+            "hand_rmse": 0.031996872276067734
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600023_fixed80",
+          "family": "expanded_session06_new64_s28600023",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.006528322584927082,
+            "hand_rmse": 0.0747596025466919
+          },
+          "after": {
+            "arm_rmse": 0.003490521339699626,
+            "hand_rmse": 0.029214927926659584
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600024_held120",
+          "family": "expanded_session06_new64_s28600024",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.00786955188959837,
+            "hand_rmse": 0.07599948346614838
+          },
+          "after": {
+            "arm_rmse": 0.004520496353507042,
+            "hand_rmse": 0.02648146077990532
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600028_fixed80",
+          "family": "expanded_session06_new64_s28600028",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.010020569898188114,
+            "hand_rmse": 0.09148860722780228
+          },
+          "after": {
+            "arm_rmse": 0.004139898344874382,
+            "hand_rmse": 0.03152577951550484
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600029_held60",
+          "family": "expanded_session06_new64_s28600029",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.00900379940867424,
+            "hand_rmse": 0.08013671636581421
+          },
+          "after": {
+            "arm_rmse": 0.0041858782060444355,
+            "hand_rmse": 0.03011397086083889
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600032_fixed40",
+          "family": "expanded_session06_new64_s28600032",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007103705778717995,
+            "hand_rmse": 0.07545051723718643
+          },
+          "after": {
+            "arm_rmse": 0.004382637329399586,
+            "hand_rmse": 0.031888145953416824
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600035_fixed80",
+          "family": "expanded_session06_new64_s28600035",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.008887706324458122,
+            "hand_rmse": 0.07539314031600952
+          },
+          "after": {
+            "arm_rmse": 0.0035304254852235317,
+            "hand_rmse": 0.02384216897189617
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600039_fixed80",
+          "family": "expanded_session06_new64_s28600039",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.007121614646166563,
+            "hand_rmse": 0.07921946048736572
+          },
+          "after": {
+            "arm_rmse": 0.00371343269944191,
+            "hand_rmse": 0.029438527300953865
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600042_contact0",
+          "family": "expanded_session06_new64_s28600042",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.013390748761594296,
+            "hand_rmse": 0.12301160395145416
+          },
+          "after": {
+            "arm_rmse": 0.0057456474751234055,
+            "hand_rmse": 0.04702332615852356
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600044_fixed80",
+          "family": "expanded_session06_new64_s28600044",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.012422962114214897,
+            "hand_rmse": 0.11119790375232697
+          },
+          "after": {
+            "arm_rmse": 0.005202705971896648,
+            "hand_rmse": 0.03890058770775795
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600046_contact0",
+          "family": "expanded_session06_new64_s28600046",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.005629800260066986,
+            "hand_rmse": 0.06191614642739296
+          },
+          "after": {
+            "arm_rmse": 0.003089397680014372,
+            "hand_rmse": 0.026627885177731514
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600048_fixed40",
+          "family": "expanded_session06_new64_s28600048",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.0059501915238797665,
+            "hand_rmse": 0.04447522759437561
+          },
+          "after": {
+            "arm_rmse": 0.0034873327240347862,
+            "hand_rmse": 0.023801667615771294
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600049_held60",
+          "family": "expanded_session06_new64_s28600049",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.01418308261781931,
+            "hand_rmse": 0.1032746285200119
+          },
+          "after": {
+            "arm_rmse": 0.005176690872758627,
+            "hand_rmse": 0.030101411044597626
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600051_fixed80",
+          "family": "expanded_session06_new64_s28600051",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.008223998360335827,
+            "hand_rmse": 0.07373892515897751
+          },
+          "after": {
+            "arm_rmse": 0.003735988400876522,
+            "hand_rmse": 0.029323451220989227
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600055_fixed80",
+          "family": "expanded_session06_new64_s28600055",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.013006549328565598,
+            "hand_rmse": 0.11370786279439926
+          },
+          "after": {
+            "arm_rmse": 0.004875956103205681,
+            "hand_rmse": 0.03725127875804901
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600057_held60",
+          "family": "expanded_session06_new64_s28600057",
+          "held_schedule": true,
+          "before": {
+            "arm_rmse": 0.016375191509723663,
+            "hand_rmse": 0.08961198478937149
+          },
+          "after": {
+            "arm_rmse": 0.0038912936579436064,
+            "hand_rmse": 0.030364742502570152
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600058_contact0",
+          "family": "expanded_session06_new64_s28600058",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.009118756279349327,
+            "hand_rmse": 0.0603606291115284
+          },
+          "after": {
+            "arm_rmse": 0.0031573292799293995,
+            "hand_rmse": 0.022651057690382004
+          }
+        },
+        {
+          "identity": "r09_B_expanded_session06_new64_s28600060_fixed80",
+          "family": "expanded_session06_new64_s28600060",
+          "held_schedule": false,
+          "before": {
+            "arm_rmse": 0.0077141099609434605,
+            "hand_rmse": 0.06347311288118362
+          },
+          "after": {
+            "arm_rmse": 0.003445544745773077,
+            "hand_rmse": 0.028042487800121307
+          }
+        }
+      ]
+    }
+  },
+  "input_bindings": {
+    "new_family_09/correction_entries.json": {
+      "sha256": "4242359cfd0c4cfd04a2ea709144e23a996771ee89c4ebe6c96b1690347c7aa1",
+      "bytes": 119788
+    },
+    "round_09/A/training/initial_metrics.json": {
+      "sha256": "022434496a02817428c11aa11e28860288301d3e44ae26048e88ad0a668f80dd",
+      "bytes": 77703
+    },
+    "round_09/A/training/validation.json": {
+      "sha256": "35ba09d0c7f87293d2b488a5adcdf0e99156b1b2963e88ef5e40e7cef3d25970",
+      "bytes": 87535
+    },
+    "round_09/B/training/initial_metrics.json": {
+      "sha256": "bad5eef21474c97e9a786bab080f6c7646ed98d19209bb2525ecbf8b2ba24dcd",
+      "bytes": 77684
+    },
+    "round_09/B/training/validation.json": {
+      "sha256": "30d871be813c4d99e7e6a54453cf9f7ff29c2af5e0aa715fe7fd8b4f9f2ea28a",
+      "bytes": 87526
+    }
+  },
+  "model_payloads_opened": 0,
+  "numeric_payloads_opened": 0,
+  "rgb_payloads_opened": 0,
+  "new_evaluations": 0,
+  "optimizer_updates": 0,
+  "summary_binding": {
+    "path": "report.json",
+    "sha256": "cabe3368ba96de63c847adf7340ddc9034e2ab85ecba91fbdc8bfb06498e5e3b"
+  },
+  "script": {
+    "path": "fit_summary.py",
+    "sha256": "7c85bbbc27686c48ec00aa08c0b6315356a710f5195fcce9bec36e30824fc40e"
+  },
+  "actual_command": ".venv_isaacsim/bin/python research_docs/evidence/tight_fresh_20261114/round09_front_learning/fit_summary.py --session <session06> --evidence research_docs/evidence/tight_fresh_20261114/round09_front_learning --private <session06>/cpu_audits/round09_front_learning01"
+}

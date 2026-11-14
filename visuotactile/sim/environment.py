@@ -78,6 +78,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self._research_ready = False
         self.action_control_mode = 'native_command_clipped_pre_delay'
         self._actuator_target_samples = None
+        self._canonical_rgb_lookup = None
         super().__init__(cfg, **kwargs)
         self._camera_pose_annotators = []
         self._camera_calibration_products = []
@@ -278,7 +279,14 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             if camera is not self.student_camera:
                 camera.update(self.physics_dt, force_recompute=True)
             output = camera.data.output
-            rgb = output["rgb"][..., :3].permute(0, 3, 1, 2).float()/255.
+            raw_rgb = output["rgb"][..., :3].permute(0, 3, 1, 2)
+            if raw_rgb.is_cuda:
+                from visuotactile.sensor_rgb import canonical_rgb_lookup, canonical_rgb_u8
+                if self._canonical_rgb_lookup is None:
+                    self._canonical_rgb_lookup = canonical_rgb_lookup(raw_rgb.device)
+                rgb = canonical_rgb_u8(raw_rgb,self._canonical_rgb_lookup)
+            else:
+                rgb = raw_rgb.float()/255.
             depth = output["distance_to_image_plane"].permute(0, 3, 1, 2).clone()
             mask = torch.isfinite(depth) & (depth > 0)
             metric = torch.where(mask, depth, torch.zeros_like(depth))
@@ -592,6 +600,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "task_context": "externally selected problem identity; no goal pose or success-driven stage",
         }
         metadata["perception_version"] = self.perception_version
+        if torch.device(self.device).type == 'cuda':
+            from visuotactile.sensor_rgb import RGB_NORMALIZATION
+            metadata['rgb_normalization_contract'] = dict(RGB_NORMALIZATION)
         if self.execution_backend is not None:
             metadata['execution_backend'] = self.execution_backend
             if self.execution_backend.get('tiled_fixed_camera_usd_sync'):

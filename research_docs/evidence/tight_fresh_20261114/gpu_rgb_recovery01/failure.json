@@ -1,0 +1,233 @@
+{
+  "version": "gpu_rgb_collection_failure_public_v1",
+  "status": "preserved_software_failure_before_any_complete_trajectory",
+  "failed_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/new_family_10",
+  "failed_source": {
+    "frozen_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_io_20261115",
+    "revision_label": "d30",
+    "revision_scope": "Failed-source label supplied by the coordinating agent; no source rescan or full commit hash recomputation in this export."
+  },
+  "export_scope": "Transcribed from the completed read-only JSON/log/HDF5-header and small-clock-field inspection. No second directory scan, payload audit, model read, simulation or training.",
+  "owner": {
+    "source": "owner_started.json / owner_finished.json / owner_worker_started.json / owner_group_cleanup.json",
+    "pid": 4064288,
+    "worker_pid": 4064304,
+    "started_unix_s": 1794682729.128886,
+    "ended_unix_s": 1794682789.6816888,
+    "started_utc": "2026-11-14T18:58:49.128886+00:00",
+    "ended_utc": "2026-11-14T18:59:49.681689+00:00",
+    "seconds": 60.552802324295044,
+    "software_complete": false,
+    "returncode": 1,
+    "stop_reason": "worker_failure",
+    "initialization_seconds": 50.59476138697937,
+    "plan_sha256_declared": "ced177db52ab2bc6e527a395826d7c135d7801f324ddb8c7b39bab61d8c1b2f0",
+    "deadline_unix_s": 1794725918.9665225,
+    "deadline_utc": "2026-11-15T06:58:38.966522+00:00",
+    "deadline_policy": "Original session/owner deadline retained; this failure summary does not reset or extend it.",
+    "worker_group": {
+      "pid": 4064304,
+      "ppid": 4064288,
+      "pgid": 4064304,
+      "sid": 4064304,
+      "start_ticks": 174250424,
+      "uid": 1001
+    },
+    "cleanup": {
+      "before": [],
+      "after": [],
+      "signals": [],
+      "live_descendants_exited": true,
+      "seconds": 0.01549291517585516,
+      "scope": "Only this owner-created PGID/SID"
+    },
+    "proc_check_at_readonly_inspection": {
+      "4064288_exists": false,
+      "4064304_exists": false
+    }
+  },
+  "registered": {
+    "opportunities": 64,
+    "training_families": 32,
+    "roles": {
+      "A": 32,
+      "B": 32
+    },
+    "lanes": 16,
+    "vision_microbatch": 8,
+    "physics_device": "cuda:0",
+    "camera_backend": "standard",
+    "wave_index_started": 0
+  },
+  "attempts": {
+    "legal_started_software_interrupted": 16,
+    "complete_autonomous_or_expert_executions": 0,
+    "not_started": 48,
+    "by_role": {
+      "A": {
+        "legal_started_software_interrupted": 16,
+        "not_started": 16
+      },
+      "B": {
+        "legal_started_software_interrupted": 0,
+        "not_started": 32
+      }
+    },
+    "started_seed_interval_inclusive": [
+      29000000,
+      29000015
+    ],
+    "started_schedules": {
+      "fixed80": [
+        29000000,
+        29000001,
+        29000002,
+        29000003,
+        29000008,
+        29000009,
+        29000010,
+        29000011
+      ],
+      "held0": [
+        29000004,
+        29000005,
+        29000012,
+        29000013
+      ],
+      "held_root60": [
+        29000006,
+        29000014
+      ],
+      "contact0": [
+        29000007,
+        29000015
+      ]
+    },
+    "case_name_rule": "r10_A_expanded_session20261115_01_round10_s{seed}_{schedule}",
+    "source": "partial_census.json plus all 16 started.json and initial_collision.json receipts",
+    "census_original_state": "All 16 started A cases retain state=in_progress; this is a stopped partial artifact, not evidence of a still-running worker."
+  },
+  "execution_extent": {
+    "shared_environment_control_steps": 1,
+    "shared_environment_physics_substeps": 2,
+    "per_legal_lane_control_steps": 1,
+    "per_legal_lane_physics_substeps": 2,
+    "aggregate_lane_control_steps": 16,
+    "aggregate_lane_physics_substeps": 32,
+    "second_control_step_executed": false,
+    "expert_control_steps": 0,
+    "evidence_scope": "The frozen run_wave performs one shared isolated.step(commands) before per-lane submit. The first iteration failed during per-lane recording with only lanes0-3 reporting submitted_rows=1; the next shared step was never reached. Only lane0 numeric fields persisted; the other 15 lane step counts follow this shared batch execution ordering, not independent saved numeric traces.",
+    "implementation": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_io_20261115/visuotactile/batched_rollout.py",
+    "numeric_file": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/new_family_10/r10_A_expanded_session20261115_01_round10_s29000000_fixed80/numeric.h5",
+    "numeric_datasets": 169,
+    "numeric_rows": 1,
+    "async_recording_status": "partial",
+    "persisted_small_fields": {
+      "episode/transition/time_before_s": [
+        0.0
+      ],
+      "episode/transition/time_after_s": [
+        0.01666666666
+      ],
+      "episode/transition/contact_time_after_s": [
+        [
+          0.00833333333,
+          0.01666666666
+        ]
+      ],
+      "episode/transition/dagger/control_source": [
+        0
+      ],
+      "episode/transition/diagnostics_before/native_stage_step": [
+        0
+      ],
+      "episode/transition/diagnostics_after/native_stage_step": [
+        1
+      ],
+      "episode/transition/diagnostics_before/successes": [
+        0
+      ],
+      "episode/transition/diagnostics_after/successes": [
+        0
+      ],
+      "episode/transition/termination_reasons/max_successes": [
+        false
+      ]
+    }
+  },
+  "recording_failure": {
+    "error": "ValueError('RGB is not exactly reversible uint8/255; conversion refused')",
+    "failure_chain": [
+      "async_recording.py:_run -> lane._stream.append(compact)",
+      "recording.py:append -> flush -> rgb_u8(images[:,:,:3])",
+      "compact.py:rgb_u8 rejects non-exact reversible conversion",
+      "run_wave finally -> pool.close -> CaptureWorkerError"
+    ],
+    "source": "worker.log and every started case capture_error.json",
+    "submitted_rows_by_seed": {
+      "29000000": 1,
+      "29000001": 1,
+      "29000002": 1,
+      "29000003": 1,
+      "29000004": 0,
+      "29000005": 0,
+      "29000006": 0,
+      "29000007": 0,
+      "29000008": 0,
+      "29000009": 0,
+      "29000010": 0,
+      "29000011": 0,
+      "29000012": 0,
+      "29000013": 0,
+      "29000014": 0,
+      "29000015": 0
+    },
+    "all_capture_accepted_rows": 0,
+    "all_capture_verified": false,
+    "lane0_cleanup_errors": [
+      "ValueError('RGB is not exactly reversible uint8/255; conversion refused')"
+    ],
+    "other_lane_cleanup_errors": [],
+    "preserved_artifacts": {
+      "numeric_files": 16,
+      "numeric_files_with_rows": 1,
+      "numeric_files_metadata_only": 15,
+      "numeric_status_all": "partial",
+      "demonstration_data_h5_partial_files": 16
+    },
+    "completion_receipts_present": {
+      "result.json": 0,
+      "capture_complete.json": 0,
+      "execution_complete.json": 0,
+      "complete.json": 0,
+      "results.json": 0,
+      "correction_entries.json": 0,
+      "batch_progress.json": 0,
+      "wave_profiles.json": 0
+    }
+  },
+  "data_and_outcomes": {
+    "new_verified_training_trajectories": 0,
+    "new_accepted_training_trajectories": 0,
+    "new_legal_expert_action_labels": 0,
+    "completed_successful_trajectories": 0,
+    "task_success_rate_denominator": 0,
+    "task_success_rate": null,
+    "interpretation": "These 16 legal starts are software-interrupted attempts after one student control step. They are not completed task failures, expert recovery failures or successes; none enters the task-performance denominator or training pool."
+  },
+  "minimal_recovery_recommendation": {
+    "preserve_failed_root": true,
+    "use_new_explicit_recovery_identity": true,
+    "retain_original_32_families_and_64_opportunities": true,
+    "retain_original_deadline": true,
+    "precondition": "Repair the RGB recording failure before a new collection attempt; retain actual source bindings and the original schedule/seed cohort.",
+    "no_successful_samples_to_skip": true,
+    "no_training_from_this_partial_batch": true,
+    "resume_semantics": "A fresh physical start is required; these partial files are not an exact simulator-state continuation. Preserve the 16 interrupted attempts separately from any replacement execution."
+  },
+  "limitations": [
+    "Only JSON/logs, closed HDF5 metadata and the listed tiny numeric fields were inspected; no RGB/model payloads or full-trajectory audit.",
+    "Owner cleanup and /proc absence describe the inspection time, not a perpetual process guarantee.",
+    "No dedicated audit script was saved; this JSON records the actual interactive read-only findings and does not claim a reproducible script execution that did not occur."
+  ]
+}

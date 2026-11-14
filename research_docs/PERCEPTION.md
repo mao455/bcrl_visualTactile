@@ -1,3 +1,9 @@
+## 2026-11-15 GPU RGB 的精确字节表示
+
+sensor_uint8_canonical_float32_v1只在研究相机的CUDA uint8输出上使用256项float32查表；表由NumPy float32 uint8/255产生，设备内映射，不增加逐帧主机传输。原始传感像素、深度、时钟和每步图像均保留，CPU原除法路径保持。未改变compact严格逐值往返判据，旧失败数据不转换为成功。该入口登记到GPU采集metadata，后续冻结source/hash区分旧归一化。
+
+一次统一CPU/CUDA全256灰度实测复现旧GPU126灰度有1ULP差异、最大5.96046e-8；新路径全部逐位等于原storage解码。实际两行synthetic RGB-D压缩flush/读取/14字段校验通过，任意1ULP扰动仍拒绝。这是编码正确性，真实采集和整体速度另按正式结果判断。[统一检查](evidence/tight_fresh_20261114/gpu_rgb_recovery01/encoding_check.json)。
+
 ## 2026-11-14 可选视觉位姿辅助监督
 
 新v7辅助身份复用同一实际每tick视觉512读出（当前及前两帧），持续视觉历史和5Hz DP路径保持。训练用动作前掌坐标物体位置/朝向作独立loss标签；在线不提供物体真值或辅助预测给策略。对照detach该读出，仅训练辅助头；候选允许梯度进入共享视觉。原30与真实学生前缀/专家后段都可提供当前视觉标签，动作监督仍严格由原专家mask决定。所有当前参数相关计划和视觉cache在DP更新后重算。实际对照尚待CUDA验收与正式闭环，见CONTRACTS和最新SESSION_HANDOFF。

@@ -1,3 +1,9 @@
+## 2026-11-15 GPU RGB 的精确字节表示
+
+sensor_uint8_canonical_float32_v1只在研究相机的CUDA uint8输出上使用256项float32查表；表由NumPy float32 uint8/255产生，设备内映射，不增加逐帧主机传输。原始传感像素、深度、时钟和每步图像均保留，CPU原除法路径保持。未改变compact严格逐值往返判据，旧失败数据不转换为成功。该入口登记到GPU采集metadata，后续冻结source/hash区分旧归一化。
+
+一次统一CPU/CUDA全256灰度实测复现旧GPU126灰度有1ULP差异、最大5.96046e-8；新路径全部逐位等于原storage解码。实际两行synthetic RGB-D压缩flush/读取/14字段校验通过，任意1ULP扰动仍拒绝。这是编码正确性，真实采集和整体速度另按正式结果判断。[统一检查](evidence/tight_fresh_20261114/gpu_rgb_recovery01/encoding_check.json)。
+
 ## 冻结视觉当前轨迹顺序读取
 
 frozen_visual_eager_v1精确配置torch_load_mmap=false、lifetime=current_episode_or_current_B2_visits_only、learned_state_cache=false。仅dense visual_pair/stride1/I-HistoryDP适用；正式前端须显式B2。直接torch.load同一冻结文件，不BytesIO、额外clone、dtype转换或持久LRU；当前batch/轨迹结束释放。原资源lease准入不等于对峰值内存的原子预留。profile/SHA绑定真实cycle，前端与后端读取回执单独记录，不修改缓存payload张量合同。所有可训练视觉/GRU仍按当前权重重新处理真实完整历史，后端仍commit12。
