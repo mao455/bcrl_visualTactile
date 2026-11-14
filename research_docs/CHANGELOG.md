@@ -1,3 +1,8 @@
+## 2026-11-15 00:57 — A半批成功后段覆盖证据
+
+- `collection09_registration/A64.json`：64合法/26接管/23成功、6098合法专家步；held24/7/6/957与5个旧stable排除但成功边界/763步，实际来源和私有审计SHA齐全。
+- 数据已准入但尚未用于round09训练，B半批仍运行；不将半批吞吐、专家恢复或窗口判据混为完整自主成功。新B2真实更新gate尚未资源准入，活动作业不变。
+
 ## 2026-11-15 00:51 — 显式B2完整轨迹更新与真实恢复验收入口
 
 - `trajectory_training.py` / `training_receipts.py`、fresh trainer/cycle：独立B2身份、完整历史、实际batch均值、逐visit/更新预算与deck恢复绑定；旧单轨默认保留，互斥pairedIO/prefetch。

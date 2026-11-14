@@ -1,3 +1,11 @@
+## 2026-11-15 00:57 A的64次真实采集全部验收，旧窗口排除的持物状态已实际救回
+
+第九批A08的64机会全部合法，26次真实接管、23条成功准入，6098合法专家步。按入口：fixed40成功3/4、fixed80 12/12、contact0 2/16、held60 5/20（6次实际接管）、held120 1/4（1次接管）、near60 0/8。held共24机会→7接管→6成功，957合法专家步；其中5条成功的实际边界不满足旧stable（seed13/24/53/61/63），但仍满足持续抬起＋双指接触，提供763合法专家步。它们在最近12tick有0.223–0.415rad掌中转动，不能把窗口离开称掉落；只能证明旧窗口会排除这5个边界，不能推断整条旧规则从无其他机会。
+
+所有24个held入口学生prefix仍是第一目标；seed63接手时原生keypoint距离285.08mm也由专家救回，新增覆盖不只限于已经贴近孔。held无窗口或到期不再满足条件分别记录，不当作原生掉落。全部已关闭、185字段校验通过并复算触发/真实queue标签/q[t+1]，没有打开B活动轨迹或重哈希RGB。B的64机会继续；这是半批证据，不能报128最终产出/吞吐。round09尚未创建，这23条尚未训练消费。公开[A64证据](evidence/tight_fresh_20261114/collection09_registration/A64.json)。
+
+新B2更新恢复gate已冻结761f53b；00:53尝试准入时RAM17.01GiB低于预定18GiB，尚未调用systemd-run、0CUDA/0更新、无service。主采集正常继续，等资源边界再安排；不降低门槛。原session截止不变。
+
 ## 2026-11-15 00:51 独立完整轨迹B2训练路径与更新恢复门控已实现
 
 新增full_trajectory_batch_v1 opt-in trainer/cycle：相邻两个真实deck visit合批，尾单轨保留，重复ID各有独立完整历史；每batch一次AdamW/EMA和clip，逐轨原损失均值、A逐轨几何范围不变。visit/optimizer/EMA分别登记，137visit/epoch对应69次更新，不自动补epoch、改LR或EMA。拒绝paired_episode_io_v1和单轨EpisodePrefetch，避免把visit等同update或嵌套预取死锁；当前冻结87577e8第九轮仍用原单轨更新与pairedIO。
