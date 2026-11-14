@@ -1,3 +1,9 @@
+## 2026-11-14 固定family分组的位置读出诊断
+
+新增tight_fresh_visual_family_probe：原30训练family按固定排序分五组，每次完整排除6family的原示范与全部纠偏，再以其余24原示范或其余family的原示范+真实纠偏观察拟合固定λ=.01线性位置读出。对被排除family的实际学生前缀，纯视觉RMSE A61.41→40.12/B61.22→40.06mm，视觉+本体68.97→38.45/68.80→38.41mm；接触后的组合83.97→45.45/83.76→45.41mm。读出拟合的状态覆盖能解释前述部分高误差，仍有较大残差，不能证明视觉已足够或信息已丢失。
+
+此处只有线性探针排除了被评估family；冻结学生编码器早已学习过这些轨迹，不能称学生未见初态泛化或自主收益。当前几何仅作诊断拟合标签，未改变任何动作mask或策略参数；不读取validation/test payload。工具保存全部fold ID、实际标签/authority SHA、精确当前缓存及拟合系数身份；完整分片重hash，raw SHA仅引用manifest。4项family排除测试通过，正式CPU重算8.86秒与原诊断所有指标相同。证据[round04_visual_family_probe](evidence/tight_fresh_20261114/round04_visual_family_probe.json)。不据此直接切换视觉架构。
+
 ## 2026-11-14 第四轮接触运动与跨轮实际行为诊断
 
 新增CPU工具tight_fresh_motion_probe，固定原train2/validation6、实际当前DP缓存和后端完整历史，绑定source/model/data/cache SHA。验证手指后端增量RMS为实际0.939/0.952，近零预测仅0.55%/0.45%，不支持整体静态保持捷径。首接触24tick的拇指CMC外展同向率A65.28%/B61.81%，误差为保持上一实际目标的1.023/1.226倍；食指及环指在部分family也差于保持，不能用统一收紧/松手规则解释。固定1e-4rad阈值同时报告运动能量覆盖与连续gain/cosine，全部12规划cursor及逐family分母保留。
