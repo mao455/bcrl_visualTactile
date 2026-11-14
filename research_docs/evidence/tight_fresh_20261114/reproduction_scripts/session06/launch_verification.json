@@ -1,0 +1,73 @@
+{
+  "version": "session06_public_launch_binding_review_v1",
+  "checked_utc": 1794676849.6770375,
+  "unit": "tight-fresh-collect-cycle09-20261114.service",
+  "actual_systemd_properties": {
+    "TimeoutStopUSec": "30s",
+    "RuntimeMaxUSec": "3h 52min 38s",
+    "MainPID": "3953861",
+    "ExecStart": "{ path=/home/CNS2025331827/docs/bc+rl_RSS_fresh_collect09_20261114/.venv_isaacsim/bin/python ; argv[]=/home/CNS2025331827/docs/bc+rl_RSS_fresh_collect09_20261114/.venv_isaacsim/bin/python -m tools.tight_fresh_collect_cycle_owner run --registration /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/collect_cycle09_owner/registration.json ; ignore_errors=no ; start_time=[Sat 2026-11-14 23:57:43 CST] ; stop_time=[n/a] ; pid=3953861 ; code=(null) ; status=0/0 }",
+    "Environment": "OMP_NUM_THREADS=2 MKL_NUM_THREADS=2",
+    "LimitNOFILE": "65536",
+    "WorkingDirectory": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_collect09_20261114",
+    "KillMode": "control-group",
+    "Id": "tight-fresh-collect-cycle09-20261114.service",
+    "ActiveState": "active",
+    "SubState": "running",
+    "FragmentPath": "/run/user/1001/systemd/transient/tight-fresh-collect-cycle09-20261114.service"
+  },
+  "actual_main_process": {
+    "pid": 3953861,
+    "argv": [
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_collect09_20261114/.venv_isaacsim/bin/python",
+      "-m",
+      "tools.tight_fresh_collect_cycle_owner",
+      "run",
+      "--registration",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/collect_cycle09_owner/registration.json"
+    ],
+    "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_collect09_20261114"
+  },
+  "public_registration": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/research_docs/evidence/tight_fresh_20261114/collection09_registration/startup.json",
+    "sha256": "528643ad9f88d970048e4e464d859eaf00b9fac4e048e87c05f8bd8b9d98d33d",
+    "bytes": 14853
+  },
+  "private_bindings": [
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/collect_cycle09_owner/registration.json",
+      "sha256": "1ca1fce89e7841ef75b6ea463d2e4c2430e712e9da0ec8fb1853a9b7b9213369",
+      "bytes": 2649
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/collect_cycle09_owner/service_launch.json",
+      "sha256": "e71b7e389fa1241cf073a08dac47bf75838c9e007e8daf951beea6a28226387e",
+      "bytes": 799
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/collect_cycle09_owner/prepare_command.json",
+      "sha256": "eb5c8b8eb0214c72ed969b05fdbd0dfcf320d7d444bf4474504888c5c7fee2c4",
+      "bytes": 2581
+    }
+  ],
+  "checked": {
+    "public_owner_registration_exact": true,
+    "public_systemd_launch_record_exact": true,
+    "actual_owner_argv_exact": true,
+    "actual_working_directory_exact": true,
+    "actual_runtime_max_seconds": 13958,
+    "actual_timeout_stop_seconds": 30,
+    "actual_kill_mode": "control-group",
+    "actual_limit_nofile": 65536,
+    "actual_omp_mkl_threads": 2,
+    "backend_configuration_exact": true,
+    "original_session_sha256_exact": true,
+    "collection_plan_sha256_exact": true
+  },
+  "missing_public_registration_fields": [],
+  "additional_configuration_backup_needed": false,
+  "phase_semantics": "Unit launches the durable collect-cycle owner. collection_command and cycle_command are already published exactly; a registered future cycle command is not evidence that training has started.",
+  "old_session08_service_limit": "The queried newfamily08/cycle08 transient units are now not-found. Their retained launch/owner/phase receipts remain authoritative; no current service properties are substituted as historical evidence.",
+  "no_jobs_started_or_changed": true,
+  "no_training_scripts_executed": true
+}

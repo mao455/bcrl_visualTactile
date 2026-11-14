@@ -1,3 +1,8 @@
+## 2026-11-15 01:25 — B首波后段与实际脚本可复查归档
+
+- `collection09_registration/B16.json`：8真实恢复/2493步、两held恢复227步、未触发原因、原生子目标时钟及A/B非严格配对，全部来自closed numeric/真实label审核。
+- `reproduction_scripts/session06`：10个实际CPU审计脚本原字节、manifest/README/真实启动核验；原输入和输出SHA、分析代码与collector不同依赖、覆盖风险、未知原HEAD/argv分别保留。主Agent10份逐字节/SHA检查通过，无重跑、无大数据发布。
+
 ## 2026-11-15 01:20 — 恢复后数值差异的独立定位工具
 
 - `tools/tight_trajectory_recovery_probe.py`及测试：固定原train singleton与完整磁盘边界，最多5更新，分别同对象/新对象/default/确定性；逐参数裁剪后梯度、模型/EMA/Adam/RNG的exact与误差描述及分项计时，无放宽原gate或正式trainer修改。

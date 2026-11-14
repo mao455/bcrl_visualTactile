@@ -1,3 +1,11 @@
+## 2026-11-15 01:25 已完成B16后段与原运行脚本归档
+
+B首16机会15合法、8次实际接管全救回，2493合法专家步；其中held60/120救回2条共227合法步（第一目标78、第二目标149），接手时原生时钟还330/348步，边界角12.30/9.74度、keypoint31.73/47.29mm。未接管held60有3条从未held，另B05曾在completed205–209短暂held但265后未再满足；不算原生掉落。学生prefix原生lift1/15、held5/14、旧stable2/14，near/alignment/子目标0。B12 fixed80的865步恢复有783合法专家步，占该B16标签31.4%；第二阶段395步不等于395步插入。A/B同family物体/目标初态相等但关节/掌状态不等，0/16完整可见初态配对。见[精简证据](evidence/tight_fresh_20261114/collection09_registration/B16.json)。当前总96机会/39成功/11109合法步，尚未训练。
+
+归档10个已实际使用的CPU审计脚本原字节，含持物回看、A64/B16、目标/时钟/真实图导出、root入口与磁盘估算；源SHA/依赖/原输出/覆盖风险明确，缺失的原shell argv或HEAD不补造。主Agent逐文件复核字节/SHA，未再运行旧脚本，未复制图像/权重/大轨迹。第九批实际systemd argv/config与已公开启动登记逐项一致。见[复现脚本清单](evidence/tight_fresh_20261114/reproduction_scripts/session06/README.md)。
+
+恢复probe01默认同对象重复也出现极小梯度/更新差，不能将旧gate位级失败直接归因缺失checkpoint状态；strict分支在adaptive_avg_pool2d_backward_cuda不支持确定性处按规则停止，实际完成3诊断更新、37.660秒，自有service已退出。详细分组判断另由原JSON审查，正式trainer未改。A角色原工具的首次实际5更新gate已在资源准入后启动，覆盖A几何，旧门槛仍不变；主采集不变。
+
 ## 2026-11-15 01:20 恢复算术probe已通过真实CPU准备
 
 独立工具和20项CPU检查通过，实际prepare01用既有B_gate01第一更新checkpoint及原train singleton，2.571秒、0CUDA/0更新；即将按原资源门槛冻结运行最多5诊断更新，默认/确定性、同对象/新对象分别比较。旧gate仍failed且未采用，不能因新探针改变旧结果。当前collection09第六波最后一条自然执行超过825总步，先前80indexed/31accepted保持，剩两波与训练仍待完成。
