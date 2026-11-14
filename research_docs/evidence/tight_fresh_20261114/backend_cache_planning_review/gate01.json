@@ -1,0 +1,1038 @@
+{
+  "version": "full_backend_cache_planning_gate_review_v1",
+  "source_commit": "3e532731a09d5065ca8abc5584c1c7123161dcb0",
+  "decision": "admit_explicit_M32_in_next_formal_backend_cache",
+  "formal_usage_complete": false,
+  "roles": {
+    "A": {
+      "owner": {
+        "complete": true,
+        "passed": true,
+        "error": null,
+        "returncode": 0,
+        "seconds": 14.314779996871948,
+        "deadline": 1794671633.4515636,
+        "original_session_deadline": 1794685791.0642202,
+        "automatic_retry": false
+      },
+      "cleanup": {
+        "binding": {
+          "pid": 3944765,
+          "state": "R",
+          "ppid": 3944757,
+          "pgid": 3944765,
+          "sid": 3944765,
+          "start_ticks": 173080858,
+          "uid": 1001
+        },
+        "before": [],
+        "after": [],
+        "signals": [],
+        "live_descendants_exited": true,
+        "seconds": 0.017786105163395405,
+        "scope": "Only this owner-created PGID/SID; leader exit does not imply child exit"
+      },
+      "checkpoint_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+      "epoch": 9,
+      "profile": {
+        "version": "offline_contiguous_anchor_batch_v1",
+        "max_anchors": 32,
+        "seed": 7091,
+        "planning_interval_ticks": 12,
+        "inference_steps": 16,
+        "clip_sample": false,
+        "scheduler_index_mode": "host",
+        "noise_draw_shape": [
+          1,
+          24,
+          29
+        ],
+        "same_generator_per_row": true,
+        "split_at_missing_anchors": true,
+        "scope": "offline inference only; unchanged full causal history and optimizer budget"
+      },
+      "rows": [
+        {
+          "identity": "formal_050_slow_3",
+          "frames": 261,
+          "real_student_prefix_ticks": 0,
+          "all_grid_anchors": [
+            0,
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120,
+            132,
+            144,
+            156,
+            168,
+            180,
+            192,
+            204,
+            216,
+            228,
+            240,
+            252
+          ],
+          "serial": {
+            "seconds": 2.947826914023608,
+            "io_delta": {
+              "rchar": 5538097,
+              "wchar": 576,
+              "syscr": 2515,
+              "syscw": 6,
+              "read_bytes": 4648960,
+              "write_bytes": 20480,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 338636288,
+            "peak_reserved_bytes": 375390208
+          },
+          "candidate": {
+            "seconds": 0.6677339130546898,
+            "io_delta": {
+              "rchar": 5574803,
+              "wchar": 1047,
+              "syscr": 2522,
+              "syscw": 6,
+              "read_bytes": 131072,
+              "write_bytes": 24576,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 310904320,
+            "peak_reserved_bytes": 377487360
+          },
+          "passed": true,
+          "fixed_target_atol_rad": 2e-05,
+          "plan_float_keys": [
+            "base",
+            "plans",
+            "previous_nominal"
+          ],
+          "fields": {
+            "robot": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_w_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_local_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.position_base_m": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.rotation_base": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.time_s": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "gate": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plans": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 8.344650268554688e-07
+            },
+            "plan_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "base": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 7.152557373046875e-07
+            },
+            "visual": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "target": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "limits": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "identity": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "time": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "history_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "supervision_mask": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "control_segment": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.base_checkpoint_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.data_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.residual_statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plan_cursor": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "previous_nominal": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 7.152557373046875e-07
+            },
+            "previous_nominal_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_supervision": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "q_reached": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            }
+          }
+        },
+        {
+          "identity": "r08_A_expanded_session06_new16_s28400000_fixed40",
+          "frames": 500,
+          "real_student_prefix_ticks": 42,
+          "all_grid_anchors": [
+            0,
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120,
+            132,
+            144,
+            156,
+            168,
+            180,
+            192,
+            204,
+            216,
+            228,
+            240,
+            252,
+            264,
+            276,
+            288,
+            300,
+            312,
+            324,
+            336,
+            348,
+            360,
+            372,
+            384,
+            396,
+            408,
+            420,
+            432,
+            444,
+            456,
+            468,
+            480,
+            492
+          ],
+          "serial": {
+            "seconds": 5.236538219032809,
+            "io_delta": {
+              "rchar": 10817950,
+              "wchar": 1307,
+              "syscr": 9187,
+              "syscw": 9,
+              "read_bytes": 0,
+              "write_bytes": 36864,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 339361280,
+            "peak_reserved_bytes": 377487360
+          },
+          "candidate": {
+            "seconds": 1.4109820700250566,
+            "io_delta": {
+              "rchar": 10850241,
+              "wchar": 2055,
+              "syscr": 9200,
+              "syscw": 10,
+              "read_bytes": 172032,
+              "write_bytes": 40960,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 309793280,
+            "peak_reserved_bytes": 381681664
+          },
+          "passed": true,
+          "fixed_target_atol_rad": 2e-05,
+          "plan_float_keys": [
+            "base",
+            "plans",
+            "previous_nominal"
+          ],
+          "fields": {
+            "robot": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_w_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_local_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.position_base_m": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.rotation_base": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.time_s": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "gate": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plans": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 8.344650268554688e-07
+            },
+            "plan_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "base": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 8.046627044677734e-07
+            },
+            "visual": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "target": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "limits": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "identity": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "time": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "history_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "supervision_mask": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "control_segment": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.base_checkpoint_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.data_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.residual_statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plan_cursor": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "previous_nominal": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 8.046627044677734e-07
+            },
+            "previous_nominal_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_supervision": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "q_reached": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "plan.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_A_gate01/plan.json",
+          "sha256": "5333ea18868ddeb2507e58b85fee0cbd9518a694fadeed4a418ca5e4b1020ada"
+        },
+        "result.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_A_gate01/result.json",
+          "sha256": "08d110dbbf9b530f4111acb2100490f610ae0bd92a4ab5c5aefa64e66aa28452"
+        },
+        "owner_started.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_A_gate01/owner_started.json",
+          "sha256": "eb625aac8f1a408a29f2b35e567477364a9dd1d5e5b7e2422bfe63e85f0c1aef"
+        },
+        "owner_finished.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_A_gate01/owner_finished.json",
+          "sha256": "8668d6b83108e6782c0eeec89a24cd25117aeb5d91e80747555272668b9a85e9"
+        },
+        "owner_cleanup.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_A_gate01/owner_cleanup.json",
+          "sha256": "e5ecdf2acdc70ef475ab3cd0dd594e9ba7ad09caa981d5ca25da450492bace32"
+        }
+      }
+    },
+    "B": {
+      "owner": {
+        "complete": true,
+        "passed": true,
+        "error": null,
+        "returncode": 0,
+        "seconds": 13.793380498886108,
+        "deadline": 1794671689.761303,
+        "original_session_deadline": 1794685791.0642202,
+        "automatic_retry": false
+      },
+      "cleanup": {
+        "binding": {
+          "pid": 3945442,
+          "state": "R",
+          "ppid": 3945438,
+          "pgid": 3945442,
+          "sid": 3945442,
+          "start_ticks": 173086488,
+          "uid": 1001
+        },
+        "before": [],
+        "after": [],
+        "signals": [],
+        "live_descendants_exited": true,
+        "seconds": 0.00975386193022132,
+        "scope": "Only this owner-created PGID/SID; leader exit does not imply child exit"
+      },
+      "checkpoint_sha256": "3be38a933824874a9697821e6a5bd2a95e7927e8ed25bcdc22ba537b3a466529",
+      "epoch": 5,
+      "profile": {
+        "version": "offline_contiguous_anchor_batch_v1",
+        "max_anchors": 32,
+        "seed": 7091,
+        "planning_interval_ticks": 12,
+        "inference_steps": 16,
+        "clip_sample": false,
+        "scheduler_index_mode": "host",
+        "noise_draw_shape": [
+          1,
+          24,
+          29
+        ],
+        "same_generator_per_row": true,
+        "split_at_missing_anchors": true,
+        "scope": "offline inference only; unchanged full causal history and optimizer budget"
+      },
+      "rows": [
+        {
+          "identity": "formal_050_slow_3",
+          "frames": 261,
+          "real_student_prefix_ticks": 0,
+          "all_grid_anchors": [
+            0,
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120,
+            132,
+            144,
+            156,
+            168,
+            180,
+            192,
+            204,
+            216,
+            228,
+            240,
+            252
+          ],
+          "serial": {
+            "seconds": 2.9194873238448054,
+            "io_delta": {
+              "rchar": 5544635,
+              "wchar": 577,
+              "syscr": 2515,
+              "syscw": 6,
+              "read_bytes": 0,
+              "write_bytes": 20480,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 338636288,
+            "peak_reserved_bytes": 375390208
+          },
+          "candidate": {
+            "seconds": 0.6638256560545415,
+            "io_delta": {
+              "rchar": 5575054,
+              "wchar": 1045,
+              "syscr": 2522,
+              "syscw": 6,
+              "read_bytes": 0,
+              "write_bytes": 24576,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 310904320,
+            "peak_reserved_bytes": 377487360
+          },
+          "passed": true,
+          "fixed_target_atol_rad": 2e-05,
+          "plan_float_keys": [
+            "base",
+            "plans",
+            "previous_nominal"
+          ],
+          "fields": {
+            "robot": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_w_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_local_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.position_base_m": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.rotation_base": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.time_s": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "gate": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plans": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 7.469207048416138e-07
+            },
+            "plan_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "base": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 7.469207048416138e-07
+            },
+            "visual": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "target": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "limits": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "identity": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "time": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "history_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "supervision_mask": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "control_segment": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.base_checkpoint_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.data_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.residual_statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plan_cursor": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "previous_nominal": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 7.469207048416138e-07
+            },
+            "previous_nominal_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_supervision": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "q_reached": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            }
+          }
+        },
+        {
+          "identity": "r08_A_expanded_session06_new16_s28400000_fixed40",
+          "frames": 500,
+          "real_student_prefix_ticks": 42,
+          "all_grid_anchors": [
+            0,
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120,
+            132,
+            144,
+            156,
+            168,
+            180,
+            192,
+            204,
+            216,
+            228,
+            240,
+            252,
+            264,
+            276,
+            288,
+            300,
+            312,
+            324,
+            336,
+            348,
+            360,
+            372,
+            384,
+            396,
+            408,
+            420,
+            432,
+            444,
+            456,
+            468,
+            480,
+            492
+          ],
+          "serial": {
+            "seconds": 5.182360772043467,
+            "io_delta": {
+              "rchar": 10816998,
+              "wchar": 1305,
+              "syscr": 9187,
+              "syscw": 9,
+              "read_bytes": 0,
+              "write_bytes": 36864,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 339361280,
+            "peak_reserved_bytes": 377487360
+          },
+          "candidate": {
+            "seconds": 1.2543199160136282,
+            "io_delta": {
+              "rchar": 10850398,
+              "wchar": 2056,
+              "syscr": 9200,
+              "syscw": 10,
+              "read_bytes": 0,
+              "write_bytes": 40960,
+              "cancelled_write_bytes": 0
+            },
+            "peak_allocated_bytes": 309793280,
+            "peak_reserved_bytes": 381681664
+          },
+          "passed": true,
+          "fixed_target_atol_rad": 2e-05,
+          "plan_float_keys": [
+            "base",
+            "plans",
+            "previous_nominal"
+          ],
+          "fields": {
+            "robot": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_w_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.force_local_N": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.position_base_m": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.rotation_base": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile.time_s": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "tactile_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "gate": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plans": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 1.087784767150879e-06
+            },
+            "plan_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "base": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 9.5367431640625e-07
+            },
+            "visual": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "target": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "limits": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "identity": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "time": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "history_source": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "supervision_mask": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "control_segment": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.base_checkpoint_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.data_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "cache_identity.residual_statistics_sha256": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "plan_cursor": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "previous_nominal": {
+              "passed": true,
+              "exact_required": false,
+              "maximum_absolute_difference": 9.5367431640625e-07
+            },
+            "previous_nominal_valid": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "nominal_supervision": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            },
+            "q_reached": {
+              "passed": true,
+              "exact_required": true,
+              "maximum_absolute_difference": null
+            }
+          }
+        }
+      ],
+      "evidence": {
+        "plan.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_B_gate01/plan.json",
+          "sha256": "81085f9ce2c11b939ff121049de525709518565aea4228feb451bfc4c5f6740d"
+        },
+        "result.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_B_gate01/result.json",
+          "sha256": "5c27db3b34497343387b7105e82a6282dfe2c83daf3630449e852e537ba32a33"
+        },
+        "owner_started.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_B_gate01/owner_started.json",
+          "sha256": "dac4866bb70bc66bc555495105b9b4950df19a52774b6c1e121bf9896a830c6d"
+        },
+        "owner_finished.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_B_gate01/owner_finished.json",
+          "sha256": "fbc6a03a51f749ee93fc558fbcb97fdbc1aef2851f8fc2f43cd97261660f4046"
+        },
+        "owner_cleanup.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/backend_cache_B_gate01/owner_cleanup.json",
+          "sha256": "3e29250bca8c8c1ba36d711baebe0dcb59a84f1abe3089857477faeef66c37d0"
+        }
+      }
+    }
+  },
+  "scope": "Two real training episodes per selected frontend, original and true student-prefix/expert-suffix; no optimizer or held-out evaluation. Full 60Hz history/per-tick learned visual features recomputed. Serial-reference dependencies remain frozen82d5052. No autonomous-performance claim.",
+  "timing_limitations": "Serial first/candidate second, page and allocator warming, overlap with backend_B training; local cache times are not whole-cycle gains."
+}

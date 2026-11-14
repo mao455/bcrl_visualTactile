@@ -1,3 +1,11 @@
+## 2026-11-14 23:51 — 持久采集→完整训练评估 owner
+
+- `tools/tight_fresh_collect_cycle_owner.py`及24项专属CPU测试：冻结registration、显式命令与输入绑定，有限采集/完整机会与成功数据准入，预留训练时间，逐阶段日志/完成SHA/PID与跨组子孙清理。不启新monitor、不重置截止、不自动retry；实际运行待模型选择。
+
+## 2026-11-14 23:46 — 后端批量缓存 CUDA 全字段验收
+
+- `evidence/tight_fresh_20261114/backend_cache_planning_review/gate01.json`记录冻结3e53273 A/B原始与纠偏真实全缓存对比、原门槛/计时混杂/owner清理。两组通过，下一正式cycle采用显式M32；当前运行82d5052不改，正式收益尚待。
+
 ## 2026-11-14 23:42 — 纠偏动作曝光、同session来源与独立离线批量规划
 
 - `tools/tight_fresh_stage_exposure.py`及专属测试：冻结H24 masks与实际逐更新/selected/last计数核对；A/B真实CPU结果与34条四臂拟合已公开，旧注册不重写。
