@@ -13,7 +13,7 @@ from visuotactile.training_resources import atomic_json
 
 
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
-            execution_backend=None,writer_bytes=512<<20,vision_microbatch=2):
+            execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None):
     from visuotactile.models.native_vision import validate_vision_microbatch
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
@@ -23,13 +23,15 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
     from visuotactile.execution_backend import normalize_backend
     backend=normalize_backend(execution_backend)
     if identities is None:
+        if session_root is not None:
+            raise ValueError('An independent resource session is supported for explicit training takeovers only')
         from tools.tight_fresh_rollouts import prepare as serial_prepare
         serial_prepare(root,output,count,seed)
     else:
         from tools.tight_fresh_stage_takeover import prepare as stage_prepare
         from visuotactile.takeover_trigger import CONTACT_HEIGHT_VERSION
         stage_prepare(root,output,identities,delays,round_index,seed+100000,
-            trigger_version=CONTACT_HEIGHT_VERSION)
+            trigger_version=CONTACT_HEIGHT_VERSION,session_root=session_root)
     plan=read(output/'plan.json');session=read(output/'session.json')
     plan.update(batch=dict(version='whole_wave_complete_student_v1',lanes=lanes,seed=seed,
         neural_batch=True,writer_bytes=writer_bytes,vision_microbatch=vision_microbatch,
@@ -140,7 +142,8 @@ def run(output):
         for role,digest in plan['source_data_sha256'].items():
             if sha256(Path(plan['source_root'])/role/'state_data/data.json')!=digest:
                 raise ValueError('Source data registration changed')
-        if sha256(output/'session.json')!=plan['source_session_sha256']:
+        if (sha256(output/'session.json')!=plan['source_session_sha256']
+                or sha256(Path(plan['resource_root'])/'session.json')!=plan['source_session_sha256']):
             raise ValueError('Registered session bytes changed')
     for path,digest in plan['source_sha256'].items():
         if sha256(path)!=digest:raise ValueError('Frozen batch source changed: '+path)
@@ -183,19 +186,22 @@ def run(output):
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','run']);p.add_argument('--root',type=Path)
+    p.add_argument('--session-root',type=Path,help='Independent active resource session for explicit training takeovers')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--lanes',type=int,default=8)
     p.add_argument('--count',type=int,default=8);p.add_argument('--seed',type=int,default=28142000)
     p.add_argument('--identities',nargs='+');p.add_argument('--delays',nargs='+',type=int);p.add_argument('--round',type=int,default=7)
     p.add_argument('--backend-json',type=Path);p.add_argument('--writer-mib',type=int,default=512)
     p.add_argument('--vision-microbatch',type=int,default=2)
     a=p.parse_args()
+    if a.stage=='run' and a.session_root is not None:
+        p.error('run uses the immutable registered session; --session-root requires prepare')
     if a.stage=='run':run(a.output)
     else:
         if a.root is None:p.error('--root is required for prepare')
         prepare(a.root.resolve(),a.output.resolve(),lanes=a.lanes,count=a.count,seed=a.seed,
             identities=a.identities,delays=a.delays,round_index=a.round,
             execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20,
-            vision_microbatch=a.vision_microbatch)
+            vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None)
 
 
 if __name__=='__main__':

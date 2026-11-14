@@ -1,3 +1,7 @@
+## 2026-11-14 正式批量采集独立资源时段入口
+
+`tight_fresh_batch_run prepare --session-root`现在将已完成的旧来源pair与当前独立资源时段显式分开，沿用stage_takeover原有冻结来源/当前session机制。run同时核验已登记session副本和真实resource_root字节，禁止命令行在运行时改时段；旧默认保持。新增13项CPU检查覆盖真实prepare、过期来源/有效时段及漂移拒绝。下一批登记第五轮pair、原8训练family×A/B、contact-height0/12，8lane/视觉micro8、CPU标准相机/Kit16/PhysX2/512MiB writer；当前只准备接口，不等于已采集或入池。
+
 ## 2026-11-14 20:33 选中B新后段拟合与批量渲染资源候选
 
 第六轮双DP、99条依赖刷新和双后端均已完成，8次完整自主正在原冻结3e648db运行，不能提前晋升。只读重新执行B实际选中epoch3 EMA对新9条训练后段的原冻结指标：arm/hand RMSE 0.00438868/0.0368985rad，来源起点0.00716645/0.0658879；选中时每条6次访问，最终epoch10的20次访问及更低误差不能赋给选中模型。完整真实历史重算、180源码及数据/缓存SHA核验，20.61秒、零optimizer/validation/test；见round06_selected_B_train_fit.json。
