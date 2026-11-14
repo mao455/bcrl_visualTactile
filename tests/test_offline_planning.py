@@ -125,6 +125,25 @@ def test_gate_admits_only_train_and_completed_actual_best(artifacts):
     with pytest.raises(FileNotFoundError):gate.admit(root,'B',frozen,['new1'])
 
 
+def test_manifest_split_is_authoritative_when_entry_split_is_absent(artifacts):
+    root, _, _ = artifacts
+    data = gate.read(root/'B/state_data/data.json')
+    for entry in data['entries'].values():
+        entry.pop('split')
+    assert gate.select_train_ids(data) == ['old1', 'new1']
+    for identity in ('val1', 'test1'):
+        with pytest.raises(ValueError, match='training episodes'):
+            gate.select_train_ids(data, [identity])
+    contradictory = copy.deepcopy(data)
+    contradictory['entries']['new1']['split'] = 'validation'
+    with pytest.raises(ValueError, match='training families'):
+        gate.select_train_ids(contradictory, ['new1'])
+    shared_family = copy.deepcopy(data)
+    shared_family['entries']['new1']['family'] = data['entries']['val1']['family']
+    with pytest.raises(ValueError, match='training families'):
+        gate.select_train_ids(shared_family, ['new1'])
+
+
 def test_gate_fixed_target_tolerance_and_legal_commit_metric_only():
     reference = torch.zeros(2,24,29)
     truth = torch.ones_like(reference)

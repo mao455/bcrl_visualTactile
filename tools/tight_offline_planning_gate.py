@@ -38,7 +38,9 @@ def select_train_ids(data, requested=None):
     require(set(identities) <= set(train) and not set(identities) & heldout,
         'Gate accepts training episodes only')
     heldout_families = {data['entries'][i]['family'] for i in heldout}
-    require(all(data['entries'][i]['split'] == 'train' and
+    # Current state_data keeps split membership in data['splits']; original
+    # entries need not duplicate it. Reject contradictory optional metadata.
+    require(all(data['entries'][i].get('split', 'train') == 'train' and
         data['entries'][i]['family'] not in heldout_families for i in identities),
         'Gate training families must be independent of validation/test')
     return identities

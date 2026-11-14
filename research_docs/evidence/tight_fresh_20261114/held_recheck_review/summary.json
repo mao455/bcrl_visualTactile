@@ -1,0 +1,414 @@
+{
+  "version": "held_recheck_public_review_v1",
+  "status": "retrospective_evidence_and_implemented_candidate_not_live_validated",
+  "scope": "Closed historical training captures only. Prefixes stop before the first expert-controlled action; no new rollout, recovery, optimizer, held-out trajectory, or success claim.",
+  "provenance": {
+    "private_audit": {
+      "path": "outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/held_recheck_retrospective_01/review.json",
+      "bytes": 103263,
+      "sha256": "77d9891f92fd43f25c6c076a9bff451c782eb5d2ed066c53f63ab125bd2b8968"
+    },
+    "private_audit_program": {
+      "path": "outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/held_recheck_retrospective_01/review.py",
+      "bytes": 7178,
+      "sha256": "50282e2e2cf8d7dcd96ab6ac22637ed1dc3f2770e242dc0657907a512ac364ad"
+    },
+    "historical_trigger_source_sha256": "4ac571e0b7b01e81850942edd1aec362ac6842c35b3efb09661e14c3a4e1d69c",
+    "audit_started_utc_epoch": 1794668672.644694,
+    "audit_ended_utc_epoch": 1794668673.1073618,
+    "small_numeric_fields": [
+      "episode/transition/dagger/control_source",
+      "episode/transition/diagnostics_after/object_pose_w",
+      "episode/transition/object_contact_force_w",
+      "episode/transition/native_keypoints_max_dist",
+      "episode/transition/diagnostics_before/goal_pose_w",
+      "episode/transition/diagnostics_after/lifted_object"
+    ],
+    "numeric_large_sha256_recomputed": false,
+    "numeric_integrity_scope": "Private audit stores per-case path, size and mtime; hashes bind the small plan/results index, not newly recomputed numeric payloads.",
+    "fixed_suffix_report": {
+      "path": "outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/collection08_review_01/collection08.json",
+      "bytes": 118664,
+      "sha256": "eca6b269f153dbf7938adffdd663dbe36ddba9a924f750de9893776b1bf3e342"
+    }
+  },
+  "definitions": {
+    "held": "12 completed transitions, each with two fingers >0.1N in both physics samples and object >=2cm above median completed25..48; rotation allowed",
+    "distance": "Native max keypoint distance, includes orientation; not object-center distance to hole",
+    "held_loss": "Loss of this collection condition only; never inferred native dropped/fall",
+    "next_action_index": "Completed transition count N schedules zero-based action N"
+  },
+  "cohorts": [
+    {
+      "root": "outputs/visuotactile/run/tight_fresh_20261114_05/takeover_06_tasking4_01",
+      "plan_sha256": "d9c02e73617902f6d33d83f079a2f359f228e6fefee03cef1eaae7b5d2e6e034",
+      "results_sha256": "a826f7d84d4e2f78c84a6361eb6ec315e7b6b21b2332319d2e7d2ae4b17de1da",
+      "summary": {
+        "attempts": 16,
+        "legal": 16,
+        "native_lift": 0,
+        "no_expert": 7,
+        "ever_held": 9,
+        "no_held": 7,
+        "held_at_boundary": 6
+      }
+    },
+    {
+      "root": "outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01",
+      "plan_sha256": "d468f9bb392634859d8b7aea473f2c75936ee621ee5bafa23a586ecba51b55e4",
+      "results_sha256": "6067bc32b2a3cfb7c796cfa8743508c6aee8e1e8c62fd6e1548c89760203f4a4",
+      "summary": {
+        "attempts": 16,
+        "legal": 16,
+        "native_lift": 0,
+        "no_expert": 9,
+        "ever_held": 7,
+        "no_held": 9,
+        "held_at_boundary": 7
+      }
+    },
+    {
+      "root": "outputs/visuotactile/run/tight_fresh_20261114_06/new_family_08",
+      "plan_sha256": "8079532bdbcbad844d8db410560b5869818119a2a9698e2d49e03a91ee10286c",
+      "results_sha256": "32cca0cb0f259b51f9f36e02b3e010fc471ea93bd4ac9a26a133f343f18893a7",
+      "summary": {
+        "attempts": 32,
+        "legal": 29,
+        "native_lift": 4,
+        "no_expert": 10,
+        "reference_unavailable": 6,
+        "ever_held": 7,
+        "no_held": 16,
+        "illegal": 3,
+        "held_at_boundary": 5
+      }
+    }
+  ],
+  "old_delay12": {
+    "allocated_opportunities": 12,
+    "actual_expert_takeovers": 6,
+    "held_at_takeover": 3,
+    "not_held_at_takeover": 3,
+    "actual_expert_native_successes": 5,
+    "actual_expert_timeouts": 1,
+    "nonheld_takeovers_expert_successes": 3,
+    "interpretation": "The legacy trigger locks first-held+12 without rechecking. Missing held at takeover is not a native dropped flag; all three such actual cases were rescued. This is an entry-condition audit, not evidence that rechecking is superior in task success.",
+    "cases": [
+      {
+        "cohort": "takeover_06_tasking4_01",
+        "case": "r06_B_formal_050_slow_3_contact_height_only_d12",
+        "student_ticks": 135,
+        "held_at_takeover": true,
+        "expert_native_success": true
+      },
+      {
+        "cohort": "takeover_06_tasking4_01",
+        "case": "r06_A_formal_007_slow_3_contact_height_only_d12",
+        "student_ticks": 139,
+        "held_at_takeover": false,
+        "expert_native_success": true
+      },
+      {
+        "cohort": "takeover_06_tasking4_01",
+        "case": "r06_B_formal_007_slow_3_contact_height_only_d12",
+        "student_ticks": 134,
+        "held_at_takeover": false,
+        "expert_native_success": true
+      },
+      {
+        "cohort": "takeover_06_tasking4_01",
+        "case": "r06_A_formal_031_slow_4_contact_height_only_d12",
+        "student_ticks": 127,
+        "held_at_takeover": false,
+        "expert_native_success": true
+      },
+      {
+        "cohort": "takeover_07_batch8_m8_01",
+        "case": "r07_A_formal_007_slow_3_contact_height_only_d12",
+        "student_ticks": 136,
+        "held_at_takeover": true,
+        "expert_native_success": true
+      },
+      {
+        "cohort": "takeover_07_batch8_m8_01",
+        "case": "r07_B_formal_007_slow_3_contact_height_only_d12",
+        "student_ticks": 572,
+        "held_at_takeover": true,
+        "expert_native_success": false
+      }
+    ],
+    "allocated_by_cohort": {
+      "takeover_06_tasking4_01": 6,
+      "takeover_07_batch8_m8_01": 6
+    }
+  },
+  "round08_near60": {
+    "allocated_opportunities": 8,
+    "legal": 8,
+    "ever_held": 3,
+    "never_held": 5,
+    "actual_expert_takeovers": 1,
+    "actual_expert_native_successes": 1,
+    "student_native_successes": 0,
+    "native_lift": 3,
+    "held60_counterfactual": {
+      "student_observed_due": 3,
+      "current_held_exactly_at_due": 1,
+      "eventually_current_held_at_or_after_due": 2,
+      "additional_to_existing_near60_takeover": 1,
+      "new_expert_recoveries_executed": 0
+    },
+    "held120_counterfactual": {
+      "student_observed_due": 2,
+      "censored_by_actual_expert": 1,
+      "eventually_current_held_at_or_after_due": 1,
+      "new_expert_recoveries_executed": 0
+    },
+    "cases": [
+      {
+        "case": "r08_A_expanded_session06_new16_s28400003_near60",
+        "role": "A",
+        "student_ticks": 222,
+        "expert_switched": true,
+        "native_lift": true,
+        "native_termination_authority": "expert",
+        "ever_held": true,
+        "first_held": {
+          "completed_tick": 160,
+          "held": true,
+          "native_keypoint_distance_m": 0.24011507630348206,
+          "quaternion_angle_rad": 2.224668025970459,
+          "height_above_reference_m": 0.1233416199684143
+        },
+        "delays": {
+          "60": {
+            "status": "student_observed",
+            "at_due": {
+              "completed_tick": 220,
+              "held": true,
+              "native_keypoint_distance_m": 0.06836846470832825,
+              "quaternion_angle_rad": 0.5331502556800842
+            },
+            "instantaneous_condition_missing_ticks": 3,
+            "first_later_current_held_completed_tick": 220
+          },
+          "120": {
+            "status": "censored_by_expert"
+          }
+        },
+        "native_end_reason": "max_successes"
+      },
+      {
+        "case": "r08_A_expanded_session06_new16_s28400007_near60",
+        "role": "A",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": true,
+        "native_termination_authority": "student",
+        "ever_held": true,
+        "first_held": {
+          "completed_tick": 167,
+          "held": true,
+          "native_keypoint_distance_m": 0.28016161918640137,
+          "quaternion_angle_rad": 1.699548363685608,
+          "height_above_reference_m": 0.062104761600494385
+        },
+        "delays": {
+          "60": {
+            "status": "student_observed",
+            "at_due": {
+              "completed_tick": 227,
+              "held": false,
+              "native_keypoint_distance_m": 0.18492354452610016,
+              "quaternion_angle_rad": 1.6077815294265747
+            },
+            "instantaneous_condition_missing_ticks": 35,
+            "first_later_current_held": {
+              "completed_tick": 239,
+              "held": true,
+              "native_keypoint_distance_m": 0.14163847267627716,
+              "quaternion_angle_rad": 1.3027111291885376
+            }
+          },
+          "120": {
+            "status": "student_observed",
+            "at_due": {
+              "completed_tick": 287,
+              "held": true,
+              "native_keypoint_distance_m": 0.17455749213695526,
+              "quaternion_angle_rad": 2.7864842414855957
+            },
+            "instantaneous_condition_missing_ticks": 42,
+            "first_later_current_held_completed_tick": 287
+          }
+        },
+        "native_end_reason": "timeout"
+      },
+      {
+        "case": "r08_A_expanded_session06_new16_s28400011_near60",
+        "role": "A",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": false,
+        "native_termination_authority": "student",
+        "ever_held": false,
+        "native_end_reason": "timeout"
+      },
+      {
+        "case": "r08_A_expanded_session06_new16_s28400015_near60",
+        "role": "A",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": false,
+        "native_termination_authority": "student",
+        "ever_held": false,
+        "native_end_reason": "timeout"
+      },
+      {
+        "case": "r08_B_expanded_session06_new16_s28400003_near60",
+        "role": "B",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": false,
+        "native_termination_authority": "student",
+        "ever_held": true,
+        "first_held": {
+          "completed_tick": 132,
+          "held": true,
+          "native_keypoint_distance_m": 0.30812597274780273,
+          "quaternion_angle_rad": 1.6787211894989014,
+          "height_above_reference_m": 0.08352363109588623
+        },
+        "delays": {
+          "60": {
+            "status": "student_observed",
+            "at_due": {
+              "completed_tick": 192,
+              "held": false,
+              "native_keypoint_distance_m": 0.4020316004753113,
+              "quaternion_angle_rad": 1.5889530181884766
+            },
+            "instantaneous_condition_missing_ticks": 55,
+            "first_later_current_held": null
+          },
+          "120": {
+            "status": "student_observed",
+            "at_due": {
+              "completed_tick": 252,
+              "held": false,
+              "native_keypoint_distance_m": 0.4020316004753113,
+              "quaternion_angle_rad": 1.5889530181884766
+            },
+            "instantaneous_condition_missing_ticks": 115,
+            "first_later_current_held": null
+          }
+        },
+        "native_end_reason": "timeout"
+      },
+      {
+        "case": "r08_B_expanded_session06_new16_s28400007_near60",
+        "role": "B",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": false,
+        "native_termination_authority": "student",
+        "ever_held": false,
+        "native_end_reason": "timeout"
+      },
+      {
+        "case": "r08_B_expanded_session06_new16_s28400011_near60",
+        "role": "B",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": false,
+        "native_termination_authority": "student",
+        "ever_held": false,
+        "native_end_reason": "timeout"
+      },
+      {
+        "case": "r08_B_expanded_session06_new16_s28400015_near60",
+        "role": "B",
+        "student_ticks": 601,
+        "expert_switched": false,
+        "native_lift": true,
+        "native_termination_authority": "student",
+        "ever_held": false,
+        "native_end_reason": "timeout"
+      }
+    ]
+  },
+  "round08_contact0": {
+    "allocated_opportunities": 8,
+    "legal": 7,
+    "illegal": 1,
+    "actual_expert_takeovers": 4,
+    "all_takeovers_held": true,
+    "cases": [
+      {
+        "case": "r08_A_expanded_session06_new16_s28400006_contact0",
+        "completed_tick": 288,
+        "held": true,
+        "native_keypoint_distance_m": 0.2666175663471222,
+        "quaternion_angle_rad": 1.3062282800674438,
+        "height_above_reference_m": 0.07342809438705444
+      },
+      {
+        "case": "r08_A_expanded_session06_new16_s28400010_contact0",
+        "completed_tick": 234,
+        "held": true,
+        "native_keypoint_distance_m": 0.17732414603233337,
+        "quaternion_angle_rad": 1.5718653202056885,
+        "height_above_reference_m": 0.19575917720794678
+      },
+      {
+        "case": "r08_A_expanded_session06_new16_s28400014_contact0",
+        "completed_tick": 122,
+        "held": true,
+        "native_keypoint_distance_m": 0.3451268970966339,
+        "quaternion_angle_rad": 1.788069248199463,
+        "height_above_reference_m": 0.04020875692367554
+      },
+      {
+        "case": "r08_B_expanded_session06_new16_s28400010_contact0",
+        "completed_tick": 127,
+        "held": true,
+        "native_keypoint_distance_m": 0.4026569426059723,
+        "quaternion_angle_rad": 3.0573887825012207,
+        "height_above_reference_m": 0.0591927170753479
+      }
+    ],
+    "interpretation": "All four real student boundaries were held but still 177–403mm away in native max-keypoint distance. This distance includes orientation. Immediate expert control censors subsequent student behavior; no delayed-student outcome is inferred."
+  },
+  "expert_action_coverage": {
+    "total_valid_expert_ticks": 5795,
+    "fixed40_80_accepted_trajectories": 14,
+    "fixed40_80_valid_expert_ticks": 4244,
+    "fixed40_80_fraction": 0.7323554788610871,
+    "fixed40_80_held_expert_ticks": 939,
+    "interpretation": "4244/5795=73.24% are from early-takeover trajectories including their full expert suffixes; not 73.24% early-stage actions. These suffixes include939 held-window expert ticks."
+  },
+  "candidate": {
+    "version": "contact_height_recheck_after_min_delay_v1",
+    "schedules": {
+      "held60": 60,
+      "held120": 120
+    },
+    "rule": "First completed 12-tick held window starts the minimum wait. Only at/after that delay, when the latest 12 completed student transitions are held again, schedule the next actual action. Temporary losses do not restart the first-held timer. No fixed fallback.",
+    "native_goal_changes": "Allowed across the wait and recorded; goal distance is not a condition. Near60 retains its own same-goal and distance rules.",
+    "classification": "No first held window, waiting for minimum delay, expired delay without current held, terminal-after-qualification, actual expert recovery and real student final success remain separate; no missing-window drop inference.",
+    "default_rules": "Existing contact0/contact12/near60 behavior unchanged; explicit new schedule only.",
+    "live_validation": "Not yet collected or evaluated. Historical candidates are not admitted data."
+  },
+  "limitations": [
+    "Cohorts have different initial families, policy sources and serial/batch execution. Their rates are not a controlled causal delay comparison.",
+    "A/B opportunities on the same family are not independent new families.",
+    "A_seed28400003 is the already executed near60 rescue; its +120 student state is censored. A_seed28400007 is one additional observed candidate, not a rescued trajectory. B_seed28400003 never reheld after either delay and ended in native timeout, not a recorded dropped termination.",
+    "Five of eight near60 cases never had the held window; B_seed28400015 nevertheless met native lift. Native lift, collection held and full native success are distinct.",
+    "Round08 has six fixed40 student prefixes shorter than the completed25..48 height reference, reported as unavailable rather than no held.",
+    "Early fixed takeover is an entry schedule label. Its entire successful expert suffix can contain turning, alignment and insertion; the 73.24% suffix share is not a per-step early-stage fraction.",
+    "Only closed result-index captures were read. No RGB, DINO features or held-out test payload was opened by the private audit."
+  ],
+  "new_gpu_starts": 0,
+  "new_optimizer_updates": 0,
+  "new_data_admitted": 0
+}

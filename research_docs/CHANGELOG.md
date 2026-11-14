@@ -1,4 +1,12 @@
-## 2026-11-14 23:22 后段接管重查与下一轮吞吐候选
+## 2026-11-14 23:21 实际门控失败与四臂阶段拟合监督
+
+offline_planning_B_gate01在0.657秒CPU清单准入时因原始entry无split失败，0优化/0CUDA验收；当前state_data.splits才是权威分区。修复兼容缺省字段，存在矛盾字段仍拒绝，train ID/family隔离不放松；真实A/B各6validation拒绝检查通过，38项CPU测试通过。原01保留，后续只用新编号。inactive_render_gate01普通arm在2.271秒因缺少arm/session.json启动失败，未进入Kit或控制；这是诊断包装错误，不是渲染候选物理结论，原现场保留，修复尚待。
+
+新增tight_fresh_stage_fit_owner绑定已准备的A/B v3注册和冻结eval08@2e38c91，四臂独立进程依次前向、再比较；原session截止与1800秒上限取较早，逐stage保留PID/starttick/PGID/命令/日志/结果SHA，STOP与残留子孙回收受测试。CPU21项检查通过，最后超时归因另5项定向复核；真实34条注册只读预检通过，尚未启动。GPU诊断将与现有后端训练适度重叠，计时不用于单变量加速宣称。旧monitor不认识run-arm参数，将依owner PID绑定补充归属说明，原遥测不改。
+
+held_recheck_review公开摘要已审查：旧delay12共12次登记机会→6次接手→3次边界仍held；08 near60八合法→三曾held→一真恢复，回看held60额外只有A28400007未执行候选。专家截断后未知学生未来不外推；73.24%是早入口轨迹的完整专家后段占比，其中939步也held，不能叫73.24%早阶段动作。
+
+## 2026-11-14 23:17 后段接管重查与下一轮吞吐候选
 
 第八轮82d5052两前端均完成10轮/1370更新；A选epoch9，B选epoch5。cache_A已543.205秒完成，当前后端A训练，尚无第八轮自主结论。前端A/B进程read_bytes分别629.079/626.656GB（精确值见offline_planning_review），同一时段出现187.66/188.31秒consumer等待，slow row主要停在mmap clone之前/期间，resource pacing为0；这些是进程计数，不能当作独立物理盘读量。旧单epoch paired I/O整体慢的结论保留，下一较大规模需重新判断摊销，不自动采用。
 
