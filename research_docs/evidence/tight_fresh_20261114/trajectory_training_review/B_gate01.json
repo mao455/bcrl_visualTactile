@@ -1,0 +1,78 @@
+{
+  "complete": true,
+  "passed": false,
+  "diagnostic_only": true,
+  "formal_training_candidate": false,
+  "role": "B",
+  "optimizer_spec": {
+    "type": "AdamW",
+    "lr": 3e-05,
+    "betas": [
+      0.95,
+      0.999
+    ],
+    "weight_decay": 1e-06
+  },
+  "optimizer_steps_confirmed": {
+    "serial_reference": 2,
+    "batched": 2,
+    "restored": 1
+  },
+  "registered_deck": [
+    "formal_050_slow_3",
+    "r08_A_expanded_session06_new16_s28400000_fixed40",
+    "formal_050_slow_3"
+  ],
+  "optimizer_updates_per_path": 2,
+  "episode_visits_per_path": 3,
+  "ema_updates_per_path": 2,
+  "timings_seconds": {
+    "serial_reference": 1.4613999831490219,
+    "batched": 2.747517514973879,
+    "restored_singleton": 0.25349285709671676
+  },
+  "peak_allocated_bytes": {
+    "serial_reference": 3894003200,
+    "batched": 5311131648,
+    "restored_singleton": 3009931776
+  },
+  "per_process_allocator_fraction": 0.45,
+  "geometry": null,
+  "geometry_selection_proof": null,
+  "boundary_checkpoint_sha256": "beb01660f42e8d2dd6ba473b85856832db0c9a6a38f2db7130fe0200c4263531",
+  "source_checkpoint_sha256": "3be38a933824874a9697821e6a5bd2a95e7927e8ed25bcdc22ba537b3a466529",
+  "limitations": "Two training trajectories and three visits; serial then batched warm order and checkpoint I/O differ. Fresh EMA uses zero decay in these first two updates; exact pre-update boundary checks separately verify restored EMA. No epoch throughput, model selection, validation/test or autonomy claim.",
+  "wall_seconds": 15.231318950653076,
+  "finished_utc": 1794676048.8281488,
+  "comparison_counts": {
+    "comparisons": {
+      "total": 1202,
+      "failed": 0
+    },
+    "boundary_restoration_comparisons": {
+      "total": 1200,
+      "failed": 0
+    },
+    "recovery_comparisons": {
+      "total": 1200,
+      "failed": 632
+    }
+  },
+  "source_files": {
+    "trajectory_training_B_gate01/started.json": "9417e4d393b94004a65e1c23afbff6c5f43cecc644f70bd0bbc5dda517f2737a",
+    "trajectory_training_B_gate01/admission.json": "e55762b5d2be3fb6f4733267b922dc364ae650208b86f4e79cbd0e8e59ffdb3f",
+    "trajectory_training_B_gate01/result.json": "3dc071400cafd5038ecf8eb4687d009cf33590b778078020aa5adb70e2b466c9",
+    "trajectory_training_B_gate01_launch.json": "2e120379726d2a01d5403c01188598a107747bfcaac4080debf717e2b6550ae3"
+  },
+  "paired_last_report_equal": {
+    "loss": true,
+    "gradient_norm": true,
+    "visits": true
+  },
+  "decision": "Not adopted: exact post-restore update gate failed. CPU-only evidence cannot determine numerical cause; original 5 diagnostic updates and failure are preserved. Main round09 frozen single-visit training unchanged.",
+  "ownership_exit": {
+    "MainPID": 0,
+    "ActiveState": "failed",
+    "Result": "exit-code"
+  }
+}

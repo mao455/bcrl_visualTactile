@@ -66,9 +66,21 @@ def stage_receipts(directory, sources):
     if final is not None:
         records = final.get('stages', [])
     else:
-        records = [sources.read(path) for path in sorted((directory / 'ledger').glob('*.json'))
-                   if not path.name.endswith('_worker.json')]
-        records = [row for row in records if all(k in row for k in ('stage', 'returncode', 'seconds'))]
+        # Real cycle receipts live directly in *_stages/. Retain the earlier
+        # nested layout for existing readers/fixtures, but never silently choose
+        # one of two receipts for the same stage. In-progress worker/status files
+        # are evidence of activity, not completed stage intervals.
+        paths = sorted(directory.glob('*.json')) + sorted((directory / 'ledger').glob('*.json'))
+        records = []
+        for path in paths:
+            if path.name.endswith('_worker.json'):
+                continue
+            row = sources.read(path)
+            if not isinstance(row, dict) or not all(k in row for k in ('stage', 'returncode', 'seconds')):
+                continue
+            require(isinstance(row['stage'], str) and path.name == row['stage'] + '.json',
+                    'Stage receipt filename differs: ' + str(path))
+            records.append(row)
     names = set(); output = []
     for row in records:
         require(row['stage'] not in names, 'Duplicate stage receipt'); names.add(row['stage'])

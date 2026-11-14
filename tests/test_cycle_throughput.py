@@ -85,7 +85,7 @@ def fixture(root):
         sha = hashlib.sha256(path.read_bytes()).hexdigest()
         row = dict(stage=name, started=start, seconds=seconds, returncode=0, stop_reason=None,
                    completion=str(path), completion_sha256=sha, utc=start+seconds)
-        receipts.append(row); write(stages/'ledger'/(name+'.json'),row)
+        receipts.append(row); write(stages/(name+'.json'),row)
     write(stages/'finished.json',dict(software_complete=True,stages=receipts,utc=125.1))
     outer=root/'outer.json';write(outer,dict(output=str(cycle),collection=str(collection),data_source=str(old),
         collection_plan_sha256=plan_sha,cycle_command=['future','registered','command']))
@@ -147,6 +147,62 @@ def test_missing_finish_never_gets_complete_even_with_all_successful_stages(tmp_
     assert not result['complete']
     assert 'cycle_wall_seconds' not in result['timeline']
     assert comparison(result,result)['ratios'] is None
+
+
+def test_partial_reads_actual_root_receipts_and_binds_each_source(tmp_path):
+    _, _, stages, _ = fixture(tmp_path)
+    final = json.loads((stages/'finished.json').read_text())
+    (stages/'finished.json').unlink()
+    # An active worker can name the same phase but is not a stage receipt.
+    write(stages/'frontend_A_worker.json', final['stages'][2])
+    write(stages/'status.json', dict(stage='frontend_A', status='running', started=102.))
+    sources = Sources()
+    rows, finished, complete = stage_receipts(stages, sources)
+    assert finished is None and complete is False
+    assert len(rows) == len(final['stages'])
+    assert {row['stage'] for row in rows} == {row['stage'] for row in final['stages']}
+    assert all(str((stages/(row['stage']+'.json')).resolve()) in sources.bindings for row in rows)
+    assert str((stages/'frontend_A_worker.json').resolve()) not in sources.bindings
+
+
+def test_partial_retains_legacy_nested_receipts(tmp_path):
+    _, _, stages, _ = fixture(tmp_path)
+    final = json.loads((stages/'finished.json').read_text())
+    (stages/'finished.json').unlink(); (stages/'ledger').mkdir()
+    for row in final['stages']:
+        name = row['stage']+'.json'; (stages/name).rename(stages/'ledger'/name)
+    sources = Sources(); rows, _, complete = stage_receipts(stages, sources)
+    assert len(rows) == len(final['stages']) and not complete
+    assert str((stages/'ledger/aggregate.json').resolve()) in sources.bindings
+
+
+def test_partial_rejects_duplicate_stage_across_layouts_even_if_identical(tmp_path):
+    _, _, stages, _ = fixture(tmp_path)
+    (stages/'finished.json').unlink()
+    write(stages/'ledger/aggregate.json', json.loads((stages/'aggregate.json').read_text()))
+    with pytest.raises(ValueError, match='Duplicate stage receipt'):
+        stage_receipts(stages, Sources())
+
+
+def test_partial_rejects_renamed_phase_and_changed_completion(tmp_path):
+    cycle, _, stages, _ = fixture(tmp_path)
+    (stages/'finished.json').unlink()
+    (stages/'aggregate.json').rename(stages/'another.json')
+    with pytest.raises(ValueError, match='filename differs'):
+        stage_receipts(stages, Sources())
+    (stages/'another.json').rename(stages/'aggregate.json')
+    write(cycle/'prepared.json', dict(complete=True, changed=True))
+    with pytest.raises(ValueError, match='Completion receipt changed'):
+        stage_receipts(stages, Sources())
+
+
+def test_partial_failed_receipt_has_interval_but_no_completion_requirement(tmp_path):
+    stages = tmp_path/'round_stages'
+    write(stages/'frontend_A.json', dict(stage='frontend_A', started=10., seconds=3.,
+        returncode=1, stop_reason='peer_failure', completion=str(tmp_path/'missing.json')))
+    rows, final, complete = stage_receipts(stages, Sources())
+    assert rows == [dict(stage='frontend_A', start=10., end=13., seconds=3., complete=False, returncode=1)]
+    assert final is None and not complete
 
 
 def test_future_cycle_can_bind_outer_without_fabricating_training(tmp_path):

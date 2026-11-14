@@ -1,3 +1,8 @@
+## 2026-11-15 01:14 — 未完成周期的真实阶段回执与B2失败小证据
+
+- `tight_fresh_cycle_throughput.stage_receipts`原partial仅查不存在的ledger子目录；现读取真实stages根，兼容历史ledger，拒绝重名阶段/错文件名，worker/status不计完成，失败区间保留且不伪造completion。完整finished路径保持；真实第八轮除报告创建时间外逐字段一致。主Agent两文件30项通过，Agent扩展含读者41项通过。
+- `trajectory_training_review/B_gate01.json`保留5次实际更新、恢复边界通过而后续exact失败的分组计数、原输入/输出SHA及退出状态；不改变原门槛，不将局部计时当完整训练加速。
+
 ## 2026-11-15 01:09 — 独立持物root近目标入口与真实恢复失败记录
 
 - takeover_trigger/training_expansion与fresh_expansion、stage_takeover、report、batch_run、batch_collection_review新增显式held_root60；已完成post rigid-root/当前goal前后一致/held12，方向不设门槛，原near60与成功语义保持。

@@ -1,3 +1,9 @@
+## 2026-11-15 01:14 partial吞吐回执修复与后续安排
+
+完整第八轮吞吐读者无变化，partial路径修复为实际stages根并拒绝重复阶段，CPU30项及旧新实际完整报告一致检查通过。第九批前五波真实结束校验536.99秒、占wall13.96%；writer提交队列等待很小。A64固定既有case次序的零开销理想补位仅2420→2404仿真tick（0.66%），空闲lane比例不是可实现速度增益，暂不优先大改补位。B首波865tick长尾贡献783合法专家动作和完整成功，不能为提速截短。
+
+正式09仍优先。按旧周期实际率粗估新约50条时完整训练/缓存/自主需85分钟（后端并行）至113分钟（退回串行），不能预先给新加速项记收益或保证赶上原截止。B2新probe将仅定位恢复后的数值差异，不采用未通过候选；公开旧失败小证据见[trajectory_training_review/B_gate01.json](evidence/tight_fresh_20261114/trajectory_training_review/B_gate01.json)。原失败现场、预算和活动代码保持。
+
 ## 2026-11-15 01:09 新held_root60入口完成CPU验收，B2恢复gate未通过
 
 A的8条near60中7条从未满足held12；只有A52有112个持物tick，全部未满足旧keypoint60，其中48tick满足当前goal rigid-root60。新候选实际因果回放在completed265后触发下一action265，root14.15mm、方向90.18度、keypoint86.73mm、原生剩余336步；当前goal0 root高于孔root186mm，不能称已到孔口。6条已成功held续接中5条边界root60、0条keypoint60仅作设计参照，不能证明A52可救回。新入口保留旧规则、独立版本与未来扩充登记，137项CPU组合通过（7.44秒），0新采集/0更新；公开[证据](evidence/tight_fresh_20261114/near_root_takeover_review/summary.json)。
