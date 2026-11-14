@@ -1,0 +1,450 @@
+{
+  "version": "closed_session_resource_ownership_audit_v1",
+  "created_utc": 1794664949.5142877,
+  "created_utc_iso": "2026-11-14T14:02:29.514288+00:00",
+  "scope": "Read-only full closed session05 shared telemetry plus a bounded session06 prefix. Whole-card GPU utilization is not per-process attribution.",
+  "sources": {
+    "shared": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/resources/shared.jsonl",
+      "complete_prefix_bytes": 8355343,
+      "bytes_at_read": 8355343,
+      "sha256_complete_prefix": "bef49bd37cb1232ce382e1dc4ddc3ad6fabba44ab364499eb758e60360651da3"
+    },
+    "session_sha256": "0a24d0f0fa6c7a0644148069ecbded31284da7d2e8e7d9803ef41d6cd3668a07",
+    "monitor_exit_sha256": "7837b28695175abc41e827659bbda2dd911b46d3fd9db0d8286d701a86c092cf",
+    "classifier_source": "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/visuotactile/state_resources.py",
+    "classifier_sha256": "da6b5ac8088c9b1751322adc0162672d4b470ed1ac9b42c83813b1baa8618742",
+    "classifier_scope": "declared_real_root_or_registered_batch_output_descendant_v3"
+  },
+  "observation_window": {
+    "samples": 10461,
+    "first_utc": 1794653678.5742059,
+    "last_utc": 1794664148.222619,
+    "first_utc_iso": "2026-11-14T10:54:38.574206+00:00",
+    "last_utc_iso": "2026-11-14T13:49:08.222619+00:00",
+    "span_s": 10469.648414022988,
+    "declared_session_start": 1794653661.6238303,
+    "unobserved_session_start_to_first_shared_s": 16.9503755569458,
+    "monitor_end": 1794664149.2234483,
+    "last_shared_to_monitor_end_s": 1.0008292198181152,
+    "tail_note": "One final ResourceGuard sample exists in monitor_exit, outside shared.jsonl; report both scopes without extrapolation."
+  },
+  "gpu": {
+    "integration": "left sample constant until next elapsed_s; preceding unavailable sample or gap>15s excluded exactly as ResourceGuard",
+    "shared_time_weighted_mean_percent": 34.15946685373629,
+    "shared_measured_s": 10469.472388479859,
+    "shared_missing_s": 0.1760255431290716,
+    "shared_plus_final_guard_time_weighted_mean_percent": 34.15677625971598,
+    "final_guard_summary_matches_recomputation": true,
+    "max_instant_percent": 100.0,
+    "max_recorded_complete_60s_mean_percent": 99.79993122346932,
+    "min_free_vram_mib": 9461.0,
+    "peak_used_vram_mib": 14623.0,
+    "observed_free_vram_below_registered_reserve_samples": 0
+  },
+  "ram": {
+    "min_available_bytes": 19761147904,
+    "min_available_gib": 18.404003143310547,
+    "observed_below_registered_reserve_samples": 0
+  },
+  "sampling": {
+    "null_gpu_samples": 2,
+    "null_gpu_sample_utc": [
+      1794661603.2001321,
+      1794662241.5033069
+    ],
+    "max_gap_s": 5.098279781872407,
+    "gaps_over_1_5s": [
+      {
+        "start_utc": 1794658557.9481728,
+        "end_utc": 1794658559.4644704,
+        "seconds": 1.5162973490078002,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794659405.1711917,
+        "end_utc": 1794659406.8520985,
+        "seconds": 1.6809067740105093,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794660770.5167904,
+        "end_utc": 1794660772.1485019,
+        "seconds": 1.6317114511039108,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794660930.555733,
+        "end_utc": 1794660932.1590416,
+        "seconds": 1.6033084969967604,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794661248.641199,
+        "end_utc": 1794661250.9057784,
+        "seconds": 2.2645795887801796,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794661323.0138407,
+        "end_utc": 1794661324.651677,
+        "seconds": 1.637836353154853,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794661598.1018524,
+        "end_utc": 1794661603.2001321,
+        "seconds": 5.098279781872407,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794662236.4890635,
+        "end_utc": 1794662241.5033069,
+        "seconds": 5.0142430369742215,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794662459.6607168,
+        "end_utc": 1794662461.183027,
+        "seconds": 1.5223099449649453,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794663262.9210663,
+        "end_utc": 1794663264.456674,
+        "seconds": 1.5356073849834502,
+        "counts_as_missing": false
+      },
+      {
+        "start_utc": 1794663408.9689395,
+        "end_utc": 1794663410.5245469,
+        "seconds": 1.5556073368061334,
+        "counts_as_missing": false
+      }
+    ],
+    "process_query_error_samples": 0,
+    "note": "Gap/missing evidence remains; no interpolation or claim of uninterrupted coverage from session declaration."
+  },
+  "resource_policy": {
+    "name": "full_gpu_v1",
+    "registered_limits": {
+      "min_gpu_free_mib": 4096,
+      "min_ram_gib": 10,
+      "min_disk_gib": 60
+    },
+    "observed_max_pacing_ratio": 0.0,
+    "consequence": "full_gpu_v1 ignores the external classification for pacing; observed ratios remain0. The attribution bug did not create a GPU utilization cap in these records."
+  },
+  "ownership": {
+    "raw_external_rows": 1064,
+    "raw_external_pid_count": 9,
+    "pids": [
+      {
+        "pid": 3744320,
+        "names": [
+          ".venv_isaacsim/bin/python",
+          "[No data]"
+        ],
+        "owned_samples": 10,
+        "external_samples": 1,
+        "first": 1794653681.576113,
+        "last": 1794653691.5753849,
+        "peak_vram_mib": 1232,
+        "external_intervals_s": 1.000135701848194,
+        "correction": "probable_same_pid_exit_transition",
+        "evidence": {
+          "reason": "Same PID and neighboring samples previously classified owned; terminal external sample reports [No data]. No archived start identity found, so do not claim strict PID-lifetime proof.",
+          "prior_owned_samples": 10
+        }
+      },
+      {
+        "pid": 3788882,
+        "names": [
+          ".venv_isaacsim/bin/python"
+        ],
+        "owned_samples": 0,
+        "external_samples": 2,
+        "first": 1794658159.8531554,
+        "last": 1794658160.8583603,
+        "peak_vram_mib": 350,
+        "external_intervals_s": 2.0018217109609395,
+        "correction": "unresolved_short_process",
+        "evidence": {
+          "reason": "No matching archived PID/command/lifetime binding found in small owner/start records. Relative .venv_isaacsim name alone is insufficient. journalctl --user _PID lookup returned no entries."
+        }
+      },
+      {
+        "pid": 3794578,
+        "names": [
+          ".venv_isaacsim/bin/python"
+        ],
+        "owned_samples": 0,
+        "external_samples": 1,
+        "first": 1794658635.9722264,
+        "last": 1794658635.9722264,
+        "peak_vram_mib": 350,
+        "external_intervals_s": 0.9962523230351508,
+        "correction": "unresolved_short_process",
+        "evidence": {
+          "reason": "No matching archived PID/command/lifetime binding found in small owner/start records. Relative .venv_isaacsim name alone is insufficient. journalctl --user _PID lookup returned no entries."
+        }
+      },
+      {
+        "pid": 3800844,
+        "names": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_repeat06_20261114/.venv_isaacsim/bin/python",
+          "[No data]"
+        ],
+        "owned_samples": 408,
+        "external_samples": 1,
+        "first": 1794659193.1217248,
+        "last": 1794659601.2234235,
+        "peak_vram_mib": 3973,
+        "external_intervals_s": 0.9944453921634704,
+        "correction": "confirmed_project_owned",
+        "evidence": {
+          "kind": "explicit_development_worker_pid_and_command",
+          "command": [
+            "/home/CNS2025331827/docs/bc+rl_RSS_fresh_repeat06_20261114/.venv_isaacsim/bin/python",
+            "-m",
+            "tools.tight_fresh_rollouts",
+            "run",
+            "--root",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06",
+            "--output",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/development"
+          ],
+          "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_repeat06_20261114",
+          "proc_start_ticks": 171896525,
+          "started": 1794659190.150652,
+          "files": {
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06_stages/development_worker.json": "a24e9d4ce26231bce7fac9fe825ecd6c6c6fb17728791c83f9e3d0415cd38417"
+          }
+        }
+      },
+      {
+        "pid": 3805395,
+        "names": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable03_20261114/.venv_isaacsim/bin/python",
+          "[No data]"
+        ],
+        "owned_samples": 86,
+        "external_samples": 1,
+        "first": 1794659551.205133,
+        "last": 1794659637.2245412,
+        "peak_vram_mib": 4633,
+        "external_intervals_s": 1.1731632789596915,
+        "correction": "confirmed_project_owned",
+        "evidence": {
+          "kind": "explicit_worker_pid_owner_command_and_lifetime",
+          "command": [
+            "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable03_20261114/.venv_isaacsim/bin/python",
+            "-m",
+            "tools.tight_fresh_batch_eval",
+            "run",
+            "--root",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05",
+            "--output",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_t16_n8_descriptors_02"
+          ],
+          "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable03_20261114",
+          "started": 1794659547.6338122,
+          "ended": 1794659638.6740065,
+          "files": {
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_t16_n8_descriptors_02/owner_worker_started.json": "c834d9abf2e3878d9e4ac1dd654d070c6d9beb5d811ea0f49bd7a9bb19d59464",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_t16_n8_descriptors_02/owner_started.json": "8771ff82d45b76e5c329e94ba36514487beebaa246e8141434d7023916b112a1",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_t16_n8_descriptors_02/owner_finished.json": "e716f67a18e5b3c67abba34519ac2d775e2ac460edf99f16afb1f28cc04656f8"
+          }
+        }
+      },
+      {
+        "pid": 3807626,
+        "names": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_batch07_20261114/.venv_isaacsim/bin/python"
+        ],
+        "owned_samples": 0,
+        "external_samples": 1055,
+        "first": 1794659716.2522595,
+        "last": 1794660770.5167904,
+        "peak_vram_mib": 5035,
+        "external_intervals_s": 1055.8962421170436,
+        "correction": "confirmed_project_owned",
+        "evidence": {
+          "kind": "explicit_worker_pid_owner_command_and_lifetime",
+          "command": [
+            "/home/CNS2025331827/docs/bc+rl_RSS_fresh_batch07_20261114/.venv_isaacsim/bin/python",
+            "-m",
+            "tools.tight_fresh_batch_run",
+            "run",
+            "--output",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01"
+          ],
+          "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_batch07_20261114",
+          "started": 1794659712.8958664,
+          "ended": 1794660772.270721,
+          "files": {
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/owner_worker_started.json": "7370fc82b4f4864242353ee76fade6751e8f158fb02cea4c3c0b67d1667a4acc",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/owner_started.json": "2662f55e921ecd282f2da492af7edd13463bd845cef1627ba81c6aa36bde072d",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/takeover_07_batch8_m8_01/owner_finished.json": "d8843fb9f4fd8feb1837c1e89ddd21adc80a056ea5336c43cfdfe5f47b12cd79"
+          }
+        }
+      },
+      {
+        "pid": 3822632,
+        "names": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114/.venv_isaacsim/bin/python",
+          "[No data]"
+        ],
+        "owned_samples": 24,
+        "external_samples": 1,
+        "first": 1794660960.559621,
+        "last": 1794660984.5715961,
+        "peak_vram_mib": 4633,
+        "external_intervals_s": 0.9970723669975996,
+        "correction": "confirmed_project_owned",
+        "evidence": {
+          "kind": "explicit_worker_pid_owner_command_and_lifetime",
+          "command": [
+            "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114/.venv_isaacsim/bin/python",
+            "-m",
+            "tools.tight_fresh_batch_eval",
+            "run",
+            "--root",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05",
+            "--output",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_n8_sensor_diagnostic_01"
+          ],
+          "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114",
+          "started": 1794660957.8498755,
+          "ended": 1794660985.8616128,
+          "files": {
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_n8_sensor_diagnostic_01/owner_worker_started.json": "4e5f7399de3c9e01dda441ebbdd0dbdb59db96632aff2a7c21b1039bb447639e",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_n8_sensor_diagnostic_01/owner_started.json": "cac40b53c59fa07a4a97c69b10771be1f66fb6f25e2aee436009804e086be6c5",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_tiled_n8_sensor_diagnostic_01/owner_finished.json": "c9e917e7c04bd27c4c32647083dce5858d3aed5312b92497a233564a802dae57"
+          }
+        }
+      },
+      {
+        "pid": 3824037,
+        "names": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114/.venv_isaacsim/bin/python",
+          "[No data]"
+        ],
+        "owned_samples": 220,
+        "external_samples": 1,
+        "first": 1794661028.593666,
+        "last": 1794661248.641199,
+        "peak_vram_mib": 8739,
+        "external_intervals_s": 2.2645795887801796,
+        "correction": "confirmed_project_owned",
+        "evidence": {
+          "kind": "explicit_worker_pid_owner_command_and_lifetime",
+          "command": [
+            "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114/.venv_isaacsim/bin/python",
+            "-m",
+            "tools.tight_fresh_batch_eval",
+            "run",
+            "--root",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05",
+            "--output",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_standard_n32_m8_descriptors_01"
+          ],
+          "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114",
+          "started": 1794661026.0803342,
+          "ended": 1794661251.1751206,
+          "files": {
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_standard_n32_m8_descriptors_01/owner_worker_started.json": "d835c5cfc1b29f4fd32b737b41d6913ed8333d323e7b336ac8f420162e83c851",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_standard_n32_m8_descriptors_01/owner_started.json": "3acb76f0891973599e9dd4960a9a20e66da8e3db477b2861c7b6fb43e64e1232",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_cpu_standard_n32_m8_descriptors_01/owner_finished.json": "0f309cf1fb2c9cd30875ef41ea93276d7454fc3d73cc3585be3607412324e3f5"
+          }
+        }
+      },
+      {
+        "pid": 3839588,
+        "names": [
+          "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114/.venv_isaacsim/bin/python",
+          "[No data]"
+        ],
+        "owned_samples": 149,
+        "external_samples": 1,
+        "first": 1794662310.6449523,
+        "last": 1794662459.6607168,
+        "peak_vram_mib": 10725,
+        "external_intervals_s": 1.5223099449649453,
+        "correction": "confirmed_project_owned",
+        "evidence": {
+          "kind": "explicit_worker_pid_owner_command_and_lifetime",
+          "command": [
+            "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114/.venv_isaacsim/bin/python",
+            "-m",
+            "tools.tight_fresh_batch_eval",
+            "run",
+            "--root",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05",
+            "--output",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_gpu_standard_n16_contact180_01"
+          ],
+          "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_scalable04_20261114",
+          "started": 1794662308.4216993,
+          "ended": 1794662461.4843872,
+          "files": {
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_gpu_standard_n16_contact180_01/owner_worker_started.json": "e62545f72d91e7ee5c86415aaaffcf502649dc9ad26ab93ebdffebb80e7bd92d",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_gpu_standard_n16_contact180_01/owner_started.json": "8bb0dcf79fcc49b2026cd95f1244f623d4352fef676f813bbe39a0eff52e9c8a",
+            "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/scaling_gpu_standard_n16_contact180_01/owner_finished.json": "d510af537e614b28ff42122cdb9c677d3922961062e75a5590d230cda502b9ee"
+          }
+        }
+      }
+    ],
+    "corrected_owned_confirmed_pids": [
+      3800844,
+      3805395,
+      3807626,
+      3822632,
+      3824037,
+      3839588
+    ],
+    "corrected_owned_probable_exit_transition_pids": [
+      3744320
+    ],
+    "unresolved_pids": [
+      3788882,
+      3794578
+    ],
+    "corrected_owned_confirmed_external_samples": 1060,
+    "corrected_owned_probable_external_samples": 1,
+    "external_rows_after_confirmed_corrections": 4,
+    "external_rows_after_confirmed_and_probable_corrections": 3,
+    "original_files_rewritten": false,
+    "note": "Corrections are separate audit fields. PID reuse is not excluded by PID alone; inference is distinguished from explicit launch binding."
+  },
+  "session06_prefix": {
+    "source": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/resources/shared.jsonl",
+      "complete_prefix_bytes": 526373,
+      "bytes_at_read": 526373,
+      "sha256_complete_prefix": "536be35d4e1aebd332f4f5d7896c1841a0a8f52a18c0229c4f474798f9428499"
+    },
+    "last_utc": 1794664949.38959,
+    "current_formal_worker_pid": 3864166,
+    "command": [
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_expand08_20261114/.venv_isaacsim/bin/python",
+      "-m",
+      "tools.tight_fresh_batch_run",
+      "run",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/new_family_08"
+    ],
+    "cwd": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_expand08_20261114",
+    "launch_files": {
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/new_family_08/owner_started.json": "a426fef6717f2c4430de802ca8c684f06d3391303f502beb5e613b4db03da5fd",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/new_family_08/owner_worker_started.json": "59817a5420205788b00ea2d9c0df19e3899f2dd33e91ff213c5ccd163f19e1dd"
+    },
+    "corrected_owned_by_v3": true,
+    "raw_external_samples_for_worker": 430,
+    "first_bad_utc": 1794664520.4143493,
+    "last_bad_utc": 1794664949.38959,
+    "live_monitor_restarted": false,
+    "frozen_source_changed": false,
+    "note": "Active prefix only; monitor continues using frozen old classifier. Do not treat these counts as final session06 totals."
+  }
+}

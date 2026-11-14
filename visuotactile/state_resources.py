@@ -15,6 +15,9 @@ import shutil
 from .training_resources import ResourceGuard, atomic_json
 
 
+OWNERSHIP_SCOPE = 'declared_real_root_or_registered_batch_output_descendant_v3'
+
+
 def update_pacing(state, row, target=40.):
     if not math.isfinite(target) or not 10 <= target <= 40:
         raise ValueError('GPU target must be between 10 and 40 percent, below the 50 percent cap')
@@ -275,27 +278,50 @@ def owned_command_root(command, roots, *, cwd):
     This is telemetry attribution, not authority to signal another process.
     Resolve relative arguments in the worker's cwd and reject ambiguous roots.
     """
-    # This finite collector declares its registered run directory as --output;
-    # arbitrary tools' output files are never evidence of experiment ownership.
-    options = ('--root', '--output') if command[1:4] == [
-        '-m', 'tools.tight_fresh_stage_takeover', 'run'] else ('--root',)
-    arguments = []
+    # These exact workers have audited CLI contracts. batch_eval requires both
+    # a resource --root and its descendant --output; batch_run uses only output.
+    # Similar module names and arbitrary output arguments grant no ownership.
+    modules = {'tools.tight_fresh_stage_takeover', 'tools.tight_fresh_batch_run',
+               'tools.tight_fresh_batch_eval'}
+    module = command[2] if len(command) > 2 and command[1] == '-m' else None
+    registered = module in modules
+    if registered and (len(command) < 4 or command[3] != 'run'):
+        return False
+    options = ('--root', '--output') if registered else ('--root',)
+    arguments = {option: [] for option in options}
     for index, argument in enumerate(command):
         if argument in options:
             if index + 1 >= len(command) or not command[index + 1] or command[index + 1].startswith('--'):
                 return False
-            arguments.append(command[index + 1])
+            arguments[argument].append(command[index + 1])
         else:
             for option in options:
                 if argument.startswith(option + '='):
-                    arguments.append(argument[len(option) + 1:])
-    if len(arguments) != 1 or not arguments[0]:
+                    arguments[option].append(argument[len(option) + 1:])
+    if any(not value for values in arguments.values() for value in values):
         return False
-    candidate = Path(arguments[0])
-    if not candidate.is_absolute():
-        candidate = Path(cwd) / candidate
+    if module == 'tools.tight_fresh_batch_eval':
+        if any(len(arguments[option]) != 1 for option in options):
+            return False
+        selected = arguments['--root'][0]
+    elif module == 'tools.tight_fresh_batch_run':
+        if arguments['--root'] or len(arguments['--output']) != 1:
+            return False
+        selected = arguments['--output'][0]
+    else:
+        values = [value for group in arguments.values() for value in group]
+        if len(values) != 1:
+            return False
+        selected = values[0]
+    def resolve(value):
+        path = Path(value)
+        return (path if path.is_absolute() else Path(cwd) / path).resolve()
     try:
-        candidate = candidate.resolve()
+        candidate = resolve(selected)
+        if module == 'tools.tight_fresh_batch_eval':
+            output = resolve(arguments['--output'][0])
+            if candidate != output and candidate not in output.parents:
+                return False
         return any(candidate == root or root in candidate.parents for root in
                    (Path(value).resolve() for value in roots))
     except (OSError, RuntimeError, ValueError):
@@ -308,7 +334,7 @@ def monitor(root):
     restore_telemetry(guard)
     atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time(),
         source_sha256=__import__('hashlib').sha256(Path(__file__).read_bytes()).hexdigest(),
-        ownership_scope='declared_real_root_or_stage_output_descendant_v2'))
+        ownership_scope=OWNERSHIP_SCOPE))
     window = deque(); previous = None
     session=json.loads((root/'session.json').read_text())
     target=session.get('resource_target_percent')
@@ -340,7 +366,7 @@ def monitor(root):
             errors.append(repr(error))
         row.update(gpu_processes=processes, external_gpu_processes=[p for p in processes if not p['owned']],
             process_telemetry_errors=errors, external_throughput_available=False,
-            ownership_scope='declared_real_root_or_stage_output_descendant_v2')
+            ownership_scope=OWNERSHIP_SCOPE)
         reasons, ratio = policy(row, time.time())
         if session.get('resource_policy')=='full_gpu_v1':
             limits=session['resources'];ratio=0.

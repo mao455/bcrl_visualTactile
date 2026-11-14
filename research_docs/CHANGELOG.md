@@ -1,3 +1,9 @@
+## 2026-11-14 22:06 资源归属统计修正
+
+state_resources只为明确batch_run run的唯一--output及batch_eval run的唯一--root/--output增加窄识别，解析真实路径且后者必须属于前者，相似模块/prepare/重复参数/越界路径拒绝；这是遥测分类，不是发信号授权。53项CPU检查通过，当前冻结monitor不热改。主Agent一次回归命令误写不存在test_state_resources.py而未执行，改为实际新测试后27项通过。
+
+原session05资源审计：10461 shared样本、时间加权GPU34.15947%；含最后monitor样本34.15678%。最少free VRAM9461MiB、RAM18.404GiB；2条读数空值覆盖0.17603秒，最大采样间隔5.09828秒，声明开始至首shared还有16.95秒未覆盖。不能称全程零缺口。1064条external标记中1060条有项目进程绑定、1条仅同PID退出过渡推断、3条未解决；原记录不改、修正解释单列。full_gpu_v1 pacing全0，误标未恢复旧50%限制。详见session05_resources.json。
+
 ## 2026-11-14 22:00 新16初态正式批量采集与相机候选
 
 session06固定窗口21:49:51至次日03:49:51，来源A05/B06及99条未全部训练池绑定，旧session05截止/现场不改。冻结d168195的new_family_08已由tight-fresh-newfamily08-20261114.service运行32机会、16新train family，配置与公开预注册逐项相等；CPU standard16/视觉micro8/512MiB异步writer/2个spawn校验进程、最多4待校验。初始化65.33秒，A波已真实执行，当前只是启动验收而非最终新增量。2个A初态碰撞非法、0动作，保留在机会分母；其余结果待完整结束和入池审核。旧monitor尚未识别batch_run的--output，将其PID误标external；owner独立PID/starttick/PGID证据正常，原遥测保留，不据误分类宣称外部争用。见session06_preregistration/startup.json。
