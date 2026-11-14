@@ -17,7 +17,7 @@ from test_training_expansion import setup_registry,write
 def config(delay=60):return schedule_trigger('held'+str(delay))
 
 
-@pytest.mark.parametrize('delay',[60,120])
+@pytest.mark.parametrize('delay',[0,60,120])
 def test_elapsed_time_never_schedules_early_and_current_rotating_window_switches_next_action(delay):
     trigger=make_trigger(config(delay),NEVER_FALLBACK)
     for tick in range(60+delay):
@@ -75,7 +75,7 @@ def test_native_goal_transition_is_recorded_but_is_not_a_distance_gate_or_succes
     dict(version=HELD_RECHECK_VERSION,min_delay_ticks=True),dict(version=HELD_RECHECK_VERSION,min_delay_ticks=60.),
     dict(version=HELD_RECHECK_VERSION,delay_ticks=60),dict(config(),max_keypoint_distance_m=.06)])
 def test_explicit_version_rejects_ambiguous_or_mutable_contract(bad):
-    with pytest.raises(ValueError,match='minimum60/120'):validate_trigger(bad,NEVER_FALLBACK)
+    with pytest.raises(ValueError,match='minimum0/60/120'):validate_trigger(bad,NEVER_FALLBACK)
 
 
 def test_no_fallback_and_no_duplicate_skip_or_nonfinite_observation():
@@ -161,16 +161,17 @@ def test_shared_singleton_batch_and_saved_audit_agree_without_reading_expert_fut
         with pytest.raises(ValueError,match='cannot be reproduced'):audit_trigger_case(directory,result)
 
 
-def test_real_serial_and_batch_bridges_switch_only_on_next_action_and_mask_queue_flush():
+@pytest.mark.parametrize('delays',[(0,60),(60,120)])
+def test_real_serial_and_batch_bridges_switch_only_on_next_action_and_mask_queue_flush(delays):
     from test_batched_position_bridge import environment,serial_environment,native_pipeline
     from visuotactile.batched_position_bridge import BatchedExpertPositionBridge
     from visuotactile.position_control import ExpertPositionBridge
     env=environment(2);single_env=[serial_environment(env,i) for i in range(2)]
     batch=BatchedExpertPositionBridge(env,[NEVER_FALLBACK]*2,ExpertPositionBridge.speed_scheme,pipeline=native_pipeline())
     singles=[ExpertPositionBridge(e,NEVER_FALLBACK,ExpertPositionBridge.speed_scheme,pipeline=native_pipeline()) for e in single_env]
-    triggers=[make_trigger(config(delay),NEVER_FALLBACK) for delay in (60,120)]
-    switches=[120,180];active=torch.ones(2,dtype=torch.bool);draw=torch.zeros(2,dtype=torch.long)
-    for tick in range(187):
+    triggers=[make_trigger(config(delay),NEVER_FALLBACK) for delay in delays]
+    switches=[60+delay for delay in delays];active=torch.ones(2,dtype=torch.bool);draw=torch.zeros(2,dtype=torch.long)
+    for tick in range(max(switches)+7):
         raw=torch.zeros(2,29);student=torch.full((2,29),.01)
         expected=[]
         for lane in range(2):
@@ -192,17 +193,18 @@ def test_real_serial_and_batch_bridges_switch_only_on_next_action_and_mask_queue
         env._prev_targets=actual[:,env._perm_canon_to_lab].clone();env._cur_targets=env._prev_targets.clone()
 
 
-def test_expansion_registration_pins_minimum_delay_and_never_fallback(setup_registry,monkeypatch):
+@pytest.mark.parametrize('schedules',[['held60','held120'],['held0','held120']])
+def test_expansion_registration_pins_minimum_delay_and_never_fallback(setup_registry,monkeypatch,schedules):
     from tools.tight_fresh_expansion import prepare
     setup=setup_registry
     write(setup['source']/'session.json',dict(deadline=time.time()+1000,domain=setup['domain'],expert_sha256='e'))
     monkeypatch.setattr('tools.tight_fresh_expansion.completed_pair',lambda root,role:dict(role=role))
     output=setup['root']/'held_prepared'
     plan=prepare(setup['source'],output,session_root=setup['source'],registry_id='held_fixture',seeds=[6000,6001],
-        partition_manifest=setup['partition'],frozen_families=setup['families'],schedules=['held60','held120'],
+        partition_manifest=setup['partition'],frozen_families=setup['families'],schedules=schedules,
         lanes=8,event_seed=8000,round_index=9)
     validate_collection_plan(plan)
-    assert len(plan['cases'])==4 and {case['expansion_schedule'] for case in plan['cases']}=={'held60','held120'}
+    assert len(plan['cases'])==4 and {case['expansion_schedule'] for case in plan['cases']}==set(schedules)
     for case in plan['cases']:
         assert case['spec']['takeover_tick']==NEVER_FALLBACK
         assert case['dagger']['trigger']==schedule_trigger(case['expansion_schedule'])
@@ -215,7 +217,7 @@ def test_expansion_registration_pins_minimum_delay_and_never_fallback(setup_regi
     assert not (output/'run_started.json').exists()
 
 
-@pytest.mark.parametrize('schedule,switch',[('held60',120),('held120',180)])
+@pytest.mark.parametrize('schedule,switch',[('held0',60),('held60',120),('held120',180)])
 def test_completed_collection_review_uses_rechecked_boundary_not_first_held(setup_registry,monkeypatch,schedule,switch):
     from test_batch_collection_review import completed_mixed,numeric
     from tools import tight_batch_collection_review as review
@@ -241,3 +243,22 @@ def test_completed_collection_review_uses_rechecked_boundary_not_first_held(setu
     assert row['boundary']['completed_student_tick']==switch and row['boundary']['held_window'] is True
     assert row['category']=='expert_rescue_after_held_recheck' and row['causal_condition_met'] is True
     assert report['summary']['by_schedule'][schedule]['takeovers']==1
+    from tools.tight_collection_summary import held_recheck
+    summary=held_recheck(case,result,boundary=row['boundary'])
+    assert summary['category']=='actual_rechecked_takeover'
+    assert summary['wait_after_first_held_ticks']==switch-60
+
+
+def test_held0_terminal_after_first_window_does_not_create_expert_action(tmp_path):
+    from tools.tight_fresh_report import audit_trigger_case
+    from tools.tight_collection_summary import held_recheck
+    trigger=make_trigger(config(0),NEVER_FALLBACK)
+    rows=[observation(tick) for tick in range(60)]
+    for tick,row in enumerate(rows):
+        assert observe_transition(trigger,tick,stacked([row]))==(60 if tick==59 else None)
+    result=write_capture(tmp_path/'case',rows,trigger,None)
+    audit=audit_trigger_case(tmp_path/'case',result)
+    case=dict(expansion_schedule='held0',dagger=dict(trigger=config(0)))
+    assert classify_case(case,result,audit)=='ended_after_held_recheck_before_scheduled_takeover'
+    assert held_recheck(case,result)['category']=='rechecked_without_next_action'
+    assert result['dagger']['expert_ticks']==0 and not result['dagger']['expert_takeover_success']

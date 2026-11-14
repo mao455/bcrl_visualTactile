@@ -1,3 +1,9 @@
+## 2026-11-15 held0与统一新训练实施边界
+
+contact_height_recheck_takeover_v1允许显式min_delay_ticks=0，首个12步持续抬起/双指接触窗口完成计数N后，由action index N真实接管；自然终止优先，无固定fallback。旧60/120不改，条件消失不等同原生掉落。held_root60的rigid-root距离仍只是采集调度，不称对孔或孔口距离。
+
+新有限loop按登记使用每轮新训练family、完整DP+后端、全部真实60Hz视觉历史；20遍B2曝光、随机合法起点与半数几何须有独立配置身份。后端继续模拟commit12真实计划，不采用每tick重新规划。GPU采集/CPU评估分别登记，不宣称两后端隐藏轨迹一致。每轮必须完整采集/训练/自主结束后才建立下一来源；失败、STOP、空间或剩余时间不足保留现场退出。实际后台运行须等主Agent观察一整轮及下一轮交接，脚本准备本身不是运行证据。
+
 # 2026-11-15 显式随机训练时刻与轮换几何
 
 training_sampling.json精确登记fresh_random_visit_training_v1。随机起点来自supervision_mask为真的全部60Hz动作时刻，每visit独立CPU SHA种子绑定identity/epoch/visit_index，不消费diffusion/deck RNG；数量=min(合法tick数,max(1,旧commit12有效anchor数))，无放回且排序。每轨history仍从真实tick0完整重算一次；未来truth只在loss。label尾部/控制segment合法mask不变。单轨及B2均支持；部署/后端输入准备仍12步更新，中间执行原计划。

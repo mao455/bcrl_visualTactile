@@ -1,0 +1,468 @@
+{
+  "version": "unified_sampling_training_check_public_v1",
+  "scope": {
+    "diagnostic_only": true,
+    "formal_training_completed": false,
+    "validation_used": false,
+    "test_used": false,
+    "autonomous_execution_performed": false,
+    "diagnostic_optimizer_updates": 4,
+    "diagnostic_wall_seconds": 11.786951780319214,
+    "export_method": "Derived only from the five completed JSON records below; no experiment rerun or raw/model/cache reread."
+  },
+  "sources": {
+    "result.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/unified_training_check01/result.json",
+      "bytes": 595733,
+      "sha256": "1a0750d82414584a26ef7c73dd050f00effce96f5fd5389821f1afd193bdcdc5"
+    },
+    "started.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/unified_training_check01/started.json",
+      "bytes": 523,
+      "sha256": "42badbbb8b1f86855437ace25163ee64ffe2d395bc1aeb7ced263233f718263b"
+    },
+    "A/inputs.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/unified_training_check01/A/inputs.json",
+      "bytes": 35148,
+      "sha256": "f44687adbbcd451eef3124163c30923eaf922d419365dd8a88cf8130028891eb"
+    },
+    "B/inputs.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/unified_training_check01/B/inputs.json",
+      "bytes": 34755,
+      "sha256": "2d9e32a3baf0350068ff2eec3065d61aa4c772cffc2dbb4e3378c302660b6952"
+    },
+    "launch.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/unified_training_check01_launch.json",
+      "bytes": 1284,
+      "sha256": "98ae1b35f872de2923751737ff84194579d2670d3d74226b2054f5a355f2bd8b"
+    }
+  },
+  "execution": {
+    "started_record": {
+      "version": "unified_random_visit_training_check_v1",
+      "started": 1794678072.8418517,
+      "deadline": 1794678642.8418517,
+      "original_deadline": 1794685791.0642202,
+      "maximum_updates": 4,
+      "source_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+      "worker_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_sampling_20261115",
+      "source_commit": "92e6b4347287e257e3fbe58466de78064df7aa8c",
+      "diagnostic_only": true,
+      "validation_used": false,
+      "test_used": false
+    },
+    "actual_launch_argv": [
+      "systemd-run",
+      "--user",
+      "--unit=tight-fresh-unified-training09-check01-20261115",
+      "--property=RuntimeMaxSec=600",
+      "--property=KillMode=control-group",
+      "--property=TimeoutStopSec=30",
+      "--property=MemoryHigh=6G",
+      "--property=MemoryMax=8G",
+      "--property=LimitNOFILE=65536",
+      "--property=WorkingDirectory=/home/CNS2025331827/docs/bc+rl_RSS_fresh_sampling_20261115",
+      "--setenv=OMP_NUM_THREADS=2",
+      "--setenv=MKL_NUM_THREADS=2",
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_sampling_20261115/.venv_isaacsim/bin/python",
+      "-m",
+      "tools.tight_fresh_training_check",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+      "--frozen-tree",
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+      "--resource-root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/unified_training_check01"
+    ],
+    "launch_resource_snapshot": {
+      "time": 1794678072.0867925,
+      "available_ram_bytes": 21671993344,
+      "free_gpu_mib": 16699,
+      "minimum_ram_bytes": 19327352832,
+      "minimum_gpu_mib": 10240
+    }
+  },
+  "input_bindings": {
+    "A": {
+      "frozen_source_root": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+      "sha256": {
+        "data": "455f70252ec2c5f985b4b59572c9b6ce105e5717b0ec7f0a81fde32c240999b1",
+        "statistics": "f0bb1012322f4d65dcb2c709e09c9858d1701d09198ee82791b9961f2fcdcfb5",
+        "cache_index": "5e50051b77a314d6fefc76dce0d0deb1e00f3f60d1983ed0db0d00468f9b26f7",
+        "checkpoint": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+        "numeric": "1df69ba6fa9270e5572ad1f993b00948c196224bd7cf31ef4007a146fe4c7d0a"
+      },
+      "identities": [
+        "formal_050_slow_3",
+        "r08_A_expanded_session06_new16_s28400000_fixed40"
+      ],
+      "source_files_verified": 206,
+      "target_window": "recovery_onset_commit12_v1",
+      "paths_relative_to_source_root": {
+        "checkpoint": "A/training/best.pt",
+        "data": "A/state_data/data.json",
+        "statistics": "A/state_data/statistics.pt",
+        "cache_index": "A/cache_index.json",
+        "numeric": "A/state_data/numeric.pt"
+      },
+      "train_only_projection": {
+        "data_sha256": "6095520a49b4fc0779f3a698e07603a2921e52e2fd7e75c2a2a0b9ecfbaa7f0c",
+        "numeric_sha256": "85a3272cd2397801ee4bc24c6fd19a17c0cba6fd01799be02d708dfc8c0136a4",
+        "numeric_tensor_bytes": 820061
+      },
+      "source_root_reference": "execution.started_record.source_root"
+    },
+    "B": {
+      "frozen_source_root": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+      "sha256": {
+        "data": "e566a1006a0ebbfa096d5e9d9a7d04582fb7ab7269ffa799423b0fcd39141f1a",
+        "statistics": "2c6b61dd50bdd0cf4fc887d7fa4096f6fb2877d934a7014eafdf7711340d7027",
+        "cache_index": "d83bd7e135c0b7565b42e40093f08d0db91e3b064f3cec5a8c50fefb28103883",
+        "checkpoint": "3be38a933824874a9697821e6a5bd2a95e7927e8ed25bcdc22ba537b3a466529",
+        "numeric": "b62b307eb610c9ce18244314948e17ebd1070b31fbeda3c706112333fcc97a40"
+      },
+      "identities": [
+        "formal_050_slow_3",
+        "r08_A_expanded_session06_new16_s28400000_fixed40"
+      ],
+      "source_files_verified": 206,
+      "target_window": "recovery_onset_commit12_v1",
+      "paths_relative_to_source_root": {
+        "checkpoint": "B/training/best.pt",
+        "data": "B/state_data/data.json",
+        "statistics": "B/state_data/statistics.pt",
+        "cache_index": "B/cache_index.json",
+        "numeric": "B/state_data/numeric.pt"
+      },
+      "train_only_projection": {
+        "data_sha256": "2c8935192cbe9e32e30f22445115f83f963669a4ff78db9608d266f686357919",
+        "numeric_sha256": "2546d5388c95d60abe13e981c47f008cd0efc880e26cd20d82ab8c84c396ba33",
+        "numeric_tensor_bytes": 820061
+      },
+      "source_root_reference": "execution.started_record.source_root"
+    }
+  },
+  "selected_next_cycle_profile": {
+    "version": "fresh_random_visit_training_v1",
+    "anchors": {
+      "version": "random_legal_action_anchors_v1",
+      "seed": 2026111501,
+      "population": "all_true_supervision_mask_ticks",
+      "replacement": false,
+      "count": "min_legal_ticks_max1_original_commit12_anchor_count",
+      "order": "ascending_selected_ticks",
+      "horizon": 24,
+      "rng": "independent_cpu_sha256_seed_identity_epoch_visit_index",
+      "history": "one_complete_real_history_encoding_per_visit",
+      "deployment": "unchanged_5Hz_commit12"
+    },
+    "geometry": {
+      "version": "legal_tick_half_phase_v1",
+      "fraction": 0.5,
+      "max_samples": null,
+      "commit": 12,
+      "population": "unique legal identity/tick in this visit selected anchors commit12",
+      "allocation": "proportional stage population with one per nonempty stage when feasible",
+      "rounding": "ceil population/2; stage floor then largest remaining proportional deficit",
+      "reduction": "mean selected unique configurations; no additional stage weights",
+      "rng": "explicit independent CPU generator per visit; never model/diffusion RNG",
+      "labels": "recorded diagnostic phases for sampling only; never network inputs"
+    }
+  },
+  "geometry_loss_configuration": {
+    "acceptance_sha256": "10ff0ce6d568176a2d2364645f90aa1eb11ef5cf81757b75ffc3fbf1e8d8a50e",
+    "live_sha256": "6a776b39519a508783e9920449a5b9bfd3b8ef9369773b5d9c4f026bb1b6ab38",
+    "loss_kind": "hand_surface_soft_hinge_v1",
+    "weight": 2.355370821894758e-06,
+    "hyperparameter_source": "prior accepted train-only physical geometry calibration; no test tuning"
+  },
+  "measured_rows": [
+    {
+      "role": "A",
+      "variant": "original_two",
+      "seconds": 1.752452532062307,
+      "peak_allocated_bytes": 5838227456,
+      "episode_open_s_shared": 0.0008126799948513508,
+      "loss": 0.0018991322722285986,
+      "gradient_norm": 0.039780426770448685,
+      "geometry_cpu_s": 0.06482156971469522,
+      "gradient_influence": {
+        "weighted_geometry_gradient_norm": 0.0003519086104646049,
+        "other_loss_gradient_norm": 0.03977685142518075,
+        "ratio": 0.008847070541179865,
+        "cosine": 0.005733472847111322,
+        "geometry_loss": 6.835049362052814e-07,
+        "scope": "Actual full-model gradients before clipping; extra reverse passes only in the unified diagnostic"
+      },
+      "visit_counts": {
+        "episodes": 2,
+        "anchors": 61,
+        "target_slots": 1420,
+        "visual_frames": 761,
+        "equal_trajectory_loss_weights": [
+          0.5,
+          0.5
+        ]
+      },
+      "geometry_configurations_by_episode": [
+        2,
+        2
+      ]
+    },
+    {
+      "role": "A",
+      "variant": "random_half",
+      "seconds": 1.1572884239722043,
+      "peak_allocated_bytes": 5838520832,
+      "episode_open_s_shared": 0.0008126799948513508,
+      "loss": 0.004545382224023342,
+      "gradient_norm": 0.07298426330089569,
+      "geometry_cpu_s": 0.2608762951567769,
+      "gradient_influence": {
+        "weighted_geometry_gradient_norm": 0.00017154481175574935,
+        "other_loss_gradient_norm": 0.0729688960433607,
+        "ratio": 0.0023509306164343144,
+        "cosine": 0.08844670994488743,
+        "geometry_loss": 2.113936943715089e-06,
+        "scope": "Actual full-model gradients before clipping; extra reverse passes only in the unified diagnostic"
+      },
+      "visit_counts": {
+        "episodes": 2,
+        "anchors": 61,
+        "target_slots": 1441,
+        "visual_frames": 761,
+        "equal_trajectory_loss_weights": [
+          0.5,
+          0.5
+        ]
+      },
+      "geometry_configurations_by_episode": [
+        78,
+        151
+      ]
+    },
+    {
+      "role": "A",
+      "variant": "random_cap32",
+      "seconds": 0.94549321802333,
+      "peak_allocated_bytes": 5838090240,
+      "episode_open_s_shared": 0.0008126799948513508,
+      "loss": 0.0045449985191226006,
+      "gradient_norm": 0.0729798823595047,
+      "geometry_cpu_s": 0.2008716152049601,
+      "gradient_influence": {
+        "weighted_geometry_gradient_norm": 0.00019305250805068036,
+        "other_loss_gradient_norm": 0.07296889624429703,
+        "ratio": 0.002645682174009431,
+        "cosine": 0.05561846743629136,
+        "geometry_loss": 1.7296582655035309e-06,
+        "scope": "Actual full-model gradients before clipping; extra reverse passes only in the unified diagnostic"
+      },
+      "visit_counts": {
+        "episodes": 2,
+        "anchors": 61,
+        "target_slots": 1441,
+        "visual_frames": 761,
+        "equal_trajectory_loss_weights": [
+          0.5,
+          0.5
+        ]
+      },
+      "geometry_configurations_by_episode": [
+        32,
+        32
+      ],
+      "anchors_reference": "coverage.half_visits: identical recorded selected anchors and complete histories for these two episodes"
+    },
+    {
+      "role": "B",
+      "variant": "random_starts",
+      "seconds": 0.4125228289049119,
+      "peak_allocated_bytes": 5310755840,
+      "episode_open_s_shared": 0.0009027989581227303,
+      "loss": 0.005090909544378519,
+      "gradient_norm": 0.08610483258962631,
+      "geometry_cpu_s": 0,
+      "visit_counts": {
+        "episodes": 2,
+        "anchors": 61,
+        "target_slots": 1441,
+        "visual_frames": 761,
+        "equal_trajectory_loss_weights": [
+          0.5,
+          0.5
+        ]
+      },
+      "anchors_reference": "coverage.half_visits: identical recorded selected anchors and complete histories for these two episodes"
+    }
+  ],
+  "coverage": {
+    "training_episodes": [
+      "formal_050_slow_3",
+      "r08_A_expanded_session06_new16_s28400000_fixed40"
+    ],
+    "old_geometry_selected_configurations": 4,
+    "half_geometry_distinct_identity_ticks": 229,
+    "half_geometry_unique_candidate_ticks": 456,
+    "full_episode_legal_tick_population": 719,
+    "non_native_grid_anchors_by_episode": [
+      22,
+      36
+    ],
+    "selected_anchors_by_episode": [
+      22,
+      39
+    ],
+    "interpretation": "229 distinct configurations versus 4 old selections across two real training trajectories. Half refers to unique legal ticks covered by this visit's selected anchors and their commit12 slots (456 candidates), not half of all 719 legal episode ticks. Duplicate slots do not multiply geometry weight.",
+    "stage_sampling": "Proportional phase allocation with integer rounding and minimum one per nonempty phase; actual fractions above disclose the singleton phase oversampling. Loss is the mean over selected unique configurations, with no extra phase weights. Diagnostic phases are sampling labels only, never model inputs. contact_lost denotes absent sensed contact after previous contact, not proven physical drop.",
+    "anchor_interpretation": "58/61 selected training anchors are off the original commit12 grid; the same two recorded histories remain complete. Deployment remains 5 Hz planning / commit12 / 60 Hz observations.",
+    "half_visits": [
+      {
+        "episode": "formal_050_slow_3",
+        "anchors": 22,
+        "target_ticks": 528,
+        "visual_frames": 261,
+        "loss_weight": 0.5,
+        "geometry": {
+          "attempted": 78,
+          "included": 78,
+          "dropped": 0,
+          "elapsed_s": 0.0895349271595478,
+          "update_selected_count": 78
+        },
+        "anchor_sampling": {
+          "epoch": 1,
+          "visit_index": 1,
+          "derived_seed": 6971181085973179145,
+          "selected_count": 22,
+          "non_native_grid_count": 22,
+          "selected_anchors_sha256": "dfe2b73b718eab3b0ffd80d0f61f204a4c10bf3fe54e3a67d6954e0d5dac911b"
+        },
+        "geometry_sampling": {
+          "selected_count": 78,
+          "eligible_commit_count": 264,
+          "eligible_unique_commit_count": 155,
+          "episode_legal_tick_count": 261,
+          "duplicate_commit_slots_removed": 109,
+          "phase_counts": {
+            "grasp_without_contact": {
+              "eligible": 33,
+              "selected": 17,
+              "fraction": 0.5151515151515151
+            },
+            "contact_not_held": {
+              "eligible": 38,
+              "selected": 19,
+              "fraction": 0.5
+            },
+            "contact_lost": {
+              "eligible": 12,
+              "selected": 6,
+              "fraction": 0.5
+            },
+            "held_rotating": {
+              "eligible": 27,
+              "selected": 13,
+              "fraction": 0.48148148148148145
+            },
+            "held_near_goal60": {
+              "eligible": 8,
+              "selected": 4,
+              "fraction": 0.5
+            },
+            "held_far": {
+              "eligible": 1,
+              "selected": 1,
+              "fraction": 1.0
+            },
+            "after_first_native_subgoal": {
+              "eligible": 36,
+              "selected": 18,
+              "fraction": 0.5
+            }
+          }
+        }
+      },
+      {
+        "episode": "r08_A_expanded_session06_new16_s28400000_fixed40",
+        "anchors": 39,
+        "target_ticks": 913,
+        "visual_frames": 500,
+        "loss_weight": 0.5,
+        "geometry": {
+          "attempted": 151,
+          "included": 151,
+          "dropped": 0,
+          "elapsed_s": 0.1713413679972291,
+          "update_selected_count": 151
+        },
+        "anchor_sampling": {
+          "epoch": 1,
+          "visit_index": 2,
+          "derived_seed": 4452900647147485383,
+          "selected_count": 39,
+          "non_native_grid_count": 36,
+          "selected_anchors_sha256": "bf74bdf6555cae5f0e783ca44d218a8d8bf53b86479461864e08999dacacf34b"
+        },
+        "geometry_sampling": {
+          "selected_count": 151,
+          "eligible_commit_count": 465,
+          "eligible_unique_commit_count": 301,
+          "episode_legal_tick_count": 458,
+          "duplicate_commit_slots_removed": 164,
+          "phase_counts": {
+            "grasp_without_contact": {
+              "eligible": 20,
+              "selected": 10,
+              "fraction": 0.5
+            },
+            "contact_not_held": {
+              "eligible": 152,
+              "selected": 76,
+              "fraction": 0.5
+            },
+            "contact_lost": {
+              "eligible": 53,
+              "selected": 27,
+              "fraction": 0.5094339622641509
+            },
+            "held_rotating": {
+              "eligible": 19,
+              "selected": 9,
+              "fraction": 0.47368421052631576
+            },
+            "held_near_goal60": {
+              "eligible": 20,
+              "selected": 10,
+              "fraction": 0.5
+            },
+            "held_far": {
+              "eligible": 1,
+              "selected": 1,
+              "fraction": 1.0
+            },
+            "after_first_native_subgoal": {
+              "eligible": 36,
+              "selected": 18,
+              "fraction": 0.5
+            }
+          }
+        }
+      }
+    ]
+  },
+  "decision": {
+    "next_formal_cycle": "Use random_half with max_samples=null; retain the existing geometry coefficient.",
+    "basis": "The measured half visit covers 229 real identity/tick locations with 0.2608762951567769 s of CPU geometry work. Its weighted geometry / other-loss full-model gradient norm ratio is 0.0023509306164343144 (about 0.235%); geometry contributes gradients without dominating the main loss in this diagnostic.",
+    "backup": "Keep cap32 available if actual formal-cycle cost requires a cap; this check does not choose it.",
+    "status": "This records a prospective configuration choice, not completion of formal training or improved grabbing, lifting, turning, alignment, or insertion."
+  },
+  "limitations": [
+    "Full update including optional gradient influence reverse passes, excludes shared episode open; sequential warm variants; no whole-cycle speed claim",
+    "Sequential warm variants and concurrent research workload prevent a causal speed comparison: cap32 0.94549321802333 s, half 1.1572884239722043 s, and old 1.752452532062307 s do not establish acceleration.",
+    "A rows include additional diagnostic gradient reverse passes; B has no geometry loss. Per-row times and peak memory are not complete-cycle throughput measurements.",
+    "Four disposable diagnostic updates on two training episodes do not measure learning benefit, generalization, or autonomous success. No formal checkpoint is adopted from this diagnostic."
+  ]
+}

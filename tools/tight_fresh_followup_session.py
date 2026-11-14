@@ -27,8 +27,21 @@ def file_binding(path, expected=None):
     return dict(path=str(path), sha256=digest, bytes=path.stat().st_size)
 
 
-def evaluated_pairs(source, evaluation, pairs):
+def evaluated_pairs(source, evaluation, pairs, *, allow_illegal_starts=False):
     """Require every registered case, including natural failures, to be complete."""
+    if allow_illegal_starts:
+        from tools.tight_fresh_collection_source import evaluated_role
+        plan=read(evaluation/'plan.json')
+        if plan.get('pairs')!=pairs or Path(plan.get('resource_root','')).resolve()!=source:
+            raise ValueError('Evaluation must bind the complete selected pair and source')
+        checked=evaluated_role(evaluation,'A',pairs['A'])
+        if any(checked['counts'][role]['legal']<1 for role in ('A','B')):
+            raise ValueError('Both roles require completed legal autonomous evidence')
+        return dict(root=str(evaluation),cases=len(plan['cases']),
+            case_results={name:row['result'] for name,row in checked['cases'].items()},
+            files=checked['files'],source_commit=checked['source_commit'],source_sha256=checked['source_sha256'],
+            initialization_counts=checked['counts'],
+            illegal_start_policy='Retain verified pre-action initialization rejects; not behavioral failures or replacement starts')
     plan = read(evaluation / 'plan.json')
     started = read(evaluation / 'run_started.json')
     finished = read(evaluation / 'result.json')
@@ -363,7 +376,7 @@ def audit_data_extension(source, data_source, role, session, *, allow_equal=Fals
         meaning='Collection/next-update pool only; selected weights retain their original data/cache identities')
 
 
-def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None):
+def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None,allow_illegal_starts=False):
     source = Path(source).resolve(strict=True)
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -404,7 +417,8 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
         raise ValueError('Independent output must be outside the original session and artifact roots')
     assert_quiescent(roots, receipts)
     source_pairs = {role:completed_pair(source, role) for role in ('A', 'B')}
-    evaluated = evaluated_pairs(source, evaluation, source_pairs)
+    eval_options=dict(allow_illegal_starts=True) if allow_illegal_starts else {}
+    evaluated = evaluated_pairs(source, evaluation, source_pairs,**eval_options)
     policy_evidence = {source:dict(selected_pairs=source_pairs, evaluation=evaluated)}
     for policy_root in set(policy_roots.values()) - {source}:
         selected_context, selected_registration = policy_contexts[policy_root]
@@ -418,7 +432,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
             raise ValueError('Role-specific policy task metadata or input gate differs')
         selected_pairs = {role:completed_pair(policy_root, role) for role in ('A', 'B')}
         policy_evidence[policy_root] = dict(selected_pairs=selected_pairs,
-            evaluation=evaluated_pairs(policy_root, policy_root/'development', selected_pairs))
+            evaluation=evaluated_pairs(policy_root, policy_root/'development', selected_pairs,**eval_options))
     pairs = {role:policy_evidence[policy_roots[role]]['selected_pairs'][role] for role in ('A', 'B')}
     gate = read(context/'gate.json')
     if gate.get('passed') is not True:
@@ -560,6 +574,7 @@ def main():
     parser.add_argument('--source-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--hours', type=float, required=True)
+    parser.add_argument('--allow-illegal-starts',action='store_true',help='Retain independently verified zero-action initialization rejects in a fully resolved cohort')
     parser.add_argument('--evaluation', type=Path, help='Completed autonomous evaluation, default source/development')
     parser.add_argument('--data-source-root', type=Path,
         help='Explicit larger train-only pool; selected weights and their original cache/data bindings stay unchanged')
@@ -573,7 +588,7 @@ def main():
             parser.error('--role-source requires one unique A=ROOT or B=ROOT binding per role')
         role_sources[role] = Path(path)
     binding = prepare(args.source_root, args.output, args.hours, evaluation=args.evaluation,
-        data_source=args.data_source_root, role_sources=role_sources)
+        data_source=args.data_source_root, role_sources=role_sources,allow_illegal_starts=args.allow_illegal_starts)
     print(json.dumps(dict(output=str(args.output.resolve()), deadline=binding['deadline'],
         selected_pairs=binding['selected_pairs'], workers_started=False)), flush=True)
 

@@ -1,0 +1,48 @@
+{
+  "version": "reviewed_retired_cache_cleanup_public_v1",
+  "receipt": {
+    "allocated_bytes": 57738022912,
+    "apply": true,
+    "candidate_count": 34,
+    "complete": true,
+    "deleted_allocated_bytes": 57738022912,
+    "deleted_files": 6873,
+    "dry_run": false,
+    "ended_utc": 1794678801.6861923,
+    "file_count": 6873,
+    "free_bytes_after": 221387919360,
+    "free_bytes_before": 165606776832,
+    "free_space_note": "Concurrent job writes can change observed free space; stat blocks are the selected allocation",
+    "manifest": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/disk_reclaim_candidates_03/manifest.json",
+    "manifest_sha256": "227dd90b685f5261f2000a92aa2e7029bceb05feaa7fd28ce8c60364655d6440",
+    "preflight_complete": true,
+    "scope": "Retired derived .pt and exact nonbest last only; no payload hashing; all parents and metadata retained",
+    "script_sha256": "f0e547d0d382284f2b36b092191a46f222a1fd1afea3af377bc147e7ff01fa12",
+    "started_utc": 1794678769.8580244,
+    "version": "retired_payload_cleanup_v1"
+  },
+  "receipt_sha256": "3dd14fb1c9852d5d6061459f25afd99698bdc3552d806a6e0cb9caca1bd74fdf",
+  "groups": {
+    "frozen_visual_cache": {
+      "directories_or_files": 8,
+      "allocated_bytes": 34612252672
+    },
+    "nominal_backend_dependency_cache": {
+      "directories_or_files": 15,
+      "allocated_bytes": 16089935872
+    },
+    "retired_nonbest_last": {
+      "directories_or_files": 11,
+      "allocated_bytes": 7035834368
+    }
+  },
+  "correction": "The first candidate census double-counted a symlink directory alias; strict dry-run rejected it before deletion. Manifest03 selects 6873 unique regular files / 34 groups, 53.77272415161133 GiB. Original rejected inventories are retained.",
+  "preserved": [
+    "all raw successful and failed trajectories",
+    "all fresh run caches and checkpoints",
+    "all best checkpoints and source statistics",
+    "all JSON/index metadata and parent directories",
+    "pretrained visual models"
+  ],
+  "scope": "Retired Nov9-12 derived caches and completed nonbest last snapshots only; no active source dependency selected."
+}

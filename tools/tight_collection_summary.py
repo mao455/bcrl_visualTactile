@@ -56,7 +56,7 @@ def source_audit(plan):
 def held_recheck(case, result, *, boundary=None):
     """Receipt-level classification, distinct from replay/physical audit below."""
     schedule = case['expansion_schedule']
-    if schedule not in ('held60', 'held120'):
+    if schedule not in ('held0', 'held60', 'held120'):
         return None
     if not result.get('legal'):
         return dict(category='invalid_initialization', receipt=None)

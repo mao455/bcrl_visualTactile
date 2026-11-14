@@ -21,9 +21,9 @@ def validate_trigger(configuration, fallback_tick):
         return dict(configuration)
     if isinstance(configuration,dict) and configuration.get('version')==HELD_RECHECK_VERSION:
         if (set(configuration)!={'version','min_delay_ticks'}
-                or type(configuration['min_delay_ticks']) is not int or configuration['min_delay_ticks'] not in (60,120)
+                or type(configuration['min_delay_ticks']) is not int or configuration['min_delay_ticks'] not in (0,60,120)
                 or type(fallback_tick) is not int or fallback_tick!=NEVER_FALLBACK):
-            raise ValueError('Held recheck v1 requires explicit minimum60/120 ticks and no fallback')
+            raise ValueError('Held recheck v1 requires explicit minimum0/60/120 ticks and no fallback')
         return dict(configuration)
     if isinstance(configuration,dict) and configuration.get('version')==HELD_NEAR_GOAL_VERSION:
         if (set(configuration)!={'version','delay_ticks','max_keypoint_distance_m'}
@@ -255,7 +255,8 @@ class HeldRecheckTrigger:
             nonheld_windows_after_first=self.nonheld_windows_after_first,
             first_contact_height_goal=self.first_contact_height_goal,latest_goal=self.latest_goal,
             target_change_transitions=self.target_change_transitions,cross_goal_wait_allowed=True,
-            rule='At least minimum60/120 ticks after the first12tick contact-height window, latest12 completed student transitions again satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation and intervening loss/recovery allowed',
+            rule=('At least minimum0 ticks after the first12tick contact-height window, latest12 completed student transitions satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation allowed' if self.configuration['min_delay_ticks']==0 else
+                'At least minimum60/120 ticks after the first12tick contact-height window, latest12 completed student transitions again satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation and intervening loss/recovery allowed'),
             indices='Completed transition count N schedules zero-based action N; earliest time alone never schedules a switch',
             missing_window_interpretation='Collection condition absent, not a native drop/fall or task failure decision',
             goal_interpretation='Recorded native goal before/after only; no distance criterion, no same-goal veto, no success inference',

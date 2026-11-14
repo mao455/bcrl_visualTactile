@@ -233,9 +233,9 @@ def validate_capture_binding(entry, metadata):
 
 
 def validate_schedule(schedule):
-    if schedule in ('fixed40', 'fixed80', 'contact0', 'contact12','near60','held60','held120','held_root60'):
+    if schedule in ('fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'):
         return schedule
-    raise ValueError('Schedule must be fixed40, fixed80, contact0, contact12, near60, held60, held120 or held_root60')
+    raise ValueError('Schedule must be fixed40, fixed80, contact0, contact12, near60, held0, held60, held120 or held_root60')
 
 
 def schedule_trigger(schedule):

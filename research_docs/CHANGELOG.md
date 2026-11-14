@@ -1,3 +1,11 @@
+## 2026-11-15 统一检查后接入持物即接管及有限连续流程
+
+- 新held0复用真实完成transition的持续12tick持物条件，min_delay=0后下一动作接管；原60/120语义不变。修改takeover_trigger、training_expansion、正式expansion与collection_summary；27项短CPU测试通过，尚无held0正式数据。
+- tight_fresh_followup_session显式allow_illegal_starts复用已有逐case审核，保留零动作非法初态与合法自主分母；不替换seed。默认要求全合法的旧行为保留，现有55项相关测试通过。
+- tight_fresh_research_loop登记有限轮次/独立采集评估后端/原session时钟、失败保全与新身份衔接；普通脚本不宣称科研判断。源码与实际脚本一同发布，尚未启动。
+- 统一真实检查4次更新完成，采用legal_tick_half_phase_v1；不同构型与真实梯度见sampling_training_review/check01.json，非正式学习或自主收益。
+- tight_retired_cache_cleanup默认dry-run，按已审阅manifest精确删除退役衍生.pt；6873文件/53.773GiB实际删除，raw/fresh/best/统计与所有目录保留。修正重复别名候选，旧拒绝记录保留。
+
 ## 2026-11-15 01:42 — 随机合法起点、几何覆盖和正式采集校验复用
 
 - anchor_sampling/continuous_vision/trajectory_batch及fresh_train/cycle：独立visit种子、完整history一次编码、真实非grid起点；fresh_visit_sampling记录不同anchor与几何位置并进入checkpoint恢复。旧默认及部署5Hz不变。
