@@ -77,6 +77,19 @@ def check_sensor_clock(packet,active,previous):
     return previous
 
 
+def check_sensor_clock_with_evidence(packet,active,previous,*,directory,env,control_tick):
+    """Keep acceptance unchanged; save the first failed real observation locally."""
+    try:
+        return check_sensor_clock(packet,active,previous)
+    except Exception as failure:
+        try:
+            from visuotactile.camera_failure_diagnostics import save_failure
+            save_failure(directory,packet,active,env,failure,control_tick=control_tick)
+        except Exception as diagnostic_error:
+            failure.add_note('Sensor failure snapshot could not be saved: '+repr(diagnostic_error))
+        raise
+
+
 def resource_snapshot(root,samples):
     row=read(root/'shared_resources.json')
     if not samples or samples[-1]['utc_epoch']!=row['utc_epoch']:samples.append(row)
@@ -181,7 +194,8 @@ def run(output):
             for tick in range(limit):
                 if not any(active):break
                 packet=env.research_packet
-                if diagnostic:check_sensor_clock(packet,active,camera_frames)
+                if diagnostic:check_sensor_clock_with_evidence(packet,active,camera_frames,
+                    directory=directory,env=env,control_tick=tick)
                 with lease.block():
                     start=time.perf_counter();command=controller.act(packet,env._diagnostics(),active)
                     if diagnostic:torch.cuda.synchronize()

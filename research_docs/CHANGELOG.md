@@ -1,3 +1,7 @@
+## 2026-11-14 Tiled真实失败现场保存
+
+新增camera_failure_diagnostics及probe失败分支：原相机/时钟有效性检查异常后才保存实际RGB-D/valid/frame/time/calibration packet与逐lane/view数值，另读回真实camera prim、image/calibration RP布局、annotator形状及descriptor/tile配置；有界256MiB且超限拒绝、不截断。正常路径无额外同步/写盘；保存成功或失败均传播原异常，未放宽阈值。20项相关CPU检查通过，新一次有界8lane单步诊断仍待启动；旧首帧缺失不能倒推根因。
+
 ## 2026-11-14 20:47 第六轮完整自主审查与下一采集来源
 
 第六轮完整训练→依赖刷新→后端→8自主已经自然结束，自有owner/Kit退出。A/B原生抬升各1/4、旧拿稳各2/4、允许转动的持续接触抬升各2/4，near/alignment/子目标/插入全部0/4。原生抬升与拿稳/接触抬升是不同分母；详见evidence/tight_fresh_20261114/round06_review。
