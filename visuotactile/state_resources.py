@@ -269,11 +269,40 @@ class SharedLease(Lease):
                 pacing_ratio=ratio, memory=self.memory(cuda)))+'\n')
 
 
+def owned_command_root(command, roots, *, cwd):
+    """Classify only a declared experiment root or its real descendants.
+
+    This is telemetry attribution, not authority to signal another process.
+    Resolve relative arguments in the worker's cwd and reject ambiguous roots.
+    """
+    arguments = []
+    for index, argument in enumerate(command):
+        if argument == '--root':
+            if index + 1 >= len(command) or not command[index + 1] or command[index + 1].startswith('--'):
+                return False
+            arguments.append(command[index + 1])
+        elif argument.startswith('--root='):
+            arguments.append(argument[len('--root='):])
+    if len(arguments) != 1 or not arguments[0]:
+        return False
+    candidate = Path(arguments[0])
+    if not candidate.is_absolute():
+        candidate = Path(cwd) / candidate
+    try:
+        candidate = candidate.resolve()
+        return any(candidate == root or root in candidate.parents for root in
+                   (Path(value).resolve() for value in roots))
+    except (OSError, RuntimeError, ValueError):
+        return False
+
+
 def monitor(root):
     guard = ResourceGuard(root/'resources', poll_s=1, cuda_metrics=False,
         min_gpu_free_mib=6144, min_ram_available_gib=12, max_gpu_mean_percent=None)
     restore_telemetry(guard)
-    atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time()))
+    atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time(),
+        source_sha256=__import__('hashlib').sha256(Path(__file__).read_bytes()).hexdigest(),
+        ownership_scope='declared_real_root_or_descendant_v1'))
     window = deque(); previous = None
     session=json.loads((root/'session.json').read_text())
     target=session.get('resource_target_percent')
@@ -296,14 +325,16 @@ def monitor(root):
                 pid, name, memory = [v.strip() for v in line.split(',', 2)]
                 try:
                     command = Path('/proc', pid, 'cmdline').read_bytes().decode().split('\0')
-                    owned = '--root' in command and Path(command[command.index('--root')+1]).resolve() in owned_roots
+                    owned = owned_command_root(command, owned_roots,
+                        cwd=Path('/proc', pid, 'cwd').resolve(strict=True))
                 except (OSError, IndexError):
                     owned = False
                 processes.append(dict(pid=int(pid), name=name, vram_mib=int(memory), owned=owned))
         except (OSError, ValueError, subprocess.SubprocessError) as error:
             errors.append(repr(error))
         row.update(gpu_processes=processes, external_gpu_processes=[p for p in processes if not p['owned']],
-            process_telemetry_errors=errors, external_throughput_available=False)
+            process_telemetry_errors=errors, external_throughput_available=False,
+            ownership_scope='declared_real_root_or_descendant_v1')
         reasons, ratio = policy(row, time.time())
         if session.get('resource_policy')=='full_gpu_v1':
             limits=session['resources'];ratio=0.

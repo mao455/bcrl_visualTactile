@@ -1,3 +1,9 @@
+## 2026-11-14 自有子目录worker的监控归属修复（待空闲边界接入）
+
+真实监控将当前round_04/B/backend缓存worker列为external，原因是state_resources只允许--root与登记根目录完全相同。新增owned_command_root按worker cwd解析实路径，准许登记根及真实子目录，拒绝同名前缀兄弟、逃逸symlink、重复/缺失参数及非法symlink；monitor启动同时记录源码SHA。24项资源/归属CPU测试通过，真实worker PID/启动tick/root参数复核由false纠正为true，证据resource_ownership_fix。此版本尚未替换活动监控，须在当前完整循环GPU空闲边界接入；不热改冻结训练树。
+
+本轮full_gpu_v1不按external字段节流，因此此错误没有触发额外pacing，整卡利用率/剩余内存读数仍是原观测；历史归属原文保留，不能用那些external标签推断无关任务抢卡。修复只改变遥测分类，不授予信号控制权限、不调整他人进程或当前资源余量。
+
 ## 2026-11-14 同合法命令的后端坐标诊断
 
 新增tight_fresh_anchor_coordinates，对第三轮77条准确新DP缓存及numeric逐项核验，使用相同20752训练合法tick与固定2062验证tick。比较实际专家目标在两种后端输出起点下的最小raw坐标：当前受限名义目标与候选上一实际执行器目标。原41纠偏首12共492tick，手指所需raw RMS当前A0.60549/B0.46419，候选共同0.32066；相邻合法tick的raw变化RMS当前A0.31665/B0.30964、候选0.14761。相同趋势出现在原30、纠偏后段及固定验证。label与numeric实际命令相等，A/B候选统计逐项相同，未跨接管mask洞/segment计算相邻差。

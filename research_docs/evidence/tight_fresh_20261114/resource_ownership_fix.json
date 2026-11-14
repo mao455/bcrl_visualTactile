@@ -1,0 +1,54 @@
+{
+  "utc": 1794632705.8171206,
+  "actual_monitor_snapshot": {
+    "pid": 3164034,
+    "utc_epoch": 1794632704.8463733,
+    "elapsed_s": 39770.74913823302,
+    "gpu_util_percent": 1.0,
+    "gpu_used_mib": 1561.0,
+    "gpu_free_mib": 22523.0,
+    "ram_available_bytes": 36790476800,
+    "process_rss_bytes": 12156928,
+    "cuda_allocated_bytes": null,
+    "cuda_reserved_bytes": null,
+    "rolling_60s_percent": 27.626949563913513,
+    "rolling_300s_percent": 49.803746834596,
+    "gpu_processes": [
+      {
+        "pid": 3520831,
+        "name": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_round04_train_20261114/.venv_isaacsim/bin/python",
+        "vram_mib": 778,
+        "owned": false
+      }
+    ],
+    "external_gpu_processes": [
+      {
+        "pid": 3520831,
+        "name": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_round04_train_20261114/.venv_isaacsim/bin/python",
+        "vram_mib": 778,
+        "owned": false
+      }
+    ],
+    "process_telemetry_errors": [],
+    "external_throughput_available": false,
+    "target_pacing_ratio": 0.0,
+    "pause_reasons": [],
+    "pacing_ratio": 0.0
+  },
+  "live_classification": [
+    {
+      "pid": 3520831,
+      "process_start_ticks": 169232050,
+      "old_owned": false,
+      "new_owned": true,
+      "root_argument": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round_04/B/backend"
+    }
+  ],
+  "source_sha256": "47559fa6170a85c10f6c0b2e31d62f3abf1d82555908557239501cb01487e6a9",
+  "tests": "24 focused CPU resource/ownership tests passed, including invalid foreign symlink resilience",
+  "live_monitor_replaced": false,
+  "scope": "Verified current nested experiment worker was mislabeled external by exact-root equality. New classifier resolves real descendants and worker-relative paths, rejecting siblings/symlink escapes/ambiguous arguments. Full-GPU policy has no external-process pacing, so this attribution fix does not change current training speed or reserve policy. Historical labels remain original and must not be used to infer unrelated GPU contention. Apply monitor revision only at an owned-worker idle boundary.",
+  "initial_classifier_source_sha256": "97358d504851f32b9d26f6201379f791027009f322c56773bdb5ecd898a536b0",
+  "review_verification_utc": 1794632781.158863,
+  "source_revision_note": "Final classifier additionally rejects invalid symlink resolution and records monitor source identity at startup; recorded absolute worker argument reclassified identically."
+}

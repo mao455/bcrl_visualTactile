@@ -1,3 +1,7 @@
+## 2026-11-14 研究子目录的资源归属修复
+
+state_resources.monitor的精确根目录匹配把本轮嵌套worker误标external。新增实路径子目录判断、worker相对cwd解析、兄弟/逃逸/歧义/坏symlink拒绝与启动源码SHA，测试test_state_resource_ownership及既有资源测试共24通过，真实当前worker归属复算通过。公开resource_ownership_fix，历史原监控保留，活动monitor尚未在空闲边界接入；full_gpu_v1当前不按该字段限速，未改变训练/物理/资源保留或任何无关进程。
+
 ## 2026-11-14 后端输出坐标的只读比较
 
 新增tools/tight_fresh_anchor_coordinates.py及round03_anchor_coordinates.json。真实77缓存绑定当前DP/data/numeric，全部合法命令和观察精确匹配；报告当前受限名义起点与上一实际目标起点的所需raw幅度/相邻变化，不改后端、执行器或训练。A/B共同目标的候选指标精确相同，总训练合法tick20752与既有曝光一致；相邻差排除不连续mask/segment。首12纠偏的候选幅度和平滑性较好，但相同可达范围/内部导数不支持将其称为容量修复或自主收益。候选未选择。
