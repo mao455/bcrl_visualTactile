@@ -6,7 +6,7 @@ lane's generator, recurrence and reset. Every active lane consumes its own real 
 import copy
 import torch
 from .native_controller import ResidualController
-from .models.native_vision import validate_vision_microbatch, vision_lane_budget
+from .models.native_vision import validate_vision_microbatch, validate_vision_tail_profile, vision_lane_budget
 
 
 def lane_tree(value, lane, count):
@@ -46,9 +46,10 @@ class CurrentFrame:
 
 class BatchedResidualController:
     def __init__(self, saved, metadata, dino, count, device='cuda:0', *, neural_batch=False,
-                 scheduler_index_mode='legacy', vision_microbatch=2):
+                 scheduler_index_mode='legacy', vision_microbatch=2, vision_tail_profile=None):
         self.vision_microbatch = validate_vision_microbatch(vision_microbatch)
-        self.vision_work = vision_lane_budget(0, self.vision_microbatch)
+        self.vision_tail_profile = validate_vision_tail_profile(vision_tail_profile)
+        self.vision_work = vision_lane_budget(0, self.vision_microbatch, vision_tail_profile=self.vision_tail_profile)
         self.vision_calls = 0
         if count < 1 or saved['contract'].get('visual_stride') != 1:
             raise ValueError('Positive lanes and explicit every-native-frame policy required')
@@ -84,14 +85,24 @@ class BatchedResidualController:
             return commands
         rgb = packet['image'][ids,:,:3].to(self.device)
         size = getattr(self, 'vision_microbatch', 2)
-        features = (self.dino.forward_lanes(rgb) if size == 2 else
-            self.dino.forward_lanes(rgb, vision_microbatch=size))
+        tail = getattr(self, 'vision_tail_profile', None)
+        if tail is None:
+            features = (self.dino.forward_lanes(rgb) if size == 2 else
+                self.dino.forward_lanes(rgb, vision_microbatch=size))
+        else:
+            features = self.dino.forward_lanes(rgb, vision_microbatch=size, vision_tail_profile=tail)
         if len(features) != len(ids):
             raise ValueError('DINO batch lost lane identity')
         if not hasattr(self, 'vision_work'):
-            self.vision_work = vision_lane_budget(0, size)
+            self.vision_work = vision_lane_budget(0, size, vision_tail_profile=tail)
             self.vision_calls = 0
-        work = vision_lane_budget(len(ids), size)
+        work = vision_lane_budget(len(ids), size, vision_tail_profile=tail)
+        if tail is not None:
+            if getattr(self.dino, 'last_lane_execution', None) != work:
+                raise ValueError('DINO did not report the actual registered exact-tail kernel shapes')
+            histogram = self.vision_work['kernel_image_batch_counts']
+            for shape, count in self.dino.last_lane_execution['kernel_image_batch_counts'].items():
+                histogram[shape] = histogram.get(shape, 0)+count
         for key in ('forward_features_calls', 'real_lanes', 'padding_lanes', 'real_images', 'processed_images'):
             self.vision_work[key] += work[key]
         self.vision_calls += 1
@@ -148,9 +159,15 @@ class BatchedResidualController:
         return report
 
     def vision_execution_report(self):
-        work = dict(getattr(self, 'vision_work', vision_lane_budget(0, getattr(self, 'vision_microbatch', 2))))
+        work = copy.deepcopy(getattr(self, 'vision_work', vision_lane_budget(0,
+            getattr(self, 'vision_microbatch', 2), vision_tail_profile=getattr(self, 'vision_tail_profile', None))))
         if work['real_lanes'] != sum(self.visual_frames):
             raise ValueError('Real vision work differs from consumed lane observations')
+        if work.get('vision_tail_profile') is not None and (
+                work['padding_lanes'] != 0 or work['processed_images'] != work['real_images']
+                or sum(int(size)*count for size,count in work['kernel_image_batch_counts'].items()) != work['processed_images']
+                or sum(work['kernel_image_batch_counts'].values()) != work['forward_features_calls']):
+            raise ValueError('Exact-tail work accounting differs from actual kernel shapes')
         return dict(work, controller_calls=getattr(self, 'vision_calls', 0),
             consumed_observations_per_lane=list(self.visual_frames),
             scope='Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure')

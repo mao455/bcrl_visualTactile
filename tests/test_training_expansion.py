@@ -147,8 +147,10 @@ def test_expanded_takeover_keeps_actual_reset_and_source_binding(setup_registry)
 
 
 @pytest.mark.parametrize('vision_microbatch',[None,16])
-def test_prepare_registers_both_roles_and_mixed_schedules_before_any_outcome(setup_registry, monkeypatch, vision_microbatch):
+@pytest.mark.parametrize('exact_tail',[False,True])
+def test_prepare_registers_both_roles_and_mixed_schedules_before_any_outcome(setup_registry, monkeypatch, vision_microbatch, exact_tail):
     from tools.tight_fresh_expansion import prepare
+    from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     setup = setup_registry
     session = dict(deadline=time.time()+1000, domain=setup['domain'], expert_sha256='expert_fixture')
     write(setup['source']/'session.json', session)
@@ -156,12 +158,15 @@ def test_prepare_registers_both_roles_and_mixed_schedules_before_any_outcome(set
     monkeypatch.setattr(h5py, 'File', lambda *a, **k: pytest.fail('Preparation must use metadata only'))
     output = setup['root']/'prepared'
     candidate = {} if vision_microbatch is None else dict(vision_microbatch=vision_microbatch)
+    if exact_tail:candidate['vision_tail_profile']=EXACT_TAIL_PROFILE
     plan = prepare(setup['source'], output, session_root=setup['source'], registry_id='prepared_fixture',
         seeds=[6000, 6001], partition_manifest=setup['partition'], frozen_families=setup['families'],
         schedules=['fixed40', 'contact0', 'fixed80'], existing_identities=['old'], lanes=8,
         event_seed=8000, round_index=7, **candidate)
     assert plan['batch']['vision_microbatch'] == (2 if vision_microbatch is None else vision_microbatch)
     assert 'vision_microbatch' not in plan['execution_backend']
+    if exact_tail:assert plan['batch']['vision_tail_profile']==EXACT_TAIL_PROFILE
+    else:assert 'vision_tail_profile' not in plan['batch']
     assert json.loads((output/'plan.json').read_text())['batch']['vision_microbatch'] == plan['batch']['vision_microbatch']
     assert len(plan['cases']) == 6
     assert plan['registered_new_training_families'] == 2

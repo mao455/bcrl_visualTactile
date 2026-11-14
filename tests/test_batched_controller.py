@@ -18,11 +18,16 @@ def test_consumed_frame_cannot_be_reused():
 
 
 @pytest.mark.parametrize('microbatch',[2,8])
-def test_batched_visuals_preserve_active_lane_and_episode_routing(microbatch):
+@pytest.mark.parametrize('exact_tail',[False,True])
+def test_batched_visuals_preserve_active_lane_and_episode_routing(microbatch,exact_tail):
     from types import SimpleNamespace
+    from visuotactile.models.native_vision import EXACT_TAIL_PROFILE,vision_lane_budget
+    tail=EXACT_TAIL_PROFILE if exact_tail else None
     class Dino:
         def forward_lanes(self,rgb,**kwargs):
-            assert kwargs==({} if microbatch==2 else dict(vision_microbatch=microbatch))
+            expected=({} if microbatch==2 else dict(vision_microbatch=microbatch)) if tail is None else dict(vision_microbatch=microbatch,vision_tail_profile=tail)
+            assert kwargs==expected
+            if tail is not None:self.last_lane_execution=vision_lane_budget(len(rgb),microbatch,vision_tail_profile=tail)
             return rgb[:,0,0,0,0,None]
     class Lane:
         def __init__(self):self.base=SimpleNamespace(dino=CurrentFrame());self.history=[]
@@ -33,6 +38,7 @@ def test_batched_visuals_preserve_active_lane_and_episode_routing(microbatch):
     c=object.__new__(BatchedResidualController)
     c.count=3;c.device='cpu';c.dino=Dino();c.lanes=[Lane() for _ in range(3)];c.visual_frames=[0,0,0]
     c.vision_microbatch=microbatch
+    if tail is not None:c.vision_tail_profile=tail
     p={'image':torch.arange(3.)[:,None,None,None,None].expand(3,3,5,2,2),
        'episode_id':torch.tensor([2,4,8]),'step_id':torch.tensor([0,23,7]),'actuator_target_rad':torch.ones(3,29)}
     out=c.act(p,{},[True,False,True]);c.observe_execution({'position_applied_rad':out},[True,False,True])
@@ -44,7 +50,11 @@ def test_batched_visuals_preserve_active_lane_and_episode_routing(microbatch):
     report=c.vision_execution_report()
     assert report['controller_calls']==1 and report['real_lanes']==2
     assert report['consumed_observations_per_lane']==[1,0,1]
-    assert report['padding_lanes']==microbatch-2 and report['processed_images']==3*microbatch
+    assert report['padding_lanes']==(0 if exact_tail else microbatch-2)
+    assert report['processed_images']==(6 if exact_tail else 3*microbatch)
+    if exact_tail:
+        assert report['vision_tail_profile']==tail and report['kernel_image_batch_counts']=={'6':1}
+    else:assert 'vision_tail_profile' not in report and 'kernel_image_batch_counts' not in report
     c.visual_frames[0]+=1
     with pytest.raises(ValueError,match='consumed'):c.vision_execution_report()
 

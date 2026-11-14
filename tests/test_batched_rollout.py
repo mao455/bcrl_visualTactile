@@ -46,7 +46,9 @@ def test_lane_metadata_binds_own_pose_intrinsics_and_tiled_calibration_without_m
 
 @pytest.mark.parametrize('microbatch',[None,8])
 @pytest.mark.parametrize('verification_workers',[0,2])
-def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_labels(tmp_path,monkeypatch,microbatch,verification_workers):
+@pytest.mark.parametrize('exact_tail',[False,True])
+def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_labels(tmp_path,monkeypatch,microbatch,verification_workers,exact_tail):
+    from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     import visuotactile.batched_rollout as rollout
     import visuotactile.batched_position_bridge as bridges
     import visuotactile.narrow_data as narrow
@@ -126,6 +128,8 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
     class Batch:
         def __init__(self,*args,**kwargs):
             assert kwargs['vision_microbatch']==(2 if microbatch is None else microbatch)
+            if exact_tail:assert kwargs['vision_tail_profile']==EXACT_TAIL_PROFILE
+            else:assert 'vision_tail_profile' not in kwargs
             self.lanes=[Student(i) for i in range(3)];students.extend(self.lanes);self.visual_frames=[0]*3
         def act(self,p,d,active):
             result=p['actuator_target_rad'].clone()
@@ -172,6 +176,7 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
     saved=dict(residual_version='test',configuration={})
     plan=dict(kind='takeover',batch=dict(seed=23,writer_bytes=32<<20),expert_sha256='e')
     if microbatch is not None:plan['batch']['vision_microbatch']=microbatch
+    if exact_tail:plan['batch']['vision_tail_profile']=EXACT_TAIL_PROFILE
     if verification_workers:plan['batch'].update(verification_workers=verification_workers,verification_max_pending=4)
     finished,profile=rollout.run_wave(env,player,NS(block=contextlib.nullcontext),tmp_path,cases,pair,saved,None,plan,0)
     assert [r['steps'] for _,r in finished]==[3,8]
@@ -194,6 +199,8 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
         assert len(writer['verification_process_pids'])>=1
     for lane,count in enumerate((3,8)):
         result=finished[lane][1];directory=tmp_path/f'case_{lane}'
+        if exact_tail:assert result['batch_execution']['vision_tail_profile']==EXACT_TAIL_PROFILE
+        else:assert 'vision_tail_profile' not in result['batch_execution']
         assert result['dagger']['expert_valid_ticks']==(0 if lane==0 else 3)
         assert result['dagger']['recovery_coverage']['switch_tick']==lane+1
         assert result['dagger']['trigger_receipt']['observed_ticks']==list(range(lane+1))

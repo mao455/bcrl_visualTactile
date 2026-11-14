@@ -4,6 +4,7 @@ import torch
 from torch import nn
 DINO_REVISION = "7764ea0f912e53c92e82eb78a2a1631e92725fc8"
 VISION_BATCH_VERSION = 'current_observation_lane_microbatch_v1'
+EXACT_TAIL_PROFILE = dict(version='current_observation_exact_tail_v1')
 
 
 def validate_vision_microbatch(value):
@@ -12,16 +13,35 @@ def validate_vision_microbatch(value):
     return value
 
 
-def vision_lane_budget(lanes, vision_microbatch=2):
+def validate_vision_tail_profile(value):
+    """Missing preserves the original fixed-size padded kernel contract."""
+    if value is None:
+        return None
+    if not isinstance(value, dict) or value != EXACT_TAIL_PROFILE:
+        raise ValueError('Unknown vision_tail_profile; exact tail requires its explicit version')
+    return dict(value)
+
+
+def vision_lane_budget(lanes, vision_microbatch=2, *, vision_tail_profile=None):
     """Image work for one call; padding is compute, never another observation."""
     size = validate_vision_microbatch(vision_microbatch)
+    profile = validate_vision_tail_profile(vision_tail_profile)
     if type(lanes) is not int or lanes < 0:
         raise ValueError('Expected a nonnegative real lane count')
     calls = (lanes + size - 1) // size
-    return dict(version=VISION_BATCH_VERSION, vision_microbatch=size,
+    result = dict(version=VISION_BATCH_VERSION, vision_microbatch=size,
         images_per_kernel=3*size, forward_features_calls=calls,
         real_lanes=lanes, padding_lanes=calls*size-lanes,
         real_images=3*lanes, processed_images=3*calls*size)
+    if profile is not None:
+        full, tail = divmod(lanes, size)
+        histogram = {str(3*size): full} if full else {}
+        if tail:
+            histogram[str(3*tail)] = 1
+        result.update(version=profile['version'], vision_tail_profile=profile,
+            images_per_kernel=None, max_images_per_kernel=3*size,
+            kernel_image_batch_counts=histogram, padding_lanes=0, processed_images=3*lanes)
+    return result
 
 
 class FrozenDinoSpatial(nn.Module):
@@ -61,13 +81,17 @@ class NativeDinoSpatial(FrozenDinoSpatial):
         return self.forward_lanes(rgb[None])[0]
 
     @torch.no_grad()
-    def forward_lanes(self, rgb, *, vision_microbatch=2):
+    def forward_lanes(self, rgb, *, vision_microbatch=2, vision_tail_profile=None):
         """Independent current observations in explicitly sized lane groups.
 
-        The final lane is duplicated to pad the final group. There is no temporal
-        pooling and no image from another lane enters an attention sequence.
+        By default the final lane is duplicated to pad the final group. The
+        explicit exact-tail candidate uses the final group's actual size.
+        Neither mode pools time or mixes images within an attention sequence.
         """
         size = validate_vision_microbatch(vision_microbatch)
+        profile = validate_vision_tail_profile(vision_tail_profile)
+        if profile is not None:
+            self.last_lane_execution = None
         if rgb.ndim != 5 or rgb.shape[1:] != (3, 3, 252, 448) or len(rgb) < 1:
             raise ValueError('Expected N current three-camera observations')
         if rgb.is_floating_point():
@@ -81,13 +105,24 @@ class NativeDinoSpatial(FrozenDinoSpatial):
         try:
             torch.backends.cuda.matmul.allow_tf32 = False
             with torch.backends.cudnn.flags(enabled=True, benchmark=False, deterministic=False, allow_tf32=True):
-                results = []
+                results = []; kernel_images = []
                 for start in range(0, len(rgb), size):
                     group = rgb[start:start+size]
                     count = len(group)
-                    if count < size:
+                    if count < size and profile is None:
                         group = torch.cat((group, group[-1:].expand(size-count, -1, -1, -1, -1)))
+                    if profile is not None:
+                        kernel_images.append(3*len(group))
                     results.append(super().forward(group)[:count])
-                return torch.cat(results)
+                result = torch.cat(results)
+                if profile is not None:
+                    work = vision_lane_budget(len(rgb), size, vision_tail_profile=profile)
+                    actual = {}
+                    for images in kernel_images:
+                        actual[str(images)] = actual.get(str(images), 0)+1
+                    if actual != work['kernel_image_batch_counts']:
+                        raise RuntimeError('Actual DINO kernel shapes differ from registered tail work')
+                    self.last_lane_execution = dict(work, kernel_image_batch_counts=actual)
+                return result
         finally:
             torch.backends.cuda.matmul.allow_tf32 = matmul

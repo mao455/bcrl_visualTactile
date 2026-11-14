@@ -1,7 +1,7 @@
 import torch
 import pytest
 from torch import nn
-from visuotactile.models.native_vision import NativeDinoSpatial,vision_lane_budget
+from visuotactile.models.native_vision import NativeDinoSpatial,vision_lane_budget,EXACT_TAIL_PROFILE
 
 
 class IndependentBackbone(nn.Module):
@@ -77,3 +77,42 @@ def test_budget_has_no_four_lane_cap_and_counts_no_work_for_empty_active_set():
     assert vision_lane_budget(200,128)['forward_features_calls']==2
     assert vision_lane_budget(200,128)['padding_lanes']==56
     assert vision_lane_budget(0,128)['processed_images']==0
+
+
+@pytest.mark.parametrize('lanes',[1,3,8,9])
+def test_exact_tail_backbone_receives_only_real_images_and_preserves_lane_values(lanes):
+    model=fixture()
+    rgb=torch.stack([torch.full((3,3,252,448),15+i*20,dtype=torch.uint8) for i in range(lanes)])
+    before=torch.get_rng_state().clone()
+    result=model.forward_lanes(rgb,vision_microbatch=8,vision_tail_profile=EXACT_TAIL_PROFILE)
+    expected_sizes=[24]*(lanes//8)+([3*(lanes%8)] if lanes%8 else [])
+    assert model.backbone.batch_sizes==expected_sizes
+    assert torch.equal(before,torch.get_rng_state())
+    work=model.last_lane_execution
+    assert work==vision_lane_budget(lanes,8,vision_tail_profile=EXACT_TAIL_PROFILE)
+    assert work['processed_images']==work['real_images']==3*lanes and work['padding_lanes']==0
+    tags=torch.cat(model.backbone.image_tags)
+    expected=(torch.arange(lanes).repeat_interleave(3)*20+15)/255
+    torch.testing.assert_close(tags,(expected-.485)/.229)
+    # The mock is explicitly image-independent; real CUDA/full-controller parity
+    # remains a separate gate and is not inferred from this CPU assertion.
+    fixed=fixture();baseline=fixed.forward_lanes(rgb,vision_microbatch=8)
+    assert torch.equal(result,baseline)
+    assert set(fixed.backbone.batch_sizes)=={24}
+    assert not hasattr(fixed,'last_lane_execution')
+    model(rgb[0]);assert model.backbone.batch_sizes[-1]==6
+
+
+@pytest.mark.parametrize('bad',[{},True,'exact',{'version':'unregistered'},dict(EXACT_TAIL_PROFILE,enabled=True)])
+def test_unknown_tail_identity_rejected_without_inference(bad):
+    model=fixture()
+    with pytest.raises(ValueError,match='vision_tail_profile'):
+        model.forward_lanes(torch.zeros(1,3,3,252,448,dtype=torch.uint8),vision_tail_profile=bad)
+    assert model.backbone.batch_sizes==[]
+    with pytest.raises(ValueError,match='vision_tail_profile'):vision_lane_budget(1,8,vision_tail_profile=bad)
+
+
+def test_old_default_work_report_has_exact_original_schema():
+    assert vision_lane_budget(3,8)==dict(version='current_observation_lane_microbatch_v1',vision_microbatch=8,
+        images_per_kernel=24,forward_features_calls=1,real_lanes=3,padding_lanes=5,real_images=9,processed_images=24)
+    assert vision_lane_budget(0,8,vision_tail_profile=EXACT_TAIL_PROFILE)['kernel_image_batch_counts']=={}

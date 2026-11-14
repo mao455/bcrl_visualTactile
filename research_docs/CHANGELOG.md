@@ -1,3 +1,11 @@
+## 2026-11-14 22:27 第八批实采完成与视觉尾块候选
+
+冻结d168195的new_family_08全部32机会及文件准入完成，owner exit0、自有组无遗留进程。29合法、3初态包围盒准入拒绝；14固定接管和5条件接管全部专家恢复成功，19条/5795合法专家tick，覆盖12个新训练family。near60仅A05一例触发并救回，B四例均未触发；学生自主成功0。owner1517.518秒，即45.074有效轨迹/h、13747.45合法专家tick/h；初态/接管配比与旧批不同，不作纯并行因果结论。6条fixed40学生前缀不够完整高度参考，窗口记不可用。
+
+来源A05/B06在8个独立新development初态上的完整批量自主已由tight-fresh-source08-eval-20261114.service启动，仍冻结d168195/CPU standard8/M8。已保留A seed28500003非法初态、0动作，不补种子或记为行为失败；完整结果待结束。下一第八轮将合并至118条、42个实际训练family（待aggregate核验），进行DP更新→缓存刷新→后端更新→同队列自主；原6validation保持独立。
+
+新增显式current_observation_exact_tail_v1，贯通native_vision、batched_controller/rollout、batch_run/eval、expansion和cycle评估入口；默认合同保留。实际骨干核形状与零padding计数受核验，允许末尾少量活动环境减少重复计算。主Agent66项相关CPU回归通过，Agent88项集合有重叠；真实相同观测门槛和正式收益尚待，不热改当前冻结流程。
+
 ## 2026-11-14 22:16 一步构型标签与真正规划跨度的CPU核对
 
 train99的27125合法专家tick核验q_before、同transition q_next、实际u和1/60s时钟。复制当前q的一步arm/hand RMSE为0.001197/0.017546rad；99.893%手臂单关节步差<=0.005rad，但手指仅49.042%，不能笼统称整手恒等。真实onset-aware 5Hz anchor固定当前q到未来24步，误差增到0.022976/0.281239rad，完整计划并非由一步小变化即可判断无意义。u-q_next包含动态跟踪、限制和接触，不是压力标签；本次没有据此贸然改变A监督。

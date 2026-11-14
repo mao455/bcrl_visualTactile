@@ -104,11 +104,12 @@ def resource_snapshot(root,samples):
 
 
 def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=None,roles=None,execution_backend=None,
-            vision_microbatch=2,failure_render_calls=0):
+            vision_microbatch=2,failure_render_calls=0,vision_tail_profile=None):
     import subprocess
     from visuotactile.narrow_data import direct_configuration
-    from visuotactile.models.native_vision import validate_vision_microbatch
+    from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
+    tail=validate_vision_tail_profile(vision_tail_profile)
     if type(count) is not int or count < 1:raise ValueError('Positive registered lanes; resource acceptance determines concurrency')
     options=probe_options(max_control_ticks,roles)
     from visuotactile.camera_render_probe import validate_render_probe
@@ -136,6 +137,7 @@ def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=N
         plan['execution_backend']=execution_backend
     if failure_render_calls:
         plan['failure_render_calls']=failure_render_calls
+    if tail is not None:plan['vision_tail_profile']=tail
     atomic_json(output/'plan.json',plan)
 
 
@@ -145,7 +147,7 @@ def run(output):
     from tools.tight_state import environment
     from visuotactile.state_resources import lease_for
     from visuotactile.batched_controller import BatchedResidualController
-    from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch
+    from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.narrow_data import configure_direct_reset_lanes
     from visuotactile.environment_rng import IsolatedEnvironment
     from visuotactile.live_collision import clearance
@@ -154,6 +156,8 @@ def run(output):
     import h5py
     plan=read(output/'plan.json');session=read(output/'session.json')
     vision_microbatch=validate_vision_microbatch(plan.get('vision_microbatch',2))
+    tail=validate_vision_tail_profile(plan.get('vision_tail_profile'))
+    vision_options={} if tail is None else dict(vision_tail_profile=tail)
     max_ticks=probe_options(plan.get('max_control_ticks'),plan['pairs'])['max_control_ticks']
     from visuotactile.camera_render_probe import validate_render_probe
     failure_render_calls=validate_render_probe(plan.get('failure_render_calls',0),max_control_ticks=max_ticks)
@@ -174,7 +178,7 @@ def run(output):
     if diagnostic:resource_snapshot(resource_root,resources)
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=count,**backend_kwargs)
     startup_seconds=time.perf_counter()-startup_began
-    atomic_json(output/'startup_timing.json',dict(seconds=startup_seconds,vision_microbatch=vision_microbatch))
+    atomic_json(output/'startup_timing.json',dict(seconds=startup_seconds,vision_microbatch=vision_microbatch,**vision_options))
     configure_direct_reset_lanes(env,[c['narrow_reset'] for c in plan['cases']])
     isolated=IsolatedEnvironment(env,plan['seed'])
     with lease.block():dino=NativeDinoSpatial().cuda().eval()
@@ -196,7 +200,7 @@ def run(output):
             saved=torch.load(pair['backend'],map_location='cpu',weights_only=False)
             metadata=env.research_metadata();metadata['config']=env.cfg.to_dict()
             controller=BatchedResidualController(saved,metadata,dino,count,neural_batch=plan.get('neural_batch',False),
-                scheduler_index_mode=scheduler_mode,vision_microbatch=vision_microbatch)
+                scheduler_index_mode=scheduler_mode,vision_microbatch=vision_microbatch,**vision_options)
         rows=[[] for _ in range(count)];outcomes=[None]*count;native_flags=[None]*count;camera_frames=[None]*count
         files=[h5py.File(directory/f'lane_{i}_numeric.h5','w') for i in range(count)]
         writers=[BufferedNumericWriter(f.create_group('episode'),32) for f in files]
@@ -298,13 +302,17 @@ def main():
     p.add_argument('--roles',nargs='+',choices=['A','B'])
     p.add_argument('--backend-json',type=Path)
     p.add_argument('--vision-microbatch',type=int,default=2)
+    p.add_argument('--vision-exact-tail',action='store_true',help='Explicit candidate: no padding of the final DINO lane group')
     p.add_argument('--failure-render-calls',type=int,default=0,choices=range(5),
         help='Only a one-tick diagnostic: preserve first failure, then at most four render-only state checks')
     args=p.parse_args()
+    from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
+    if args.stage=='run' and args.vision_exact_tail:
+        p.error('run uses the immutable prepared vision profile; --vision-exact-tail requires prepare')
     if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed,neural_batch=args.neural_batch,
         max_control_ticks=args.max_control_ticks,roles=args.roles,
         execution_backend=read(args.backend_json) if args.backend_json else None,vision_microbatch=args.vision_microbatch,
-        failure_render_calls=args.failure_render_calls)
+        failure_render_calls=args.failure_render_calls,vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None)
     else:run(args.output.resolve())
 
 

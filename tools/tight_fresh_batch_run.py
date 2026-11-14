@@ -14,10 +14,11 @@ from visuotactile.training_resources import atomic_json
 
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
             execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None,
-            verification_workers=0,verification_max_pending=4):
-    from visuotactile.models.native_vision import validate_vision_microbatch
+            verification_workers=0,verification_max_pending=4,vision_tail_profile=None):
+    from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
+    tail=validate_vision_tail_profile(vision_tail_profile)
     validate_verification_parameters(verification_workers,verification_max_pending)
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
@@ -41,6 +42,7 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
         verification_workers=verification_workers,verification_max_pending=verification_max_pending,
         ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend,expert_sha256=session['expert_sha256'])
+    if tail is not None:plan['batch']['vision_tail_profile']=tail
     atomic_json(output/'plan.json',plan)
     return plan
 
@@ -138,11 +140,12 @@ def run(output):
     from tools.tight_state import environment
     from visuotactile.batched_rollout import waves,run_wave
     from visuotactile.state_resources import lease_for
-    from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch
+    from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     from visuotactile.native_evaluation import exit_completed_kit_worker
     output=Path(output).resolve();plan=read(output/'plan.json');session=read(output/'session.json')
     vision_microbatch=validate_vision_microbatch(plan['batch'].get('vision_microbatch',2))
+    tail=validate_vision_tail_profile(plan['batch'].get('vision_tail_profile'))
     validate_verification_parameters(plan['batch'].get('verification_workers',0),
         plan['batch'].get('verification_max_pending',4))
     if plan.get('test_used') is not False or plan['batch']['version']!='whole_wave_complete_student_v1':
@@ -167,7 +170,8 @@ def run(output):
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=plan['batch']['lanes'],
         camera_content_validation=True,execution_backend=plan['execution_backend'])
     atomic_json(output/'initialization.json',dict(seconds=time.perf_counter()-started,lanes=env.num_envs,
-        execution_backend=plan['execution_backend'],vision_microbatch=vision_microbatch))
+        execution_backend=plan['execution_backend'],vision_microbatch=vision_microbatch,
+        **({} if tail is None else dict(vision_tail_profile=tail))))
     with lease.block():dino=NativeDinoSpatial().cuda().eval()
     saved={r:torch.load(pair['backend'],map_location='cpu',weights_only=False) for r,pair in plan['pairs'].items()}
     results=[];entries={};profiles=[]
@@ -206,9 +210,13 @@ def main():
     p.add_argument('--identities',nargs='+');p.add_argument('--delays',nargs='+',type=int);p.add_argument('--round',type=int,default=7)
     p.add_argument('--backend-json',type=Path);p.add_argument('--writer-mib',type=int,default=512)
     p.add_argument('--vision-microbatch',type=int,default=2)
+    p.add_argument('--vision-exact-tail',action='store_true',help='Explicit candidate: no padding of the final DINO lane group')
     p.add_argument('--verification-workers',type=int,default=0)
     p.add_argument('--verification-max-pending',type=int,default=4)
     a=p.parse_args()
+    from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
+    if a.stage=='run' and a.vision_exact_tail:
+        p.error('run uses the immutable prepared vision profile; --vision-exact-tail requires prepare')
     if a.stage=='run' and a.session_root is not None:
         p.error('run uses the immutable registered session; --session-root requires prepare')
     if a.stage=='run':run(a.output)
@@ -218,7 +226,8 @@ def main():
             identities=a.identities,delays=a.delays,round_index=a.round,
             execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20,
             vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None,
-            verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending)
+            verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending,
+            vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None)
 
 
 if __name__=='__main__':

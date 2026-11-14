@@ -1,3 +1,9 @@
+# 显式候选：当前观测视觉尾块
+
+`vision_tail_profile={"version":"current_observation_exact_tail_v1"}` 只改变同一控制时刻 DINO 最后一组的计算形状：M8 不足8个活动环境时处理实际 `3N` 张图，不复制填满。缺省仍使用原固定填充合同；不隐式改变旧计划或检查点。真实三视角、60Hz观测、各环境历史、5Hz规划、29维目标及模型参数不变。正式采集、批量评估、扩展初态采集和 cycle 的评估均必须在 prepare 时登记；运行不能临时切换。
+
+候选报告实际 backbone 核形状计数、真实/处理图数与各环境历史消费次数；非零填充或计数不符拒绝。CPU检查不代表CUDA数值或吞吐验收；须先用相同真实观测比较完整学生，再经正式流程测量。当前第八批和第八轮仍冻结原M8配置，未采用此候选。
+
 ## 2026-11-14 阶段拟合的因果保持基线
 
 train_only_selected_frontend_stage_fit_v2沿用新增train-only投影与独立source/selected完整历史前向，在实际规划anchor取robot[0:29]的q并保持commit12；B额外取robot[58:87]的动作前执行器target保持。两基线与DP严格共用同一合法label槽；不能用每个未来控制tick刷新后的观测冒充5Hz预测。source/selected的保持值和分母必须完全一致。v1旧compare仍保留身份，不补造基线结果。这些是预测误差参照，不是已经部署过的保持策略。

@@ -91,6 +91,7 @@ def test_prepare_default_compatibility_and_large_single_role_probe(tmp_path,monk
     assert 'max_control_ticks' not in old and 'execution_backend' not in old
     assert 'inference_scheduler_index_mode' not in old
     assert old['vision_microbatch']==2
+    assert 'vision_tail_profile' not in old
     assert 'failure_render_calls' not in old
     calls.clear()
     prepare(root,tmp_path/'probe',256,19,neural_batch=True,max_control_ticks=36,roles=['B'],
@@ -101,6 +102,11 @@ def test_prepare_default_compatibility_and_large_single_role_probe(tmp_path,monk
     assert new['inference_scheduler_index_mode']=='host'
     assert new['execution_backend']['camera_backend']=='tiled'
     assert new['vision_microbatch']==32 and 'vision_microbatch' not in new['execution_backend']
+    from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
+    prepare(root,tmp_path/'exact',8,20,max_control_ticks=36,roles=['A'],vision_microbatch=8,
+        vision_tail_profile=EXACT_TAIL_PROFILE)
+    exact=json.loads((tmp_path/'exact/plan.json').read_text())
+    assert exact['vision_tail_profile']==EXACT_TAIL_PROFILE and exact['vision_microbatch']==8
     with pytest.raises(ValueError):probe_options(36,['A','A'])
     with pytest.raises(ValueError):probe_options(36,[])
     with pytest.raises(ValueError,match='vision_microbatch'):

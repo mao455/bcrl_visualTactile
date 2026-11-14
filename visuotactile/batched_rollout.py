@@ -202,7 +202,9 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
     from .position_control import ExpertPositionBridge
     from .batched_position_bridge import BatchedExpertPositionBridge
     from .async_recording import SharedCaptureWriter, AsyncLaneRecorder
+    from .models.native_vision import validate_vision_tail_profile
     n=env.num_envs; capture=plan['kind']=='takeover'; start=time.perf_counter()
+    tail=validate_vision_tail_profile(plan['batch'].get('vision_tail_profile'))
     if not cases or len(cases)>n or len({case['role'] for case in cases})!=1:
         raise ValueError('One nonempty same-policy wave within allocated lanes is required')
     if capture:
@@ -217,6 +219,8 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
         vision_microbatch=plan['batch'].get('vision_microbatch',2),
         physics_seed=plan['batch']['seed']+wave_index,event_seed=plan['batch']['seed']+100000+wave_index,
         native_rng='One batch stream; independent policy generators and lane histories; no serial hidden-state equivalence')
+    vision_options={} if tail is None else dict(vision_tail_profile=tail)
+    batch.update(vision_options)
     # The opt-in backend provides CUDA stream isolation when requested.
     isolated=IsolatedEnvironment(env,batch['physics_seed'])
     with lease.block():
@@ -229,7 +233,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
         if saved['configuration'].get('execution_adapter'):
             metadata['execution_adapter']=saved['configuration']['execution_adapter']
         controller=BatchedResidualController(saved,metadata,dino,n,neural_batch=True,scheduler_index_mode='host',
-            vision_microbatch=batch['vision_microbatch'])
+            vision_microbatch=batch['vision_microbatch'],**vision_options)
         active=[clearance(env,lane=i)['legal'] if i<len(cases) else False for i in range(n)]
     daggers=[];triggers=[];directories=[];recorders=[];numerics=[];writers=[]
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n;results={}
