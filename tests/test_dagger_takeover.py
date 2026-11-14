@@ -400,3 +400,26 @@ def test_dynamic_schedule_preserves_actual_source_and_queue_flush():
     assert sources==[0,0,0,1,1,1,1,1]
     assert valid==[False]*6+[True]*2
     with pytest.raises(ValueError):bridge.schedule_takeover(8)
+
+
+def test_previous_target_anchor_identity_names_real_composition_and_rejects_mismatch(tmp_path):
+    from visuotactile.state_benchmark import dagger_policy_identity
+    from visuotactile.compact import sha256
+    from visuotactile.models.native_dp import TargetResidual
+    from visuotactile.residual_output import REACHABLE_PREVIOUS_TARGET_OUTPUT
+    front=tmp_path/'front.pt';front.write_bytes(b'frontend identity')
+    rear=tmp_path/'rear.pt';rear.write_bytes(b'backend identity')
+    config=dict(base_checkpoint=str(front),base_sha256=sha256(front))
+    saved=dict(group='I-HistoryDP',residual_version=TargetResidual.version,updates=5,
+        configuration=config,contract=dict(supervision='u_expert',modality='G00'))
+    old=dagger_policy_identity(saved,rear)
+    assert 'output_anchor' not in old
+    new=dict(saved,configuration=dict(config,output_contract=REACHABLE_PREVIOUS_TARGET_OUTPUT),
+        residual_output_version=REACHABLE_PREVIOUS_TARGET_OUTPUT['version'])
+    identity=dagger_policy_identity(new,rear)
+    assert identity['output_anchor']=='actual_pre_action_actuator_target_rad'
+    assert identity['residual_output_contract']==REACHABLE_PREVIOUS_TARGET_OUTPUT
+    assert 'full nominal plan input' in identity['composition']
+    assert identity['frontend_sha256']==old['frontend_sha256']
+    for malformed in [dict(new,residual_output_version=None),dict(new,configuration=config)]:
+        with pytest.raises(ValueError,match='output-anchor identity'):dagger_policy_identity(malformed,rear)

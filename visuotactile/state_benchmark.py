@@ -91,7 +91,7 @@ def dagger_policy_identity(saved, checkpoint):
         raise ValueError('DAgger complete policy requires known frontend supervision')
     from .position_control import validate_execution_adapter
     adapter = validate_execution_adapter(cfg.get('execution_adapter'))
-    return dict(version='complete_student_policy_v1', controller='ResidualController',
+    identity = dict(version='complete_student_policy_v1', controller='ResidualController',
         frontend=str(frontend.resolve()), frontend_sha256=cfg['base_sha256'],
         backend=str(Path(checkpoint).resolve()), backend_sha256=sha256(checkpoint),
         residual_version=saved['residual_version'], supervision=supervision, supervision_inference=inference,
@@ -99,6 +99,17 @@ def dagger_policy_identity(saved, checkpoint):
         composition='bounded nominal plus Transformer correction; actual issued/applied feedback',
         execution_adapter=adapter,
         zero_correction_is_valid=True)
+    from .residual_output import REACHABLE_PREVIOUS_TARGET_OUTPUT
+    output_contract = cfg.get('output_contract')
+    if (output_contract == REACHABLE_PREVIOUS_TARGET_OUTPUT
+            or saved.get('residual_output_version') == REACHABLE_PREVIOUS_TARGET_OUTPUT['version']):
+        if (output_contract != REACHABLE_PREVIOUS_TARGET_OUTPUT
+                or saved.get('residual_output_version') != REACHABLE_PREVIOUS_TARGET_OUTPUT['version']):
+            raise ValueError('Complete policy output-anchor identity differs from checkpoint')
+        identity.update(residual_output_contract=dict(output_contract),
+            output_anchor='actual_pre_action_actuator_target_rad',
+            composition='previous actual actuator target plus Transformer increment; full nominal plan input; common final reachable projection')
+    return identity
 
 
 def dagger_recovery_coverage(arrays, group):

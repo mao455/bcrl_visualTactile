@@ -1,3 +1,7 @@
+## 2026-11-14 可选后端输出起点的完整策略身份
+
+previous-target候选的完整策略身份现在明确记录actual_pre_action_actuator_target_rad起点、输出合同和“上一实际目标加Transformer增量、完整DP计划仍输入、共同最终投影”的组合；配置与checkpoint输出版本不一致直接拒绝。当前名义起点的既有身份逐字段不变，避免误把候选记录成名义目标加修正。67项接管/输出/对照CPU测试通过，第四轮真实A/B身份重算与原plan完全一致；活动第五轮冻结源码未改，候选尚未训练/部署。
+
 ## 2026-11-14 后续时段的来源选模凭据
 
 study_onset的source分析从登记checkpoint真实路径读取原selected.json并记录其SHA；独立session只链接best/finished，不再假设它复制了整个training目录。仍核验选中后端及前端/cache/data身份，不改来源收据或重新选模。此前第五轮与所有旧报告不受影响；此修改供完整pair审查后的新对照使用。
