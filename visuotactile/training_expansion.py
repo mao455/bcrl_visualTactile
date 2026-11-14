@@ -233,16 +233,18 @@ def validate_capture_binding(entry, metadata):
 
 
 def validate_schedule(schedule):
-    if schedule in ('fixed40', 'fixed80', 'contact0', 'contact12','near60','held60','held120'):
+    if schedule in ('fixed40', 'fixed80', 'contact0', 'contact12','near60','held60','held120','held_root60'):
         return schedule
-    raise ValueError('Schedule must be fixed40, fixed80, contact0, contact12, near60, held60 or held120')
+    raise ValueError('Schedule must be fixed40, fixed80, contact0, contact12, near60, held60, held120 or held_root60')
 
 
 def schedule_trigger(schedule):
-    from .takeover_trigger import CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION
+    from .takeover_trigger import CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
     validate_schedule(schedule)
     if schedule=='near60':
         return dict(version=HELD_NEAR_GOAL_VERSION,delay_ticks=0,max_keypoint_distance_m=.06)
+    if schedule=='held_root60':
+        return dict(version=HELD_ROOT_GOAL_VERSION,delay_ticks=0,max_root_distance_m=.06)
     if schedule.startswith('held'):
         return dict(version=HELD_RECHECK_VERSION,min_delay_ticks=int(schedule[4:]))
     if schedule.startswith('contact'):

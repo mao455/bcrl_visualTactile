@@ -10,7 +10,7 @@ def audit_trigger_case(directory, result):
     """Recompute scheduling solely from saved completed student transitions."""
     import h5py
     import numpy as np
-    from visuotactile.takeover_trigger import make_trigger, observe_transition, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION
+    from visuotactile.takeover_trigger import make_trigger, observe_transition, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
     dagger=result.get('dagger',{})
     config=dagger.get('configuration',{})
     if config.get('trigger') is None: return None
@@ -24,7 +24,11 @@ def audit_trigger_case(directory, result):
     actual=dagger['recovery_coverage']['switch_tick']
     if actual is not None and actual!=trigger.scheduled_tick:
         raise ValueError('Actual authority switch differs from causal schedule')
-    if config['trigger']['version'] == HELD_RECHECK_VERSION:
+    if config['trigger']['version'] == HELD_ROOT_GOAL_VERSION:
+        category='ended_before_takeover' if actual is None else 'student_held_root_near_goal_then_takeover'
+        if actual is not None and trigger.reason!='completed_student_held_root_near_goal_window_plus_delay':
+            raise ValueError('Root-proximity expert switch lacks a completed causal held window')
+    elif config['trigger']['version'] == HELD_RECHECK_VERSION:
         category='ended_before_takeover' if actual is None else 'student_held_recheck_then_takeover'
         if actual is not None and trigger.reason!='completed_student_contact_height_rechecked_after_min_delay':
             raise ValueError('Rechecked held expert switch lacks a current completed causal window')
@@ -76,6 +80,9 @@ def takeover(collection,output):
         'fallback_without_stable_grasp','fallback_without_contact_height','fallback_before_requested_delay','ended_before_takeover']
     if any(c['trigger'] is not None and c['trigger']['receipt']['configuration']['version']==HELD_RECHECK_VERSION for c in cases):
         categories.append('student_held_recheck_then_takeover')
+    from visuotactile.takeover_trigger import HELD_ROOT_GOAL_VERSION
+    if any(c['trigger'] is not None and c['trigger']['receipt']['configuration']['version']==HELD_ROOT_GOAL_VERSION for c in cases):
+        categories.append('student_held_root_near_goal_then_takeover')
     counts={role:dict(opportunities=sum(c['role']==role for c in cases),
         legal=sum(c['role']==role and bool(c['legal']) for c in cases),
         expert_successes=sum(c['role']==role and bool(c['expert_takeover_success']) for c in cases),

@@ -1,3 +1,9 @@
+## 2026-11-15 01:09 — 独立持物root近目标入口与真实恢复失败记录
+
+- takeover_trigger/training_expansion与fresh_expansion、stage_takeover、report、batch_run、batch_collection_review新增显式held_root60；已完成post rigid-root/当前goal前后一致/held12，方向不设门槛，原near60与成功语义保持。
+- 新test_held_root_goal_trigger覆盖双子步接触、goal切换、边界、lane独立、真实HDF回放、登记防漂移和末帧无下一动作；主Agent组合137项通过。near_root_takeover_review绑定真实8条train审计和A52假设触发，无新采集。
+- 冻结761f53b B2实际更新/磁盘恢复gate完成但逐值后续更新不通过，明确未采用并保留5诊断更新/15.231秒现场。当前87577e8完整采集/下一轮未改。
+
 ## 2026-11-15 00:57 — A半批成功后段覆盖证据
 
 - `collection09_registration/A64.json`：64合法/26接管/23成功、6098合法专家步；held24/7/6/957与5个旧stable排除但成功边界/763步，实际来源和私有审计SHA齐全。

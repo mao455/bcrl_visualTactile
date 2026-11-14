@@ -94,7 +94,7 @@ def review(root):
             rows.append(dict(common, boundary=None, expert_recovery_success=False,causal_condition_met=None))
             continue
         receipt=(audit.get('trigger') or {}).get('receipt',{})
-        event_key=next((key for key in ('first_rechecked_contact_height_window_end_completed_tick','first_held_near_goal_window_end_completed_tick',
+        event_key=next((key for key in ('first_rechecked_contact_height_window_end_completed_tick','first_held_root_near_goal_window_end_completed_tick','first_held_near_goal_window_end_completed_tick',
             'first_contact_height_window_end_completed_tick','first_stable_window_end_completed_tick') if key in receipt),None)
         causal_condition_met=receipt[event_key] is not None if event_key is not None else None
         require(result['residual_ticks'] == result['steps'] and result['residual_forward_ticks'] == result['steps'],
@@ -223,6 +223,7 @@ def review(root):
             held='12 completed transitions, both physics samples >=2 fingers >0.1N and height>=settled+2cm; rotation allowed.',
             rotation='Palm-relative rotation over the same past12 window exceeds0.2rad; does not identify intent, slip or drop.',
             near60='Diagnostic coverage only; native keypoint15mm success unchanged.',
+            held_root60='Current post-step world rigid-root to unchanged current goal-root<=60mm plus held12; no orientation gate, native near/alignment or hole-mouth claim.',
             after_first_subgoal='Pre-action native stage>0; task later-goal/insertion motions, not a new success definition.',
             authority='Expert recovery and its later insertion do not establish student autonomous success.'),
         optimizer_updates=0, simulator_starts=0, test_trajectories_opened=0)

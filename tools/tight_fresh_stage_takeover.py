@@ -10,7 +10,7 @@ import time
 
 from tools.tight_fresh_rollouts import completed_pair, read
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION
+from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
 from visuotactile.training_resources import atomic_json
 
 CONTRACT = 'stable_only_takeover_v1'
@@ -25,6 +25,8 @@ def trigger_contract(version):
         return CONTACT_HEIGHT_CONTRACT, 'contact_height_only', 'contact_height', 'first_contact_height_window_end_completed_tick'
     if version == HELD_NEAR_GOAL_VERSION:
         return 'held_near_goal_only_takeover_v1','held_near_goal_only','held_near_goal','first_held_near_goal_window_end_completed_tick'
+    if version == HELD_ROOT_GOAL_VERSION:
+        return 'held_root_near_goal_only_takeover_v1','held_root_near_goal_only','held_root_near_goal','first_held_root_near_goal_window_end_completed_tick'
     if version == HELD_RECHECK_VERSION:
         return 'held_recheck_only_takeover_v1','held_recheck_only','held_recheck','first_rechecked_contact_height_window_end_completed_tick'
     raise ValueError('Unknown explicit stage trigger version')

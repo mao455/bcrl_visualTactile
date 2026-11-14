@@ -168,11 +168,12 @@ def admit_capture(output,case,result,pair,plan,entries):
     else:
         audit_name,category,stage_audit=classify_capture(directory,case,result,plan)
     causal=case.get('dagger',{}).get('trigger') is not None
-    from visuotactile.takeover_trigger import HELD_NEAR_GOAL_VERSION
+    from visuotactile.takeover_trigger import HELD_NEAR_GOAL_VERSION,HELD_ROOT_GOAL_VERSION
     near_goal=(case.get('dagger',{}).get('trigger') or {}).get('version')==HELD_NEAR_GOAL_VERSION
+    root_goal=(case.get('dagger',{}).get('trigger') or {}).get('version')==HELD_ROOT_GOAL_VERSION
     atomic_json(directory/audit_name,dict(category=category,causal_trigger=stage_audit,
         source_plan_sha256=sha256(output/'plan.json'),no_expert_fallback=True if causal else None,
-        expert_schedule=('causal_held_near_goal_window' if near_goal else
+        expert_schedule=('causal_held_root_near_goal_window' if root_goal else 'causal_held_near_goal_window' if near_goal else
             'causal_contact_window' if causal else 'preregistered_fixed_tick'),
         expansion_schedule=case.get('expansion_schedule'),training_expansion=case['spec'].get('training_expansion'),
         not_autonomous_success=bool(result.get('dagger',{}).get('expert_ticks',0))))

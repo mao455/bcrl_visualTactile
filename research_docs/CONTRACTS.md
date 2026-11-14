@@ -1,3 +1,9 @@
+## held_root60 持物接近当前目标根部的独立采集入口
+
+`held_root_near_goal_then_delay_v1`沿用held12：12个已完成60Hz transition都抬高至少2cm，每tick两个120Hz样本均有至少两指物体接触力>0.1N；高度参考是completed25–48的中位数。当前transition第二个物理子步后的world rigid-root到当前目标rigid-root距离<=60mm，当前transition前后goal pose与stage完全一致，下一动作接管、delay0、无超时fallback。不是COM/keypoint距离，不加方向角门槛；角度和原生关键点误差只记诊断。真值只用于采集触发和审核，不进学生条件。
+
+旧`near60`仍要求原生keypoint<=60mm，两个入口身份独立。当前第一目标root在孔root上方186mm，因此root接近不等于到孔口或原生near/alignment；成功标准和时钟保持。末帧刚满足却没有下一动作时不计实际接管。串行、batch和关闭HDF回放共用因果读取，逐lane独立状态。A52历史265tick回放只是候选覆盖证据，0真实新专家动作；当前冻结87577e8的128计划不变。
+
 ## 显式完整轨迹B2优化合同
 
 `full_trajectory_batch_v1`以原登记deck相邻两个visit为一batch；同ID出现两次仍各自完整重建历史，尾单轨保留，不跨epoch拼批。逐轨损失在实际batch内取均值，paired每轨系数1/2、singleton系数1；每batch只做一次clip/AdamW/EMA，学习率和epoch数不自动缩放。因此与逐轨连续AdamW不是同一优化方法，必须同时登记episode visits、optimizer updates、EMA updates。显式profile与数据/实际multiplicity/预算写入cycle、checkpoint与finished；缺flag不能把已登记B2根静默恢复为单轨。
