@@ -1,0 +1,775 @@
+{
+  "version": "round09_frontend_json_receipts_v1",
+  "created_utc": 1794680902.2160597,
+  "source_commit": "87577e84f5f9183ba739e483b34729029629bb99",
+  "frontend_complete": true,
+  "backend_scope": "Not audited here; still running when this report was requested",
+  "method": {
+    "optimizer_trajectory_batch": 1,
+    "training_anchor_rule": "existing deterministic legal planning_anchors on commit12 grid",
+    "horizon": 24,
+    "planning_hz": 5,
+    "control_hz": 60,
+    "full_real_history_each_visit": true,
+    "latest_repeat": 2,
+    "b2_trained": false,
+    "random_training_anchors": false,
+    "rotating_geometry_candidate_trained": false,
+    "eager_visual_io": false,
+    "offline_metrics_anchor_batch": 32
+  },
+  "populations": {
+    "training_trajectories": 170,
+    "latest_accepted": 52,
+    "latest_families": 34,
+    "latest_raw_legal_expert_ticks": 14572,
+    "latest_held_trajectories": 13,
+    "latest_held_families": 12,
+    "latest_held_raw_legal_expert_ticks": 2049
+  },
+  "roles": {
+    "A": {
+      "selected_checkpoint_sha256": "3db1c72ae257364bb551fabd196468c3c7a246dfbc9025c49e560fd247551ebf",
+      "source_checkpoint_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+      "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+      "completed_frontend_seconds": 1583.7501822561026,
+      "initial_validation": {
+        "selection": 0.007361774332821369,
+        "arm_rmse_rad": 0.006333980243653059,
+        "hand_rmse_rad": 0.05580635368824005
+      },
+      "selected": {
+        "epoch": 10,
+        "optimizer_updates": 2220,
+        "episode_visits": 2220,
+        "anchors": 53710,
+        "legal_H24_target_slots": 1227280,
+        "validation": {
+          "selection": 0.006492374464869499,
+          "arm_rmse_rad": 0.005690053105354309,
+          "hand_rmse_rad": 0.05226103961467743
+        },
+        "latest52": {
+          "trajectories": 52,
+          "visits": 1040,
+          "anchors": 25400,
+          "legal_H24_target_slots": 578360,
+          "visits_per_trajectory": [
+            20
+          ],
+          "share_all_legal_H24_target_slots": 0.4712535036829411
+        },
+        "held13": {
+          "trajectories": 13,
+          "visits": 260,
+          "anchors": 3660,
+          "legal_H24_target_slots": 80300,
+          "visits_per_trajectory": [
+            20
+          ],
+          "share_all_legal_H24_target_slots": 0.06542924190078873
+        },
+        "exposure_by_source": {
+          "current_correction": {
+            "optimizer_episodes": 1040,
+            "visual_frames": 430440,
+            "anchors_seen": 25400,
+            "target_ticks": 578360
+          },
+          "historical_correction": {
+            "optimizer_episodes": 880,
+            "visual_frames": 355540,
+            "anchors_seen": 19530,
+            "target_ticks": 444560
+          },
+          "original": {
+            "optimizer_episodes": 300,
+            "visual_frames": 103980,
+            "anchors_seen": 8780,
+            "target_ticks": 204360
+          }
+        },
+        "latest_by_schedule": {
+          "contact0": {
+            "trajectories": 8,
+            "visits": 160,
+            "anchors": 4300,
+            "legal_H24_target_slots": 98780,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.08048693044781957
+          },
+          "fixed40": {
+            "trajectories": 7,
+            "visits": 140,
+            "anchors": 3960,
+            "legal_H24_target_slots": 91480,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.07453881754774787
+          },
+          "fixed80": {
+            "trajectories": 24,
+            "visits": 480,
+            "anchors": 13480,
+            "legal_H24_target_slots": 307800,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.25079851378658496
+          },
+          "held120": {
+            "trajectories": 3,
+            "visits": 60,
+            "anchors": 620,
+            "legal_H24_target_slots": 13300,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.010836972817938856
+          },
+          "held60": {
+            "trajectories": 10,
+            "visits": 200,
+            "anchors": 3040,
+            "legal_H24_target_slots": 67000,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.05459226908284988
+          }
+        },
+        "validation_relative_change_vs_source": {
+          "selection": -0.11809651160804813,
+          "arm_rmse_rad": -0.10166232187793678,
+          "hand_rmse_rad": -0.06352886077037712
+        },
+        "latest_correction_fit": {
+          "selection": 0.001443983637727797,
+          "arm_rmse_rad": 0.004034682642668486,
+          "hand_rmse_rad": 0.027720801532268524
+        }
+      },
+      "last": {
+        "epoch": 10,
+        "optimizer_updates": 2220,
+        "episode_visits": 2220,
+        "anchors": 53710,
+        "legal_H24_target_slots": 1227280,
+        "validation": {
+          "selection": 0.006492374464869499,
+          "arm_rmse_rad": 0.005690053105354309,
+          "hand_rmse_rad": 0.05226103961467743
+        },
+        "latest52": {
+          "trajectories": 52,
+          "visits": 1040,
+          "anchors": 25400,
+          "legal_H24_target_slots": 578360,
+          "visits_per_trajectory": [
+            20
+          ],
+          "share_all_legal_H24_target_slots": 0.4712535036829411
+        },
+        "held13": {
+          "trajectories": 13,
+          "visits": 260,
+          "anchors": 3660,
+          "legal_H24_target_slots": 80300,
+          "visits_per_trajectory": [
+            20
+          ],
+          "share_all_legal_H24_target_slots": 0.06542924190078873
+        },
+        "exposure_by_source": {
+          "current_correction": {
+            "optimizer_episodes": 1040,
+            "visual_frames": 430440,
+            "anchors_seen": 25400,
+            "target_ticks": 578360
+          },
+          "historical_correction": {
+            "optimizer_episodes": 880,
+            "visual_frames": 355540,
+            "anchors_seen": 19530,
+            "target_ticks": 444560
+          },
+          "original": {
+            "optimizer_episodes": 300,
+            "visual_frames": 103980,
+            "anchors_seen": 8780,
+            "target_ticks": 204360
+          }
+        },
+        "latest_by_schedule": {
+          "contact0": {
+            "trajectories": 8,
+            "visits": 160,
+            "anchors": 4300,
+            "legal_H24_target_slots": 98780,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.08048693044781957
+          },
+          "fixed40": {
+            "trajectories": 7,
+            "visits": 140,
+            "anchors": 3960,
+            "legal_H24_target_slots": 91480,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.07453881754774787
+          },
+          "fixed80": {
+            "trajectories": 24,
+            "visits": 480,
+            "anchors": 13480,
+            "legal_H24_target_slots": 307800,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.25079851378658496
+          },
+          "held120": {
+            "trajectories": 3,
+            "visits": 60,
+            "anchors": 620,
+            "legal_H24_target_slots": 13300,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.010836972817938856
+          },
+          "held60": {
+            "trajectories": 10,
+            "visits": 200,
+            "anchors": 3040,
+            "legal_H24_target_slots": 67000,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.05459226908284988
+          }
+        },
+        "validation_relative_change_vs_source": {
+          "selection": -0.11809651160804813,
+          "arm_rmse_rad": -0.10166232187793678,
+          "hand_rmse_rad": -0.06352886077037712
+        },
+        "latest_correction_fit": {
+          "selection": 0.001443983637727797,
+          "arm_rmse_rad": 0.004034682642668486,
+          "hand_rmse_rad": 0.027720801532268524
+        }
+      },
+      "validation_history": [
+        {
+          "epoch": 1,
+          "updates": 222,
+          "selection": 0.007455645129084587,
+          "arm_rmse_rad": 0.006536712404340506,
+          "hand_rmse_rad": 0.05688466131687164
+        },
+        {
+          "epoch": 2,
+          "updates": 444,
+          "selection": 0.0074085635133087635,
+          "arm_rmse_rad": 0.006199423689395189,
+          "hand_rmse_rad": 0.05611352249979973
+        },
+        {
+          "epoch": 3,
+          "updates": 666,
+          "selection": 0.007004826329648495,
+          "arm_rmse_rad": 0.006039107218384743,
+          "hand_rmse_rad": 0.05468006432056427
+        },
+        {
+          "epoch": 4,
+          "updates": 888,
+          "selection": 0.006796225439757109,
+          "arm_rmse_rad": 0.006068473681807518,
+          "hand_rmse_rad": 0.05389484390616417
+        },
+        {
+          "epoch": 5,
+          "updates": 1110,
+          "selection": 0.006794565822929144,
+          "arm_rmse_rad": 0.0059378063306212425,
+          "hand_rmse_rad": 0.05333346500992775
+        },
+        {
+          "epoch": 6,
+          "updates": 1332,
+          "selection": 0.006693439092487097,
+          "arm_rmse_rad": 0.005867637228220701,
+          "hand_rmse_rad": 0.053308162838220596
+        },
+        {
+          "epoch": 7,
+          "updates": 1554,
+          "selection": 0.0066513800993561745,
+          "arm_rmse_rad": 0.005827984772622585,
+          "hand_rmse_rad": 0.05262703448534012
+        },
+        {
+          "epoch": 8,
+          "updates": 1776,
+          "selection": 0.006631999276578426,
+          "arm_rmse_rad": 0.005806880071759224,
+          "hand_rmse_rad": 0.05267069488763809
+        },
+        {
+          "epoch": 9,
+          "updates": 1998,
+          "selection": 0.00654405914247036,
+          "arm_rmse_rad": 0.005705259274691343,
+          "hand_rmse_rad": 0.052420783787965775
+        },
+        {
+          "epoch": 10,
+          "updates": 2220,
+          "selection": 0.006492374464869499,
+          "arm_rmse_rad": 0.005690053105354309,
+          "hand_rmse_rad": 0.05226103961467743
+        }
+      ],
+      "correction_fit_note": "Only final epoch correction cohort was measured; B selected epoch9 has no correction metric receipt.",
+      "source_role_root": "tight_fresh_20261114_06/collection09_source/A"
+    },
+    "B": {
+      "selected_checkpoint_sha256": "4ac67a6e08326c72b6d57645a049dde21e13dccb23912e2a4859e441f2fb3a2c",
+      "source_checkpoint_sha256": "281266def7e6f9ced8344fe9a560ac522fb037eaeca28e1eeda3604bd9fc4ed1",
+      "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+      "completed_frontend_seconds": 1591.8006558581255,
+      "initial_validation": {
+        "selection": 0.007851856760680676,
+        "arm_rmse_rad": 0.007239458616822958,
+        "hand_rmse_rad": 0.06837262958288193
+      },
+      "selected": {
+        "epoch": 9,
+        "optimizer_updates": 1998,
+        "episode_visits": 1998,
+        "anchors": 48339,
+        "legal_H24_target_slots": 1104552,
+        "validation": {
+          "selection": 0.006603445392102003,
+          "arm_rmse_rad": 0.006131455302238464,
+          "hand_rmse_rad": 0.06332219392061234
+        },
+        "latest52": {
+          "trajectories": 52,
+          "visits": 936,
+          "anchors": 22860,
+          "legal_H24_target_slots": 520524,
+          "visits_per_trajectory": [
+            18
+          ],
+          "share_all_legal_H24_target_slots": 0.4712535036829411
+        },
+        "held13": {
+          "trajectories": 13,
+          "visits": 234,
+          "anchors": 3294,
+          "legal_H24_target_slots": 72270,
+          "visits_per_trajectory": [
+            18
+          ],
+          "share_all_legal_H24_target_slots": 0.06542924190078873
+        },
+        "exposure_by_source": {
+          "current_correction": {
+            "optimizer_episodes": 936,
+            "visual_frames": 387396,
+            "anchors_seen": 22860,
+            "target_ticks": 520524
+          },
+          "historical_correction": {
+            "optimizer_episodes": 792,
+            "visual_frames": 319986,
+            "anchors_seen": 17577,
+            "target_ticks": 400104
+          },
+          "original": {
+            "optimizer_episodes": 270,
+            "visual_frames": 93582,
+            "anchors_seen": 7902,
+            "target_ticks": 183924
+          }
+        },
+        "latest_by_schedule": {
+          "contact0": {
+            "trajectories": 8,
+            "visits": 144,
+            "anchors": 3870,
+            "legal_H24_target_slots": 88902,
+            "visits_per_trajectory": [
+              18
+            ],
+            "share_all_legal_H24_target_slots": 0.08048693044781957
+          },
+          "fixed40": {
+            "trajectories": 7,
+            "visits": 126,
+            "anchors": 3564,
+            "legal_H24_target_slots": 82332,
+            "visits_per_trajectory": [
+              18
+            ],
+            "share_all_legal_H24_target_slots": 0.07453881754774787
+          },
+          "fixed80": {
+            "trajectories": 24,
+            "visits": 432,
+            "anchors": 12132,
+            "legal_H24_target_slots": 277020,
+            "visits_per_trajectory": [
+              18
+            ],
+            "share_all_legal_H24_target_slots": 0.25079851378658496
+          },
+          "held120": {
+            "trajectories": 3,
+            "visits": 54,
+            "anchors": 558,
+            "legal_H24_target_slots": 11970,
+            "visits_per_trajectory": [
+              18
+            ],
+            "share_all_legal_H24_target_slots": 0.010836972817938856
+          },
+          "held60": {
+            "trajectories": 10,
+            "visits": 180,
+            "anchors": 2736,
+            "legal_H24_target_slots": 60300,
+            "visits_per_trajectory": [
+              18
+            ],
+            "share_all_legal_H24_target_slots": 0.05459226908284988
+          }
+        },
+        "validation_relative_change_vs_source": {
+          "selection": -0.15899568810657316,
+          "arm_rmse_rad": -0.1530505764629596,
+          "hand_rmse_rad": -0.07386633647236585
+        },
+        "latest_correction_fit": null
+      },
+      "last": {
+        "epoch": 10,
+        "optimizer_updates": 2220,
+        "episode_visits": 2220,
+        "anchors": 53710,
+        "legal_H24_target_slots": 1227280,
+        "validation": {
+          "selection": 0.006620243191719055,
+          "arm_rmse_rad": 0.006115466356277466,
+          "hand_rmse_rad": 0.06281183660030365
+        },
+        "latest52": {
+          "trajectories": 52,
+          "visits": 1040,
+          "anchors": 25400,
+          "legal_H24_target_slots": 578360,
+          "visits_per_trajectory": [
+            20
+          ],
+          "share_all_legal_H24_target_slots": 0.4712535036829411
+        },
+        "held13": {
+          "trajectories": 13,
+          "visits": 260,
+          "anchors": 3660,
+          "legal_H24_target_slots": 80300,
+          "visits_per_trajectory": [
+            20
+          ],
+          "share_all_legal_H24_target_slots": 0.06542924190078873
+        },
+        "exposure_by_source": {
+          "current_correction": {
+            "optimizer_episodes": 1040,
+            "visual_frames": 430440,
+            "anchors_seen": 25400,
+            "target_ticks": 578360
+          },
+          "historical_correction": {
+            "optimizer_episodes": 880,
+            "visual_frames": 355540,
+            "anchors_seen": 19530,
+            "target_ticks": 444560
+          },
+          "original": {
+            "optimizer_episodes": 300,
+            "visual_frames": 103980,
+            "anchors_seen": 8780,
+            "target_ticks": 204360
+          }
+        },
+        "latest_by_schedule": {
+          "contact0": {
+            "trajectories": 8,
+            "visits": 160,
+            "anchors": 4300,
+            "legal_H24_target_slots": 98780,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.08048693044781957
+          },
+          "fixed40": {
+            "trajectories": 7,
+            "visits": 140,
+            "anchors": 3960,
+            "legal_H24_target_slots": 91480,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.07453881754774787
+          },
+          "fixed80": {
+            "trajectories": 24,
+            "visits": 480,
+            "anchors": 13480,
+            "legal_H24_target_slots": 307800,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.25079851378658496
+          },
+          "held120": {
+            "trajectories": 3,
+            "visits": 60,
+            "anchors": 620,
+            "legal_H24_target_slots": 13300,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.010836972817938856
+          },
+          "held60": {
+            "trajectories": 10,
+            "visits": 200,
+            "anchors": 3040,
+            "legal_H24_target_slots": 67000,
+            "visits_per_trajectory": [
+              20
+            ],
+            "share_all_legal_H24_target_slots": 0.05459226908284988
+          }
+        },
+        "validation_relative_change_vs_source": {
+          "selection": -0.15685634703999007,
+          "arm_rmse_rad": -0.1552591595638897,
+          "hand_rmse_rad": -0.08133068768164653
+        },
+        "latest_correction_fit": {
+          "selection": 0.0019838486332446337,
+          "arm_rmse_rad": 0.004631296265870333,
+          "hand_rmse_rad": 0.03490718454122543
+        }
+      },
+      "validation_history": [
+        {
+          "epoch": 1,
+          "updates": 222,
+          "selection": 0.007766465190798044,
+          "arm_rmse_rad": 0.00710827624425292,
+          "hand_rmse_rad": 0.06810283660888672
+        },
+        {
+          "epoch": 2,
+          "updates": 444,
+          "selection": 0.007677505724132061,
+          "arm_rmse_rad": 0.006882276386022568,
+          "hand_rmse_rad": 0.06875739991664886
+        },
+        {
+          "epoch": 3,
+          "updates": 666,
+          "selection": 0.007166859228163958,
+          "arm_rmse_rad": 0.006615710910409689,
+          "hand_rmse_rad": 0.06632720679044724
+        },
+        {
+          "epoch": 4,
+          "updates": 888,
+          "selection": 0.00718047097325325,
+          "arm_rmse_rad": 0.0065564741380512714,
+          "hand_rmse_rad": 0.06589490175247192
+        },
+        {
+          "epoch": 5,
+          "updates": 1110,
+          "selection": 0.006935392040759325,
+          "arm_rmse_rad": 0.006418496835976839,
+          "hand_rmse_rad": 0.06431099027395248
+        },
+        {
+          "epoch": 6,
+          "updates": 1332,
+          "selection": 0.006987881846725941,
+          "arm_rmse_rad": 0.006373320706188679,
+          "hand_rmse_rad": 0.06476856768131256
+        },
+        {
+          "epoch": 7,
+          "updates": 1554,
+          "selection": 0.00670109037309885,
+          "arm_rmse_rad": 0.00627130875363946,
+          "hand_rmse_rad": 0.06279807537794113
+        },
+        {
+          "epoch": 8,
+          "updates": 1776,
+          "selection": 0.006629829294979572,
+          "arm_rmse_rad": 0.00627506710588932,
+          "hand_rmse_rad": 0.06276118010282516
+        },
+        {
+          "epoch": 9,
+          "updates": 1998,
+          "selection": 0.006603445392102003,
+          "arm_rmse_rad": 0.006131455302238464,
+          "hand_rmse_rad": 0.06332219392061234
+        },
+        {
+          "epoch": 10,
+          "updates": 2220,
+          "selection": 0.006620243191719055,
+          "arm_rmse_rad": 0.006115466356277466,
+          "hand_rmse_rad": 0.06281183660030365
+        }
+      ],
+      "correction_fit_note": "Only final epoch correction cohort was measured; B selected epoch9 has no correction metric receipt.",
+      "source_role_root": "tight_fresh_20261114_06/collection09_source/B"
+    }
+  },
+  "semantics": {
+    "target_slots": "Actual legal H24 action-label occurrences from cumulative learning-row differences; overlapping horizons and repeated visits count again.",
+    "held_group": "All legal suffix actions of accepted held60/held120 trajectories; not only ticks while held.",
+    "selected_identity": "First strictly minimal logged validation selection, following frozen trainer rule; finished selected SHA agrees with backend preparation. Checkpoint metadata/weight bytes not reopened.",
+    "loss_scope": "Exposure counts are not gradient contribution, geometry sample counts or distinct independent demonstrations.",
+    "policy_scope": "Teacher-forced offline learning evidence; no claim of improved autonomous holding, orientation, alignment or insertion."
+  },
+  "forbidden_payload_reads": {
+    "weights": 0,
+    "numeric": 0,
+    "rgb": 0,
+    "heldout_payloads": 0
+  },
+  "optimizer_updates_by_report": 0,
+  "input_bindings": {
+    "round_09_stages/registration.json": {
+      "sha256": "600091e747f2682cc4ac5fd7efe3c59b5d534f78603792b1f53f68e4efc42fab",
+      "bytes": 27379
+    },
+    "cpu_audits/collection09_final_review_01/final128.json": {
+      "sha256": "d1656464af71aaac899379b502b1a3aa29e81787a6e201793f02190fae7aa1fe",
+      "bytes": 522983
+    },
+    "new_family_09/correction_entries.json": {
+      "sha256": "4242359cfd0c4cfd04a2ea709144e23a996771ee89c4ebe6c96b1690347c7aa1",
+      "bytes": 119788
+    },
+    "round_09/A/state_data/data.json": {
+      "sha256": "5c32bf4c34d1e3638ff7334f62002eca42883444bb407bebd78ca304f12256ec",
+      "bytes": 269356
+    },
+    "round_09/A/training/configuration.json": {
+      "sha256": "8cc74bc8ec9ef5f0caca48db57890566ccde534d4b757d66e1b06673ba875e2f",
+      "bytes": 35364
+    },
+    "round_09/A/training/finished.json": {
+      "sha256": "250ab7dd6c74777a7eee6eb9b667dbd5b33f9ad0dd3ef2361d173c9900783a3a",
+      "bytes": 17614
+    },
+    "round_09/A/training/initial_metrics.json": {
+      "sha256": "022434496a02817428c11aa11e28860288301d3e44ae26048e88ad0a668f80dd",
+      "bytes": 77703
+    },
+    "round_09/A/training/learning.jsonl": {
+      "sha256": "ed4c79a5371f757ce8adeef517ce4bc52a3aca4bcc945d174c249d37bb01114c",
+      "bytes": 2075025
+    },
+    "round_09/A/training/validation.jsonl": {
+      "sha256": "ebe1c203816f338a87f1304372610eae20c10ff9b006d2268d8453e4ca832405",
+      "bytes": 216756
+    },
+    "round_09/A/training/validation.json": {
+      "sha256": "35ba09d0c7f87293d2b488a5adcdf0e99156b1b2963e88ef5e40e7cef3d25970",
+      "bytes": 87535
+    },
+    "round_09/A/backend/prepared.json": {
+      "sha256": "8cdba0952ee5ece16edcb71727c679182fcd9d6ec7d3bfe2a4dfdbdb15f2d6a6",
+      "bytes": 862
+    },
+    "round_09/A/continuation.json": {
+      "sha256": "5f55ac815369991467074809f9141dcc6ccae49d3361cb055b503a739ba0e783",
+      "bytes": 1088
+    },
+    "round_09/B/state_data/data.json": {
+      "sha256": "6826ea599469f2177075f41c7ff43f54da07b1f791a5ad74c6b4845e7d89ac13",
+      "bytes": 269354
+    },
+    "round_09/B/training/configuration.json": {
+      "sha256": "a0ca25f3babc740be3929ce73d54f8bd2bbd210f17ee77495aa797256e95bf08",
+      "bytes": 34995
+    },
+    "round_09/B/training/finished.json": {
+      "sha256": "11929656b432115f228b80c4718ded27b7990f06bdfd402d273714935613a4c0",
+      "bytes": 17614
+    },
+    "round_09/B/training/initial_metrics.json": {
+      "sha256": "bad5eef21474c97e9a786bab080f6c7646ed98d19209bb2525ecbf8b2ba24dcd",
+      "bytes": 77684
+    },
+    "round_09/B/training/learning.jsonl": {
+      "sha256": "f47a7a7b6d8bbc3426641c2c1eb2c4d1461c31f258af0c61f357555f7ddd9d49",
+      "bytes": 1999601
+    },
+    "round_09/B/training/validation.jsonl": {
+      "sha256": "275608f0105ff3b97012f99e9083b050f4b6b5dc775fe9596a73b0ba9fe57b4b",
+      "bytes": 216733
+    },
+    "round_09/B/training/validation.json": {
+      "sha256": "30d871be813c4d99e7e6a54453cf9f7ff29c2af5e0aa715fe7fd8b4f9f2ea28a",
+      "bytes": 87526
+    },
+    "round_09/B/backend/prepared.json": {
+      "sha256": "7846947d5cb2163cc523153908e6b2dacd01d5757e1a6e760d3ce06c131c9099",
+      "bytes": 862
+    },
+    "round_09/B/continuation.json": {
+      "sha256": "d4b3fb094a7da743e9914c22cfd64085b00c6c5e3d90ac9432a8d0d6c248e44a",
+      "bytes": 1088
+    }
+  },
+  "script": {
+    "path": "cpu_audits/round09_front_learning01/summarize.py",
+    "sha256": "5b5c40444a915d8587304261efd681e3fa490ead9cc68f896c9e589398a2dc54"
+  },
+  "command": "PYTHONPATH=<reviewed-source> <python> <session>/cpu_audits/round09_front_learning01/summarize.py --session <session> --public <public-evidence-directory>",
+  "private_receipt": {
+    "path": "cpu_audits/round09_front_learning01/report.json",
+    "sha256": "b536b8c70fda7aaa62ad0b573485b3ebb566a18fa2bb3ce439e2b54a856a8d67"
+  },
+  "post_run_presentation": {
+    "change": "Source reference display expanded from role basename A/B to its session-relative registered source view; all numeric results and input bindings unchanged.",
+    "actual_execution_script": {
+      "path": "summarize.py",
+      "sha256": "5b5c40444a915d8587304261efd681e3fa490ead9cc68f896c9e589398a2dc54"
+    },
+    "equivalent_report_revision": {
+      "path": "summarize_display_revision.py",
+      "sha256": "c9c8876d94c5f8bbdaaf72f36745d1879b6026ecb21e2743c7f85e68def3d374"
+    },
+    "rerun": false
+  }
+}

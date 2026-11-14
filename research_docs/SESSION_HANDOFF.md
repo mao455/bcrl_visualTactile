@@ -1,10 +1,16 @@
+## 2026-11-15 02:31 第九轮前端完成，批量后端输入准备已在正式流程提速
+
+A/B前端均完成10遍/2220更新，A选epoch10、B选epoch9；新增52轨迹在selected实际1040/936次visit、578360/520524合法H24监督槽，held13分别260/234次visit和80300/72270槽。新52占全部动作槽47.125%，held13占6.543%；后者含这些轨迹全部合法专家后缀，不仅是在持物时刻。验证selection相对输入来源下降11.81%/15.90%，B第10遍纠偏拟合不冒充选中第9遍。仅读既有JSON/JSONL，没有重开模型/图像/数值轨迹。[曝光与验证](evidence/tight_fresh_20261114/round09_front_learning/report.json)。
+
+正式09的两组后端新输入各176轨迹已完成，每组stage263.19秒、两组并行；旧08两组cache stage并集1154.90秒、124轨迹。新流程确实接入offline anchor batch32并重新处理每个60Hz时刻，不能把不同数据/工作量的耗时比写成严格单变量加速。完整09总周期尚未结束，后端15遍和16次自主继续。新随机/B2/eager仍留待下一独立轮；09完整源代码87577e8不改。
+
 ## 2026-11-15 02:26 磁盘等待已定位，下一轮采用有界冻结特征顺序读取
 
 第九轮仍以原87577e8推进，前端第10遍；本次不重启、不热改。02:11:10–02:12:10只读60秒采样：两trainer合计read_bytes 55.175MiB/s，NVMe读取56.395MiB/s、busy94.66%、平均queue5.53，I/O PSI full51.94%，memory PSI full0.093%。工作线程出现folio_wait_bit_common；该窗口支持磁盘page-in等待，不外推整轮或因果收益。原始/proc采样和解释留在session06/cpu_audits/io_pressure_sample09_01，小型公开结果见io_pressure09/report.json。
 
 新frozen_visual_eager_v1只把当前轨迹冻结视觉.pt由mmap读取改为直接顺序torch.load，不clone、不改变dtype/stride，不保存可训练history。B2每批完成即释放两条轨迹，后端仍逐60Hz重算当前网络历史和commit12计划。前端/验证/后端读取都有实际耗时及加载字节回执。最长新增训练轨迹865帧/1.154GB，B2可能重复至1730帧，超过既有761帧真实批次，因此下一启动包显式顺序A/B前端、并行后端；这是内存风险安排，尚无整轮加速结论。
 
-按用户减少繁琐检查的要求，本次只扩展既有统一入口的CPU读取检查：一条真实train冻结特征、新旧读取全部tensor字节/layout比较，0CUDA/0模型/0更新，不重复随机抽样四batch或控制矩阵。新读取尚未实际检查或正式运行；下一独立session须等09完整结果和旧worker/monitor退出，原03:49:51截止不改。
+按用户减少繁琐检查的要求，本次只扩展既有统一入口的CPU读取检查：一条真实train冻结特征、新旧读取全部tensor字节/layout比较，0CUDA/0模型/0更新，不重复随机抽样四batch或控制矩阵。实际统一检查已完成：865帧、四类tensor共1,153,947,195字节全部逐位/layout相同，0.756秒、peakRSS2.61GiB，0CUDA/0模型/0更新，service退出0。读取0.496秒只作当时warm状态描述，不是冷缓存速度比。首次systemd因run_cpu.sh非可执行拒绝、0worker；第二独立attempt用显式bash完成，原launch保留。证据[feature_check02](evidence/tight_fresh_20261114/io_pressure09/feature_check02.json)。下一独立session须等09完整结果和旧worker/monitor退出，原03:49:51截止不改。
 
 ## 2026-11-15 01:54 统一真实检查通过；第九批已结束并自动转入训练
 

@@ -1,8 +1,12 @@
+## 2026-11-15 02:31 第九轮前端学习与统一读取证据
+
+新52/held13的selected及last实际监督曝光、验证selection及B selected无纠偏cohort指标分别记录；复用小JSON，不重读模型/旧numeric。统一865帧读取对比完成，后端M32刷新176条各263.19秒已进入正式流程；完整周期和自主结果待收尾。
+
 ## 2026-11-15 02:26 冻结视觉文件读取优化候选
 
 - native_data.Episode及新frozen_visual_io：opt-in直接eager读取当前dense frozen visual shard；不clone、不改tensor、不缓存learned state。frontend B2/metrics及rear cache配置接通并记录真实读取时间/字节；每批/轨迹释放。
 - fresh_cycle/collect_cycle_owner/research_loop及实际启动包完整绑定profile，下一轮顺序前端、并行后端。旧运行/默认mmap路径保持，未宣称已获正式收益。
-- 统一training_check增加CPU单train-shard字节/layout检查，复用已完成随机训练/控制证据。实际60秒I/O等待证据与完整周期计时分开；后续用真实新周期判断采用。
+- 统一training_check增加CPU单train-shard字节/layout检查，复用已完成随机训练/控制证据。实际60秒I/O等待证据与完整周期计时分开；真实865帧统一CPU检查0.756秒，四类tensor/layout全部逐位相同，0GPU/0更新。首次exec权限拒绝0worker，独立bash启动attempt完成；后续用真实新周期判断效率。
 
 ## 2026-11-15 第九批完整收尾与独立连续运行启动包
 
