@@ -1,3 +1,9 @@
+## 冻结视觉当前轨迹顺序读取
+
+frozen_visual_eager_v1精确配置torch_load_mmap=false、lifetime=current_episode_or_current_B2_visits_only、learned_state_cache=false。仅dense visual_pair/stride1/I-HistoryDP适用；正式前端须显式B2。直接torch.load同一冻结文件，不BytesIO、额外clone、dtype转换或持久LRU；当前batch/轨迹结束释放。原资源lease准入不等于对峰值内存的原子预留。profile/SHA绑定真实cycle，前端与后端读取回执单独记录，不修改缓存payload张量合同。所有可训练视觉/GRU仍按当前权重重新处理真实完整历史，后端仍commit12。
+
+统一真实读取检查仅一条已入train的完成冻结cache，比较全部四类tensor的bytes/dtype/shape/stride及文件未变，不读取heldout、无模型/CUDA/更新。不清OS缓存；eager加载会预热后续mmap比较，lazy open不包含page-in，因此两时间不能作为冷缓存公平速度比。完整cycle吞吐另测。
+
 ## 2026-11-15 held0与统一新训练实施边界
 
 contact_height_recheck_takeover_v1允许显式min_delay_ticks=0，首个12步持续抬起/双指接触窗口完成计数N后，由action index N真实接管；自然终止优先，无固定fallback。旧60/120不改，条件消失不等同原生掉落。held_root60的rigid-root距离仍只是采集调度，不称对孔或孔口距离。

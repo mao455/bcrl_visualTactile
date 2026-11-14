@@ -126,7 +126,9 @@ def predict_on_native_clock(model, conditions, anchors):
 
 
 @torch.no_grad()
-def metrics(model,records,identities,*,offline_planning=None,check=None):
+def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None):
+    from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
+    frozen_visual_io=validate_visual_io(frozen_visual_io)
     if offline_planning is not None:
         from visuotactile.offline_planning import validate_profile,predict_contiguous
         offline_planning=validate_profile(offline_planning)
@@ -138,7 +140,14 @@ def metrics(model,records,identities,*,offline_planning=None,check=None):
             if check is not None:check()
             if model.action_scale.is_cuda:torch.cuda.synchronize(model.action_scale.device)
             began=time.perf_counter()
-        c,a=supervised_conditions(model,rec)
+        visual_receipt=None
+        if frozen_visual_io is None:c,a=supervised_conditions(model,rec)
+        else:
+            episode=Episode(rec['source_root'],i,model.group,frozen_visual_io=frozen_visual_io)
+            try:
+                c,a=supervised_conditions(model,rec,episode=episode)
+                visual_receipt=episode.frozen_visual_io_receipt
+            finally:del episode
         if offline_planning is None:pred=predict_on_native_clock(model,c,a)
         else:
             if c.is_cuda:torch.cuda.synchronize(c.device)
@@ -150,6 +159,7 @@ def metrics(model,records,identities,*,offline_planning=None,check=None):
         truth,valid=labels(rec,a,24);mask=valid[:,:12];e=(pred[:,:12]-truth[:,:12])[mask]
         errors.append(e.cpu());normalized.append((e*model.action_scale).cpu())
         rows.append(dict(identity=i,arm_rmse=float(e[:,:7].square().mean().sqrt()),hand_rmse=float(e[:,7:].square().mean().sqrt())))
+        if visual_receipt is not None:rows[-1]['frozen_visual_io']=visual_receipt
         if offline_planning is not None:
             rows[-1]['offline_planning']=dict(trace,full_history_frames=len(rec['time']),
                 encoding_seconds=encoding_seconds,planning_seconds=planning_seconds)
@@ -292,6 +302,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     from visuotactile.precision import state_fp32
     from visuotactile.trajectory_training import validate_registration,validate_exposure as validate_batch_exposure
     batch_profile=validate_registration(root,trajectory_batch_profile)
+    from visuotactile.frozen_visual_io import load_profile as load_visual_io
+    visual_io=load_visual_io(root)
+    if visual_io is not None and batch_profile is None:
+        raise ValueError('Formal eager visual I/O currently requires the explicit B2 frontend path')
     if offline_planning is not None:
         from visuotactile.offline_planning import validate_profile
         offline_planning=validate_profile(offline_planning)
@@ -356,6 +370,8 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         config.update(training_sampling=visit_profile,training_sampling_sha256=sha256(root/'training_sampling.json'),
             exposure='Full real history once per visit; random legal starts with original anchor-count budget; actual visits, optimizer/EMA updates and distinct times recorded separately.')
     if continuation:config['continuation']=continuation
+    if visual_io is not None:
+        config.update(frozen_visual_io=visual_io,frozen_visual_io_sha256=sha256(root/'frozen_visual_io.json'))
     if offline_planning is not None:config['offline_planning']=offline_planning
     if io_config is not None:
         config['episode_io']=io_config
@@ -441,8 +457,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             train_ids=data['splits']['train'],validation_ids=data['splits']['validation'],**extras))
     started=time.perf_counter()
     def evaluate(identities):
-        if offline_planning is None:return metrics(averaged,records,identities)
-        return metrics(averaged,records,identities,offline_planning=offline_planning,check=lease.check)
+        io_options={} if visual_io is None else dict(frozen_visual_io=visual_io)
+        if offline_planning is None:return metrics(averaged,records,identities,**io_options)
+        return metrics(averaged,records,identities,offline_planning=offline_planning,check=lease.check,**io_options)
     if continuation and not (out/'initial_metrics.json').exists():
         with lease.block():
             initial=dict(validation=evaluate(data['splits']['validation']),
@@ -474,17 +491,28 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                     began=time.perf_counter();io_before=io_snapshot()
                     identities=[identity for _,identity in visits]
                     with lease.block():
-                        episodes=[Episode(dr,identity,'I-HistoryDP') for identity in identities]
-                        visit_options={}
-                        if visit_profile:
-                            selections=[sample_visit(records[identity],visit_profile,identity=identity,epoch=epoch+1,visit_index=index)
-                                for index,identity in visits]
-                            visit_options=dict(selected_anchors=[v[0] for v in selections],
-                                anchor_receipts=[v[1] for v in selections],geometry_generators=[v[2] for v in selections],
-                                geometry_sampling_profile=visit_profile['geometry'])
-                        result=execute_update(model,opt,ema,objective,identities,
-                            [records[identity] for identity in identities],episodes,noise,check=lease.check,**visit_options)
-                        del episodes
+                        # No previous batch survives into the next load, including
+                        # partial loads or failed updates. B2 owns only these visits.
+                        episodes=[]
+                        try:
+                            for identity in identities:
+                                episodes.append(Episode(dr,identity,'I-HistoryDP',
+                                    **({} if visual_io is None else dict(frozen_visual_io=visual_io))))
+                            visit_options={}
+                            if visit_profile:
+                                selections=[sample_visit(records[identity],visit_profile,identity=identity,epoch=epoch+1,visit_index=index)
+                                    for index,identity in visits]
+                                visit_options=dict(selected_anchors=[v[0] for v in selections],
+                                    anchor_receipts=[v[1] for v in selections],geometry_generators=[v[2] for v in selections],
+                                    geometry_sampling_profile=visit_profile['geometry'])
+                            result=execute_update(model,opt,ema,objective,identities,
+                                [records[identity] for identity in identities],episodes,noise,check=lease.check,**visit_options)
+                            if visual_io is not None:
+                                for visit_row,episode in zip(result['visits'],episodes):
+                                    visit_row['frozen_visual_io']=episode.frozen_visual_io_receipt
+                                del episode
+                        finally:
+                            episodes.clear();del episodes
                         updates+=1
                         for (index,identity),visit_row in zip(visits,result['visits']):
                             if visit_profile:coverage.add(identity,visit_row['anchor_sampling'],visit_row.get('geometry_sampling'))

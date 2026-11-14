@@ -19,7 +19,8 @@ def read(path):
 
 
 def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None,
-            output_contract=None, continuation_head_reset=None, offline_anchor_batch=None):
+            output_contract=None, continuation_head_reset=None, offline_anchor_batch=None,
+            frozen_visual_io=None):
     import torch
     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
@@ -28,6 +29,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
     from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
     from visuotactile.models.native_dp import TargetResidual, CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
     from visuotactile.fresh_recovery import fresh_recovery_weighting_config
+    from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
+    frozen_visual_io=validate_visual_io(frozen_visual_io)
     fresh_recovery_weighting=fresh_recovery_weighting_config(fresh_recovery_weighting)
     cache_planning=None
     if offline_anchor_batch is not None:
@@ -76,6 +79,7 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
             for p in sorted(Path(folder).rglob('*.py'))})
     v['residual_normalization_identity'] = residual_normalization(data, v)
     if cache_planning is not None:v['cache_offline_planning_profile']=cache_planning
+    if frozen_visual_io is not None:v['frozen_visual_io']=frozen_visual_io
     if continuation_head_reset is not None:
         v['continuation_head_reset']=continuation_head_reset
     if fresh_recovery_weighting is not None:
@@ -129,6 +133,7 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
     atomic_json(destination / 'prepared.json', dict(role=role, source_frontend_sha256=sha256(front),
         command_statistics_sha256=sha256(stats), random_initialization=not continue_rear,
         inherited_student_parameters=continue_rear, continuation_from=v.get('continuation_from'),
+        **({} if frozen_visual_io is None else dict(frozen_visual_io=frozen_visual_io)),
         **({'continuation_head_reset':continuation_head_reset} if continuation_head_reset is not None else {}),
         train=len(data['splits']['train']), validation=6, epochs=epochs, utc=time.time()))
     print(str(destination), flush=True)
@@ -142,8 +147,11 @@ def main():
     parser.add_argument('--continue-rear', action='store_true')
     parser.add_argument('--offline-anchor-batch',type=int,
         help='Explicit offline residual-cache DDIM anchor batch; default retains serial plans')
+    parser.add_argument('--frozen-visual-io-json',type=Path,
+        help='Explicit current-episode frozen-feature read profile; default retains mmap')
     args = parser.parse_args()
-    prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear,offline_anchor_batch=args.offline_anchor_batch)
+    prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear,offline_anchor_batch=args.offline_anchor_batch,
+        frozen_visual_io=read(args.frozen_visual_io_json) if args.frozen_visual_io_json is not None else None)
 
 
 if __name__ == '__main__':

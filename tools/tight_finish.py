@@ -1592,6 +1592,8 @@ def residual_cache(root, *, acceptance=False):
     from visuotactile.checkpointing import save
     from visuotactile.precision import state_fp32
     state_fp32();s=read(root/'session.json');v=s['residual_pair'];data=read(root/'state_data/data.json')
+    from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
+    visual_io=validate_visual_io(v.get('frozen_visual_io'))
     planning=v.get('cache_offline_planning_profile')
     if planning is not None:
         from visuotactile.offline_planning import validate_profile
@@ -1613,10 +1615,14 @@ def residual_cache(root, *, acceptance=False):
             sampler=dict(steps=16,seed=7091,horizon=24,commit=12,prediction='sample'),
             inputs='causal_actual_student_expert_prefix; separate_previous_nominal' if v.get('dagger_round') else 'causal_full_expert_prefix; separate_previous_nominal')
         if planning is not None:identity_fields['cache_offline_planning_profile']=planning
+        # Execution provenance only; frozen-feature and nominal tensor schemas
+        # do not change when the same bytes are read eagerly instead of mmap.
+        if visual_io is not None:identity_fields['frozen_visual_io']=visual_io
         records=visual_records(root/'state_data',all_ids,base.get('modality',base['group']))
         if v.get('dagger_round'):identity_fields['supervision_mask_sha256']=supervision_mask_sha256(records)
         index=read(index_path) if index_path.exists() else dict(identity_fields,episodes={})
         require(index.get('cache_offline_planning_profile')==planning,'Nominal cache planning profile differs')
+        require(index.get('frozen_visual_io')==visual_io,'Nominal cache frozen visual I/O profile differs')
         require(all(index.get(k)==value for k,value in identity_fields.items()),'Nominal cache semantic identity differs')
         require(index['base_sha256']==base['sha256'],'Cached base differs')
         model=None
@@ -1643,18 +1649,24 @@ def residual_cache(root, *, acceptance=False):
                     del saved
                 visual_path=root/'state_data/perception'/(identity+'.pt')
                 require(sha(visual_path)==visual_index['entries'][identity]['sha256'],'Frozen DINO cache differs')
+                visual_io_receipt={}
                 def progress(**kw):
+                    if 'frozen_visual_io_receipt' in kw:visual_io_receipt.update(kw['frozen_visual_io_receipt'])
                     write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                         elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed if completed else None,**kw))
                 record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,cache_identity=binding,
                     transfer_mode=v.get('cache_transfer_mode','tick'),scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy'),
-                    **({} if planning is None else dict(offline_planning_profile=planning)))
+                    **({} if planning is None else dict(offline_planning_profile=planning)),
+                    **({} if visual_io is None else dict(frozen_visual_io=visual_io)))
                 require(all(p.grad is None for p in model.parameters()),'Frozen base received gradient')
                 save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12),
                     implementation=dict(transfer_mode=v.get('cache_transfer_mode','tick'),
                         scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy'),
-                        **({} if planning is None else dict(offline_planning_profile=planning))))
+                        **({} if planning is None else dict(offline_planning_profile=planning)),
+                        **({} if visual_io is None else dict(frozen_visual_io=visual_io,
+                            frozen_visual_io_receipt=visual_io_receipt))))
                 write(index_path,index)
+                del record
             completed+=1
             write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                 elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed))

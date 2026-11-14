@@ -1,3 +1,9 @@
+## 2026-11-15 02:26 冻结视觉文件读取优化候选
+
+- native_data.Episode及新frozen_visual_io：opt-in直接eager读取当前dense frozen visual shard；不clone、不改tensor、不缓存learned state。frontend B2/metrics及rear cache配置接通并记录真实读取时间/字节；每批/轨迹释放。
+- fresh_cycle/collect_cycle_owner/research_loop及实际启动包完整绑定profile，下一轮顺序前端、并行后端。旧运行/默认mmap路径保持，未宣称已获正式收益。
+- 统一training_check增加CPU单train-shard字节/layout检查，复用已完成随机训练/控制证据。实际60秒I/O等待证据与完整周期计时分开；后续用真实新周期判断采用。
+
 ## 2026-11-15 第九批完整收尾与独立连续运行启动包
 
 collection09最终128机会/125合法/56接管/52成功入池，14572合法动作、34新family，完整池170条/76family。耗时6723.692秒、27.84有效轨迹/小时；held60/120新增13条/2049动作，fixed80为24/24，专家救回与学生自主0分开。复用旧审计及仅38个成功closed文件的小numeric字段，无大SHA/RGB/模型重读。README与研究入口已更新。

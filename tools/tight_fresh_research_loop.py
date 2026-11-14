@@ -25,6 +25,7 @@ from visuotactile.training_resources import atomic_json
 VERSION = 'finite_fresh_research_loop_v1'
 INPUTS = ('partition_manifest', 'frozen_families', 'collection_backend_json', 'evaluation_backend_json',
           'training_sampling_json', 'fallback_manifest')
+OPTIONAL_INPUTS = {'frozen_visual_io_json'}
 
 
 def require(value, message):
@@ -61,7 +62,9 @@ def validate_configuration(value):
     template=example_configuration()
     require(isinstance(value,dict) and set(value)==set(template), 'Explicit complete loop configuration required')
     for key in ('inputs','bounds','collection','cycle'):
-        require(isinstance(value[key],dict) and set(value[key])==set(template[key]), 'Unknown/missing '+key+' configuration')
+        expected=set(template[key]);actual=set(value[key]) if isinstance(value[key],dict) else set()
+        require(isinstance(value[key],dict) and (expected<=actual<=expected|OPTIONAL_INPUTS if key=='inputs' else actual==expected),
+            'Unknown/missing '+key+' configuration')
     b,c,t=value['bounds'],value['collection'],value['cycle']
     for key,lo,hi in (('max_seconds',3600,43200),('collection_max_seconds',61,7200),
             ('minimum_cycle_remaining_seconds',3600,None),('minimum_round_remaining_seconds',3600,None),
@@ -137,6 +140,9 @@ def prepare(session_root, output, worker_tree, configuration):
     inputs=bindings(config['inputs']);config['inputs']={key:row['path'] for key,row in inputs.items()}
     from visuotactile.fresh_visit_sampling import validate_profile
     validate_profile(read(config['inputs']['training_sampling_json']))
+    if 'frozen_visual_io_json' in config['inputs']:
+        from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
+        require(validate_visual_io(read(config['inputs']['frozen_visual_io_json'])) is not None,'Explicit frozen visual I/O profile required')
     fallback=read(config['inputs']['fallback_manifest'])
     require(isinstance(fallback,dict) and set(fallback)=={'A','B'} and all(isinstance(fallback[k],dict)
         and {'root','frontend_sha256','backend_sha256'}<=set(fallback[k]) for k in fallback),'Explicit protected fallback pair references required')
@@ -214,7 +220,8 @@ def commands(context, row, paths, source, previous):
         '--training-sampling-json',i['training_sampling_json'],'--offline-anchor-batch',t['offline_anchor_batch'],
         '--backend-offline-anchor-batch',t['backend_offline_anchor_batch']]+
         ['--'+key.replace('_','-') for key in ('full_trajectory_batch','parallel_frontends','parallel_backends','payload_audit_memo','continue_rear') if t[key]]+
-        (['--reuse-index',source/'A/cache_index.json'] if t['reuse_source_visual_index'] else []))
+        (['--reuse-index',source/'A/cache_index.json'] if t['reuse_source_visual_index'] else [])+
+        (['--frozen-visual-io-json',i['frozen_visual_io_json']] if 'frozen_visual_io_json' in i else []))
     return dict(source_prepare=source_cmd,collection_prepare=expansion,collection=collection,cycle=cycle)
 
 

@@ -119,17 +119,32 @@ def limits_affine(values):
 
 
 class Episode:
-    def __init__(self, root, identity, group):
+    def __init__(self, root, identity, group, *, frozen_visual_io=None):
+        from .frozen_visual_io import validate_profile
+        visual_io=validate_profile(frozen_visual_io)
         self.group = group
         root = Path(root)
         info = json.loads((root/'data.json').read_text())
         index = info['entries'][identity]
         self.visual_stride = info.get('visual_stride',12)
         if self.visual_stride not in (1,12):raise ValueError('Unknown visual sampling stride')
+        if visual_io is not None and (not info.get('visual_pair') or self.visual_stride!=1 or group!='I-HistoryDP'):
+            raise ValueError('Eager I/O requires dense frozen visual-pair history features')
         if info.get('visual_pair'):
-            shard = torch.load(root/'perception'/(identity+'.pt'),map_location='cpu',weights_only=False,mmap=True)
+            import time
+            started=time.perf_counter();path=root/'perception'/(identity+'.pt')
+            # Pass the file directly: no BytesIO copy, mmap-page clone, dtype
+            # conversion, prefetch thread, or persistent episode cache.
+            shard = torch.load(path,map_location='cpu',weights_only=False,mmap=visual_io is None)
             self.record = {k:shard[k] for k in ('camera_time','camera_valid')}
             self.perception = {k:shard[k] for k in ('patches','depth')}
+            if visual_io is not None:
+                storages={value.untyped_storage().data_ptr():value.untyped_storage().nbytes()
+                    for values in (self.record,self.perception) for value in values.values()}
+                self.frozen_visual_io_receipt=dict(profile=visual_io,identity=identity,
+                    tensor_load_s=time.perf_counter()-started,file_bytes=path.stat().st_size,
+                    loaded_storage_bytes=sum(storages.values()),extra_clone_bytes=0,
+                    scope='Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation')
             self.index = index
             return
         self.record = torch.load(root/'numeric'/(identity+'.pt'), map_location='cpu', weights_only=False)
@@ -298,7 +313,7 @@ def supervision_mask_sha256(records,identities=None):
 
 
 @torch.no_grad()
-def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None,transfer_mode='tick',scheduler_index_mode='legacy',offline_planning_profile=None):
+def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None,transfer_mode='tick',scheduler_index_mode='legacy',offline_planning_profile=None,frozen_visual_io=None):
     """Replay every native observation and optionally batch independent plans.
 
     ``tick`` retains the historical implementation for measured comparisons.
@@ -328,7 +343,18 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
             raise ValueError('Incomplete nominal cache identity')
         if cache_identity['data_sha256']!=sha256(Path(record['source_root'])/'data.json'):
             raise ValueError('Nominal cache dataset changed')
-    episode=Episode(record['source_root'],record['identity'],base.group)
+    if frozen_visual_io is None:
+        episode=Episode(record['source_root'],record['identity'],base.group)
+    else:
+        from .frozen_visual_io import validate_profile
+        frozen_visual_io=validate_profile(frozen_visual_io)
+        # Only this episode's immutable visual tensors are loaded eagerly.
+        # The existing resource lease admits the read; learned history below
+        # still starts empty and is rebuilt at every actual 60 Hz observation.
+        with lease.block():
+            episode=Episode(record['source_root'],record['identity'],base.group,frozen_visual_io=frozen_visual_io)
+        progress(tick=0,plans=0,phase='frozen_visual_loaded',
+            frozen_visual_io_receipt=episode.frozen_visual_io_receipt)
     generator=torch.Generator(device=device).manual_seed(7091);memory=None
     result=residual_observations(entry,record['robot'],record['time'])
     plans=[];masks=[];commands=[];features=[]
@@ -406,6 +432,7 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
         previous_nominal_valid=torch.arange(n)>0,
         nominal_supervision=base.contract.get('supervision','u_expert'),
         q_reached=record['clean_sample'].cpu() if base.contract.get('supervision')=='q_reached' else None)
+    del episode  # No immutable visual shard or learned hidden state survives this call.
     return result
 
 

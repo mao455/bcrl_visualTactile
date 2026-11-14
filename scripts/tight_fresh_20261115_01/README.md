@@ -20,7 +20,7 @@ FULL_COMMIT=replace_with_reviewed_40_character_commit
 
 采集使用已测 GPU16 standard 后端、Kit 16 线程/物理 2 线程、M8、512 MiB 有界写入、2 校验 worker/pending16、capture audit memo。此 GPU 配置目前只有前 180 步的接触/控制/传感证据，完整专家救回由正式采集逐条接受原生成功与完整 capture 审计。没有虚设的“两个成功后自动放行”条件，没有附加 benchmark。任务资产、120/60/5 Hz 和最终 29 维绝对关节目标不变；GPU 与旧 CPU 的 batch RNG 不同，不承诺逐位重复或公平加速比。
 
-每轮前端 20 epochs、完整双轨迹 B2、独立 A/B 参数与真实完整历史；训练采用随机合法 anchor 加真实构型约半采样。后端 continuation 15 epochs；复用来源的冻结视觉 index，只生成缺失的新条目。离线前后端计划批量均为 M32，前端/后端并行使用既有资源准入；实际可能回退串行。自主评估保持 CPU standard、Kit16、8 lane/M8，对每角色八次 cohort 无 16 lane 填充。没有使用 TiledCamera、inactive-render 或 exact-tail 候选。
+每轮前端 20 epochs、完整双轨迹 B2、独立 A/B 参数与真实完整历史；训练采用随机合法 anchor 加真实构型约半采样。后端 continuation 15 epochs；复用来源的冻结视觉 index，只生成缺失的新条目。离线前后端计划批量均为 M32。A/B 前端顺序执行，双轨迹 B2 不变：当前最长实际训练轨迹为 865 帧，重复采样时同批可达 1730 帧，超过已测 761 帧组合；现有实现没有按下一批激活峰值准入，因此先避免两套前端共同放大内存峰值，这不是已测吞吐更快的结论。后端并行仍使用既有资源准入，可回退串行。冻结视觉特征显式采用 frozen_visual_eager_v1，直接从文件顺序载入原生张量；只保留当前 B2 的两条轨迹，离线评估与后端输入准备各保留当前一条，不增加 clone、常驻 LRU 或可学习历史缓存。该 I/O 身份和输入文件 SHA 随 cycle 登记，统一入口对一条真实冻结特征做 CPU 字节比较后再冻结启动；不改训练目标、采样次数或模型身份。自主评估保持 CPU standard、Kit16、8 lane/M8，对每角色八次 cohort 无 16 lane 填充。没有使用 TiledCamera、inactive-render 或 exact-tail 候选。
 
 每轮入场需要 110 GiB 可用盘和至少 10800 秒；采集最多 7200 秒，并保留至少 7200 秒给完整 cycle。沿用原生任务自然结束与既有至少八条成功纠偏的训练准入；剩余时间、有效数据或磁盘不足就保留现场停止，不要求强行完成三轮。整个新 session 的模型/数据原始资源规则与 60 GiB 硬保留继承不变。
 

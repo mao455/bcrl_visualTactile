@@ -87,7 +87,7 @@ def validate(registration, *, fresh=True):
             and not any((collection/c['name']).exists() for c in plan['cases']), 'Preserve existing collection attempts')
     inputs={}
     for command in (r['collection_command'],r['cycle_command']):
-        for flag in ('--backend-json','--reuse-index','--training-sampling-json'):
+        for flag in ('--backend-json','--reuse-index','--training-sampling-json','--frozen-visual-io-json'):
             if flag in command:
                 path=Path(command[command.index(flag)+1]).resolve(strict=True);inputs[str(path)]=sha256(path)
     return dict(registration=r,paths=paths,plan=plan,ledger=ledger,sources=sources,command_input_sha256=inputs,

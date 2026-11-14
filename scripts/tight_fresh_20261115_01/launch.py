@@ -116,6 +116,13 @@ def load(tree, expected):
     require(sampling.get('version')=='fresh_random_visit_training_v1'
             and sampling.get('geometry',{}).get('fraction')==.5
             and sampling['geometry'].get('max_samples') is None,'Wrong training sampling candidate')
+    visual_io=read(loop['inputs']['frozen_visual_io_json'])
+    require(visual_io==dict(version='frozen_visual_eager_v1',torch_load_mmap=False,
+                lifetime='current_episode_or_current_B2_visits_only',learned_state_cache=False)
+            and visual_io.get('torch_load_mmap') is False and visual_io.get('learned_state_cache') is False,
+            'Wrong frozen visual I/O profile')
+    require(loop['cycle']['parallel_frontends'] is False and loop['cycle']['parallel_backends'] is True,
+            'This long-trajectory batch uses sequential frontends and admitted parallel backends')
     require(loop['collection']['schedules']==['fixed80']*4+['held0']*2+['held_root60','contact0'], 'Schedule changed')
     require(loop['cycle']['evaluation_lanes']==loop['cycle']['development_count_per_role']==8,
             'This repeated development cohort has eight cases per role')

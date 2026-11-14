@@ -93,13 +93,14 @@ def paired_frontends(execute, output, epochs, *, offline_anchor_batch=None,traje
 
 
 def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_status=True, stop_paths=(),
-        offline_anchor_batch=None):
+        offline_anchor_batch=None,frozen_visual_io=None):
     """The same per-role commands and dependencies in serial and parallel modes."""
     rear=output/role/'backend'
     options=dict(update_status=update_status)
     if stop_paths:options['stop_paths']=stop_paths
     execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',epochs]+
         (['--continue-rear'] if continue_rear else [])+
+        (['--frozen-visual-io-json',output/'frozen_visual_io.json'] if frozen_visual_io is not None else [])+
         (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),rear/'prepared.json',**options)
     execute('backend_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json',**options)
     execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,
@@ -108,7 +109,7 @@ def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_
         '--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json',**options)
 
 
-def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=(),offline_anchor_batch=None):
+def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=(),offline_anchor_batch=None,frozen_visual_io=None):
     """Join independent complete backend chains; one failure does not cancel its peer."""
     from concurrent.futures import ThreadPoolExecutor
     errors={};outcomes={};began=time.time()
@@ -116,7 +117,7 @@ def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=
         start=time.time()
         try:
             backend_chain(execute,output,role,epochs,continue_rear=continue_rear,
-                update_status=False,stop_paths=stop_paths,offline_anchor_batch=offline_anchor_batch)
+                update_status=False,stop_paths=stop_paths,offline_anchor_batch=offline_anchor_batch,frozen_visual_io=frozen_visual_io)
         except Exception as error:
             return dict(complete=False,error=repr(error),started=start,ended=time.time(),seconds=time.time()-start)
         return dict(complete=True,started=start,ended=time.time(),seconds=time.time()-start)
@@ -183,11 +184,16 @@ def configure_episode_io(output, config):
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
-        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None):
+        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
+        frozen_visual_io=None):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
     training_sampling=validate_visit_profile(training_sampling)
+    from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
+    frozen_visual_io=validate_visual_io(frozen_visual_io)
+    if frozen_visual_io is not None and trajectory_profile is None:
+        raise ValueError('Formal eager visual I/O requires explicit B2 frontend training')
     if trajectory_profile and (paired_episode_io or episode_io is not None):
         raise ValueError('B2 rejects paired_episode_io_v1 and existing EpisodePrefetch, including implicit prefetch defaults')
     from visuotactile.models.native_vision import validate_vision_tail_profile
@@ -246,6 +252,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
     if trajectory_profile is not None:registration['full_trajectory_batch']=trajectory_profile
     if training_sampling is not None:registration['training_sampling']=training_sampling
+    if frozen_visual_io is not None:registration['frozen_visual_io']=frozen_visual_io
     if parallel_backends:
         registration['parallel_backends']=True
         registration['parallel_backend_contract']=dict(version='independent_backend_chains_v1',
@@ -294,6 +301,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     try:
         execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
         if training_sampling is not None:atomic_json(output/'training_sampling.json',training_sampling)
+        if frozen_visual_io is not None:atomic_json(output/'frozen_visual_io.json',frozen_visual_io)
         if episode_io is not None:
             atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
         if latest_repeat is not None:
@@ -352,13 +360,13 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         if backends_admitted:
             atomic_json(ledger/'status.json',dict(stage='parallel_backends',roles=['A','B'],started=time.time()))
             paired=paired_backends(execute,output,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths,
-                offline_anchor_batch=backend_offline_anchor_batch)
+                offline_anchor_batch=backend_offline_anchor_batch,frozen_visual_io=frozen_visual_io)
             atomic_json(ledger/'parallel_backends.json',paired)
             if not paired['complete']:raise RuntimeError('Backend stage failed: '+str(paired['errors']))
         else:
             for role in ['A','B']:
                 backend_chain(execute,output,role,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths,
-                    offline_anchor_batch=backend_offline_anchor_batch)
+                    offline_anchor_batch=backend_offline_anchor_batch,frozen_visual_io=frozen_visual_io)
         if any(path.exists() for path in backend_stop_paths):raise InterruptedError('Fresh cycle STOP before development')
         development=output/'development'
         if evaluation_lanes>1:
@@ -392,6 +400,7 @@ def main():
     p.add_argument('--parallel-frontends',action='store_true')
     p.add_argument('--offline-anchor-batch',type=int,help='Explicit frontend offline metrics DDIM batch only; does not enable backend cache batching')
     p.add_argument('--training-sampling-json',type=Path,help='Explicit per-visit random legal starts and rotating geometry sampling profile')
+    p.add_argument('--frozen-visual-io-json',type=Path,help='Explicit eager frozen visual file reads for B2/metrics and backend cache only')
     p.add_argument('--full-trajectory-batch',action='store_true',help='New B2 frontend training identity; same visits but one optimizer/EMA update per batch; rejects paired I/O and prefetch')
     p.add_argument('--backend-offline-anchor-batch',type=int,help='Separate opt-in backend cache DDIM batch; requires its own cache acceptance')
     p.add_argument('--parallel-backends',action='store_true',
@@ -432,7 +441,8 @@ def main():
         inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo,parallel_backends=a.parallel_backends,
         offline_anchor_batch=a.offline_anchor_batch,backend_offline_anchor_batch=a.backend_offline_anchor_batch,
         trajectory_batch_profile=trajectory_profile,
-        training_sampling=read(a.training_sampling_json) if a.training_sampling_json else None)
+        training_sampling=read(a.training_sampling_json) if a.training_sampling_json else None,
+        frozen_visual_io=read(a.frozen_visual_io_json) if a.frozen_visual_io_json else None)
 
 
 if __name__=='__main__':main()
