@@ -1,3 +1,8 @@
+## 2026-11-15 01:20 — 恢复后数值差异的独立定位工具
+
+- `tools/tight_trajectory_recovery_probe.py`及测试：固定原train singleton与完整磁盘边界，最多5更新，分别同对象/新对象/default/确定性；逐参数裁剪后梯度、模型/EMA/Adam/RNG的exact与误差描述及分项计时，无放宽原gate或正式trainer修改。
+- 主Agent20项CPU检查通过（2.37s）；真实输入check-only2.571秒通过，CUDA0/更新0。原失败源与辅助代码逐SHA绑定，原deadline不变，真实GPU运行待资源准入。
+
 ## 2026-11-15 01:14 — 未完成周期的真实阶段回执与B2失败小证据
 
 - `tight_fresh_cycle_throughput.stage_receipts`原partial仅查不存在的ledger子目录；现读取真实stages根，兼容历史ledger，拒绝重名阶段/错文件名，worker/status不计完成，失败区间保留且不伪造completion。完整finished路径保持；真实第八轮除报告创建时间外逐字段一致。主Agent两文件30项通过，Agent扩展含读者41项通过。

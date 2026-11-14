@@ -1,3 +1,9 @@
+## B2恢复算术定位探针
+
+`trajectory_recovery_arithmetic_probe_v1`只读取既有失败B gate的第一更新完整checkpoint及同一train singleton，严格绑定原失败/来源/两helper/统计与train-only缓存。默认算术同对象首跑与重复、默认新对象、确定性新对象两次，共最多5个可丢弃更新；每个分支先exact验证完整恢复边界。裁剪后/Adam前复制逐参数梯度，比较模型/EMA/Adam/RNG的exact及描述性数值差，不添加更宽通过门槛，不更改正式trainer。
+
+必须由新进程启动前设置CUBLAS_WORKSPACE_CONFIG=:4096:8；默认分支也有这一环境差别和梯度CPU拷贝，不能称旧gate逐位重放。确定性分支显式deterministic algorithms/cuDNN true、benchmark false，unsupported即保留失败、不重试；候选算术不自动进入训练。570秒内界与外层<=600秒回收、原session/STOP同时生效；更新计时含另行列出的梯度拷贝，短探针不代表完整epoch速度。
+
 ## held_root60 持物接近当前目标根部的独立采集入口
 
 `held_root_near_goal_then_delay_v1`沿用held12：12个已完成60Hz transition都抬高至少2cm，每tick两个120Hz样本均有至少两指物体接触力>0.1N；高度参考是completed25–48的中位数。当前transition第二个物理子步后的world rigid-root到当前目标rigid-root距离<=60mm，当前transition前后goal pose与stage完全一致，下一动作接管、delay0、无超时fallback。不是COM/keypoint距离，不加方向角门槛；角度和原生关键点误差只记诊断。真值只用于采集触发和审核，不进学生条件。
