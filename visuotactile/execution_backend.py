@@ -11,6 +11,7 @@ import re
 
 VERSION = 'tight_execution_backend_v1'
 DESCRIPTOR_VERSION = 'tight_execution_backend_v2'
+TILED_POSE_VERSION = 'tight_execution_backend_v3'
 DEFAULT = dict(version=VERSION, physics_device='cpu', camera_backend='standard',
                kit_tasking_threads=2, physics_threads=2)
 DESCRIPTOR_DEFAULTS = dict(renderer_descriptor_sets=360000, renderer_reserved_descriptors=900000)
@@ -24,16 +25,18 @@ def execution_backend(value=None, *, available_cpus=None):
         raise ValueError('execution_backend must be a registered object')
     value = {} if value is None else dict(value)
     version = value.get('version', VERSION)
-    if version not in (VERSION, DESCRIPTOR_VERSION):
+    if version not in (VERSION, DESCRIPTOR_VERSION, TILED_POSE_VERSION):
         raise ValueError('Unknown execution backend version')
     defaults = dict(DEFAULT)
-    if version == DESCRIPTOR_VERSION:
+    if version in (DESCRIPTOR_VERSION, TILED_POSE_VERSION):
         defaults.update(DESCRIPTOR_DEFAULTS)
+    if version == TILED_POSE_VERSION:
+        defaults['tiled_fixed_camera_usd_sync'] = False
     unknown = set(value)-set(defaults)
     if unknown:
         raise ValueError('Unknown execution_backend fields: '+str(sorted(unknown)))
     result = dict(defaults, **value)
-    if version == DESCRIPTOR_VERSION:
+    if version in (DESCRIPTOR_VERSION, TILED_POSE_VERSION):
         for field in DESCRIPTOR_DEFAULTS:
             if type(result[field]) is not int or not 1 <= result[field] <= 2147483647:
                 raise ValueError(field+' must be a positive signed 32-bit integer')
@@ -42,6 +45,9 @@ def execution_backend(value=None, *, available_cpus=None):
         raise ValueError('physics_device must be cpu or an explicit cuda:N device')
     if result['camera_backend'] not in ('standard', 'tiled'):
         raise ValueError('Only standard or tiled real RGB-D cameras are supported')
+    if version == TILED_POSE_VERSION and (result['tiled_fixed_camera_usd_sync'] is not True
+            or not device.startswith('cuda:') or result['camera_backend'] != 'tiled'):
+        raise ValueError('v3 requires explicit tiled_fixed_camera_usd_sync=true with CUDA tiled cameras')
     if available_cpus is None:
         available_cpus = len(os.sched_getaffinity(0)) if hasattr(os, 'sched_getaffinity') else os.cpu_count()
     available_cpus = available_cpus or 1
@@ -53,9 +59,9 @@ def execution_backend(value=None, *, available_cpus=None):
 
 
 def renderer_resource_readback(value, getter):
-    """Read capacity only for v2; no extra setting access on the v1 path."""
+    """Read registered capacity for v2/v3; no extra settings on the v1 path."""
     config = execution_backend(value)
-    if config['version'] != DESCRIPTOR_VERSION:
+    if config['version'] not in (DESCRIPTOR_VERSION, TILED_POSE_VERSION):
         return None
     requested = {path:config[field] for field,path in DESCRIPTOR_SETTINGS.items()}
     observed = {path:getter(path) for path in requested}
@@ -96,7 +102,7 @@ def startup_arguments(value, *, num_envs=None):
         # Replicator otherwise enforces an installation-specific tile ceiling.
         # Resource admission remains the runner's responsibility, not a lane cap.
         args += f' --/rtx/viewTile/limit={num_envs}'
-    if config['version'] == DESCRIPTOR_VERSION:
+    if config['version'] in (DESCRIPTOR_VERSION, TILED_POSE_VERSION):
         args += ''.join(f' --{path}={config[field]}' for field,path in DESCRIPTOR_SETTINGS.items())
     return args
 

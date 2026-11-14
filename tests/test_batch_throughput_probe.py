@@ -91,6 +91,7 @@ def test_prepare_default_compatibility_and_large_single_role_probe(tmp_path,monk
     assert 'max_control_ticks' not in old and 'execution_backend' not in old
     assert 'inference_scheduler_index_mode' not in old
     assert old['vision_microbatch']==2
+    assert 'failure_render_calls' not in old
     calls.clear()
     prepare(root,tmp_path/'probe',256,19,neural_batch=True,max_control_ticks=36,roles=['B'],
         execution_backend=dict(physics_device='cuda:0',camera_backend='tiled'),vision_microbatch=32)
@@ -105,3 +106,11 @@ def test_prepare_default_compatibility_and_large_single_role_probe(tmp_path,monk
     with pytest.raises(ValueError,match='vision_microbatch'):
         prepare(root,tmp_path/'bad',8,20,vision_microbatch=0)
     assert not (tmp_path/'bad').exists()
+    prepare(root,tmp_path/'render_probe',8,20,max_control_ticks=1,roles=['A'],failure_render_calls=4)
+    registered=json.loads((tmp_path/'render_probe/plan.json').read_text())
+    assert registered['failure_render_calls']==4 and registered['diagnostic_only']
+    for limit in (None,36):
+        destination=tmp_path/('invalid_render_'+str(limit))
+        with pytest.raises(ValueError,match='one-tick'):
+            prepare(root,destination,8,20,max_control_ticks=limit,failure_render_calls=1)
+        assert not destination.exists()

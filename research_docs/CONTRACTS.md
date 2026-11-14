@@ -1,3 +1,9 @@
+## 2026-11-14 显式Tiled位姿候选与失败后渲染诊断
+
+execution_backend_v3必须CUDA+tiled+tiled_fixed_camera_usd_sync=true，固定已审安装源码SHA，仅修改两个固定相机现有view实例的USD镜像布尔；腕部不改，class/module/shared安装不改。仅证明配置readback，不代表实际外参或画面正确。旧v1/v2保持。failure_render_calls默认0，只有max_control_ticks=1且失败control_tick0可启用至多4次sim.render；保留原坏包/异常，不调用step/reset/controller/camera.update，不替代正式60Hz观测。每次可观察物理、目标、队列、时钟、packet/frame与已初始化RNG变化则停止；不宣称完整隐藏PhysX相等。
+
+train_only_selected_frontend_stage_fit_v1绑定来源continuation EMA与完成训练选中best EMA，分进程用各自冻结trainer、完整历史与合法专家mask做前端commit12误差。诊断几何只作重叠阶段掩码，不进神经输入；不同阶段动作可见次数不等于优化器target槽曝光。数值混合容器仅完整性SHA/mmap元数据，新增训练tensor复制至512MiB内独立投影，运行不读取heldout视觉/原始数据。此结果不测后端或自主成功。
+
 ## 2026-11-14 可扩展执行与显式策略/数据来源
 
 当前正式batch使用正整数lane数、按同权重分波、逐lane独立历史/接管/终止/合法专家mask；每个60Hz时刻的真实三视角均进入学生。vision_microbatch显式登记，填充复制当前lane并丢弃，不增加观察或监督。原120/60/5Hz及29维目标不变；普通CPU/standard默认仍兼容，新的execution_backend_v1/v2可登记CPU或CUDA、standard或tiled、Kit/PhysX线程及v2渲染描述符容量，实际读回不等于真实物理/传感通过。没有未经证据的4环境上限。

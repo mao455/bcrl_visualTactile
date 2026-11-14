@@ -77,14 +77,22 @@ def check_sensor_clock(packet,active,previous):
     return previous
 
 
-def check_sensor_clock_with_evidence(packet,active,previous,*,directory,env,control_tick):
+def check_sensor_clock_with_evidence(packet,active,previous,*,directory,env,control_tick,
+                                     failure_render_calls=0,max_control_ticks=None,rng_stream=None):
     """Keep acceptance unchanged; save the first failed real observation locally."""
+    if failure_render_calls:
+        from visuotactile.camera_render_probe import validate_render_probe
+        validate_render_probe(failure_render_calls,max_control_ticks=max_control_ticks)
     try:
         return check_sensor_clock(packet,active,previous)
     except Exception as failure:
         try:
             from visuotactile.camera_failure_diagnostics import save_failure
             save_failure(directory,packet,active,env,failure,control_tick=control_tick)
+            if failure_render_calls:
+                from visuotactile.camera_render_probe import run_render_probe
+                run_render_probe(directory,env,max_render_calls=failure_render_calls,
+                    control_tick=control_tick,max_control_ticks=max_control_ticks,rng_stream=rng_stream)
         except Exception as diagnostic_error:
             failure.add_note('Sensor failure snapshot could not be saved: '+repr(diagnostic_error))
         raise
@@ -96,13 +104,15 @@ def resource_snapshot(root,samples):
 
 
 def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=None,roles=None,execution_backend=None,
-            vision_microbatch=2):
+            vision_microbatch=2,failure_render_calls=0):
     import subprocess
     from visuotactile.narrow_data import direct_configuration
     from visuotactile.models.native_vision import validate_vision_microbatch
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
     if type(count) is not int or count < 1:raise ValueError('Positive registered lanes; resource acceptance determines concurrency')
     options=probe_options(max_control_ticks,roles)
+    from visuotactile.camera_render_probe import validate_render_probe
+    validate_render_probe(failure_render_calls,max_control_ticks=max_control_ticks)
     if execution_backend is not None:
         from visuotactile.execution_backend import normalize_backend
         execution_backend=normalize_backend(execution_backend)
@@ -124,6 +134,8 @@ def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=N
         result_scope='Bounded throughput/backend diagnostic only; censored lanes are not task failures or successes; no new training data')
     if execution_backend is not None:
         plan['execution_backend']=execution_backend
+    if failure_render_calls:
+        plan['failure_render_calls']=failure_render_calls
     atomic_json(output/'plan.json',plan)
 
 
@@ -143,6 +155,8 @@ def run(output):
     plan=read(output/'plan.json');session=read(output/'session.json')
     vision_microbatch=validate_vision_microbatch(plan.get('vision_microbatch',2))
     max_ticks=probe_options(plan.get('max_control_ticks'),plan['pairs'])['max_control_ticks']
+    from visuotactile.camera_render_probe import validate_render_probe
+    failure_render_calls=validate_render_probe(plan.get('failure_render_calls',0),max_control_ticks=max_ticks)
     diagnostic=max_ticks is not None
     if diagnostic and (plan['kind']!='engineering_batch_throughput_probe' or plan.get('diagnostic_only') is not True):
         raise ValueError('Censored diagnostics require an explicit probe plan identity')
@@ -195,7 +209,8 @@ def run(output):
                 if not any(active):break
                 packet=env.research_packet
                 if diagnostic:check_sensor_clock_with_evidence(packet,active,camera_frames,
-                    directory=directory,env=env,control_tick=tick)
+                    directory=directory,env=env,control_tick=tick,failure_render_calls=failure_render_calls,
+                    max_control_ticks=max_ticks,rng_stream=isolated.stream)
                 with lease.block():
                     start=time.perf_counter();command=controller.act(packet,env._diagnostics(),active)
                     if diagnostic:torch.cuda.synchronize()
@@ -283,10 +298,13 @@ def main():
     p.add_argument('--roles',nargs='+',choices=['A','B'])
     p.add_argument('--backend-json',type=Path)
     p.add_argument('--vision-microbatch',type=int,default=2)
+    p.add_argument('--failure-render-calls',type=int,default=0,choices=range(5),
+        help='Only a one-tick diagnostic: preserve first failure, then at most four render-only state checks')
     args=p.parse_args()
     if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed,neural_batch=args.neural_batch,
         max_control_ticks=args.max_control_ticks,roles=args.roles,
-        execution_backend=read(args.backend_json) if args.backend_json else None,vision_microbatch=args.vision_microbatch)
+        execution_backend=read(args.backend_json) if args.backend_json else None,vision_microbatch=args.vision_microbatch,
+        failure_render_calls=args.failure_render_calls)
     else:run(args.output.resolve())
 
 

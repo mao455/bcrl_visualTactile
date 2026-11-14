@@ -163,7 +163,7 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
         mark('environment_constructor_complete')
         if execution_backend is not None:
             env.execution_backend_receipt = receipt
-        if camera_content_validation:
+        if camera_content_validation or backend.get('tiled_fixed_camera_usd_sync', False):
             # Direct fresh reset never passed through restore_observable_state,
             # which was historically the only caller setting fixed camera poses.
             # Configure after sensor initialization and before the first reset/render.

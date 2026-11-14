@@ -180,6 +180,9 @@ def _environment(root,evaluation=False,*,camera_content_validation=None,lease=No
     if selected_backend is not None:
         renderer_readback = renderer_resource_readback(backend,settings.get)
         renderer_receipt = {} if renderer_readback is None else dict(renderer_resources=renderer_readback)
+        if backend.get('tiled_fixed_camera_usd_sync'):
+            from visuotactile.tiled_camera_pose_sync import fixed_camera_pose_sync_readback
+            renderer_receipt['tiled_fixed_camera_pose_sync'] = fixed_camera_pose_sync_readback(env)
         write(root/'execution_backend_observed.json', dict(requested=backend_receipt(backend, num_envs=num_envs),
             physics_device=str(env.device), camera_backend=env.cfg.student_obs.camera_backend,
             physics_dt=float(env.physics_dt), control_dt=float(env.step_dt), num_envs=env.num_envs,

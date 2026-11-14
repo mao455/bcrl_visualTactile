@@ -1,3 +1,11 @@
+## 2026-11-14 22:00 新16初态正式批量采集与相机候选
+
+session06固定窗口21:49:51至次日03:49:51，来源A05/B06及99条未全部训练池绑定，旧session05截止/现场不改。冻结d168195的new_family_08已由tight-fresh-newfamily08-20261114.service运行32机会、16新train family，配置与公开预注册逐项相等；CPU standard16/视觉micro8/512MiB异步writer/2个spawn校验进程、最多4待校验。初始化65.33秒，A波已真实执行，当前只是启动验收而非最终新增量。2个A初态碰撞非法、0动作，保留在机会分母；其余结果待完整结束和入池审核。旧monitor尚未识别batch_run的--output，将其PID误标external；owner独立PID/starttick/PGID证据正常，原遥测保留，不据误分类宣称外部争用。见session06_preregistration/startup.json。
+
+显式backend v3候选只在CUDA+tiled启用两个固定相机实例的Fabric→USD位姿同步；三份安装源码SHA、类型/设备/原值和readback严格核对，腕相机与旧v1/v2不变，不修改共享Lab。单tick失败诊断可选1–4次render-only，先保留坏包，逐次核对可见物理/时钟/targets/queue/packet/frame/RNG；变化立即停止，原异常仍抛、画面不进控制/训练。安装源码支持此定位，真实Kit修复和速度仍待，当前正式继续standard。
+
+新增tight_fresh_stage_fit的CPU prepare/独立source与selected EMA前向/compare：只投影本批新增train，按当前权重分别重算完整历史，按抓取前/持物/相对转动/近孔/原生阶段报告前端commit12误差。动作可见次数与实际训练target槽分开，后者无法逐阶段重建时记unknown；不测后端、不冒充自主收益。57项主Agent相关CPU回归通过，独立审查另71项（有重叠）；两候选均尚未GPU验收。
+
 ## 2026-11-14 21:49 session05 完整收尾与新初态阶段准备
 
 原session05所有GPU worker和monitor已退出，原21:54:21截止未改。该时段实采第六/七批共32机会、16次接管、15条成功纠偏、3210合法专家步；累计99训练轨迹，仍30训练family，6验证不变。第六轮实际训练93条并完成完整自主，A/B各0/4插入；第七批新6只完成缓存尚未训练。B06两例持物转向/靠近改善而未到原15mm标准，下一采集保留A05/B06并保护原A/B05回退。

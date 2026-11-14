@@ -237,6 +237,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def configure_camera_views(self, local_eye=(-.7, -.35, 1.15), local_target=(0., -.03, .68)):
         """Static calibrations relative to env origin; never follow a true object pose."""
+        if self.execution_backend is not None and self.execution_backend.get('tiled_fixed_camera_usd_sync'):
+            from visuotactile.tiled_camera_pose_sync import enable_fixed_camera_pose_sync
+            enable_fixed_camera_pose_sync(self)
         views = [((.6, -.8, 1.1), (0., .15, .65)), (local_eye, local_target)]
         if self.camera_rig['version']>=3:
             views=list(self.camera_rig['fixed_views'])
@@ -591,6 +594,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         metadata["perception_version"] = self.perception_version
         if self.execution_backend is not None:
             metadata['execution_backend'] = self.execution_backend
+            if self.execution_backend.get('tiled_fixed_camera_usd_sync'):
+                from visuotactile.tiled_camera_pose_sync import fixed_camera_pose_sync_readback
+                metadata['tiled_fixed_camera_pose_sync'] = fixed_camera_pose_sync_readback(self)
         metadata['camera_validity_contract'] = ('rgb_spatial_content_and_metric_depth_v1' if self.camera_content_validation
             else 'legacy_presence_only_not_visual_acceptance')
         if self.perception_version == 2:
