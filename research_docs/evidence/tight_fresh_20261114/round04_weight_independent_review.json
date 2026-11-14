@@ -1,0 +1,581 @@
+{
+  "review_utc": 1794635005.1822212,
+  "source_commit": "85ebd12ecc82a6f5bfa67b3aa29092f9a9344a31",
+  "registration_sha256": "8bd7af914ad87da59c89ec9aceec7cdba692cb2a63bd06c3bdda99172cd132a8",
+  "status_at_review": {
+    "stage": "control_development",
+    "command": [
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_followup_20261114/.venv_isaacsim/bin/python",
+      "-m",
+      "tools.tight_fresh_rollouts",
+      "run",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round04_recovery_weight_study/control",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round04_recovery_weight_study/control/development"
+    ],
+    "utc": 1794634819.8818552
+  },
+  "checks": {
+    "control_A": {
+      "initial_state_tensor_sha256": "f582f5970f91ee395d296920a64d0c23eeab963c889887f340d9a3d13ffcd502",
+      "all_initial_tensors_equal_selected_source": true,
+      "normalized_configuration_equal_except_weight": true,
+      "source_backend_sha256": "7d72167eeec9d45af648753051920f65c2367fb9f5896d847c6744447e2817ad",
+      "source_frontend_sha256": "c0a82946acc3ca2ddd20f40835b953cbcda1f6733b4ecaa02d000e337bc353b3",
+      "cache_index_sha256": "e178d17c43bc17e239ed2c24fdd733b7ba8b000d52631a65f97ede21fbac574b",
+      "episode_schedule_sha256": "83e15dcd42a46b58fd3414b6237471c83d0434c77ccc4ac5ff492a0a5ebd6426",
+      "train_episodes": 83,
+      "validation_episodes": 6,
+      "train_families": 30,
+      "population": {
+        "contract": {
+          "version": "fresh_actual_takeover_onset_weighting_v1",
+          "ticks": 12,
+          "backend_weight": 1.0
+        },
+        "supervised_ticks": 23701,
+        "initial_recovery_supervised_ticks": 636,
+        "remaining_supervised_ticks": 23065,
+        "loss_weight_mass": 23701.0,
+        "loss_weight_mass_is_exposure": false,
+        "episode_draws": 83
+      },
+      "actual_finished": {
+        "updates": 490,
+        "supervised_ticks": 71103,
+        "control_ticks": 97431,
+        "episode_counts_all_three": true,
+        "last_schedule_matches": true,
+        "initial_recovery_supervised_ticks": 1908,
+        "loss_weight_mass": 71103.0,
+        "selected": {
+          "epoch": 3,
+          "update": 490,
+          "validation_score": 0.0004662509891204536,
+          "initialization_candidate": false,
+          "base_checkpoint_sha256": "c0a82946acc3ca2ddd20f40835b953cbcda1f6733b4ecaa02d000e337bc353b3",
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+          "selection_baseline": null,
+          "checkpoint_sha256": "7ac09a4c88cc60e093ae7d0f834217676d52e8cf0ce7ab83a20cccb098ac5f39"
+        }
+      }
+    },
+    "control_B": {
+      "initial_state_tensor_sha256": "28743c80db117b1a70e5860cc5b22712bf22846d776e0c4d43a9ab9aac4a0f37",
+      "all_initial_tensors_equal_selected_source": true,
+      "normalized_configuration_equal_except_weight": true,
+      "source_backend_sha256": "5601ac5c370ea979212e04f3733c26c465742af365aa0aead96ecd5bb9aa0313",
+      "source_frontend_sha256": "0d30d14d97d0a84f8b5f6f22968a2d55c9212bba64cb8dc3ea4fe2e8eb2ba9f9",
+      "cache_index_sha256": "78f14a27f5c91f91ada2b25667390e1baa884213830ad3ccbf0939c81ff9ad0e",
+      "episode_schedule_sha256": "83e15dcd42a46b58fd3414b6237471c83d0434c77ccc4ac5ff492a0a5ebd6426",
+      "train_episodes": 83,
+      "validation_episodes": 6,
+      "train_families": 30,
+      "population": {
+        "contract": {
+          "version": "fresh_actual_takeover_onset_weighting_v1",
+          "ticks": 12,
+          "backend_weight": 1.0
+        },
+        "supervised_ticks": 23701,
+        "initial_recovery_supervised_ticks": 636,
+        "remaining_supervised_ticks": 23065,
+        "loss_weight_mass": 23701.0,
+        "loss_weight_mass_is_exposure": false,
+        "episode_draws": 83
+      },
+      "actual_finished": {
+        "updates": 490,
+        "supervised_ticks": 71103,
+        "control_ticks": 97431,
+        "episode_counts_all_three": true,
+        "last_schedule_matches": true,
+        "initial_recovery_supervised_ticks": 1908,
+        "loss_weight_mass": 71103.0,
+        "selected": {
+          "epoch": 3,
+          "update": 490,
+          "validation_score": 0.000673476664815098,
+          "initialization_candidate": false,
+          "base_checkpoint_sha256": "0d30d14d97d0a84f8b5f6f22968a2d55c9212bba64cb8dc3ea4fe2e8eb2ba9f9",
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+          "selection_baseline": null,
+          "checkpoint_sha256": "afc3598b45cd4de4fdcd5a2e941bc7aa41f3ce1361afa1a458fa31ee7279eed7"
+        }
+      }
+    },
+    "weighted_A": {
+      "initial_state_tensor_sha256": "f582f5970f91ee395d296920a64d0c23eeab963c889887f340d9a3d13ffcd502",
+      "all_initial_tensors_equal_selected_source": true,
+      "normalized_configuration_equal_except_weight": true,
+      "source_backend_sha256": "7d72167eeec9d45af648753051920f65c2367fb9f5896d847c6744447e2817ad",
+      "source_frontend_sha256": "c0a82946acc3ca2ddd20f40835b953cbcda1f6733b4ecaa02d000e337bc353b3",
+      "cache_index_sha256": "e178d17c43bc17e239ed2c24fdd733b7ba8b000d52631a65f97ede21fbac574b",
+      "episode_schedule_sha256": "83e15dcd42a46b58fd3414b6237471c83d0434c77ccc4ac5ff492a0a5ebd6426",
+      "train_episodes": 83,
+      "validation_episodes": 6,
+      "train_families": 30,
+      "population": {
+        "contract": {
+          "version": "fresh_actual_takeover_onset_weighting_v1",
+          "ticks": 12,
+          "backend_weight": 3.0
+        },
+        "supervised_ticks": 23701,
+        "initial_recovery_supervised_ticks": 636,
+        "remaining_supervised_ticks": 23065,
+        "loss_weight_mass": 24973.0,
+        "loss_weight_mass_is_exposure": false,
+        "episode_draws": 83
+      }
+    },
+    "weighted_B": {
+      "initial_state_tensor_sha256": "28743c80db117b1a70e5860cc5b22712bf22846d776e0c4d43a9ab9aac4a0f37",
+      "all_initial_tensors_equal_selected_source": true,
+      "normalized_configuration_equal_except_weight": true,
+      "source_backend_sha256": "5601ac5c370ea979212e04f3733c26c465742af365aa0aead96ecd5bb9aa0313",
+      "source_frontend_sha256": "0d30d14d97d0a84f8b5f6f22968a2d55c9212bba64cb8dc3ea4fe2e8eb2ba9f9",
+      "cache_index_sha256": "78f14a27f5c91f91ada2b25667390e1baa884213830ad3ccbf0939c81ff9ad0e",
+      "episode_schedule_sha256": "83e15dcd42a46b58fd3414b6237471c83d0434c77ccc4ac5ff492a0a5ebd6426",
+      "train_episodes": 83,
+      "validation_episodes": 6,
+      "train_families": 30,
+      "population": {
+        "contract": {
+          "version": "fresh_actual_takeover_onset_weighting_v1",
+          "ticks": 12,
+          "backend_weight": 3.0
+        },
+        "supervised_ticks": 23701,
+        "initial_recovery_supervised_ticks": 636,
+        "remaining_supervised_ticks": 23065,
+        "loss_weight_mass": 24973.0,
+        "loss_weight_mass_is_exposure": false,
+        "episode_draws": 83
+      }
+    }
+  },
+  "raw_corrections_checked": 53,
+  "raw_corrections": [
+    {
+      "identity": "r01_A_formal_050_slow_3_t46",
+      "first_legal_zero_based_tick": 48,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_B_formal_050_slow_3_t46",
+      "first_legal_zero_based_tick": 48,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_B_formal_029_slow_6_t58",
+      "first_legal_zero_based_tick": 60,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_A_formal_029_slow_6_t58",
+      "first_legal_zero_based_tick": 60,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_A_formal_047_slow_4_t70",
+      "first_legal_zero_based_tick": 72,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_B_formal_051_slow_5_t84",
+      "first_legal_zero_based_tick": 86,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_A_formal_051_slow_5_t84",
+      "first_legal_zero_based_tick": 86,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_A_formal_025_slow_0_t120",
+      "first_legal_zero_based_tick": 122,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_B_formal_025_slow_0_t120",
+      "first_legal_zero_based_tick": 122,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_B_formal_039_slow_5_t180",
+      "first_legal_zero_based_tick": 182,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r01_A_formal_039_slow_5_t180",
+      "first_legal_zero_based_tick": 182,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_B_formal_050_slow_3_stable_d0",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_A_formal_047_slow_4_stable_d48",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_B_formal_051_slow_5_stable_d72",
+      "first_legal_zero_based_tick": 259,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_A_formal_051_slow_5_stable_d72",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_B_formal_039_slow_5_stable_d120",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_B_formal_041_slow_3_stable_d0",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_A_formal_046_slow_5_stable_d48",
+      "first_legal_zero_based_tick": 309,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_B_formal_046_slow_5_stable_d48",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_A_formal_020_slow_1_stable_d96",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r02_B_formal_020_slow_1_stable_d96",
+      "first_legal_zero_based_tick": 362,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_013_slow_7_t80",
+      "first_legal_zero_based_tick": 82,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_013_slow_7_t80",
+      "first_legal_zero_based_tick": 82,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_037_slow_0_t100",
+      "first_legal_zero_based_tick": 102,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_037_slow_0_t100",
+      "first_legal_zero_based_tick": 102,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_043_slow_4_t120",
+      "first_legal_zero_based_tick": 122,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_043_slow_4_t120",
+      "first_legal_zero_based_tick": 122,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_044_slow_4_t140",
+      "first_legal_zero_based_tick": 142,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_012_slow_2_t160",
+      "first_legal_zero_based_tick": 162,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_012_slow_2_t160",
+      "first_legal_zero_based_tick": 162,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_054_slow_3_t180",
+      "first_legal_zero_based_tick": 182,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_054_slow_3_t180",
+      "first_legal_zero_based_tick": 182,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_005_slow_5_t100",
+      "first_legal_zero_based_tick": 102,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_005_slow_5_t100",
+      "first_legal_zero_based_tick": 102,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_018_slow_4_t140",
+      "first_legal_zero_based_tick": 142,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_042_slow_2_t180",
+      "first_legal_zero_based_tick": 182,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_042_slow_2_t180",
+      "first_legal_zero_based_tick": 182,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_007_slow_3_t260",
+      "first_legal_zero_based_tick": 262,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_007_slow_3_t260",
+      "first_legal_zero_based_tick": 262,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_B_formal_053_slow_0_t300",
+      "first_legal_zero_based_tick": 302,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r03_A_formal_053_slow_0_t300",
+      "first_legal_zero_based_tick": 302,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_A_formal_006_slow_5_t40",
+      "first_legal_zero_based_tick": 42,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_B_formal_006_slow_5_t40",
+      "first_legal_zero_based_tick": 42,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_B_formal_034_slow_0_t55",
+      "first_legal_zero_based_tick": 57,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_A_formal_034_slow_0_t55",
+      "first_legal_zero_based_tick": 57,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_A_formal_016_slow_2_t70",
+      "first_legal_zero_based_tick": 72,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_B_formal_016_slow_2_t70",
+      "first_legal_zero_based_tick": 72,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_B_formal_027_slow_5_t85",
+      "first_legal_zero_based_tick": 87,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_A_formal_027_slow_5_t85",
+      "first_legal_zero_based_tick": 87,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_A_formal_017_slow_2_t100",
+      "first_legal_zero_based_tick": 102,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_B_formal_017_slow_2_t100",
+      "first_legal_zero_based_tick": 102,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_B_formal_000_slow_1_t120",
+      "first_legal_zero_based_tick": 122,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    },
+    {
+      "identity": "r04_A_formal_000_slow_1_t120",
+      "first_legal_zero_based_tick": 122,
+      "weighted_ticks": 12,
+      "raw_expert_provenance_valid": true
+    }
+  ],
+  "protected_artifacts_match": true,
+  "source_files_verified": 147,
+  "cuda_initialized": false,
+  "optimizer_updates": 0,
+  "simulator_starts": 0,
+  "limitations": [
+    "Actual completion equivalence can only be checked after both arms finish; prepared schedule and initialization are exact.",
+    "Training loss numerator differs by design; compare unweighted validation metrics and actual autonomous results, not raw weighted loss values.",
+    "validation.json train metrics use first2 train originals; offline train metrics use first8, neither reports aggregate correction-onset performance.",
+    "Same development specs/seeds do not prove hidden simulator states or physical trajectories are exactly paired.",
+    "Weight3 uses fixed128 physical denominator and increases total gradient mass; any outcome measures this entire change, not pure redistribution at constant gradient mass."
+  ],
+  "independent_schedule_reconstruction": {
+    "expected_updates": 490,
+    "loss_exposure_sequence_sha256": "c147d2ea2e6f95ac6c656f58fe731df13c9aefa5bbcec1aa3f279375f6653586",
+    "unweighted_supervised_sum": 71103,
+    "early_sum": 1908,
+    "meaning": "Reconstructed independently from actual legal masks, gate, lengths, fixed seeded episode orders and unsplit32/fixed128 window; all completed control update rows match."
+  },
+  "completed_actual_pair_audit": {
+    "utc": 1794635560.1584513,
+    "roles": {
+      "A": {
+        "configuration": {
+          "same_selected_source_sha256": "7d72167eeec9d45af648753051920f65c2367fb9f5896d847c6744447e2817ad",
+          "same_configuration_except_onset_weight_and_paths": true,
+          "fresh_optimizer_each": true,
+          "optimizer_step_counters_match_actual_updates": true
+        },
+        "fairness": {
+          "updates": 490,
+          "supervised_ticks": 71103,
+          "initial_recovery_ticks": 1908,
+          "control_loss_weight_mass": 71103.0,
+          "weighted_loss_weight_mass": 74919.0,
+          "loss_weight_mass_is_exposure": false
+        },
+        "control_selected": {
+          "epoch": 3,
+          "update": 490,
+          "validation_score": 0.0004662509891204536,
+          "initialization_candidate": false,
+          "base_checkpoint_sha256": "c0a82946acc3ca2ddd20f40835b953cbcda1f6733b4ecaa02d000e337bc353b3",
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+          "selection_baseline": null,
+          "checkpoint_sha256": "7ac09a4c88cc60e093ae7d0f834217676d52e8cf0ce7ab83a20cccb098ac5f39"
+        },
+        "weighted_selected": {
+          "epoch": 3,
+          "update": 490,
+          "validation_score": 0.0004664120788220316,
+          "initialization_candidate": false,
+          "base_checkpoint_sha256": "c0a82946acc3ca2ddd20f40835b953cbcda1f6733b4ecaa02d000e337bc353b3",
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+          "selection_baseline": null,
+          "checkpoint_sha256": "5aca99093180302734d5ce017f1f1e819f6328cc79be1a944df17791cba523c4"
+        },
+        "all_three_exposures": true,
+        "same_schedule_rng": true
+      },
+      "B": {
+        "configuration": {
+          "same_selected_source_sha256": "5601ac5c370ea979212e04f3733c26c465742af365aa0aead96ecd5bb9aa0313",
+          "same_configuration_except_onset_weight_and_paths": true,
+          "fresh_optimizer_each": true,
+          "optimizer_step_counters_match_actual_updates": true
+        },
+        "fairness": {
+          "updates": 490,
+          "supervised_ticks": 71103,
+          "initial_recovery_ticks": 1908,
+          "control_loss_weight_mass": 71103.0,
+          "weighted_loss_weight_mass": 74919.0,
+          "loss_weight_mass_is_exposure": false
+        },
+        "control_selected": {
+          "epoch": 3,
+          "update": 490,
+          "validation_score": 0.000673476664815098,
+          "initialization_candidate": false,
+          "base_checkpoint_sha256": "0d30d14d97d0a84f8b5f6f22968a2d55c9212bba64cb8dc3ea4fe2e8eb2ba9f9",
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+          "selection_baseline": null,
+          "checkpoint_sha256": "afc3598b45cd4de4fdcd5a2e941bc7aa41f3ce1361afa1a458fa31ee7279eed7"
+        },
+        "weighted_selected": {
+          "epoch": 3,
+          "update": 490,
+          "validation_score": 0.0006741361576132476,
+          "initialization_candidate": false,
+          "base_checkpoint_sha256": "0d30d14d97d0a84f8b5f6f22968a2d55c9212bba64cb8dc3ea4fe2e8eb2ba9f9",
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+          "selection_baseline": null,
+          "checkpoint_sha256": "c3b8a71c3cfc7b151aa9945a2ec0bbe3fce413c2995e17fef06d4d95cf7813d2"
+        },
+        "all_three_exposures": true,
+        "same_schedule_rng": true
+      }
+    },
+    "cuda_initialized": false
+  }
+}

@@ -1,3 +1,11 @@
+## 2026-11-14 独立后续时段
+
+用户持续研究授权允许主Agent审查完整上一阶段结果后建立新session；不得更改、续期或重启旧run。tight_fresh_followup_session只接受完整自主A/B来源与一致模型/统计/数据/cache，确认旧归属worker已退出，记录原截止与源码/来源hash；新root使用独立监控/资源文件，只读链接原资产，新采集/训练必须写新子目录。过期的旧时段不是授权阻塞，历史PID须结合当前命令/cwd核验以免复用误判。大raw和冻结视觉分片本入口绑定既有manifest SHA及当前文件stat，不宣称重新全量hash；小依赖和当前后端cache实际hash。24项边界/集成测试及round_04、control的真实只读检查通过。报告/阶段采集/session与已有trigger、DAgger合计63项CPU测试通过。
+
+## 2026-11-14 恢复初段对照已完成与可选无fallback阶段采集
+
+下方“尚未真实训练”是实现当时快照；实际weight1/3各A/B三遍、490更新及完整自主已完成，见最新SESSION_HANDOFF。新stable_only_takeover_v1仅明确原train30唯一family，既有因果拿稳窗后0/12控制tick触发专家；never-fallback哨兵必须大于原生完整episode保守上界，运行前逐例检查，不改任务timeout。未触发者保留完整自主轨迹、零专家标签、不进纠偏训练；触发后仍走原实际expert bridge/队列冲刷/新观察与合法mask。未拿稳、拿稳后未到切换即结束、专家救回/未救回分别记录。源码和CPU边界验收通过，不把其视为真实Kit验收。
+
 ## 2026-11-14 可选fresh恢复初段loss权重（尚未真实训练）
 
 fresh_recovery_weighting={version: fresh_actual_takeover_onset_weighting_v1, ticks:12, backend_weight:1或3}只能显式用于fresh30_actual_takeover_aggregate_v1，固定128未加权tick窗口；拒绝与旧recovery_prefix、sampling_strata同时存在。以normalization_train_ids识别原30，其权重恒1；额外episode必须真实expert_takeover_v1，仅首个连续合法专家segment初12tick可加权，学生prefix/队列过渡仍无监督。实际曝光、episode顺序与完整历史不变；权重质量单独记账，fixed128分母保持。无此字段的历史路径不变。权重1 CPU实际trainer与无权重逐参数/梯度/顺序一致，真实完整模型对照尚未开始。
