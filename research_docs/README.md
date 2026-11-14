@@ -10,6 +10,6 @@
 
 第九轮完整学生A为0/7、B为0/8插入成功，另有A一次非法初始化；原生抬升分别0/7、1/8，持续持物2/7、5/8，仍无原生对孔或子目标。A一次持物496步却一直严重反向，B持物机会增加而未对准。相对各自来源结果混合，不整体晋升；保留回退模型，09候选只用于继续采集其真实偏差。[行为结果](evidence/tight_fresh_20261114/round09_behavior/README.md)。训练到自主评估66.96分钟，采集到评估179.06分钟；前端26.63、后端输入4.39、后端训练19.01、自主8.05分钟，另有数据整理/冻结视觉等阶段。与08工作量不同，不称单变量加速。[完整计时](evidence/tight_fresh_20261114/cycle_throughput_review/round09.json)。
 
-下一版本采用全合法时刻随机规划起点、轮换约半数不同合法构型的几何监督、B2整轨合批和有限连续循环；统一4个真实batch检查已经通过，正式完整周期尚待运行。部署和后端计划仍5Hz，每60Hz真实视觉与持续历史不变。后续GPUstandard16采集与CPUstandard8环境开发评估分别登记，采用真实完整整批耗时判断效率。
+新版本采用全合法时刻随机规划起点、轮换约半数不同合法构型的几何监督、B2整轨合批和有限连续循环；统一4个真实batch检查已经通过，正式新训练周期尚待完成。GPUstandard16采集已在tight_fresh_20261115_01实际运行：首波16机会有10条成功纠偏、2643合法专家动作，其中held0接回2条/434步，尚未参加新训练。首波含admission为18.04分钟、33.27有效轨迹/小时，下一波已启动。部署与后端计划仍5Hz，每60Hz真实视觉与持续历史不变；正式开发评估仍CPUstandard8。该时段原固定截止14:58:38.966，真实状态见research_loop_rgb01。
 
 实际进度集中于[交接](SESSION_HANDOFF.md)，证据见[evidence](evidence/tight_fresh_20261114/round05_anchor_study.json)；[合同](CONTRACTS.md)、[感知](PERCEPTION.md)、[方法](DAGGER_METHOD.md)、[性能](DAGGER_PERFORMANCE.md)、[变更](CHANGELOG.md)维护对应事实。源码和精简证据推origin/feature/tight-state-foundation，raw数据/权重留研究机。历史段落保留实验边界，不覆盖当前授权，不重启或延长旧run。

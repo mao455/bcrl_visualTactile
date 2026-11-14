@@ -1,0 +1,1511 @@
+{
+  "version": "gpu_rgb_recovery_first_wave_v1",
+  "complete_first_wave": true,
+  "complete_batch_claimed": false,
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/new_family_11",
+  "source_commit": "01453ae7945665606979736ac71025a3d15b4802",
+  "frozen_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_rgb_20261115",
+  "source_policy_pair": {
+    "version": "complete_student_policy_v1",
+    "controller": "ResidualController",
+    "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/A/training/best.pt",
+    "frontend_sha256": "3db1c72ae257364bb551fabd196468c3c7a246dfbc9025c49e560fd247551ebf",
+    "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/A/backend/A/training/best.pt",
+    "backend_sha256": "98e657760418936c26bc5d9a268b7e198e566bc0a988e86111eac524678117a8",
+    "residual_version": "target_residual_transformer60_v1",
+    "supervision": "q_reached",
+    "supervision_inference": null,
+    "modality": "G00",
+    "output": "absolute_joint_position_target_rad",
+    "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+    "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "zero_correction_is_valid": true
+  },
+  "original_deadline_unix_s": 1794725918.9665225,
+  "original_deadline_utc": "2026-11-15T06:58:38.966522+00:00",
+  "deadline_reset": false,
+  "monitoring": {
+    "mode": "bounded small-receipt reads only",
+    "started_unix_s": 1794683540.3473625,
+    "upper_bound_unix_s": 1794684740.3473625,
+    "first_wave_indexed_observed_unix_s": 1794684517.9963908,
+    "report_created_unix_s": 1794684631.1612742,
+    "max_wait_seconds": 1200,
+    "scope": "No jobs, tests, GPU/Kit launches, model reads, numeric/RGB reads or payload re-audits were started by this observer."
+  },
+  "cohort": {
+    "role": "A",
+    "wave": 0,
+    "opportunities": 16,
+    "families": 16,
+    "seed_interval_inclusive": [
+      29000000,
+      29000015
+    ],
+    "full_registered_batch_opportunities": 64,
+    "independent_successful_families": 10,
+    "paired_hidden_state_equivalence_claimed": false
+  },
+  "counts": {
+    "opportunities": 16,
+    "legal_initializations": 16,
+    "completed_executions": 16,
+    "takeovers": 11,
+    "expert_recovery_successes": 10,
+    "student_autonomous_successes": 0,
+    "accepted_trajectories": 10,
+    "control_ticks": 7729,
+    "all_valid_expert_ticks": 3708,
+    "accepted_valid_expert_ticks": 2643,
+    "verified_captures": 16
+  },
+  "by_schedule": {
+    "fixed80": {
+      "opportunities": 8,
+      "legal_initializations": 8,
+      "completed_executions": 8,
+      "takeovers": 8,
+      "expert_recovery_successes": 7,
+      "student_autonomous_successes": 0,
+      "accepted_trajectories": 7,
+      "control_ticks": 3368,
+      "all_valid_expert_ticks": 2712,
+      "accepted_valid_expert_ticks": 1647,
+      "verified_captures": 8
+    },
+    "held0": {
+      "opportunities": 4,
+      "legal_initializations": 4,
+      "completed_executions": 4,
+      "takeovers": 2,
+      "expert_recovery_successes": 2,
+      "student_autonomous_successes": 0,
+      "accepted_trajectories": 2,
+      "control_ticks": 1896,
+      "all_valid_expert_ticks": 434,
+      "accepted_valid_expert_ticks": 434,
+      "verified_captures": 4
+    },
+    "held_root60": {
+      "opportunities": 2,
+      "legal_initializations": 2,
+      "completed_executions": 2,
+      "takeovers": 0,
+      "expert_recovery_successes": 0,
+      "student_autonomous_successes": 0,
+      "accepted_trajectories": 0,
+      "control_ticks": 1120,
+      "all_valid_expert_ticks": 0,
+      "accepted_valid_expert_ticks": 0,
+      "verified_captures": 2
+    },
+    "contact0": {
+      "opportunities": 2,
+      "legal_initializations": 2,
+      "completed_executions": 2,
+      "takeovers": 1,
+      "expert_recovery_successes": 1,
+      "student_autonomous_successes": 0,
+      "accepted_trajectories": 1,
+      "control_ticks": 1345,
+      "all_valid_expert_ticks": 562,
+      "accepted_valid_expert_ticks": 562,
+      "verified_captures": 2
+    }
+  },
+  "cases": [
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000000_fixed80",
+      "seed": 29000000,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000000",
+      "schedule": "fixed80",
+      "lane": 0,
+      "started_utc": 1794683388.8449547,
+      "legal": true,
+      "steps": 365,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 285,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 283,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": true,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 365,
+        "source_sha256_declared": "d726bb1c0a1f4466413db60c7b55c4dc48989cca1ac708cd4be3a2039fd59a24",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000001_fixed80",
+      "seed": 29000001,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000001",
+      "schedule": "fixed80",
+      "lane": 1,
+      "started_utc": 1794683388.8809733,
+      "legal": true,
+      "steps": 307,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 227,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 225,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 307,
+        "source_sha256_declared": "27cf7355d225cc7514845e19900d33f1c8a526cb9a650ce0077ce594cda00939",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000002_fixed80",
+      "seed": 29000002,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000002",
+      "schedule": "fixed80",
+      "lane": 2,
+      "started_utc": 1794683388.9153867,
+      "legal": true,
+      "steps": 291,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 211,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 209,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 291,
+        "source_sha256_declared": "cdb1165bb0bb394168d4993b6fb9189d610147ddecd3876a6c07226c961749f7",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000003_fixed80",
+      "seed": 29000003,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000003",
+      "schedule": "fixed80",
+      "lane": 3,
+      "started_utc": 1794683388.949214,
+      "legal": true,
+      "steps": 265,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 185,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 183,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 265,
+        "source_sha256_declared": "214f98a09af04fe786d44ead13c48e65ce52d9d5a12a1d44836254db4b63a492",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000004_held0",
+      "seed": 29000004,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000004",
+      "schedule": "held0",
+      "lane": 4,
+      "started_utc": 1794683388.9828098,
+      "legal": true,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "takeover_triggered": false,
+      "expert_valid_ticks": 0,
+      "expert_takeover_success": false,
+      "student_autonomous_success": false,
+      "accepted": false,
+      "actual_switch_tick": null,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "contact_height_recheck_after_min_delay_v1",
+          "min_delay_ticks": 0
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 1000000000,
+        "reason": "no_completed_contact_height_window",
+        "completed_student_transitions_observed": 601,
+        "settled_height_m": 0.5710223913192749,
+        "first_contact_height_window_end_completed_tick": null,
+        "earliest_allowed_completed_tick": null,
+        "first_rechecked_contact_height_window_end_completed_tick": null,
+        "latest_contact_height_window": false,
+        "nonheld_windows_after_first": 0,
+        "first_contact_height_goal": null,
+        "latest_goal": {
+          "completed_tick": 601,
+          "index_before": 0,
+          "index_after": 0,
+          "pose_before_w": [
+            4.0410919189453125,
+            -12.037614822387695,
+            0.7163335084915161,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ],
+          "pose_after_w": [
+            4.0410919189453125,
+            -12.037614822387695,
+            0.7163335084915161,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ]
+        },
+        "target_change_transitions": 1,
+        "cross_goal_wait_allowed": true,
+        "rule": "At least minimum0 ticks after the first12tick contact-height window, latest12 completed student transitions satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation allowed",
+        "indices": "Completed transition count N schedules zero-based action N; earliest time alone never schedules a switch",
+        "missing_window_interpretation": "Collection condition absent, not a native drop/fall or task failure decision",
+        "goal_interpretation": "Recorded native goal before/after only; no distance criterion, no same-goal veto, no success inference",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "native_success_changed": false,
+        "no_expert_fallback": true,
+        "future_information_used": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 0,
+      "native_alignment_entire_execution": false,
+      "capture": {
+        "status": "source_verified",
+        "steps": 601,
+        "source_sha256_declared": "2712fd39b58e023214ffc8542afd23e5454f154df9ddedea1355862a4543ad9d",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000005_held0",
+      "seed": 29000005,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000005",
+      "schedule": "held0",
+      "lane": 5,
+      "started_utc": 1794683389.0164068,
+      "legal": true,
+      "steps": 253,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 132,
+      "expert_ticks": 121,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 119,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 132,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "contact_height_recheck_after_min_delay_v1",
+          "min_delay_ticks": 0
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 132,
+        "reason": "completed_student_contact_height_rechecked_after_min_delay",
+        "completed_student_transitions_observed": 132,
+        "settled_height_m": 0.5708557963371277,
+        "first_contact_height_window_end_completed_tick": 132,
+        "earliest_allowed_completed_tick": 132,
+        "first_rechecked_contact_height_window_end_completed_tick": 132,
+        "latest_contact_height_window": true,
+        "nonheld_windows_after_first": 0,
+        "first_contact_height_goal": {
+          "completed_tick": 132,
+          "index_before": 0,
+          "index_after": 0,
+          "pose_before_w": [
+            4.0409040451049805,
+            -4.042232513427734,
+            0.715589165687561,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ],
+          "pose_after_w": [
+            4.0409040451049805,
+            -4.042232513427734,
+            0.715589165687561,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ]
+        },
+        "latest_goal": {
+          "completed_tick": 132,
+          "index_before": 0,
+          "index_after": 0,
+          "pose_before_w": [
+            4.0409040451049805,
+            -4.042232513427734,
+            0.715589165687561,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ],
+          "pose_after_w": [
+            4.0409040451049805,
+            -4.042232513427734,
+            0.715589165687561,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ]
+        },
+        "target_change_transitions": 1,
+        "cross_goal_wait_allowed": true,
+        "rule": "At least minimum0 ticks after the first12tick contact-height window, latest12 completed student transitions satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation allowed",
+        "indices": "Completed transition count N schedules zero-based action N; earliest time alone never schedules a switch",
+        "missing_window_interpretation": "Collection condition absent, not a native drop/fall or task failure decision",
+        "goal_interpretation": "Recorded native goal before/after only; no distance criterion, no same-goal veto, no success inference",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "native_success_changed": false,
+        "no_expert_fallback": true,
+        "future_information_used": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 253,
+        "source_sha256_declared": "1d7440faa858841a26ac555e471bb87f96620dfdc6c2303041d85d5fd9a8359a",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000006_held_root60",
+      "seed": 29000006,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000006",
+      "schedule": "held_root60",
+      "lane": 6,
+      "started_utc": 1794683389.0509462,
+      "legal": true,
+      "steps": 519,
+      "reasons": {
+        "fall": true,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 519,
+      "expert_ticks": 0,
+      "takeover_triggered": false,
+      "expert_valid_ticks": 0,
+      "expert_takeover_success": false,
+      "student_autonomous_success": false,
+      "accepted": false,
+      "actual_switch_tick": null,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "held_root_near_goal_then_delay_v1",
+          "delay_ticks": 0,
+          "max_root_distance_m": 0.06
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 1000000000,
+        "reason": "no_completed_held_root_near_goal_window",
+        "completed_student_transitions_observed": 519,
+        "settled_height_m": 0.5721989870071411,
+        "first_contact_height_window_end_completed_tick": null,
+        "first_held_root_near_goal_window_end_completed_tick": null,
+        "root_goal_at_trigger": null,
+        "target_change_transitions": 1,
+        "rule": "12 completed ticks, both120Hz samples >=2 object-contact fingers >0.1N, post-step root height>=median completed25-48+2cm; current rigid-root to current goal-root<=60mm; unchanged pre/post goal pose and stage; next action takeover",
+        "physical_coordinates": "World rigid root after second120Hz substep; no COM/keypoint substitution. Goal root is not necessarily the physical hole mouth.",
+        "indices": "Zero-based action index; a window ending at completed count N schedules action N",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "root_proximity_is_native_near_or_alignment": false,
+        "orientation_threshold": null,
+        "native_success_changed": false,
+        "no_expert_fallback": true,
+        "future_information_used": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 0,
+      "native_alignment_entire_execution": false,
+      "capture": {
+        "status": "source_verified",
+        "steps": 519,
+        "source_sha256_declared": "2aa5b4c72f3c99ba8aa482ad5b82dd99fb618ef09d34231fb616dd8b93d01aa1",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000007_contact0",
+      "seed": 29000007,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000007",
+      "schedule": "contact0",
+      "lane": 7,
+      "started_utc": 1794683389.0867085,
+      "legal": true,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "takeover_triggered": false,
+      "expert_valid_ticks": 0,
+      "expert_takeover_success": false,
+      "student_autonomous_success": false,
+      "accepted": false,
+      "actual_switch_tick": null,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 1000000000,
+        "reason": "fallback_no_completed_contact_height_window",
+        "completed_student_transitions_observed": 601,
+        "settled_height_m": 0.5699884295463562,
+        "first_contact_height_window_end_completed_tick": null,
+        "frozen_stable_window_at_trigger": null,
+        "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+        "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "native_success_changed": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 0,
+      "native_alignment_entire_execution": false,
+      "capture": {
+        "status": "source_verified",
+        "steps": 601,
+        "source_sha256_declared": "ba8815cb876d1dde7e7f09ac8b5989de8951c0964a038db2b0c27d11993867f9",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000008_fixed80",
+      "seed": 29000008,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000008",
+      "schedule": "fixed80",
+      "lane": 8,
+      "started_utc": 1794683389.1196826,
+      "legal": true,
+      "steps": 258,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 178,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 176,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 258,
+        "source_sha256_declared": "e2ef63cc4c65aaa5c988f17c0b91b28ddd79ab35be389b8316052587464bf5f0",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000009_fixed80",
+      "seed": 29000009,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000009",
+      "schedule": "fixed80",
+      "lane": 9,
+      "started_utc": 1794683389.1526515,
+      "legal": true,
+      "steps": 317,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 237,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 235,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 317,
+        "source_sha256_declared": "7546f2870eb500b17a104369b67b46d525c1e1df47d6e5dce08e30bca227facb",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000010_fixed80",
+      "seed": 29000010,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000010",
+      "schedule": "fixed80",
+      "lane": 10,
+      "started_utc": 1794683389.188895,
+      "legal": true,
+      "steps": 418,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 80,
+      "expert_ticks": 338,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 336,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 418,
+        "source_sha256_declared": "74072fc60f34a9a4307bb7bb73264bc05afce1112ec9c44fd5f09bac26e1b73c",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000011_fixed80",
+      "seed": 29000011,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000011",
+      "schedule": "fixed80",
+      "lane": 11,
+      "started_utc": 1794683389.2223475,
+      "legal": true,
+      "steps": 1147,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student_ticks": 80,
+      "expert_ticks": 1067,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 1065,
+      "expert_takeover_success": false,
+      "student_autonomous_success": false,
+      "accepted": false,
+      "actual_switch_tick": 80,
+      "trigger_receipt": null,
+      "native_lift_entire_execution": true,
+      "native_subgoals_entire_execution": 1,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 1147,
+        "source_sha256_declared": "285d143f001edb5d48435aa20bb8dd5a29b8a40447917409b002f8fdb1b424cc",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000012_held0",
+      "seed": 29000012,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000012",
+      "schedule": "held0",
+      "lane": 12,
+      "started_utc": 1794683389.2557957,
+      "legal": true,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "takeover_triggered": false,
+      "expert_valid_ticks": 0,
+      "expert_takeover_success": false,
+      "student_autonomous_success": false,
+      "accepted": false,
+      "actual_switch_tick": null,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "contact_height_recheck_after_min_delay_v1",
+          "min_delay_ticks": 0
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 1000000000,
+        "reason": "no_completed_contact_height_window",
+        "completed_student_transitions_observed": 601,
+        "settled_height_m": 0.5684154033660889,
+        "first_contact_height_window_end_completed_tick": null,
+        "earliest_allowed_completed_tick": null,
+        "first_rechecked_contact_height_window_end_completed_tick": null,
+        "latest_contact_height_window": false,
+        "nonheld_windows_after_first": 0,
+        "first_contact_height_goal": null,
+        "latest_goal": {
+          "completed_tick": 601,
+          "index_before": 0,
+          "index_after": 0,
+          "pose_before_w": [
+            -11.960994720458984,
+            -12.039714813232422,
+            0.7150611877441406,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ],
+          "pose_after_w": [
+            -11.960994720458984,
+            -12.039714813232422,
+            0.7150611877441406,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ]
+        },
+        "target_change_transitions": 1,
+        "cross_goal_wait_allowed": true,
+        "rule": "At least minimum0 ticks after the first12tick contact-height window, latest12 completed student transitions satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation allowed",
+        "indices": "Completed transition count N schedules zero-based action N; earliest time alone never schedules a switch",
+        "missing_window_interpretation": "Collection condition absent, not a native drop/fall or task failure decision",
+        "goal_interpretation": "Recorded native goal before/after only; no distance criterion, no same-goal veto, no success inference",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "native_success_changed": false,
+        "no_expert_fallback": true,
+        "future_information_used": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 0,
+      "native_alignment_entire_execution": false,
+      "capture": {
+        "status": "source_verified",
+        "steps": 601,
+        "source_sha256_declared": "61d29b100ee63628771beed4900ba6291b8c084d887783163af37717af047989",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000013_held0",
+      "seed": 29000013,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000013",
+      "schedule": "held0",
+      "lane": 13,
+      "started_utc": 1794683389.2895834,
+      "legal": true,
+      "steps": 441,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 124,
+      "expert_ticks": 317,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 315,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 124,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "contact_height_recheck_after_min_delay_v1",
+          "min_delay_ticks": 0
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 124,
+        "reason": "completed_student_contact_height_rechecked_after_min_delay",
+        "completed_student_transitions_observed": 124,
+        "settled_height_m": 0.5390228033065796,
+        "first_contact_height_window_end_completed_tick": 124,
+        "earliest_allowed_completed_tick": 124,
+        "first_rechecked_contact_height_window_end_completed_tick": 124,
+        "latest_contact_height_window": true,
+        "nonheld_windows_after_first": 0,
+        "first_contact_height_goal": {
+          "completed_tick": 124,
+          "index_before": 0,
+          "index_after": 0,
+          "pose_before_w": [
+            -11.95919132232666,
+            -4.037799835205078,
+            0.7150228023529053,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ],
+          "pose_after_w": [
+            -11.95919132232666,
+            -4.037799835205078,
+            0.7150228023529053,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ]
+        },
+        "latest_goal": {
+          "completed_tick": 124,
+          "index_before": 0,
+          "index_after": 0,
+          "pose_before_w": [
+            -11.95919132232666,
+            -4.037799835205078,
+            0.7150228023529053,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ],
+          "pose_after_w": [
+            -11.95919132232666,
+            -4.037799835205078,
+            0.7150228023529053,
+            0.7071067690849304,
+            1.519608883171486e-09,
+            -0.7071067690849304,
+            -9.843832415867837e-10
+          ]
+        },
+        "target_change_transitions": 1,
+        "cross_goal_wait_allowed": true,
+        "rule": "At least minimum0 ticks after the first12tick contact-height window, latest12 completed student transitions satisfy both physics samples >=2 fingers >0.1N and height>=median completed25-48+2cm; next action takeover; rotation allowed",
+        "indices": "Completed transition count N schedules zero-based action N; earliest time alone never schedules a switch",
+        "missing_window_interpretation": "Collection condition absent, not a native drop/fall or task failure decision",
+        "goal_interpretation": "Recorded native goal before/after only; no distance criterion, no same-goal veto, no success inference",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "native_success_changed": false,
+        "no_expert_fallback": true,
+        "future_information_used": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 441,
+        "source_sha256_declared": "93cc3fa9c37417758000d6a67468a39c23853b90a479b58fdc627279ee1ee858",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000014_held_root60",
+      "seed": 29000014,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000014",
+      "schedule": "held_root60",
+      "lane": 14,
+      "started_utc": 1794683389.3227584,
+      "legal": true,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "takeover_triggered": false,
+      "expert_valid_ticks": 0,
+      "expert_takeover_success": false,
+      "student_autonomous_success": false,
+      "accepted": false,
+      "actual_switch_tick": null,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "held_root_near_goal_then_delay_v1",
+          "delay_ticks": 0,
+          "max_root_distance_m": 0.06
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 1000000000,
+        "reason": "no_completed_held_root_near_goal_window",
+        "completed_student_transitions_observed": 601,
+        "settled_height_m": 0.5716025233268738,
+        "first_contact_height_window_end_completed_tick": 192,
+        "first_held_root_near_goal_window_end_completed_tick": null,
+        "root_goal_at_trigger": null,
+        "target_change_transitions": 1,
+        "rule": "12 completed ticks, both120Hz samples >=2 object-contact fingers >0.1N, post-step root height>=median completed25-48+2cm; current rigid-root to current goal-root<=60mm; unchanged pre/post goal pose and stage; next action takeover",
+        "physical_coordinates": "World rigid root after second120Hz substep; no COM/keypoint substitution. Goal root is not necessarily the physical hole mouth.",
+        "indices": "Zero-based action index; a window ending at completed count N schedules action N",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "root_proximity_is_native_near_or_alignment": false,
+        "orientation_threshold": null,
+        "native_success_changed": false,
+        "no_expert_fallback": true,
+        "future_information_used": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 0,
+      "native_alignment_entire_execution": false,
+      "capture": {
+        "status": "source_verified",
+        "steps": 601,
+        "source_sha256_declared": "9f8cb51c5e74cb3a1e2bd690db358c005d6a31c814db5957fdc19f62407182b2",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072365,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    },
+    {
+      "case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000015_contact0",
+      "seed": 29000015,
+      "family": "expanded_session20261115_01_round10_rgb01_s29000015",
+      "schedule": "contact0",
+      "lane": 15,
+      "started_utc": 1794683389.3559096,
+      "legal": true,
+      "steps": 744,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "student_ticks": 180,
+      "expert_ticks": 564,
+      "takeover_triggered": true,
+      "expert_valid_ticks": 562,
+      "expert_takeover_success": true,
+      "student_autonomous_success": false,
+      "accepted": true,
+      "actual_switch_tick": 180,
+      "trigger_receipt": {
+        "configuration": {
+          "version": "contact_height_then_delay_v1",
+          "delay_ticks": 0
+        },
+        "fallback_tick": 1000000000,
+        "actual_scheduled_takeover_tick": 180,
+        "reason": "completed_student_contact_height_window_plus_delay",
+        "completed_student_transitions_observed": 180,
+        "settled_height_m": 0.5693655014038086,
+        "first_contact_height_window_end_completed_tick": 180,
+        "frozen_stable_window_at_trigger": false,
+        "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48; no relative-pose admission condition",
+        "indices": "Schedule is zero-based action index; contact-height end is completed transition count",
+        "diagnostic_only": true,
+        "student_inputs_changed": false,
+        "stable_grasp_claim": false,
+        "native_success_changed": false
+      },
+      "native_lift_entire_execution": false,
+      "native_subgoals_entire_execution": 2,
+      "native_alignment_entire_execution": true,
+      "capture": {
+        "status": "source_verified",
+        "steps": 744,
+        "source_sha256_declared": "9af6a57e2d4ca2c67f6a5b0ba7565aa47b97aee7e26193fc2035dba0df769708",
+        "verified_source_fields": 186,
+        "verification_execution": "spawn_process_v1",
+        "verification_process_pid": 4072457,
+        "recording_contract": "shared_async_capture_v2"
+      }
+    }
+  ],
+  "capture_validation": {
+    "source_verified": 16,
+    "verified_source_fields_per_capture": 186,
+    "spawn_verification_completed": 16,
+    "spawn_verification_failed": 0,
+    "pending_at_wave_close": 0,
+    "capture_error_files_in_first_wave": [],
+    "rgb_software_error_recurred_in_first_wave": false,
+    "authority": "Existing capture_complete, result-index and correction-entry receipts. Their declared payload SHA is bound across receipts; the observer did not recompute payload SHA or repeat field/camera audits."
+  },
+  "execution_backend": {
+    "requested": {
+      "configuration": {
+        "version": "tight_execution_backend_v2",
+        "physics_device": "cuda:0",
+        "camera_backend": "standard",
+        "kit_tasking_threads": 16,
+        "physics_threads": 2,
+        "renderer_descriptor_sets": 360000,
+        "renderer_reserved_descriptors": 900000
+      },
+      "configuration_sha256": "b5085610cacb78a15a55ce37e86d8255658be41ec0101c5f4852cfffb2f86bca",
+      "num_envs": 16,
+      "camera_calibration": "same_rgbd_render_product_camera_params_v1",
+      "rng_contract": "registered_device_batch_stream_v2",
+      "live_accepted": false,
+      "limitation": "Execution candidate only; requires measured contact/control/sensor/task acceptance. Native random draws are batch-owned, not independent lane streams or backend-exact replay."
+    },
+    "physics_device": "cuda:0",
+    "camera_backend": "standard",
+    "physics_dt": 0.00833333333,
+    "control_dt": 0.01666666666,
+    "num_envs": 16,
+    "note": "Constructed configuration, not live task acceptance",
+    "utc": 1794683385.0742443,
+    "renderer_resources": {
+      "requested": {
+        "/rtx/descriptorSets": 360000,
+        "/rtx/reservedDescriptors": 900000
+      },
+      "observed": {
+        "/rtx/descriptorSets": 360000,
+        "/rtx/reservedDescriptors": 900000
+      },
+      "matched": true,
+      "view_tile_limit_observed": 1000000,
+      "scope": "Process-local renderer capacity; no image quality, camera calibration or physics change"
+    }
+  },
+  "batch_configuration": {
+    "version": "whole_wave_complete_student_v1",
+    "lanes": 16,
+    "seed": 29100000,
+    "neural_batch": true,
+    "writer_bytes": 536870912,
+    "vision_microbatch": 8,
+    "verification_workers": 2,
+    "verification_max_pending": 16,
+    "ordering": "Role-grouped whole waves; no dynamic recycling; all opportunities retained",
+    "capture_audit_memo": {
+      "version": "process_local_closed_capture_audit_v1",
+      "max_payloads": 256,
+      "max_pairs": 4,
+      "retains_tensors": false,
+      "accepts_external_digests": false
+    }
+  },
+  "initialization": {
+    "seconds": 87.17305164202116,
+    "lanes": 16,
+    "execution_backend": {
+      "version": "tight_execution_backend_v2",
+      "physics_device": "cuda:0",
+      "camera_backend": "standard",
+      "kit_tasking_threads": 16,
+      "physics_threads": 2,
+      "renderer_descriptor_sets": 360000,
+      "renderer_reserved_descriptors": 900000
+    },
+    "vision_microbatch": 8
+  },
+  "wall_and_throughput": {
+    "wave_seconds": 1052.2523155431263,
+    "admission_seconds": 29.848012018483132,
+    "wave_plus_admission_seconds": 1082.1003275616094,
+    "accepted_trajectories_per_hour": 33.268634232023494,
+    "accepted_valid_expert_ticks_per_hour": 8792.90002752381,
+    "opportunities_per_hour": 53.2298147712376,
+    "denominator": "This first A wave execution/finalization seconds plus its separately recorded sequential admission seconds. Excludes process/model/Kit startup and unrelated stages; overlapping lane lifetimes are never summed.",
+    "largest_recorded_wave_component": {
+      "name": "environment_s",
+      "seconds": 545.9164789177012,
+      "scope": "Timed isolated.step call, including native stepping and associated sensor/render work; this is not a pure-physics or isolated-GPU measurement."
+    },
+    "wave_components_descending_seconds": {
+      "environment_s": 545.9164789177012,
+      "controller_s": 197.21099167433567,
+      "record_submit_s": 130.166672823485,
+      "finish_audit_s": 113.62200152338482,
+      "expert_s": 8.079335171496496
+    }
+  },
+  "wave_profile": {
+    "wave": 0,
+    "role": "A",
+    "controller_s": 197.21099167433567,
+    "environment_s": 545.9164789177012,
+    "expert_s": 8.079335171496496,
+    "record_submit_s": 130.166672823485,
+    "finish_audit_s": 113.62200152338482,
+    "capture_writer": {
+      "max_pending_bytes": 536870912,
+      "max_queue": 64,
+      "reserved_bytes": 0,
+      "peak_reserved_bytes": 350355740,
+      "peak_queued_or_copying": 10,
+      "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+      "worker_alive": true,
+      "failed": false,
+      "verification_workers": 2,
+      "verification_max_pending": 16,
+      "verification_pending": 0,
+      "verification_peak_pending": 4,
+      "verification_submitted": 16,
+      "verification_completed": 16,
+      "verification_failed": 0,
+      "verification_slot_wait_s": 2.090376801788807e-05,
+      "verification_process_pids": [
+        4072365,
+        4072457
+      ],
+      "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget.",
+      "stage": "all_started_capture_lanes_verified_before_close",
+      "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+      "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+    },
+    "seconds": 1052.2523155431263,
+    "control_ticks": 7729,
+    "cases": 16,
+    "vision_execution": {
+      "version": "current_observation_lane_microbatch_v1",
+      "vision_microbatch": 8,
+      "images_per_kernel": 24,
+      "forward_features_calls": 1565,
+      "real_lanes": 7729,
+      "padding_lanes": 4791,
+      "real_images": 23187,
+      "processed_images": 37560,
+      "controller_calls": 1147,
+      "consumed_observations_per_lane": [
+        365,
+        307,
+        291,
+        265,
+        601,
+        253,
+        519,
+        601,
+        258,
+        317,
+        418,
+        1147,
+        601,
+        441,
+        601,
+        744
+      ],
+      "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+    },
+    "aggregate_control_ticks_per_second": 7.345196476009303,
+    "admission_s": 29.848012018483132,
+    "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+  },
+  "capture_profile_sums": {
+    "copy_s": 16.00764791131951,
+    "submission_wait_s": 0.05014106654562056,
+    "worker_numeric_append_s": 23.375676739029586,
+    "worker_compact_append_s": 391.2571292689536,
+    "worker_flush_s": 0.23638567910529673,
+    "worker_finish_s": 0.3907049063127488,
+    "worker_verify_s": 580.4127382726874,
+    "worker_hash_s": 2.713968984549865,
+    "verification_slot_wait_s": 2.090376801788807e-05,
+    "verification_queue_wait_s": 74.37615036102943
+  },
+  "timing_limits": [
+    "Wave profile components and per-capture worker verification/append/queue times overlap. Do not add them to obtain elapsed time.",
+    "Observed effective throughput describes only this 16-opportunity A cohort. It is not a causal comparison against older CPU/GPU batches with different cohorts or schedules.",
+    "Successful recovery after expert takeover is effective training data, not autonomous student task success."
+  ],
+  "admission_memo_snapshot": {
+    "version": "process_local_closed_capture_audit_v1",
+    "pair_checks": 18,
+    "pair_loads": 2,
+    "pair_hits": 16,
+    "pair_evictions": 0,
+    "pair_validation_seconds": 0.660650213714689,
+    "source_checks": 42,
+    "max_pairs": 4,
+    "retained_pairs": 2,
+    "retains_tensors": false,
+    "payload": {
+      "version": "process_local_frozen_payload_sha_v1",
+      "pid": 4068551,
+      "max_entries": 256,
+      "retained_entries": 20,
+      "calls": 108,
+      "full_hash_attempts": 20,
+      "full_hashes": 20,
+      "actual_bytes_read": 9528873128,
+      "memo_hits": 88,
+      "avoided_full_hash_bytes": 42920930628,
+      "requested_regular_file_bytes": 52449803756,
+      "evictions": 0,
+      "failures": 0,
+      "full_hash_seconds": 4.012852013809606,
+      "open_and_validation_seconds": 0.003292539855465293,
+      "identity_fields": [
+        "st_dev",
+        "st_ino",
+        "st_size",
+        "st_mtime_ns",
+        "st_ctime_ns"
+      ],
+      "persistent_digest_trust": false,
+      "file_descriptors_retained": 0,
+      "expected_sha_comparison": "Still required at every caller",
+      "byte_semantics": "Logical bytes read by SHA; OS physical disk traffic is not measured"
+    },
+    "semantic_scope": "Numeric/action/history/camera audits still run for every capture; only immutable file and pair metadata reused",
+    "latest_case": "r11_A_expanded_session20261115_01_round10_rgb01_s29000015_contact0",
+    "utc": 1794684467.8120182
+  },
+  "latest_progress_at_export": {
+    "wave": 1,
+    "tick": 125,
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "utc": 1794684610.093841
+  },
+  "small_file_bindings": {
+    "plan.json": {
+      "sha256": "5edab3076b169eb33db0e0074141b24e9c401a168d6fcf8707b935c4ff1b6052",
+      "bytes": 184539
+    },
+    "owner_started.json": {
+      "sha256": "fc2029e0a4ec3dfe8250544615e0416516c17be439a4c83b057bb082439058f3",
+      "bytes": 547
+    },
+    "initialization.json": {
+      "sha256": "8205ea4b72448fb9341f9e48240a8484fc070671642767799bcd4a8c721d2203",
+      "bytes": 357
+    },
+    "execution_backend_observed.json": {
+      "sha256": "a1430e15d9845372e31561ca62ad29256f601a6052598a2eb844913fd18e8804",
+      "bytes": 1427
+    },
+    "results.json": {
+      "sha256": "ff9a580a3674495445e421869e08d10a94416dffa8ba662b46e4d58df827a45c",
+      "bytes": 403309
+    },
+    "correction_entries.json": {
+      "sha256": "238ebe09da4868d9434be5b03ee2f05a89e4c30de7d772f6c9146f3f4d8d7882",
+      "bytes": 22045
+    },
+    "wave_profiles.json": {
+      "sha256": "3e42b83e157a187d9b10a21d895e5cd27ca246ee66d157796d10f2653da1175a",
+      "bytes": 2579
+    },
+    "capture_audit_memo.json": {
+      "sha256": "a41ab0374f30a382f823165c950e18522d7e6633998419aee1af7d907cd41c73",
+      "bytes": 1389
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000000_fixed80/capture_complete.json": {
+      "sha256": "bee8a1c824c831e1dc5ca36ac88d7b7459d9a81c12da34f26d89153810801f8f",
+      "bytes": 1418
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000000_fixed80/started.json": {
+      "sha256": "52351d538c439d28d02b193abbb04d284d022d3f6969f082178c8fa8091d5c6c",
+      "bytes": 1960
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000001_fixed80/capture_complete.json": {
+      "sha256": "8d493a7835926eabda2a642d4b004f529615f60d4127f50f9c4df504080b9534",
+      "bytes": 1417
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000001_fixed80/started.json": {
+      "sha256": "6a2fadaee4ed0a5c25aaaa5bbb5a8d76ec02d0315fdbd6e70707312897be4eca",
+      "bytes": 1962
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000002_fixed80/capture_complete.json": {
+      "sha256": "82de73d16773733bb09bda8b9a052a3d809e38b016754f1b13603ed29b2cef7d",
+      "bytes": 1420
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000002_fixed80/started.json": {
+      "sha256": "a16e1f035d8fb61bf40720aa646c16e0bd04ed79d634c037aab7d2873346f00c",
+      "bytes": 1958
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000003_fixed80/capture_complete.json": {
+      "sha256": "4733533adf410f7b8a1d33fce5ef91a93cd07124bf16fe735e320f6bb0b0d8bc",
+      "bytes": 1416
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000003_fixed80/started.json": {
+      "sha256": "5d3ff41b962a3d1013f0092e0e24133ffd05beecd4db7f744db73be31c57e391",
+      "bytes": 1960
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000004_held0/capture_complete.json": {
+      "sha256": "f2c9b2d29444cc0fd02059519b90f5bd44f82919da009f9f46fb446aa605a00d",
+      "bytes": 1415
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000004_held0/started.json": {
+      "sha256": "b3df321b5ef6a79d600cea02983b07c1073e8fdfd2225b2dc8b9a5f185f7c311",
+      "bytes": 1968
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000005_held0/capture_complete.json": {
+      "sha256": "6c612cb129f89e8ba1f0417baff4080eefefe44d9fd5734a4c09b46163e5e80f",
+      "bytes": 1413
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000005_held0/started.json": {
+      "sha256": "90706c1b39b4715fe93d986682551e47e8f8be3bd7af08f33bc05df299d4fb5f",
+      "bytes": 1966
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000006_held_root60/capture_complete.json": {
+      "sha256": "84f57d380a1e70d374ce9c0819cdbfe2ddd03227adcdf5393c89b70f0c69b673",
+      "bytes": 1428
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000006_held_root60/started.json": {
+      "sha256": "beba05c2cc051d3333e3623fcdfa7b03e1dac3ea402cfdfb5493af46d2ee0dd4",
+      "bytes": 1968
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000007_contact0/capture_complete.json": {
+      "sha256": "5ea239a7a639caa358d87c3d98659270a2dda00bd808ef78c52d129166e4d58f",
+      "bytes": 1420
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000007_contact0/started.json": {
+      "sha256": "964962357c0bed45dfb06273beeda23546bbba7aabc70b41c31217d4cbf08e9f",
+      "bytes": 1971
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000008_fixed80/capture_complete.json": {
+      "sha256": "2105c90464c8ae3c72371c5d3e39e3e8a6e582283d12b623bd072c18589869e0",
+      "bytes": 1417
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000008_fixed80/started.json": {
+      "sha256": "e9dfd4a364585a8bf72b83b6ab8bda21bb4f3740ba60b42dd7a09333864d3891",
+      "bytes": 1958
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000009_fixed80/capture_complete.json": {
+      "sha256": "202c7e7cf5c46302576901299cf3e1a04deb01f70d8be6e008f9f2629f95303d",
+      "bytes": 1419
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000009_fixed80/started.json": {
+      "sha256": "b10ac49e67e173416fda2042662024408265b927527594c73c9b7a513adb465b",
+      "bytes": 1960
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000010_fixed80/capture_complete.json": {
+      "sha256": "03da0cc9686f24bf89648b3d53e38a7a13c304cdca8c621800a756fa3ba87fde",
+      "bytes": 1417
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000010_fixed80/started.json": {
+      "sha256": "64b5ab753b71239ab5d248be19b48128577b8a4a1d1ec956e99a25b9b99dfa4b",
+      "bytes": 1962
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000011_fixed80/capture_complete.json": {
+      "sha256": "9e49abd0d41f2a6a523b0b4c30fcda9c77ba2ae3c18b0578eb45016db1e3ae98",
+      "bytes": 1418
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000011_fixed80/started.json": {
+      "sha256": "f46f978cd8694696841c4b0a3f91df2175f1a3725fd184300021d654d684bfec",
+      "bytes": 1958
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000012_held0/capture_complete.json": {
+      "sha256": "31ad44013afea6b4a4dc3d35a297e1524cd45ab832cb1fc2ddea5bb8947961e4",
+      "bytes": 1412
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000012_held0/started.json": {
+      "sha256": "5b9a9a30ef47ef02c9922436963043dd6bf0c3b743bfa0ab96af7b2fa12dbc2d",
+      "bytes": 1967
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000013_held0/capture_complete.json": {
+      "sha256": "9d5db6ce088d481719108308f46152acb591528c683f20292058fd92562c9f1a",
+      "bytes": 1418
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000013_held0/started.json": {
+      "sha256": "39c03c408af270ac137da0615e47de05666e05607d8a3f75d976cd906154dddf",
+      "bytes": 1967
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000014_held_root60/capture_complete.json": {
+      "sha256": "9c5697c541cb6bac670cf320517125ec69707d612a41908ddf147308d4ba94f0",
+      "bytes": 1424
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000014_held_root60/started.json": {
+      "sha256": "58fc6c99fa64a7f7acfa9db30b168187edc66c69cd801a1ba849e50cd744a22a",
+      "bytes": 1974
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000015_contact0/capture_complete.json": {
+      "sha256": "614a75b5200a22bfdb7c7012fe3ebd194adf4aea5bc29e3ebf4eab1aa08e8c7a",
+      "bytes": 1419
+    },
+    "r11_A_expanded_session20261115_01_round10_rgb01_s29000015_contact0/started.json": {
+      "sha256": "416ee0c77cce6193b2cb20bd6a3add7f4938ca90629b14caac9c8c2d5532cf5a",
+      "bytes": 1972
+    },
+    "batch_progress.json": {
+      "sha256": "ae76f11e429e317ac3b8e4fd177a9bb4207338484a3b7a84274aadb94385a015",
+      "bytes": 237
+    }
+  },
+  "interpretation": [
+    "The RGB repair has completed a real 16-lane collection wave with all captures verified and ten successful expert suffixes admitted. This is live recovery evidence, not a finished 64-opportunity batch or completed training cycle.",
+    "fixed80 admitted 7/8; held0 admitted 2/4 from actual held windows at switch132 and124; held_root60 triggered 0/2; contact0 admitted1/2 at switch180.",
+    "The two held0 no-trigger cases timed out. held_root60 had one native fall and one timeout. A missing held/near window is not itself called a drop.",
+    "The fixed80 case at seed29000011 timed out after1147 control ticks and is not admitted; its1065 valid expert ticks remain outside accepted training data.",
+    "Original native goal changes may reset the native stage clock, so a total above601 alone does not mean the timeout or task rules changed. Original task outcome receipts are retained."
+  ],
+  "observer_payload_hashes_recomputed": 0,
+  "training_status": {
+    "current_aggregated_training_pool_trajectories": 170,
+    "new_verified_collection_entries_awaiting_next_aggregate": 10,
+    "new_entries_claimed_trained": 0,
+    "scope": "Collection entries are accepted and await the next cycle aggregate/training. The existing training pool remains170 at this stage; do not report180 trained trajectories or a completed new B2 cycle."
+  }
+}

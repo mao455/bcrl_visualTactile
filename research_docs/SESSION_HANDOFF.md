@@ -1,3 +1,19 @@
+## 2026-11-15 03:30 恢复首波正式闭合，按授权交给有界后台继续
+
+已观察09完整采集→前端→刷新后端输入→后端→自主结束，复核结果并正常退出旧worker；现新源码01453ae的GPU正式采集第一波也完整闭合并进入wave1。用户允许在完整一轮及下一轮交接正常后后台继续，此处采用该授权。新随机/B2/eager的完整正式训练与自主结果尚未完成，不把已有短检查或本次采集成功当成新学习效果。
+
+new_family_11首波A16全部合法、11接管、10成功登记、2643合法专家动作：fixed80为8/8/7（机会/接管/成功）、1647步；held0为4/2/2、434步，接手在132和124控制步；held_root60为2/0/0，一次原生fall/一次timeout；contact0为2/1/1、562步。16份capture均完成原186字段校验，无RGB软件错误。当前已训练池仍170条；这10条仅已验收待本轮aggregate/训练，不写作已训练180。
+
+wave1052.252秒、wave外admission29.848秒，合1082.100秒（18.04分钟）、33.269有效轨迹/小时；这是首波窄口径，与旧不同初态/长度/调度不能作因果比。波内最大项为环境推进连同传感/渲染545.916秒，controller197.211秒、submit130.167秒、finish/audit113.622秒；异步verify/append与主流程重叠，不相加。5分钟50条目标未达到。[首波记录](evidence/tight_fresh_20261114/gpu_rgb_recovery01/first_wave.json)。
+
+后台普通owner tight-fresh-research-loop-20261115-01-rgb01.service / monitor同后缀，固定截止14:58:38.966、工作提前60秒结束；research_loop_rgb01登记11/12/13三个有限cohort，当前64机会采集→20遍B2前端→刷新当前权重计划/视觉→15遍后端→每角色8个既有开发初态自主。完整候选才成为下一轮采集来源，不自动宣布晋升。失败/资源/数据/时间不足保留现场停止；不重跑已有身份或重置时钟。下次先读owner_finished/rounds/status实际结果再调整；无需重复完整旧审计。所有已完成结果/失败现场及原05回退仍保留。
+
+## 2026-11-15 03:08 固定截止恢复已实际启动
+
+修复和09完整报告已推origin feature提交01453ae。新冻结工作树bc+rl_RSS_fresh_rgb_20261115，恢复owner PID4068472、registration 38be5ac8…，真实启动03:08:08；同原14:58:38.966截止，工作截止提前60秒。research_loop_rgb01以new_family_11替代失败10（相同32family/64机会），后续12/13对应原尚未开始的两组family，0重复成功数据。普通服务负责采集→训练→自主→下一轮，当前仅启动，尚无新完整结果。
+
+旧monitor原字节与日志快照保存在recovery_rgb01/previous_monitor，原追加日志继续；前后sample gap496.259秒明确缺测，不称完整连续资源覆盖。source/config及实际服务命令见[恢复启动](evidence/tight_fresh_20261114/gpu_rgb_recovery01/startup.json)；不重复旧权重/轨迹全量审核或统一已通过的训练检查。
+
 ## 2026-11-15 03:07 RGB原因已复现且统一修复检查通过
 
 本机真实CUDA旧除法有126/256灰度偏离原精确storage解码1ULP，严格writer因此拒绝。新设备内256值表保持真实uint8字节，CPU/原compact规则不变；统一CPU+CUDA和两行真实compact读写检查通过（14字段），0Kit/训练。代码sourceSHA绑定encoding_check.json；接下来直接正式新attempt验证，不扩展检查矩阵。

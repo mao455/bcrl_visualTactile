@@ -1,3 +1,9 @@
+## 2026-11-15 GPU正式恢复首波已完成并接续
+
+- 01453ae实际冻结运行，首波16合法机会/11接管/10成功纠偏（2643合法动作），含held0两条434动作；16 capture原186字段校验完成，无RGB错误，已自动进入下一波。
+- 原12小时时钟不变，归档首次monitor后恢复，缺测496.259秒明确记录。startup/first_wave小报告与现有脚本公开；成功纠偏尚未训练，新随机/B2完整周期结果待收取。
+- 第九轮完整周期与下一轮实际交接已观察，依用户许可由有限普通流程后台继续；不是自主插入成功结论。首波含admission33.269成功/h，未达到5分钟50条目标。
+
 ## 2026-11-15 修复GPU相机RGB严格保存
 
 - sim/environment.py + sensor_rgb.py：CUDA真实uint8采用1KiB canonical lookup，CPU旧路不动；metadata显式身份。compact/recording原严格lossless判据未改。
