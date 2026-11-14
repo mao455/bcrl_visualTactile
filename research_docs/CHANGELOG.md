@@ -1,3 +1,7 @@
+## 2026-11-14：归档过时任务授权
+
+USER_RESEARCH_DIRECTION只保留本轮有效目标和实际状态；原分隔线后的历史任务文本逐字移至archive/USER_RESEARCH_DIRECTION_through_20261113.md，链接回当前入口，不再在活跃授权页堆叠旧禁令/期限。历史文字与Git证据保留，未改变运行配置或授权范围。实际逐字suffix校验通过。
+
 ## 2026-11-14：名义裁剪审计和可选恢复起点对照
 
 新增tight_fresh_anchor_report.py及真实takeover03_nominal_projection.json，公开同合法状态下受限名义、旧完整shadow、上一实际目标比较与方向统计，不把离线作用称自主机制收益。新增visuotactile/fresh_recovery.py、tests/test_fresh_recovery.py；anchor_continue显式opt-in初段权重，setup/train二次准入、合法曝光与权重质量分开。tight_fresh_backend增加显式参数，默认关闭；新增tight_fresh_backend_study有限对照入口，原DP和全部cache仅在相同身份下复用，源完整自主未结束则不准入。当前无实际候选训练/GPU/新仿真，主Agent43项CPU测试通过。metadata的fresh validation4文字改为实际数量，历史权重不改。
