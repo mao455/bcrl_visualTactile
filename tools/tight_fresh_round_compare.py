@@ -77,25 +77,201 @@ def held_orientation(directory):
             interpretation='Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry.')
 
 
-def audit_group(label,root,tree):
-    directory=root/'development';plan=read(directory/'plan.json');finished=read(directory/'result.json')
+def pair_root(pair,role):
+    """The evaluated pair may belong to a different training root for each role."""
+    front=Path(pair['frontend']).resolve(strict=True)
+    require(front.name=='best.pt' and front.parent.name=='training' and front.parent.parent.name==role,
+        'Frontend is not an explicitly selected role checkpoint')
+    root=front.parents[2]
+    require(Path(pair['backend']).resolve(strict=True)==root/role/'backend'/role/'training/best.pt',
+        'Frontend/backend training roots differ')
+    return root
+
+
+def execution_identity(plan):
+    batch=plan.get('batch')
+    if batch is not None:
+        require(batch.get('version')=='whole_wave_complete_student_v1' and batch.get('neural_batch') is True,
+            'Unsupported batch execution identity')
+        require(type(batch['lanes']) is int and batch['lanes']>0,'Invalid registered lane count')
+    return dict(mode='whole_wave' if batch else 'serial',lanes=batch['lanes'] if batch else 1,
+        vision_microbatch=batch.get('vision_microbatch',2) if batch else 2,
+        vision_tail_profile=batch.get('vision_tail_profile') if batch else None,
+        batch_seed=batch['seed'] if batch else None,
+        inference_scheduler_index_mode=plan.get('inference_scheduler_index_mode','legacy'),
+        execution_backend=plan.get('execution_backend',dict(version='tight_execution_backend_v1',
+            physics_device='cpu',camera_backend='standard',kit_tasking_threads=2,physics_threads=2)))
+
+
+def compare_plans(old,new):
+    for plan in (old,new):
+        require(plan['kind']=='autonomous' and plan['test_used'] is False and plan['cases'],
+            'Complete autonomous development cohort required')
+        require(set(plan['pairs'])=={'A','B'},'Both registered model roles required')
+        names=[c['name'] for c in plan['cases']]
+        require(len(names)==len(set(names)) and all(c['role'] in ('A','B') and
+            c['spec']['split']=='development' and not c.get('dagger') for c in plan['cases']),
+            'Duplicate or non-development opportunities')
+        families={role:[c['spec']['family'] for c in plan['cases'] if c['role']==role] for role in ('A','B')}
+        require(families['A'] and len(set(families['A']))==len(families['A']) and
+            sorted(families['A'])==sorted(families['B']),'A/B development families differ or repeat')
+    require([(c['name'],c['role'],c['spec']) for c in old['cases']]==
+        [(c['name'],c['role'],c['spec']) for c in new['cases']],'Development opportunities changed')
+    require(execution_identity(old)==execution_identity(new),'Development execution backend/batch contract changed')
+    return dict(opportunities_per_role={r:sum(c['role']==r for c in old['cases']) for r in ('A','B')},
+        case_specs_identical=True,execution_identity=execution_identity(old),exact_hidden_state_pairing=False)
+
+
+def verify_execution_receipt(directory,plan):
+    identity=execution_identity(plan)
+    if 'batch' not in plan:return identity
+    observed=read(directory/'execution_backend_observed.json');initial=read(directory/'initialization.json')
+    require(observed['requested']['configuration']==identity['execution_backend'] and
+        observed['physics_device']==identity['execution_backend']['physics_device'] and
+        observed['camera_backend']==identity['execution_backend']['camera_backend'] and
+        observed['num_envs']==observed['requested']['num_envs']==initial['lanes']==identity['lanes'],
+        'Observed execution backend differs from plan')
+    require(initial['execution_backend']==identity['execution_backend'] and
+        initial['vision_microbatch']==identity['vision_microbatch'] and
+        initial.get('vision_tail_profile')==identity['vision_tail_profile'],'Observed visual batching differs')
+    require(abs(observed['physics_dt']-1/120)<1e-8 and abs(observed['control_dt']-1/60)<1e-8,
+        'Observed native clocks differ')
+    return dict(identity,observed_sha256=sha256(directory/'execution_backend_observed.json'))
+
+
+def audit_numeric_clock(path,steps):
+    with h5py.File(path/'numeric.h5','r') as f:
+        t=f['episode/transition'];obs=f['episode/obs']
+        targets=t['target_after_rad'][:];previous=obs['actuator_target_rad'][:]
+        require(targets.shape==previous.shape==(steps,29) and np.isfinite(targets).all(),
+            'Nonfinite or noncanonical 29D targets')
+        require(np.array_equal(targets[:-1],previous[1:]),'Actual target/history continuity differs')
+        times=obs['time_s'][:];camera=obs['camera_time_s'][:];frames=obs['camera_frame'][:]
+        require(times.shape==(steps,) and camera.shape==frames.shape==(steps,3) and
+            np.isfinite(times).all() and np.isfinite(camera).all() and
+            np.allclose(camera,times[:,None],atol=1e-8,rtol=0) and
+            np.allclose(np.diff(times),1/60,atol=1e-8,rtol=0),'Real observation clock differs')
+        require(obs['camera_valid'][:].shape==(steps,3) and obs['camera_valid'][:].all() and
+            (np.diff(frames,axis=0)>0).all(),'Invalid or reused real camera frames')
+        require(np.allclose(t['time_before_s'][:],times,rtol=0,atol=1e-8) and
+            np.allclose(t['time_after_s'][:]-times,1/60,rtol=0,atol=1e-8),'Native transition clock differs')
+    return dict(control_ticks=steps,real_camera_views=3,finite_absolute_target_dimensions=29,
+        target_history_continuous=True,camera_clock_verified=True)
+
+
+def invalid_initialization_evidence(path,result):
+    require(result.get('software_complete') is True and result.get('legal') is False and
+        result.get('not_started') is True and result.get('success') is False and
+        result.get('steps') in (None,0) and result.get('residual_ticks') in (None,0) and
+        result.get('dagger') is None and not result.get('censored'),
+        'Illegal initialization contains an executed or incomplete task outcome')
+    collision=read(path/'initial_collision.json')
+    require(collision.get('legal') is False and collision['version']==result['collision_gate'],
+        'Illegal initialization lacks matching collision rejection')
+    numeric=path/'numeric.h5'
+    if numeric.exists():
+        with h5py.File(numeric,'r') as stream:
+            require('episode/transition/step_id' not in stream or len(stream['episode/transition/step_id'])==0,
+                'Rejected initialization contains actual control transitions')
+    return dict(classification='invalid_initialization',task_outcome=None,raw_success_field=result['success'],
+        not_started=True,reason=result.get('reason'),
+        collision={key:collision.get(key) for key in ('version','legal','minimum_gap_m','margin_m','limitation')},
+        evidence_sha256={name:sha256(path/name) for name in
+            ('result.json','started.json','initial_collision.json','initial_observable.json')},
+        interpretation='Registered opportunity rejected before control; not an autonomous task failure or replacement opportunity.')
+
+
+def autonomy_totals(cases,*,batch=False,explicit=False):
+    chosen=[c for c in cases if c['legal']]
+    successes=sum(c['success'] for c in chosen)
+    result=dict(opportunities=len(cases),successes=successes,
+        native_lift_cases=sum(c['native_lift'] for c in chosen),
+        old_stable_window_cases=sum(c['settled_height_stable_grasp'] for c in chosen),
+        contact_height12_cases=sum(c['contact_motion']['first_contact_height_window_end_tick'] is not None for c in chosen),
+        native_alignment_cases=sum(c['native_alignment_first_tick'] is not None for c in chosen),
+        native_near_goal_cases=sum(c['native_near_goal_first_tick'] is not None for c in chosen),
+        first_subgoal_cases=sum(c['native_subgoals']>0 for c in chosen),
+        termination_reasons=dict(Counter(k for c in chosen for k,v in c['reasons'].items() if v)),
+        total_control_ticks=sum(c['steps'] for c in chosen),
+        **({'overlapping_lane_lifetime_seconds':sum(c['wall_seconds'] for c in chosen)} if batch else
+           {'rollout_wall_seconds':sum(c['wall_seconds'] for c in chosen)}))
+    if explicit:
+        result.update(legal_initializations=len(chosen),invalid_initializations=len(cases)-len(chosen),
+            autonomous_success_rate_among_legal=successes/len(chosen) if chosen else None,
+            raw_successes_per_registered_opportunity=dict(numerator=successes,denominator=len(cases),
+                ratio=successes/len(cases) if cases else None,
+                scope='Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate.'),
+            task_outcome_denominator='Legal completed autonomous executions only; invalid starts excluded.')
+    return result
+
+
+def matched_legal_comparison(source,candidate):
+    left={r['case']:r for r in source['cases']};right={r['case']:r for r in candidate['cases']}
+    require(set(left)==set(right),'Completed source/candidate opportunity identities differ')
+    roles={}
+    for role in ('A','B'):
+        names=sorted(k for k,row in left.items() if row['role']==role)
+        require(all(right[k]['role']==role for k in names),'Source/candidate role identity differs')
+        matched=[k for k in names if left[k]['legal'] and right[k]['legal']]
+        roles[role]=dict(registered_opportunities=len(names),matched_legal_opportunities=len(matched),
+            matched_legal_cases=matched,source_only_legal_cases=[k for k in names if left[k]['legal'] and not right[k]['legal']],
+            candidate_only_legal_cases=[k for k in names if right[k]['legal'] and not left[k]['legal']],
+            both_invalid_cases=[k for k in names if not left[k]['legal'] and not right[k]['legal']],
+            source=autonomy_totals([left[k] for k in matched],batch=source['execution']['mode']=='whole_wave',explicit=True),
+            candidate=autonomy_totals([right[k] for k in matched],batch=candidate['execution']['mode']=='whole_wave',explicit=True))
+    return dict(by_role=roles,scope='Intersection of actual legal initializations under the same registered case specs; '
+        'admission differences remain in all-opportunity evidence. No hidden-state equality or new held-out generalization claim.')
+
+
+def audit_group(label,root,tree,development=None,*,allow_illegal=False):
+    directory=(root/'development' if development is None else development).resolve()
+    plan=read(directory/'plan.json');finished=read(directory/'result.json')
     source_receipt=check_sources(plan,tree);rows=read(directory/'results.json')
-    require(finished['software_complete'] and not finished.get('worker_error') and finished['cases']==8,'Incomplete worker')
+    count=len(plan['cases'])
+    require(finished['software_complete'] and not finished.get('worker_error') and finished['cases']==count,'Incomplete worker')
     require(read(directory/'run_started.json')['plan_sha256']==sha256(directory/'plan.json'),'Startup plan hash differs')
-    require(plan['kind']=='autonomous' and plan['test_used'] is False and len(rows)==len(plan['cases'])==8,'Wrong cohort')
-    pairs={role:completed_pair(root,role) for role in ('A','B')}
-    require(plan['pairs']==pairs,'Completed pair differs from executed pair')
+    require(plan['kind']=='autonomous' and plan['test_used'] is False and len(rows)==count,'Wrong cohort')
+    pairs=plan['pairs']
+    for role,pair in pairs.items():
+        require(completed_pair(pair_root(pair,role),role)==pair,'Completed pair differs from executed pair')
     for pair in pairs.values():
         for key in ('frontend','backend'):
             require(sha256(pair[key])==pair[key+'_sha256'],'Model changed')
-    indexed={r['case']:r for r in rows};require(len(indexed)==8,'Duplicate case')
+    execution=verify_execution_receipt(directory,plan)
+    indexed={r['case']:r for r in rows};require(len(indexed)==count,'Duplicate case')
+    assignments={}
+    if 'batch' in plan:
+        wave=0
+        for role in dict.fromkeys(case['role'] for case in plan['cases']):
+            selected=[case for case in plan['cases'] if case['role']==role]
+            for start in range(0,len(selected),plan['batch']['lanes']):
+                for lane,case in enumerate(selected[start:start+plan['batch']['lanes']]):assignments[case['name']]=(wave,lane)
+                wave+=1
     cases=[]
     for planned in plan['cases']:
         name=planned['name'];role=planned['role'];path=directory/name;row=indexed[name]
         r=read(path/'result.json');started=read(path/'started.json');pair=pairs[role]
         require(row['result']==r and row['role']==role,'Index/case mismatch')
-        require(started['spec']==planned['spec'] and started['checkpoint']==pair['backend'],'Started identity mismatch')
+        require(started['spec']==planned['spec'],'Started identity mismatch')
+        if 'batch' in plan:
+            meta=read(path/'metadata.json');batch=r['batch_execution'];wave,lane=assignments[name]
+            require(started['batch_execution']==meta['batch_execution']==batch and
+                (batch['wave'],batch['lane'])==(wave,lane) and batch['lanes']==plan['batch']['lanes'] and
+                batch['vision_microbatch']==execution['vision_microbatch'] and
+                batch.get('vision_tail_profile')==execution['vision_tail_profile'] and
+                batch['physics_seed']==plan['batch']['seed']+wave and
+                batch['event_seed']==plan['batch']['seed']+100000+wave,'Per-lane execution binding differs')
+            require(meta['policy_checkpoint_sha256']==pair['backend_sha256'] and
+                meta['execution_backend']==execution['execution_backend'],
+                'Per-lane policy/backend binding differs')
+            if r['legal']:require(r['complete_student_policy']==pair,'Executed complete student policy differs')
+        else:require(started['checkpoint']==pair['backend'],'Started checkpoint differs')
         require(all(r[k]==v for k,v in planned['spec'].items()),'Executed reset differs')
+        if not r['legal'] and allow_illegal:
+            cases.append(dict(group=label,role=role,case=name,legal=False,
+                planned_pair_sha256={key:pair[key] for key in ('frontend_sha256','backend_sha256')},
+                initial_rejection=invalid_initialization_evidence(path,r)))
+            continue
         require(r['software_complete'] and r['legal'] and not r.get('censored') and r.get('dagger') is None,'Not complete autonomous execution')
         require(r['checkpoint_sha256']==pair['backend_sha256'] and r['residual_version']==pair['residual_version'],'Model contract mismatch')
         require(r['residual_ticks']==r['steps'] and r['simulation_step_hz']==60 and r['physics_hz']==120 and r['plan_hz']==5,'Clock mismatch')
@@ -105,25 +281,13 @@ def audit_group(label,root,tree):
         require(r['native_inference']['summary']['ddim_plan']['wall_s']['count']==(r['steps']+11)//12,'Planning clock mismatch')
         phase=phase_case(path);require(phase['authority']['expert_ticks']==0 and phase['steps']==r['steps'],'Expert action or numeric length mismatch')
         require(phase['native_lift']==r['native_lift'] and phase['native_subgoals']==r['native_subgoals'],'Native numeric/result mismatch')
-        with h5py.File(path/'numeric.h5','r') as f:
-            t=f['episode/transition'];targets=t['target_after_rad'][:];previous=f['episode/obs/actuator_target_rad'][:]
-            require(np.array_equal(targets[:-1],previous[1:]),'Actual target/history continuity differs')
-            require(np.isfinite(targets).all(),'Nonfinite targets')
+        clocks=audit_numeric_clock(path,r['steps'])
         cases.append(dict(group=label,role=role,**phase,contact_motion=contact_motion(path,phase),
-            held_orientation=held_orientation(path),wall_seconds=row['timing']['total_seconds']))
-    totals={}
-    for role in ('A','B'):
-        chosen=[c for c in cases if c['role']==role]
-        totals[role]=dict(opportunities=4,successes=sum(c['success'] for c in chosen),
-            native_lift_cases=sum(c['native_lift'] for c in chosen),
-            old_stable_window_cases=sum(c['settled_height_stable_grasp'] for c in chosen),
-            contact_height12_cases=sum(c['contact_motion']['first_contact_height_window_end_tick'] is not None for c in chosen),
-            native_alignment_cases=sum(c['native_alignment_first_tick'] is not None for c in chosen),
-            native_near_goal_cases=sum(c['native_near_goal_first_tick'] is not None for c in chosen),
-            first_subgoal_cases=sum(c['native_subgoals']>0 for c in chosen),
-            termination_reasons=dict(Counter(k for c in chosen for k,v in c['reasons'].items() if v)),
-            total_control_ticks=sum(c['steps'] for c in chosen),rollout_wall_seconds=sum(c['wall_seconds'] for c in chosen))
-    return dict(root=str(root),plan_sha256=sha256(directory/'plan.json'),results_sha256=sha256(directory/'results.json'),
+            held_orientation=held_orientation(path),clock_audit=clocks,wall_seconds=row['timing']['total_seconds']))
+    totals={role:autonomy_totals([c for c in cases if c['role']==role],batch='batch' in plan,explicit=allow_illegal)
+        for role in ('A','B')}
+    return dict(root=str(root),development=str(directory),execution=execution,
+        plan_sha256=sha256(directory/'plan.json'),results_sha256=sha256(directory/'results.json'),
         completion_sha256=sha256(directory/'result.json'),source_verification=source_receipt,pairs=pairs,totals=totals,cases=cases,
         initialization=read(directory/'initialization.json'))
 
@@ -163,19 +327,66 @@ def compact_learning(root, roles):
             backend_cache=report['backend_cache'],
             test_used=False,
             limits='Exposure reports actual supervised slots/draws, not independent states. '
-                'B last-epoch correction fitting is not the deployed epoch3 checkpoint result.')
+                'Last-epoch correction fitting describes the deployed frontend only when its epoch equals the selected epoch.')
     return result
 
 
-def run(source_root, candidate_root, source_tree, candidate_tree, output):
+def frontend_checkpoint_receipt(pair,role):
+    """Read actual selected and last frontend identities on CPU, without a session-root assumption."""
+    import torch
+    root=pair_root(pair,role);training=root/role/'training'
+    finished=read(training/'finished.json')
+    require(finished.get('complete') is True and finished['checkpoint_sha256']==pair['frontend_sha256'],
+        'Selected frontend lacks matching completion receipt')
+    checkpoints={}
+    for name in ('best','last'):
+        path=training/(name+'.pt');saved=torch.load(path,map_location='cpu',weights_only=False,mmap=True)
+        checkpoints[name]=dict(epoch=saved['epoch'],updates=saved['updates'],sha256=sha256(path),
+            continuation=saved['configuration'].get('continuation'))
+        del saved
+    require(checkpoints['best']['sha256']==pair['frontend_sha256'] and
+        checkpoints['last']['epoch']==finished['epochs'] and checkpoints['last']['updates']==finished['updates'],
+        'Frontend selected/last completion binding differs')
+    return dict(training_root=str(root),selected=checkpoints['best'],last=checkpoints['last'],
+        completed_target_slots=finished['target_ticks'],completed_anchors=finished['anchors_seen'],
+        finished_sha256=sha256(training/'finished.json'),
+        budget_scope='This continuation stage only; source roles may have different prior rounds/data/updates. Not a matched cumulative-budget comparison.')
+
+
+def initial_observation_comparison(source,candidate,cases):
+    result={}
+    for case in cases:
+        name=case['name'];paths=[directory/name/'initial_observable.json' for directory in (source,candidate)]
+        before,after=map(read,paths)
+        require(set(before)==set(after),'Saved observable initial-state fields differ')
+        fields={}
+        for key in before:
+            a,b=np.asarray(before[key]),np.asarray(after[key])
+            require(a.shape==b.shape and np.isfinite(a).all() and np.isfinite(b).all(),
+                'Invalid saved observable initial-state geometry')
+            fields[key]=dict(equal=bool(np.array_equal(a,b)),max_absolute_difference=float(np.abs(a.astype(float)-b.astype(float)).max()) if a.size else 0.)
+        result[name]=dict(all_fields_equal=all(row['equal'] for row in fields.values()),fields=fields,
+            source_sha256=sha256(paths[0]),candidate_sha256=sha256(paths[1]))
+    return dict(cases=result,all_cases_equal=all(row['all_fields_equal'] for row in result.values()),
+        scope='Saved observable state only; equality does not establish identical hidden PhysX, renderer, contact solver or RNG state.')
+
+
+def run(source_root, candidate_root, source_tree, candidate_tree, output, *,
+        source_development=None,candidate_development=None):
     OUT = output.resolve()
     FROZEN, OLD_FROZEN = candidate_tree.resolve(), source_tree.resolve()
-    ROOTS = dict(source_round05=source_root.resolve(), candidate_round06=candidate_root.resolve())
-    TREES = dict(source_round05=OLD_FROZEN, candidate_round06=FROZEN)
+    explicit=source_development is not None or candidate_development is not None
+    labels=('source','candidate') if explicit else ('source_round05','candidate_round06')
+    ROOTS = dict(zip(labels,(source_root.resolve(),candidate_root.resolve())))
+    TREES = dict(zip(labels,(OLD_FROZEN,FROZEN)))
+    directories={labels[0]:(source_root/'development' if source_development is None else source_development).resolve(),
+        labels[1]:(candidate_root/'development' if candidate_development is None else candidate_development).resolve()}
     if OUT.exists() and any(OUT.iterdir()):
         raise FileExistsError("Preserve previous review evidence")
     for label, root in ROOTS.items():
-        check_sources(read(root / "development/plan.json"), TREES[label])
+        check_sources(read(directories[label]/'plan.json'), TREES[label])
+    old,new=(read(directory/'plan.json') for directory in directories.values())
+    population=compare_plans(old,new)
     load_helpers(FROZEN)
     OUT.mkdir(parents=True, exist_ok=True)
     if (OUT/'autonomy.json').exists():raise FileExistsError('Preserve prior CPU analysis')
@@ -186,23 +397,38 @@ def run(source_root, candidate_root, source_tree, candidate_tree, output):
         node=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='stable_windows')
         stable.append(ast.get_source_segment(source,node))
     require(stable[0]==stable[1],'Old stable arithmetic differs')
-    groups={label:audit_group(label,root,TREES[label]) for label,root in ROOTS.items()}
-    old,new=(read(root/'development/plan.json') for root in ROOTS.values())
-    require([(c['name'],c['role'],c['spec']) for c in old['cases']]==[(c['name'],c['role'],c['spec']) for c in new['cases']],'Development opportunities changed')
+    groups={label:audit_group(label,root,TREES[label],directories[label],allow_illegal=explicit) for label,root in ROOTS.items()}
+    initial=initial_observation_comparison(*directories.values(),old['cases'])
+    matching=matched_legal_comparison(*groups.values()) if explicit else None
     helpers=['tools/tight_fresh_phases.py','tools/tight_fresh_visual_closeout.py',
         'tools/tight_fresh_contact_height_coverage.py','tools/tight_fresh_learning_report.py','visuotactile/takeover_trigger.py']
-    atomic_json(OUT/'autonomy.json',dict(version='round06_independent_cpu_review_v1',complete=True,
+    atomic_json(OUT/'autonomy.json',dict(version='explicit_development_cpu_review_v2' if explicit else 'round06_independent_cpu_review_v1',complete=True,
         source_sha256=sha256(__file__),helper_root=str(FROZEN),helper_sha256={n:sha256(FROZEN/n) for n in helpers},
-        old_stable_function_source_identical=True,groups=groups,simulator_starts=0,optimizer_updates=0,test_used=False,
-        limits='Four repeatedly reused development starts per role, not new-generalization samples or exact hidden-state pairs. Contact-height permits palm rotation and is not native lift/success. Missing windows do not prove dropping. Angular and position minima are shown at their actual same-tick snapshots.'))
+        old_stable_function_source_identical=True,population=population,initial_observation_comparison=initial,
+        groups=groups,**({'matched_legal_comparison':matching} if explicit else {}),
+        simulator_starts=0,optimizer_updates=0,test_used=False,
+        limits='Registered development starts, not a held-out test estimate or exact hidden-state pairs. Contact-height permits palm rotation and is not native lift/success. Missing windows do not prove dropping. Angular and position minima are shown at their actual same-tick snapshots. Source A/B histories may have unequal budgets.'))
     print(json.dumps({label:g['totals'] for label,g in groups.items()},indent=2),flush=True)
     for label,root in ROOTS.items():
-        if label!='candidate_round06':continue
+        if label!=labels[1]:continue
         roles={r:role_report(root,r) for r in ('A','B')}
-        atomic_json(OUT/'learning_round06.json',dict(roles=roles,
+        bindings={r:frontend_checkpoint_receipt(new['pairs'][r],r) for r in ('A','B')}
+        for role,report in roles.items():
+            require(report['checkpoint_sha256']==new['pairs'][role]['frontend_sha256'] and
+                report['backend_selected']['checkpoint_sha256']==new['pairs'][role]['backend_sha256'] and
+                bindings[role]['training_root']==str(root),'Learning report is not the evaluated candidate pair')
+            require((report['selected_epoch'],report['selected_updates'])==
+                (bindings[role]['selected']['epoch'],bindings[role]['selected']['updates']) and
+                (report['latest_epoch'],report['latest_updates'])==
+                (bindings[role]['last']['epoch'],bindings[role]['last']['updates']),
+                'Selected/last metrics differ from actual checkpoints')
+        learning_name='learning_candidate.json' if explicit else 'learning_round06.json'
+        atomic_json(OUT/learning_name,dict(roles=roles,checkpoint_bindings=bindings,
             helper_root=str(FROZEN),helper_sha256=sha256(FROZEN/'tools/tight_fresh_learning_report.py'),test_used=False))
         atomic_json(OUT/'learning_summary.json',dict(roles=compact_learning(root,roles),
-            full_report_sha256=sha256(OUT/'learning_round06.json'),source_sha256=sha256(__file__),test_used=False))
+            source_frontend_checkpoints={r:frontend_checkpoint_receipt(old['pairs'][r],r) for r in ('A','B')},
+            candidate_frontend_checkpoints=bindings,
+            full_report_sha256=sha256(OUT/learning_name),source_sha256=sha256(__file__),test_used=False))
     print('Finished CPU autonomy and learning audits',flush=True)
 
 
@@ -210,6 +436,8 @@ def parser():
     value = argparse.ArgumentParser(__doc__)
     value.add_argument('--source-root', type=Path, required=True)
     value.add_argument('--candidate-root', type=Path, required=True)
+    value.add_argument('--source-development', type=Path, help='Explicit executed source development directory; defaults to source-root/development')
+    value.add_argument('--candidate-development', type=Path, help='Explicit executed candidate development directory; defaults to candidate-root/development')
     value.add_argument('--source-tree', type=Path, required=True)
     value.add_argument('--candidate-tree', type=Path, required=True)
     value.add_argument('--output', type=Path, required=True)

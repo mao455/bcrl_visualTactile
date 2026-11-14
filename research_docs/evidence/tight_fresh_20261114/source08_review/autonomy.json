@@ -1,0 +1,642 @@
+{
+  "version": "source08_A05_B06_complete_autonomy_summary_v1",
+  "scope": "Source A05/B06 cohort only; candidate08 has not been compared. Legal autonomous outcomes separate from pre-action rejections; no hidden-state pairing claim.",
+  "totals": {
+    "A": {
+      "opportunities": 8,
+      "successes": 0,
+      "native_lift_cases": 2,
+      "old_stable_window_cases": 2,
+      "contact_height12_cases": 4,
+      "native_alignment_cases": 0,
+      "native_near_goal_cases": 0,
+      "first_subgoal_cases": 0,
+      "termination_reasons": {
+        "timeout": 7
+      },
+      "total_control_ticks": 4207,
+      "overlapping_lane_lifetime_seconds": 1545.597068107687,
+      "legal_initializations": 7,
+      "invalid_initializations": 1,
+      "autonomous_success_rate_among_legal": 0.0,
+      "raw_successes_per_registered_opportunity": {
+        "numerator": 0,
+        "denominator": 8,
+        "ratio": 0.0,
+        "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+      },
+      "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+    },
+    "B": {
+      "opportunities": 8,
+      "successes": 0,
+      "native_lift_cases": 2,
+      "old_stable_window_cases": 2,
+      "contact_height12_cases": 4,
+      "native_alignment_cases": 0,
+      "native_near_goal_cases": 0,
+      "first_subgoal_cases": 0,
+      "termination_reasons": {
+        "timeout": 8
+      },
+      "total_control_ticks": 4808,
+      "overlapping_lane_lifetime_seconds": 1830.6570420092903,
+      "legal_initializations": 8,
+      "invalid_initializations": 0,
+      "autonomous_success_rate_among_legal": 0.0,
+      "raw_successes_per_registered_opportunity": {
+        "numerator": 0,
+        "denominator": 8,
+        "ratio": 0.0,
+        "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+      },
+      "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+    }
+  },
+  "best_held_keypoint_by_role": {
+    "A": {
+      "case": "A_development_28500000",
+      "snapshot": {
+        "completed_tick": 189,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.9961576516089516,
+        "root_distance_m": 0.10024105757474899,
+        "native_keypoint_distance_m": 0.14963385462760925,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      }
+    },
+    "B": {
+      "case": "B_development_28500003",
+      "snapshot": {
+        "completed_tick": 294,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.5849376657640908,
+        "root_distance_m": 0.023353835567831993,
+        "native_keypoint_distance_m": 0.05812092497944832,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      }
+    }
+  },
+  "cases": [
+    {
+      "case": "A_development_28500000",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": true,
+      "old_stable_window": true,
+      "contact_height_window_ends": 23,
+      "best_keypoint_snapshot": {
+        "completed_tick": 189,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.9961576516089516,
+        "root_distance_m": 0.10024105757474899,
+        "native_keypoint_distance_m": 0.14963385462760925,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 195,
+        "root_angle_rad": 1.085070252418518,
+        "root_distance_m": 0.0901210606098175,
+        "native_keypoint_distance_m": 0.15086126327514648,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "da2ae07398d088edd50bc0d6df1fe6ac586a99911a05a80860a0cefa4808bc9d",
+      "result_sha256": "294feb7fba4ba0bddcc1f4a7e7e2e2ae2ee449656915b18e4864494c5384e7c6",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500000",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 9,
+      "best_keypoint_snapshot": {
+        "completed_tick": 140,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.612362601787319,
+        "root_distance_m": 0.14312276244163513,
+        "native_keypoint_distance_m": 0.27727213501930237,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 140,
+        "root_angle_rad": 1.6123625040054321,
+        "root_distance_m": 0.14312276244163513,
+        "native_keypoint_distance_m": 0.27727213501930237,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "b27346d04d4ca63118ac6ebf859856b3df025128badce620b5330b3bbe464b63",
+      "result_sha256": "2e8cdab8a1524da9cf5929f07096161c744a73761e23a14e3ddc508319b0d6a4",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500001",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "79502b3d575726488403da77eb5544bf4b095bc2dd669cb8fd905866e064107f",
+      "result_sha256": "9035242b35a04f95a6d264774107e00671372d0375ae4f63c18c227e84408cc9",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "A_development_28500001",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "81526efde97f05b00379065aeb79ab78a15eaba0c1d8c600bc2d1cde3f5bcf3f",
+      "result_sha256": "5d994e71e1cdf21d6e9d4201a9ee2b9b4ab580f1be288f4dd0b7474eea49dc00",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "A_development_28500002",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 24,
+      "best_keypoint_snapshot": {
+        "completed_tick": 188,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.4442800354541265,
+        "root_distance_m": 0.061362531036138535,
+        "native_keypoint_distance_m": 0.18548151850700378,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 188,
+        "root_angle_rad": 1.4442800283432007,
+        "root_distance_m": 0.061362531036138535,
+        "native_keypoint_distance_m": 0.18548151850700378,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "1ef92e8bee078dde0606d2ba89aa3c8ffe8695afab2b63d497e38058a039b73e",
+      "result_sha256": "f4a2a3019de9d381989e40900be9013543017e8cd5c7534b017ada8a8475fcba",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500002",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "34f8cb72b16144eb9604045b3aa3ce12d463bb4266b48054388f51e3ec42e6fe",
+      "result_sha256": "fd7e2fb46473644916d73dd65f6f081d5b3c30a632f30c10375614562fd9e6a6",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500003",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": true,
+      "old_stable_window": true,
+      "contact_height_window_ends": 38,
+      "best_keypoint_snapshot": {
+        "completed_tick": 294,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.5849376657640908,
+        "root_distance_m": 0.023353835567831993,
+        "native_keypoint_distance_m": 0.05812092497944832,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 253,
+        "root_angle_rad": 1.340989351272583,
+        "root_distance_m": 0.025641048327088356,
+        "native_keypoint_distance_m": 0.06471150368452072,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "523ab2c04799ae341e9ef3273ca5b01462602395b3ab458905677f7cd69ed3b5",
+      "result_sha256": "2ac6749ad6112630eef803bec996f272e9ee524f7c673bb0b4d0b0f96989aac4",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "A_development_28500003",
+      "role": "A",
+      "legal": false,
+      "initial_rejection": {
+        "classification": "invalid_initialization",
+        "task_outcome": null,
+        "raw_success_field": false,
+        "not_started": true,
+        "reason": "pre-action collision rejection; no outcome replacement",
+        "collision": {
+          "version": "live_collision_mesh_bounds_v1",
+          "legal": false,
+          "minimum_gap_m": -0.005213060708083188,
+          "margin_m": 0.001,
+          "limitation": "Conservative mesh bounds may reject free configurations; no claim of signed mesh penetration depth"
+        },
+        "evidence_sha256": {
+          "result.json": "fb50d18be62a56d45b692a4d4a9416eff8e97a897a2ccf0309b437c9fd4aedf9",
+          "started.json": "e944d89af308c5ae3e3a02ded8a1c470051bb5b2d703efffe323df219812306d",
+          "initial_collision.json": "5f43101b9e2fc945e867e3b815f6fa5268a7b920699a1213e700673801d61f2e",
+          "initial_observable.json": "12a9598eeb9131a6e36abbf0aec732aec4e3e10251ff9c8785bfeeac5ba33521"
+        },
+        "interpretation": "Registered opportunity rejected before control; not an autonomous task failure or replacement opportunity."
+      },
+      "planned_pair_sha256": {
+        "frontend_sha256": "95007e3843109c1caea84c8fa34bb4df275d05290e4e8ed49ce15202650a1bb8",
+        "backend_sha256": "607baeae778e88094656edba082c0dcb2d78d271d63d3567d8715edde809f52c"
+      }
+    },
+    {
+      "case": "A_development_28500004",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "b568d20e7d45a2c86b169385719813b76ab26a36e2dbcdb351b5224145424f8c",
+      "result_sha256": "0325fe5f395772e821e016ffec2cc594142e5b7cf0377d199d4b6fd380ca586e",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500004",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": true,
+      "old_stable_window": true,
+      "contact_height_window_ends": 59,
+      "best_keypoint_snapshot": {
+        "completed_tick": 301,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.7892770453766647,
+        "root_distance_m": 0.01254721637815237,
+        "native_keypoint_distance_m": 0.08602769672870636,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 267,
+        "root_angle_rad": 1.4307606220245361,
+        "root_distance_m": 0.027928605675697327,
+        "native_keypoint_distance_m": 0.12070386111736298,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "3f90b5ef9994e1c4e374bfe258a116b25f6d70d90cc1c585adf0eb7f262def81",
+      "result_sha256": "b58ef597f84857804a5b836a598cba6323af6d9b1bcd4971c60d91a39938927e",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500005",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "ff337b1fcb00d78944f5766816d19d6204cdc7d3e99d08d3480ed6f6456e0569",
+      "result_sha256": "ceb5f2e158c572a7a0e2da207882cdc1062b3b5e0f7bb00b445b770c7ce15cb6",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "A_development_28500005",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 5,
+      "best_keypoint_snapshot": {
+        "completed_tick": 414,
+        "active_goal_index": 0,
+        "root_angle_rad": 2.104918142469301,
+        "root_distance_m": 0.13248659670352936,
+        "native_keypoint_distance_m": 0.3118177354335785,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 414,
+        "root_angle_rad": 2.1049180030822754,
+        "root_distance_m": 0.13248659670352936,
+        "native_keypoint_distance_m": 0.3118177354335785,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "0be45c43b178a411db2c1242fdb0c82b76d4aa19b73062d34867405db7e4c340",
+      "result_sha256": "4ce37b475909f2be9edc9967f46a9c888efb9cd9a79fbe3e8a734ec3c93b2132",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "A_development_28500006",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": true,
+      "old_stable_window": true,
+      "contact_height_window_ends": 42,
+      "best_keypoint_snapshot": {
+        "completed_tick": 234,
+        "active_goal_index": 0,
+        "root_angle_rad": 2.3712025039157423,
+        "root_distance_m": 0.09557223320007324,
+        "native_keypoint_distance_m": 0.18351134657859802,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 166,
+        "root_angle_rad": 1.6139330863952637,
+        "root_distance_m": 0.12640538811683655,
+        "native_keypoint_distance_m": 0.2617828845977783,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "24336d1ff14d36add34e1a315d5b643a26da4e85e03352156ebb384b84354829",
+      "result_sha256": "c12429795d1f1e3920a28b16981afa7bf9aa7d6eb6fdb166d2a28ad9356fe2ff",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500006",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "7411b730a4b9ffb6d115829aa5b135dd025e0a00b3b92ab16caaffebbf7795a5",
+      "result_sha256": "c6f73d9655b873d44a861431ffe6a15a2c51d4bef9e77b9804e9f3a4f8a63255",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "B_development_28500007",
+      "role": "B",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 18,
+      "best_keypoint_snapshot": {
+        "completed_tick": 222,
+        "active_goal_index": 0,
+        "root_angle_rad": 1.2846312174667918,
+        "root_distance_m": 0.01978757418692112,
+        "native_keypoint_distance_m": 0.08457091450691223,
+        "tolerance_m": 0.014999999664723873,
+        "both_substeps_two_finger_contact": true
+      },
+      "smallest_root_angle_snapshot": {
+        "completed_tick": 222,
+        "root_angle_rad": 1.2846312522888184,
+        "root_distance_m": 0.01978757418692112,
+        "native_keypoint_distance_m": 0.08457091450691223,
+        "native_tolerance_m": 0.014999999664723873
+      },
+      "numeric_sha256": "d7b398d2b686e85353dbce6be85efd9f380de660cf9cd951d2a8e1a8e7b83a7c",
+      "result_sha256": "308ef853a1f80a2908beb58ee5a1a3f9fc3bfffb33c32da6d590ae36e509bc37",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    },
+    {
+      "case": "A_development_28500007",
+      "role": "A",
+      "legal": true,
+      "steps": 601,
+      "success": false,
+      "native_lift": false,
+      "old_stable_window": false,
+      "contact_height_window_ends": 0,
+      "best_keypoint_snapshot": null,
+      "smallest_root_angle_snapshot": null,
+      "numeric_sha256": "1bef1e7baed515d4a05aacbe50faeedb1a4f7e988205600ab9699a270c75790f",
+      "result_sha256": "783d0e817a13822d7863d5ce2fd24623ab61d18d1e4888b8a212cf385a22c19a",
+      "clock_audit": {
+        "control_ticks": 601,
+        "real_camera_views": 3,
+        "finite_absolute_target_dimensions": 29,
+        "target_history_continuous": true,
+        "camera_clock_verified": true
+      }
+    }
+  ],
+  "source_verification": {
+    "tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_expand08_20261114",
+    "commit": "d168195c10af43eec3dd77a1e4f7b8d8d0340a7f",
+    "verified_source_files": 202
+  },
+  "pairs": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/A/training/best.pt",
+      "frontend_sha256": "95007e3843109c1caea84c8fa34bb4df275d05290e4e8ed49ce15202650a1bb8",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/A/backend/A/training/best.pt",
+      "backend_sha256": "607baeae778e88094656edba082c0dcb2d78d271d63d3567d8715edde809f52c",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/B/training/best.pt",
+      "frontend_sha256": "281266def7e6f9ced8344fe9a560ac522fb037eaeca28e1eeda3604bd9fc4ed1",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/B/backend/B/training/best.pt",
+      "backend_sha256": "a4aa41f91fa31adbbe16771f5c42aa57aaf6f9eecb7da292f920b66328aec476",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "execution": {
+    "mode": "whole_wave",
+    "lanes": 8,
+    "vision_microbatch": 8,
+    "vision_tail_profile": null,
+    "batch_seed": 28500000,
+    "inference_scheduler_index_mode": "host",
+    "execution_backend": {
+      "version": "tight_execution_backend_v2",
+      "physics_device": "cpu",
+      "camera_backend": "standard",
+      "kit_tasking_threads": 16,
+      "physics_threads": 2,
+      "renderer_descriptor_sets": 360000,
+      "renderer_reserved_descriptors": 900000
+    },
+    "observed_sha256": "6111f8ba60d061f48acaf19cd1eef32ff58b869d89a3afeca2decd16889007ff"
+  },
+  "owner": {
+    "software_complete": true,
+    "worker_pid": 3882614,
+    "returncode": 0,
+    "stop_reason": "complete",
+    "error": null,
+    "seconds": 475.70095133781433,
+    "ended": 1794666709.2870152,
+    "plan_sha256": "461f3e2b5c1c7b831953a1d92576665566da5de13cbaa17e77ef4968fe1d8495"
+  },
+  "plan_sha256": "461f3e2b5c1c7b831953a1d92576665566da5de13cbaa17e77ef4968fe1d8495",
+  "results_sha256": "e8b67b779cf04c34ac5620811af69e19225bb2f2c7d63de97937dd37c7a828ee",
+  "completion_sha256": "de25e08194f02b4e5829198384bc98174014b13d3ef2f3dd543736072105a7cd",
+  "full_private_report": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/source08_complete_review_01/autonomy.json",
+  "full_private_report_sha256": "3e43515cb7c8dd928d0b1df893981115f865a4cd53eeb11562a940e8002652b2",
+  "simulator_starts": 0,
+  "optimizer_updates": 0,
+  "review_code_sha256": "f877299a2ef37b317c3ccf8cf475a7f988c70816a00b3cafa69040df3f977a21"
+}
