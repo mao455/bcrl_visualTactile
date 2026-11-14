@@ -51,3 +51,26 @@ def test_bad_foreign_symlink_cannot_stop_monitor(tmp_path):
     loop = tmp_path / 'loop'
     loop.symlink_to(loop)
     assert not owned_command_root(['python', '--root', str(loop)], [tmp_path], cwd=tmp_path)
+
+
+@pytest.mark.parametrize('tail, expected', [
+    (['--output', '/runs/task/collection'], True),
+    (['--output=task/collection'], True),
+    (['--output', '/runs/task_other/collection'], False),
+    (['--output', '/runs/task/../other'], False),
+    (['--output', '/runs/task', '--output=/runs/task'], False),
+    (['--output', '/runs/task', '--root=/runs/task'], False),
+    (['--output'], False),
+])
+def test_only_explicit_stage_worker_can_declare_output_as_ownership(tail, expected):
+    command = ['python', '-m', 'tools.tight_fresh_stage_takeover', 'run', *tail]
+    assert owned_command_root(command, ['/runs/task'], cwd='/runs') is expected
+    command[2] = 'tools.unrelated'
+    if not any(x.startswith('--root') for x in tail):
+        assert not owned_command_root(command, ['/runs/task'], cwd='/runs')
+
+
+def test_stage_prepare_and_unrelated_output_are_not_owned():
+    for command in (["python", '-m', 'tools.tight_fresh_stage_takeover', 'prepare'],
+                    ['python', '-c', 'tools.tight_fresh_stage_takeover run']):
+        assert not owned_command_root([*command, '--output', '/runs/task'], ['/runs/task'], cwd='/runs')

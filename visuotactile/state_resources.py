@@ -275,14 +275,20 @@ def owned_command_root(command, roots, *, cwd):
     This is telemetry attribution, not authority to signal another process.
     Resolve relative arguments in the worker's cwd and reject ambiguous roots.
     """
+    # This finite collector declares its registered run directory as --output;
+    # arbitrary tools' output files are never evidence of experiment ownership.
+    options = ('--root', '--output') if command[1:4] == [
+        '-m', 'tools.tight_fresh_stage_takeover', 'run'] else ('--root',)
     arguments = []
     for index, argument in enumerate(command):
-        if argument == '--root':
+        if argument in options:
             if index + 1 >= len(command) or not command[index + 1] or command[index + 1].startswith('--'):
                 return False
             arguments.append(command[index + 1])
-        elif argument.startswith('--root='):
-            arguments.append(argument[len('--root='):])
+        else:
+            for option in options:
+                if argument.startswith(option + '='):
+                    arguments.append(argument[len(option) + 1:])
     if len(arguments) != 1 or not arguments[0]:
         return False
     candidate = Path(arguments[0])
@@ -302,7 +308,7 @@ def monitor(root):
     restore_telemetry(guard)
     atomic_json(root/'monitor.json', dict(pid=os.getpid(), started=time.time(),
         source_sha256=__import__('hashlib').sha256(Path(__file__).read_bytes()).hexdigest(),
-        ownership_scope='declared_real_root_or_descendant_v1'))
+        ownership_scope='declared_real_root_or_stage_output_descendant_v2'))
     window = deque(); previous = None
     session=json.loads((root/'session.json').read_text())
     target=session.get('resource_target_percent')
@@ -334,7 +340,7 @@ def monitor(root):
             errors.append(repr(error))
         row.update(gpu_processes=processes, external_gpu_processes=[p for p in processes if not p['owned']],
             process_telemetry_errors=errors, external_throughput_available=False,
-            ownership_scope='declared_real_root_or_descendant_v1')
+            ownership_scope='declared_real_root_or_stage_output_descendant_v2')
         reasons, ratio = policy(row, time.time())
         if session.get('resource_policy')=='full_gpu_v1':
             limits=session['resources'];ratio=0.
