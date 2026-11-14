@@ -62,3 +62,7 @@ OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 .venv_isaacsim/bin/python -m pytest -q \
 完整 epoch 的 `last.pt`、`best.pt` 和已有日志原样保留；若在 epoch 中断，只有先前已经保存的完整 checkpoint 可以恢复，部分更新日志不等于已保存参数。工具明确不恢复该诊断。生成 checkpoint 的大小/stat 与 trainer 已报告的 best SHA 会被登记，不在两 arm 间额外扫描数 GB checkpoint，以免改变下一个 arm 的页缓存状态。工程诊断产物标记 `deployable=false`，不进入自主成功率或正式模型选择。
 
 新增 owner/input CPU 测试连同配对训练、预取和 cycle 测试共 32 项通过；其中实际启动一个 CPU 睡眠子进程，并验证有界终止、回收与失败凭据；另验证 owner 收到 SIGTERM 后保留完成 arm、阻止下一 arm 启动并恢复信号处理器。未启动真实训练，未证明收益。
+
+## 21:42 现场准入失败与单次恢复
+
+原比较普通arm各102更新完整；paired在启动前被plain退出前的16389MiB可用显存采样拦住。原study失败、原截止保持，未重做plain。新增显式recovery入口只允许此已绑定失败，固定原b59baf3训练源码，新identity最多360秒、仍受session05原截止，联合准入等待最多30秒且必须读取晚于plain退出的新采样，不降低资源门槛。单次claim防重复启动。32项CPU检查通过，实际运行另见最新SESSION_HANDOFF。普通arm还与只读metadata扫描重叠134.76秒，后续恢复的缓存温度/竞争不同；不得把两者速度比归因为同步机制。

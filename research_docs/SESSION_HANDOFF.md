@@ -1,3 +1,9 @@
+## 2026-11-14 21:42 清理完成与缺失 I/O arm 的显式恢复
+
+135个清单检查点已删除，原allocated blocks合计64,806,690,816字节（60.356GiB），文件系统available实际增加64,704,028,672字节，差值含同期记录写入。124保护模型stat前后不变；完整逐文件intent/删除/保护复核账本留本机，简表见evidence/tight_fresh_20261114/checkpoint_cleanup.json。旧中间optimizer/RNG恢复点明确退休，原始轨迹、缓存、选中模型未删。
+
+I/O旧study已失败退出且原截止不改；ordinary双组各102更新完整，paired从未启动。新增tight_fresh_paired_io_recovery仅引用原plain并在新identity补缺失paired一轮，固定原b59baf3 trainer/输入/deck，独立最多360秒含30秒联合准入等待与20秒回收，受session05原21:54:21限制。只接受已确诊的16389MiB旧采样失败，等待晚于plain退出的新采样，保留22GiB/24GiB门槛；单次claim拒绝重复。32项CPU检查及原实验只读核验通过，尚未实际运行同步arm；134.76秒metadata扫描和暖缓存混杂保留，不能称公平因果提速。
+
 ## 2026-11-14 21:32 已完成后端短测与旧中间检查点清理入口
 
 五个短probe逐lane审计完成：CPU16/M8为21.76 aggregate tick/s，CPU32为19.76且初始化155.63秒；下一正式新family批次选CPU16/M8。GPU16进入180tick接触段：15/16合法，2700步，15均有双指接触、5曾持续接触抬升、1旧拿稳；native lift/near/alignment/subgoal均0。不同长度与合法lane数不能构成公平速度比；GPU完整救回/入池尚待。结果见evidence/tight_fresh_20261114/backend_probe_review。
