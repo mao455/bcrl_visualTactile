@@ -1,6 +1,8 @@
 import copy
 import json
 
+import h5py
+import numpy as np
 import pytest
 import torch
 
@@ -87,24 +89,119 @@ def test_motion_summaries_pool_actual_components_and_zero_denominators():
 
 
 def test_interleaved_autonomous_keeps_invalid_initializations_in_opportunity_count(tmp_path,monkeypatch):
+    from tools.tight_fresh_anchor_study import development_cases
+    from visuotactile import narrow_data
+    monkeypatch.setattr(narrow_data,'direct_configuration',lambda domain,seed:dict(domain=domain,seed=seed))
     def write(path,value):path.parent.mkdir(exist_ok=True,parents=True);path.write_text(json.dumps(value))
     pairs={arm+'_'+role:{'backend':str(tmp_path/arm/role/'best.pt')} for arm in report.ARMS for role in ('A','B')}
     monkeypatch.setattr(report,'completed_pair',lambda root,role:pairs[root.name+'_'+role])
-    cases=[];rows=[]
-    for arm,role in [('control','A'),('previous','B'),('previous','A'),('control','B')]:
-        key=arm+'_'+role;spec={'seed':9};name=key+'_seed9'
-        expected=dict(name=name,role=key,study_arm=arm,student_role=role,spec=spec)
+    cases=development_cases({'domain':'fixed'},1,9);rows=[]
+    for expected in cases:
+        key=expected['role'];spec=expected['spec'];name=expected['name']
         result=dict(software_complete=True,legal=False,**spec)
-        cases.append(expected);rows.append(dict(case=name,role=key,result=result,timing={'total_seconds':1.}))
+        rows.append(dict(case=name,role=key,result=result,timing={'total_seconds':1.}))
         write(tmp_path/'development'/name/'result.json',result)
         write(tmp_path/'development'/name/'started.json',dict(spec=spec,checkpoint=pairs[key]['backend']))
     plan=dict(kind='autonomous',test_used=False,pairs=pairs,cases=cases,study='matched_rear_output_anchor_study_v1')
     write(tmp_path/'development/plan.json',plan);write(tmp_path/'development/results.json',rows)
-    write(tmp_path/'development/result.json',dict(software_complete=True))
-    registration=dict(version=plan['study'],count_per_role=1)
+    write(tmp_path/'development/result.json',dict(software_complete=True,cases=4))
+    write(tmp_path/'development/run_started.json',dict(plan_sha256=report.sha256(tmp_path/'development/plan.json')))
+    registration=dict(version=plan['study'],count_per_role=1,development_seed=9,session_binding={'domain':{'domain':'fixed'}})
     result=report.autonomous(tmp_path,registration)
     assert result['totals']['previous']['B']['opportunities']==1
     assert result['totals']['previous']['B']['legal']==0
     assert result['totals']['previous']['B']['invalid_initializations']==1
     plan['cases'][0]['spec']={'seed':10};write(tmp_path/'development/plan.json',plan)
-    with pytest.raises(ValueError,match='identity differs'):report.autonomous(tmp_path,registration)
+    write(tmp_path/'development/run_started.json',dict(plan_sha256=report.sha256(tmp_path/'development/plan.json')))
+    with pytest.raises(ValueError,match='registered seed/domain/count'):report.autonomous(tmp_path,registration)
+
+
+def test_registered_opportunities_reject_common_change_across_all_four_cells(monkeypatch):
+    from tools.tight_fresh_anchor_study import development_cases
+    from visuotactile import narrow_data
+    monkeypatch.setattr(narrow_data,'direct_configuration',lambda domain,seed:dict(seed=seed))
+    registration=dict(count_per_role=2,development_seed=17,session_binding={'domain':{}})
+    plan=dict(cases=development_cases({},2,17));report.check_registered_opportunities(plan,registration)
+    plan['cases']=development_cases({},2,18)
+    with pytest.raises(ValueError,match='registered seed/domain/count'):report.check_registered_opportunities(plan,registration)
+
+
+def test_stage_snapshot_uses_goal_before_subgoal_change_and_does_not_invent_turning_pass(tmp_path):
+    n=60;pose=np.zeros((n,7),np.float32);pose[:,3]=1;pose[48:,2]=.1
+    goal=pose.copy();palm=np.zeros_like(pose);palm[:,3]=1
+    force=np.zeros((n,2,5,3),np.float32);force[:,:,:2,2]=1
+    count=np.zeros(n);count[-1]=1
+    with h5py.File(tmp_path/'numeric.h5','w') as stream:
+        t=stream.create_group('episode/transition');before=t.create_group('diagnostics_before');after=t.create_group('diagnostics_after')
+        after['object_pose_w']=pose;after['palm_body_pose_w']=palm;before['goal_pose_w']=goal
+        after_goal=goal.copy();after_goal[-1,0]=1.;after['goal_pose_w']=after_goal
+        before['successes']=np.zeros(n);after['successes']=count;after['lifted_object']=np.arange(n)>=48;t['object_contact_force_w']=force
+        t.create_group('native_success_diagnostic')['near_goal']=np.ones(n,bool)
+        t['native_alignment_condition']=count.astype(bool);t['native_keypoints_max_dist']=np.zeros(n)
+    phases=dict(steps=n,numeric_sha256=report.sha256(tmp_path/'numeric.h5'))
+    result=report.phase_snapshots(tmp_path,phases)
+    assert result['first_native_lift']['completed_tick']==49
+    assert result['first_stable_hold']['completed_tick']==60
+    assert result['first_native_subgoal']['completed_tick']==60
+    assert result['first_native_subgoal']['goal_root_distance_m']==0.
+    assert result['first_native_subgoal']['goal_index_before']==0
+    assert result['first_native_subgoal']['subgoals_after']==1
+    assert result['first_goal_after_hold_best_orientation']['completed_tick']==60
+    assert 'orientation_pass' not in result
+
+
+def test_source_reference_keeps_registered_earlier_cohort_separate_and_checks_reset_order(tmp_path,monkeypatch):
+    from tools import tight_fresh_followup_session
+    directory=tmp_path/'round_05/development';directory.mkdir(parents=True)
+    specs=[dict(seed=17),dict(seed=18)]
+    plan=dict(cases=[dict(name=role+str(i),role=role,spec=spec) for role in ('A','B') for i,spec in enumerate(specs)])
+    rows=[dict(case=row['name'],role=row['role'],timing={'total_seconds':2.}) for row in plan['cases']]
+    (directory/'plan.json').write_text(json.dumps(plan));(directory/'results.json').write_text(json.dumps(rows))
+    audit={'cases':4}
+    registration=dict(source_pairs={'A':{},'B':{}},source_evidence=dict(root=str(directory.parent),audit=audit,
+        plan_sha256=report.sha256(directory/'plan.json'),results_sha256=report.sha256(directory/'results.json')))
+    monkeypatch.setattr(tight_fresh_followup_session,'evaluated_pairs',lambda *args:audit)
+    monkeypatch.setattr(report,'phase_case',lambda path:dict(case=path.name,legal=True,success=False,
+        native_lift=True,settled_height_stable_grasp=True,native_alignment_first_tick=None,
+        native_near_goal_first_tick=None,native_first_subgoal_tick=None,steps=600,authority={'expert_ticks':0}))
+    monkeypatch.setattr(report,'phase_snapshots',lambda *args:{'first_stable_hold':{'completed_tick':120}})
+    result=report.source_autonomous(registration,specs)
+    assert result['root']==str(directory.parent)
+    assert result['totals']['A']['opportunities']==2 and result['totals']['A']['steps']==1200
+    assert len(result['cases'])==4 and {row['arm'] for row in result['cases']}=={'source'}
+    assert result['totals']['B']['seconds']==4
+    with pytest.raises(ValueError,match='reset opportunities differ'):
+        report.source_autonomous(registration,list(reversed(specs)))
+
+
+def test_history_accounting_keeps_zero_supervision_forward_ticks_outside_optimizer_receipts():
+    from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
+    mask=torch.zeros(100,dtype=torch.bool);mask[64:]=True
+    rng=torch.Generator().manual_seed(9);torch.randperm(1,generator=rng)
+    saved=dict(train_ids=['case'],configuration=dict(maximum_control_tick_epochs=1,microbatch=1,
+        initialization_seed=9,tick_window_contract=TICK_WINDOW_CONTRACT,history_contract={'version':'current_weight_prefix_v1'}),episode_counts={'case':1},
+        episode_order=['case'],schedule_rng=rng.get_state(),control_ticks=100,supervised_ticks=36)
+    receipts=[dict(update=1,epoch=1,history_ticks=36,supervised_ticks=36,window_chunks=2,fixed_denominator=128,group_tail=True)]
+    result=report.audit_history_accounting({'case':mask},saved,receipts)
+    assert result['chronological_history_ticks']==100
+    assert result['optimizer_window_history_ticks']==36
+    assert result['zero_supervision_chunk_history_ticks']==64
+    assert result['derived_prefix_recompute_history_ticks']==0
+    assert result['epochs'][0]['zero_supervision_chunks']==2
+    receipts[0]['history_ticks']=100
+    with pytest.raises(ValueError,match='receipts differ'):report.audit_history_accounting({'case':mask},saved,receipts)
+
+
+def test_history_accounting_separates_repeated_prefix_compute_from_once_per_traversal_exposure():
+    from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
+    mask=torch.ones(160,dtype=torch.bool);rng=torch.Generator().manual_seed(9);torch.randperm(1,generator=rng)
+    saved=dict(train_ids=['case'],configuration=dict(maximum_control_tick_epochs=1,microbatch=1,
+        initialization_seed=9,tick_window_contract=TICK_WINDOW_CONTRACT,history_contract={'version':'current_weight_prefix_v1'}),episode_counts={'case':1},
+        episode_order=['case'],schedule_rng=rng.get_state(),control_ticks=160,supervised_ticks=160)
+    receipts=[dict(update=1,epoch=1,history_ticks=128,supervised_ticks=128,window_chunks=4,fixed_denominator=128,group_tail=False),
+        dict(update=2,epoch=1,history_ticks=32,supervised_ticks=32,window_chunks=1,fixed_denominator=128,group_tail=True)]
+    result=report.audit_history_accounting({'case':mask},saved,receipts)
+    assert result['chronological_history_ticks']==result['optimizer_window_history_ticks']==160
+    assert result['derived_prefix_recompute_history_ticks']==128
+    saved['schedule_rng']=torch.Generator().manual_seed(12).get_state()
+    with pytest.raises(ValueError,match='shuffle order/RNG'):report.audit_history_accounting({'case':mask},saved,receipts)
