@@ -1,3 +1,8 @@
+## 2026-11-15 00:40 — 已闭合后段恢复与目标可观测性证据
+
+- `evidence/tight_fresh_20261114/target_observability_review/summary.json`：5条真实closed train、冻结源码SHA/行号、原目标序列、真实三视角检查及接管剩余时钟；0新仿真/0更新，不公开原RGB/大轨迹。
+- 区分固定阶段部分可观测、尚无完整历史混叠实证，以及第一目标阶段的实际转正失败；晚接管超时不能证明物理不可恢复。正式输入/成功判据/活动冻结源码不变。
+
 ## 2026-11-15 00:38 — 完整采集、训练、缓存、自主吞吐核算
 
 - `tools/tight_fresh_cycle_throughput.py` / `tests/test_cycle_throughput.py`：CPU JSON/文件stat报告，严格完成、输入绑定和累计计数，实际并行区间并集、读盘未知值和数据量差异；未完成或失败不能宣称完整周期。

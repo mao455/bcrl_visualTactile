@@ -1,0 +1,674 @@
+{
+  "version": "tight_target_observability_public_review_v1",
+  "created_utc": 1794674134.6629999,
+  "frozen_commit": "87577e84f5f9183ba739e483b34729029629bb99",
+  "scope": {
+    "closed_train_cases": 5,
+    "simulator_starts": 0,
+    "optimizer_updates": 0,
+    "validation_test_payloads_opened": 0,
+    "formal_inputs_modified": false,
+    "raw_rgb_published": false,
+    "models_or_trajectories_published": false
+  },
+  "provenance": {
+    "private_audit": "outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/target_observability_01",
+    "small_artifact_sha256": {
+      "findings.json": "3b37723ae4a890db0d67bca941ff1f266496d4837ba9eaf920bcbba2a8424f26",
+      "closed_target_clock_audit.json": "0b254636149e557e042d3b77e85502e1d6b80b0ba3f97f64d45a70012d320f3b",
+      "frames.json": "90687ee847bfa46b97fead84430edf4a6113acc958757a514bcec4b9ed1aea30",
+      "audit_numeric.py": "75489645a2c6d44101739be302e6f4b24f29d116eb6ae891c61925479ebf30f9",
+      "export_frames.py": "ffca3bb2fdf6bfeb65af474e8f1e6cde095068017d1287e0cf44705e4131c5e4"
+    },
+    "large_capture_sha256_source": "Already completed capture verification receipts; no repeated large-payload hash for publication."
+  },
+  "source_references": [
+    {
+      "claim": "task_configuration",
+      "path": "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py",
+      "line": 243,
+      "sha256": "8caa994eee2b95c7ac0b2286b85a01652778eadcab752586ffedd929b2cd76bb"
+    },
+    {
+      "claim": "goal_transform",
+      "path": "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py",
+      "line": 414,
+      "sha256": "8caa994eee2b95c7ac0b2286b85a01652778eadcab752586ffedd929b2cd76bb"
+    },
+    {
+      "claim": "native_switch_and_retract",
+      "path": "isaacsimenvs/tasks/precise_assembly/precise_assembly_env.py",
+      "line": 586,
+      "sha256": "8caa994eee2b95c7ac0b2286b85a01652778eadcab752586ffedd929b2cd76bb"
+    },
+    {
+      "claim": "near_goal_accumulation",
+      "path": "isaacsimenvs/tasks/play/utils/obs_utils.py",
+      "line": 193,
+      "sha256": "bb7fa980f16d643d5e7c137e0a159ac7bc20933d2934958a350ad26c72dd68a5"
+    },
+    {
+      "claim": "accumulated_not_consecutive",
+      "path": "isaacsimenvs/tasks/play/utils/reward_utils.py",
+      "line": 67,
+      "sha256": "86a0a779bca7093a25a75ab646619a4cb88877005fd4718793e8411a9ca25e6d"
+    },
+    {
+      "claim": "goal_visual_hidden",
+      "path": "isaacsimenvs/tasks/play/utils/scene_utils.py",
+      "line": 205,
+      "sha256": "1099fcdd5718415b1f9d59034c76945ec33f25c9152023b4d0f41c6061937d97"
+    },
+    {
+      "claim": "wrapper_enables_hide_hook",
+      "path": "visuotactile/sim/environment.py",
+      "line": 170,
+      "sha256": "66963eb6c039b00941e6afa9b7d068b0bd90dbb5175259b6931f3f80dc2892e7"
+    },
+    {
+      "claim": "fixed_sequence",
+      "path": "evaluation/problems/peg/problems.py",
+      "line": 18,
+      "sha256": "ab7dfcde4e14c69dc5ca6069e075150131992a37dfc5f32537324f146e8d944c"
+    },
+    {
+      "claim": "goal_offset",
+      "path": "evaluation/problems/__init__.py",
+      "line": 19,
+      "sha256": "0966a87c1fe062746f5de1327ce3448fee36bd9b73ac566f220df1d3e7366bb1"
+    },
+    {
+      "claim": "student_allowlist",
+      "path": "visuotactile/native_controller.py",
+      "line": 83,
+      "sha256": "ca87bac05b6eac1f10ecd0e5e7503540595cab5abfb88a2d333d0e1861fbe494"
+    }
+  ],
+  "additional_source_sha256": {
+    "visuotactile/native_data.py": "d9bf16630240f862398589143cca2088371c42aa1e08ded12a3076e9e5fb2d35",
+    "visuotactile/observations.py": "459ccc55a9f4af27110ccc442759cce33e10e639f5ef7bebae036b1d34d88f23"
+  },
+  "task": {
+    "problem": "tight_insertion",
+    "goal_mode": "preInsertAndFinal",
+    "random_goal_fraction": 0,
+    "prelude_goals": 0,
+    "target_semantics": "Desired object rigid-root/keypoint pose relative to physical hole; coordinates are not the hole-mouth point or fingertip target.",
+    "hole_frame_positions_m": [
+      [
+        0,
+        0,
+        0.186
+      ],
+      [
+        0,
+        0,
+        0.136
+      ]
+    ],
+    "hole_frame_orientation_xyzw": [
+      0,
+      -0.70710678,
+      0,
+      0.70710678
+    ],
+    "sequence": "Preinsert object pose then final object pose50mm lower, then release/retract while object remains at final pose.",
+    "switch": "Accumulate10 native control observations with max object/goal keypoint distance<=15mm; not necessarily consecutive. On first subgoal, native success counter increments and next goal is written, stage clock resets. Second subgoal enters retract.",
+    "completion": "Original retract_succeeded: mean finger distance>0.1m while object max keypoint distance<=7.5mm. Can occur in same transition as final subgoal; held13 does so.",
+    "physical_goal_source": "Fixed problem insertion sequence transformed by current physical hole pose; no separate random target in these registered configurations."
+  },
+  "student": {
+    "frontend": "G00 I-HistoryDP",
+    "visual": "Real three-camera RGB-D at60Hz plus causal learned history; camera pose truth is diagnostic only.",
+    "proprio": "Canonical q/qd, actual actuator target, target-q, past requested/applied commands and elapsed episode time.",
+    "full_backend": "Also actual tactile/contact/FK history and predicted plan; no goal/object/stage truth.",
+    "public_command": {
+      "vocabulary": [
+        "tight_insertion"
+      ],
+      "task": "tight_insertion",
+      "source": "operator_task_selection",
+      "pose_source": "absent",
+      "frame": "robot_base",
+      "pose": null,
+      "limitation": "Task identity alone does not specify hidden multi-goal pose or task stage"
+    },
+    "actual_command_checks": {
+      "goal_valid_true": 0,
+      "task_ids": [
+        0
+      ],
+      "goal_commands_all_zero": true
+    },
+    "stage_marker_visible": false,
+    "goal_viz_hidden": true,
+    "current_external_goal_interface": "Current NativeController rejects goal_valid=True. A proposed legal external command would require a separately declared model/input contract; do not silently wire simulator target truth."
+  },
+  "expert": {
+    "actor": "Object orientation, keypoints relative palm/current goal plus proprioception; actual policy obs_list excludes explicit successes/retract counter. Goal geometry itself changes with native stage.",
+    "note": "Teacher object state uses configured delay/noise; goal XY observation noise0.002m. Privileged goal geometry is not an externally issued student command."
+  },
+  "observability_conclusion": {
+    "independent_hidden_random_goal_evidence": false,
+    "instantaneous_aliasing": "Code makes GoalViz invisible and provides no phase channel: changing internal stage at fixed physical sensor state would change task target without a directly visible stage marker. This is structural partial observation, not an experimentally constructed identical full-history pair.",
+    "empirical_identical_full_history_conflicting_goal_pair_found": false,
+    "learnability": "Current deterministic fixed sequence and persistent sensor/action history may infer phase; this audit neither proves sufficient estimation accuracy nor impossibility.",
+    "present_failure": "All five inspected student prefixes remain on initial preinsert goal. Hidden later-stage switching alone cannot explain their current turning/alignment failures.",
+    "next_informative_check": "If needed later, evaluate train-only fixture/current-goal/phase decoding from actual learned visual history, separately from palm-relative object pose. Keep truth as diagnostic labels and assess actual behavior before changing formal inputs."
+  },
+  "concrete_stage_switch_evidence": {
+    "case": "r09_A_expanded_session06_new64_s28600013_held60",
+    "first_subgoal_completed_tick": 405,
+    "first_subgoal_expert_action_count": 100,
+    "first_goal_world_z_m": 0.7164130210876465,
+    "second_goal_world_z_m": 0.6664130687713623,
+    "goal_displacement_z_m": -0.04999995231628418,
+    "second_subgoal_completed_tick": 449,
+    "both_goals_accumulated_near_hits": 10,
+    "all_selected_student_prefixes_native_stage": 0,
+    "current_images": "At obs305, physical peg outline and hole are still visible across views with partial hand/peg occlusion; at obs405 hole opening is more occluded. No colored target/phase overlay.",
+    "exact_saved_switch_inputs": {
+      "indices": [
+        404,
+        405
+      ],
+      "rgb_bytewise_equal": false,
+      "proprio_bytewise_equal": false,
+      "interpretation": "These two real frames differ. No empirical identical full-observation-history/different-target pair has been established."
+    }
+  },
+  "visual_evidence": {
+    "case": "r09_A_expanded_session06_new64_s28600013_held60",
+    "observation_indices": [
+      0,
+      183,
+      305,
+      405
+    ],
+    "cameras": [
+      "fixed_high",
+      "fixed_side",
+      "wrist_rgbd"
+    ],
+    "raw_pixels_preserved_in_local_exports": true,
+    "notes": "Physical object and hole can be seen across the three views, with hand/object occlusion; no visible goal or stage overlay. This qualitative inspection does not establish millimeter pose accuracy. Pose fields were diagnostic only.",
+    "source_capture_sha256": "65cf79a2f18e64345c672adbdd6a7d05d22aae5af2c63962b91cba8751237f46",
+    "pngs_remain_local": true
+  },
+  "cases": [
+    {
+      "identity": "r09_A_expanded_session06_new64_s28600013_held60",
+      "family": "expanded_session06_new64_s28600013",
+      "role": "A",
+      "policy_source": "round_08",
+      "split": "train",
+      "accepted": true,
+      "total_control_steps": 449,
+      "native_termination": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "boundary": {
+        "completed_student_tick": 305,
+        "native_stage_step": 305,
+        "native_goal": 0,
+        "timeout_at_stage_step": 601,
+        "remaining_controls_if_no_subgoal": 296,
+        "remaining_seconds_if_no_subgoal": 4.933333333333334,
+        "height_above_settled_m": 0.2004680633544922,
+        "object_goal_root_distance_m": 0.027825750410556793,
+        "object_goal_quaternion_angle_rad": 1.5799642364377398,
+        "native_keypoint_max_distance_m": 0.06172532960772514,
+        "window": {
+          "completed_tick": 305,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": false,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.18046806752681732,
+          "palm_relative_root_max_translation_m": 0.01166544295847416,
+          "palm_relative_max_rotation_rad": 0.29586261510849
+        }
+      },
+      "labels": {
+        "passed": true,
+        "switch_action_index": 305,
+        "first_legal_label_action_index": 307,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 305,
+        "expert_ticks": 144,
+        "legal_expert_ticks": 142,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "student_native_lift": true,
+      "student_first_old_stable_window_end_tick": 223,
+      "student_max_subgoals": 0,
+      "trigger": {
+        "version": "contact_height_recheck_after_min_delay_v1",
+        "first_held_completed_tick": 183,
+        "earliest_allowed_completed_tick": 243,
+        "rechecked_completed_tick": 305,
+        "nonheld_windows_after_first": 88,
+        "audit_passed": true
+      },
+      "subgoal_events": [
+        {
+          "completed_tick": 405,
+          "expert_actions_since_takeover": 100,
+          "goals_before": 0,
+          "goals_after": 1,
+          "native_stage_step_before": 404,
+          "native_stage_step_after": 0,
+          "keypoint_max_distance_m": 0.012229042127728462,
+          "retract_succeeded_after": false
+        },
+        {
+          "completed_tick": 449,
+          "expert_actions_since_takeover": 144,
+          "goals_before": 1,
+          "goals_after": 2,
+          "native_stage_step_before": 43,
+          "native_stage_step_after": 0,
+          "keypoint_max_distance_m": 0.002749562030658126,
+          "retract_succeeded_after": true
+        }
+      ],
+      "terminal_native_keypoint_max_distance_m": 0.002749562030658126,
+      "native_bound": {
+        "native_max_goals": 2,
+        "native_max_episode_length": 601,
+        "collector_max_control_ticks": 2408,
+        "never_fallback": 1000000000,
+        "task_timeout_changed": false,
+        "success_definition_changed": false
+      },
+      "evidence_sha256": {
+        "numeric": "8466aff33cec28f2c2f6438bdd67f505e1c9b3e9777d406a5b76ddd4fc3c7f62",
+        "capture": "65cf79a2f18e64345c672adbdd6a7d05d22aae5af2c63962b91cba8751237f46",
+        "result": "5e8a78d56d70c8d61b9e434e9f148fe26ce1a4f022bf698f7b437beaf6a6bee3",
+        "capture_receipt": "949d3bd6bed5da22e2afc0abfcde78cdd2dca6406844674a319256e00ee3d169"
+      }
+    },
+    {
+      "identity": "r09_A_expanded_session06_new64_s28600005_held60",
+      "family": "expanded_session06_new64_s28600005",
+      "role": "A",
+      "policy_source": "round_08",
+      "split": "train",
+      "accepted": true,
+      "total_control_steps": 517,
+      "native_termination": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "boundary": {
+        "completed_student_tick": 321,
+        "native_stage_step": 321,
+        "native_goal": 0,
+        "timeout_at_stage_step": 601,
+        "remaining_controls_if_no_subgoal": 280,
+        "remaining_seconds_if_no_subgoal": 4.666666666666667,
+        "height_above_settled_m": 0.17419296503067017,
+        "object_goal_root_distance_m": 0.03128105401992798,
+        "object_goal_quaternion_angle_rad": 1.8099054697922292,
+        "native_keypoint_max_distance_m": 0.10334818810224533,
+        "window": {
+          "completed_tick": 321,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": true,
+            "rotation": true
+          },
+          "stable_window": true,
+          "height_margin_m": 0.1541929692029953,
+          "palm_relative_root_max_translation_m": 0.0033455113880336285,
+          "palm_relative_max_rotation_rad": 0.0999566987156868
+        }
+      },
+      "labels": {
+        "passed": true,
+        "switch_action_index": 321,
+        "first_legal_label_action_index": 323,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 321,
+        "expert_ticks": 196,
+        "legal_expert_ticks": 194,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "student_native_lift": true,
+      "student_first_old_stable_window_end_tick": 270,
+      "student_max_subgoals": 0,
+      "trigger": {
+        "version": "contact_height_recheck_after_min_delay_v1",
+        "first_held_completed_tick": 261,
+        "earliest_allowed_completed_tick": 321,
+        "rechecked_completed_tick": 321,
+        "nonheld_windows_after_first": 0,
+        "audit_passed": true
+      },
+      "subgoal_events": [
+        {
+          "completed_tick": 433,
+          "expert_actions_since_takeover": 112,
+          "goals_before": 0,
+          "goals_after": 1,
+          "native_stage_step_before": 432,
+          "native_stage_step_after": 0,
+          "keypoint_max_distance_m": 0.00853231642395258,
+          "retract_succeeded_after": false
+        },
+        {
+          "completed_tick": 517,
+          "expert_actions_since_takeover": 196,
+          "goals_before": 1,
+          "goals_after": 2,
+          "native_stage_step_before": 83,
+          "native_stage_step_after": 0,
+          "keypoint_max_distance_m": 0.0022576884366571903,
+          "retract_succeeded_after": true
+        }
+      ],
+      "terminal_native_keypoint_max_distance_m": 0.0022576884366571903,
+      "native_bound": {
+        "native_max_goals": 2,
+        "native_max_episode_length": 601,
+        "collector_max_control_ticks": 2408,
+        "never_fallback": 1000000000,
+        "task_timeout_changed": false,
+        "success_definition_changed": false
+      },
+      "evidence_sha256": {
+        "numeric": "9114f2b5210c484eb2e077074c2c78ed1c79b7ec5bc45876aad610501c8e549a",
+        "capture": "fa8ee048e783069ffc6c93791cf1a9d37220e9e0529ffa375dc0649da2041db2",
+        "result": "d03f78d3ee745084c661116d52542861cdb6cb6eaf9bda16b74efb6d2b10f217",
+        "capture_receipt": "c8b350c43b1e27f95da65bec481458a4c7e2a8a7dee82002a029a26396c7bfa0"
+      }
+    },
+    {
+      "identity": "r09_A_expanded_session06_new64_s28600024_held120",
+      "family": "expanded_session06_new64_s28600024",
+      "role": "A",
+      "policy_source": "round_08",
+      "split": "train",
+      "accepted": true,
+      "total_control_steps": 428,
+      "native_termination": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "boundary": {
+        "completed_student_tick": 266,
+        "native_stage_step": 266,
+        "native_goal": 0,
+        "timeout_at_stage_step": 601,
+        "remaining_controls_if_no_subgoal": 335,
+        "remaining_seconds_if_no_subgoal": 5.583333333333333,
+        "height_above_settled_m": 0.16934752464294434,
+        "object_goal_root_distance_m": 0.026006681844592094,
+        "object_goal_quaternion_angle_rad": 1.539250895955935,
+        "native_keypoint_max_distance_m": 0.1060766950249672,
+        "window": {
+          "completed_tick": 266,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": true,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.1492297500371933,
+          "palm_relative_root_max_translation_m": 0.008867748081684113,
+          "palm_relative_max_rotation_rad": 0.22283144295215607
+        }
+      },
+      "labels": {
+        "passed": true,
+        "switch_action_index": 266,
+        "first_legal_label_action_index": 268,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 266,
+        "expert_ticks": 162,
+        "legal_expert_ticks": 160,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "student_native_lift": true,
+      "student_first_old_stable_window_end_tick": 186,
+      "student_max_subgoals": 0,
+      "trigger": {
+        "version": "contact_height_recheck_after_min_delay_v1",
+        "first_held_completed_tick": 141,
+        "earliest_allowed_completed_tick": 261,
+        "rechecked_completed_tick": 266,
+        "nonheld_windows_after_first": 111,
+        "audit_passed": true
+      },
+      "subgoal_events": [
+        {
+          "completed_tick": 381,
+          "expert_actions_since_takeover": 115,
+          "goals_before": 0,
+          "goals_after": 1,
+          "native_stage_step_before": 380,
+          "native_stage_step_after": 0,
+          "keypoint_max_distance_m": 0.011343995109200478,
+          "retract_succeeded_after": false
+        },
+        {
+          "completed_tick": 428,
+          "expert_actions_since_takeover": 162,
+          "goals_before": 1,
+          "goals_after": 2,
+          "native_stage_step_before": 46,
+          "native_stage_step_after": 0,
+          "keypoint_max_distance_m": 0.002388546010479331,
+          "retract_succeeded_after": true
+        }
+      ],
+      "terminal_native_keypoint_max_distance_m": 0.002388546010479331,
+      "native_bound": {
+        "native_max_goals": 2,
+        "native_max_episode_length": 601,
+        "collector_max_control_ticks": 2408,
+        "never_fallback": 1000000000,
+        "task_timeout_changed": false,
+        "success_definition_changed": false
+      },
+      "evidence_sha256": {
+        "numeric": "5b3afdedf1277558afda21f01fac741cabdd622cba28ea6a03e3ebc0f3aaf8b8",
+        "capture": "2bcba07c222f57160e1532b0e447e721c9ac659c1e7a7840d762884aa6ac3156",
+        "result": "8b2b09b6ee4ead057570e019de1219a60feaa531880e76d434f8dd2d796720b9",
+        "capture_receipt": "29c1116b6b8905cbfaeb9d45c9b09562ae7fb42747b7a120c38aadecc5b52152"
+      }
+    },
+    {
+      "identity": "r09_A_expanded_session06_new64_s28600031_held60",
+      "family": "expanded_session06_new64_s28600031",
+      "role": "A",
+      "policy_source": "round_08",
+      "split": "train",
+      "accepted": false,
+      "total_control_steps": 601,
+      "native_termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "boundary": {
+        "completed_student_tick": 534,
+        "native_stage_step": 534,
+        "native_goal": 0,
+        "timeout_at_stage_step": 601,
+        "remaining_controls_if_no_subgoal": 67,
+        "remaining_seconds_if_no_subgoal": 1.1166666666666667,
+        "height_above_settled_m": 0.09313809871673584,
+        "object_goal_root_distance_m": 0.06849897652864456,
+        "object_goal_quaternion_angle_rad": 1.7159876143768025,
+        "native_keypoint_max_distance_m": 0.148515984416008,
+        "window": {
+          "completed_tick": 534,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": true,
+            "rotation": true
+          },
+          "stable_window": true,
+          "height_margin_m": 0.07313810288906097,
+          "palm_relative_root_max_translation_m": 0.00810209009796381,
+          "palm_relative_max_rotation_rad": 0.0934528261423111
+        }
+      },
+      "labels": {
+        "passed": true,
+        "switch_action_index": 534,
+        "first_legal_label_action_index": 536,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 534,
+        "expert_ticks": 67,
+        "legal_expert_ticks": 65,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "student_native_lift": false,
+      "student_first_old_stable_window_end_tick": 497,
+      "student_max_subgoals": 0,
+      "trigger": {
+        "version": "contact_height_recheck_after_min_delay_v1",
+        "first_held_completed_tick": 474,
+        "earliest_allowed_completed_tick": 534,
+        "rechecked_completed_tick": 534,
+        "nonheld_windows_after_first": 14,
+        "audit_passed": true
+      },
+      "subgoal_events": [],
+      "terminal_native_keypoint_max_distance_m": 0.34928691387176514,
+      "native_bound": {
+        "native_max_goals": 2,
+        "native_max_episode_length": 601,
+        "collector_max_control_ticks": 2408,
+        "never_fallback": 1000000000,
+        "task_timeout_changed": false,
+        "success_definition_changed": false
+      },
+      "evidence_sha256": {
+        "numeric": "eb6ef2feb8a646962876912df0b6d25944aed94e3602be4fdb0eac5fab4924db",
+        "capture": "102a1a134f338333803bbc2991898468aedbf43a3eb9967c678104d62afae2e3",
+        "result": "55502369cde1080f37d5d24bf03dfe349c081ac762eb3321b87afc5a65d63167",
+        "capture_receipt": "40d75ceedd0299b862e91c6e4e48e80c1d5504cfacb0af66935ac94fa884fd6c"
+      }
+    },
+    {
+      "identity": "r09_A_expanded_session06_new64_s28600026_contact0",
+      "family": "expanded_session06_new64_s28600026",
+      "role": "A",
+      "policy_source": "round_08",
+      "split": "train",
+      "accepted": false,
+      "total_control_steps": 601,
+      "native_termination": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "boundary": {
+        "completed_student_tick": 594,
+        "native_stage_step": 594,
+        "native_goal": 0,
+        "timeout_at_stage_step": 601,
+        "remaining_controls_if_no_subgoal": 7,
+        "remaining_seconds_if_no_subgoal": 0.11666666666666667,
+        "height_above_settled_m": 0.053015947341918945,
+        "object_goal_root_distance_m": 0.1456994265317917,
+        "object_goal_quaternion_angle_rad": 2.455482351525898,
+        "native_keypoint_max_distance_m": 0.269696980714798,
+        "window": {
+          "completed_tick": 594,
+          "conditions": {
+            "two_contact_fingers_every_substep": true,
+            "height": true,
+            "translation": true,
+            "rotation": false
+          },
+          "stable_window": false,
+          "height_margin_m": 0.003661971539258957,
+          "palm_relative_root_max_translation_m": 0.0029370279517024755,
+          "palm_relative_max_rotation_rad": 0.25925320386886597
+        }
+      },
+      "labels": {
+        "passed": true,
+        "switch_action_index": 594,
+        "first_legal_label_action_index": 596,
+        "queue_length": 3,
+        "expert_flush_masked_ticks": 2,
+        "student_history_ticks": 594,
+        "expert_ticks": 7,
+        "legal_expert_ticks": 5,
+        "student_prefix_supervised": false,
+        "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+      },
+      "student_native_lift": false,
+      "student_first_old_stable_window_end_tick": null,
+      "student_max_subgoals": 0,
+      "trigger": {
+        "version": "contact_height_then_delay_v1",
+        "first_held_completed_tick": 594,
+        "earliest_allowed_completed_tick": null,
+        "rechecked_completed_tick": null,
+        "nonheld_windows_after_first": null,
+        "audit_passed": true
+      },
+      "subgoal_events": [],
+      "terminal_native_keypoint_max_distance_m": 0.2480165660381317,
+      "native_bound": {
+        "native_max_goals": 2,
+        "native_max_episode_length": 601,
+        "collector_max_control_ticks": 2408,
+        "never_fallback": 1000000000,
+        "task_timeout_changed": false,
+        "success_definition_changed": false
+      },
+      "evidence_sha256": {
+        "numeric": "aaa4d71a5b577ba32816ddc938e9a915eaab705a8af9006fe9664a5e8e138f0a",
+        "capture": "9dd4ffdf6d15ff13bcdf7897bc6f84df498d117f3a7a67ea2678dc2ae39a531e",
+        "result": "bd9404c605f7691966ce3eaee1dcc79b490ceb319abbd9581328be207602a41a",
+        "capture_receipt": "549c16960b207273863f4552dfa34e82963ae5c4326ea022aa91bd4e50eb504a"
+      }
+    }
+  ],
+  "interpretation_limits": [
+    "Five selected, closed training corrections are descriptive evidence, not an autonomous success-rate cohort or validation/test result.",
+    "All inspected student prefixes remain at goal 0; hidden later-stage switching alone cannot explain the present turning/alignment failures.",
+    "The task has a fixed hole-relative two-goal sequence, not an independently randomized hidden target. No empirical identical full visible history with conflicting required goal/action was found; partial observation alone does not prove unlearnability.",
+    "Held means the recent 12 completed transitions meet contact and elevation conditions at both physics samples, using the student-only median height over completed transitions 25-48. It permits palm-relative rotation; absence of this window is not a native drop.",
+    "Native lift, contact-height held, the older pose-stability window, subgoal completion and final success are distinct criteria.",
+    "Remaining controls are 601 minus the current native stage clock, conditional on no new subgoal. Original subgoal completion resets this clock; no manual reset or extension was applied.",
+    "Case24 held120 had 335 controls remaining and succeeded after 162 expert controls, with first subgoal after 115. Case31 held60 had only 67 controls remaining and timed out; its keypoint error worsened, so timeout is not shown to be the only cause. Case26 contact0 had only 7 controls remaining and timed out. These observations do not establish physical irrecoverability.",
+    "Successful expert suffixes 144,196,162 controls and first-subgoal latencies100,112,115 are examples, not universal minimum recovery times.",
+    "Expert recovery success is not student autonomous success. Legal labels identify eligible supervision, not optimizer exposure."
+  ]
+}
