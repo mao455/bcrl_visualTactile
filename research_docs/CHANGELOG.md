@@ -1,3 +1,11 @@
+## 2026-11-14 23:42 — 纠偏动作曝光、同session来源与独立离线批量规划
+
+- `tools/tight_fresh_stage_exposure.py`及专属测试：冻结H24 masks与实际逐更新/selected/last计数核对；A/B真实CPU结果与34条四臂拟合已公开，旧注册不重写。
+- `tight_fresh_collection_source`及expansion/training_expansion hooks：原session内独立绑定扩充数据池与有自主证据的真实A/B pair，非法零动作保留、来源writer退出核验，防止模型数据身份偷换。
+- `tight_fresh_train/cycle`与offline metrics测试：显式M32 metrics接入、阶段计时/模型配置绑定；前端门控已通过，正式使用待。`paired_episode_io`与测试增加三处STOP同步检查。
+- `native_data/anchor_continue/tight_finish/tight_fresh_backend`及full-cache gate/测试：显式离线条件批量计划，配置/index/记录profile一致，逐tick视觉/历史/监督合同不变；真实全字段门控尚待，不视为已采用。
+- `round08_stage_fit_review`与`inactive_render_gate_review/gate02.json`记录实际拟合收益与相机跨波空图失败；不能代替自主成功或正式吞吐。
+
 ## 2026-11-14 23:25 两组离线批量规划实际门控与渲染诊断包装修复
 
 A_gate01/B_gate02均用第八轮已选best EMA、各原始/新增两条train实际完成M1/M8/M32 CUDA对照，固定raw/bounded 2e-5rad全通过；无参数更新、无验证/测试轨迹。原B_gate01的split失败仍保留。B两条serial DDIM3.610/6.483秒、M32为0.169/0.466秒，最大目标差9.574e-7rad；同时有后端/阶段拟合作业，不能外推整轮速度。明确采用M32作为下一正式前端metrics的显式候选，尚未进入正式训练；后端逐tick视觉/完整计划缓存需另门控。详见offline_planning_review/live_gate02.json。

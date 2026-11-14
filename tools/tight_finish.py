@@ -1542,7 +1542,7 @@ def residual_prepare(root, configuration=None):
     write(root/'status.json',dict(state='PREPARED',stage='residual_acceptance_pending',utc=time.time(),formal_updates=0))
 
 
-def recover_residual_cache(path, identity, record, entry, binding):
+def recover_residual_cache(path, identity, record, entry, binding, *, offline_planning_profile=None):
     """Validate an orphan against current source history before indexing it.
 
     Identity is necessary but insufficient: actual issued history and expert
@@ -1552,6 +1552,7 @@ def recover_residual_cache(path, identity, record, entry, binding):
     import torch
     from visuotactile.native_data import residual_observations
     cached=torch.load(path,map_location='cpu',weights_only=False)
+    require(cached.get('cache_offline_planning_profile')==offline_planning_profile,'Orphan cache planning profile differs')
     require(cached.get('cache_identity')==binding and cached.get('identity')==identity,'Orphan cache identity differs')
     n=len(record['robot']);actual=residual_observations(entry,record['robot'],record['time'])
     for key in ('robot','tactile_valid','gate'):
@@ -1591,6 +1592,12 @@ def residual_cache(root, *, acceptance=False):
     from visuotactile.checkpointing import save
     from visuotactile.precision import state_fp32
     state_fp32();s=read(root/'session.json');v=s['residual_pair'];data=read(root/'state_data/data.json')
+    planning=v.get('cache_offline_planning_profile')
+    if planning is not None:
+        from visuotactile.offline_planning import validate_profile
+        validate_profile(planning)
+        require(v.get('cache_transfer_mode')=='episode' and v.get('cache_scheduler_index_mode')=='host',
+            'Offline cache plans require explicit episode transfer and host scheduler')
     protected=read(root/'base_identities.json')['protected']
     for path,value in protected.items():require(sha(path)==value,'Protected artifact changed: '+path)
     all_ids=data['splits']['train']+data['splits']['validation']+data['splits'].get('correction_dev',[])
@@ -1605,9 +1612,11 @@ def residual_cache(root, *, acceptance=False):
             residual_statistics_sha256=v['residual_statistics_sha256'],residual_normalization_identity=v['residual_normalization_identity'],
             sampler=dict(steps=16,seed=7091,horizon=24,commit=12,prediction='sample'),
             inputs='causal_actual_student_expert_prefix; separate_previous_nominal' if v.get('dagger_round') else 'causal_full_expert_prefix; separate_previous_nominal')
+        if planning is not None:identity_fields['cache_offline_planning_profile']=planning
         records=visual_records(root/'state_data',all_ids,base.get('modality',base['group']))
         if v.get('dagger_round'):identity_fields['supervision_mask_sha256']=supervision_mask_sha256(records)
         index=read(index_path) if index_path.exists() else dict(identity_fields,episodes={})
+        require(index.get('cache_offline_planning_profile')==planning,'Nominal cache planning profile differs')
         require(all(index.get(k)==value for k,value in identity_fields.items()),'Nominal cache semantic identity differs')
         require(index['base_sha256']==base['sha256'],'Cached base differs')
         model=None
@@ -1617,7 +1626,8 @@ def residual_cache(root, *, acceptance=False):
             path=dest/(identity+'.pt')
             if path.exists() and identity not in index['episodes']:
                 try:
-                    index['episodes'][identity]=recover_residual_cache(path,identity,records[identity],data['entries'][identity],binding)
+                    index['episodes'][identity]=recover_residual_cache(path,identity,records[identity],data['entries'][identity],binding,
+                        **({} if planning is None else dict(offline_planning_profile=planning)))
                     write(index_path,index)
                 except Exception as error:
                     digest=sha(path);orphan=path.with_name(path.stem+'.orphan_unverified_'+digest[:16]+'.pt')
@@ -1637,11 +1647,13 @@ def residual_cache(root, *, acceptance=False):
                     write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),
                         elapsed_s=time.time()-began,eta_seconds=(time.time()-began)*(total-completed)/completed if completed else None,**kw))
                 record=cache_residual_episode(model,records[identity],data['entries'][identity],lease,progress=progress,cache_identity=binding,
-                    transfer_mode=v.get('cache_transfer_mode','tick'),scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy'))
+                    transfer_mode=v.get('cache_transfer_mode','tick'),scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy'),
+                    **({} if planning is None else dict(offline_planning_profile=planning)))
                 require(all(p.grad is None for p in model.parameters()),'Frozen base received gradient')
                 save(path,record);index['episodes'][identity]=dict(sha256=sha(path),ticks=len(record['robot']),plans=math.ceil(len(record['robot'])/12),
                     implementation=dict(transfer_mode=v.get('cache_transfer_mode','tick'),
-                        scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy')))
+                        scheduler_index_mode=v.get('cache_scheduler_index_mode','legacy'),
+                        **({} if planning is None else dict(offline_planning_profile=planning))))
                 write(index_path,index)
             completed+=1
             write(root/'cache_progress.json',dict(group=group,identity=identity,episodes=completed,total=total,utc=time.time(),

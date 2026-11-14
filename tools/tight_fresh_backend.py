@@ -19,7 +19,7 @@ def read(path):
 
 
 def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None,
-            output_contract=None, continuation_head_reset=None):
+            output_contract=None, continuation_head_reset=None, offline_anchor_batch=None):
     import torch
     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
@@ -29,6 +29,10 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
     from visuotactile.models.native_dp import TargetResidual, CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
     from visuotactile.fresh_recovery import fresh_recovery_weighting_config
     fresh_recovery_weighting=fresh_recovery_weighting_config(fresh_recovery_weighting)
+    cache_planning=None
+    if offline_anchor_batch is not None:
+        from visuotactile.offline_planning import profile
+        cache_planning=profile(offline_anchor_batch)
     output_contract=validate_output_contract(REACHABLE_CENTERED_OUTPUT if output_contract is None else output_contract)
     continuation_head_reset=validate_head_reset(continuation_head_reset)
     if continuation_head_reset is not None and not continue_rear:
@@ -71,6 +75,7 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
     v['residual_normalization_identity'] = residual_normalization(data, v)
+    if cache_planning is not None:v['cache_offline_planning_profile']=cache_planning
     if continuation_head_reset is not None:
         v['continuation_head_reset']=continuation_head_reset
     if fresh_recovery_weighting is not None:
@@ -135,8 +140,10 @@ def main():
     parser.add_argument('--role', choices=['A', 'B'], required=True)
     parser.add_argument('--epochs', type=int, default=5)
     parser.add_argument('--continue-rear', action='store_true')
+    parser.add_argument('--offline-anchor-batch',type=int,
+        help='Explicit offline residual-cache DDIM anchor batch; default retains serial plans')
     args = parser.parse_args()
-    prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear)
+    prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear,offline_anchor_batch=args.offline_anchor_batch)
 
 
 if __name__ == '__main__':

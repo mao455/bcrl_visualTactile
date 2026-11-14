@@ -1,0 +1,85 @@
+{
+  "version": "inactive_render_gate02_review_v1",
+  "decision": "not_adopted",
+  "reason": "After wave A all products had retired; restoring updates_enabled before wave B reset left an empty RGB annotator buffer. Candidate arm never began; ordinary arm is incomplete.",
+  "seconds": 151.41908764839172,
+  "software_complete": false,
+  "ordinary_wave_A": {
+    "complete": true,
+    "allocated_slots": 16,
+    "legal": 14,
+    "control_steps": 252,
+    "counts": [
+      36,
+      24,
+      0,
+      24,
+      0,
+      24,
+      24,
+      24,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12
+    ],
+    "diagnostically_censored": true,
+    "success": null
+  },
+  "ordinary_wave_B_control_steps": 0,
+  "candidate_arm_started": false,
+  "error": "RuntimeError('The expanded size of the tensor (3) must match the existing size (0) at non-singleton dimension 2.  Target sizes: [252, 448, 3].  Tensor sizes: [0]')",
+  "cleanup": {
+    "binding": {
+      "pid": 3932039,
+      "state": "R",
+      "ppid": 3932020,
+      "pgid": 3932039,
+      "sid": 3932039,
+      "start_ticks": 172974376,
+      "uid": 1001
+    },
+    "before": [],
+    "after": [],
+    "signals": [],
+    "live_descendants_exited": true,
+    "seconds": 0.015612578019499779,
+    "scope": "Only this owner-created PGID/SID; leader exit does not imply child exit",
+    "stop_error": null
+  },
+  "files": {
+    "plan.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/plan.json",
+      "sha256": "1b3db527d92da71d18e1b0bb9d727b84628b84b3ae8a3a82629e4d1d29ff443e"
+    },
+    "result.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/result.json",
+      "sha256": "ddf4ae19059969533a6501712c8de9f767e821390f1dfedefd2dc7ca65fd069c"
+    },
+    "ordinary/A/result.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/ordinary/A/result.json",
+      "sha256": "a6e555d72380e2c02de87bf422b592295569ce6a4f944dfaa4eeca6a9762ddd9"
+    },
+    "ordinary/wave_1_before_reset.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/ordinary/wave_1_before_reset.json",
+      "sha256": "549cca441f9fa83a2222fa6b83bb0c8e30617ee168c34c84260007388ea8bda9"
+    },
+    "ordinary/inactive_render_cleanup.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/ordinary/inactive_render_cleanup.json",
+      "sha256": "a017d0d47d2f915694fa320e8f89339ed4d9a69978d8ec52052687c11dd8aca2"
+    },
+    "ordinary/owner_group_cleanup.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/ordinary/owner_group_cleanup.json",
+      "sha256": "1903850f37a8ead0d18668b6ff876dbb2d8abe8710c9765b28158f77d8df9347"
+    },
+    "ordinary/worker.log": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/inactive_render_gate02/ordinary/worker.log",
+      "sha256": "c8ec92dec9358ba5cb3471ad4f67ac2464fa8e97a82d848417f2226f61b03484"
+    }
+  },
+  "interpretation": "Software camera API regression, not task failure or throughput acceptance. No training data, no modified formal camera settings, no automatic retry; preserved partial observations and original gate01 failure."
+}

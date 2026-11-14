@@ -1,3 +1,15 @@
+## 2026-11-14 23:42 第八轮纠偏拟合完成、下一批来源与离线吞吐接入
+
+四臂stage-fit均真实结束，owner430.484秒、自有子进程全部退出。34条/19train family、12963历史帧、9005合法专家步；A/B全合法动作arm RMSE分别0.028887→0.005390与0.029336→0.007414rad，hand0.087318→0.037353与0.094883→0.050443。持物/转动也改善；A首子目标后arm仍略差于同5Hz保持q，B持物arm仍略差于保持实际target，不能宣称全面胜过简单基线。各模型完整历史独立重算，未用旧GRU状态；这是前端训练集拟合，后端/自主结论待完成。
+
+新增stage_exposure CPU审计按冻结labels/合法mask重建H24目标槽，并逐更新核对learning增量、best/last/finished及全118条sampling_exposure；11项测试、真实A/B CPU审计通过。A selected9为477次完整访问/264249槽，B selected5为265次/146805槽，各占本轮38.4301%；latest19占30.1279%。B来源真正未见25条占33.6344%，不能把它已见过的9条也当新学习。各阶段重叠、未来槽重复，不能解释为独立动作量、梯度/损失比例或累计历史训练。旧unknown注册保持，另附审计。见round08_stage_fit_review。
+
+下一正式cycle可显式使用已通过A/B CUDA门控的--offline-anchor-batch32，仅批量metrics DDIM，完整60Hz历史和训练update不变；配置/best/last/finished绑定，可能因浮点舍入改变近乎并列的选中epoch。新增独立--backend-offline-anchor-batch32候选：逐60Hz重算视觉和条件后批量独立5Hz计划，prefix噪声也保留；配置/index/payload三方profile一致、原路径默认不变。full-cache真实门控尚待。paired I/O在原session/cycle/stages任一STOP时中止同步，避免最长600秒盲等。主Agent前端/来源/paired/并行/比较联合143项通过；一次误写不存在测试文件的命令0项执行，不计通过。
+
+新增同session source view允许数据池保持118条而A/B各选有完整自主证据的真实来源，原模型cache/data绑定不改；原session逐字继承，截止仍次日03:49:51，不新建监控/资源时段。正式expansion登记receipt，run/aggregate重验；尚未实际选择来源或采集。held60/120已可用于下一批。
+
+inactive_render_gate02在151.419秒失败：普通arm A完成14合法lane/252诊断控制步，所有产品退休再恢复后，B波reset遇到空RGB buffer；B0动作、候选arm未启动，全部进程已清理。保留坏包、A部分与01现场，不采用该方案、不作加速结论、不继续重试；正式standard从未启用停用profile。见inactive_render_gate_review/gate02.json。第八轮当前backend_train_B，尚未自主。
+
 ## 2026-11-14 23:25 两组离线批量规划实际门控与渲染诊断包装修复
 
 A_gate01/B_gate02均用第八轮已选best EMA、各原始/新增两条train实际完成M1/M8/M32 CUDA对照，固定raw/bounded 2e-5rad全通过；无参数更新、无验证/测试轨迹。原B_gate01的split失败仍保留。B两条serial DDIM3.610/6.483秒、M32为0.169/0.466秒，最大目标差9.574e-7rad；同时有后端/阶段拟合作业，不能外推整轮速度。明确采用M32作为下一正式前端metrics的显式候选，尚未进入正式训练；后端逐tick视觉/完整计划缓存需另门控。详见offline_planning_review/live_gate02.json。

@@ -253,6 +253,9 @@ def schedule_trigger(schedule):
 def validate_collection_plan(plan):
     if plan.get('stage_takeover_contract') != COLLECTION_CONTRACT or plan.get('test_used') is not False:
         raise ValueError('Explicit non-test expansion collection contract required')
+    if plan.get('source_selection') is not None or (Path(plan.get('source_root', ''))/'source_selection.json').exists():
+        from tools.tight_fresh_collection_source import validate_binding
+        validate_binding(plan.get('source_selection'), plan['source_root'], plan=plan)
     binding = plan.get('training_expansion_registry')
     registry = read_registry(binding)
     if plan.get('utc', 0) < registry['created_utc']:

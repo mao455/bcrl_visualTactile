@@ -122,20 +122,43 @@ def predict_on_native_clock(model, conditions, anchors):
 
 
 @torch.no_grad()
-def metrics(model,records,identities):
+def metrics(model,records,identities,*,offline_planning=None,check=None):
+    if offline_planning is not None:
+        from visuotactile.offline_planning import validate_profile,predict_contiguous
+        offline_planning=validate_profile(offline_planning)
+    started=time.perf_counter() if offline_planning is not None else None
     model.eval();errors=[];normalized=[];rows=[]
     for i in identities:
-        rec=records[i];c,a=supervised_conditions(model,rec)
-        pred=predict_on_native_clock(model,c,a)
+        rec=records[i]
+        if offline_planning is not None:
+            if check is not None:check()
+            if model.action_scale.is_cuda:torch.cuda.synchronize(model.action_scale.device)
+            began=time.perf_counter()
+        c,a=supervised_conditions(model,rec)
+        if offline_planning is None:pred=predict_on_native_clock(model,c,a)
+        else:
+            if c.is_cuda:torch.cuda.synchronize(c.device)
+            encoding_seconds=time.perf_counter()-began;began=time.perf_counter();trace={}
+            pred=predict_contiguous(model,c,a,configuration=offline_planning,check=check,receipt=trace)
+            if c.is_cuda:torch.cuda.synchronize(c.device)
+            planning_seconds=time.perf_counter()-began
         pred=bounded_targets(pred.flatten(0,1),rec['joint_limits']).reshape_as(pred)
         truth,valid=labels(rec,a,24);mask=valid[:,:12];e=(pred[:,:12]-truth[:,:12])[mask]
         errors.append(e.cpu());normalized.append((e*model.action_scale).cpu())
         rows.append(dict(identity=i,arm_rmse=float(e[:,:7].square().mean().sqrt()),hand_rmse=float(e[:,7:].square().mean().sqrt())))
+        if offline_planning is not None:
+            rows[-1]['offline_planning']=dict(trace,full_history_frames=len(rec['time']),
+                encoding_seconds=encoding_seconds,planning_seconds=planning_seconds)
     e=torch.cat(errors);n=torch.cat(normalized)
-    return dict(arm_rmse_rad=float(e[:,:7].square().mean().sqrt()),hand_rmse_rad=float(e[:,7:].square().mean().sqrt()),
+    result=dict(arm_rmse_rad=float(e[:,:7].square().mean().sqrt()),hand_rmse_rad=float(e[:,7:].square().mean().sqrt()),
         selection=float(.5*n[:,:7].square().mean()+.5*n[:,7:].square().mean()),episodes=rows,
         noise_schedule='seed7091 advances at every native5Hz planning tick, including unsupervised prefixes',
         scope='teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim')
+    if offline_planning is not None:
+        result['offline_planning']=dict(profile=offline_planning,seconds=time.perf_counter()-started,
+            timing_scope='Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains',
+            selection_scope='Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs')
+    return result
 
 
 def fresh_objective(root,role,data,records):
@@ -212,19 +235,26 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
     return report
 
 
-def train(root,role,epochs):
+def train(root,role,epochs,*,offline_anchor_batch=None):
+    options={}
+    if offline_anchor_batch is not None:
+        from visuotactile.offline_planning import profile
+        options['offline_planning']=profile(offline_anchor_batch)
     pairing_path=root/'paired_episode_io.json'
     if not pairing_path.exists():
-        return _train(root,role,epochs)
+        return _train(root,role,epochs,**options)
     from visuotactile.paired_episode_io import PairWorker
     with PairWorker(root,role,epochs) as pairing:
-        return _train(root,role,epochs,pairing=pairing)
+        return _train(root,role,epochs,pairing=pairing,**options)
 
 
-def _train(root,role,epochs,*,pairing=None):
+def _train(root,role,epochs,*,pairing=None,offline_planning=None):
     from visuotactile.anchor_continue import projection_batch
     from visuotactile.state_resources import lease_for
     from visuotactile.precision import state_fp32
+    if offline_planning is not None:
+        from visuotactile.offline_planning import validate_profile
+        offline_planning=validate_profile(offline_planning)
     if not read(root/'gate.json')['passed'] or not read(root/role/'cache_index.json')['complete']:raise ValueError('Gate incomplete')
     state_fp32();session=read(root/'session.json');lease=lease_for(root,deadline=session['deadline'])
     out=root/role/'training';out.mkdir(exist_ok=True)
@@ -275,6 +305,7 @@ def _train(root,role,epochs,*,pairing=None):
         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
     if continuation:config['continuation']=continuation
+    if offline_planning is not None:config['offline_planning']=offline_planning
     if io_config is not None:
         config['episode_io']=io_config
         config['episode_io_configuration_sha256']=sha256(io_path)
@@ -325,11 +356,14 @@ def _train(root,role,epochs,*,pairing=None):
             updates=updates,epoch=epoch,configuration=config,best=best,history=history,anchors_seen=anchors_seen,target_ticks=target_ticks,
             train_ids=data['splits']['train'],validation_ids=data['splits']['validation'],**extras))
     started=time.perf_counter()
+    def evaluate(identities):
+        if offline_planning is None:return metrics(averaged,records,identities)
+        return metrics(averaged,records,identities,offline_planning=offline_planning,check=lease.check)
     if continuation and not (out/'initial_metrics.json').exists():
         with lease.block():
-            initial=dict(validation=metrics(averaged,records,data['splits']['validation']),
-                train=metrics(averaged,records,data['splits']['train'][:2]),
-                correction=metrics(averaged,records,data['aggregation']['new_training_ids']))
+            initial=dict(validation=evaluate(data['splits']['validation']),
+                train=evaluate(data['splits']['train'][:2]),
+                correction=evaluate(data['aggregation']['new_training_ids']))
             if auxiliary:
                 initial['visual_auxiliary']=dict(
                     validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
@@ -388,7 +422,7 @@ def _train(root,role,epochs,*,pairing=None):
             scope='Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution')
         if pairing is not None:training_epoch_io['paired_episode_io']=pairing.summary(epoch=epoch+1)
         with lease.block():
-            val=metrics(averaged,records,data['splits']['validation']);tr=metrics(averaged,records,data['splits']['train'][:2])
+            val=evaluate(data['splits']['validation']);tr=evaluate(data['splits']['train'][:2])
             pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
                 train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary)) if auxiliary else None)
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
@@ -398,7 +432,7 @@ def _train(root,role,epochs,*,pairing=None):
             report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
         if sampling:report['sampling_exposure']=dict(sampling_exposure)
         if continuation and epoch+1==epochs:
-            with lease.block():report['correction']=metrics(averaged,records,data['aggregation']['new_training_ids'])
+            with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'])
         history.append(report);improved=val['selection']<best;best=min(best,val['selection'])
         checkpoint(epoch+1)
         if improved:checkpoint(epoch+1,'best.pt')
@@ -411,14 +445,19 @@ def _train(root,role,epochs,*,pairing=None):
     if sampling:finished.update(sampling_contract=sampling,episode_multiplicities=multiplicities,
         episodes_per_epoch=episodes_per_epoch,sampling_exposure=sampling_exposure)
     if pairing is not None:finished['paired_episode_io']=pairing.summary()
+    if offline_planning is not None:finished['offline_planning']=offline_planning
     atomic_json(out/'finished.json',finished)
 
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['gate','train']);p.add_argument('--root',required=True,type=Path)
     p.add_argument('--role',choices=['A','B']);p.add_argument('--epochs',type=int,default=5)
+    p.add_argument('--offline-anchor-batch',type=int,help='Explicit offline metrics DDIM anchor batch; training updates and online planning unchanged')
     a=p.parse_args();root=a.root.resolve()
+    if a.offline_anchor_batch is not None and (a.stage!='train' or not 1<=a.offline_anchor_batch<=128):
+        p.error('Offline anchor batching requires train stage and an explicit size1..128')
     if a.stage=='gate':gate(root)
-    else:train(root,a.role,a.epochs)
+    elif a.offline_anchor_batch is None:train(root,a.role,a.epochs)
+    else:train(root,a.role,a.epochs,offline_anchor_batch=a.offline_anchor_batch)
 
 if __name__=='__main__':main()

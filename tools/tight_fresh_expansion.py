@@ -57,6 +57,8 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
     manifests = {role: source / role / 'state_data/data.json' for role in ('A', 'B')}
     data = {role: read(path) for role, path in manifests.items()}
     pairs = {role: completed_pair(source, role) for role in ('A', 'B')}
+    from tools.tight_fresh_collection_source import binding_for
+    source_selection = binding_for(source)
     registry = make_registry(registry_id, session['domain'], list(seeds), manifests,
         partition_manifest, frozen_families, created_utc=time.time())
     old_family_rows = {row['family']: row for row in read(frozen_families)}
@@ -123,6 +125,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
         test_used=False, test_trajectories_opened=0, utc=time.time())
     if tail is not None:plan['batch']['vision_tail_profile']=tail
     if inactive is not None:plan['batch']['inactive_render_profile']=inactive
+    if source_selection is not None:plan['source_selection']=source_selection
     validate_collection_plan(plan)
     atomic_json(output / 'plan.json', plan)
     return plan

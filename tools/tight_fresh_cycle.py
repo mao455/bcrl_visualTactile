@@ -71,7 +71,7 @@ def wait_parallel_admission(resource_path, receipt_path, *, deadline, stop_paths
         time.sleep(min(.25,max(.001,end-time.time()),max(.001,30-(time.monotonic()-started))))
 
 
-def paired_frontends(execute, output, epochs):
+def paired_frontends(execute, output, epochs, *, offline_anchor_batch=None):
     """Join both independent learners before admitting any dependent stage.
 
     A normal failure preserves the other learner's completed work. Each child
@@ -81,7 +81,8 @@ def paired_frontends(execute, output, epochs):
     errors={};began=time.time()
     with ThreadPoolExecutor(max_workers=2,thread_name_prefix='fresh-dp') as pool:
         jobs={role:pool.submit(execute,'frontend_'+role,
-            ['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs],
+            ['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs]+
+            (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),
             output/role/'training/finished.json',update_status=False) for role in ('A','B')}
         for role,future in jobs.items():
             try:future.result()
@@ -90,13 +91,15 @@ def paired_frontends(execute, output, epochs):
         complete=not errors,scope='Two independent DP processes only; unchanged per-role data, RNG and epoch budgets; dependent stages wait for both')
 
 
-def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_status=True, stop_paths=()):
+def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_status=True, stop_paths=(),
+        offline_anchor_batch=None):
     """The same per-role commands and dependencies in serial and parallel modes."""
     rear=output/role/'backend'
     options=dict(update_status=update_status)
     if stop_paths:options['stop_paths']=stop_paths
     execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',epochs]+
-        (['--continue-rear'] if continue_rear else []),rear/'prepared.json',**options)
+        (['--continue-rear'] if continue_rear else [])+
+        (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),rear/'prepared.json',**options)
     execute('backend_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json',**options)
     execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,
         '--job','image','--output',rear/role/'training'],rear/role/'training/finished.json',**options)
@@ -104,7 +107,7 @@ def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_
         '--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json',**options)
 
 
-def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=()):
+def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=(),offline_anchor_batch=None):
     """Join independent complete backend chains; one failure does not cancel its peer."""
     from concurrent.futures import ThreadPoolExecutor
     errors={};outcomes={};began=time.time()
@@ -112,7 +115,7 @@ def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=
         start=time.time()
         try:
             backend_chain(execute,output,role,epochs,continue_rear=continue_rear,
-                update_status=False,stop_paths=stop_paths)
+                update_status=False,stop_paths=stop_paths,offline_anchor_batch=offline_anchor_batch)
         except Exception as error:
             return dict(complete=False,error=repr(error),started=start,ended=time.time(),seconds=time.time()-start)
         return dict(complete=True,started=start,ended=time.time(),seconds=time.time()-start)
@@ -179,13 +182,21 @@ def configure_episode_io(output, config):
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
-        parallel_backends=False):
+        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None):
     from visuotactile.models.native_vision import validate_vision_tail_profile
     tail=validate_vision_tail_profile(vision_tail_profile)
     from tools.tight_fresh_batch_run import validate_inactive_render_request
     inactive=validate_inactive_render_request(inactive_render_profile,execution_backend)
     if type(payload_audit_memo) is not bool:raise ValueError('Payload audit memo must be an explicit boolean')
     if type(parallel_backends) is not bool:raise ValueError('Parallel backends must be an explicit boolean')
+    offline_planning=None
+    if offline_anchor_batch is not None:
+        from visuotactile.offline_planning import profile
+        offline_planning=profile(offline_anchor_batch)
+    backend_offline_planning=None
+    if backend_offline_anchor_batch is not None:
+        from visuotactile.offline_planning import profile
+        backend_offline_planning=profile(backend_offline_anchor_batch)
     if paired_episode_io and not parallel_frontends:
         raise ValueError('Paired episode I/O requires two parallel independent frontends')
     if type(evaluation_lanes) is not int or evaluation_lanes<1:
@@ -224,6 +235,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if tail is not None:registration['vision_tail_profile']=tail
     if inactive is not None:registration['inactive_render_profile']=inactive
     if payload_audit_memo:registration['payload_audit_memo']=True
+    if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
+    if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
     if parallel_backends:
         registration['parallel_backends']=True
         registration['parallel_backend_contract']=dict(version='independent_backend_chains_v1',
@@ -295,12 +308,14 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             atomic_json(ledger/'paired_episode_io.json',configure_pairing(output,epochs))
         if admitted:
             atomic_json(ledger/'status.json',dict(stage='parallel_frontends',roles=['A','B'],started=time.time()))
-            paired=paired_frontends(execute,output,epochs)
+            paired=paired_frontends(execute,output,epochs,**(
+                dict(offline_anchor_batch=offline_anchor_batch) if offline_anchor_batch is not None else {}))
             atomic_json(ledger/'parallel_frontends.json',paired)
             if not paired['complete']:raise RuntimeError('Frontend stage failed: '+str(paired['errors']))
         else:
             for role in ['A','B']:
-                execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs],output/role/'training/finished.json')
+                execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs]+
+                    (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),output/role/'training/finished.json')
         backends_admitted=False
         backend_stop_paths=(root/'STOP',output/'STOP',ledger/'STOP') if parallel_backends else ()
         if parallel_backends:
@@ -312,12 +327,14 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             backends_admitted=admission['admitted']
         if backends_admitted:
             atomic_json(ledger/'status.json',dict(stage='parallel_backends',roles=['A','B'],started=time.time()))
-            paired=paired_backends(execute,output,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths)
+            paired=paired_backends(execute,output,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths,
+                offline_anchor_batch=backend_offline_anchor_batch)
             atomic_json(ledger/'parallel_backends.json',paired)
             if not paired['complete']:raise RuntimeError('Backend stage failed: '+str(paired['errors']))
         else:
             for role in ['A','B']:
-                backend_chain(execute,output,role,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths)
+                backend_chain(execute,output,role,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths,
+                    offline_anchor_batch=backend_offline_anchor_batch)
         if any(path.exists() for path in backend_stop_paths):raise InterruptedError('Fresh cycle STOP before development')
         development=output/'development'
         if evaluation_lanes>1:
@@ -349,6 +366,8 @@ def main():
     p.add_argument('--continue-rear',action='store_true')
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
+    p.add_argument('--offline-anchor-batch',type=int,help='Explicit frontend offline metrics DDIM batch only; does not enable backend cache batching')
+    p.add_argument('--backend-offline-anchor-batch',type=int,help='Separate opt-in backend cache DDIM batch; requires its own cache acceptance')
     p.add_argument('--parallel-backends',action='store_true',
         help='Opt-in independent A/B backend chains after both frontends finish and fresh joint admission; serial fallback')
     p.add_argument('--paired-episode-io',action='store_true',
@@ -378,7 +397,8 @@ def main():
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,
         vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,
-        inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo,parallel_backends=a.parallel_backends)
+        inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo,parallel_backends=a.parallel_backends,
+        offline_anchor_batch=a.offline_anchor_batch,backend_offline_anchor_batch=a.backend_offline_anchor_batch)
 
 
 if __name__=='__main__':main()

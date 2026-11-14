@@ -1,3 +1,11 @@
+## 2026-11-14：同session来源视图与离线批量计划的显式身份
+
+`same_session_policy_data_selection_v1`仅分离采集可继承的数据池和已经完整自主执行的A/B来源，原checkpoint配置、统计与其nominal cache保持真实绑定。当前资源session逐字继承、截止/STOP不重置，plan中的source_selection必须在运行和聚合时重验；非法初态必须有零动作碰撞凭据，不替换或算自主失败。
+
+`offline_planning`是前端metrics的显式配置；`cache_offline_planning_profile`是单独的后端缓存配置，两者互不隐含启用。前者先重建每条真实完整历史再批量5Hz条件；后者仍逐60Hz重算视觉/条件，之后只批量无反馈的DDIM。均保留从tick0含学生prefix的seed7091逐行(1,24,29)抽样、合法mask与29维绝对目标。后端config/index/每条payload profile一致，旧路径缺省不添加键；不同profile不能混用或悄悄resume。数值门控不意味着不同batch浮点逐位一致或模型选中epoch必相同。
+
+阶段曝光审计的H24 target slots包括未来窗口重复和实际采样重复；不等于独立专家动作、loss权重或梯度强度。各诊断阶段mask重叠。selected与last、当前新增与源已见、当前训练与继承训练分别报告。
+
 # 显式当前持物重查接管与并行后端候选
 
 `contact_height_recheck_after_min_delay_v1`配置仅version、min_delay_ticks=60或120，fallback必须NEVER_FALLBACK。已完成学生transition数N满足首次12步持物后最少延时且当前12步仍持物时，才安排zero-based action N接手。高度参考仍completed25–48的中位数+2cm，双物理子步至少两指>0.1N。触发与原生成功/掉落判定独立；跨goal等待只记before/after/current及变化，不限制距离。所有训练历史来自真实学生/专家记录，动作监督仍合法专家mask。

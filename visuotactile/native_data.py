@@ -298,18 +298,27 @@ def supervision_mask_sha256(records,identities=None):
 
 
 @torch.no_grad()
-def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None,transfer_mode='tick',scheduler_index_mode='legacy'):
-    """Replay every native observation; optionally consolidate transfer-only work.
+def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,cache_identity=None,transfer_mode='tick',scheduler_index_mode='legacy',offline_planning_profile=None):
+    """Replay every native observation and optionally batch independent plans.
 
     ``tick`` retains the historical implementation for measured comparisons.
     ``episode`` transfers numeric inputs once and copies only complete replans
     back to CPU. Cursor expansion changes no inference, recurrence or RNG draws.
     Neither mode reuses a prediction from another checkpoint.
+    The explicit offline profile defers only DDIM until this episode's full
+    real history has been replayed. Current model conditions and per-tick visual
+    features are recomputed; learned hidden states never become a reusable cache.
     """
     from .position_control import bounded_targets
     device=next(base.parameters()).device
     if transfer_mode not in ('tick','episode'):raise ValueError('Unknown residual cache transfer implementation')
     if scheduler_index_mode not in ('legacy','host'):raise ValueError('Unknown DDIM scheduler index implementation')
+    if offline_planning_profile is not None:
+        from .offline_planning import validate_profile,predict_contiguous
+        validate_profile(offline_planning_profile)
+        if (transfer_mode!='episode' or scheduler_index_mode!='host' or base.group!='I-HistoryDP'
+                or base.modality!='G00' or base.horizon!=24 or base.contract.get('visual_stride')!=1):
+            raise ValueError('Offline cache planning requires explicit episode/host H24 G00 every-tick history')
     if base.training or any(p.requires_grad for p in base.parameters()):raise ValueError('Base must be completely frozen')
     binding={'base_checkpoint_sha256','statistics_sha256','data_sha256','residual_statistics_sha256'}
     if entry.get('trajectory_kind')=='expert_takeover_v1' and cache_identity is None:
@@ -323,6 +332,7 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
     generator=torch.Generator(device=device).manual_seed(7091);memory=None
     result=residual_observations(entry,record['robot'],record['time'])
     plans=[];masks=[];commands=[];features=[]
+    conditions=[] if offline_planning_profile is not None else None
     inputs=record
     if transfer_mode=='episode':
         # At most a few MB of numeric observations; frozen image shards continue
@@ -337,10 +347,16 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
             memory=base.observe(inputs['robot'][tick].to(device),stamp,tick,episode.frame(tick,device) if tick%base.contract.get('visual_stride',12)==0 else None,
                 memory,tactile=inputs['tactile'][tick].to(device) if base.modality=='G10' else None)
             if tick%12==0:
-                sampling={} if scheduler_index_mode=='legacy' else dict(scheduler_index_mode=scheduler_index_mode)
-                plan=base.predict(base.condition(memory,stamp),generator,**sampling)
-                plan=bounded_targets(plan[0],inputs['joint_limits'].to(device))[None]
-                if transfer_mode=='episode':plans.append(plan[0])
+                if conditions is not None:
+                    # Condition is a new tensor; no learned hidden state is
+                    # reused across episodes/checkpoints. Recorded robot
+                    # histories never receive these future nominal plans.
+                    conditions.append(base.condition(memory,stamp))
+                else:
+                    sampling={} if scheduler_index_mode=='legacy' else dict(scheduler_index_mode=scheduler_index_mode)
+                    plan=base.predict(base.condition(memory,stamp),generator,**sampling)
+                    plan=bounded_targets(plan[0],inputs['joint_limits'].to(device))[None]
+                    if transfer_mode=='episode':plans.append(plan[0])
             if tick%base.contract.get('visual_stride',12)==0:
                 visual=residual_visual(base,memory,stamp)[0]
             if transfer_mode=='episode':features.append(visual)
@@ -348,7 +364,19 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
             if transfer_mode=='tick':
                 remaining,valid=remaining_target_plan(plan,tick%12)
                 plans.append(remaining[0].cpu());masks.append(valid.cpu());commands.append(plan[0,tick%12].cpu());features.append(visual)
-        if tick%60==0:progress(tick=tick+1,plans=tick//12+1)
+        if tick%60==0:
+            if conditions is None:progress(tick=tick+1,plans=tick//12+1)
+            else:progress(tick=tick+1,plans=0,conditions=len(conditions),phase='complete_history_replay')
+    if conditions is not None:
+        with lease.block():
+            condition=torch.cat(conditions)
+            anchors=torch.arange(0,len(record['time']),12,device=device)
+            predicted=predict_contiguous(base,condition,anchors,configuration=offline_planning_profile,
+                check=getattr(lease,'check',None))
+            predicted=bounded_targets(predicted.flatten(0,1),inputs['joint_limits']).reshape_as(predicted)
+            plans=list(predicted.unbind())
+        progress(tick=len(record['time']),plans=len(plans),conditions=len(conditions),phase='offline_planning_complete')
+        del conditions,condition,predicted
     if transfer_mode=='episode':
         # Expand unchanged H24 plans on CPU instead of copying a 24x29 tensor
         # on every one of the 12 committed ticks. The final partial chunk is
@@ -369,6 +397,7 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
     for key in ('supervision_mask','control_segment'):
         if key in record:result[key]=record[key].cpu()
     if cache_identity is not None:result['cache_identity']=dict(cache_identity)
+    if offline_planning_profile is not None:result['cache_offline_planning_profile']=dict(offline_planning_profile)
     nominal=result['base'];n=len(nominal)
     if base.contract.get('supervision')=='q_reached' and 'clean_sample' not in record:
         raise ValueError('Actual-configuration nominal cache requires explicit reached labels')

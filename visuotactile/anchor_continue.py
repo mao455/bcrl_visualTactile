@@ -1050,6 +1050,12 @@ def residual_setup(root, *, selected=False, smoke=False):
     if smoke and v.get('fresh_recovery_weighting') is not None:
         raise ValueError('Fresh recovery weighting retains the complete validation6 cohort')
     data=read(root/'state_data/data.json');index=read(root/'nominal/index.json');all_splits=data['splits']
+    cache_planning=v.get('cache_offline_planning_profile')
+    if cache_planning is not None:
+        from .offline_planning import validate_profile
+        validate_profile(cache_planning)
+    if index.get('cache_offline_planning_profile')!=cache_planning:
+        raise ValueError('Nominal cache index planning profile differs from backend configuration')
     if smoke:data=dict(data,splits={k:values[:1] for k,values in data['splits'].items()})
     base=v['bases'][root.name]
     if sha256(base['checkpoint'])!=base['sha256']:raise ValueError('Frozen base changed')
@@ -1079,6 +1085,8 @@ def residual_setup(root, *, selected=False, smoke=False):
         path=root/'nominal'/(identity+'.pt')
         if sha256(path)!=index['episodes'][identity]['sha256']:raise ValueError('Nominal cache drift')
         records[identity]=torch.load(path,map_location='cpu',weights_only=False)
+        if records[identity].get('cache_offline_planning_profile')!=cache_planning:
+            raise ValueError('Nominal episode planning profile differs: '+identity)
     stats=torch.load(residual_statistics_path,map_location='cpu',weights_only=False)
     base_stats=torch.load(root/'state_data/statistics.pt',map_location='cpu',weights_only=False)
     for key in ('robot_mean','robot_std'):

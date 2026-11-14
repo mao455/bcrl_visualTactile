@@ -103,10 +103,14 @@ def configure_pairing(root, epochs, *, startup_timeout_s=300., barrier_timeout_s
     generator = torch.Generator().manual_seed(2026111402)
     expected = [digest(episode_deck(population['ids'], population['multiplicities'], generator))
                 for _ in range(epochs)]
+    session = read(root / 'session.json')
+    resource_root = Path(session.get('resource_root', root)).resolve()
+    stop_paths = list(dict.fromkeys(str(path) for path in (
+        root / 'STOP', resource_root / 'STOP', root.parent / (root.name + '_stages') / 'STOP')))
     config = dict(version=VERSION, attempt=uuid.uuid4().hex, epochs=epochs,
         episodes_per_epoch=sum(population['multiplicities'].values()), epoch_deck_sha256=expected,
         inputs=inputs, startup_timeout_s=float(startup_timeout_s), barrier_timeout_s=float(barrier_timeout_s),
-        poll_s=float(poll_s), deadline=read(root / 'session.json')['deadline'],
+        poll_s=float(poll_s), deadline=session['deadline'], stop_paths=stop_paths,
         semantics='Readiness/done rendezvous around unchanged independent episode updates. '
             'Same shared-inode frozen inputs, no learned-state cache, no optimizer/RNG sharing. '
             'Wall scheduling only; speed requires measured acceptance; failed root cannot resume.')
@@ -165,6 +169,8 @@ class PairWorker:
         began = time.monotonic()
         budget = self.config['startup_timeout_s' if startup else 'barrier_timeout_s']
         while True:
+            if any(Path(path).exists() for path in self.config.get('stop_paths', [])):
+                raise InterruptedError('Registered paired I/O STOP during synchronization')
             if time.time() >= self.config['deadline']:
                 raise TimeoutError('Original paired session deadline exhausted')
             peer = self._peer_status()

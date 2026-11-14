@@ -40,6 +40,29 @@ def dataset(root, *, shared=True):
     write(root / 'session.json', dict(deadline=time.time() + 60))
 
 
+@pytest.mark.parametrize('stop_scope', ['cycle', 'resource', 'ledger'])
+@pytest.mark.parametrize('startup', [True, False])
+def test_registered_stop_interrupts_wait_before_peer_or_ready_receipt(tmp_path, stop_scope, startup):
+    root = tmp_path / 'round_09'
+    dataset(root)
+    resource = tmp_path / 'session'
+    resource.mkdir()
+    session = json.loads((root / 'session.json').read_text())
+    session['resource_root'] = str(resource)
+    write(root / 'session.json', session)
+    config = configure_pairing(root, 2)
+    assert config['deadline'] == session['deadline']
+    worker = PairWorker(root, 'A', 2)
+    stop = {'cycle': root / 'STOP', 'resource': resource / 'STOP',
+            'ledger': tmp_path / 'round_09_stages/STOP'}[stop_scope]
+    stop.parent.mkdir(exist_ok=True)
+    stop.touch()
+    worker._peer_status = lambda: pytest.fail('STOP must win before a ready peer is accepted')
+    with pytest.raises(InterruptedError, match='STOP'):
+        worker._wait(lambda _: True, startup=startup)
+    assert worker.completed == 0 and worker.current is None
+
+
 def train_toy(role, pairing=None):
     """Full histories, independent RNG/parameters/AdamW/EMA, one step per visit."""
     torch.set_num_threads(1)
