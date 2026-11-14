@@ -82,3 +82,24 @@ def test_final_marker_cannot_hide_unresolved_registered_opportunities(tmp_path, 
     monkeypatch.setattr(audit, 'validate_plan', lambda plan: None)
     with pytest.raises(ValueError, match='Final opportunity accounting'):
         audit.report(tmp_path)
+
+
+@pytest.mark.parametrize('contract,event',[
+    ('stable_only_takeover_v1','stable'),('contact_height_only_takeover_v1','contact_height')])
+def test_report_requires_the_registered_stage_audit_even_for_invalid_starts(tmp_path,monkeypatch,contract,event):
+    plan=dict(cases=[dict(name='invalid',role='A')],source_commit='frozen',stage_takeover_contract=contract)
+    (tmp_path/'plan.json').write_text(json.dumps(plan))
+    (tmp_path/'result.json').write_text(json.dumps(dict(software_complete=True)))
+    result=dict(software_complete=True,legal=False,success=False)
+    (tmp_path/'results.json').write_text(json.dumps([dict(case='invalid',role='A',result=result)]))
+    directory=tmp_path/'invalid';directory.mkdir()
+    (directory/'result.json').write_text(json.dumps(result))
+    monkeypatch.setattr(audit,'validate_plan',lambda plan:None)
+    proof=dict(category='invalid_initialization',causal_trigger=None,source_plan_sha256=audit.sha256(tmp_path/'plan.json'))
+    wrong='stable' if event=='contact_height' else 'contact_height'
+    (directory/(wrong+'_stage_audit.json')).write_text(json.dumps(proof))
+    with pytest.raises(FileNotFoundError):audit.report(tmp_path)
+    (directory/(event+'_stage_audit.json')).write_text(json.dumps(proof))
+    report=audit.report(tmp_path)
+    assert report['collection_complete'] and report['completed']==1
+    assert report['version']=='completed_'+event+'_takeover_audit_v1'

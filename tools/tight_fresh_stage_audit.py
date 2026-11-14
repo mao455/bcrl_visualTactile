@@ -1,4 +1,4 @@
-"""Read completed stable-only takeover cases without touching active HDF5 files.
+"""Read completed causal takeover cases without touching active HDF5 files.
 
 CPU diagnostics only. The committed aggregate results index is the completion
 barrier: a case absent there is pending even if its result file already exists.
@@ -15,9 +15,9 @@ import numpy as np
 
 from tools.tight_fresh_phases import authority_phases, first
 from tools.tight_fresh_report import audit_trigger_case
-from tools.tight_fresh_stage_takeover import classify, validate_plan
+from tools.tight_fresh_stage_takeover import classify, validate_plan, CONTACT_HEIGHT_CONTRACT
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import stable_windows
+from visuotactile.takeover_trigger import stable_windows, contact_height_windows
 from visuotactile.training_resources import atomic_json
 
 
@@ -88,6 +88,8 @@ def audit_numeric(path, result):
         stable, contact = stable_windows(pose, palm, force, height)
         # The causal trigger cannot qualify before the reference is available.
         stable[:47] = False
+        contact_height=contact_height_windows(pose,force,height)
+        contact_height[:47]=False
         two = (contact.sum(-1) >= 2).all(-1)
         goal = after['goal_pose_w'][:]
         distance = np.linalg.norm(pose[:, :3] - goal[:, :3], axis=-1)
@@ -116,6 +118,7 @@ def audit_numeric(path, result):
         indices = np.flatnonzero(same_goal)
         latest_student = int(np.flatnonzero(student)[-1]) if student.any() else None
         phase = dict(authority=authority, first_student_stable=milestone(first_stable),
+            student_first_contact_height_window_end_tick=first(contact_height & student),
             last_student_transition=milestone(latest_student),
             student_after_stable_same_goal_closest_center=milestone(int(indices[np.argmin(distance[indices])])) if len(indices) else None,
             student_after_stable_same_goal_smallest_angle=milestone(int(indices[np.argmin(angle[indices])])) if len(indices) else None,
@@ -146,6 +149,9 @@ def audit_numeric(path, result):
 def report(collection):
     collection = Path(collection)
     plan = read(collection/'plan.json'); validate_plan(plan)
+    contact_contract=plan.get('stage_takeover_contract')==CONTACT_HEIGHT_CONTRACT
+    event='contact_height' if contact_contract else 'stable'
+    audit_name=event+'_stage_audit.json'
     # Snapshot the final marker first: a worker finishing during this audit must
     # not turn an earlier partial index into a purported final denominator.
     finished = (collection/'result.json').exists() and read(collection/'result.json').get('software_complete', False)
@@ -161,23 +167,24 @@ def report(collection):
         name = row['case']; result = row['result']; directory = collection/name
         require(row['role'] == cases[name]['role'], 'Completed case role differs')
         require(result.get('software_complete'), 'Incomplete case must not enter completed audit')
-        stage = read(directory/'stable_stage_audit.json')
+        stage = read(directory/audit_name)
         require(stage['source_plan_sha256'] == sha256(collection/'plan.json'), 'Case audit is bound to another plan')
         trigger = audit_trigger_case(directory, result) if result.get('legal') else None
         category = classify(result, trigger)
         require(category == stage['category'] and trigger == stage['causal_trigger'], 'Causal stage audit differs')
         accepted = bool(result.get('accepted_for_training'))
         require(accepted == (name in entries), 'Recorded retained subset disagrees')
-        require(not accepted or category == 'expert_rescue_after_stable', 'Retained record is not a successful stable-origin rescue')
+        require(not accepted or category == 'expert_rescue_after_'+event, 'Retained record is not a successful registered-stage rescue')
         item = dict(case=name, role=row['role'], category=category, accepted=accepted,
             success=bool(result.get('success')), native_terminal_reasons=result.get('reasons'),
-            result_sha256=sha256(directory/'result.json'), stage_audit_sha256=sha256(directory/'stable_stage_audit.json'))
+            result_sha256=sha256(directory/'result.json'), stage_audit_sha256=sha256(directory/audit_name))
         if result.get('legal'):
             require(read(directory/'capture_audit.json')['passed'], 'Collector capture provenance failed')
             alignment, phase = audit_numeric(directory/'numeric.h5', result)
-            first_stable = phase['authority']['student_first_stable_window_end_tick']
-            require(first_stable == trigger['receipt']['first_stable_window_end_completed_tick'],
-                'Full numeric stable window disagrees with causal trigger')
+            first_window=(phase['student_first_contact_height_window_end_tick'] if contact_contract else
+                phase['authority']['student_first_stable_window_end_tick'])
+            require(first_window == trigger['receipt']['first_'+event+'_window_end_completed_tick'],
+                'Full numeric registered window disagrees with causal trigger')
             item.update(label_alignment=alignment, phases=phase, trigger=trigger,
                 numeric_sha256=sha256(directory/'numeric.h5'))
             if accepted:
@@ -186,7 +193,7 @@ def report(collection):
         receipts.append(item)
     if finished:
         require(len(receipts) == len(cases) and set(entries) <= set(names), 'Final opportunity accounting is incomplete')
-    return dict(version='completed_stable_takeover_audit_v1', created_unix=time.time(),
+    return dict(version='completed_'+event+'_takeover_audit_v1', created_unix=time.time(),
         plan_sha256=sha256(collection/'plan.json'), collector_source_commit=plan['source_commit'],
         completed_index_snapshot_sha256=hashlib.sha256(index_bytes).hexdigest() if index_bytes is not None else None,
         retained_index_snapshot_sha256=hashlib.sha256(entry_bytes).hexdigest() if entry_bytes is not None else None,

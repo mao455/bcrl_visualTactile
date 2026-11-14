@@ -1,3 +1,9 @@
+## 2026-11-14 可选完整周期双DP并行
+
+`tools.tight_fresh_cycle --parallel-frontends`只重叠独立A/B前端进程；联合启动余量22GiB显存/24GiB可用RAM与新鲜遥测不足时明确降为串行。每组仍保留固定完整episode预算、独立随机流/optimizer、全真实历史和原标签mask，前端全部完成后才允许后端依赖刷新及训练。每stage记录PID启动身份/结束码/完成SHA；并行不是新数据或额外训练配额，不承诺浮点逐位等价或未测加速。
+
+阶段审计按登记的stable或contact-height合同选择原触发器和文件；姿态窗口、接管资格、掉落及原生成功各自独立。报告兼容修复不改变收集或学生输入。
+
 ## 2026-11-14 有界Kit启动调度诊断准备
 
 两次contact06启动均卡在仿真初始化之前，未开始任何case；独立owner保持180秒启动界限，SIGTERM无响应再回收自有进程组。资源遥测无等待原因，native main futex等待/全进程约200%CPU；gdb取栈被系统ptrace限制拒绝。去掉本次额外PXR/OPENBLAS环境设置未解决，根因尚未确认。

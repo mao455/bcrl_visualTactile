@@ -9,7 +9,7 @@ import numpy as np
 from tools.tight_fresh_phases import case
 from tools.tight_fresh_stage_audit import audit_numeric
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import StableGraspTrigger, stable_windows
+from visuotactile.takeover_trigger import make_trigger, stable_windows
 from visuotactile.training_resources import atomic_json
 
 
@@ -67,7 +67,7 @@ def timeline_checks(transition, observation, result, pose, palm, force):
     if result['steps']!=n or result['dagger']['student_ticks']!=count or result['dagger']['expert_ticks']!=n-count:
         raise ValueError('Result authority/length differs from actual numeric rows')
     receipt=result['dagger']['trigger_receipt']
-    trigger=StableGraspTrigger(receipt['configuration'],receipt['fallback_tick'])
+    trigger=make_trigger(receipt['configuration'],receipt['fallback_tick'])
     for tick in range(count):trigger.observe(tick,pose[tick],palm[tick],force[tick])
     if trigger.receipt()!=receipt or trigger.scheduled_tick!=count:
         raise ValueError('Recorded actual trigger receipt or takeover boundary differs')
@@ -101,7 +101,8 @@ def run(directory, output):
             if window_components(pose,palm,force,height,tick)['stable_window']!=bool(stable[tick-1]):
                 raise ValueError('Window component explanation differs from full-history stable result')
         timeline['full_window_component_checks']=len(pose)-11
-        ends={n,phases['authority']['student_first_stable_window_end_tick']}
+        ends={n,phases['authority']['student_first_stable_window_end_tick'],
+            result['dagger']['trigger_receipt'].get('first_contact_height_window_end_completed_tick')}
         for tick in sorted(t for t in ends if t is not None and t>=12):
             row=window_components(pose,palm,force,height,tick);goal=after['goal_pose_w'][tick-1]
             row.update(goal_root_distance_m=float(np.linalg.norm(pose[tick-1,:3]-goal[:3])),

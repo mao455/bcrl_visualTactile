@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from tools.tight_fresh_takeover_pose_audit import timeline_checks, window_components
-from visuotactile.takeover_trigger import StableGraspTrigger
+from visuotactile.takeover_trigger import make_trigger
 
 
 def sample():
@@ -70,12 +70,15 @@ def test_rejects_malformed_or_nonfinite_window(mutation):
 
 
 @pytest.mark.parametrize('mutation',[None,'time','episode','pose','authority','result','receipt'])
-def test_actual_h5_timeline_checks_native_counts_and_expert_switch(tmp_path,mutation):
+@pytest.mark.parametrize('version',['stable_grasp_then_delay_v1','contact_height_then_delay_v1'])
+def test_actual_h5_timeline_checks_native_counts_and_expert_switch(tmp_path,mutation,version):
     n=72;student=67
     pose=np.zeros((n,7));pose[:,3]=1;pose[48:,2]=.1
     palm=np.zeros_like(pose);palm[:,3]=1
     force=np.zeros((n,2,5,3));force[:,:,:2,2]=1
-    trigger=StableGraspTrigger(dict(version='stable_grasp_then_delay_v1',delay_ticks=7),1000)
+    trigger=make_trigger(dict(version=version,delay_ticks=7),1000)
+    receipt_key=('first_stable_window_end_completed_tick' if version=='stable_grasp_then_delay_v1'
+        else 'first_contact_height_window_end_completed_tick')
     for tick in range(student):trigger.observe(tick,pose[tick],palm[tick],force[tick])
     result=dict(steps=n,dagger=dict(student_ticks=student,expert_ticks=n-student,trigger_receipt=trigger.receipt()))
     expected=copy.deepcopy(result)
@@ -91,12 +94,12 @@ def test_actual_h5_timeline_checks_native_counts_and_expert_switch(tmp_path,muta
         elif mutation=='pose':before['object_pose_w'][10,0]=1
         elif mutation=='authority':t['dagger/control_source'][10]=1
         elif mutation=='result':result['dagger']['student_ticks']-=1
-        elif mutation=='receipt':result['dagger']['trigger_receipt']['first_stable_window_end_completed_tick']+=1
+        elif mutation=='receipt':result['dagger']['trigger_receipt'][receipt_key]+=1
         if mutation is None:
             checked=timeline_checks(t,o,result,pose,palm,force)
             assert checked['trigger_replay_exact'] and result==expected
             assert checked['student_last_completed_tick']==67
             assert checked['expert_first_action_index']==67 and checked['expert_first_completed_tick']==68
-            assert checked['trigger_receipt']['first_stable_window_end_completed_tick']==60
+            assert checked['trigger_receipt'][receipt_key]==60
         else:
             with pytest.raises(ValueError):timeline_checks(t,o,result,pose,palm,force)
