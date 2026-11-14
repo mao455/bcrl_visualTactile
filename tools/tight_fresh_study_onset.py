@@ -91,6 +91,38 @@ def recovery_bins(record):
     return bins
 
 
+def correction_cohorts(data, study_version):
+    """Derive exact fitting populations from the registered training manifest."""
+    from visuotactile.narrow_data import aggregate_family_partitions
+    families = aggregate_family_partitions(data)
+    train = data['splits']['train']
+    original = data['normalization_train_ids']
+    current = data['aggregation']['new_training_ids']
+    if (len(original) != 30 or len(set(original)) != 30 or not set(original) <= set(train)
+            or len(set(current)) != len(current)):
+        raise ValueError('Original30 or current correction population differs')
+    corrections = sorted(set(train) - set(original))
+    original_families = {data['entries'][identity]['family'] for identity in original}
+    if len(original_families) != 30:
+        raise ValueError('Original30 must retain distinct admitted training families')
+    if not corrections or not current or not set(current) <= set(corrections):
+        raise ValueError('Nonempty actual training corrections and current subset required')
+    for identity in corrections:
+        entry = data['entries'][identity]
+        if (entry.get('trajectory_kind') != 'expert_takeover_v1'
+                or families[entry['family']] != 'train' or entry['family'] not in original_families):
+            raise ValueError('Fitting requires actual admitted training takeovers')
+    if study_version == 'matched_rear_output_anchor_study_v1':
+        names = ('all_corrections', 'current_corrections')
+    elif study_version is None:
+        if len(corrections) != 53 or len(current) != 12:
+            raise ValueError('Historical weight study requires its original53/new12 population')
+        names = ('all53', 'new12')
+    else:
+        raise ValueError('Unknown registered study version')
+    return {names[0]: corrections, names[1]: sorted(current)}
+
+
 def run(study, arm, output):
     from visuotactile.anchor_continue import residual_prediction
     from visuotactile.models.native_dp import load_residual
@@ -140,10 +172,9 @@ def run(study, arm, output):
         for key in ('robot_mean', 'robot_std', 'action_offset', 'action_scale'):
             if not torch.equal(saved['model'][key], statistics[key]):
                 raise ValueError('Normalization buffer differs')
-        corrections = sorted(set(data['splits']['train']) - set(data['normalization_train_ids']))
-        current = set(data['aggregation']['new_training_ids'])
-        if len(corrections) != 53 or len(current) != 12 or not current <= set(corrections):
-            raise ValueError('This registered round04 report requires all53 corrections and its new12 subset')
+        cohorts = correction_cohorts(data, registration.get('version'))
+        corrections, current_ids = cohorts.values()
+        current = set(current_ids)
         cases = []
         for identity in corrections:
             path = index_path.parent / (identity + '.pt')
@@ -177,7 +208,8 @@ def run(study, arm, output):
                 command_motion_bins={name: command_motion_sum(prediction, record['target'],
                     record['robot'][:,58:87], selected_mask) for name,selected_mask in bins.items()}))
         summaries = {}
-        for cohort, chosen in [('all53', cases), ('new12', [c for c in cases if c['current_correction']])]:
+        for cohort, identities in cohorts.items():
+            chosen = [c for c in cases if c['identity'] in identities]
             summaries[cohort] = dict(episodes=len(chosen),
                 source_group_counts={group: sum(c['source_group'] == group for c in chosen) for group in ('A', 'B')},
                 bins={name: aggregate([c['bins'][name] for c in chosen])
@@ -186,7 +218,7 @@ def run(study, arm, output):
                     for name in ('first12','next12','remaining')})
         roles[role] = dict(frontend_sha256=index['base_sha256'], backend_sha256=rear_sha,
             data_sha256=sha256(data_path), numeric_sha256=sha256(numeric_path), cache_index_sha256=sha256(index_path),
-            selected=selected, summaries=summaries, cases=cases)
+            selected=selected, fitting_population=cohorts, summaries=summaries, cases=cases)
         atomic_json(output.with_name(output.stem + '_' + role + '.json'), roles[role])
     if torch.cuda.is_initialized():
         raise ValueError('CPU onset report unexpectedly initialized CUDA')
@@ -196,7 +228,7 @@ def run(study, arm, output):
         command_motion_contract=dict(version='actual_pre_action_target_delta_v1',
             previous='Same-tick actual pre-action target robot[58:87], rad; never shifted q or future target',
             effective_gt_delta_threshold_rad=1e-6, direction='Positive prediction_delta*expert_delta on effective GT components; zero prediction counts as not same-direction',
-            scope='Already learned53 corrections; hold baseline and command deltas do not establish autonomous motion or validation generalization'),
+            scope='Already learned corrections in each exact fitting_population; hold baseline and command deltas do not establish autonomous motion or validation generalization'),
         dependency_sha256={str(path): sha256(path) for path in (
             Path(__file__).resolve().parents[1] / 'visuotactile' / name for name in
             ('anchor_continue.py', 'anchor_sampling.py', 'native_data.py', 'models/native_dp.py'))},

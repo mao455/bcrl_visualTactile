@@ -1,3 +1,11 @@
+## 2026-11-14 第四轮接触运动与跨轮实际行为诊断
+
+新增CPU工具tight_fresh_motion_probe，固定原train2/validation6、实际当前DP缓存和后端完整历史，绑定source/model/data/cache SHA。验证手指后端增量RMS为实际0.939/0.952，近零预测仅0.55%/0.45%，不支持整体静态保持捷径。首接触24tick的拇指CMC外展同向率A65.28%/B61.81%，误差为保持上一实际目标的1.023/1.226倍；食指及环指在部分family也差于保持，不能用统一收紧/松手规则解释。固定1e-4rad阈值同时报告运动能量覆盖与连续gain/cosine，全部12规划cursor及逐family分母保留。
+
+前端整段手指RMSE A0.05941/B0.06923rad，优于保持5Hz规划起点的0.10652/0.11535；但刚重规划的cursor0仍为同刻保持基线的3.196/2.779倍，因此不能全归于计划过旧。A首目标是q(t+1)，B是当步专家提交后的实际绝对目标，均不要求等于当前观察。这里只是记录历史上的预测精度诊断，没有执行保持策略，也不证明自主失败因果。
+
+新增tight_fresh_progression读取初始及四轮完整逐例回执、固定验证/训练诊断和selected完整pair，拒绝重复/未完成/专家接管/错配结果。后端验证误差持续下降而各轮A/B自主均0/4成功；稳定窗次数A为0/1/1/1/1，B为0/1/1/0/2。相同开发机会逐轮展示，不合并为独立test试验，也不把稳定窗当成功。原始报告和可复盘图为[progression_through_round04](evidence/tight_fresh_20261114/progression_through_round04.json)及[图](evidence/tight_fresh_20261114/progression_through_round04.png)，运动证据为[round04_motion_probe](evidence/tight_fresh_20261114/round04_motion_probe.json)。33项运动诊断测试及额外时间/缓存/归一化绑定通过，原数值不变，同向与近零比例明确非互斥；跨轮真实重算一致，重复阶段与其余8项异常输入被拒绝。零新GPU/仿真/优化，不修改活动第五轮。
+
 ## 2026-11-14 第五批稳定后接管完成，选择第五轮完整学习
 
 第五批12机会全部自然结束：A6/6、B5/6未出现学生稳定窗而601tick超时，零合法专家标签；B/formal_029在首次稳定窗后继续12tick，于action296真实接管，512tick由专家成功完成。实际保留296学生历史tick、2队列过渡tick、214合法专家tick。接管前再次失稳，原生对孔/near-goal仍false，不能当学生自主插入或稳定后段覆盖充分。独立stage audit核验真实source、延迟queue、mask、q[t+1]与实际专家目标；所有失败现场保留。逐帧视觉/后端次数等于控制步，采集实际A7.66/B7.81tick/s，包括无损图像保存与校验。

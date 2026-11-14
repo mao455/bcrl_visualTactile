@@ -9,7 +9,7 @@ from tools.tight_fresh_backend_study_report import (EXPOSURE_KEYS, check_onset_b
     read, rear_report)
 from tools.tight_fresh_phases import case as phase_case
 from tools.tight_fresh_rollouts import completed_pair
-from tools.tight_fresh_study_onset import aggregate, aggregate_command_motion
+from tools.tight_fresh_study_onset import aggregate, aggregate_command_motion, correction_cohorts
 from visuotactile.compact import sha256
 from visuotactile.residual_output import (MATCHED_FINAL_HEAD_RESET,
     REACHABLE_CENTERED_OUTPUT, REACHABLE_PREVIOUS_TARGET_OUTPUT)
@@ -215,15 +215,22 @@ def run(study,output,onset_suffix='_anchor_onset_cpu'):
     paths={arm:study/(arm+onset_suffix+'.json') for arm in ('source',*ARMS)}
     onset={arm:read(path) for arm,path in paths.items()}
     for role in ('A','B'):
+        source_data=read(Path(registration['source_root'])/role/'state_data/data.json')
+        expected_cohorts=correction_cohorts(source_data,registration['version'])
         for arm in ('source',*ARMS):
             expected=registration['source_pairs'][role]['backend_sha256'] if arm=='source' else roles[role]['arms'][arm]['selected']['checkpoint_sha256']
             current=check_onset_binding(onset[arm],onset['source'],role,arm,sha256(study/'registration.json'),expected)
             require(onset[arm].get('command_motion_contract')==onset['source'].get('command_motion_contract')
                 and onset[arm].get('command_motion_contract',{}).get('version')=='actual_pre_action_target_delta_v1',
                 'Missing or different motion/hold-baseline diagnostic')
-            for cohort,chosen in [('all53',current['cases']),('new12',[r for r in current['cases'] if r['current_correction']])]:
+            require(current.get('fitting_population')==expected_cohorts
+                and sorted(r['identity'] for r in current['cases'])==expected_cohorts['all_corrections']
+                and sorted(r['identity'] for r in current['cases'] if r['current_correction'])==expected_cohorts['current_corrections'],
+                'Recovery fitting records differ from actual training population')
+            for cohort,identities in expected_cohorts.items():
+                chosen=[r for r in current['cases'] if r['identity'] in identities]
                 summary=current['summaries'][cohort]
-                require(summary['episodes']==len(chosen)==(53 if cohort=='all53' else 12), 'Recovery fitting population differs')
+                require(summary['episodes']==len(chosen)==len(identities), 'Recovery fitting population differs')
                 require(summary['bins']=={name:aggregate([r['bins'][name] for r in chosen]) for name in ('first12','next12','remaining')}
                     and summary['command_motion_bins']=={name:aggregate_command_motion([r['command_motion_bins'][name] for r in chosen])
                         for name in ('first12','next12','remaining')}, 'Recovery physical errors or command motion aggregation differs')
@@ -235,7 +242,7 @@ def run(study,output,onset_suffix='_anchor_onset_cpu'):
         onset_reports_sha256={arm:sha256(path) for arm,path in paths.items()},device='cpu',test_used=False,
         limits='Matched source trunk/buffers and zeroed final Linear, frozen DP/data/cache, equal actual unweighted updates. '
         'The inherited trunk was trained with nominal coordinates. Fixed validation6 selects trained checkpoints. '
-        'Motion and error metrics use learned53 recovery histories and do not replace autonomous behavior. '
+        'Motion and error metrics use the registered learned recovery histories and do not replace autonomous behavior. '
         'Interleaved autonomous cells share registered opportunities, not exact hidden simulator state. No automatic promotion.'))
 
 

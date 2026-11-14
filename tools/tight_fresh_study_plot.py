@@ -12,26 +12,29 @@ def plot(report, output):
     if not data['complete'] or data['test_used']:
         raise ValueError('A complete non-test comparison is required')
     figure, axes = plt.subplots(2, 3, figsize=(12, 6), constrained_layout=True)
-    colors = {'control': '#3972ba', 'weighted': '#c46c32'}
+    candidate = 'previous' if data.get('version') == 'matched_anchor_study_report_v1' else 'weighted'
+    cohort = 'all_corrections' if candidate == 'previous' else 'all53'
+    colors = {'control': '#3972ba', candidate: '#c46c32'}
     for row, role in enumerate(('A', 'B')):
         result = data['roles'][role]
         for col, split in enumerate(('train', 'validation')):
             axis = axes[row, col]
-            for arm in ('control', 'weighted'):
+            for arm in ('control', candidate):
                 history = result['arms'][arm]['history']
                 axis.plot([r['epoch'] for r in history],
                           [r[split]['all']['hand_rmse_rad'] for r in history],
                           marker='o', color=colors[arm], label=arm)
             axis.set(title=f'{role}: fixed {split} command error', xlabel='Additional rear epoch',
-                     ylabel='Hand RMSE (rad)', xticks=[1, 2, 3])
+                     ylabel='Hand RMSE (rad)')
             axis.grid(alpha=.2)
             axis.legend()
         axis = axes[row, 2]
-        arms = ('source', 'control', 'weighted')
-        axis.bar(arms, [result['onset_fitting'][arm]['all53']['bins']['first12']['hand_rmse_rad']
-                        for arm in arms], color=['#888888', colors['control'], colors['weighted']])
+        arms = ('source', 'control', candidate)
+        population = result['onset_fitting']['source'][cohort]['episodes']
+        axis.bar(arms, [result['onset_fitting'][arm][cohort]['bins']['first12']['hand_rmse_rad']
+                        for arm in arms], color=['#888888', colors['control'], colors[candidate]])
         axis.set(title=f'{role}: first 12 legal recovery ticks', ylabel='Hand RMSE (rad)')
-        axis.text(.5, -.19, '53 learned corrections; same recorded histories', transform=axis.transAxes,
+        axis.text(.5, -.19, f'{population} learned corrections; same recorded histories', transform=axis.transAxes,
                   ha='center', fontsize=8)
     figure.suptitle('Matched additional training; unweighted errors, not autonomous success')
     figure.savefig(output, dpi=180)
