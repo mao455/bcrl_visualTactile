@@ -1,3 +1,11 @@
+## 2026-11-14 可扩展执行与显式策略/数据来源
+
+当前正式batch使用正整数lane数、按同权重分波、逐lane独立历史/接管/终止/合法专家mask；每个60Hz时刻的真实三视角均进入学生。vision_microbatch显式登记，填充复制当前lane并丢弃，不增加观察或监督。原120/60/5Hz及29维目标不变；普通CPU/standard默认仍兼容，新的execution_backend_v1/v2可登记CPU或CUDA、standard或tiled、Kit/PhysX线程及v2渲染描述符容量，实际读回不等于真实物理/传感通过。没有未经证据的4环境上限。
+
+independent_followup_binding_v3分别绑定每角色已完成自主的完整DP/后端来源与共同数据池。较大池须严格追加已准入训练纠偏、保留旧条目和验证/测试隔离、原30统计、真实numeric与完整冻结DINO缓存。纯数据池无需已经训练；已选权重的原数据/cache身份不得改写为较大池。新时段只在所有来源owner退出后创建，旧deadline/现场保持。
+
+异步采集始终先完成真实执行、再对关闭文件进行全部源字段校验/完整hash、最后通过原控制/相机/成功审核入池。execution_complete、record_verified、accepted_for_training三者分开；软件partial与未触发不是新的成功数据。计时以完整owner总wall和实际入池轨迹/合法专家步为主，异步重叠时间不相加。
+
 ## 2026-11-14 latest_takeover_repeat_v1 前端访问合同
 
 可选sampling_contract={version:latest_takeover_repeat_v1, latest_repeat:1/2/4}仅用于真实DAgger aggregate的本次新增训练episode。原30统计不重算，旧84等历史每遍一次，latest按登记次数完整重放当前权重历史；student prefix与队列flush仍无动作标签，A几何和DP监督共用原合法mask。前端每次episode访问一次optimizer更新，记录episode次数、合法anchor/目标槽，不把步份额称精确梯度份额。每个epoch的实际访问总数随repeat改变，A/B预算相同。

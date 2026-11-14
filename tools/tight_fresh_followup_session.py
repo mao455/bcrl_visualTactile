@@ -231,7 +231,139 @@ def audit_role(source, role, pair, session):
         normalization_train_ids=data.get('normalization_train_ids', data['splits']['train']))
 
 
-def prepare(source, output, hours, *, evaluation=None):
+def _same_numeric(left, right):
+    """Compare cached labels/history without reading any raw held-out episode."""
+    import torch
+    if isinstance(left, torch.Tensor):
+        return isinstance(right, torch.Tensor) and left.dtype == right.dtype and torch.equal(left, right)
+    if isinstance(left, dict):
+        return isinstance(right, dict) and left.keys() == right.keys() and all(
+            _same_numeric(value, right[key]) for key, value in left.items())
+    if isinstance(left, (list, tuple)):
+        return type(left) is type(right) and len(left) == len(right) and all(
+            _same_numeric(a, b) for a, b in zip(left, right))
+    return type(left) is type(right) and left == right
+
+
+def audit_data_extension(source, data_source, role, session, *, allow_equal=False):
+    """Bind a strict train-only superset independently of the selected weights.
+
+    This accepts data, never checkpoint relabeling. Historical raw/visual shards
+    are manifest-bound and stat-checked, as in audit_role; only numeric histories
+    and small manifests/statistics are read here. No test trajectory is opened.
+    """
+    import torch
+    from visuotactile.narrow_data import aggregate_family_partitions
+    from visuotactile.training_expansion import read_registry, validate_expansion_entry
+    old_state = source/role/'state_data'
+    state = data_source/role/'state_data'
+    old = read(old_state/'data.json')
+    data = read(state/'data.json')
+    before = old['splits']['train']
+    after = data['splits']['train']
+    if (set(data['splits']) != set(old['splits']) or after[:len(before)] != before
+            or len(after) < len(before) or (len(after) == len(before) and not allow_equal)
+            or len(after) != len(set(after))
+            or any(data['splits'][key] != values for key, values in old['splits'].items() if key != 'train')):
+        raise ValueError('Data pool must strictly append training identities and preserve every held-out split')
+    added = after[len(before):]
+    if not added and sha256(state/'data.json') != sha256(old_state/'data.json'):
+        raise ValueError('Equal-size data pool must preserve exact manifest bytes')
+    if (set(data['entries']) != set(old['entries']) | set(added)
+            or any(data['entries'].get(identity) != entry for identity, entry in old['entries'].items())):
+        raise ValueError('Data pool changed an existing entry or added unregistered identities')
+    mutable = {'entries', 'splits', 'families', 'aggregation', 'source_data_sha256',
+        'source_statistics_sha256', 'manifest_sha256', 'training_expansion_registries'}
+    if any(old.get(key) != data.get(key) for key in set(old) | set(data) if key not in mutable):
+        raise ValueError('Data pool changed its sensor, target, normalization or input contract')
+    old_registries = old.get('training_expansion_registries', [])
+    registries = data.get('training_expansion_registries', [])
+    if registries[:len(old_registries)] != old_registries:
+        raise ValueError('Data pool changed an existing training expansion registry')
+    families = aggregate_family_partitions(data)
+    old_families = aggregate_family_partitions(old)
+    aggregation = data.get('aggregation', {})
+    if added and (aggregation.get('version') != 'expert_takeover_aggregate_v1'
+            or aggregation.get('selection') != 'successful_expert_executed_corrections'
+            or aggregation.get('student_prefix_supervised') is not False
+            or not aggregation.get('new_training_ids')
+            or not set(aggregation.get('new_training_ids', [])) <= set(added)):
+        raise ValueError('Data pool lacks successful actual expert-suffix aggregation provenance')
+    registry_files = {}
+    for identity in added:
+        entry = data['entries'][identity]
+        if entry.get('split') != 'train' or entry.get('trajectory_kind') != 'expert_takeover_v1':
+            raise ValueError('Additional data must be accepted actual expert train corrections')
+        binding = entry.get('training_expansion')
+        if binding is not None:
+            if binding not in registries:
+                raise ValueError('Additional family lost its registered metadata binding')
+            registry = read_registry(binding)
+            reference = registry['source_manifests'][role]
+            validate_expansion_entry(entry, read(reference['path']), binding)
+            registry_files[binding['registry_id']] = file_binding(binding['path'], binding['sha256'])
+        elif old_families.get(entry.get('family')) != 'train':
+            raise ValueError('New training family requires its preregistered expansion binding')
+    files = {name:file_binding(state/name) for name in ('data.json', 'statistics.pt', 'numeric.pt')}
+    if files['statistics.pt']['sha256'] != sha256(old_state/'statistics.pt'):
+        raise ValueError('Additional data must preserve the original statistics bytes')
+    if added and data.get('source_statistics_sha256') != files['statistics.pt']['sha256']:
+        raise ValueError('Additional data affine provenance changed')
+    files['cache_index.json'] = file_binding(data_source/role/'cache_index.json')
+    visual = read(data_source/role/'cache_index.json')
+    old_visual = read(source/role/'cache_index.json')
+    identities = [identity for values in data['splits'].values() for identity in values]
+    if (len(identities) != len(set(identities)) or set(identities) != set(data['entries'])
+            or not visual.get('complete') or visual.get('stride') != 1
+            or visual.get('trainable_projection_cached') is not False
+            or visual.get('data_sha256') != files['data.json']['sha256']
+            or visual.get('dino_sha256') != session['dino_sha256']
+            or set(visual['entries']) != set(identities)):
+        raise ValueError('Additional data continuous-vision cache population or identity differs')
+    numeric = torch.load(state/'numeric.pt', map_location='cpu', weights_only=False)
+    old_numeric = torch.load(old_state/'numeric.pt', map_location='cpu', weights_only=False)
+    if (numeric.get('data_sha256') != files['data.json']['sha256']
+            or set(numeric['records']) != set(identities)
+            or not _same_numeric(numeric.get('contract'), old_numeric.get('contract'))
+            or any(not _same_numeric(record, numeric['records'][identity])
+                for identity, record in old_numeric['records'].items())):
+        raise ValueError('Additional data numeric history changed existing records or its manifest binding')
+    del numeric, old_numeric
+    if role == 'A' or (old_state/'loss_context.pt').exists():
+        files['loss_context.pt'] = file_binding(state/'loss_context.pt')
+        old_context = torch.load(old_state/'loss_context.pt', map_location='cpu', weights_only=False)
+        new_context = torch.load(state/'loss_context.pt', map_location='cpu', weights_only=False)
+        if any(key not in new_context or not _same_numeric(value, new_context[key])
+                for key, value in old_context.items()):
+            raise ValueError('Additional data changed existing geometry labels')
+        del old_context, new_context
+    large = {}
+    for identity in identities:
+        if Path(identity).name != identity or identity in ('.', '..'):
+            raise ValueError('Local episode names required')
+        entry, cached = data['entries'][identity], visual['entries'][identity]
+        if (cached.get('source_sha256') != entry['source_sha256']
+                or cached.get('frames') != entry['length']
+                or (state/'perception'/(identity+'.pt')).resolve() != Path(cached['path']).resolve()
+                or identity in old_visual['entries'] and cached['sha256'] != old_visual['entries'][identity]['sha256']):
+            raise ValueError('Additional data changed source frames or existing frozen visual features')
+        large[identity] = {}
+        for kind, path, digest in [('raw', Path(entry['path']), entry['source_sha256']),
+                ('visual', Path(cached['path']), cached['sha256'])]:
+            stat = path.stat()
+            if not path.is_file() or stat.st_size < 1:
+                raise ValueError('Missing additional data artifact: ' + str(path))
+            large[identity][kind] = dict(path=str(path.resolve()), declared_sha256=digest,
+                bytes=stat.st_size, mtime_ns=stat.st_mtime_ns, bytes_rehashed=False)
+    return dict(files=files, large_artifacts=large, splits=data['splits'], families=families,
+        added_training_ids=added, added_entries={identity:data['entries'][identity] for identity in added},
+        normalization_train_ids=data.get('normalization_train_ids', before),
+        original_data=file_binding(old_state/'data.json'), declared_parent_data_sha256=data.get('source_data_sha256'),
+        training_expansion_registries=registry_files, heldout_trajectories_opened=0,
+        meaning='Collection/next-update pool only; selected weights retain their original data/cache identities')
+
+
+def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None):
     source = Path(source).resolve(strict=True)
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -246,20 +378,79 @@ def prepare(source, output, hours, *, evaluation=None):
         raise ValueError('Expected current every-frame full-GPU research contract')
     context, registration = context_root(source)
     roots, receipts = source_ownership(source, evaluation, context)
+    role_sources = {} if role_sources is None else dict(role_sources)
+    if set(role_sources) - {'A', 'B'}:
+        raise ValueError('Role-specific policy sources only support A and B')
+    if role_sources and data_source is None:
+        raise ValueError('Role-specific policies require an explicit common data source')
+    policy_roots = {role:Path(role_sources.get(role, source)).resolve(strict=True) for role in ('A', 'B')}
+    policy_contexts = {source:(context, registration)}
+    for policy_root in set(policy_roots.values()) - {source}:
+        selected_context, selected_registration = context_root(policy_root)
+        policy_contexts[policy_root] = (selected_context, selected_registration)
+        selected_roots, selected_receipts = source_ownership(policy_root, policy_root/'development', selected_context)
+        roots |= selected_roots
+        receipts = sorted(set(receipts) | set(selected_receipts))
+    pool = Path(data_source).resolve(strict=True) if data_source is not None else source
+    data_binding = None
+    if data_source is not None:
+        if pool == source and not role_sources:
+            raise ValueError('Explicit additional data source must strictly extend the policy source')
+        pool_context, pool_registration = context_root(pool)
+        pool_roots, pool_receipts = source_ownership(pool, pool/'development', pool_context)
+        roots |= pool_roots
+        receipts = sorted(set(receipts) | set(pool_receipts))
     if any(output == root or output in root.parents or root in output.parents for root in roots):
         raise ValueError('Independent output must be outside the original session and artifact roots')
     assert_quiescent(roots, receipts)
-    pairs = {role:completed_pair(source, role) for role in ('A', 'B')}
-    evaluated = evaluated_pairs(source, evaluation, pairs)
+    source_pairs = {role:completed_pair(source, role) for role in ('A', 'B')}
+    evaluated = evaluated_pairs(source, evaluation, source_pairs)
+    policy_evidence = {source:dict(selected_pairs=source_pairs, evaluation=evaluated)}
+    for policy_root in set(policy_roots.values()) - {source}:
+        selected_context, selected_registration = policy_contexts[policy_root]
+        selected_session = read(policy_root/'session.json')
+        for key in ('version', 'domain', 'visual_stride', 'control_hz', 'planning_hz',
+                'resource_policy', 'dino_sha256', 'expert_sha256'):
+            if selected_session.get(key) != session.get(key):
+                raise ValueError('Role-specific policy session contract differs: ' + key)
+        if (read(selected_context/'metadata.json') != read(context/'metadata.json')
+                or read(selected_context/'gate.json').get('passed') is not True):
+            raise ValueError('Role-specific policy task metadata or input gate differs')
+        selected_pairs = {role:completed_pair(policy_root, role) for role in ('A', 'B')}
+        policy_evidence[policy_root] = dict(selected_pairs=selected_pairs,
+            evaluation=evaluated_pairs(policy_root, policy_root/'development', selected_pairs))
+    pairs = {role:policy_evidence[policy_roots[role]]['selected_pairs'][role] for role in ('A', 'B')}
     gate = read(context/'gate.json')
     if gate.get('passed') is not True:
         raise ValueError('Source every-frame input gate did not pass')
     inputs = {name:file_binding(context/name) for name in ('metadata.json', 'gate.json')}
     source_session = file_binding(source/'session.json')
-    roles = {role:audit_role(source, role, pairs[role], session) for role in ('A', 'B')}
-    if (roles['A']['splits'] != roles['B']['splits'] or
+    roles = {role:audit_role(policy_roots[role], role, pairs[role], session) for role in ('A', 'B')}
+    if ((not role_sources and roles['A']['splits'] != roles['B']['splits']) or
             roles['A']['normalization_train_ids'] != roles['B']['normalization_train_ids']):
         raise ValueError('A/B data or original normalization cohorts differ')
+    if data_source is not None:
+        pool_session = read(pool/'session.json')
+        for key in ('version', 'domain', 'visual_stride', 'control_hz', 'planning_hz',
+                'resource_policy', 'dino_sha256', 'expert_sha256'):
+            if pool_session.get(key) != session.get(key):
+                raise ValueError('Additional data session contract differs: ' + key)
+        if read(pool_context/'metadata.json') != read(context/'metadata.json'):
+            raise ValueError('Additional data task metadata differs')
+        if read(pool_context/'gate.json').get('passed') is not True:
+            raise ValueError('Additional data input gate did not pass')
+        data_roles = {role:audit_data_extension(policy_roots[role], pool, role, session,
+            allow_equal=bool(role_sources)) for role in ('A', 'B')}
+        for key in ('splits', 'normalization_train_ids'):
+            if data_roles['A'][key] != data_roles['B'][key]:
+                raise ValueError('A/B additional data pools differ: ' + key)
+        pool_entries = {role:read(pool/role/'state_data/data.json')['entries'] for role in ('A', 'B')}
+        if pool_entries['A'] != pool_entries['B']:
+            raise ValueError('A/B additional data pools differ: entries')
+        data_binding = dict(source_root=str(pool), context_root=str(pool_context),
+            source_session=file_binding(pool/'session.json'),
+            context_inputs={name:file_binding(pool_context/name) for name in ('metadata.json', 'gate.json')},
+            upstream_study_registration=pool_registration, roles=data_roles)
     code_root = Path(__file__).resolve().parent.parent
     code = {str(path.relative_to(code_root)):sha256(path) for folder in ('tools', 'visuotactile')
         for path in sorted((code_root/folder).rglob('*.py'))}
@@ -280,10 +471,20 @@ def prepare(source, output, hours, *, evaluation=None):
         authorization='User-authorized continuing autonomous DAgger research; independent session, not an extension',
         followup=dict(source_root=str(source), source_session_sha256=source_session['sha256'],
             previous_deadline=session['deadline'], selected_pairs=pairs, hours=float(hours)))
+    if data_binding is not None:
+        fresh['session_kind'] = 'independent_followup_v2'
+        fresh['followup'].update(data_pool_source_root=str(pool),
+            data_pool_session_sha256=data_binding['source_session']['sha256'],
+            selected_weights_data_relation='Evaluated policy weights retain source data; larger pool is for collection and future updates')
+    if role_sources:
+        fresh['session_kind'] = 'independent_followup_v3'
+        fresh['followup']['role_policy_source_roots'] = {role:str(root) for role, root in policy_roots.items()}
     output.mkdir(parents=True, exist_ok=False)
     (output/'provenance').mkdir()
     atomic_json(output/'session.json', fresh)
     shutil.copyfile(source/'session.json', output/'provenance/source_session.json')
+    if data_binding is not None:
+        shutil.copyfile(pool/'session.json', output/'provenance/data_pool_session.json')
     shutil.copyfile(context/'metadata.json', output/'metadata.json')
     shutil.copyfile(context/'gate.json', output/'provenance/source_gate.json')
     atomic_json(output/'gate.json', dict(passed=True, inherited_input_gate=inputs['gate.json']['path'],
@@ -294,16 +495,17 @@ def prepare(source, output, hours, *, evaluation=None):
     for role in ('A', 'B'):
         base = output/role
         rear = base/'backend'/role
+        policy_root = policy_roots[role]
         for directory in (base/'training', rear/'training', rear/'offline'):
             directory.mkdir(parents=True)
         artifacts = {
-            'state_data':source/role/'state_data', 'cache_index.json':source/role/'cache_index.json',
+            'state_data':pool/role/'state_data', 'cache_index.json':pool/role/'cache_index.json',
             'training/best.pt':Path(pairs[role]['frontend']),
-            'backend/'+role+'/state_data':source/role/'state_data',
-            'backend/'+role+'/nominal':source/role/'backend'/role/'nominal',
+            'backend/'+role+'/state_data':policy_root/role/'state_data',
+            'backend/'+role+'/nominal':policy_root/role/'backend'/role/'nominal',
             'backend/'+role+'/training/best.pt':Path(pairs[role]['backend']),
-            'backend/'+role+'/training/finished.json':source/role/'backend'/role/'training/finished.json',
-            'backend/'+role+'/offline/result.json':source/role/'backend'/role/'offline/result.json'}
+            'backend/'+role+'/training/finished.json':policy_root/role/'backend'/role/'training/finished.json',
+            'backend/'+role+'/offline/result.json':policy_root/role/'backend'/role/'offline/result.json'}
         for name, target in artifacts.items():
             target = target.resolve(strict=True)
             (base/name).symlink_to(target, target_is_directory=target.is_dir())
@@ -325,8 +527,28 @@ def prepare(source, output, hours, *, evaluation=None):
         mutation_scope='Destination only; artifact symlinks are read-only by convention, not filesystem enforcement',
         previous_deadline=session['deadline'], started_utc=started, deadline=deadline,
         deadline_relation='New independent window; source deadline and evidence unchanged')
+    if data_binding is not None:
+        binding.update(version='independent_followup_binding_v2', data_pool_source=data_binding,
+            policy_source=dict(source_root=str(source), selected_pairs=pairs,
+                checkpoint_data_sha256={role:roles[role]['files']['state_data/data.json']['sha256'] for role in roles}),
+            split_policy_data=True)
+    if role_sources:
+        role_evidence = {}
+        for role, root in policy_roots.items():
+            role_context, role_registration = policy_contexts[root]
+            role_evidence[role] = dict(source_root=str(root), context_root=str(role_context),
+                source_session=file_binding(root/'session.json'),
+                context_inputs={name:file_binding(role_context/name) for name in ('metadata.json', 'gate.json')},
+                upstream_study_registration=role_registration,
+                selected_pair=pairs[role], evaluation=policy_evidence[root]['evaluation'],
+                checkpoint_data_sha256=roles[role]['files']['state_data/data.json']['sha256'])
+        binding.update(version='independent_followup_binding_v3', role_policy_sources=role_evidence,
+            policy_source=dict(default_source_root=str(source),
+                role_source_roots={role:str(root) for role, root in policy_roots.items()}, selected_pairs=pairs),
+            selection_meaning='Explicit next-collection candidates from completed development evaluations; '
+                'not evidence of independent new-family superiority')
     atomic_json(output/'provenance/binding.json', binding)
-    atomic_json(output/'prepared.json', dict(kind='independent_followup_v1', complete=True,
+    atomic_json(output/'prepared.json', dict(kind=fresh['session_kind'], complete=True,
         source_root=str(source), selected_pairs=pairs, source_commit=commit,
         binding_sha256=sha256(output/'provenance/binding.json'), session_sha256=sha256(output/'session.json'),
         source_workers_exited=True, monitor_started=False, workers_started=False, utc=started))
@@ -339,8 +561,19 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--hours', type=float, required=True)
     parser.add_argument('--evaluation', type=Path, help='Completed autonomous evaluation, default source/development')
+    parser.add_argument('--data-source-root', type=Path,
+        help='Explicit larger train-only pool; selected weights and their original cache/data bindings stay unchanged')
+    parser.add_argument('--role-source', action='append', default=[], metavar='ROLE=ROOT',
+        help='Override A or B with its real evaluated policy source; requires --data-source-root')
     args = parser.parse_args()
-    binding = prepare(args.source_root, args.output, args.hours, evaluation=args.evaluation)
+    role_sources = {}
+    for value in args.role_source:
+        role, separator, path = value.partition('=')
+        if not separator or role not in ('A', 'B') or not path or role in role_sources:
+            parser.error('--role-source requires one unique A=ROOT or B=ROOT binding per role')
+        role_sources[role] = Path(path)
+    binding = prepare(args.source_root, args.output, args.hours, evaluation=args.evaluation,
+        data_source=args.data_source_root, role_sources=role_sources)
     print(json.dumps(dict(output=str(args.output.resolve()), deadline=binding['deadline'],
         selected_pairs=binding['selected_pairs'], workers_started=False)), flush=True)
 
