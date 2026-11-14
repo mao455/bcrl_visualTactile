@@ -1,3 +1,9 @@
+## 2026-11-14 训练初态诊断原生中断与未开始机会接续
+
+pre-control恢复在11.08秒初始化成功，A/formal_050完整601tick timeout、无拿稳/对孔/子目标；B同family在执行中退出-11，最后progress为tick200。worker91.53秒退出，恰在90秒定时faulthandler dump处日志截断；目前不能确定定时dump与原生段错误的因果。没有把B部分轨迹算作完整任务失败，也不重跑A/B第一family。
+
+恢复入口取消运行中定时dump，保留普通fault handler及owner180秒启动界限。新增tight_fresh_remaining只登记原plan中两次attempt均未出现case目录的机会，核验原plan字节、所有worker退出、session/pair/全部冻结源码身份；完成和partial均排除。41项CPU测试通过。选择仅继续第二family的原B/A两个机会，仍冻结4904336实际策略/执行源码。原4机会总分母与软件中断记录均保留，本条不预告结果。
+
 ## 2026-11-14 纠偏DP统计的完整规划噪声时钟修复
 
 审查确认tight_fresh_train.metrics旧实现先过滤学生前缀anchor，再从seed7091重新取噪声，使首个合法纠偏规划错误使用tick0噪声；第三轮20条新纠偏首合法anchor为72–300，漏推进6–25次噪声。原30/固定6验证从tick0开始，选模数值、实际训练梯度、在线与后端cache均不受影响；旧纠偏DP指标不能声称与完整在线规划时钟配对，不将其与新口径直接作增益比较。

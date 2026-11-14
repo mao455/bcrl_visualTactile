@@ -115,8 +115,7 @@ def run(root,previous,output,source,startup_seconds,*,preserve_registered_plan=F
     plan=json.loads((output/'plan.json').read_text())
     if plan['cases']!=old['cases'] or plan['pairs']!=old['pairs']:
         raise ValueError('Recovery changed registered cases or selected complete pairs')
-    wrapper="import faulthandler,runpy;faulthandler.dump_traceback_later(90,repeat=True);runpy.run_module('tools.tight_fresh_rollouts',run_name='__main__')"
-    command=[str(python),'-c',wrapper,'run','--root',str(root),'--output',str(output)]
+    command=[str(python),'-m','tools.tight_fresh_rollouts','run','--root',str(root),'--output',str(output)]
     began=time.time()
     with (output/'owner_worker.log').open('x') as log:
         process=subprocess.Popen(command,cwd=source,env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)

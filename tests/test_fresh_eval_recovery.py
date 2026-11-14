@@ -94,6 +94,9 @@ def test_preserved_plan_reuses_exact_training_cases_pairs_source_and_deadline(re
     assert (x.output/'session.json').read_bytes()==(x.previous/'session.json').read_bytes()
     assert len(x.calls)==1 and x.calls[0]['cwd']==x.source
     assert x.calls[0]['command'][0]==str(x.source/'.venv_isaacsim/bin/python')
+    assert x.calls[0]['command'][1:4]==['-m','tools.tight_fresh_rollouts','run']
+    assert 'dump_traceback_later' not in ' '.join(x.calls[0]['command'])
+    assert x.calls[0]['env']['PYTHONFAULTHANDLER']=='1'
     assert x.calls[0]['start_new_session'] and x.calls[0]['command'][-1]==str(x.output)
     registration=json.loads((x.output/'recovery_registration.json').read_text())
     assert registration['preserve_registered_plan']
