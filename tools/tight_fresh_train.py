@@ -96,15 +96,33 @@ def gate(root):
 
 
 @torch.no_grad()
+def predict_on_native_clock(model, conditions, anchors):
+    """Keep the online DDIM noise stream across unsupervised student prefixes.
+
+    DDIM eta=0 consumes one initial Hx29 noise tensor per 5Hz replan. Skipped
+    loss anchors still consume that draw, without unnecessary denoising.
+    """
+    ticks=anchors.detach().cpu().tolist()
+    if (len(ticks)!=len(conditions) or not ticks or ticks!=sorted(set(ticks))
+            or any(t<0 or t%12 for t in ticks)):
+        raise ValueError('Expected increasing supervised anchors on the native planning clock')
+    generator=torch.Generator(device=conditions.device).manual_seed(7091)
+    cursor=0;plans=[]
+    for index,tick in enumerate(ticks):
+        while cursor<tick:
+            torch.randn((1,model.horizon,29),device=conditions.device,generator=generator)
+            cursor+=12
+        plans.append(model.predict(conditions[index:index+1],generator,scheduler_index_mode='host'))
+        cursor+=12
+    return torch.cat(plans)
+
+
+@torch.no_grad()
 def metrics(model,records,identities):
     model.eval();errors=[];normalized=[];rows=[]
     for i in identities:
         rec=records[i];c,a=supervised_conditions(model,rec)
-        # Online draws one H24 noise tensor per replan. Keep that RNG order.
-        g=torch.Generator(device='cuda').manual_seed(7091)
-        plans=[]
-        for k in range(len(c)):plans.append(model.predict(c[k:k+1],g,scheduler_index_mode='host'))
-        pred=torch.cat(plans)
+        pred=predict_on_native_clock(model,c,a)
         pred=bounded_targets(pred.flatten(0,1),rec['joint_limits']).reshape_as(pred)
         truth,valid=labels(rec,a,24);mask=valid[:,:12];e=(pred[:,:12]-truth[:,:12])[mask]
         errors.append(e.cpu());normalized.append((e*model.action_scale).cpu())
@@ -112,6 +130,7 @@ def metrics(model,records,identities):
     e=torch.cat(errors);n=torch.cat(normalized)
     return dict(arm_rmse_rad=float(e[:,:7].square().mean().sqrt()),hand_rmse_rad=float(e[:,7:].square().mean().sqrt()),
         selection=float(.5*n[:,:7].square().mean()+.5*n[:,7:].square().mean()),episodes=rows,
+        noise_schedule='seed7091 advances at every native5Hz planning tick, including unsupervised prefixes',
         scope='teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim')
 
 
