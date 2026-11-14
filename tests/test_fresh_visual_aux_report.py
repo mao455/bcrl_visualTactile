@@ -96,6 +96,20 @@ def test_source_action_change_does_not_use_pose_or_global_training_loss():
     assert value['train']['selection']['relative_change']==0
 
 
+def test_action_population_reconstructs_onset_authority_and_rejects_forged_counters():
+    records={identity:dict(time=torch.arange(n)/60,command=torch.zeros(n,29)) for identity,n in [('a',25),('b',20)]}
+    records['b'].update(supervision_mask=torch.arange(20)>=5,control_segment=(torch.arange(20)>=5).long())
+    rows=[dict(episode='a',visual_frames=25,anchors_seen=3,target_ticks=38),
+        dict(episode='b',visual_frames=20,anchors_seen=5,target_ticks=61)]
+    actual=report.action_population_receipts(rows,records,'recovery_onset_commit12_v1')
+    assert actual['single_traversal']==dict(anchors_seen=5,target_ticks=61,visual_frames=45)
+    assert actual['per_episode']['b']['target_ticks']==23
+    with pytest.raises(ValueError,match='action population'):report.action_population_receipts(rows,records,None)
+    changed=copy.deepcopy(rows);changed[-1]['target_ticks']+=1
+    with pytest.raises(ValueError,match='action population'):
+        report.action_population_receipts(changed,records,'recovery_onset_commit12_v1')
+
+
 @pytest.mark.parametrize('kind',['duplicated_episode','wrong_phase','noncontiguous_update','wrong_best','wrong_visual_frames','wrong_history'])
 def test_frontend_receipt_corruption_fails_instead_of_becoming_training_progress(kind):
     args=list(copy.deepcopy(receipts_fixture()))
@@ -226,7 +240,8 @@ def test_partial_report_never_claims_training_or_autonomy_and_checks_frozen_sour
     project=Path(report.__file__).resolve().parents[1]
     dependencies=['tools/tight_fresh_anchor_study_report.py','tools/tight_fresh_backend_study_report.py',
         'tools/tight_fresh_learning_report.py','tools/tight_fresh_phases.py','tools/tight_fresh_rollouts.py',
-        'tools/tight_fresh_visual_aux_study.py','visuotactile/visual_aux_training.py','visuotactile/visual_pose_aux.py']
+        'tools/tight_fresh_visual_aux_study.py','visuotactile/visual_aux_training.py','visuotactile/visual_pose_aux.py',
+        'visuotactile/anchor_sampling.py','visuotactile/target_windows.py']
     for name in dependencies:
         path=source/name;path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes((project/name).read_bytes())
     registration=dict(version=report.STUDY_VERSION,arms=list(report.ARMS),routes=report.ROUTES,test_used=False,

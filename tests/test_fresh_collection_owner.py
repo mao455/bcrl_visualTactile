@@ -6,9 +6,9 @@ from types import SimpleNamespace
 import pytest
 
 from tools import tight_fresh_collection_owner as owner
-from tools.tight_fresh_stage_takeover import CONTRACT, NEVER_FALLBACK
+from tools.tight_fresh_stage_takeover import CONTRACT, CONTACT_HEIGHT_CONTRACT, NEVER_FALLBACK
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import VERSION
+from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION
 
 
 @pytest.fixture
@@ -63,6 +63,26 @@ def test_owner_launches_exact_stage_cli_and_binds_complete_opportunities(registe
     with pytest.raises(FileExistsError):
         owner.run(x.output, x.tree)
     assert len(x.calls) == 1
+
+
+@pytest.mark.parametrize('wrong_kind', [False, True])
+def test_contact_collection_requires_its_own_stage_receipt(registered, monkeypatch, wrong_kind):
+    x = registered
+    x.plan['stage_takeover_contract'] = CONTACT_HEIGHT_CONTRACT
+    x.plan['cases'][0]['dagger']['trigger']['version'] = CONTACT_HEIGHT_VERSION
+    x.write(x.output / 'plan.json', x.plan)
+    def wait(*args, **kwargs):
+        if not wrong_kind:
+            (x.output / 'A_one/stable_stage_audit.json').rename(
+                x.output / 'A_one/contact_height_stage_audit.json')
+    monkeypatch.setattr(owner, 'wait_owned', wait)
+    if wrong_kind:
+        with pytest.raises(FileNotFoundError):
+            owner.run(x.output, x.tree)
+        assert owner.read(x.output / 'owner_finished.json')['software_complete'] is False
+    else:
+        owner.run(x.output, x.tree)
+        assert owner.read(x.output / 'owner_finished.json')['software_complete'] is True
 
 
 @pytest.mark.parametrize('name', ['initialization.json', 'result.json', 'results.json', 'owner_started.json'])

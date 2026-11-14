@@ -169,6 +169,28 @@ def action_change(before,after):
     return result
 
 
+def action_population_receipts(learning,records,target_window_contract):
+    """Reconstruct legal windows from recorded authority, independently of counters."""
+    from visuotactile.anchor_sampling import planning_anchors, labels
+    from visuotactile.target_windows import with_target_window
+    records=with_target_window(records,target_window_contract);counts={}
+    for identity,record in records.items():
+        anchors=planning_anchors(record);valid=labels(record,anchors,24)[1]
+        counts[identity]=dict(anchors_seen=len(anchors),target_ticks=int(valid.sum()),visual_frames=len(record['time']))
+    prior=dict(anchors_seen=0,target_ticks=0)
+    for row in learning:
+        require(row['episode'] in counts,'Unknown actual action population')
+        expected=counts[row['episode']]
+        require(row['visual_frames']==expected['visual_frames'],'Actual per-episode visual population differs')
+        for key in prior:
+            require(row[key]-prior[key]==expected[key],'Actual per-episode action population differs: '+key)
+            prior[key]=row[key]
+    require(set(row['episode'] for row in learning)==set(counts),'Action population omits recorded training episodes')
+    return dict(passed=True,target_window_contract=target_window_contract,per_episode=counts,
+        single_traversal={key:sum(row[key] for row in counts.values()) for key in ('anchors_seen','target_ticks','visual_frames')},
+        actual_totals=prior,scope='Raw authority/segment masks and declared native target windows reconstruct every actual learning increment. Target slots overlap and are not unique ticks.')
+
+
 def frontend_cell(study, arm, role, registration, data, labels):
     directory = study/arm/role; training = directory/'training'
     config = read(training/'configuration.json'); spec = config['visual_auxiliary']; route = ROUTES[arm]
@@ -194,6 +216,11 @@ def frontend_cell(study, arm, role, registration, data, labels):
     history = jsonl(training/'validation.jsonl'); learning = jsonl(training/'learning.jsonl'); finished = read(training/'finished.json')
     require(finished['checkpoint_sha256'] == sha256(training/'best.pt'), 'Selected frontend hash differs')
     exposure = check_frontend_receipts(best,last,history,learning,finished,config,data,labels,registration['frontend_epochs'])
+    numeric=torch.load(directory/'state_data/numeric.pt',map_location='cpu',weights_only=False)
+    require(numeric['data_sha256']==config['data_sha256'],'Actual numeric action population source differs')
+    exposure['raw_action_population']=action_population_receipts(learning,
+        {identity:numeric['records'][identity] for identity in data['splits']['train']},
+        config['continuation'].get('target_window_contract'))
     initial = read(training/'initial_metrics.json')
     for entry in [initial, *history]:
         for split, ids in [('train',data['splits']['train'][:2]), ('validation',data['splits']['validation'])]:
@@ -572,7 +599,8 @@ def run(study,output,*,execution_source,allow_incomplete=False,plot=None,fronten
     project=Path(__file__).resolve().parents[1]
     dependencies=['tools/tight_fresh_anchor_study_report.py','tools/tight_fresh_backend_study_report.py',
         'tools/tight_fresh_learning_report.py','tools/tight_fresh_phases.py','tools/tight_fresh_rollouts.py',
-        'tools/tight_fresh_visual_aux_study.py','visuotactile/visual_aux_training.py','visuotactile/visual_pose_aux.py']
+        'tools/tight_fresh_visual_aux_study.py','visuotactile/visual_aux_training.py','visuotactile/visual_pose_aux.py',
+        'visuotactile/anchor_sampling.py','visuotactile/target_windows.py']
     report_dependencies={name:sha256(project/name) for name in dependencies}
     for name,digest in report_dependencies.items():
         require(registration['source_sha256'].get(name)==digest,'Current reporting helper differs from frozen execution version: '+name)

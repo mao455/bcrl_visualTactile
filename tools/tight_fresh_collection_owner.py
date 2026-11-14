@@ -1,4 +1,4 @@
-"""Supervise one already registered stable-state collection in its frozen tree."""
+"""Supervise one already registered causal-stage collection in its frozen tree."""
 import argparse
 import json
 import os
@@ -8,7 +8,7 @@ import subprocess
 import time
 
 from tools.tight_fresh_eval_recovery import stop_owned, wait_owned
-from tools.tight_fresh_stage_takeover import validate_plan
+from tools.tight_fresh_stage_takeover import CONTRACT, CONTACT_HEIGHT_CONTRACT, validate_plan
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 
@@ -19,6 +19,9 @@ def read(path):
 
 def check_complete(output, plan, worker, started, deadline, plan_sha256, session_sha256):
     """Completion means every registered opportunity, including unsuccessful ones."""
+    validate_plan(plan)
+    audit_name = {CONTRACT: 'stable_stage_audit.json',
+                  CONTACT_HEIGHT_CONTRACT: 'contact_height_stage_audit.json'}[plan['stage_takeover_contract']]
     if sha256(output / 'plan.json') != plan_sha256 or sha256(output / 'session.json') != session_sha256:
         raise ValueError('Registration changed during collection')
     launch = read(output / 'run_started.json')
@@ -35,10 +38,10 @@ def check_complete(output, plan, worker, started, deadline, plan_sha256, session
         raise ValueError('Registered opportunities did not all complete inside the deadline')
     for case in plan['cases']:
         row = next(row for row in rows if row['case'] == case['name'])
-        audit = read(output / case['name'] / 'stable_stage_audit.json')
+        audit = read(output / case['name'] / audit_name)
         if (row['role'] != case['role'] or row['result'].get('software_complete') is not True
                 or audit['source_plan_sha256'] != plan_sha256 or not audit['no_expert_fallback']):
-            raise ValueError('Case completion or stable-stage audit differs from its registration')
+            raise ValueError('Case completion or causal-stage audit differs from its registration')
     return result
 
 
