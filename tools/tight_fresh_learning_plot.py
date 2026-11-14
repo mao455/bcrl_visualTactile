@@ -1,4 +1,4 @@
-"""Plot measured initial and first-recovery learning curves from bound reports."""
+"""Plot measured adjacent-stage learning curves from bound reports."""
 import argparse
 import json
 from pathlib import Path
@@ -24,11 +24,17 @@ def main():
             axes[0, column].plot([0] + [r['epoch'] for r in new['history']],
                 [new['initial_metrics']['validation'][key]] + [r['validation'][key] for r in new['history']],
                 color=color, marker='.', label=role + (' DP q[t+1]' if role == 'A' else ' DP expert target'))
-            for label, report, style in [('initial', old, '--'), ('recovery', new, '-')]:
+            axes[0, column].plot([0] + [r['epoch'] for r in new['history']],
+                [new['initial_metrics']['train'][key]] + [r['train'][key] for r in new['history']],
+                color=color, linestyle=':', label=role + ' DP train diagnostic2')
+            for label, report, style in [('prior stage', old, '--'), ('current stage', new, '-')]:
                 history = report['backend_history']
                 axes[1, column].plot([r['epoch'] for r in history],
                     [r['validation']['all'][key] for r in history], color=color, linestyle=style,
                     label=role + ' rear ' + label)
+            axes[1, column].plot([r['epoch'] for r in new['backend_history']],
+                [r['train']['all'][key] for r in new['backend_history']], color=color, linestyle=':',
+                label=role + ' rear train diagnostic')
             if role == 'A':
                 row = next(r for r in baseline['roles'][role]['metrics']
                     if r['split'] == 'validation' and r['phase'] == 'all' and r['group'] == part)
@@ -36,7 +42,7 @@ def main():
                     label='Hold actual previous target')
     for column, part in enumerate(('Arm', 'Hand')):
         axes[0, column].set(title=part + ' DP validation', xlabel='Recovery DP epochs', ylabel='RMSE (rad)')
-        axes[1, column].set(title=part + ' final-command validation', xlabel='Rear epochs from random initialization', ylabel='RMSE (rad)')
+        axes[1, column].set(title=part + ' final-command validation', xlabel='Backend epoch within shown stage', ylabel='RMSE (rad)')
     for ax in axes.flat:
         ax.grid(alpha=.2)
         ax.legend(fontsize=8)
