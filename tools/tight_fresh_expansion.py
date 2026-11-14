@@ -20,11 +20,13 @@ from visuotactile.training_expansion import (COLLECTION_CONTRACT, NEVER_FALLBACK
 
 def prepare(source, output, *, session_root, registry_id, seeds, partition_manifest,
             frozen_families, schedules, lanes, event_seed, round_index,
-            existing_identities=(), execution_backend=None, writer_bytes=512 << 20):
+            existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2):
     from visuotactile.execution_backend import normalize_backend
+    from visuotactile.models.native_vision import validate_vision_microbatch
     from visuotactile.position_control import ExpertPositionBridge
     from visuotactile.state_benchmark import dagger_configuration
     from visuotactile.takeover_trigger import CONTACT_HEIGHT_VERSION
+    vision_microbatch = validate_vision_microbatch(vision_microbatch)
     source = Path(source).resolve()
     output = Path(output).resolve()
     session_root = Path(session_root).resolve()
@@ -104,7 +106,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
         source_sha256={str(path): sha256(path) for folder in ('tools', 'visuotactile')
             for path in sorted(Path(folder).rglob('*.py'))},
         batch=dict(version='whole_wave_complete_student_v1', lanes=lanes, seed=event_seed,
-            neural_batch=True, writer_bytes=writer_bytes,
+            neural_batch=True, writer_bytes=writer_bytes, vision_microbatch=vision_microbatch,
             ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend, expert_sha256=session['expert_sha256'],
         inference_scheduler_index_mode='host', first_plan_forensics=False,
@@ -134,12 +136,14 @@ def main():
     parser.add_argument('--round', type=int, required=True)
     parser.add_argument('--backend-json', type=Path)
     parser.add_argument('--writer-mib', type=int, default=512)
+    parser.add_argument('--vision-microbatch', type=int, default=2)
     args = parser.parse_args()
     prepare(args.source, args.output, session_root=args.session_root, registry_id=args.registry_id,
         seeds=args.initial_seeds, partition_manifest=args.partition_manifest, frozen_families=args.frozen_families,
         schedules=args.schedule_cycle, lanes=args.lanes, event_seed=args.event_seed, round_index=args.round,
         existing_identities=args.existing_identities,
-        execution_backend=read(args.backend_json) if args.backend_json else None, writer_bytes=args.writer_mib << 20)
+        execution_backend=read(args.backend_json) if args.backend_json else None, writer_bytes=args.writer_mib << 20,
+        vision_microbatch=args.vision_microbatch)
 
 
 if __name__ == '__main__':

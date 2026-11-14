@@ -82,9 +82,12 @@ def resource_snapshot(root,samples):
     if not samples or samples[-1]['utc_epoch']!=row['utc_epoch']:samples.append(row)
 
 
-def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=None,roles=None,execution_backend=None):
+def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=None,roles=None,execution_backend=None,
+            vision_microbatch=2):
     import subprocess
     from visuotactile.narrow_data import direct_configuration
+    from visuotactile.models.native_vision import validate_vision_microbatch
+    vision_microbatch=validate_vision_microbatch(vision_microbatch)
     if type(count) is not int or count < 1:raise ValueError('Positive registered lanes; resource acceptance determines concurrency')
     options=probe_options(max_control_ticks,roles)
     if execution_backend is not None:
@@ -98,7 +101,7 @@ def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=N
     output.mkdir(parents=True)
     atomic_json(output/'session.json',session)
     plan=dict(pairs=pairs,cases=cases,seed=seed,event_seed=seed+100000,
-        resource_root=str(root),test_used=False,
+        resource_root=str(root),test_used=False,vision_microbatch=vision_microbatch,
         kind='engineering_batch_throughput_probe' if options['diagnostic_only'] else 'engineering_batch_development',neural_batch=neural_batch,
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ['tools','visuotactile'] for p in Path(folder).rglob('*.py')},
@@ -117,7 +120,7 @@ def run(output):
     from tools.tight_state import environment
     from visuotactile.state_resources import lease_for
     from visuotactile.batched_controller import BatchedResidualController
-    from visuotactile.models.native_vision import NativeDinoSpatial
+    from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch
     from visuotactile.narrow_data import configure_direct_reset_lanes
     from visuotactile.environment_rng import IsolatedEnvironment
     from visuotactile.live_collision import clearance
@@ -125,6 +128,7 @@ def run(output):
     from visuotactile.recording import BufferedNumericWriter
     import h5py
     plan=read(output/'plan.json');session=read(output/'session.json')
+    vision_microbatch=validate_vision_microbatch(plan.get('vision_microbatch',2))
     max_ticks=probe_options(plan.get('max_control_ticks'),plan['pairs'])['max_control_ticks']
     diagnostic=max_ticks is not None
     if diagnostic and (plan['kind']!='engineering_batch_throughput_probe' or plan.get('diagnostic_only') is not True):
@@ -143,7 +147,7 @@ def run(output):
     if diagnostic:resource_snapshot(resource_root,resources)
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=count,**backend_kwargs)
     startup_seconds=time.perf_counter()-startup_began
-    atomic_json(output/'startup_timing.json',dict(seconds=startup_seconds))
+    atomic_json(output/'startup_timing.json',dict(seconds=startup_seconds,vision_microbatch=vision_microbatch))
     configure_direct_reset_lanes(env,[c['narrow_reset'] for c in plan['cases']])
     isolated=IsolatedEnvironment(env,plan['seed'])
     with lease.block():dino=NativeDinoSpatial().cuda().eval()
@@ -165,7 +169,7 @@ def run(output):
             saved=torch.load(pair['backend'],map_location='cpu',weights_only=False)
             metadata=env.research_metadata();metadata['config']=env.cfg.to_dict()
             controller=BatchedResidualController(saved,metadata,dino,count,neural_batch=plan.get('neural_batch',False),
-                scheduler_index_mode=scheduler_mode)
+                scheduler_index_mode=scheduler_mode,vision_microbatch=vision_microbatch)
         rows=[[] for _ in range(count)];outcomes=[None]*count;native_flags=[None]*count;camera_frames=[None]*count
         files=[h5py.File(directory/f'lane_{i}_numeric.h5','w') for i in range(count)]
         writers=[BufferedNumericWriter(f.create_group('episode'),32) for f in files]
@@ -218,6 +222,7 @@ def run(output):
             steps=sum(map(len,rows)),scope=('Current-frame DINO, DDIM and backend batches; per-lane histories and generators' if plan.get('neural_batch',False) else 'current-frame DINO batches; DP and backend still per lane; native dt unchanged'))
         profile['aggregate_control_ticks_per_second']=profile['steps']/profile['total_s']
         profile['control_loop_and_numeric_flush_s']=profile['total_s']
+        profile['vision_execution']=controller.vision_execution_report()
         results=[]
         for lane in range(count):
             result=dict(lane=lane,identity=plan['cases'][lane]['identity'],legal=admissions[lane]['legal'],steps=len(rows[lane]),
@@ -263,10 +268,11 @@ def main():
     p.add_argument('--max-control-ticks',type=int)
     p.add_argument('--roles',nargs='+',choices=['A','B'])
     p.add_argument('--backend-json',type=Path)
+    p.add_argument('--vision-microbatch',type=int,default=2)
     args=p.parse_args()
     if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed,neural_batch=args.neural_batch,
         max_control_ticks=args.max_control_ticks,roles=args.roles,
-        execution_backend=read(args.backend_json) if args.backend_json else None)
+        execution_backend=read(args.backend_json) if args.backend_json else None,vision_microbatch=args.vision_microbatch)
     else:run(args.output.resolve())
 
 

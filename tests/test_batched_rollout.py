@@ -44,7 +44,8 @@ def test_lane_metadata_binds_own_pose_intrinsics_and_tiled_calibration_without_m
         lane_metadata(source,0,8,case,dict(backend_sha256='b'),None,{})
 
 
-def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_labels(tmp_path,monkeypatch):
+@pytest.mark.parametrize('microbatch',[None,8])
+def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_labels(tmp_path,monkeypatch,microbatch):
     import visuotactile.batched_rollout as rollout
     import visuotactile.batched_position_bridge as bridges
     import visuotactile.narrow_data as narrow
@@ -123,12 +124,15 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
             return dict(summary={},pending_cuda_events=0,timing_scope='test',wall_scope='test',excludes=[])
     class Batch:
         def __init__(self,*args,**kwargs):
+            assert kwargs['vision_microbatch']==(2 if microbatch is None else microbatch)
             self.lanes=[Student(i) for i in range(3)];students.extend(self.lanes);self.visual_frames=[0]*3
         def act(self,p,d,active):
             result=p['actuator_target_rad'].clone()
             for lane,running in enumerate(active):
                 if running:result[lane:lane+1]=self.lanes[lane].act(p);self.visual_frames[lane]+=1
             return result
+        def vision_execution_report(self):
+            return dict(real_lanes=sum(self.visual_frames),consumed_observations_per_lane=self.visual_frames)
     original_bridge=bridges.BatchedExpertPositionBridge;created=[]
     class CPUBridge(original_bridge):
         def __init__(self,*args,**kwargs):
@@ -166,11 +170,13 @@ def test_actual_wave_stops_each_lane_once_preserves_history_and_masks_delayed_la
     pair=dict(frontend='frontend',frontend_sha256='f',backend='backend',backend_sha256='b')
     saved=dict(residual_version='test',configuration={})
     plan=dict(kind='takeover',batch=dict(seed=23,writer_bytes=32<<20),expert_sha256='e')
+    if microbatch is not None:plan['batch']['vision_microbatch']=microbatch
     finished,profile=rollout.run_wave(env,player,NS(block=contextlib.nullcontext),tmp_path,cases,pair,saved,None,plan,0)
     assert [r['steps'] for _,r in finished]==[3,8]
     assert len(expert_calls)==8 and [len(s.seen) for s in students]==[3,8,0]
     assert wait_steps==[8,8] and [b.tick for b in created[0].bridges]==[3,8,0]
     assert profile['control_ticks']==11
+    assert profile['vision_execution']['consumed_observations_per_lane']==[3,8,0]
     for lane,count in enumerate((3,8)):
         result=finished[lane][1];directory=tmp_path/f'case_{lane}'
         assert result['dagger']['expert_valid_ticks']==(0 if lane==0 else 3)

@@ -1,3 +1,13 @@
+## 2026-11-14 八环境真实观测通过与视觉批次候选
+
+冻结7c27553的A/B各8lane×25真实训练观测完成完整DP＋后端逐lane/批量检查，lane0独立reset；最大目标差A5.55068e-7、B8.34465e-7rad，小于预登记2e-5，全部400个lane观察进入持续历史。仅teacher-forced记录输入门槛，不是物理自主或速度结果；证据batch8_observation_gate.json。
+
+首CPU/standard、8env、Kit4/physics2短探针在300秒初始化上限失败，owner另10秒正常结束等待后SIGKILL，0动作/0完成机会。原目录及日志保留，未计任务失败。四tasking线程持续忙且GPU占用低，native stack因ptrace权限不可得，根因未定；只更改Kit16的独立对照已登记，仍原session截止。新增tight_batch_probe_owner保存源码/预算/退出/partial角色，不自动重试；2项完成合同测试通过。
+
+Kit16对照现已完整结束：初始化17.92秒、288真实控制tick、loop含收尾27.30秒、含启动48.55秒，全部8lane传感时钟/完整DP与后端计数通过，随后明确诊断截断；无自主成功率/新数据。B依赖缓存并行运行，合计10.55tick/s不能作为无争用峰值或正式周期提升。原4线程启动失败保留，未为此改物理/任务。证据scaling_cpu_standard_n8.json。
+
+发现native视觉按每2lane分块，新增显式current_observation_lane_microbatch_v1及--vision-microbatch传到门槛/探针/正式采集和cycle评估；普通单观察及冻结训练特征路径仍2，填充只算计算量不算新观测。39项CPU检查及14项入口复检通过，CUDA数值/速度仍待实际验收。修正GPU物理观测与CPU专家embedding拼接的设备边界，搬运计入expert_s；14项真实控制路径/FakeTensor设备检查通过，尚未声称GPU物理验收。
+
 ## 2026-11-14 可扩展完整学生采集与评估实现，待真实后端验收
 
 新增tools/tight_fresh_batch_run.py、tight_batch_owner.py与visuotactile/batched_rollout.py：将仅开发用四lane批量路径扩成显式正整数并发的正式采集/自主整波执行；新cycle --evaluation-lanes保持原串行默认，更新DP及其全部依赖/后端后进入同一完整学生批量流程。case执行、文件校验与准入分开持久化，启动/绝对截止受ordinary owner监管，软件partial不覆盖、不冒充自然任务失败或完整结果。

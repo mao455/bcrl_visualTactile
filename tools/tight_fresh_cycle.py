@@ -85,9 +85,10 @@ def configure_episode_io(output, config):
 
 
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
-        parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None):
+        parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2):
     if type(evaluation_lanes) is not int or evaluation_lanes<1:
         raise ValueError('Positive evaluation concurrency required')
+    if type(vision_microbatch) is not int or vision_microbatch<1:raise ValueError('Positive vision microbatch required')
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
@@ -104,7 +105,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         parallel_frontends=parallel_frontends,
         frontend_latest_repeat=latest_repeat,backend_latest_repeat=1,
         development_startup_seconds=300 if evaluation_lanes>1 else 180,
-        evaluation_lanes=evaluation_lanes,execution_backend=execution_backend,episode_io=episode_io,
+        evaluation_lanes=evaluation_lanes,execution_backend=execution_backend,episode_io=episode_io,vision_microbatch=vision_microbatch,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
     if reuse_index is not None:
         if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
@@ -170,7 +171,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         development=output/'development'
         if evaluation_lanes>1:
             arguments=['tools.tight_fresh_batch_run','prepare','--root',output,'--output',development,
-                '--count',count,'--seed',seed,'--lanes',evaluation_lanes]
+                '--count',count,'--seed',seed,'--lanes',evaluation_lanes,'--vision-microbatch',vision_microbatch]
             if execution_backend is not None:
                 backend_path=ledger/'execution_backend.json';atomic_json(backend_path,execution_backend)
                 arguments+=['--backend-json',backend_path]
@@ -199,15 +200,17 @@ def main():
     p.add_argument('--evaluation-lanes',type=int,default=1)
     p.add_argument('--backend-json',type=Path)
     p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
+    p.add_argument('--vision-microbatch',type=int,default=2)
     a=p.parse_args()
     if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or a.count<1 or a.evaluation_lanes<1:p.error('Positive finite stage exposure required')
     if a.prefetch_mib is not None and not 1<=a.prefetch_mib<=1024:p.error('Prefetch budget must be 1–1024 MiB')
+    if a.vision_microbatch<1:p.error('Positive vision microbatch required')
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,latest_repeat=a.latest_repeat,
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
-            minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None)
+            minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch)
 
 
 if __name__=='__main__':main()

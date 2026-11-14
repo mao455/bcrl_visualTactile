@@ -6,6 +6,7 @@ lane's generator, recurrence and reset. Every active lane consumes its own real 
 import copy
 import torch
 from .native_controller import ResidualController
+from .models.native_vision import validate_vision_microbatch, vision_lane_budget
 
 
 def lane_tree(value, lane, count):
@@ -45,7 +46,10 @@ class CurrentFrame:
 
 class BatchedResidualController:
     def __init__(self, saved, metadata, dino, count, device='cuda:0', *, neural_batch=False,
-                 scheduler_index_mode='legacy'):
+                 scheduler_index_mode='legacy', vision_microbatch=2):
+        self.vision_microbatch = validate_vision_microbatch(vision_microbatch)
+        self.vision_work = vision_lane_budget(0, self.vision_microbatch)
+        self.vision_calls = 0
         if count < 1 or saved['contract'].get('visual_stride') != 1:
             raise ValueError('Positive lanes and explicit every-native-frame policy required')
         if saved['contract'].get('modality') != 'G00':
@@ -79,9 +83,18 @@ class BatchedResidualController:
         if not ids:
             return commands
         rgb = packet['image'][ids,:,:3].to(self.device)
-        features = self.dino.forward_lanes(rgb)
+        size = getattr(self, 'vision_microbatch', 2)
+        features = (self.dino.forward_lanes(rgb) if size == 2 else
+            self.dino.forward_lanes(rgb, vision_microbatch=size))
         if len(features) != len(ids):
             raise ValueError('DINO batch lost lane identity')
+        if not hasattr(self, 'vision_work'):
+            self.vision_work = vision_lane_budget(0, size)
+            self.vision_calls = 0
+        work = vision_lane_budget(len(ids), size)
+        for key in ('forward_features_calls', 'real_lanes', 'padding_lanes', 'real_images', 'processed_images'):
+            self.vision_work[key] += work[key]
+        self.vision_calls += 1
         for local, lane in enumerate(ids):
             controller = self.lanes[lane]
             controller.base.dino.set(features[local])
@@ -133,6 +146,14 @@ class BatchedResidualController:
         if self.neural_batch:
             report['batch_timing_scope']='DDIM/backend durations overlap across lanes and must not be summed; combined_controller begins after batched base inference. Aggregate wall throughput is in the batch profile.'
         return report
+
+    def vision_execution_report(self):
+        work = dict(getattr(self, 'vision_work', vision_lane_budget(0, getattr(self, 'vision_microbatch', 2))))
+        if work['real_lanes'] != sum(self.visual_frames):
+            raise ValueError('Real vision work differs from consumed lane observations')
+        return dict(work, controller_calls=getattr(self, 'vision_calls', 0),
+            consumed_observations_per_lane=list(self.visual_frames),
+            scope='Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure')
 
     def observe_execution(self, transition, active):
         for lane, running in enumerate(active):

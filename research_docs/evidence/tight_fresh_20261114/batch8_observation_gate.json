@@ -1,0 +1,127 @@
+{
+  "complete": true,
+  "source_commit": "7c27553",
+  "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/batch8_observation_gate_01",
+  "registered_tolerance_rad": 2e-05,
+  "roles": {
+    "A": {
+      "pair": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/A/training/best.pt",
+        "frontend_sha256": "95007e3843109c1caea84c8fa34bb4df275d05290e4e8ed49ce15202650a1bb8",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/A/backend/A/training/best.pt",
+        "backend_sha256": "607baeae778e88094656edba082c0dcb2d78d271d63d3567d8715edde809f52c",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "q_reached",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      },
+      "lanes": 8,
+      "neural_batch": true,
+      "scheduler_index_mode": "host",
+      "source_ids": [
+        "formal_050_slow_3",
+        "formal_029_slow_6",
+        "formal_047_slow_4",
+        "formal_051_slow_5",
+        "formal_025_slow_0",
+        "formal_039_slow_5",
+        "formal_041_slow_3",
+        "formal_045_slow_0"
+      ],
+      "visual_frames": [
+        25,
+        25,
+        25,
+        25,
+        25,
+        25,
+        25,
+        25
+      ],
+      "max_abs_command_rad": 5.550682544708252e-07,
+      "source_result_sha256": "476229549511285461971cf16aa5956d7c49e2d1d2bb94466894b70aa347027e"
+    },
+    "B": {
+      "pair": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/B/training/best.pt",
+        "frontend_sha256": "58fd2c458df2b2b2df840b3d691811ccde8fa2f21527ab2528c2181965071bea",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/B/backend/B/training/best.pt",
+        "backend_sha256": "c6ecbe60900e3cfcacc56017ff558e75ab4defe2c4752678a9c8dae0afaa7da9",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "u_expert",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      },
+      "lanes": 8,
+      "neural_batch": true,
+      "scheduler_index_mode": "host",
+      "source_ids": [
+        "formal_050_slow_3",
+        "formal_029_slow_6",
+        "formal_047_slow_4",
+        "formal_051_slow_5",
+        "formal_025_slow_0",
+        "formal_039_slow_5",
+        "formal_041_slow_3",
+        "formal_045_slow_0"
+      ],
+      "visual_frames": [
+        25,
+        25,
+        25,
+        25,
+        25,
+        25,
+        25,
+        25
+      ],
+      "max_abs_command_rad": 8.344650268554688e-07,
+      "source_result_sha256": "b7f03448736c5b7a799ba354b36f6f82225855b5ab22f835bb2124c109dacb4d"
+    }
+  },
+  "total_real_lane_observations": 400,
+  "views_per_observation": 3,
+  "simulator_started": false,
+  "optimizer_updates": 0,
+  "test_used": false,
+  "scope": "Recorded real training observations with actual-target teacher-forced history; lane0 resets independently. Not autonomous behavior or speed evidence.",
+  "utc": 1794658497.7608988
+}

@@ -90,13 +90,18 @@ def test_prepare_default_compatibility_and_large_single_role_probe(tmp_path,monk
     assert old['kind']=='engineering_batch_development' and list(old['pairs'])==['A','B']
     assert 'max_control_ticks' not in old and 'execution_backend' not in old
     assert 'inference_scheduler_index_mode' not in old
+    assert old['vision_microbatch']==2
     calls.clear()
     prepare(root,tmp_path/'probe',256,19,neural_batch=True,max_control_ticks=36,roles=['B'],
-        execution_backend=dict(physics_device='cuda:0',camera_backend='tiled'))
+        execution_backend=dict(physics_device='cuda:0',camera_backend='tiled'),vision_microbatch=32)
     new=json.loads((tmp_path/'probe/plan.json').read_text())
     assert calls==['B'] and len(new['cases'])==256 and new['diagnostic_only']
     assert new['kind']=='engineering_batch_throughput_probe' and new['max_control_ticks']==36
     assert new['inference_scheduler_index_mode']=='host'
     assert new['execution_backend']['camera_backend']=='tiled'
+    assert new['vision_microbatch']==32 and 'vision_microbatch' not in new['execution_backend']
     with pytest.raises(ValueError):probe_options(36,['A','A'])
     with pytest.raises(ValueError):probe_options(36,[])
+    with pytest.raises(ValueError,match='vision_microbatch'):
+        prepare(root,tmp_path/'bad',8,20,vision_microbatch=0)
+    assert not (tmp_path/'bad').exists()

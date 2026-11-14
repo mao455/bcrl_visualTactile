@@ -13,7 +13,9 @@ from visuotactile.training_resources import atomic_json
 
 
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
-            execution_backend=None,writer_bytes=512<<20):
+            execution_backend=None,writer_bytes=512<<20,vision_microbatch=2):
+    from visuotactile.models.native_vision import validate_vision_microbatch
+    vision_microbatch=validate_vision_microbatch(vision_microbatch)
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
     if type(writer_bytes) is not int or writer_bytes<32<<20:
@@ -30,7 +32,7 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
             trigger_version=CONTACT_HEIGHT_VERSION)
     plan=read(output/'plan.json');session=read(output/'session.json')
     plan.update(batch=dict(version='whole_wave_complete_student_v1',lanes=lanes,seed=seed,
-        neural_batch=True,writer_bytes=writer_bytes,
+        neural_batch=True,writer_bytes=writer_bytes,vision_microbatch=vision_microbatch,
         ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend,expert_sha256=session['expert_sha256'])
     atomic_json(output/'plan.json',plan)
@@ -127,9 +129,10 @@ def run(output):
     from tools.tight_state import environment
     from visuotactile.batched_rollout import waves,run_wave
     from visuotactile.state_resources import lease_for
-    from visuotactile.models.native_vision import NativeDinoSpatial
+    from visuotactile.models.native_vision import NativeDinoSpatial,validate_vision_microbatch
     from visuotactile.native_evaluation import exit_completed_kit_worker
     output=Path(output).resolve();plan=read(output/'plan.json');session=read(output/'session.json')
+    vision_microbatch=validate_vision_microbatch(plan['batch'].get('vision_microbatch',2))
     if plan.get('test_used') is not False or plan['batch']['version']!='whole_wave_complete_student_v1':
         raise ValueError('Explicit non-test batch registration required')
     if plan['kind']=='takeover':
@@ -151,7 +154,7 @@ def run(output):
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=plan['batch']['lanes'],
         camera_content_validation=True,execution_backend=plan['execution_backend'])
     atomic_json(output/'initialization.json',dict(seconds=time.perf_counter()-started,lanes=env.num_envs,
-        execution_backend=plan['execution_backend']))
+        execution_backend=plan['execution_backend'],vision_microbatch=vision_microbatch))
     with lease.block():dino=NativeDinoSpatial().cuda().eval()
     saved={r:torch.load(pair['backend'],map_location='cpu',weights_only=False) for r,pair in plan['pairs'].items()}
     results=[];entries={};profiles=[]
@@ -184,13 +187,15 @@ def main():
     p.add_argument('--count',type=int,default=8);p.add_argument('--seed',type=int,default=28142000)
     p.add_argument('--identities',nargs='+');p.add_argument('--delays',nargs='+',type=int);p.add_argument('--round',type=int,default=7)
     p.add_argument('--backend-json',type=Path);p.add_argument('--writer-mib',type=int,default=512)
+    p.add_argument('--vision-microbatch',type=int,default=2)
     a=p.parse_args()
     if a.stage=='run':run(a.output)
     else:
         if a.root is None:p.error('--root is required for prepare')
         prepare(a.root.resolve(),a.output.resolve(),lanes=a.lanes,count=a.count,seed=a.seed,
             identities=a.identities,delays=a.delays,round_index=a.round,
-            execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20)
+            execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20,
+            vision_microbatch=a.vision_microbatch)
 
 
 if __name__=='__main__':

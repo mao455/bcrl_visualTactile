@@ -17,10 +17,13 @@ def test_consumed_frame_cannot_be_reused():
     dino.set(frame+1);assert torch.equal(dino(None),frame+1)
 
 
-def test_batched_visuals_preserve_active_lane_and_episode_routing():
+@pytest.mark.parametrize('microbatch',[2,8])
+def test_batched_visuals_preserve_active_lane_and_episode_routing(microbatch):
     from types import SimpleNamespace
     class Dino:
-        def forward_lanes(self,rgb):return rgb[:,0,0,0,0,None]
+        def forward_lanes(self,rgb,**kwargs):
+            assert kwargs==({} if microbatch==2 else dict(vision_microbatch=microbatch))
+            return rgb[:,0,0,0,0,None]
     class Lane:
         def __init__(self):self.base=SimpleNamespace(dino=CurrentFrame());self.history=[]
         def act(self,p,d):
@@ -29,12 +32,21 @@ def test_batched_visuals_preserve_active_lane_and_episode_routing():
         def observe_execution(self,t):self.ack=t['position_applied_rad'].clone()
     c=object.__new__(BatchedResidualController)
     c.count=3;c.device='cpu';c.dino=Dino();c.lanes=[Lane() for _ in range(3)];c.visual_frames=[0,0,0]
+    c.vision_microbatch=microbatch
     p={'image':torch.arange(3.)[:,None,None,None,None].expand(3,3,5,2,2),
        'episode_id':torch.tensor([2,4,8]),'step_id':torch.tensor([0,23,7]),'actuator_target_rad':torch.ones(3,29)}
     out=c.act(p,{},[True,False,True]);c.observe_execution({'position_applied_rad':out},[True,False,True])
     assert c.lanes[0].history==[(2,0,0.)] and c.lanes[1].history==[] and c.lanes[2].history==[(8,7,2.)]
     assert c.visual_frames==[1,0,1] and torch.equal(out[1],p['actuator_target_rad'][1])
     assert torch.equal(c.lanes[2].ack,out[2:3])
+    # One call with two real lanes; all-inactive steps must do no visual work.
+    c.act(p,{},[False]*3)
+    report=c.vision_execution_report()
+    assert report['controller_calls']==1 and report['real_lanes']==2
+    assert report['consumed_observations_per_lane']==[1,0,1]
+    assert report['padding_lanes']==microbatch-2 and report['processed_images']==3*microbatch
+    c.visual_frames[0]+=1
+    with pytest.raises(ValueError,match='consumed'):c.vision_execution_report()
 
 
 def test_lane_reset_calls_native_with_local_config_and_restores_shared_fields():

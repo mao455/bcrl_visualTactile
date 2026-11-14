@@ -101,6 +101,17 @@ def trace_row(controller, transition, actor, expert):
     return row
 
 
+def expert_actor_input(teacher, player):
+    """Bridge the simulator observation device to the frozen expert device.
+
+    The released expert remains on CPU even when physics uses CUDA. Its block
+    embedding is already on the player device; raw environment observations
+    bypass the RL wrapper and therefore require this explicit transfer.
+    """
+    embedding = player.intr_reward_coef_embd
+    return torch.cat((teacher['policy'].to(embedding.device), embedding), -1)
+
+
 def _publish_result(directory, result, elapsed):
     result['wall_profile']=dict(through_result_s=time.perf_counter()-elapsed,
         scope='Overlapping lane lifetime, including final drain and validation; use wave wall for throughput')
@@ -203,6 +214,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
     configs=[c['spec']['narrow_reset'] for c in cases]
     configure_direct_reset_lanes(env,configs+[configs[-1]]*(n-len(cases)))
     batch=dict(version='whole_wave_complete_student_v1',wave=wave_index,lanes=n,
+        vision_microbatch=plan['batch'].get('vision_microbatch',2),
         physics_seed=plan['batch']['seed']+wave_index,event_seed=plan['batch']['seed']+100000+wave_index,
         native_rng='One batch stream; independent policy generators and lane histories; no serial hidden-state equivalence')
     # The opt-in backend provides CUDA stream isolation when requested.
@@ -216,7 +228,8 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
             expert_model_sha256=plan['expert_sha256'],inference_scheduler_index_mode='host')
         if saved['configuration'].get('execution_adapter'):
             metadata['execution_adapter']=saved['configuration']['execution_adapter']
-        controller=BatchedResidualController(saved,metadata,dino,n,neural_batch=True,scheduler_index_mode='host')
+        controller=BatchedResidualController(saved,metadata,dino,n,neural_batch=True,scheduler_index_mode='host',
+            vision_microbatch=batch['vision_microbatch'])
         active=[clearance(env,lane=i)['legal'] if i<len(cases) else False for i in range(n)]
     daggers=[];triggers=[];directories=[];recorders=[];numerics=[];writers=[]
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n;results={}
@@ -258,8 +271,8 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
             if not any(active):break
             packet=env.research_packet
             with lease.block():
-                actor=torch.cat((teacher['policy'],player.intr_reward_coef_embd),-1)
                 t=time.perf_counter()
+                actor=expert_actor_input(teacher,player)
                 expert=player.get_action(actor,is_deterministic=True).clamp(-1,1) if capture else torch.zeros((n,29),device=actor.device)
                 profile['expert_s']+=time.perf_counter()-t
                 t=time.perf_counter();commands=controller.act(packet,env._diagnostics(),active)
@@ -315,7 +328,8 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
             if isinstance(result,_PendingCapture):
                 t=time.perf_counter();results[lane]=result.finalize()
                 profile['finish_audit_s']+=time.perf_counter()-t
-        profile.update(seconds=time.perf_counter()-start,control_ticks=sum(len(r) for r in rows),cases=len(cases))
+        profile.update(seconds=time.perf_counter()-start,control_ticks=sum(len(r) for r in rows),cases=len(cases),
+            vision_execution=controller.vision_execution_report())
         profile['aggregate_control_ticks_per_second']=profile['control_ticks']/profile['seconds']
         return [(case,results[lane]) for lane,case in enumerate(cases)],profile
     finally:
