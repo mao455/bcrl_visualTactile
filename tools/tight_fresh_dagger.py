@@ -12,7 +12,7 @@ from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read, completed_pair
 
 
-def prepare_collection(root, output, ticks, round_index, *, stable_delays=None, fallback_tick=360):
+def prepare_collection(root, output, ticks, round_index, *, stable_delays=None, fallback_tick=360, family_offset=0):
     import h5py
     from visuotactile.position_control import ExpertPositionBridge
     from visuotactile.state_benchmark import dagger_configuration
@@ -27,10 +27,10 @@ def prepare_collection(root, output, ticks, round_index, *, stable_delays=None, 
     data={r:read(root/r/'state_data/data.json') for r in pairs}
     if data['A']['splits']!=data['B']['splits']:raise ValueError('Different A/B sources')
     originals=data['A'].get('normalization_train_ids',data['A']['splits']['train'])
-    if len(ticks)>len(originals):raise ValueError('One different training family per opportunity')
+    if family_offset<0 or family_offset+len(ticks)>len(originals):raise ValueError('One different training family per opportunity within original train30')
     cases=[]
     for index,tick in enumerate(ticks):
-        identity=originals[index];entry=data['A']['entries'][identity]
+        identity=originals[family_offset+index];entry=data['A']['entries'][identity]
         with h5py.File(entry['path']) as f:original=json.loads(f.attrs['result_json'])
         for role in (['A','B'] if index%2==0 else ['B','A']):
             suffix=f't{tick}' if stable_delays is None else f'stable_d{stable_delays[index]}'
@@ -47,7 +47,7 @@ def prepare_collection(root, output, ticks, round_index, *, stable_delays=None, 
                 source_data=str((root/role/'state_data/data.json').resolve())))
     output.mkdir(parents=True)
     atomic_json(output/'session.json',session)
-    atomic_json(output/'plan.json',dict(kind='takeover',round_index=round_index,pairs=pairs,cases=cases,
+    atomic_json(output/'plan.json',dict(kind='takeover',round_index=round_index,family_offset=family_offset,pairs=pairs,cases=cases,
         resource_root=str(root),test_used=False,source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ['tools','visuotactile'] for p in sorted(Path(folder).rglob('*.py'))},
         reason=('Sample completed student stable-grasp states and subsequent deviations, fallback separately reported'
@@ -107,10 +107,10 @@ def main():
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--collection',type=Path);p.add_argument('--ticks',type=int,nargs='+',default=[46,58,70,84,120,180])
     p.add_argument('--reuse-index',type=Path)
-    p.add_argument('--round',type=int,default=1)
+    p.add_argument('--round',type=int,default=1);p.add_argument('--family-offset',type=int,default=0)
     p.add_argument('--stable-delays',type=int,nargs='+');p.add_argument('--fallback-tick',type=int,default=360);a=p.parse_args()
     if a.stage=='prepare':prepare_collection(a.root.resolve(),a.output.resolve(),a.ticks,a.round,
-        stable_delays=a.stable_delays,fallback_tick=a.fallback_tick)
+        stable_delays=a.stable_delays,fallback_tick=a.fallback_tick,family_offset=a.family_offset)
     elif a.stage=='aggregate':prepare_aggregate(a.root.resolve(),a.collection.resolve(),a.output.resolve())
     else:cache(a.output.resolve(),reuse_index=a.reuse_index)
 

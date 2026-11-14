@@ -1,3 +1,7 @@
+## 2026-11-14 实测视觉影响/完整批量验收与多family早期纠偏准备
+
+公开当前A/B raw-intermediate-image与独立direct-backend视觉干预，模型输出确实变化；不作物理成功收益声明。完整四lane DINO/DDIM/Transformer与serial真实输入最大命令差A7.28e-7/B7.97e-7rad、独立reset通过，各25真实帧。新增tight_fresh_dagger --family-offset，显式从原30选择未在前两轮接管用过的family，保留默认0与原分割；下一轮计划offset12、12机会/组、80–300tick抓取阶段纠偏。此处仅登记研究决定，采集训练未开始。
+
 ## 2026-11-14 第二轮自主结果分析与发布
 
 实际pre-control recovery完成8例，无新训练、同pair/case/源代码，11.29秒启动。发布round02_phases/runtime绑定真实数值轨迹和模型：两组各1/4短暂拿稳、0/4成功，全601timeout、0对准/子目标；A12.10/B12.17tick/s。首对视频显示抓取推偏后继续空手运动，命令幅度没有整体衰减。不将离线改善称自主收益，不把新抓持初态换位称稳定改进。原失败启动保留，全部8例自然结束。

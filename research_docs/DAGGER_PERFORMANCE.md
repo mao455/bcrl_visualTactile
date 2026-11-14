@@ -1,3 +1,7 @@
+## 2026-11-14 完整四lane神经推理实测一致性
+
+冻结628fd92实际当前A/B完整pair，4lane×25真实RGB-D tick，lane0于13tick独立reset，其余历史持续。DINO、DDIM、Transformer全部批量启用，与独立serial控制器最终目标最大差A7.28e-7/B7.97e-7rad，满足原2e-5容差；每lane25帧确实消费。各lane噪声随机流、不同planning phase均保持；真实四环境吞吐实验正在进行，尚无速度结论。证据round02_batch4_A/B.json。
+
 ## 2026-11-14 可选DP与后端批量推理（待真实验收）
 
 新增neural_batch开关：每个实际60Hz环境仍先更新自身三视角视觉和历史，再把本tick需要重规划的condition合并为一次DDIM调用。各lane独立generator，按各自原顺序抽初始噪声；不同重置相位不要求同时规划。后端同一tick合并Transformer/触觉/视觉递归，刚重置lane以零/invalid历史拼入，持续lane保留全部状态。已终止lane不再消费视觉或更新历史。
