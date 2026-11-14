@@ -1,3 +1,11 @@
+## 2026-11-14 视觉辅助真实验收通过，四组正式训练启动
+
+冻结6780cea已推origin/feature/tight-state-foundation，独立session04为16:46:53–19:46:53 Asia/Shanghai；来源仍第五轮完整A/B，旧02/03时段与产物不变。训练集前6family的16条原示范/真实纠偏、A/B共32项真实梯度校准完成，零更新、未读validation/test；共同权重3.1796844675e-6，实际加权梯度比A0.0625–0.1663、B0.0475–0.1404，不能称每项均10%。
+
+真实CUDA验收14.86秒完成：A/B原路径与detach控制的条件、预测、完整动作/几何目标、梯度和一步AdamW增量满足预先固定容差，候选视觉梯度非零；4次一次性更新未写部署权重，源模型/数据hash保持。此0正式更新只指验收，不是当前正式训练计数。当前四cell owner已真实启动control A前端并产生优化记录；各5遍DP、90条各自新缓存、5遍后端及16机会由已登记runner执行，主Agent继续审查阶段结果。尚无本对照完整学生行为结果。
+
+相关129项CPU tests通过，独立17项cache/后端/单与批量控制兼容性检查通过；实际v7在线行为仍待新模型闭环。机器绑定见evidence/tight_fresh_20261114/visual_aux_study_launch.json，校准/验收全量记录留本机；不得把验收或启动写成拿稳/转正改善。
+
 ## 2026-11-14 视觉辅助监督与恢复日志准备
 
 新增visual_pose_aux/visual_aux_training、calibration/acceptance/study入口：同动作前掌坐标物体位置和朝向仅作视觉训练标签，v7明确detach控制/shared-vision候选，在线不执行辅助头。因果readout复用每tick真实三视角路径；源A/B各90episode、35051tick的标签时钟与54条纠偏raw authority/mask/segment已CPU核验。原30统计、合法动作监督、5Hz规划、60Hz控制和任务不变。
