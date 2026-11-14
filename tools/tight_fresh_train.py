@@ -3,6 +3,7 @@
 Episode balance is exact per epoch; no past learned hidden state is cached.
 """
 import argparse,copy,json,time
+import hashlib,os,uuid
 from pathlib import Path
 import torch
 from visuotactile.training_resources import atomic_json
@@ -134,8 +135,78 @@ def metrics(model,records,identities):
         scope='teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim')
 
 
-def train(root,role,epochs):
+def fresh_objective(root,role,data,records):
+    """Shared full fresh action objective for training and disposable acceptance."""
     from visuotactile.state_image_loss import GeometryObjective,PALM_LOSS_ID,geometry_loss_context
+    meta=read(root/'metadata.json');objective=GeometryObjective(meta,mode=PALM_LOSS_ID)
+    objective.weights=dict(position=.3342396121814294,rotation=.029946394754032265)
+    geometry=None;proof=None
+    if role=='A':
+        base=Path('outputs/visuotactile/run')
+        acceptance=base/'tight_transformer_20261110_02/geometry_acceptance.json'
+        live=base/'tight_transformer_20261110_01/physics_gate_meshfix/geometry_live.json'
+        a=read(acceptance);inventory=read(live)['inventory']
+        objective.enable_hand_geometry(inventory,a,loss_kind='hand_surface_soft_hinge_v1',penetration_tolerance_m=.001,contact_tolerance_m=.002)
+        objective.weights['hand_geometry']=a['hand_geometry_weight']
+        objective.loss_context={i:geometry_loss_context(data['entries'][i]) for i in records}
+        proof=bind_geometry_supervision(objective,records)
+        geometry=dict(acceptance_sha256=sha256(acceptance),live_sha256=sha256(live),
+            loss_kind='hand_surface_soft_hinge_v1',weight=a['hand_geometry_weight'],hyperparameter_source='prior accepted train-only physical geometry calibration; no test tuning')
+    return objective,geometry,proof
+
+
+def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_epoch,checkpoint_sha256=None):
+    """Archive actual discarded work before keeping only checkpointed update rows.
+
+    Full-epoch checkpoints contain the optimizer, RNG and exposure ledger. A
+    crash-tail update happened, but its optimizer state is absent from last.pt;
+    preserve its raw log separately and never count it in the restored model.
+    """
+    if (type(durable_update) is not int or type(completed_epochs) is not int
+            or type(episodes_per_epoch) is not int or episodes_per_epoch < 1
+            or completed_epochs < 0 or durable_update != completed_epochs*episodes_per_epoch):
+        raise ValueError('Exact completed-epoch recovery cursor required')
+    out=Path(out);path=out/'learning.jsonl'
+    if not path.exists():
+        if durable_update:raise ValueError('Durable checkpoint learning log is missing')
+        return None
+    raw=path.read_bytes();lines=raw.splitlines(keepends=True);kept=[];abandoned=[];seen=[];tail_updates=[]
+    for index,line in enumerate(lines):
+        try:row=json.loads(line)
+        except (json.JSONDecodeError,UnicodeDecodeError):
+            if index!=len(lines)-1:raise ValueError('Corrupt nonterminal learning log row')
+            abandoned.append(line);continue
+        update=row.get('updates')
+        if type(update) is not int or update<1 or row.get('epoch')!=(update-1)//episodes_per_epoch+1:
+            raise ValueError('Learning log update/epoch identity differs')
+        if update<=durable_update:
+            if abandoned:raise ValueError('Durable learning row appears after a discarded tail')
+            seen.append(update);kept.append(line)
+        else:abandoned.append(line);tail_updates.append(update)
+    if seen!=list(range(1,durable_update+1)):
+        raise ValueError('Learning log lacks unique complete durable update sequence')
+    if not abandoned:return None
+    identity=uuid.uuid4().hex
+    archive=out/('learning.abandoned.'+identity+'.jsonl')
+    with archive.open('xb') as stream:
+        stream.write(b''.join(abandoned));stream.flush();os.fsync(stream.fileno())
+    # Never truncate before the complete original tail is safely archived.
+    temporary=out/('learning.reconciled.'+identity+'.tmp')
+    with temporary.open('xb') as stream:
+        stream.write(b''.join(kept));stream.flush();os.fsync(stream.fileno())
+    temporary.replace(path)
+    report=dict(version='fresh_epoch_log_recovery_v1',durable_updates=durable_update,
+        completed_epochs=completed_epochs,checkpoint_sha256=checkpoint_sha256,
+        original_log_sha256=hashlib.sha256(raw).hexdigest(),retained_log_sha256=sha256(path),
+        abandoned_path=str(archive.resolve()),abandoned_sha256=sha256(archive),
+        abandoned_rows=len(abandoned),known_discarded_update_ids=tail_updates,
+        discarded_updates_in_restored_model=0,utc=time.time(),
+        scope='Abandoned rows preserve real work whose optimizer/RNG state was not checkpointed; excluded from the restored model learning dose.')
+    atomic_json(out/('recovery.'+identity+'.json'),report)
+    return report
+
+
+def train(root,role,epochs):
     from visuotactile.anchor_continue import projection_batch
     from visuotactile.state_resources import lease_for
     from visuotactile.precision import state_fp32
@@ -143,6 +214,12 @@ def train(root,role,epochs):
     state_fp32();session=read(root/'session.json');lease=lease_for(root,deadline=session['deadline'])
     out=root/role/'training';out.mkdir(exist_ok=True)
     continuation=read(root/role/'continuation.json') if (root/role/'continuation.json').exists() else None
+    from visuotactile.visual_aux_training import (load_auxiliary_spec, attach_auxiliary_head,
+        optimizer_groups, prepare_pose_contexts, supervised_visual_conditions, auxiliary_episode_loss,
+        auxiliary_metrics, empty_exposure, add_exposure, validate_exposure)
+    from visuotactile.visual_pose_aux import clip_auxiliary_gradients
+    auxiliary=load_auxiliary_spec(root,role,continuation)
+    pose_contexts=pose_reports=None;pose_exposure=empty_exposure() if auxiliary else None
     with lease.block():
         dr,data,records,stats=inputs(root,role);model=new_model(role,stats)
         if continuation:
@@ -152,25 +229,19 @@ def train(root,role,epochs):
             source=torch.load(path,map_location='cpu',weights_only=False)
             if source['contract']!=model.contract:raise ValueError('Continuation frontend contract differs')
             model.load_state_dict(source['ema'],strict=True)
+        if auxiliary:
+            attach_auxiliary_head(model,auxiliary)
+            pose_contexts,pose_reports=prepare_pose_contexts(data,records)
+            atomic_json(out/'visual_auxiliary_labels.json',dict(spec=auxiliary,episodes=pose_reports,
+                scope='Current loss-only pose targets; original legal action masks are unchanged'))
         averaged=copy.deepcopy(model).eval().requires_grad_(False);ema=EMAModel(averaged,power=.75)
         learning_rate=continuation['learning_rate'] if continuation else 1e-4
-        opt=torch.optim.AdamW(model.parameters(),lr=learning_rate,betas=(.95,.999),weight_decay=1e-6)
-    meta=read(root/'metadata.json');objective=GeometryObjective(meta,mode=PALM_LOSS_ID)
-    objective.weights=dict(position=.3342396121814294,rotation=.029946394754032265)
-    geometry=None
-    if role=='A':
-        base=Path('outputs/visuotactile/run')
-        acceptance=base/'tight_transformer_20261110_02/geometry_acceptance.json'
-        live=base/'tight_transformer_20261110_01/physics_gate_meshfix/geometry_live.json'
-        a=read(acceptance);inventory=read(live)['inventory']
-        objective.enable_hand_geometry(inventory,a,loss_kind='hand_surface_soft_hinge_v1',penetration_tolerance_m=.001,contact_tolerance_m=.002)
-        objective.weights['hand_geometry']=a['hand_geometry_weight']
-        objective.loss_context={i:geometry_loss_context(data['entries'][i]) for i in records}
-        atomic_json(out/'geometry_supervision.json',dict(passed=True,
-            episodes=bind_geometry_supervision(objective,records),
+        opt=torch.optim.AdamW(optimizer_groups(model) if auxiliary else model.parameters(),
+            lr=learning_rate,betas=(.95,.999),weight_decay=1e-6)
+    objective,geometry,proof=fresh_objective(root,role,data,records)
+    if proof is not None:
+        atomic_json(out/'geometry_supervision.json',dict(passed=True,episodes=proof,
             scope='Same legal expert window masks for base, palm and sampled hand geometry; before optimizer updates'))
-        geometry=dict(acceptance_sha256=sha256(acceptance),live_sha256=sha256(live),
-            loss_kind='hand_surface_soft_hinge_v1',weight=a['hand_geometry_weight'],hyperparameter_source='prior accepted train-only physical geometry calibration; no test tuning')
     generator=torch.Generator().manual_seed(2026111402);noise=torch.Generator(device='cuda').manual_seed(2026111403)
     config=dict(version='fresh30_continuous_episode_v1',data_sha256=sha256(dr/'data.json'),statistics_sha256=sha256(dr/'statistics.pt'),
         dino_sha256=session['dino_sha256'],cache_index_sha256=sha256(root/role/'cache_index.json'),
@@ -181,23 +252,46 @@ def train(root,role,epochs):
         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
     if continuation:config['continuation']=continuation
+    if auxiliary:
+        config.update(version='fresh30_continuous_episode_aux_v1',visual_auxiliary=auxiliary,
+            auxiliary_label_report_sha256=sha256(out/'visual_auxiliary_labels.json'),
+            auxiliary_gradient_clip='policy_excludes_head_norm1; head_norm1_separate; equal AdamW hyperparameters')
     begin_epoch=updates=anchors_seen=target_ticks=0;best=float('inf');history=[]
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
         if old['configuration']!=config:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
         restore_training(old,model,averaged,opt,ema,generator,noise)
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
-    else:atomic_json(out/'configuration.json',config)
+        if auxiliary:
+            if 'auxiliary_exposure' not in old:raise ValueError('Missing complete auxiliary exposure state')
+            pose_exposure=old['auxiliary_exposure']
+            validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
+                completed_epochs=begin_epoch,updates=updates)
+    else:
+        if (out/'configuration.json').exists() and read(out/'configuration.json')!=config:
+            raise ValueError('Existing attempt configuration changed before first checkpoint')
+        atomic_json(out/'configuration.json',config)
+    reconcile_learning_log(out,durable_update=updates,completed_epochs=begin_epoch,
+        episodes_per_epoch=len(data['splits']['train']),
+        checkpoint_sha256=sha256(out/'last.pt') if (out/'last.pt').exists() else None)
     def checkpoint(epoch,name='last.pt'):
+        if auxiliary:
+            validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
+                completed_epochs=epoch,updates=updates)
+        extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
         save(out/name,training_state(model,averaged,opt,ema,generator,noise,kind='dp',group='I-HistoryDP',
             updates=updates,epoch=epoch,configuration=config,best=best,history=history,anchors_seen=anchors_seen,target_ticks=target_ticks,
-            train_ids=data['splits']['train'],validation_ids=data['splits']['validation']))
+            train_ids=data['splits']['train'],validation_ids=data['splits']['validation'],**extras))
     started=time.perf_counter()
     if continuation and not (out/'initial_metrics.json').exists():
         with lease.block():
             initial=dict(validation=metrics(averaged,records,data['splits']['validation']),
                 train=metrics(averaged,records,data['splits']['train'][:2]),
                 correction=metrics(averaged,records,data['aggregation']['new_training_ids']))
+            if auxiliary:
+                initial['visual_auxiliary']=dict(
+                    validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
+                    train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary))
         atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
         order=torch.randperm(len(data['splits']['train']),generator=generator).tolist();losses=[]
@@ -205,24 +299,39 @@ def train(root,role,epochs):
             i=data['splits']['train'][j];rec=records[i];began=time.perf_counter()
             with lease.block():
                 model.train();opt.zero_grad(set_to_none=True)
-                cond,a=supervised_conditions(model,rec);truth,valid=labels(rec,a,24)
+                if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec)
+                else:cond,a=supervised_conditions(model,rec)
+                truth,valid=labels(rec,a,24)
                 selected=[(i,int(t)) for t in a]
                 context=projection_batch(objective,selected,'cuda:0')
                 loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
+                if auxiliary:
+                    weighted_pose,pose_parts=auxiliary_episode_loss(model,rec,visual,pose_contexts[i],auxiliary)
+                    parts=dict(parts,auxiliary_position=pose_parts['position'],auxiliary_orientation6=pose_parts['orientation6'],
+                        auxiliary_weighted=weighted_pose)
+                    loss=loss+weighted_pose
                 if not torch.isfinite(loss):raise FloatingPointError('Nonfinite fresh loss')
-                loss.backward();norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
+                loss.backward()
+                norm=(clip_auxiliary_gradients(model,model.visual_pose_head)['policy_norm'] if auxiliary
+                    else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
                 if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
                 opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
+                if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
                 losses.append(float(loss));torch.cuda.synchronize()
             row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
                 parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
                 visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
+            if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
             atomic_json(out/'progress.json',row)
             with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
         with lease.block():
             val=metrics(averaged,records,data['splits']['validation']);tr=metrics(averaged,records,data['splits']['train'][:2])
+            pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
+                train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary)) if auxiliary else None)
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
+        if auxiliary:
+            report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
         if continuation and epoch+1==epochs:
             with lease.block():report['correction']=metrics(averaged,records,data['aggregation']['new_training_ids'])
         history.append(report);improved=val['selection']<best;best=min(best,val['selection'])
@@ -231,8 +340,10 @@ def train(root,role,epochs):
         atomic_json(out/'validation.json',report)
         with (out/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
         print(json.dumps(dict(role=role,epoch=epoch+1,updates=updates,loss=report['loss'],train=tr['selection'],validation=val['selection'])),flush=True)
-    atomic_json(out/'finished.json',dict(epochs=epochs,updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,
-        checkpoint_sha256=sha256(out/'best.pt'),complete=True,wall_seconds=time.perf_counter()-started))
+    finished=dict(epochs=epochs,updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,
+        checkpoint_sha256=sha256(out/'best.pt'),complete=True,wall_seconds=time.perf_counter()-started)
+    if auxiliary:finished['auxiliary_exposure']=pose_exposure
+    atomic_json(out/'finished.json',finished)
 
 
 def main():

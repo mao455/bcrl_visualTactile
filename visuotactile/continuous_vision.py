@@ -29,7 +29,36 @@ def frame_features(model,patches,depth,ages,valid):
     return tokens,read_batch(v,tokens,ages,valid)
 
 
-def encode_dense(model,record,*,episode=None,start=0,stop=None):
+def causal_visual_readouts(vision,tokens,times,camera_times,camera_valid,indices,*,batch_size=None):
+    """Read the current and two previous real frames at each requested tick.
+
+    Each row is independent. This is the same visual read used by the planner
+    and the online rear; optional all-tick reads do not run DP denoising.
+    """
+    n=len(tokens)
+    if (tokens.shape!=(n,3,48,128) or times.shape!=(n,)
+            or camera_times.shape!=(n,3) or camera_valid.shape!=(n,3)
+            or camera_valid.dtype!=torch.bool or indices.ndim!=1
+            or indices.dtype!=torch.long or not len(indices)
+            or (indices<0).any() or (indices>=n).any()):
+        raise ValueError('Aligned native visual tokens, times and tick indices required')
+    if (not torch.isfinite(times).all() or not torch.isfinite(camera_times).all()
+            or (camera_times>times[:,None]+1e-6).any()
+            or (times[1:]<=times[:-1]).any()):
+        raise ValueError('Finite causal camera and strictly increasing observation times required')
+    if batch_size is None:batch_size=len(indices)
+    if type(batch_size) is not int or batch_size<1:raise ValueError('Positive visual read batch size required')
+    output=[]
+    for ticks in indices.split(batch_size):
+        frame_indices=ticks[:,None]+torch.arange(-2,1,device=ticks.device)
+        selected=frame_indices.clamp_min(0)
+        valid=camera_valid[selected]&(frame_indices>=0)[...,None]
+        output.append(read_batch(vision,tokens[selected],
+            times[ticks,None,None]-camera_times[selected],valid))
+    return torch.cat(output)
+
+
+def encode_dense(model,record,*,episode=None,start=0,stop=None,return_visual=False):
     if model.contract.get('visual_stride')!=1 or model.modality!='G00':
         raise ValueError('Explicit every-tick G00 visual contract required')
     stop=len(record['time']) if stop is None else stop
@@ -68,8 +97,10 @@ def encode_dense(model,record,*,episode=None,start=0,stop=None):
     nr=model.normalized_robot(robot)
     rows=torch.cat((nr[ri],(time[anchors,None]-time[ri]).float()[...,None],rvalid.float()[...,None]),-1)
     rows=torch.where(rvalid[...,None],rows,0.).flatten(1)
-    findex=anchors[:,None]+torch.arange(-2,1,device=device);fi=findex.clamp_min(0)
-    valid=cv[fi]&(findex>=0)[...,None]
-    readout=read_batch(model.vision,tokens[fi],time[anchors,None,None]-ct[fi],valid)
+    readout=causal_visual_readouts(model.vision,tokens,time,ct,cv,anchors)
     condition=model.condition_projection(torch.cat((model.robot_encoder(rows),readout,native[anchors],visual[anchors]),-1))
+    if return_visual:
+        ticks=torch.arange(start,stop,device=device)
+        visual_readout=causal_visual_readouts(model.vision,tokens,time,ct,cv,ticks,batch_size=32)
+        return condition,anchors,dict(ticks=ticks,readout=visual_readout)
     return condition,anchors

@@ -16,6 +16,15 @@ def test_batched_visual_path_matches_tick_path_and_future_causality():
         old,_,_=encode_segment(m,ep,0,n)
         batched,a=encode_dense(m,rec,episode=ep)
         assert torch.allclose(old,batched,atol=2e-5,rtol=1e-5),(old-batched).abs().max()
+        with_visual,visual_anchors,visual=encode_dense(m,rec,episode=ep,return_visual=True)
+        assert torch.equal(with_visual,batched) and torch.equal(visual_anchors,a)
+        assert visual['ticks'].tolist()==list(range(n))
+        from visuotactile.native_data import residual_visual
+        memory=None;online_visual=[]
+        for tick in range(n):
+            memory=m.observe(r[tick],t[tick],tick,ep.frame(tick,'cpu'),memory)
+            online_visual.append(residual_visual(m,memory,t[tick]))
+        torch.testing.assert_close(visual['readout'],torch.cat(online_visual),atol=2e-5,rtol=1e-5)
         suffix,_=encode_dense(m,rec,episode=ep,start=12)
         assert torch.allclose(suffix,batched[1:],atol=2e-5,rtol=1e-5)
         p[13:]+=1

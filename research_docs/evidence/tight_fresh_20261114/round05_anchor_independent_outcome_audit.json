@@ -1,0 +1,882 @@
+{
+  "acceptance_static_review": {
+    "binding": "Calibration and source/data/statistics/labels/session bindings checked before and after; four disposable optimizer updates only; no weights saved.",
+    "blocking_finding": false,
+    "fairness": "Same source/condition/labels/noise/geometry; separate head/policy clipping; fixed forward/gradient/updated-parameter/update-delta thresholds; formal LR must equal acceptance LR.",
+    "graph_lifecycle": "Each disposable backward graph is consumed once; shared gradient probe has no second backward; detached CPU snapshots and explicit model/graph cleanup.",
+    "limitation": "Actual CUDA parity and calibration results are required before formal training; static and CPU checks are not those results.",
+    "tests": "6 CPU acceptance tests passed in prior bounded review; no actual CUDA acceptance was run by this reviewer."
+  },
+  "audit_source_sha256": {
+    "tools/tight_fresh_anchor_study_report.py": "ab1e6213be60d95ebb5f998745f88ec09b7845a11dd87f24bd65884f2dfdef50",
+    "tools/tight_fresh_phases.py": "0cda7628593954cac85adf528a68085fe44fcc5e331e0469455cf3cd8f666eaf",
+    "tools/tight_fresh_visual_aux_study.py": "0374b01fba6ba35e3096b36e6e25c5abaf102b1fe8f8bbf4ccb64a46720bdf80",
+    "tools/tight_visual_aux_acceptance.py": "0144a7f91bbba1924d99db99e88dce45cbee204f6b3e2077fe114607c02101a0",
+    "visuotactile/takeover_trigger.py": "44f74a84c768d3acc80e9f5ac665d5522654e72ccde241843d66ab88e7933928"
+  },
+  "autonomous_totals": {
+    "control": {
+      "A": {
+        "alignment_cases": 0,
+        "control_ticks_per_wall_second": 11.958760391252266,
+        "first_subgoal_cases": 0,
+        "invalid_initializations": 0,
+        "legal": 4,
+        "native_lift_cases": 0,
+        "near_hole_cases": 0,
+        "opportunities": 4,
+        "seconds": 201.02417987724766,
+        "settled_stable_cases": 0,
+        "steps": 2404,
+        "successes": 0
+      },
+      "B": {
+        "alignment_cases": 0,
+        "control_ticks_per_wall_second": 12.010505448736131,
+        "first_subgoal_cases": 0,
+        "invalid_initializations": 0,
+        "legal": 4,
+        "native_lift_cases": 0,
+        "near_hole_cases": 0,
+        "opportunities": 4,
+        "seconds": 200.15810410818085,
+        "settled_stable_cases": 0,
+        "steps": 2404,
+        "successes": 0
+      }
+    },
+    "previous": {
+      "A": {
+        "alignment_cases": 0,
+        "control_ticks_per_wall_second": 12.069252920684402,
+        "first_subgoal_cases": 0,
+        "invalid_initializations": 0,
+        "legal": 4,
+        "native_lift_cases": 0,
+        "near_hole_cases": 0,
+        "opportunities": 4,
+        "seconds": 199.1838281787932,
+        "settled_stable_cases": 0,
+        "steps": 2404,
+        "successes": 0
+      },
+      "B": {
+        "alignment_cases": 0,
+        "control_ticks_per_wall_second": 12.066604371664157,
+        "first_subgoal_cases": 0,
+        "invalid_initializations": 0,
+        "legal": 4,
+        "native_lift_cases": 0,
+        "near_hole_cases": 0,
+        "opportunities": 4,
+        "seconds": 199.22754786303267,
+        "settled_stable_cases": 0,
+        "steps": 2404,
+        "successes": 0
+      }
+    }
+  },
+  "conclusion": {
+    "next_visual_auxiliary": "Supported hypothesis test only: same train-only head/weight with detached-readout control versus shared-vision gradient; not a diagnosed causal visual failure.",
+    "promote_candidates": false,
+    "reason": "All16 actual new autonomous runs lack native lift, stable hold, near-hole, subgoal and success. Offline fitting improves but does not establish autonomous benefit.",
+    "retain_round05_source": true
+  },
+  "device": "cpu",
+  "documentation_correction": "Rounded candidate A bound corrected from strictly below1.81mm to approximately1.81mm (actual1.8104910850524902mm); B below.13mm remains valid.",
+  "executed_source_commit": "cb47381e42f2019eee10c4d19fde6b62962ec2cf",
+  "optimizer_updates": 0,
+  "plot": {
+    "path": "research_docs/evidence/tight_fresh_20261114/round05_anchor_study.png",
+    "sha256": "d1c47922962241c175ae2dd66512e1ac0a766ecf7f550c4517f81bdc93985bbf",
+    "visual_review_passed": true
+  },
+  "published_report": {
+    "autonomous_exact_recompute": true,
+    "path": "research_docs/evidence/tight_fresh_20261114/round05_anchor_study.json",
+    "sha256": "fa2b11268e2fd4ef0687a82b1e4cb0f6c849bfc9a8ee3fefdcae79ca23cfea3c",
+    "source_autonomous_exact_recompute": true
+  },
+  "registration_sha256": "29d479d3ad2b0a131d20c57e7799bfaeefaa1f6102b16035d27b363db1d749d6",
+  "review_commit": "f993b0d02fc933df4aacef214dff91427c1b0af2",
+  "review_worktree": "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114",
+  "semantics": {
+    "first_plan": "Initial observable JSONs match all8 source opportunities, but source/control/previous first DP plans and nominal commands are not bytewise equal. Image/noise/numerical cause was not identified in this bounded review; these are not exact-input or exact-action pairs.",
+    "goal": "Phase snapshots use diagnostics_before goal. No subgoal transitions occurred in these24 actual cases.",
+    "keypoint": "Gap is native max distance minus tolerance; distance is reported separately.",
+    "pairing": "Same registered observable reset opportunities do not establish exact simulator hidden-state replay.",
+    "pose": "Root-reference-origin distance is not collision-AABB center distance.",
+    "settled_rise": "Maximum object root z from completed tick49 onward minus median root z at ticks25-48; initial midair fall is excluded.",
+    "source": "Previous source cohort remains separate from the16 new interleaved opportunities."
+  },
+  "settled_maximum_rise_mm": {
+    "control_A": 64.03875350952148,
+    "control_B": 88.5782241821289,
+    "previous_A": 1.8104910850524902,
+    "previous_B": 0.12612342834472656
+  },
+  "simulator_starts": 0,
+  "source_first_step_comparisons": [
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.000725508201867342
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.001814188901335001
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.001814188901335001
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.00034616817720234394
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0003718659281730652
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.0019538423512130976
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.001814188901335001
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.006192006170749664
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.014537226408720016
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.014537226408720016
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.002317016012966633
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.002902654930949211
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.012030282989144325
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.014537226408720016
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140000/initial_observable.json": "7b0465fc42b765b64e3045a971399a409a70d79ba4783924d216ed464dbf971a",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140000/plans.npz": "02f5949d8cc573fd80d83d07212d9415af72037dbfc2257ac0b4d2437fd2ad05",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140000/trace.npz": "073cfa704f8e8b9a8505c317cd3cdb3ca6570d83aab94c66c3bd602a30b4e2f8",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140000/initial_observable.json": "7b0465fc42b765b64e3045a971399a409a70d79ba4783924d216ed464dbf971a",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140000/plans.npz": "20865aa4b22446f0a16610ecc2ab1b31aeffb6b490eff1175ab35f89612548bc",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140000/trace.npz": "263bdbf35393d5d21b148694d3a56244b6a681b2d41bc4280ea60cca9aa39456",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140000/initial_observable.json": "7b0465fc42b765b64e3045a971399a409a70d79ba4783924d216ed464dbf971a",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140000/plans.npz": "c441c37a6523070f6a0cb821dd6ff9816d61c9b00d51da660b59665c47b6cc74",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140000/trace.npz": "fb3cf577d36626db61ee09b24cc11f864220f95e553ec4299e2bc7d48ca2a63a"
+      },
+      "role": "A",
+      "seed": 28140000
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.006976932752877474
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.006173314526677132
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.006173314526677132
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0009878426790237427
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.005584049969911575
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.005584053695201874
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.006173314526677132
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.005185931921005249
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.008394376374781132
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.008394376374781132
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0018122661858797073
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0029918458312749863
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.008852770552039146
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.008394376374781132
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140001/initial_observable.json": "cadcebd5271c9d888dff15fac25cbd793681b0cdb4399dc3e72c5775327d7057",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140001/plans.npz": "5a56578c0c01cc54bfca6b562bca071b782697cb50a57139f152cbe84763b158",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140001/trace.npz": "80f389def9c1c14658b14f0d7dd3b565d9421d95a59032b12f54f8ff106d34e0",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140001/initial_observable.json": "cadcebd5271c9d888dff15fac25cbd793681b0cdb4399dc3e72c5775327d7057",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140001/plans.npz": "d6aa1e496071de78996a845e1c084234ed1e803dbaee0d53dc0787191d8d98d3",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140001/trace.npz": "0d61cdc34ea34c07c6684209bb0a5e392f8a527e14c175c369026b70d6ac8ffc",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140001/initial_observable.json": "cadcebd5271c9d888dff15fac25cbd793681b0cdb4399dc3e72c5775327d7057",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140001/plans.npz": "4e958752ecccf6486ec8e5e62bf668aa4194a4d66f2cc90bd74fb708912bba2b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140001/trace.npz": "08ec29a786c746282b572c71cc806f0d27784ad0c9c4e2bd53d7df0a64b1d1a5"
+      },
+      "role": "A",
+      "seed": 28140001
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.0047470927238464355
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.0027239974588155746
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.0027239974588155746
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0004227939061820507
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.002353094285354018
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.002852974459528923
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.0027239974588155746
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.003566521219909191
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.012463925406336784
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.012463925406336784
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.002039148472249508
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0025995243340730667
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.01299620047211647
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.012463925406336784
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140002/initial_observable.json": "5dad9a592216f18a3e4e71b2e40fe7a5d75222e37db44dd809c8837d29c3193b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140002/plans.npz": "e555844d81422b2a999945de502f89266c1e4378378859076032856bd6e11fed",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140002/trace.npz": "08065e9ca886db1c20b15372ff853236e294e67112852c260b73baec4338d7eb",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140002/initial_observable.json": "5dad9a592216f18a3e4e71b2e40fe7a5d75222e37db44dd809c8837d29c3193b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140002/plans.npz": "d01632f490e30f118a993f695f070c25a109ba6311be697f82deaae7349b408e",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140002/trace.npz": "a6d77a9d6989f20f222b774ae4f063bbdcbff5a55ffb059effc9591bacbbe192",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140002/initial_observable.json": "5dad9a592216f18a3e4e71b2e40fe7a5d75222e37db44dd809c8837d29c3193b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140002/plans.npz": "eaf81e3ab568a5f67f2d4aa68b68e6e5fe1abe552aaa51c044a43184e949e587",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140002/trace.npz": "0d999defcc2c9ce9c9348a86b4d750e40ed5369dd929774b884b080cd290f979"
+      },
+      "role": "A",
+      "seed": 28140002
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.004923880100250244
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.00682758167386055
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.00682758167386055
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.001121867448091507
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.002368248999118805
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.006468931213021278
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.00682758167386055
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.004116952419281006
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.01760338991880417
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.01760338991880417
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0028024092316627502
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.002320915460586548
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.01821954734623432
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.01760338991880417
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140003/initial_observable.json": "23fd4e893e5c0930278cd5c7e1f4d8fb30f0d865854d8375863398df7c174735",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140003/plans.npz": "144a4003ec62d1eb9368ecb1e90bc88d7b2d049b2198eb283d2e55b227489824",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/A_development_28140003/trace.npz": "7a02fd22a5408d15e375472acb74219b7934f3923e5bdedb5c3aa8204c88db37",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140003/initial_observable.json": "23fd4e893e5c0930278cd5c7e1f4d8fb30f0d865854d8375863398df7c174735",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140003/plans.npz": "b98d7ff8f4d6b8263e377717eb6f707f96e350617fa6a062f46aa90eccd06e83",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_A_development_28140003/trace.npz": "4a38d97eb1718872ccaffe47a705db2bf59aac7edbeb74b74e656f9b4744b8a4",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140003/initial_observable.json": "23fd4e893e5c0930278cd5c7e1f4d8fb30f0d865854d8375863398df7c174735",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140003/plans.npz": "50155bf2df3756327a691984a7e15ef026df83b722277dfc136d0fc2d36789a4",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_A_development_28140003/trace.npz": "3732e0c2da9b0d144edc83786065ad1629a2932e58c524b067bb89007ae2f97a"
+      },
+      "role": "A",
+      "seed": 28140003
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.0032975934445858
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.006138406693935394
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.006138406693935394
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0012955221609445289
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.002591334283351898
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.006454864516854286
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.006138406693935394
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.0027114301919937134
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.009344590827822685
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.009344590827822685
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0024550752714276314
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0018059201538562775
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.009745882824063301
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.009344590827822685
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140000/initial_observable.json": "7b0465fc42b765b64e3045a971399a409a70d79ba4783924d216ed464dbf971a",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140000/plans.npz": "319b85abd79752ab5f59aaa1151fac28249efa378396cb498455c06174ceca90",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140000/trace.npz": "dde7e2ad4741ebd05973ae5e3faaf41cd563fbbf75b20142ca9d72ec954c1b41",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140000/initial_observable.json": "7b0465fc42b765b64e3045a971399a409a70d79ba4783924d216ed464dbf971a",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140000/plans.npz": "90ef2407867602d2981393adde5f97b0347e2d68f06f8efcaae5c874016499f5",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140000/trace.npz": "5a7daecabef27e12f01ea6380400d1963addfc1b6254f07d6e1911a3f3f18b56",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140000/initial_observable.json": "7b0465fc42b765b64e3045a971399a409a70d79ba4783924d216ed464dbf971a",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140000/plans.npz": "2a70179d4fc1d2909b0e92d675be386c45bc9a7968f6bdb30f5311ee975a7472",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140000/trace.npz": "6900835f064a7b562ba7765de572648de6962cb56ae6cb27dceeffb957ce0250"
+      },
+      "role": "B",
+      "seed": 28140000
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.0020241737365722656
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.006399053148925304
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.006399053148925304
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0013503473601303995
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0014325492084026337
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.006353279575705528
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.006399053148925304
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.004867434501647949
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.011225253343582153
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.011225253343582153
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.002786753699183464
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0017490312457084656
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.009476222097873688
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.011225253343582153
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140001/initial_observable.json": "cadcebd5271c9d888dff15fac25cbd793681b0cdb4399dc3e72c5775327d7057",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140001/plans.npz": "d36549932eea0861b60427de0fc23f2fe7cfb1aa9b1e00f083556402c6df7e37",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140001/trace.npz": "7826848325e011e0ebc5c74d7803258d957ea072aeecd59fdaa5e0d8876a1f13",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140001/initial_observable.json": "cadcebd5271c9d888dff15fac25cbd793681b0cdb4399dc3e72c5775327d7057",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140001/plans.npz": "11236ffb9fdacaab7454333270b4f2cf08129e95c37ea46ed9a0593633daa141",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140001/trace.npz": "2020c01a254cc077c2ea023c4bcd1090b8584ccd385598bab04d144ea7def9d3",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140001/initial_observable.json": "cadcebd5271c9d888dff15fac25cbd793681b0cdb4399dc3e72c5775327d7057",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140001/plans.npz": "840632714f36308e59640ab940ceb80ebc55e8d4bbe7071e4de122c64844277f",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140001/trace.npz": "070058506d1e3b06028df80015e737c19bb22ff006a8b55b8de9653e7094563e"
+      },
+      "role": "B",
+      "seed": 28140001
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.005623549222946167
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.00649656169116497
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.00649656169116497
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0013704546727240086
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0020320024341344833
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.005822693929076195
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.00649656169116497
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.006050929427146912
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.00927373580634594
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.00927373580634594
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0024243835359811783
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.003190401941537857
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.009277714416384697
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.00927373580634594
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140002/initial_observable.json": "5dad9a592216f18a3e4e71b2e40fe7a5d75222e37db44dd809c8837d29c3193b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140002/plans.npz": "f29346fa42bad54d0efb0ed6e9c0f3ab8854b9252b9064299be3955bdb809121",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140002/trace.npz": "2fdc6208b850e96a49b7c17dfbf42fe786f07e8dabf8e8a359f6fcc87340c1c6",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140002/initial_observable.json": "5dad9a592216f18a3e4e71b2e40fe7a5d75222e37db44dd809c8837d29c3193b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140002/plans.npz": "a6fcebc8136690d152a0340791a4813d0d33e1331775f0c40425a389635e2e8b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140002/trace.npz": "84f828c2aeb23a8da97407abfeb91529767afe2a3072c61c59b9ccd5b73965ff",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140002/initial_observable.json": "5dad9a592216f18a3e4e71b2e40fe7a5d75222e37db44dd809c8837d29c3193b",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140002/plans.npz": "6f01bb6d17817ddd7720f9becc372a582489c14bb6a4f37d9583f9e745c25214",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140002/trace.npz": "e2e826c3f40c4505c7f934e16bb0044aa78b9aa96b060dbe374755174c3eb370"
+      },
+      "role": "B",
+      "seed": 28140002
+    },
+    {
+      "comparisons": {
+        "control": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.0025807619094848633
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.007703205570578575
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.007703205570578575
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.001626070006750524
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0019742175936698914
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.006830932572484016
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.007703205570578575
+            }
+          },
+          "initial_observable_equal": true
+        },
+        "previous": {
+          "first_plan": {
+            "equal": false,
+            "max_abs": 0.005596280097961426
+          },
+          "first_trace": {
+            "actuator_targets": {
+              "equal": false,
+              "max_abs": 0.010986901819705963
+            },
+            "command": {
+              "equal": false,
+              "max_abs": 0.010986901819705963
+            },
+            "execution_previous_target_rad": {
+              "equal": true,
+              "max_abs": 0.0
+            },
+            "joint": {
+              "equal": false,
+              "max_abs": 0.0026072831824421883
+            },
+            "nominal": {
+              "equal": false,
+              "max_abs": 0.0017340108752250671
+            },
+            "residual_applied_rad": {
+              "equal": false,
+              "max_abs": 0.010472532361745834
+            },
+            "target": {
+              "equal": false,
+              "max_abs": 0.010986901819705963
+            }
+          },
+          "initial_observable_equal": true
+        }
+      },
+      "inputs": {
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140003/initial_observable.json": "23fd4e893e5c0930278cd5c7e1f4d8fb30f0d865854d8375863398df7c174735",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140003/plans.npz": "f2b486bb0b3ef7b88550f2be5d3eec3bfcb3d4bc0ecc2c88959f78eabf03433d",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/development/B_development_28140003/trace.npz": "f298431ee54e3d1077bc9e9f9c2c8ae3897fc2d5bb857a6b8a0b0c5f67092d58",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140003/initial_observable.json": "23fd4e893e5c0930278cd5c7e1f4d8fb30f0d865854d8375863398df7c174735",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140003/plans.npz": "70ae8379b8542cd99027d163ebb3737a7998b4ee62076f52ba4a2cf9e9262be9",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/control_B_development_28140003/trace.npz": "f060fa1641bd8ac424f8ef602002416b71b8119ae47095720cbdef61c27678f2",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140003/initial_observable.json": "23fd4e893e5c0930278cd5c7e1f4d8fb30f0d865854d8375863398df7c174735",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140003/plans.npz": "c12a7201fb3500d2425d7adac47a95e2df86843bc2e5515e52d66c225bce7203",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study/development/previous_B_development_28140003/trace.npz": "d3f6164f3d0bab7e4c3610e45c4b461ee6de41ac409db522aa0d1e28f1773f2a"
+      },
+      "role": "B",
+      "seed": 28140003
+    }
+  ],
+  "source_totals": {
+    "A": {
+      "alignment_cases": 0,
+      "control_ticks_per_wall_second": 11.886498186026305,
+      "first_subgoal_cases": 0,
+      "invalid_initializations": 0,
+      "legal": 4,
+      "native_lift_cases": 1,
+      "near_hole_cases": 0,
+      "opportunities": 4,
+      "seconds": 190.1316909850575,
+      "settled_stable_cases": 2,
+      "steps": 2260,
+      "successes": 0
+    },
+    "B": {
+      "alignment_cases": 0,
+      "control_ticks_per_wall_second": 12.119978567567518,
+      "first_subgoal_cases": 0,
+      "invalid_initializations": 0,
+      "legal": 4,
+      "native_lift_cases": 1,
+      "near_hole_cases": 0,
+      "opportunities": 4,
+      "seconds": 198.35018573654816,
+      "settled_stable_cases": 1,
+      "steps": 2404,
+      "successes": 0
+    }
+  },
+  "study_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_03/round05_anchor_study",
+  "test_used": false,
+  "version": "round05_anchor_independent_outcome_audit_v1"
+}

@@ -287,8 +287,11 @@ def load_policy(payload, device='cpu', ema=True):
         from ..state_history import trained_continuation_updates
         if trained_continuation_updates(payload)<1:
             raise ValueError('Update-zero policy requires a trained hash-bound continuation source')
-    from ..position_control import image_contract, continuous_image_contract
+    from ..position_control import image_contract, continuous_image_contract, visual_auxiliary_image_contract
+    from ..visual_pose_aux import ROUTES, VisualPoseHead
     continuous=[continuous_image_contract(s) for s in ('u_expert','q_reached')]
+    auxiliary=[visual_auxiliary_image_contract(s,r) for s in ('u_expert','q_reached') for r in ROUTES]
+    continuous += auxiliary
     allowed=[CONTRACT]+[image_contract(g,h) for g in ('I-OfficialDP','I-HistoryDP') for h in (24,32)]
     allowed += [image_contract('I-HistoryDP',24,m) for m in ('G00','G10')]
     allowed += [image_contract('I-HistoryDP',24,m,s) for m in ('G00','G10') for s in ('u_expert','q_reached')]
@@ -298,6 +301,10 @@ def load_policy(payload, device='cpu', ema=True):
         raise ValueError('Not a native-command v1 checkpoint; old weights cannot be reinterpreted')
     model = NativePolicy(group,stored['horizon'],modality=stored.get('modality')).to(device)
     model.contract=stored
+    if stored in auxiliary:
+        # Strict state loading below requires all trained head weights. This
+        # initializer is isolated from policy RNG and never used for execution.
+        model.visual_pose_head=VisualPoseHead(seed=0).to(device)
     model.load_state_dict(payload['ema'] if ema else payload['model'])
     return model.eval()
 

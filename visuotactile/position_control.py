@@ -182,6 +182,13 @@ def continuous_image_contract(supervision):
         normalization_identity=supervision+'_fresh_train_only_affine_v1')
 
 
+def visual_auxiliary_image_contract(supervision,route):
+    """Explicit training-only pose head identity; no change to sensor inputs."""
+    from .visual_pose_aux import auxiliary_contract
+    return dict(continuous_image_contract(supervision),version=7,
+        perception_auxiliary=auxiliary_contract(route))
+
+
 def bounded_targets(actions, limits):
     if actions.ndim != 2 or actions.shape[-1] != 29 or not torch.isfinite(actions).all():
         raise ValueError('Finite canonical [N,29] absolute radians required')
