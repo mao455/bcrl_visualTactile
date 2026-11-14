@@ -1067,7 +1067,7 @@ def residual_setup(root, *, selected=False, smoke=False):
         loss_id='all_tick_equal_arm_hand_plus_1e-4_residual',ema=False,
         architecture=model.architecture(),residual_version=model.version,
         history='full causal episodes; 32tick detach only; expert past acknowledgements teacher forced offline')
-    if v.get('fresh_data_contract'):
+    if v.get('fresh_validation_count_metadata'):
         configuration['selection']=f"fixed validation{len(all_splits['validation'])} all-tick normalized equal Arm/Hand MSE"
     if data.get('sampling_strata'):
         sampling_strata(all_splits['train'],data['sampling_strata'],v.get('sampling_weights'))

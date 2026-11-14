@@ -1,3 +1,11 @@
+## 2026-11-14 接触阶段复查与训练初态诊断准备
+
+新增tight_fresh_contact_motion_report及round02_round03_contact_motion证据，绑定同登记8例完整pair、numeric与可见初态。第三轮首次指尖接触51–67tick，6/8在80tick前相对接触前水平移动超过1cm；该量只是描述，不是新任务判据。A首例接触后24tick位移25.1→45.3mm、手指实际目标跟踪RMSE0.0356→0.1349rad；部分例子早期位移减少但仍未拿稳。未据此认定控制器故障或精确物理配对，支持当前更早接管的研究选择。
+
+新增tight_fresh_train_diagnostic，登记原30中前2个family各A/B完整自主一次，使用原始成功记录的seed/event_seed/narrow_reset。它是单独训练初态诊断，不读test、不增加标签、不混开发分母；同种子不保证隐藏PhysX重现。审查先发现新cohort会误走旧状态恢复分支，已改为原生fresh重置路径、单独diagnostic_cohort标注；4项CPU测试含真实prepare入口和拒绝heldout/纠偏/变动source。此时未启动该仿真。
+
+修复已准备但未选择执行的后端加权study：先准备A/B依赖再建立A后端，避免缺B公共命令统计；验证数量文字仅新显式fresh_validation_count_metadata配置启用，旧fresh配置身份不隐式改变。51项相关CPU测试通过，活动b581be9采集不热改。真实round03 CPU准备验收也通过：四候选均读取77条原cache/71train/6val，当前参数逐tensor等于来源，源SHA不变；旧best配置正确加载。CUDA未初始化、0更新/仿真，candidate未选择执行。第四轮真实采集仍在进行，实际完成结果另记。
+
 ## 2026-11-14 第三轮完成：离线改善仍未转为自主拿稳
 
 冻结b9b6dcb的完整循环自然结束。A/B各DP10遍710更新；后端15遍2136更新、311280合法tick，均选最后一遍。后端原30/历史21/新20实际监督155970/84975/70335tick，77条当前DP计划与可训练视觉缓存身份全部一致，固定6验证不变。最终后端验证手指RMSE A0.0147791/B0.0167416rad，均低于保持上一目标0.0194149；arm0.00070533/0.00072634rad。train2/validation整体下降。曝光按family重新核对通过，真实指标和曲线已导出。

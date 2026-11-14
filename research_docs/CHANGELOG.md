@@ -1,3 +1,11 @@
+## 2026-11-14 接触阶段复查与训练初态诊断准备
+
+新增tight_fresh_contact_motion_report及round02_round03_contact_motion证据，绑定同登记8例完整pair、numeric与可见初态。第三轮首次指尖接触51–67tick，6/8在80tick前相对接触前水平移动超过1cm；该量只是描述，不是新任务判据。A首例接触后24tick位移25.1→45.3mm、手指实际目标跟踪RMSE0.0356→0.1349rad；部分例子早期位移减少但仍未拿稳。未据此认定控制器故障或精确物理配对，支持当前更早接管的研究选择。
+
+新增tight_fresh_train_diagnostic，登记原30中前2个family各A/B完整自主一次，使用原始成功记录的seed/event_seed/narrow_reset。它是单独训练初态诊断，不读test、不增加标签、不混开发分母；同种子不保证隐藏PhysX重现。审查先发现新cohort会误走旧状态恢复分支，已改为原生fresh重置路径、单独diagnostic_cohort标注；4项CPU测试含真实prepare入口和拒绝heldout/纠偏/变动source。此时未启动该仿真。
+
+修复已准备但未选择执行的后端加权study：先准备A/B依赖再建立A后端，避免缺B公共命令统计；验证数量文字仅新显式fresh_validation_count_metadata配置启用，旧fresh配置身份不隐式改变。51项相关CPU测试通过，活动b581be9采集不热改。第四轮真实采集仍在进行，实际完成结果另记。
+
 ## 2026-11-14：第三轮完整结果与下一次早期接管
 
 公开round03_learning/family_exposure/increment_baseline/phases/runtime/onset_after及曲线，77cache绑定与实际曝光通过；A/B仍0/4成功、A极短稳定1/4而B0/4。新增tight_fresh_frontend_baseline以当前准确cache和原numeric比较5Hz/60Hz观测保持，误差复算与实际DP选择验证一致。anchor_report改用模型实际ideal_execution_bounds，真实24分段统计逐项不变。CPU报告与实际GPU onset评估完成；后端加权候选暂不运行，决定当前pair在剩余6训练family上做12次40–120tick早期接管，尚未启动。

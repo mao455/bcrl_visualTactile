@@ -59,12 +59,17 @@ def test_random_fresh_rear_accepts_original_affine_and_checks_all_cache_bindings
     for smoke in [False,True]:
         _,_,sample,records,model,configuration,_=anchor_continue.residual_setup(root,smoke=smoke)
         assert configuration['normalization_train_ids']==old
+        assert 'selection' not in configuration, 'Historical fresh configurations retain their exact identity'
         assert torch.equal(model.action_scale,stats['action_scale'])
         if continued:
             assert all(torch.equal(value,prior.state_dict()[key]) for key,value in model.state_dict().items())
             assert configuration['continuation_audit']['source_updates']==17
         assert set(records)==set(rows), 'Even a smoke run verifies every cache source'
         assert len(sample['splits']['train'])==(1 if smoke else 31)
+    pair['fresh_validation_count_metadata']=True
+    write(root/'configuration.json',dict(residual_pair=pair))
+    *_,configuration,_=anchor_continue.residual_setup(root)
+    assert configuration['selection']=='fixed validation6 all-tick normalized equal Arm/Hand MSE'
     # Rehashing a stale cache must not make it acceptable.
     rows['new']['cache_identity']['base_checkpoint_sha256']='old DP'
     torch.save(rows['new'],nominal/'new.pt');index['episodes']['new']['sha256']=sha256(nominal/'new.pt')

@@ -55,7 +55,7 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         execution_adapter=REACHABLE_POSITION_EXECUTION, loss_contract=SPAN_PROJECTION_FY_LOSS,
         history_contract=dict(version=CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION),
         output_contract=REACHABLE_CENTERED_OUTPUT, tick_window_contract=TICK_WINDOW_CONTRACT,
-        learning_rate=1e-4, weight_decay=1e-4, microbatch=4,
+        learning_rate=1e-4, weight_decay=1e-4, microbatch=4, fresh_validation_count_metadata=True,
         maximum_control_tick_epochs=epochs, minimum_control_tick_epochs=epochs,
         validation_epoch_interval=1, comparison_control_tick_epochs=[epochs],
         cache_transfer_mode='episode', cache_scheduler_index_mode='host',

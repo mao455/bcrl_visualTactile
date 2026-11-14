@@ -57,6 +57,9 @@ def prepare(source, output, epochs, ticks, weight, count, seed):
                 statistics_sha256=sha256(source/role/'state_data/statistics.pt'),
                 previous_backend=pair['backend'],previous_backend_sha256=pair['backend_sha256'],
                 initialization='Frozen current DP; selected current rear parameters with a fresh optimizer'))
+        # Both roles must exist before A reads the common B command statistics.
+        for role,pair in pairs.items():
+            directory=root/role
             prepare_backend(root,role,epochs,continue_rear=True,fresh_recovery_weighting=dict(
                 version=FRESH_RECOVERY_WEIGHTING_VERSION,ticks=ticks,backend_weight=loss_weight))
             nominal=directory/'backend'/role/'nominal';nominal.rmdir()
