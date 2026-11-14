@@ -469,6 +469,37 @@ def partial_metrics(study,registration):
     return result
 
 
+def frontend_audit(study,registration):
+    """Completed frontends only; a complete policy pair and autonomy are still pending."""
+    source_root=Path(registration['source_root']);roles={}
+    for role in ('A','B'):
+        require(all((study/arm/role/'training/finished.json').exists() for arm in ARMS),
+            'All four frontends must complete for matched actual-learning audit')
+        data=read(source_root/role/'state_data/data.json')
+        require(data['splits']==registration['training_population'] and not data['splits'].get('test')
+            and data['normalization_train_ids']==registration['normalization_train_ids'], 'Source fitting population differs')
+        numeric=torch.load(source_root/role/'state_data/numeric.pt',map_location='cpu',weights_only=False)
+        require(numeric['data_sha256']==sha256(source_root/role/'state_data/data.json'),'Numeric source differs')
+        ids=data['splits']['train']+data['splits']['validation']
+        _,labels=prepare_pose_contexts(data,{i:numeric['records'][i] for i in ids})
+        cells={};logs={};last={}
+        for arm in ARMS:cells[arm],logs[arm],last[arm]=frontend_cell(study,arm,role,registration,data,labels)
+        fairness=matched_frontends(study,role,cells,logs,last)
+        pair=registration['source_pairs'][role]
+        require(sha256(pair['frontend'])==pair['frontend_sha256'],'Selected source frontend changed')
+        source=torch.load(pair['frontend'],map_location='cpu',weights_only=False)
+        selected=next(row for row in source['history'] if row['epoch']==source['epoch'])
+        for arm in ARMS:
+            initial=cells[arm]['source_initial']['metrics']['action']
+            require(initial['validation']==selected['validation'] and initial['train']==selected['train'],
+                'Current common source action measurement differs from actual selected source')
+        roles[role]=dict(frontend=cells,matched_frontend=fairness,
+            source=dict(checkpoint_sha256=pair['frontend_sha256'],epoch=source['epoch'],updates=source['updates'],
+                action={key:selected[key] for key in ('train','validation')}),
+            within_role_action_comparison_only=True)
+    return roles
+
+
 def plot_report(value,path):
     path=Path(path)
     if path.exists() or path.is_symlink():raise FileExistsError('Preserve earlier plots')
@@ -527,7 +558,7 @@ def plot_report(value,path):
     figure.tight_layout(rect=(0,0,1,.92));figure.savefig(behavior,dpi=150);plt.close(figure)
 
 
-def run(study,output,*,execution_source,allow_incomplete=False,plot=None):
+def run(study,output,*,execution_source,allow_incomplete=False,plot=None,frontends_only=False):
     study=Path(study).resolve();output=Path(output).absolute();execution_source=Path(execution_source).resolve()
     if output.exists() or output.is_symlink():raise FileExistsError('Preserve earlier reports')
     torch.set_num_threads(2);registration=read(study/'registration.json')
@@ -552,6 +583,16 @@ def run(study,output,*,execution_source,allow_incomplete=False,plot=None):
         execution_source=str(execution_source),execution_commit=registration['source_commit'],
         report_source_sha256=sha256(__file__),device='cpu',test_used=False,stages=inventory,
         report_dependencies_sha256=report_dependencies,stage_semantics=STAGE_SEMANTICS)
+    if frontends_only:
+        roles=frontend_audit(study,registration)
+        value=dict(base,complete=False,frontend_audit_complete=True,roles=roles,
+            frontend_metrics={arm:{role:roles[role]['frontend'][arm] for role in ('A','B')} for arm in ARMS},
+            scope='Four completed frontends: actual matched exposure and source/best/last offline metrics only; no complete-pair or autonomy claim.',
+            pending=[key for key,item in inventory.items() if not item['present']])
+        require(not torch.cuda.is_initialized(),'Read-only frontend report unexpectedly initialized CUDA')
+        atomic_json(output,value)
+        if plot is not None:plot_report(value,plot)
+        return
     if not all(r['present'] for r in inventory.values()):
         require(allow_incomplete,'Study incomplete; an explicit partial report cannot claim completion')
         value=dict(base,complete=False,pending=[k for k,v in inventory.items() if not v['present']],
@@ -605,5 +646,7 @@ if __name__=='__main__':
     parser.add_argument('--execution-source',type=Path,required=True)
     parser.add_argument('--allow-incomplete',action='store_true')
     parser.add_argument('--plot',type=Path)
+    parser.add_argument('--frontends-only',action='store_true')
     args=parser.parse_args()
-    run(args.study,args.output,execution_source=args.execution_source,allow_incomplete=args.allow_incomplete,plot=args.plot)
+    run(args.study,args.output,execution_source=args.execution_source,allow_incomplete=args.allow_incomplete,
+        plot=args.plot,frontends_only=args.frontends_only)

@@ -57,13 +57,17 @@ class InferenceTimings:
 
 
 class NativeController:
-    def __init__(self, saved, metadata, dino=None, device='cuda:0', scheduler_index_mode='legacy'):
+    def __init__(self, saved, metadata, dino=None, device='cuda:0', scheduler_index_mode='legacy', *, first_plan_recorder=None):
         from .state_history import trained_continuation_updates
         if trained_continuation_updates(saved) < 1:
             raise ValueError('An untrained native policy cannot control')
         with torch.random.fork_rng(devices=[]):
             self.model = load_policy(saved, device)
         self.device, self.dino = torch.device(device), dino
+        self.first_plan_recorder = first_plan_recorder
+        if first_plan_recorder is not None and (self.model.group!='I-HistoryDP'
+                or self.model.modality!='G00' or self.model.contract.get('visual_stride')!=1):
+            raise ValueError('First-plan forensics requires the explicit every-frame G00 frontend')
         if scheduler_index_mode not in ('legacy','host'):raise ValueError('Unknown inference scheduler index mode')
         self.scheduler_index_mode=scheduler_index_mode
         self.limits = torch.tensor(metadata['joint_limits_rad'][0])
@@ -141,6 +145,15 @@ class NativeController:
         self.timings.finish(history_measured)
         if step % 12 == 0:
             self.last_condition = self.model.condition(self.memory, stamp.to(self.device))
+        if step==0 and self.first_plan_recorder is not None:
+            self.first_plan_recorder.before_sampling(episode,step,dict(
+                rgb_input=rgb,depth_input=packet['image'][0,:,3:],depth_valid_input=packet['depth_valid'][0],
+                dino_patches=frame['patches'],depth_grid=frame['depth'],robot178=robot,
+                normalized_robot178=self.memory.robot[-1][0],visual_tokens=self.memory.frames[-1][0],
+                visual_history_state=self.memory.visual,native_history_state=self.memory.native,
+                dp_condition512=self.last_condition,observation_time_s=stamp,
+                camera_time_s=frame['time'],camera_valid=frame['valid'],camera_frame=packet['camera_frame'][0],
+                episode_id=packet['episode_id'][0],step_id=packet['step_id'][0]),self.generator)
         self._pending_observation = (packet, step, measured)
         return self.last_condition if step % 12 == 0 else None
 
@@ -150,6 +163,8 @@ class NativeController:
         if step % 12 == 0:
             if plan is None:raise ValueError('Planning tick requires its newly computed plan')
             self.plan = plan.cpu()
+            if step==0 and self.first_plan_recorder is not None:
+                self.first_plan_recorder.after_sampling(int(packet['episode_id'][0]),self.plan,self.generator)
         elif plan is not None:raise ValueError('Unexpected plan outside a planning tick')
         if self.position_mode:
             from .position_control import bounded_targets
@@ -185,7 +200,7 @@ class NativeController:
 
 class ResidualController:
     """One frozen DP tick followed by one independent 60Hz residual tick."""
-    def __init__(self,saved,metadata,dino=None,device='cuda:0',scheduler_index_mode='legacy'):
+    def __init__(self,saved,metadata,dino=None,device='cuda:0',scheduler_index_mode='legacy',*,first_plan_recorder=None):
         from .compact import sha256
         from .models.native_dp import TargetResidual, LegacyTargetResidual, load_residual
         from .state_history import trained_continuation_updates
@@ -195,7 +210,8 @@ class ResidualController:
         if sha256(config['base_checkpoint'])!=config['base_sha256']:raise ValueError('Frozen base identity changed')
         base=torch.load(config['base_checkpoint'],map_location='cpu',weights_only=False)
         if base['contract']!=saved['contract']:raise ValueError('Residual/base contract differs')
-        self.base=NativeController(base,metadata,dino,device,scheduler_index_mode=scheduler_index_mode)
+        self.base=NativeController(base,metadata,dino,device,scheduler_index_mode=scheduler_index_mode,
+            first_plan_recorder=first_plan_recorder)
         self.model=self.base.model.eval().requires_grad_(False)
         self.residual=load_residual(saved,device).requires_grad_(False)
         from .position_control import validate_execution_environment

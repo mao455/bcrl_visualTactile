@@ -9,7 +9,7 @@ import pytest
 
 from tools import tight_fresh_stage_takeover as stage
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import StableGraspTrigger, VERSION
+from visuotactile.takeover_trigger import StableGraspTrigger, VERSION, CONTACT_HEIGHT_VERSION
 
 
 def data():
@@ -91,7 +91,8 @@ def test_reject_actual_fallback_even_if_expert_rescued():
     with pytest.raises(ValueError,match='fallback is forbidden'):stage.classify(result,audit)
 
 
-def test_real_prepare_checks_data_hashes_pairs_session_and_preserves_identity(tmp_path,monkeypatch):
+@pytest.mark.parametrize('version', [VERSION, CONTACT_HEIGHT_VERSION])
+def test_real_prepare_checks_data_hashes_pairs_session_and_preserves_identity(tmp_path,monkeypatch,version):
     source=tmp_path/'source';source.mkdir();session_root=tmp_path/'session';session_root.mkdir()
     (session_root/'session.json').write_text(json.dumps(dict(deadline=10**12)))
     original=tmp_path/'expert.h5'
@@ -105,11 +106,15 @@ def test_real_prepare_checks_data_hashes_pairs_session_and_preserves_identity(tm
     pair=dict(frontend='current.pt',frontend_sha256='front',backend='rear.pt',backend_sha256='rear')
     monkeypatch.setattr(stage,'completed_pair',lambda root,role:dict(pair,role=role))
     output=tmp_path/'collection'
-    plan=stage.prepare(source,output,['original1','original2'],[0,12],5,999,session_root=session_root)
+    plan=stage.prepare(source,output,['original1','original2'],[0,12],5,999,session_root=session_root,
+        trigger_version=version, first_plan_forensics=True)
     stage.validate_plan(plan)
     assert [c['role'] for c in plan['cases']]==['A','B','B','A']
     assert [c['spec']['event_seed'] for c in plan['cases']]==[999,999,1000,1000]
     assert all(c['spec']['split']=='train' and c['spec']['takeover_tick']==stage.NEVER_FALLBACK for c in plan['cases'])
+    assert plan['stage_takeover_contract']==stage.trigger_contract(version)[0]
+    assert all(c['dagger']['trigger']['version']==version for c in plan['cases'])
+    assert plan['first_plan_forensics'] is True
     assert sha256(output/'session.json')==plan['source_session_sha256']
     before=(output/'plan.json').read_bytes()
     with pytest.raises(FileExistsError):stage.prepare(source,output,['original1'],[0],5,999,session_root=session_root)

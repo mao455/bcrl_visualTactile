@@ -1,19 +1,29 @@
-"""Finite stable-state collection; no fixed-time expert fallback and no policy changes."""
+"""Finite causal stage collection; no fixed-time expert fallback or policy changes."""
 import argparse
 import copy
 import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import time
 
 from tools.tight_fresh_rollouts import completed_pair, read
 from visuotactile.compact import sha256
-from visuotactile.takeover_trigger import VERSION
+from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION
 from visuotactile.training_resources import atomic_json
 
 CONTRACT = 'stable_only_takeover_v1'
+CONTACT_HEIGHT_CONTRACT = 'contact_height_only_takeover_v1'
 NEVER_FALLBACK = 1_000_000_000
+
+
+def trigger_contract(version):
+    if version == VERSION:
+        return CONTRACT, 'stable_only', 'stable', 'first_stable_window_end_completed_tick'
+    if version == CONTACT_HEIGHT_VERSION:
+        return CONTACT_HEIGHT_CONTRACT, 'contact_height_only', 'contact_height', 'first_contact_height_window_end_completed_tick'
+    raise ValueError('Unknown explicit stage trigger version')
 
 
 def validate_requests(data, identities, delays):
@@ -36,7 +46,8 @@ def validate_requests(data, identities, delays):
         raise ValueError('Each opportunity must use a different original family')
 
 
-def prepare(source, output, identities, delays, round_index, event_seed, *, session_root=None):
+def prepare(source, output, identities, delays, round_index, event_seed, *, session_root=None,
+            trigger_version=VERSION, first_plan_forensics=False):
     import h5py
     from visuotactile.position_control import ExpertPositionBridge
     from visuotactile.state_benchmark import dagger_configuration
@@ -48,7 +59,10 @@ def prepare(source, output, identities, delays, round_index, event_seed, *, sess
         raise ValueError('Positive explicit round required')
     if isinstance(event_seed, bool) or not isinstance(event_seed, int) or event_seed < 0:
         raise ValueError('Nonnegative explicit event seed required')
+    if type(first_plan_forensics) is not bool:
+        raise ValueError('First-plan forensics must be explicitly enabled or disabled')
     session = read(session_root / 'session.json')
+    contract, label, _, _ = trigger_contract(trigger_version)
     if session['deadline'] <= time.time():
         raise ValueError('Session deadline has already passed')
     data = {r: read(source / r / 'state_data/data.json') for r in ('A', 'B')}
@@ -71,18 +85,18 @@ def prepare(source, output, identities, delays, round_index, event_seed, *, sess
         if not original.get('success'):
             raise ValueError('Original must be a complete successful demonstration')
         for role in (('A', 'B') if index % 2 == 0 else ('B', 'A')):
-            name = f'r{round_index:02d}_{role}_{identity}_stable_only_d{delay}'
+            name = f'r{round_index:02d}_{role}_{identity}_{label}_d{delay}'
             spec = dict(identity=name, family=entry['family'], split='train', cohort='dagger_train',
                 source_identity=identity, seed=original['seed'], event_seed=event_seed + index,
                 narrow_reset=copy.deepcopy(original['narrow_reset']),
                 collision_gate='live_collision_mesh_bounds_v1', takeover_tick=NEVER_FALLBACK)
             bridge = dict(version=ExpertPositionBridge.version, expert_speed=ExpertPositionBridge.speed_scheme,
-                trigger=dict(version=VERSION, delay_ticks=delay))
+                trigger=dict(version=trigger_version, delay_ticks=delay))
             dagger_configuration(bridge, spec, data[role])
             cases.append(dict(name=name, role=role, spec=spec, dagger=bridge, video=index == 0,
                 source_data=str(source / role / 'state_data/data.json')))
     # Build the complete immutable registration before creating any plan file.
-    plan = dict(kind='takeover', stage_takeover_contract=CONTRACT, never_fallback=NEVER_FALLBACK,
+    plan = dict(kind='takeover', stage_takeover_contract=contract, never_fallback=NEVER_FALLBACK,
         round_index=round_index, pairs=pairs, cases=cases, explicit_source_identities=list(identities),
         assigned_delays=list(delays), source_root=str(source), resource_root=str(session_root),
         source_data_sha256={r: sha256(source / r / 'state_data/data.json') for r in ('A', 'B')},
@@ -90,9 +104,9 @@ def prepare(source, output, identities, delays, round_index, event_seed, *, sess
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         source_sha256={str(p): sha256(p) for folder in ('tools', 'visuotactile')
             for p in sorted(Path(folder).rglob('*.py'))},
-        test_used=False, inference_scheduler_index_mode='host',
+        test_used=False, inference_scheduler_index_mode='host', first_plan_forensics=first_plan_forensics,
         selection='Only naturally successful, valid real expert suffixes; retain every opportunity and failure',
-        reason='Current complete student stable window plus 0/12 ticks; no fixed-time expert fallback',
+        reason=f'Current complete student {label} window plus 0/12 ticks; no fixed-time expert fallback',
         interpretation='Different assigned families do not identify a causal effect of delay; no exact hidden-state pairing claim',
         utc=time.time())
     output.mkdir(parents=True)
@@ -102,7 +116,7 @@ def prepare(source, output, identities, delays, round_index, event_seed, *, sess
 
 
 def validate_plan(plan):
-    if plan.get('stage_takeover_contract') != CONTRACT or plan.get('never_fallback') != NEVER_FALLBACK:
+    if plan.get('stage_takeover_contract') not in (CONTRACT, CONTACT_HEIGHT_CONTRACT) or plan.get('never_fallback') != NEVER_FALLBACK:
         raise ValueError('Explicit never-fallback contract required')
     cases = plan['cases']
     if not cases or len({c['name'] for c in cases}) != len(cases):
@@ -110,8 +124,9 @@ def validate_plan(plan):
     for case in cases:
         if case['spec']['takeover_tick'] != NEVER_FALLBACK:
             raise ValueError('Fixed-time fallback is forbidden')
-        if case['dagger'].get('trigger') not in [dict(version=VERSION, delay_ticks=x) for x in (0, 12)]:
-            raise ValueError('Only original stable trigger with delays0/12 is allowed')
+        version = VERSION if plan['stage_takeover_contract'] == CONTRACT else CONTACT_HEIGHT_VERSION
+        if case['dagger'].get('trigger') not in [dict(version=version, delay_ticks=x) for x in (0, 12)]:
+            raise ValueError('Registered trigger version and delays0/12 are required')
 
 
 def native_bound_guard(env):
@@ -132,23 +147,24 @@ def classify(result, audit):
     if not result.get('software_complete'):
         return 'software_incomplete'
     dagger = result['dagger']
+    receipt = audit['receipt']
+    _, _, event, first_key = trigger_contract(receipt['configuration']['version'])
     if audit['category'].startswith('fallback'):
         raise ValueError('Actual fixed-time fallback is forbidden')
     switched = audit['actual_switch_tick'] is not None
     if switched:
-        receipt = audit['receipt']
-        expected = receipt['first_stable_window_end_completed_tick'] + receipt['configuration']['delay_ticks']
-        if (audit['category'] != 'student_stable_then_takeover'
+        first = receipt[first_key]
+        expected = None if first is None else first + receipt['configuration']['delay_ticks']
+        if (audit['category'] != f'student_{event}_then_takeover'
                 or audit['actual_switch_tick'] != expected or expected >= NEVER_FALLBACK):
-            raise ValueError('Expert authority lacks the registered causal stable-state trigger')
-        return 'expert_rescue_after_stable' if dagger['expert_takeover_success'] else 'expert_failed_after_stable'
+            raise ValueError('Expert authority lacks the registered causal stage trigger')
+        return f'expert_rescue_after_{event}' if dagger['expert_takeover_success'] else f'expert_failed_after_{event}'
     if dagger['expert_ticks'] or dagger['expert_valid_ticks']:
         raise ValueError('Unswitched trajectory contains expert authority or labels')
     if dagger['student_autonomous_success']:
         return 'student_success_without_takeover'
-    return ('ended_after_stable_before_scheduled_takeover'
-        if audit['receipt']['first_stable_window_end_completed_tick'] is not None
-        else 'ended_without_student_stable_window')
+    return (f'ended_after_{event}_before_scheduled_takeover'
+        if receipt[first_key] is not None else f'ended_without_student_{event}_window')
 
 
 def run(output):
@@ -170,7 +186,8 @@ def run(output):
         result = original_trial(env, lease, directory, spec, *args, **kwargs)
         audit = audit_trigger_case(directory, result) if result.get('legal') else None
         category = classify(result, audit)
-        atomic_json(Path(directory) / 'stable_stage_audit.json', dict(category=category,
+        audit_name = 'stable_stage_audit.json' if plan['stage_takeover_contract'] == CONTRACT else 'contact_height_stage_audit.json'
+        atomic_json(Path(directory) / audit_name, dict(category=category,
             causal_trigger=audit, bound=bound, source_plan_sha256=sha256(output / 'plan.json'),
             no_expert_fallback=True, not_autonomous_success=bool(result.get('dagger', {}).get('expert_ticks', 0))))
         return result
@@ -192,18 +209,20 @@ def report(output, destination):
         raise ValueError('All registered opportunities must remain in the denominator')
     cases = []
     for row in rows:
-        audit = read(output / row['case'] / 'stable_stage_audit.json')
+        audit_name = 'stable_stage_audit.json' if plan['stage_takeover_contract'] == CONTRACT else 'contact_height_stage_audit.json'
+        audit = read(output / row['case'] / audit_name)
         if audit['source_plan_sha256'] != sha256(output / 'plan.json'):
             raise ValueError('Case audit belongs to another plan')
         category = classify(row['result'], audit['causal_trigger'])
         if category != audit['category']:
             raise ValueError('Classification changed')
         accepted = bool(row['result'].get('accepted_for_training'))
-        if accepted != (row['case'] in entries) or (accepted and category != 'expert_rescue_after_stable'):
+        expected = 'expert_rescue_after_stable' if plan['stage_takeover_contract'] == CONTRACT else 'expert_rescue_after_contact_height'
+        if accepted != (row['case'] in entries) or (accepted and category != expected):
             raise ValueError('Retained subset differs from successful actual stable-state recoveries')
         cases.append(dict(case=row['case'], role=row['role'], category=category,
             accepted=accepted, audit=audit))
-    atomic_json(destination, dict(contract=CONTRACT, plan_sha256=sha256(output / 'plan.json'),
+    atomic_json(destination, dict(contract=plan['stage_takeover_contract'], plan_sha256=sha256(output / 'plan.json'),
         completed=len(cases), cases=cases, test_used=False,
         counts={r: {key: sum(c['role'] == r and c['category'] == key for c in cases)
             for key in sorted({c['category'] for c in cases})} for r in ('A', 'B')}))
@@ -217,11 +236,19 @@ def main():
     p.add_argument('--identities', nargs='+'); p.add_argument('--delays', nargs='+', type=int)
     p.add_argument('--round', type=int); p.add_argument('--event-seed', type=int)
     p.add_argument('--report-output', type=Path)
+    p.add_argument('--trigger-version', choices=[VERSION, CONTACT_HEIGHT_VERSION], default=VERSION)
+    p.add_argument('--first-plan-forensics', action='store_true')
     a = p.parse_args()
+    preparation_options = {'--source', '--session-root', '--identities', '--delays',
+        '--round', '--event-seed', '--trigger-version', '--first-plan-forensics'}
+    if a.stage != 'prepare' and any(token.split('=', 1)[0] in preparation_options for token in sys.argv[1:]):
+        p.error('run/report use the immutable registered plan; preparation options require a new prepare identity')
     if a.stage == 'prepare':
         if any(x is None for x in (a.source, a.identities, a.delays, a.round, a.event_seed)):
             p.error('prepare requires source, identities, delays, round and event-seed')
-        prepare(a.source, a.output, a.identities, a.delays, a.round, a.event_seed, session_root=a.session_root)
+        prepare(a.source, a.output, a.identities, a.delays, a.round, a.event_seed,
+            session_root=a.session_root, trigger_version=a.trigger_version,
+            first_plan_forensics=a.first_plan_forensics)
     elif a.stage == 'run':
         run(a.output)
     else:

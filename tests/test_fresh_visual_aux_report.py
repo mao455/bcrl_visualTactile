@@ -221,7 +221,7 @@ def test_recovery_records_keep_actual_discarded_work_outside_model_dose(tmp_path
     with pytest.raises(ValueError,match='Discarded'):report.recovery_evidence(tmp_path)
 
 
-def test_partial_report_never_claims_training_or_autonomy_and_checks_frozen_source(tmp_path):
+def test_partial_report_never_claims_training_or_autonomy_and_checks_frozen_source(tmp_path,monkeypatch):
     study=tmp_path/'study';source=tmp_path/'execution';source.mkdir();code=source/'example.py';code.write_text('actual source\n')
     project=Path(report.__file__).resolve().parents[1]
     dependencies=['tools/tight_fresh_anchor_study_report.py','tools/tight_fresh_backend_study_report.py',
@@ -243,8 +243,44 @@ def test_partial_report_never_claims_training_or_autonomy_and_checks_frozen_sour
     assert value['complete'] is False and 'roles' not in value and 'autonomous' not in value
     assert len(value['pending'])==10
     with pytest.raises(FileExistsError):report.run(study,output,execution_source=source,allow_incomplete=True)
+    roles={role:{'frontend':{arm:{'audited':True} for arm in report.ARMS}} for role in ('A','B')}
+    monkeypatch.setattr(report,'frontend_audit',lambda *args:roles)
+    front_output=tmp_path/'frontends.json'
+    report.run(study,front_output,execution_source=source,frontends_only=True)
+    front=json.loads(front_output.read_text())
+    assert front['complete'] is False and front['frontend_audit_complete'] is True
+    assert front['roles']==roles and 'autonomous' not in front and len(front['pending'])==10
+    assert front['frontend_metrics']['auxiliary']['B']=={'audited':True}
     code.write_text('changed\n')
     with pytest.raises(ValueError,match='Frozen execution'):report.run(study,tmp_path/'other.json',execution_source=source,allow_incomplete=True)
+
+
+def test_frontend_audit_requires_all_four_and_binds_source_action_measurement(tmp_path,monkeypatch):
+    study=tmp_path/'study';source=tmp_path/'source'
+    action={split:dict(selection=.1,episodes=[]) for split in ('train','validation')}
+    registration=dict(source_root=str(source),training_population={'train':['a'],'validation':['v']},
+        normalization_train_ids=['a'],source_pairs={})
+    with pytest.raises(ValueError,match='All four frontends'):report.frontend_audit(study,registration)
+    for role in ('A','B'):
+        directory=source/role/'state_data'
+        write(directory/'data.json',dict(splits=registration['training_population'],normalization_train_ids=['a']))
+        torch.save(dict(data_sha256=report.sha256(directory/'data.json'),records={'a':{},'v':{}}),directory/'numeric.pt')
+        checkpoint=source/role/'best.pt'
+        torch.save(dict(epoch=1,updates=1,history=[dict(epoch=1,**action)]),checkpoint)
+        registration['source_pairs'][role]=dict(frontend=str(checkpoint),frontend_sha256=report.sha256(checkpoint))
+        for arm in report.ARMS:write(study/arm/role/'training/finished.json',{'complete':True})
+    monkeypatch.setattr(report,'prepare_pose_contexts',lambda *args:({},{}))
+    monkeypatch.setattr(report,'frontend_cell',lambda *args:(dict(source_initial={'metrics':{'action':action}}),[],{}))
+    monkeypatch.setattr(report,'matched_frontends',lambda *args:dict(passed=True))
+    actual=report.frontend_audit(study,registration)
+    assert set(actual)=={'A','B'} and actual['B']['matched_frontend']['passed']
+    assert actual['A']['source']['action']==action
+    changed=copy.deepcopy(action);changed['validation']['selection']=.2
+    monkeypatch.setattr(report,'frontend_cell',lambda *args:(dict(source_initial={'metrics':{'action':changed}}),[],{}))
+    with pytest.raises(ValueError,match='selected source'):report.frontend_audit(study,registration)
+    (study/'auxiliary/B/training/finished.json').unlink()
+    monkeypatch.setattr(report,'frontend_cell',lambda *args:(dict(source_initial={'metrics':{'action':action}}),[],{}))
+    with pytest.raises(ValueError,match='All four frontends'):report.frontend_audit(study,registration)
 
 
 def test_autonomous_counts_invalid_opportunities_and_checks_registered_order(tmp_path,monkeypatch):

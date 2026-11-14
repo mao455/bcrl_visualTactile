@@ -10,11 +10,11 @@ def audit_trigger_case(directory, result):
     """Recompute scheduling solely from saved completed student transitions."""
     import h5py
     import numpy as np
-    from visuotactile.takeover_trigger import StableGraspTrigger
+    from visuotactile.takeover_trigger import make_trigger, CONTACT_HEIGHT_VERSION
     dagger=result.get('dagger',{})
     config=dagger.get('configuration',{})
     if config.get('trigger') is None: return None
-    trigger=StableGraspTrigger(config['trigger'], config['takeover_tick'])
+    trigger=make_trigger(config['trigger'], config['takeover_tick'])
     with h5py.File(directory/'numeric.h5') as f:
         t=f['episode/transition'];source=t['dagger/control_source'][:]
         for tick in np.flatnonzero(source==0):
@@ -25,10 +25,16 @@ def audit_trigger_case(directory, result):
     actual=dagger['recovery_coverage']['switch_tick']
     if actual is not None and actual!=trigger.scheduled_tick:
         raise ValueError('Actual authority switch differs from causal schedule')
-    category=('ended_before_takeover' if actual is None else
-        'student_stable_then_takeover' if trigger.reason=='completed_student_stable_window_plus_delay' else
-        'fallback_before_requested_delay' if trigger.first_stable_completed_tick is not None else
-        'fallback_without_stable_grasp')
+    if config['trigger']['version'] == CONTACT_HEIGHT_VERSION:
+        category=('ended_before_takeover' if actual is None else
+            'student_contact_height_then_takeover' if trigger.reason=='completed_student_contact_height_window_plus_delay' else
+            'fallback_before_requested_delay' if trigger.first_contact_height_completed_tick is not None else
+            'fallback_without_contact_height')
+    else:
+        category=('ended_before_takeover' if actual is None else
+            'student_stable_then_takeover' if trigger.reason=='completed_student_stable_window_plus_delay' else
+            'fallback_before_requested_delay' if trigger.first_stable_completed_tick is not None else
+            'fallback_without_stable_grasp')
     return dict(passed=True,category=category,receipt=trigger.receipt(),actual_switch_tick=actual,
         numeric_sha256=sha256(directory/'numeric.h5'),student_input=False)
 
@@ -62,7 +68,9 @@ def takeover(collection,output):
         legal=sum(c['role']==role and bool(c['legal']) for c in cases),
         expert_successes=sum(c['role']==role and bool(c['expert_takeover_success']) for c in cases),
         trigger_categories={kind:sum(c['role']==role and c['trigger'] is not None and c['trigger']['category']==kind for c in cases)
-            for kind in ['student_stable_then_takeover','fallback_without_stable_grasp','fallback_before_requested_delay','ended_before_takeover']},
+            for kind in ['student_stable_then_takeover','student_contact_height_then_takeover',
+                'fallback_without_stable_grasp','fallback_without_contact_height',
+                'fallback_before_requested_delay','ended_before_takeover']},
         accepted=sum(c['role']==role for c in retained)) for role in ['A','B']}
     exposure={key:sum(c['actual_exposure'][key] for c in retained)
         for key in ['history_ticks','supervised_ticks','supervised_anchors','supervised_window_targets']}

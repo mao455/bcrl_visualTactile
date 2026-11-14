@@ -33,8 +33,10 @@ def completed_pair(root, role):
     return dagger_policy_identity(saved, str(path))
 
 
-def prepare(root, output, count, seed):
+def prepare(root, output, count, seed, *, first_plan_forensics=False):
     from visuotactile.narrow_data import direct_configuration
+    if type(first_plan_forensics) is not bool:
+        raise ValueError('First-plan forensics must be registered as a boolean')
     if output.exists():
         raise FileExistsError('Existing rollout identity must be preserved')
     if not 1 <= count <= 32:
@@ -55,7 +57,7 @@ def prepare(root, output, count, seed):
     atomic_json(output/'plan.json',dict(kind='autonomous',pairs=pairs,cases=cases,
         resource_root=str(root),source_commit=__import__('subprocess').check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))},
-        inference_scheduler_index_mode='host',
+        inference_scheduler_index_mode='host',first_plan_forensics=first_plan_forensics,
         test_used=False,cohort='registered development reset opportunities; same narrow domain; no exact hidden-state pairing claim',utc=time.time()))
 
 
@@ -96,6 +98,7 @@ def run(output):
             position=True,video=case.get('video',False),expert_checkpoint=session['expert_checkpoint'],
             expert_shadow=False,capture_dataset=plan['kind']=='takeover',dagger=case.get('dagger'),
             scheduler_index_mode=plan.get('inference_scheduler_index_mode','legacy'),
+            first_plan_forensics=plan.get('first_plan_forensics',False),
             video_title=case['role']+' fresh every-frame complete student')
         timing=dict(total_seconds=time.perf_counter()-start,resource_wait_seconds=lease.wait_s-wait,
             nested_environment_components={k:totals[k]-before.get(k,0) for k in totals},
@@ -144,8 +147,12 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','run'])
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--count',type=int,default=4);p.add_argument('--seed',type=int,default=28140000)
+    p.add_argument('--first-plan-forensics',action='store_true',help='Register opt-in first-plan tensor/RNG fingerprints for a new cohort')
     args=p.parse_args()
-    if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed)
+    if args.stage=='run' and args.first_plan_forensics:
+        p.error('Register --first-plan-forensics with prepare; run uses the frozen plan flag')
+    if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed,
+        first_plan_forensics=args.first_plan_forensics)
     else:run(args.output.resolve())
 
 

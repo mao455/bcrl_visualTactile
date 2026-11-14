@@ -1,3 +1,9 @@
+## 2026-11-14 接触中转动物体的可选纠偏采集
+
+成功专家也会在转动/对孔时离开原12tick拿稳窗口。因此该窗口false不能单独标作掉落，也不应成为唯一允许后段纠偏的条件。新增显式`contact_height_only_takeover_v1`，保留原12tick双物理子步双指接触与抬升条件，仅不以相对掌位移/转动限制采集准入；这不改变原拿稳诊断、原生成功或历史分类。零/12tick延后与无fallback按登记固定，触发后仍需真实专家恢复成功及完整authority/mask审核方可入训练。
+
+该候选尚未实际采集，不从成功专家覆盖推断失败状态可救回率。完整视觉辅助对照结束后才固定下一批来源pair和train family，所有成功/失败/未触发机会保留分母；不能把训练prefix回算标签或拼接旧失败后段。详细时钟、身份及首计划可选指纹见CONTRACTS，实际结果只记SESSION_HANDOFF和机器收据。
+
 ## 2026-11-14 可选因果阶段接管合同
 
 stable_grasp_then_delay_v1仅为采集调度诊断。参考高是已完成ticks25–48的median z；稳定窗12tick、每tick两个120Hz样本均至少2指object-contact >0.1N、整窗高于参考2cm、物体掌中相对位姿漂移<=1cm/0.2rad。稳定窗完成计数N，调度zero-based action N+delay，最迟登记fallback；无稳定窗或提前自然结束单独记录。它只观察已经实际执行的学生transition，不读专家后态，不影响网络输入或原生成功。

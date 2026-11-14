@@ -499,7 +499,14 @@ def prepare(env, isolated, spec, source, output):
 def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, replay=None, video=False,position=False,
           inference=None, takeover_steps=None, expert_speed=None, capture_dataset=False, video_title=None,replay_horizon=None,
           capture_compression='lzf', expert_checkpoint=None, dagger=None, numeric_buffer_steps=32, expert_shadow=True,
-          scheduler_index_mode='legacy'):
+          scheduler_index_mode='legacy', first_plan_forensics=False):
+    if type(first_plan_forensics) is not bool:
+        raise ValueError('First-plan forensics must be explicitly enabled or disabled')
+    if first_plan_forensics and (saved is None or replay is not None
+            or saved.get('contract',{}).get('visual_stride')!=1
+            or saved.get('contract',{}).get('modality')!='G00'):
+        raise ValueError('First-plan forensics requires a current every-frame G00 student')
+    first_plan_recorder=None
     if replay_horizon is not None and (replay_horizon!=24 or replay is None or not position or saved is not None):
         raise ValueError('Diagnostic oracle requires explicit H24 position replay without student weights')
     dagger = dagger_configuration(dagger, spec, source) if dagger is not None else None
@@ -544,6 +551,16 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         player.reset()
         torch.save(export_initial(env, player), output/'initial_export.pt')
         torch.save(isolated.stream.state, output/'environment_rng_initial.pt')
+        if first_plan_forensics:
+            from .first_plan_forensics import FirstPlanRecorder
+            frontend=saved.get('configuration',{}).get('base_checkpoint',checkpoint)
+            first_plan_recorder=FirstPlanRecorder(output/'first_plan_forensics',binding=dict(
+                spec=spec,checkpoint=str(checkpoint),checkpoint_sha256=sha256(checkpoint),
+                frontend=str(frontend),frontend_sha256=sha256(frontend),
+                frontend_contract=saved['contract'],
+                metadata_sha256=sha256(output/'metadata.json'),scheduler_index_mode=scheduler_index_mode,
+                source_sha256={name:sha256(Path(__file__).resolve().parent/name) for name in
+                    ('native_controller.py','first_plan_forensics.py','models/native_dp.py','models/native_vision.py','native_data.py')}))
         if saved is not None and saved.get('group','').startswith('I-'):
             from .native_controller import NativeController
             dino=None
@@ -552,8 +569,10 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
                 dino=NativeDinoSpatial().to('cuda:0').eval()
             if saved.get('residual_version'):
                 from .native_controller import ResidualController
-                controller=ResidualController(saved,metadata,dino=dino,scheduler_index_mode=scheduler_index_mode)
-            else:controller=NativeController(saved,metadata,dino=dino,scheduler_index_mode=scheduler_index_mode)
+                controller=ResidualController(saved,metadata,dino=dino,scheduler_index_mode=scheduler_index_mode,
+                    first_plan_recorder=first_plan_recorder)
+            else:controller=NativeController(saved,metadata,dino=dino,scheduler_index_mode=scheduler_index_mode,
+                first_plan_recorder=first_plan_recorder)
         else:
             controller = None if saved is None else HistoryController(saved, metadata, inference=inference)
     setup_wall_s = time.perf_counter()-trial_started
@@ -589,8 +608,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             bridge = ExpertPositionBridge(env, dagger['takeover_tick'], dagger['expert_speed'])
             env._dagger_position_bridge = bridge
             if dagger.get('trigger') is not None:
-                from .takeover_trigger import StableGraspTrigger
-                takeover_trigger = StableGraspTrigger(dagger['trigger'], dagger['takeover_tick'])
+                from .takeover_trigger import make_trigger
+                takeover_trigger = make_trigger(dagger['trigger'], dagger['takeover_tick'])
         bound = (int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
         if replay is not None and expert_speed is None:
             bound = len(replay)
@@ -749,6 +768,8 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
             duration_sim_s=len(rows)*env.step_dt,tick_index='1-based completed control transitions',
             post_success_actions=0 if first_success_tick is None else len(rows)-first_success_tick)
         result['action_control_mode']=env.action_control_mode
+        if first_plan_recorder is not None:
+            result['first_plan_forensics']=first_plan_recorder.summary()
         result['actuator_target_max_error']=float(np.abs(arrays['actuator_targets']-arrays['target'][:,None,:]).max())
         result['tracking_rmse_rad']=float(np.sqrt(np.mean((arrays['joint']-arrays['target'])**2)))
         if expert_speed is not None:
