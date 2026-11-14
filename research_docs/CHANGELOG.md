@@ -1,3 +1,7 @@
+## 2026-11-14 第二轮自主结果分析与发布
+
+实际pre-control recovery完成8例，无新训练、同pair/case/源代码，11.29秒启动。发布round02_phases/runtime绑定真实数值轨迹和模型：两组各1/4短暂拿稳、0/4成功，全601timeout、0对准/子目标；A12.10/B12.17tick/s。首对视频显示抓取推偏后继续空手运动，命令幅度没有整体衰减。不将离线改善称自主收益，不把新抓持初态换位称稳定改进。原失败启动保留，全部8例自然结束。
+
 ## 2026-11-14 第二轮后端结果与有界启动恢复
 
 公开round02_learning/increment_baseline/learning_curves，实际两组后端10遍1131更新，选第10遍；验证手指A0.0181267/B0.0195016rad。自主Kit启动超300秒、0实际case，保留日志/中断凭据，核验后仅停止本worker。新增tools.tight_fresh_eval_recovery：只能恢复尚未初始化/开始case且旧worker已退出的自主队列，原cases/pair完全一致，独立输出、原deadline、startup180秒、faulthandler90秒。2项CPU测试通过；不重复训练、不预告自主改善。原活动a4db8e4源码未修改。
