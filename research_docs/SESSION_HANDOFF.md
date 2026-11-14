@@ -1,3 +1,13 @@
+## 2026-11-15 00:00 第八轮完整结束，128机会真实采集与下一轮已衔接
+
+第八轮冻结82d5052完整DP→新缓存→rear→自主均结束，原cycle service inactive/MainPID0。16机会中A同1非法，合法7/7全timeout、0/7插入；B8合法中7timeout/1fall309步、0/8插入。均无原生near/alignment/首子目标。与同8开发初态source比较，A lift2→1、旧stable2→2、允许转动held4→3；B lift2→2、stable2→2、held4→5。实际contact+height总tick A228→644、B370→470，最长34→266和52→235，但增益集中少数例且仍转不正，不能称整体成功率改善。16保存的可见初态相等，不代表隐藏PhysX精确配对。完整独立CPU审计见round08_review及本机round08_complete_review_01。
+
+当前保留A05/B06回退与全部新模型。下一采集选A08+B06：A08长持物但角度错，B06在held窗口仍有58/86/85mm关键点近孔偏差；这是互补纠偏状态选择，不是A08性能胜出。B08最小40.6mm/角0.176发生在持物条件已不满足时，不能写成拿稳转正。A DP选9/10、rear14/15；B选5/10、rear15/15。新增19条在选中前端每条分别访问18/10次，完整后端缓存124条绑定各自新DP。验证前端相对起点A−4.60%、B−7.34%，离线改善没有带来对孔/插入。
+
+冻结87577e8的collection09_source已真实核验，118池/42train family与A08/B06原模型数据身份分离、原session逐字保持。new_family_09已登记64新train seed28600000..63、A/B共128机会：fixed40 8、fixed80 24、contact0 32、held60 40、held120 8、near60 16。原6validation与8开发初态不进入新训练family；质量/摩擦固定、仍毫米级域。
+
+`tight-fresh-collect-cycle09-20261114.service`真实运行，owner3953861、内部owner3953887/Kit3953891，CPUstandard16/M8/Kit16线程/PhysX2，512MiB有界writer/2个校验worker/pending4。初始化52.977秒，第一波16合法实际控制已开始，尚未形成最终新增量。外层明确登记原03:49:51截止、最多7200秒采集含清理与>=3600秒后续预算；全机会完成且>=8成功才自动接round09。注册DP10/rear15/latest2、双前端pairedIO、1GiB预取、SHA进程memo、front metrics与rear cache各独立M32、双backend新遥测准入、8lane完整自主。已通过的小门控不能代替本轮正式吞吐；见collection09_registration/startup.json。主Agent来源/owner联合52项CPU测试通过；prepare与validate真实成功后，外包装最后打印误读spec.schedule报错，登记未受影响、未重复prepare，单独留说明。
+
 ## 2026-11-14 23:51 采集到完整更新的持久衔接已实现
 
 新增tight_fresh_collect_cycle_owner，只消费已冻结登记的采集与cycle命令，原session截止和源码/输入SHA不变。采集最多7200秒含60秒清理，同时预留下一cycle至少3600秒和末尾60秒清理；全部机会已验收、>=8条真实成功专家后段、原来源绑定与时间满足后才继续，否则记录not_started。外层实际血缘与内部落盘PID/starttick绑定跨session子进程组，失败/STOP/截止后保留partial census与清理结果，不自动重试或续期。24项Agent CPU测试含真实子进程清理通过；正式128机会尚未登记或启动，采集来源仍待第八轮自主结果。

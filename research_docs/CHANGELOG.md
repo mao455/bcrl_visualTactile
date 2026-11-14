@@ -1,3 +1,8 @@
+## 2026-11-15 00:00 — 第八轮自主结论与128机会正式扩充
+
+- `evidence/tight_fresh_20261114/round08_review`：同开发队列完整CPU审计、真实selected曝光、合法交集与原生判据。A0/7/B0/8，持物局部延长但无对孔/插入，回退保留。
+- `collection09_registration/startup.json`：实际冻结87577e8、A08+B06来源和118池独立绑定、64新family/128机会、持久owner与完整后续cycle精确argv/原截止/首波启动。CPU owner/来源联合52项通过，真实采集结果待。当前正式代码不启Tiled、exact-tail或inactive-render。
+
 ## 2026-11-14 23:51 — 持久采集→完整训练评估 owner
 
 - `tools/tight_fresh_collect_cycle_owner.py`及24项专属CPU测试：冻结registration、显式命令与输入绑定，有限采集/完整机会与成功数据准入，预留训练时间，逐阶段日志/完成SHA/PID与跨组子孙清理。不启新monitor、不重置截止、不自动retry；实际运行待模型选择。
