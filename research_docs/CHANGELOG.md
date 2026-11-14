@@ -1,3 +1,11 @@
+## 2026-11-14 第四轮前端学习收据
+
+公开round04_frontend_learning.json：两组实际830更新，原30/历史41/新12均每条10遍，所有计数与finished/learning收据相符；验证分别下降9.68%/10.56%，均选第10遍，后端缓存仍在刷新。没有把前端完成、已学纠偏误差下降或专家成功写成完整学生行为改善。
+
+## 2026-11-14 视觉位置可解码性与诊断输入绑定
+
+新增tools/tight_fresh_position_probe.py和round03_position_probe.json：原30拟合、固定6验证、固定ridgeλ=.01，比较纯视觉512/本体178/组合/训练均值，真实动作前物体中心转掌坐标作为诊断标签。组合验证三维误差A16.39/B16.43mm，低于本体19.66mm，但不作部署、视觉因果或自主成功声明。CPU独立全量重建结果精确一致；坐标旋转、ridge法方程、恒定维及帧/episode聚合检查通过，零学生训练/GPU/仿真。seed_spread补实际numeric/perception SHA及准确B目标时序说明，同模型全部数值精确不变。没有修改活动第四轮。
+
 ## 2026-11-14 训练初态诊断与扩散随机性实证
 
 新增tools/tight_fresh_diagnostic_report.py与round03_training_diagnostic.json，按原4机会联合三个attempt，严格区分A完整0/2、B完整0/1加1删失；不打开/修复部分HDF5，不把progress当终止步。源码、pair、原计划、剩余队列、完整结果/控制频率/阶段指标校验通过。新增tools/tight_fresh_seed_spread.py与round03_seed_spread.json：两个原训练family、完整逐帧条件、完整过去5Hz噪声时钟、固定5种子CPU推理；限位后手指种子差异远低于实际误差，不支持仅调种子。两项均零优化/GPU/新仿真，保留CPU与CUDA随机序列不同、固定条件前端诊断不能说明自主因果的限制。当前入口同步第四轮实际训练中状态。

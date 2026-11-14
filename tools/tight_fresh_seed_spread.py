@@ -90,7 +90,8 @@ def run(round_root, output):
         model=load_policy(saved, 'cpu').eval().requires_grad_(False)
         del saved
         models[role]=dict(checkpoint_sha256=identity, data_sha256=sha256(data_path/'data.json'),
-            supervision=model.contract['supervision'], statistics_sha256=sha256(data_path/'statistics.pt'))
+            supervision=model.contract['supervision'], statistics_sha256=sha256(data_path/'statistics.pt'),
+            numeric_cache_sha256=sha256(data_path/'numeric.pt'))
         contract=read(directory/'continuation.json').get('target_window_contract')
         records=visual_records(data_path, chosen[:limit], 'G00', device='cpu', target_window_contract=contract)
         for ordinal, name in enumerate(chosen[:limit]):
@@ -125,11 +126,12 @@ def run(round_root, output):
             truth=target[0]
             previous=record['robot'][anchor,:29] if role=='A' else record['robot'][anchor,58:87]
             row=dict(role=role,identity=name,family=entry['family'],source_recorded_sha256=entry['source_sha256'],
+                perception_cache_sha256=sha256(data_path/'perception'/(name+'.pt')),
                 first_detected_contact_transition_step_id=first,first_detected_contact_completed_tick=first+1,
                 anchor_step_id=anchor,real_history_observations=anchor+1,noise_draws_before_anchor=anchor//12,
                 condition_sha256=hashlib.sha256(selected.numpy().tobytes()).hexdigest(),
                 full_prefix_recomputed=True,legal_first12_labels_match_raw_hdf5=True,
-                label_semantics='actual configuration after each next control step; not settled configuration' if role=='A' else 'actual expert issued absolute joint target after each control step',
+                label_semantics='actual configuration after each next control step; not settled configuration' if role=='A' else 'actual postprocessed expert absolute joint target issued before integrating this control step; stored in transition/target_after_rad',
                 raw_prediction=spread(raw,truth,joints),joint_limit_bounded_prediction=spread(bounded,truth,joints),
                 bounded_changed_values=int((raw!=bounded).sum()),
                 actual_label_first12_motion=truth_motion(truth,previous),
@@ -151,7 +153,7 @@ def run(round_root, output):
         wall_seconds=time.monotonic()-started,initial_available_ram_gib=initial_available,
         process_peak_rss_gib=resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024**2,
         cuda_initialized=False,optimizer_updates=0,simulator_starts=0,test_used=False,
-        interpretation='Fixed real successful expert histories and one precontact planning anchor per original training family. Full frontend only; backend and autonomous feedback are not evaluated. CPU RNG and CUDA RNG do not yield identical samples for the same seed. Seed spread can identify sensitivity magnitude; it cannot establish that randomness caused observed autonomous failures. Population standard deviation uses five predeclared seeds and is not an uncertainty interval.')
+        interpretation='Fixed real successful expert histories and one precontact planning anchor per original training family. Full frontend only; backend and autonomous feedback are not evaluated. A configuration and B command labels differ: their errors are not a direct A/B performance comparison. CPU RNG and CUDA RNG do not yield identical samples for the same seed. Seed spread can identify sensitivity magnitude; it cannot establish that randomness caused observed autonomous failures. Population standard deviation uses five predeclared seeds and is not an uncertainty interval.')
     atomic_json(output,result)
 
 
