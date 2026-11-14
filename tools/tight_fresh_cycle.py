@@ -16,7 +16,7 @@ from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
 
 
-def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False):
+def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None):
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
@@ -29,6 +29,9 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
         frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
+    if reuse_index is not None:
+        if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
+        registration['reuse_visual_index']=dict(path=str(reuse_index),sha256=sha256(reuse_index))
     atomic_json(ledger/'registration.json',registration)
     stages=[]
     def execute(name,args,completion):
@@ -50,7 +53,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         print(json.dumps(receipt),flush=True)
     try:
         execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
-        execute('visual_cache',['tools.tight_fresh_dagger','cache','--root',root,'--output',output],output/'B/cache_index.json')
+        execute('visual_cache',['tools.tight_fresh_dagger','cache','--root',root,'--output',output]+
+            (['--reuse-index',reuse_index] if reuse_index is not None else []),output/'B/cache_index.json')
         for role in ['A','B']:
             execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs],output/role/'training/finished.json')
         for role in ['A','B']:
@@ -64,8 +68,10 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         execute('development',['tools.tight_fresh_rollouts','run','--root',output,'--output',development],development/'result.json')
         atomic_json(ledger/'finished.json',dict(software_complete=True,stages=stages,utc=time.time(),
             research_conclusion='Pending actual Agent review of paired errors, exposure and complete autonomous outcomes'))
+        atomic_json(ledger/'status.json',dict(stage='complete',software_complete=True,utc=time.time()))
     except BaseException as error:
         atomic_json(ledger/'failure.json',dict(error=repr(error),traceback=traceback.format_exc(),stages=stages,utc=time.time()))
+        atomic_json(ledger/'status.json',dict(stage='failed',error=repr(error),utc=time.time()))
         raise
 
 
@@ -74,9 +80,11 @@ def main():
     p.add_argument('--output',type=Path,required=True);p.add_argument('--epochs',type=int,default=10)
     p.add_argument('--rear-epochs',type=int,default=5);p.add_argument('--count',type=int,default=4);p.add_argument('--seed',type=int,default=28140000)
     p.add_argument('--continue-rear',action='store_true')
+    p.add_argument('--reuse-index',type=Path)
     a=p.parse_args()
     if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or not 1<=a.count<=32:p.error('Positive finite stage exposure required')
-    run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,continue_rear=a.continue_rear)
+    run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
+        continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None)
 
 
 if __name__=='__main__':main()

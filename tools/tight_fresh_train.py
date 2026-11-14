@@ -47,6 +47,24 @@ def supervised_conditions(model,record):
     return c[keep],a[keep]
 
 
+def bind_geometry_supervision(objective, records):
+    """Bind the same legal target windows and check every episode before updates."""
+    from visuotactile.anchor_sampling import planning_anchors
+    from visuotactile.anchor_continue import geometry_selection
+    objective.supervision_records = records
+    report = {}
+    for identity, record in records.items():
+        anchors = planning_anchors(record)
+        _, valid = labels(record, anchors, 24)
+        selected, row = geometry_selection(objective, [(identity, int(t)) for t in anchors],
+            {identity: len(record['time'])}, 8091)
+        committed = valid.detach().cpu() & (torch.arange(24)[None] < 12)
+        if (selected & ~committed).any() or row['eligible_commit_count'] != int(committed.sum()):
+            raise ValueError('Geometry and supervised commit population differ: ' + identity)
+        report[identity] = row
+    return report
+
+
 @torch.no_grad()
 def gate(root):
     from visuotactile.precision import state_fp32
@@ -129,6 +147,9 @@ def train(root,role,epochs):
         objective.enable_hand_geometry(inventory,a,loss_kind='hand_surface_soft_hinge_v1',penetration_tolerance_m=.001,contact_tolerance_m=.002)
         objective.weights['hand_geometry']=a['hand_geometry_weight']
         objective.loss_context={i:geometry_loss_context(data['entries'][i]) for i in records}
+        atomic_json(out/'geometry_supervision.json',dict(passed=True,
+            episodes=bind_geometry_supervision(objective,records),
+            scope='Same legal expert window masks for base, palm and sampled hand geometry; before optimizer updates'))
         geometry=dict(acceptance_sha256=sha256(acceptance),live_sha256=sha256(live),
             loss_kind='hand_surface_soft_hinge_v1',weight=a['hand_geometry_weight'],hyperparameter_source='prior accepted train-only physical geometry calibration; no test tuning')
     generator=torch.Generator().manual_seed(2026111402);noise=torch.Generator(device='cuda').manual_seed(2026111403)

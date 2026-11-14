@@ -26,6 +26,7 @@ def test_failed_stage_retains_evidence_and_never_advances(tmp_path,monkeypatch,f
     assert len(calls)==1
     assert (ledger/'failure.json').exists() and (ledger/'aggregate.json').exists()
     assert not (ledger/'finished.json').exists()
+    assert json.loads((ledger/'status.json').read_text())['stage']=='failed'
     failure=json.loads((ledger/'failure.json').read_text())
     assert len(failure['stages'])==1
     with pytest.raises(FileExistsError):cycle.run(root,collection,output,10,5,4,123)

@@ -94,11 +94,11 @@ def prepare_aggregate(root, collection, output):
         accepted_corrections=len(entries),shared_A_B_entries=sorted(entries),test_used=False,utc=time.time()))
 
 
-def cache(output):
+def cache(output, *, reuse_index=None):
     from visuotactile.native_data import cache_visual_pair
     from visuotactile.precision import state_fp32
     state_fp32()
-    cache_visual_pair(output/'A',reuse_index=read(output/'A/continuation.json')['reuse_index'])
+    cache_visual_pair(output/'A',reuse_index=reuse_index or read(output/'A/continuation.json')['reuse_index'])
     cache_visual_pair(output/'B',reuse_index=output/'A/cache_index.json')
 
 
@@ -106,12 +106,13 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','aggregate','cache'])
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--collection',type=Path);p.add_argument('--ticks',type=int,nargs='+',default=[46,58,70,84,120,180])
+    p.add_argument('--reuse-index',type=Path)
     p.add_argument('--round',type=int,default=1)
     p.add_argument('--stable-delays',type=int,nargs='+');p.add_argument('--fallback-tick',type=int,default=360);a=p.parse_args()
     if a.stage=='prepare':prepare_collection(a.root.resolve(),a.output.resolve(),a.ticks,a.round,
         stable_delays=a.stable_delays,fallback_tick=a.fallback_tick)
     elif a.stage=='aggregate':prepare_aggregate(a.root.resolve(),a.collection.resolve(),a.output.resolve())
-    else:cache(a.output.resolve())
+    else:cache(a.output.resolve(),reuse_index=a.reuse_index)
 
 
 if __name__=='__main__':main()
