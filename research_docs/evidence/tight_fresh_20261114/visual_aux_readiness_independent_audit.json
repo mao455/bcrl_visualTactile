@@ -1,0 +1,276 @@
+{
+  "acceptance": {
+    "all_leaf_max_abs_below_absolute_tolerance": true,
+    "device_recorded": "cuda:0",
+    "disposable_optimizer_updates": 4,
+    "fixed_tolerance": {
+      "forward": {
+        "atol": 2e-05,
+        "rtol": 0.0
+      },
+      "gradient": {
+        "atol": 2e-06,
+        "rtol": 0.0002
+      },
+      "update_delta": {
+        "atol": 2e-07,
+        "rtol": 0.0002
+      },
+      "updated_parameter": {
+        "atol": 2e-06,
+        "rtol": 2e-06
+      }
+    },
+    "formal_updates_inside_acceptance": 0,
+    "forward_exact_in_recorded_fixtures": true,
+    "parity": {
+      "A": {
+        "action_loss": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "value"
+        },
+        "condition": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "value"
+        },
+        "gradients": {
+          "max_abs": 8.731149137020111e-11,
+          "max_reported_tolerance_fraction": 4.277549443794926e-05,
+          "worst_abs": "robot_encoder.0.weight"
+        },
+        "objective_parts": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "base"
+        },
+        "prediction": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "value"
+        },
+        "update_deltas": {
+          "max_abs": 3.725290298461914e-08,
+          "max_reported_tolerance_fraction": 0.1855525407308609,
+          "worst_abs": "vision.attention.in_proj_weight"
+        },
+        "updated_parameters": {
+          "max_abs": 3.725290298461914e-08,
+          "max_reported_tolerance_fraction": 0.0169878287031885,
+          "worst_abs": "vision.attention.in_proj_weight"
+        }
+      },
+      "B": {
+        "action_loss": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "value"
+        },
+        "condition": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "value"
+        },
+        "gradients": {
+          "max_abs": 1.1641532182693481e-10,
+          "max_reported_tolerance_fraction": 5.5034469071996105e-05,
+          "worst_abs": "condition_projection.0.weight"
+        },
+        "objective_parts": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "base"
+        },
+        "prediction": {
+          "max_abs": 0.0,
+          "max_reported_tolerance_fraction": 0.0,
+          "worst_abs": "value"
+        },
+        "update_deltas": {
+          "max_abs": 5.960464477539063e-08,
+          "max_reported_tolerance_fraction": 0.2950685314368374,
+          "worst_abs": "denoiser.down_modules.0.1.blocks.0.block.1.weight"
+        },
+        "updated_parameters": {
+          "max_abs": 5.960464477539063e-08,
+          "max_reported_tolerance_fraction": 0.01521742346143016,
+          "worst_abs": "denoiser.down_modules.0.1.blocks.0.block.1.weight"
+        }
+      }
+    },
+    "source_unchanged_verified": true,
+    "updates_by_role": {
+      "A": 2,
+      "B": 2
+    },
+    "variant_updates": "One base and one detached-readout AdamW update per role; shared-vision is a zero-update gradient probe. Updated weights are discarded."
+  },
+  "artifacts": {
+    "round05_visual_aux_study/registration.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_04/round05_visual_aux_study/registration.json",
+      "sha256": "c81fa8ebb0d07feed5e22366ee8fce3c0e92f3c560c84e58aaa0e8c83cee3081"
+    },
+    "round05_visual_aux_study/run_started.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_04/round05_visual_aux_study/run_started.json",
+      "sha256": "3db171663cda4c6b4cdf31f1ad26c4e47220feb62f427efe8c53886fdddefd2b"
+    },
+    "visual_aux_acceptance.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_04/visual_aux_acceptance.json",
+      "sha256": "e9e6ef333e6300f248cee35440887d582fed0e1dbcf27c9571b15121814d0de4"
+    },
+    "visual_aux_calibration.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_04/visual_aux_calibration.json",
+      "sha256": "c4ca4d9f672a0b4f7c7fc55e6403c1d78247f835741be39ff79a3b5d98444b90"
+    }
+  },
+  "calibration": {
+    "base_gradient_median": 0.005369662598641578,
+    "common_lambda": 3.1796844675272512e-06,
+    "episodes_per_role": 16,
+    "families": [
+      "formal_000",
+      "formal_003",
+      "formal_005",
+      "formal_006",
+      "formal_007",
+      "formal_012"
+    ],
+    "formula": "0.1 * median(32 A/B base gradient norms) / median(32 A/B pose gradient norms)",
+    "gradient_rows": 32,
+    "note": "Ratio of pooled medians; neither every episode ratio nor the median of per-episode ratios is asserted to equal 0.1. Shared HistoryVision parameters; masked DP base loss excludes extra A/B geometry losses.",
+    "optimizer_updates": 0,
+    "per_row_weighted_ratio_range": [
+      0.047539086858913004,
+      0.16631051581316955
+    ],
+    "pose_gradient_median": 168.8740707916031
+  },
+  "formal_training_scope": {
+    "actual_equal_completed_exposure": "not yet established by readiness evidence; verify completed learning ledgers and checkpoint exposures in final study report",
+    "already_started": true,
+    "current_update_count": "not audited; immutable acceptance zero is not a claim about ongoing formal training",
+    "evidence": "Immutable run_started.json bound to registration; parent confirms formal training started.",
+    "owner_started_utc": 1794646134.120029
+  },
+  "labels_and_authority": {
+    "current_pose_camera_authority_and_target_hashes_match": true,
+    "geometry": "Current pre-action palm-frame object collision-AABB center and rotation columns, using actual current object/palm diagnostic poses as loss-only labels. No future poses or auxiliary label inputs in deployment.",
+    "label_summary_sha256": "b4892b5723fa45b288b3d40808827a1a2b33ad1d2651dc8c9b3e8c554dc8fece",
+    "numeric_supervision_mask_and_segments_match": true,
+    "per_episode_legal_anchor_and_window_counts_match": true,
+    "raw_entire_HDF5_bytes_rehashed": false,
+    "receipt_rows_matched": 34,
+    "unique_reread_valid_perception_ticks_by_phase": {
+      "legal_expert": 2281,
+      "original": 2182,
+      "student_prefix": 1360,
+      "transition": 20
+    },
+    "unique_training_episodes_reread": 17,
+    "validation_or_test_payloads_read_by_audit": false
+  },
+  "limitations": [
+    "CPU audit recomputes maxima from recorded per-parameter comparison rows and independently checks all maxima against stricter absolute-only bounds; raw CUDA intermediate tensors were not persisted for re-differencing.",
+    "Pose/clock/camera/authority tensor bytes were reread and hashed; entire raw HDF5/video payloads were not rehashed.",
+    "No new GPU execution, fitted-policy performance, autonomy success or causal mechanism improvement is established by this readiness audit."
+  ],
+  "passed": true,
+  "randomness": {
+    "A_B_diffusion_draw_hashes_equal": true,
+    "calibration_draws": "Fresh fixed device generator per episode and role; not claimed to continue formal-training RNG.",
+    "formal_seed_evidence": "Reviewed tight_fresh_train.py creates separate fixed episode and diffusion generators after source/head construction.",
+    "head_CPU_rng_isolation_independently_reexecuted": true,
+    "head_CUDA_rng_isolation_recorded_for_both_routes_both_roles": true,
+    "head_seed": 2026111405,
+    "head_sha256": {
+      "linear.bias": "69d1a6e74627b7c49089a69be519597869daccfa9a80dc6c0d7f32f30f53aa5f",
+      "linear.weight": "c168b38f7f38aee903895f59b6ad1adb709fc448696cd6c71c5beefb14cae11d"
+    },
+    "training_diffusion_seed": 2026111403,
+    "training_episode_seed": 2026111402
+  },
+  "registered_fairness": {
+    "backend_epochs_per_cell": 5,
+    "cell_configuration_bindings": {
+      "auxiliary_A": {
+        "continuation_sha256": "b36e54e447e3d56c917c8631bf1acad8e46924132d070500177b824eb742da30",
+        "data_realpath": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/A/state_data",
+        "spec_sha256": "ac129cf2ed662319e2d45967af6c65f3f294504a16b7ce5325b763bfe8bb0d7d"
+      },
+      "auxiliary_B": {
+        "continuation_sha256": "c303abb446f7288a6e5416b3f81b099006e635f5712ca046ba22ea49d1995fc2",
+        "data_realpath": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/B/state_data",
+        "spec_sha256": "ac129cf2ed662319e2d45967af6c65f3f294504a16b7ce5325b763bfe8bb0d7d"
+      },
+      "control_A": {
+        "continuation_sha256": "b36e54e447e3d56c917c8631bf1acad8e46924132d070500177b824eb742da30",
+        "data_realpath": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/A/state_data",
+        "spec_sha256": "cc041aebf1d181655b66249b27d77aceec5bfc693295c067264715cf8ecaedf4"
+      },
+      "control_B": {
+        "continuation_sha256": "c303abb446f7288a6e5416b3f81b099006e635f5712ca046ba22ea49d1995fc2",
+        "data_realpath": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05/B/state_data",
+        "spec_sha256": "cc041aebf1d181655b66249b27d77aceec5bfc693295c067264715cf8ecaedf4"
+      }
+    },
+    "frontend_exposure_plan": {
+      "A": {
+        "epochs": 5,
+        "per_cell_planned": {
+          "episodes": 420,
+          "legal_action_ticks": 119575,
+          "legal_anchors": 10235,
+          "legal_window_targets": 235200,
+          "visual_history_ticks": 164945
+        },
+        "per_epoch": {
+          "episodes": 84,
+          "legal_action_ticks": 23915,
+          "legal_anchors": 2047,
+          "legal_window_targets": 47040,
+          "visual_history_ticks": 32989
+        }
+      },
+      "B": {
+        "epochs": 5,
+        "per_cell_planned": {
+          "episodes": 420,
+          "legal_action_ticks": 119575,
+          "legal_anchors": 10235,
+          "legal_window_targets": 235200,
+          "visual_history_ticks": 164945
+        },
+        "per_epoch": {
+          "episodes": 84,
+          "legal_action_ticks": 23915,
+          "legal_anchors": 2047,
+          "legal_window_targets": 47040,
+          "visual_history_ticks": 32989
+        }
+      }
+    },
+    "learned_backend_caches": "Must be regenerated separately from each newly selected frontend before backend training; old learned cache is not reused.",
+    "learning_rate": 3e-05,
+    "normalization_original_families": 30,
+    "only_arm_configuration_difference": "detached_readout versus shared_vision gradient route",
+    "optimizer": "Fresh AdamW, betas (0.95,0.999), weight_decay 1e-6; policy and head clipped independently to norm1; fresh EMA.",
+    "same_head_initialization_and_lambda": true,
+    "same_selected_source_EMA_within_role": true,
+    "same_source_rear_within_role": true,
+    "selection": "Same original action validation score; auxiliary metrics are diagnostics. Equal episode weighting, not uniform tick weighting.",
+    "source_train_episodes": 84,
+    "source_validation_families": 6
+  },
+  "scope": "Independent CPU-only source and immutable readiness-artifact audit after formal owner launch; no GPU/Kit/optimizer work by this audit.",
+  "source_integrity": {
+    "all_match": true,
+    "protected_files_rehashed": 54,
+    "python_sources_rehashed": 170,
+    "source_commit_recorded": "6780ceac83dc58318401d2300236824c0f92a458",
+    "source_old_session_preserved": true,
+    "source_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_02/round_05"
+  },
+  "utc": 1794646392.4252052,
+  "version": "visual_aux_readiness_independent_audit_v1"
+}
