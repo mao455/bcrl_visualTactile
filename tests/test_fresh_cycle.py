@@ -6,7 +6,7 @@ import pytest
 from tools import tight_fresh_cycle as cycle
 
 
-@pytest.mark.parametrize('fault',['exit','missing','incomplete'])
+@pytest.mark.parametrize('fault',['exit','missing','incomplete','deadline'])
 def test_failed_stage_retains_evidence_and_never_advances(tmp_path,monkeypatch,fault):
     root=tmp_path/'initial';root.mkdir();collection=tmp_path/'collection';collection.mkdir()
     output=tmp_path/'round';ledger=tmp_path/'round_stages';calls=[]
@@ -20,8 +20,10 @@ def test_failed_stage_retains_evidence_and_never_advances(tmp_path,monkeypatch,f
         if fault!='missing':
             output.mkdir()
             (output/'prepared.json').write_text(json.dumps({'complete':fault!='incomplete'}))
-        return SimpleNamespace(returncode=1 if fault=='exit' else 0)
-    monkeypatch.setattr(cycle.subprocess,'run',execute)
+        code=1 if fault=='exit' else 0
+        return SimpleNamespace(returncode=code,poll=lambda:code)
+    monkeypatch.setattr(cycle.subprocess,'Popen',execute)
+    if fault=='deadline':monkeypatch.setattr(cycle,'wait_owned',lambda *a,**kw:'original_session_deadline')
     with pytest.raises(RuntimeError):cycle.run(root,collection,output,10,5,4,123)
     assert len(calls)==1
     assert (ledger/'failure.json').exists() and (ledger/'aggregate.json').exists()

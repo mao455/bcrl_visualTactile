@@ -14,6 +14,7 @@ import traceback
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
+from tools.tight_fresh_eval_recovery import wait_owned
 
 
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None):
@@ -28,6 +29,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         source_sha256=sources,source_root=str(root),collection=str(collection),output=str(output),
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
         frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
+        development_startup_seconds=180,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
     if reuse_index is not None:
         if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
@@ -41,12 +43,16 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         atomic_json(ledger/'status.json',dict(stage=name,command=command,started=time.time()))
         start=time.time()
         with (ledger/(name+'.log')).open('x') as stream:
-            proc=subprocess.run(command,stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT,
-                timeout=max(1,deadline-time.time()),env=dict(os.environ,OMP_NUM_THREADS='2',MKL_NUM_THREADS='2'))
+            proc=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT,
+                start_new_session=True,env=dict(os.environ,OMP_NUM_THREADS='2',MKL_NUM_THREADS='2'))
+            reason=wait_owned(proc,deadline,
+                startup_marker=completion.parent/'initialization.json' if name=='development' else None,
+                startup_seconds=180 if name=='development' else None)
         receipt=dict(stage=name,command=command,returncode=proc.returncode,seconds=time.time()-start,
+            stop_reason=reason,
             completion=str(completion),completion_sha256=sha256(completion) if completion.exists() else None,utc=time.time())
         atomic_json(ledger/(name+'.json'),receipt);stages.append(receipt)
-        if proc.returncode or not completion.exists():raise RuntimeError('Stage failed: '+name)
+        if reason or proc.returncode or not completion.exists():raise RuntimeError('Stage failed: '+name)
         proof=read(completion)
         if any(proof.get(key) is False for key in ('complete','software_complete','target_reached')):
             raise RuntimeError('Stage receipt is incomplete: '+name)

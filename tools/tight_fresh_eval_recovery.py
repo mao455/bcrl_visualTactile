@@ -23,6 +23,25 @@ def stop_owned(process):
         os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=10)
 
 
+def wait_owned(process, deadline, *, startup_marker=None, startup_seconds=None):
+    """Bound a process group we created, including Kit's pre-control startup."""
+    began=time.time()
+    reason=None
+    try:
+        while process.poll() is None:
+            now=time.time()
+            if now>=deadline:reason='original_session_deadline';break
+            if (startup_marker is not None and not startup_marker.exists()
+                    and now-began>=startup_seconds):
+                reason='pre_control_startup_timeout';break
+            time.sleep(min(.5,max(.001,deadline-now),
+                max(.001,startup_seconds-(now-began))
+                if startup_marker is not None and not startup_marker.exists() else .5))
+    finally:
+        if process.poll() is None:stop_owned(process)
+    return reason
+
+
 def run(root,previous,output,source,startup_seconds):
     if output.exists():raise FileExistsError('Preserve prior evaluation identities')
     if (previous/'initialization.json').exists() or list(previous.glob('*/result.json')):
@@ -52,15 +71,8 @@ def run(root,previous,output,source,startup_seconds):
             prior=str(previous),prior_plan_sha256=sha256(previous/'plan.json'),plan_sha256=sha256(output/'plan.json'),
             startup_seconds=startup_seconds,deadline=session['deadline'],started=began,
             scope='One pre-control recovery, exact same cases/pairs, no new training; original failed startup remains separate'))
-        reason=None
-        try:
-            while process.poll() is None:
-                initialized=(output/'initialization.json').exists()
-                if time.time()>=session['deadline']:reason='original_session_deadline';break
-                if not initialized and time.time()-began>=startup_seconds:reason='pre_control_startup_timeout';break
-                time.sleep(2)
-        finally:
-            if process.poll() is None:stop_owned(process)
+        reason=wait_owned(process,session['deadline'],
+            startup_marker=output/'initialization.json',startup_seconds=startup_seconds)
         complete=(output/'result.json').exists() and json.loads((output/'result.json').read_text()).get('software_complete',False)
         atomic_json(output/'recovery_finished.json',dict(returncode=process.returncode,software_complete=complete,
             stop_reason=reason or ('complete' if complete else 'worker_failure'),seconds=time.time()-began))

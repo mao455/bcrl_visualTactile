@@ -1,3 +1,9 @@
+## 2026-11-14：恢复起点对比与评估启动界限
+
+新增tools/tight_fresh_onset_report.py、tight_fresh_onset_after.py与tests/test_fresh_onset_after.py，记录旧完整shadow和新完整pair在同合法专家恢复初段的误差、上一实际目标基线及精确数据/模型/缓存绑定。旧24轨迹报告已实际运行；新pair GPU对比待本轮完整循环结束。公开round03_frontend_learning.json记录实际10遍/710更新与分来源曝光，不将离线下降当自主收益。
+
+tools/tight_fresh_cycle.py复用tight_fresh_eval_recovery.wait_owned，未来评估初始化限180秒；所有自有阶段进程组受原session deadline约束，超时写失败而不推进。保留旧失败与活动冻结源码。17项相关CPU测试通过，真实新受限Kit启动尚未运行；未来新worker才接入。
+
 ## 2026-11-14 当前任务入口清理
 
 USER_RESEARCH_DIRECTION页首重写为当前已完成/正在运行/未证明的状态，移除原“新模型尚未训练”的过时快照；README同步第三轮20条真实纠偏及训练中状态。根AGENTS仍是唯一集中当前授权，下方历史证据保持，不叠加新冲突限制。仅文档，无活动worker变化。
