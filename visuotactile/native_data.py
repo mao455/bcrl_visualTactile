@@ -380,13 +380,18 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
     return result
 
 
-def cache_visual_pair(root, identities=None, *, reuse_index=None):
+def cache_visual_pair(root, identities=None, *, reuse_index=None, payload_audit=None):
     """Single writer, immutable backbone features only; live uses the same call."""
     import time
     from .models.native_vision import NativeDinoSpatial
     from .state_resources import lease_for
     from .checkpointing import save
     from .training_resources import atomic_json
+    if payload_audit is not None:
+        from .frozen_payload_audit import FrozenPayloadAudit
+        if not isinstance(payload_audit,FrozenPayloadAudit):
+            raise TypeError('Explicit process-local frozen payload auditor required')
+    payload_sha256=sha256 if payload_audit is None else payload_audit.sha256
     root=Path(root);out=root/'state_data';info=json.loads((out/'data.json').read_text())
     ids=identities or info['splits']['train']+info['splits']['validation']+info['splits'].get('correction_dev',[])
     plan=json.loads((root/'session.json').read_text())
@@ -432,7 +437,7 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
             raise ValueError('Shared DINO payload/source identity changed: '+identity)
         old=prior['entries'].get(identity)
         if old is not None:
-            if (not path.is_file() or old['sha256']!=sha256(path) or old['source_sha256']!=entry['source_sha256']
+            if (not path.is_file() or old['sha256']!=payload_sha256(path) or old['source_sha256']!=entry['source_sha256']
                     or old['frames']!=(entry['length']+stride-1)//stride):
                 raise ValueError('Committed DINO payload/source identity changed: '+identity)
             entries[identity]=old;total-=old['frames'];checkpoint_progress();continue
@@ -450,15 +455,15 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
             if not source.is_absolute():
                 candidates=(Path.cwd()/source,Path(reuse_index).resolve().parent/source)
                 source=next((p for p in candidates if p.is_file()),source)
-            if shared['source_sha256']!=entry['source_sha256'] or sha256(source)!=shared['sha256']:
+            if shared['source_sha256']!=entry['source_sha256'] or payload_sha256(source)!=shared['sha256']:
                 raise ValueError('Shared DINO payload/source identity changed: '+identity)
             if shared['frames']!=(entry['length']+stride-1)//stride:raise ValueError('Shared DINO temporal coverage differs')
-            if path.exists() and sha256(path)!=shared['sha256']:raise ValueError('Existing DINO payload differs')
+            if path.exists() and payload_sha256(path)!=shared['sha256']:raise ValueError('Existing DINO payload differs')
             if not path.exists():path.symlink_to(source.resolve())
             entries[identity]=dict(shared,path=str(path.resolve()));total-=shared['frames'];checkpoint_progress();continue
         if path.exists() or path.is_symlink():
             orphan=path.with_name(path.name+'.unindexed.'+str(time.time_ns()))
-            record=dict(identity=identity,path=str(orphan),sha256=sha256(path) if path.is_file() else None,
+            record=dict(identity=identity,path=str(orphan),sha256=payload_sha256(path) if path.is_file() else None,
                 reason='Payload exists without a committed matching index; preserved before rebuilding')
             path.replace(orphan);orphans.append(record);checkpoint_progress()
         with h5py.File(entry['path'],'r') as f:
@@ -481,7 +486,7 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None):
                     seconds=elapsed,eta_seconds=(total-frames_done)*elapsed/frames_done,identity=identity,utc=time.time()))
         if path.exists():raise FileExistsError('No repeated cache writes: '+str(path))
         save(path,dict(patches=torch.stack(patches),depth=torch.stack(depth),camera_time=ct,camera_valid=cv))
-        entries[identity]=dict(path=str(path),sha256=sha256(path),source_sha256=entry['source_sha256'],frames=len(ticks),camera_time_sha256=__import__('hashlib').sha256(ct.numpy().tobytes()).hexdigest())
+        entries[identity]=dict(path=str(path),sha256=payload_sha256(path),source_sha256=entry['source_sha256'],frames=len(ticks),camera_time_sha256=__import__('hashlib').sha256(ct.numpy().tobytes()).hexdigest())
         checkpoint_progress()
     atomic_json(root/('cache_acceptance_index.json' if identities else 'cache_index.json'),dict(cache_contract,entries=entries,
         complete=True,preserved_orphans=orphans))

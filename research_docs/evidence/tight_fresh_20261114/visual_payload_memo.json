@@ -1,0 +1,29 @@
+{
+  "version": "frozen_payload_memo_review_v1",
+  "source_report_sha256": "5cb7ebd185029a4196c87337762d6e2ec67a8f92adfed8a6d54b3e7abb3c0353",
+  "scope": "Process-local frozen DINO payload verification only; no learned recurrent state caching",
+  "implementation_status": "CPU tested, not yet used in a formal cache stage",
+  "source_estimates": {
+    "round06": {
+      "entries": 99,
+      "logical_payload_bytes": 50812641779,
+      "same_process_duplicate_bytes": 50812641779
+    },
+    "pool07": {
+      "entries": 105,
+      "logical_payload_bytes": 53772902063,
+      "same_process_duplicate_bytes": 53772902063
+    }
+  },
+  "actual_speedup_measured": false,
+  "tests": {
+    "root_selected_cpu_tests": 22
+  },
+  "limits": [
+    "Current inode/stat match and frozen source path establish a code-derived logical read estimate; historical feature bytes were not rehashed during this audit.",
+    "OS page cache can satisfy some reads, so logical duplicate bytes are not measured disk traffic.",
+    "Existing per-frame progress seconds stop at the last new frame before final saves and B verification; they cannot serve as completed cache wall time.",
+    "No old dedicated SHA timing exists; no speedup ratio or percent wall-time savings is claimed.",
+    "Extra validation of an already-existing destination can cause more hashes on a resume; this fresh-run estimate does not invent such calls."
+  ]
+}

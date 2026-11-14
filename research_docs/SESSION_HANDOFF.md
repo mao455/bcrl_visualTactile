@@ -1,3 +1,9 @@
+## 2026-11-14 22:51 真实相机候选结论与缓存重复校验优化
+
+GPU Tiled 同步候选的独立CPU复核已完成：两个固定相机米级位姿错误已修复，但第二视角仍全黑，腕部仅两lane有少量灰像素；首包24张raw/cache逐值一致。4次render-only仍未恢复三视角，未增加动作/训练数据。Tiled不采用，正式继续standard；详见evidence/tight_fresh_20261114/tiled_pose_sync_review，原失败现场保留。
+
+冻结DINO缓存的A/B索引实际指向相同inode，旧round06/pool07的源码路径分别重复读取约47.32/50.08GiB进行SHA，非物理磁盘流量测量。新增显式--payload-audit-memo：同一进程首次完整读取，随后只对匹配dev/ino/size/mtime/ctime的已算SHA复用，每次仍核对预期SHA、source和帧合同；跨PID拒绝、改写/替换检查、有界4096元数据条目，不缓存可学习GRU。默认原路径不变；主Agent22项CPU测试通过，正式节省耗时待后续实际缓存阶段测量。当前运行的round08冻结82d5052不热改，已完成124条视觉缓存、并行DP正在推进，尚无新自主结果。
+
 ## 2026-11-14 22:42 第八轮完整流程运行，尾块严格门槛失败保留
 
 冻结82d5052的tight-fresh-round08-cycle-20261114.service已启动，aggregate实际核对118训练轨迹/42训练family、6独立验证、原30归一化，新增19条。DP10遍、最新前端重复2、后端15遍、1GiB有界冻结特征预取；DP后刷新计划与可训练视觉依赖，再进行原M8/CPUstandard8完整自主。当前处于视觉缓存阶段，尚无第八轮行为结论；阶段凭据在session06/round_08_stages，固定截止未改。

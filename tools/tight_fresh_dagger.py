@@ -100,12 +100,31 @@ def prepare_aggregate(root, collection, output):
         accepted_corrections=len(entries),shared_A_B_entries=sorted(entries),test_used=False,utc=time.time()))
 
 
-def cache(output, *, reuse_index=None):
+def cache(output, *, reuse_index=None, payload_audit_memo=False):
     from visuotactile.native_data import cache_visual_pair
     from visuotactile.precision import state_fp32
+    if type(payload_audit_memo) is not bool:raise ValueError('Explicit boolean payload-audit opt-in required')
     state_fp32()
-    cache_visual_pair(output/'A',reuse_index=reuse_index or read(output/'A/continuation.json')['reuse_index'])
-    cache_visual_pair(output/'B',reuse_index=output/'A/cache_index.json')
+    if not payload_audit_memo:
+        cache_visual_pair(output/'A',reuse_index=reuse_index or read(output/'A/continuation.json')['reuse_index'])
+        cache_visual_pair(output/'B',reuse_index=output/'A/cache_index.json')
+        return
+    from visuotactile.frozen_payload_audit import FrozenPayloadAudit
+    audit=FrozenPayloadAudit();started=time.monotonic();phases=[]
+    receipt=output/f'payload_audit_memo_{audit.pid}_{time.time_ns()}.json'
+    def record(status,**extra):
+        atomic_json(receipt,dict(status=status,started_utc=started_utc,utc=time.time(),
+            seconds=time.monotonic()-started,statistics=audit.statistics(),phases=phases,**extra))
+    started_utc=time.time();record('started')
+    try:
+        for role,index in [('A',reuse_index or read(output/'A/continuation.json')['reuse_index']),
+                           ('B',output/'A/cache_index.json')]:
+            cache_visual_pair(output/role,reuse_index=index,payload_audit=audit)
+            phases.append(dict(role=role,statistics=audit.statistics(),seconds=time.monotonic()-started))
+            record('role_complete')
+        record('complete')
+    except BaseException as error:
+        record('failed',error=repr(error));raise
 
 
 def main():
@@ -113,12 +132,14 @@ def main():
     p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--collection',type=Path);p.add_argument('--ticks',type=int,nargs='+',default=[46,58,70,84,120,180])
     p.add_argument('--reuse-index',type=Path)
+    p.add_argument('--payload-audit-memo',action='store_true',help='Reuse only SHA digests fully computed in this cache process')
     p.add_argument('--round',type=int,default=1);p.add_argument('--family-offset',type=int,default=0)
     p.add_argument('--stable-delays',type=int,nargs='+');p.add_argument('--fallback-tick',type=int,default=360);a=p.parse_args()
+    if a.payload_audit_memo and a.stage!='cache':p.error('--payload-audit-memo applies only to cache')
     if a.stage=='prepare':prepare_collection(a.root.resolve(),a.output.resolve(),a.ticks,a.round,
         stable_delays=a.stable_delays,fallback_tick=a.fallback_tick,family_offset=a.family_offset)
     elif a.stage=='aggregate':prepare_aggregate(a.root.resolve(),a.collection.resolve(),a.output.resolve())
-    else:cache(a.output.resolve(),reuse_index=a.reuse_index)
+    else:cache(a.output.resolve(),reuse_index=a.reuse_index,payload_audit_memo=a.payload_audit_memo)
 
 
 if __name__=='__main__':main()
