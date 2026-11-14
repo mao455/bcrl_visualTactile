@@ -104,7 +104,8 @@ def test_aggregate_copies_frozen_affine_and_never_opens_test_source(tmp_path,inc
     source=tmp_path/'source';source.mkdir();out=tmp_path/'aggregate'
     old={k:new[k].clone() for k in ('robot','command','time','joint_limits','q_reached')}
     data=dict(splits={'train':['old'],'validation':['val'],'test':['heldout']},
-        entries={'old':dict(entry),'val':dict(entry),'heldout':{'path':'/MUST_NOT_OPEN_TEST'}},
+        entries={'old':dict(entry),'val':dict(entry,family='validation_family'),
+            'heldout':{'path':'/MUST_NOT_OPEN_TEST','family':'test_family'}},
         families={'train_takeover':'train'},supervision='q_reached',normalization_identity='q_reached_train166_affine_v1')
     (source/'data.json').write_text(json.dumps(data))
     torch.save(dict(contract={},data_sha256=sha256(source/'data.json'),records={'old':old,'val':old}),source/'numeric.pt')
@@ -117,6 +118,7 @@ def test_aggregate_copies_frozen_affine_and_never_opens_test_source(tmp_path,inc
     assert (out/'tactile_statistics.pt').exists()==include_tactile
     assert result['splits']=={'train':['old','new'],'validation':['val'],'test':['heldout']}
     assert result['normalization_train_ids']==['old']
+    assert result['families']==dict(train_takeover='train',validation_family='validation',test_family='test')
     assert sha256(source/'statistics.pt')==sha256(out/'statistics.pt')
     rows=visual_records(out,['old','val','new'],'G00')
     assert rows['old']['supervision_mask'].all() and rows['new']['supervision_mask'].sum()==16

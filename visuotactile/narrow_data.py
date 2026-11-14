@@ -516,6 +516,41 @@ def _shared_pool_tactile(frozen,touch):
     return path
 
 
+def aggregate_family_partitions(data, splits=None):
+    """Derive family admission from split metadata without reading trajectories.
+
+    Older aggregate ``families`` dictionaries can contain only families that
+    received corrections. They cannot establish that an unlisted family trains.
+    Correction-development episodes may share train families; the original
+    train/validation/test partitions remain the family isolation boundary.
+    """
+    splits=data['splits'] if splits is None else splits
+    families={};episodes=set()
+    for split in ('train','validation','test'):
+        for identity in splits.get(split,[]):
+            if identity in episodes:raise ValueError('Aggregate source split episode overlap: '+identity)
+            episodes.add(identity)
+            family=data.get('entries',{}).get(identity,{}).get('family')
+            if not isinstance(family,str) or not family:
+                raise ValueError('Aggregate source episode lacks explicit family: '+identity)
+            if family in families and families[family]!=split:
+                raise ValueError('Aggregate source split family overlap: '+family)
+            families[family]=split
+    return families
+
+
+def validate_aggregate_families(data, new_entries, splits=None):
+    """Reject held-out and unknown correction families before opening payloads."""
+    families=aggregate_family_partitions(data,splits)
+    for identity,entry in new_entries.items():
+        if identity in data['entries']:raise ValueError('Duplicate aggregate episode: '+identity)
+        family=entry.get('family')
+        if not isinstance(family,str) or family not in families:
+            raise ValueError('Takeover family is not a known source training family: '+str(family))
+        if families[family]!='train':raise ValueError('Takeover family leaks a held-out split: '+family)
+    return families
+
+
 def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,manifest_sha256=None,include_geometry=True,
         snapshot=None,consumer_group=None,include_frontend_tactile=True):
     """Append accepted train takeovers; keep original validation/test and affine.
@@ -553,10 +588,15 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
             return read(out/'data.json')
         if out.exists() and any(out.iterdir()):raise ValueError('Partial aggregate has no completion receipt; preserve for transaction recovery')
     elif (out/'data.json').exists():raise ValueError('Aggregate must be a new independent dataset')
+    base_splits=frozen['core']['splits'] if frozen else old['splits']
+    # Snapshot replacement can contain an already aggregated episode. Its
+    # duplicate check applies to the retained Core, not the discarded old pool.
+    retained=({i:old['entries'][i] for values in base_splits.values() for i in values}
+        if frozen else old['entries'])
+    families=validate_aggregate_families(dict(old,entries=retained),new_entries,base_splits)
     raw=torch.load(source/'numeric.pt',map_location='cpu',weights_only=False)
     if raw['data_sha256']!=sha256(source/'data.json'):raise ValueError('Source numeric cache identity differs')
     touched=torch.load(source/'tactile.pt',map_location='cpu',weights_only=False) if include_frontend_tactile else None
-    base_splits=frozen['core']['splits'] if frozen else old['splits']
     ids=base_splits['train']+base_splits['validation']
     records={};touch={};contexts={}
     old_context=torch.load(source/'loss_context.pt',map_location='cpu',weights_only=False) if include_geometry and (source/'loss_context.pt').exists() else {}
@@ -578,13 +618,11 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
             else:
                 from .state_image_loss import geometry_loss_context
                 contexts[identity]=geometry_loss_context(old['entries'][identity])
-    entries=({i:old['entries'][i] for values in base_splits.values() for i in values} if frozen else dict(old['entries']))
-    splits={k:list(v) for k,v in base_splits.items()};families=dict(old.get('families',{}))
+    entries=dict(retained)
+    splits={k:list(v) for k,v in base_splits.items()}
     if frozen:splits['correction_dev']=[]
     for identity,entry in new_entries.items():
-        if identity in entries:raise ValueError('Duplicate aggregate episode: '+identity)
-        family=entry.get('family',identity)
-        if families.get(family,'train')!='train':raise ValueError('Takeover family leaks a held-out split')
+        family=entry['family']
         records[identity],touch[identity],context=dagger_record(entry,include_geometry=include_geometry)
         if include_geometry:contexts[identity]=context
         entries[identity]=dict(entry);splits['correction_dev' if frozen and entry['cohort']=='correction_dev' else 'train'].append(identity);families[family]='train'

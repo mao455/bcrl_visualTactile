@@ -1,0 +1,1160 @@
+{
+  "complete": true,
+  "kind": "takeover",
+  "source_commit": "a76ec990b502d02ff52b5210a6a26028c0aab8ef",
+  "plan_sha256": "4ae264bef5a5e21c5dba38f787df51fd5f8b0400247bb946e2020fc180885104",
+  "results_sha256": "3e092783fa2e9923672947cee83d242236b3ccfcf364d69bfbe543513d525fc1",
+  "totals": {
+    "A": {
+      "cases": 6,
+      "steps": 3606,
+      "total_seconds": 470.72052341885865,
+      "control_ticks_per_wall_second": 7.660596512362587,
+      "resource_wait_s": 1.2121418761089444,
+      "wall_components": {
+        "expert_inference_s": 10.88771006418392,
+        "environment_step_render_s": 178.1292682995554,
+        "numeric_write_s": 7.1544748151209205,
+        "compact_append_s": 79.63317602034658,
+        "finalize_verify_s": 74.95777937676758,
+        "setup_s": 8.295588878914714
+      },
+      "nested_environment_components": {
+        "render_s": 94.47730494965799,
+        "physics_step_s": 5.562618428142741,
+        "scene_update_s": 12.479106425307691
+      },
+      "controller_components": {
+        "backend_input_and_transfer": 2.7833853377960622,
+        "combined_controller": 88.34891847614199,
+        "ddim_plan": 18.26686768606305,
+        "depth_grid_and_transfer": 30.542855396168306,
+        "dino_rgb": 9.140627529239282,
+        "learned_visual_and_history": 3.8487533223815262,
+        "native_history": 42.55691335326992,
+        "native_planning": 28.189836112316698,
+        "residual_compose": 6.452615570509806,
+        "residual_forward_compose": 14.63471089140512,
+        "rgb_transfer": 1.83180832141079,
+        "robot_history_input": 0.3723652604967356
+      }
+    },
+    "B": {
+      "cases": 6,
+      "steps": 3517,
+      "total_seconds": 450.2482534283772,
+      "control_ticks_per_wall_second": 7.811246291840337,
+      "resource_wait_s": 1.184275975683704,
+      "wall_components": {
+        "expert_inference_s": 10.659715579124168,
+        "environment_step_render_s": 174.03015292133205,
+        "numeric_write_s": 7.023035297403112,
+        "compact_append_s": 73.07647861982696,
+        "finalize_verify_s": 68.64159711729735,
+        "setup_s": 7.938534295652062
+      },
+      "nested_environment_components": {
+        "render_s": 92.22886612941511,
+        "physics_step_s": 5.395032435655594,
+        "scene_update_s": 12.189433741383255
+      },
+      "controller_components": {
+        "backend_input_and_transfer": 2.7082122839055955,
+        "combined_controller": 85.71249317657202,
+        "ddim_plan": 17.58533914363943,
+        "depth_grid_and_transfer": 29.876024858793244,
+        "dino_rgb": 8.780884587438777,
+        "learned_visual_and_history": 3.6388757179956883,
+        "native_history": 41.59757872414775,
+        "native_planning": 27.015306109562516,
+        "residual_compose": 6.2557097969111055,
+        "residual_forward_compose": 14.212112318957224,
+        "rgb_transfer": 1.7946201558224857,
+        "robot_history_input": 0.3637170272413641
+      }
+    }
+  },
+  "cases": [
+    {
+      "case": "r05_A_formal_051_slow_5_stable_only_d0",
+      "role": "A",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.867086366051808,
+        "environment_step_render_s": 29.497140464605764,
+        "numeric_write_s": 1.1572149873245507,
+        "compact_append_s": 18.413615725934505,
+        "finalize_verify_s": 12.309268106007949,
+        "setup_s": 1.593917375896126,
+        "through_result_s": 89.38615660695359,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.4676877062302083,
+          "mean_wall_s": 0.0007781825394845396
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 15.145738180493936,
+          "mean_wall_s": 0.025200895475031508
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.2110254843719304,
+          "mean_wall_s": 0.06296128400729276
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.132756372680888,
+          "mean_wall_s": 0.008540360021099647
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.596428693505004,
+          "mean_wall_s": 0.002656287343602336
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.7504796236753464,
+          "mean_wall_s": 0.001248718175832523
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.086828260915354,
+          "mean_wall_s": 0.01288514229257337
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 5.088955813320354,
+          "mean_wall_s": 0.09978344732000693
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0884075560607016,
+          "mean_wall_s": 0.0018109942696517497
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4713056781329215,
+          "mean_wall_s": 0.004111989481086392
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.2914853219408542,
+          "mean_wall_s": 0.00048500053567529814
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06273714592680335,
+          "mean_wall_s": 0.00010438792999468112
+        }
+      },
+      "timing": {
+        "total_seconds": 90.01449160394259,
+        "resource_wait_seconds": 0.20008652727119625,
+        "nested_environment_components": {
+          "render_s": 15.708420449169353,
+          "physics_step_s": 0.9148674658499658,
+          "scene_update_s": 2.0781498791184276
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "8fe200010ffdefac831e200682e3992be080e8ef9ed9e587f177620e9b97aedd"
+    },
+    {
+      "case": "r05_B_formal_051_slow_5_stable_only_d0",
+      "role": "B",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.8378844370599836,
+        "environment_step_render_s": 29.51895499951206,
+        "numeric_write_s": 1.2014785683713853,
+        "compact_append_s": 13.570800871122628,
+        "finalize_verify_s": 11.292868801159784,
+        "setup_s": 1.3263787659816444,
+        "through_result_s": 83.10702199302614,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.4616111780051142,
+          "mean_wall_s": 0.0007680718436025195
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.685482675675303,
+          "mean_wall_s": 0.02443507932724676
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0144436054397374,
+          "mean_wall_s": 0.05910673736156348
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.180851050419733,
+          "mean_wall_s": 0.008620384443294065
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.4845436906907705,
+          "mean_wall_s": 0.0024701226134621807
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6148665100336074,
+          "mean_wall_s": 0.0010230723960625748
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.153299587313086,
+          "mean_wall_s": 0.013005999249660156
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.62594864773564,
+          "mean_wall_s": 0.09070487544579688
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0592990424484015,
+          "mean_wall_s": 0.0017625608027427644
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.414287172490731,
+          "mean_wall_s": 0.004017116759551965
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.30036320979706943,
+          "mean_wall_s": 0.0004997723956690007
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.0630189951043576,
+          "mean_wall_s": 0.00010485689701224226
+        }
+      },
+      "timing": {
+        "total_seconds": 83.75650172610767,
+        "resource_wait_seconds": 0.1980793469119817,
+        "nested_environment_components": {
+          "render_s": 15.64837490185164,
+          "physics_step_s": 0.9266507921274751,
+          "scene_update_s": 2.079046296654269
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "f71fada25a4b6ece591d880ef74fc351654dc617c670b7d7331cb0aa9fa0a3e9"
+    },
+    {
+      "case": "r05_B_formal_046_slow_5_stable_only_d12",
+      "role": "B",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.843230227008462,
+        "environment_step_render_s": 29.88830362795852,
+        "numeric_write_s": 1.2011139772366732,
+        "compact_append_s": 12.368551220046356,
+        "finalize_verify_s": 13.204511119052768,
+        "setup_s": 1.299857659963891,
+        "through_result_s": 76.5154511090368,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.4665741706266999,
+          "mean_wall_s": 0.0007763297348198002
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.658451638650149,
+          "mean_wall_s": 0.02439010256015
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.002845583250746,
+          "mean_wall_s": 0.058879325161779336
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.078063728986308,
+          "mean_wall_s": 0.008449357286166902
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.5010217404924333,
+          "mean_wall_s": 0.002497540333598059
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6313042144756764,
+          "mean_wall_s": 0.0010504229858164333
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.10061726346612,
+          "mean_wall_s": 0.012910213206302036
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.6179040593560785,
+          "mean_wall_s": 0.09054713841874663
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0774689642712474,
+          "mean_wall_s": 0.0017927936177558194
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4426346980035305,
+          "mean_wall_s": 0.004064284023300384
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.30993332294747233,
+          "mean_wall_s": 0.0005156960448377243
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06229873979464173,
+          "mean_wall_s": 0.00010365846887627577
+        }
+      },
+      "timing": {
+        "total_seconds": 77.16547485115007,
+        "resource_wait_seconds": 0.20556027558632195,
+        "nested_environment_components": {
+          "render_s": 15.789928219979629,
+          "physics_step_s": 0.9185056968126446,
+          "scene_update_s": 2.0966826900839806
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "2bc066c3b4c966244b221f026d2718fb9dac1290895d78a905d80e26e21fec7b"
+    },
+    {
+      "case": "r05_A_formal_046_slow_5_stable_only_d12",
+      "role": "A",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.802698106272146,
+        "environment_step_render_s": 29.693498451262712,
+        "numeric_write_s": 1.198301862925291,
+        "compact_append_s": 12.335572624346241,
+        "finalize_verify_s": 12.357864294899628,
+        "setup_s": 1.275680857943371,
+        "through_result_s": 75.35942901414819,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.46704292017966503,
+          "mean_wall_s": 0.0007771096841591765
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.652858428889886,
+          "mean_wall_s": 0.024380796054725266
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0201239846646786,
+          "mean_wall_s": 0.05921811734636625
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.091522539034486,
+          "mean_wall_s": 0.00847175131286936
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.4952083125244828,
+          "mean_wall_s": 0.0024878674085265936
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6210691104643048,
+          "mean_wall_s": 0.0010333928626693922
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.092040705028921,
+          "mean_wall_s": 0.012894619463688948
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.632473872043192,
+          "mean_wall_s": 0.09083282102045476
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0726320925168693,
+          "mean_wall_s": 0.0017847455782310636
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.430600915569812,
+          "mean_wall_s": 0.004044261090798356
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.30763916322030127,
+          "mean_wall_s": 0.0005118788073549106
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.0618065083399415,
+          "mean_wall_s": 0.00010283944815298087
+        }
+      },
+      "timing": {
+        "total_seconds": 75.98980593984015,
+        "resource_wait_seconds": 0.2015415858477354,
+        "nested_environment_components": {
+          "render_s": 15.760277059627697,
+          "physics_step_s": 0.9413990990724415,
+          "scene_update_s": 2.0768829381559044
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "22c021120f03e0dfce12a9af8560fdb6d71242aae065eabe3697dc32d38c0a76"
+    },
+    {
+      "case": "r05_A_formal_007_slow_3_stable_only_d0",
+      "role": "A",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.7910357450600713,
+        "environment_step_render_s": 29.49157105339691,
+        "numeric_write_s": 1.1915424230974168,
+        "compact_append_s": 12.172748259734362,
+        "finalize_verify_s": 12.025460304925218,
+        "setup_s": 1.2660212970804423,
+        "through_result_s": 74.62512457091361,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.4606995959766209,
+          "mean_wall_s": 0.0007665550681807337
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.62716798321344,
+          "mean_wall_s": 0.024338049888874277
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0101992720738053,
+          "mean_wall_s": 0.05902351513870206
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.097062272951007,
+          "mean_wall_s": 0.008480968840184703
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.506813827669248,
+          "mean_wall_s": 0.0025071777498656372
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6110946396365762,
+          "mean_wall_s": 0.0010167964053853181
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.092115755891427,
+          "mean_wall_s": 0.012894755919802596
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.619814097182825,
+          "mean_wall_s": 0.09058459014083971
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0700422732625157,
+          "mean_wall_s": 0.0017804363947795602
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4239937521051615,
+          "mean_wall_s": 0.004033267474384628
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.3030772525817156,
+          "mean_wall_s": 0.0005042882738464485
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06150809465907514,
+          "mean_wall_s": 0.00010234291956584882
+        }
+      },
+      "timing": {
+        "total_seconds": 75.26481915009208,
+        "resource_wait_seconds": 0.19984951778315008,
+        "nested_environment_components": {
+          "render_s": 15.667748293140903,
+          "physics_step_s": 0.9146304167807102,
+          "scene_update_s": 2.0661778294015676
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "982bf9c8bd88dd955a0b7ff669d0c85c0e65d4879f6218863ea166302a193050"
+    },
+    {
+      "case": "r05_B_formal_007_slow_3_stable_only_d0",
+      "role": "B",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.8645761557854712,
+        "environment_step_render_s": 29.68436966976151,
+        "numeric_write_s": 1.1934340693987906,
+        "compact_append_s": 12.24117657309398,
+        "finalize_verify_s": 13.813754759030417,
+        "setup_s": 1.2828797698020935,
+        "through_result_s": 76.72379143396392,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.45784414908848703,
+          "mean_wall_s": 0.0007618039086330899
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.609238680219278,
+          "mean_wall_s": 0.02430821743796885
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0021217581816018,
+          "mean_wall_s": 0.05886513251336474
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.090071611572057,
+          "mean_wall_s": 0.008469337124079962
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.500674040755257,
+          "mean_wall_s": 0.002496961798261659
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6215031044557691,
+          "mean_wall_s": 0.0010341149824555226
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.088272434659302,
+          "mean_wall_s": 0.012887768063016914
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.614387950627133,
+          "mean_wall_s": 0.09047819511033595
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0649578038137406,
+          "mean_wall_s": 0.0017719763790578047
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4182015971746296,
+          "mean_wall_s": 0.004023629945382079
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.3064260759856552,
+          "mean_wall_s": 0.00050986035937713
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06183834210969508,
+          "mean_wall_s": 0.00010289241615589863
+        }
+      },
+      "timing": {
+        "total_seconds": 77.37752464506775,
+        "resource_wait_seconds": 0.20201301062479615,
+        "nested_environment_components": {
+          "render_s": 15.742863110266626,
+          "physics_step_s": 0.9083266879897565,
+          "scene_update_s": 2.0731456445064396
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "5b859dd7961b18b405fe9fe2f4a09f4a13e6a18e4bd7133bce840cb224f8d7c6"
+    },
+    {
+      "case": "r05_B_formal_053_slow_0_stable_only_d12",
+      "role": "B",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.876460617640987,
+        "environment_step_render_s": 29.868912703357637,
+        "numeric_write_s": 1.1994522390887141,
+        "compact_append_s": 12.24190479842946,
+        "finalize_verify_s": 10.375653556082398,
+        "setup_s": 1.3149848978500813,
+        "through_result_s": 73.51946825580671,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.46005095448344946,
+          "mean_wall_s": 0.0007654757978094001
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.663735634647308,
+          "mean_wall_s": 0.024398894566800847
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.016765914624557,
+          "mean_wall_s": 0.05915227283577563
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.0972787998616695,
+          "mean_wall_s": 0.008481329117906273
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.5055059436708689,
+          "mean_wall_s": 0.002505001570167835
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.63213483360596,
+          "mean_wall_s": 0.0010518050475972712
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.112950772745535,
+          "mean_wall_s": 0.012932637768628245
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.634397510904819,
+          "mean_wall_s": 0.09087053942950625
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0653932357672602,
+          "mean_wall_s": 0.0017727008914596675
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4255198477767412,
+          "mean_wall_s": 0.004035806735069453
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.3086895023006946,
+          "mean_wall_s": 0.0005136264597349327
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06195196486078203,
+          "mean_wall_s": 0.00010308147231411319
+        }
+      },
+      "timing": {
+        "total_seconds": 74.17168259597383,
+        "resource_wait_seconds": 0.20350075117312372,
+        "nested_environment_components": {
+          "render_s": 15.818645366933197,
+          "physics_step_s": 0.908472492126748,
+          "scene_update_s": 2.0982288317754865
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "5c7aa5f8a28f618ff24a7680d404c5d30961a2b41e1e86448daf57fe2a50eea1"
+    },
+    {
+      "case": "r05_A_formal_053_slow_0_stable_only_d12",
+      "role": "A",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.7956190335098654,
+        "environment_step_render_s": 29.56458094739355,
+        "numeric_write_s": 1.1939713265746832,
+        "compact_append_s": 12.179059302434325,
+        "finalize_verify_s": 13.985808599973097,
+        "setup_s": 1.570052983937785,
+        "through_result_s": 76.91096836305223,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.46169693069532514,
+          "mean_wall_s": 0.0007682145269472964
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.617202001158146,
+          "mean_wall_s": 0.024321467556003572
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.010026930598542,
+          "mean_wall_s": 0.05902013589408906
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.082574756350368,
+          "mean_wall_s": 0.008456863155325072
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.5075119603425264,
+          "mean_wall_s": 0.0025083393682903935
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6106769132893533,
+          "mean_wall_s": 0.0010161013532268774
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.074746795231476,
+          "mean_wall_s": 0.012863175991329957
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.6248346047941595,
+          "mean_wall_s": 0.09068303146655214
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0731084449216723,
+          "mean_wall_s": 0.0017855381779062769
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4257407477125525,
+          "mean_wall_s": 0.004036174289039189
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.3078629414085299,
+          "mean_wall_s": 0.0005122511504301662
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.061397316632792354,
+          "mean_wall_s": 0.00010215859672677596
+        }
+      },
+      "timing": {
+        "total_seconds": 77.55834169802256,
+        "resource_wait_seconds": 0.19904399383813143,
+        "nested_environment_components": {
+          "render_s": 15.66659677051939,
+          "physics_step_s": 0.940453392220661,
+          "scene_update_s": 2.0659801135770977
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "3e99dcf5c48882a520a23f9fd94e9023337ec9cd3f1f211bce3e100c5b28c7bd"
+    },
+    {
+      "case": "r05_A_formal_050_slow_3_stable_only_d0",
+      "role": "A",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.8332869953010231,
+        "environment_step_render_s": 29.722431066678837,
+        "numeric_write_s": 1.2002172016073018,
+        "compact_append_s": 12.244825616944581,
+        "finalize_verify_s": 10.241707633947954,
+        "setup_s": 1.3234900480601937,
+        "through_result_s": 73.17884397506714,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.4616571655496955,
+          "mean_wall_s": 0.0007681483619795266
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.626611125655472,
+          "mean_wall_s": 0.024337123337197127
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0052292309701443,
+          "mean_wall_s": 0.05892606335235577
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.075713156722486,
+          "mean_wall_s": 0.008445446184230427
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.5108458627946675,
+          "mean_wall_s": 0.0025138866269462023
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6188801871612668,
+          "mean_wall_s": 0.001029750727389795
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.094128286698833,
+          "mean_wall_s": 0.012898415066725151
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.605971172684804,
+          "mean_wall_s": 0.09031316024872164
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0703674114774913,
+          "mean_wall_s": 0.0017809773901455762
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4342261534184217,
+          "mean_wall_s": 0.00405029310052982
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.3082678730133921,
+          "mean_wall_s": 0.0005129249134998205
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06210809457115829,
+          "mean_wall_s": 0.00010334125552605372
+        }
+      },
+      "timing": {
+        "total_seconds": 73.81827828288078,
+        "resource_wait_seconds": 0.2046466830652207,
+        "nested_environment_components": {
+          "render_s": 15.741639857180417,
+          "physics_step_s": 0.9212648449465632,
+          "scene_update_s": 2.072964566759765
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "16ff611d8e3c921dc896c3edadad269c9116d961baf63b3143cacdaaedb2ca3f"
+    },
+    {
+      "case": "r05_B_formal_050_slow_3_stable_only_d0",
+      "role": "B",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.77605822798796,
+        "environment_step_render_s": 29.799372002249584,
+        "numeric_write_s": 1.209407082060352,
+        "compact_append_s": 12.279985330766067,
+        "finalize_verify_s": 11.146116795018315,
+        "setup_s": 1.3462118920870125,
+        "through_result_s": 74.21985207009129,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.46879262686707085,
+          "mean_wall_s": 0.0007800210097621811
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.673999683000147,
+          "mean_wall_s": 0.02441597285024983
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0083335761446506,
+          "mean_wall_s": 0.05898693286558138
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.093664421932772,
+          "mean_wall_s": 0.008475315177924745
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.5082064373418689,
+          "mean_wall_s": 0.00250949490406301
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6200795883778483,
+          "mean_wall_s": 0.001031746403290929
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.102981297066435,
+          "mean_wall_s": 0.012914511449211701
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.623312557814643,
+          "mean_wall_s": 0.09065318740813025
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.0796103647444397,
+          "mean_wall_s": 0.0017963566801072208
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.4479424110613763,
+          "mean_wall_s": 0.004073115492614603
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.30747974524274474,
+          "mean_wall_s": 0.0005116135528165469
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06232105544768274,
+          "mean_wall_s": 0.00010369559974656029
+        }
+      },
+      "timing": {
+        "total_seconds": 74.8683318560943,
+        "resource_wait_seconds": 0.20468473597429693,
+        "nested_environment_components": {
+          "render_s": 15.834080665605143,
+          "physics_step_s": 0.9104624027386308,
+          "scene_update_s": 2.091161673422903
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "eff6a44b08d11056c7eb52b61730da2b56ad02b8e076d47ca6c3955cb7cd6976"
+    },
+    {
+      "case": "r05_B_formal_029_slow_6_stable_only_d12",
+      "role": "B",
+      "steps": 512,
+      "success": true,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.4615059136413038,
+        "environment_step_render_s": 25.270239918492734,
+        "numeric_write_s": 1.0181493612471968,
+        "compact_append_s": 10.374059826368466,
+        "finalize_verify_s": 8.80869208695367,
+        "setup_s": 1.368221309967339,
+        "through_result_s": 62.36389566282742,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 512,
+          "total_wall_s": 0.39333920483477414,
+          "mean_wall_s": 0.0007682406344429182
+        },
+        "combined_controller": {
+          "calls": 512,
+          "total_wall_s": 12.421584864379838,
+          "mean_wall_s": 0.02426090793824187
+        },
+        "ddim_plan": {
+          "calls": 43,
+          "total_wall_s": 2.5408287059981376,
+          "mean_wall_s": 0.059089039674375295
+        },
+        "depth_grid_and_transfer": {
+          "calls": 512,
+          "total_wall_s": 4.3360952460207045,
+          "mean_wall_s": 0.008468936027384188
+        },
+        "dino_rgb": {
+          "calls": 512,
+          "total_wall_s": 1.2809327344875783,
+          "mean_wall_s": 0.0025018217470460513
+        },
+        "learned_visual_and_history": {
+          "calls": 512,
+          "total_wall_s": 0.5189874670468271,
+          "mean_wall_s": 0.0010136473965758341
+        },
+        "native_history": {
+          "calls": 469,
+          "total_wall_s": 6.039457368897274,
+          "mean_wall_s": 0.012877307822808687
+        },
+        "native_planning": {
+          "calls": 43,
+          "total_wall_s": 3.8993553831242025,
+          "mean_wall_s": 0.09068268332846982
+        },
+        "residual_compose": {
+          "calls": 512,
+          "total_wall_s": 0.9089803858660161,
+          "mean_wall_s": 0.0017753523161445628
+        },
+        "residual_forward_compose": {
+          "calls": 512,
+          "total_wall_s": 2.0635265924502164,
+          "mean_wall_s": 0.004030325375879329
+        },
+        "rgb_transfer": {
+          "calls": 512,
+          "total_wall_s": 0.26172829954884946,
+          "mean_wall_s": 0.0005111880850563466
+        },
+        "robot_history_input": {
+          "calls": 512,
+          "total_wall_s": 0.052287929924204946,
+          "mean_wall_s": 0.00010212486313321278
+        }
+      },
+      "timing": {
+        "total_seconds": 62.90873775398359,
+        "resource_wait_seconds": 0.17043785541318357,
+        "nested_environment_components": {
+          "render_s": 13.394973864778876,
+          "physics_step_s": 0.8226143638603389,
+          "scene_update_s": 1.751168604940176
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "38a268ff2f8563693101d8cc28bc8b544ecfe7bf704f2c6bbb5cbea4d45f121f"
+    },
+    {
+      "case": "r05_A_formal_029_slow_6_stable_only_d12",
+      "role": "A",
+      "steps": 601,
+      "success": false,
+      "expert_shadow": true,
+      "wall_profile": {
+        "expert_inference_s": 1.7979838179890066,
+        "environment_step_render_s": 30.16004631621763,
+        "numeric_write_s": 1.213227013591677,
+        "compact_append_s": 12.287354490952566,
+        "finalize_verify_s": 14.03767043701373,
+        "setup_s": 1.266426315996796,
+        "through_result_s": 77.440322896,
+        "scope": "Synchronous component call times exclude resource waits; setup_s and through_result_s include waits. Env step includes physics/render/sensors; compact includes encode/I/O."
+      },
+      "components": {
+        "backend_input_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.4646010191645473,
+          "mean_wall_s": 0.0007730466209060687
+        },
+        "combined_controller": {
+          "calls": 601,
+          "total_wall_s": 14.679340756731108,
+          "mean_wall_s": 0.02442485982817156
+        },
+        "ddim_plan": {
+          "calls": 51,
+          "total_wall_s": 3.0102627833839506,
+          "mean_wall_s": 0.05902476045850884
+        },
+        "depth_grid_and_transfer": {
+          "calls": 601,
+          "total_wall_s": 5.063226298429072,
+          "mean_wall_s": 0.008424669381745544
+        },
+        "dino_rgb": {
+          "calls": 601,
+          "total_wall_s": 1.5238188724033535,
+          "mean_wall_s": 0.0025354723334498393
+        },
+        "learned_visual_and_history": {
+          "calls": 601,
+          "total_wall_s": 0.6365528481546789,
+          "mean_wall_s": 0.0010591561533355722
+        },
+        "native_history": {
+          "calls": 550,
+          "total_wall_s": 7.117053549503908,
+          "mean_wall_s": 0.012940097362734377
+        },
+        "native_planning": {
+          "calls": 51,
+          "total_wall_s": 4.6177865522913635,
+          "mean_wall_s": 0.09054483435865418
+        },
+        "residual_compose": {
+          "calls": 601,
+          "total_wall_s": 1.078057792270556,
+          "mean_wall_s": 0.0017937733648428554
+        },
+        "residual_forward_compose": {
+          "calls": 601,
+          "total_wall_s": 2.448843644466251,
+          "mean_wall_s": 0.004074615049028704
+        },
+        "rgb_transfer": {
+          "calls": 601,
+          "total_wall_s": 0.313475769245997,
+          "mean_wall_s": 0.0005215902982462513
+        },
+        "robot_history_input": {
+          "calls": 601,
+          "total_wall_s": 0.06280810036696494,
+          "mean_wall_s": 0.00010450599062722951
+        }
+      },
+      "timing": {
+        "total_seconds": 78.07478674408048,
+        "resource_wait_seconds": 0.20697356830351055,
+        "nested_environment_components": {
+          "render_s": 15.932622520020232,
+          "physics_step_s": 0.9300032092723995,
+          "scene_update_s": 2.1189510982949287
+        },
+        "nesting": "physics/render/scene are inside environment wall_profile; do not sum overlapping timings"
+      },
+      "result_sha256": "49e588feb515a4ad530b3621ddf41f559d12ff9c798d276d1bd38f6c4a187be2"
+    }
+  ],
+  "interpretation": "Actual wall intervals and call counts. Controller subregions overlap combined controller. Render/physics/scene nest inside environment step. CUDA launches are asynchronous: depth-transfer wall can include preceding DINO completion; neither timer alone is isolated device compute. Setup includes waits. Queue startup is outside per-case totals. Collection includes lossless RGB-D and expert queries; ordinary autonomous evaluation does not."
+}
