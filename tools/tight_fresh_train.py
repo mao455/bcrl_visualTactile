@@ -1,6 +1,6 @@
 """Fresh full-episode training and measured continuous-vision acceptance.
 
-Episode balance is exact per epoch; no past learned hidden state is cached.
+Episode visits follow the registered schedule; learned hidden state is never cached.
 """
 import argparse,copy,json,time
 import hashlib,os,uuid
@@ -15,6 +15,7 @@ from visuotactile.models.vendor.ema_model import EMAModel
 from visuotactile.position_control import continuous_image_contract,bounded_targets
 from visuotactile.continuous_vision import encode_dense
 from visuotactile.anchor_sampling import labels
+from visuotactile.latest_takeover_sampling import sampling_plan,episode_deck,validate_sampling_exposure
 
 
 def read(p):return json.loads(Path(p).read_text())
@@ -179,6 +180,9 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
         update=row.get('updates')
         if type(update) is not int or update<1 or row.get('epoch')!=(update-1)//episodes_per_epoch+1:
             raise ValueError('Learning log update/epoch identity differs')
+        if ('episode_index' in row and row['episode_index']!=(update-1)%episodes_per_epoch+1
+                or 'episodes_per_epoch' in row and row['episodes_per_epoch']!=episodes_per_epoch):
+            raise ValueError('Learning log episode cursor differs from registered deck length')
         if update<=durable_update:
             if abandoned:raise ValueError('Durable learning row appears after a discarded tail')
             seen.append(update);kept.append(line)
@@ -196,7 +200,7 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
         stream.write(b''.join(kept));stream.flush();os.fsync(stream.fileno())
     temporary.replace(path)
     report=dict(version='fresh_epoch_log_recovery_v1',durable_updates=durable_update,
-        completed_epochs=completed_epochs,checkpoint_sha256=checkpoint_sha256,
+        completed_epochs=completed_epochs,episodes_per_epoch=episodes_per_epoch,checkpoint_sha256=checkpoint_sha256,
         original_log_sha256=hashlib.sha256(raw).hexdigest(),retained_log_sha256=sha256(path),
         abandoned_path=str(archive.resolve()),abandoned_sha256=sha256(archive),
         abandoned_rows=len(abandoned),known_discarded_update_ids=tail_updates,
@@ -221,7 +225,13 @@ def train(root,role,epochs):
     auxiliary=load_auxiliary_spec(root,role,continuation)
     pose_contexts=pose_reports=None;pose_exposure=empty_exposure() if auxiliary else None
     with lease.block():
-        dr,data,records,stats=inputs(root,role);model=new_model(role,stats)
+        dr,data,records,stats=inputs(root,role)
+        sampling,multiplicities=sampling_plan(data,continuation.get('sampling_contract') if continuation else None)
+        if auxiliary and sampling and sampling['latest_repeat']!=1:
+            raise ValueError('Repeated latest sampling with auxiliary exposure accounting is not implemented')
+        episodes_per_epoch=sum(multiplicities.values())
+        sampling_exposure=dict.fromkeys(data['splits']['train'],0) if sampling else None
+        model=new_model(role,stats)
         if continuation:
             path=Path(continuation['path'])
             if sha256(path)!=continuation['sha256'] or sha256(dr/'statistics.pt')!=continuation['statistics_sha256']:
@@ -256,12 +266,21 @@ def train(root,role,epochs):
         config.update(version='fresh30_continuous_episode_aux_v1',visual_auxiliary=auxiliary,
             auxiliary_label_report_sha256=sha256(out/'visual_auxiliary_labels.json'),
             auxiliary_gradient_clip='policy_excludes_head_norm1; head_norm1_separate; equal AdamW hyperparameters')
+    if sampling:
+        config.update(version=config['version'].removesuffix('_v1')+'_latest_repeat_v1',
+            sampling_contract=sampling,episode_multiplicities=multiplicities,episodes_per_epoch=episodes_per_epoch,
+            exposure='original and historical episodes once; latest takeover episodes at registered repeat; '
+                'each visit recomputes full real history at current weights and retains all legal anchor masks; '
+                'equal loss weight per visit; repeated visits are reuse, not independent data')
     begin_epoch=updates=anchors_seen=target_ticks=0;best=float('inf');history=[]
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
         if old['configuration']!=config:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
         restore_training(old,model,averaged,opt,ema,generator,noise)
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
+        if sampling:
+            sampling_exposure=old.get('sampling_exposure')
+            validate_sampling_exposure(sampling_exposure,multiplicities,completed_epochs=begin_epoch,updates=updates)
         if auxiliary:
             if 'auxiliary_exposure' not in old:raise ValueError('Missing complete auxiliary exposure state')
             pose_exposure=old['auxiliary_exposure']
@@ -272,13 +291,16 @@ def train(root,role,epochs):
             raise ValueError('Existing attempt configuration changed before first checkpoint')
         atomic_json(out/'configuration.json',config)
     reconcile_learning_log(out,durable_update=updates,completed_epochs=begin_epoch,
-        episodes_per_epoch=len(data['splits']['train']),
+        episodes_per_epoch=episodes_per_epoch,
         checkpoint_sha256=sha256(out/'last.pt') if (out/'last.pt').exists() else None)
     def checkpoint(epoch,name='last.pt'):
         if auxiliary:
             validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
                 completed_epochs=epoch,updates=updates)
         extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
+        if sampling:
+            validate_sampling_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates)
+            extras['sampling_exposure']=dict(sampling_exposure)
         save(out/name,training_state(model,averaged,opt,ema,generator,noise,kind='dp',group='I-HistoryDP',
             updates=updates,epoch=epoch,configuration=config,best=best,history=history,anchors_seen=anchors_seen,target_ticks=target_ticks,
             train_ids=data['splits']['train'],validation_ids=data['splits']['validation'],**extras))
@@ -294,9 +316,9 @@ def train(root,role,epochs):
                     train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary))
         atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
-        order=torch.randperm(len(data['splits']['train']),generator=generator).tolist();losses=[]
-        for order_index,j in enumerate(order):
-            i=data['splits']['train'][j];rec=records[i];began=time.perf_counter()
+        order=episode_deck(data['splits']['train'],multiplicities,generator);losses=[]
+        for order_index,i in enumerate(order):
+            rec=records[i];began=time.perf_counter()
             with lease.block():
                 model.train();opt.zero_grad(set_to_none=True)
                 if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec)
@@ -316,12 +338,14 @@ def train(root,role,epochs):
                     else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
                 if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
                 opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
+                if sampling:sampling_exposure[i]+=1
                 if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
                 losses.append(float(loss));torch.cuda.synchronize()
             row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
                 parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
                 visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
             if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
+            if sampling:row.update(episode_visit=sampling_exposure[i],episodes_per_epoch=episodes_per_epoch)
             atomic_json(out/'progress.json',row)
             with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
         with lease.block():
@@ -332,6 +356,7 @@ def train(root,role,epochs):
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
         if auxiliary:
             report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
+        if sampling:report['sampling_exposure']=dict(sampling_exposure)
         if continuation and epoch+1==epochs:
             with lease.block():report['correction']=metrics(averaged,records,data['aggregation']['new_training_ids'])
         history.append(report);improved=val['selection']<best;best=min(best,val['selection'])
@@ -343,6 +368,8 @@ def train(root,role,epochs):
     finished=dict(epochs=epochs,updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,
         checkpoint_sha256=sha256(out/'best.pt'),complete=True,wall_seconds=time.perf_counter()-started)
     if auxiliary:finished['auxiliary_exposure']=pose_exposure
+    if sampling:finished.update(sampling_contract=sampling,episode_multiplicities=multiplicities,
+        episodes_per_epoch=episodes_per_epoch,sampling_exposure=sampling_exposure)
     atomic_json(out/'finished.json',finished)
 
 

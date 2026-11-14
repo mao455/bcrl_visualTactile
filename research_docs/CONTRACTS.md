@@ -1,3 +1,9 @@
+## 2026-11-14 latest_takeover_repeat_v1 前端访问合同
+
+可选sampling_contract={version:latest_takeover_repeat_v1, latest_repeat:1/2/4}仅用于真实DAgger aggregate的本次新增训练episode。原30统计不重算，旧84等历史每遍一次，latest按登记次数完整重放当前权重历史；student prefix与队列flush仍无动作标签，A几何和DP监督共用原合法mask。前端每次episode访问一次optimizer更新，记录episode次数、合法anchor/目标槽，不把步份额称精确梯度份额。每个epoch的实际访问总数随repeat改变，A/B预算相同。
+
+此合同目前仅接入前端；后端仍均匀完整episode访问，必须分别报告其实际合法步与episode曝光。无等预算对照时，不将完整新数据+接续训练的行为变化单独归因于重采样。
+
 ## 2026-11-14 可选完整周期双DP并行
 
 `tools.tight_fresh_cycle --parallel-frontends`只重叠独立A/B前端进程；联合启动余量22GiB显存/24GiB可用RAM与新鲜遥测不足时明确降为串行。每组仍保留固定完整episode预算、独立随机流/optimizer、全真实历史和原标签mask，前端全部完成后才允许后端依赖刷新及训练。每stage记录PID启动身份/结束码/完成SHA；并行不是新数据或额外训练配额，不承诺浮点逐位等价或未测加速。

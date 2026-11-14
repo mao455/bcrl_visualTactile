@@ -47,8 +47,33 @@ def paired_frontends(execute, output, epochs):
         complete=not errors,scope='Two independent DP processes only; unchanged per-role data, RNG and epoch budgets; dependent stages wait for both')
 
 
+def configure_frontend_sampling(output, repeat):
+    """Bind optional latest-episode reuse before either learner starts."""
+    from visuotactile.latest_takeover_sampling import SAMPLING_VERSION,sampling_plan
+    spec=dict(version=SAMPLING_VERSION,latest_repeat=repeat)
+    pending={};populations={}
+    for role in ('A','B'):
+        directory=output/role
+        if (directory/'training').exists():raise ValueError('Cannot change a started frontend sampling contract')
+        data=read(directory/'state_data/data.json')
+        validated,multiplicities=sampling_plan(data,spec)
+        prior=read(directory/'continuation.json')
+        if 'sampling_contract' in prior:raise ValueError('Preserve the registered frontend sampling contract')
+        pending[role]=dict(prior,sampling_contract=validated)
+        populations[role]=dict(data_sha256=sha256(directory/'state_data/data.json'),
+            latest_ids=data['aggregation']['new_training_ids'],episode_multiplicities=multiplicities)
+    if (populations['A']['latest_ids']!=populations['B']['latest_ids']
+            or populations['A']['episode_multiplicities']!=populations['B']['episode_multiplicities']):
+        raise ValueError('A/B sampling populations differ')
+    for role,value in pending.items():atomic_json(output/role/'continuation.json',value)
+    receipt=dict(contract=spec,roles=populations,backend_latest_repeat=1,
+        scope='Frontend visits only; each replay recomputes complete actual history, retains legal expert masks; backend keeps one visit per episode per epoch; reuse is not new data')
+    atomic_json(output/'frontend_sampling.json',receipt)
+    return receipt
+
+
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
-        parallel_frontends=False):
+        parallel_frontends=False,latest_repeat=None):
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
@@ -63,6 +88,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
         frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
         parallel_frontends=parallel_frontends,
+        frontend_latest_repeat=latest_repeat,backend_latest_repeat=1,
         development_startup_seconds=180,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
     if reuse_index is not None:
@@ -100,6 +126,9 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         print(json.dumps(receipt),flush=True)
     try:
         execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
+        if latest_repeat is not None:
+            sampling=configure_frontend_sampling(output,latest_repeat)
+            atomic_json(ledger/'frontend_sampling.json',sampling)
         execute('visual_cache',['tools.tight_fresh_dagger','cache','--root',root,'--output',output]+
             (['--reuse-index',reuse_index] if reuse_index is not None else []),output/'B/cache_index.json')
         admitted=False
@@ -140,11 +169,12 @@ def main():
     p.add_argument('--continue-rear',action='store_true')
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
+    p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
     a=p.parse_args()
     if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or not 1<=a.count<=32:p.error('Positive finite stage exposure required')
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
-        parallel_frontends=a.parallel_frontends)
+        parallel_frontends=a.parallel_frontends,latest_repeat=a.latest_repeat)
 
 
 if __name__=='__main__':main()
