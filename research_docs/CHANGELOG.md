@@ -1,3 +1,23 @@
+## 2026-11-14 账号接续：视觉辅助对照完整结案，保留第五轮模型
+
+机器实查session04已在17:58完成全部四cell训练/缓存/后端与16自主，账号中断没有中断它；没有重训或重跑。执行树fresh_visual_aux_20261114冻结6780cea，开发树continuous_vision_20261114/本地feature/tight-continuous-vision-20261114，公开目标仍origin/feature/tight-state-foundation；narrow_followup与原项目目录内交接较旧。开始时仅余monitor3670509，现已通过STOP_MONITOR正常退出，原实验现场保留。
+
+完整report逐项核对冻结源码、保护数据/权重、四前后端实际预算与16逐次执行；每tick真实视觉/历史/后端次数均等于控制步，5Hz规划次数正确，零专家控制。16均合法，插入/原生对孔/子目标全部0；15个601步timeout，auxiliary A/28140002为411步fall。旧拿稳窗口source A/B为2/4、1/4；control为1/4、3/4；auxiliary为1/4、1/4。允许掌中转动的持续接触抬升窗source为2/4、1/4；control2/4、3/4；auxiliary2/4、1/4。新四cell原生lift均0，但这不等于没有物体抬升；旧窗口false也不等于掉落。
+
+视觉辅助读出位置/朝向改善，DP动作验证无收益；后端control/auxiliary手指验证RMSE A0.0132750/0.0132739、B0.0148413/0.0148390rad，近乎相同。control B部分持物/转向更好：seed00在持续接触中角差0.2921rad、同tick关键点38.63mm；seed03同条件最小38.44mm，仍大于15mm容差。auxiliary B只1例有持续窗口，其同条件最小关键点117.12mm；不能以位姿读出改善宣布策略改善。每cell仅4个反复使用的开发机会，不是新终测，source为另一次较早执行，不声称隐藏状态精确配对。结论仅限本对照：不采用辅助或额外训练控制，保留第五轮完整A/B作为下一采集来源。
+
+完整报告visual_aux_complete.json及两张曲线、简明接触运动复读visual_aux_closeout.json均在evidence/tight_fresh_20261114。报告运行于独立6780cea工作树，仅复制当前report脚本；所有依赖保持冻结字节，没有放松hash检查。新增tools/tight_fresh_visual_closeout以同一真实tick/当前原生目标报告持续持物时的角度和关键点；2项合成轨迹/换目标/数据漂移测试通过，实际24轨迹重读通过。未修改原生成功判定。
+
+session04最终整卡均值31.499%、最大完整60s83.430%、missing0、最大相邻间隙1.056s；整卡授权下没有旧50%限制。该均值包括完成后约55分钟仅monitor运行，不能当有效训练平均；峰值显存8638MiB、最低可用RAM24.644GiB。权重/原轨迹仍留研究机。
+
+## 2026-11-14 接触中转动纠偏：第六批登记与一次动作前恢复
+
+独立session05固定18:54:21–21:54:21 Asia/Shanghai，冻结f4b3644；来源为round_05的原选中完整pair，84训练轨迹/原30统计。8训练family×A/B16机会，050/007/031延迟12，051/053/047/039/046立即；无固定时刻fallback。真实新数据及训练量必须等待结果，不把历史6候选当救回。
+
+74项阶段/owner/触发/取证/session测试通过。真实CUDA A/B各25连续RGB-D帧、3个DP规划的首计划取证开关严格逐字节相等，零参数更新；forensics_gate/result.json保存结果。首次takeover_06在仿真初始化180秒超时，owner按已登记界限终止worker；0机会开始、0学生动作，旧现场保留。takeover_06_startup_recovery_01复用逐字节相同plan/session、同16机会与原截止；仅去除本次launcher额外添加的PXR_WORK_THREAD_LIMIT/OPENBLAS_NUM_THREADS环境项，恢复既有owner OMP/MKL=2，原Kit/物理线程设置不变。根因尚未确认，不称已修复。
+
+当前实际进度看session05/takeover_06_startup_recovery_01/{owner_started,owner_worker_started,initialization,results,owner_finished}.json及worker.log；独立service tight-fresh-contact06-recovery-20261114，资源monitor另有时限。完整结果审查后再决定新增后段采样与完整训练。开发树原遗留latest_takeover_sampling草稿及train/recovery-log修改已识别并保留，未混入本次冻结采集代码或已有权重。
+
 ## 2026-11-14 下一批接触中转动纠偏的实际覆盖依据
 
 CPU复读五轮全部84次采集机会，只取真实学生前缀，14条在9个family出现接触并抬升候选；这些均来自旧模型，当前第五轮完整pair的train-family前缀为0，不能预测其接管率。候选延迟12步仅4/14仍满足整个接触抬升窗，9/14当下仍双指接触；延迟24步只有13个可观察状态、其中2个仍双指，另1个被原专家接手截断。全部候选发生在首次原生near-goal之前。
