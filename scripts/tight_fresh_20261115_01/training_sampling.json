@@ -1,0 +1,27 @@
+{
+  "version": "fresh_random_visit_training_v1",
+  "anchors": {
+    "version": "random_legal_action_anchors_v1",
+    "seed": 2026111501,
+    "population": "all_true_supervision_mask_ticks",
+    "replacement": false,
+    "count": "min_legal_ticks_max1_original_commit12_anchor_count",
+    "order": "ascending_selected_ticks",
+    "horizon": 24,
+    "rng": "independent_cpu_sha256_seed_identity_epoch_visit_index",
+    "history": "one_complete_real_history_encoding_per_visit",
+    "deployment": "unchanged_5Hz_commit12"
+  },
+  "geometry": {
+    "version": "legal_tick_half_phase_v1",
+    "fraction": 0.5,
+    "max_samples": null,
+    "commit": 12,
+    "population": "unique legal identity/tick in this visit selected anchors commit12",
+    "allocation": "proportional stage population with one per nonempty stage when feasible",
+    "rounding": "ceil population/2; stage floor then largest remaining proportional deficit",
+    "reduction": "mean selected unique configurations; no additional stage weights",
+    "rng": "explicit independent CPU generator per visit; never model/diffusion RNG",
+    "labels": "recorded diagnostic phases for sampling only; never network inputs"
+  }
+}

@@ -1,4 +1,4 @@
-> Tight-Insertion 当前研究：在隔离树实现最多3轮、总18小时的共享纠偏池DAgger，QG01优先、G11随后；旧两组21条成功纠偏已纳入共享历史池。每轮继续更新现有U-Net前端和Transformer后端，真实update0参与选模并保留完整配对回退。当前新GPU启动以owner实际凭据为准。[研究入口](research_docs/README.md) · [合同](research_docs/CONTRACTS.md) · [结果](research_docs/STATE_DP_RESULTS.md) · [交接](research_docs/SESSION_HANDOFF.md)。
+> Tight-Insertion 当前研究：完整A/B学生使用每60Hz真实三视角RGB-D与持续历史，5Hz规划，持续进行真实状态DAgger。当前训练池170条、76个训练初态family；第九批52条新成功纠偏正在训练，专家救回不等于学生自主成功。随机合法起点、扩大几何抽样与有限批量循环已实现，实际运行及结果见[研究入口](research_docs/README.md)、[交接](research_docs/SESSION_HANDOFF.md)和[合同](research_docs/CONTRACTS.md)。
 
 # Play2Perfect
 

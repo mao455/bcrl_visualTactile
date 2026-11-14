@@ -1,3 +1,9 @@
+## 2026-11-15 第九批完整收尾与独立连续运行启动包
+
+collection09最终128机会/125合法/56接管/52成功入池，14572合法动作、34新family，完整池170条/76family。耗时6723.692秒、27.84有效轨迹/小时；held60/120新增13条/2049动作，fixed80为24/24，专家救回与学生自主0分开。复用旧审计及仅38个成功closed文件的小numeric字段，无大SHA/RGB/模型重读。README与研究入口已更新。
+
+新增scripts/tight_fresh_20261115_01启动包：登记GPU16采集/CPU8评估、每轮32新family、持物即接管、20遍B2/15遍接续后端、原源视觉index复用及半数几何。默认纯stdlib静态预览；明确--launch且旧09完整结束/自有worker与monitor退出后，才新建独立12小时session与有限3轮服务。当前仅准备，不重置06截止或声称已启动/已交接。原运行源码87577e8保持。
+
 ## 2026-11-15 统一检查后接入持物即接管及有限连续流程
 
 - 新held0复用真实完成transition的持续12tick持物条件，min_delay=0后下一动作接管；原60/120语义不变。修改takeover_trigger、training_expansion、正式expansion与collection_summary；27项短CPU测试通过，尚无held0正式数据。
