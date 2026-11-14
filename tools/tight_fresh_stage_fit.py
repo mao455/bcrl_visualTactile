@@ -163,6 +163,22 @@ def extend_union_receipt(receipt,data,identities):
     receipt['identities']=list(identities)
 
 
+def validate_batch_checkpoint_visits(saved):
+    """B2 checkpoints count complete visits separately from optimizer updates."""
+    from visuotactile.trajectory_training import validate_profile,validate_exposure
+    config=saved['configuration'];profile=validate_profile(config.get('full_trajectory_batch'))
+    if profile is None:return False
+    multiplicities=config['episode_multiplicities']
+    require(set(multiplicities)==set(saved['train_ids']) and
+        all(type(n) is int and n>0 for n in multiplicities.values()) and
+        config['episodes_per_epoch']==sum(multiplicities.values()) and
+        config['optimizer_updates_per_epoch']==(sum(multiplicities.values())+1)//2,
+        'B2 checkpoint registered visit deck differs')
+    validate_exposure(saved.get('sampling_exposure'),multiplicities,completed_epochs=saved['epoch'],
+        updates=saved['updates'],visits_seen=saved.get('visits_seen'))
+    return True
+
+
 def source_training_exposure(source,saved,data,identities):
     """Source-stage visits by raw-content identity, never by possibly renamed IDs."""
     path=Path(source['path']).parent.parent/'state_data/data.json'
@@ -173,6 +189,7 @@ def source_training_exposure(source,saved,data,identities):
         entry=prior['entries'][identity]
         require(entry['source_sha256'] not in by_sha,'Ambiguous source training SHA')
         by_sha[entry['source_sha256']]=identity
+    batched=validate_batch_checkpoint_visits(saved)
     visits=saved.get('sampling_exposure')
     if visits is None:
         require(saved['configuration'].get('version')=='fresh30_continuous_episode_v1' and
@@ -183,8 +200,10 @@ def source_training_exposure(source,saved,data,identities):
         authority='Completed uniform source epochs; checkpoint updates equal epochs times train episodes'
     else:
         require(set(visits)==set(saved['train_ids']) and all(type(v) is int and v>0 for v in visits.values()) and
-            sum(visits.values())==saved['updates'],'Source checkpoint visit receipts differ')
+            sum(visits.values())==(saved['visits_seen'] if batched else saved['updates']),
+            'Source checkpoint visit receipts differ')
         authority='Source selected checkpoint sampling_exposure; stage-local, not inherited cumulative dose'
+        if batched:authority+='; B2 full-history visits are distinct from optimizer/EMA updates'
     rows={}
     for identity in identities:
         entry=data['entries'][identity];old=by_sha.get(entry['source_sha256'])
@@ -219,6 +238,7 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output,include_co
             extend_union_receipt(receipt,data,identities)
         selected=torch.load(receipt['paths']['checkpoint'],map_location='cpu',weights_only=False,mmap=True)
         validate_checkpoint(selected,receipt)
+        validate_batch_checkpoint_visits(selected)
         source,source_saved=bind_source(receipt,source_frozen,selected)
         collection=Path(collection).resolve(strict=True)
         require(read(collection/'result.json').get('software_complete'), 'Completed collection required')

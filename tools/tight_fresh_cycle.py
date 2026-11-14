@@ -71,7 +71,7 @@ def wait_parallel_admission(resource_path, receipt_path, *, deadline, stop_paths
         time.sleep(min(.25,max(.001,end-time.time()),max(.001,30-(time.monotonic()-started))))
 
 
-def paired_frontends(execute, output, epochs, *, offline_anchor_batch=None):
+def paired_frontends(execute, output, epochs, *, offline_anchor_batch=None,trajectory_batch_profile=None):
     """Join both independent learners before admitting any dependent stage.
 
     A normal failure preserves the other learner's completed work. Each child
@@ -82,7 +82,8 @@ def paired_frontends(execute, output, epochs, *, offline_anchor_batch=None):
     with ThreadPoolExecutor(max_workers=2,thread_name_prefix='fresh-dp') as pool:
         jobs={role:pool.submit(execute,'frontend_'+role,
             ['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs]+
-            (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),
+            (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else [])+
+            (['--full-trajectory-batch'] if trajectory_batch_profile is not None else []),
             output/role/'training/finished.json',update_status=False) for role in ('A','B')}
         for role,future in jobs.items():
             try:future.result()
@@ -182,7 +183,11 @@ def configure_episode_io(output, config):
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
-        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None):
+        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None):
+    from visuotactile.trajectory_training import validate_profile
+    trajectory_profile=validate_profile(trajectory_batch_profile)
+    if trajectory_profile and (paired_episode_io or episode_io is not None):
+        raise ValueError('B2 rejects paired_episode_io_v1 and existing EpisodePrefetch, including implicit prefetch defaults')
     from visuotactile.models.native_vision import validate_vision_tail_profile
     tail=validate_vision_tail_profile(vision_tail_profile)
     from tools.tight_fresh_batch_run import validate_inactive_render_request
@@ -237,6 +242,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if payload_audit_memo:registration['payload_audit_memo']=True
     if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
+    if trajectory_profile is not None:registration['full_trajectory_batch']=trajectory_profile
     if parallel_backends:
         registration['parallel_backends']=True
         registration['parallel_backend_contract']=dict(version='independent_backend_chains_v1',
@@ -289,6 +295,18 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         if latest_repeat is not None:
             sampling=configure_frontend_sampling(output,latest_repeat)
             atomic_json(ledger/'frontend_sampling.json',sampling)
+        if trajectory_profile is not None:
+            from visuotactile.trajectory_training import budget
+            from visuotactile.latest_takeover_sampling import sampling_plan
+            planned={}
+            for role in ('A','B'):
+                data=read(output/role/'state_data/data.json')
+                continuation=read(output/role/'continuation.json')
+                _,multiplicities=sampling_plan(data,continuation.get('sampling_contract'))
+                planned[role]=dict(**budget(sum(multiplicities.values()),epochs),
+                    data_sha256=sha256(output/role/'state_data/data.json'),episode_multiplicities=multiplicities)
+            atomic_json(output/'full_trajectory_batch.json',dict(profile=trajectory_profile,roles=planned))
+            atomic_json(ledger/'frontend_batch_budget.json',dict(profile=trajectory_profile,roles=planned))
         execute('visual_cache',['tools.tight_fresh_dagger','cache','--root',root,'--output',output]+
             (['--payload-audit-memo'] if payload_audit_memo else [])+
             (['--reuse-index',reuse_index] if reuse_index is not None else []),output/'B/cache_index.json')
@@ -308,14 +326,16 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             atomic_json(ledger/'paired_episode_io.json',configure_pairing(output,epochs))
         if admitted:
             atomic_json(ledger/'status.json',dict(stage='parallel_frontends',roles=['A','B'],started=time.time()))
-            paired=paired_frontends(execute,output,epochs,**(
-                dict(offline_anchor_batch=offline_anchor_batch) if offline_anchor_batch is not None else {}))
+            options=dict(offline_anchor_batch=offline_anchor_batch) if offline_anchor_batch is not None else {}
+            if trajectory_profile is not None:options['trajectory_batch_profile']=trajectory_profile
+            paired=paired_frontends(execute,output,epochs,**options)
             atomic_json(ledger/'parallel_frontends.json',paired)
             if not paired['complete']:raise RuntimeError('Frontend stage failed: '+str(paired['errors']))
         else:
             for role in ['A','B']:
                 execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs]+
-                    (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),output/role/'training/finished.json')
+                    (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else [])+
+                    (['--full-trajectory-batch'] if trajectory_profile is not None else []),output/role/'training/finished.json')
         backends_admitted=False
         backend_stop_paths=(root/'STOP',output/'STOP',ledger/'STOP') if parallel_backends else ()
         if parallel_backends:
@@ -367,6 +387,7 @@ def main():
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
     p.add_argument('--offline-anchor-batch',type=int,help='Explicit frontend offline metrics DDIM batch only; does not enable backend cache batching')
+    p.add_argument('--full-trajectory-batch',action='store_true',help='New B2 frontend training identity; same visits but one optimizer/EMA update per batch; rejects paired I/O and prefetch')
     p.add_argument('--backend-offline-anchor-batch',type=int,help='Separate opt-in backend cache DDIM batch; requires its own cache acceptance')
     p.add_argument('--parallel-backends',action='store_true',
         help='Opt-in independent A/B backend chains after both frontends finish and fresh joint admission; serial fallback')
@@ -390,6 +411,12 @@ def main():
     if a.prefetch_mib is not None and not 1<=a.prefetch_mib<=1024:p.error('Prefetch budget must be 1–1024 MiB')
     if a.vision_microbatch<1:p.error('Positive vision microbatch required')
     if a.paired_episode_io and not a.parallel_frontends:p.error('Paired episode I/O requires --parallel-frontends')
+    if a.full_trajectory_batch and (a.paired_episode_io or a.prefetch_mib is not None):
+        p.error('B2 cannot use paired episode I/O or prefetch')
+    trajectory_profile=None
+    if a.full_trajectory_batch:
+        from visuotactile.trajectory_training import profile
+        trajectory_profile=profile()
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
@@ -398,7 +425,8 @@ def main():
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,
         vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,
         inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo,parallel_backends=a.parallel_backends,
-        offline_anchor_batch=a.offline_anchor_batch,backend_offline_anchor_batch=a.backend_offline_anchor_batch)
+        offline_anchor_batch=a.offline_anchor_batch,backend_offline_anchor_batch=a.backend_offline_anchor_batch,
+        trajectory_batch_profile=trajectory_profile)
 
 
 if __name__=='__main__':main()

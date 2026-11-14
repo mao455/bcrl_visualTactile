@@ -192,6 +192,29 @@ def frontend_summary(directory, sources):
     require([row['updates'] for row in rows] == list(range(1, final['updates'] + 1)),
             'Missing, duplicated or reordered optimizer updates')
     require([row['epoch'] for row in validation] == list(range(1, final['epochs'] + 1)), 'Incomplete epoch log')
+    batch_profile = final.get('full_trajectory_batch')
+    visit_count = len(rows)
+    if batch_profile is not None:
+        from visuotactile.trajectory_training import validate_profile, validate_exposure
+        from visuotactile.training_receipts import learning_counters, iter_visits
+        from collections import Counter
+        validate_profile(batch_profile)
+        require(all(row.get('full_trajectory_batch') == batch_profile for row in rows + validation),
+                'B2 learning or validation profile differs')
+        totals = learning_counters(rows)
+        visit_count = totals['visits_seen']
+        require(visit_count == final['visits_seen'], 'B2 final visit count differs')
+        require(final['ema_updates'] == final['updates'], 'B2 EMA/update count differs')
+        validate_exposure(final['sampling_exposure'], final['episode_multiplicities'],
+            completed_epochs=final['epochs'], updates=final['updates'], visits_seen=visit_count)
+        require(dict(Counter(v['episode'] for v in iter_visits(rows))) == final['sampling_exposure'],
+                'B2 per-episode visit exposure differs')
+        for row in validation:
+            actual = learning_counters(rows, limit=row['updates'])
+            require(all(actual[key] == row[key] for key in actual), 'B2 epoch exposure differs')
+    else:
+        require(not any('visits' in row or 'full_trajectory_batch' in row for row in rows),
+                'B2 learning receipts require explicit finished profile')
     seconds = number(final['wall_seconds'], 'frontend wall seconds', positive=True)
     epochs = []; io_totals = {}; prefetch = {}
     for row in validation:
@@ -203,7 +226,7 @@ def frontend_summary(directory, sources):
         require(abs(end - start - elapsed) < .01, 'Training epoch clock differs')
         for key, value in io.get('process_io', {}).items():
             io_totals[key] = io_totals.get(key, 0) + count(value, 'process I/O ' + key)
-        for key, value in io.get('prefetch', {}).items():
+        for key, value in (io.get('prefetch') or {}).items():
             if key in ('visits', 'clone_bytes', 'consumer_wait_s', 'load_s', 'budget_wait_s', 'mmap_fallbacks'):
                 prefetch[key] = prefetch.get(key, 0) + number(value, 'prefetch ' + key)
             elif key == 'peak_owned_clone_bytes':
@@ -225,8 +248,8 @@ def frontend_summary(directory, sources):
     counters = dict(optimizer_updates=final['updates'], anchors=final['anchors_seen'],
         legal_horizon_target_slots=final['target_ticks'],
         full_history_frame_visits=sum(count(row['visual_frames'], 'visual frame visits') for row in rows),
-        episode_visits=len(rows))
-    return dict(complete=True, epochs=final['epochs'], counters=counters, wall_seconds=seconds,
+        episode_visits=visit_count)
+    result = dict(complete=True, epochs=final['epochs'], counters=counters, wall_seconds=seconds,
         rates_per_worker_wall_second={key: value / seconds for key, value in counters.items()},
         training_epoch_seconds=training,
         other_frontend_seconds=seconds - training if training is not None else None,
@@ -239,6 +262,10 @@ def frontend_summary(directory, sources):
         timed_metrics=offline or None,
         metric_timing_scope='Only explicit train/validation timings when logged; excludes initial and final-correction metrics.',
         dose_scope='Completed training, not only selected checkpoint. Target slots include horizon overlap and repeat visits; not unique action ticks.')
+    if batch_profile is not None:
+        result.update(full_trajectory_batch=batch_profile, ema_updates=final['ema_updates'],
+            optimization_scope='One optimizer/EMA update per actual B2 batch or singleton; equal visits are not equal optimizer budgets or equivalent sequential AdamW updates.')
+    return result
 
 
 def backend_summary(directory, role, sources):
@@ -359,6 +386,11 @@ def summarize(cycle_root, *, collection_root=None, stages_root=None, outer_regis
             'An anchor, overlapping legal horizon target slot, full-history observation and legal rear action tick are distinct units.',
             'The collection-to-evaluation envelope may include other registered autonomous/gate work and human review; unclassified gaps are not scheduling losses.',
             'JSON receipt and source bindings are verified here; model, DINO, image and trajectory payloads are not read.'])
+    if registration and 'full_trajectory_batch' in registration:
+        from visuotactile.trajectory_training import validate_profile
+        require(validate_profile(registration['full_trajectory_batch']) is not None, 'Missing B2 profile')
+        output['configuration']['full_trajectory_batch'] = registration['full_trajectory_batch']
+        output['version'] = 'fresh_cycle_throughput_batched_training_v1'
     if registration and entries is not None and 'aggregate' in completed:
         correction_path = str((Path(collection_root) / 'correction_entries.json').resolve())
         require(sources.bindings[correction_path]['sha256'] == registration['collection_entries_sha256'], 'Accepted collection binding changed')

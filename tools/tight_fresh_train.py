@@ -181,16 +181,22 @@ def fresh_objective(root,role,data,records):
     return objective,geometry,proof
 
 
-def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_epoch,checkpoint_sha256=None):
+def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_epoch,checkpoint_sha256=None,
+        trajectory_batch_profile=None):
     """Archive actual discarded work before keeping only checkpointed update rows.
 
     Full-epoch checkpoints contain the optimizer, RNG and exposure ledger. A
     crash-tail update happened, but its optimizer state is absent from last.pt;
     preserve its raw log separately and never count it in the restored model.
     """
+    from visuotactile.trajectory_training import validate_profile
+    batch_profile=validate_profile(trajectory_batch_profile)
+    if type(episodes_per_epoch) is not int or episodes_per_epoch<1:
+        raise ValueError('Exact completed-epoch recovery cursor required')
+    updates_per_epoch=(episodes_per_epoch+1)//2 if batch_profile else episodes_per_epoch
     if (type(durable_update) is not int or type(completed_epochs) is not int
             or type(episodes_per_epoch) is not int or episodes_per_epoch < 1
-            or completed_epochs < 0 or durable_update != completed_epochs*episodes_per_epoch):
+            or completed_epochs < 0 or durable_update != completed_epochs*updates_per_epoch):
         raise ValueError('Exact completed-epoch recovery cursor required')
     out=Path(out);path=out/'learning.jsonl'
     if not path.exists():
@@ -203,9 +209,19 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
             if index!=len(lines)-1:raise ValueError('Corrupt nonterminal learning log row')
             abandoned.append(line);continue
         update=row.get('updates')
-        if type(update) is not int or update<1 or row.get('epoch')!=(update-1)//episodes_per_epoch+1:
+        if type(update) is not int or update<1 or row.get('epoch')!=(update-1)//updates_per_epoch+1:
             raise ValueError('Learning log update/epoch identity differs')
-        if ('episode_index' in row and row['episode_index']!=(update-1)%episodes_per_epoch+1
+        if batch_profile:
+            from visuotactile.training_receipts import BATCH_ROW_VERSION
+            batch_index=(update-1)%updates_per_epoch+1;start=(batch_index-1)*2+1
+            expected=list(range(start,min(start+2,episodes_per_epoch+1)))
+            if (row.get('version')!=BATCH_ROW_VERSION or row.get('full_trajectory_batch')!=batch_profile or
+                    row.get('batch_index')!=batch_index or row.get('episodes_per_epoch')!=episodes_per_epoch or
+                    [v['episode_index'] for v in row.get('visits',[])]!=expected):
+                raise ValueError('B2 learning batch cursor differs from registered deck')
+        elif 'visits' in row or 'full_trajectory_batch' in row:
+            raise ValueError('B2 learning log cannot resume as single-trajectory training')
+        elif ('episode_index' in row and row['episode_index']!=(update-1)%episodes_per_epoch+1
                 or 'episodes_per_epoch' in row and row['episodes_per_epoch']!=episodes_per_epoch):
             raise ValueError('Learning log episode cursor differs from registered deck length')
         if update<=durable_update:
@@ -214,6 +230,14 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
         else:abandoned.append(line);tail_updates.append(update)
     if seen!=list(range(1,durable_update+1)):
         raise ValueError('Learning log lacks unique complete durable update sequence')
+    if batch_profile:
+        from visuotactile.training_receipts import learning_counters
+        from visuotactile.trajectory_training import validate_deck_receipts
+        durable_rows=[json.loads(line) for line in kept]
+        validate_deck_receipts(out,durable_rows)
+        counters=learning_counters(durable_rows)
+        if counters['visits_seen']!=completed_epochs*episodes_per_epoch:
+            raise ValueError('B2 durable visit count differs from completed deck')
     if not abandoned:return None
     identity=uuid.uuid4().hex
     archive=out/('learning.abandoned.'+identity+'.jsonl')
@@ -231,12 +255,20 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
         abandoned_rows=len(abandoned),known_discarded_update_ids=tail_updates,
         discarded_updates_in_restored_model=0,utc=time.time(),
         scope='Abandoned rows preserve real work whose optimizer/RNG state was not checkpointed; excluded from the restored model learning dose.')
+    if batch_profile:report.update(version='fresh_batch_epoch_log_recovery_v1',full_trajectory_batch=batch_profile,
+        durable_episode_visits=completed_epochs*episodes_per_epoch,optimizer_updates_per_epoch=updates_per_epoch)
     atomic_json(out/('recovery.'+identity+'.json'),report)
     return report
 
 
-def train(root,role,epochs,*,offline_anchor_batch=None):
+def train(root,role,epochs,*,offline_anchor_batch=None,trajectory_batch_profile=None):
+    from visuotactile.trajectory_training import validate_registration
+    validate_registration(root,trajectory_batch_profile)
     options={}
+    if trajectory_batch_profile is not None:
+        from visuotactile.trajectory_training import validate_profile,reject_incompatible
+        options['trajectory_batch_profile']=validate_profile(trajectory_batch_profile)
+        reject_incompatible(root,role)
     if offline_anchor_batch is not None:
         from visuotactile.offline_planning import profile
         options['offline_planning']=profile(offline_anchor_batch)
@@ -248,10 +280,12 @@ def train(root,role,epochs,*,offline_anchor_batch=None):
         return _train(root,role,epochs,pairing=pairing,**options)
 
 
-def _train(root,role,epochs,*,pairing=None,offline_planning=None):
+def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batch_profile=None):
     from visuotactile.anchor_continue import projection_batch
     from visuotactile.state_resources import lease_for
     from visuotactile.precision import state_fp32
+    from visuotactile.trajectory_training import validate_registration,validate_exposure as validate_batch_exposure
+    batch_profile=validate_registration(root,trajectory_batch_profile)
     if offline_planning is not None:
         from visuotactile.offline_planning import validate_profile
         offline_planning=validate_profile(offline_planning)
@@ -266,6 +300,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
         auxiliary_metrics, empty_exposure, add_exposure, validate_exposure)
     from visuotactile.visual_pose_aux import clip_auxiliary_gradients
     auxiliary=load_auxiliary_spec(root,role,continuation)
+    if batch_profile:
+        from visuotactile.trajectory_training import reject_incompatible
+        reject_incompatible(root,role,pairing=pairing,io_config=io_config,auxiliary=auxiliary)
     pose_contexts=pose_reports=None;pose_exposure=empty_exposure() if auxiliary else None
     with lease.block():
         dr,data,records,stats=inputs(root,role)
@@ -273,7 +310,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
         if auxiliary and sampling and sampling['latest_repeat']!=1:
             raise ValueError('Repeated latest sampling with auxiliary exposure accounting is not implemented')
         episodes_per_epoch=sum(multiplicities.values())
-        sampling_exposure=dict.fromkeys(data['splits']['train'],0) if sampling else None
+        sampling_exposure=dict.fromkeys(data['splits']['train'],0) if sampling or batch_profile else None
         model=new_model(role,stats)
         if continuation:
             path=Path(continuation['path'])
@@ -323,13 +360,30 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
             exposure='original and historical episodes once; latest takeover episodes at registered repeat; '
                 'each visit recomputes full real history at current weights and retains all legal anchor masks; '
                 'equal loss weight per visit; repeated visits are reuse, not independent data')
-    begin_epoch=updates=anchors_seen=target_ticks=0;best=float('inf');history=[]
+    if batch_profile:
+        from visuotactile.trajectory_training import budget
+        config.update(version='fresh30_continuous_full_trajectory_batch_v1',full_trajectory_batch=batch_profile,
+            **budget(episodes_per_epoch,epochs),episode_multiplicities=multiplicities,
+            exposure='Same registered deck visits; one AdamW/EMA step per adjacent B2 batch, singleton tail retained. '
+                'Mean per-trajectory loss within actual batch; singleton coefficient1 versus paired coefficient1/2. '
+                'No automatic epoch, learning-rate or EMA adjustment; not equivalent to sequential episode updates.')
+        registration=root/'full_trajectory_batch.json'
+        if registration.exists():
+            expected=dict(**budget(episodes_per_epoch,epochs),data_sha256=config['data_sha256'],episode_multiplicities=multiplicities)
+            registered=read(registration)
+            if registered['profile']!=batch_profile or registered['roles'][role]!=expected:
+                raise ValueError('B2 planned visit/update budget differs from cycle registration')
+    begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[]
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
         if old['configuration']!=config:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
         restore_training(old,model,averaged,opt,ema,generator,noise)
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
-        if sampling:
+        if batch_profile:
+            visits_seen=old['visits_seen'];sampling_exposure=old['sampling_exposure']
+            validate_batch_exposure(sampling_exposure,multiplicities,completed_epochs=begin_epoch,updates=updates,visits_seen=visits_seen)
+            if old['ema_optimization_step']!=updates:raise ValueError('B2 EMA step count differs from optimizer count')
+        elif sampling:
             sampling_exposure=old.get('sampling_exposure')
             validate_sampling_exposure(sampling_exposure,multiplicities,completed_epochs=begin_epoch,updates=updates)
         if auxiliary:
@@ -343,13 +397,27 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
         atomic_json(out/'configuration.json',config)
     reconcile_learning_log(out,durable_update=updates,completed_epochs=begin_epoch,
         episodes_per_epoch=episodes_per_epoch,
-        checkpoint_sha256=sha256(out/'last.pt') if (out/'last.pt').exists() else None)
+        checkpoint_sha256=sha256(out/'last.pt') if (out/'last.pt').exists() else None,
+        trajectory_batch_profile=batch_profile)
+    if batch_profile:
+        from collections import Counter
+        from visuotactile.training_receipts import learning_counters,iter_visits
+        rows=[json.loads(line) for line in (out/'learning.jsonl').read_text().splitlines()] if (out/'learning.jsonl').exists() else []
+        if learning_counters(rows)!=dict(updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,visits_seen=visits_seen):
+            raise ValueError('B2 durable learning counters differ from checkpoint')
+        counts=Counter(v['episode'] for v in iter_visits(rows))
+        if any(counts[i]!=sampling_exposure[i] for i in sampling_exposure) or set(counts)-set(sampling_exposure):
+            raise ValueError('B2 durable per-episode visits differ from checkpoint')
     def checkpoint(epoch,name='last.pt'):
         if auxiliary:
             validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
                 completed_epochs=epoch,updates=updates)
         extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
-        if sampling:
+        if batch_profile:
+            validate_batch_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates,visits_seen=visits_seen)
+            if ema.optimization_step!=updates:raise ValueError('B2 EMA/optimizer steps differ')
+            extras.update(sampling_exposure=dict(sampling_exposure),visits_seen=visits_seen)
+        elif sampling:
             validate_sampling_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates)
             extras['sampling_exposure']=dict(sampling_exposure)
         save(out/name,training_state(model,averaged,opt,ema,generator,noise,kind='dp',group='I-HistoryDP',
@@ -376,44 +444,81 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
         prefetch=(EpisodePrefetch(order,lambda identity:Episode(dr,identity,'I-HistoryDP'),io_config)
                   if io_config is not None else None)
         try:
-            for order_index,i in enumerate(order):
-                rec=records[i];began=time.perf_counter()
-                io_before=io_snapshot()
-                pair_ready_wait=(pairing.before_visit(epoch+1,order_index,i) if pairing is not None else None)
-                visit=(prefetch.visit(order_index) if prefetch is not None else nullcontext((None,None)))
-                with visit as (episode,episode_io),lease.block():
-                    model.train();opt.zero_grad(set_to_none=True)
-                    if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec,episode=episode)
-                    else:cond,a=supervised_conditions(model,rec,episode=episode)
-                    truth,valid=labels(rec,a,24)
-                    selected=[(i,int(t)) for t in a]
-                    context=projection_batch(objective,selected,'cuda:0')
-                    loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
-                    if auxiliary:
-                        weighted_pose,pose_parts=auxiliary_episode_loss(model,rec,visual,pose_contexts[i],auxiliary)
-                        parts=dict(parts,auxiliary_position=pose_parts['position'],auxiliary_orientation6=pose_parts['orientation6'],
-                            auxiliary_weighted=weighted_pose)
-                        loss=loss+weighted_pose
-                    if not torch.isfinite(loss):raise FloatingPointError('Nonfinite fresh loss')
-                    loss.backward()
-                    norm=(clip_auxiliary_gradients(model,model.visual_pose_head)['policy_norm'] if auxiliary
-                        else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
-                    if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
-                    opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
-                    if sampling:sampling_exposure[i]+=1
-                    if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
-                    losses.append(float(loss));torch.cuda.synchronize()
-                row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
-                    parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
-                    visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
-                row['process_io']=io_delta(io_before,io_snapshot())
-                if episode_io is not None:row['episode_io']=episode_io
-                if pairing is not None:row['paired_episode_io_ready_wait_s']=pair_ready_wait
-                if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
-                if sampling:row.update(episode_visit=sampling_exposure[i],episodes_per_epoch=episodes_per_epoch)
-                atomic_json(out/'progress.json',row)
-                with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
-                if pairing is not None:pairing.after_visit(updates)
+            if batch_profile:
+                from visuotactile.trajectory_training import batches,execute_update
+                from visuotactile.training_receipts import BATCH_ROW_VERSION
+                deck_receipt=dict(epoch=epoch+1,order=order,
+                    sha256=hashlib.sha256(json.dumps(order,separators=(',',':')).encode()).hexdigest())
+                deck_path=out/('deck_%03d.json'%(epoch+1))
+                if deck_path.exists():
+                    if read(deck_path)!=deck_receipt:raise ValueError('B2 restored registered deck changed')
+                else:atomic_json(deck_path,deck_receipt)
+                visit_losses=[]
+                for batch_index,visits in enumerate(batches(order),1):
+                    began=time.perf_counter();io_before=io_snapshot()
+                    identities=[identity for _,identity in visits]
+                    with lease.block():
+                        episodes=[Episode(dr,identity,'I-HistoryDP') for identity in identities]
+                        result=execute_update(model,opt,ema,objective,identities,
+                            [records[identity] for identity in identities],episodes,noise,check=lease.check)
+                        del episodes
+                        updates+=1
+                        for (index,identity),visit_row in zip(visits,result['visits']):
+                            sampling_exposure[identity]+=1;visits_seen+=1
+                            visit_row.update(episode_index=index,episode_visit=sampling_exposure[identity])
+                            anchors_seen+=visit_row['anchors'];target_ticks+=visit_row['target_ticks']
+                            visit_losses.append(visit_row['loss'])
+                        losses.append(result['loss']);torch.cuda.synchronize()
+                    row=dict(version=BATCH_ROW_VERSION,full_trajectory_batch=batch_profile,
+                        epoch=epoch+1,batch_index=batch_index,updates=updates,visits_seen=visits_seen,
+                        visits=result['visits'],episodes_per_epoch=episodes_per_epoch,
+                        optimizer_updates_per_epoch=config['optimizer_updates_per_epoch'],
+                        loss=result['loss'],gradient_norm=result['gradient_norm'],
+                        anchors_seen=anchors_seen,target_ticks=target_ticks,
+                        visual_frames=sum(v['visual_frames'] for v in result['visits']),
+                        deck_sha256=deck_receipt['sha256'],seconds=time.perf_counter()-began,utc=time.time(),
+                        process_io=io_delta(io_before,io_snapshot()))
+                    atomic_json(out/'progress.json',row)
+                    with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+            else:
+                for order_index,i in enumerate(order):
+                    rec=records[i];began=time.perf_counter()
+                    io_before=io_snapshot()
+                    pair_ready_wait=(pairing.before_visit(epoch+1,order_index,i) if pairing is not None else None)
+                    visit=(prefetch.visit(order_index) if prefetch is not None else nullcontext((None,None)))
+                    with visit as (episode,episode_io),lease.block():
+                        model.train();opt.zero_grad(set_to_none=True)
+                        if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec,episode=episode)
+                        else:cond,a=supervised_conditions(model,rec,episode=episode)
+                        truth,valid=labels(rec,a,24)
+                        selected=[(i,int(t)) for t in a]
+                        context=projection_batch(objective,selected,'cuda:0')
+                        loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
+                        if auxiliary:
+                            weighted_pose,pose_parts=auxiliary_episode_loss(model,rec,visual,pose_contexts[i],auxiliary)
+                            parts=dict(parts,auxiliary_position=pose_parts['position'],auxiliary_orientation6=pose_parts['orientation6'],
+                                auxiliary_weighted=weighted_pose)
+                            loss=loss+weighted_pose
+                        if not torch.isfinite(loss):raise FloatingPointError('Nonfinite fresh loss')
+                        loss.backward()
+                        norm=(clip_auxiliary_gradients(model,model.visual_pose_head)['policy_norm'] if auxiliary
+                            else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
+                        if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
+                        opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
+                        if sampling:sampling_exposure[i]+=1
+                        if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
+                        losses.append(float(loss));torch.cuda.synchronize()
+                    row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
+                        parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
+                        visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
+                    row['process_io']=io_delta(io_before,io_snapshot())
+                    if episode_io is not None:row['episode_io']=episode_io
+                    if pairing is not None:row['paired_episode_io_ready_wait_s']=pair_ready_wait
+                    if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
+                    if sampling:row.update(episode_visit=sampling_exposure[i],episodes_per_epoch=episodes_per_epoch)
+                    atomic_json(out/'progress.json',row)
+                    with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+                    if pairing is not None:pairing.after_visit(updates)
         finally:
             if prefetch is not None:prefetch.close()
         training_epoch_io=dict(process_io=io_delta(epoch_io_before,io_snapshot()),
@@ -428,6 +533,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
         report['training_epoch_io']=training_epoch_io
+        if batch_profile:report.update(visits_seen=visits_seen,sampling_exposure=dict(sampling_exposure),
+            full_trajectory_batch=batch_profile,loss_per_optimizer_batch_mean=report['loss'],
+            loss_per_episode_visit_mean=sum(visit_losses)/len(visit_losses),
+            loss_scope='Batch loss is the mean of actual one/two visit losses; visit mean is a separate descriptive statistic.')
         if auxiliary:
             report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
         if sampling:report['sampling_exposure']=dict(sampling_exposure)
@@ -444,6 +553,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None):
     if auxiliary:finished['auxiliary_exposure']=pose_exposure
     if sampling:finished.update(sampling_contract=sampling,episode_multiplicities=multiplicities,
         episodes_per_epoch=episodes_per_epoch,sampling_exposure=sampling_exposure)
+    if batch_profile:finished.update(full_trajectory_batch=batch_profile,visits_seen=visits_seen,
+        ema_updates=ema.optimization_step,sampling_exposure=dict(sampling_exposure),episode_multiplicities=multiplicities,
+        **budget(episodes_per_epoch,epochs))
     if pairing is not None:finished['paired_episode_io']=pairing.summary()
     if offline_planning is not None:finished['offline_planning']=offline_planning
     atomic_json(out/'finished.json',finished)
@@ -453,10 +565,15 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['gate','train']);p.add_argument('--root',required=True,type=Path)
     p.add_argument('--role',choices=['A','B']);p.add_argument('--epochs',type=int,default=5)
     p.add_argument('--offline-anchor-batch',type=int,help='Explicit offline metrics DDIM anchor batch; training updates and online planning unchanged')
+    p.add_argument('--full-trajectory-batch',action='store_true',help='Explicit B2 training method: same visits, one optimizer/EMA update per actual batch; incompatible with paired I/O and prefetch')
     a=p.parse_args();root=a.root.resolve()
     if a.offline_anchor_batch is not None and (a.stage!='train' or not 1<=a.offline_anchor_batch<=128):
         p.error('Offline anchor batching requires train stage and an explicit size1..128')
+    if a.full_trajectory_batch and (a.stage!='train' or a.role is None):p.error('B2 requires a train stage and explicit role')
     if a.stage=='gate':gate(root)
+    elif a.full_trajectory_batch:
+        from visuotactile.trajectory_training import profile
+        train(root,a.role,a.epochs,offline_anchor_batch=a.offline_anchor_batch,trajectory_batch_profile=profile())
     elif a.offline_anchor_batch is None:train(root,a.role,a.epochs)
     else:train(root,a.role,a.epochs,offline_anchor_batch=a.offline_anchor_batch)
 

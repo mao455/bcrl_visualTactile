@@ -1,3 +1,13 @@
+## 2026-11-15 00:51 独立完整轨迹B2训练路径与更新恢复门控已实现
+
+新增full_trajectory_batch_v1 opt-in trainer/cycle：相邻两个真实deck visit合批，尾单轨保留，重复ID各有独立完整历史；每batch一次AdamW/EMA和clip，逐轨原损失均值、A逐轨几何范围不变。visit/optimizer/EMA分别登记，137visit/epoch对应69次更新，不自动补epoch、改LR或EMA。拒绝paired_episode_io_v1和单轨EpisodePrefetch，避免把visit等同update或嵌套预取死锁；当前冻结87577e8第九轮仍用原单轨更新与pairedIO。
+
+新学习回执记录每次更新内有序visits、各监督anchors/合法槽/帧数/权重。learning_report、stage_exposure、stage_fit和cycle_throughput兼容旧格式并分别报告访问与更新；恢复绑定原deck内容SHA/顺序、完整epoch曝光、AdamW/EMA/RNG，未持久化尾日志归档不并入模型。支持范围是完整epoch checkpoint且selected/validation凭据完整；继承的last写成后best/validation未落盘窄窗口仍需保全现场修复，不能称任意中断均自动恢复。
+
+主Agent组合292项及额外15项离线metrics测试通过；涵盖真实CPU GRU/AdamW/EMA、轮内中断恢复逐值一致、错deck/重复曝光/缺序号拒绝与旧默认路径。独立training/recovery gate限定两条train、deck[原示范,纠偏,原示范]；serial平均梯度每batch一次更新对照B2，各2次，再从真实磁盘checkpoint以新对象恢复做1次，共最多5次诊断更新，参数不进入正式pair。比较门槛2e-5，恢复前后模型/EMA/Adam/RNG精确比较；首两步EMA decay0，额外恢复边界检查保证不被后一步覆盖掩盖。学习率沿用真实source3e-5；原session/570秒内检与外600秒硬回收必须同时有效。B真实CPU准入2.031秒通过、0CUDA/0更新；尚未实际CUDA更新验收、正式采用或完整周期速度结论。
+
+当前A的64/128机会全部完成、23条准入，接续B的64机会。原03:49:51总体及01:56:46采集工作截止保持。
+
 ## 2026-11-15 00:40 真实持物状态、固定目标序列和晚接管时钟复核
 
 对本批5条已关闭train轨迹作数值复算，未启动新Kit/训练。物理目标是孔坐标系两固定物体姿态（z=.186/.136m、同朝向），不是独立随机隐藏目标；GoalViz隐藏、学生goal字段全无效，固定任务身份不提供阶段，完整传感/动作历史仍可能推断。所查学生prefix都处于第一目标，不能用后续阶段未直接输入单独解释当前转正失败，也未找到相同完整可见历史却要求不同目标的实例。held13接管前真实三视角中物体和孔可见但遮挡，不能据定性画面宣称毫米级位姿读出。

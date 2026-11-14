@@ -1,3 +1,11 @@
+## 显式完整轨迹B2优化合同
+
+`full_trajectory_batch_v1`以原登记deck相邻两个visit为一batch；同ID出现两次仍各自完整重建历史，尾单轨保留，不跨epoch拼批。逐轨损失在实际batch内取均值，paired每轨系数1/2、singleton系数1；每batch只做一次clip/AdamW/EMA，学习率和epoch数不自动缩放。因此与逐轨连续AdamW不是同一优化方法，必须同时登记episode visits、optimizer updates、EMA updates。显式profile与数据/实际multiplicity/预算写入cycle、checkpoint与finished；缺flag不能把已登记B2根静默恢复为单轨。
+
+`full_trajectory_batch_learning_v1`每更新一行包含有序visits与局部anchors/合法H24槽/完整帧数/损失系数、deck序号和SHA，顶层保存累计visits/updates。读者按visit展开，不能把一行当一条轨迹；重复visit不是新数据。恢复只在完整epoch checkpoint，以原deck文件内容和顺序、逐轨次数、累计剂量、AdamW/EMA及全部RNG核验，未持久化尾日志归档。旧单轨格式保持。当前版本拒绝paired_episode_io_v1、已有EpisodePrefetch与visual auxiliary组合；不缓存可训练隐藏状态。多文件epoch收尾中断仍可能缺selected/validation凭据，须保全现场修复，不承诺任意位置自动恢复。
+
+`trajectory_batch_two_training_recovery_gate_v1`只对两个train ID的三次visit作有限诊断。serial均值梯度与B2各两次更新，磁盘完整checkpoint恢复后一次singleton，最多5实际诊断optimizer更新；原source AdamW超参数、2e-5比较门槛与exact恢复检查固定。它不是正式训练候选/自主评估，实际GPU通过也不能替代完整cycle吞吐和行为验收；570秒内部工作检查须配<=600秒外层硬回收及原session截止。
+
 ## 显式B前端组件诊断
 
 `batched_trained_B_frontend_diagnostic_v1`只加载已完成训练的B u_expert/H24/G00/every-frame best EMA，不加载rear。正式研究默认不调用；组件入口仅projection模式，使用与reachable_nominal_centered_linear_v1零提案相同的锚点与最终执行投影。每lane有独立完整历史和seed7091生成器；新controller初始种子一致，episode reset本身不重置随机流。真实submitted与applied目标分别确认，terminal步仍必须ack，真值物体/目标不进模型。
@@ -10,7 +18,7 @@
 
 ## 显式候选：独立完整轨迹合批
 
-`independent_full_trajectory_batch_v1` 保留每条真实完整观察历史、原始每轨32帧视觉处理、独立GRU状态和原生5Hz anchors；结束轨迹不再更新，不填充虚假观察。合并去噪计算后仍按每轨原监督mask分别归一化，再等权平均；A每轨保留原最多两项几何选择，不能把整批预算缩成两项。噪声按原逐轨randn后randint顺序产生。一次合批一次optimizer/EMA更新，与连续逐轨更新不是同一优化过程，采用时必须显式新身份和剂量。本候选没有接入当前正式trainer。
+`independent_full_trajectory_batch_v1` 保留每条真实完整观察历史、原始每轨32帧视觉处理、独立GRU状态和原生5Hz anchors；结束轨迹不再更新，不填充虚假观察。合并去噪计算后仍按每轨原监督mask分别归一化，再等权平均；A每轨保留原最多两项几何选择，不能把整批预算缩成两项。噪声按原逐轨randn后randint顺序产生。一次合批一次optimizer/EMA更新，与连续逐轨更新不是同一优化过程，采用时必须显式新身份和剂量。已实现独立opt-in训练路径；当前冻结第九轮未启用。
 
 `trajectory_batch_two_gradient_gate_v1` 固定两条已知train、原best EMA，同参数serial梯度平均对照B2，前向/梯度atol/rtol=2e-5、离散mask/anchors/RNG末态严格一致、0参数更新；原session截止与有限工作边界同时有效。CPU通过不等于CUDA或整轮吞吐通过。
 

@@ -1,3 +1,10 @@
+## 2026-11-15 00:51 — 显式B2完整轨迹更新与真实恢复验收入口
+
+- `trajectory_training.py` / `training_receipts.py`、fresh trainer/cycle：独立B2身份、完整历史、实际batch均值、逐visit/更新预算与deck恢复绑定；旧单轨默认保留，互斥pairedIO/prefetch。
+- learning_report/stage_exposure/stage_fit/cycle_throughput和专属测试：按真实visit展开，selected/last计数各自核验，未知I/O/未完成周期不补造结果。
+- `tools/tight_trajectory_training_gate.py`与测试：两条真实train最多5次诊断AdamW/EMA更新、serial均值参考、磁盘checkpoint恢复、明确有限边界；真实CPU准入通过，CUDA尚未运行。
+- 主Agent292+15项CPU通过；完整epoch且selected/validation凭据完整的恢复获验证，多文件收尾窄窗口限制明确保留。活动冻结第九轮未改、未重启。
+
 ## 2026-11-15 00:40 — 已闭合后段恢复与目标可观测性证据
 
 - `evidence/tight_fresh_20261114/target_observability_review/summary.json`：5条真实closed train、冻结源码SHA/行号、原目标序列、真实三视角检查及接管剩余时钟；0新仿真/0更新，不公开原RGB/大轨迹。

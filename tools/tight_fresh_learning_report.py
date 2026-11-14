@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
+from visuotactile.training_receipts import BATCH_ROW_VERSION, iter_visits, learning_counters
 
 
 def read(path):
@@ -29,23 +30,51 @@ def exposure_rows(learning, training_ids, corrections, *, source_groups=None):
         keys = sorted(set(source_groups.values()))
     if set(source_groups) != set(training_ids):
         raise ValueError('Learning source groups must cover the complete training population')
-    totals = {key: Counter(dict(optimizer_episodes=0, visual_frames=0, anchors_seen=0, target_ticks=0))
+    batched = any(row.get('version') == BATCH_ROW_VERSION for row in learning)
+    if batched and not all(row.get('version') == BATCH_ROW_VERSION for row in learning):
+        raise ValueError('Mixed single-trajectory and B2 optimizer receipts')
+    visit_key = 'episode_visits' if batched else 'optimizer_episodes'
+    totals = {key: Counter({visit_key: 0, 'visual_frames': 0, 'anchors_seen': 0, 'target_ticks': 0})
               for key in keys}
-    previous = dict(anchors_seen=0, target_ticks=0)
-    for expected_update, row in enumerate(learning, 1):
-        if row['episode'] not in training_ids or row['updates'] != expected_update:
+    for visit in iter_visits(learning):
+        if visit['episode'] not in training_ids:
             raise ValueError('Unexpected episode or noncontiguous optimizer receipt')
-        counts[row['episode']] += 1
-        bucket = totals[source_groups[row['episode']]]
-        bucket['optimizer_episodes'] += 1
-        bucket['visual_frames'] += row['visual_frames']
-        for key in previous:
-            change = row[key] - previous[key]
-            if change <= 0:
-                raise ValueError('Nonpositive learning exposure increment')
-            bucket[key] += change
-            previous[key] = row[key]
+        counts[visit['episode']] += 1
+        bucket = totals[source_groups[visit['episode']]]
+        bucket[visit_key] += 1
+        bucket['visual_frames'] += visit['visual_frames']
+        bucket['anchors_seen'] += visit['anchors']
+        bucket['target_ticks'] += visit['target_ticks']
     return counts, {k: dict(v) for k, v in totals.items()}
+
+
+def batch_checkpoint_exposure(saved, rows):
+    """Reconcile complete B2 deck visits independently of Adam/EMA updates."""
+    from visuotactile.trajectory_training import validate_profile, validate_exposure
+    config = saved['configuration']
+    profile = validate_profile(config.get('full_trajectory_batch'))
+    if profile is None:
+        if any(row.get('version') == BATCH_ROW_VERSION for row in rows):
+            raise ValueError('B2 learning rows lack an explicit checkpoint profile')
+        return None
+    if not all(row.get('version') == BATCH_ROW_VERSION and
+            row.get('full_trajectory_batch') == profile for row in rows):
+        raise ValueError('B2 checkpoint and actual learning profiles differ')
+    multiplicities = config['episode_multiplicities']
+    if (set(multiplicities) != set(saved['train_ids']) or
+            any(type(n) is not int or n < 1 for n in multiplicities.values()) or
+            config['episodes_per_epoch'] != sum(multiplicities.values()) or
+            config['optimizer_updates_per_epoch'] != (sum(multiplicities.values())+1)//2):
+        raise ValueError('B2 checkpoint registered visit deck differs')
+    validate_exposure(saved.get('sampling_exposure'), multiplicities,
+        completed_epochs=saved['epoch'], updates=saved['updates'], visits_seen=saved.get('visits_seen'))
+    counters = learning_counters(rows, limit=saved['updates'])
+    if any(saved[key] != counters[key] for key in counters):
+        raise ValueError('B2 checkpoint counters differ from actual learning receipts')
+    counts = Counter(v['episode'] for v in iter_visits(rows, limit=saved['updates']))
+    if dict(counts) != saved['sampling_exposure']:
+        raise ValueError('B2 checkpoint per-episode visits differ from actual learning receipts')
+    return counters
 
 
 def learning_sources(data):
@@ -73,7 +102,11 @@ def role_report(root, role):
         source_groups=source_groups)
     best = training / 'best.pt'
     saved = torch.load(best, map_location='cpu', weights_only=False)
+    selected_batch_exposure = batch_checkpoint_exposure(saved, learning)
     selected = next(r for r in history if r['epoch'] == saved['epoch'])
+    if selected_batch_exposure is not None and any(selected.get(key) != value
+            for key, value in selected_batch_exposure.items()):
+        raise ValueError('Selected B2 validation row differs from actual checkpoint exposure')
     complete = (training / 'finished.json').exists()
     if complete:
         finished = read(training / 'finished.json')
@@ -82,6 +115,16 @@ def role_report(root, role):
                 raise ValueError('Finished exposure differs from actual learning receipts')
         if finished['checkpoint_sha256'] != sha256(best):
             raise ValueError('Finished selected frontend identity differs')
+        if selected_batch_exposure is not None:
+            from visuotactile.trajectory_training import validate_exposure
+            actual = learning_counters(learning)
+            if (finished.get('full_trajectory_batch') != saved['configuration']['full_trajectory_batch'] or
+                    finished.get('visits_seen') != actual['visits_seen'] or
+                    history[-1].get('visits_seen') != actual['visits_seen'] or
+                    finished.get('sampling_exposure') != dict(counts)):
+                raise ValueError('Finished B2 visit exposure differs from actual learning receipts')
+            validate_exposure(dict(counts), saved['configuration']['episode_multiplicities'],
+                completed_epochs=finished['epochs'], updates=actual['updates'], visits_seen=actual['visits_seen'])
     result = dict(frontend_complete=complete, checkpoint_sha256=sha256(best),
         selected_epoch=saved['epoch'], selected_updates=saved['updates'],
         selected_validation=selected['validation'], selected_train=selected['train'],
@@ -100,6 +143,13 @@ def role_report(root, role):
         validation_receipts_sha256=sha256(training / 'validation.jsonl'),
         data_sha256=sha256(directory / 'state_data/data.json'),
         statistics_sha256=sha256(directory / 'state_data/statistics.pt'), test_used=False)
+    if selected_batch_exposure is not None:
+        result.pop('actual_optimizer_episodes')
+        result.update(full_trajectory_batch=saved['configuration']['full_trajectory_batch'],
+            actual_optimizer_updates=len(learning), actual_episode_visits=sum(counts.values()),
+            selected_episode_visits=selected_batch_exposure['visits_seen'],
+            selected_sampling_exposure=saved['sampling_exposure'],
+            exposure_semantics='One optimizer/EMA update per one/two full-trajectory visits; source buckets count visits and observed target slots, not separable optimizer steps or gradient weight.')
     if (training / 'initial_metrics.json').exists():
         result['initial_metrics'] = read(training / 'initial_metrics.json')
         before = result['initial_metrics']['validation']['selection']

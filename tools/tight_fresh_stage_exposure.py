@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 
 from tools.tight_fresh_selected_fit import read, sha256, checked_hash, exclusive_json, import_frozen_trainer
+from tools.tight_fresh_learning_report import batch_checkpoint_exposure
+from visuotactile.training_receipts import BATCH_ROW_VERSION, iter_visits, learning_counters
 
 COUNTERS = ('updates', 'anchors_seen', 'target_ticks')
 
@@ -19,6 +21,16 @@ def require(value, message):
 
 def update_counts(rows, identities, limit):
     counts = {i: dict(visits=0, anchors=0, target_slots=0) for i in identities}
+    if any(row.get('version') == BATCH_ROW_VERSION for row in rows[:limit]):
+        require(all(row.get('version') == BATCH_ROW_VERSION for row in rows[:limit]),
+            'Mixed single-trajectory and B2 optimizer receipts')
+        for visit in iter_visits(rows, limit=limit):
+            if visit['episode'] in counts:
+                value = counts[visit['episode']]
+                value['visits'] += 1
+                value['anchors'] += visit['anchors']
+                value['target_slots'] += visit['target_ticks']
+        return counts, learning_counters(rows, limit=limit)
     previous = dict(updates=0, anchors_seen=0, target_ticks=0)
     for row in rows[:limit]:
         require(row['updates'] == previous['updates'] + 1, 'Optimizer row gap or duplicated update')
@@ -50,6 +62,9 @@ def reconcile_checkpoints(training, selected, rows, finished):
         'Completed actual selected training required')
     require(all(rows[-1][key] == finished[key] for key in COUNTERS),
         'Learning terminal counters differ from finished training')
+    if rows[0].get('version') == BATCH_ROW_VERSION:
+        require(finished.get('visits_seen') == learning_counters(rows)['visits_seen'],
+            'Learning terminal visit counter differs from finished training')
     require(Path(selected['path']).resolve(strict=True) == (training/'best.pt').resolve(strict=True),
         'Registered selected checkpoint is not the actual training best')
     receipts = {}
@@ -65,10 +80,13 @@ def reconcile_checkpoints(training, selected, rows, finished):
         require(identities and len(identities) == len(set(identities)) and
             set(saved.get('sampling_exposure', {})) == set(identities),
             label+' checkpoint lacks exact per-episode sampling exposure')
-        require(all(row['episode'] in saved['sampling_exposure'] for row in rows[:limit]),
+        batch_total = batch_checkpoint_exposure(saved, rows)
+        visited = (v['episode'] for v in iter_visits(rows, limit=limit)) if batch_total is not None else (
+            row['episode'] for row in rows[:limit])
+        require(all(identity in saved['sampling_exposure'] for identity in visited),
             label+' learning row is outside checkpoint training identities')
         counts, total = update_counts(rows, identities, limit)
-        require(all(saved[key] == total[key] for key in COUNTERS),
+        require(all(saved[key] == total[key] for key in total),
             label+' checkpoint counters differ from actual learning rows')
         require(all(saved['sampling_exposure'][identity] == value['visits']
             for identity, value in counts.items()),
@@ -146,6 +164,9 @@ def run(registration, output):
         optimizer_updates_performed=0, cuda_initialized=torch.cuda.is_initialized(),
         semantics='H24 action-target slots at actual 5Hz/onset anchors, including repeated future slots, reconciled per-episode against real learning rows through selected/last update. Stage masks overlap. This reconstructs action-target exposure, not loss weight, gradient magnitude, random diffusion timestep, geometry subsampling, or cumulative inherited training. Full-history visits and physical unique actions are separate quantities.',
         previous_unknown='Earlier immutable stage-fit registration remains unchanged; this additional audit reconstructs its previously unreported stage target-slot counts.')
+    if selected['configuration'].get('full_trajectory_batch') is not None:
+        result.update(full_trajectory_batch=selected['configuration']['full_trajectory_batch'],
+            visit_semantics='visits_seen counts full-trajectory visits; updates counts actual optimizer/EMA transactions, including one-visit odd tails. Target slots are exposure, not the per-trajectory normalized gradient weight.')
     exclusive_json(Path(output), result)
     return result
 
