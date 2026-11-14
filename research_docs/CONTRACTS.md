@@ -1,3 +1,9 @@
+# 显式候选：自然结束环境的standard渲染停用
+
+`inactive_render_profile=standard_inactive_render_products_v1`（完整字段由模块常量给出）必须在prepare登记，限定CPU物理/standard三视角；缺省原路径。只通过已有Hydra产品的updates_enabled切换，不创建/拆卸sensor或annotator，不改变物理、控制、reset和成功标准。每波reset前全部恢复；初态非法/未分配lane或原生自然结束且末步已提交后才能停用，禁止为了速度裁剪有效专家后段。全局finally恢复并保存清理凭据；失败不发布complete。
+
+活动观测验证真实新drawable事件、当前host physics clock、CameraParams与renderer view一致、research/physics/time分别推进1/2/1/60秒；停用lane的camera_valid=false/time与frame=-1，图像不进入控制或训练。此为软件渲染/时钟关联证据，不是RGB/depth buffer与Hydra frame直接同一性或硬件曝光证明。诊断门控允许显式36tick内人工退休，始终diagnostic_only/accepted_for_training=false，不能传播为正式采集截断。
+
 # 显式候选：当前观测视觉尾块
 
 `vision_tail_profile={"version":"current_observation_exact_tail_v1"}` 只改变同一控制时刻 DINO 最后一组的计算形状：M8 不足8个活动环境时处理实际 `3N` 张图，不复制填满。缺省仍使用原固定填充合同；不隐式改变旧计划或检查点。真实三视角、60Hz观测、各环境历史、5Hz规划、29维目标及模型参数不变。正式采集、批量评估、扩展初态采集和 cycle 的评估均必须在 prepare 时登记；运行不能临时切换。

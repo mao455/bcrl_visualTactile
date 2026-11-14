@@ -1,3 +1,9 @@
+## 2026-11-14 23:01 已结束环境渲染候选接入正式入口
+
+新增显式standard_inactive_render_products_v1，接入batch_run、expansion、cycle评估与真实run_wave。只在CPUstandard使用现有三视角产品；每波reset前恢复全部，首观测保留，非法/未分配lane或自然结束且末步已提交的lane才停用。真实活动lane继续每60Hz三视角、独立历史；缺省不绑定或切换相机。每tick验证新Hydra drawable、同当前物理clock及CameraParams姿态，相邻观测必须research+1/physics+2/time+1/60；停用画面显式invalid，不能作新观测。直接RGB/depth输出buffer与renderer frame的等同尚未证明，不声称硬件曝光时戳。
+
+新tight_inactive_render_gate prepare→owner在独立Kit臂各执行A/B两波36步，分配槽位16→8→1；非法0动作不替换、lane0必须合法，两个退休区间需真实合法lane。普通臂全部产品保持绘制，候选只停非法与诊断退休；实际合法集合不同不作可比计时。固定prepare起算600秒（最多900）、原session截止、30秒清理储备、进程组绑定/恢复/失败凭据；诊断删减仅存在门控，正式没有人为裁尾。主Agent83项相关CPU测试通过；真实Kit门控与正式吞吐尚待，当前冻结82d5052训练不改。cycle的--payload-audit-memo已显式透传到缓存阶段。
+
 ## 2026-11-14 22:51 真实相机候选结论与缓存重复校验优化
 
 GPU Tiled 同步候选的独立CPU复核已完成：两个固定相机米级位姿错误已修复，但第二视角仍全黑，腕部仅两lane有少量灰像素；首包24张raw/cache逐值一致。4次render-only仍未恢复三视角，未增加动作/训练数据。Tiled不采用，正式继续standard；详见evidence/tight_fresh_20261114/tiled_pose_sync_review，原失败现场保留。

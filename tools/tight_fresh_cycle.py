@@ -129,9 +129,12 @@ def configure_episode_io(output, config):
 
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
-        paired_episode_io=False,vision_tail_profile=None):
+        paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False):
     from visuotactile.models.native_vision import validate_vision_tail_profile
     tail=validate_vision_tail_profile(vision_tail_profile)
+    from tools.tight_fresh_batch_run import validate_inactive_render_request
+    inactive=validate_inactive_render_request(inactive_render_profile,execution_backend)
+    if type(payload_audit_memo) is not bool:raise ValueError('Payload audit memo must be an explicit boolean')
     if paired_episode_io and not parallel_frontends:
         raise ValueError('Paired episode I/O requires two parallel independent frontends')
     if type(evaluation_lanes) is not int or evaluation_lanes<1:
@@ -141,6 +144,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         raise ValueError('Serial evaluation retains vision microbatch2; choose batch evaluation to apply another size')
     if evaluation_lanes==1 and tail is not None:
         raise ValueError('Exact vision tail profile requires explicit batch evaluation')
+    if evaluation_lanes==1 and inactive is not None:
+        raise ValueError('Inactive render products require explicit batch evaluation')
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
@@ -164,6 +169,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         evaluation_lanes=evaluation_lanes,execution_backend=execution_backend,episode_io=episode_io,vision_microbatch=vision_microbatch,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
     if tail is not None:registration['vision_tail_profile']=tail
+    if inactive is not None:registration['inactive_render_profile']=inactive
+    if payload_audit_memo:registration['payload_audit_memo']=True
     if reuse_index is not None:
         if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
         registration['reuse_visual_index']=dict(path=str(reuse_index),sha256=sha256(reuse_index))
@@ -205,6 +212,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             sampling=configure_frontend_sampling(output,latest_repeat)
             atomic_json(ledger/'frontend_sampling.json',sampling)
         execute('visual_cache',['tools.tight_fresh_dagger','cache','--root',root,'--output',output]+
+            (['--payload-audit-memo'] if payload_audit_memo else [])+
             (['--reuse-index',reuse_index] if reuse_index is not None else []),output/'B/cache_index.json')
         admitted=False
         if parallel_frontends:
@@ -239,6 +247,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             arguments=['tools.tight_fresh_batch_run','prepare','--root',output,'--output',development,
                 '--count',count,'--seed',seed,'--lanes',evaluation_lanes,'--vision-microbatch',vision_microbatch]
             if tail is not None:arguments+=['--vision-exact-tail']
+            if inactive is not None:arguments+=['--inactive-render-products']
             if execution_backend is not None:
                 backend_path=ledger/'execution_backend.json';atomic_json(backend_path,execution_backend)
                 arguments+=['--backend-json',backend_path]
@@ -271,8 +280,14 @@ def main():
     p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
     p.add_argument('--vision-microbatch',type=int,default=2)
     p.add_argument('--vision-exact-tail',action='store_true',help='Explicit evaluation-only DINO tail-shape candidate')
+    p.add_argument('--inactive-render-products',action='store_true',help='Explicit evaluation-only CPU-standard inactive render candidate')
+    p.add_argument('--payload-audit-memo',action='store_true',help='Explicit frozen payload SHA memo for the cache stage only')
     a=p.parse_args()
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
+    inactive=None
+    if a.inactive_render_products:
+        from visuotactile.inactive_render_products import PROFILE
+        inactive=PROFILE
     if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or a.count<1 or a.evaluation_lanes<1:p.error('Positive finite stage exposure required')
     if a.prefetch_mib is not None and not 1<=a.prefetch_mib<=1024:p.error('Prefetch budget must be 1–1024 MiB')
     if a.vision_microbatch<1:p.error('Positive vision microbatch required')
@@ -283,7 +298,8 @@ def main():
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,
-        vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None)
+        vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,
+        inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo)
 
 
 if __name__=='__main__':main()

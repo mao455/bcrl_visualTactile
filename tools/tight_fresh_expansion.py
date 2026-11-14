@@ -21,7 +21,7 @@ from visuotactile.training_expansion import (COLLECTION_CONTRACT, NEVER_FALLBACK
 def prepare(source, output, *, session_root, registry_id, seeds, partition_manifest,
             frozen_families, schedules, lanes, event_seed, round_index,
             existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2,
-            verification_workers=0,verification_max_pending=4,vision_tail_profile=None):
+            verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None):
     from visuotactile.execution_backend import normalize_backend
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
@@ -29,6 +29,8 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
     from visuotactile.state_benchmark import dagger_configuration
     vision_microbatch = validate_vision_microbatch(vision_microbatch)
     tail = validate_vision_tail_profile(vision_tail_profile)
+    from tools.tight_fresh_batch_run import validate_inactive_render_request
+    inactive = validate_inactive_render_request(inactive_render_profile,execution_backend)
     validate_verification_parameters(verification_workers,verification_max_pending)
     source = Path(source).resolve()
     output = Path(output).resolve()
@@ -120,6 +122,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
         interpretation='Mixed schedules target different failure states; no causal schedule comparison or broad physics generalization',
         test_used=False, test_trajectories_opened=0, utc=time.time())
     if tail is not None:plan['batch']['vision_tail_profile']=tail
+    if inactive is not None:plan['batch']['inactive_render_profile']=inactive
     validate_collection_plan(plan)
     atomic_json(output / 'plan.json', plan)
     return plan
@@ -143,10 +146,15 @@ def main():
     parser.add_argument('--writer-mib', type=int, default=512)
     parser.add_argument('--vision-microbatch', type=int, default=2)
     parser.add_argument('--vision-exact-tail',action='store_true',help='Explicit candidate: no padding of the final DINO lane group')
+    parser.add_argument('--inactive-render-products',action='store_true',help='Explicit CPU-standard inactive render product candidate')
     parser.add_argument('--verification-workers',type=int,default=0)
     parser.add_argument('--verification-max-pending',type=int,default=4)
     args = parser.parse_args()
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
+    inactive=None
+    if args.inactive_render_products:
+        from visuotactile.inactive_render_products import PROFILE
+        inactive=PROFILE
     prepare(args.source, args.output, session_root=args.session_root, registry_id=args.registry_id,
         seeds=args.initial_seeds, partition_manifest=args.partition_manifest, frozen_families=args.frozen_families,
         schedules=args.schedule_cycle, lanes=args.lanes, event_seed=args.event_seed, round_index=args.round,
@@ -154,7 +162,7 @@ def main():
         execution_backend=read(args.backend_json) if args.backend_json else None, writer_bytes=args.writer_mib << 20,
         vision_microbatch=args.vision_microbatch,verification_workers=args.verification_workers,
         verification_max_pending=args.verification_max_pending,
-        vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None)
+        vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None,inactive_render_profile=inactive)
 
 
 if __name__ == '__main__':

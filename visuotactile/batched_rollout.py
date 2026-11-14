@@ -193,7 +193,7 @@ def finish_lane(directory, case, pair, saved, rows, plans, reasons, initial, con
 
 
 @torch.no_grad()
-def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_index):
+def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_index, *, render_guard=None):
     from .environment_rng import IsolatedEnvironment
     from .narrow_data import configure_direct_reset_lanes
     from .live_collision import clearance
@@ -205,6 +205,13 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
     from .models.native_vision import validate_vision_tail_profile
     n=env.num_envs; capture=plan['kind']=='takeover'; start=time.perf_counter()
     tail=validate_vision_tail_profile(plan['batch'].get('vision_tail_profile'))
+    inactive_profile=plan['batch'].get('inactive_render_profile')
+    if inactive_profile is not None or render_guard is not None:
+        from tools.tight_fresh_batch_run import validate_inactive_render_request
+        inactive_profile=validate_inactive_render_request(inactive_profile,plan['execution_backend'])
+        if (inactive_profile is None or render_guard is None or render_guard.num_envs!=n
+                or render_guard.gate_limit_ticks is not None or render_guard.snapshot()['profile']!=inactive_profile):
+            raise ValueError('Formal whole waves require the registered production render guard')
     if not cases or len(cases)>n or len({case['role'] for case in cases})!=1:
         raise ValueError('One nonempty same-policy wave within allocated lanes is required')
     if capture:
@@ -221,11 +228,16 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
         native_rng='One batch stream; independent policy generators and lane histories; no serial hidden-state equivalence')
     vision_options={} if tail is None else dict(vision_tail_profile=tail)
     batch.update(vision_options)
+    if inactive_profile is not None:batch['inactive_render_profile']=inactive_profile
     # The opt-in backend provides CUDA stream isolation when requested.
     isolated=IsolatedEnvironment(env,batch['physics_seed'])
+    first_packet=None;initial_render_proof=None
     with lease.block():
+        if render_guard is not None:render_guard.begin_wave(wave_index)
         env.clear_recorded_events();env.action_control_mode='native_command_clipped_pre_delay'
         teacher,_=isolated.reset(batch['physics_seed']);isolated.begin_events(batch['event_seed'])
+        if render_guard is not None:
+            first_packet,initial_render_proof=render_guard.observe(env.research_packet,control_tick=0)
         env.action_control_mode='absolute_joint_position_target_rad';player.reset()
         initial=env._diagnostics();metadata=env.research_metadata();metadata['config']=env.cfg.to_dict()
         metadata.update(env_origins_w=env.scene.env_origins.cpu().tolist(),
@@ -235,6 +247,14 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
         controller=BatchedResidualController(saved,metadata,dino,n,neural_batch=True,scheduler_index_mode='host',
             vision_microbatch=batch['vision_microbatch'],**vision_options)
         active=[clearance(env,lane=i)['legal'] if i<len(cases) else False for i in range(n)]
+        if render_guard is not None:
+            illegal=[i for i in range(len(cases)) if not active[i]]
+            unassigned=list(range(len(cases),n))
+            if illegal:render_guard.retire(illegal,reason='initial_illegal',control_tick=0)
+            if unassigned:render_guard.retire(unassigned,reason='unassigned',control_tick=0)
+            first_packet=render_guard.mask_inactive(first_packet)
+            atomic_json(output/f'wave_{wave_index:04d}_inactive_render_initial.json',dict(
+                first_observation=initial_render_proof,state=render_guard.snapshot(),utc=time.time()))
     daggers=[];triggers=[];directories=[];recorders=[];numerics=[];writers=[]
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n;results={}
     pool=SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes'],
@@ -275,7 +295,12 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
         bound=(int(env.env_max_goals.max())+2)*(int(env.max_episode_length)+1)
         for tick in range(bound):
             if not any(active):break
-            packet=env.research_packet
+            if render_guard is None:packet=env.research_packet
+            elif tick==0:packet=first_packet
+            else:
+                packet,proof=render_guard.observe(env.research_packet,control_tick=tick)
+                if proof['active_lanes']!=[lane for lane,running in enumerate(active) if running]:
+                    raise ValueError('Renderer and complete-student active lanes differ')
             with lease.block():
                 t=time.perf_counter()
                 actor=expert_actor_input(teacher,player)
@@ -295,6 +320,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                     transition['torch_cuda_rng_before_step']=before_cuda[None].expand(n,-1).clone()
                 if capture:transition['expert_raw_policy_mean_before_clip']=raw['mean']
                 after_packet=post_observation(env.research_packet,terminated|truncated) if capture else None
+                retired=[]
                 for lane,running in enumerate(active):
                     if not running:continue
                     c=controller.lanes[lane];tr=lane_tree(transition,lane,n);p=lane_tree(packet,lane,n)
@@ -326,6 +352,13 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                             numerics[lane],writers[lane],daggers[lane],triggers[lane],dict(batch,lane=lane),start,
                             defer_capture=capture)
                         profile['finish_audit_s']+=time.perf_counter()-t
+                        retired.append(lane)
+                if render_guard is not None and retired:
+                    if not all(bool((terminated|truncated)[lane]) for lane in retired):
+                        raise ValueError('Formal render retirement requires actual native termination')
+                    render_guard.retire(retired,reason='natural_termination',control_tick=tick)
+                    atomic_json(output/f'wave_{wave_index:04d}_inactive_render_latest.json',dict(
+                        state=render_guard.snapshot(),utc=time.time()))
             if tick%25==0:atomic_json(output/'batch_progress.json',dict(wave=wave_index,tick=tick,active=active,utc=time.time()))
         if any(active):raise RuntimeError('Native natural termination bound exhausted')
         for lane,result in list(results.items()):
@@ -339,6 +372,11 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                 memory_scope='Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch')
         profile.update(seconds=time.perf_counter()-start,control_ticks=sum(len(r) for r in rows),cases=len(cases),
             vision_execution=controller.vision_execution_report())
+        if render_guard is not None:
+            profile['inactive_render']=dict(state=render_guard.snapshot(),
+                active_observations_per_lane=controller.visual_frames,
+                initial_all_product_proof=initial_render_proof,
+                scope='Actual native termination only, after last transition submission; no artificial production cutoff')
         profile['aggregate_control_ticks_per_second']=profile['control_ticks']/profile['seconds']
         return [(case,results[lane]) for lane,case in enumerate(cases)],profile
     finally:

@@ -1,6 +1,7 @@
 """Registered scalable collection and autonomy using the same full student path."""
 import argparse
 import copy
+from contextlib import contextmanager
 import json
 import os
 from pathlib import Path
@@ -12,13 +13,56 @@ from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 
 
+def validate_inactive_render_request(profile,backend):
+    if profile is None:return None
+    from visuotactile.inactive_render_products import validate_profile
+    from visuotactile.execution_backend import normalize_backend
+    profile=validate_profile(profile);backend=normalize_backend(backend)
+    if backend['physics_device']!='cpu' or backend['camera_backend']!='standard':
+        raise ValueError('Inactive render products require explicit CPU standard execution')
+    return profile
+
+
+@contextmanager
+def inactive_render_scope(env,profile,output,*,gate_limit_ticks=None):
+    """Restore before publishing completion, including Python error paths."""
+    if profile is None:
+        yield None
+        return
+    from visuotactile.inactive_render_products import InactiveRenderProducts
+    guard=None;primary=None;cleanup=None;before=None;after=None
+    try:
+        guard=InactiveRenderProducts.bind(env,profile,gate_limit_ticks=gate_limit_ticks)
+        yield guard
+    except BaseException as error:
+        primary=repr(error)
+        raise
+    finally:
+        if guard is not None:
+            try:before=guard.snapshot()
+            except BaseException as error:before=dict(snapshot_error=repr(error))
+            try:guard.close()
+            except BaseException as error:cleanup=error
+            try:after=guard.snapshot()
+            except BaseException as error:after=dict(snapshot_error=repr(error))
+            if cleanup is None and (before.get('snapshot_error') or after.get('snapshot_error')
+                    or before.get('callback_error') or after.get('callback_error')
+                    or after.get('closed') is not True or not all(p['enabled'] is True for p in after.get('products',[]))):
+                cleanup=RuntimeError('Inactive renderer final provenance or restoration receipt failed')
+        atomic_json(Path(output)/'inactive_render_cleanup.json',dict(profile=profile,primary_error=primary,
+            cleanup_error=repr(cleanup) if cleanup else None,before=before,after=after,
+            restored=bool(guard is not None and cleanup is None),utc=time.time()))
+        if cleanup is not None:raise cleanup
+
+
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
             execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None,
-            verification_workers=0,verification_max_pending=4,vision_tail_profile=None):
+            verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None):
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
     tail=validate_vision_tail_profile(vision_tail_profile)
+    inactive=validate_inactive_render_request(inactive_render_profile,execution_backend)
     validate_verification_parameters(verification_workers,verification_max_pending)
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
@@ -43,6 +87,7 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
         ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend,expert_sha256=session['expert_sha256'])
     if tail is not None:plan['batch']['vision_tail_profile']=tail
+    if inactive is not None:plan['batch']['inactive_render_profile']=inactive
     atomic_json(output/'plan.json',plan)
     return plan
 
@@ -146,6 +191,7 @@ def run(output):
     output=Path(output).resolve();plan=read(output/'plan.json');session=read(output/'session.json')
     vision_microbatch=validate_vision_microbatch(plan['batch'].get('vision_microbatch',2))
     tail=validate_vision_tail_profile(plan['batch'].get('vision_tail_profile'))
+    inactive=validate_inactive_render_request(plan['batch'].get('inactive_render_profile'),plan['execution_backend'])
     validate_verification_parameters(plan['batch'].get('verification_workers',0),
         plan['batch'].get('verification_max_pending',4))
     if plan.get('test_used') is not False or plan['batch']['version']!='whole_wave_complete_student_v1':
@@ -169,31 +215,34 @@ def run(output):
     started=time.perf_counter()
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=plan['batch']['lanes'],
         camera_content_validation=True,execution_backend=plan['execution_backend'])
-    atomic_json(output/'initialization.json',dict(seconds=time.perf_counter()-started,lanes=env.num_envs,
-        execution_backend=plan['execution_backend'],vision_microbatch=vision_microbatch,
-        **({} if tail is None else dict(vision_tail_profile=tail))))
-    with lease.block():dino=NativeDinoSpatial().cuda().eval()
-    saved={r:torch.load(pair['backend'],map_location='cpu',weights_only=False) for r,pair in plan['pairs'].items()}
-    results=[];entries={};profiles=[]
-    for index,cases in enumerate(waves(plan['cases'],plan['batch']['lanes'])):
-        role=cases[0]['role'];pair=plan['pairs'][role]
-        finished,profile=run_wave(env,player,lease,output,cases,pair,saved[role],dino,plan,index)
-        profile.update(admission_s=0.,admission_scope='Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds')
-        for case,result in finished:
-            if result.get('legal') and (result.get('residual_ticks')!=result['steps'] or not result.get('software_complete')):
-                raise ValueError('Incomplete full-student execution')
-            if plan['kind']=='takeover':
-                before_admission=time.perf_counter()
-                admit_capture(output,case,result,pair,plan,entries)
-                profile['admission_s']+=time.perf_counter()-before_admission
-            results.append(dict(role=role,case=case['name'],result=result,
-                timing=dict(batch_wave=index,total_seconds=result.get('wall_profile',{}).get('through_result_s'),
-                    interpretation='Lane lifetimes overlap; use batch wave total for throughput')))
-            atomic_json(output/'results.json',results)
-        profiles.append(dict(wave=index,role=role,**profile))
-        atomic_json(output/'wave_profiles.json',profiles)
-        print(json.dumps(dict(wave=index,role=role,profile=profile,accepted=len(entries))),flush=True)
-    if len(results)!=len(plan['cases']):raise ValueError('Incomplete registered wave population')
+    with inactive_render_scope(env,inactive,output) as guard:
+        atomic_json(output/'initialization.json',dict(seconds=time.perf_counter()-started,lanes=env.num_envs,
+            execution_backend=plan['execution_backend'],vision_microbatch=vision_microbatch,
+            **({} if tail is None else dict(vision_tail_profile=tail)),
+            **({} if inactive is None else dict(inactive_render_profile=inactive))))
+        with lease.block():dino=NativeDinoSpatial().cuda().eval()
+        saved={r:torch.load(pair['backend'],map_location='cpu',weights_only=False) for r,pair in plan['pairs'].items()}
+        results=[];entries={};profiles=[]
+        for index,cases in enumerate(waves(plan['cases'],plan['batch']['lanes'])):
+            role=cases[0]['role'];pair=plan['pairs'][role]
+            finished,profile=run_wave(env,player,lease,output,cases,pair,saved[role],dino,plan,index,
+                **({} if guard is None else dict(render_guard=guard)))
+            profile.update(admission_s=0.,admission_scope='Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds')
+            for case,result in finished:
+                if result.get('legal') and (result.get('residual_ticks')!=result['steps'] or not result.get('software_complete')):
+                    raise ValueError('Incomplete full-student execution')
+                if plan['kind']=='takeover':
+                    before_admission=time.perf_counter()
+                    admit_capture(output,case,result,pair,plan,entries)
+                    profile['admission_s']+=time.perf_counter()-before_admission
+                results.append(dict(role=role,case=case['name'],result=result,
+                    timing=dict(batch_wave=index,total_seconds=result.get('wall_profile',{}).get('through_result_s'),
+                        interpretation='Lane lifetimes overlap; use batch wave total for throughput')))
+                atomic_json(output/'results.json',results)
+            profiles.append(dict(wave=index,role=role,**profile))
+            atomic_json(output/'wave_profiles.json',profiles)
+            print(json.dumps(dict(wave=index,role=role,profile=profile,accepted=len(entries))),flush=True)
+        if len(results)!=len(plan['cases']):raise ValueError('Incomplete registered wave population')
     elapsed=time.perf_counter()-started
     atomic_json(output/'result.json',dict(software_complete=True,worker_error=None,cases=len(results),utc=time.time(),
         elapsed_seconds=elapsed,accepted_training_trajectories=len(entries),
@@ -211,10 +260,13 @@ def main():
     p.add_argument('--backend-json',type=Path);p.add_argument('--writer-mib',type=int,default=512)
     p.add_argument('--vision-microbatch',type=int,default=2)
     p.add_argument('--vision-exact-tail',action='store_true',help='Explicit candidate: no padding of the final DINO lane group')
+    p.add_argument('--inactive-render-products',action='store_true',help='Explicit CPU-standard candidate: retire render products only after actual lane termination')
     p.add_argument('--verification-workers',type=int,default=0)
     p.add_argument('--verification-max-pending',type=int,default=4)
     a=p.parse_args()
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
+    if a.stage=='run' and a.inactive_render_products:
+        p.error('run uses the immutable prepared inactive-render profile; register it with prepare')
     if a.stage=='run' and a.vision_exact_tail:
         p.error('run uses the immutable prepared vision profile; --vision-exact-tail requires prepare')
     if a.stage=='run' and a.session_root is not None:
@@ -222,12 +274,16 @@ def main():
     if a.stage=='run':run(a.output)
     else:
         if a.root is None:p.error('--root is required for prepare')
+        inactive=None
+        if a.inactive_render_products:
+            from visuotactile.inactive_render_products import PROFILE
+            inactive=PROFILE
         prepare(a.root.resolve(),a.output.resolve(),lanes=a.lanes,count=a.count,seed=a.seed,
             identities=a.identities,delays=a.delays,round_index=a.round,
             execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20,
             vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None,
             verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending,
-            vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None)
+            vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,inactive_render_profile=inactive)
 
 
 if __name__=='__main__':
