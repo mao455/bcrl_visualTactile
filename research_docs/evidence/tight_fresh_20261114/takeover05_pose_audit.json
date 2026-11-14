@@ -132,12 +132,125 @@
       "subgoals": 2
     }
   ],
-  "source_sha256": "513331f176b781aa44c0e74ebd5644a3e0d35bfb419b57dbac53dbfd97e2668e",
+  "timeline_checks": {
+    "passed": true,
+    "control_hz": 60,
+    "transitions": 512,
+    "student_last_completed_tick": 296,
+    "expert_first_action_index": 296,
+    "expert_first_completed_tick": 297,
+    "time_and_step_alignment": true,
+    "adjacent_observed_state_continuity": true,
+    "trigger_replay_exact": true,
+    "trigger_receipt": {
+      "configuration": {
+        "version": "stable_grasp_then_delay_v1",
+        "delay_ticks": 12
+      },
+      "fallback_tick": 1000000000,
+      "actual_scheduled_takeover_tick": 296,
+      "reason": "completed_student_stable_window_plus_delay",
+      "completed_student_transitions_observed": 296,
+      "settled_height_m": 0.5402852892875671,
+      "first_stable_window_end_completed_tick": 284,
+      "rule": "12 ticks, both physics samples >=2 object-contact fingers >0.1N, >=2cm above median completed25-48, palm-relative drift<=1cm/0.2rad",
+      "indices": "Schedule is zero-based action index; stable end is completed transition count",
+      "diagnostic_only": true,
+      "student_inputs_changed": false
+    },
+    "first_legal_expert_action_index": 298,
+    "first_legal_expert_completed_tick": 299,
+    "legal_expert_ticks": 214,
+    "full_window_component_checks": 501
+  },
+  "expert_label_alignment": {
+    "passed": true,
+    "switch_action_index": 296,
+    "first_legal_label_action_index": 298,
+    "queue_length": 3,
+    "expert_flush_masked_ticks": 2,
+    "student_history_ticks": 296,
+    "expert_ticks": 216,
+    "legal_expert_ticks": 214,
+    "student_prefix_supervised": false,
+    "tick_index": "Zero-based action/label index; stable window end uses completed transition count"
+  },
+  "subgoal_transition_boundaries": [
+    {
+      "action_index": 466,
+      "completed_tick": 467,
+      "authority": "expert",
+      "expert_label_valid": true,
+      "native_alignment": true,
+      "subgoals_before": 0,
+      "subgoals_after": 1,
+      "goal_root_before": [
+        0.042810432612895966,
+        -0.04028116911649704,
+        0.716285228729248,
+        0.7071068286895752,
+        1.862645149230957e-09,
+        -0.7071068286895752,
+        -1.862645149230957e-09
+      ],
+      "goal_root_after": [
+        0.042810432612895966,
+        -0.04028116911649704,
+        0.6662852764129639,
+        0.7071067690849304,
+        0.0,
+        -0.7071067690849304,
+        0.0
+      ],
+      "goal_root_changed_during_transition": true
+    },
+    {
+      "action_index": 511,
+      "completed_tick": 512,
+      "authority": "expert",
+      "expert_label_valid": true,
+      "native_alignment": true,
+      "subgoals_before": 1,
+      "subgoals_after": 2,
+      "goal_root_before": [
+        0.042810432612895966,
+        -0.04028116911649704,
+        0.6662852764129639,
+        0.7071068286895752,
+        1.862645149230957e-09,
+        -0.7071068286895752,
+        -1.862645149230957e-09
+      ],
+      "goal_root_after": [
+        0.042810432612895966,
+        -0.04028116911649704,
+        0.6662852764129639,
+        0.7071068286895752,
+        1.862645149230957e-09,
+        -0.7071068286895752,
+        -1.862645149230957e-09
+      ],
+      "goal_root_changed_during_transition": false
+    }
+  ],
+  "source_sha256": "e048b2065e1f4e77617e47589f93c397874714e2b57ffca62e3ac4aaf4594f6d",
   "source_environment_sha256": "1505929f74f4feabfb67cae17f559d9770b45b883fe21de0e9b7c4696813f0cb",
   "trigger_sha256": "44f74a84c768d3acc80e9f5ac665d5522654e72ccde241843d66ab88e7933928",
+  "dependencies_sha256": {
+    "tools/tight_fresh_phases.py": "915ddd2f5ab266ec9bd8eb2f4b2f556805e510c6676ebf554acf1f38946c1a93",
+    "tools/tight_fresh_stage_audit.py": "4e4d34e6cef0d317bffba7cf8b84f576152f95db581362440643e1da4f4c4fe7"
+  },
+  "tick_semantics": "completed_tick is1-based completed control transitions; action_index is0-based. The last student completed tick N is the pre-action boundary for expert action N, whose completed tick is N+1. Expert labels additionally wait for the recorded delay queue flush.",
+  "settled_reference": "Median recorded object root z at completed ticks25-48; available causally after completed48.",
+  "subgoal_goal_semantics": "diagnostics_after is captured after native reward/goal updates and before automatic episode reset. At a subgoal transition, its goal root can already be the next target; compare before/after explicitly. Native alignment/subgoal completion remains authoritative.",
   "pose_semantics": "Recorded object.data.root_state_w and goal_viz.data.root_state_w reference origins, not collision-AABB centers. Quaternion angle ignores shape symmetries; native keypoint criteria remain authoritative.",
   "interpretation": "A failed stable window is a diagnostic flag. Relative motion can include reorientation; this report does not identify deliberate versus accidental motion, slipping, or dropping. Preserved expert completion is not autonomous student success.",
   "optimizer_updates": 0,
   "simulator_starts": 0,
-  "test_used": false
+  "test_used": false,
+  "audit_revision": {
+    "previous_public_sha256": "b61af86228e1ed49c566a08c868082600a658ee1f49a37fb199509268a58be25",
+    "independent_review_sha256": "23a55c71ffc22120d44379455ace99271718f696a1991df0925c5223dcf14916",
+    "prior_snapshots_and_phase_values_unchanged": true
+  }
 }
