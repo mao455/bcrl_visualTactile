@@ -1,3 +1,7 @@
+# 显式训练合集阶段拟合v3
+
+`train_only_selected_frontend_stage_fit_v3`仅由stage_fit prepare的重复`--include-collection`启用，主collection仍精确等于当前latest IDs；新增collection按immutable source SHA绑定当前train entries与真实成功接管凭据，验证family隔离与全历史/合法mask一致。source seen/unseen按源选中checkpoint实际train manifest的同SHA判定，source阶段访问数与当前selected访问数分开，不补造累计继承剂量。报告all/latest/每批/seen/unseen重叠分层，各层累加平方误差/合法槽数后求RMSE；空层为0计数/未知误差。每个模型独立完整重建记忆、同一5Hz anchor保持基线，旧v1/v2比较身份不变。
+
 # 显式候选：自然结束环境的standard渲染停用
 
 `inactive_render_profile=standard_inactive_render_products_v1`（完整字段由模块常量给出）必须在prepare登记，限定CPU物理/standard三视角；缺省原路径。只通过已有Hydra产品的updates_enabled切换，不创建/拆卸sensor或annotator，不改变物理、控制、reset和成功标准。每波reset前全部恢复；初态非法/未分配lane或原生自然结束且末步已提交后才能停用，禁止为了速度裁剪有效专家后段。全局finally恢复并保存清理凭据；失败不发布complete。

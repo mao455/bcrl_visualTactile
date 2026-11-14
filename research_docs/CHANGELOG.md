@@ -1,4 +1,10 @@
-## 2026-11-14 23:01 已结束环境渲染候选接入正式入口
+## 2026-11-14 23:03 第八轮新增数据曝光与合集阶段拟合
+
+已按不可变source SHA、源checkpoint train_ids与当前合法mask核实118条/42训练family/32920合法专家步。A05首次接触06/07/08共34条、9005步；B06首次接触07/08共25条、7155步，双方真正新增初态均12family。B06选中epoch3对第六批每条6次完整历史，last epoch10为20次，不能混算。详见evidence/tight_fresh_20261114/round08_exposure_review。
+
+stage_fit显式--include-collection启用v3，保留v2默认：全部34、latest19、逐批、source已见/未见分层，同一真实历史分别由source/selected EMA重建，保持5Hz同槽q/实际target基线。特征SHA匹配后仅投影train，当前可学习GRU不跨模型复用；缺逐阶段优化器target槽记录仍标unknown。Agent41项CPU检查通过，主Agent27项阶段相关检查通过（集合重叠）；实际GPU拟合尚待完整cycle退出。当前B前端已完成10遍1370更新/33340anchor/764010目标槽，A10遍更新已结束、末次评估和保存中；尚无后端或新自主结论。
+
+## 2026-11-14 23:00 已结束环境渲染候选接入正式入口
 
 新增显式standard_inactive_render_products_v1，接入batch_run、expansion、cycle评估与真实run_wave。只在CPUstandard使用现有三视角产品；每波reset前恢复全部，首观测保留，非法/未分配lane或自然结束且末步已提交的lane才停用。真实活动lane继续每60Hz三视角、独立历史；缺省不绑定或切换相机。每tick验证新Hydra drawable、同当前物理clock及CameraParams姿态，相邻观测必须research+1/physics+2/time+1/60；停用画面显式invalid，不能作新观测。直接RGB/depth输出buffer与renderer frame的等同尚未证明，不声称硬件曝光时戳。
 

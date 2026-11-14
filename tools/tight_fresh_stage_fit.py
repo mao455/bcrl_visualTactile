@@ -15,6 +15,7 @@ from tools.tight_fresh_selected_fit import (read,sha256,checked_hash,exclusive_j
 
 LEGACY_VERSION='train_only_selected_frontend_stage_fit_v1'
 VERSION='train_only_selected_frontend_stage_fit_v2'
+UNION_VERSION='train_only_selected_frontend_stage_fit_v3'
 STAGES=('grasp_before_first_hold','holding','hand_rotation','near_hole60',
     'after_first_native_subgoal','native_alignment','native_subgoal_increment')
 BASELINE_COLUMNS=dict(hold_anchor_q=(0,29),hold_anchor_actuator_target=(58,87))
@@ -100,13 +101,122 @@ def project_training_records(output,data,container,identities,visual_cache):
         source_container_access='Original mixed numeric file integrity hash and mmap metadata only; only selected train tensors are dereferenced/copied. No held-out raw or visual shard is opened.')
 
 
-def prepare(root,role,collection,selected_frozen,source_frozen,output):
+def bind_collection_union(data,latest_collection,include_collections):
+    """Match accepted captures by immutable content, independent of pool ID names."""
+    paths=[Path(p).resolve(strict=True) for p in [latest_collection,*include_collections]]
+    require(len(paths)==len(set(paths)),'Duplicate collection in stage-fit union')
+    train=data['splits']['train'];heldout=set(data['splits'].get('validation',[]))|set(data['splits'].get('test',[]))
+    heldout_families={data['entries'][i]['family'] for i in heldout}
+    by_sha={}
+    for identity in train:
+        digest=data['entries'][identity]['source_sha256']
+        require(digest not in by_sha,'Ambiguous current training source SHA')
+        by_sha[digest]=identity
+    cases={};collections=[]
+    for index,path in enumerate(paths):
+        require(read(path/'result.json').get('software_complete'), 'Completed collection required')
+        plan=read(path/'plan.json');accepted=read(path/'correction_entries.json')
+        require(plan.get('kind')=='takeover' and type(plan.get('round_index')) is int,
+            'Registered takeover collection round required')
+        planned={case['name']:case for case in plan['cases']}
+        rows=read(path/'results.json');indexed={row['case']:row['result'] for row in rows}
+        require(len(planned)==len(plan['cases']) and len(indexed)==len(rows),'Duplicate collection case identity')
+        require(accepted,'Empty collection cannot contribute stage-fit union data')
+        matched=[]
+        for case_name,entry in accepted.items():
+            identity=by_sha.get(entry['source_sha256'])
+            require(identity is not None and identity not in heldout and entry==data['entries'][identity],
+                'Accepted union capture differs from current training content')
+            require(identity not in cases,'Duplicate capture across stage-fit collections')
+            require(entry.get('split')=='train' and entry.get('trajectory_kind')=='expert_takeover_v1' and
+                entry['family'] not in heldout_families,'Only training-family expert corrections may enter union')
+            require(case_name in planned and case_name in indexed,'Accepted case is absent from its registered collection')
+            case=planned[case_name];result=indexed[case_name]
+            require(case['spec'].get('split')=='train' and case['spec'].get('family')==entry['family'] and
+                case['spec'].get('identity')==case_name,'Collection case training identity differs')
+            require(result.get('legal') and result.get('success') and result.get('accepted_for_training') and
+                result['dataset_capture']['sha256']==entry['source_sha256'],'Accepted union recovery binding differs')
+            cases[identity]=dict(collection=str(path),collection_index=index,collection_round=plan['round_index'],
+                case=case_name,numeric_path=str(path/case_name/'numeric.h5'),result=result)
+            matched.append(identity)
+        if index==0:
+            require(set(matched)==set(data['aggregation']['new_training_ids']),
+                'Primary collection must bind exactly the latest accepted corrections')
+        collections.append(dict(path=str(path),round_index=plan['round_index'],identities=matched,
+            files={name:sha256(path/name) for name in ('plan.json','result.json','results.json','correction_entries.json')}))
+    identities=[i for i in train if i in cases]
+    require(identities and len(identities)==len(cases),'Incomplete union training identity binding')
+    return identities,cases,collections
+
+
+def extend_union_receipt(receipt,data,identities):
+    """Reuse ordinary admission; additionally verify only the extra train shards."""
+    root=Path(receipt['root'])/receipt['role'];cache=read(receipt['paths']['cache_index'])
+    for identity in identities:
+        if identity in receipt['selected_visual_cache']:continue
+        entry=cache['entries'][identity];path=root/'state_data/perception'/(identity+'.pt')
+        require(entry['source_sha256']==data['entries'][identity]['source_sha256'] and
+            entry['frames']==data['entries'][identity]['length'],'Union visual cache source/frame identity differs')
+        digest=checked_hash(path,entry['sha256'])
+        receipt['selected_visual_cache'][identity]=dict(path=str(path.resolve()),sha256=digest,frames=entry['frames'])
+    require(set(receipt['selected_visual_cache'])==set(identities),'Union visual population differs')
+    receipt['identities']=list(identities)
+
+
+def source_training_exposure(source,saved,data,identities):
+    """Source-stage visits by raw-content identity, never by possibly renamed IDs."""
+    path=Path(source['path']).parent.parent/'state_data/data.json'
+    digest=checked_hash(path,saved['configuration']['data_sha256']);prior=read(path)
+    require(saved['train_ids']==prior['splits']['train'],'Source checkpoint training manifest differs')
+    by_sha={}
+    for identity in saved['train_ids']:
+        entry=prior['entries'][identity]
+        require(entry['source_sha256'] not in by_sha,'Ambiguous source training SHA')
+        by_sha[entry['source_sha256']]=identity
+    visits=saved.get('sampling_exposure')
+    if visits is None:
+        require(saved['configuration'].get('version')=='fresh30_continuous_episode_v1' and
+            not saved['configuration'].get('sampling_contract') and
+            saved['updates']==saved['epoch']*len(saved['train_ids']),
+            'Cannot infer source-stage visits without an explicit complete uniform schedule')
+        visits={identity:saved['epoch'] for identity in saved['train_ids']}
+        authority='Completed uniform source epochs; checkpoint updates equal epochs times train episodes'
+    else:
+        require(set(visits)==set(saved['train_ids']) and all(type(v) is int and v>0 for v in visits.values()) and
+            sum(visits.values())==saved['updates'],'Source checkpoint visit receipts differ')
+        authority='Source selected checkpoint sampling_exposure; stage-local, not inherited cumulative dose'
+    rows={}
+    for identity in identities:
+        entry=data['entries'][identity];old=by_sha.get(entry['source_sha256'])
+        if old is not None:
+            require(prior['entries'][old]['family']==entry['family'],'Same content source/current family differs')
+        rows[identity]=dict(source_training_id=old,source_seen=old is not None,
+            full_history_visits=visits[old] if old is not None else 0)
+    return rows,dict(path=str(path),sha256=digest,authority=authority,
+        identity='immutable source_sha256',inherited_earlier_stage_visits_included=False)
+
+
+def union_strata(identities,data,cases,exposure):
+    result=dict(all=list(identities),latest=[i for i in identities if i in data['aggregation']['new_training_ids']],
+        source_seen=[i for i in identities if exposure[i]['source_seen']],
+        source_unseen=[i for i in identities if not exposure[i]['source_seen']])
+    for round_index in sorted({cases[i]['collection_round'] for i in identities}):
+        result[f'collection_{round_index:02d}']=[i for i in identities if cases[i]['collection_round']==round_index]
+    return result
+
+
+def prepare(root,role,collection,selected_frozen,source_frozen,output,include_collection=None):
     import numpy as np
     import torch
     import h5py
     output=Path(output).resolve();output.mkdir(parents=True,exist_ok=False)
     try:
         receipt=validate_inputs(root,role,selected_frozen)
+        data=read(receipt['paths']['data']);union=include_collection is not None
+        if union:
+            require(include_collection,'Explicit union requires at least one additional collection')
+            identities,union_cases,collections=bind_collection_union(data,collection,include_collection)
+            extend_union_receipt(receipt,data,identities)
         selected=torch.load(receipt['paths']['checkpoint'],map_location='cpu',weights_only=False,mmap=True)
         validate_checkpoint(selected,receipt)
         source,source_saved=bind_source(receipt,source_frozen,selected)
@@ -114,7 +224,7 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output):
         require(read(collection/'result.json').get('software_complete'), 'Completed collection required')
         accepted=read(collection/'correction_entries.json')
         indexed={row['case']:row['result'] for row in read(collection/'results.json')}
-        data=read(receipt['paths']['data'])
+        if union:source_exposure,source_manifest=source_training_exposure(source,source_saved,data,receipt['identities'])
         # The reader owns a monolithic numeric container; no validation/test
         # record is selected or evaluated, and no held-out raw/cache file opens.
         numeric=torch.load(Path(root)/role/'state_data/numeric.pt',map_location='cpu',weights_only=False,mmap=True)
@@ -122,11 +232,13 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output):
         masks={};episodes={}
         for identity in receipt['identities']:
             entry=data['entries'][identity]
-            require(identity in accepted and accepted[identity]==entry,'Current correction differs from accepted collection entry')
-            result=indexed[identity]
+            if union:
+                bound=union_cases[identity];result=bound['result'];path=Path(bound['numeric_path'])
+            else:
+                require(identity in accepted and accepted[identity]==entry,'Current correction differs from accepted collection entry')
+                result=indexed[identity];path=collection/identity/'numeric.h5'
             require(result.get('legal') and result.get('accepted_for_training') and
                 result['dataset_capture']['sha256']==entry['source_sha256'], 'Accepted capture binding differs')
-            path=collection/identity/'numeric.h5'
             with h5py.File(path,'r') as stream:
                 t=stream['episode/transition'];before=t['diagnostics_before'];after=t['diagnostics_after']
                 valid=t['dagger/expert_label_valid'][:].astype(bool)
@@ -155,6 +267,12 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output):
                     unknown_slots_reason='Per-stage optimizer target-slot receipts were not recorded; action visibility is not target-slot exposure.',
                     settled_height_m=height,settled_reference_authority='student_only' if entry['takeover_tick']>=48 else 'includes_expert_ticks',
                     numeric_path=str(path),numeric_sha256=sha256(path),capture_sha256=entry['source_sha256'])
+                if union:
+                    episodes[identity].update(collection_index=bound['collection_index'],collection_round=bound['collection_round'],
+                        collection_case=bound['case'],latest=identity in data['aggregation']['new_training_ids'],
+                        source_seen=source_exposure[identity]['source_seen'],
+                        source_training_id=source_exposure[identity]['source_training_id'],
+                        source_prior_full_history_visits=source_exposure[identity]['full_history_visits'])
         np.savez(output/'stage_masks.npz',**masks)
         projection=project_training_records(output,data,numeric,receipt['identities'],receipt['selected_visual_cache'])
         registered=dict(version=VERSION,root=str(Path(root).resolve()),role=role,collection=str(collection),
@@ -180,6 +298,16 @@ def prepare(root,role,collection,selected_frozen,source_frozen,output):
                 hold_anchor_actuator_target='B only: actual pre-action actuator target at the planning anchor, held through commit12. This matches the earlier frontend-baseline B input semantics; it is not the current expert target.',
                 limits='Forecast-error diagnostics only, no executed hold policy. No 60Hz observation refresh inside a commitment. Different A/B labels must not be ranked by raw RMSE.'),
             rear_evaluated=False,validation_evaluated=False,test_evaluated=False,optimizer_updates=0)
+        if union:
+            strata=union_strata(receipt['identities'],data,union_cases,source_exposure)
+            registered.update(version=UNION_VERSION,collections=collections,source_training_manifest=source_manifest,
+                strata=strata,stratum_counts={name:dict(trajectories=len(ids),families=len({episodes[i]['family'] for i in ids}),
+                    history_frames=sum(episodes[i]['history_frames'] for i in ids),
+                    legal_expert_actions=sum(episodes[i]['legal_expert_actions'] for i in ids),
+                    selected_full_history_visits=sum(episodes[i]['selected_full_history_visits'] for i in ids),
+                    source_prior_full_history_visits=sum(episodes[i]['source_prior_full_history_visits'] for i in ids))
+                    for name,ids in strata.items()},
+                scope='DP frontend target error only; explicit train-only accepted collection union, latest and source-seen/unseen strata; full real histories separately rebuilt per source/selected EMA.')
         exclusive_json(output/'registration.json',registered)
         return registered
     except BaseException as error:
@@ -252,6 +380,18 @@ def sum_episode_totals(episodes):
         ('evaluated_commit_slots','arm_squared_sum','hand_squared_sum')} for key in (*STAGES,'legal_expert')}
 
 
+def stratified_results(episodes,baseline_episodes,strata):
+    result={}
+    for name,identities in strata.items():
+        require(len(identities)==len(set(identities)) and set(identities)<=set(episodes),
+            'Registered stratum is not a unique evaluated episode subset')
+        result[name]=dict(identities=identities,
+            stages=finalized(sum_episode_totals({i:episodes[i] for i in identities})),
+            baselines={key:dict(stages=finalized(sum_episode_totals({i:rows[i] for i in identities})))
+                for key,rows in baseline_episodes.items()})
+    return result
+
+
 def run_arm(registration,arm):
     import numpy as np
     import torch
@@ -259,7 +399,7 @@ def run_arm(registration,arm):
     out.mkdir(exist_ok=False);start=time.perf_counter()
     exclusive_json(out/'started.json',dict(pid=os.getpid(),utc=time.time(),arm=arm,registration_sha256=sha256(path)))
     try:
-        require(plan['version']==VERSION and arm in ('source','selected'),'Unknown stage-fit arm')
+        require(plan['version'] in (VERSION,UNION_VERSION) and arm in ('source','selected'),'Unknown stage-fit arm')
         require(plan['baseline_names']==baseline_names(plan['role']),'Registered baseline semantics changed')
         checked_hash(__file__,plan['evaluator_sha256'])
         receipt=plan['selected_receipt'];weights=plan[arm]
@@ -272,6 +412,10 @@ def run_arm(registration,arm):
         checked_hash(projected_root/'data.json',projection['data_sha256'])
         checked_hash(projected_root/'numeric.pt',projection['numeric_sha256'])
         checked_hash(plan['masks_path'],plan['masks_sha256'])
+        if plan['version']==UNION_VERSION:
+            for collection in plan['collections']:
+                for name,digest in collection['files'].items():checked_hash(Path(collection['path'])/name,digest)
+            checked_hash(plan['source_training_manifest']['path'],plan['source_training_manifest']['sha256'])
         frozen=Path(weights['frozen_source_root'])
         for relative,digest in weights['configuration']['source_sha256'].items():
             checked_hash(frozen/relative,digest)
@@ -314,21 +458,14 @@ def run_arm(registration,arm):
             target_window=receipt['target_window'],seconds=time.perf_counter()-start,
             optimizer_updates=0,rear_evaluated=False,validation_evaluated=False,test_evaluated=False,
             scope='Teacher-forced DP frontend commit12 target error, not complete-student or autonomous performance.')
+        if plan['version']==UNION_VERSION:
+            result['strata']=stratified_results(episodes,baseline_episodes,plan['strata'])
         exclusive_json(out/'result.json',result);return result
     except BaseException as error:
         exclusive_json(out/'error.json',dict(error=repr(error),utc=time.time()));raise
 
 
-def compare(registration):
-    path=Path(registration);plan=read(path);arms={arm:read(path.parent/arm/'result.json') for arm in ('source','selected')}
-    version=plan.get('version',LEGACY_VERSION)
-    require(version in (VERSION,LEGACY_VERSION),'Unknown stage-fit comparison version')
-    names=baseline_names(plan['role']) if version==VERSION else []
-    if names:require(plan['baseline_names']==names,'Registered baseline semantics changed')
-    for arm,result in arms.items():
-        require(result['complete'] and result['registration_sha256']==sha256(path) and
-            result['checkpoint_sha256']==plan[arm]['sha256'],'Stage-fit result binding differs')
-        if names:require(set(result.get('baselines',{}))==set(names),'Causal hold baseline result missing')
+def compare_stage_rows(arms,names):
     rows={}
     for key in (*STAGES,'legal_expert'):
         source,selected=(arms[arm]['stages'][key] for arm in ('source','selected'))
@@ -347,9 +484,36 @@ def compare(registration):
                 rows[key]['model_minus_hold_rmse_rad'][name]={arm:{metric:arms[arm]['stages'][key][metric]-held[metric]
                     if held[metric] is not None else None for metric in ('arm_rmse_rad','hand_rmse_rad')}
                     for arm in ('source','selected')}
-    result=dict(version=version,registration_sha256=sha256(path),stages=rows,
+    return rows
+
+
+def compare(registration):
+    path=Path(registration);plan=read(path);arms={arm:read(path.parent/arm/'result.json') for arm in ('source','selected')}
+    version=plan.get('version',LEGACY_VERSION)
+    require(version in (VERSION,LEGACY_VERSION,UNION_VERSION),'Unknown stage-fit comparison version')
+    names=baseline_names(plan['role']) if version in (VERSION,UNION_VERSION) else []
+    if names:require(plan['baseline_names']==names,'Registered baseline semantics changed')
+    for arm,result in arms.items():
+        require(result['complete'] and result['registration_sha256']==sha256(path) and
+            result['checkpoint_sha256']==plan[arm]['sha256'],'Stage-fit result binding differs')
+        if names:require(set(result.get('baselines',{}))==set(names),'Causal hold baseline result missing')
+    result=dict(version=version,registration_sha256=sha256(path),stages=compare_stage_rows(arms,names),
         source_epoch=plan['source']['epoch'],selected_epoch=plan['selected']['epoch'],episodes=plan['episodes'],
         scope=plan['scope'],rear_evaluated=False,optimizer_updates=0,validation_evaluated=False,test_evaluated=False)
+    if version==UNION_VERSION:
+        for arm,value in arms.items():
+            require(set(value['episodes'])==set(plan['identities']) and
+                all(set(row['episodes'])==set(plan['identities']) for row in value['baselines'].values()),
+                'Union evaluated episode population differs')
+            rebuilt=stratified_results(value['episodes'],{key:row['episodes'] for key,row in value['baselines'].items()},plan['strata'])
+            require(value.get('strata')==rebuilt,'Union stratum result differs from its bound episode totals')
+            require(value['stages']==rebuilt['all']['stages'],'Union total differs from registered all stratum')
+            require(all(value['baselines'][name]['stages']==rebuilt['all']['baselines'][name]['stages'] for name in names),
+                'Union hold total differs from its bound episode totals')
+        result['strata']={key:dict(identities=ids,counts=plan['stratum_counts'][key],
+            stages=compare_stage_rows({arm:value['strata'][key] for arm,value in arms.items()},names))
+            for key,ids in plan['strata'].items()}
+        result['stratum_overlap']='Latest, per-collection and source-seen/unseen are overlapping views; only seen/unseen and distinct collections partition all.'
     exclusive_json(path.parent/'comparison.json',result);return result
 
 
@@ -358,6 +522,8 @@ def main():
     prep=sub.add_parser('prepare')
     for option in ('root','collection','selected-frozen','source-frozen','output'):prep.add_argument('--'+option,type=Path,required=True)
     prep.add_argument('--role',choices=['A','B'],required=True)
+    prep.add_argument('--include-collection',type=Path,action='append',
+        help='Additional completed training collection; primary --collection remains exactly the latest cohort')
     run=sub.add_parser('run-arm');run.add_argument('--registration',type=Path,required=True);run.add_argument('--arm',choices=['source','selected'],required=True)
     comp=sub.add_parser('compare');comp.add_argument('--registration',type=Path,required=True)
     args=vars(parser.parse_args());command=args.pop('command')
