@@ -1,0 +1,787 @@
+{
+  "version": "registered_training_diagnostic_across_attempts_v1",
+  "run_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01",
+  "report_source_commit": "16b7bae467b9a781759e1d47cf450718b408e863",
+  "report_source_sha256": {
+    "tools/tight_fresh_diagnostic_report.py": "36dbedeb4be8d342509184ceaa600b45520887fcfeeea16383132062ec92607e",
+    "tools/tight_fresh_phases.py": "915ddd2f5ab266ec9bd8eb2f4b2f556805e510c6676ebf554acf1f38946c1a93",
+    "visuotactile/takeover_trigger.py": "44f74a84c768d3acc80e9f5ac665d5522654e72ccde241843d66ab88e7933928"
+  },
+  "original_plan": {
+    "path": "round03_training_diagnostic/plan.json",
+    "sha256": "0cb01ad2df59cfba5356942fedc80d61e6918b0c39c454c28fd0e26d58ce6a6b"
+  },
+  "remaining_plan": {
+    "path": "round03_training_diagnostic_remaining/plan.json",
+    "sha256": "f908b4fa33a4e72f48c4032056d6288ecb4734858550655a5616573db2d195cd"
+  },
+  "frozen_execution_commit": "49043364665470f408a8b38bd52d471e4f1cd88f",
+  "verified_execution_source_files": 141,
+  "selected_models": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round_03/A/training/best.pt",
+      "frontend_sha256": "06ff7428f6eb256559de201c03e749bdf4e7f83d213ad68a67034bbcfe157fdd",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round_03/A/backend/A/training/best.pt",
+      "backend_sha256": "f2568b35f54f6b06a7f3beee0a07d1871afc78b451da48ea9ba93093c5e928e1",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round_03/B/training/best.pt",
+      "frontend_sha256": "1e5f93886f85f88014c75622854cbfa738ab695c5861cf5e2578f843ed087bf3",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_01/round_03/B/backend/B/training/best.pt",
+      "backend_sha256": "a3883766594271f29a06145065ec00966962df1a9fa0dcd9f5af8e738ca9e768",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "original_training_sources": {
+    "formal_050_slow_3": {
+      "source_sha256": "ab18a309b91557af4dfd1e3541fcad50573efc67e30851e0382967d9eded5f34",
+      "source_family": "formal_050",
+      "seed": 27420050,
+      "event_seed": 27130215,
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.030735940750345886,
+          -0.010263904608043951,
+          0.6300693384241924,
+          0.12827028941373375,
+          0.8915458698044822,
+          -0.3785728381572251,
+          0.2130150490552634
+        ],
+        "table_reset_z": 0.3808599191933132,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.041933677711767786,
+          0.041933677711767786
+        ],
+        "hole_y_range": [
+          -0.038799593643777025,
+          -0.038799593643777025
+        ]
+      }
+    },
+    "formal_029_slow_6": {
+      "source_sha256": "2826d800ff7e569101c916d24d7421109cd9c72e86992cf377d8ddad2d4c9ddc",
+      "source_family": "formal_029",
+      "seed": 27720029,
+      "event_seed": 27130359,
+      "narrow_reset": {
+        "fixed_start_pose": [
+          -0.0329546985627717,
+          -0.012866167332196468,
+          0.6317841691134549,
+          0.12360654475304818,
+          0.8905862002014244,
+          -0.3779000518881236,
+          0.22083772982464084
+        ],
+        "table_reset_z": 0.38028520125026255,
+        "table_reset_z_range": 0.0,
+        "reset_dof_pos_random_interval_arm": 0.0075,
+        "reset_dof_pos_random_interval_fingers": 0.0075,
+        "reset_dof_vel_random_interval": 0.03,
+        "hole_x_range": [
+          0.04281043392248506,
+          0.04281043392248506
+        ],
+        "hole_y_range": [
+          -0.04028116957311612,
+          -0.04028116957311612
+        ]
+      }
+    }
+  },
+  "session_deadline": 1794635980.012405,
+  "registered": 4,
+  "completed": 3,
+  "censored": 1,
+  "not_started": 0,
+  "roles": {
+    "A": {
+      "registered": 2,
+      "complete": 2,
+      "censored": 0,
+      "not_started": 0,
+      "successes": 0,
+      "denominator": "Completed legal autonomous records only",
+      "stage_counts": {
+        "lift_native": 0,
+        "hold_stable": 0,
+        "turn_aligned_native": 0,
+        "near_hole_native": 0,
+        "insertion_complete_native": 0
+      }
+    },
+    "B": {
+      "registered": 2,
+      "complete": 1,
+      "censored": 1,
+      "not_started": 0,
+      "successes": 0,
+      "denominator": "Completed legal autonomous records only",
+      "stage_counts": {
+        "lift_native": 1,
+        "hold_stable": 0,
+        "turn_aligned_native": 0,
+        "near_hole_native": 0,
+        "insertion_complete_native": 0
+      }
+    }
+  },
+  "attempts": [
+    {
+      "attempt": "round03_training_diagnostic",
+      "planned_cases": [
+        "A_train_diagnostic_formal_050_slow_3",
+        "B_train_diagnostic_formal_050_slow_3",
+        "B_train_diagnostic_formal_029_slow_6",
+        "A_train_diagnostic_formal_029_slow_6"
+      ],
+      "started_case_directories": [],
+      "complete_cases": [],
+      "worker_finish": {
+        "returncode": -9,
+        "stop_reason": "pre_control_startup_timeout",
+        "software_complete": false,
+        "seconds": 190.51878571510315
+      },
+      "pre_control_startup_failure": true,
+      "owner_source_commit": null,
+      "frozen_execution_commit": "49043364665470f408a8b38bd52d471e4f1cd88f",
+      "evidence": [
+        {
+          "path": "round03_training_diagnostic/plan.json",
+          "sha256": "0cb01ad2df59cfba5356942fedc80d61e6918b0c39c454c28fd0e26d58ce6a6b"
+        },
+        {
+          "path": "round03_training_diagnostic/session.json",
+          "sha256": "f1cde760995a55028768718d93af35a9acc2da937d3f6f5e2e26048376b5665c"
+        },
+        {
+          "path": "round03_training_diagnostic/run_started.json",
+          "sha256": "82fb495b56aa7cd56ac627146f6a17b317115d9ea38d6cdc37d91763d1971fa0"
+        },
+        {
+          "path": "round03_training_diagnostic/owner_finished.json",
+          "sha256": "b657349dc29adc4d6bd13b2c73508eca8f5f3573cb6c19b4bcf91c34d4010a6b"
+        },
+        {
+          "path": "round03_training_diagnostic/owner_registration.json",
+          "sha256": "df5c770fc5adc513b269819276bbe9a6617c90c6f6464b3fce1d8c6c8691a8eb"
+        }
+      ]
+    },
+    {
+      "attempt": "round03_training_diagnostic_recovery",
+      "planned_cases": [
+        "A_train_diagnostic_formal_050_slow_3",
+        "B_train_diagnostic_formal_050_slow_3",
+        "B_train_diagnostic_formal_029_slow_6",
+        "A_train_diagnostic_formal_029_slow_6"
+      ],
+      "started_case_directories": [
+        "A_train_diagnostic_formal_050_slow_3",
+        "B_train_diagnostic_formal_050_slow_3"
+      ],
+      "complete_cases": [
+        "A_train_diagnostic_formal_050_slow_3"
+      ],
+      "worker_finish": {
+        "returncode": -11,
+        "software_complete": false,
+        "stop_reason": "worker_failure",
+        "seconds": 91.52983689308167
+      },
+      "pre_control_startup_failure": false,
+      "owner_source_commit": "762f225fa6bcf5bba4c841f46836525f8e40d104",
+      "frozen_execution_commit": "49043364665470f408a8b38bd52d471e4f1cd88f",
+      "evidence": [
+        {
+          "path": "round03_training_diagnostic_recovery/plan.json",
+          "sha256": "0cb01ad2df59cfba5356942fedc80d61e6918b0c39c454c28fd0e26d58ce6a6b"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/session.json",
+          "sha256": "f1cde760995a55028768718d93af35a9acc2da937d3f6f5e2e26048376b5665c"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/run_started.json",
+          "sha256": "68677a7ffe6f81878323358fd293cf391c582c822d4e912e82650a3508bb28b8"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/recovery_finished.json",
+          "sha256": "bebfcf2c86e6fe978843799c4a0fbc805fd9dc14c5c621431ee74933d173ceef"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/recovery_registration.json",
+          "sha256": "d40c29f8eed53d8d44f2aca1a3743ccba206a8a31a2c897741089facaf239047"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/recovery_plan_binding.json",
+          "sha256": "00a29801be5cdbf24623259208af44b77e0226ad8dc9331038752080562cac8a"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/results.json",
+          "sha256": "3af5ce5e8cecd66db841825368cd75e0b5d0ee397fbfa2522cd8ba6c466cfcd1"
+        }
+      ]
+    },
+    {
+      "attempt": "round03_training_diagnostic_remaining",
+      "planned_cases": [
+        "B_train_diagnostic_formal_029_slow_6",
+        "A_train_diagnostic_formal_029_slow_6"
+      ],
+      "started_case_directories": [
+        "B_train_diagnostic_formal_029_slow_6",
+        "A_train_diagnostic_formal_029_slow_6"
+      ],
+      "complete_cases": [
+        "B_train_diagnostic_formal_029_slow_6",
+        "A_train_diagnostic_formal_029_slow_6"
+      ],
+      "worker_finish": {
+        "returncode": 0,
+        "stop_reason": null,
+        "software_complete": true,
+        "seconds": 109.53733086585999
+      },
+      "pre_control_startup_failure": false,
+      "owner_source_commit": "2e2376754d2045c2ee3d99d2bf3097b693c3ff87",
+      "frozen_execution_commit": "49043364665470f408a8b38bd52d471e4f1cd88f",
+      "evidence": [
+        {
+          "path": "round03_training_diagnostic_remaining/plan.json",
+          "sha256": "f908b4fa33a4e72f48c4032056d6288ecb4734858550655a5616573db2d195cd"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/session.json",
+          "sha256": "f1cde760995a55028768718d93af35a9acc2da937d3f6f5e2e26048376b5665c"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/run_started.json",
+          "sha256": "2a0beb8604bb09f7141125966c2a544b222b263ac999742e69a02c078114fe40"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/owner_finished.json",
+          "sha256": "7bef1cc49bad34609c98edab88d9304c6382b1ec852be59dc50bbf4f88763fb3"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/owner_registration.json",
+          "sha256": "cfa60b63f4419a164bd6cf5280c7e710710c175549d067201f86d136745b9a6a"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/remaining_registration.json",
+          "sha256": "b17d41170d278ecce26879104fd3896184cf208d123c3e823e6e9bf2987b4c72"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/results.json",
+          "sha256": "7011aa3573ffc5f275c0016fa970f09580f654b4cecb21fc23f9c143de3502d2"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/result.json",
+          "sha256": "d4fdb5f68100cf902e1321e5fd2a7d9455e8965d5ddcef36d6894dd4b165ae9e"
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "case": "A_train_diagnostic_formal_050_slow_3",
+      "role": "A",
+      "family": "formal_050",
+      "source_identity": "formal_050_slow_3",
+      "frontend_sha256": "06ff7428f6eb256559de201c03e749bdf4e7f83d213ad68a67034bbcfe157fdd",
+      "backend_sha256": "f2568b35f54f6b06a7f3beee0a07d1871afc78b451da48ea9ba93093c5e928e1",
+      "attempt": "round03_training_diagnostic_recovery",
+      "started": {
+        "path": "round03_training_diagnostic_recovery/A_train_diagnostic_formal_050_slow_3/started.json",
+        "sha256": "1831da5245b23395c4651fffe95093e8cc90cebc31c7e99f09cca91ea8ce5758"
+      },
+      "status": "complete",
+      "included_in_completed_denominator": true,
+      "success": false,
+      "steps": 601,
+      "phases": {
+        "case": "A_train_diagnostic_formal_050_slow_3",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.11826538294553757,
+            "quaternion_angle_rad": 2.4085023403167725,
+            "keypoint_gap_m": 0.18960581719875336,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11826538294553757,
+            "quaternion_angle_rad": 2.4085023403167725,
+            "keypoint_gap_m": 0.18960581719875336,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "numeric_sha256": "714937444e3befc127135e1de74182c20a6142554d86173415335c8328933a45",
+        "result_sha256": "46bacda5d4705312efe164f5b1c9d94848d11a4de0266b5059bf3ad1170d27d1",
+        "first_contact_tick": 64,
+        "first_two_fingers_both_substeps_tick": 75,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.10747373104095459,
+        "later_rise_with_two_fingers_max_m": 0.10747373104095459,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.11826538294553757,
+        "first_goal_min_quaternion_angle_rad": 1.4021822214126587,
+        "first_goal_min_keypoint_gap_m": 0.18960581719875336,
+        "post_contact_arm_tracking_rmse_rad": 0.008887339383363724,
+        "post_contact_hand_tracking_rmse_rad": 0.053683869540691376
+      },
+      "grasp_window_components": {
+        "two_contact_ticks": 36,
+        "longest_two_contact_run_ticks": 30,
+        "two_contact_windows": 19,
+        "elevated_two_contact_windows": 12,
+        "position_stable_elevated_contact_windows": 0,
+        "orientation_stable_elevated_contact_windows": 0,
+        "jointly_stable_windows": 0,
+        "best_joint_stability_windows": [
+          {
+            "end_completed_tick": 138,
+            "relative_drift_m": 0.026921095326542854,
+            "relative_rotation_rad": 0.5715653300285339
+          },
+          {
+            "end_completed_tick": 137,
+            "relative_drift_m": 0.023617999628186226,
+            "relative_rotation_rad": 0.6112897992134094
+          },
+          {
+            "end_completed_tick": 139,
+            "relative_drift_m": 0.030908189713954926,
+            "relative_rotation_rad": 0.5818150639533997
+          }
+        ],
+        "ranking": "Ascending max(position drift / 1cm, rotation drift / 0.2rad); descriptive only."
+      },
+      "stages": {
+        "lift_native": false,
+        "hold_stable": false,
+        "turn_aligned_native": false,
+        "near_hole_native": false,
+        "insertion_complete_native": false
+      },
+      "evidence": [
+        {
+          "path": "round03_training_diagnostic_recovery/A_train_diagnostic_formal_050_slow_3/result.json",
+          "sha256": "46bacda5d4705312efe164f5b1c9d94848d11a4de0266b5059bf3ad1170d27d1"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/A_train_diagnostic_formal_050_slow_3/numeric.h5",
+          "sha256": "714937444e3befc127135e1de74182c20a6142554d86173415335c8328933a45"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/A_train_diagnostic_formal_050_slow_3/trace.npz",
+          "sha256": "87be9db77ffd400177e9983f9cd3818ace77a9f6200f96098419307db3cb0884"
+        },
+        {
+          "path": "round03_training_diagnostic_recovery/A_train_diagnostic_formal_050_slow_3/plans.npz",
+          "sha256": "2966b06797f52d9f3978b8e817fdb9744e18c82e6ed5a56aac01aaa45a04e23f"
+        }
+      ]
+    },
+    {
+      "case": "B_train_diagnostic_formal_050_slow_3",
+      "role": "B",
+      "family": "formal_050",
+      "source_identity": "formal_050_slow_3",
+      "frontend_sha256": "1e5f93886f85f88014c75622854cbfa738ab695c5861cf5e2578f843ed087bf3",
+      "backend_sha256": "a3883766594271f29a06145065ec00966962df1a9fa0dcd9f5af8e738ca9e768",
+      "attempt": "round03_training_diagnostic_recovery",
+      "started": {
+        "path": "round03_training_diagnostic_recovery/B_train_diagnostic_formal_050_slow_3/started.json",
+        "sha256": "35ff4d23422224c78f0e588d59e544bdfcdea832d03df3a2c07049be3472f9da"
+      },
+      "status": "censored",
+      "included_in_completed_denominator": false,
+      "last_saved_progress": {
+        "tick": 200,
+        "utc": 1794629563.202989
+      },
+      "progress_evidence": {
+        "path": "round03_training_diagnostic_recovery/B_train_diagnostic_formal_050_slow_3/progress.json",
+        "sha256": "f389d46c3514dd2f6b4975968d10489b2d3e6eb8145bbd3c6c33750852fa9df6"
+      },
+      "exact_terminal_tick": null,
+      "success": null,
+      "partial_files": [
+        "numeric.h5",
+        "rollout.mp4.partial"
+      ],
+      "interpretation": "Worker exited without a completed case result; last saved progress is not an exact terminal tick. Partial HDF5/video were not opened."
+    },
+    {
+      "case": "B_train_diagnostic_formal_029_slow_6",
+      "role": "B",
+      "family": "formal_029",
+      "source_identity": "formal_029_slow_6",
+      "frontend_sha256": "1e5f93886f85f88014c75622854cbfa738ab695c5861cf5e2578f843ed087bf3",
+      "backend_sha256": "a3883766594271f29a06145065ec00966962df1a9fa0dcd9f5af8e738ca9e768",
+      "attempt": "round03_training_diagnostic_remaining",
+      "started": {
+        "path": "round03_training_diagnostic_remaining/B_train_diagnostic_formal_029_slow_6/started.json",
+        "sha256": "1d2519c55f51c4fd8071d666a8d4ded4e025b1276e0cacfba366d4d470628d3c"
+      },
+      "status": "complete",
+      "included_in_completed_denominator": true,
+      "success": false,
+      "steps": 601,
+      "phases": {
+        "case": "B_train_diagnostic_formal_029_slow_6",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 253,
+            "center_distance_m": 0.024811996147036552,
+            "quaternion_angle_rad": 1.118843674659729,
+            "keypoint_gap_m": 0.05555347353219986,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 243,
+            "center_distance_m": 0.03264010697603226,
+            "quaternion_angle_rad": 0.4953118562698364,
+            "keypoint_gap_m": 0.05430988967418671,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "numeric_sha256": "90265583a0ebc07a1427600fc3c195110323e6281dc3d63dc906bd1b258d077e",
+        "result_sha256": "64355ccaa1304094a5a7be2928991ae0e376c063d258fb2471a6653405120202",
+        "first_contact_tick": 72,
+        "first_two_fingers_both_substeps_tick": 109,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.20426440238952637,
+        "later_rise_with_two_fingers_max_m": 0.20219945907592773,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": true,
+        "first_goal_min_center_distance_m": 0.024811996147036552,
+        "first_goal_min_quaternion_angle_rad": 0.43881869316101074,
+        "first_goal_min_keypoint_gap_m": 0.05430988967418671,
+        "post_contact_arm_tracking_rmse_rad": 0.004632368218153715,
+        "post_contact_hand_tracking_rmse_rad": 0.04470697417855263
+      },
+      "grasp_window_components": {
+        "two_contact_ticks": 80,
+        "longest_two_contact_run_ticks": 26,
+        "two_contact_windows": 16,
+        "elevated_two_contact_windows": 10,
+        "position_stable_elevated_contact_windows": 0,
+        "orientation_stable_elevated_contact_windows": 0,
+        "jointly_stable_windows": 0,
+        "best_joint_stability_windows": [
+          {
+            "end_completed_tick": 134,
+            "relative_drift_m": 0.034656822681427,
+            "relative_rotation_rad": 0.327605664730072
+          },
+          {
+            "end_completed_tick": 249,
+            "relative_drift_m": 0.017979662865400314,
+            "relative_rotation_rad": 0.7540913224220276
+          },
+          {
+            "end_completed_tick": 133,
+            "relative_drift_m": 0.03800646588206291,
+            "relative_rotation_rad": 0.42303088307380676
+          }
+        ],
+        "ranking": "Ascending max(position drift / 1cm, rotation drift / 0.2rad); descriptive only."
+      },
+      "stages": {
+        "lift_native": true,
+        "hold_stable": false,
+        "turn_aligned_native": false,
+        "near_hole_native": false,
+        "insertion_complete_native": false
+      },
+      "evidence": [
+        {
+          "path": "round03_training_diagnostic_remaining/B_train_diagnostic_formal_029_slow_6/result.json",
+          "sha256": "64355ccaa1304094a5a7be2928991ae0e376c063d258fb2471a6653405120202"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/B_train_diagnostic_formal_029_slow_6/numeric.h5",
+          "sha256": "90265583a0ebc07a1427600fc3c195110323e6281dc3d63dc906bd1b258d077e"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/B_train_diagnostic_formal_029_slow_6/trace.npz",
+          "sha256": "501d20a8418812ae3a0bc7fb30900efc534886f9865008539d7a8f376ef76028"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/B_train_diagnostic_formal_029_slow_6/plans.npz",
+          "sha256": "0ed51b4dae840ab994f4b6ca2677e5bcc5b968ab5e07a7ed292aea74e5239759"
+        }
+      ]
+    },
+    {
+      "case": "A_train_diagnostic_formal_029_slow_6",
+      "role": "A",
+      "family": "formal_029",
+      "source_identity": "formal_029_slow_6",
+      "frontend_sha256": "06ff7428f6eb256559de201c03e749bdf4e7f83d213ad68a67034bbcfe157fdd",
+      "backend_sha256": "f2568b35f54f6b06a7f3beee0a07d1871afc78b451da48ea9ba93093c5e928e1",
+      "attempt": "round03_training_diagnostic_remaining",
+      "started": {
+        "path": "round03_training_diagnostic_remaining/A_train_diagnostic_formal_029_slow_6/started.json",
+        "sha256": "ec8516c7f27e640e5a724e45939fc5c202eaaa935e73e98705dd12cdb53de3e3"
+      },
+      "status": "complete",
+      "included_in_completed_denominator": true,
+      "success": false,
+      "steps": 601,
+      "phases": {
+        "case": "A_train_diagnostic_formal_029_slow_6",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.11824525892734528,
+            "quaternion_angle_rad": 2.4165802001953125,
+            "keypoint_gap_m": 0.19069968163967133,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11824525892734528,
+            "quaternion_angle_rad": 2.4165802001953125,
+            "keypoint_gap_m": 0.19069968163967133,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "numeric_sha256": "8e1c080a88c54c29afb7f69de98666fb60eb655d3006327b5a9119974902af81",
+        "result_sha256": "fd0f9f4a149619ff5262277ac5f0ff12bf2dfc76294387a4c1f2027b9e218c7b",
+        "first_contact_tick": 68,
+        "first_two_fingers_both_substeps_tick": null,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.0040122270584106445,
+        "later_rise_with_two_fingers_max_m": null,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.11824525892734528,
+        "first_goal_min_quaternion_angle_rad": 1.71942138671875,
+        "first_goal_min_keypoint_gap_m": 0.19069968163967133,
+        "post_contact_arm_tracking_rmse_rad": 0.03939121589064598,
+        "post_contact_hand_tracking_rmse_rad": 0.13247667253017426
+      },
+      "grasp_window_components": {
+        "two_contact_ticks": 0,
+        "longest_two_contact_run_ticks": 0,
+        "two_contact_windows": 0,
+        "elevated_two_contact_windows": 0,
+        "position_stable_elevated_contact_windows": 0,
+        "orientation_stable_elevated_contact_windows": 0,
+        "jointly_stable_windows": 0,
+        "best_joint_stability_windows": [],
+        "ranking": "Ascending max(position drift / 1cm, rotation drift / 0.2rad); descriptive only."
+      },
+      "stages": {
+        "lift_native": false,
+        "hold_stable": false,
+        "turn_aligned_native": false,
+        "near_hole_native": false,
+        "insertion_complete_native": false
+      },
+      "evidence": [
+        {
+          "path": "round03_training_diagnostic_remaining/A_train_diagnostic_formal_029_slow_6/result.json",
+          "sha256": "fd0f9f4a149619ff5262277ac5f0ff12bf2dfc76294387a4c1f2027b9e218c7b"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/A_train_diagnostic_formal_029_slow_6/numeric.h5",
+          "sha256": "8e1c080a88c54c29afb7f69de98666fb60eb655d3006327b5a9119974902af81"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/A_train_diagnostic_formal_029_slow_6/trace.npz",
+          "sha256": "bfddaa2728362e69d76760f0c592e48fe8862cf81944330356429f6eee52bafd"
+        },
+        {
+          "path": "round03_training_diagnostic_remaining/A_train_diagnostic_formal_029_slow_6/plans.npz",
+          "sha256": "96b2b4472779bf1cc0db56e3a094ccf3f6ee7579bdba4535d4ba8f9e5dfdce0b"
+        }
+      ]
+    }
+  ],
+  "audits": {
+    "same_original_and_recovery_plan": true,
+    "remaining_only_never_started_original_cases": true,
+    "no_repeated_case_directories": true,
+    "unchanged_session_deadline": true,
+    "model_hashes_verified": true,
+    "frozen_source_hashes_verified": true,
+    "completed_result_index_exact": true
+  },
+  "stage_definitions": {
+    "lift_native": "\u62ff\u8d77: native lifted_object diagnostic",
+    "hold_stable": "\u62ff\u7a33: existing 12-tick two-contact, >=2cm settled-height rise, <=1cm/0.2rad palm-relative drift",
+    "turn_aligned_native": "\u8f6c\u6b63: recorded native alignment condition",
+    "near_hole_native": "\u5bf9\u5b54: recorded native near_goal condition; alone does not establish insertion",
+    "insertion_complete_native": "\u63d2\u5165: unchanged native complete task success"
+  },
+  "limits": [
+    "Original training families with fresh native reset; no exact hidden-PhysX replay or held-out generalization claim.",
+    "Three worker attempts resolve one original registered cohort, not additional evaluation opportunities.",
+    "Censored outcomes are unknown and excluded from completed denominators; last_saved_progress is not a terminal tick.",
+    "Native lift and goal-distance minima do not establish stable grasp, orientation, or insertion.",
+    "Phase diagnostics do not alter native success; position and angle minima can occur at different ticks."
+  ],
+  "optimizer_updates": 0,
+  "model_forward_calls": 0,
+  "simulator_starts": 0,
+  "test_used": false
+}

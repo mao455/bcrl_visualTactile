@@ -1,3 +1,7 @@
+## 2026-11-14 训练初态诊断与扩散随机性实证
+
+新增tools/tight_fresh_diagnostic_report.py与round03_training_diagnostic.json，按原4机会联合三个attempt，严格区分A完整0/2、B完整0/1加1删失；不打开/修复部分HDF5，不把progress当终止步。源码、pair、原计划、剩余队列、完整结果/控制频率/阶段指标校验通过。新增tools/tight_fresh_seed_spread.py与round03_seed_spread.json：两个原训练family、完整逐帧条件、完整过去5Hz噪声时钟、固定5种子CPU推理；限位后手指种子差异远低于实际误差，不支持仅调种子。两项均零优化/GPU/新仿真，保留CPU与CUDA随机序列不同、固定条件前端诊断不能说明自主因果的限制。当前入口同步第四轮实际训练中状态。
+
 ## 2026-11-14 robot178归一化实证与第四轮学习决定
 
 新增tight_fresh_normalization_report与真实round03_normalization。77条numeric缓存与原始HDF5重建的canonical q/qd、实际target及严格过去issued/applied/age完全一致；原30全10398tick重算mean/std字节相同，178维没有触发1e-4 std下限。A/B四模型的DP model/EMA及后端共6套buffer全部正确。八次自主接触前max|z|<=5.18，首次>10均在接触后；初接触24观察最大A18.13/B20.08，主要小指DIP target-q 0.53–1.01rad，std0.04973。原示范同阶段max11.96、合法纠偏已覆盖26.5。大z只是实际接触偏差的描述，当前证据不支持缓存/归一化软件错误，不修改统计。
