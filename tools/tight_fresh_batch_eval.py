@@ -155,7 +155,7 @@ def run(output):
     atomic_json(output/'started.json',dict(pid=os.getpid(),utc=time.time(),plan_sha256=sha256(output/'plan.json')))
     resource_root=Path(plan['resource_root']);lease=lease_for(resource_root,deadline=session['deadline']);count=len(plan['cases'])
     backend_kwargs={'execution_backend':plan['execution_backend']} if 'execution_backend' in plan else {}
-    if diagnostic:backend_kwargs['camera_content_validation']=True
+    if diagnostic:backend_kwargs.update(camera_content_validation=True,startup_diagnostics=True)
     startup_began=time.perf_counter();resources=[]
     if diagnostic:resource_snapshot(resource_root,resources)
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=count,**backend_kwargs)

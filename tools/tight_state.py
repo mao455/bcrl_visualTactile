@@ -115,10 +115,25 @@ def kit_startup_scheduling(environ=None, *, execution_backend=None, num_envs=Non
         scope='Kit task scheduler only; native control, physics settings, assets and success unchanged')
 
 
-def environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1,execution_backend=None):
+def environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1,execution_backend=None,
+                startup_diagnostics=False):
+    kwargs=dict(camera_content_validation=camera_content_validation,lease=lease,num_envs=num_envs,
+        execution_backend=execution_backend)
+    if not startup_diagnostics:
+        return _environment(root,evaluation,**kwargs)
+    from visuotactile.startup_diagnostics import StartupDiagnostics
+    with StartupDiagnostics(root) as diagnostics:
+        return _environment(root,evaluation,**kwargs,startup_mark=diagnostics.mark)
+
+
+def _environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1,execution_backend=None,
+                 startup_mark=None):
+    mark=startup_mark or (lambda *args,**kwargs:None)
+    mark('environment_imports_started')
     from visuotactile.native_evaluation import client_startup_controls,make_env
     from visuotactile.state_resources import lease_for
     from visuotactile.expert import create_expert
+    mark('environment_imports_complete')
     s=read(root/'session.json')
     registered_backend = s.get('execution_backend')
     if execution_backend is not None and registered_backend is not None and execution_backend != registered_backend:
@@ -138,9 +153,12 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
     kit_args, scheduling = kit_startup_scheduling(execution_backend=selected_backend, num_envs=num_envs)
     write(root/('eval_startup.json' if evaluation else 'startup.json'),
         dict(client_startup_controls('kit_managed'), scheduling=scheduling))
+    mark('kit_resource_wait_started')
     with lease.block(cuda=False):
+        mark('kit_app_launch_started')
         from isaaclab.app import AppLauncher
         app=AppLauncher(headless=True,enable_cameras=True,device=backend['physics_device'],fast_shutdown=False,kit_args=kit_args).app
+        mark('kit_app_launch_complete')
         import carb.settings
         settings = carb.settings.get_settings()
         observed = dict(kit_tasking_threads=settings.get('/plugins/carb.tasking.plugin/threadCount'),
@@ -153,10 +171,12 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
         if observed != dict(kit_tasking_threads=scheduling['kit_tasking_threads'], physics_threads=scheduling['physics_threads']):
             raise RuntimeError('Kit scheduler/physics thread settings differ from the registered request')
         require_renderer_resources(renderer_readback)
+    mark('task_registration_import_started')
     import isaacsimenvs
+    mark('task_registration_import_complete')
     env=make_env(True,lease,num_envs=num_envs,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
         camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation),
-        execution_backend=selected_backend)
+        execution_backend=selected_backend, **({'startup_mark':startup_mark} if startup_mark is not None else {}))
     if selected_backend is not None:
         renderer_readback = renderer_resource_readback(backend,settings.get)
         renderer_receipt = {} if renderer_readback is None else dict(renderer_resources=renderer_readback)
@@ -165,8 +185,13 @@ def environment(root,evaluation=False,*,camera_content_validation=None,lease=Non
             physics_dt=float(env.physics_dt), control_dt=float(env.step_dt), num_envs=env.num_envs,
             note='Constructed configuration, not live task acceptance', utc=time.time(),**renderer_receipt))
         require_renderer_resources(renderer_readback)
+    mark('expert_checkpoint_verification_started')
     if sha(s['expert_checkpoint'])!=s['expert_sha256']:raise RuntimeError('Expert source drift')
-    with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
+    mark('expert_resource_wait_started')
+    with lease.block():
+        mark('expert_creation_started')
+        player,_=create_expert(env,s['expert_checkpoint'])
+        mark('expert_creation_complete')
     return app,env,player,lease
 
 

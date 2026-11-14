@@ -103,3 +103,68 @@ def test_renderer_layout_records_actual_bindings_and_cached_shapes():
     assert row['cached_output']['rgb']['shape'] == [8, 252, 448, 3]
     assert report['calibration_bindings'][0]['render_products'] == ['/Render/calibration']
     assert report['camera_params'][0]['data']['cameraResolution'] == [1, 1]
+
+
+def tiled_fixture():
+    # Three lanes in a 2x2 atlas, last tile is unused. Each live lane/channel
+    # differs, so a transposed or reused tile cannot accidentally pass.
+    raw = np.zeros((6, 8, 4), dtype=np.uint8)
+    for lane in range(3):
+        y, x = (lane // 2) * 3, (lane % 2) * 4
+        raw[y:y+3, x:x+4] = [11+lane, 31+lane, 71+lane, 255]
+    cached = torch.from_numpy(np.stack([raw[(i//2)*3:(i//2+1)*3, (i%2)*4:(i%2+1)*4]
+        for i in range(3)]).copy())
+    camera = SimpleNamespace(_sensor_prims=[], render_product_paths=['/Render/tiled'],
+        cfg=SimpleNamespace(prim_path='/World/env_.*/Camera', width=4, height=3),
+        _data=SimpleNamespace(output={'rgba': cached}), _tiling_grid_shape=lambda: (2, 2),
+        _tiled_image_shape=lambda: (8, 6),
+        _annotators={'rgba': SimpleNamespace(get_data=lambda: raw,
+            _node_path='/Render/tiled/SDGPipeline/Rgb', _render_products=['/Render/tiled'])})
+    env = SimpleNamespace(research_cameras=[camera], _camera_pose_annotators=[], _camera_calibration_bindings=[])
+    return raw, cached, camera, env
+
+
+def test_raw_rgba_distinguishes_renderer_black_from_cached_lane_copy_failure():
+    raw, cached, camera, env = tiled_fixture()
+    cached[1, ..., :3] = 0
+    raw[3:6, :4, :3] = 0
+    cached[2, ..., :3] = 0
+    detail = diagnostics.renderer_layout(env)['cameras'][0]['raw_annotators']['rgba']
+    rows = detail['cpu_tiled_comparison']['lanes']
+    assert rows[0]['equal_values']
+    assert not rows[1]['equal_values'] and rows[1]['unequal_values'] == 3*4*3
+    assert rows[1]['raw_channel_metrics'][0]['min'] == 12
+    assert rows[1]['cached_channel_metrics'][0]['max'] == 0
+    assert rows[2]['equal_values'] and rows[2]['raw_channel_metrics'][0]['nonzero_count'] == 0
+    assert rows[2]['raw_channel_metrics'][3]['min'] == 255  # valid alpha, black RGB
+    assert detail['cpu_tiled_comparison']['unused_tile_slots'] == 1
+    assert detail['node_path'] == '/Render/tiled/SDGPipeline/Rgb'
+    assert detail['read_started_utc'] <= detail['cached_copy_finished_utc'] <= detail['raw_copy_finished_utc']
+
+
+def test_cached_snapshot_precedes_async_annotator_read_and_never_replaces_failed_packet(tmp_path):
+    raw, cached, camera, env = tiled_fixture()
+    def read_newer_buffer():
+        # Emulate a renderer update between cache snapshot and annotator read.
+        cached.fill_(99)
+        return raw
+    camera._annotators['rgba'].get_data = read_newer_buffer
+    failed = packet()
+    failed['image'].zero_(); failed['camera_valid'].zero_()
+    report = diagnostics.save_failure(tmp_path, failed, [True, True], env, ValueError('black'), control_tick=0)
+    detail = report['renderer']['cameras'][0]['raw_annotators']['rgba']
+    assert detail['cpu_tiled_comparison']['all_equal_values']  # compared to the earlier copied cache
+    assert bool((cached == 99).all())
+    assert report['renderer']['same_frame_as_failed_packet_verified'] is False
+    saved = np.load(tmp_path/'sensor_failure/packet.npz')
+    assert not saved['image'].any() and not saved['camera_valid'].any()
+
+
+def test_oversized_renderer_array_rejected_before_transfer():
+    class Oversized:
+        shape = (diagnostics.MAX_RENDERER_ARRAY_BYTES + 1,)
+        dtype = np.uint8
+        def numpy(self):
+            raise AssertionError('Oversized array must not be copied')
+    with pytest.raises(ValueError, match='copy bound'):
+        diagnostics._host_copy(Oversized())

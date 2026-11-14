@@ -85,7 +85,10 @@ def configure_episode_io(output, config):
 
 
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
-        parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2):
+        parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
+        paired_episode_io=False):
+    if paired_episode_io and not parallel_frontends:
+        raise ValueError('Paired episode I/O requires two parallel independent frontends')
     if type(evaluation_lanes) is not int or evaluation_lanes<1:
         raise ValueError('Positive evaluation concurrency required')
     if type(vision_microbatch) is not int or vision_microbatch<1:raise ValueError('Positive vision microbatch required')
@@ -105,6 +108,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
         frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
         parallel_frontends=parallel_frontends,
+        paired_episode_io=paired_episode_io,
         frontend_latest_repeat=latest_repeat,backend_latest_repeat=1,
         development_startup_seconds=300 if evaluation_lanes>1 else 180,
         evaluation_lanes=evaluation_lanes,execution_backend=execution_backend,episode_io=episode_io,vision_microbatch=vision_microbatch,
@@ -156,6 +160,11 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             admission=parallel_admission(read(root/'shared_resources.json'),time.time())
             atomic_json(ledger/'parallel_admission.json',admission)
             admitted=admission['admitted']
+        if paired_episode_io:
+            if not admitted:
+                raise RuntimeError('Paired episode I/O lacks joint resource admission; no serial fallback')
+            from visuotactile.paired_episode_io import configure_pairing
+            atomic_json(ledger/'paired_episode_io.json',configure_pairing(output,epochs))
         if admitted:
             atomic_json(ledger/'status.json',dict(stage='parallel_frontends',roles=['A','B'],started=time.time()))
             paired=paired_frontends(execute,output,epochs)
@@ -198,6 +207,8 @@ def main():
     p.add_argument('--continue-rear',action='store_true')
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
+    p.add_argument('--paired-episode-io',action='store_true',
+        help='Opt-in same-deck A/B I/O rendezvous; requires parallel frontends and shared frozen shards')
     p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
     p.add_argument('--evaluation-lanes',type=int,default=1)
     p.add_argument('--backend-json',type=Path)
@@ -207,9 +218,10 @@ def main():
     if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or a.count<1 or a.evaluation_lanes<1:p.error('Positive finite stage exposure required')
     if a.prefetch_mib is not None and not 1<=a.prefetch_mib<=1024:p.error('Prefetch budget must be 1–1024 MiB')
     if a.vision_microbatch<1:p.error('Positive vision microbatch required')
+    if a.paired_episode_io and not a.parallel_frontends:p.error('Paired episode I/O requires --parallel-frontends')
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
-        parallel_frontends=a.parallel_frontends,latest_repeat=a.latest_repeat,
+        parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch)

@@ -213,6 +213,15 @@ def reconcile_learning_log(out,*,durable_update,completed_epochs,episodes_per_ep
 
 
 def train(root,role,epochs):
+    pairing_path=root/'paired_episode_io.json'
+    if not pairing_path.exists():
+        return _train(root,role,epochs)
+    from visuotactile.paired_episode_io import PairWorker
+    with PairWorker(root,role,epochs) as pairing:
+        return _train(root,role,epochs,pairing=pairing)
+
+
+def _train(root,role,epochs,*,pairing=None):
     from visuotactile.anchor_continue import projection_batch
     from visuotactile.state_resources import lease_for
     from visuotactile.precision import state_fp32
@@ -269,6 +278,10 @@ def train(root,role,epochs):
     if io_config is not None:
         config['episode_io']=io_config
         config['episode_io_configuration_sha256']=sha256(io_path)
+    if pairing is not None:
+        config['paired_episode_io']=dict(version=pairing.config['version'],
+            registration_sha256=pairing.registration_sha256,
+            scope='Only inter-process I/O scheduling; each role keeps its own full episode updates and RNG')
     if auxiliary:
         config.update(version='fresh30_continuous_episode_aux_v1',visual_auxiliary=auxiliary,
             auxiliary_label_report_sha256=sha256(out/'visual_auxiliary_labels.json'),
@@ -324,13 +337,15 @@ def train(root,role,epochs):
         atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
         order=episode_deck(data['splits']['train'],multiplicities,generator);losses=[]
-        epoch_io_before=io_snapshot();epoch_began=time.perf_counter()
+        if pairing is not None:pairing.begin_epoch(epoch+1,order)
+        epoch_io_before=io_snapshot();epoch_began=time.perf_counter();epoch_started_utc=time.time()
         prefetch=(EpisodePrefetch(order,lambda identity:Episode(dr,identity,'I-HistoryDP'),io_config)
                   if io_config is not None else None)
         try:
             for order_index,i in enumerate(order):
                 rec=records[i];began=time.perf_counter()
                 io_before=io_snapshot()
+                pair_ready_wait=(pairing.before_visit(epoch+1,order_index,i) if pairing is not None else None)
                 visit=(prefetch.visit(order_index) if prefetch is not None else nullcontext((None,None)))
                 with visit as (episode,episode_io),lease.block():
                     model.train();opt.zero_grad(set_to_none=True)
@@ -359,16 +374,19 @@ def train(root,role,epochs):
                     visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
                 row['process_io']=io_delta(io_before,io_snapshot())
                 if episode_io is not None:row['episode_io']=episode_io
+                if pairing is not None:row['paired_episode_io_ready_wait_s']=pair_ready_wait
                 if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
                 if sampling:row.update(episode_visit=sampling_exposure[i],episodes_per_epoch=episodes_per_epoch)
                 atomic_json(out/'progress.json',row)
                 with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+                if pairing is not None:pairing.after_visit(updates)
         finally:
             if prefetch is not None:prefetch.close()
         training_epoch_io=dict(process_io=io_delta(epoch_io_before,io_snapshot()),
-            wall_seconds=time.perf_counter()-epoch_began,
+            wall_seconds=time.perf_counter()-epoch_began,started_utc=epoch_started_utc,ended_utc=time.time(),
             prefetch=prefetch.summary() if prefetch is not None else None,
             scope='Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution')
+        if pairing is not None:training_epoch_io['paired_episode_io']=pairing.summary(epoch=epoch+1)
         with lease.block():
             val=metrics(averaged,records,data['splits']['validation']);tr=metrics(averaged,records,data['splits']['train'][:2])
             pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
@@ -392,6 +410,7 @@ def train(root,role,epochs):
     if auxiliary:finished['auxiliary_exposure']=pose_exposure
     if sampling:finished.update(sampling_contract=sampling,episode_multiplicities=multiplicities,
         episodes_per_epoch=episodes_per_epoch,sampling_exposure=sampling_exposure)
+    if pairing is not None:finished['paired_episode_io']=pairing.summary()
     atomic_json(out/'finished.json',finished)
 
 

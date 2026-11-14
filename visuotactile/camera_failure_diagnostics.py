@@ -2,6 +2,7 @@
 import hashlib
 import json
 from pathlib import Path
+import time
 
 import numpy as np
 import torch
@@ -11,6 +12,64 @@ PACKET_FIELDS = ('image', 'depth_m', 'depth_valid', 'camera_valid', 'camera_time
                  'camera_frame', 'camera_pose_w', 'camera_parent_pose_w', 'time_s',
                  'episode_id', 'step')
 MAX_PACKET_BYTES = 256 * 1024 * 1024
+MAX_RENDERER_ARRAY_BYTES = 64 * 1024 * 1024
+
+
+def _host_copy(value):
+    """Bound an individual diagnostic copy, including Warp's GPU-to-host copy."""
+    shape = tuple(value.shape)
+    dtype = np.dtype(getattr(value.dtype, '__name__', str(value.dtype).removeprefix('torch.')))
+    if int(np.prod(shape)) * dtype.itemsize > MAX_RENDERER_ARRAY_BYTES:
+        raise ValueError('Renderer array exceeds diagnostic copy bound')
+    if torch.is_tensor(value):
+        value = value.detach().cpu().numpy()
+    elif not isinstance(value, np.ndarray):
+        value = value.numpy()
+    return np.array(value, copy=True)
+
+
+def channel_metrics(array):
+    """Channel statistics include alpha; a zero RGB image can have valid alpha."""
+    if array.ndim < 3:
+        array = array[..., None]
+    rows = []
+    for channel in range(array.shape[-1]):
+        values = array[..., channel]
+        finite = np.isfinite(values)
+        selected = values[finite]
+        rows.append(dict(channel=channel, count=int(values.size), finite_count=int(finite.sum()),
+            nonzero_count=int(np.count_nonzero(values)),
+            min=float(selected.min()) if selected.size else None,
+            max=float(selected.max()) if selected.size else None))
+    return rows
+
+
+def tiled_cached_comparison(raw, cached, *, width, height, columns):
+    """Independent CPU tile indexing, including padded non-square atlases."""
+    if cached.ndim != 4 or cached.shape[1:3] != (height, width) or columns < 1:
+        raise ValueError('Unexpected cached tile geometry')
+    if raw.ndim == 2:
+        raw = raw[..., None]
+    lanes, _, _, channels = cached.shape
+    if raw.ndim != 3 or raw.shape[-1] < channels or raw.shape[1] != columns * width:
+        raise ValueError('Raw atlas shape differs from cached tile geometry')
+    if raw.shape[0] < ((lanes + columns - 1) // columns) * height:
+        raise ValueError('Raw atlas lacks complete lane tiles')
+    rows = []
+    for lane in range(lanes):
+        y, x = (lane // columns) * height, (lane % columns) * width
+        tile = raw[y:y+height, x:x+width, :channels]
+        expected = cached[lane]
+        finite = np.isfinite(tile) & np.isfinite(expected)
+        delta = np.abs(tile[finite].astype(np.float64) - expected[finite].astype(np.float64))
+        rows.append(dict(lane=lane, raw_channel_metrics=channel_metrics(tile),
+            cached_channel_metrics=channel_metrics(expected),
+            equal_values=bool(np.array_equal(tile, expected, equal_nan=True)),
+            unequal_values=int(np.count_nonzero(~((tile == expected) | (np.isnan(tile) & np.isnan(expected))))),
+            finite_max_absolute_difference=float(delta.max()) if delta.size else None))
+    return dict(lanes=rows, all_equal_values=all(row['equal_values'] for row in rows),
+        unused_tile_slots=int(raw.shape[0] // height * columns - lanes),
+        semantics='Read-time comparison, not proof of identical render frame; cached copy precedes raw read.')
 
 
 def _plain(value):
@@ -65,7 +124,12 @@ def packet_metrics(arrays, active):
 
 def renderer_layout(env):
     """Read existing buffers/prim bindings only; no camera.update or render call."""
-    result = dict(calibration_bindings=_plain(getattr(env, '_camera_calibration_bindings', [])), cameras=[])
+    result = dict(calibration_bindings=_plain(getattr(env, '_camera_calibration_bindings', [])), cameras=[],
+        read_started_utc=time.time(), max_array_copy_bytes=MAX_RENDERER_ARRAY_BYTES,
+        read_semantics='Failure-only reads of current existing buffers after the failed packet was saved. '
+            'No render/update/physics call. Annotators may advance asynchronously; timestamps are host read '
+            'times, not camera exposures. These reads never replace the failed packet.',
+        same_frame_as_failed_packet_verified=False)
     products = set()
     for camera in env.research_cameras:
         paths = [str(prim.GetPath()) for prim in getattr(camera, '_sensor_prims', [])]
@@ -83,13 +147,28 @@ def renderer_layout(env):
         row['cached_intrinsics'] = _plain(getattr(cached, 'intrinsic_matrices', None))
         row['raw_annotators'] = {}
         for name, annotator in getattr(camera, '_annotators', {}).items():
+            detail = dict(read_started_utc=time.time(),
+                node_path=_plain(getattr(annotator, '_node_path', None)),
+                render_products=_plain(getattr(annotator, '_render_products', None)))
+            row['raw_annotators'][name] = detail
             try:
+                # Copy cache first: a subsequent asynchronous annotator read can
+                # describe a newer render. A mismatch is evidence, not a fix.
+                output = getattr(cached, 'output', {})
+                cached_value = output.get(name, output.get('rgb') if name == 'rgba' else None)
+                cached_copy = _host_copy(cached_value) if cached_value is not None else None
+                detail['cached_copy_finished_utc'] = time.time()
                 raw = annotator.get_data()
                 if isinstance(raw, dict):
                     raw = raw.get('data')
-                row['raw_annotators'][name] = dict(shape=list(raw.shape), dtype=str(raw.dtype))
+                detail.update(shape=list(raw.shape), dtype=str(raw.dtype))
+                raw_copy = _host_copy(raw)
+                detail.update(raw_copy_finished_utc=time.time(), channel_metrics=channel_metrics(raw_copy))
+                if cached_copy is not None and hasattr(camera, '_tiling_grid_shape'):
+                    detail['cpu_tiled_comparison'] = tiled_cached_comparison(raw_copy, cached_copy,
+                        width=camera.cfg.width, height=camera.cfg.height, columns=camera._tiling_grid_shape()[0])
             except Exception as error:
-                row['raw_annotators'][name] = dict(read_error=repr(error))
+                detail['read_error'] = repr(error)
         result['cameras'].append(row)
     result['camera_params'] = []
     for view, annotators in enumerate(getattr(env, '_camera_pose_annotators', [])):
@@ -113,7 +192,8 @@ def renderer_layout(env):
             prim = stage.GetPrimAtPath(path)
             result['render_products'].append(dict(path=path, valid=bool(prim.IsValid()),
                 attributes={attribute.GetName(): _plain(attribute.Get()) for attribute in prim.GetAttributes()
-                            if 'tile' in attribute.GetName().lower() or attribute.GetName() == 'resolution'},
+                            if any(term in attribute.GetName().lower() for term in ('tile', 'postprocess', 'enabled'))
+                            or attribute.GetName() == 'resolution'},
                 camera_targets=[str(path) for path in prim.GetRelationship('camera').GetTargets()],
                 ordered_vars=[str(path) for path in prim.GetRelationship('orderedVars').GetTargets()]))
         result['camera_prim_properties'] = {}
@@ -125,6 +205,7 @@ def renderer_layout(env):
                     'verticalApertureOffset', 'clippingRange', 'projection')}
     except Exception as error:
         result['renderer_read_error'] = repr(error)
+    result['read_finished_utc'] = time.time()
     return result
 
 
@@ -134,7 +215,7 @@ def save_failure(directory, packet, active, env, failure, *, control_tick, max_p
     destination.mkdir(exist_ok=False)
     selected = {key: packet[key] for key in PACKET_FIELDS if key in packet and torch.is_tensor(packet[key])}
     size = sum(value.numel() * value.element_size() for value in selected.values())
-    report = dict(version='camera_failure_snapshot_v1', control_tick=control_tick,
+    report = dict(version='camera_failure_snapshot_v2', control_tick=control_tick, snapshot_started_utc=time.time(),
         original_error=repr(failure), active=list(map(bool, active)), payload_bytes=size,
         max_payload_bytes=max_packet_bytes, packet_saved=False, thresholds_changed=False,
         semantics='Actual pre-action packet, no extra render/physics/control. Metric depth is already sanitized '
@@ -160,5 +241,6 @@ def save_failure(directory, packet, active, env, failure, *, control_tick, max_p
     except Exception as error:
         report['renderer_diagnostic_error'] = repr(error)
     # JSON may expose nonfinite diagnostic values, not silently map them to valid content.
+    report['snapshot_finished_utc'] = time.time()
     (destination / 'report.json').write_text(json.dumps(report, indent=2) + '\n')
     return report

@@ -123,7 +123,9 @@ def stable_grasp(arrays, initial_height):
 
 
 def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False, expert_speed=None,
-             camera_content_validation=False, execution_backend=None):
+             camera_content_validation=False, execution_backend=None, startup_mark=None):
+    mark=startup_mark or (lambda *args,**kwargs:None)
+    mark('make_env_imports_started')
     from .execution_backend import execution_backend as resolve_backend, backend_receipt
     backend = resolve_backend(execution_backend)
     receipt = backend_receipt(backend, num_envs=num_envs)
@@ -131,6 +133,7 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
     from .observations import TaskCommand
     from .sim.replay_environment import RecordedReplayEnv
     from .sim.native_diagnostics import NativeDiagnosticEnv
+    mark('make_env_config_load_started')
     cfg = _load_env_cfg('Isaacsimenvs-PreciseAssembly-Direct-v0')
     cfg.seed = seed
     cfg.scene.num_envs, cfg.scene.env_spacing = num_envs, 8.
@@ -151,15 +154,20 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
         assert instrumented
         from .sim.expert_speed_environment import SpeedLimitedDiagnosticEnv
         env_class=SpeedLimitedDiagnosticEnv;extra['speed_config']=expert_speed
+    mark('make_env_resource_wait_started')
     with lease.block():
+        mark('environment_constructor_started',environment_class=env_class.__name__,num_envs=num_envs)
         env = env_class(cfg, perception_version=2, **extra, camera_content_validation=camera_content_validation,
             execution_backend=backend if execution_backend is not None else None,
             task_command=TaskCommand('tight_insertion'), wrench_frame_mode='world_hold', camera_rig='wrist_bracket_close')
+        mark('environment_constructor_complete')
         if execution_backend is not None:
             env.execution_backend_receipt = receipt
         if camera_content_validation:
             # Direct fresh reset never passed through restore_observable_state,
             # which was historically the only caller setting fixed camera poses.
             # Configure after sensor initialization and before the first reset/render.
+            mark('camera_view_configuration_started')
             env.configure_camera_views()
+            mark('camera_view_configuration_complete')
         return env
