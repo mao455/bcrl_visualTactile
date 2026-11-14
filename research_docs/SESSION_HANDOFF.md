@@ -1,3 +1,15 @@
+## 2026-11-15 00:24 首波真实后段纠偏与有限组件诊断实现
+
+新tight_collection_summary默认JSON-only snapshot，仅以已提交results索引的accepted_for_training计入池，capture_verified/提前entry不算；完整模式先验owner退出与全部机会，再复用原numeric/时钟/标签/触发审核。新增按schedule重叠专家动作阶段与held60/120不触发原因、接管边界，两者和原生lift/掉落分开。15项CPU测试通过；首A波6个closed held记录已1.38秒独立回放，未读活动HDF，证据见collection09_registration/first_wave.json。本批128仍运行中。
+
+新增训练完成B前端组件控制器与finite component gate：先8条原始train×25tick同输入CUDA检查（完整学生nominal/history与纯前端一致、零提案确定性投影逐值一致），通过后才新Kit两臂分别完整B08、B08前端＋同投影。纯前端不加载rear，不伪装完整pair；每60Hz真实三视角/独立历史、实际目标反馈与terminal ack保留。沿用原8个devspec和旧B实际batch seed28500001/event28600001，两臂独立Kit仍非隐藏状态精确重放；诊断结果不得并入正式分母。最多1800秒含30秒清理、原03:49:51截止、失败不自动重跑。38项Agent组合CPU测试、独立审查及真实CPU prepare02通过；尚未启动CUDA/Kit，当前采集RAM余量不足以安全追加Kit，待后续训练准入后评估资源再安排。
+
+## 2026-11-15 00:21 两角色跨轨迹CUDA验收通过，来源独立复核
+
+冻结d17b1f8的A/B gate各约6.4秒完成，均使用第八轮已选EMA、261帧原示范和500帧真实纠偏；同参数serial平均梯度对照B2，188项参数梯度最大差A2.849e-9/B3.260e-9，固定2e-5门槛通过，anchors/合法mask/RNG末态一致，A逐轨原几何保留。0 optimizer，两个service inactive/MainPID0，原session截止不改。局部前后向A0.781→0.434秒、B0.906→0.340秒，峰值allocated约3.60→5.02GB；serial先运行、与采集重叠，不能代替完整训练吞吐。正式第九轮仍87577e8；原pairedIO的visit==update及预取释放规则不能直接用于B2，正式采用尚待独立版本化训练验证。
+
+round_compare新增per_role_development_sources_v1与只读source-preflight；各来源引用原执行计划，不拼造新混合计划。49项CPU测试及4.02秒真实完整预检通过：A08原自主7合法、native lift1/旧stable2/held3；B06为8合法、lift2/stable2/held4，两者均0对孔/插入。来源模型/每tick传感与目标/实际wave及源码分别核验，未重跑旧自主。未来第九轮用该清单逐角色比较；来源执行不是共同混合pair，也不是隐藏PhysX精确配对。见trajectory_batch_review与round09_source_review。
+
 ## 2026-11-15 00:16 跨轨迹训练合批候选，正式第九批继续
 
 第九批首波16机会全部结束并索引，6条成功专家纠偏实际入池；held60五机会中两次真实触发且均救回，held120一机会等待到期后当前窗口不满足而未接管，不能记为掉落。学生仍未自主插入。第二波正在执行，128机会未全部结束，最终训练量与吞吐尚待。

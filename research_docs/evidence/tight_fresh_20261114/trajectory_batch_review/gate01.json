@@ -1,0 +1,283 @@
+{
+  "version": "independent_trajectory_batch_live_gate_review_v1",
+  "utc": 1794673190.7427151,
+  "roles": {
+    "A": {
+      "complete": true,
+      "passed": true,
+      "role": "A",
+      "identities": [
+        "formal_050_slow_3",
+        "r08_A_expanded_session06_new16_s28400000_fixed40"
+      ],
+      "full_history_frames": [
+        261,
+        500
+      ],
+      "optimizer_updates": 0,
+      "checkpoint_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+      "geometry": {
+        "acceptance_sha256": "10ff0ce6d568176a2d2364645f90aa1eb11ef5cf81757b75ffc3fbf1e8d8a50e",
+        "live_sha256": "6a776b39519a508783e9920449a5b9bfd3b8ef9369773b5d9c4f026bb1b6ab38",
+        "loss_kind": "hand_surface_soft_hinge_v1",
+        "weight": 2.355370821894758e-06,
+        "hyperparameter_source": "prior accepted train-only physical geometry calibration; no test tuning"
+      },
+      "serial_seconds": 0.7813668490853161,
+      "candidate_seconds": 0.43358455412089825,
+      "serial_peak_allocated_bytes": 3598240768,
+      "candidate_peak_allocated_bytes": 5019761152,
+      "per_process_allocator_fraction": 0.45,
+      "training_exposure": [
+        {
+          "identity": "formal_050_slow_3",
+          "anchors": 22,
+          "target_ticks": 510
+        },
+        {
+          "identity": "r08_A_expanded_session06_new16_s28400000_fixed40",
+          "anchors": 39,
+          "target_ticks": 910
+        }
+      ],
+      "limitations": "Two train trajectories, serial then batch warm order and concurrent jobs; no epoch speed, optimizer equivalence, validation or autonomous claim",
+      "wall_seconds": 6.435319423675537,
+      "finished_utc": 1794673056.4178774,
+      "source_commit": "d17b1f8",
+      "frozen_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_traj09_20261115",
+      "gradient_parameters": 188,
+      "all_gradient_checks_passed": true,
+      "maximum_gradient_absolute_difference": 2.8485374059528112e-09,
+      "maximum_gradient_tolerance_ratio": 0.0001424213533949792,
+      "forward_checks": {
+        "formal_050_slow_3/condition": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 9.5367431640625e-07,
+          "maximum_tolerance_ratio": 0.011657433590681726
+        },
+        "formal_050_slow_3/truth": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 0.0,
+          "maximum_tolerance_ratio": 0.0
+        },
+        "formal_050_slow_3/anchors": {
+          "passed": true
+        },
+        "formal_050_slow_3/valid": {
+          "passed": true
+        },
+        "formal_050_slow_3/prediction": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 1.1920928955078125e-06,
+          "maximum_tolerance_ratio": 0.03719694744344833
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/condition": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 7.152557373046875e-07,
+          "maximum_tolerance_ratio": 0.012710933977184508
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/truth": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 0.0,
+          "maximum_tolerance_ratio": 0.0
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/anchors": {
+          "passed": true
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/valid": {
+          "passed": true
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/prediction": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 1.1920928955078125e-06,
+          "maximum_tolerance_ratio": 0.036374228791003015
+        },
+        "loss": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 0.0,
+          "maximum_tolerance_ratio": 0.0
+        },
+        "noise_state": {
+          "passed": true
+        }
+      },
+      "files": {
+        "started.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_A_gate01/started.json",
+          "sha256": "f638c5aa5f75d3377513e4c0b866b4fc996ba3ac5b9bb56b18b4d1d261530338"
+        },
+        "admission.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_A_gate01/admission.json",
+          "sha256": "67862fdea1da40f0d55e8673d08f42a4361d92ebd45faa902c3c6a17a674186a"
+        },
+        "result.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_A_gate01/result.json",
+          "sha256": "64d3476e733a2da3bcaa8cfc1363ae094a517130578be1afd4e1d7826cbfa979"
+        }
+      },
+      "service_receipt": "MainPID=0\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nActiveState=inactive\n",
+      "candidate_helper_sha256": "807acb0897d91dd991cae90fb5283ec733719326af3c3ead80ecdd961807a1a8",
+      "actual_command": [
+        "/home/CNS2025331827/docs/bc+rl_RSS_fresh_traj09_20261115/.venv_isaacsim/bin/python",
+        "-m",
+        "tools.tight_trajectory_batch_gate",
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+        "--role",
+        "A",
+        "--frozen-root",
+        "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+        "--output",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_A_gate01",
+        "--resource-root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06"
+      ],
+      "original_deadline": 1794685791.0642202,
+      "runtime_max_s": 600
+    },
+    "B": {
+      "complete": true,
+      "passed": true,
+      "role": "B",
+      "identities": [
+        "formal_050_slow_3",
+        "r08_A_expanded_session06_new16_s28400000_fixed40"
+      ],
+      "full_history_frames": [
+        261,
+        500
+      ],
+      "optimizer_updates": 0,
+      "checkpoint_sha256": "3be38a933824874a9697821e6a5bd2a95e7927e8ed25bcdc22ba537b3a466529",
+      "geometry": null,
+      "serial_seconds": 0.9059675640892237,
+      "candidate_seconds": 0.33956102817319334,
+      "serial_peak_allocated_bytes": 3598176768,
+      "candidate_peak_allocated_bytes": 5019696128,
+      "per_process_allocator_fraction": 0.45,
+      "training_exposure": [
+        {
+          "identity": "formal_050_slow_3",
+          "anchors": 22,
+          "target_ticks": 510
+        },
+        {
+          "identity": "r08_A_expanded_session06_new16_s28400000_fixed40",
+          "anchors": 39,
+          "target_ticks": 910
+        }
+      ],
+      "limitations": "Two train trajectories, serial then batch warm order and concurrent jobs; no epoch speed, optimizer equivalence, validation or autonomous claim",
+      "wall_seconds": 6.48947811126709,
+      "finished_utc": 1794673021.2994542,
+      "source_commit": "d17b1f8",
+      "frozen_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_traj09_20261115",
+      "gradient_parameters": 188,
+      "all_gradient_checks_passed": true,
+      "maximum_gradient_absolute_difference": 3.259629011154175e-09,
+      "maximum_gradient_tolerance_ratio": 0.0001626194121603288,
+      "forward_checks": {
+        "formal_050_slow_3/condition": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 7.152557373046875e-07,
+          "maximum_tolerance_ratio": 0.012640132192187816
+        },
+        "formal_050_slow_3/truth": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 0.0,
+          "maximum_tolerance_ratio": 0.0
+        },
+        "formal_050_slow_3/anchors": {
+          "passed": true
+        },
+        "formal_050_slow_3/valid": {
+          "passed": true
+        },
+        "formal_050_slow_3/prediction": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 1.0728836059570312e-06,
+          "maximum_tolerance_ratio": 0.03197530937027962
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/condition": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 7.152557373046875e-07,
+          "maximum_tolerance_ratio": 0.012289348281113435
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/truth": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 0.0,
+          "maximum_tolerance_ratio": 0.0
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/anchors": {
+          "passed": true
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/valid": {
+          "passed": true
+        },
+        "r08_A_expanded_session06_new16_s28400000_fixed40/prediction": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 1.043081283569336e-06,
+          "maximum_tolerance_ratio": 0.03529898522880681
+        },
+        "loss": {
+          "passed": true,
+          "finite": true,
+          "maximum_absolute": 2.3283064365386963e-10,
+          "maximum_tolerance_ratio": 1.160850576205364e-05
+        },
+        "noise_state": {
+          "passed": true
+        }
+      },
+      "files": {
+        "started.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_B_gate01/started.json",
+          "sha256": "282963fce7996fe33df6f3bab119a08a3b600929522349e3f3136b9fa5648212"
+        },
+        "admission.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_B_gate01/admission.json",
+          "sha256": "f5da665c595deb2a7c89b123f5c25a48faa65e7ba627688969fa37347db48f06"
+        },
+        "result.json": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_B_gate01/result.json",
+          "sha256": "898ab51d13ec86cdd6ba8a6418033f65247f934c97ab2e848ba70e648c6d90ee"
+        }
+      },
+      "service_receipt": "MainPID=0\nResult=success\nExecMainStatus=0\nMemoryPeak=[not set]\nActiveState=inactive\n",
+      "candidate_helper_sha256": "807acb0897d91dd991cae90fb5283ec733719326af3c3ead80ecdd961807a1a8",
+      "actual_command": [
+        "/home/CNS2025331827/docs/bc+rl_RSS_fresh_traj09_20261115/.venv_isaacsim/bin/python",
+        "-m",
+        "tools.tight_trajectory_batch_gate",
+        "--root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+        "--role",
+        "B",
+        "--frozen-root",
+        "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+        "--output",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_batch_B_gate01",
+        "--resource-root",
+        "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06"
+      ],
+      "original_deadline": 1794685791.0642202,
+      "runtime_max_s": 600
+    }
+  },
+  "formal_trainer_changed": false,
+  "formal_round09_source": "87577e8",
+  "decision": "Forward/gradient gate passed; actual batched training integration and end-to-end benefit remain unverified. Do not silently halve optimizer/EMA steps or reuse paired_io_v1 visit/update identity."
+}

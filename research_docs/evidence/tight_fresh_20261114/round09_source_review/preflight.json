@@ -1,0 +1,249 @@
+{
+  "version": "per_role_source_preflight_v1",
+  "complete": true,
+  "source_manifest": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_source_manifest.json",
+    "sha256": "718aa6fec67849236283788acde209899db298cc910817e69738837cdb9e6234",
+    "version": "per_role_development_sources_v1",
+    "roles": {
+      "A": {
+        "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+        "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/development",
+        "tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114"
+      },
+      "B": {
+        "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06",
+        "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/development_source08",
+        "tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_expand08_20261114"
+      }
+    },
+    "scope": "Independent references to executed source plans. No combined plan or new rollout was created."
+  },
+  "source_sha256": "9d18392f9a600675f398c50119b1adfba1f7cb101bd309ff9f462cd96ce01f83",
+  "helper_root": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+  "helper_sha256": {
+    "tools/tight_fresh_phases.py": "0cda7628593954cac85adf528a68085fe44fcc5e331e0469455cf3cd8f666eaf",
+    "tools/tight_fresh_visual_closeout.py": "4374e4f3e569aa54c211a1293d57799894750765e3a2ec7a89b2ad6a38ae7b1e",
+    "tools/tight_fresh_contact_height_coverage.py": "7aca3a1040acda8cf4efa66e7fd9e80f44bfc57405c66381d69387786869d1e6",
+    "tools/tight_fresh_learning_report.py": "24ecefa4a19d7f1fe4cde290b302f41654c832587aa5d219e041e7c09820871b",
+    "visuotactile/takeover_trigger.py": "4ac571e0b7b01e81850942edd1aec362ac6842c35b3efb09661e14c3a4e1d69c"
+  },
+  "old_stable_function_source_identical": true,
+  "simulator_starts": 0,
+  "optimizer_updates": 0,
+  "test_used": false,
+  "candidate_audited": false,
+  "scope": "Completed source evidence only; no candidate plan, result, or comparison was created.",
+  "source_by_role": {
+    "A": {
+      "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08",
+      "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/development",
+      "execution": {
+        "mode": "whole_wave",
+        "lanes": 8,
+        "vision_microbatch": 8,
+        "vision_tail_profile": null,
+        "inactive_render_profile": null,
+        "batch_seed": 28500000,
+        "inference_scheduler_index_mode": "host",
+        "execution_backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "observed_sha256": "8f6cba9ae42e8741219bf6179d60a6481f4e510077cb87c88d3a7c0326ead3e5"
+      },
+      "plan_sha256": "402d35ccca54c127d08494b3a572d273900c1df7063eecf29917b6db20e324db",
+      "results_sha256": "edbf1116b1de441e2d21bbee18a518856f48e099ba1fd6be3525da1bdd39f935",
+      "completion_sha256": "e0b9b3dc24d41ad95348e4c3f3589c9568c9216beff2e6374f76e97d545745d0",
+      "source_verification": {
+        "tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114",
+        "commit": "82d505241d2910b96c9b7f562dfe41bd2e111dad",
+        "verified_source_files": 206
+      },
+      "pairs": {
+        "A": {
+          "version": "complete_student_policy_v1",
+          "controller": "ResidualController",
+          "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/A/training/best.pt",
+          "frontend_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+          "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_08/A/backend/A/training/best.pt",
+          "backend_sha256": "17ddc0ecc309350c8be55a64058993d5d30905bc74b1fa252fbe501ce5692b81",
+          "residual_version": "target_residual_transformer60_v1",
+          "supervision": "q_reached",
+          "supervision_inference": null,
+          "modality": "G00",
+          "output": "absolute_joint_position_target_rad",
+          "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+          "execution_adapter": {
+            "version": "expert_reachable_postprocessed_v1",
+            "input_space": "postprocessed_absolute_joint_target_rad",
+            "reference": "actual_pre_action_actuator_target_rad",
+            "control_dt": 0.016666666666666666,
+            "dof_speed_scale": 1.5,
+            "arm_moving_average": 0.1,
+            "hand_moving_average": 0.1,
+            "arm_progress": 0.5,
+            "hand_progress": 1.0,
+            "hand_target_cap_rad_s": 2.0,
+            "roundoff_tolerance_rad": 1e-06,
+            "delay": "already_resolved_in_supervision_no_second_queue"
+          },
+          "zero_correction_is_valid": true
+        }
+      },
+      "totals": {
+        "A": {
+          "opportunities": 8,
+          "successes": 0,
+          "native_lift_cases": 1,
+          "old_stable_window_cases": 2,
+          "contact_height12_cases": 3,
+          "native_alignment_cases": 0,
+          "native_near_goal_cases": 0,
+          "first_subgoal_cases": 0,
+          "termination_reasons": {
+            "timeout": 7
+          },
+          "total_control_ticks": 4207,
+          "overlapping_lane_lifetime_seconds": 1535.8883069755975,
+          "legal_initializations": 7,
+          "invalid_initializations": 1,
+          "autonomous_success_rate_among_legal": 0.0,
+          "raw_successes_per_registered_opportunity": {
+            "numerator": 0,
+            "denominator": 8,
+            "ratio": 0.0,
+            "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+          },
+          "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+        }
+      },
+      "initialization": {
+        "seconds": 43.80956361396238,
+        "lanes": 8,
+        "execution_backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "vision_microbatch": 8
+      }
+    },
+    "B": {
+      "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06",
+      "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/development_source08",
+      "execution": {
+        "mode": "whole_wave",
+        "lanes": 8,
+        "vision_microbatch": 8,
+        "vision_tail_profile": null,
+        "inactive_render_profile": null,
+        "batch_seed": 28500000,
+        "inference_scheduler_index_mode": "host",
+        "execution_backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "observed_sha256": "6111f8ba60d061f48acaf19cd1eef32ff58b869d89a3afeca2decd16889007ff"
+      },
+      "plan_sha256": "461f3e2b5c1c7b831953a1d92576665566da5de13cbaa17e77ef4968fe1d8495",
+      "results_sha256": "e8b67b779cf04c34ac5620811af69e19225bb2f2c7d63de97937dd37c7a828ee",
+      "completion_sha256": "de25e08194f02b4e5829198384bc98174014b13d3ef2f3dd543736072105a7cd",
+      "source_verification": {
+        "tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_expand08_20261114",
+        "commit": "d168195c10af43eec3dd77a1e4f7b8d8d0340a7f",
+        "verified_source_files": 202
+      },
+      "pairs": {
+        "B": {
+          "version": "complete_student_policy_v1",
+          "controller": "ResidualController",
+          "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/B/training/best.pt",
+          "frontend_sha256": "281266def7e6f9ced8344fe9a560ac522fb037eaeca28e1eeda3604bd9fc4ed1",
+          "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_05/round_06/B/backend/B/training/best.pt",
+          "backend_sha256": "a4aa41f91fa31adbbe16771f5c42aa57aaf6f9eecb7da292f920b66328aec476",
+          "residual_version": "target_residual_transformer60_v1",
+          "supervision": "u_expert",
+          "supervision_inference": null,
+          "modality": "G00",
+          "output": "absolute_joint_position_target_rad",
+          "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+          "execution_adapter": {
+            "version": "expert_reachable_postprocessed_v1",
+            "input_space": "postprocessed_absolute_joint_target_rad",
+            "reference": "actual_pre_action_actuator_target_rad",
+            "control_dt": 0.016666666666666666,
+            "dof_speed_scale": 1.5,
+            "arm_moving_average": 0.1,
+            "hand_moving_average": 0.1,
+            "arm_progress": 0.5,
+            "hand_progress": 1.0,
+            "hand_target_cap_rad_s": 2.0,
+            "roundoff_tolerance_rad": 1e-06,
+            "delay": "already_resolved_in_supervision_no_second_queue"
+          },
+          "zero_correction_is_valid": true
+        }
+      },
+      "totals": {
+        "B": {
+          "opportunities": 8,
+          "successes": 0,
+          "native_lift_cases": 2,
+          "old_stable_window_cases": 2,
+          "contact_height12_cases": 4,
+          "native_alignment_cases": 0,
+          "native_near_goal_cases": 0,
+          "first_subgoal_cases": 0,
+          "termination_reasons": {
+            "timeout": 8
+          },
+          "total_control_ticks": 4808,
+          "overlapping_lane_lifetime_seconds": 1830.6570420092903,
+          "legal_initializations": 8,
+          "invalid_initializations": 0,
+          "autonomous_success_rate_among_legal": 0.0,
+          "raw_successes_per_registered_opportunity": {
+            "numerator": 0,
+            "denominator": 8,
+            "ratio": 0.0,
+            "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+          },
+          "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+        }
+      },
+      "initialization": {
+        "seconds": 20.568349560024217,
+        "lanes": 8,
+        "execution_backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "vision_microbatch": 8
+      }
+    }
+  },
+  "full_local_report": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/cpu_audits/round09_source_preflight_01/source_preflight.json",
+    "sha256": "697ae8416db051a5b21aac70d7f023e7ff431d10c0299fe49c46dc73d2144e35"
+  }
+}

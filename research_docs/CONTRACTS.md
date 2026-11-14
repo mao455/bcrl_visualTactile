@@ -1,3 +1,13 @@
+## 显式B前端组件诊断
+
+`batched_trained_B_frontend_diagnostic_v1`只加载已完成训练的B u_expert/H24/G00/every-frame best EMA，不加载rear。正式研究默认不调用；组件入口仅projection模式，使用与reachable_nominal_centered_linear_v1零提案相同的锚点与最终执行投影。每lane有独立完整历史和seed7091生成器；新controller初始种子一致，episode reset本身不重置随机流。真实submitted与applied目标分别确认，terminal步仍必须ack，真值物体/目标不进模型。
+
+`B_frontend_projection_component_gate_v1`先用已登记train-only原始前缀进行同输入/历史/投影准入，离线明确用真实记录目标teacher forcing；线上两臂不使用该覆盖路径。两臂保留原8devspec、batch seed/event和自然成功/失败/timeout，独立Kit不是隐藏物理精确配对；所有行标diagnostic_only、非正式评估资格、非训练数据，不据无rear结果称完整学生。有限1800秒含清理、原session截止优先，失败不自动重试。
+
+## 显式逐角色历史自主来源
+
+`per_role_development_sources_v1`分别引用A/B原resource root、development目录和冻结源码tree。它不是新执行计划或共同运行的混合pair；只按角色读取其实际模型、case spec、wave/lane、执行配置与完成证据，并与候选该角色的合法交集比较。source-preflight无需候选完成，不生成候选计划/结果。旧单来源CLI保留；可见初态相等也不代表隐藏PhysX精确相等。
+
 ## 显式候选：独立完整轨迹合批
 
 `independent_full_trajectory_batch_v1` 保留每条真实完整观察历史、原始每轨32帧视觉处理、独立GRU状态和原生5Hz anchors；结束轨迹不再更新，不填充虚假观察。合并去噪计算后仍按每轨原监督mask分别归一化，再等权平均；A每轨保留原最多两项几何选择，不能把整批预算缩成两项。噪声按原逐轨randn后randint顺序产生。一次合批一次optimizer/EMA更新，与连续逐轨更新不是同一优化过程，采用时必须显式新身份和剂量。本候选没有接入当前正式trainer。

@@ -104,23 +104,77 @@ def execution_identity(plan):
             physics_device='cpu',camera_backend='standard',kit_tasking_threads=2,physics_threads=2)))
 
 
+def validate_development_plan(plan):
+    require(plan['kind']=='autonomous' and plan['test_used'] is False and plan['cases'],
+        'Complete autonomous development cohort required')
+    require(set(plan['pairs'])=={'A','B'},'Both registered model roles required')
+    names=[c['name'] for c in plan['cases']]
+    require(len(names)==len(set(names)) and all(c['role'] in ('A','B') and
+        c['spec']['split']=='development' and not c.get('dagger') for c in plan['cases']),
+        'Duplicate or non-development opportunities')
+    families={role:[c['spec']['family'] for c in plan['cases'] if c['role']==role] for role in ('A','B')}
+    require(families['A'] and len(set(families['A']))==len(families['A']) and
+        sorted(families['A'])==sorted(families['B']),'A/B development families differ or repeat')
+
 def compare_plans(old,new):
-    for plan in (old,new):
-        require(plan['kind']=='autonomous' and plan['test_used'] is False and plan['cases'],
-            'Complete autonomous development cohort required')
-        require(set(plan['pairs'])=={'A','B'},'Both registered model roles required')
-        names=[c['name'] for c in plan['cases']]
-        require(len(names)==len(set(names)) and all(c['role'] in ('A','B') and
-            c['spec']['split']=='development' and not c.get('dagger') for c in plan['cases']),
-            'Duplicate or non-development opportunities')
-        families={role:[c['spec']['family'] for c in plan['cases'] if c['role']==role] for role in ('A','B')}
-        require(families['A'] and len(set(families['A']))==len(families['A']) and
-            sorted(families['A'])==sorted(families['B']),'A/B development families differ or repeat')
+    for plan in (old,new):validate_development_plan(plan)
     require([(c['name'],c['role'],c['spec']) for c in old['cases']]==
         [(c['name'],c['role'],c['spec']) for c in new['cases']],'Development opportunities changed')
     require(execution_identity(old)==execution_identity(new),'Development execution backend/batch contract changed')
     return dict(opportunities_per_role={r:sum(c['role']==r for c in old['cases']) for r in ('A','B')},
         case_specs_identical=True,execution_identity=execution_identity(old),exact_hidden_state_pairing=False)
+
+
+def wave_assignments(plan):
+    assignments={}
+    if 'batch' in plan:
+        wave=0
+        for role in dict.fromkeys(case['role'] for case in plan['cases']):
+            selected=[case for case in plan['cases'] if case['role']==role]
+            for start in range(0,len(selected),plan['batch']['lanes']):
+                for lane,case in enumerate(selected[start:start+plan['batch']['lanes']]):
+                    assignments[case['name']]=(wave,lane)
+                wave+=1
+    return assignments
+
+
+def compare_role_plans(old,new,role):
+    """Compare one role without inventing a plan from two historical runs."""
+    require(role in ('A','B'),'Unknown source role')
+    for plan in (old,new):validate_development_plan(plan)
+    selected=lambda plan:[(c['name'],c['role'],c['spec']) for c in plan['cases'] if c['role']==role]
+    require(selected(old)==selected(new),'Development opportunities changed for '+role)
+    require(execution_identity(old)==execution_identity(new),'Development execution backend/batch contract changed for '+role)
+    before,after=wave_assignments(old),wave_assignments(new)
+    require(all(before.get(name)==after.get(name) for name,_,_ in selected(old)),
+        'Development wave/lane assignment changed for '+role)
+    return dict(role=role,opportunities=len(selected(old)),case_specs_identical=True,
+        wave_lane_assignments_identical=True,execution_identity=execution_identity(old),exact_hidden_state_pairing=False)
+
+
+def source_manifest_inputs(path):
+    """Read only original resource/plan/tree bindings; never synthesize a plan."""
+    path=Path(path).resolve(strict=True);manifest=read(path)
+    require(set(manifest)=={'version','roles'} and manifest['version']=='per_role_development_sources_v1',
+        'Unsupported source manifest')
+    require(set(manifest['roles'])=={'A','B'},'Source manifest requires exactly A and B')
+    inputs={}
+    for role,entry in manifest['roles'].items():
+        require(set(entry)=={'root','development','tree'},'Source role requires root/development/tree only')
+        require(all(isinstance(value,str) and Path(value).is_absolute() for value in entry.values()),
+            'Source manifest paths must be absolute')
+        resolved={key:Path(value).resolve(strict=True) for key,value in entry.items()}
+        require(all(value.is_dir() for value in resolved.values()),'Source manifest paths must be directories')
+        plan=read(resolved['development']/'plan.json');validate_development_plan(plan)
+        require(Path(plan['resource_root']).resolve(strict=True)==resolved['root'],
+            'Source root differs from executed plan resource_root')
+        require(resolved['development']!=resolved['root'] and resolved['development'].is_relative_to(resolved['root']),
+            'Source development must remain within its executed resource root')
+        check_sources(plan,resolved['tree'])
+        inputs[role]=dict(resolved,plan=plan)
+    return inputs,dict(path=str(path),sha256=sha256(path),version=manifest['version'],
+        roles={role:{key:str(value[key]) for key in ('root','development','tree')} for role,value in inputs.items()},
+        scope='Independent references to executed source plans. No combined plan or new rollout was created.')
 
 
 def verify_execution_receipt(directory,plan):
@@ -207,25 +261,25 @@ def autonomy_totals(cases,*,batch=False,explicit=False):
     return result
 
 
-def matched_legal_comparison(source,candidate):
+def matched_legal_comparison(source,candidate,*,roles=('A','B')):
     left={r['case']:r for r in source['cases']};right={r['case']:r for r in candidate['cases']}
     require(set(left)==set(right),'Completed source/candidate opportunity identities differ')
-    roles={}
-    for role in ('A','B'):
+    by_role={}
+    for role in roles:
         names=sorted(k for k,row in left.items() if row['role']==role)
         require(all(right[k]['role']==role for k in names),'Source/candidate role identity differs')
         matched=[k for k in names if left[k]['legal'] and right[k]['legal']]
-        roles[role]=dict(registered_opportunities=len(names),matched_legal_opportunities=len(matched),
+        by_role[role]=dict(registered_opportunities=len(names),matched_legal_opportunities=len(matched),
             matched_legal_cases=matched,source_only_legal_cases=[k for k in names if left[k]['legal'] and not right[k]['legal']],
             candidate_only_legal_cases=[k for k in names if right[k]['legal'] and not left[k]['legal']],
             both_invalid_cases=[k for k in names if not left[k]['legal'] and not right[k]['legal']],
             source=autonomy_totals([left[k] for k in matched],batch=source['execution']['mode']=='whole_wave',explicit=True),
             candidate=autonomy_totals([right[k] for k in matched],batch=candidate['execution']['mode']=='whole_wave',explicit=True))
-    return dict(by_role=roles,scope='Intersection of actual legal initializations under the same registered case specs; '
+    return dict(by_role=by_role,scope='Intersection of actual legal initializations under the same registered case specs; '
         'admission differences remain in all-opportunity evidence. No hidden-state equality or new held-out generalization claim.')
 
 
-def audit_group(label,root,tree,development=None,*,allow_illegal=False):
+def audit_group(label,root,tree,development=None,*,allow_illegal=False,roles=('A','B')):
     directory=(root/'development' if development is None else development).resolve()
     plan=read(directory/'plan.json');finished=read(directory/'result.json')
     source_receipt=check_sources(plan,tree);rows=read(directory/'results.json')
@@ -233,7 +287,8 @@ def audit_group(label,root,tree,development=None,*,allow_illegal=False):
     require(finished['software_complete'] and not finished.get('worker_error') and finished['cases']==count,'Incomplete worker')
     require(read(directory/'run_started.json')['plan_sha256']==sha256(directory/'plan.json'),'Startup plan hash differs')
     require(plan['kind']=='autonomous' and plan['test_used'] is False and len(rows)==count,'Wrong cohort')
-    pairs=plan['pairs']
+    require(roles and len(set(roles))==len(roles) and all(role in ('A','B') for role in roles),'Invalid audit roles')
+    pairs={role:plan['pairs'][role] for role in roles}
     for role,pair in pairs.items():
         require(completed_pair(pair_root(pair,role),role)==pair,'Completed pair differs from executed pair')
     for pair in pairs.values():
@@ -241,16 +296,11 @@ def audit_group(label,root,tree,development=None,*,allow_illegal=False):
             require(sha256(pair[key])==pair[key+'_sha256'],'Model changed')
     execution=verify_execution_receipt(directory,plan)
     indexed={r['case']:r for r in rows};require(len(indexed)==count,'Duplicate case')
-    assignments={}
-    if 'batch' in plan:
-        wave=0
-        for role in dict.fromkeys(case['role'] for case in plan['cases']):
-            selected=[case for case in plan['cases'] if case['role']==role]
-            for start in range(0,len(selected),plan['batch']['lanes']):
-                for lane,case in enumerate(selected[start:start+plan['batch']['lanes']]):assignments[case['name']]=(wave,lane)
-                wave+=1
+    require(set(indexed)=={case['name'] for case in plan['cases']},'Completed opportunity index differs')
+    assignments=wave_assignments(plan)
     cases=[]
     for planned in plan['cases']:
+        if planned['role'] not in roles:continue
         name=planned['name'];role=planned['role'];path=directory/name;row=indexed[name]
         r=read(path/'result.json');started=read(path/'started.json');pair=pairs[role]
         require(row['result']==r and row['role']==role,'Index/case mismatch')
@@ -287,7 +337,7 @@ def audit_group(label,root,tree,development=None,*,allow_illegal=False):
         cases.append(dict(group=label,role=role,**phase,contact_motion=contact_motion(path,phase),
             held_orientation=held_orientation(path),clock_audit=clocks,wall_seconds=row['timing']['total_seconds']))
     totals={role:autonomy_totals([c for c in cases if c['role']==role],batch='batch' in plan,explicit=allow_illegal)
-        for role in ('A','B')}
+        for role in roles}
     return dict(root=str(root),development=str(directory),execution=execution,
         plan_sha256=sha256(directory/'plan.json'),results_sha256=sha256(directory/'results.json'),
         completion_sha256=sha256(directory/'result.json'),source_verification=source_receipt,pairs=pairs,totals=totals,cases=cases,
@@ -373,9 +423,102 @@ def initial_observation_comparison(source,candidate,cases):
         scope='Saved observable state only; equality does not establish identical hidden PhysX, renderer, contact solver or RNG state.')
 
 
-def run(source_root, candidate_root, source_tree, candidate_tree, output, *,
-        source_development=None,candidate_development=None):
+def stable_arithmetic_identical(trees):
+    sources=[]
+    for tree in trees:
+        source=(tree/'visuotactile/takeover_trigger.py').read_text()
+        node=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='stable_windows')
+        sources.append(ast.get_source_segment(source,node))
+    require(all(value==sources[0] for value in sources),'Old stable arithmetic differs')
+
+
+def write_learning(output,root,candidate_pairs,source_pairs,tree,*,explicit):
+    roles={r:role_report(root,r) for r in ('A','B')}
+    bindings={r:frontend_checkpoint_receipt(candidate_pairs[r],r) for r in ('A','B')}
+    for role,report in roles.items():
+        require(report['checkpoint_sha256']==candidate_pairs[role]['frontend_sha256'] and
+            report['backend_selected']['checkpoint_sha256']==candidate_pairs[role]['backend_sha256'] and
+            bindings[role]['training_root']==str(root),'Learning report is not the evaluated candidate pair')
+        require((report['selected_epoch'],report['selected_updates'])==
+            (bindings[role]['selected']['epoch'],bindings[role]['selected']['updates']) and
+            (report['latest_epoch'],report['latest_updates'])==
+            (bindings[role]['last']['epoch'],bindings[role]['last']['updates']),
+            'Selected/last metrics differ from actual checkpoints')
+    learning_name='learning_candidate.json' if explicit else 'learning_round06.json'
+    atomic_json(output/learning_name,dict(roles=roles,checkpoint_bindings=bindings,
+        helper_root=str(tree),helper_sha256=sha256(tree/'tools/tight_fresh_learning_report.py'),test_used=False))
+    atomic_json(output/'learning_summary.json',dict(roles=compact_learning(root,roles),
+        source_frontend_checkpoints={r:frontend_checkpoint_receipt(source_pairs[r],r) for r in ('A','B')},
+        candidate_frontend_checkpoints=bindings,
+        full_report_sha256=sha256(output/learning_name),source_sha256=sha256(__file__),test_used=False))
+
+
+def run_role_sources(source_manifest,candidate_root,candidate_tree,output,*,candidate_development=None,preflight=False):
+    inputs,manifest_receipt=source_manifest_inputs(source_manifest)
+    helper_tree=inputs['A']['tree'] if preflight else candidate_tree.resolve(strict=True)
+    trees=[inputs[role]['tree'] for role in ('A','B')]+[helper_tree]
+    stable_arithmetic_identical(trees)
+    if not preflight:
+        candidate_root=candidate_root.resolve(strict=True)
+        directory=(candidate_root/'development' if candidate_development is None else candidate_development).resolve(strict=True)
+        new=read(directory/'plan.json');check_sources(new,helper_tree)
+        require(Path(new['resource_root']).resolve(strict=True)==candidate_root and directory!=candidate_root and
+            directory.is_relative_to(candidate_root),'Candidate development/resource root differs from executed plan')
+        population={role:compare_role_plans(inputs[role]['plan'],new,role) for role in ('A','B')}
+    load_helpers(helper_tree)
+    sources={role:audit_group('source_'+role,value['root'],value['tree'],value['development'],
+        allow_illegal=True,roles=(role,)) for role,value in inputs.items()}
+    common=dict(source_manifest=manifest_receipt,source_sha256=sha256(__file__),helper_root=str(helper_tree),
+        helper_sha256={name:sha256(helper_tree/name) for name in
+            ('tools/tight_fresh_phases.py','tools/tight_fresh_visual_closeout.py',
+             'tools/tight_fresh_contact_height_coverage.py','tools/tight_fresh_learning_report.py','visuotactile/takeover_trigger.py')},
+        old_stable_function_source_identical=True,simulator_starts=0,optimizer_updates=0,test_used=False)
+    output.mkdir(parents=True,exist_ok=True)
+    if preflight:
+        atomic_json(output/'source_preflight.json',dict(version='per_role_source_preflight_v1',complete=True,
+            **common,source_by_role=sources,candidate_audited=False,
+            scope='Completed source evidence only; no candidate plan, result, or comparison was created.'))
+        print(json.dumps({role:value['totals'] for role,value in sources.items()},indent=2),flush=True)
+        return
+    candidate=audit_group('candidate',candidate_root,helper_tree,directory,allow_illegal=True)
+    initial={};matching={}
+    for role,value in inputs.items():
+        cases=[case for case in value['plan']['cases'] if case['role']==role]
+        initial[role]=initial_observation_comparison(value['development'],directory,cases)
+        candidate_role=dict(candidate,cases=[case for case in candidate['cases'] if case['role']==role])
+        matching[role]=matched_legal_comparison(sources[role],candidate_role,roles=(role,))['by_role'][role]
+    atomic_json(output/'autonomy.json',dict(version='per_role_development_cpu_review_v1',complete=True,
+        **common,population_by_role=population,initial_observation_comparison_by_role=initial,
+        source_by_role=sources,candidate=candidate,matched_legal_comparison=dict(by_role=matching,
+            scope='Per-role intersection of actual legal starts from independent executed plans; all rejected opportunities remain in source/candidate evidence.'),
+        limits='Sources are role-specific historical executions, not a jointly run mixed source pair. '
+            'These reused development starts are not new held-out data or exact hidden-state pairs. '
+            'Contact-height and native lift/success remain separate. Source budgets and prior data may differ.'))
+    print(json.dumps(dict(source={role:value['totals'][role] for role,value in sources.items()},
+        candidate=candidate['totals']),indent=2),flush=True)
+    write_learning(output,candidate_root,new['pairs'],{role:value['plan']['pairs'][role] for role,value in inputs.items()},
+        helper_tree,explicit=True)
+    print('Finished per-role CPU autonomy and learning audits',flush=True)
+
+
+def run(source_root=None, candidate_root=None, source_tree=None, candidate_tree=None, output=None, *,
+        source_development=None,candidate_development=None,source_manifest=None,source_preflight=False):
+    require(output is not None,'Review output is required')
     OUT = output.resolve()
+    if OUT.exists() and any(OUT.iterdir()):
+        raise FileExistsError("Preserve previous review evidence")
+    if source_manifest is not None:
+        require(all(value is None for value in (source_root,source_tree,source_development)),
+            'Source manifest cannot be combined with single-source arguments')
+        if source_preflight:
+            require(all(value is None for value in (candidate_root,candidate_tree,candidate_development)),
+                'Source preflight does not accept candidate arguments')
+        else:require(candidate_root is not None and candidate_tree is not None,'Candidate root/tree required')
+        return run_role_sources(source_manifest,candidate_root,candidate_tree,OUT,
+            candidate_development=candidate_development,preflight=source_preflight)
+    require(not source_preflight,'Source preflight requires a source manifest')
+    require(all(value is not None for value in (source_root,source_tree,candidate_root,candidate_tree)),
+        'Single-source comparison requires source/candidate root/tree')
     FROZEN, OLD_FROZEN = candidate_tree.resolve(), source_tree.resolve()
     explicit=source_development is not None or candidate_development is not None
     labels=('source','candidate') if explicit else ('source_round05','candidate_round06')
@@ -383,8 +526,6 @@ def run(source_root, candidate_root, source_tree, candidate_tree, output, *,
     TREES = dict(zip(labels,(OLD_FROZEN,FROZEN)))
     directories={labels[0]:(source_root/'development' if source_development is None else source_development).resolve(),
         labels[1]:(candidate_root/'development' if candidate_development is None else candidate_development).resolve()}
-    if OUT.exists() and any(OUT.iterdir()):
-        raise FileExistsError("Preserve previous review evidence")
     for label, root in ROOTS.items():
         check_sources(read(directories[label]/'plan.json'), TREES[label])
     old,new=(read(directory/'plan.json') for directory in directories.values())
@@ -393,12 +534,7 @@ def run(source_root, candidate_root, source_tree, candidate_tree, output, *,
     OUT.mkdir(parents=True, exist_ok=True)
     if (OUT/'autonomy.json').exists():raise FileExistsError('Preserve prior CPU analysis')
     # Old source files differ by additions, but original stability arithmetic is exact.
-    stable=[]
-    for tree in (OLD_FROZEN,FROZEN):
-        source=(tree/'visuotactile/takeover_trigger.py').read_text()
-        node=next(n for n in ast.parse(source).body if isinstance(n,ast.FunctionDef) and n.name=='stable_windows')
-        stable.append(ast.get_source_segment(source,node))
-    require(stable[0]==stable[1],'Old stable arithmetic differs')
+    stable_arithmetic_identical((OLD_FROZEN,FROZEN))
     groups={label:audit_group(label,root,TREES[label],directories[label],allow_illegal=explicit) for label,root in ROOTS.items()}
     initial=initial_observation_comparison(*directories.values(),old['cases'])
     matching=matched_legal_comparison(*groups.values()) if explicit else None
@@ -411,37 +547,20 @@ def run(source_root, candidate_root, source_tree, candidate_tree, output, *,
         simulator_starts=0,optimizer_updates=0,test_used=False,
         limits='Registered development starts, not a held-out test estimate or exact hidden-state pairs. Contact-height permits palm rotation and is not native lift/success. Missing windows do not prove dropping. Angular and position minima are shown at their actual same-tick snapshots. Source A/B histories may have unequal budgets.'))
     print(json.dumps({label:g['totals'] for label,g in groups.items()},indent=2),flush=True)
-    for label,root in ROOTS.items():
-        if label!=labels[1]:continue
-        roles={r:role_report(root,r) for r in ('A','B')}
-        bindings={r:frontend_checkpoint_receipt(new['pairs'][r],r) for r in ('A','B')}
-        for role,report in roles.items():
-            require(report['checkpoint_sha256']==new['pairs'][role]['frontend_sha256'] and
-                report['backend_selected']['checkpoint_sha256']==new['pairs'][role]['backend_sha256'] and
-                bindings[role]['training_root']==str(root),'Learning report is not the evaluated candidate pair')
-            require((report['selected_epoch'],report['selected_updates'])==
-                (bindings[role]['selected']['epoch'],bindings[role]['selected']['updates']) and
-                (report['latest_epoch'],report['latest_updates'])==
-                (bindings[role]['last']['epoch'],bindings[role]['last']['updates']),
-                'Selected/last metrics differ from actual checkpoints')
-        learning_name='learning_candidate.json' if explicit else 'learning_round06.json'
-        atomic_json(OUT/learning_name,dict(roles=roles,checkpoint_bindings=bindings,
-            helper_root=str(FROZEN),helper_sha256=sha256(FROZEN/'tools/tight_fresh_learning_report.py'),test_used=False))
-        atomic_json(OUT/'learning_summary.json',dict(roles=compact_learning(root,roles),
-            source_frontend_checkpoints={r:frontend_checkpoint_receipt(old['pairs'][r],r) for r in ('A','B')},
-            candidate_frontend_checkpoints=bindings,
-            full_report_sha256=sha256(OUT/learning_name),source_sha256=sha256(__file__),test_used=False))
+    write_learning(OUT,ROOTS[labels[1]],new['pairs'],old['pairs'],FROZEN,explicit=explicit)
     print('Finished CPU autonomy and learning audits',flush=True)
 
 
 def parser():
     value = argparse.ArgumentParser(__doc__)
-    value.add_argument('--source-root', type=Path, required=True)
-    value.add_argument('--candidate-root', type=Path, required=True)
+    value.add_argument('--source-root', type=Path)
+    value.add_argument('--source-manifest', type=Path, help='per_role_development_sources_v1 JSON with A/B root, development and tree; exclusive with single-source arguments')
+    value.add_argument('--source-preflight',action='store_true',help='Audit only the two actual source roles; no candidate required or created')
+    value.add_argument('--candidate-root', type=Path)
     value.add_argument('--source-development', type=Path, help='Explicit executed source development directory; defaults to source-root/development')
     value.add_argument('--candidate-development', type=Path, help='Explicit executed candidate development directory; defaults to candidate-root/development')
-    value.add_argument('--source-tree', type=Path, required=True)
-    value.add_argument('--candidate-tree', type=Path, required=True)
+    value.add_argument('--source-tree', type=Path)
+    value.add_argument('--candidate-tree', type=Path)
     value.add_argument('--output', type=Path, required=True)
     return value
 

@@ -1,3 +1,13 @@
+## 2026-11-15 00:24 — 采集阶段汇总与B前端组件诊断
+
+- `tools/tight_collection_summary.py` / `tests/test_tight_collection_summary.py`：JSON-only partial和完整审核分开，严格accepted manifest/policy/source绑定，held重查/实际专家阶段分母；15项CPU通过，首波真实小证据发布。
+- `visuotactile/batched_frontend_diagnostic.py`、`tools/tight_fresh_frontend_component_gate.py`及专属测试：实际trained B EMA、独立M8历史/反馈、原确定性投影；train-only同输入准入后有限两臂自然终止，清晰组件身份与诊断资格，原deadline和失败清理。CPU已验、实际Kit未跑。
+
+## 2026-11-15 00:21 — 真实合批门控与按角色历史来源比较
+
+- `trajectory_batch_review/gate01.json`：冻结d17b1f8 A/B真实CUDA前向/梯度通过、实际命令/完整报告SHA/原截止/退出状态；局部速度与内存上升均实测，正式trainer未改。
+- `tools/tight_fresh_round_compare.py` 与专属测试：显式每role资源根/执行目录/冻结树清单，严格原计划、实际wave/lane和合法交集，保留旧CLI。49项CPU通过，A08/B06真实完整预检4.02秒完成；`round09_source_review`保留小摘要和可复用清单。
+
 ## 2026-11-15 00:16 — 独立完整轨迹合批候选
 
 - 新增 `visuotactile/trajectory_batch.py`、`tools/tight_trajectory_batch_gate.py` 与两份专属测试：逐轨完整历史/独立GRU/逐轨归一化与几何、保留噪声抽样次序；只作同参数前向与梯度验收，正式trainer不变。

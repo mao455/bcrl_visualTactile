@@ -1,0 +1,246 @@
+{
+  "version": "collection09_first_wave_held_summary_v1",
+  "partial": true,
+  "cohort": "First A wave only; new families seeds28600000\u201328600015",
+  "registered_opportunities": 128,
+  "completed_opportunities": 16,
+  "legal_initializations": 16,
+  "admitted_trajectories": 6,
+  "held60": {
+    "attempts": 5,
+    "triggered": 2,
+    "recovered": 2,
+    "admitted": 2,
+    "admitted_eligible_expert_ticks": 336
+  },
+  "held120": {
+    "attempts": 1,
+    "triggered": 0,
+    "recovered": 0,
+    "admitted": 0
+  },
+  "held_case_numeric_audits": 6,
+  "source_fields_verified_per_capture": 185,
+  "source_roles": {
+    "A": "round08",
+    "B": "round06"
+  },
+  "plan_sha256": "778b3b35fe71b60889088ed98f9fb808574dccaa1e0442a6fb4603aba95e0dd9",
+  "source_policy_sha256": {
+    "A": {
+      "frontend_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+      "backend_sha256": "17ddc0ecc309350c8be55a64058993d5d30905bc74b1fa252fbe501ce5692b81"
+    },
+    "B": {
+      "frontend_sha256": "281266def7e6f9ced8344fe9a560ac522fb037eaeca28e1eeda3604bd9fc4ed1",
+      "backend_sha256": "a4aa41f91fa31adbbe16771f5c42aa57aaf6f9eecb7da292f920b66328aec476"
+    }
+  },
+  "source_evidence_sha256": "88529dcc0241627f81c50def5ec7b577b4bed6d7e478ba8c9c015e45ef01caaa",
+  "family_registration": {
+    "new_families": 64,
+    "protected_family_intersection": [],
+    "prior_seed_configuration_intersection": [],
+    "validation_families": 6,
+    "original_test_identities": 22
+  },
+  "definitions": {
+    "held": "Latest12 completed student transitions, >=2 fingers >0.1N at BOTH120Hz physics samples and object>=median student25\u201348+2cm; rotation allowed.",
+    "stable": "Original palm-relative1cm/0.2rad window; independent from native lift.",
+    "missing": "Missing condition is not a drop event. Native fall/dropped/timeout retained separately.",
+    "labels": "Eligible real expert suffix ticks after queue clearing; not optimizer exposure or student autonomous success.",
+    "partial": "No final whole-collection rate or method adoption claim from this first wave."
+  },
+  "cases": [
+    {
+      "case": "r09_A_expanded_session06_new64_s28600001_held60",
+      "schedule": "held60",
+      "category": "no_completed_held_window",
+      "accepted": false,
+      "first_held_completed_tick": null,
+      "earliest_allowed_completed_tick": null,
+      "rechecked_completed_tick": null,
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "eligible_expert_ticks": 0,
+      "student_native_lift": false,
+      "student_old_stable_ever": false,
+      "boundary": null,
+      "native_termination_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "trigger_replay_exact": true,
+      "numeric_sha256": "a7ddb6c4cd594fb8d6423facc8ab8ebb0bfe82320d51462a40b9cc4f4915273f",
+      "result_sha256": "6c581ec1f8cceb1d2be0ff7f03c17f6cf2eec8afd4d3e68e0fef3edeb97eb9fb",
+      "capture_receipt_sha256": "fffd13233dd9b43d0dadc241e628ce42b340c2e0a36c15a19d65bca8b6f051af"
+    },
+    {
+      "case": "r09_A_expanded_session06_new64_s28600005_held60",
+      "schedule": "held60",
+      "category": "actual_rechecked_takeover",
+      "accepted": true,
+      "first_held_completed_tick": 261,
+      "earliest_allowed_completed_tick": 321,
+      "rechecked_completed_tick": 321,
+      "student_ticks": 321,
+      "expert_ticks": 196,
+      "eligible_expert_ticks": 194,
+      "student_native_lift": true,
+      "student_old_stable_ever": true,
+      "boundary": {
+        "completed_tick": 321,
+        "conditions": {
+          "two_contact_fingers_every_substep": true,
+          "height": true,
+          "translation": true,
+          "rotation": true
+        },
+        "stable_window": true,
+        "height_margin_m": 0.1541929692029953,
+        "palm_relative_root_max_translation_m": 0.0033455113880336285,
+        "palm_relative_max_rotation_rad": 0.0999566987156868,
+        "held_window": true,
+        "height_above_settled_m": 0.17419296503067017,
+        "goal_root_distance_m": 0.03128105401992798,
+        "goal_quaternion_angle_rad": 1.8099054697922292,
+        "native_keypoint_max_distance_m": 0.10334818810224533
+      },
+      "native_termination_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "trigger_replay_exact": true,
+      "numeric_sha256": "9114f2b5210c484eb2e077074c2c78ed1c79b7ec5bc45876aad610501c8e549a",
+      "result_sha256": "d03f78d3ee745084c661116d52542861cdb6cb6eaf9bda16b74efb6d2b10f217",
+      "capture_receipt_sha256": "c8b350c43b1e27f95da65bec481458a4c7e2a8a7dee82002a029a26396c7bfa0"
+    },
+    {
+      "case": "r09_A_expanded_session06_new64_s28600008_held120",
+      "schedule": "held120",
+      "category": "minimum_elapsed_without_current_held_window",
+      "accepted": false,
+      "first_held_completed_tick": 454,
+      "earliest_allowed_completed_tick": 574,
+      "rechecked_completed_tick": null,
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "eligible_expert_ticks": 0,
+      "student_native_lift": false,
+      "student_old_stable_ever": false,
+      "boundary": null,
+      "native_termination_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "trigger_replay_exact": true,
+      "numeric_sha256": "b329121e78a65eecf82504635bc6b7020830bebcca38b14df13f2b8b2979dd90",
+      "result_sha256": "28ede7fbac8413139fa79874ef8a8bb29fad968685563eb7d5a470b22ab49b0f",
+      "capture_receipt_sha256": "51174e5a409331ca4bc0746a467b276eb53f54c99dc5bd7b65d329a370252f2c"
+    },
+    {
+      "case": "r09_A_expanded_session06_new64_s28600009_held60",
+      "schedule": "held60",
+      "category": "no_completed_held_window",
+      "accepted": false,
+      "first_held_completed_tick": null,
+      "earliest_allowed_completed_tick": null,
+      "rechecked_completed_tick": null,
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "eligible_expert_ticks": 0,
+      "student_native_lift": false,
+      "student_old_stable_ever": false,
+      "boundary": null,
+      "native_termination_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "trigger_replay_exact": true,
+      "numeric_sha256": "b4a073f53ab38ca7d3c4643080a4ffa427446b408bb8a400b9b7e7ce27fbf781",
+      "result_sha256": "278164533bcd5983939ad7f444f79826f4bd835a15c66eac4125817e539cb586",
+      "capture_receipt_sha256": "b9d2195d18515980d117acab68ab6c3f5cf607c1556706c2c9c4d0bc0c31eb8b"
+    },
+    {
+      "case": "r09_A_expanded_session06_new64_s28600013_held60",
+      "schedule": "held60",
+      "category": "actual_rechecked_takeover",
+      "accepted": true,
+      "first_held_completed_tick": 183,
+      "earliest_allowed_completed_tick": 243,
+      "rechecked_completed_tick": 305,
+      "student_ticks": 305,
+      "expert_ticks": 144,
+      "eligible_expert_ticks": 142,
+      "student_native_lift": true,
+      "student_old_stable_ever": true,
+      "boundary": {
+        "completed_tick": 305,
+        "conditions": {
+          "two_contact_fingers_every_substep": true,
+          "height": true,
+          "translation": false,
+          "rotation": false
+        },
+        "stable_window": false,
+        "height_margin_m": 0.18046806752681732,
+        "palm_relative_root_max_translation_m": 0.01166544295847416,
+        "palm_relative_max_rotation_rad": 0.29586261510849,
+        "held_window": true,
+        "height_above_settled_m": 0.2004680633544922,
+        "goal_root_distance_m": 0.027825750410556793,
+        "goal_quaternion_angle_rad": 1.5799642364377398,
+        "native_keypoint_max_distance_m": 0.06172532960772514
+      },
+      "native_termination_reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "trigger_replay_exact": true,
+      "numeric_sha256": "8466aff33cec28f2c2f6438bdd67f505e1c9b3e9777d406a5b76ddd4fc3c7f62",
+      "result_sha256": "5e8a78d56d70c8d61b9e434e9f148fe26ce1a4f022bf698f7b437beaf6a6bee3",
+      "capture_receipt_sha256": "949d3bd6bed5da22e2afc0abfcde78cdd2dca6406844674a319256e00ee3d169"
+    },
+    {
+      "case": "r09_A_expanded_session06_new64_s28600015_held60",
+      "schedule": "held60",
+      "category": "minimum_elapsed_without_current_held_window",
+      "accepted": false,
+      "first_held_completed_tick": 535,
+      "earliest_allowed_completed_tick": 595,
+      "rechecked_completed_tick": null,
+      "student_ticks": 601,
+      "expert_ticks": 0,
+      "eligible_expert_ticks": 0,
+      "student_native_lift": false,
+      "student_old_stable_ever": false,
+      "boundary": null,
+      "native_termination_reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "trigger_replay_exact": true,
+      "numeric_sha256": "c25973591f9817ca57dc1ef1f06fbddc173efecc78b566dc43f2ccea3544fe7a",
+      "result_sha256": "ddd67ec3ba3ad42fadab926c0c95de73e31316c814aad6e7e2ed4828be58920a",
+      "capture_receipt_sha256": "66096da64f904b0a213c0f58a44baf90ddb342ce6170923044f5279023583a60"
+    }
+  ]
+}

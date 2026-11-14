@@ -151,7 +151,7 @@ def test_observable_equality_is_reported_without_hidden_state_claim(tmp_path):
     assert 'hidden PhysX' in result['scope']
 
 
-def test_batch_audit_uses_each_pair_training_root_and_real_lane_receipts(tmp_path,monkeypatch):
+def audited_group_fixture(tmp_path,monkeypatch):
     root=tmp_path/'resource_session';directory=root/'development_source08';directory.mkdir(parents=True)
     plan=batch_plan();roots={};pairs={}
     for role,stage in [('A','round_05'),('B','round_06')]:
@@ -161,7 +161,7 @@ def test_batch_audit_uses_each_pair_training_root_and_real_lane_receipts(tmp_pat
         front.write_bytes(role.encode());back.write_bytes((role+'rear').encode())
         pairs[role]=dict(frontend=str(front),backend=str(back),frontend_sha256=review.sha256(front),
             backend_sha256=review.sha256(back),residual_version='rear_v1')
-    plan['pairs']=pairs;write_json(directory/'plan.json',plan)
+    plan['pairs']=pairs;plan['resource_root']=str(root);write_json(directory/'plan.json',plan)
     write_json(directory/'run_started.json',dict(plan_sha256=review.sha256(directory/'plan.json')))
     write_json(directory/'result.json',dict(software_complete=True,worker_error=None,cases=16))
     write_json(directory/'initialization.json',dict(lanes=8,execution_backend=plan['execution_backend'],vision_microbatch=8))
@@ -182,6 +182,7 @@ def test_batch_audit_uses_each_pair_training_root_and_real_lane_receipts(tmp_pat
             native_inference=dict(summary={key:dict(wall_s=dict(count=1 if key=='ddim_plan' else 2)) for key in
                 ['dino_rgb','learned_visual_and_history','residual_forward_compose','ddim_plan']}))
         write_json(path/'result.json',result);write_clock(path)
+        write_json(path/'initial_observable.json',dict(q=[[0.,1.]]))
         rows.append(dict(case=case['name'],role=role,result=result,timing=dict(total_seconds=5.)))
     write_json(directory/'results.json',rows)
     calls=[]
@@ -194,6 +195,11 @@ def test_batch_audit_uses_each_pair_training_root_and_real_lane_receipts(tmp_pat
         native_alignment_first_tick=None,native_near_goal_first_tick=None,reasons=dict(timeout=True)),raising=False)
     monkeypatch.setattr(review,'contact_motion',lambda *a:dict(first_contact_height_window_end_tick=None),raising=False)
     monkeypatch.setattr(review,'held_orientation',lambda *a:{})
+    return root,directory,plan,roots,calls,rows
+
+
+def test_batch_audit_uses_each_pair_training_root_and_real_lane_receipts(tmp_path,monkeypatch):
+    root,directory,plan,roots,calls,rows=audited_group_fixture(tmp_path,monkeypatch)
     value=review.audit_group('source',root,tmp_path,directory)
     assert calls==[(roots['A'],'A'),(roots['B'],'B')]
     assert not (root/'A').exists() and value['totals']['A']['opportunities']==8
@@ -275,3 +281,151 @@ def test_illegal_initialization_cannot_hide_actions_or_success(tmp_path,fault):
     if fault=='contradictory_collision':write_json(tmp_path/'initial_collision.json',dict(legal=True,version='mesh_v1'))
     if fault=='success':result['success']=True
     with pytest.raises(ValueError):review.invalid_initialization_evidence(tmp_path,result)
+
+
+def mixed_source_fixture(tmp_path,monkeypatch):
+    groups={name:audited_group_fixture(tmp_path/name,monkeypatch) for name in ('a08','b06','candidate')}
+    pairs={(roots[role],role):plan['pairs'][role] for root,directory,plan,roots,_,_ in groups.values() for role in ('A','B')}
+    calls=[]
+    def completed(root,role):
+        calls.append((root,role));return pairs[root,role]
+    monkeypatch.setattr(review,'completed_pair',completed,raising=False)
+    monkeypatch.setattr(review,'load_helpers',lambda tree:None)
+    for name,group in groups.items():
+        tree=tmp_path/name/'frozen';tree.mkdir()
+        for helper in ('tools/tight_fresh_phases.py','tools/tight_fresh_visual_closeout.py',
+                       'tools/tight_fresh_contact_height_coverage.py','tools/tight_fresh_learning_report.py'):
+            path=tree/helper;path.parent.mkdir(exist_ok=True);path.write_text('# fixture\n')
+        path=tree/'visuotactile/takeover_trigger.py';path.parent.mkdir()
+        path.write_text('def stable_windows():\n    return None\n')
+    manifest=tmp_path/'sources.json'
+    write_json(manifest,dict(version='per_role_development_sources_v1',roles={
+        role:dict(root=str(groups[name][0]),development=str(groups[name][1]),tree=str(tmp_path/name/'frozen'))
+        for role,name in [('A','a08'),('B','b06')]}))
+    return groups,manifest,calls
+
+
+def reject_fixture_case(group,name):
+    root,directory,plan,_,_,rows=group;case=next(case for case in plan['cases'] if case['name']==name)
+    path=directory/name;result=dict(**case['spec'],software_complete=True,legal=False,success=False,not_started=True,
+        reason='collision',batch_execution=read_json(path/'started.json')['batch_execution'])
+    write_json(path/'result.json',result);(path/'numeric.h5').unlink()
+    write_json(path/'initial_collision.json',dict(legal=False,version='live_collision_mesh_bounds_v1'))
+    next(row for row in rows if row['case']==name)['result']=result;write_json(directory/'results.json',rows)
+
+
+def test_manifest_compares_only_selected_source_roles_and_preserves_all_original_plans(tmp_path,monkeypatch):
+    groups,manifest,calls=mixed_source_fixture(tmp_path,monkeypatch)
+    # Distinct admission differences per source role must not become task failures.
+    reject_fixture_case(groups['a08'],'A_2');reject_fixture_case(groups['b06'],'B_3')
+    reject_fixture_case(groups['candidate'],'A_4')
+    # Unselected source role checkpoints are not a dependency of this comparison.
+    Path(groups['a08'][2]['pairs']['B']['frontend']).unlink()
+    Path(groups['b06'][2]['pairs']['A']['frontend']).unlink()
+    before={name:review.sha256(value[1]/'plan.json') for name,value in groups.items()}
+    observed=[]
+    monkeypatch.setattr(review,'write_learning',lambda out,root,candidate,source,tree,**kw:observed.append((source,candidate)))
+    root,directory,plan,_,_,_=groups['candidate'];output=tmp_path/'review'
+    review.run(source_manifest=manifest,candidate_root=root,candidate_development=directory,
+        candidate_tree=tmp_path/'candidate/frozen',output=output)
+    result=read_json(output/'autonomy.json')
+    assert result['version']=='per_role_development_cpu_review_v1'
+    assert set(result['source_by_role'])=={'A','B'} and 'groups' not in result
+    for role,source in [('A','a08'),('B','b06')]:
+        evidence=result['source_by_role'][role]
+        assert set(evidence['pairs'])=={role} and len(evidence['cases'])==8
+        assert evidence['development']==str(groups[source][1])
+        assert evidence['totals'][role]['legal_initializations']==7
+        assert observed[0][0][role]==groups[source][2]['pairs'][role]
+        assert len(result['initial_observation_comparison_by_role'][role]['cases'])==8
+    matched=result['matched_legal_comparison']['by_role']
+    assert matched['A']['matched_legal_opportunities']==6
+    assert matched['A']['candidate_only_legal_cases']==['A_2']
+    assert matched['A']['source_only_legal_cases']==['A_4']
+    assert matched['B']['matched_legal_opportunities']==7 and matched['B']['candidate_only_legal_cases']==['B_3']
+    assert calls==[(groups['a08'][3]['A'],'A'),(groups['b06'][3]['B'],'B'),
+                  (groups['candidate'][3]['A'],'A'),(groups['candidate'][3]['B'],'B')]
+    assert before=={name:review.sha256(value[1]/'plan.json') for name,value in groups.items()}
+
+
+def test_source_preflight_requires_no_candidate_and_never_creates_one(tmp_path,monkeypatch):
+    groups,manifest,calls=mixed_source_fixture(tmp_path,monkeypatch)
+    output=tmp_path/'preflight'
+    review.run(source_manifest=manifest,source_preflight=True,output=output)
+    report=read_json(output/'source_preflight.json')
+    assert report['candidate_audited'] is False and not (output/'autonomy.json').exists()
+    assert report['source_by_role']['B']['pairs']=={'B':groups['b06'][2]['pairs']['B']}
+    assert calls==[(groups['a08'][3]['A'],'A'),(groups['b06'][3]['B'],'B')]
+
+
+@pytest.mark.parametrize('explicit',[False,True])
+def test_single_source_run_keeps_historical_output_contract(tmp_path,monkeypatch,explicit):
+    groups,_,_=mixed_source_fixture(tmp_path,monkeypatch)
+    source,candidate=groups['a08'],groups['candidate'];kwargs={}
+    if explicit:
+        kwargs.update(source_development=source[1],candidate_development=candidate[1])
+    else:
+        source[1].rename(source[0]/'development');candidate[1].rename(candidate[0]/'development')
+    learning=[];monkeypatch.setattr(review,'write_learning',lambda *args,**kw:learning.append(kw))
+    output=tmp_path/'legacy_review'
+    review.run(source[0],candidate[0],tmp_path/'a08/frozen',tmp_path/'candidate/frozen',output,**kwargs)
+    result=read_json(output/'autonomy.json')
+    assert result['version']==('explicit_development_cpu_review_v2' if explicit else 'round06_independent_cpu_review_v1')
+    assert set(result['groups'])==({'source','candidate'} if explicit else {'source_round05','candidate_round06'})
+    assert 'source_by_role' not in result and learning==[dict(explicit=explicit)]
+
+
+@pytest.mark.parametrize('fault',['wrong_root','outside_root','missing_role','extra_field','relative','version'])
+def test_source_manifest_fails_closed_on_ambiguous_bindings(tmp_path,monkeypatch,fault):
+    groups,manifest,_=mixed_source_fixture(tmp_path,monkeypatch);value=read_json(manifest)
+    if fault=='wrong_root':value['roles']['A']['root']=str(tmp_path)
+    if fault=='outside_root':
+        root,directory,plan,*_=groups['a08'];plan['resource_root']=str(tmp_path/'a08/frozen')
+        write_json(directory/'plan.json',plan);value['roles']['A']['root']=plan['resource_root']
+    if fault=='missing_role':value['roles'].pop('B')
+    if fault=='extra_field':value['roles']['A']['training_root']=str(tmp_path)
+    if fault=='relative':value['roles']['B']['tree']='frozen'
+    if fault=='version':value['version']='invented'
+    write_json(manifest,value)
+    with pytest.raises(ValueError):review.source_manifest_inputs(manifest)
+
+
+@pytest.mark.parametrize('fault',['spec','execution','wave_order'])
+def test_role_comparison_preserves_actual_wave_and_case_provenance(fault):
+    old=batch_plan();new=copy.deepcopy(old)
+    if fault=='spec':new['cases'][0]['spec']['event_seed']+=1
+    if fault=='execution':new['batch']['vision_microbatch']=2
+    if fault=='wave_order':new['cases']=sorted(new['cases'],key=lambda row:row['role'],reverse=True)
+    with pytest.raises(ValueError):review.compare_role_plans(old,new,'A')
+
+
+def test_role_comparison_does_not_require_unselected_role_same_specs():
+    old=batch_plan();new=copy.deepcopy(old)
+    next(case for case in old['cases'] if case['role']=='B')['spec']['event_seed']+=1
+    assert review.compare_role_plans(old,new,'A')['opportunities']==8
+    with pytest.raises(ValueError):review.compare_role_plans(old,new,'B')
+
+
+@pytest.mark.parametrize('kwargs',[
+    dict(source_root=Path('legacy')),dict(source_tree=Path('legacy')),dict(source_development=Path('legacy')),
+    dict(source_preflight=True,candidate_root=Path('candidate'))])
+def test_manifest_and_single_source_arguments_cannot_silently_override_each_other(tmp_path,kwargs):
+    with pytest.raises(ValueError):review.run(source_manifest=tmp_path/'manifest.json',output=tmp_path/'out',**kwargs)
+
+
+def test_manifest_cli_and_legacy_missing_argument_guard(tmp_path):
+    args=review.parser().parse_args(['--source-manifest','sources.json','--source-preflight','--output','review'])
+    assert args.source_root is None and args.source_tree is None and args.source_preflight
+    with pytest.raises(ValueError,match='requires source/candidate'):
+        review.run(candidate_root=tmp_path,output=tmp_path/'review')
+
+
+@pytest.mark.parametrize('fault',['checkpoint','index','startup','partial'])
+def test_selected_source_role_must_have_exact_completed_evidence(tmp_path,monkeypatch,fault):
+    groups,manifest,_=mixed_source_fixture(tmp_path,monkeypatch)
+    root,directory,plan,_,_,rows=groups['b06']
+    if fault=='checkpoint':Path(plan['pairs']['B']['frontend']).write_bytes(b'changed')
+    if fault=='index':rows[-1]['case']='not_registered';write_json(directory/'results.json',rows)
+    if fault=='startup':write_json(directory/'run_started.json',dict(plan_sha256='0'*64))
+    if fault=='partial':write_json(directory/'result.json',dict(software_complete=False,cases=16))
+    with pytest.raises(ValueError):review.run(source_manifest=manifest,source_preflight=True,output=tmp_path/'out')
