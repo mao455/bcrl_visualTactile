@@ -1,3 +1,7 @@
+## 2026-11-14 可选fresh恢复初段loss权重（尚未真实训练）
+
+fresh_recovery_weighting={version: fresh_actual_takeover_onset_weighting_v1, ticks:12, backend_weight:1或3}只能显式用于fresh30_actual_takeover_aggregate_v1，固定128未加权tick窗口；拒绝与旧recovery_prefix、sampling_strata同时存在。以normalization_train_ids识别原30，其权重恒1；额外episode必须真实expert_takeover_v1，仅首个连续合法专家segment初12tick可加权，学生prefix/队列过渡仍无监督。实际曝光、episode顺序与完整历史不变；权重质量单独记账，fixed128分母保持。无此字段的历史路径不变。权重1 CPU实际trainer与无权重逐参数/梯度/顺序一致，真实完整模型对照尚未开始。
+
 ## 2026-11-14 可选批量执行合同
 
 neural_batch只改变推理调度：每lane逐60Hz真实视觉/历史、独立episode/step/计划cursor/执行反馈/DP随机流不变；DDIM仅合并当前需要5Hz重规划的lane，后端合并当前active lane。reset lane零/invalid历史不影响继续lane，终止lane不更新。无权重/统计/标签/执行器语义变更。默认关闭，真实输入对照通过后才用于独立工程评估；批量算子数值容差不等于PhysX轨迹精确重放。

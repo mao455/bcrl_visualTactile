@@ -18,13 +18,15 @@ def read(path):
     return json.loads(Path(path).read_text())
 
 
-def prepare(root, role, epochs, *, continue_rear=False):
+def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting=None):
     import torch
     from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
     from visuotactile.execution_learning import SPAN_PROJECTION_FY_LOSS
     from visuotactile.residual_output import REACHABLE_CENTERED_OUTPUT
     from visuotactile.residual_tick_window import TICK_WINDOW_CONTRACT
     from visuotactile.models.native_dp import TargetResidual, CURRENT_WEIGHT_RESIDUAL_HISTORY_VERSION
+    from visuotactile.fresh_recovery import fresh_recovery_weighting_config
+    fresh_recovery_weighting=fresh_recovery_weighting_config(fresh_recovery_weighting)
     if epochs < 1:
         raise ValueError('Positive shared training exposure required')
     root = root.resolve()
@@ -61,6 +63,10 @@ def prepare(root, role, epochs, *, continue_rear=False):
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
     v['residual_normalization_identity'] = residual_normalization(data, v)
+    if fresh_recovery_weighting is not None:
+        if not continue_rear or not data.get('aggregation'):
+            raise ValueError('Fresh onset comparison requires an explicit aggregate backend continuation')
+        v['fresh_recovery_weighting']=fresh_recovery_weighting
     if data.get('aggregation'):
         v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
     if command_data['normalization_identity'] != v['residual_normalization_identity']:

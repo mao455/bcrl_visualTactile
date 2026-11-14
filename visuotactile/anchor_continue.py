@@ -1021,6 +1021,8 @@ def residual_setup(root, *, selected=False, smoke=False):
     from .state_resources import lease_for
     s=read(root/'session.json');cfg=read(root/'configuration.json');v=cfg['residual_pair']
     if v['version']!=TargetResidual.version:raise ValueError('Residual architecture/configuration identity differs')
+    if smoke and v.get('fresh_recovery_weighting') is not None:
+        raise ValueError('Fresh recovery weighting retains the complete validation6 cohort')
     data=read(root/'state_data/data.json');index=read(root/'nominal/index.json');all_splits=data['splits']
     if smoke:data=dict(data,splits={k:values[:1] for k,values in data['splits'].items()})
     base=v['bases'][root.name]
@@ -1065,6 +1067,8 @@ def residual_setup(root, *, selected=False, smoke=False):
         loss_id='all_tick_equal_arm_hand_plus_1e-4_residual',ema=False,
         architecture=model.architecture(),residual_version=model.version,
         history='full causal episodes; 32tick detach only; expert past acknowledgements teacher forced offline')
+    if v.get('fresh_data_contract'):
+        configuration['selection']=f"fixed validation{len(all_splits['validation'])} all-tick normalized equal Arm/Hand MSE"
     if data.get('sampling_strata'):
         sampling_strata(all_splits['train'],data['sampling_strata'],v.get('sampling_weights'))
         configuration.update(sampling_strata=data['sampling_strata'],
@@ -1128,6 +1132,13 @@ def residual_setup(root, *, selected=False, smoke=False):
         del saved
     if tick_window is not None:
         configuration['history']='current-weight full prefix only after optimizer update; unchanged-weight detached carry between32tick chunks'
+    from .fresh_recovery import fresh_recovery_plan
+    fresh_weighting,_,fresh_population=fresh_recovery_plan(data,v,records)
+    if fresh_weighting is not None:
+        configuration.update(fresh_recovery_weighting=fresh_weighting,
+            fresh_recovery_population=fresh_population,
+            loss_id='fresh_onset_weighted_'+configuration['loss_id'],
+            recovery_weighting_scope='actual correction first contiguous legal expert ticks only; original30, sampling, validation and physical exposure unchanged')
     if selected:
         saved=torch.load(root/('training_smoke' if smoke else 'training')/'best.pt',map_location='cpu',weights_only=False)
         if saved.get('disposable',False) and not smoke:raise ValueError('Disposable residual cannot become a selected formal checkpoint')
@@ -1205,6 +1216,11 @@ def residual_train(root, *, smoke=False, probe=False):
     if smoke and probe:raise ValueError('Choose residual smoke or throughput probe, not both')
     setup_began=time.time()
     s,v,data,records,model,configuration,lease=residual_setup(root,smoke=smoke)
+    from .fresh_recovery import fresh_recovery_plan,fresh_recovery_exposure
+    fresh_weighting,fresh_masks,fresh_population=fresh_recovery_plan(data,v,records)
+    if (configuration.get('fresh_recovery_weighting')!=fresh_weighting
+            or configuration.get('fresh_recovery_population')!=fresh_population):
+        raise ValueError('Fresh recovery setup/training contract or population differs')
     formal_epochs=v['maximum_control_tick_epochs']
     if smoke or probe:v=dict(v,maximum_control_tick_epochs=1)
     probe_ids=data['splits']['train'][:4]
@@ -1356,6 +1372,12 @@ def residual_train(root, *, smoke=False, probe=False):
                         weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
                             remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
                             recovery_prefix_weight=recovery['backend_weight'],loss_weight_mass_is_exposure=False)
+                    if fresh_weighting is not None:
+                        loss_mask,early=residual_recovery_weights([fresh_masks[i] for i in order[offset:offset+len(selected)]],
+                            start,end,supervised,fresh_weighting['backend_weight'])
+                        weight_report=dict(initial_recovery_supervised_ticks=int(early.sum()),
+                            remaining_supervised_ticks=int((supervised&~early).sum()),loss_weight_mass=float(loss_mask.sum()),
+                            fresh_recovery_weighting=fresh_weighting,loss_weight_mass_is_exposure=False)
                     if getattr(model,'loss_contract',None):
                         components=model.objective_components(action,residual_aux(selected,start,end,'target',device),
                             delta,loss_mask,u_pre=chain['u_pre'],
@@ -1381,6 +1403,7 @@ def residual_train(root, *, smoke=False, probe=False):
                         draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
                     if window is not None and window.pending and (window.ready or end==max(len(r['robot']) for r in selected)):
                         report=window.step(model,opt);updates+=1;history_dirty=True
+                        if fresh_weighting is not None:report['fresh_recovery_weighting']=fresh_weighting
                         with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,**report))+'\n')
                     ticks+=int(inputs['valid'].sum())
                     def detach(x):return {k:detach(z) for k,z in x.items()} if isinstance(x,dict) else x.detach()
@@ -1437,6 +1460,9 @@ def residual_train(root, *, smoke=False, probe=False):
         selection=configuration.get('selection','fixed validation4 all-tick normalized equal Arm/Hand MSE'),
         exposure_budget_rounding='complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported',
         excess_supervised_ticks=max(0,draws-target_ticks),
+        **(dict(fresh_recovery_weighting=fresh_weighting,
+            fresh_recovery_exposure=fresh_recovery_exposure(records,fresh_masks,episode_counts,fresh_weighting))
+            if fresh_weighting is not None else {}),
         coverage=episode_exposure(records,episode_counts,strata,v.get('sampling_weights'),recovery_prefix=recovery),
         last=str(out/'last.pt'),best=str(out/'best.pt'),utc=time.time(),base_optimizer_updates=0))
 

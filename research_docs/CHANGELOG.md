@@ -1,3 +1,7 @@
+## 2026-11-14：名义裁剪审计和可选恢复起点对照
+
+新增tight_fresh_anchor_report.py及真实takeover03_nominal_projection.json，公开同合法状态下受限名义、旧完整shadow、上一实际目标比较与方向统计，不把离线作用称自主机制收益。新增visuotactile/fresh_recovery.py、tests/test_fresh_recovery.py；anchor_continue显式opt-in初段权重，setup/train二次准入、合法曝光与权重质量分开。tight_fresh_backend增加显式参数，默认关闭；新增tight_fresh_backend_study有限对照入口，原DP和全部cache仅在相同身份下复用，源完整自主未结束则不准入。当前无实际候选训练/GPU/新仿真，主Agent43项CPU测试通过。metadata的fresh validation4文字改为实际数量，历史权重不改。
+
 ## 2026-11-14：恢复起点对比与评估启动界限
 
 新增tools/tight_fresh_onset_report.py、tight_fresh_onset_after.py与tests/test_fresh_onset_after.py，记录旧完整shadow和新完整pair在同合法专家恢复初段的误差、上一实际目标基线及精确数据/模型/缓存绑定。旧24轨迹报告已实际运行；新pair GPU对比待本轮完整循环结束。公开round03_frontend_learning.json记录实际10遍/710更新与分来源曝光，不将离线下降当自主收益。
