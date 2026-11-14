@@ -1,3 +1,7 @@
+## 2026-11-14 第二轮后端结果与有界启动恢复
+
+公开round02_learning/increment_baseline/learning_curves，实际两组后端10遍1131更新，选第10遍；验证手指A0.0181267/B0.0195016rad。自主Kit启动超300秒、0实际case，保留日志/中断凭据，核验后仅停止本worker。新增tools.tight_fresh_eval_recovery：只能恢复尚未初始化/开始case且旧worker已退出的自主队列，原cases/pair完全一致，独立输出、原deadline、startup180秒、faulthandler90秒。2项CPU测试通过；不重复训练、不预告自主改善。原活动a4db8e4源码未修改。
+
 ## 2026-11-14 抓持持续性与同一时刻对孔诊断
 
 扩展tools/tight_fresh_phases：在原成功/稳定窗规则不变的前提下，报告稳定窗连续长度、末次稳定和首次拿稳后的第一目标进展；最近中心和最小keypoint误差附同一tick角度/接触，避免把不同时刻最小值拼成对准。16项阶段/接管测试通过。真实round01 A稳定23tick、B累计63/最长54tick，最终均失稳。B中心最近341tick仅0.91mm，但角度1.363rad且没有双指接触；最小keypoint差279tick仍高于容差18.84mm。接近孔中心不能称对准或插入。公开round01_grasp_progress绑定原numeric/result/plan SHA，无新增仿真。
