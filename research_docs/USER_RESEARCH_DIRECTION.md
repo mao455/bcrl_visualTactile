@@ -1,3 +1,5 @@
+当前后端输出起点对照已完整结束：四组各0/4成功、0拿稳，候选主要卡在拿起；不采用新后端。下一步从第五轮完整模型做同头detach/视觉梯度辅助监督对照，正式开始前完成真实路径验收及训练集尺度校准。实际源码、数据与结果见最新[SESSION_HANDOFF](SESSION_HANDOFF.md)及[evidence](evidence/tight_fresh_20261114/round05_anchor_study.json)。
+
 ## 2026-11-14 当前任务与实际进展
 
 当前授权仅以根[AGENTS.md](../AGENTS.md)及用户本轮逐帧视觉、约30条初始成功示范、持续完整A/B DAgger要求为准。旧任务说明已移入[历史归档](archive/USER_RESEARCH_DIRECTION_through_20261113.md)，不能覆盖新任务，也不重新启动已结束的旧run。当前研究机CNS202533182702；新隔离树continuous_vision_20261114从核验远端506d185建立，原脏工作树未改。源码与小型证据持续推origin/feature/tight-state-foundation，raw数据/权重留本机。
