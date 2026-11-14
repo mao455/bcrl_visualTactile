@@ -149,7 +149,12 @@ def run(study, arm, output):
                 or index['data_sha256'] != sha256(data_path)):
             raise ValueError('Shared DP/cache/data identity differs')
         rear = directory / 'backend' / role / 'training'
-        selected = read(rear / 'selected.json')
+        # Independent sessions inherit a read-only best/finished pair, not the
+        # entire training directory. The registered source checkpoint identifies
+        # its original validation-selection receipt without copying or changing it.
+        selected_path = (Path(source_pair['backend']).resolve(strict=True).with_name('selected.json')
+                         if arm == 'source' else rear / 'selected.json')
+        selected = read(selected_path)
         rear_sha = sha256(rear / 'best.pt')
         if not read(rear / 'finished.json')['target_reached'] or selected['checkpoint_sha256'] != rear_sha:
             raise ValueError('Rear is incomplete or not validation-selected')
@@ -218,7 +223,8 @@ def run(study, arm, output):
                     for name in ('first12','next12','remaining')})
         roles[role] = dict(frontend_sha256=index['base_sha256'], backend_sha256=rear_sha,
             data_sha256=sha256(data_path), numeric_sha256=sha256(numeric_path), cache_index_sha256=sha256(index_path),
-            selected=selected, fitting_population=cohorts, summaries=summaries, cases=cases)
+            selected=selected, selected_receipt_sha256=sha256(selected_path),
+            fitting_population=cohorts, summaries=summaries, cases=cases)
         atomic_json(output.with_name(output.stem + '_' + role + '.json'), roles[role])
     if torch.cuda.is_initialized():
         raise ValueError('CPU onset report unexpectedly initialized CUDA')
