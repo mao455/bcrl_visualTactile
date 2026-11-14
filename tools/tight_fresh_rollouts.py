@@ -39,8 +39,8 @@ def prepare(root, output, count, seed, *, first_plan_forensics=False):
         raise ValueError('First-plan forensics must be registered as a boolean')
     if output.exists():
         raise FileExistsError('Existing rollout identity must be preserved')
-    if not 1 <= count <= 32:
-        raise ValueError('Register between one and 32 development opportunities per role')
+    if type(count) is not int or count < 1:
+        raise ValueError('Register a positive finite development population per role')
     session=read(root/'session.json')
     pairs={role:completed_pair(root,role) for role in ('A','B')}
     cases=[]

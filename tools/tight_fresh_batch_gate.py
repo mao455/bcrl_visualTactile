@@ -17,10 +17,11 @@ def gate(root,output,*,role='A',count=2,neural_batch=False):
     from visuotactile.state_resources import lease_for
     from visuotactile.precision import state_fp32
     if output.exists():raise FileExistsError('Preserve gate evidence')
-    if role not in ('A','B') or count not in (2,4):raise ValueError('Registered A/B role and two/four lanes required')
+    if role not in ('A','B') or type(count) is not int or count<2:raise ValueError('Registered A/B role and at least two lanes required')
     state_fp32();s=json.loads((root/'session.json').read_text());lease=lease_for(root,deadline=s['deadline'])
     pair=completed_pair(root,role);saved=torch.load(pair['backend'],weights_only=False,map_location='cpu')
-    data=json.loads((root/role/'state_data/data.json').read_text());ids=data['splits']['train'][:count]
+    data=json.loads((root/role/'state_data/data.json').read_text());population=data['splits']['train']
+    ids=[population[i%len(population)] for i in range(count)]
     sources=[]
     for identity in ids:
         e=data['entries'][identity]
@@ -39,8 +40,8 @@ def gate(root,output,*,role='A',count=2,neural_batch=False):
     rows=[]
     with lease.block():
         dino=NativeDinoSpatial().cuda().eval()
-        batch=BatchedResidualController(saved,metadata,dino,count,neural_batch=neural_batch)
-        serial=[ResidualController(saved,metadata,dino) for _ in ids]
+        batch=BatchedResidualController(saved,metadata,dino,count,neural_batch=neural_batch,scheduler_index_mode='host')
+        serial=[ResidualController(saved,metadata,dino,scheduler_index_mode='host') for _ in ids]
     for tick in range(25):
         # Restart only lane0 at the 13th observation; lane1's prefix continues.
         indices=[tick if tick<13 else tick-13]+[tick]*(count-1)
@@ -63,7 +64,7 @@ def gate(root,output,*,role='A',count=2,neural_batch=False):
                 serial[lane].observe_execution(dict(position_applied_rad=targets[lane]))
             batch.observe_execution(dict(position_applied_rad=torch.cat(targets)),[True]*count)
         rows.append(dict(tick=tick,max_abs_command_rad=error,steps=indices))
-    atomic_json(output,dict(passed=True,pair=pair,role=role,lanes=count,neural_batch=neural_batch,source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
+    atomic_json(output,dict(passed=True,pair=pair,role=role,lanes=count,neural_batch=neural_batch,scheduler_index_mode='host',source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
         source_control_mode=source_control_mode,offline_controller_mode=metadata['action_control_mode'],
         max_abs_command_rad=max(row['max_abs_command_rad'] for row in rows),
         scope='Real recorded RGB-D and expert actual-history acknowledgements; lane0 reset while lane1 continues; no simulation outcome or speed claim'))
@@ -71,6 +72,6 @@ def gate(root,output,*,role='A',count=2,neural_batch=False):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
-    p.add_argument('--role',choices=['A','B'],default='A');p.add_argument('--lanes',type=int,choices=[2,4],default=2)
+    p.add_argument('--role',choices=['A','B'],default='A');p.add_argument('--lanes',type=int,default=2)
     p.add_argument('--neural-batch',action='store_true')
     a=p.parse_args();torch.set_num_threads(2);gate(a.root,a.output,role=a.role,count=a.lanes,neural_batch=a.neural_batch)

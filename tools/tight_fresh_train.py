@@ -4,6 +4,7 @@ Episode visits follow the registered schedule; learned hidden state is never cac
 """
 import argparse,copy,json,time
 import hashlib,os,uuid
+from contextlib import nullcontext
 from pathlib import Path
 import torch
 from visuotactile.training_resources import atomic_json
@@ -16,6 +17,7 @@ from visuotactile.position_control import continuous_image_contract,bounded_targ
 from visuotactile.continuous_vision import encode_dense
 from visuotactile.anchor_sampling import labels
 from visuotactile.latest_takeover_sampling import sampling_plan,episode_deck,validate_sampling_exposure
+from visuotactile.episode_io import EpisodePrefetch, normalize_io, io_snapshot, io_delta
 
 
 def read(p):return json.loads(Path(p).read_text())
@@ -39,9 +41,9 @@ def new_model(role,statistics):
     return model.cuda()
 
 
-def supervised_conditions(model,record):
+def supervised_conditions(model,record,*,episode=None):
     """All frames update history; only actual legal target windows train DP."""
-    c,a=encode_dense(model,record)
+    c,a=(encode_dense(model,record) if episode is None else encode_dense(model,record,episode=episode))
     from visuotactile.anchor_sampling import planning_anchors
     permitted=planning_anchors(record).to(a.device)
     keep=torch.isin(a,permitted)
@@ -218,6 +220,8 @@ def train(root,role,epochs):
     state_fp32();session=read(root/'session.json');lease=lease_for(root,deadline=session['deadline'])
     out=root/role/'training';out.mkdir(exist_ok=True)
     continuation=read(root/role/'continuation.json') if (root/role/'continuation.json').exists() else None
+    io_path=root/role/'episode_io.json'
+    io_config=normalize_io(read(io_path)) if io_path.exists() else None
     from visuotactile.visual_aux_training import (load_auxiliary_spec, attach_auxiliary_head,
         optimizer_groups, prepare_pose_contexts, supervised_visual_conditions, auxiliary_episode_loss,
         auxiliary_metrics, empty_exposure, add_exposure, validate_exposure)
@@ -262,6 +266,9 @@ def train(root,role,epochs):
         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
     if continuation:config['continuation']=continuation
+    if io_config is not None:
+        config['episode_io']=io_config
+        config['episode_io_configuration_sha256']=sha256(io_path)
     if auxiliary:
         config.update(version='fresh30_continuous_episode_aux_v1',visual_auxiliary=auxiliary,
             auxiliary_label_report_sha256=sha256(out/'visual_auxiliary_labels.json'),
@@ -317,43 +324,58 @@ def train(root,role,epochs):
         atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
         order=episode_deck(data['splits']['train'],multiplicities,generator);losses=[]
-        for order_index,i in enumerate(order):
-            rec=records[i];began=time.perf_counter()
-            with lease.block():
-                model.train();opt.zero_grad(set_to_none=True)
-                if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec)
-                else:cond,a=supervised_conditions(model,rec)
-                truth,valid=labels(rec,a,24)
-                selected=[(i,int(t)) for t in a]
-                context=projection_batch(objective,selected,'cuda:0')
-                loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
-                if auxiliary:
-                    weighted_pose,pose_parts=auxiliary_episode_loss(model,rec,visual,pose_contexts[i],auxiliary)
-                    parts=dict(parts,auxiliary_position=pose_parts['position'],auxiliary_orientation6=pose_parts['orientation6'],
-                        auxiliary_weighted=weighted_pose)
-                    loss=loss+weighted_pose
-                if not torch.isfinite(loss):raise FloatingPointError('Nonfinite fresh loss')
-                loss.backward()
-                norm=(clip_auxiliary_gradients(model,model.visual_pose_head)['policy_norm'] if auxiliary
-                    else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
-                if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
-                opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
-                if sampling:sampling_exposure[i]+=1
-                if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
-                losses.append(float(loss));torch.cuda.synchronize()
-            row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
-                parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
-                visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
-            if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
-            if sampling:row.update(episode_visit=sampling_exposure[i],episodes_per_epoch=episodes_per_epoch)
-            atomic_json(out/'progress.json',row)
-            with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+        epoch_io_before=io_snapshot();epoch_began=time.perf_counter()
+        prefetch=(EpisodePrefetch(order,lambda identity:Episode(dr,identity,'I-HistoryDP'),io_config)
+                  if io_config is not None else None)
+        try:
+            for order_index,i in enumerate(order):
+                rec=records[i];began=time.perf_counter()
+                io_before=io_snapshot()
+                visit=(prefetch.visit(order_index) if prefetch is not None else nullcontext((None,None)))
+                with visit as (episode,episode_io),lease.block():
+                    model.train();opt.zero_grad(set_to_none=True)
+                    if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec,episode=episode)
+                    else:cond,a=supervised_conditions(model,rec,episode=episode)
+                    truth,valid=labels(rec,a,24)
+                    selected=[(i,int(t)) for t in a]
+                    context=projection_batch(objective,selected,'cuda:0')
+                    loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
+                    if auxiliary:
+                        weighted_pose,pose_parts=auxiliary_episode_loss(model,rec,visual,pose_contexts[i],auxiliary)
+                        parts=dict(parts,auxiliary_position=pose_parts['position'],auxiliary_orientation6=pose_parts['orientation6'],
+                            auxiliary_weighted=weighted_pose)
+                        loss=loss+weighted_pose
+                    if not torch.isfinite(loss):raise FloatingPointError('Nonfinite fresh loss')
+                    loss.backward()
+                    norm=(clip_auxiliary_gradients(model,model.visual_pose_head)['policy_norm'] if auxiliary
+                        else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
+                    if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
+                    opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
+                    if sampling:sampling_exposure[i]+=1
+                    if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
+                    losses.append(float(loss));torch.cuda.synchronize()
+                row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
+                    parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
+                    visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
+                row['process_io']=io_delta(io_before,io_snapshot())
+                if episode_io is not None:row['episode_io']=episode_io
+                if auxiliary:row['auxiliary_exposure']=pose_reports[i]['perception_exposure']
+                if sampling:row.update(episode_visit=sampling_exposure[i],episodes_per_epoch=episodes_per_epoch)
+                atomic_json(out/'progress.json',row)
+                with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
+        finally:
+            if prefetch is not None:prefetch.close()
+        training_epoch_io=dict(process_io=io_delta(epoch_io_before,io_snapshot()),
+            wall_seconds=time.perf_counter()-epoch_began,
+            prefetch=prefetch.summary() if prefetch is not None else None,
+            scope='Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution')
         with lease.block():
             val=metrics(averaged,records,data['splits']['validation']);tr=metrics(averaged,records,data['splits']['train'][:2])
             pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),
                 train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary)) if auxiliary else None)
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
+        report['training_epoch_io']=training_epoch_io
         if auxiliary:
             report.update(visual_auxiliary=pose_metrics_report,auxiliary_exposure=copy.deepcopy(pose_exposure))
         if sampling:report['sampling_exposure']=dict(sampling_exposure)

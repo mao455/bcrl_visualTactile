@@ -231,6 +231,9 @@ def dagger_record(entry, *, include_geometry=True):
     key,metadata,result=record(entry['path'],episode=entry['episode'],privileged=False)
     n=len(result['time'])
     if n!=entry['length'] or metadata.get('dataset_split')!='train':raise ValueError('Takeover length/split mismatch')
+    if entry.get('training_expansion') is not None or metadata.get('training_expansion') is not None:
+        from .training_expansion import validate_capture_binding
+        validate_capture_binding(entry,metadata)
     actual_q,_=actual_configuration_labels(entry)
     with h5py.File(entry['path']) as stream:
         group=stream['episodes'][key];source=group['transition/dagger'];obs=group['obs']
@@ -539,12 +542,26 @@ def aggregate_family_partitions(data, splits=None):
     return families
 
 
-def validate_aggregate_families(data, new_entries, splits=None):
+def validate_aggregate_families(data, new_entries, splits=None, *, training_expansion_registry=None):
     """Reject held-out and unknown correction families before opening payloads."""
     families=aggregate_family_partitions(data,splits)
+    source_families=set(families)
+    if training_expansion_registry is not None:
+        from .training_expansion import read_registry
+        read_registry(training_expansion_registry,data)
     for identity,entry in new_entries.items():
         if identity in data['entries']:raise ValueError('Duplicate aggregate episode: '+identity)
         family=entry.get('family')
+        if family not in source_families and entry.get('training_expansion') is None:
+            raise ValueError('Takeover family is not a known source training family: '+str(family))
+        if entry.get('training_expansion') is not None:
+            from .training_expansion import validate_expansion_entry
+            if training_expansion_registry is None:
+                raise ValueError('New training families require an explicit aggregate registry')
+            validate_expansion_entry(entry,data,training_expansion_registry)
+            if family in families and families[family]!='train':
+                raise ValueError('Takeover family leaks a held-out split: '+family)
+            families[family]='train'
         if not isinstance(family,str) or family not in families:
             raise ValueError('Takeover family is not a known source training family: '+str(family))
         if families[family]!='train':raise ValueError('Takeover family leaks a held-out split: '+family)
@@ -552,7 +569,7 @@ def validate_aggregate_families(data, new_entries, splits=None):
 
 
 def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,manifest_sha256=None,include_geometry=True,
-        snapshot=None,consumer_group=None,include_frontend_tactile=True):
+        snapshot=None,consumer_group=None,include_frontend_tactile=True,training_expansion_registry=None):
     """Append accepted train takeovers; keep original validation/test and affine.
 
     Both roots name state_data directories. Selection/native success admission
@@ -563,6 +580,8 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
     from .native_data import target_supervision
     source=Path(source_root).resolve();out=Path(output_root).resolve()
     frozen=read_dagger_snapshot(snapshot) if snapshot is not None else None
+    if frozen and training_expansion_registry is not None:
+        raise ValueError('Historical shared-pool snapshots do not admit new training expansion contracts')
     if frozen and not include_frontend_tactile:raise ValueError('Shared historical pools require their registered tactile artifacts')
     if source==out:raise ValueError('Aggregate must be a new independent dataset')
     kind=target_supervision(supervision);old=read(source/'data.json')
@@ -593,7 +612,8 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
     # duplicate check applies to the retained Core, not the discarded old pool.
     retained=({i:old['entries'][i] for values in base_splits.values() for i in values}
         if frozen else old['entries'])
-    families=validate_aggregate_families(dict(old,entries=retained),new_entries,base_splits)
+    families=validate_aggregate_families(dict(old,entries=retained),new_entries,base_splits,
+        training_expansion_registry=training_expansion_registry)
     raw=torch.load(source/'numeric.pt',map_location='cpu',weights_only=False)
     if raw['data_sha256']!=sha256(source/'data.json'):raise ValueError('Source numeric cache identity differs')
     touched=torch.load(source/'tactile.pt',map_location='cpu',weights_only=False) if include_frontend_tactile else None
@@ -637,6 +657,14 @@ def build_dagger_aggregate(source_root,new_entries,output_root,supervision,*,man
         policy_inputs=['robot178','RGB_DINO_patches','deterministic_depth_grid'],privileged_inputs=False,
         source_statistics_sha256=sha256(source/'statistics.pt'))
     if manifest_sha256 is not None:data['manifest_sha256']=manifest_sha256
+    if training_expansion_registry is not None:
+        registries=list(old.get('training_expansion_registries',[]))
+        matching=[item for item in registries if item['registry_id']==training_expansion_registry['registry_id']]
+        if matching and matching!=[training_expansion_registry]:
+            raise ValueError('Existing expansion registry identity must not change')
+        if not matching:registries.append(training_expansion_registry)
+        data['training_expansion_registries']=registries
+        data['aggregation']['training_expansion_registry']=training_expansion_registry
     if frozen:
         current=[i for i,e in new_entries.items() if e['cohort']=='train' and e['pool_source']['run_id']==frozen['run_id'] and e['pool_source']['round_index']==frozen['round_index']]
         historical=[i for i,e in new_entries.items() if e['cohort']=='train' and i not in current]

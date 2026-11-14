@@ -49,7 +49,10 @@ def dagger_configuration(configuration, spec, source):
     if spec.get('cohort') != 'dagger_train' or spec.get('split') != 'train' or 'narrow_reset' not in spec:
         raise ValueError('DAgger requires a fresh, explicitly train-only family reset')
     identity = spec.get('source_identity')
-    if identity not in source['splits']['train']:
+    if spec.get('training_expansion') is not None:
+        from .training_expansion import validate_expansion_spec
+        validate_expansion_spec(spec, source)
+    elif identity not in source['splits']['train']:
         raise ValueError('DAgger family must come from the training split')
     if spec.get('event_seed') is None:
         raise ValueError('A separately registered new event seed is required')
@@ -543,6 +546,9 @@ def trial(env, lease, output, spec, source, player, checkpoint, *, saved=None, r
         if dagger is not None:
             metadata.update(dagger=dagger, trajectory_kind='expert_takeover_v1', source_identity=spec['source_identity'],
                 complete_student_policy=complete_identity)
+            if spec.get('training_expansion') is not None:
+                metadata.update(training_expansion=spec['training_expansion'],
+                    initial_configuration_sha256=spec['initial_configuration_sha256'])
         if expert_speed is not None:
             metadata['expert_speed']=expert_speed
             metadata['supervision_contract']='transition/target_after_rad: actual issued actuator target, not measured joint position'

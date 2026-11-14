@@ -31,3 +31,17 @@ def test_independent_frontends_join_and_preserve_both_outcomes(failed):
 def test_parallel_joint_launch_admission_keeps_extra_headroom(free,ram,age,expected):
     row=dict(utc_epoch=100-age,gpu_free_mib=free*1024,ram_available_bytes=ram*1024**3)
     assert parallel_admission(row,100)['admitted'] is expected
+
+
+def test_episode_staging_cannot_change_after_either_learner_starts(tmp_path):
+    import json
+    from tools.tight_fresh_cycle import configure_episode_io
+    config=dict(version='frozen_episode_prefetch_v1',max_bytes=1024<<20,minimum_available_bytes=10<<30)
+    for role in ('A','B'):(tmp_path/role).mkdir()
+    (tmp_path/'B/training').mkdir()
+    with pytest.raises(ValueError):configure_episode_io(tmp_path,config)
+    assert not (tmp_path/'A/episode_io.json').exists()
+    (tmp_path/'B/training').rmdir()
+    assert configure_episode_io(tmp_path,config)==config
+    assert json.loads((tmp_path/'A/episode_io.json').read_text())==json.loads((tmp_path/'B/episode_io.json').read_text())==config
+    with pytest.raises(ValueError):configure_episode_io(tmp_path,dict(config,max_bytes=512<<20))

@@ -381,3 +381,16 @@ imitation 将交互收集、轨迹保存与后续 BC 训练分离；其 Interact
 # 2026-11-13 11:25 中心化提案显式契约
 
 `reachable_nominal_centered_linear_v1`仅为opt-in后端提案：实际前动作target定义理想可达box，投影nominal为锚点、box宽度乘raw；最终joint clamp/position adapter不变。原affine/scales缓冲及参数保留，但新输出不再以旧scales限制提案；历史幅度比不解释为tanh饱和。FY reg0保留真实非平坦梯度；非法/不可达标签仍拒绝，学生前缀不监督，test22不读。`adaptive_centered_01`只诊断后端，非DAgger，无采集、无前端更新；完整DP＋Transformer仍用于所有任务评估。新源码在隔离树，旧worker/supervisor冻结保护，原deadline不重置。
+## 2026-11-14 显式批量执行候选
+
+`whole_wave_complete_student_v1`将同完整权重的机会按role分组、整批自然执行，环境数为正整数且由实际资源/吞吐验收选择；默认旧串行路径保持。每lane的DP噪声生成器、全部持续历史、专家队列、接管触发和输出目录独立；本批结束前不复用已经自然终止的lane。子目标不清空历史。每个active lane在每60Hz tick消费自己的真实三视角RGB-D，DP仍每12tick规划。自然结束后停止该lane记录，不将自动reset图像附给终帧。原生事件随机流为本批所有lane共享的向量化流，不声称不同N或后端隐藏状态逐位配对。
+
+`batched_expert_takeover_position_wave_v1`只包装原单lane桥，复用同一次原生N维delay draw；逐lane的实际专家建议队列、source-step、source/valid segment和完整queue flush保持原语义。inactive lane保持其实际当前原生目标，`bridge_active=False`且无专家标签，不进入旧episode。学生在专家后段仍按新真实观测处理历史，实际issued/applied写回下一tick；学生前缀始终mask0。成功、触发、专家救回、相机/标签验收及入训练分别统计。
+
+新`SharedCaptureWriter`由唯一worker拥有HDF5句柄，主线程提交独立CPU快照；共同字节上限覆盖队列、正在写入和保留的行缓冲，压缩临时工作区另列。全部源字段重建SHA/相机内容/控制来源验收仍是入训练前置；软件中断保留partial和完成case清单，不把异步提交返回当完成落盘。吞吐以完整batch含启动、drain与验收入账的墙钟为准，lane计时重叠不能相加。
+
+仿真候选另登记`execution_backend`，参见[后端合同](EXECUTION_BACKEND_SCALING.md)。上述为实现合同；真实Kit与完整研究周期是否通过必须读新run结果，不能由CPU测试推断。
+
+`preregistered_training_families_v1`在结果发生前固定新增train family、seed及float32请求初态hash，明确排除已有和原验证/测试配置；不代表扩大质量/摩擦域。`registered_training_expansion_takeover_v1`允许事前明确的fixed40/80或contact0/12机会；固定时刻与接触触发分开审核，真实学生前缀没有专家标签。registry、初态hash和来源身份贯穿metadata/entry/aggregate；缺省未知family仍拒绝。六验证family、test22、原统计不变；不读取测试轨迹。固定接管也必须专家实际救回及完整来源/传感验收，不能将登记机会算成新数据。
+
+`frozen_episode_prefetch_v1`只对冻结CPU原特征做有界精确clone，不缓存可学习GRU；每次完整历史按当前权重重算。训练前显式登记，已开始不可热替换；吞吐必须含等待及验证，不能把重叠预取和计算相加。短吞吐探针使用独立engineering身份，控制上限截断单列，不计自然失败、成功或新增轨迹。

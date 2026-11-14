@@ -120,11 +120,12 @@ def prepare_pose_contexts(data, records):
     return contexts, reports
 
 
-def supervised_visual_conditions(model, record):
+def supervised_visual_conditions(model, record, *, episode=None):
     """One actual full-prefix encoding, with unchanged legal action-anchor filtering."""
     from .anchor_sampling import planning_anchors
     from .continuous_vision import encode_dense
-    condition, anchors, visual = encode_dense(model, record, return_visual=True)
+    condition, anchors, visual = (encode_dense(model, record, return_visual=True) if episode is None
+                                 else encode_dense(model, record, return_visual=True, episode=episode))
     permitted = planning_anchors(record).to(anchors.device)
     keep = torch.isin(anchors, permitted)
     if not keep.any():

@@ -44,14 +44,16 @@ class CurrentFrame:
 
 
 class BatchedResidualController:
-    def __init__(self, saved, metadata, dino, count, device='cuda:0', *, neural_batch=False):
+    def __init__(self, saved, metadata, dino, count, device='cuda:0', *, neural_batch=False,
+                 scheduler_index_mode='legacy'):
         if count < 1 or saved['contract'].get('visual_stride') != 1:
             raise ValueError('Positive lanes and explicit every-native-frame policy required')
         if saved['contract'].get('modality') != 'G00':
             raise ValueError('Only complete fresh G00 frontends are admitted')
         self.neural_batch = neural_batch
         self.count, self.dino, self.device = count, dino, torch.device(device)
-        first = ResidualController(saved, metadata, dino=None, device=device)
+        first = ResidualController(saved, metadata, dino=None, device=device,
+            scheduler_index_mode=scheduler_index_mode)
         self.lanes = [first]
         for lane in range(1,count):
             controller = copy.copy(first)

@@ -72,8 +72,22 @@ def configure_frontend_sampling(output, repeat):
     return receipt
 
 
+def configure_episode_io(output, config):
+    """Register identical bounded frozen-feature staging before either trainer."""
+    from visuotactile.episode_io import normalize_io
+    validated=normalize_io(config)
+    if validated is None:return None
+    for role in ('A','B'):
+        if (output/role/'training').exists() or (output/role/'episode_io.json').exists():
+            raise ValueError('Cannot replace started or registered episode I/O')
+    for role in ('A','B'):atomic_json(output/role/'episode_io.json',validated)
+    return validated
+
+
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
-        parallel_frontends=False,latest_repeat=None):
+        parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None):
+    if type(evaluation_lanes) is not int or evaluation_lanes<1:
+        raise ValueError('Positive evaluation concurrency required')
     ledger=output.with_name(output.name+'_stages')
     if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
@@ -89,7 +103,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         frontend_epochs=epochs,backend_epochs=rear_epochs,backend_continuation=continue_rear,development_count_per_role=count,seed=seed,
         parallel_frontends=parallel_frontends,
         frontend_latest_repeat=latest_repeat,backend_latest_repeat=1,
-        development_startup_seconds=180,
+        development_startup_seconds=300 if evaluation_lanes>1 else 180,
+        evaluation_lanes=evaluation_lanes,execution_backend=execution_backend,episode_io=episode_io,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
     if reuse_index is not None:
         if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
@@ -112,7 +127,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
                     started=start,deadline=deadline,completion=str(completion)))
                 reason=wait_owned(proc,deadline,
                     startup_marker=completion.parent/'initialization.json' if name=='development' else None,
-                    startup_seconds=180 if name=='development' else None)
+                    startup_seconds=registration['development_startup_seconds'] if name=='development' else None)
             finally:
                 if proc.poll() is None:stop_owned(proc)
         receipt=dict(stage=name,command=command,returncode=proc.returncode,started=start,seconds=time.time()-start,
@@ -126,6 +141,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         print(json.dumps(receipt),flush=True)
     try:
         execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
+        if episode_io is not None:
+            atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
         if latest_repeat is not None:
             sampling=configure_frontend_sampling(output,latest_repeat)
             atomic_json(ledger/'frontend_sampling.json',sampling)
@@ -151,8 +168,17 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,'--job','image','--output',rear/role/'training'],rear/role/'training/finished.json')
             execute('backend_offline_'+role,['visuotactile.anchor_continue','residual-offline','--root',rear/role,'--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json')
         development=output/'development'
-        execute('development_prepare',['tools.tight_fresh_rollouts','prepare','--root',output,'--output',development,'--count',count,'--seed',seed],development/'plan.json')
-        execute('development',['tools.tight_fresh_rollouts','run','--root',output,'--output',development],development/'result.json')
+        if evaluation_lanes>1:
+            arguments=['tools.tight_fresh_batch_run','prepare','--root',output,'--output',development,
+                '--count',count,'--seed',seed,'--lanes',evaluation_lanes]
+            if execution_backend is not None:
+                backend_path=ledger/'execution_backend.json';atomic_json(backend_path,execution_backend)
+                arguments+=['--backend-json',backend_path]
+            execute('development_prepare',arguments,development/'plan.json')
+            execute('development',['tools.tight_fresh_batch_run','run','--output',development],development/'result.json')
+        else:
+            execute('development_prepare',['tools.tight_fresh_rollouts','prepare','--root',output,'--output',development,'--count',count,'--seed',seed],development/'plan.json')
+            execute('development',['tools.tight_fresh_rollouts','run','--root',output,'--output',development],development/'result.json')
         atomic_json(ledger/'finished.json',dict(software_complete=True,stages=stages,utc=time.time(),
             research_conclusion='Pending actual Agent review of paired errors, exposure and complete autonomous outcomes'))
         atomic_json(ledger/'status.json',dict(stage='complete',software_complete=True,utc=time.time()))
@@ -170,11 +196,18 @@ def main():
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
     p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
+    p.add_argument('--evaluation-lanes',type=int,default=1)
+    p.add_argument('--backend-json',type=Path)
+    p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
     a=p.parse_args()
-    if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or not 1<=a.count<=32:p.error('Positive finite stage exposure required')
+    if not 1<=a.epochs<=100 or not 1<=a.rear_epochs<=100 or a.count<1 or a.evaluation_lanes<1:p.error('Positive finite stage exposure required')
+    if a.prefetch_mib is not None and not 1<=a.prefetch_mib<=1024:p.error('Prefetch budget must be 1–1024 MiB')
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
-        parallel_frontends=a.parallel_frontends,latest_repeat=a.latest_repeat)
+        parallel_frontends=a.parallel_frontends,latest_repeat=a.latest_repeat,
+        evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
+        episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
+            minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None)
 
 
 if __name__=='__main__':main()

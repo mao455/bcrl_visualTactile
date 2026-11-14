@@ -89,9 +89,20 @@ def capture(root,env,player,lease,spec,alpha,*,speed_scheme=None):
     return row
 
 
-def kit_startup_scheduling(environ=None):
-    """Explicit process-local scheduler choice; PhysX threads remain two."""
+def kit_startup_scheduling(environ=None, *, execution_backend=None, num_envs=None):
+    """Legacy scheduler override or explicitly registered execution candidate."""
     environ = os.environ if environ is None else environ
+    if execution_backend is not None:
+        from visuotactile.execution_backend import execution_backend as resolve, startup_arguments
+        config = resolve(execution_backend)
+        override = environ.get('TIGHT_KIT_TASKING_THREADS')
+        if override is not None and override != str(config['kit_tasking_threads']):
+            raise ValueError('Environment Kit thread override conflicts with registered execution_backend')
+        args = startup_arguments(config, num_envs=num_envs)
+        return args, dict(kit_tasking_threads=config['kit_tasking_threads'],
+            physics_threads=config['physics_threads'], requested_kit_args=args,
+            explicit_override=True, execution_backend=config,
+            scope='Registered execution backend candidate; task, assets, dt, control and success unchanged')
     value = environ.get('TIGHT_KIT_TASKING_THREADS', '2')
     if value not in ('2', '4'):
         raise ValueError('TIGHT_KIT_TASKING_THREADS must be explicitly 2 or 4')
@@ -104,34 +115,48 @@ def kit_startup_scheduling(environ=None):
         scope='Kit task scheduler only; native control, physics settings, assets and success unchanged')
 
 
-def environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1):
+def environment(root,evaluation=False,*,camera_content_validation=None,lease=None,num_envs=1,execution_backend=None):
     from visuotactile.native_evaluation import client_startup_controls,make_env
     from visuotactile.state_resources import lease_for
     from visuotactile.expert import create_expert
     s=read(root/'session.json')
+    registered_backend = s.get('execution_backend')
+    if execution_backend is not None and registered_backend is not None and execution_backend != registered_backend:
+        raise ValueError('Requested backend differs from registered session backend')
+    selected_backend = registered_backend if execution_backend is None else execution_backend
+    from visuotactile.execution_backend import execution_backend as resolve_backend, backend_receipt
+    backend = resolve_backend(selected_backend)
+    if selected_backend is not None:
+        write(root/'execution_backend_requested.json', backend_receipt(backend, num_envs=num_envs))
     if lease is None:lease=lease_for(root,deadline=s['deadline'] if evaluation else s['collection_deadline'])
     if not evaluation and (camera_content_validation is False or not s.get('camera_content_validation',False)):
         raise ValueError('Collection requires explicit camera_content_validation=true and fixed camera configuration')
     if s.get('precision_policy') == 'unified_fp32':
         from visuotactile.precision import state_fp32
         write(root/'precision.json',state_fp32())
-    kit_args, scheduling = kit_startup_scheduling()
+    kit_args, scheduling = kit_startup_scheduling(execution_backend=selected_backend, num_envs=num_envs)
     write(root/('eval_startup.json' if evaluation else 'startup.json'),
         dict(client_startup_controls('kit_managed'), scheduling=scheduling))
     with lease.block(cuda=False):
         from isaaclab.app import AppLauncher
-        app=AppLauncher(headless=True,enable_cameras=True,device='cpu',fast_shutdown=False,kit_args=kit_args).app
+        app=AppLauncher(headless=True,enable_cameras=True,device=backend['physics_device'],fast_shutdown=False,kit_args=kit_args).app
         import carb.settings
         settings = carb.settings.get_settings()
         observed = dict(kit_tasking_threads=settings.get('/plugins/carb.tasking.plugin/threadCount'),
             physics_threads=settings.get('/persistent/physics/numThreads'))
         write(root/'kit_started.json', dict(requested=scheduling, observed_settings=observed,
             note='Kit configuration readback, not a count of active OS threads or completed physics initialization', utc=time.time()))
-        if observed != dict(kit_tasking_threads=scheduling['kit_tasking_threads'], physics_threads=2):
+        if observed != dict(kit_tasking_threads=scheduling['kit_tasking_threads'], physics_threads=scheduling['physics_threads']):
             raise RuntimeError('Kit scheduler/physics thread settings differ from the registered request')
     import isaacsimenvs
     env=make_env(True,lease,num_envs=num_envs,scene_queries=True,expert_speed=None if evaluation else dict(kind='closed_loop',arm=1.,hand=1.,phase='all'),
-        camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation))
+        camera_content_validation=(s.get('camera_content_validation',False) if camera_content_validation is None else camera_content_validation),
+        execution_backend=selected_backend)
+    if selected_backend is not None:
+        write(root/'execution_backend_observed.json', dict(requested=backend_receipt(backend, num_envs=num_envs),
+            physics_device=str(env.device), camera_backend=env.cfg.student_obs.camera_backend,
+            physics_dt=float(env.physics_dt), control_dt=float(env.step_dt), num_envs=env.num_envs,
+            note='Constructed configuration, not live task acceptance', utc=time.time()))
     if sha(s['expert_checkpoint'])!=s['expert_sha256']:raise RuntimeError('Expert source drift')
     with lease.block():player,_=create_expert(env,s['expert_checkpoint'])
     return app,env,player,lease

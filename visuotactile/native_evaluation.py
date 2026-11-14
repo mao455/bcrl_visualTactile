@@ -123,7 +123,10 @@ def stable_grasp(arrays, initial_height):
 
 
 def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=False, expert_speed=None,
-             camera_content_validation=False):
+             camera_content_validation=False, execution_backend=None):
+    from .execution_backend import execution_backend as resolve_backend, backend_receipt
+    backend = resolve_backend(execution_backend)
+    receipt = backend_receipt(backend, num_envs=num_envs)
     from evaluation.eval_isaacsim import _load_env_cfg
     from .observations import TaskCommand
     from .sim.replay_environment import RecordedReplayEnv
@@ -131,13 +134,13 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
     cfg = _load_env_cfg('Isaacsimenvs-PreciseAssembly-Direct-v0')
     cfg.seed = seed
     cfg.scene.num_envs, cfg.scene.env_spacing = num_envs, 8.
-    cfg.sim.device = 'cpu'
+    cfg.sim.device = backend['physics_device']
     # Optional read-only collision admission queries. Default historical runners
     # retain their exact configuration; no integration/control property changes.
     if scene_queries:
         cfg.sim.enable_scene_query_support = True
     cfg.precise_assembly.problem = 'tight_insertion'
-    cfg.student_obs.image_modality, cfg.student_obs.camera_backend = 'rgbd', 'standard'
+    cfg.student_obs.image_modality, cfg.student_obs.camera_backend = 'rgbd', backend['camera_backend']
     cfg.student_obs.camera_update_period_s = 0.
     cfg.student_obs.image_width = cfg.student_obs.image_input_width = 448
     cfg.student_obs.image_height = cfg.student_obs.image_input_height = 252
@@ -150,7 +153,10 @@ def make_env(instrumented, lease, *, num_envs=1, seed=20261031, scene_queries=Fa
         env_class=SpeedLimitedDiagnosticEnv;extra['speed_config']=expert_speed
     with lease.block():
         env = env_class(cfg, perception_version=2, **extra, camera_content_validation=camera_content_validation,
+            execution_backend=backend if execution_backend is not None else None,
             task_command=TaskCommand('tight_insertion'), wrench_frame_mode='world_hold', camera_rig='wrist_bracket_close')
+        if execution_backend is not None:
+            env.execution_backend_receipt = receipt
         if camera_content_validation:
             # Direct fresh reset never passed through restore_observable_state,
             # which was historically the only caller setting fixed camera poses.

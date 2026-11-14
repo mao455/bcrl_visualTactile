@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import numpy as np
 import torch
 from pxr import PhysxSchema, UsdPhysics, Usd
-from isaaclab.sensors import Camera, ContactSensor, ContactSensorCfg
+from isaaclab.sensors import Camera, TiledCamera, ContactSensor, ContactSensorCfg
 from isaaclab.utils.math import quat_apply, quat_apply_inverse
 import isaaclab.sim as sim_utils
 
@@ -33,7 +33,13 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def __init__(self, cfg, *, perception_version=2, task_command=None,
                  initial_offset_xy=(0., 0.), wrench_frame_mode="legacy", camera_rig="legacy_dual",
-                 reject_invalid_initializations=False, camera_content_validation=False, **kwargs):
+                 reject_invalid_initializations=False, camera_content_validation=False, execution_backend=None, **kwargs):
+        from visuotactile.execution_backend import execution_backend as resolve_backend
+        self.execution_backend = resolve_backend(execution_backend) if execution_backend is not None else None
+        if self.execution_backend is not None:
+            if (str(cfg.sim.device) != self.execution_backend['physics_device']
+                    or cfg.student_obs.camera_backend != self.execution_backend['camera_backend']):
+                raise ValueError('Simulator configuration differs from registered execution backend')
         self.camera_content_validation = camera_content_validation
         self.reject_invalid_initializations = reject_invalid_initializations
         self.reset_events = []
@@ -74,11 +80,27 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         self._actuator_target_samples = None
         super().__init__(cfg, **kwargs)
         self._camera_pose_annotators = []
+        self._camera_calibration_products = []
+        self._camera_calibration_bindings = []
         if self.camera_rig['version'] >= 3:
             import omni.replicator.core as rep
             for camera in self.research_cameras:
                 annotators = []
-                for product in camera.render_product_paths:
+                products = camera.render_product_paths
+                if self.cfg.student_obs.camera_backend == 'tiled':
+                    # A tiled product has many cameras, while CameraParams exposes
+                    # one camera transform. Create tiny diagnostic products of the
+                    # SAME real camera prims; never substitute stale USD poses.
+                    from visuotactile.camera_calibration import ordered_camera_paths
+                    paths = ordered_camera_paths(camera, self.num_envs)
+                    diagnostic_products = [rep.create.render_product(path, (1, 1), force_new=True) for path in paths]
+                    self._camera_calibration_products.extend(diagnostic_products)
+                    products = [product.path for product in diagnostic_products]
+                    self._camera_calibration_bindings.append(dict(camera_paths=paths, render_products=products,
+                        image_render_products=list(camera.render_product_paths), calibration_resolution=[1, 1]))
+                if len(products) != self.num_envs:
+                    raise RuntimeError('Camera calibration render products do not match lanes')
+                for product in products:
                     annotator = rep.AnnotatorRegistry.get_annotator('CameraParams')
                     annotator.attach(product)
                     annotators.append(annotator)
@@ -152,15 +174,18 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             setup_student_camera(self)
         self.research_cameras = [self.student_camera]
         if self.perception_version == 2:
-            if (self.cfg.student_obs.camera_backend != "standard"
+            allowed_backend = (self.cfg.student_obs.camera_backend == 'standard' or
+                               self.execution_backend is not None and self.execution_backend['camera_backend'] == 'tiled')
+            if (not allowed_backend
                     or self.cfg.student_obs.crop_enabled
                     or self.cfg.student_obs.image_modality != "rgbd"):
-                raise ValueError("Perception v2 currently validates uncropped standard RGB-D only")
+                raise ValueError("Perception v2 requires uncropped RGB-D and an explicitly registered tiled candidate")
+            camera_class = TiledCamera if self.cfg.student_obs.camera_backend == 'tiled' else Camera
             camera_cfg = self.student_camera.cfg.copy()
             camera_cfg.prim_path = "/World/envs/env_.*/ResearchLocalCamera"
             camera_cfg.spawn.horizontal_aperture_offset = 0.
             camera_cfg.spawn.vertical_aperture_offset = 0.
-            self.local_camera = Camera(camera_cfg)
+            self.local_camera = camera_class(camera_cfg)
             self.scene.sensors["research_local_camera"] = self.local_camera
             self.research_cameras.append(self.local_camera)
             if 'wrist' in self.camera_rig or self.camera_rig['name']=='third_fixed':
@@ -181,7 +206,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                     third_cfg.spawn.focal_length=24.
                 else:
                     third_cfg.prim_path='/World/envs/env_.*/ResearchFrontCamera'
-                self.third_camera=Camera(third_cfg)
+                self.third_camera=camera_class(third_cfg)
                 self.scene.sensors['research_third_camera']=self.third_camera
                 self.research_cameras.append(self.third_camera)
         self.research_contacts = []
@@ -270,9 +295,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                     camera_frame=torch.stack([c.frame.clone() for c in self.research_cameras], 1))
         if self.camera_rig['version']>=3:
             # Synchronized sensor calibration/diagnostic, deliberately not a nominal key.
-            from visuotactile.camera_rigs import renderer_pose_ros
+            from visuotactile.camera_calibration import renderer_poses
             result['camera_pose_w']=torch.tensor(np.stack([
-                [renderer_pose_ros(a.get_data()['cameraViewTransform']) for a in annotators]
+                renderer_poses(annotators, self.num_envs)
                 for annotators in self._camera_pose_annotators], axis=1), device=self.device)
             if 'wrist' in self.camera_rig:
                 body=self.robot.find_bodies(self.camera_rig['wrist']['parent_body'])[0][0]
@@ -564,6 +589,8 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             "task_context": "externally selected problem identity; no goal pose or success-driven stage",
         }
         metadata["perception_version"] = self.perception_version
+        if self.execution_backend is not None:
+            metadata['execution_backend'] = self.execution_backend
         metadata['camera_validity_contract'] = ('rgb_spatial_content_and_metric_depth_v1' if self.camera_content_validation
             else 'legacy_presence_only_not_visual_acceptance')
         if self.perception_version == 2:
@@ -584,4 +611,9 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
                     clock="global simulated control time after render", rate_hz=1/self.step_dt))
             if self.camera_rig['version'] >= 3:
                 metadata['camera_pose_source'] = 'Replicator CameraParams from each RGB/depth render product; world ROS optical wxyz; diagnostic calibration only'
+                if self.cfg.student_obs.camera_backend == 'tiled':
+                    metadata['camera_pose_source'] = ('Replicator CameraParams from independent 1x1 render products of '
+                        'the same actual camera prims in tiled lane order; world ROS optical wxyz; '
+                        'diagnostic calibration only; overhead included in measured runtime')
+                    metadata['camera_calibration_bindings'] = self._camera_calibration_bindings
         return metadata

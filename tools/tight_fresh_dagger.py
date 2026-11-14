@@ -63,10 +63,14 @@ def prepare_aggregate(root, collection, output):
     entries=read(collection/'correction_entries.json')
     if not entries:raise ValueError('No successful actual expert recovery; analyze before training')
     plan=read(collection/'plan.json')
-    if any(c.get('dagger',{}).get('trigger') is not None for c in plan['cases']):
+    if plan.get('training_expansion_registry') is not None:
+        from visuotactile.training_expansion import validate_collection_plan
+        validate_collection_plan(plan)
+    triggered_cases={c['name'] for c in plan['cases'] if c.get('dagger',{}).get('trigger') is not None}
+    if triggered_cases:
         from tools.tight_fresh_report import audit_trigger_case
         for row in read(collection/'results.json'):
-            if row['result'].get('legal'):
+            if row['case'] in triggered_cases and row['result'].get('legal'):
                 audit_trigger_case(collection/row['case'],row['result'])
     output.mkdir(parents=True)
     for name in ['session.json','metadata.json']:shutil.copyfile(root/name,output/name)
@@ -75,7 +79,9 @@ def prepare_aggregate(root, collection, output):
         destination=output/role;destination.mkdir()
         (destination/'shared_resources.json').symlink_to(root/'shared_resources.json')
         data=build_dagger_aggregate(root/role/'state_data',entries,destination/'state_data',
-            'q_reached' if role=='A' else 'u_expert',include_geometry=role=='A',include_frontend_tactile=False)
+            'q_reached' if role=='A' else 'u_expert',include_geometry=role=='A',include_frontend_tactile=False,
+            **({'training_expansion_registry':plan['training_expansion_registry']}
+                if plan.get('training_expansion_registry') is not None else {}))
         residual_normalization(data,dict(fresh_data_contract=FRESH_AGGREGATE_CONTRACT))
         atomic_json(destination/'session.json',dict(read(root/'session.json'),resource_root=str(output),
             cache_deadline=read(root/'session.json')['deadline']))

@@ -1,3 +1,19 @@
+## 2026-11-14 可扩展完整学生采集与评估实现，待真实后端验收
+
+新增tools/tight_fresh_batch_run.py、tight_batch_owner.py与visuotactile/batched_rollout.py：将仅开发用四lane批量路径扩成显式正整数并发的正式采集/自主整波执行；新cycle --evaluation-lanes保持原串行默认，更新DP及其全部依赖/后端后进入同一完整学生批量流程。case执行、文件校验与准入分开持久化，启动/绝对截止受ordinary owner监管，软件partial不覆盖、不冒充自然任务失败或完整结果。
+
+新增batched_position_bridge.py只包装原ExpertPositionBridge，每lane真实前缀/接管/queue来源/flush/segment独立，不增原生随机draw。新增async_recording.py共享有界字节与唯一HDF5线程，独立快照、背压和失败传播；finish_async让其他lane继续，全部原字段SHA、相机与控制审核后才入训练。增加真实bridge/H5整波CPU集成和故障测试。batched_controller新增显式host scheduler参数；batch_eval/batch_gate/rollouts移除4/32机会硬上限，仍要求有限显式正数和实际资源验收。
+
+新增execution_backend/camera_calibration模块；tight_state/native_evaluation/sim.environment/environment_rng接显式CPU或CUDA、standard或tiled和线程配置。旧缺省字节/CPU RNG路径保留；注册GPU只隔离对应device，不全局重播种。tiled按实际camera prim逐lane绑定当前renderer calibration，禁止stale USD fallback。允许后端改变不等于任务/资产/频率/成功标准改变。
+
+当前验证：12项bridge/批量集成、22项writer/源字段、29项后端/RNG通过；后端另21项复检通过。CPU证明时钟/记录实现，不证明物理成功或实际加速；新真实GPU/Kit证据后补。活动round06仍冻结3e648db；公共仅代码/文档/精简人口，raw权重轨迹不上传。
+
+新增episode_io.py/tight_episode_io_probe.py与FROZEN_EPISODE_IO：显式每trainer最多1GiB冻结CPU特征预取，维持10GiB可用RAM，完整真实历史每次按当前权重重算。tight_fresh_train/visual_aux_training接相同张量路径，cycle --prefetch-mib登记后才可启用，逐update/epoch记录等待与磁盘计数；缺省不变。52项相关CPU回归及新增cycle不可热替换合同通过；本次cycle/episode_io/batched_controller合并20项通过，尚无真实采用或加速结论。
+
+新增training_expansion/tight_fresh_expansion：事前登记新train family及float32初态配置hash，排除已有训练与原验证/测试初态；原6验证和test22只读JSON分区、不读测试轨迹。支持明确fixed40/80与contact0/12混合真实学生前缀，registry贯穿采集元数据/合法专家mask/aggregate；未知family默认仍拒绝。68项隔离/实际HDF聚合/历史回归通过，24项正式runner/registry集成通过，真实元数据8候选干跑通过；还没有正式采集新family或新增完整专家模式。
+
+batch_eval新增显式--max-control-ticks/--roles/--backend-json短探针，保留原自然全程缺省；截断机会只报censored，success=null且不能进入自主成功率或训练。每tick检查真实三视角时钟/帧更新、完整历史和控制次数，保存共享资源样本与含收尾wall。31项CPU检查通过；探针吞吐不能代替正式周期结果。
+
 ## 2026-11-14 第六批完整结案与新完整学生训练登记
 
 16/16真实机会自然结束，冻结93eff18，owner/Kit正常退出：A救回5/8、B救回4/8，共9条成功专家后段，6训练family，1850合法专家步、3038真实历史tick。A/B共享新数据，累计93轨迹=原30+历史54+新9，仍原30训练family，固定6验证/test22不变。9条中8条在新接管前没有出现旧拿稳窗；A046同时满足旧窗。新入口确实补到了旧规则在这些前缀上漏掉的可救回状态，但不是旧/新触发的严格物理配对实验。
