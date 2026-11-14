@@ -1,4 +1,12 @@
-## 2026-11-14 21:28 有界训练 I/O 对照与初始化故障诊断
+## 2026-11-14 21:32 已完成后端短测与旧中间检查点清理入口
+
+五个短probe逐lane审计完成：CPU16/M8为21.76 aggregate tick/s，CPU32为19.76且初始化155.63秒；下一正式新family批次选CPU16/M8。GPU16进入180tick接触段：15/16合法，2700步，15均有双指接触、5曾持续接触抬升、1旧拿稳；native lift/near/alignment/subgoal均0。不同长度与合法lane数不能构成公平速度比；GPU完整救回/入池尚待。结果见evidence/tight_fresh_20261114/backend_probe_review。
+
+pool07_untrained的A/B冻结缓存均已完整105条（99train+6validation），新6纠偏仍未训练。paired_io_compare01普通组各102更新已完成，同步组在启动前因末次遥测仍为16389MiB可用而未过22528MiB联合准入，0同步更新；完整失败现场保留。只读清理审计在21:26:37–21:29:02.76与普通组重叠134.76秒，加上plain→paired顺序暖缓存，后续即使补齐也不能视为公平单变量速度比。未采用同步候选。
+
+新增tight_checkpoint_cleanup默认只读，135精确候选SHA白名单、124保护模型stat、完成凭据、跨工作树/输出/PT metadata引用和FD/mmap消费者复核，删除使用逐文件持久intent/receipt与固定ledger，无递归删除。实际只读通过、24项CPU检查通过；3个明确身份的常驻非研究daemon不可读，记录可见性例外，其他未知不可读仍拒绝。候选64,806,690,816 allocated bytes，全部为已完成旧比较的中间/last检查点；删除会放弃其优化器/RNG中间恢复点。所有best、第五/六轮、原始数据、冻结视觉缓存受保护。当前尚未执行删除，实际释放量以执行ledger为准。
+
+## 2026-11-14 21:26 有界训练 I/O 对照与初始化故障诊断
 
 新增默认关闭的 paired_episode_io_v1：A/B 在相同完整轨迹访问的开始/结束会合，保留独立参数、完整历史重算、Adam/EMA/RNG 和更新预算；共享冻结缓存 inode 与 deck 受绑定。此为读取时序候选，不是跨轨迹梯度合批。工具 tight_fresh_paired_io_study 从原 round06 的93/6数据和第五轮起点分别运行普通/同步双前端，各组一完整轮102更新；两组均关闭预取，总窗口至多12分钟且不延长原session05。真实收益尚未运行验证，plain→paired 的缓存温度与顺序混杂必须披露。详见 TRAINING_PAIRED_IO.md。CPU 32项通过，包括两个 spawned 训练进程的参数/优化器/EMA/RNG 等价及真实 owner 停止回收；不等于 CUDA 或自主效果验收。
 
