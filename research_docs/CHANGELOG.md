@@ -1,3 +1,7 @@
+## 2026-11-14：第三轮完整结果与下一次早期接管
+
+公开round03_learning/family_exposure/increment_baseline/phases/runtime/onset_after及曲线，77cache绑定与实际曝光通过；A/B仍0/4成功、A极短稳定1/4而B0/4。新增tight_fresh_frontend_baseline以当前准确cache和原numeric比较5Hz/60Hz观测保持，误差复算与实际DP选择验证一致。anchor_report改用模型实际ideal_execution_bounds，真实24分段统计逐项不变。CPU报告与实际GPU onset评估完成；后端加权候选暂不运行，决定当前pair在剩余6训练family上做12次40–120tick早期接管，尚未启动。
+
 ## 2026-11-14：归档过时任务授权
 
 USER_RESEARCH_DIRECTION只保留本轮有效目标和实际状态；原分隔线后的历史任务文本逐字移至archive/USER_RESEARCH_DIRECTION_through_20261113.md，链接回当前入口，不再在活跃授权页堆叠旧禁令/期限。历史文字与Git证据保留，未改变运行配置或授权范围。实际逐字suffix校验通过。

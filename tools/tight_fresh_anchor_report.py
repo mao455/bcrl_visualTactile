@@ -9,7 +9,8 @@ import torch
 
 from tools.tight_fresh_onset_report import BINS, PARTS, read_case
 from visuotactile.compact import sha256
-from visuotactile.position_control import REACHABLE_POSITION_EXECUTION, reachable_position_bounds
+from visuotactile.position_control import REACHABLE_POSITION_EXECUTION
+from visuotactile.execution_learning import ideal_execution_bounds
 from visuotactile.residual_output import REACHABLE_CENTERED_OUTPUT
 from visuotactile.training_resources import atomic_json
 
@@ -75,7 +76,7 @@ def report(root, collection, output):
                 if not np.array_equal(target[mask],record['u_expert'].numpy()[mask]):
                     raise ValueError('Actual expert command differs from admitted data')
                 nominal=group['nominal'][:].astype(np.float64)
-                bounds=reachable_position_bounds(torch.from_numpy(previous),record['joint_limits'],
+                bounds=ideal_execution_bounds(torch.from_numpy(previous),record['joint_limits'],
                     REACHABLE_POSITION_EXECUTION).numpy().astype(np.float64)
                 anchor=np.clip(nominal,bounds[...,0],bounds[...,1])
                 shadow=group['student_proposed_target_rad'][:].astype(np.float64)
