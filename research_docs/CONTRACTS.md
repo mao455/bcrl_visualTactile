@@ -1,3 +1,9 @@
+## 显式候选：独立完整轨迹合批
+
+`independent_full_trajectory_batch_v1` 保留每条真实完整观察历史、原始每轨32帧视觉处理、独立GRU状态和原生5Hz anchors；结束轨迹不再更新，不填充虚假观察。合并去噪计算后仍按每轨原监督mask分别归一化，再等权平均；A每轨保留原最多两项几何选择，不能把整批预算缩成两项。噪声按原逐轨randn后randint顺序产生。一次合批一次optimizer/EMA更新，与连续逐轨更新不是同一优化过程，采用时必须显式新身份和剂量。本候选没有接入当前正式trainer。
+
+`trajectory_batch_two_gradient_gate_v1` 固定两条已知train、原best EMA，同参数serial梯度平均对照B2，前向/梯度atol/rtol=2e-5、离散mask/anchors/RNG末态严格一致、0参数更新；原session截止与有限工作边界同时有效。CPU通过不等于CUDA或整轮吞吐通过。
+
 ## 2026-11-14：同session来源视图与离线批量计划的显式身份
 
 `same_session_policy_data_selection_v1`仅分离采集可继承的数据池和已经完整自主执行的A/B来源，原checkpoint配置、统计与其nominal cache保持真实绑定。当前资源session逐字继承、截止/STOP不重置，plan中的source_selection必须在运行和聚合时重验；非法初态必须有零动作碰撞凭据，不替换或算自主失败。

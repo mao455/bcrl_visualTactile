@@ -1,3 +1,8 @@
+## 2026-11-15 00:16 — 独立完整轨迹合批候选
+
+- 新增 `visuotactile/trajectory_batch.py`、`tools/tight_trajectory_batch_gate.py` 与两份专属测试：逐轨完整历史/独立GRU/逐轨归一化与几何、保留噪声抽样次序；只作同参数前向与梯度验收，正式trainer不变。
+- 12项CPU测试及真实B train-only CPU准入通过；CUDA尚未运行，不能报告提速或训练收益。停止/截止检查涵盖计算结束和最终落盘前。
+
 ## 2026-11-15 00:00 — 第八轮自主结论与128机会正式扩充
 
 - `evidence/tight_fresh_20261114/round08_review`：同开发队列完整CPU审计、真实selected曝光、合法交集与原生判据。A0/7/B0/8，持物局部延长但无对孔/插入，回退保留。

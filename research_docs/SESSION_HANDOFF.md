@@ -1,3 +1,11 @@
+## 2026-11-15 00:16 跨轨迹训练合批候选，正式第九批继续
+
+第九批首波16机会全部结束并索引，6条成功专家纠偏实际入池；held60五机会中两次真实触发且均救回，held120一机会等待到期后当前窗口不满足而未接管，不能记为掉落。学生仍未自主插入。第二波正在执行，128机会未全部结束，最终训练量与吞吐尚待。
+
+新增trajectory_batch独立候选：保留每条完整60Hz历史及原32帧视觉块，只将互相独立GRU行和去噪条件合批，按每轨原合法mask/几何配置分别计算损失后等权平均，逐轨randn→randint顺序不变。一次两轨合批只对应一次optimizer/EMA更新，不能称等价原来两次连续更新。正式冻结87577e8尚未启用此候选。
+
+新增tight_trajectory_batch_gate使用完成的best EMA、原始与真实纠偏各一条train，同一参数下serial平均梯度对照B2；固定atol/rtol=2e-5，0 optimizer、不读heldout视觉/轨迹，原session截止与570秒工作上限，外600秒service回收，进程CUDA allocator上限45%。12项CPU测试和B真实CPU准入通过；尚无CUDA/速度/显存结论。独立审查修正了计算完成后需再次核验STOP/截止的边界。
+
 ## 2026-11-15 00:00 第八轮完整结束，128机会真实采集与下一轮已衔接
 
 第八轮冻结82d5052完整DP→新缓存→rear→自主均结束，原cycle service inactive/MainPID0。16机会中A同1非法，合法7/7全timeout、0/7插入；B8合法中7timeout/1fall309步、0/8插入。均无原生near/alignment/首子目标。与同8开发初态source比较，A lift2→1、旧stable2→2、允许转动held4→3；B lift2→2、stable2→2、held4→5。实际contact+height总tick A228→644、B370→470，最长34→266和52→235，但增益集中少数例且仍转不正，不能称整体成功率改善。16保存的可见初态相等，不代表隐藏PhysX精确配对。完整独立CPU审计见round08_review及本机round08_complete_review_01。
