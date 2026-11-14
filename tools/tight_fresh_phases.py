@@ -48,11 +48,12 @@ def grasp_progress(stable,distance,angle,subgoals):
         stable_at_final_tick=bool(stable[-1]))
 
 
-def case(directory):
+def case(directory, *, numeric_path=None, result=None, case_name=None):
     import h5py
-    result=json.loads((directory/'result.json').read_text())
-    if not result.get('legal'):return dict(case=directory.name,legal=False)
-    path=directory/'numeric.h5'
+    result=json.loads((directory/'result.json').read_text()) if result is None else result
+    case_name=directory.name if case_name is None else case_name
+    if not result.get('legal'):return dict(case=case_name,legal=False)
+    path=directory/'numeric.h5' if numeric_path is None else numeric_path
     with h5py.File(path) as f:
         t=f['episode/transition'];d=t['diagnostics_after']
         pose=d['object_pose_w'][:];palm=d['palm_body_pose_w'][:];force=t['object_contact_force_w'][:]
@@ -84,7 +85,7 @@ def case(directory):
         source=t['dagger/control_source'][:] if 'dagger/control_source' in t else np.zeros(len(pose),dtype=int)
         authority=authority_phases(source,relative_stable,t['native_success_diagnostic/near_goal'][:],
             t['native_alignment_condition'][:],subgoals)
-        return dict(case=directory.name,legal=True,steps=len(pose),success=bool(result['success']),
+        return dict(case=case_name,legal=True,steps=len(pose),success=bool(result['success']),
             authority=authority,first_goal_simultaneous=simultaneous,
             grasp_progress=grasp_progress(relative_stable,distance,angle,subgoals),
             reasons=result['reasons'],numeric_sha256=sha256(path),result_sha256=sha256(directory/'result.json'),
