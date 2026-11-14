@@ -1,3 +1,7 @@
+## 2026-11-14 当前任务入口清理
+
+USER_RESEARCH_DIRECTION页首重写为当前已完成/正在运行/未证明的状态，移除原“新模型尚未训练”的过时快照；README同步第三轮20条真实纠偏及训练中状态。根AGENTS仍是唯一集中当前授权，下方历史证据保持，不叠加新冲突限制。仅文档，无活动worker变化。
+
 ## 2026-11-14 学习曝光按初态家族核算
 
 新增tools/tight_fresh_family_report.py，依据逐更新learning收据与后端last实际episode_counts核算每family的历史、规划anchor、合法标签和后端tick；逐项与finished总量相等才发布。实际round02 A/B均51轨迹、30原初态family、0重复源文件SHA；每family前端10–50更新、4860–24950目标槽，后端2490–12710合法tick，总量与先前315580/160630严格一致。没有把同family真实新纠偏算成独立初态，也没有凭文件hash断言物理多样性。
