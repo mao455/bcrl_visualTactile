@@ -1,0 +1,66 @@
+{
+  "version": "strict_exact_tail_gate_closeout_v1",
+  "source_commit": "a43f318",
+  "result": {
+    "passed": false,
+    "registration_sha256": "1681dbb3ce83cbb789953cc3c848256c1daa1321b3e50e8a5b4ff5b375eda528",
+    "runs": [
+      {
+        "role": "A",
+        "passed": false,
+        "max_abs_command_rad": 0.0,
+        "parity_path": "A/parity.json",
+        "parity_sha256": "43dc58027bb7741cbfc737bc07fb6fd626df0f0843e481659ceafef5d180a540"
+      }
+    ],
+    "failure": {
+      "type": "ValueError",
+      "message": "Complete exact-tail parity failed; inspect A/parity.json"
+    },
+    "seconds": 7.308558081043884,
+    "resource_wait_s": 0.0032880506478250027,
+    "precision_before": {
+      "matmul_tf32": false,
+      "cudnn_tf32": false,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false,
+      "autocast_cuda": false,
+      "torch_version": "2.7.0+cu128"
+    },
+    "precision_after": {
+      "matmul_tf32": false,
+      "cudnn_tf32": false,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": false,
+      "autocast_cuda": false,
+      "torch_version": "2.7.0+cu128"
+    },
+    "scope": "Actual CUDA complete selected A/B students, recorded train-only observations, same source execution acknowledgements; no simulator, training, task success or throughput claim"
+  },
+  "role_A": {
+    "failure": {
+      "type": "ValueError",
+      "message": "Complete history numerical parity failed: root/frontend_memory/frames/2/0 max_abs=4.112720489501953e-05",
+      "tick": 8
+    },
+    "completed_rows": 8,
+    "completed_rows_max_target_error_rad": 0.0,
+    "failed_tick_target_error_recorded": false,
+    "completed_source_acknowledgements": [
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8,
+      8
+    ]
+  },
+  "adopted": false,
+  "weights_changed": false,
+  "physics_started": false,
+  "original_evidence": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/exact_tail_gate01",
+  "original_result_sha256": "ffd88e934fbf0593984f8f4e2b5e10439447f15776211c4d500e11b3cffe26a4",
+  "interpretation": "A first8 steps use identical M8 and have zero target difference. First7-lane tick8 fails nondimensional visual-history tolerance, max4.11272e-5. Its target error was not persisted by v1; B never ran. This is not evidence of task failure or complete output parity. Original strict thresholds/result retained; separate non-adoption diagnostic may measure later output drift."
+}

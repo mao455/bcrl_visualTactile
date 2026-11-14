@@ -87,9 +87,9 @@ def history_shape(controller, step, episode):
     return actual
 
 
-def numeric_history_comparison(left,right):
+def numeric_history_comparison(left,right,*,diagnose=False):
     """All frozen state fields, including both GRUs/plans; discrete fields exact."""
-    maximum=0.;leaves=0
+    maximum=0.;leaves=0;violations=[]
     if set(left)!=set(right):raise ValueError('Complete history state fields differ')
     for key,a in left.items():
         b=right[key]
@@ -101,12 +101,18 @@ def numeric_history_comparison(left,right):
                 delta=float((a-b).abs().max()) if a.numel() else 0.
                 maximum=max(maximum,delta)
                 if not torch.allclose(a,b,atol=STATE_ATOL,rtol=STATE_RTOL):
-                    raise ValueError('Complete history numerical parity failed: '+key+' max_abs='+str(delta))
+                    if not diagnose:
+                        raise ValueError('Complete history numerical parity failed: '+key+' max_abs='+str(delta))
+                    violations.append(dict(field=key,max_abs=delta,
+                        reference_max_abs=float(a.abs().max()) if a.numel() else 0.,
+                        candidate_max_abs=float(b.abs().max()) if b.numel() else 0.))
             elif not torch.equal(a,b):raise ValueError('Discrete complete history differs: '+key)
             leaves+=1
         elif torch.is_tensor(a) or torch.is_tensor(b) or type(a) is not type(b) or a!=b:
             raise ValueError('Complete history structure/value differs: '+key)
-    return dict(tensor_leaves=leaves,max_abs_float_state=maximum,atol=STATE_ATOL,rtol=STATE_RTOL)
+    report=dict(tensor_leaves=leaves,max_abs_float_state=maximum,atol=STATE_ATOL,rtol=STATE_RTOL)
+    if diagnose:report.update(numerical_parity_passed=not violations,violations=violations)
+    return report
 
 
 def exact_state_equal(left,right):
@@ -122,14 +128,19 @@ def exact_state_equal(left,right):
     return True
 
 
-def run_tail_sequence(fixed, exact, sources, *, lease, cuda, exact_first=False):
+def run_tail_sequence(fixed, exact, sources, *, lease, cuda, exact_first=False,diagnose_history=False):
     """CPU-testable complete-student gate; CUDA admission is the caller's job."""
     from tools.tight_fresh_forensics_gate import controller_state, freeze, rng_state
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     if len(sources) != TAIL_LANES or any(len(source) != TAIL_TICKS for source in sources):
         raise ValueError('Eight distinct registered lanes need all 25 source observations')
     rows = []; counts = [0]*TAIL_LANES; acknowledgement_counts = [0]*TAIL_LANES
-    previous = None; last_states = {}; caught = None
+    previous = None; last_states = {}; caught = None; history_violations=[];target_attempts=[]
+    def compare_history(left,right,tick,lane,phase):
+        report=numeric_history_comparison(left,right,diagnose=diagnose_history)
+        if report.get('violations'):
+            history_violations.append(dict(tick=tick,lane=lane,phase=phase,**report))
+        return report
     try:
         for tick in range(TAIL_TICKS):
             packet, diag, target, active, indices = tail_packets(sources, tick)
@@ -149,6 +160,8 @@ def run_tail_sequence(fixed, exact, sources, *, lease, cuda, exact_first=False):
                         raise ValueError('Gate inference consumed shared RNG')
                 difference = (predictions['fixed']-predictions['exact']).abs()
                 error = float(difference.max())
+                target_attempts.append(dict(tick=tick,max_abs_command_rad=error if np.isfinite(error) else None,
+                    finite=bool(torch.isfinite(difference).all())))
                 if not torch.isfinite(difference).all() or error > TARGET_ATOL:
                     raise ValueError('Complete fixed-M8/exact-tail target parity failed: '+str(error))
                 for lane,running in enumerate(active):
@@ -162,7 +175,7 @@ def run_tail_sequence(fixed, exact, sources, *, lease, cuda, exact_first=False):
                             raise ValueError('Complete recurrent history counts differ')
                         if not torch.equal(left.state['history_valid'],right.state['history_valid']):
                             raise ValueError('Backend history masks differ')
-                        states=numeric_history_comparison(controller_state(left),controller_state(right))
+                        states=compare_history(controller_state(left),controller_state(right),tick,lane,'before_ack')
                         histories.append(dict(lane=lane,**shape,numerical_state=states))
                         for controller in (left,right):
                             # Real recorded execution, explicitly teacher forced;
@@ -183,7 +196,7 @@ def run_tail_sequence(fixed, exact, sources, *, lease, cuda, exact_first=False):
                                 raise ValueError('Source execution acknowledgement was not retained exactly')
                         last_states[name,lane] = state
                 for lane,running in enumerate(active):
-                    if running:numeric_history_comparison(last_states['fixed',lane],last_states['exact',lane])
+                    if running:compare_history(last_states['fixed',lane],last_states['exact',lane],tick,lane,'after_ack')
                 acknowledgement_counts = counts.copy()
             rows.append(dict(tick=tick,active_lanes=sum(active),active=active,source_steps=indices,
                 max_abs_command_rad=error,history=histories,consumed_observations=counts.copy(),
@@ -220,16 +233,24 @@ def run_tail_sequence(fixed, exact, sources, *, lease, cuda, exact_first=False):
             reports[name]=dict(partial,partial=True,
                 observed_backbone_kernel_image_batch_counts=dict(controller.dino.kernel_image_batch_counts),
                 synchronized_backbone_timings=controller.dino.kernel_timings)
-    return dict(passed=caught is None and len(rows)==TAIL_TICKS,rows=rows,failure=caught,
+    report=dict(passed=caught is None and len(rows)==TAIL_TICKS and not history_violations,rows=rows,failure=caught,
         target_max_abs_tolerance_rad=TARGET_ATOL,
         full_history_numeric_tolerance=dict(atol=STATE_ATOL,rtol=STATE_RTOL,discrete='exact'),
-        max_abs_command_rad=max((row['max_abs_command_rad'] for row in rows),default=None),
+        max_abs_command_rad=max((row['max_abs_command_rad'] for row in target_attempts if row['finite']),default=None),
+        attempted_target_comparisons=target_attempts,
+        actual_controller_visual_frames=dict(fixed=list(fixed.visual_frames),exact=list(exact.visual_frames)),
         vision_execution=reports,consumed_observations_per_lane=counts,
         actual_source_acknowledgements_per_lane=acknowledgement_counts,
         scope='Same recorded training RGB-D, full DP plus backend, identical teacher-forced actual source target history; no physics, success-rate or speed claim')
+    if diagnose_history:
+        report.update(diagnostic_only=True,adoption_eligible=False,
+            diagnostic_complete=caught is None and len(rows)==TAIL_TICKS,
+            history_threshold_violations=history_violations,
+            interpretation='Original history tolerances remain unchanged. Numerical history violations are recorded while completing the same sequence; they still fail the strict gate. Target, discrete/history-count, inactive-state, RNG, finite-state and acknowledgement failures still stop. This diagnostic never authorizes adoption.')
+    return report
 
 
-def exact_tail_gate(root,source_root,output):
+def exact_tail_gate(root,source_root,output,*,diagnose_history=False):
     from tools.tight_fresh_rollouts import completed_pair,read
     from tools.tight_fresh_forensics_gate import load_source
     from visuotactile.batched_controller import BatchedResidualController
@@ -261,6 +282,9 @@ def exact_tail_gate(root,source_root,output):
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ('tools','visuotactile') for p in sorted(Path(folder).rglob('*.py'))},
         test_used=False,simulator_started=False,utc=time.time())
+    if diagnose_history:
+        registration.update(version='fixed_m8_exact_tail_history_diagnostic_v1',
+            diagnostic_only=True,adoption_eligible=False,strict_history_thresholds_unchanged=True)
     atomic_json(output/'registration.json',registration)
     began=time.perf_counter();runs=[];caught=None;arithmetic=None
     try:
@@ -281,21 +305,28 @@ def exact_tail_gate(root,source_root,output):
                     neural_batch=True,scheduler_index_mode='host',vision_microbatch=8)
                 exact=BatchedResidualController(saved,metadata,KernelObservedDino(dino,cuda_timing=True),TAIL_LANES,
                     neural_batch=True,scheduler_index_mode='host',vision_microbatch=8,vision_tail_profile=EXACT_TAIL_PROFILE)
-            result=run_tail_sequence(fixed,exact,[item[1] for item in loaded],lease=lease,cuda=True,exact_first=role=='B')
+            result=run_tail_sequence(fixed,exact,[item[1] for item in loaded],lease=lease,cuda=True,exact_first=role=='B',
+                **(dict(diagnose_history=True) if diagnose_history else {}))
             result.update(role=role,pair=pairs[role],sources=[item[2] for item in loaded])
             atomic_json(output/role/'parity.json',result)
             runs.append(dict(role=role,passed=result['passed'],max_abs_command_rad=result['max_abs_command_rad'],
                 parity_path=role+'/parity.json',parity_sha256=sha256(output/role/'parity.json')))
+            if diagnose_history:runs[-1]['diagnostic_complete']=result['diagnostic_complete']
             del fixed,exact,saved,loaded
-            if not result['passed']:raise ValueError('Complete exact-tail parity failed; inspect '+role+'/parity.json')
+            if not (result['diagnostic_complete'] if diagnose_history else result['passed']):
+                raise ValueError('Complete exact-tail parity failed; inspect '+role+'/parity.json')
     except Exception as exc:
         caught=dict(type=type(exc).__name__,message=str(exc))
     report=dict(passed=caught is None and len(runs)==2 and all(r['passed'] for r in runs),
         registration_sha256=sha256(output/'registration.json'),runs=runs,failure=caught,
         seconds=time.perf_counter()-began,resource_wait_s=lease.wait_s,precision_before=arithmetic,precision_after=snapshot(),
         scope='Actual CUDA complete selected A/B students, recorded train-only observations, same source execution acknowledgements; no simulator, training, task success or throughput claim')
+    if diagnose_history:
+        report.update(diagnostic_only=True,adoption_eligible=False,
+            diagnostic_complete=caught is None and len(runs)==2 and all(r['diagnostic_complete'] for r in runs))
     atomic_json(output/'result.json',report)
-    if not report['passed']:raise RuntimeError('Exact-tail gate did not pass: '+str(output/'result.json'))
+    if not (report['diagnostic_complete'] if diagnose_history else report['passed']):
+        raise RuntimeError('Exact-tail gate did not pass: '+str(output/'result.json'))
     return report
 
 
@@ -369,12 +400,14 @@ if __name__=='__main__':
     p.add_argument('--role',choices=['A','B'],default='A');p.add_argument('--lanes',type=int,default=2)
     p.add_argument('--neural-batch',action='store_true')
     p.add_argument('--vision-microbatch',type=int,default=2)
-    p.add_argument('--compare-exact-tail',action='store_true',help='Separate A/B eight-lane fixed-M8 versus exact-tail complete-student gate')
+    mode=p.add_mutually_exclusive_group()
+    mode.add_argument('--compare-exact-tail',action='store_true',help='Separate A/B eight-lane fixed-M8 versus exact-tail complete-student gate')
+    mode.add_argument('--diagnose-exact-tail',action='store_true',help='Non-adoption diagnostic: record original history tolerance violations and complete the same sequence')
     p.add_argument('--source-root',type=Path,help='Required selected complete A/B source for --compare-exact-tail; --root retains the active resource lease')
     a=p.parse_args();torch.set_num_threads(2)
-    if a.compare_exact_tail:
-        if a.source_root is None:p.error('--compare-exact-tail requires --source-root')
-        exact_tail_gate(a.root.resolve(),a.source_root.resolve(),a.output.resolve())
+    if a.compare_exact_tail or a.diagnose_exact_tail:
+        if a.source_root is None:p.error('Exact-tail comparison/diagnostic requires --source-root')
+        exact_tail_gate(a.root.resolve(),a.source_root.resolve(),a.output.resolve(),diagnose_history=a.diagnose_exact_tail)
     else:
         if a.source_root is not None:p.error('--source-root requires --compare-exact-tail')
         gate(a.root,a.output,role=a.role,count=a.lanes,neural_batch=a.neural_batch,

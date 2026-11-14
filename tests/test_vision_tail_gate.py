@@ -155,6 +155,32 @@ def test_numeric_history_tolerance_is_fixed_and_discrete_exact():
         with pytest.raises(ValueError):gate.numeric_history_comparison(a,b)
 
 
+def test_history_diagnostic_completes_but_cannot_turn_strict_failure_into_adoption():
+    result=gate.run_tail_sequence(Batch(),Batch(True,'hidden'),sources(),
+        lease=SimpleNamespace(block=nullcontext),cuda=False,diagnose_history=True)
+    assert result['diagnostic_complete'] and not result['passed'] and not result['adoption_eligible']
+    assert len(result['rows'])==25 and result['max_abs_command_rad']==0
+    assert result['history_threshold_violations'][0]['tick']==8
+    assert result['history_threshold_violations'][0]['atol']==gate.STATE_ATOL
+    assert result['history_threshold_violations'][0]['violations'][0]['max_abs']>.9
+
+
+@pytest.mark.parametrize('defect',['target','history_count','inactive','ack','padding','shared_input'])
+def test_history_diagnostic_still_stops_real_control_or_history_contract_errors(defect):
+    result=gate.run_tail_sequence(Batch(),Batch(True,defect),sources(),
+        lease=SimpleNamespace(block=nullcontext),cuda=False,diagnose_history=True)
+    assert not result['diagnostic_complete'] and not result['passed'] and not result['adoption_eligible']
+    if defect=='target':
+        assert result['attempted_target_comparisons'][-1]['tick']==8
+        assert result['max_abs_command_rad']>gate.TARGET_ATOL
+
+
+def test_history_diagnostic_never_tolerates_discrete_or_nonfinite_state():
+    a={'x':torch.tensor([1.]),'mask':torch.tensor([True])}
+    for b in (dict(a,mask=torch.tensor([False])),dict(a,x=torch.tensor([float('nan')]))):
+        with pytest.raises(ValueError):gate.numeric_history_comparison(a,b,diagnose=True)
+
+
 def test_source_selection_train_only_and_cpu_cannot_pass_live_gate(tmp_path,monkeypatch):
     from tools import tight_fresh_rollouts as rollouts
     from visuotactile import state_resources
