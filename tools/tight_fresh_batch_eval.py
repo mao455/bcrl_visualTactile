@@ -11,7 +11,7 @@ from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read, completed_pair
 
 
-def prepare(root, output, count, seed):
+def prepare(root, output, count, seed, *, neural_batch=False):
     import subprocess
     from visuotactile.narrow_data import direct_configuration
     if not 1 <= count <= 4:raise ValueError('One to four registered lanes')
@@ -23,7 +23,7 @@ def prepare(root, output, count, seed):
     output.mkdir(parents=True)
     atomic_json(output/'session.json',session)
     atomic_json(output/'plan.json',dict(pairs=pairs,cases=cases,seed=seed,event_seed=seed+100000,
-        resource_root=str(root),test_used=False,kind='engineering_batch_development',
+        resource_root=str(root),test_used=False,kind='engineering_batch_development',neural_batch=neural_batch,
         source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256={str(p):sha256(p) for folder in ['tools','visuotactile'] for p in Path(folder).rglob('*.py')},
         limitation='Native batched event RNG differs from serial; same registered opportunities are not exact hidden-state pairs'))
@@ -69,7 +69,7 @@ def run(output):
             active=[row['legal'] for row in admissions]
             saved=torch.load(pair['backend'],map_location='cpu',weights_only=False)
             metadata=env.research_metadata();metadata['config']=env.cfg.to_dict()
-            controller=BatchedResidualController(saved,metadata,dino,count)
+            controller=BatchedResidualController(saved,metadata,dino,count,neural_batch=plan.get('neural_batch',False))
         rows=[[] for _ in range(count)];outcomes=[None]*count
         files=[h5py.File(directory/f'lane_{i}_numeric.h5','w') for i in range(count)]
         writers=[BufferedNumericWriter(f.create_group('episode'),32) for f in files]
@@ -108,7 +108,7 @@ def run(output):
         finally:
             for writer,f in zip(writers,files):writer.flush();f.close()
         profile.update(total_s=time.perf_counter()-began,resource_wait_s=lease.wait_s-prior_wait,
-            steps=sum(map(len,rows)),scope='current-frame DINO batches; DP and backend still per lane; native dt unchanged')
+            steps=sum(map(len,rows)),scope=('Current-frame DINO, DDIM and backend batches; per-lane histories and generators' if plan.get('neural_batch',False) else 'current-frame DINO batches; DP and backend still per lane; native dt unchanged'))
         profile['aggregate_control_ticks_per_second']=profile['steps']/profile['total_s']
         results=[]
         for lane in range(count):
@@ -121,7 +121,7 @@ def run(output):
                     native_subgoals=int(arrays['subgoals'].max()),contact=stable_grasp(arrays,float(initial['object_pose_w'][lane,2])),
                     visual_frames=controller.visual_frames[lane],position_target_max_error=float(np.abs(arrays['command']-arrays['target']).max()))
                 if result['visual_frames']!=result['steps']:raise ValueError('Dropped native visual frame')
-                atomic_json(directory/f'lane_{lane}_inference.json',controller.lanes[lane].inference_metrics())
+                atomic_json(directory/f'lane_{lane}_inference.json',controller.inference_metrics(lane))
             results.append(result)
         atomic_json(directory/'result.json',dict(software_complete=True,results=results,profile=profile))
         all_results.append(dict(role=role,results=results,profile=profile))
@@ -133,8 +133,9 @@ def run(output):
 def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','run']);p.add_argument('--root',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--count',type=int,default=2);p.add_argument('--seed',type=int,default=28141000)
+    p.add_argument('--neural-batch',action='store_true')
     args=p.parse_args()
-    if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed)
+    if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed,neural_batch=args.neural_batch)
     else:run(args.output.resolve())
 
 

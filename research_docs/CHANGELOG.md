@@ -1,3 +1,7 @@
+## 2026-11-14 批量DP/后端推理准备与CPU验证
+
+visuotactile/native_controller拆分观察更新、计划读取与后端输入/组成，serial act保留同一运算路径；models/native_dp.predict支持每lane独立generator列表。batched_controller新增可选neural_batch和嵌套state合并，tools/tight_fresh_batch_gate/eval可登记启用。此前仅DINO批量，DP/后端逐lane；现在可真正合并DDIM及Transformer，训练/活动round02源码未修改。76项定向CPU测试通过；尚未实测GPU一致性和吞吐。各lane计时重叠明确标注。真实效果待后续冻结源码验收，不预告速度或自主改善。
+
 ## 2026-11-14 第二轮A/B前端恢复训练完成
 
 冻结a4db8e4的round_02_v2完成A/B各10遍、510更新，两组均验证选第10遍。每组实际13640anchor/315580合法监督槽：原30各10次（300episode更新/103980视觉帧/204360槽），历史11纠偏各10次（110更新/41130帧/59700槽），本轮10纠偏各10次（100更新/60840帧/51520槽）。所有真实学生前缀只更新历史，未冒充专家标签。

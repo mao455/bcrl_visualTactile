@@ -9,7 +9,7 @@ from visuotactile.training_resources import atomic_json
 from visuotactile.compact import sha256
 
 
-def gate(root,output,*,role='A',count=2):
+def gate(root,output,*,role='A',count=2,neural_batch=False):
     from tools.tight_fresh_rollouts import completed_pair
     from visuotactile.native_controller import ResidualController
     from visuotactile.batched_controller import BatchedResidualController,lane_tree
@@ -39,7 +39,7 @@ def gate(root,output,*,role='A',count=2):
     rows=[]
     with lease.block():
         dino=NativeDinoSpatial().cuda().eval()
-        batch=BatchedResidualController(saved,metadata,dino,count)
+        batch=BatchedResidualController(saved,metadata,dino,count,neural_batch=neural_batch)
         serial=[ResidualController(saved,metadata,dino) for _ in ids]
     for tick in range(25):
         # Restart only lane0 at the 13th observation; lane1's prefix continues.
@@ -63,7 +63,7 @@ def gate(root,output,*,role='A',count=2):
                 serial[lane].observe_execution(dict(position_applied_rad=targets[lane]))
             batch.observe_execution(dict(position_applied_rad=torch.cat(targets)),[True]*count)
         rows.append(dict(tick=tick,max_abs_command_rad=error,steps=indices))
-    atomic_json(output,dict(passed=True,pair=pair,role=role,lanes=count,source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
+    atomic_json(output,dict(passed=True,pair=pair,role=role,lanes=count,neural_batch=neural_batch,source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
         source_control_mode=source_control_mode,offline_controller_mode=metadata['action_control_mode'],
         max_abs_command_rad=max(row['max_abs_command_rad'] for row in rows),
         scope='Real recorded RGB-D and expert actual-history acknowledgements; lane0 reset while lane1 continues; no simulation outcome or speed claim'))
@@ -72,4 +72,5 @@ def gate(root,output,*,role='A',count=2):
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--role',choices=['A','B'],default='A');p.add_argument('--lanes',type=int,choices=[2,4],default=2)
-    a=p.parse_args();torch.set_num_threads(2);gate(a.root,a.output,role=a.role,count=a.lanes)
+    p.add_argument('--neural-batch',action='store_true')
+    a=p.parse_args();torch.set_num_threads(2);gate(a.root,a.output,role=a.role,count=a.lanes,neural_batch=a.neural_batch)

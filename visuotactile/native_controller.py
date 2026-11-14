@@ -76,7 +76,8 @@ class NativeController:
         self.timings = InferenceTimings(self.device)
 
     @torch.no_grad()
-    def act(self, packet, diagnostics=None):
+    def prepare_observation(self, packet, diagnostics=None):
+        """Update this lane's current sensors/history before optional batched planning."""
         episode, step = int(packet['episode_id'][0]), int(packet['step_id'][0])
         if episode != self.episode:
             if step != 0:
@@ -140,10 +141,16 @@ class NativeController:
         self.timings.finish(history_measured)
         if step % 12 == 0:
             self.last_condition = self.model.condition(self.memory, stamp.to(self.device))
-            diffusion_measured = self.timings.begin('ddim_plan',step)
-            self.plan = self.model.predict(self.last_condition, self.generator,
-                **({'scheduler_index_mode':'host'} if self.scheduler_index_mode=='host' else {})).cpu()
-            self.timings.finish(diffusion_measured)
+        self._pending_observation = (packet, step, measured)
+        return self.last_condition if step % 12 == 0 else None
+
+    @torch.no_grad()
+    def finish_plan(self, plan=None):
+        packet, step, measured = self._pending_observation
+        if step % 12 == 0:
+            if plan is None:raise ValueError('Planning tick requires its newly computed plan')
+            self.plan = plan.cpu()
+        elif plan is not None:raise ValueError('Unexpected plan outside a planning tick')
         if self.position_mode:
             from .position_control import bounded_targets
             self.command=bounded_targets(self.plan[:,step%12],self.limits)
@@ -152,7 +159,19 @@ class NativeController:
         self.last_packet = packet
         self.next_step += 1
         self.timings.finish(measured)
+        del self._pending_observation
         return self.command
+
+    @torch.no_grad()
+    def act(self, packet, diagnostics=None):
+        condition = self.prepare_observation(packet, diagnostics)
+        plan = None
+        if condition is not None:
+            measured = self.timings.begin('ddim_plan',int(packet['step_id'][0]))
+            plan = self.model.predict(condition, self.generator,
+                **({'scheduler_index_mode':'host'} if self.scheduler_index_mode=='host' else {}))
+            self.timings.finish(measured)
+        return self.finish_plan(plan)
 
     def inference_metrics(self):
         return self.timings.report()
@@ -207,7 +226,7 @@ class ResidualController:
         self.residual_scales_cpu=self.residual.scales.detach().cpu()
 
     @torch.no_grad()
-    def act(self,packet,diagnostics=None):
+    def prepare_feedback(self,packet,diagnostics=None,*,nominal=None):
         from .native_data import residual_visual,remaining_target_plan,residual_batch
         from .position_control import bounded_targets
         episode=int(packet['episode_id'][0]);tick=int(packet['step_id'][0])
@@ -217,7 +236,7 @@ class ResidualController:
             raise ValueError('Future tactile sample cannot enter residual feedback')
         if tick==0:self.timings=InferenceTimings(self.device)
         measured=self.timings.begin('combined_controller',tick)
-        nominal=self.base.act(packet,diagnostics)
+        if nominal is None:nominal=self.base.act(packet,diagnostics)
         input_measured=self.timings.begin('backend_input_and_transfer',tick)
         if tick%self.model.contract.get('visual_stride',12)==0:self.visual=residual_visual(self.model,self.base.memory,packet['time_s'][0].to(self.device)).cpu()
         plan=bounded_targets(self.base.plan[0],self.base.limits)[None]
@@ -234,8 +253,16 @@ class ResidualController:
                 previous_nominal_valid=torch.tensor([self.previous_nominal is not None]))
         inputs=residual_batch([record],0,1,self.device)
         self.timings.finish(input_measured)
-        residual_measured=self.timings.begin('residual_forward_compose',tick)
-        raw,self.state=self.residual(inputs,self.state)
+        self._pending_feedback=(packet,nominal,tick,measured)
+        return inputs
+
+    @torch.no_grad()
+    def finish_feedback(self,inputs,raw,state):
+        from .models.native_dp import TargetResidual
+        from .position_control import bounded_targets
+        packet,nominal,tick,measured=self._pending_feedback
+        residual_measured=self.timings.begin('residual_compose',tick)
+        self.state=state
         gate=packet['contact_valid'][0].bool()&(packet['contact_w_N'][0].norm(dim=-1).amax()>.1)
         compose_kwargs = (dict(previous=inputs['robot'][:,0,58:87])
             if self.residual.version==TargetResidual.version else {})
@@ -263,7 +290,17 @@ class ResidualController:
         # strict-past history after the real environment acknowledgement.
         self.base.command=self.command
         self.timings.finish(measured)
+        del self._pending_feedback
         return self.command
+
+    @torch.no_grad()
+    def act(self,packet,diagnostics=None):
+        inputs=self.prepare_feedback(packet,diagnostics)
+        measured=self.timings.begin('residual_forward_compose',int(packet['step_id'][0]))
+        raw,state=self.residual(inputs,self.state)
+        command=self.finish_feedback(inputs,raw,state)
+        self.timings.finish(measured)
+        return command
 
     def observe_execution(self,transition):self.base.observe_execution(transition)
 

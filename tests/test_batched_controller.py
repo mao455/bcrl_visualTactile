@@ -51,3 +51,52 @@ def test_lane_reset_calls_native_with_local_config_and_restores_shared_fields():
     assert calls==[([1],4.,[5.,5.]),([0],2.,[3.,3.])]
     assert env.cfg.reset.table_reset_z==1. and env.cfg.precise_assembly.hole_x_range==[0.,0.]
     with pytest.raises(ValueError):configure_direct_reset_lanes(env,configs)
+
+
+def test_backend_batch_keeps_reset_lane_and_continuing_lane_independent():
+    from test_target_residual import observations, statistics, segment
+    from visuotactile.models.native_dp import TargetResidual
+    from visuotactile.batched_controller import stack_lane_trees
+    torch.manual_seed(981)
+    model=TargetResidual(statistics(),[.1]*29).eval()
+    with torch.no_grad():model.policy[-1].weight.normal_(0.,.02)
+    source=observations(steps=17,batch=3)
+    serial=[None]*3;batched=[None]*3
+    with torch.no_grad():
+        for tick in range(17):
+            active=[0,1,2] if tick<15 else [0,2]
+            rows=[]
+            for lane in active:
+                local=tick if lane!=0 or tick<13 else tick-13
+                if lane==0 and tick==13:serial[lane]=None;batched[lane]=None
+                rows.append(lane_tree(segment(source,local,local+1),lane,3))
+            raw,state=model(stack_lane_trees(rows),stack_lane_trees([batched[l] for l in active]))
+            for i,lane in enumerate(active):
+                expected,serial[lane]=model(rows[i],serial[lane])
+                batched[lane]=lane_tree(state,i,len(active))
+                torch.testing.assert_close(raw[i:i+1],expected,atol=2e-6,rtol=2e-5)
+                torch.testing.assert_close(batched[lane]['history'],serial[lane]['history'],atol=2e-6,rtol=2e-5)
+                assert torch.equal(batched[lane]['history_valid'],serial[lane]['history_valid'])
+    assert batched[0]['history_valid'].sum()==4
+    assert batched[1]['history_valid'].sum()==15
+    assert batched[2]['history_valid'].sum()==17
+
+
+def test_batched_sampler_preserves_each_lane_random_stream():
+    from types import SimpleNamespace
+    from diffusers import DDPMScheduler
+    from visuotactile.models.native_dp import NativePolicy
+    stub=SimpleNamespace(horizon=24,denoiser=lambda sample,timestep,global_cond: sample*.01+global_cond[:,:1,None]*.1,
+        noise=DDPMScheduler(num_train_timesteps=100,beta_schedule='squaredcos_cap_v2',clip_sample=False,prediction_type='sample'),
+        action_scale=torch.ones(29),action_offset=torch.zeros(29))
+    batch_generators=[torch.Generator().manual_seed(7091+i) for i in range(3)]
+    serial_generators=[torch.Generator().manual_seed(7091+i) for i in range(3)]
+    for lanes in ([0,1,2],[1,2],[0,2]):
+        conditions=torch.tensor(lanes)[:,None].float().expand(-1,512)
+        result=NativePolicy.predict(stub,conditions,[batch_generators[i] for i in lanes],scheduler_index_mode='host')
+        for row,lane in enumerate(lanes):
+            expected=NativePolicy.predict(stub,conditions[row:row+1],serial_generators[lane],scheduler_index_mode='host')
+            assert torch.equal(result[row:row+1],expected)
+            assert torch.equal(batch_generators[lane].get_state(),serial_generators[lane].get_state())
+    with pytest.raises(ValueError,match='own generator'):
+        NativePolicy.predict(stub,conditions,[batch_generators[0]])

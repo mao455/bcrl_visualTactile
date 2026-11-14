@@ -242,7 +242,12 @@ class NativePolicy(nn.Module):
             raise ValueError('Explicit registered DDIM sampling configuration required')
         if scheduler_index_mode not in ('legacy','host'):
             raise ValueError('Unknown DDIM scheduler index implementation')
-        sample = torch.randn((len(condition), self.horizon, 29), device=condition.device, generator=generator)
+        if isinstance(generator, (list, tuple)):
+            if len(generator) != len(condition):raise ValueError('Each planning lane requires its own generator')
+            sample = torch.cat([torch.randn((1, self.horizon, 29), device=condition.device, generator=g)
+                for g in generator])
+        else:
+            sample = torch.randn((len(condition), self.horizon, 29), device=condition.device, generator=generator)
         # Clip predicted x0 in train-normalized coordinates, before inverse affine.
         # A fresh scheduler prevents one ablation leaking settings into another.
         sampler = DDIMScheduler.from_config(self.noise.config, clip_sample=clip_sample)

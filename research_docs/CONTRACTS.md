@@ -1,3 +1,7 @@
+## 2026-11-14 可选批量执行合同
+
+neural_batch只改变推理调度：每lane逐60Hz真实视觉/历史、独立episode/step/计划cursor/执行反馈/DP随机流不变；DDIM仅合并当前需要5Hz重规划的lane，后端合并当前active lane。reset lane零/invalid历史不影响继续lane，终止lane不更新。无权重/统计/标签/执行器语义变更。默认关闭，真实输入对照通过后才用于独立工程评估；批量算子数值容差不等于PhysX轨迹精确重放。
+
 ## 2026-11-14 显式后端增量初始化
 
 新fresh aggregate可选--continue-rear，绑定其continuation.json中的previous_backend与继承的旧frontend SHA，使用全部已选后端参数且新optimizer。原30命令统计、执行域、history/loss/output与buffers不变；新前端、新数据每episode计划和可训练visual全部重算，不能复用旧参数依赖cache。默认仍为显式随机后端，旧实验不改写；准备记录random_initialization/inherited_student_parameters及来源。
