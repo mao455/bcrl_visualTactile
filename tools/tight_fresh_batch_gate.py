@@ -9,7 +9,7 @@ from visuotactile.training_resources import atomic_json
 from visuotactile.compact import sha256
 
 
-def gate(root,output):
+def gate(root,output,*,role='A',count=2):
     from tools.tight_fresh_rollouts import completed_pair
     from visuotactile.native_controller import ResidualController
     from visuotactile.batched_controller import BatchedResidualController,lane_tree
@@ -17,9 +17,10 @@ def gate(root,output):
     from visuotactile.state_resources import lease_for
     from visuotactile.precision import state_fp32
     if output.exists():raise FileExistsError('Preserve gate evidence')
+    if role not in ('A','B') or count not in (2,4):raise ValueError('Registered A/B role and two/four lanes required')
     state_fp32();s=json.loads((root/'session.json').read_text());lease=lease_for(root,deadline=s['deadline'])
-    pair=completed_pair(root,'A');saved=torch.load(pair['backend'],weights_only=False,map_location='cpu')
-    data=json.loads((root/'A/state_data/data.json').read_text());ids=data['splits']['train'][:2]
+    pair=completed_pair(root,role);saved=torch.load(pair['backend'],weights_only=False,map_location='cpu')
+    data=json.loads((root/role/'state_data/data.json').read_text());ids=data['splits']['train'][:count]
     sources=[]
     for identity in ids:
         e=data['entries'][identity]
@@ -34,15 +35,15 @@ def gate(root,output):
     # Offline controller comparison only: source expert labels were postprocessed
     # native targets. No simulator is present or being reconfigured by this gate.
     metadata['action_control_mode']='absolute_joint_position_target_rad'
-    metadata['joint_limits_rad']=metadata['joint_limits_rad']*2
+    metadata['joint_limits_rad']=metadata['joint_limits_rad']*count
     rows=[]
     with lease.block():
         dino=NativeDinoSpatial().cuda().eval()
-        batch=BatchedResidualController(saved,metadata,dino,2)
+        batch=BatchedResidualController(saved,metadata,dino,count)
         serial=[ResidualController(saved,metadata,dino) for _ in ids]
     for tick in range(25):
         # Restart only lane0 at the 13th observation; lane1's prefix continues.
-        indices=[tick if tick<13 else tick-13,tick]
+        indices=[tick if tick<13 else tick-13]+[tick]*(count-1)
         packets=[];diagnostics=[];targets=[]
         for lane,j in enumerate(indices):
             source=sources[lane];p={k:v[j:j+1].clone() for k,v in source['obs'].items()}
@@ -52,17 +53,17 @@ def gate(root,output):
         packet={k:torch.cat([p[k] for p in packets]) for k in packets[0]}
         diag={k:torch.cat([d[k] for d in diagnostics]) for k in diagnostics[0]}
         with lease.block():
-            prediction=batch.act(packet,diag,[True,True])
+            prediction=batch.act(packet,diag,[True]*count)
             reference=torch.cat([c.act(p,d) for c,p,d in zip(serial,packets,diagnostics)])
             error=float((prediction-reference).abs().max())
             if error>2e-5:raise ValueError('Real complete-policy lane parity failed: '+str(error))
-            for lane in range(2):
+            for lane in range(count):
                 serial[lane].base.command=targets[lane]
                 batch.lanes[lane].base.command=targets[lane]
                 serial[lane].observe_execution(dict(position_applied_rad=targets[lane]))
-            batch.observe_execution(dict(position_applied_rad=torch.cat(targets)),[True,True])
+            batch.observe_execution(dict(position_applied_rad=torch.cat(targets)),[True]*count)
         rows.append(dict(tick=tick,max_abs_command_rad=error,steps=indices))
-    atomic_json(output,dict(passed=True,pair=pair,source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
+    atomic_json(output,dict(passed=True,pair=pair,role=role,lanes=count,source_ids=ids,rows=rows,visual_frames=batch.visual_frames,
         source_control_mode=source_control_mode,offline_controller_mode=metadata['action_control_mode'],
         max_abs_command_rad=max(row['max_abs_command_rad'] for row in rows),
         scope='Real recorded RGB-D and expert actual-history acknowledgements; lane0 reset while lane1 continues; no simulation outcome or speed claim'))
@@ -70,4 +71,5 @@ def gate(root,output):
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
-    a=p.parse_args();torch.set_num_threads(2);gate(a.root,a.output)
+    p.add_argument('--role',choices=['A','B'],default='A');p.add_argument('--lanes',type=int,choices=[2,4],default=2)
+    a=p.parse_args();torch.set_num_threads(2);gate(a.root,a.output,role=a.role,count=a.lanes)

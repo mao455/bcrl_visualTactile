@@ -1,3 +1,7 @@
+## 2026-11-14 四环境真实视觉验收入口
+
+扩展tight_fresh_batch_gate支持A/B及2/4 lane，保留lane0在第13帧独立reset、其他lane历史持续的完整DP+后端命令比较。每lane使用真实RGB-D并核对逐帧输入；仅离线控制器验收，不改变训练、不替代真实吞吐或自主结果。现有两lane真实门槛和物理结果保留，四lane实际运行待当前训练完成后执行。
+
 ## 2026-11-14 完整自主运行的实际分项耗时
 
 新增tight_fresh_profile_report从已结束队列逐case绑定plan/results SHA，核对DINO、每帧视觉历史和后端调用次数均等于真实控制tick。round01自主A2404tick/196.34s=12.24tick/s，B2192/177.10s=12.38tick/s；每组包括首例视频，Kit启动不计入这些case时间。A/B环境step总114.91/104.77s，其中render61.59/56.11s、physics3.74/3.46s、scene更新8.01/7.34s。这些timer存在嵌套，不能相加为额外成本。普通自主没有专家前向、没有lossless RGB-D训练录制，保留数值证据；报告绑定逐帧调用计数而非只声明保存图像。
