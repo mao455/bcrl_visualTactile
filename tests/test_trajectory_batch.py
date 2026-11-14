@@ -8,7 +8,7 @@ from visuotactile.models.native_dp import NativePolicy
 from visuotactile.position_control import continuous_image_contract
 from visuotactile.state_image_loss import GeometryObjective
 from visuotactile.dp_objectives import masked_objectives
-from visuotactile.trajectory_batch import encode_trajectories, trajectory_objective
+from visuotactile.trajectory_batch import encode_trajectories, supervised_trajectories, trajectory_objective
 
 
 class SmallDenoiser(torch.nn.Module):
@@ -140,3 +140,56 @@ def test_invalid_history_rejected_before_training(model, problem):
         with pytest.raises(ValueError): encode_trajectories(model, [], [])
         return
     with pytest.raises(ValueError): encode_trajectories(model, [record], [ep])
+
+
+def test_explicit_non_grid_anchors_keep_independent_full_histories_and_online_causality(model):
+    pairs=[episode(19,44),episode(14,45)];records,episodes=zip(*pairs)
+    selected=[torch.tensor([5,13,18]),torch.tensor([3,11,13])]
+    model.eval()
+    with torch.no_grad():
+        serial=[encode_dense(model,r,episode=e,selected_anchors=a) for (r,e),a in zip(pairs,selected)]
+        # Actual online observation/condition paths agree even at off-clock times.
+        for (record,ep),anchors,(expected,_) in zip(pairs,selected,serial):
+            memory=None;values=[]
+            for tick in range(len(record['time'])):
+                frame=dict(patches=ep.perception['patches'][tick],depth=ep.perception['depth'][tick],
+                    time=ep.record['camera_time'][tick],valid=ep.record['camera_valid'][tick])
+                memory=model.observe(record['robot'][tick],record['time'][tick],tick,frame,memory)
+                if tick in anchors.tolist():values.append(model.condition(memory,record['time'][tick]))
+            torch.testing.assert_close(torch.cat(values),expected,atol=2e-5,rtol=2e-5)
+        calls=[]
+        handle=model.native_gru.register_forward_pre_hook(lambda _,args:calls.append(len(args[0])))
+        combined=encode_trajectories(model,records,episodes,selected_anchors=selected)
+        handle.remove()
+        assert calls==[2]*14+[1]*5  # Exactly once per real tick, not once per anchor.
+        for (a,ai),(b,bi) in zip(serial,combined):
+            assert torch.equal(ai,bi)
+            torch.testing.assert_close(a,b,atol=2e-5,rtol=2e-5)
+        episodes[0].perception['patches'][6:].add_(.4)
+        records[0]['robot'][6:,116:174].add_(.3)
+        episodes[1].perception['patches'].add_(.8)
+        after=encode_trajectories(model,records,episodes,selected_anchors=selected)
+        torch.testing.assert_close(combined[0][0][0],after[0][0][0],atol=1e-7,rtol=0)
+        assert not torch.allclose(combined[0][0][-1],after[0][0][-1],atol=1e-7,rtol=0)
+        assert not torch.allclose(combined[1][0][0],after[1][0][0],atol=1e-7,rtol=0)
+
+
+def test_explicit_supervised_batch_keeps_labels_out_of_conditions_and_uses_masked_prefix_history(model):
+    record,ep=episode(14,66)
+    record.update(command=torch.randn(14,29),supervision_mask=torch.arange(14)>=7,
+        control_segment=(torch.arange(14)>=7).long())
+    selected=[torch.tensor([7,13])];model.eval()
+    with torch.no_grad():
+        before=supervised_trajectories(model,[record],[ep],selected_anchors=selected)[0]
+        assert before['anchors'].tolist()==[7,13] and before['valid'].sum(-1).tolist()==[7,1]
+        record['command'].add_(100)  # Current/future expert labels are not inputs.
+        after=supervised_trajectories(model,[record],[ep],selected_anchors=selected)[0]
+        assert torch.equal(before['condition'],after['condition'])
+        assert not torch.equal(before['truth'],after['truth'])
+        ep.perception['patches'][1].add_(.5)  # An unsupervised true student history frame matters.
+        history=supervised_trajectories(model,[record],[ep],selected_anchors=selected)[0]
+        assert not torch.allclose(after['condition'][0],history['condition'][0],atol=1e-7,rtol=0)
+    with pytest.raises(ValueError,match='true action'):
+        supervised_trajectories(model,[record],[ep],selected_anchors=[torch.tensor([6,7])])
+    with pytest.raises(ValueError,match='per trajectory'):
+        encode_trajectories(model,[record],[ep],selected_anchors=[])

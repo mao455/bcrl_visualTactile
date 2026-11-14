@@ -35,11 +35,17 @@ def iter_visits(rows,*,limit=None):
             raise ValueError('Unknown learning receipt version')
         else:
             visits=[dict(episode=row['episode'],anchors=da,target_ticks=dt,visual_frames=row['visual_frames'])]
+            for key in ('anchor_sampling','geometry_sampling'):
+                if key in row:visits[0][key]=row[key]
+            if 'anchor_sampling' in row:
+                visits[0].update(epoch=row.get('epoch'),episode_index=row.get('episode_index'))
             _count(row['visual_frames'],'visual_frames',positive=True)
         for visit in visits:
             if not isinstance(visit.get('episode'),str) or not visit['episode']:raise ValueError('Missing visit episode')
             seen+=1
-            yield dict(visit,updates=update,visit_index=seen)
+            result=dict(visit,updates=update,visit_index=seen)
+            if 'anchor_sampling' in visit:result['epoch']=row.get('epoch')
+            yield result
         previous=row
 
 

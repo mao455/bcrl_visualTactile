@@ -96,20 +96,44 @@ def reject_incompatible(root,role,*,pairing=None,io_config=None,auxiliary=None):
     if auxiliary is not None:raise ValueError('B2 visual auxiliary exposure is not implemented')
 
 
-def execute_update(model,optimizer,ema,objective,identities,records,episodes,noise,*,check=lambda:None):
+def execute_update(model,optimizer,ema,objective,identities,records,episodes,noise,*,check=lambda:None,
+        selected_anchors=None,anchor_receipts=None,geometry_generators=None,geometry_sampling_profile=None,diagnostic_gradients=False):
     """Exactly one clipped AdamW/EMA transaction for one/two independent visits."""
     import torch
     from .trajectory_batch import supervised_trajectories,trajectory_objective
     from .anchor_continue import projection_batch
     if len(identities) not in (1,2) or len(records)!=len(identities) or len(episodes)!=len(identities):
         raise ValueError('B2 requires one/two aligned complete visits')
+    if (selected_anchors is None)!=(anchor_receipts is None):raise ValueError('Actual sampled starts and receipts must be supplied together')
     check();model.train();optimizer.zero_grad(set_to_none=True)
-    values=supervised_trajectories(model,records,episodes)
+    if selected_anchors is not None and (anchor_receipts is None or geometry_generators is None or
+            len(anchor_receipts)!=len(identities) or len(geometry_generators)!=len(identities)):
+        raise ValueError('Explicit per-visit selections, receipts and geometry generators must align')
+    values=supervised_trajectories(model,records,episodes,**(dict(selected_anchors=selected_anchors) if selected_anchors is not None else {}))
+    if anchor_receipts is not None:
+        for identity,value,receipt in zip(identities,values,anchor_receipts):
+            if receipt['identity']!=identity or receipt['selected_anchors']!=value['anchors'].detach().cpu().tolist():
+                raise ValueError('Sampling receipt differs from actual encoded trajectory times')
     device=next(model.parameters()).device
-    contexts=[projection_batch(objective,[(identity,int(t)) for t in value['anchors']],device)
-        for identity,value in zip(identities,values)]
+    contexts=[projection_batch(objective,[(identity,int(t)) for t in value['anchors']],device,
+        **(dict(geometry_generator=geometry_generators[index],sampling_profile=geometry_sampling_profile)
+        if geometry_sampling_profile is not None and objective.hand_geometry is not None else {}))
+        for index,(identity,value) in enumerate(zip(identities,values))]
     loss,reports,_=trajectory_objective(model,objective,values,noise,contexts)
     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite B2 loss')
+    influence=None
+    if diagnostic_gradients and objective.hand_geometry is not None:
+        hand=torch.stack([r['parts']['hand_geometry'] for r in reports]).mean()*objective.gain*objective.weights['hand_geometry']
+        parameters=[p for p in model.parameters() if p.requires_grad]
+        hg=torch.autograd.grad(hand,parameters,retain_graph=True,allow_unused=True)
+        other=torch.autograd.grad(loss-hand,parameters,retain_graph=True,allow_unused=True)
+        hn=sum(float(g.detach().double().square().sum()) for g in hg if g is not None)**.5
+        on=sum(float(g.detach().double().square().sum()) for g in other if g is not None)**.5
+        dot=sum(float((a.detach().double()*b.detach().double()).sum()) for a,b in zip(hg,other) if a is not None and b is not None)
+        influence=dict(weighted_geometry_gradient_norm=hn,other_loss_gradient_norm=on,ratio=hn/max(on,1e-30),
+            cosine=dot/max(hn*on,1e-30),geometry_loss=float(hand.detach()),
+            scope='Actual full-model gradients before clipping; extra reverse passes only in the unified diagnostic')
+        del hg,other
     loss.backward()
     norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
     if not torch.isfinite(norm):raise FloatingPointError('Nonfinite B2 gradient')
@@ -121,4 +145,9 @@ def execute_update(model,optimizer,ema,objective,identities,records,episodes,noi
             visual_frames=len(record['time']),parts=parts,loss=parts['base']+objective.gain*sum(
                 objective.weights[key]*parts[key] for key in objective.weights),
             loss_weight=1/len(identities),geometry=report['geometry']))
-    return dict(loss=float(loss.detach()),gradient_norm=float(norm.detach()),visits=visits)
+    if anchor_receipts is not None:
+        for row,receipt,context in zip(visits,anchor_receipts,contexts):
+            row.update(anchor_sampling=receipt,geometry_sampling=context.get('selection_report') if context else None)
+    result=dict(loss=float(loss.detach()),gradient_norm=float(norm.detach()),visits=visits)
+    if influence is not None:result['gradient_influence']=influence
+    return result

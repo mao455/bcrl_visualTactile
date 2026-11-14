@@ -57,13 +57,16 @@ def inactive_render_scope(env,profile,output,*,gate_limit_ticks=None):
 
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
             execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None,
-            verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None):
+            verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
+            capture_audit_memo=False):
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
     tail=validate_vision_tail_profile(vision_tail_profile)
     inactive=validate_inactive_render_request(inactive_render_profile,execution_backend)
     validate_verification_parameters(verification_workers,verification_max_pending)
+    if type(capture_audit_memo) is not bool:raise ValueError('Explicit boolean capture audit memo required')
+    if capture_audit_memo and identities is None:raise ValueError('Capture audit memo requires a collection')
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
     if type(writer_bytes) is not int or writer_bytes<32<<20:
@@ -88,6 +91,9 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
         execution_backend=backend,expert_sha256=session['expert_sha256'])
     if tail is not None:plan['batch']['vision_tail_profile']=tail
     if inactive is not None:plan['batch']['inactive_render_profile']=inactive
+    if capture_audit_memo:
+        from visuotactile.state_benchmark import CAPTURE_AUDIT_MEMO_PROFILE
+        plan['batch']['capture_audit_memo']=dict(CAPTURE_AUDIT_MEMO_PROFILE)
     atomic_json(output/'plan.json',plan)
     return plan
 
@@ -126,7 +132,7 @@ def classify_capture(directory,case,result,plan):
     return name,category,audit
 
 
-def admit_capture(output,case,result,pair,plan,entries):
+def admit_capture(output,case,result,pair,plan,entries,*,audit_memo=None):
     """Publish only after existing source/label/camera checks on closed files."""
     from visuotactile.state_benchmark import audit_dagger_capture
     from visuotactile.narrow_data import dagger_record
@@ -139,7 +145,7 @@ def admit_capture(output,case,result,pair,plan,entries):
         # that the provenance audit actually reads, so its hash stays resolvable.
         with (directory/'result_before_admission.json').open('xb') as stream:
             stream.write((directory/'result.json').read_bytes())
-        audit=audit_dagger_capture(directory,pair)
+        audit=audit_dagger_capture(directory,pair,**({} if audit_memo is None else dict(audit_memo=audit_memo)))
         if not audit['passed']:raise ValueError('Actual batch takeover provenance failed')
         audit['result_binding_path']='result_before_admission.json'
         atomic_json(directory/'capture_audit.json',audit)
@@ -147,7 +153,8 @@ def admit_capture(output,case,result,pair,plan,entries):
         if result['dagger']['expert_valid_ticks']:
             path=Path(result['dataset_capture']['path'])
             entry=dict(path=str(path.resolve()),episode=case['spec']['identity'],length=result['steps'],
-                family=case['spec']['family'],split='train',source_sha256=sha256(path),
+                family=case['spec']['family'],split='train',source_sha256=(sha256(path) if audit_memo is None
+                    else audit_memo.sha256(path,expected=result['dataset_capture']['sha256'])),
                 trajectory_kind='expert_takeover_v1',source_group=case['role'],round_index=plan['round_index'],
                 seed=case['spec']['seed'],takeover_tick=result['dagger']['recovery_coverage']['switch_tick'],
                 registered_takeover_tick=case['spec']['takeover_tick'],trigger_receipt=result['dagger'].get('trigger_receipt'),
@@ -157,13 +164,15 @@ def admit_capture(output,case,result,pair,plan,entries):
                     ('training_expansion','initial_configuration_sha256','source_identity')})
             if 'expansion_schedule' in case:
                 entry['expansion_schedule']=case['expansion_schedule']
-            record,_,_=dagger_record(entry,include_geometry=False)
+            record,_,_=dagger_record(entry,include_geometry=False,
+                **({} if audit_memo is None else dict(payload_audit=audit_memo.payload_audit)))
             result['actual_exposure']=supervision_population({entry['episode']:record})
             if result['actual_exposure']['supervised_ticks']!=result['dagger']['expert_valid_ticks']:
                 raise ValueError('Expert suffix denominator differs')
             if result['success'] and result['dagger']['expert_takeover_success']:
                 visual=inspect_capture(path);atomic_json(directory/'camera_acceptance.json',visual)
                 if not visual['passed']:raise ValueError('Actual batch camera content invalid')
+                if audit_memo is not None:audit_memo.closed_source(directory,result)
                 entries[case['spec']['identity']]=entry;result['accepted_for_training']=True
     else:
         audit_name,category,stage_audit=classify_capture(directory,case,result,plan)
@@ -181,6 +190,15 @@ def admit_capture(output,case,result,pair,plan,entries):
     atomic_json(output/'correction_entries.json',entries)
 
 
+def validate_capture_audit_request(plan):
+    if 'capture_audit_memo' not in plan.get('batch',{}):return None
+    from visuotactile.state_benchmark import validate_capture_audit_profile
+    profile=validate_capture_audit_profile(plan.get('batch',{}).get('capture_audit_memo'))
+    if profile is not None and plan.get('kind')!='takeover':
+        raise ValueError('Registered capture-audit memo requires a collection')
+    return profile
+
+
 def run(output):
     import torch
     from tools.tight_state import environment
@@ -195,6 +213,11 @@ def run(output):
     inactive=validate_inactive_render_request(plan['batch'].get('inactive_render_profile'),plan['execution_backend'])
     validate_verification_parameters(plan['batch'].get('verification_workers',0),
         plan['batch'].get('verification_max_pending',4))
+    audit_profile=validate_capture_audit_request(plan)
+    audit_memo=None
+    if audit_profile is not None:
+        from visuotactile.state_benchmark import DaggerCaptureAuditMemo
+        audit_memo=DaggerCaptureAuditMemo(max_payloads=audit_profile['max_payloads'],max_pairs=audit_profile['max_pairs'])
     if plan.get('test_used') is not False or plan['batch']['version']!='whole_wave_complete_student_v1':
         raise ValueError('Explicit non-test batch registration required')
     if plan['kind']=='takeover':
@@ -208,8 +231,11 @@ def run(output):
     for path,digest in plan['source_sha256'].items():
         if sha256(path)!=digest:raise ValueError('Frozen batch source changed: '+path)
     for pair in plan['pairs'].values():
-        for key in ('frontend','backend'):
-            if sha256(pair[key])!=pair[key+'_sha256']:raise ValueError('Frozen full pair changed')
+        if audit_memo is not None:audit_memo.validate_pair(pair)
+        else:
+            for key in ('frontend','backend'):
+                if sha256(pair[key])!=pair[key+'_sha256']:raise ValueError('Frozen full pair changed')
+    if audit_memo is not None:atomic_json(output/'capture_audit_memo.json',audit_memo.statistics())
     with (output/'run_started.json').open('x') as stream:
         json.dump(dict(pid=os.getpid(),utc=time.time(),plan_sha256=sha256(output/'plan.json')),stream)
     lease=lease_for(Path(plan['resource_root']),deadline=session['deadline'])
@@ -234,7 +260,13 @@ def run(output):
                     raise ValueError('Incomplete full-student execution')
                 if plan['kind']=='takeover':
                     before_admission=time.perf_counter()
-                    admit_capture(output,case,result,pair,plan,entries)
+                    try:
+                        admit_capture(output,case,result,pair,plan,entries,
+                            **({} if audit_memo is None else dict(audit_memo=audit_memo)))
+                    finally:
+                        if audit_memo is not None:
+                            atomic_json(output/'capture_audit_memo.json',dict(audit_memo.statistics(),
+                                latest_case=case['name'],utc=time.time()))
                     profile['admission_s']+=time.perf_counter()-before_admission
                 results.append(dict(role=role,case=case['name'],result=result,
                     timing=dict(batch_wave=index,total_seconds=result.get('wall_profile',{}).get('through_result_s'),
@@ -264,7 +296,9 @@ def main():
     p.add_argument('--inactive-render-products',action='store_true',help='Explicit CPU-standard candidate: retire render products only after actual lane termination')
     p.add_argument('--verification-workers',type=int,default=0)
     p.add_argument('--verification-max-pending',type=int,default=4)
+    p.add_argument('--capture-audit-memo',action='store_true',help='Explicit process-local immutable source and matched-checkpoint audit memo')
     a=p.parse_args()
+    if a.stage=='run' and a.capture_audit_memo:p.error('run uses the registered capture-audit profile; flag requires prepare')
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     if a.stage=='run' and a.inactive_render_products:
         p.error('run uses the immutable prepared inactive-render profile; register it with prepare')
@@ -284,7 +318,8 @@ def main():
             execution_backend=read(a.backend_json) if a.backend_json else None,writer_bytes=a.writer_mib<<20,
             vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None,
             verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending,
-            vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,inactive_render_profile=inactive)
+            vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,inactive_render_profile=inactive,
+            capture_audit_memo=a.capture_audit_memo)
 
 
 if __name__=='__main__':

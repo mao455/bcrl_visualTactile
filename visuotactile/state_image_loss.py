@@ -111,11 +111,12 @@ class GeometryObjective:
         return dict(base=base, position=position, rotation=orientation, fingertip=finger, temporal=temporal)
 
     def _soft_hand_component(self, prediction, mask, scale, offset, context):
-        """The caller selects at most two configurations across a whole update.
+        """The caller selects configurations across a whole update or visit.
 
         The outer accumulator adds hand_geometry directly, without valid-tick
         or microbatch weighting. The complete update loss is therefore exactly
         sum(selected losses)/update_selected_count, including padded tails.
+        Legacy remains at most two; explicit sampling profiles admit more.
         A zero warmup coefficient skips all collision/FK work, not just its loss.
         """
         zero = prediction[..., 7:].sum()*0.
@@ -129,7 +130,17 @@ class GeometryObjective:
         if (selected & ~mask).any():
             raise ValueError('Geometry selection contains an invalid or uncommitted configuration')
         count = int(context['update_selected_count'])
-        if count not in (1, 2):
+        sampling_profile = context.get('sampling_profile')
+        if sampling_profile is not None:
+            from .geometry_sampling import validate_profile
+            sampling_profile=validate_profile(sampling_profile)
+            if count < 1:raise ValueError('Positive selected unique-configuration population required')
+            cap=sampling_profile['max_samples']
+            if cap is not None and count>cap:raise ValueError('Geometry selections exceed explicit per-visit cap')
+            receipt=context.get('selection_report')
+            if receipt is not None and receipt['selected_count']!=count:
+                raise ValueError('Geometry loss population differs from selection receipt')
+        elif count not in (1, 2):
             raise ValueError('One/two complete-update selections required')
         row, tick = selected.nonzero(as_tuple=True)
         if len(row) > count:
@@ -145,6 +156,8 @@ class GeometryObjective:
             update_selected_count=count,
             normalization='sum selected row losses / complete-update selected count; outer accumulator adds directly')
         self.last_geometry_metrics = report
+        if sampling_profile is not None:
+            report.update(sampling_profile=sampling_profile,selection_report=context.get('selection_report'))
         return values.sum()/count
 
     def forward(self, model, condition, command, valid, generator, geometry_context=None, *, diffusion_inputs=None):
@@ -357,16 +370,21 @@ class HandGeometryProjection:
         return loss, report
 
 
-def geometry_loss_context(entry):
+def geometry_loss_context(entry, *, sampling_profile=None):
     """Read after-tick ground truth solely for geometry supervision.
 
     q_reached and the object pose share diagnostics_after[t]; the contact mask
     comes from the final matching 120Hz object-filtered sample, never unfiltered
     finger force (which may include the table or hole). An observed loss of
     object contact changes contact to release without attracting fingers back.
+    An explicit sampling profile additionally exposes diagnostic phase labels;
+    the caller must restrict that new profile to registered training episodes.
     """
     import h5py
     from .native_data import multiply_quaternion, rotate
+    if sampling_profile is not None:
+        from .geometry_sampling import validate_profile,diagnostic_phases
+        validate_profile(sampling_profile)
     with h5py.File(entry['path']) as f:
         g = f['episodes'][entry['episode']]
         tr = g['transition']; after = tr['diagnostics_after']
@@ -385,13 +403,20 @@ def geometry_loss_context(entry):
         terminal = torch.from_numpy(g['terminated'][:]).bool() | torch.from_numpy(g['truncated'][:]).bool()
         if terminal[:-1].any():
             raise ValueError('Geometry context crosses an episode boundary')
+        if sampling_profile is not None:
+            before=tr['diagnostics_before']
+            sampling_phase=diagnostic_phases(obj.numpy(),after['palm_body_pose_w'][:],tr['object_contact_force_w'][:],
+                before['goal_pose_w'][:],after['goal_pose_w'][:],before['successes'][:],after['successes'][:],
+                tr['native_keypoints_max_dist'][:])
     inverse = base[:, 3:].clone(); inverse[:, 1:] *= -1
     object_pose_base = torch.cat((rotate(inverse, obj[:, :3]-base[:, :3]), multiply_quaternion(inverse, obj[:, 3:])), -1)
     mask = force.norm(dim=-1) > .1
     ever = mask.any(-1).long().cumsum(0) > 0
     stage = torch.where(mask.any(-1), 1, torch.where(ever, 2, 0))
-    return dict(object_pose_base=object_pose_base, contact_mask=mask, stage=stage,
+    result=dict(object_pose_base=object_pose_base, contact_mask=mask, stage=stage,
                 time_after_s=times, terminal=terminal)
+    if sampling_profile is not None:result['sampling_phase']=sampling_phase
+    return result
 
 
 def live_geometry_probe(env):

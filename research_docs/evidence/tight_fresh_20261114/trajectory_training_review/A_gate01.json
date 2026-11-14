@@ -1,0 +1,89 @@
+{
+  "complete": true,
+  "passed": false,
+  "diagnostic_only": true,
+  "formal_training_candidate": false,
+  "role": "A",
+  "optimizer_spec": {
+    "type": "AdamW",
+    "lr": 3e-05,
+    "betas": [
+      0.95,
+      0.999
+    ],
+    "weight_decay": 1e-06
+  },
+  "optimizer_steps_confirmed": {
+    "serial_reference": 2,
+    "batched": 2,
+    "restored": 1
+  },
+  "registered_deck": [
+    "formal_050_slow_3",
+    "r08_A_expanded_session06_new16_s28400000_fixed40",
+    "formal_050_slow_3"
+  ],
+  "optimizer_updates_per_path": 2,
+  "episode_visits_per_path": 3,
+  "ema_updates_per_path": 2,
+  "timings_seconds": {
+    "serial_reference": 1.5253799681086093,
+    "batched": 2.978661864064634,
+    "restored_singleton": 0.17409295518882573
+  },
+  "peak_allocated_bytes": {
+    "serial_reference": 3894003200,
+    "batched": 5311196672,
+    "restored_singleton": 3009955840
+  },
+  "per_process_allocator_fraction": 0.45,
+  "geometry": {
+    "acceptance_sha256": "10ff0ce6d568176a2d2364645f90aa1eb11ef5cf81757b75ffc3fbf1e8d8a50e",
+    "live_sha256": "6a776b39519a508783e9920449a5b9bfd3b8ef9369773b5d9c4f026bb1b6ab38",
+    "loss_kind": "hand_surface_soft_hinge_v1",
+    "weight": 2.355370821894758e-06,
+    "hyperparameter_source": "prior accepted train-only physical geometry calibration; no test tuning"
+  },
+  "geometry_selection_proof": {
+    "formal_050_slow_3": {
+      "selected_count": 2,
+      "eligible_commit_count": 261,
+      "eligible_contact_count": 156,
+      "selected_contact_count": 1,
+      "sampling": "one required-contact and one noncontact if present; otherwise two without replacement",
+      "normalization": "equal selected configuration mean, then full-update accumulation; not population-unbiased"
+    },
+    "r08_A_expanded_session06_new16_s28400000_fixed40": {
+      "selected_count": 2,
+      "eligible_commit_count": 458,
+      "eligible_contact_count": 299,
+      "selected_contact_count": 1,
+      "sampling": "one required-contact and one noncontact if present; otherwise two without replacement",
+      "normalization": "equal selected configuration mean, then full-update accumulation; not population-unbiased"
+    }
+  },
+  "boundary_checkpoint_sha256": "63c95315899b3ae9de89d7a67b9b1ebeb5b8090fd40663d2d4cc8d071b0acb38",
+  "source_checkpoint_sha256": "2af9b18f91d670d24f254a08dc6091d92379106b0c55f95ffada785d461780de",
+  "limitations": "Two training trajectories and three visits; serial then batched warm order and checkpoint I/O differ. Fresh EMA uses zero decay in these first two updates; exact pre-update boundary checks separately verify restored EMA. No epoch throughput, model selection, validation/test or autonomy claim.",
+  "wall_seconds": 16.65677261352539,
+  "finished_utc": 1794677083.2652571,
+  "comparison_counts": {
+    "comparisons": {
+      "total": 1202,
+      "failed": 0
+    },
+    "boundary_restoration_comparisons": {
+      "total": 1200,
+      "failed": 0
+    },
+    "recovery_comparisons": {
+      "total": 1200,
+      "failed": 642
+    }
+  },
+  "source_result": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_training_A_gate01/result.json",
+    "sha256": "0abb5b4b018888d4d38e02bc94b7ad2e4ec907bfc909a0dc7b57a6d235f32a0f"
+  },
+  "decision": "Preserved exact-continuation failure; reference mean-gradient updates and complete boundary restoration passed. Same-object arithmetic probe separately shows non-bitwise CUDA repetition; does not invalidate batch training or establish a checkpoint omission."
+}

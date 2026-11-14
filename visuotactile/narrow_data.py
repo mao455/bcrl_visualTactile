@@ -216,7 +216,7 @@ def record(path, *, episode=None, privileged=True):
         return key,m,result
 
 
-def dagger_record(entry, *, include_geometry=True):
+def dagger_record(entry, *, include_geometry=True, payload_audit=None):
     """One accepted actual takeover episode, with loss-only expert labels.
 
     Numeric robot history is built from the complete actual execution, including
@@ -227,7 +227,13 @@ def dagger_record(entry, *, include_geometry=True):
     from .anchor_sampling import supervision_rows
     if entry.get('trajectory_kind')!='expert_takeover_v1' or entry.get('split','train')!='train':
         raise ValueError('Only training-distribution expert takeovers enter aggregation')
-    if sha256(entry['path'])!=entry['source_sha256']:raise ValueError('Takeover source changed')
+    payload_sha256=sha256
+    if payload_audit is not None:
+        from .frozen_payload_audit import FrozenPayloadAudit
+        if not isinstance(payload_audit,FrozenPayloadAudit):
+            raise TypeError('Explicit process-local frozen payload auditor required')
+        payload_sha256=payload_audit.sha256
+    if payload_sha256(entry['path'])!=entry['source_sha256']:raise ValueError('Takeover source changed')
     key,metadata,result=record(entry['path'],episode=entry['episode'],privileged=False)
     n=len(result['time'])
     if n!=entry['length'] or metadata.get('dataset_split')!='train':raise ValueError('Takeover length/split mismatch')

@@ -48,6 +48,39 @@ def exposure_rows(learning, training_ids, corrections, *, source_groups=None):
     return counts, {k: dict(v) for k, v in totals.items()}
 
 
+def sampled_visit_coverage(rows, profile, *, limit=None):
+    """Read actual selected times; no grid inference or image/numeric payload I/O."""
+    import hashlib
+    from visuotactile.fresh_visit_sampling import validate_profile, Coverage
+    profile=validate_profile(profile)
+    selected_rows=rows if limit is None else rows[:limit]
+    has_receipts=any('anchor_sampling' in row or any('anchor_sampling' in v for v in row.get('visits',[]))
+        for row in selected_rows)
+    if profile is None:
+        if has_receipts:raise ValueError('Random anchor receipts require their registered sampling profile')
+        return None
+    coverage=Coverage()
+    for visit in iter_visits(rows,limit=limit):
+        receipt=visit.get('anchor_sampling');ticks=receipt.get('selected_anchors') if isinstance(receipt,dict) else None
+        if (not isinstance(ticks,list) or not ticks or len(ticks)!=visit['anchors'] or
+                any(type(t) is not int or not 0<=t<visit['visual_frames'] for t in ticks) or
+                ticks!=sorted(set(ticks)) or receipt.get('selected_count')!=len(ticks) or
+                receipt.get('identity')!=visit['episode'] or receipt.get('epoch')!=visit.get('epoch') or
+                receipt.get('visit_index')!=visit.get('episode_index') or
+                any(type(receipt.get(k)) is not int or receipt[k]<1 for k in ('epoch','visit_index')) or
+                receipt.get('non_native_grid_count')!=sum(t%12!=0 for t in ticks)):
+            raise ValueError('Actual random anchor receipt differs from its training visit')
+        context=dict(version=profile['anchors']['version'],seed=profile['anchors']['seed'],
+            identity=visit['episode'],epoch=receipt['epoch'],visit_index=receipt['visit_index'])
+        digest=hashlib.sha256(json.dumps(context,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+        if (receipt.get('version')!=profile['anchors']['version'] or receipt.get('seed_context_sha256')!=digest or
+                receipt.get('derived_seed')!=int(digest[:16],16)%(2**63) or
+                receipt.get('selected_anchors_sha256')!=hashlib.sha256(json.dumps(ticks,separators=(',',':')).encode()).hexdigest()):
+            raise ValueError('Random anchor visit seed or selected-time digest differs')
+        coverage.add(visit['episode'],receipt,visit.get('geometry_sampling'))
+    return coverage
+
+
 def batch_checkpoint_exposure(saved, rows):
     """Reconcile complete B2 deck visits independently of Adam/EMA updates."""
     from visuotactile.trajectory_training import validate_profile, validate_exposure
@@ -102,6 +135,11 @@ def role_report(root, role):
         source_groups=source_groups)
     best = training / 'best.pt'
     saved = torch.load(best, map_location='cpu', weights_only=False)
+    sampling=saved['configuration'].get('training_sampling')
+    selected_coverage=sampled_visit_coverage(learning,sampling,limit=saved['updates'])
+    latest_coverage=sampled_visit_coverage(learning,sampling)
+    if selected_coverage is not None and selected_coverage.state_dict()!=saved.get('visit_sampling_coverage'):
+        raise ValueError('Selected checkpoint random sampling coverage differs from actual visits')
     selected_batch_exposure = batch_checkpoint_exposure(saved, learning)
     selected = next(r for r in history if r['epoch'] == saved['epoch'])
     if selected_batch_exposure is not None and any(selected.get(key) != value
@@ -115,6 +153,9 @@ def role_report(root, role):
                 raise ValueError('Finished exposure differs from actual learning receipts')
         if finished['checkpoint_sha256'] != sha256(best):
             raise ValueError('Finished selected frontend identity differs')
+        if latest_coverage is not None and (finished.get('training_sampling')!=sampling or
+                finished.get('visit_sampling_coverage')!=latest_coverage.summary()):
+            raise ValueError('Finished random sampling coverage differs from actual visits')
         if selected_batch_exposure is not None:
             from visuotactile.trajectory_training import validate_exposure
             actual = learning_counters(learning)
@@ -150,6 +191,10 @@ def role_report(root, role):
             selected_episode_visits=selected_batch_exposure['visits_seen'],
             selected_sampling_exposure=saved['sampling_exposure'],
             exposure_semantics='One optimizer/EMA update per one/two full-trajectory visits; source buckets count visits and observed target slots, not separable optimizer steps or gradient weight.')
+    if selected_coverage is not None:
+        result.update(training_sampling=sampling,selected_visit_sampling_coverage=selected_coverage.summary(),
+            latest_visit_sampling_coverage=latest_coverage.summary(),
+            sampling_semantics='Distinct episode/tick starts and geometry configurations from actual visit receipts; target slots use observed increments, never original-grid population times visits.')
     if (training / 'initial_metrics.json').exists():
         result['initial_metrics'] = read(training / 'initial_metrics.json')
         before = result['initial_metrics']['validation']['selection']

@@ -3,6 +3,85 @@ import math
 import torch
 
 
+TRAINING_ANCHOR_VERSION = 'random_legal_action_anchors_v1'
+
+
+def sampling_profile(seed=2026111501):
+    """An explicit training-only method identity; deployment clock is unchanged."""
+    if type(seed) is not int or not 0 <= seed < 2**63:
+        raise ValueError('Training anchor seed must be an integer in [0,2**63)')
+    return dict(version=TRAINING_ANCHOR_VERSION, seed=seed,
+        population='all_true_supervision_mask_ticks', replacement=False,
+        count='min_legal_ticks_max1_original_commit12_anchor_count',
+        order='ascending_selected_ticks', horizon=24,
+        rng='independent_cpu_sha256_seed_identity_epoch_visit_index',
+        history='one_complete_real_history_encoding_per_visit',
+        deployment='unchanged_5Hz_commit12')
+
+
+def validate_training_anchor_profile(value):
+    if value is None:return None
+    if not isinstance(value,dict):
+        raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
+    expected=sampling_profile(value.get('seed'))
+    if value!=expected or any(type(value[k]) is not type(v) for k,v in expected.items()):
+        raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
+    return dict(value)
+
+
+def validate_selected_anchors(anchors, *, start, stop, device):
+    """Validate explicit causal readout times, independently of loss eligibility."""
+    if (not isinstance(anchors,torch.Tensor) or anchors.dtype!=torch.long or
+            anchors.ndim!=1 or not len(anchors) or
+            (anchors<start).any() or (anchors>=stop).any() or
+            (anchors[1:]<=anchors[:-1]).any()):
+        raise ValueError('Nonempty strictly increasing int64 selected anchors inside the encoded window required')
+    return anchors.to(device=device)
+
+
+def validate_training_anchors(record, anchors):
+    """Explicit random starts must themselves be legal, never masked prefix rows."""
+    mask,_=supervision_rows(record)
+    result=validate_selected_anchors(anchors,start=0,stop=len(mask),device=mask.device)
+    if not mask[result].all():raise ValueError('Selected training starts must have true action supervision')
+    return result
+
+
+def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
+    """Uniform without replacement on every visit, isolated from model/deck RNG.
+
+    Repeated visits draw anew; identical subsets remain possible, especially if
+    the requested count exhausts a short population. This is not a forced-novelty
+    process. Sorting changes readout order, not the uniform subset distribution.
+    """
+    import hashlib,json
+    profile=validate_training_anchor_profile(profile)
+    if profile is None:raise ValueError('Random training starts require an explicit profile')
+    if (not isinstance(identity,str) or not identity or
+            any(type(n) is not int or n<1 for n in (epoch,visit_index))):
+        raise ValueError('Episode identity and positive epoch/visit index required')
+    mask,_=supervision_rows(record)
+    population=mask.detach().cpu().nonzero().flatten()
+    if not len(population):raise ValueError('No legal action ticks to sample')
+    native_count=len(planning_anchors(record))
+    count=min(len(population),max(1,native_count))
+    context=dict(version=TRAINING_ANCHOR_VERSION,seed=profile['seed'],
+        identity=identity,epoch=epoch,visit_index=visit_index)
+    digest=hashlib.sha256(json.dumps(context,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+    seed=int(digest[:16],16)%(2**63)
+    generator=torch.Generator(device='cpu').manual_seed(seed)
+    anchors=population[torch.randperm(len(population),generator=generator)[:count]].sort().values
+    validate_training_anchors(record,anchors)
+    selected=anchors.tolist()
+    receipt=dict(version=TRAINING_ANCHOR_VERSION,identity=identity,epoch=epoch,visit_index=visit_index,
+        seed_context_sha256=digest,derived_seed=seed,legal_tick_population=len(population),
+        original_commit12_anchor_count=native_count,selected_count=count,selected_anchors=selected,
+        non_native_grid_count=int((anchors%12!=0).sum()),
+        selected_anchors_sha256=hashlib.sha256(json.dumps(selected,separators=(',',':')).encode()).hexdigest(),
+        legal_tick_population_sha256=hashlib.sha256(json.dumps(population.tolist(),separators=(',',':')).encode()).hexdigest())
+    return anchors,receipt
+
+
 class AnchorSampler:
     """One anchor per distinct episode; shuffled episode and per-episode anchor decks.
 

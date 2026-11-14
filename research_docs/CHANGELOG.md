@@ -1,3 +1,10 @@
+## 2026-11-15 01:42 — 随机合法起点、几何覆盖和正式采集校验复用
+
+- anchor_sampling/continuous_vision/trajectory_batch及fresh_train/cycle：独立visit种子、完整history一次编码、真实非grid起点；fresh_visit_sampling记录不同anchor与几何位置并进入checkpoint恢复。旧默认及部署5Hz不变。
+- geometry_sampling/anchor_continue/state_image_loss：仅train诊断阶段分层、不同合法构型去重、约半抽样/显式cap、所选均值及阶段实际比例；默认旧2构型保留用于复现。实际耗时/全模型梯度尚待统一4batch检查。
+- training_receipts/learning_report/stage_exposure按实际visit起点累计监督与去重覆盖；固定5Hz离线评估保持。新增统一tools.tight_fresh_training_check，0heldout/最多4更新。
+- state_benchmark/narrow_data/batch_run/expansion/batch_owner：opt-in capture-audit-memo，bounded SHA/模型匹配元数据复用、文件变化失效；下一正式pending16，当前冻结采集不变。测试复用各模块短check，root接线22项通过。
+
 ## 2026-11-15 01:25 — B首波后段与实际脚本可复查归档
 
 - `collection09_registration/B16.json`：8真实恢复/2493步、两held恢复227步、未触发原因、原生子目标时钟及A/B非严格配对，全部来自closed numeric/真实label审核。

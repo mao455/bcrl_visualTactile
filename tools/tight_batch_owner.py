@@ -120,6 +120,8 @@ def census(output,plan):
 def run(output,worker_tree,startup_seconds=300):
     output=Path(output).resolve();worker_tree=Path(worker_tree).resolve()
     plan=read(output/'plan.json');session=read(output/'session.json')
+    from tools.tight_fresh_batch_run import validate_capture_audit_request
+    validate_capture_audit_request(plan)
     if plan.get('batch',{}).get('version')!='whole_wave_complete_student_v1' or not 1<=startup_seconds<=600:
         raise ValueError('Registered batch and finite startup bound required')
     if time.time()>=session['deadline']:raise TimeoutError('Registered session expired')

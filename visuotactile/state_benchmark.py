@@ -67,8 +67,10 @@ def dagger_configuration(configuration, spec, source):
         expert_delay_rule='Continuous shadow queue; same single draw retained by the position executor; native queue untouched')
 
 
-def dagger_policy_identity(saved, checkpoint):
+def dagger_policy_identity(saved, checkpoint, *, payload_audit=None):
     """Bind the actual two-part deployment, before any student action is allowed."""
+    if payload_audit is not None and not isinstance(payload_audit,DaggerCaptureAuditMemo):
+        raise TypeError('Explicit process-local capture auditor required')
     from .models.native_dp import TargetResidual
     from .state_history import trained_continuation_updates
     if (not isinstance(saved, dict) or saved.get('residual_version') != TargetResidual.version
@@ -77,7 +79,8 @@ def dagger_policy_identity(saved, checkpoint):
         raise ValueError('DAgger requires a trained complete DP plus Transformer student')
     cfg = saved.get('configuration', {}); contract = saved.get('contract', {})
     frontend = Path(cfg.get('base_checkpoint', ''))
-    if not frontend.is_file() or sha256(frontend) != cfg.get('base_sha256'):
+    payload_sha256 = sha256 if payload_audit is None else payload_audit.sha256
+    if not frontend.is_file() or payload_sha256(frontend) != cfg.get('base_sha256'):
         raise ValueError('DAgger complete policy frontend identity mismatch')
     supervision = contract.get('supervision'); inference = None
     if 'supervision' not in contract:
@@ -96,7 +99,7 @@ def dagger_policy_identity(saved, checkpoint):
     adapter = validate_execution_adapter(cfg.get('execution_adapter'))
     identity = dict(version='complete_student_policy_v1', controller='ResidualController',
         frontend=str(frontend.resolve()), frontend_sha256=cfg['base_sha256'],
-        backend=str(Path(checkpoint).resolve()), backend_sha256=sha256(checkpoint),
+        backend=str(Path(checkpoint).resolve()), backend_sha256=payload_sha256(checkpoint),
         residual_version=saved['residual_version'], supervision=supervision, supervision_inference=inference,
         modality=contract.get('modality'), output='absolute_joint_position_target_rad',
         composition='bounded nominal plus Transformer correction; actual issued/applied feedback',
@@ -187,12 +190,123 @@ def dagger_recovery_coverage(arrays, group):
         contact_valid=contact_known, observed_contact=contact, deviation=deviation)
 
 
-def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True):
+CAPTURE_AUDIT_MEMO_PROFILE = dict(version='process_local_closed_capture_audit_v1',
+    max_payloads=256, max_pairs=4, retains_tensors=False, accepts_external_digests=False)
+
+
+def validate_capture_audit_profile(profile):
+    if profile is not None and (not isinstance(profile, dict) or profile != CAPTURE_AUDIT_MEMO_PROFILE
+            or any(type(profile[key]) is not type(value) for key,value in CAPTURE_AUDIT_MEMO_PROFILE.items())):
+        raise ValueError('Unknown registered capture-audit memo profile')
+    return None if profile is None else dict(CAPTURE_AUDIT_MEMO_PROFILE)
+
+
+class DaggerCaptureAuditMemo:
+    """Bounded metadata only; every digest is first read in this process.
+
+    Full numeric/control/camera semantics are never memoized. Only immutable
+    payload SHA and the matched checkpoint contract inspection can be reused.
+    """
+    def __init__(self, *, max_payloads=256, max_pairs=4):
+        from collections import OrderedDict
+        from .frozen_payload_audit import FrozenPayloadAudit
+        if type(max_pairs) is not int or max_pairs < 1:
+            raise ValueError('Positive matched-pair memo bound required')
+        self.payload_audit = FrozenPayloadAudit(max_entries=max_payloads)
+        self.max_pairs = max_pairs
+        self._pairs = OrderedDict()
+        self._counts = dict(pair_checks=0, pair_loads=0, pair_hits=0, pair_evictions=0,
+            pair_validation_seconds=0., source_checks=0)
+
+    def _check_process(self):
+        import os
+        if os.getpid() != self.payload_audit.pid:
+            raise RuntimeError('Capture-audit memo cannot cross a process boundary')
+
+    @staticmethod
+    def _fingerprint(path):
+        import os
+        import stat
+        value = os.stat(path)
+        if not stat.S_ISREG(value.st_mode):
+            raise ValueError('Capture audit requires regular immutable files')
+        return (value.st_dev, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns)
+
+    def sha256(self, path, *, expected=None):
+        self._check_process()
+        before = self._fingerprint(path)
+        digest = self.payload_audit.sha256(path)
+        if self._fingerprint(path) != before:
+            raise ValueError('Capture payload changed during SHA validation')
+        if expected is not None and digest != expected:
+            raise ValueError('Capture payload differs from its registered expected SHA')
+        return digest
+
+    def validate_pair(self, pair):
+        self._check_process(); started = time.perf_counter()
+        self._counts['pair_checks'] += 1
+        try:
+            key = []
+            for name in ('frontend', 'backend'):
+                path = Path(pair[name])
+                before = self._fingerprint(path)
+                self.sha256(path, expected=pair[name+'_sha256'])
+                if self._fingerprint(path) != before:
+                    raise ValueError('Frozen pair changed during inspection')
+                key.append((str(path.resolve()), before, pair[name+'_sha256']))
+            key = tuple(key)
+            if key in self._pairs:
+                self._pairs.move_to_end(key)
+                self._counts['pair_hits'] += 1
+                return
+            backend = torch.load(pair['backend'], map_location='cpu', weights_only=False, mmap=True)
+            frontend = torch.load(pair['frontend'], map_location='cpu', weights_only=False, mmap=True)
+            actual = dagger_policy_identity(backend, pair['backend'], payload_audit=self)
+            if (actual['frontend_sha256'] != pair['frontend_sha256']
+                    or Path(actual['frontend']).resolve() != Path(pair['frontend']).resolve()
+                    or frontend['contract'] != backend['contract']):
+                raise ValueError('DAgger actual loaded checkpoints are not a matched complete policy')
+            for name, (_, fingerprint, expected) in zip(('frontend', 'backend'), key):
+                self.sha256(pair[name], expected=expected)
+                if self._fingerprint(pair[name]) != fingerprint:
+                    raise ValueError('Frozen pair changed while loading checkpoint contracts')
+            # Never retain checkpoints, model tensors, optimizer state or history.
+            self._pairs[key] = True
+            self._counts['pair_loads'] += 1
+            if len(self._pairs) > self.max_pairs:
+                self._pairs.popitem(last=False); self._counts['pair_evictions'] += 1
+        finally:
+            self._counts['pair_validation_seconds'] += time.perf_counter()-started
+
+    def closed_source(self, output, result):
+        """The verifier receipt is binding evidence, never a trusted SHA cache."""
+        self._check_process(); output = Path(output)
+        receipt = json.loads((output/'capture_complete.json').read_text())
+        capture = result['dataset_capture']; bound = receipt.get('dataset_capture') or {}
+        if (receipt.get('status') != 'source_verified' or receipt.get('steps') != result['steps']
+                or Path(receipt.get('numeric_path', '')).resolve() != (output/'numeric.h5').resolve()
+                or Path(bound.get('path', '')).resolve() != Path(capture['path']).resolve()
+                or not bound.get('sha256') or bound['sha256'] != capture.get('sha256')):
+            raise ValueError('Closed capture source verification receipt differs')
+        self._counts['source_checks'] += 1
+        return self.sha256(capture['path'], expected=bound['sha256'])
+
+    def statistics(self):
+        self._check_process()
+        return dict(version=CAPTURE_AUDIT_MEMO_PROFILE['version'], **self._counts,
+            max_pairs=self.max_pairs, retained_pairs=len(self._pairs), retains_tensors=False,
+            payload=self.payload_audit.statistics(),
+            semantic_scope='Numeric/action/history/camera audits still run for every capture; only immutable file and pair metadata reused')
+
+
+def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True, audit_memo=None):
     """CPU readback of real completed collection, including zero-valued corrections.
 
     Historical captures use their immutable initial_pair ledger. New captures also
     embed the paired identity. No simulator, model forward, or labels are generated.
     """
+    if audit_memo is not None and (not isinstance(audit_memo, DaggerCaptureAuditMemo) or not verify_weights):
+        raise ValueError('Capture-audit memo requires explicit full checkpoint verification')
     output = Path(output); result = json.loads((output/'result.json').read_text())
     if not result.get('software_complete') or not result.get('legal') or not result.get('dagger'):
         raise ValueError('Complete legal DAgger capture required for deployment audit')
@@ -209,7 +323,10 @@ def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True):
             raise ValueError('DAgger recorded paired identity differs from expected collector')
     if result['checkpoint_sha256'] != pair['backend_sha256']:
         raise ValueError('DAgger actual backend checkpoint identity differs')
-    if verify_weights:
+    if audit_memo is not None:
+        audit_memo.validate_pair(pair)
+        audit_memo.closed_source(output, result)
+    elif verify_weights:
         for name in ('frontend', 'backend'):
             if sha256(pair[name]) != pair[name+'_sha256']:
                 raise ValueError('DAgger actual '+name+' checkpoint bytes changed')
@@ -263,6 +380,8 @@ def audit_dagger_capture(output, expected_pair=None, *, verify_weights=True):
             if not np.array_equal(recorded['dagger/expert_label_valid'][:], valid):
                 raise ValueError('DAgger compact expert supervision mask differs')
         coverage = dagger_recovery_coverage(arrays, group)
+    if audit_memo is not None:
+        audit_memo.closed_source(output, result)
     return dict(passed=True, finding='No bare-DP collection problem found in actual numeric execution',
         identity=result['identity'], frontend_sha256=pair['frontend_sha256'], backend_sha256=pair['backend_sha256'],
         checkpoint_files_checked=verify_weights, embedded_pair_identity=identity is not None,

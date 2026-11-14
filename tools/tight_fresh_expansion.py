@@ -21,7 +21,8 @@ from visuotactile.training_expansion import (COLLECTION_CONTRACT, NEVER_FALLBACK
 def prepare(source, output, *, session_root, registry_id, seeds, partition_manifest,
             frozen_families, schedules, lanes, event_seed, round_index,
             existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2,
-            verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None):
+            verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
+            capture_audit_memo=False):
     from visuotactile.execution_backend import normalize_backend
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
@@ -32,6 +33,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
     from tools.tight_fresh_batch_run import validate_inactive_render_request
     inactive = validate_inactive_render_request(inactive_render_profile,execution_backend)
     validate_verification_parameters(verification_workers,verification_max_pending)
+    if type(capture_audit_memo) is not bool:raise ValueError('Explicit boolean capture audit memo required')
     source = Path(source).resolve()
     output = Path(output).resolve()
     session_root = Path(session_root).resolve()
@@ -125,6 +127,9 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
         test_used=False, test_trajectories_opened=0, utc=time.time())
     if tail is not None:plan['batch']['vision_tail_profile']=tail
     if inactive is not None:plan['batch']['inactive_render_profile']=inactive
+    if capture_audit_memo:
+        from visuotactile.state_benchmark import CAPTURE_AUDIT_MEMO_PROFILE
+        plan['batch']['capture_audit_memo']=dict(CAPTURE_AUDIT_MEMO_PROFILE)
     if source_selection is not None:plan['source_selection']=source_selection
     validate_collection_plan(plan)
     atomic_json(output / 'plan.json', plan)
@@ -152,6 +157,7 @@ def main():
     parser.add_argument('--inactive-render-products',action='store_true',help='Explicit CPU-standard inactive render product candidate')
     parser.add_argument('--verification-workers',type=int,default=0)
     parser.add_argument('--verification-max-pending',type=int,default=4)
+    parser.add_argument('--capture-audit-memo',action='store_true')
     args = parser.parse_args()
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     inactive=None
@@ -165,7 +171,8 @@ def main():
         execution_backend=read(args.backend_json) if args.backend_json else None, writer_bytes=args.writer_mib << 20,
         vision_microbatch=args.vision_microbatch,verification_workers=args.verification_workers,
         verification_max_pending=args.verification_max_pending,
-        vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None,inactive_render_profile=inactive)
+        vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None,inactive_render_profile=inactive,
+        capture_audit_memo=args.capture_audit_memo)
 
 
 if __name__ == '__main__':

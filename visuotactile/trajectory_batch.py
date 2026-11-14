@@ -8,13 +8,13 @@ batch is ONE optimizer/EMA update; it is not equivalent to sequential updates.
 import torch
 
 from .continuous_vision import frame_features, causal_visual_readouts
-from .anchor_sampling import planning_anchors, labels
+from .anchor_sampling import planning_anchors, labels, validate_selected_anchors, validate_training_anchors
 
 
 IDENTITY = 'independent_full_trajectory_batch_v1'
 
 
-def encode_trajectories(model, records, episodes):
+def encode_trajectories(model, records, episodes, *, selected_anchors=None):
     """Recompute complete histories and batch only independent GRU rows.
 
     Frame feature extraction retains the original per-trajectory blocks of 32.
@@ -27,6 +27,11 @@ def encode_trajectories(model, records, episodes):
             or len(records) != len(episodes)):
         raise ValueError('One to eight complete G00 continuous trajectories required')
     device = next(model.parameters()).device
+    if selected_anchors is not None:
+        if not isinstance(selected_anchors,(tuple,list)) or len(selected_anchors)!=len(records):
+            raise ValueError('One explicit selected-anchor tensor per trajectory required')
+        selected_anchors=[validate_selected_anchors(a,start=0,stop=len(r['time']),device=device)
+            for r,a in zip(records,selected_anchors)]
     prepared = []
     for record, episode in zip(records, episodes):
         n = len(record['time'])
@@ -67,9 +72,10 @@ def encode_trajectories(model, records, episodes):
             part['native'].append(native[lane:lane+1])
             part['visual'].append(visual[lane:lane+1])
     results = []
-    for part in prepared:
+    for lane,part in enumerate(prepared):
         time = part['time']
-        anchors = torch.arange(0, part['n'], 12, device=device)
+        anchors = (torch.arange(0, part['n'], 12, device=device) if selected_anchors is None
+            else selected_anchors[lane])
         index = anchors[:, None] + torch.arange(-12, 1, device=device)
         valid = index >= 0
         selected = index.clamp_min(0)
@@ -85,13 +91,19 @@ def encode_trajectories(model, records, episodes):
     return results
 
 
-def supervised_trajectories(model, records, episodes):
+def supervised_trajectories(model, records, episodes, *, selected_anchors=None):
+    if selected_anchors is not None:
+        if not isinstance(selected_anchors,(tuple,list)) or len(selected_anchors)!=len(records):
+            raise ValueError('One explicit selected-anchor tensor per trajectory required')
+        selected_anchors=[validate_training_anchors(r,a) for r,a in zip(records,selected_anchors)]
     results = []
-    for record, (conditions, anchors) in zip(records, encode_trajectories(model, records, episodes)):
-        keep = torch.isin(anchors, planning_anchors(record).to(anchors.device))
-        if not keep.any():
-            raise ValueError('Every trajectory needs legal expert planning windows')
-        conditions, anchors = conditions[keep], anchors[keep]
+    for record, (conditions, anchors) in zip(records, encode_trajectories(model, records, episodes,
+            **({} if selected_anchors is None else dict(selected_anchors=selected_anchors)))):
+        if selected_anchors is None:
+            keep = torch.isin(anchors, planning_anchors(record).to(anchors.device))
+            if not keep.any():
+                raise ValueError('Every trajectory needs legal expert planning windows')
+            conditions, anchors = conditions[keep], anchors[keep]
         truth, valid = labels(record, anchors, model.horizon)
         results.append(dict(condition=conditions, anchors=anchors, truth=truth, valid=valid))
     return results

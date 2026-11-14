@@ -1,0 +1,367 @@
+{
+  "version": "trajectory_recovery_probe01_evidence_v1",
+  "scope": {
+    "diagnostic_only": true,
+    "formal_training_candidate": false,
+    "autonomous_runs": 0,
+    "trainer_changed": false,
+    "gate_threshold_changed": false,
+    "deterministic_arithmetic_adopted": false,
+    "heldout_raw_or_visual_shards_opened": 0,
+    "heldout_numeric_tensors_decoded": 0,
+    "original_mixed_numeric_integrity_bytes_read": true
+  },
+  "execution": {
+    "private_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_recovery_probe01",
+    "source_commit": "5099018",
+    "started_utc": "2026-11-14T17:20:31.441875+00:00",
+    "elapsed_seconds": 37.65953493118286,
+    "confirmed_optimizer_updates": 3,
+    "maximum_registered_optimizer_updates": 5,
+    "completed_default_arms": 3,
+    "completed_deterministic_optimizer_updates": 0,
+    "five_arm_probe_completed": false,
+    "end_reason": "Explicit deterministic backward is unsupported; failure preserved; no automatic retry",
+    "original_session_deadline": 1794685791.0642202,
+    "work_deadline": 1794677401.4418755,
+    "external_owner_runtime_seconds": 600
+  },
+  "source": {
+    "original_failed_gate": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/trajectory_training_B_gate01",
+    "original_failed_gate_passed": false,
+    "original_gate_files_sha256": {
+      "admission.json": "e55762b5d2be3fb6f4733267b922dc364ae650208b86f4e79cbd0e8e59ffdb3f",
+      "started.json": "9417e4d393b94004a65e1c23afbff6c5f43cecc644f70bd0bbc5dda517f2737a",
+      "result.json": "3dc071400cafd5038ecf8eb4687d009cf33590b778078020aa5adb70e2b466c9"
+    },
+    "boundary_checkpoint_sha256": "beb01660f42e8d2dd6ba473b85856832db0c9a6a38f2db7130fe0200c4263531",
+    "boundary_sha_source": "Reused verified admission receipt; no additional large checkpoint hash during this summary",
+    "selected_frontend_sha256": "3be38a933824874a9697821e6a5bd2a95e7927e8ed25bcdc22ba537b3a466529",
+    "training_data_sha256": "e566a1006a0ebbfa096d5e9d9a7d04582fb7ab7269ffa799423b0fcd39141f1a",
+    "statistics_sha256": "2c6b61dd50bdd0cf4fc887d7fa4096f6fb2877d934a7014eafdf7711340d7027",
+    "cache_index_sha256": "d83bd7e135c0b7565b42e40093f08d0db91e3b064f3cec5a8c50fefb28103883",
+    "singleton": [
+      "formal_050_slow_3"
+    ],
+    "exposure": {
+      "episode": "formal_050_slow_3",
+      "anchors": 22,
+      "target_ticks": 510,
+      "visual_frames": 261,
+      "loss_weight": 1.0
+    },
+    "source_files": {
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_recovery09_20261115/tools/tight_trajectory_recovery_probe.py": {
+        "sha256": "66da8ac6ff52d054b129c5460b67ae067df583da54460436a8dc7cc8b4a76b60",
+        "relevant_lines": "132-213; 233-290"
+      },
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_batchtrain09_20261115/visuotactile/trajectory_training.py": {
+        "sha256": "7dec038fd60fd001725860d55509dea8e6d8ab242fde098c24c954e955c04dec",
+        "relevant_lines": "99-126"
+      },
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114/visuotactile/checkpointing.py": {
+        "sha256": "cd12e552180d851bfa645725161d513cba93faabafe8a28aa0341f4916b67c46",
+        "relevant_lines": "12-31"
+      },
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114/visuotactile/continuous_vision.py": {
+        "sha256": "080f8b29d084bda011592d435dfe6ea66e28f6383394a9066f719836f5d3784c",
+        "relevant_lines": "23-29"
+      },
+      "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle08_20261114/visuotactile/precision.py": {
+        "sha256": "0416b5b20923d59ceccb638e2c02d2dc110d920bf08c0ab57f35b59a030e1b45",
+        "relevant_lines": "5-17"
+      }
+    }
+  },
+  "boundary_checks": {
+    "default_first": {
+      "fields": 1200,
+      "exact": true
+    },
+    "default_same_objects": {
+      "fields": 1200,
+      "exact": true
+    },
+    "default_new_objects": {
+      "fields": 1200,
+      "exact": true
+    },
+    "deterministic_first": {
+      "fields": 1200,
+      "exact": true
+    }
+  },
+  "default_arms": [
+    {
+      "arm": "default_first",
+      "fresh_objects": true,
+      "timings_seconds": {
+        "restore_with_cpu_copy": 0.3116160889621824,
+        "boundary_cpu_snapshot": 0.37694160896353424,
+        "boundary_comparison": 4.063240248011425,
+        "synchronized_execute_update": 1.1482544119935483,
+        "gradient_copy_within_execute_update": 0.11002749088220298,
+        "post_update_cpu_snapshot": 0.41395413503050804,
+        "post_update_comparison": 2.691522240638733e-07
+      },
+      "peak_cuda_memory": {
+        "allocated_bytes": 3055098368,
+        "reserved_bytes": 3160408064
+      },
+      "precision_profile": "default_precision",
+      "report_identical_to_first": true
+    },
+    {
+      "arm": "default_same_objects",
+      "fresh_objects": false,
+      "timings_seconds": {
+        "restore_with_cpu_copy": 0.29701353795826435,
+        "boundary_cpu_snapshot": 0.19377110502682626,
+        "boundary_comparison": 4.148252665065229,
+        "synchronized_execute_update": 0.2607879519928247,
+        "gradient_copy_within_execute_update": 0.03992451820522547,
+        "post_update_cpu_snapshot": 0.16800998314283788,
+        "post_update_comparison": 5.536639320896938
+      },
+      "peak_cuda_memory": {
+        "allocated_bytes": 3069245952,
+        "reserved_bytes": 3657433088
+      },
+      "comparison_to_default_first": {
+        "states": {
+          "model": {
+            "fields": 195,
+            "nonexact_fields": 134,
+            "different_elements": 1160924,
+            "elements": 72770789,
+            "maximum_absolute": 7.450580596923828e-09,
+            "maximum_symmetric_relative": 0.05868202744128147
+          },
+          "ema": {
+            "fields": 195,
+            "nonexact_fields": 134,
+            "different_elements": 1160924,
+            "elements": 72770789,
+            "maximum_absolute": 7.450580596923828e-09,
+            "maximum_symmetric_relative": 0.05868202744128147
+          },
+          "optimizer": {
+            "fields": 764,
+            "nonexact_fields": 364,
+            "different_elements": 116546066,
+            "elements": 145540406,
+            "maximum_absolute": 1.4551915228366852e-11,
+            "maximum_symmetric_relative": 1.7683696952755825
+          }
+        },
+        "clipped_gradients": {
+          "clipped_gradients": {
+            "fields": 188,
+            "nonexact_fields": 182,
+            "different_elements": 64547166,
+            "elements": 72770109,
+            "maximum_absolute": 2.3283064365386963e-10,
+            "maximum_symmetric_relative": 1.9936737438635175
+          }
+        },
+        "total_state_fields": 1200,
+        "nonexact_state_fields": 632,
+        "maximum_state_absolute_location": "state/model/vision.attention.in_proj_weight",
+        "maximum_gradient_absolute_location": "gradient/condition_projection.0.weight",
+        "exact_other_fields": {
+          "fields": 46,
+          "groups": [
+            "contract",
+            "ema_optimization_step",
+            "schedule_rng",
+            "noise_rng",
+            "torch_rng",
+            "cuda_rng",
+            "updates",
+            "visits_seen",
+            "full_trajectory_batch"
+          ]
+        },
+        "all_four_rng_states_exact": true
+      },
+      "precision_profile": "default_precision",
+      "report_identical_to_first": true
+    },
+    {
+      "arm": "default_new_objects",
+      "fresh_objects": true,
+      "timings_seconds": {
+        "restore_with_cpu_copy": 0.18941763299517334,
+        "boundary_cpu_snapshot": 0.0945807199459523,
+        "boundary_comparison": 4.348635555943474,
+        "synchronized_execute_update": 0.3019705929327756,
+        "gradient_copy_within_execute_update": 0.03867679298855364,
+        "post_update_cpu_snapshot": 0.16844365210272372,
+        "post_update_comparison": 5.439783243928105
+      },
+      "peak_cuda_memory": {
+        "allocated_bytes": 3056167424,
+        "reserved_bytes": 3657433088
+      },
+      "comparison_to_default_first": {
+        "states": {
+          "model": {
+            "fields": 195,
+            "nonexact_fields": 139,
+            "different_elements": 1145247,
+            "elements": 72770789,
+            "maximum_absolute": 2.9802322387695312e-08,
+            "maximum_symmetric_relative": 0.01703986555515028
+          },
+          "ema": {
+            "fields": 195,
+            "nonexact_fields": 139,
+            "different_elements": 1145247,
+            "elements": 72770789,
+            "maximum_absolute": 2.9802322387695312e-08,
+            "maximum_symmetric_relative": 0.01703986555515028
+          },
+          "optimizer": {
+            "fields": 764,
+            "nonexact_fields": 364,
+            "different_elements": 116170116,
+            "elements": 145540406,
+            "maximum_absolute": 1.4551915228366852e-11,
+            "maximum_symmetric_relative": 1.7683696952755825
+          }
+        },
+        "clipped_gradients": {
+          "clipped_gradients": {
+            "fields": 188,
+            "nonexact_fields": 182,
+            "different_elements": 64414312,
+            "elements": 72770109,
+            "maximum_absolute": 2.3283064365386963e-10,
+            "maximum_symmetric_relative": 1.8456628375574793
+          }
+        },
+        "total_state_fields": 1200,
+        "nonexact_state_fields": 642,
+        "maximum_state_absolute_location": "state/model/vision.position.weight",
+        "maximum_gradient_absolute_location": "gradient/condition_projection.0.weight",
+        "exact_other_fields": {
+          "fields": 46,
+          "groups": [
+            "contract",
+            "ema_optimization_step",
+            "schedule_rng",
+            "noise_rng",
+            "torch_rng",
+            "cuda_rng",
+            "updates",
+            "visits_seen",
+            "full_trajectory_batch"
+          ]
+        },
+        "all_four_rng_states_exact": true
+      },
+      "precision_profile": "default_precision",
+      "report_identical_to_first": true
+    }
+  ],
+  "deterministic_failure": {
+    "active_arm": "deterministic_first",
+    "optimizer_step_may_be_partial": false,
+    "precision": {
+      "name": "explicit_deterministic",
+      "matmul_tf32": false,
+      "cudnn_tf32": false,
+      "cudnn_benchmark": false,
+      "cudnn_deterministic": true,
+      "autocast_cuda": false,
+      "torch_version": "2.7.0+cu128",
+      "deterministic_algorithms": true,
+      "deterministic_warn_only": false,
+      "cublas_workspace_config": ":4096:8"
+    },
+    "operator": "adaptive_avg_pool2d_backward_cuda",
+    "message": "RuntimeError(\"adaptive_avg_pool2d_backward_cuda does not have a deterministic implementation, but you set 'torch.use_deterministic_algorithms(True)'",
+    "second_deterministic_arm_started": false
+  },
+  "interpretation": {
+    "demonstrated": "All four attempted restoration boundaries match all 1200 saved fields exactly. Both same-object and new-object default reruns retain identical reported loss, total gradient norm, visit exposure, counters and all saved RNG states, but have small nonexact per-parameter gradients and resulting weights/moments.",
+    "checkpoint_inference": "A new-object construction or disk-load state-loss explanation is not necessary: the same-object repeated restore already has 632 nonexact final fields. Together with the code audit and explicit unsupported deterministic backward, the evidence supports ordinary CUDA arithmetic nondeterminism. No missing saved model/EMA/Adam/RNG field has been demonstrated.",
+    "limits": "This does not prove every unrecorded mutable runtime attribute is irrelevant, isolate the sole responsible kernel, guarantee long-run bitwise equivalence, or establish B2 learning quality. The unsupported-operator exception identifies a lack of deterministic implementation, not proof that this operator alone caused every observed difference.",
+    "numerical_scale": "Largest absolute clipped-gradient discrepancy is 2.3283064365386963e-10. Largest model/EMA discrepancy is 7.450580596923828e-9 for same objects and 2.9802322387695312e-8 for new objects. No all-elements ULP bound was computed; large relative maxima near zero must be read with the absolute errors.",
+    "unchanged_decision": "The original exact recovery gate remains failed; this probe also ends with a preserved unsupported-operation failure. Neither is retrospectively relabeled passed. This evidence does not falsify the B2 learning method, and does not itself adopt it.",
+    "future_rule_proposal_not_implemented": "If B2 is used in a new explicitly registered candidate, keep exact pre-update checkpoint/model/EMA/Adam/RNG and exact deck/history/mask/exposure checks; distinguish these from floating post-update numerical equivalence. A separately named prospective recovery criterion could reuse the existing algorithm-comparison atol=rtol=2e-5, rather than fitting a new threshold to this maximum. Actual learning and throughput still require complete-cycle evidence.",
+    "optional_pooling_followup_not_implemented": "For this fixed 18x32 to 6x8 spatial map, adaptive averaging has nonoverlapping 3x4 regions in real arithmetic. A separate avg_pool2d(kernel_size=(3,4),stride=(3,4)) study is possible, but changing CUDA reduction order needs its own forward/gradient acceptance. It is not required merely to rescue a bitwise diagnostic and no operator was changed.",
+    "timing": "Per-arm update timings include synchronized CPU gradient copying. The first arm is cold; subsequent arms are warm. Restore, CPU snapshot and comparison times are reported separately. Three singleton updates cannot establish full-epoch throughput; strict arithmetic has no completed update timing.",
+    "environment_difference": "All new probe arms have launcher CUBLAS_WORKSPACE_CONFIG=:4096:8 and synchronous gradient copies; the old failed gate had no such launcher setting. This is not a bitwise replay of the old gate process."
+  },
+  "private_evidence_sha256": {
+    "admission.json": "bb64608683aeecb386d793a7f7ac2aa51314d887c8ede1f5287f11614341deba",
+    "started.json": "07d36f02267225bc57da52a8c1fa6d28ceda6763eda477816bb2a143cd35049c",
+    "failed.json": "3afd85b02057466187797607b661d48f0706e192d36b75282bf8f2bbcd3b2ce0",
+    "default_first.json": "a839ec5822b89545c4c1533d4cb85edb62dabedb6c978f7149b0f58b82fd554e",
+    "default_first_boundary.json": "ad72087fa0208336a0cadf4e74e5bdf9f3b1d2508361024f94608e50068510a9",
+    "default_first_started.json": "4f85ec91313f78743c5d8c165a8474868a639207a94fa3758c7af35026301680",
+    "default_first_step_entered.json": "41ca264178d2e24ce84ab238e76b145aaa0a26fcc8fa7f65fff03500fcc55528",
+    "default_same_objects.json": "4107800cdaeca0baa3efe19bf373bd94604abed030f8e673fca46897d0d37429",
+    "default_same_objects_boundary.json": "ad72087fa0208336a0cadf4e74e5bdf9f3b1d2508361024f94608e50068510a9",
+    "default_same_objects_started.json": "fa1ff21b54bb12e23c4967b0bbe177a055a9ffd4c2ab60be0fce961abecd362b",
+    "default_same_objects_step_entered.json": "02e882296ca33ac7e97b77e7913a86c1a0cdc4baa09abb479303020f7bdb209b",
+    "default_new_objects.json": "508a1c1d7adb3c021089e50f9d965d3f4408c20709881149dbbb41c212d2d511",
+    "default_new_objects_boundary.json": "ad72087fa0208336a0cadf4e74e5bdf9f3b1d2508361024f94608e50068510a9",
+    "default_new_objects_started.json": "b85503a94342dfccba524cb1822bd76c21c7f6cfd4cbdd3786ff2ae33c05d3b7",
+    "default_new_objects_step_entered.json": "e3bca05c63f33931ed163d8a2ea3c593a67cb0dd930f914de421167ddc9b6bee",
+    "deterministic_first_started.json": "a0c18272c70278e9e5394ce478eff645eb8435ae355a9206566ded4ec42f2657",
+    "deterministic_first_boundary.json": "1bbabcadbf4cd96e203f9460d79cb1287b252b0f4dbdaf8012decb288e78defe"
+  },
+  "launch_sha256": "cf411e7be4a27fc4389e1eda2ffaa0cb4e5b50b1ed3498f79cb44dd53c088be2",
+  "default_precision": {
+    "name": "default_nondeterministic",
+    "matmul_tf32": false,
+    "cudnn_tf32": false,
+    "cudnn_benchmark": false,
+    "cudnn_deterministic": false,
+    "autocast_cuda": false,
+    "torch_version": "2.7.0+cu128",
+    "deterministic_algorithms": false,
+    "deterministic_warn_only": false,
+    "cublas_workspace_config": ":4096:8"
+  },
+  "identical_default_report": {
+    "loss": 0.0019249790348112583,
+    "gradient_norm": 0.12454001605510712,
+    "visits": [
+      {
+        "episode": "formal_050_slow_3",
+        "anchors": 22,
+        "target_ticks": 510,
+        "visual_frames": 261,
+        "parts": {
+          "base": 0.0019171092426404357,
+          "position": 9.912037057802081e-06,
+          "rotation": 0.00015216480824165046
+        },
+        "loss": 0.0019249790254778395,
+        "loss_weight": 1.0,
+        "geometry": null
+      }
+    ]
+  },
+  "three_separate_questions": {
+    "mean_gradient_optimizer_equivalence": {
+      "evidence": "Original B gate: 1202/1202 serial-mean-gradient versus B2 comparisons passed the preregistered atol=rtol=2e-5. Two trajectories/three ordered visits/two AdamW+EMA updates per path.",
+      "scope": "One mean-gradient update is not equivalent to two sequential single-trajectory Adam updates; no B2 learning-quality claim."
+    },
+    "complete_saved_state_restoration": {
+      "evidence": "Original B gate restored boundary 1200/1200 exact; this probe repeats four exact boundaries.",
+      "scope": "Tests the saved model, EMA, Adam, schedule/noise/global CPU/CUDA RNG, contract/profile and update/visit counters. No omitted field was found in the code review."
+    },
+    "bitwise_floating_continuation": {
+      "evidence": "Default CUDA same-object and new-object recomputation are nonexact; strict deterministic backward rejects unsupported adaptive_avg_pool2d_backward_cuda before any strict optimizer step.",
+      "scope": "Neither arithmetic determinism nor long-run bitwise continuation is established. Preserve the old exact-gate failure while considering method equivalence and state restoration independently."
+    },
+    "A_geometry": {
+      "evidence": "Not tested by this B-only probe.",
+      "scope": "An independent original-version A update gate may assess mean-update geometry semantics and restoration; its actual component results must be reported separately."
+    }
+  }
+}

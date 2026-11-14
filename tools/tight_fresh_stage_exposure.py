@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 from tools.tight_fresh_selected_fit import read, sha256, checked_hash, exclusive_json, import_frozen_trainer
-from tools.tight_fresh_learning_report import batch_checkpoint_exposure
+from tools.tight_fresh_learning_report import batch_checkpoint_exposure, sampled_visit_coverage
 from visuotactile.training_receipts import BATCH_ROW_VERSION, iter_visits, learning_counters
 
 COUNTERS = ('updates', 'anchors_seen', 'target_ticks')
@@ -91,11 +91,42 @@ def reconcile_checkpoints(training, selected, rows, finished):
         require(all(saved['sampling_exposure'][identity] == value['visits']
             for identity, value in counts.items()),
             label+' checkpoint per-episode sampling exposure differs from actual learning rows')
+        coverage=sampled_visit_coverage(rows,saved['configuration'].get('training_sampling'),limit=limit)
+        if coverage is not None:
+            require(coverage.state_dict()==saved.get('visit_sampling_coverage'),
+                label+' checkpoint random sampling coverage differs from actual learning rows')
         receipts[label] = dict(checkpoint=filename, epoch=epoch, counters=total,
             training_episodes_checked=len(identities), all_episode_visits_match=True,
             loader='torch.load(map_location=cpu, mmap=True)', weight_bytes_rehashed=False)
         del saved
     return receipts
+
+
+def sampled_stage_totals(records, stage_masks, names, rows, limit, profile, label_fn):
+    """Reconstruct each actual sampled H24 window with the same legal mask."""
+    import torch
+    from visuotactile.anchor_sampling import sample_training_anchors
+    sampled_visit_coverage(rows,profile,limit=limit)
+    result={i:dict(visits=0,anchors=0,target_slots=0,stages={name:0 for name in names}) for i in records}
+    for visit in iter_visits(rows,limit=limit):
+        identity=visit['episode']
+        if identity not in records:continue
+        record=records[identity]
+        anchors,receipt=sample_training_anchors(record,profile['anchors'],identity=identity,
+            epoch=visit['epoch'],visit_index=visit['episode_index'])
+        require(receipt==visit['anchor_sampling'],'Actual random starts differ from bound legal population/seed: '+identity)
+        _,valid=label_fn(record,anchors,24)
+        masks=stage_masks[identity]
+        require(masks.dtype==torch.bool and masks.shape==(len(names),len(record['time'])) and
+            torch.equal(masks[-1],record['supervision_mask']),'Stage masks differ from actual legal supervision')
+        require(len(anchors)==visit['anchors'] and int(valid.sum())==visit['target_ticks'],
+            'Actual sampled target masks disagree with learning increments: '+identity)
+        indices=(anchors[:,None]+torch.arange(24)).clamp_max(len(record['time'])-1)
+        stages={name:int((masks[j][indices]&valid).sum()) for j,name in enumerate(names)}
+        require(stages['legal_expert']==int(valid.sum()),'Sampled stage slots include invalid targets')
+        value=result[identity];value['visits']+=1;value['anchors']+=len(anchors);value['target_slots']+=int(valid.sum())
+        for name in names:value['stages'][name]+=stages[name]
+    return result
 
 
 def run(registration, output):
@@ -123,11 +154,16 @@ def run(registration, output):
     rows = [json.loads(line) for line in (training/'learning.jsonl').read_text().splitlines()]
     finished = read(training/'finished.json')
     checkpoint_checks = reconcile_checkpoints(training, selected, rows, finished)
+    sampling=selected['configuration'].get('training_sampling')
     populations = {}
+    stage_masks={}
     names = [*plan['stages'], 'legal_expert']
     with np.load(plan['masks_path'], allow_pickle=False) as archive:
         for identity in ids:
             record = records[identity]
+            masks = torch.from_numpy(archive[identity])
+            stage_masks[identity]=masks
+            if sampling is not None:continue
             anchors = planning_anchors(record)
             _, valid = trainer.labels(record, anchors, 24)
             masks = torch.from_numpy(archive[identity])
@@ -140,8 +176,15 @@ def run(registration, output):
     checkpoints = {}
     for label, limit in [('selected', selected['updates']), ('last', finished['updates'])]:
         counts, total = update_counts(rows, ids, limit)
-        episodes = {}
+        episodes = (sampled_stage_totals(records,stage_masks,names,rows,limit,sampling,trainer.labels)
+            if sampling is not None else {})
         for identity in ids:
+            if sampling is not None:
+                require(all(episodes[identity][k]==counts[identity][k] for k in ('visits','anchors','target_slots')),
+                    'Actual sampled stage totals differ from observed visit counters')
+                if label=='selected':require(episodes[identity]['visits']==plan['episodes'][identity]['selected_full_history_visits'],
+                    'Selected visit count differs')
+                continue
             observed = counts[identity]; pop = populations[identity]; visits = observed['visits']
             require(observed['anchors'] == pop['anchors']*visits and
                 observed['target_slots'] == pop['target_slots']*visits,
@@ -167,6 +210,10 @@ def run(registration, output):
     if selected['configuration'].get('full_trajectory_batch') is not None:
         result.update(full_trajectory_batch=selected['configuration']['full_trajectory_batch'],
             visit_semantics='visits_seen counts full-trajectory visits; updates counts actual optimizer/EMA transactions, including one-visit odd tails. Target slots are exposure, not the per-trajectory normalized gradient weight.')
+    if sampling is not None:
+        result.update(version='reconstructed_stage_target_exposure_v2',training_sampling=sampling,
+            anchor_source='Actual per-visit selected_anchors receipts, checked against deterministic seed and legal action population.',
+            semantics='H24 target slots at actual recorded random legal training starts, with original legal-suffix masks. Repeated window slots are exposure, not unique actions, loss weight, gradient magnitude or geometry exposure. Deployment remains5Hz; no grid-population times visits inference.')
     exclusive_json(Path(output), result)
     return result
 

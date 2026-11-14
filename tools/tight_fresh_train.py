@@ -41,8 +41,12 @@ def new_model(role,statistics):
     return model.cuda()
 
 
-def supervised_conditions(model,record,*,episode=None):
+def supervised_conditions(model,record,*,episode=None,selected_anchors=None):
     """All frames update history; only actual legal target windows train DP."""
+    if selected_anchors is not None:
+        from visuotactile.anchor_sampling import validate_training_anchors
+        selected_anchors=validate_training_anchors(record,selected_anchors)
+        return encode_dense(model,record,episode=episode,selected_anchors=selected_anchors)
     c,a=(encode_dense(model,record) if episode is None else encode_dense(model,record,episode=episode))
     from visuotactile.anchor_sampling import planning_anchors
     permitted=planning_anchors(record).to(a.device)
@@ -161,7 +165,7 @@ def metrics(model,records,identities,*,offline_planning=None,check=None):
     return result
 
 
-def fresh_objective(root,role,data,records):
+def fresh_objective(root,role,data,records,*,geometry_sampling_profile=None):
     """Shared full fresh action objective for training and disposable acceptance."""
     from visuotactile.state_image_loss import GeometryObjective,PALM_LOSS_ID,geometry_loss_context
     meta=read(root/'metadata.json');objective=GeometryObjective(meta,mode=PALM_LOSS_ID)
@@ -174,8 +178,10 @@ def fresh_objective(root,role,data,records):
         a=read(acceptance);inventory=read(live)['inventory']
         objective.enable_hand_geometry(inventory,a,loss_kind='hand_surface_soft_hinge_v1',penetration_tolerance_m=.001,contact_tolerance_m=.002)
         objective.weights['hand_geometry']=a['hand_geometry_weight']
-        objective.loss_context={i:geometry_loss_context(data['entries'][i]) for i in records}
+        objective.loss_context={i:geometry_loss_context(data['entries'][i],**(dict(sampling_profile=geometry_sampling_profile)
+            if geometry_sampling_profile is not None and i in data['splits']['train'] else {})) for i in records}
         proof=bind_geometry_supervision(objective,records)
+        if geometry_sampling_profile is not None:objective.geometry_sampling_profile=geometry_sampling_profile
         geometry=dict(acceptance_sha256=sha256(acceptance),live_sha256=sha256(live),
             loss_kind='hand_surface_soft_hinge_v1',weight=a['hand_geometry_weight'],hyperparameter_source='prior accepted train-only physical geometry calibration; no test tuning')
     return objective,geometry,proof
@@ -328,7 +334,12 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         learning_rate=continuation['learning_rate'] if continuation else 1e-4
         opt=torch.optim.AdamW(optimizer_groups(model) if auxiliary else model.parameters(),
             lr=learning_rate,betas=(.95,.999),weight_decay=1e-6)
-    objective,geometry,proof=fresh_objective(root,role,data,records)
+    from visuotactile.fresh_visit_sampling import load_profile,Coverage,visit as sample_visit
+    visit_profile=load_profile(root)
+    if visit_profile and auxiliary:raise ValueError('Random visit training and visual auxiliary must use separate explicit implementations')
+    coverage=Coverage() if visit_profile else None
+    objective,geometry,proof=fresh_objective(root,role,data,records,
+        **(dict(geometry_sampling_profile=visit_profile['geometry']) if visit_profile and role=='A' else {}))
     if proof is not None:
         atomic_json(out/'geometry_supervision.json',dict(passed=True,episodes=proof,
             scope='Same legal expert window masks for base, palm and sampled hand geometry; before optimizer updates'))
@@ -341,6 +352,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         validation='all six fixed families DDIM16 commit12; fixed train2 diagnostics',hand_geometry=geometry,
         normalization_identity=model.contract['normalization_identity'],input_builder='canonical_joint_state_v1',
         source_sha256={str(p):sha256(p) for folder in ['visuotactile','tools'] for p in sorted(Path(folder).rglob('*.py'))})
+    if visit_profile:
+        config.update(training_sampling=visit_profile,training_sampling_sha256=sha256(root/'training_sampling.json'),
+            exposure='Full real history once per visit; random legal starts with original anchor-count budget; actual visits, optimizer/EMA updates and distinct times recorded separately.')
     if continuation:config['continuation']=continuation
     if offline_planning is not None:config['offline_planning']=offline_planning
     if io_config is not None:
@@ -378,6 +392,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
         if old['configuration']!=config:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
         restore_training(old,model,averaged,opt,ema,generator,noise)
+        if visit_profile:coverage=Coverage(old['visit_sampling_coverage'])
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
         if batch_profile:
             visits_seen=old['visits_seen'];sampling_exposure=old['sampling_exposure']
@@ -413,6 +428,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
                 completed_epochs=epoch,updates=updates)
         extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
+        if visit_profile:extras['visit_sampling_coverage']=coverage.state_dict()
         if batch_profile:
             validate_batch_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates,visits_seen=visits_seen)
             if ema.optimization_step!=updates:raise ValueError('B2 EMA/optimizer steps differ')
@@ -459,11 +475,19 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                     identities=[identity for _,identity in visits]
                     with lease.block():
                         episodes=[Episode(dr,identity,'I-HistoryDP') for identity in identities]
+                        visit_options={}
+                        if visit_profile:
+                            selections=[sample_visit(records[identity],visit_profile,identity=identity,epoch=epoch+1,visit_index=index)
+                                for index,identity in visits]
+                            visit_options=dict(selected_anchors=[v[0] for v in selections],
+                                anchor_receipts=[v[1] for v in selections],geometry_generators=[v[2] for v in selections],
+                                geometry_sampling_profile=visit_profile['geometry'])
                         result=execute_update(model,opt,ema,objective,identities,
-                            [records[identity] for identity in identities],episodes,noise,check=lease.check)
+                            [records[identity] for identity in identities],episodes,noise,check=lease.check,**visit_options)
                         del episodes
                         updates+=1
                         for (index,identity),visit_row in zip(visits,result['visits']):
+                            if visit_profile:coverage.add(identity,visit_row['anchor_sampling'],visit_row.get('geometry_sampling'))
                             sampling_exposure[identity]+=1;visits_seen+=1
                             visit_row.update(episode_index=index,episode_visit=sampling_exposure[identity])
                             anchors_seen+=visit_row['anchors'];target_ticks+=visit_row['target_ticks']
@@ -488,11 +512,16 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                     visit=(prefetch.visit(order_index) if prefetch is not None else nullcontext((None,None)))
                     with visit as (episode,episode_io),lease.block():
                         model.train();opt.zero_grad(set_to_none=True)
-                        if auxiliary:cond,a,visual=supervised_visual_conditions(model,rec,episode=episode)
+                        anchor_receipt=geometry_generator=None
+                        if visit_profile:
+                            selected_anchors,anchor_receipt,geometry_generator=sample_visit(rec,visit_profile,identity=i,epoch=epoch+1,visit_index=order_index+1)
+                            cond,a=supervised_conditions(model,rec,episode=episode,selected_anchors=selected_anchors)
+                        elif auxiliary:cond,a,visual=supervised_visual_conditions(model,rec,episode=episode)
                         else:cond,a=supervised_conditions(model,rec,episode=episode)
                         truth,valid=labels(rec,a,24)
                         selected=[(i,int(t)) for t in a]
-                        context=projection_batch(objective,selected,'cuda:0')
+                        context=projection_batch(objective,selected,'cuda:0',**(dict(geometry_generator=geometry_generator,
+                            sampling_profile=visit_profile['geometry']) if visit_profile and role=='A' else {}))
                         loss,parts,_=objective.forward(model,cond,truth,valid,noise,geometry_context=context)
                         if auxiliary:
                             weighted_pose,pose_parts=auxiliary_episode_loss(model,rec,visual,pose_contexts[i],auxiliary)
@@ -505,12 +534,16 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                             else torch.nn.utils.clip_grad_norm_(model.parameters(),1.))
                         if not torch.isfinite(norm):raise FloatingPointError('Nonfinite gradient')
                         opt.step();ema.step(model);updates+=1;anchors_seen+=len(a);target_ticks+=int(valid.sum())
+                        if visit_profile:coverage.add(i,anchor_receipt,context.get('selection_report') if context else None)
                         if sampling:sampling_exposure[i]+=1
                         if auxiliary:add_exposure(pose_exposure,i,pose_reports[i],data['normalization_train_ids'])
                         losses.append(float(loss));torch.cuda.synchronize()
                     row=dict(epoch=epoch+1,episode=i,episode_index=order_index+1,updates=updates,loss=losses[-1],
                         parts={k:float(v.detach()) for k,v in parts.items()},anchors_seen=anchors_seen,target_ticks=target_ticks,
                         visual_frames=len(rec['time']),seconds=time.perf_counter()-began,utc=time.time())
+                    if visit_profile:
+                        row.update(anchor_sampling=anchor_receipt,
+                            geometry_sampling=context.get('selection_report') if context else None)
                     row['process_io']=io_delta(io_before,io_snapshot())
                     if episode_io is not None:row['episode_io']=episode_io
                     if pairing is not None:row['paired_episode_io_ready_wait_s']=pair_ready_wait
@@ -533,6 +566,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
         report['training_epoch_io']=training_epoch_io
+        if visit_profile:
+            report['visit_sampling_coverage']=coverage.summary()
+            atomic_json(out/'sampling_coverage.json',dict(profile=visit_profile,summary=coverage.summary(),episodes=coverage.state_dict()))
         if batch_profile:report.update(visits_seen=visits_seen,sampling_exposure=dict(sampling_exposure),
             full_trajectory_batch=batch_profile,loss_per_optimizer_batch_mean=report['loss'],
             loss_per_episode_visit_mean=sum(visit_losses)/len(visit_losses),
@@ -550,6 +586,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         print(json.dumps(dict(role=role,epoch=epoch+1,updates=updates,loss=report['loss'],train=tr['selection'],validation=val['selection'])),flush=True)
     finished=dict(epochs=epochs,updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,
         checkpoint_sha256=sha256(out/'best.pt'),complete=True,wall_seconds=time.perf_counter()-started)
+    if visit_profile:finished.update(training_sampling=visit_profile,visit_sampling_coverage=coverage.summary())
     if auxiliary:finished['auxiliary_exposure']=pose_exposure
     if sampling:finished.update(sampling_contract=sampling,episode_multiplicities=multiplicities,
         episodes_per_epoch=episodes_per_epoch,sampling_exposure=sampling_exposure)

@@ -58,11 +58,14 @@ def causal_visual_readouts(vision,tokens,times,camera_times,camera_valid,indices
     return torch.cat(output)
 
 
-def encode_dense(model,record,*,episode=None,start=0,stop=None,return_visual=False):
+def encode_dense(model,record,*,episode=None,start=0,stop=None,return_visual=False,selected_anchors=None):
     if model.contract.get('visual_stride')!=1 or model.modality!='G00':
         raise ValueError('Explicit every-tick G00 visual contract required')
     stop=len(record['time']) if stop is None else stop
     if not 0<=start<stop<=len(record['time']):raise ValueError('Invalid full-prefix window')
+    if selected_anchors is not None:
+        from .anchor_sampling import validate_selected_anchors
+        selected_anchors=validate_selected_anchors(selected_anchors,start=start,stop=stop,device=record['time'].device)
     episode=Episode(record['source_root'],record['identity'],model.group) if episode is None else episode
     if episode.visual_stride!=1:raise ValueError('Sparse cache cannot feed continuous model')
     device=next(model.parameters()).device
@@ -90,7 +93,9 @@ def encode_dense(model,record,*,episode=None,start=0,stop=None,return_visual=Fal
                 native.append(memory_native);visual.append(memory_visual)
             tokens.append(part)
     tokens=torch.cat(tokens);native=torch.cat(native);visual=torch.cat(visual)
-    anchors=torch.arange(start,stop,device=device);anchors=anchors[anchors%12==0]
+    if selected_anchors is None:
+        anchors=torch.arange(start,stop,device=device);anchors=anchors[anchors%12==0]
+    else:anchors=selected_anchors.to(device)
     if not len(anchors):raise ValueError('No planning anchors')
     rindex=anchors[:,None]+torch.arange(-12,1,device=device)
     rvalid=rindex>=0;ri=rindex.clamp_min(0)

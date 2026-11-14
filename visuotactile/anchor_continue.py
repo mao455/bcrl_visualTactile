@@ -123,12 +123,21 @@ def deterministic_loss(model,records,ids,obj,lease):
     return {k:sum(v[k] for v in values)/len(values) for k in values[0]}
 
 
-def geometry_selection(objective, selected, lengths, seed):
+def geometry_selection(objective, selected, lengths, seed=None, *, generator=None, sampling_profile=None):
     """Stratify two valid commit configurations over one complete update.
 
     Sampling uses no predicted distance/feasibility and does not change the
     anchor or diffusion RNG. Base supervision still consumes every valid row.
     """
+    if sampling_profile is None:sampling_profile=getattr(objective,'geometry_sampling_profile',None)
+    if sampling_profile is not None:
+        from .geometry_sampling import select
+        if generator is not None and seed is not None:
+            raise ValueError('Geometry sampling takes either an independent generator or a seed')
+        if generator is None:
+            if type(seed) is not int:raise ValueError('Explicit per-visit geometry generator/seed required')
+            generator=torch.Generator().manual_seed(seed)
+        return select(objective,selected,lengths,configuration=sampling_profile,generator=generator)
     mask=torch.zeros((len(selected),24),dtype=torch.bool)
     candidates=[[],[]]
     for row,(identity,tick) in enumerate(selected):
@@ -156,23 +165,50 @@ def geometry_selection(objective, selected, lengths, seed):
         normalization='equal selected configuration mean, then full-update accumulation; not population-unbiased')
 
 
-def projection_batch(objective, selected, device, *, selected_mask=None, update_selected_count=None, active=True):
+def projection_batch(objective, selected, device, *, selected_mask=None, update_selected_count=None, active=True,
+                     geometry_generator=None, sampling_profile=None, selected_indices=None, selection_report=None):
     """Loss-only future context, never inserted into the model record/condition."""
     if objective.hand_geometry is None:return None
     from .state_image_loss import HandGeometrySoftLoss
     direct=isinstance(objective.hand_geometry,HandGeometrySoftLoss)
+    if sampling_profile is None:sampling_profile=getattr(objective,'geometry_sampling_profile',None)
+    if sampling_profile is not None:
+        from .geometry_sampling import validate_profile
+        sampling_profile=validate_profile(sampling_profile)
+        if not direct:raise ValueError('New sampling applies only to the direct soft geometry objective')
+    if selected_indices is not None:
+        if selected_mask is not None:raise ValueError('Supply geometry indices or mask, not both')
+        selected_mask=torch.zeros((len(selected),24),dtype=torch.bool)
+        for row,tick in selected_indices:
+            if type(row) is not int or type(tick) is not int or not 0<=row<len(selected) or not 0<=tick<12:
+                raise ValueError('Explicit geometry indices must be committed row/offset pairs')
+            if selected_mask[row,tick]:raise ValueError('Duplicated explicit geometry index')
+            selected_mask[row,tick]=True
+        if update_selected_count is None:update_selected_count=int(selected_mask.sum())
+    if sampling_profile is not None and selected_mask is not None:
+        from .geometry_sampling import validate_mask
+        actual_ticks=validate_mask(objective,selected,selected_mask.detach().cpu())
+        if selection_report is None:
+            selection_report=dict(version=sampling_profile['version'],selected_ticks=actual_ticks,
+                selected_count=update_selected_count,explicit_indices=True)
     if direct and not active:return dict(active=False)
     if direct and selected_mask is not None and not selected_mask.any():
-        return dict(active=True,selected_mask=selected_mask.to(device),update_selected_count=update_selected_count)
+        result=dict(active=True,selected_mask=selected_mask.to(device),update_selected_count=update_selected_count)
+        if sampling_profile is not None:result.update(sampling_profile=sampling_profile,selection_report=selection_report)
+        return result
     context=objective.loss_context
     result={key:torch.stack([context[i][key][torch.arange(t,t+24).clamp_max(len(context[i][key])-1)]
         for i,t in selected]).to(device) for key in ('object_pose_base','contact_mask','stage')}
     if direct:
         if selected_mask is None:
             selected_mask,report=geometry_selection(objective,selected,
-                {i:len(context[i]['stage']) for i,t in selected},8091)
+                {i:len(context[i]['stage']) for i,t in selected},
+                None if sampling_profile is not None else 8091,generator=geometry_generator,sampling_profile=sampling_profile)
             update_selected_count=report['selected_count']
+            selection_report=report
         result.update(selected_mask=selected_mask.to(device),update_selected_count=update_selected_count,active=active)
+        if sampling_profile is not None:
+            result.update(sampling_profile=sampling_profile,selection_report=selection_report)
     return result
 
 

@@ -183,9 +183,11 @@ def configure_episode_io(output, config):
 def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_rear=False, reuse_index=None,
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
-        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None):
+        parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
+    from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
+    training_sampling=validate_visit_profile(training_sampling)
     if trajectory_profile and (paired_episode_io or episode_io is not None):
         raise ValueError('B2 rejects paired_episode_io_v1 and existing EpisodePrefetch, including implicit prefetch defaults')
     from visuotactile.models.native_vision import validate_vision_tail_profile
@@ -243,6 +245,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
     if trajectory_profile is not None:registration['full_trajectory_batch']=trajectory_profile
+    if training_sampling is not None:registration['training_sampling']=training_sampling
     if parallel_backends:
         registration['parallel_backends']=True
         registration['parallel_backend_contract']=dict(version='independent_backend_chains_v1',
@@ -290,6 +293,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         print(json.dumps(receipt),flush=True)
     try:
         execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
+        if training_sampling is not None:atomic_json(output/'training_sampling.json',training_sampling)
         if episode_io is not None:
             atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
         if latest_repeat is not None:
@@ -387,6 +391,7 @@ def main():
     p.add_argument('--reuse-index',type=Path)
     p.add_argument('--parallel-frontends',action='store_true')
     p.add_argument('--offline-anchor-batch',type=int,help='Explicit frontend offline metrics DDIM batch only; does not enable backend cache batching')
+    p.add_argument('--training-sampling-json',type=Path,help='Explicit per-visit random legal starts and rotating geometry sampling profile')
     p.add_argument('--full-trajectory-batch',action='store_true',help='New B2 frontend training identity; same visits but one optimizer/EMA update per batch; rejects paired I/O and prefetch')
     p.add_argument('--backend-offline-anchor-batch',type=int,help='Separate opt-in backend cache DDIM batch; requires its own cache acceptance')
     p.add_argument('--parallel-backends',action='store_true',
@@ -426,7 +431,8 @@ def main():
         vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,
         inactive_render_profile=inactive,payload_audit_memo=a.payload_audit_memo,parallel_backends=a.parallel_backends,
         offline_anchor_batch=a.offline_anchor_batch,backend_offline_anchor_batch=a.backend_offline_anchor_batch,
-        trajectory_batch_profile=trajectory_profile)
+        trajectory_batch_profile=trajectory_profile,
+        training_sampling=read(a.training_sampling_json) if a.training_sampling_json else None)
 
 
 if __name__=='__main__':main()

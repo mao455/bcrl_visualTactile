@@ -1,3 +1,11 @@
+# 2026-11-15 显式随机训练时刻与轮换几何
+
+training_sampling.json精确登记fresh_random_visit_training_v1。随机起点来自supervision_mask为真的全部60Hz动作时刻，每visit独立CPU SHA种子绑定identity/epoch/visit_index，不消费diffusion/deck RNG；数量=min(合法tick数,max(1,旧commit12有效anchor数))，无放回且排序。每轨history仍从真实tick0完整重算一次；未来truth只在loss。label尾部/控制segment合法mask不变。单轨及B2均支持；部署/后端输入准备仍12步更新，中间执行原计划。
+
+A几何legal_tick_half_phase_v1从该visit所选anchor的commit12合法构型按(identity,tick)去重；同tick多个预测窗口仅随机选一个槽。按真实train诊断阶段人口近比例抽约半数，非空阶段至少一个，实际率明确记录且不称无偏总体均值；cap只限制每visit成本。loss是所选不同构型均值，不因抽样增多放大。phase标签仅监督采样；独立seed、每visit实际ticks、累计不同位置及阶段counts保存进日志/checkpoint。原物理容差/几何权重暂不改变，待统一实测梯度后选择。旧无profile路径用于复现。
+
+capture-audit-memo-v1只复用同进程冻结文件完整SHA与模型契约匹配的元数据；stat/expected SHA绑定、进程变化清空、文件变化重验/拒绝。数据每case动作、history、真实相机和成功判据继续验收，缓存不是跳过新轨迹验收。pending16只增加等待校验的路径/元数据槽，不无界累积图像。
+
 ## B2恢复算术定位探针
 
 `trajectory_recovery_arithmetic_probe_v1`只读取既有失败B gate的第一更新完整checkpoint及同一train singleton，严格绑定原失败/来源/两helper/统计与train-only缓存。默认算术同对象首跑与重复、默认新对象、确定性新对象两次，共最多5个可丢弃更新；每个分支先exact验证完整恢复边界。裁剪后/Adam前复制逐参数梯度，比较模型/EMA/Adam/RNG的exact及描述性数值差，不添加更宽通过门槛，不更改正式trainer。
