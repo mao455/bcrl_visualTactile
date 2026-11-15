@@ -18,3 +18,16 @@
 实际已用冻结提交19736be启动：2026-11-15 16:23:23.594建立session，固定22:23:23.594截止，旧02的18:24:06.380截止及字节保持。16:24:53已观察wave0/control tick25；当前只是实际采集推进，新成功数与预取完整训练/自主结果待结束。单轮完成即停，错误/阶段结果持久保存，Restart=no；后续读取session03_launch/status、research_loop、new_family_13。
 
 report_completed12.py汇总已保存的completed_review与原公开来源报告；report_cycle11.py/report_frontend11.py/report_collection11.py新增--round 12，复用现有算法。只读已完成结果，不重采、重训或改变旧指标。
+
+18:28实测：第十三批64机会/33接管/32成功纠偏，24条持物相关/5609合法动作；新池283条/149训练family。A20遍3800更新完成，选18遍，新32条各72 visit；B正在第6遍。A预取实际3780次命中/0内存回退，正式阶段2851.083秒，上轮3470.324秒但工作量不同；完整周期与自主结果仍待收。采集3525.129秒、32.680成功/h，写入及结束等待36.83%，不声称采集已提速。
+
+仅读小回执重现当前进度，输出须用新文件名，历史快照不覆盖：
+
+```bash
+.venv_isaacsim/bin/python scripts/tight_fresh_20261115_03/report_progress13.py \
+  --root outputs/visuotactile/run/tight_fresh_20261115_03 \
+  --previous outputs/visuotactile/run/tight_fresh_20261115_02 \
+  --output /absolute/new/progress.json
+```
+
+脚本不重开权重/原始数据/大learning日志、不启动工作。正式训练冻结19736be保持；报告来源见research_docs/evidence/tight_fresh_20261114/prefetch_followup03/progress_1828.json。
