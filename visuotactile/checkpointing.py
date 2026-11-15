@@ -8,6 +8,27 @@ def save(path,payload):
     temporary.replace(path)
 
 
+def promote_snapshot(source, destination):
+    """Atomically give a completed immutable snapshot its selected-best name.
+
+    The next `save(source, ...)` replaces the inode, retaining an earlier best.
+    No second tensor snapshot, optimizer serialization or RNG read is necessary.
+    """
+    import os
+    import uuid
+    from pathlib import Path
+    source,destination=Path(source),Path(destination)
+    if source.parent.resolve()!=destination.parent.resolve() or source==destination:
+        raise ValueError('Selected snapshot must share its checkpoint directory')
+    if source.is_symlink() or not source.is_file():raise ValueError('Completed regular checkpoint required')
+    temporary=destination.with_name(destination.name+'.link_'+uuid.uuid4().hex+'.partial')
+    try:
+        os.link(source,temporary)
+        os.replace(temporary,destination)
+    finally:
+        if temporary.exists():temporary.unlink()
+
+
 def cpu_snapshot(value):
     if isinstance(value,torch.Tensor):
         return value.detach().to('cpu',copy=True)

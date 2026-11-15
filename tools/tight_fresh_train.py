@@ -643,7 +643,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'])
         history.append(report);improved=val['selection']<best;best=min(best,val['selection'])
         checkpoint(epoch+1)
-        if improved:checkpoint(epoch+1,'best.pt')
+        if improved:
+            from visuotactile.checkpointing import promote_snapshot
+            promote_snapshot(out/'last.pt',out/'best.pt')
         atomic_json(out/'validation.json',report)
         with (out/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
         print(json.dumps(dict(role=role,epoch=epoch+1,updates=updates,loss=report['loss'],train=tr['selection'],validation=val['selection'])),flush=True)
