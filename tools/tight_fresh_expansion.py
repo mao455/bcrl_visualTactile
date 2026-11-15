@@ -158,7 +158,7 @@ def main():
     parser.add_argument('--initial-seeds', type=int, nargs='*', required=True)
     parser.add_argument('--partition-manifest', type=Path, required=True)
     parser.add_argument('--frozen-families', type=Path, required=True)
-    parser.add_argument('--schedule-cycle', choices=['grasp_early','fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'], nargs='+', required=True)
+    parser.add_argument('--schedule-cycle', choices=['grasp_touch','grasp_early','fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'], nargs='+', required=True)
     parser.add_argument('--existing-identities', nargs='*', default=[])
     parser.add_argument('--revisit-families',nargs='*',default=[])
     parser.add_argument('--lanes', type=int, required=True)

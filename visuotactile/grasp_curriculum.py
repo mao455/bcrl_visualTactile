@@ -9,11 +9,14 @@ EARLY_GRASP_VERSION = 'early_contact_recovery_v1'
 EARLY_GRASP = dict(version=EARLY_GRASP_VERSION, minimum_tick=48,
                    weak_contact_ticks=12, contact_deadline=96, lift_deadline=150,
                    loss_ticks=2, rising_height_m=.005, lift_height_m=.02)
+CONTACT_ONSET_VERSION = 'contact_formation_recovery_v2'
+CONTACT_ONSET = dict(EARLY_GRASP, version=CONTACT_ONSET_VERSION,
+                     onset_contact_ticks=2, weak_contact_ticks=4)
 
 
 def validate_early(configuration, fallback_tick):
-    if configuration != EARLY_GRASP or fallback_tick != 1_000_000_000:
-        raise ValueError('Early grasp v1 requires its explicit fixed causal thresholds')
+    if configuration not in (EARLY_GRASP, CONTACT_ONSET) or fallback_tick != 1_000_000_000:
+        raise ValueError('Early grasp requires its explicit versioned causal thresholds')
     return dict(configuration)
 
 
@@ -88,12 +91,16 @@ class EarlyGraspTrigger:
         reason = None
         # Do not interpret rotation, a missed old stable window or a native
         # height diagnostic as a dropped object. React to observed contact.
-        if not two[-2:].any() and two[max(48, n-8):n-2].sum() >= 3:
+        onset = self.configuration.get('onset_contact_ticks')
+        weak = self.configuration['weak_contact_ticks']
+        if onset and n >= 48 + onset and (fingers[-onset:] > 0).all():
+            reason = 'first_persistent_contact_formation'
+        elif not two[-2:].any() and two[max(48, n-8):n-2].sum() >= 3:
             reason = 'recent_two_finger_contact_lost'
         elif elevation >= .005 and not two[-2:].any():
             reason = 'rising_without_reliable_contact'
-        elif (self.first_contact is not None and n-self.first_contact >= 12
-              and two[-12:].sum() < 3):
+        elif (self.first_contact is not None and n-self.first_contact >= weak
+              and two[-weak:].sum() < 3):
             reason = ('lifted_contact_degraded' if self.first_lift is not None else 'contact_not_established_after_touch')
         elif self.first_contact is None and n >= 96:
             reason = 'no_contact_by96'

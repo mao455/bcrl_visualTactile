@@ -1545,3 +1545,10 @@ Prepared reuse now materializes validated per-identity links required by committ
 - Front trainer preserves diagnostic-only partial-epoch state on Python exceptions; no partial checkpoint is treated as selected or complete.
 - Prepared-data reuse may import independently completed frozen cache indexes from12 while retaining untrained09 data; rejects learned projection cache/data hash mismatch.
 -13 budget12 front epochs/2460updates each, rear12/latest4, original deadline.12 A71/B165 uncheckpointed updates lost after VRAM guard; full cache338 retained.10 focused checks passed.
+
+
+### 2026-11-16 — focused grasp diagnosis and supervised night recovery preparation
+
+Added tools/tight_fresh_supervision_audit.py for actual numeric labels and simulated timing, tools/tight_fresh_pair_fit.py for selected complete rear command fit on original2/latest2. Added versioned grasp_touch trigger across grasp_curriculum/takeover_trigger/training_expansion/report/stage_takeover/expansion CLI. Added same-source explicit cycle resume, owner heartbeat/stall guard and finite tools/tight_fresh_night_owner.py with two-real-cycle review barrier, one resource retry and no-gain stop. Current13 frozen code unaffected.43 focused CPU checks passed; real new cycles and pair-fit execution pending. scripts/tight_fresh_night_20261116/retire_last.py retires only named closed final optimizer states, keeps every best;9.753GiB logical retired. SESSION_HANDOFF corrects resource threshold from actual JSON.
+
+Added recovered-family review lookup, original train2 full-policy diagnostic registration and explicit completed-DP resource-boundary continuation. Latest focused run had46 passing checks plus one new test-fixture scope error; that fixture was corrected and its3 targeted tests pass. No change to active13 implementation.17 obsolete Adam states archived with exact model/EMA preservation; current baselines excluded. Background readiness remains unproved pending two real cycles.

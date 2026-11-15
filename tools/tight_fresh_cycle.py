@@ -187,7 +187,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
         frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None,
-        prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False):
+        prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False,resume=False):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
@@ -226,7 +226,15 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if evaluation_lanes==1 and inactive is not None:
         raise ValueError('Inactive render products require explicit batch evaluation')
     ledger=output.with_name(output.name+'_stages')
-    if ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
+    if resume:
+        if not (ledger/'registration.json').is_file() or (ledger/'finished.json').exists():
+            raise ValueError('Resume requires an unfinished registered cycle')
+        # A live worker must never be duplicated, even if its supervisor died.
+        for path in ledger.glob('*_worker.json'):
+            binding=read(path);stat=Path('/proc',str(binding['pid']),'stat')
+            if stat.exists() and int(stat.read_text().rsplit(')',1)[1].split()[19])==binding['proc_start_ticks']:
+                raise RuntimeError('Cannot resume while a registered cycle worker is alive')
+    elif ledger.exists() or output.exists():raise FileExistsError('Preserve previous cycle identity')
     if not read(collection/'result.json').get('software_complete'):raise ValueError('Collection not complete')
     if not read(collection/'correction_entries.json'):raise ValueError('No qualified successful expert suffixes')
     session=read(root/'session.json');deadline=session['deadline']
@@ -235,7 +243,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if parallel_backends and session.get('resource_policy')!='full_gpu_v1':
         raise ValueError('Parallel backends require the explicit full-GPU resource contract')
     sources={str(p):sha256(p) for folder in ['tools','visuotactile'] for p in sorted(Path(folder).rglob('*.py'))}
-    ledger.mkdir(parents=True)
+    ledger.mkdir(parents=True,exist_ok=resume)
     registration=dict(source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
         source_sha256=sources,source_root=str(root),collection=str(collection),output=str(output),
         collection_entries_sha256=sha256(collection/'correction_entries.json'),
@@ -252,6 +260,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if tail is not None:registration['vision_tail_profile']=tail
     if inactive is not None:registration['inactive_render_profile']=inactive
     if payload_audit_memo:registration['payload_audit_memo']=True
+    registration['release_unused_cuda_cache']=release_unused_cuda_cache
     if prepared_from is not None:registration['prepared_reuse']=dict(path=str(prepared_from),prepared_sha256=sha256(Path(prepared_from)/'prepared.json'))
     if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
@@ -269,16 +278,39 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if reuse_index is not None:
         if not read(reuse_index).get('complete'):raise ValueError('Reusable frozen vision cache is incomplete')
         registration['reuse_visual_index']=dict(path=str(reuse_index),sha256=sha256(reuse_index))
-    atomic_json(ledger/'registration.json',registration)
+    if resume:
+        old=read(ledger/'registration.json')
+        strip=lambda row:{k:v for k,v in row.items() if k not in ('started','pid')}
+        if strip(old)!=strip(registration):raise ValueError('Resume source, command budget or configuration changed')
+        attempt=ledger/('resume_'+str(time.time_ns()));attempt.mkdir()
+        for name in ('failure.json','status.json'):
+            if (ledger/name).exists():atomic_json(attempt/name,read(ledger/name))
+        atomic_json(attempt/'started.json',dict(utc=time.time(),pid=os.getpid(),registration_sha256=sha256(ledger/'registration.json'),
+            scheduling='serial recovery; completed stages skipped, unfinished trainers resume their durable optimizer checkpoints'))
+    else:
+        attempt=ledger
+        atomic_json(ledger/'registration.json',registration)
     stages=[]
     def execute(name,args,completion,*,update_status=True,stop_paths=()):
         if any(Path(path).exists() for path in stop_paths):raise InterruptedError('Fresh cycle STOP before '+name)
         if time.time()>=deadline:raise TimeoutError('Original fresh session deadline exhausted')
         if any(sha256(p)!=s for p,s in sources.items()):raise ValueError('Active cycle source drift')
         command=[sys.executable,'-m']+list(map(str,args))
+        prior=ledger/(name+'.json')
+        if resume and prior.exists():
+            saved=read(prior)
+            if saved.get('returncode')==0 and saved.get('stop_reason') is None and completion.exists():
+                if saved['command']!=command or saved['completion_sha256']!=sha256(completion):
+                    raise ValueError('Completed stage binding changed: '+name)
+                if any(read(completion).get(k) is False for k in ('complete','software_complete','target_reached')):
+                    raise ValueError('Completed stage has an incomplete receipt: '+name)
+                atomic_json(attempt/(name+'_reused.json'),dict(stage=name,original_receipt_sha256=sha256(prior)))
+                stages.append(saved);return
+        if resume and name.startswith('development') and (output/'development').exists():
+            raise RuntimeError('Interrupted physical evaluation needs explicit unresolved-case recovery, never overwrite')
         if update_status:atomic_json(ledger/'status.json',dict(stage=name,command=command,started=time.time()))
         start=time.time()
-        with (ledger/(name+'.log')).open('x') as stream:
+        with (attempt/(name+'.log')).open('x') as stream:
             proc=subprocess.Popen(command,stdin=subprocess.DEVNULL,stdout=stream,stderr=subprocess.STDOUT,
                 start_new_session=True,env=dict(os.environ,OMP_NUM_THREADS='2',MKL_NUM_THREADS='2'))
             try:
@@ -297,6 +329,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         receipt=dict(stage=name,command=command,returncode=proc.returncode,started=start,seconds=time.time()-start,
             stop_reason=reason,
             completion=str(completion),completion_sha256=sha256(completion) if completion.exists() else None,utc=time.time())
+        if resume and prior.exists():atomic_json(attempt/(name+'_previous.json'),read(prior))
+        atomic_json(attempt/(name+'.json'),receipt)
         atomic_json(ledger/(name+'.json'),receipt);stages.append(receipt)
         if reason or proc.returncode or not completion.exists():raise RuntimeError('Stage failed: '+name)
         proof=read(completion)
@@ -320,7 +354,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         if episode_io is not None:
             atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
         if latest_repeat is not None:
-            sampling=configure_frontend_sampling(output,latest_repeat,reuse_registered=prepared_from is not None)
+            sampling=configure_frontend_sampling(output,latest_repeat,reuse_registered=prepared_from is not None or resume)
             atomic_json(ledger/'frontend_sampling.json',sampling)
         if trajectory_profile is not None:
             from visuotactile.trajectory_training import budget
@@ -338,7 +372,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             (['--payload-audit-memo'] if payload_audit_memo else [])+
             (['--reuse-index',reuse_index] if reuse_index is not None else []),output/'B/cache_index.json')
         admitted=False
-        if parallel_frontends:
+        if parallel_frontends and not resume:
             atomic_json(ledger/'status.json',dict(stage='parallel_admission',started=time.time(),deadline=deadline))
             admission=wait_parallel_admission(root/'shared_resources.json',ledger/'parallel_admission.json',
                 deadline=deadline,stop_paths=(root/'STOP',output/'STOP',ledger/'STOP'))
@@ -365,7 +399,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
                     (['--full-trajectory-batch'] if trajectory_profile is not None else []),output/role/'training/finished.json')
         backends_admitted=False
         backend_stop_paths=(root/'STOP',output/'STOP',ledger/'STOP') if parallel_backends else ()
-        if parallel_backends:
+        if parallel_backends and not resume:
             atomic_json(ledger/'status.json',dict(stage='parallel_backend_admission',started=time.time(),deadline=deadline))
             admission=wait_parallel_admission(root/'shared_resources.json',ledger/'parallel_backend_admission.json',
                 deadline=deadline,stop_paths=backend_stop_paths)
@@ -413,6 +447,7 @@ def main():
     p.add_argument('--prepared-from',type=Path,help='Reuse a proved aggregate and committed frozen cache before any optimizer updates')
     p.add_argument('--frozen-cache-from',type=Path)
     p.add_argument('--release-unused-cuda-cache',action='store_true')
+    p.add_argument('--resume',action='store_true',help='Same frozen source/config only; skip proven completed stages and resume durable training state')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--epochs',type=int,default=10)
     p.add_argument('--rear-epochs',type=int,default=5);p.add_argument('--count',type=int,default=4);p.add_argument('--seed',type=int,default=28140000)
     p.add_argument('--continue-rear',action='store_true')
@@ -458,6 +493,7 @@ def main():
         prepared_from=a.prepared_from.resolve() if a.prepared_from else None,
         frozen_cache_from=a.frozen_cache_from.resolve() if a.frozen_cache_from else None,
         release_unused_cuda_cache=a.release_unused_cuda_cache,
+        resume=a.resume,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
         backend_latest_repeat=a.backend_latest_repeat,

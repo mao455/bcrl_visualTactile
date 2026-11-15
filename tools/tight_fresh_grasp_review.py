@@ -27,6 +27,23 @@ def prepare_cohort(root, collection, output, config, kind):
             for key in ('takeover_tick','training_expansion','initial_configuration_sha256'): spec.pop(key,None)
             spec.update(identity='hard_'+case['name'],cohort='fresh',split='train')
             cases.append(dict(name=spec['identity'],role=case['role'],spec=spec,video=False))
+        # Recovered closed successes can come from earlier collections. Their
+        # registered training reset families remain valid even when absent from
+        # this last collector's plan; do not mistake that for missing data.
+        from visuotactile.training_expansion import read_registry
+        registered={}
+        for binding in data.get('training_expansion_registries',[]):
+            registered.update(read_registry(binding)['families'])
+        covered={(c['role'],c['spec']['family']) for c in cases}
+        for index,family in enumerate(config['hard_families']):
+            for role in 'AB':
+                if (role,family) in covered:continue
+                if family not in registered:raise ValueError('Hard family lacks prior training registration')
+                row=registered[family]
+                spec=dict(identity='hard_'+role+'_'+family,family=family,split='train',cohort='fresh',
+                    source_identity=row['source_identity'],seed=row['seed'],narrow_reset=row['narrow_reset'],
+                    event_seed=config['development_seed']+10000+index,collision_gate='live_collision_mesh_bounds_v1')
+                cases.append(dict(name=spec['identity'],role=role,spec=spec,video=False))
         if len(cases) != 2*len(config['hard_families']): raise ValueError('Hard-family coverage differs')
         plan.update(cases=cases,cohort='Training-family autonomous diagnostics; new real trajectory, no expert, not held-out')
     else:

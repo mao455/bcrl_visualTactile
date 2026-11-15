@@ -81,3 +81,30 @@ def test_exact_tail_cannot_silently_apply_to_serial_cycle(tmp_path):
     with pytest.raises(ValueError,match='batch evaluation'):
         cycle.run(tmp_path,tmp_path,tmp_path/'next',2,1,4,1,vision_tail_profile=EXACT_TAIL_PROFILE)
     assert not (tmp_path/'next_stages').exists()
+
+
+def test_resume_skips_committed_aggregate_and_rejects_budget_change(tmp_path,monkeypatch):
+    root=tmp_path/'source';root.mkdir();collection=tmp_path/'collection';collection.mkdir()
+    output=tmp_path/'round';ledger=tmp_path/'round_stages';calls=[]
+    (root/'session.json').write_text(json.dumps(dict(deadline=time.time()+1000)))
+    (collection/'result.json').write_text(json.dumps(dict(software_complete=True)))
+    (collection/'correction_entries.json').write_text(json.dumps({'real':{}}))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(cycle.subprocess,'check_output',lambda *a,**k:'frozen')
+    def launch(command,**kwargs):
+        calls.append(command[2])
+        if command[3]=='aggregate':
+            output.mkdir();(output/'prepared.json').write_text('{"complete":true}')
+            return SimpleNamespace(pid=os.getpid(),returncode=0,poll=lambda:0)
+        raise RuntimeError('simulated cache interruption')
+    monkeypatch.setattr(cycle.subprocess,'Popen',launch)
+    with pytest.raises(RuntimeError,match='cache interruption'):cycle.run(root,collection,output,2,1,4,1)
+    # Mock PID belongs to this test; represent the already exited old child.
+    (ledger/'aggregate_worker.json').unlink()
+    with pytest.raises(ValueError,match='budget or configuration changed'):
+        cycle.run(root,collection,output,3,1,4,1,resume=True)
+    with pytest.raises(RuntimeError,match='cache interruption'):
+        cycle.run(root,collection,output,2,1,4,1,resume=True)
+    assert calls.count('tools.tight_fresh_dagger')==3  # one aggregate, two cache attempts
+    assert len(list(ledger.glob('resume_*/aggregate_reused.json')))==1
+    assert len(list(ledger.glob('resume_*/failure.json')))==1

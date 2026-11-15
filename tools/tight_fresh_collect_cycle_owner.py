@@ -195,11 +195,30 @@ def run_stage(name, command, context, deadline, stop_paths):
             binding=bind_worker_group(process.pid);groups[binding['pid']]=binding
             atomic_json(ledger/(name+'_started.json'),dict(command=command,cwd=str(context['paths']['worker_tree']),
                 worker_group=binding,started=start,work_deadline=deadline))
+            heartbeat=0.;last_progress=time.time();previous_witness=None
             while True:
                 groups.update(discover_groups(binding,context))
                 if process.poll() is not None:break
                 if any(p.exists() for p in stop_paths):reason='requested_stop';break
                 if time.time()>=deadline:reason='stage_work_deadline';break
+                now=time.time()
+                if now-heartbeat>=10:
+                    heartbeat=now
+                    # Resource-monitor updates are deliberately excluded: a
+                    # live monitor cannot make a wedged trainer appear active.
+                    candidates=[ledger/(name+'.log'),context['paths']['collection']/'batch_progress.json']
+                    output=context['paths']['output']
+                    for role in ('A','B'):
+                        candidates.extend(output/role/'training'/f for f in ('progress.json','last.pt','finished.json'))
+                        candidates.extend(output/role/'backend'/role/'training'/f for f in ('learning.jsonl','last.pt','finished.json'))
+                        candidates.append(output/role/'cache_progress_index.json')
+                    candidates.extend(output.glob('**/cache_complete.json')) if output.exists() else None
+                    witness=[(str(p),p.stat().st_mtime_ns,p.stat().st_size) for p in candidates if p.is_file()]
+                    if witness!=previous_witness:previous_witness=witness;last_progress=now
+                    atomic_json(ledger/'owner_status.json',dict(stage=name,started=start,heartbeat=now,
+                        worker_pid=process.pid,work_deadline=deadline,last_progress=last_progress,
+                        stale_seconds=now-last_progress,progress_timeout_seconds=900))
+                    if now-last_progress>=900:reason='stage_progress_timeout';break
                 time.sleep(min(.5,max(.001,deadline-time.time())))
     except BaseException as caught:
         error=repr(caught)

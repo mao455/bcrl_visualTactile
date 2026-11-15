@@ -26,7 +26,17 @@ def behavior(directory, role=None, *, horizon=None):
                 t = f['episode/transition']; pose = t['diagnostics_after/object_pose_w'][:]
                 force = t['object_contact_force_w'][:]
                 if horizon is not None:pose=pose[:horizon];force=force[:horizon]
-                row.update(hold60=holding_metrics(pose, force), hold120=holding_metrics(pose, force, window=120),
+                fingers=(np.linalg.norm(force,axis=-1)>.1).sum(-1).min(-1)
+                settled=np.arange(len(force))>=48
+                def first(mask):
+                    found=np.flatnonzero(mask)
+                    return int(found[0]+1) if len(found) else None
+                elevated=pose[:,2]>=float(np.median(pose[24:48,2]))+.02 if len(pose)>=48 else np.zeros(len(pose),bool)
+                row.update(first_contact_completed_tick=first((fingers>0)&settled),
+                    first_two_finger_completed_tick=first((fingers>=2)&settled),
+                    first_contact_height_completed_tick=first((fingers>=2)&elevated&settled),
+                    brief_hold12=holding_metrics(pose,force,window=12),
+                    hold60=holding_metrics(pose, force), hold120=holding_metrics(pose, force, window=120),
                     native_lift=bool(t['diagnostics_after/lifted_object'][:].any()),
                     native_alignment=bool(t['native_alignment_condition'][:].any()),
                     native_near=bool(t['native_success_diagnostic/near_goal'][:].any()),
@@ -36,6 +46,9 @@ def behavior(directory, role=None, *, horizon=None):
     for key in sorted({r['role'] for r in rows}):
         legal = [r for r in rows if r['role'] == key and r['legal']]
         counts[key] = dict(legal=len(legal), illegal=sum(r['role']==key and not r['legal'] for r in rows),
+            contact=sum(r['first_contact_completed_tick'] is not None for r in legal),
+            contact_height_lift=sum(r['first_contact_height_completed_tick'] is not None for r in legal),
+            brief_hold12=sum(r['brief_hold12']['sustained'] for r in legal),
             grasp_stage_censored=sum(r['grasp_stage_censored'] for r in legal),
             hold60=sum(r['hold60']['sustained'] for r in legal), hold120=sum(r['hold120']['sustained'] for r in legal),
             **{name:sum(bool(r[name]) for r in legal) for name in

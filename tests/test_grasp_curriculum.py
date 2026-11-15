@@ -12,6 +12,25 @@ from visuotactile.rear_episode_sampling import plan, exposure
 from visuotactile.training_expansion import make_registry, registry_binding, read_registry, validate_collection_plan
 
 
+def test_contact_formation_trigger_uses_real_persistent_contact_not_clock():
+    from visuotactile.grasp_curriculum import CONTACT_ONSET
+    from visuotactile.takeover_trigger import make_trigger
+    from visuotactile.training_expansion import schedule_trigger
+    assert schedule_trigger('grasp_touch') == CONTACT_ONSET
+    pose=np.array([0,0,.5,1,0,0,0.]);zero=np.zeros((2,5,3));touch=zero.copy();touch[:,0,2]=.2
+    for first_touch in (56,73):
+        trigger=make_trigger(CONTACT_ONSET,10**9)
+        for tick in range(first_touch+1):
+            assert trigger.observe(tick,pose,pose,touch if tick==first_touch else zero) is None
+        assert trigger.observe(first_touch+1,pose,pose,touch)==first_touch+2
+        assert trigger.reason=='first_persistent_contact_formation'
+        assert trigger.receipt()['future_information_used'] is False
+    trigger=make_trigger(CONTACT_ONSET,10**9)
+    for tick in range(95): assert trigger.observe(tick,pose,pose,zero) is None
+    assert trigger.observe(95,pose,pose,zero)==96
+    assert trigger.reason=='no_contact_by96'
+
+
 def test_causal_loss_switch_between_plans_and_no_rotation_veto(tmp_path):
     trigger=EarlyGraspTrigger(EARLY_GRASP,10**9)
     pose=np.array([0,0,.5,1,0,0,0.]);palm=pose.copy();zero=np.zeros((2,5,3))
@@ -54,7 +73,8 @@ def test_one_second_metric_rejects_brief_lift_and_long_contact_gap():
     assert not holding_metrics(p,f)['sustained']
 
 
-def test_revisit_registered_failed_training_family_without_fake_success(setup_registry,monkeypatch):
+@pytest.mark.parametrize('schedule',['grasp_early','grasp_touch'])
+def test_revisit_registered_failed_training_family_without_fake_success(setup_registry,monkeypatch,schedule):
     from tools.tight_fresh_expansion import prepare
     s=setup_registry;source=s['root']/'revisit_source'
     data=copy.deepcopy(s['source_data']);data['training_expansion_registries']=[s['binding']]
@@ -64,12 +84,13 @@ def test_revisit_registered_failed_training_family_without_fake_success(setup_re
     assert family not in {data['entries'][i]['family'] for i in data['splits']['train']}
     monkeypatch.setattr('tools.tight_fresh_expansion.completed_pair',lambda root,role:dict(role=role))
     result=prepare(source,s['root']/'new_attempt',session_root=source,registry_id='revisit',seeds=[6000],
-        partition_manifest=s['partition'],frozen_families=s['families'],schedules=['grasp_early'],
+        partition_manifest=s['partition'],frozen_families=s['families'],schedules=[schedule],
         lanes=16,event_seed=8100,round_index=15,revisit_families=[family])
     validate_collection_plan(result)
     assert len(result['cases'])==4 and result['registered_new_training_families']==1
     for c in result['cases']:
-        assert c['dagger']['trigger']==EARLY_GRASP and c['spec']['takeover_tick']==10**9
+        from visuotactile.training_expansion import schedule_trigger
+        assert c['dagger']['trigger']==schedule_trigger(schedule) and c['spec']['takeover_tick']==10**9
     with pytest.raises(ValueError,match='prior registered training family'):
         make_registry('bad',s['domain'],[6001],manifests,s['partition'],s['families'],
                       created_utc=time.time(),revisit_families=['validation_0'])
