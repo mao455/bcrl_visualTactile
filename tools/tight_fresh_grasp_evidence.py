@@ -13,17 +13,19 @@ from visuotactile.training_resources import atomic_json
 def read(path): return json.loads(Path(path).read_text())
 
 
-def behavior(directory, role=None):
+def behavior(directory, role=None, *, horizon=None):
     directory = Path(directory); plan = read(directory/'plan.json'); rows = []
     for case in plan['cases']:
         if role is not None and case['role'] != role: continue
         path = directory/case['name']; result = read(path/'result.json')
         row = dict(case=case['name'], role=case['role'], seed=case['spec']['seed'],
-                   family=case['spec']['family'], legal=result['legal'])
+                   family=case['spec']['family'], legal=result['legal'],
+                   grasp_stage_censored=result.get('grasp_stage_censored',False))
         if result['legal']:
             with h5py.File(path/'numeric.h5') as f:
                 t = f['episode/transition']; pose = t['diagnostics_after/object_pose_w'][:]
                 force = t['object_contact_force_w'][:]
+                if horizon is not None:pose=pose[:horizon];force=force[:horizon]
                 row.update(hold60=holding_metrics(pose, force), hold120=holding_metrics(pose, force, window=120),
                     native_lift=bool(t['diagnostics_after/lifted_object'][:].any()),
                     native_alignment=bool(t['native_alignment_condition'][:].any()),
@@ -34,10 +36,11 @@ def behavior(directory, role=None):
     for key in sorted({r['role'] for r in rows}):
         legal = [r for r in rows if r['role'] == key and r['legal']]
         counts[key] = dict(legal=len(legal), illegal=sum(r['role']==key and not r['legal'] for r in rows),
+            grasp_stage_censored=sum(r['grasp_stage_censored'] for r in legal),
             hold60=sum(r['hold60']['sustained'] for r in legal), hold120=sum(r['hold120']['sustained'] for r in legal),
             **{name:sum(bool(r[name]) for r in legal) for name in
                ('native_lift','native_near','native_alignment','native_subgoals','insertion')})
-    return dict(directory=str(directory), rows=rows, counts=counts,
+    return dict(directory=str(directory), rows=rows, counts=counts,holding_horizon=horizon,
                 semantics='Real autonomous full students; holding diagnostic differs from native lift/success; no hidden-state exact replay')
 
 

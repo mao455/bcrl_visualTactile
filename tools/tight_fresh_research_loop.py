@@ -316,12 +316,14 @@ def summarize_round(collection, candidate, output):
             if row['role']==role and row['result'].get('legal') is True]
         known=[v for v in windows if v['reference_available']]
         dev[role]=dict(attempts=len(results),legal=len(legal),illegal=len(results)-len(legal),
+            grasp_stage_censored=sum(v.get('grasp_stage_censored',False) for v in legal),
+            complete_task_legal=sum(not v.get('grasp_stage_censored',False) for v in legal),
             successes=sum(bool(v['success']) for v in legal),native_lift=sum(bool(v['native_lift']) for v in legal),
             native_subgoal=sum(v['native_subgoals']>0 for v in legal),native_alignment=sum(bool(v['native_alignment']) for v in legal),
             window_reference_available=len(known),held=sum(v['held'] for v in known),old_stable=sum(v['old_stable'] for v in known),
             native_near=sum(v['native_near'] for v in windows),
             contact_summaries=[dict(identity=v['identity'],contact=v.get('contact')) for v in legal],
-            success_denominator='legal; all illegal opportunities retained separately')
+            success_denominator='complete_task_legal; grasp-stage budget cutoffs are censored, illegal opportunities separate')
     value=dict(version=VERSION,collection=dict(total=counts(rows),by_role={role:counts([v for v in rows if v['role']==role]) for role in ('A','B')},cases=rows),
         development=dev,files=bindings(dict(collection_plan=collection/'plan.json',collection_results=collection/'results.json',
             collection_entries=collection/'correction_entries.json',development_plan=development/'plan.json',development_results=development/'results.json')),

@@ -85,6 +85,7 @@ class GPUBatchedResidualController(BatchedResidualController):
                 b.timings = InferenceTimings(device)
                 c.episode, c.state, c.previous_nominal = episode, None, None
                 c.timings = InferenceTimings(device)
+                c.batch_observed_counts=dict(history_updates=0,robot_observations=0,plans=0,backend_updates=0)
             if tick != b.next_step or tick != b.memory.next_tick:
                 raise ValueError('Skipped or duplicated native observation')
             if tick and not (p['camera_frame'][i]>b.last_packet['camera_frame'][0].to(device)).all():
@@ -135,6 +136,7 @@ class GPUBatchedResidualController(BatchedResidualController):
             prediction=model.predict(condition,[bases[i].generator for i in replanners],scheduler_index_mode='host')
             for j,i in enumerate(replanners):
                 bases[i].last_condition=condition[j:j+1]; bases[i].plan=prediction[j:j+1]
+                controllers[i].batch_observed_counts['plans']+=1
         limits=torch.stack([b.limits for b in bases])
         full_plans=torch.cat([b.plan for b in bases])
         full_plans=torch.maximum(torch.minimum(full_plans,limits[:,None,:,1]),limits[:,None,:,0])
@@ -170,4 +172,10 @@ class GPUBatchedResidualController(BatchedResidualController):
             c.residual_diagnostics=lane_tree(diag,i,n)
             b.command=c.command; b.last_packet=lane_tree(packet,lane,self.count); b.next_step+=1
             commands[lane:lane+1]=c.command.to(commands.device)
+            for key in ('history_updates','robot_observations','backend_updates'):c.batch_observed_counts[key]+=1
             c.timings.finish(measured[i])
+
+    def inference_metrics(self,lane):
+        value=super().inference_metrics(lane)
+        value['batch_observed_counts']=dict(self.lanes[lane].batch_observed_counts)
+        return value

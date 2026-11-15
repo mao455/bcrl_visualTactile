@@ -22,3 +22,21 @@ def test_vector_native_targets_labels_and_independent_lane_replacement():
   for key in old.trace:
    assert torch.equal(old.trace[key][active],new.trace[key][active]),key
   env._prev_targets=actual[:,env._perm_canon_to_lab].clone();env._cur_targets=env._prev_targets.clone()
+
+def test_expert_lstm_reset_and_active_selection_leave_other_lanes_untouched():
+ from types import SimpleNamespace
+ from visuotactile.queued_rollout import reset_expert_lanes,active_expert_action
+ states=[torch.arange(24.).reshape(1,3,8),torch.ones(1,3,8)]
+ player=SimpleNamespace(is_rnn=True,states=states)
+ reset_expert_lanes(player,[1],3)
+ assert not player.states[0][:,1].any() and torch.equal(player.states[0][:,2],torch.arange(16.,24.).reshape(1,8))
+ def act(actor,is_deterministic):
+  assert len(actor)==2
+  player.states=[s+1 for s in player.states]
+  return actor[:,:1].expand(-1,29)
+ player.get_action=act
+ before=[s.clone() for s in states]
+ action=active_expert_action(player,torch.arange(3.)[:,None],[0,2])
+ assert action[:,0].tolist()==[0,1]
+ for after,prior in zip(player.states,before):
+  assert torch.equal(after[:,1],prior[:,1]);assert torch.equal(after[:,[0,2]],prior[:,[0,2]]+1)

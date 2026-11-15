@@ -165,6 +165,8 @@ def finish_lane(directory, case, pair, saved, rows, plans, reasons, initial, con
     atomic_json(directory/'native_inference_timing.json',timing)
     result['native_inference'] = {key:timing[key] for key in
         ('summary','pending_cuda_events','timing_scope','wall_scope','excludes')}
+    if 'batch_observed_counts' in timing:
+        result['native_inference']['batch_observed_counts']=timing['batch_observed_counts']
     if dagger is not None:
         expert_ticks = int(arrays['dagger_control_source'].sum())
         valid = arrays['dagger_expert_label_valid'].astype(bool)

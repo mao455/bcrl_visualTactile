@@ -1,0 +1,139 @@
+{
+  "baseline": {
+    "software_complete": true,
+    "worker_error": null,
+    "cases": 4,
+    "utc": 1794752820.2314415,
+    "elapsed_seconds": 445.8934136352036,
+    "accepted_training_trajectories": 4,
+    "accepted_trajectories_per_hour": 32.294713399334924,
+    "attempts_per_hour": 32.294713399334924,
+    "lanes": 2
+  },
+  "baseline_profiles": [
+    {
+      "wave": 0,
+      "role": "A",
+      "controller_s": 49.396113944472745,
+      "environment_s": 159.67112326831557,
+      "expert_s": 1.3320958886761218,
+      "record_submit_s": 6.773882766254246,
+      "finish_audit_s": 6.512741920072585,
+      "capture_writer": {
+        "max_pending_bytes": 536870912,
+        "max_queue": 64,
+        "reserved_bytes": 0,
+        "peak_reserved_bytes": 51950238,
+        "peak_queued_or_copying": 1,
+        "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+        "worker_alive": true,
+        "failed": false,
+        "verification_workers": 2,
+        "verification_max_pending": 4,
+        "verification_pending": 0,
+        "verification_peak_pending": 1,
+        "verification_submitted": 2,
+        "verification_completed": 2,
+        "verification_failed": 0,
+        "verification_slot_wait_s": 2.471962943673134e-06,
+        "verification_process_pids": [
+          364322
+        ],
+        "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget.",
+        "stage": "all_started_capture_lanes_verified_before_close",
+        "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+        "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+      },
+      "seconds": 239.9476286948193,
+      "control_ticks": 632,
+      "cases": 2,
+      "vision_execution": {
+        "version": "current_observation_lane_microbatch_v1",
+        "vision_microbatch": 2,
+        "images_per_kernel": 6,
+        "forward_features_calls": 359,
+        "real_lanes": 632,
+        "padding_lanes": 86,
+        "real_images": 1896,
+        "processed_images": 2154,
+        "controller_calls": 359,
+        "consumed_observations_per_lane": [
+          359,
+          273
+        ],
+        "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+      },
+      "aggregate_control_ticks_per_second": 2.633908088351304,
+      "admission_s": 4.521407441934571,
+      "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+    },
+    {
+      "wave": 1,
+      "role": "B",
+      "controller_s": 37.24722561822273,
+      "environment_s": 119.11572578013875,
+      "expert_s": 0.9597058859653771,
+      "record_submit_s": 5.61250665737316,
+      "finish_audit_s": 6.5855297558009624,
+      "capture_writer": {
+        "max_pending_bytes": 536870912,
+        "max_queue": 64,
+        "reserved_bytes": 0,
+        "peak_reserved_bytes": 51950238,
+        "peak_queued_or_copying": 1,
+        "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+        "worker_alive": true,
+        "failed": false,
+        "verification_workers": 2,
+        "verification_max_pending": 4,
+        "verification_pending": 0,
+        "verification_peak_pending": 1,
+        "verification_submitted": 2,
+        "verification_completed": 2,
+        "verification_failed": 0,
+        "verification_slot_wait_s": 3.610970452427864e-06,
+        "verification_process_pids": [
+          366333
+        ],
+        "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget.",
+        "stage": "all_started_capture_lanes_verified_before_close",
+        "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+        "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+      },
+      "seconds": 182.53476051497273,
+      "control_ticks": 506,
+      "cases": 2,
+      "vision_execution": {
+        "version": "current_observation_lane_microbatch_v1",
+        "vision_microbatch": 2,
+        "images_per_kernel": 6,
+        "forward_features_calls": 265,
+        "real_lanes": 506,
+        "padding_lanes": 24,
+        "real_images": 1518,
+        "processed_images": 1590,
+        "controller_calls": 265,
+        "consumed_observations_per_lane": [
+          265,
+          241
+        ],
+        "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+      },
+      "aggregate_control_ticks_per_second": 2.772074746598714,
+      "admission_s": 3.702968253288418,
+      "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+    }
+  ],
+  "failed_queue": {
+    "software_complete": false,
+    "worker_pid": 366621,
+    "returncode": 1,
+    "stop_reason": "worker_failure",
+    "error": null,
+    "seconds": 16.029160261154175,
+    "ended": 1794752839.6279516,
+    "plan_sha256": "a40b50cd551946e3d8ee0f10f783216df6a4c5b68f798000467b6b31be45417a"
+  },
+  "failure": "Released expert has LSTM state; no control actions occurred; fixed per-lane recurrent reset and active-only expert forward in new source",
+  "utc": 1794753090.795192
+}

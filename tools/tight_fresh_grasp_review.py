@@ -71,14 +71,14 @@ def run(root, collection, output, configuration):
         stage.update(ended=time.time(),complete=True)
         atomic_json(output/'status.json',state)
     try:
-        state['behaviors']['fixed']=behavior(root/'development')
+        state['behaviors']['fixed']=behavior(root/'development',horizon=config.get('grasp_evaluation_ticks'))
         for kind in ('hard','new_development'):
             directory=output/kind
             prepare_cohort(root,collection,directory,config,kind)
             execute(kind,[python,'-m','tools.tight_batch_owner','--output',str(directory),
                 '--worker-tree',str(tree),
                 '--startup-seconds','300'])
-            state['behaviors'][kind]=behavior(directory)
+            state['behaviors'][kind]=behavior(directory,horizon=config.get('grasp_evaluation_ticks'))
         for role in ('A','B'):
             execute('frontend_fit_'+role,[python,'-m','tools.tight_fresh_grasp_fit','--root',str(root),
                 '--role',role,'--output',str(output/('frontend_fit_'+role+'.json'))])
@@ -87,7 +87,8 @@ def run(root, collection, output, configuration):
         for role in ('A','B'):
             fixed=state['behaviors']['fixed']['counts'][role]
             dev=state['behaviors']['new_development']['counts'][role]
-            old=prior['sources'][role]['counts'][role]
+            old=(behavior(prior['sources'][role]['directory'],role,horizon=config['grasp_evaluation_ticks'])['counts'][role]
+                if config.get('grasp_evaluation_ticks') else prior['sources'][role]['counts'][role])
             improved=[r['seed'] for r in state['behaviors']['hard']['rows'] if r['role']==role
                 and (role,r['family']) in old_fail and r['legal'] and r['hold60']['sustained']]
             total=fixed['legal']+dev['legal'];held=fixed['hold60']+dev['hold60']

@@ -324,6 +324,8 @@ class ResidualController:
     def inference_metrics(self):
         base=self.base.inference_metrics();residual=self.timings.report()
         rows=base['rows']+residual['rows']
-        return dict(base,rows=rows,summary=InferenceTimings.summarize(rows),
+        result=dict(base,rows=rows,summary=InferenceTimings.summarize(rows),
             pending_cuda_events=base['pending_cuda_events']+residual['pending_cuda_events'],
             residual_scope='residual_forward_compose includes Transformer/recurrence/composition and original CPU result copies; combined_controller additionally includes nominal and residual input preparation')
+        if hasattr(self,'batch_observed_counts'):result['batch_observed_counts']=dict(self.batch_observed_counts)
+        return result

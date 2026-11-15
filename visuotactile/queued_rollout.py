@@ -24,6 +24,26 @@ from .recording import flatten,BufferedNumericWriter,post_observation
 PROFILE='independent_lane_queue_v1'
 
 
+def reset_expert_lanes(player,lanes,count):
+    """Released expert LSTM history is independent on its second (batch) axis."""
+    if not player.is_rnn:return
+    if not player.states or any(s.ndim!=3 or s.shape[1]!=count for s in player.states):
+        raise ValueError('Unexpected expert recurrent-state layout')
+    for state in player.states:state[:,lanes]=0
+
+
+def active_expert_action(player,actor,ids):
+    """Only allocated lanes update the expert's recurrent state."""
+    original=player.states
+    if player.is_rnn:player.states=[s[:,ids].contiguous() for s in original]
+    try:
+        action=player.get_action(actor[ids],is_deterministic=True).clamp(-1,1)
+        if player.is_rnn:
+            for full,part in zip(original,player.states):full[:,ids]=part
+    finally:player.states=original
+    return action
+
+
 def record_batch_transition(controller,transition,active,previous):
     """Validate the physical command/label chain once for all current lanes."""
     from .state_benchmark import record_dagger_transition
@@ -85,7 +105,6 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
     from .async_recording import SharedCaptureWriter,AsyncLaneRecorder
     from tools.tight_fresh_stage_takeover import native_bound_guard
     if plan['batch'].get('gpu_pipeline')!=GPU_PROFILE:raise ValueError('Queue requires GPU batch profile')
-    if getattr(player,'is_rnn',False):raise ValueError('Queue requires the released feed-forward expert')
     n=env.num_envs;capture=plan['kind']=='takeover';started=time.perf_counter()
     queue=list(cases);slots=[None]*n;active=[False]*n;finished=[];pending=[]
     rows=[[] for _ in range(n)];plans=[[] for _ in range(n)];previous=[None]*n
@@ -130,6 +149,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
         def admit_lane(lane,case):
             directory=output/case['name'];directory.mkdir();directories[lane]=directory
             slots[lane]=case;controller.assign(lane,case['role']);lane_started[lane]=time.perf_counter()
+            reset_expert_lanes(player,[lane],n)
             rows[lane]=[];plans[lane]=[];previous[lane]=None
             admission=clearance(env,lane=lane);initial=env._diagnostics()
             initials[lane]={key:value[lane:lane+1].cpu().tolist() for key,value in initial.items()}
@@ -178,7 +198,11 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
             before_active=list(active);local_ticks=[len(row) for row in rows]
             with lease.block():
                 t=time.perf_counter();actor=expert_actor_input(teacher,player)
-                expert=player.get_action(actor,is_deterministic=True).clamp(-1,1) if capture else torch.zeros(n,29,device=actor.device)
+                expert=torch.zeros(n,29,device=actor.device)
+                if capture:
+                    ids=[i for i,running in enumerate(active) if running]
+                    expert[ids]=active_expert_action(player,actor,ids)
+                    raw_batch=torch.zeros_like(expert);raw_batch[ids]=raw['mean'];raw['mean']=raw_batch
                 profile['expert_s']+=time.perf_counter()-t
                 t=time.perf_counter();commands=controller.act(packet,env._diagnostics(),active)
                 profile['controller_s']+=time.perf_counter()-t

@@ -16,7 +16,7 @@ backend=json.loads((BUNDLE.parent/'tight_fresh_20261115_05/collection_backend.js
 if a.probe:
  if a.probe=='tiled':backend.update(version='tight_execution_backend_v3',camera_backend='tiled',tiled_fixed_camera_usd_sync=True)
  prepare_probe(SOURCE,SESSION/a.name,a.lanes,29510000,neural_batch=True,max_control_ticks=a.ticks,roles=['A'],
-     execution_backend=backend,vision_microbatch=min(8,a.lanes))
+     execution_backend=backend,vision_microbatch=min(8,a.lanes),gpu_pipeline=True)
 else:
  prepare(SOURCE,SESSION/a.name,session_root=SESSION,registry_id=a.name,seeds=[],
   partition_manifest=BASE/'tight_state_20261107_01/composition_06/state_data/data.json',

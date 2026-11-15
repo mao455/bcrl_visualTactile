@@ -51,6 +51,7 @@ def inference_counts(report,steps,visual_frames,*,strict=False):
         robot_observations=counts.get('robot_history_input',0),
         plans=counts.get('ddim_plan',0),backend_updates=counts.get('residual_forward_compose',0),
         expected_plans=(steps+11)//12,control_ticks=steps)
+    if 'batch_observed_counts' in report:measured.update(report['batch_observed_counts'])
     if strict and (any(measured[key]!=steps for key in ('visual_frames','history_updates','robot_observations','backend_updates'))
                    or measured['plans']!=measured['expected_plans']):
         raise ValueError('Diagnostic did not run full real-frame student inference at every control tick')
@@ -104,7 +105,7 @@ def resource_snapshot(root,samples):
 
 
 def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=None,roles=None,execution_backend=None,
-            vision_microbatch=2,failure_render_calls=0,vision_tail_profile=None):
+            vision_microbatch=2,failure_render_calls=0,vision_tail_profile=None,gpu_pipeline=False):
     import subprocess
     from visuotactile.narrow_data import direct_configuration
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
@@ -138,6 +139,9 @@ def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=N
     if failure_render_calls:
         plan['failure_render_calls']=failure_render_calls
     if tail is not None:plan['vision_tail_profile']=tail
+    if gpu_pipeline:
+        from visuotactile.gpu_batch_controller import PROFILE
+        plan['gpu_pipeline']=PROFILE
     atomic_json(output/'plan.json',plan)
 
 
@@ -155,6 +159,10 @@ def run(output):
     from visuotactile.recording import BufferedNumericWriter
     import h5py
     plan=read(output/'plan.json');session=read(output/'session.json')
+    if plan.get('gpu_pipeline'):
+        from visuotactile.gpu_batch_controller import PROFILE,GPUBatchedResidualController
+        if plan['gpu_pipeline']!=PROFILE:raise ValueError('Unknown GPU pipeline')
+        BatchedResidualController=GPUBatchedResidualController
     vision_microbatch=validate_vision_microbatch(plan.get('vision_microbatch',2))
     tail=validate_vision_tail_profile(plan.get('vision_tail_profile'))
     vision_options={} if tail is None else dict(vision_tail_profile=tail)
@@ -177,6 +185,7 @@ def run(output):
     startup_began=time.perf_counter();resources=[]
     if diagnostic:resource_snapshot(resource_root,resources)
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=count,**backend_kwargs)
+    env.batch_static_calibration_cache=bool(plan.get('gpu_pipeline'))
     startup_seconds=time.perf_counter()-startup_began
     atomic_json(output/'startup_timing.json',dict(seconds=startup_seconds,vision_microbatch=vision_microbatch,**vision_options))
     configure_direct_reset_lanes(env,[c['narrow_reset'] for c in plan['cases']])
@@ -298,6 +307,7 @@ def main():
     p=argparse.ArgumentParser();p.add_argument('stage',choices=['prepare','run']);p.add_argument('--root',type=Path,required=True)
     p.add_argument('--output',type=Path,required=True);p.add_argument('--count',type=int,default=2);p.add_argument('--seed',type=int,default=28141000)
     p.add_argument('--neural-batch',action='store_true')
+    p.add_argument('--gpu-pipeline',action='store_true')
     p.add_argument('--max-control-ticks',type=int)
     p.add_argument('--roles',nargs='+',choices=['A','B'])
     p.add_argument('--backend-json',type=Path)
@@ -312,7 +322,8 @@ def main():
     if args.stage=='prepare':prepare(args.root.resolve(),args.output.resolve(),args.count,args.seed,neural_batch=args.neural_batch,
         max_control_ticks=args.max_control_ticks,roles=args.roles,
         execution_backend=read(args.backend_json) if args.backend_json else None,vision_microbatch=args.vision_microbatch,
-        failure_render_calls=args.failure_render_calls,vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None)
+        failure_render_calls=args.failure_render_calls,vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None,
+        gpu_pipeline=args.gpu_pipeline)
     else:run(args.output.resolve())
 
 
