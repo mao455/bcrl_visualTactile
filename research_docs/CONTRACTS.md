@@ -574,3 +574,6 @@ Optional `recheck_training_families` appends at most8 actual collection cases to
 
 
 2026-11-16 05:29 +08 clarification: the proposed approach screen excludes ANY prior>0.1N object-contact sample in either120Hz substep, including a one-substep transient. It does not infer absence of touch merely from the stricter two-substep holding/contact count. Eight targeted grasp checks pass, including a transient-contact case; actual8prefix replay still yields the same6earlier/2unchanged times. Authoritative retrospective receipt:02/approach_timing_v3_any_contact.json. No simulator has yet used v3;18 remains unchanged.
+
+
+2026-11-16 pre-contact follow-up: optional v3 uses real approach geometry only as collection trigger, excludes any previous finger contact, and preserves actual full student prefix. New exposure12/8epochs applies only to a newly registered run, BOTH networks, same DP→refresh→rear order. Diagnostics03 are train-only and not adopted. Closed16/17 Adam retired explicitly; all model/EMA fields preserved in weights_only archives, six obsolete plan caches exact-byte restorable. Current18 and retained sources unaffected.

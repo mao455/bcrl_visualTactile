@@ -1,6 +1,7 @@
 """After main shutdown, retire only entire-payload-equal last/best snapshots."""
-import importlib.util,json,os,shutil,time
+import importlib.util,json,os,shutil,time,sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 import torch
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
