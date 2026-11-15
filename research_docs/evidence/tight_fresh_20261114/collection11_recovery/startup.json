@@ -1,0 +1,64 @@
+{
+  "observed_at": "2026-11-15T09:17:05.160018+08:00",
+  "launch_complete": true,
+  "source_commit": "d0b7b5f2d9333297bb6109aae24b9e8e69c70678",
+  "worker_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle_20261115",
+  "original_deadline": 1794725918.9665225,
+  "cycle_started_utc": 1794705268.1578887,
+  "stage": "visual_cache",
+  "train_trajectories": 215,
+  "train_families": 103,
+  "validation_families": 6,
+  "new_corrections": 45,
+  "aggregate_seconds": 23.508779525756836,
+  "collection_repeated": false,
+  "cohorts12_13_started": false,
+  "model_training_complete": false,
+  "new_autonomous_evaluation_complete": false,
+  "monitor_unobserved_gap_seconds": 18507.23534321785,
+  "services": {
+    "owner_unit": {
+      "RuntimeMaxUSec": "5h 43min 11s",
+      "MainPID": "4179123",
+      "ExecMainStatus": "0",
+      "ExecStart": "{ path=/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle_20261115/.venv_isaacsim/bin/python ; argv[]=/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle_20261115/.venv_isaacsim/bin/python -m tools.tight_fresh_cycle --root /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01 --collection /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/new_family_11 --output /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11 --epochs 20 --rear-epochs 15 --count 8 --seed 28500000 --latest-repeat 2 --evaluation-lanes 8 --vision-microbatch 8 --backend-json /home/CNS2025331827/docs/bc+rl_RSS_fresh_io_20261115/scripts/tight_fresh_20261115_01/evaluation_backend.json --training-sampling-json /home/CNS2025331827/docs/bc+rl_RSS_fresh_io_20261115/scripts/tight_fresh_20261115_01/training_sampling.json --offline-anchor-batch 32 --backend-offline-anchor-batch 32 --full-trajectory-batch --parallel-backends --payload-audit-memo --continue-rear --reuse-index /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/A/cache_index.json --frozen-visual-io-json /home/CNS2025331827/docs/bc+rl_RSS_fresh_io_20261115/scripts/tight_fresh_20261115_01/frozen_visual_io.json ; ignore_errors=no ; start_time=[Sun 2026-11-15 09:14:27 CST] ; stop_time=[n/a] ; pid=4179123 ; code=(null) ; status=0/0 }",
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/tight-fresh-cycle-20261115-01-recovery01.service",
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "monitor_unit": {
+      "RuntimeMaxUSec": "5h 44min 12s",
+      "MainPID": "4179116",
+      "ExecMainStatus": "0",
+      "ExecStart": "{ path=/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle_20261115/.venv_isaacsim/bin/python ; argv[]=/home/CNS2025331827/docs/bc+rl_RSS_fresh_cycle_20261115/.venv_isaacsim/bin/python -m visuotactile.state_resources --root /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01 ; ignore_errors=no ; start_time=[Sun 2026-11-15 09:14:26 CST] ; stop_time=[n/a] ; pid=4179116 ; code=(null) ; status=0/0 }",
+      "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/tight-fresh-monitor-20261115-01-cycle01.service",
+      "LoadState": "loaded",
+      "ActiveState": "active",
+      "SubState": "running"
+    }
+  },
+  "batch_budget": {
+    "A": {
+      "episodes_per_epoch": 260,
+      "optimizer_updates_per_epoch": 130,
+      "planned_episode_visits": 5200,
+      "planned_optimizer_updates": 2600,
+      "planned_ema_updates": 2600,
+      "tail_singletons_per_epoch": 0
+    },
+    "B": {
+      "episodes_per_epoch": 260,
+      "optimizer_updates_per_epoch": 130,
+      "planned_episode_visits": 5200,
+      "planned_optimizer_updates": 2600,
+      "planned_ema_updates": 2600,
+      "tail_singletons_per_epoch": 0
+    }
+  },
+  "input_sha256": {
+    "recovery_cycle01/status.json": "a6228f1b3b15ac9700d5328b90367551fd367d1f9f281f4813a3e827adfc7fe9",
+    "round_11_stages/registration.json": "bae78452c173cfcd01adb2c5d59ae075b9f513b12d16b0d74ed56a63984d4378",
+    "round_11_stages/aggregate.json": "959e442a2041e99a50271d4ab24cf049af3e68cee080fa9ff21e85a047a399a0"
+  }
+}

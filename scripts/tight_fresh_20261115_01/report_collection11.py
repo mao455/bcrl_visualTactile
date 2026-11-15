@@ -32,16 +32,22 @@ def summarize(root):
             fields[str(result['dataset_capture']['verified_source_fields'])]+=1
             phases[dagger.get('recovery_coverage',{}).get('phase','unknown')]+=1
     assert total['accepted']==len(entries)==45
+    waves=read(collection/'wave_profiles.json')
+    wall_components={key:sum(wave[key] for wave in waves) for key in
+        ('controller_s','environment_s','expert_s','record_submit_s','finish_audit_s','admission_s')}
     return dict(version='collection11_closed_receipts_v1',collection_source_commit=plan['source_commit'],
         total=dict(total),schedules=schedules,roles=roles,accepted_switch_diagnostic_phases=phases,
         accepted_families=len({entry['family'] for entry in entries.values()}),
         accepted_verified_field_counts=fields,collection_seconds=final['elapsed_seconds'],
         accepted_per_hour=total['accepted']*3600/final['elapsed_seconds'],
+        wave_wall_components_seconds=wall_components,
+        wall_component_fraction={key:value/final['elapsed_seconds'] for key,value in wall_components.items()},
+        timing_semantics='Sums of main-path timers across all four waves; environment includes sensors/rendering. Async verifier/writer internals overlap and are not added.',
         original_cycle_failure=read(root/'research_loop_rgb01/round_11/collect_cycle/owner_finished.json')['error'],
         training_status_at_collection_close='not_started',student_autonomous_benefit='not_yet_evaluated',
         phase_semantics='Schedules and recorded switch diagnostics; held conditions are not native lift/alignment success.',
         raw_payloads_opened=0,input_sha256={str(path.relative_to(root)):sha(path) for path in
-            [collection/name for name in ('plan.json','results.json','result.json','owner_finished.json','correction_entries.json')]})
+            [collection/name for name in ('plan.json','results.json','result.json','owner_finished.json','correction_entries.json','wave_profiles.json')]})
 
 
 if __name__=='__main__':

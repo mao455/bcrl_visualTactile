@@ -1,3 +1,8 @@
+## 2026-11-15 固定时钟恢复实际启动
+
+- d0b7b5f已冻结运行，复用45条完成纠偏，aggregate23.509秒后A/B池各215条/103family；正在生成缺失冻结视觉，前端/自主尚未完成。新启动小证据公开，旧失败不改写。
+- report_collection11从已有四波小回执追加完整耗时分解，主要是含传感/渲染的环境推进41.45%、写入及验收合30.82%；0大payload读取。
+
 ## 2026-11-15 已完成GPU采集的训练交接修复
 
 - tight_fresh_collect_cycle_owner使用已完成source_verified回执与精确capture绑定，替代CPU特定185字段常数；GPU186个真实字段仍逐项由原verifier校验。tight_fresh_research_loop把内层异常传到顶层状态。
