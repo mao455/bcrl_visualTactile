@@ -20,8 +20,16 @@ PATHS+=[BASE/'tight_fresh_20261115_03/round_13/A/training/best.pt']
 p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--apply',action='store_true')
 p.add_argument('--legacy-g11-endpoints',action='store_true',help='Only four nonselected checkpoints of the closed Nov11 G11 pool; keep its selected best intact')
 p.add_argument('--closed-initial-fresh',action='store_true',help='Only four obsolete initial/round1-v3 frontends; preserve raw model and EMA, retire Adam only')
+p.add_argument('--closed-pre-fresh',action='store_true',help='Six obsolete pre-fresh round2/3 frontends; preserve all weights, retire only Adam')
 a=p.parse_args()
-assert not (a.closed_initial_fresh and a.legacy_g11_endpoints)
+assert sum((a.closed_initial_fresh,a.legacy_g11_endpoints,a.closed_pre_fresh))<=1
+if a.closed_pre_fresh:
+ old_pool=BASE/'tight_dagger_pool_20261111_01';old_matched=BASE/'tight_dagger_matched_20261112_01'
+ for closed in (old_pool,old_matched):
+  status=json.loads((closed/'status.json').read_text())
+  assert status['state']=='COMPLETE' and status['owned_workers_exited'] and (closed/'monitor_exit.json').exists()
+ PATHS=[old_pool/f'round_{i:02d}'/r/'dp/training/best.pt' for i in (2,3) for r in ('G01','QG01')]
+ PATHS += [old_matched/'round_02'/r/'dp/training/best.pt' for r in ('G01','QG01')]
 if a.closed_initial_fresh:
  PATHS=[BASE/'tight_fresh_20261114_01'/prefix/role/'training/best.pt' for prefix in ('','round_01_v3') for role in 'AB']
 LEGACY=BASE/'tight_dagger_pool_20261111_01'
@@ -36,16 +44,17 @@ if not a.apply:
  for f in PATHS:
   assert f.is_file() and not f.is_symlink()
   digest=sha256(f)
-  if not a.legacy_g11_endpoints:
+  if not (a.legacy_g11_endpoints or a.closed_pre_fresh):
    done=json.loads(f.with_name('finished.json').read_text());assert done['complete']
    assert digest==done['checkpoint_sha256']
   s=f.stat();rows.append(dict(path=str(f),sha256=digest,bytes=s.st_size,inode=s.st_ino,mtime_ns=s.st_mtime_ns))
- atomic_json(a.output/'inventory.json',dict(utc=time.time(),rows=rows,scope=__doc__,legacy_g11_endpoints=a.legacy_g11_endpoints,closed_initial_fresh=a.closed_initial_fresh,
+ atomic_json(a.output/'inventory.json',dict(utc=time.time(),rows=rows,scope=__doc__,legacy_g11_endpoints=a.legacy_g11_endpoints,closed_initial_fresh=a.closed_initial_fresh,closed_pre_fresh=a.closed_pre_fresh,
   retained_selected_best=dict(path=str(directory/'best.pt'),sha256=sha256(directory/'best.pt')) if a.legacy_g11_endpoints else None))
 else:
  assert not (a.output/'applied.json').exists();inventory=json.loads((a.output/'inventory.json').read_text());rows=[]
  assert inventory.get('legacy_g11_endpoints',False)==a.legacy_g11_endpoints
  assert inventory.get('closed_initial_fresh',False)==a.closed_initial_fresh
+ assert inventory.get('closed_pre_fresh',False)==a.closed_pre_fresh
  assert {r['path'] for r in inventory['rows']}=={str(p) for p in PATHS}
  if inventory.get('retained_selected_best'):
   kept=inventory['retained_selected_best'];assert sha256(kept['path'])==kept['sha256']
@@ -68,6 +77,8 @@ else:
    for field in ('model','ema'):
     assert saved[field].keys()==restored[field].keys()
     assert all(torch.equal(v,restored[field][k]) for k,v in saved[field].items())
+   from scripts.tight_fresh_night_20261116.retire_duplicate_last import equal
+   assert all(equal(v,restored[k]) for k,v in reduced.items()),'Nonoptimizer metadata changed during archive'
    os.replace(tmp,archive);digest=sha256(archive)
    proof=dict(**row,archive=str(archive),archive_sha256=digest,archive_bytes=archive.stat().st_size,
       preserved_model_and_ema_exact=True,removed_optimizer_only=True)

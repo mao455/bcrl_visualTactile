@@ -1208,7 +1208,10 @@ def residual_setup(root, *, selected=False, smoke=False):
         configuration.update(fresh_recovery_weighting=fresh_weighting,
             fresh_recovery_population=fresh_population,
             loss_id='fresh_onset_weighted_'+configuration['loss_id'],
-            recovery_weighting_scope='actual correction first contiguous legal expert ticks only; original30, sampling, validation and physical exposure unchanged')
+            recovery_weighting_scope=(
+                'All legal expert controls before the episode tick cutoff, including original demonstrations; prefix masks, actual observation counts and validation unchanged'
+                if fresh_weighting['version']=='fresh_early_grasp_control_weighting_v1' else
+                'actual correction first contiguous legal expert ticks only; original30, sampling, validation and physical exposure unchanged'))
     if selected:
         saved=torch.load(root/('training_smoke' if smoke else 'training')/'best.pt',map_location='cpu',weights_only=False)
         if saved.get('disposable',False) and not smoke:raise ValueError('Disposable residual cannot become a selected formal checkpoint')
