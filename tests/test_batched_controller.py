@@ -122,3 +122,28 @@ def test_batched_sampler_preserves_each_lane_random_stream():
             assert torch.equal(batch_generators[lane].get_state(),serial_generators[lane].get_state())
     with pytest.raises(ValueError,match='own generator'):
         NativePolicy.predict(stub,conditions,[batch_generators[0]])
+
+def test_mixed_roles_share_one_current_dino_batch():
+    from types import SimpleNamespace
+    from visuotactile.gpu_batch_controller import MultiPolicyController
+    class Dino:
+        def __init__(self):self.calls=[]
+        def forward_lanes(self,rgb,**kwargs):
+            self.calls.append(rgb[:,0,0,0,0].tolist());return rgb[:,0,0,0,0,None]
+    class Policy:
+        device='cpu'
+        def __init__(self):self.frames=0
+        def act(self,packet,diagnostics,active,*,current_features):
+            ids=[i for i,v in enumerate(active) if v]
+            assert current_features[:,0].tolist()==ids
+            self.frames+=len(ids)
+            return torch.tensor(range(4))[:,None].float().expand(-1,29)
+        def vision_execution_report(self):return dict(real_lanes=self.frames)
+    c=object.__new__(MultiPolicyController);c.models={'A':Policy(),'B':Policy()}
+    c.roles=['A','B','A','B'];c.count=4;c.visual_frames=[0]*4;c.dino=Dino()
+    c.vision_microbatch=2;c.vision_tail_profile=None
+    c.shared_vision_work=dict(calls=0,real_lanes=0,processed_images=0,padding_lanes=0)
+    packet=dict(image=torch.arange(4.)[:,None,None,None,None].expand(-1,3,4,2,2),actuator_target_rad=torch.zeros(4,29))
+    c.act(packet,{},[True,True,False,True])
+    assert c.dino.calls==[[0.,1.,3.]] and c.visual_frames==[1,1,0,1]
+    assert c.vision_execution_report()['real_lanes']==3

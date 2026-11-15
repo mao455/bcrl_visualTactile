@@ -40,3 +40,14 @@ def test_expert_lstm_reset_and_active_selection_leave_other_lanes_untouched():
  assert action[:,0].tolist()==[0,1]
  for after,prior in zip(player.states,before):
   assert torch.equal(after[:,1],prior[:,1]);assert torch.equal(after[:,[0,2]],prior[:,[0,2]]+1)
+
+
+def test_indexed_refill_preserves_peer_control_observation():
+    from visuotactile.queued_rollout import replace_reset_observations
+    old={'image':torch.arange(18).reshape(3,2,3),'nested':{'step':torch.tensor([21,32,43])}}
+    new={'image':torch.full((3,2,3),-1),'nested':{'step':torch.tensor([0,32,43])}}
+    merged=replace_reset_observations(old,new,[0],3)
+    assert torch.equal(merged['image'][1:],old['image'][1:])
+    assert torch.equal(merged['image'][0],new['image'][0])
+    assert merged['nested']['step'].tolist()==[0,32,43]
+    new['image'].zero_();assert (merged['image'][0]==-1).all()

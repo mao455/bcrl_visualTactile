@@ -21,6 +21,9 @@ class MultiPolicyController:
         self.models={role:GPUBatchedResidualController(value,metadata,dino,count,**kwargs)
                      for role,value in saved.items()}
         self.roles=[None]*count; self.visual_frames=[0]*count; self.count=count
+        self.dino=dino;self.vision_microbatch=kwargs.get('vision_microbatch',2)
+        self.vision_tail_profile=kwargs.get('vision_tail_profile')
+        self.shared_vision_work=dict(calls=0,real_lanes=0,processed_images=0,padding_lanes=0)
 
     @property
     def lanes(self):
@@ -31,10 +34,22 @@ class MultiPolicyController:
 
     def act(self,packet,diagnostics,active):
         commands=packet['actuator_target_rad'].clone()
+        ids=[i for i,running in enumerate(active) if running]
+        if not ids:return commands
+        first=next(iter(self.models.values()))
+        kwargs=dict(vision_microbatch=self.vision_microbatch)
+        if self.vision_tail_profile is not None:kwargs['vision_tail_profile']=self.vision_tail_profile
+        features=self.dino.forward_lanes(packet['image'][ids,:,:3].to(first.device),**kwargs)
+        from .models.native_vision import vision_lane_budget
+        work=vision_lane_budget(len(ids),self.vision_microbatch,vision_tail_profile=self.vision_tail_profile)
+        for key in ('real_lanes','processed_images','padding_lanes'):self.shared_vision_work[key]+=work[key]
+        self.shared_vision_work['calls']+=work['forward_features_calls']
+        positions={lane:i for i,lane in enumerate(ids)}
         for role,controller in self.models.items():
             mask=[running and assigned==role for running,assigned in zip(active,self.roles)]
             if any(mask):
-                proposed=controller.act(packet,diagnostics,mask)
+                selected=[positions[i] for i,running in enumerate(mask) if running]
+                proposed=controller.act(packet,diagnostics,mask,current_features=features[selected])
                 commands[mask]=proposed[mask].to(commands.device)
         for lane,running in enumerate(active):
             if running:self.visual_frames[lane]+=1
@@ -42,9 +57,10 @@ class MultiPolicyController:
 
     def vision_execution_report(self):
         reports={role:c.vision_execution_report() for role,c in self.models.items()}
+        if sum(r['real_lanes'] for r in reports.values())!=self.shared_vision_work['real_lanes']:
+            raise ValueError('Shared DINO and per-role consumed frames differ')
         return dict(version=PROFILE,roles=reports,
-            real_lanes=sum(r['real_lanes'] for r in reports.values()),
-            processed_images=sum(r['processed_images'] for r in reports.values()))
+            **self.shared_vision_work)
 
 
 class GPUBatchedResidualController(BatchedResidualController):
@@ -63,7 +79,10 @@ class GPUBatchedResidualController(BatchedResidualController):
         rear = self.lanes[0].residual
         n = len(ids)
         # Copy/select each sensor field once for the complete active batch.
-        p = {k: v[ids].to(device) for k, v in packet.items() if torch.is_tensor(v)}
+        fields=('episode_id','step_id','task_id','goal_valid','time_s','camera_time_s','camera_valid','camera_frame',
+            'actuator_target_rad','contact_valid','contact_time_s','contact_substeps_w_N','contact_substeps_local_N',
+            'contact_w_N','finger_position_base_m','finger_rotation_base','depth_m','depth_valid')
+        p = {k:packet[k][ids].to(device) for k in fields}
         ticket = torch.stack((p['episode_id'], p['step_id'], p['task_id'], p['goal_valid'].long()), -1).cpu().tolist()
         q = diagnostics['joint_position_rad'][ids].to(device)
         qd = diagnostics['joint_velocity_rad_s'][ids].to(device)
@@ -104,7 +123,7 @@ class GPUBatchedResidualController(BatchedResidualController):
         normalized = model.normalized_robot(robot)
         patches = torch.stack([b.dino.patches for b in bases])
         tokens, summary = frame_features(model, patches,
-            depth_grid(p['image'][:, :, 3:], p['depth_valid']),
+            depth_grid(p['depth_m'], p['depth_valid']),
             stamps[:, None]-p['camera_time_s'], p['camera_valid'])
         native_state = stack_lane_trees([m.native for m in memories])
         visual_state = stack_lane_trees([m.visual for m in memories])

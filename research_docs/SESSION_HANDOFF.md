@@ -1336,3 +1336,6 @@ CPU审计：327条数值轨迹11项provenance检查通过；564非test轨迹169,
 发布器须遍历历史round_01实际目录（含退休G11），新轮按实际活动组、条件判定及job汇总；条件未决、明确未调度和真实已启动分别呈现，不把未调度组记失败。只有真实完成凭据能证明训练/评估完成；历史停止不能被改成COMPLETE。大数据/权重/视频留本机，公开源码、精简指标/曲线与准确SHA索引到origin指定feature分支。
 
 保护原400、Core、专家/资产、有效聚合数据、A/B初始化及当前/恢复依赖、历史成功/失败证据。本次范围修订本身未授权删除仍有恢复/对照价值的G11产物。实际启动验收与测试结果继续由root凭据和[变更记录](CHANGELOG.md)更新；历史数值见[结果页](STATE_DP_RESULTS.md)。
+
+### 2026-11-15 22:44 +08 — throughput attempts, no replaced evidence
+Original04 rear training remains active. Queue02 reached first lane refill, then recorder caught peer image misalignment caused by extra reset render; failed partials preserved. Fix retains continuing control-time sensor/expert observations, replacing only reset lanes. Shared A/B DINO now computes one active batch. Thirteen focused checks pass. Next real queue03 must finish admission before formal06 launch. First scale supervisor stopped without starting probes after queue02 failed. Original04 deadline remains unchanged.

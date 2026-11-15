@@ -73,7 +73,7 @@ class BatchedResidualController:
         self.visual_frames = [0]*count
 
     @torch.no_grad()
-    def act(self, packet, diagnostics, active):
+    def act(self, packet, diagnostics, active, *, current_features=None):
         active = torch.as_tensor(active, dtype=torch.bool, device='cpu')
         if active.shape != (self.count,) or len(packet['episode_id']) != self.count:
             raise ValueError('Lane mask/observation count differs')
@@ -84,10 +84,13 @@ class BatchedResidualController:
         if not getattr(self,'gpu_pipeline',False): commands = commands.cpu()
         if not ids:
             return commands
-        rgb = packet['image'][ids,:,:3].to(self.device)
+        rgb = packet['image'][ids,:,:3].to(self.device) if current_features is None else None
         size = getattr(self, 'vision_microbatch', 2)
         tail = getattr(self, 'vision_tail_profile', None)
-        if tail is None:
+        if current_features is not None:
+            features=current_features
+            self.external_vision=True
+        elif tail is None:
             features = (self.dino.forward_lanes(rgb) if size == 2 else
                 self.dino.forward_lanes(rgb, vision_microbatch=size))
         else:
@@ -98,7 +101,10 @@ class BatchedResidualController:
             self.vision_work = vision_lane_budget(0, size, vision_tail_profile=tail)
             self.vision_calls = 0
         work = vision_lane_budget(len(ids), size, vision_tail_profile=tail)
-        if tail is not None:
+        if current_features is not None:
+            # Actual kernels belong to the shared A/B visual owner.
+            work.update(forward_features_calls=0,padding_lanes=0,processed_images=0)
+        elif tail is not None:
             if getattr(self.dino, 'last_lane_execution', None) != work:
                 raise ValueError('DINO did not report the actual registered exact-tail kernel shapes')
             histogram = self.vision_work['kernel_image_batch_counts']
@@ -164,12 +170,12 @@ class BatchedResidualController:
             getattr(self, 'vision_microbatch', 2), vision_tail_profile=getattr(self, 'vision_tail_profile', None))))
         if work['real_lanes'] != sum(self.visual_frames):
             raise ValueError('Real vision work differs from consumed lane observations')
-        if work.get('vision_tail_profile') is not None and (
+        if not getattr(self,'external_vision',False) and work.get('vision_tail_profile') is not None and (
                 work['padding_lanes'] != 0 or work['processed_images'] != work['real_images']
                 or sum(int(size)*count for size,count in work['kernel_image_batch_counts'].items()) != work['processed_images']
                 or sum(work['kernel_image_batch_counts'].values()) != work['forward_features_calls']):
             raise ValueError('Exact-tail work accounting differs from actual kernel shapes')
-        return dict(work, controller_calls=getattr(self, 'vision_calls', 0),
+        return dict(work, controller_calls=getattr(self, 'vision_calls', 0),external_shared_vision=getattr(self,'external_vision',False),
             consumed_observations_per_lane=list(self.visual_frames),
             scope='Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure')
 

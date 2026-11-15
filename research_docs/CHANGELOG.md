@@ -1497,3 +1497,9 @@ B只读分析33capture/21慢速配对，按接近、抓取/抬升、插入/原�
 - 隔离源码与独立有界service入口，复用原round01权重/cache，1遍＋固定完整学生开发；不自动DAgger、不重置截止。
 - 新测试覆盖逆像有界、错误饱和区方向、实际执行等价、checkpoint往返、旧行为、CLI与原deadline。
 - 11:29实际启动验收：104项测试通过，真实A256更新/18057监督tick；既有六轨迹新参数化逆logit绝对值均≤1、最大重构误差1.49e-8rad，仅表示条件表达能力，不表示泛化或自主成功。旧286/新290源码hash无漂移，独立service与真实Agent事件交接登记完成。
+
+### 2026-11-15 22:44 +08 — queue refill observation fix and shared DINO
+- Real queue attempt02 passed startup and ran through the first indexed refill, then the unchanged lossless recorder rejected peer image post/pre mismatch. Preserve its partial records; do not count them as accepted training data.
+- Cause: extra reset render refreshed continuing lanes at the same control time. `queued_rollout.py` now snapshots their already observed packet and expert input and replaces only the reset lanes. No previous physical state replay or synthetic image is used.
+- `gpu_batch_controller.py` and `batched_controller.py` share one current DINO batch across A/B, avoiding per-role padded duplicate passes; sensor assembly excludes duplicate RGB transfer. Every active lane still consumes its real current view and updates its own history.
+- Focused controller/bridge/refill tests:13 passed in1.82s. Real same-load attempt03 is required before formal adoption; attempt02 is not a throughput result. Scaling supervisor01 stopped without probes after attempt02 failure.

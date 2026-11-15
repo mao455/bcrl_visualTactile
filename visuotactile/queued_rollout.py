@@ -24,6 +24,19 @@ from .recording import flatten,BufferedNumericWriter,post_observation
 PROFILE='independent_lane_queue_v1'
 
 
+def replace_reset_observations(previous,current,lanes,count):
+    """Keep continuing lanes' already observed control-time sample exactly.
+
+    Indexed reset needs an extra render, not a new control observation for peers.
+    Only reset lanes consume that render; no continuing history frame is replaced.
+    """
+    if isinstance(current,dict):
+        return {k:replace_reset_observations(previous[k],v,lanes,count) for k,v in current.items()}
+    if torch.is_tensor(current) and current.ndim and current.shape[0]==count:
+        result=previous.clone();result[lanes]=current[lanes];return result
+    return current
+
+
 def reset_expert_lanes(player,lanes,count):
     """Released expert LSTM history is independent on its second (batch) axis."""
     if not player.is_rnn:return
@@ -186,9 +199,12 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
                 for lane,case in replacements.items():
                     env._direct_lane_reset_configurations[lane]=copy.deepcopy(case['spec']['narrow_reset']);render.set(lane,True)
                 with lease.block():
+                    continuing_packet=copy.deepcopy(env.research_packet);continuing_teacher=copy.deepcopy(teacher)
                     isolated.reset_lanes(refill);env.scene.write_data_to_sim();env.sim.forward();env.sim.render()
                     env.scene.update(0.0)
                     with isolated.stream.scope():teacher=env._get_observations()
+                    env.research_packet=replace_reset_observations(continuing_packet,env.research_packet,refill,n)
+                    teacher=replace_reset_observations(continuing_teacher,teacher,refill,n)
                     for lane,case in replacements.items():admit_lane(lane,case)
                 profile['reset_refill_s']+=time.perf_counter()-t;profile['refills']+=len(refill)
                 if not any(active) and queue:continue

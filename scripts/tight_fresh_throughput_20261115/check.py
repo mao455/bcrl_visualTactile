@@ -33,6 +33,7 @@ def run(output,device='cpu'):
   for tick in range(15):
    p=load(f['episode/obs'],tick);diag=load(f['episode/transition/diagnostics_before'],tick)
    p['image']=torch.from_numpy(full['obs/image'][tick]).unsqueeze(0).repeat(2,1,1,1,1)
+   p['depth_m']=p['image'][:,:,3:]
    p['depth_valid']=torch.from_numpy(full['obs/depth_valid'][tick]).unsqueeze(0).repeat(2,1,1,1,1)
    active=[True,tick<14]
    a=time.perf_counter();expected=old.act(p,diag,active);times['old']+=time.perf_counter()-a
