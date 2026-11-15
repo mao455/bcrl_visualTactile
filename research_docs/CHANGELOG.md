@@ -1682,3 +1682,8 @@ Metadata erratum: frozen30aeb80's rear configuration still contains the historic
 ### 2026-11-16 05:17 +08 — real cycle17 complete,18 automatic transition
 
 One supervised real loop passed in51.74min,4new successful rescues; autonomous fixed development holdingA0/3,B0/4, training rechecks0/4, insertion0/4 complete tasks. Reject17, keepA11/B15. Actual selected exposure and timing in existing night report. `tight_fresh_cycle_readout.py` preserves nested rear metrics (real selected validation hand RMSE .01136/.01151rad), `tight_fresh_night_status.py` labels completed fixed fitting as complete instead of displaying its last heartbeat as live. Readout executed on completed17; original report retained, no physical/training repeat.
+
+
+### 2026-11-16 05:26 +08 — optional state-based pre-contact recovery
+
+Added `tools/tight_fresh_approach_timing.py` (numeric-only original30/latest8) and versioned approach screen in grasp_curriculum/takeover_trigger/training_expansion plus collection CLI/admission/report dispatch. Six of8 genuine prefixes offer4–21controls earlier help; no new rescued data implied.25 focused tests pass, actual saved-prefix replay agrees. Also corrected contact-v2 textual capture category to early-grasp (underlying trigger/admission was already correct); historical artifacts unchanged. Counterfactual diagnosis can compare multiple completed directories with one expert-validation call and a descriptive sustained-error onset. Main17/18 frozen implementation unchanged; new approach collection is not yet run.

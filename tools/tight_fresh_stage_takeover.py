@@ -29,8 +29,8 @@ def trigger_contract(version):
         return 'held_root_near_goal_only_takeover_v1','held_root_near_goal_only','held_root_near_goal','first_held_root_near_goal_window_end_completed_tick'
     if version == HELD_RECHECK_VERSION:
         return 'held_recheck_only_takeover_v1','held_recheck_only','held_recheck','first_rechecked_contact_height_window_end_completed_tick'
-    from visuotactile.grasp_curriculum import EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION
-    if version in (EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION):
+    from visuotactile.grasp_curriculum import EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION, APPROACH_VERSION
+    if version in (EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION, APPROACH_VERSION):
         return "early_grasp_takeover_v1", "early_grasp", "early_grasp", "trigger_completed_tick"
     raise ValueError('Unknown explicit stage trigger version')
 
@@ -170,7 +170,7 @@ def classify(result, audit):
                     or receipt['earliest_allowed_completed_tick']!=original+receipt['configuration']['min_delay_ticks']
                     or expected<receipt['earliest_allowed_completed_tick']):
                 raise ValueError('Expert authority lacks a rechecked held window after its minimum delay')
-        elif receipt['configuration']['version'] in ('early_contact_recovery_v1','contact_formation_recovery_v2'): expected = first
+        elif receipt['configuration']['version'] in ('early_contact_recovery_v1','contact_formation_recovery_v2','approach_contact_recovery_v3'): expected = first
         else:expected = None if first is None else first + receipt['configuration']['delay_ticks']
         if (audit['category'] != f'student_{event}_then_takeover'
                 or audit['actual_switch_tick'] != expected or expected >= NEVER_FALLBACK):

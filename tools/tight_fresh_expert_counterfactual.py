@@ -109,6 +109,7 @@ def main():
     p=argparse.ArgumentParser(__doc__);p.add_argument('--root',type=Path,required=True)
     p.add_argument('--validation-numeric',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
     p.add_argument('--decompose-student',action='store_true',help='Compare saved nominal/rear/final commands against the same-state expert; A nominal has a different target domain')
+    p.add_argument('--evaluation',type=Path,action='append',help='Completed autonomous directory; repeat to compare source and fitted policies with one expert validation')
     a=p.parse_args()
     if a.output.exists():raise FileExistsError('Preserve prior diagnostic')
     torch.set_num_threads(2);tree=Path(__file__).resolve().parents[1]
@@ -122,13 +123,22 @@ def main():
             or validation['recorded_mapped_target_max_abs_difference']>2e-6):
         atomic_json(a.output.with_suffix('.rejected.json'),validation)
         raise ValueError('Recorded recurrent expert/action conversion did not reproduce; no autonomous query conclusion')
-    directory=a.root/'original_training_probe';plan=json.loads((directory/'plan.json').read_text());rows=[]
-    for case in plan['cases']:
-        result=json.loads((directory/case['name']/'result.json').read_text())
-        if not result['legal']:continue
-        row=query(model,directory/case['name']/'numeric.h5',tree,decompose_student=a.decompose_student)
-        assert row['expert_sha256']==session['expert_sha256']
-        row.update(case=case['name'],role=case['role'],family=case['spec']['family']);rows.append(row)
+    directories=a.evaluation or [a.root/'original_training_probe'];rows=[]
+    for directory in directories:
+        plan=json.loads((directory/'plan.json').read_text())
+        assert json.loads((directory/'result.json').read_text())['software_complete']
+        for case in plan['cases']:
+            result=json.loads((directory/case['name']/'result.json').read_text())
+            if not result['legal']:continue
+            row=query(model,directory/case['name']/'numeric.h5',tree,decompose_student=a.decompose_student)
+            assert row['expert_sha256']==session['expert_sha256']
+            errors=row['hand_command_error_rad'];onset=next((t for t in range(len(errors)-2)
+                if all(e>.015 for e in errors[t:t+3])),None)
+            row.update(evaluation=str(directory),case=case['name'],role=case['role'],family=case['spec']['family'],
+                sustained_hand_error_onset=dict(threshold_rad=.015,minimum_consecutive_controls=3,
+                    zero_based_control_tick=onset,simulation_seconds=None if onset is None else onset/60,
+                    scope='Descriptive command deviation from diagnostic same-state expert; not a grasp failure criterion.'))
+            rows.append(row)
     atomic_json(a.output,dict(complete=True,validation=validation,rows=rows,
         expert_sha256=session['expert_sha256'],source_sha256=sha256(Path(__file__)),simulator_starts=0,optimizer_updates=0,
         scope='Diagnostic expert suggestions on the actual stored student states with its recorded observation stream, full zero-initialized recurrent history and actual delay draws. Original native mapper, current actual target, unchanged expert progression. No suggestions are executed or admitted as expert labels. First150 controls only; no terminal/reset history crossing. A nominal forecasts next reached q, so its difference from an expert command is not a nominal prediction error or evidence authorizing bare-A deployment. B nominal and rear share the expert command target domain.'))

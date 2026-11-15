@@ -226,7 +226,8 @@ def admit_capture(output,case,result,pair,plan,entries,*,audit_memo=None):
     from visuotactile.takeover_trigger import HELD_NEAR_GOAL_VERSION,HELD_ROOT_GOAL_VERSION
     near_goal=(case.get('dagger',{}).get('trigger') or {}).get('version')==HELD_NEAR_GOAL_VERSION
     root_goal=(case.get('dagger',{}).get('trigger') or {}).get('version')==HELD_ROOT_GOAL_VERSION
-    early_grasp=(case.get('dagger',{}).get('trigger') or {}).get('version')=='early_contact_recovery_v1'
+    early_grasp=(case.get('dagger',{}).get('trigger') or {}).get('version') in (
+        'early_contact_recovery_v1','contact_formation_recovery_v2','approach_contact_recovery_v3')
     atomic_json(directory/audit_name,dict(category=category,causal_trigger=stage_audit,
         source_plan_sha256=sha256(output/'plan.json'),no_expert_fallback=True if causal else None,
         expert_schedule=('causal_early_grasp_recovery' if early_grasp else 'causal_held_root_near_goal_window' if root_goal else 'causal_held_near_goal_window' if near_goal else

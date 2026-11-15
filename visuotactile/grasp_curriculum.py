@@ -12,10 +12,15 @@ EARLY_GRASP = dict(version=EARLY_GRASP_VERSION, minimum_tick=48,
 CONTACT_ONSET_VERSION = 'contact_formation_recovery_v2'
 CONTACT_ONSET = dict(EARLY_GRASP, version=CONTACT_ONSET_VERSION,
                      onset_contact_ticks=2, weak_contact_ticks=4)
+APPROACH_VERSION = 'approach_contact_recovery_v3'
+APPROACH = dict(CONTACT_ONSET, version=APPROACH_VERSION,
+                approach_minimum_tick=36, approach_distance_m=.06,
+                approach_confirm_ticks=2, approach_history_ticks=8,
+                approach_distance_decrease_m=.003)
 
 
 def validate_early(configuration, fallback_tick):
-    if configuration not in (EARLY_GRASP, CONTACT_ONSET) or fallback_tick != 1_000_000_000:
+    if configuration not in (EARLY_GRASP, CONTACT_ONSET, APPROACH) or fallback_tick != 1_000_000_000:
         raise ValueError('Early grasp requires its explicit versioned causal thresholds')
     return dict(configuration)
 
@@ -71,8 +76,9 @@ class EarlyGraspTrigger:
         self.first_contact = None; self.first_two = None; self.first_lift = None
         self.reason = 'no_early_recovery_condition'
         self.trigger_completed_tick = None; self.at_trigger = None
+        self.finger_distances = []
 
-    def observe(self, tick, pose, palm, force):
+    def observe(self, tick, pose, palm, force, *, finger_position_w=None):
         pose, palm, force = (np.asarray(x) for x in (pose, palm, force))
         if (tick != len(self.poses) or tick >= self.scheduled_tick
                 or pose.shape != (7,) or palm.shape != (7,) or force.shape != (2, 5, 3)
@@ -81,6 +87,21 @@ class EarlyGraspTrigger:
         self.poses.append(pose.copy())
         self.finger_counts.append(int((np.linalg.norm(force,axis=-1)>.1).sum(-1).min()))
         n = len(self.poses)
+        if self.configuration['version'] == APPROACH_VERSION:
+            tips=np.asarray(finger_position_w)
+            if tips.shape!=(5,3) or not np.isfinite(tips).all():
+                raise ValueError('Approach screen requires actual five-finger diagnostic positions')
+            self.finger_distances.append(float(np.linalg.norm(tips-pose[:3],axis=-1).min()))
+            cfg=self.configuration;confirmation=cfg['approach_confirm_ticks'];history=cfg['approach_history_ticks']
+            if (n>=cfg['approach_minimum_tick'] and not any(self.finger_counts)
+                    and max(self.finger_distances[-confirmation:])<=cfg['approach_distance_m']
+                    and self.finger_distances[-history]-self.finger_distances[-1]>=cfg['approach_distance_decrease_m']):
+                self.reason='approaching_first_contact'
+                self.scheduled_tick=self.trigger_completed_tick=n
+                self.at_trigger=dict(nearest_finger_center_distance_m=self.finger_distances[-1],
+                    distance_decrease_over8_ticks_m=self.finger_distances[-history]-self.finger_distances[-1],
+                    fingers_both_substeps=0,contact_seen=False)
+                return n
         if n == 48: self.height = float(np.median(np.asarray(self.poses)[24:48, 2]))
         if self.height is None: return None
         fingers = np.asarray(self.finger_counts)
@@ -120,6 +141,8 @@ class EarlyGraspTrigger:
             completed_student_transitions_observed=len(self.poses), settled_height_m=self.height,
             first_contact_completed_tick=self.first_contact, first_two_finger_completed_tick=self.first_two,
             first_contact_lift_completed_tick=self.first_lift, at_trigger=self.at_trigger,
-            rule='Completed contact history only; next-action takeover, no12tick grid; expert recoverability must be measured',
+            rule=('Completed approaching finger/object proximity before any contact, or existing contact/recovery screens; next-action takeover, no12tick grid; no recoverability claim'
+                  if self.configuration['version']==APPROACH_VERSION else
+                  'Completed contact history only; next-action takeover, no12tick grid; expert recoverability must be measured'),
             diagnostic_only=True, student_inputs_changed=False, native_success_changed=False,
             future_information_used=False, stable_grasp_claim=False)

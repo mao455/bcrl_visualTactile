@@ -566,3 +566,8 @@ Optional `recheck_training_families` appends at most8 actual collection cases to
 
 
 2026-11-16 grasp learning v2: `grasp_balanced_legal_action_anchors_v2` stratifies each visit's unchanged anchor count between legal episode ticks before150 and remaining legal ticks. It never promotes student-prefix/queue labels, changes causal readout time, or changes commit12 deployment/backend plans. `fresh_early_grasp_control_weighting_v1` weights legal rear targets before150 by3, including original approach demonstrations; all later legal targets retain1. Fixed128 physical-tick optimizer denominator and actual observations remain; weighted mass must be reported separately from action exposure. These are new explicit training identities, not reinterpretations of old weights.
+
+
+### 2026-11-16 optional pre-contact collection screen
+
+`grasp_approach` binds `approach_contact_recovery_v3` exactly: >=36 completed real student controls, no contact in that real prefix, two consecutive nearest-finger-center/object-root distances<=.06m and decrease>=.003m over the last8controls. Uses recorded diagnostics_after/finger_position_w, object_pose_w, and both substep object-contact forces. It schedules the next60Hz action, no12tick rounding. If absent, v2 contact/loss/deadline rules continue. Before completed48 the settled-height diagnostic may be unavailable; this screen makes no height/holding claim. Every saved trigger is replayed through the same observe_transition reader. Physical success, delay flushing, prefix-history-only and actual expert-suffix action masks are unchanged. This version is implemented and retrospectively checked; production adoption requires actual expert recovery and full-student evaluation evidence.

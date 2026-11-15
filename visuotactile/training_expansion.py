@@ -256,7 +256,7 @@ def validate_capture_binding(entry, metadata):
 
 
 def validate_schedule(schedule):
-    if schedule in ('grasp_touch', 'grasp_early', 'fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'):
+    if schedule in ('grasp_approach', 'grasp_touch', 'grasp_early', 'fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'):
         return schedule
     raise ValueError('Schedule must be grasp_early, fixed1, fixed40, fixed80, contact0, contact12, near60, held0, held60, held120 or held_root60')
 
@@ -264,6 +264,9 @@ def validate_schedule(schedule):
 def schedule_trigger(schedule):
     from .takeover_trigger import CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
     validate_schedule(schedule)
+    if schedule == 'grasp_approach':
+        from .grasp_curriculum import APPROACH
+        return dict(APPROACH)
     if schedule == 'grasp_touch':
         from .grasp_curriculum import CONTACT_ONSET
         return dict(CONTACT_ONSET)

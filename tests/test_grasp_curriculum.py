@@ -12,6 +12,40 @@ from visuotactile.rear_episode_sampling import plan, exposure
 from visuotactile.training_expansion import make_registry, registry_binding, read_registry, validate_collection_plan
 
 
+def test_approach_trigger_requires_real_near_moving_fingers_and_replays_hdf5(tmp_path):
+    import h5py
+    from visuotactile.grasp_curriculum import APPROACH
+    from visuotactile.takeover_trigger import make_trigger
+    from tools.tight_fresh_report import audit_trigger_case
+    from tools.tight_fresh_stage_takeover import classify
+    pose=np.array([0,0,.5,1,0,0,0.]);zero=np.zeros((2,5,3))
+    for close_at in (40,57):
+        trigger=make_trigger(APPROACH,10**9);positions=[]
+        for tick in range(close_at+2):
+            distance=.2 if tick<close_at else .059-(tick-close_at)*.001
+            tips=np.tile(pose[:3]+[distance,0,0],(5,1));positions.append(tips)
+            result=trigger.observe(tick,pose,pose,zero,finger_position_w=tips)
+            assert result==(close_at+2 if tick==close_at+1 else None)
+        assert trigger.reason=='approaching_first_contact'
+        assert trigger.first_contact is None
+        directory=tmp_path/str(close_at);directory.mkdir();count=close_at+4
+        with h5py.File(directory/'numeric.h5','w') as f:
+            t=f.create_group('episode/transition')
+            t['diagnostics_after/object_pose_w']=np.tile(pose,(count,1))
+            t['diagnostics_after/palm_body_pose_w']=np.tile(pose,(count,1))
+            t['diagnostics_after/finger_position_w']=np.asarray(positions+[positions[-1]]*2)
+            t['object_contact_force_w']=np.tile(zero,(count,1,1,1))
+            t['dagger/control_source']=np.array([0]*(close_at+2)+[1]*2)
+        result=dict(legal=True,software_complete=True,dagger=dict(
+            configuration=dict(trigger=APPROACH,takeover_tick=10**9),trigger_receipt=trigger.receipt(),
+            recovery_coverage=dict(switch_tick=close_at+2),expert_ticks=2,expert_takeover_success=True))
+        assert classify(result,audit_trigger_case(directory,result))=='expert_rescue_after_early_grasp'
+    trigger=make_trigger(APPROACH,10**9)
+    stationary=np.tile(pose[:3]+[.05,0,0],(5,1))
+    for tick in range(80):
+        assert trigger.observe(tick,pose,pose,zero,finger_position_w=stationary) is None
+
+
 def test_contact_formation_trigger_uses_real_persistent_contact_not_clock():
     from visuotactile.grasp_curriculum import CONTACT_ONSET
     from visuotactile.takeover_trigger import make_trigger
@@ -73,7 +107,7 @@ def test_one_second_metric_rejects_brief_lift_and_long_contact_gap():
     assert not holding_metrics(p,f)['sustained']
 
 
-@pytest.mark.parametrize('schedule',['grasp_early','grasp_touch'])
+@pytest.mark.parametrize('schedule',['grasp_early','grasp_touch','grasp_approach'])
 def test_revisit_registered_failed_training_family_without_fake_success(setup_registry,monkeypatch,schedule):
     from tools.tight_fresh_expansion import prepare
     s=setup_registry;source=s['root']/'revisit_source'
