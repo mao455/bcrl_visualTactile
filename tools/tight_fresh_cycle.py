@@ -148,24 +148,32 @@ def configure_frontend_sampling(output, repeat, *, reuse_registered=False):
     """Bind optional latest-episode reuse before either learner starts."""
     from visuotactile.latest_takeover_sampling import SAMPLING_VERSION,sampling_plan
     spec=dict(version=SAMPLING_VERSION,latest_repeat=repeat)
-    pending={};populations={}
+    pending={};populations={};started=False
     for role in ('A','B'):
         directory=output/role
-        if (directory/'training').exists():raise ValueError('Cannot change a started frontend sampling contract')
+        started=started or (directory/'training').exists()
+        if (directory/'training').exists() and not reuse_registered:
+            raise ValueError('Cannot change a started frontend sampling contract')
         data=read(directory/'state_data/data.json')
         validated,multiplicities=sampling_plan(data,spec)
         prior=read(directory/'continuation.json')
         if 'sampling_contract' in prior and not (reuse_registered and prior['sampling_contract']==validated):
             raise ValueError('Preserve the registered frontend sampling contract')
+        if (directory/'training').exists() and prior.get('sampling_contract')!=validated:
+            raise ValueError('Started learner lacks identical registered sampling')
         pending[role]=dict(prior,sampling_contract=validated)
         populations[role]=dict(data_sha256=sha256(directory/'state_data/data.json'),
             latest_ids=data['aggregation']['new_training_ids'],episode_multiplicities=multiplicities)
     if (populations['A']['latest_ids']!=populations['B']['latest_ids']
             or populations['A']['episode_multiplicities']!=populations['B']['episode_multiplicities']):
         raise ValueError('A/B sampling populations differ')
-    for role,value in pending.items():atomic_json(output/role/'continuation.json',value)
     receipt=dict(contract=spec,roles=populations,backend_latest_repeat=(read(output/'backend_episode_sampling.json')['latest_repeat'] if (output/'backend_episode_sampling.json').exists() else 1),
         scope='Frontend visits only; each replay recomputes complete actual history, retains legal expert masks; backend repetition is registered separately by backend_latest_repeat; reuse is not new data')
+    if started:
+        if not (output/'frontend_sampling.json').exists() or read(output/'frontend_sampling.json')!=receipt:
+            raise ValueError('Started sampling receipt changed or is absent')
+        return receipt
+    for role,value in pending.items():atomic_json(output/role/'continuation.json',value)
     atomic_json(output/'frontend_sampling.json',receipt)
     return receipt
 

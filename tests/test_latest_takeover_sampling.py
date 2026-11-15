@@ -25,6 +25,23 @@ def spec(repeat=4):
     return dict(version=SAMPLING_VERSION, latest_repeat=repeat)
 
 
+def test_started_sampling_resume_is_read_only_and_rejects_changed_receipt(tmp_path):
+    from tools.tight_fresh_cycle import configure_frontend_sampling
+    for role in 'AB':
+        d=tmp_path/role;(d/'state_data').mkdir(parents=True)
+        (d/'state_data/data.json').write_text(json.dumps(cohort()))
+        (d/'continuation.json').write_text('{}')
+    initial=configure_frontend_sampling(tmp_path,4)
+    before={p:p.stat().st_mtime_ns for p in tmp_path.rglob('*.json')}
+    (tmp_path/'A/training').mkdir()
+    assert configure_frontend_sampling(tmp_path,4,reuse_registered=True)==initial
+    assert all(p.stat().st_mtime_ns==t for p,t in before.items())
+    with pytest.raises(ValueError):configure_frontend_sampling(tmp_path,2,reuse_registered=True)
+    (tmp_path/'frontend_sampling.json').write_text('{}')
+    with pytest.raises(ValueError,match='receipt changed'):
+        configure_frontend_sampling(tmp_path,4,reuse_registered=True)
+
+
 @pytest.mark.parametrize('contract', [None, spec(1)])
 def test_default_and_repeat_one_preserve_old_order_and_rng_bytes(contract):
     data = cohort()

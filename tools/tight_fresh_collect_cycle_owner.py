@@ -212,6 +212,10 @@ def run_stage(name, command, context, deadline, stop_paths):
                         candidates.extend(output/role/'training'/f for f in ('progress.json','last.pt','finished.json'))
                         candidates.extend(output/role/'backend'/role/'training'/f for f in ('learning.jsonl','last.pt','finished.json'))
                         candidates.append(output/role/'cache_progress_index.json')
+                        candidates.append(output/role/'backend/cache_progress.json')
+                        candidates.append(output/role/'backend'/role/'nominal/index.json')
+                        candidates.append(output/role/'backend'/role/'training/progress.json')
+                        candidates.append(output/role/'backend'/role/'offline/progress.json')
                     candidates.extend(output.glob('**/cache_complete.json')) if output.exists() else None
                     witness=[(str(p),p.stat().st_mtime_ns,p.stat().st_size) for p in candidates if p.is_file()]
                     if witness!=previous_witness:previous_witness=witness;last_progress=now
