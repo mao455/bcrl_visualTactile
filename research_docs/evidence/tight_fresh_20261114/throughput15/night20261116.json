@@ -12683,7 +12683,7 @@
     "optimizer_group_count": 8
   },
   "next_precontact19": {
-    "status": "capture_complete_preoptimizer_cli_failure",
+    "status": "aggregate_complete_visual_cache_running",
     "schedule": "grasp_approach",
     "opportunities": 4,
     "families": [
@@ -12702,10 +12702,13 @@
     "scope": "One bounded new cycle; precontact timing and increased exposure combined, not isolated causal comparison.",
     "root": "outputs/visuotactile/run/tight_fresh_20261116_04",
     "source_commit": "9772a5c9e281e5b694a083f94ca87a6d416f4673",
-    "owner_pid": 623880,
-    "service": "tight-fresh-night-20261116-04.service",
+    "owner_pid": 627393,
+    "service": "tight-fresh-repeat12-recovery-20261116-04.service",
     "unattended_release": false,
-    "recovery_prepared": true
+    "recovery_prepared": true,
+    "recovery_source_commit": "4e48da52368b2b565c56d99d74cb3311474ef231",
+    "planned_dp_updates_each": 1568,
+    "planned_latest_visits_each": 96
   },
   "round19_capture": {
     "result": {
@@ -12918,5 +12921,381 @@
         "legal_expert_ticks": 235
       }
     ]
+  },
+  "round19_latest_numeric_audit": {
+    "version": "early_grasp_numeric_supervision_audit_v1",
+    "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19",
+    "created": 1794782180.403175,
+    "seconds": 0.12864136695861816,
+    "latest_only": true,
+    "units": {
+      "control_hz": 60,
+      "planning_hz": 5,
+      "physics_hz": 120,
+      "completed_tick": "transition index + 1",
+      "action_index": "zero-based preaction index"
+    },
+    "rows": [
+      {
+        "identity": "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+        "family": "expanded_session20261115_03_prefetch13_s29000086",
+        "source_group": "A",
+        "cohort": "latest_corrections",
+        "frames": 243,
+        "simulation_duration_s": 4.05,
+        "first_contact_completed_tick": 65,
+        "first_postsettle_contact_completed_tick": 65,
+        "first_two_finger_completed_tick": 67,
+        "first_two_finger_loss_completed_tick": 68,
+        "first_contact_lift_completed_tick": 89,
+        "takeover_action_index": 41,
+        "takeover_simulation_s": 0.6833333333333333,
+        "first_legal_expert_action_index": 43,
+        "first_legal_expert_simulation_s": 0.7166666666666667,
+        "expert_to_success_s": 3.3666666666666667,
+        "valid_expert_ticks": 200,
+        "precontact_expert_ticks": 21,
+        "legal_before_tick100": 57,
+        "legal_before_tick150": 107,
+        "hold60": {
+          "reference_available": true,
+          "height_reference_m": 0.5700026750564575,
+          "window_ticks": 60,
+          "duration_seconds": 1.0,
+          "sustained": true,
+          "first_completed_tick": 226,
+          "qualified_windows": 4,
+          "held_at_final_window": false,
+          "longest_contact_height_ticks": 41,
+          "native_success_changed": false,
+          "rotation_allowed": true
+        },
+        "label_checks": "A q[t+1], B u_expert, both rear commands and prefix exclusion exact",
+        "contact_to_takeover_ticks": -24,
+        "postsettle_contact_to_takeover_ticks": -24,
+        "trigger_reason": "approaching_first_contact",
+        "earlier_contact_trigger_replay": {
+          "tick": null,
+          "actual_new_expert_steps": 0,
+          "scope": "Causal replay of saved student prefix only; recovery not yet tested"
+        },
+        "prefix_contact_lift": false,
+        "prefix_hold60": {
+          "reference_available": false,
+          "sustained": false,
+          "longest_contact_height_ticks": 0
+        }
+      },
+      {
+        "identity": "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+        "family": "expanded_session20261115_03_prefetch13_s29000086",
+        "source_group": "B",
+        "cohort": "latest_corrections",
+        "frames": 282,
+        "simulation_duration_s": 4.7,
+        "first_contact_completed_tick": 69,
+        "first_postsettle_contact_completed_tick": 69,
+        "first_two_finger_completed_tick": 72,
+        "first_two_finger_loss_completed_tick": 73,
+        "first_contact_lift_completed_tick": 133,
+        "takeover_action_index": 45,
+        "takeover_simulation_s": 0.75,
+        "first_legal_expert_action_index": 47,
+        "first_legal_expert_simulation_s": 0.7833333333333333,
+        "expert_to_success_s": 3.95,
+        "valid_expert_ticks": 235,
+        "precontact_expert_ticks": 21,
+        "legal_before_tick100": 53,
+        "legal_before_tick150": 103,
+        "hold60": {
+          "reference_available": true,
+          "height_reference_m": 0.5700033903121948,
+          "window_ticks": 60,
+          "duration_seconds": 1.0,
+          "sustained": true,
+          "first_completed_tick": 260,
+          "qualified_windows": 14,
+          "held_at_final_window": false,
+          "longest_contact_height_ticks": 47,
+          "native_success_changed": false,
+          "rotation_allowed": true
+        },
+        "label_checks": "A q[t+1], B u_expert, both rear commands and prefix exclusion exact",
+        "contact_to_takeover_ticks": -24,
+        "postsettle_contact_to_takeover_ticks": -24,
+        "trigger_reason": "approaching_first_contact",
+        "earlier_contact_trigger_replay": {
+          "tick": null,
+          "actual_new_expert_steps": 0,
+          "scope": "Causal replay of saved student prefix only; recovery not yet tested"
+        },
+        "prefix_contact_lift": false,
+        "prefix_hold60": {
+          "reference_available": false,
+          "sustained": false,
+          "longest_contact_height_ticks": 0
+        }
+      },
+      {
+        "identity": "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+        "family": "expanded_session20261115_03_prefetch13_s29000076",
+        "source_group": "A",
+        "cohort": "latest_corrections",
+        "frames": 358,
+        "simulation_duration_s": 5.966666666666667,
+        "first_contact_completed_tick": 66,
+        "first_postsettle_contact_completed_tick": 66,
+        "first_two_finger_completed_tick": 88,
+        "first_two_finger_loss_completed_tick": 91,
+        "first_contact_lift_completed_tick": 152,
+        "takeover_action_index": 67,
+        "takeover_simulation_s": 1.1166666666666667,
+        "first_legal_expert_action_index": 69,
+        "first_legal_expert_simulation_s": 1.15,
+        "expert_to_success_s": 4.85,
+        "valid_expert_ticks": 289,
+        "precontact_expert_ticks": 0,
+        "legal_before_tick100": 31,
+        "legal_before_tick150": 81,
+        "hold60": {
+          "reference_available": true,
+          "height_reference_m": 0.5444220304489136,
+          "window_ticks": 60,
+          "duration_seconds": 1.0,
+          "sustained": true,
+          "first_completed_tick": 340,
+          "qualified_windows": 4,
+          "held_at_final_window": false,
+          "longest_contact_height_ticks": 48,
+          "native_success_changed": false,
+          "rotation_allowed": true
+        },
+        "label_checks": "A q[t+1], B u_expert, both rear commands and prefix exclusion exact",
+        "contact_to_takeover_ticks": 1,
+        "postsettle_contact_to_takeover_ticks": 1,
+        "trigger_reason": "first_persistent_contact_formation",
+        "earlier_contact_trigger_replay": {
+          "tick": 67,
+          "actual_new_expert_steps": 0,
+          "scope": "Causal replay of saved student prefix only; recovery not yet tested"
+        },
+        "prefix_contact_lift": false,
+        "prefix_hold60": {
+          "reference_available": true,
+          "height_reference_m": 0.5444220304489136,
+          "window_ticks": 60,
+          "duration_seconds": 1.0,
+          "sustained": false,
+          "first_completed_tick": null,
+          "qualified_windows": 0,
+          "held_at_final_window": false,
+          "longest_contact_height_ticks": 0,
+          "native_success_changed": false,
+          "rotation_allowed": true
+        }
+      },
+      {
+        "identity": "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+        "family": "expanded_session20261115_03_prefetch13_s29000076",
+        "source_group": "B",
+        "cohort": "latest_corrections",
+        "frames": 364,
+        "simulation_duration_s": 6.066666666666666,
+        "first_contact_completed_tick": 69,
+        "first_postsettle_contact_completed_tick": 69,
+        "first_two_finger_completed_tick": 78,
+        "first_two_finger_loss_completed_tick": 94,
+        "first_contact_lift_completed_tick": 90,
+        "takeover_action_index": 64,
+        "takeover_simulation_s": 1.0666666666666667,
+        "first_legal_expert_action_index": 66,
+        "first_legal_expert_simulation_s": 1.1,
+        "expert_to_success_s": 5.0,
+        "valid_expert_ticks": 298,
+        "precontact_expert_ticks": 2,
+        "legal_before_tick100": 34,
+        "legal_before_tick150": 84,
+        "hold60": {
+          "reference_available": true,
+          "height_reference_m": 0.5442788600921631,
+          "window_ticks": 60,
+          "duration_seconds": 1.0,
+          "sustained": true,
+          "first_completed_tick": 261,
+          "qualified_windows": 91,
+          "held_at_final_window": false,
+          "longest_contact_height_ticks": 147,
+          "native_success_changed": false,
+          "rotation_allowed": true
+        },
+        "label_checks": "A q[t+1], B u_expert, both rear commands and prefix exclusion exact",
+        "contact_to_takeover_ticks": -5,
+        "postsettle_contact_to_takeover_ticks": -5,
+        "trigger_reason": "approaching_first_contact",
+        "earlier_contact_trigger_replay": {
+          "tick": null,
+          "actual_new_expert_steps": 0,
+          "scope": "Causal replay of saved student prefix only; recovery not yet tested"
+        },
+        "prefix_contact_lift": false,
+        "prefix_hold60": {
+          "reference_available": true,
+          "height_reference_m": 0.5442788600921631,
+          "window_ticks": 60,
+          "duration_seconds": 1.0,
+          "sustained": false,
+          "first_completed_tick": null,
+          "qualified_windows": 0,
+          "held_at_final_window": false,
+          "longest_contact_height_ticks": 0,
+          "native_success_changed": false,
+          "rotation_allowed": true
+        }
+      }
+    ],
+    "summary": {
+      "original30": {
+        "simulation_duration_s": {
+          "count": 0
+        },
+        "first_contact_completed_tick": {
+          "count": 0
+        },
+        "first_two_finger_completed_tick": {
+          "count": 0
+        },
+        "first_postsettle_contact_completed_tick": {
+          "count": 0
+        },
+        "first_contact_lift_completed_tick": {
+          "count": 0
+        },
+        "takeover_simulation_s": {
+          "count": 0
+        },
+        "expert_to_success_s": {
+          "count": 0
+        },
+        "contact_to_takeover_ticks": {
+          "count": 0
+        },
+        "postsettle_contact_to_takeover_ticks": {
+          "count": 0
+        }
+      },
+      "latest_corrections": {
+        "simulation_duration_s": {
+          "count": 4,
+          "minimum": 4.05,
+          "median": 5.333333333333334,
+          "maximum": 6.066666666666666
+        },
+        "first_contact_completed_tick": {
+          "count": 4,
+          "minimum": 65,
+          "median": 67.5,
+          "maximum": 69
+        },
+        "first_two_finger_completed_tick": {
+          "count": 4,
+          "minimum": 67,
+          "median": 75.0,
+          "maximum": 88
+        },
+        "first_postsettle_contact_completed_tick": {
+          "count": 4,
+          "minimum": 65,
+          "median": 67.5,
+          "maximum": 69
+        },
+        "first_contact_lift_completed_tick": {
+          "count": 4,
+          "minimum": 89,
+          "median": 111.5,
+          "maximum": 152
+        },
+        "takeover_simulation_s": {
+          "count": 4,
+          "minimum": 0.6833333333333333,
+          "median": 0.9083333333333333,
+          "maximum": 1.1166666666666667
+        },
+        "expert_to_success_s": {
+          "count": 4,
+          "minimum": 3.3666666666666667,
+          "median": 4.4,
+          "maximum": 5.0
+        },
+        "contact_to_takeover_ticks": {
+          "count": 4,
+          "minimum": -24,
+          "median": -14.5,
+          "maximum": 1
+        },
+        "postsettle_contact_to_takeover_ticks": {
+          "count": 4,
+          "minimum": -24,
+          "median": -14.5,
+          "maximum": 1
+        }
+      }
+    },
+    "population": {
+      "all": {
+        "episodes": 348,
+        "legal_ticks": 94343,
+        "legal_before_tick100": 8440,
+        "legal_before_tick150": 20008
+      },
+      "latest_corrections": {
+        "episodes": 4,
+        "legal_ticks": 1022,
+        "legal_before_tick100": 175,
+        "legal_before_tick150": 375
+      },
+      "original30": {
+        "episodes": 30,
+        "legal_ticks": 10398,
+        "legal_before_tick100": 3000,
+        "legal_before_tick150": 4500
+      }
+    },
+    "observed_training": {
+      "A": {
+        "observed_updates": 0,
+        "latest_visits": {
+          "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 0,
+          "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 0,
+          "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 0,
+          "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 0
+        },
+        "latest_target_slots": 0,
+        "latest_slots_before100": 0,
+        "latest_slots_before150": 0,
+        "snapshot_only": true,
+        "durable_checkpoint_reconciliation_pending": true
+      },
+      "B": {
+        "observed_updates": 0,
+        "latest_visits": {
+          "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 0,
+          "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 0,
+          "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 0,
+          "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 0
+        },
+        "latest_target_slots": 0,
+        "latest_slots_before100": 0,
+        "latest_slots_before150": 0,
+        "snapshot_only": true,
+        "durable_checkpoint_reconciliation_pending": true
+      }
+    },
+    "claims": {
+      "prefix_is_not_expert_supervision": true,
+      "latest_labels_match_actual_execution": true,
+      "no_counterfactual_expert_labels_on_prefix": true,
+      "test_read": false,
+      "rgb_payloads_reaudited": false
+    }
   }
 }
