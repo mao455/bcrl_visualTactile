@@ -135,9 +135,10 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
     if source_selection is not None:plan['source_selection']=source_selection
     validate_collection_plan(plan)
     if queued_gpu:
+        from visuotactile.current_render import PROFILE as RENDER_PROFILE
         from visuotactile.queued_rollout import PROFILE
         from visuotactile.gpu_batch_controller import PROFILE as GPU_PROFILE
-        plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE,
+        plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE,render_profile=RENDER_PROFILE,
             ordering='Persistent mixed-role queue; independently reset native lanes and bounded async close')
     atomic_json(output / 'plan.json', plan)
     return plan

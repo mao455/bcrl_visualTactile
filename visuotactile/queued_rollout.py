@@ -140,6 +140,11 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
     profile=dict(controller_s=0.,environment_s=0.,expert_s=0.,record_submit_s=0.,finish_audit_s=0.,
         reset_refill_s=0.,active_lane_steps=0,allocated_lane_steps=0,refills=0,finished_before_queue_empty=0)
     raw={}
+    render_reuse=None
+    if plan['batch'].get('render_profile'):
+        from .current_render import PROFILE as RENDER_PROFILE,CurrentRenderReuse
+        if plan['batch']['render_profile']!=RENDER_PROFILE:raise ValueError('Unknown render reuse profile')
+        render_reuse=CurrentRenderReuse(env)
     try:
         with lease.block():
             env.clear_recorded_events();env.action_control_mode='native_command_clipped_pre_delay'
@@ -310,8 +315,10 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
             vision_execution=controller.vision_execution_report(),render_transitions=render.changes)
         profile['aggregate_control_ticks_per_second']=profile['control_ticks']/profile['seconds']
         profile['active_lane_fraction']=profile['active_lane_steps']/max(1,profile['allocated_lane_steps'])
+        if render_reuse is not None:profile['render_reuse']=dict(render_reuse.stats)
         return finished,profile
     finally:
+        if render_reuse is not None:render_reuse.close()
         if hook is not None:hook.remove()
         if bridge is not None and getattr(env,'_dagger_position_bridge',None) is bridge:del env._dagger_position_bridge
         if render is not None:render.close()

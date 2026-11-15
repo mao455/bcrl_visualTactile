@@ -238,6 +238,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def configure_camera_views(self, local_eye=(-.7, -.35, 1.15), local_target=(0., -.03, .68)):
         """Static calibrations relative to env origin; never follow a true object pose."""
+        if getattr(self,'current_render_reuse',None):self.current_render_reuse.invalidate()
         self._fixed_renderer_pose_cache = None
         if self.execution_backend is not None and self.execution_backend.get('tiled_fixed_camera_usd_sync'):
             from visuotactile.tiled_camera_pose_sync import enable_fixed_camera_pose_sync
@@ -370,6 +371,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
             object_minus_hole_m=(final[:,:3]-self.hole.data.root_pos_w[env_ids]).tolist())
 
     def _reset_idx(self, env_ids):
+        if getattr(self,'current_render_reuse',None):self.current_render_reuse.invalidate()
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, device=self.device)
         super()._reset_idx(env_ids)
@@ -554,7 +556,10 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
     def _get_observations(self):
         teacher = super()._get_observations()
         with self._student_enabled():
-            student = build_student_observations(self)
+            reuse=getattr(self,'current_render_reuse',None)
+            if reuse is None:student = build_student_observations(self)
+            else:
+                with reuse.observation():student=build_student_observations(self)
         # 87-D full student proprio retained only for provenance. Nominal uses
         # encoders (58-D): executed target history may contain tactile correction.
         self.research_packet = {

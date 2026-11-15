@@ -100,7 +100,8 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
     if queued_gpu:
         from visuotactile.queued_rollout import PROFILE
         from visuotactile.gpu_batch_controller import PROFILE as GPU_PROFILE
-        plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE)
+        from visuotactile.current_render import PROFILE as RENDER_PROFILE
+        plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE,render_profile=RENDER_PROFILE)
     if grasp_evaluation_ticks is not None:
         counts={}
         for case in plan['cases']:

@@ -544,3 +544,6 @@ imitation 将交互收集、轨迹保存与后续 BC 训练分离；其 Interact
 `preregistered_training_families_v1`在结果发生前固定新增train family、seed及float32请求初态hash，明确排除已有和原验证/测试配置；不代表扩大质量/摩擦域。`registered_training_expansion_takeover_v1`允许事前明确的fixed40/80、contact0/12或near60机会；固定时刻、接触触发与持物接近目标分开审核，真实学生前缀没有专家标签。registry、初态hash和来源身份贯穿metadata/entry/aggregate；缺省未知family仍拒绝。六验证family、test22、原统计不变；不读取测试轨迹。固定接管也必须专家实际救回及完整来源/传感验收，不能将登记机会算成新数据。
 
 `frozen_episode_prefetch_v1`只对冻结CPU原特征做有界精确clone，不缓存可学习GRU；每次完整历史按当前权重重算。训练前显式登记，已开始不可热替换；吞吐必须含等待及验证，不能把重叠预取和计算相加。短吞吐探针使用独立engineering身份，控制上限截断单列，不计自然失败、成功或新增轨迹。
+
+#### Opt-in current native render reuse (2026-11-15)
+`reuse_native_current_render_v1` applies only to registered new queued GPU runs. Native120Hz physics/render_interval2 remains unchanged. A local wrapper witnesses completed native renders at `sim.current_time_step_index`; the extra render inside the existing image reader can be omitted only at the same physical step. Reset or camera calibration changes invalidate this witness. The original reader, real camera updates, preprocessing,60Hz observations and full recording remain. Startup/manual reset without a witnessed current render falls back to rendering. This changes rendered sampling, not a bitwise image replay claim. Legacy paths are unchanged.
