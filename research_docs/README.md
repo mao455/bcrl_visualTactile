@@ -2,7 +2,7 @@
 
 已完成最新26条的A/B训练，又监督第17、18轮连续完整采集→入库→DP→刷新输入→Transformer→自主评估和自动交接。两轮共新增8条真实早期纠偏；固定开发初态抓持未明显改善，保留A11/B15。固定原始训练2条的集中后端拟合后，A有1个原本拿不稳的初态实际持物超过1秒，B没有改善；这不代表泛化达标。
 
-已启动新独立04/第19轮：基于真实接近状态补接触前纠偏，DP及Transformer均增加最新纠偏曝光；单轮有界，11月16日09:00 +08截止。启动与完成分开，以[最新交接](SESSION_HANDOFF.md)和`python -m tools.tight_fresh_night_status --root outputs/visuotactile/run/tight_fresh_20261116_04`为准。[实际脚本与故障处理](../scripts/tight_fresh_night_20261116/README.md) · [累计小报告](evidence/tight_fresh_20261114/throughput15/night20261116.json)。以下保留历史快照，不能当当前进程状态。
+已启动新独立04/第19轮：基于真实接近状态补接触前纠偏，DP及Transformer均增加最新纠偏曝光；单轮有界，11月16日09:00 +08截止。17/18监督验证通过，19修复后的真实更新及新数据已检查，现由独立有界服务继续；启动与完成分开，以[最新交接](SESSION_HANDOFF.md)和`python -m tools.tight_fresh_night_status --root outputs/visuotactile/run/tight_fresh_20261116_04`为准。[实际脚本与故障处理](../scripts/tight_fresh_night_20261116/README.md) · [累计小报告](evidence/tight_fresh_20261114/throughput15/night20261116.json)。以下保留历史快照，不能当当前进程状态。
 
 ## 2026-11-16 02:47 最新26条更新完成，抓持仍不可靠
 
