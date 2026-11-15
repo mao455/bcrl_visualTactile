@@ -11,7 +11,7 @@ read=lambda p:json.loads(p.read_text())
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--expected-commit',required=True)
-    p.add_argument('--attempt',type=int,choices=[10,11],default=10);a=p.parse_args()
+    p.add_argument('--attempt',type=int,choices=[10,11,12],default=10);a=p.parse_args()
     ROOT=BASE/f'tight_fresh_20261115_{a.attempt:02d}';OLD=BASE/f'tight_fresh_20261115_{a.attempt-1:02d}'
     SOURCE=BASE/'tight_fresh_20261115_09'
     assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=TREE,text=True).strip()==a.expected_commit

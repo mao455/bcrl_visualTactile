@@ -1536,3 +1536,5 @@ Source inspection confirms DirectRLEnv renders at every second120Hz physical tic
 -09 actual18/18 successes653.75s99.12/h;26new aggregate. Cache interrupted by32GiB reservation before training. Camera retirement/readback fix passed real whole collection.
 
 Prepared-data continuation follow-up: preserve an already identical sampling contract only in explicit reuse mode; no resampling/reweighting of started learners.10 failed before GPU/optimizers;11 is separately registered.
+
+Prepared reuse now materializes validated per-identity links required by committed-cache admission, with conflict rejection; original payload/index bytes remain untouched.11 failed before updates;12 uses a new identity.

@@ -17,7 +17,8 @@ def setup(tmp_path):
     for role in ('A','B'):
         write(source/role/'state_data/data.json',{'entries':{'actual':'trajectory'}})
         write(source/role/'continuation.json',{'source':'existing checkpoint'})
-        write(source/role/'cache_progress_index.json',{'entries':{'actual':{'path':'immutable_old_feature.pt'}}})
+        feature=source/role/'state_data/perception/actual.pt';write(feature,{'immutable':'feature'})
+        write(source/role/'cache_progress_index.json',{'entries':{'actual':{'path':str(feature)}}})
     return source,root,collection,output
 
 def test_reuse_preserves_data_and_committed_cache_and_changes_only_new_resources(tmp_path):
@@ -25,6 +26,7 @@ def test_reuse_preserves_data_and_committed_cache_and_changes_only_new_resources
     for role in ('A','B'):
         assert (output/role/'state_data/data.json').read_bytes()==(source/role/'state_data/data.json').read_bytes()
         assert (output/role/'cache_progress_index.json').read_bytes()==(source/role/'cache_progress_index.json').read_bytes()
+        assert (output/role/'state_data/perception/actual.pt').resolve()==(source/role/'state_data/perception/actual.pt').resolve()
     assert json.loads((output/'session.json').read_text())['reserve_bytes']==16
     assert json.loads((source/'session.json').read_text())['reserve_bytes']==32
     assert not (output/'A/training').exists()

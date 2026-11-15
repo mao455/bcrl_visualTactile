@@ -27,12 +27,21 @@ def reuse(source,root,collection,output):
     (output/'shared_resources.json').symlink_to(root/'shared_resources.json')
     for role in ('A','B'):
         dst=output/role;dst.mkdir();(dst/'state_data').mkdir()
+        (dst/'state_data/perception').mkdir()
         for src in (source/role/'state_data').iterdir():
             if src.is_file():copy_file(src,dst/'state_data'/src.name)
         copy_file(source/role/'continuation.json',dst/'continuation.json')
         for name in ('cache_acceptance_index.json','cache_progress_index.json','cache_index.json'):
             src=source/role/name
-            if src.exists():copy_file(src,dst/name)
+            if src.exists():
+                copy_file(src,dst/name)
+                for identity,entry in read(src)['entries'].items():
+                    if Path(identity).name!=identity:raise ValueError('Invalid committed cache identity')
+                    target=Path(entry['path']).resolve(strict=True)
+                    link=dst/'state_data/perception'/(identity+'.pt')
+                    if link.exists():
+                        if link.resolve()!=target:raise ValueError('Conflicting committed cache target')
+                    else:link.symlink_to(target)
         atomic_json(dst/'session.json',dict(session,resource_root=str(output),cache_deadline=session['deadline']))
         (dst/'shared_resources.json').symlink_to(root/'shared_resources.json')
     atomic_json(output/'prepared.json',dict(previous,reused_prepared=dict(source=str(source),
