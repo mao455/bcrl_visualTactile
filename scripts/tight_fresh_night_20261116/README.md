@@ -1,10 +1,13 @@
 # 2026-11-16 supervised grasp diagnosis and night continuation
 
-This bundle implements the latest user request. It is **not** evidence that two
-real cycles or unattended readiness have passed. Actual service receipts in the
-output roots are authoritative. All raw observations, expert labels and current
-rollback pairs stay on the research machine; only scripts and small reports go
-on the feature branch.
+Actual status2026-11-16: completed17 AND18 prove two consecutive supervised
+capture→admission→DP→new-DP-input→Transformer→autonomy loops and automatic handoff.
+They did not gain fixed-development holding; the owner safely stopped. The train2
+fit comparison in03 is complete and diagnostic only. New bounded04/round19 uses
+pre-contact recovery plus increased exposure; read its real stage before claiming
+completion. All roots retain09:00 +08 cutoff. Code existence is never run evidence.
+Raw observations, weights and detailed receipts remain on the research machine;
+reviewed scripts and small results go to the existing feature branch.
 
 1. `request_dp_boundary.py` waits for session13 A/B to finish exactly12 epochs /
    2460 optimizer updates, then requests its ordinary cycle STOP before backend
