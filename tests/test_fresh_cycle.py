@@ -7,6 +7,24 @@ import pytest
 from tools import tight_fresh_cycle as cycle
 
 
+def test_resume_accepts_prepared_but_unstarted_evaluation(tmp_path):
+    directory=tmp_path/'development';directory.mkdir()
+    for name in ('plan.json','session.json'):(directory/name).write_text('{}')
+    cycle.validate_unstarted_evaluation(directory,'development')
+    with pytest.raises(RuntimeError):cycle.validate_unstarted_evaluation(directory,'development_prepare')
+
+
+@pytest.mark.parametrize('evidence',['run_started.json','initialization.json','case_001'])
+def test_resume_preserves_any_actual_evaluation_start(tmp_path,evidence):
+    directory=tmp_path/'development';directory.mkdir()
+    for name in ('plan.json','session.json'):(directory/name).write_text('{}')
+    path=directory/evidence
+    if evidence=='case_001':path.mkdir()
+    else:path.write_text('{}')
+    with pytest.raises(RuntimeError):cycle.validate_unstarted_evaluation(directory,'development')
+    assert path.exists()
+
+
 @pytest.mark.parametrize('fault',['exit','missing','incomplete','deadline'])
 def test_failed_stage_retains_evidence_and_never_advances(tmp_path,monkeypatch,fault):
     root=tmp_path/'initial';root.mkdir();collection=tmp_path/'collection';collection.mkdir()

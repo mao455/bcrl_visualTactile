@@ -17,6 +17,20 @@ from tools.tight_fresh_rollouts import read
 from tools.tight_fresh_eval_recovery import wait_owned, stop_owned
 
 
+def validate_unstarted_evaluation(directory, stage):
+    """A bound prepared plan is not a started physical evaluation.
+
+    A previously completed preparation receipt is checked before this function.
+    Any additional file/directory, including partial startup, requires explicit
+    unresolved-case recovery. Never infer 'unstarted' from missing results alone.
+    """
+    if not directory.exists():return
+    allowed={'plan.json','session.json'}
+    if (stage!='development' or {p.name for p in directory.iterdir()}!=allowed
+            or not all((directory/name).is_file() for name in allowed)):
+        raise RuntimeError('Interrupted physical evaluation needs explicit unresolved-case recovery, never overwrite')
+
+
 def parallel_admission(row, now):
     """Joint launch headroom, in addition to each worker's ordinary reserves."""
     age=now-row['utc_epoch']
@@ -319,8 +333,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
                     raise ValueError('Completed stage has an incomplete receipt: '+name)
                 atomic_json(attempt/(name+'_reused.json'),dict(stage=name,original_receipt_sha256=sha256(prior)))
                 stages.append(saved);return
-        if resume and name.startswith('development') and (output/'development').exists():
-            raise RuntimeError('Interrupted physical evaluation needs explicit unresolved-case recovery, never overwrite')
+        if resume and name.startswith('development'):
+            validate_unstarted_evaluation(output/'development',name)
         if update_status:atomic_json(ledger/'status.json',dict(stage=name,command=command,started=time.time()))
         start=time.time()
         with (attempt/(name+'.log')).open('x') as stream:
