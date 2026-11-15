@@ -1695,3 +1695,6 @@ Added `tools/tight_fresh_approach_timing.py` (numeric-only original30/latest8) a
 ### 2026-11-16 05:48 +08 — bounded phase selection comparison and future exposure configuration
 
 `tools/tight_fresh_fixed_rear_fit.py --compare-completed` ran read-only B17 best3/final4 validation6 comparison: early and all-time errors both favor best3, no model/selection change. `tight_fresh_night_owner.py` forwards separately registered DP/rear repetition counts, defaults4 preserved, finite1..32. Prepared a closed-root exact-entire-payload duplicate retirement script; no data/checkpoint removal yet. Active frozen30aeb80 and fittedbe8a4da unchanged. Python compilation passes; actual B17 metric comparison completed without simulator or optimizer work.
+
+
+2026-11-16 05:54 +08 — Unified read-only status now prefers finished receipts over stale last-progress counters, reports the actual root-bound live owner, omits completed-round detail by default (--all-rounds restores it), and supports the forthcoming fixed-fit comparison owner and its serial queues. Verified on active18; no training or simulator state changed.
