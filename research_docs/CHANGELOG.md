@@ -1514,3 +1514,11 @@ Source inspection confirms DirectRLEnv renders at every second120Hz physical tic
 
 ### 2026-11-15 23:03 +08 — distinguish selected policy age from resource clock
 `tools/tight_fresh_followup_session.py` accepts an explicit closed resource parent, retaining its exact deadline and task/checkpoint identities. New07 replaces pre-GPU failed06_launch; old launcher receipts remain. This fixes recovery from older reliable policies within current04's clock, without opening a new time window. Updated actual bundle and opt-in launch argument.
+
+
+## 2026-11-15 throughput08 bounded recovery
+- async_recording, queued_rollout, tight_fresh_batch_run: eager bounded spawned verifiers before native simulator/CUDA; real capture contract unchanged.
+- tight_batch_owner/eval_recovery:180s stale-control progress dump and owned-group cleanup.
+- collection_source/round_compare: recognize dynamic GPU queue receipts and censored grasp execution; actual15 recovered round14 numeric/history/counter audits passed.
+- scripts tight_fresh_20261115_08: same04 deadline, A11/B09,14 DP epochs/latest4 then refresh/rear12/latest4;18 genuine early-grasp opportunities. No old training repeated.
+- throughput scripts: actual five closed-file salvage (934 valid expert steps), hash-bound derived-cache retirement; raw data/weights preserved. Formal24 stalled and is not a completed throughput experiment.8 focused eager/lazy real-HDF5 tests passed.

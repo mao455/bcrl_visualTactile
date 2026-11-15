@@ -28,7 +28,7 @@ def require(value, message):
 def evaluated_role(evaluation, role, pair):
     """Keep every registered opportunity, allowing only evidenced zero-action rejects."""
     from tools.tight_fresh_round_compare import (invalid_initialization_evidence,
-        audit_numeric_clock, verify_execution_receipt)
+        audit_numeric_clock, verify_execution_receipt,audit_inference_counts)
     plan, rows, final = (read(evaluation/name) for name in ('plan.json', 'results.json', 'result.json'))
     require(plan.get('kind') == 'autonomous' and plan.get('test_used') is False
         and plan.get('source_sha256') and plan['pairs'][role] == pair,
@@ -46,7 +46,8 @@ def evaluated_role(evaluation, role, pair):
     indexed = {row['case']:row for row in rows}; receipts = {}; counts = {r:dict(legal=0, illegal=0) for r in ('A', 'B')}
     execution = verify_execution_receipt(evaluation, plan)
     assignments = {}; wave = 0
-    if 'batch' in plan:
+    queued=plan.get('batch',{}).get('queue_profile')
+    if 'batch' in plan and not queued:
         for group in dict.fromkeys(case['role'] for case in cases):
             selected = [case for case in cases if case['role'] == group]
             for first in range(0, len(selected), plan['batch']['lanes']):
@@ -63,15 +64,25 @@ def evaluated_role(evaluation, role, pair):
             and not result.get('worker_error') and not result.get('censored'), 'Autonomous case provenance differs: '+name)
         if 'batch' in plan:
             metadata = read(path/'metadata.json')
-            batch = result['batch_execution']; wave, lane = assignments[name]
+            batch = result['batch_execution']
             require(metadata['policy_checkpoint_sha256'] == actual['backend_sha256']
                 and metadata['batch_execution'] == started['batch_execution'] == result['batch_execution']
                 and metadata['execution_backend'] == execution['execution_backend']
-                and (batch['wave'], batch['lane']) == (wave, lane) and batch['lanes'] == plan['batch']['lanes']
+                and batch['lanes'] == plan['batch']['lanes']
                 and batch['vision_microbatch'] == execution['vision_microbatch']
-                and batch.get('vision_tail_profile') == execution['vision_tail_profile']
-                and batch['physics_seed'] == plan['batch']['seed']+wave
-                and batch['event_seed'] == plan['batch']['seed']+100000+wave, 'Batch policy binding differs')
+                and batch.get('vision_tail_profile') == execution['vision_tail_profile'], 'Batch policy binding differs')
+            if queued:
+                require(batch['version']==queued and batch['queue_ordinal']==names.index(name)
+                    and type(batch['lane']) is int and 0<=batch['lane']<batch['lanes']
+                    and type(batch['global_start_tick']) is int and batch['global_start_tick']>=0
+                    and batch['physics_seed']==plan['batch']['seed']
+                    and batch['event_seed']==plan['batch']['seed']+100000,
+                    'Dynamic queue assignment/seed differs')
+            else:
+                wave,lane=assignments[name]
+                require((batch['wave'],batch['lane'])==(wave,lane)
+                    and batch['physics_seed']==plan['batch']['seed']+wave
+                    and batch['event_seed']==plan['batch']['seed']+100000+wave,'Wave assignment/seed differs')
         else:
             require(Path(started['checkpoint']).resolve() == Path(actual['backend']).resolve(), 'Executed backend differs')
         if result.get('legal') is False:
@@ -89,11 +100,10 @@ def evaluated_role(evaluation, role, pair):
                 'Incomplete autonomous complete-student execution: '+name)
             if 'batch' in plan:
                 require(result.get('complete_student_policy') == actual, 'Complete policy identity differs')
-            measured = result['native_inference']['summary']
-            require(all(measured[k]['wall_s']['count'] == steps for k in
-                ('dino_rgb', 'learned_visual_and_history', 'residual_forward_compose'))
-                and measured['ddim_plan']['wall_s']['count'] == (steps+11)//12,
-                'Real-frame history or planning count differs')
+            audit_inference_counts(result)
+            if result.get('grasp_stage_censored'):
+                require(queued and steps==case.get('grasp_evaluation_ticks') and result.get('full_task_evaluation') is False,
+                    'Grasp observation cutoff differs from registered horizon')
             evidence = audit_numeric_clock(path, steps)
             counts[group]['legal'] += 1
         receipts[name] = dict(role=group, result=file_binding(path/'result.json'),

@@ -256,8 +256,20 @@ def run(output):
         json.dump(dict(pid=os.getpid(),utc=time.time(),plan_sha256=sha256(output/'plan.json')),stream)
     lease=lease_for(Path(plan['resource_root']),deadline=session['deadline'])
     started=time.perf_counter()
+    capture_pool=None
+    if plan['kind']=='takeover' and plan['batch'].get('queue_profile'):
+        from visuotactile.async_recording import SharedCaptureWriter
+        if torch.cuda.is_initialized():raise RuntimeError('Verifier startup must precede CUDA initialization')
+        capture_pool=SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes'],
+            verification_workers=plan['batch'].get('verification_workers',0),
+            verification_max_pending=plan['batch'].get('verification_max_pending',4),prestart_verifiers=True)
+        atomic_json(output/'verifiers_ready.json',dict(capture_pool.statistics(),utc=time.time()))
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=plan['batch']['lanes'],
         camera_content_validation=True,execution_backend=plan['execution_backend'])
+    import faulthandler,signal
+    diagnostic_stream=(output/'runtime_tracebacks.log').open('x')
+    faulthandler.register(signal.SIGUSR2,file=diagnostic_stream,all_threads=True,chain=False)
+    atomic_json(output/'runtime_diagnostics_ready.json',dict(pid=os.getpid(),signal='SIGUSR2'))
     with inactive_render_scope(env,inactive,output) as guard:
         atomic_json(output/'initialization.json',dict(seconds=time.perf_counter()-started,lanes=env.num_envs,
             execution_backend=plan['execution_backend'],vision_microbatch=vision_microbatch,
@@ -274,7 +286,7 @@ def run(output):
         for index,cases in enumerate(batches):
             role=cases[0]['role'];pair=plan['pairs'][role]
             if queued:
-                finished,profile=run_queue(env,player,lease,output,cases,plan['pairs'],saved,dino,plan)
+                finished,profile=run_queue(env,player,lease,output,cases,plan['pairs'],saved,dino,plan,capture_pool=capture_pool)
             else:
                 finished,profile=run_wave(env,player,lease,output,cases,pair,saved[role],dino,plan,index,
                     **({} if guard is None else dict(render_guard=guard)))

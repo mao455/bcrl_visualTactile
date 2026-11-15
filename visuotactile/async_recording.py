@@ -34,6 +34,15 @@ class CaptureWorkerError(RuntimeError):
     """The shared writer failed; all further submissions are rejected."""
 
 
+def _verification_ready(barrier):
+    # Start every spawn process before Kit/CUDA creates native threads.
+    barrier.wait(timeout=90)
+
+
+def _verification_pid():
+    return os.getpid()
+
+
 class CaptureFinishTicket:
     """Wait for a queued finalizer without pausing other simulator lanes."""
     def __init__(self, future, queued_at):
@@ -163,7 +172,8 @@ class SharedCaptureWriter:
     explicitly instead of waiting forever for a frame that cannot be admitted.
     """
     def __init__(self, max_pending_bytes=512 << 20, max_queue=64,
-                 verification_workers=0, verification_max_pending=4):
+                 verification_workers=0, verification_max_pending=4,
+                 prestart_verifiers=False):
         if type(max_pending_bytes) is not int or max_pending_bytes < 1:
             raise ValueError('max_pending_bytes must be a positive integer')
         if type(max_queue) is not int or max_queue < 1:
@@ -189,8 +199,17 @@ class SharedCaptureWriter:
         self._verification_submitted = self._verification_completed = self._verification_failed = 0
         self._verification_slot_wait_s = 0.
         self._verification_pids = set()
+        context = multiprocessing.get_context('spawn')
+        barrier = context.Barrier(verification_workers) if prestart_verifiers and verification_workers else None
         self._verification_executor = (ProcessPoolExecutor(max_workers=verification_workers,
-            mp_context=multiprocessing.get_context('spawn')) if verification_workers else None)
+            mp_context=context, initializer=_verification_ready if barrier else None,
+            initargs=(barrier,) if barrier else ()) if verification_workers else None)
+        self._prestarted_verifiers = False
+        if barrier is not None:
+            futures = [self._verification_executor.submit(_verification_pid) for _ in range(verification_workers)]
+            for future in futures:
+                future.result(timeout=100)
+            self._prestarted_verifiers = True
         self._thread = threading.Thread(target=self._run, name='tight-capture-writer', daemon=True)
         self._thread.start()
 
@@ -213,6 +232,7 @@ class SharedCaptureWriter:
                 byte_scope='owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch',
                 worker_alive=self._thread.is_alive(), failed=self._error is not None,
                 verification_workers=self.verification_workers,
+                prestarted_verifiers=self._prestarted_verifiers,
                 verification_max_pending=self.verification_max_pending,
                 verification_pending=self._verification_pending,
                 verification_peak_pending=self._verification_peak,

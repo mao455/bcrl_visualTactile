@@ -150,7 +150,9 @@ def run(output,worker_tree,startup_seconds=300):
             worker_group=bind_worker_group(worker.pid)
             atomic_json(output/'owner_worker_started.json',dict(worker_pid=worker.pid,owner_pid=os.getpid(),
                 worker_group=worker_group,start_new_session=True,utc=time.time()))
-            reason=wait_owned(worker,session['deadline'],startup_marker=output/'initialization.json',startup_seconds=startup_seconds)
+            reason=wait_owned(worker,session['deadline'],startup_marker=output/'initialization.json',startup_seconds=startup_seconds,
+                **(dict(progress_marker=output/'batch_progress.json',progress_seconds=180,
+                    diagnostics_ready=output/'runtime_diagnostics_ready.json') if plan['batch'].get('queue_profile') else {}))
         if worker.returncode==0 and reason is None:
             result=read(output/'result.json');rows=census(output,plan)
             complete=(result.get('software_complete') is True and result.get('cases')==len(rows)

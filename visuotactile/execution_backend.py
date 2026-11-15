@@ -101,8 +101,10 @@ def startup_arguments(value, *, num_envs=None):
             raise ValueError('Tiled startup requires the registered lane count')
         # Replicator otherwise enforces an installation-specific tile ceiling.
         # Resource admission remains the runner's responsibility, not a lane cap.
-        # Three simultaneous tiled RGB-D products use 3*N camera tiles.
-        # A per-product N check is insufficient for the global RTX capacity.
+        # Conservative requested headroom for three products. Installed
+        # Replicator checks this per product; actual readback is authoritative.
+        # The 2026-11-15 live run read 1,000,000 and still had black secondary
+        # views, so this setting is not an established black-frame fix.
         args += f' --/rtx/viewTile/limit={3*num_envs}'
     if config['version'] in (DESCRIPTOR_VERSION, TILED_POSE_VERSION):
         args += ''.join(f' --{path}={config[field]}' for field,path in DESCRIPTOR_SETTINGS.items())

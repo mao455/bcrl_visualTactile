@@ -24,7 +24,8 @@ def stop_owned(process):
         os.killpg(process.pid,signal.SIGKILL);process.wait(timeout=10)
 
 
-def wait_owned(process, deadline, *, startup_marker=None, startup_seconds=None):
+def wait_owned(process, deadline, *, startup_marker=None, startup_seconds=None,
+               progress_marker=None, progress_seconds=180, diagnostics_ready=None):
     """Bound a process group we created, including Kit's pre-control startup."""
     began=time.time()
     reason=None
@@ -32,6 +33,12 @@ def wait_owned(process, deadline, *, startup_marker=None, startup_seconds=None):
         while process.poll() is None:
             now=time.time()
             if now>=deadline:reason='original_session_deadline';break
+            if progress_marker is not None and progress_marker.exists() and now-progress_marker.stat().st_mtime>=progress_seconds:
+                reason='control_progress_timeout'
+                if diagnostics_ready is not None and diagnostics_ready.exists():
+                    os.kill(process.pid,signal.SIGUSR2)
+                    time.sleep(2)
+                break
             if (startup_marker is not None and not startup_marker.exists()
                     and now-began>=startup_seconds):
                 reason='pre_control_startup_timeout';break

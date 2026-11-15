@@ -94,7 +94,7 @@ def execution_identity(plan):
         require(batch.get('version')=='whole_wave_complete_student_v1' and batch.get('neural_batch') is True,
             'Unsupported batch execution identity')
         require(type(batch['lanes']) is int and batch['lanes']>0,'Invalid registered lane count')
-    return dict(mode='whole_wave' if batch else 'serial',lanes=batch['lanes'] if batch else 1,
+    identity=dict(mode='whole_wave' if batch else 'serial',lanes=batch['lanes'] if batch else 1,
         vision_microbatch=batch.get('vision_microbatch',2) if batch else 2,
         vision_tail_profile=batch.get('vision_tail_profile') if batch else None,
         inactive_render_profile=batch.get('inactive_render_profile') if batch else None,
@@ -102,6 +102,28 @@ def execution_identity(plan):
         inference_scheduler_index_mode=plan.get('inference_scheduler_index_mode','legacy'),
         execution_backend=plan.get('execution_backend',dict(version='tight_execution_backend_v1',
             physics_device='cpu',camera_backend='standard',kit_tasking_threads=2,physics_threads=2)))
+    if batch and batch.get('queue_profile'):
+        require(batch['queue_profile']=='independent_lane_queue_v1'
+            and batch.get('gpu_pipeline')=='gpu_observation_history_control_v1'
+            and batch.get('render_profile') in (None,'reuse_native_current_render_v1'),
+            'Unsupported queue/controller/render profile')
+        identity.update(mode='independent_lane_queue',queue_profile=batch['queue_profile'],
+            gpu_pipeline=batch.get('gpu_pipeline'),render_profile=batch.get('render_profile'))
+    return identity
+
+
+def audit_inference_counts(result):
+    steps=result['steps'];inference=result['native_inference']
+    if 'batch_observed_counts' in inference:
+        counts=inference['batch_observed_counts']
+        require(all(counts.get(k)==steps for k in ('history_updates','robot_observations','backend_updates'))
+            and counts.get('plans')==(steps+11)//12,'Real batch history/planning count differs')
+    else:
+        measured=inference['summary']
+        require(all(measured[k]['wall_s']['count']==steps for k in
+            ('dino_rgb','learned_visual_and_history','residual_forward_compose'))
+            and measured['ddim_plan']['wall_s']['count']==(steps+11)//12,
+            'Real-frame history or planning count differs')
 
 
 def validate_development_plan(plan):
@@ -126,6 +148,8 @@ def compare_plans(old,new):
 
 
 def wave_assignments(plan):
+    require(not plan.get('batch',{}).get('queue_profile'),
+        'Dynamic lane queue has no predetermined whole-wave assignment; use recorded queue receipts')
     assignments={}
     if 'batch' in plan:
         wave=0

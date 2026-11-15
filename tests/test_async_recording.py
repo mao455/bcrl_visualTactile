@@ -63,12 +63,13 @@ def contents(path, compact=False):
 
 @pytest.mark.parametrize('compression', ['lzf', 'gzip4_lossless_v1'])
 @pytest.mark.parametrize('verification_workers', [0, 2])
-def test_two_lanes_match_sync_source_fields_and_numeric(tmp_path, compression, verification_workers):
+@pytest.mark.parametrize('prestart', [False, True])
+def test_two_lanes_match_sync_source_fields_and_numeric(tmp_path, compression, verification_workers, prestart):
     metadata = {'camera_rig': {'version': 3}, 'trace_version': 2}
     result = {'success': True, 'checkpoint_sha256': 'fixture',
         'dagger': {'expert_takeover_success': True, 'expert_valid_ticks': 7}}
     with SharedCaptureWriter(max_pending_bytes=50_000, max_queue=3,
-            verification_workers=verification_workers, verification_max_pending=4) as pool:
+            verification_workers=verification_workers, verification_max_pending=4,prestart_verifiers=prestart) as pool:
         lanes = [AsyncLaneRecorder(tmp_path / f'async_{i}', metadata, 'episode', writer=pool,
             compression=compression, numeric_buffer_steps=4, block_size=3) for i in range(2)]
         material = [list(rows(identity=17+i)) for i in range(2)]

@@ -107,7 +107,7 @@ class RenderLanes:
 
 
 @torch.no_grad()
-def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
+def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool=None):
     from .environment_rng import IsolatedEnvironment
     from .narrow_data import configure_direct_reset_lanes
     from .live_collision import clearance
@@ -134,9 +134,9 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan):
     configure_direct_reset_lanes(env,configs+[configs[-1]]*(n-len(configs)))
     env.batch_static_calibration_cache=True;env._fixed_renderer_pose_cache=None
     isolated=IsolatedEnvironment(env,batch['physics_seed']);render=None;bridge=None;hook=None
-    pool=SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes'],
+    pool=capture_pool or (SharedCaptureWriter(max_pending_bytes=plan['batch']['writer_bytes'],
         verification_workers=plan['batch'].get('verification_workers',0),
-        verification_max_pending=plan['batch'].get('verification_max_pending',4)) if capture else None
+        verification_max_pending=plan['batch'].get('verification_max_pending',4)) if capture else None)
     profile=dict(controller_s=0.,environment_s=0.,expert_s=0.,record_submit_s=0.,finish_audit_s=0.,
         reset_refill_s=0.,active_lane_steps=0,allocated_lane_steps=0,refills=0,finished_before_queue_empty=0)
     raw={}
