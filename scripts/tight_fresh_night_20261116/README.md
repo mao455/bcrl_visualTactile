@@ -10,6 +10,7 @@ on the feature branch.
    2460 optimizer updates, then requests its ordinary cycle STOP before backend
    preparation. It never changes old02:05:20 deadline or interrupts a later stage.
    Started as `tight-fresh-dp-boundary-20261116.service` under supervision.
+   `wait_finish26.py` persistently waits for this receipt AND both old owner/monitor exits, then launches step2 once; no new GPU work overlaps the old session.
 2. After both old owner and monitor have exited, from a clean frozen worktree:
    `python scripts/tight_fresh_night_20261116/finish26.py launch --expected-commit <HEAD>`.
    New root `tight_fresh_20261116_00` ends09:00 +08. It binds the completed DP
