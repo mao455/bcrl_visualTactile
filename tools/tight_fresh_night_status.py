@@ -45,7 +45,10 @@ def status(root):
   path=root/'fixed_fit'/role/'progress.json';row=read(path)
   if row:rows.append(dict(path=str(path.relative_to(root)),**row))
  fit_finished=read(root/'fixed_fit_stages/finished.json')
- if fit_finished:result['fixed_fit_software_complete']=fit_finished.get('software_complete')
+ if fit_finished:
+  result['fixed_fit_software_complete']=fit_finished.get('software_complete')
+  result['independent_fixed_fit']=dict(stage='complete',utc=fit_finished.get('utc'),
+   scope=fit_finished.get('scope'))
  result['progress']=rows;return result
 
 if __name__=='__main__':

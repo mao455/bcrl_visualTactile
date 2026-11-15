@@ -1677,3 +1677,8 @@ Metadata erratum: frozen30aeb80's rear configuration still contains the historic
 ### 2026-11-16 05:11 +08 — bounded fitting actually executed
 
 `tools/tight_fresh_fixed_fit_owner.py` fit-only mode completed real A/B80passes/560updates using frozen A11/B15 plans on two original train histories. Selected early hand RMSE .002829–.003860rad versus .008195–.008922 before; no autonomous result yet. `scripts/tight_fresh_night_20261116/launch_fixed_fit_comparison.py` prepares serial source/fitted evaluation only after17/18 and main shutdown, retaining the original morning deadline and reusing fits. `tools/tight_fresh_night_status.py` includes independent fitting; `tight_fresh_cycle_readout.py` includes distinct legal-time coverage. Python compilation passes; running frozen30aeb80/be8a4da sources are unchanged. Actual results added to existing throughput15/night20261116.json.
+
+
+### 2026-11-16 05:17 +08 — real cycle17 complete,18 automatic transition
+
+One supervised real loop passed in51.74min,4new successful rescues; autonomous fixed development holdingA0/3,B0/4, training rechecks0/4, insertion0/4 complete tasks. Reject17, keepA11/B15. Actual selected exposure and timing in existing night report. `tight_fresh_cycle_readout.py` preserves nested rear metrics (real selected validation hand RMSE .01136/.01151rad), `tight_fresh_night_status.py` labels completed fixed fitting as complete instead of displaying its last heartbeat as live. Readout executed on completed17; original report retained, no physical/training repeat.

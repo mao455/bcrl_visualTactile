@@ -55,7 +55,7 @@ def training(directory, identities, *, rear=False, records=None):
     history=saved['history'][-1]
     result=dict(completed=scalars(done),selected_epoch=saved['epoch'],selected_updates=saved['updates'],
         selected_latest_visits={identity:counts[identity] for identity in identities},
-        selected_metrics={k:scalars(history[k]) for k in ('train','validation','correction') if isinstance(history.get(k),dict)})
+        selected_metrics={k:history[k] for k in ('train','validation','correction') if isinstance(history.get(k),dict)})
     if rear:
         result['selected_supervised_ticks']=saved['supervised_ticks']
         weighting=saved['configuration'].get('fresh_recovery_weighting')
