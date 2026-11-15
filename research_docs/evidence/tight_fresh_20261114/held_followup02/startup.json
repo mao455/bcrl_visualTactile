@@ -1,0 +1,179 @@
+{
+  "version": "held_followup02_startup_v1",
+  "observed_local": "2026-11-15T12:27:03.076966",
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_02",
+  "source_commit": "1d4028c4cd0d212cc48dd8e5a8d2869915f6acf0",
+  "worker_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_held_20261115",
+  "independent_session": true,
+  "started_local": "2026-11-15T12:24:06.380262",
+  "deadline_local": "2026-11-15T18:24:06.380262",
+  "old_session_sha256_unchanged": "73e5382bdc625d15b4591c12144a2e1680b76f6c0611558f342999975af35570",
+  "old_deadline": 1794725918.9665225,
+  "source_pairs": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/training/best.pt",
+      "frontend_sha256": "c2b4ce5703e02b91f59872a6240f1b40ade62af730a5f4dbd56ecc5b653cd08d",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/best.pt",
+      "backend_sha256": "170b057b3b0156b8b7a3c24d1afcdbeedb8611fa7a24ccad0c4845d790d3cf16",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/B/training/best.pt",
+      "frontend_sha256": "4ac67a6e08326c72b6d57645a049dde21e13dccb23912e2a4859e441f2fb3a2c",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/B/backend/B/training/best.pt",
+      "backend_sha256": "856d55c143bdddcbe5db83d86fec7bf43ce5bd92f89751bf76aa4ba0e3329830",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "source_data_pool": {
+    "trajectories": 215,
+    "training_families": 103,
+    "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11",
+    "new_round_not_yet_trained": true
+  },
+  "registered_opportunities": 64,
+  "registered_training_families": 32,
+  "schedule_counts": {
+    "fixed80": 16,
+    "held0": 24,
+    "held_root60": 24
+  },
+  "batch": {
+    "version": "whole_wave_complete_student_v1",
+    "lanes": 16,
+    "seed": 29101000,
+    "neural_batch": true,
+    "writer_bytes": 536870912,
+    "vision_microbatch": 8,
+    "verification_workers": 2,
+    "verification_max_pending": 16,
+    "ordering": "Role-grouped whole waves; no dynamic recycling; all opportunities retained",
+    "capture_audit_memo": {
+      "version": "process_local_closed_capture_audit_v1",
+      "max_payloads": 256,
+      "max_pairs": 4,
+      "retains_tensors": false,
+      "accepts_external_digests": false
+    }
+  },
+  "execution_backend": {
+    "version": "tight_execution_backend_v2",
+    "physics_device": "cuda:0",
+    "camera_backend": "standard",
+    "kit_tasking_threads": 16,
+    "physics_threads": 2,
+    "renderer_descriptor_sets": 360000,
+    "renderer_reserved_descriptors": 900000
+  },
+  "owner_status": {
+    "stage": "collect_cycle",
+    "round": 12,
+    "completed_rounds": 0,
+    "work_deadline": 1794738186.3802624
+  },
+  "actual_collection_progress": {
+    "wave": 0,
+    "tick": 100,
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      true
+    ],
+    "utc": 1794716810.1837559
+  },
+  "source_small_files_sha256": {
+    "launch_status": "e6d1bc073ed1652420794f78ae9b312d5a48534c3401564cd5b30d58515195ad",
+    "session": "5584cdc964e30d6349b2ca906149f48cf6a838778032f0ec10f02dba53e21924",
+    "plan": "c833b29c6ee0144fcab53c710d8daef1fa169c2bdd3a20cd6fbb542b856542e9"
+  },
+  "launch_observed_units": {
+    "owner": {
+      "unit": "tight-fresh-held-20261115-02.service",
+      "properties": {
+        "RuntimeMaxUSec": "5h 59min 57s",
+        "MainPID": "68964",
+        "ExecMainStatus": "0",
+        "ExecStart": "{ path=/home/CNS2025331827/docs/bc+rl_RSS_fresh_held_20261115/.venv_isaacsim/bin/python ; argv[]=/home/CNS2025331827/docs/bc+rl_RSS_fresh_held_20261115/.venv_isaacsim/bin/python -m tools.tight_fresh_research_loop run --registration /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_02/research_loop/registration.json ; ignore_errors=no ; start_time=[Sun 2026-11-15 12:24:08 CST] ; stop_time=[n/a] ; pid=68964 ; code=(null) ; status=0/0 }",
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/tight-fresh-held-20261115-02.service",
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running"
+      },
+      "returncode": 0,
+      "stderr": ""
+    },
+    "monitor": {
+      "unit": "tight-fresh-monitor-20261115-02.service",
+      "properties": {
+        "RuntimeMaxUSec": "5h 59min 58s",
+        "MainPID": "68922",
+        "ExecMainStatus": "0",
+        "ExecStart": "{ path=/home/CNS2025331827/docs/bc+rl_RSS_fresh_held_20261115/.venv_isaacsim/bin/python ; argv[]=/home/CNS2025331827/docs/bc+rl_RSS_fresh_held_20261115/.venv_isaacsim/bin/python -m visuotactile.state_resources --root /home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_02 ; ignore_errors=no ; start_time=[Sun 2026-11-15 12:24:07 CST] ; stop_time=[n/a] ; pid=68922 ; code=(null) ; status=0/0 }",
+        "ControlGroup": "/user.slice/user-1001.slice/user@1001.service/app.slice/tight-fresh-monitor-20261115-02.service",
+        "LoadState": "loaded",
+        "ActiveState": "active",
+        "SubState": "running"
+      },
+      "returncode": 0,
+      "stderr": ""
+    }
+  },
+  "interpretation": "Actual simulation control ticks observed; collection, training and autonomous outcome of round12 remain pending. Previous round11 complete; no new success claimed."
+}

@@ -15,4 +15,4 @@
 
 默认不带--launch只读配置。入口复用已验证followup/session、research_loop和collection→cycle owner，单次新来源绑定及统一配置检查；不增加仿真测试或重训原四组。旧worker和monitor已退出才启动，新owner和monitor均Restart=no。源码/命令/阶段/失败/退出在root同级_launch与root/research_loop；不要重复调用已有身份。
 
-当前文件描述已登记方案，是否实际启动以_launch/status与research_loop/owner_started及new_family_12/batch_progress为准，后台启动不是采集或训练完成。
+实际已用冻结提交1d4028c启动：2026-11-15 12:24:06.380建立session，固定18:24:06.380截止（Asia/Shanghai）；12:27读取到wave0/control tick100。A11/B09实际来源与64机会计划一致。见research_docs/evidence/tight_fresh_20261114/held_followup02/startup.json；当前只确认实际仿真已推进，采集、训练与自主结果仍待结束，后续以_launch/status、research_loop和各阶段回执为准。
