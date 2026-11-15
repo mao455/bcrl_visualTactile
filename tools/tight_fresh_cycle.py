@@ -185,7 +185,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
-        frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None):
+        frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None,
+        prepared_from=None):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
@@ -250,6 +251,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if tail is not None:registration['vision_tail_profile']=tail
     if inactive is not None:registration['inactive_render_profile']=inactive
     if payload_audit_memo:registration['payload_audit_memo']=True
+    if prepared_from is not None:registration['prepared_reuse']=dict(path=str(prepared_from),prepared_sha256=sha256(Path(prepared_from)/'prepared.json'))
     if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
     if trajectory_profile is not None:registration['full_trajectory_batch']=trajectory_profile
@@ -301,7 +303,11 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             raise RuntimeError('Stage receipt is incomplete: '+name)
         print(json.dumps(receipt),flush=True)
     try:
-        execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
+        if prepared_from is None:
+            execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
+        else:
+            execute('reuse_prepared',['tools.tight_fresh_prepared_reuse','--source',prepared_from,
+                '--root',root,'--collection',collection,'--output',output],output/'prepared.json')
         if training_sampling is not None:atomic_json(output/'training_sampling.json',training_sampling)
         if backend_latest_repeat is not None:
             from visuotactile.latest_takeover_sampling import SAMPLING_VERSION
@@ -400,6 +406,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
 
 def main():
     p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--collection',type=Path,required=True)
+    p.add_argument('--prepared-from',type=Path,help='Reuse a proved aggregate and committed frozen cache before any optimizer updates')
     p.add_argument('--output',type=Path,required=True);p.add_argument('--epochs',type=int,default=10)
     p.add_argument('--rear-epochs',type=int,default=5);p.add_argument('--count',type=int,default=4);p.add_argument('--seed',type=int,default=28140000)
     p.add_argument('--continue-rear',action='store_true')
@@ -442,6 +449,7 @@ def main():
         from visuotactile.trajectory_training import profile
         trajectory_profile=profile()
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
+        prepared_from=a.prepared_from.resolve() if a.prepared_from else None,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
         backend_latest_repeat=a.backend_latest_repeat,

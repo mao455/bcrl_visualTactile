@@ -1528,3 +1528,9 @@ Source inspection confirms DirectRLEnv renders at every second120Hz physical tic
 - queued_rollout.RenderLanes: retiring render products now also excludes their image buffer and CameraParams reads; re-enabled lanes acquire fresh observations.08 thread dump identified stalled Warp annotator copy after retirement; verifier prestart alone was insufficient.
 - recovered_captures/narrow_data/fresh aggregate/loop/owner: explicitly hash-bound admitted closed successes from interrupted attempts may join the next update under their original training registries. Eight real successes1477expertsteps registered; no partial prefix or unsuccessful trajectory admitted. New/current and recovered counts separate; all new identities receive front/rear latest4 sampling.
 - New09 frozen run bundle retains original deadline and18 real early-grasp opportunities.12 focused camera/control checks and63 existing aggregation/owner checks passed; actual8 recovered entries checked for both consumers.
+
+
+## 2026-11-16 reuse prepared data after storage admission failure
+- fresh_prepared_reuse and cycle --prepared-from: new output only, same task/collection/deadline, refuse any prior optimizer run; copy metadata/numeric/loss-context and committed frozen feature indexes, retain original files.
+-10 ordinary bounded launcher/owner: new16GiB disk reserve with original deadline, existing parallel A/B frontend headroom gate, selected-DP refresh then rear and behavior review. No recapture or repeated training.
+-09 actual18/18 successes653.75s99.12/h;26new aggregate. Cache interrupted by32GiB reservation before training. Camera retirement/readback fix passed real whole collection.
