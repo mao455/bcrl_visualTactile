@@ -1,3 +1,9 @@
+## 2026-11-15 21:20 抓持优先候选实现与现场衔接
+
+新增grasp_curriculum、rear_episode_sampling；takeover_trigger/training_expansion/expansion/stage_takeover/report/batch_run接入每tick早期接管、失败训练family重访；backend/anchor_continue/cycle接入完整后端latest重复与真实曝光。train.metrics增加可选150步前误差，grasp_fit/evidence/review记录两网络及持续持物。research_loop/common launch/followup支持行为复核及继承绝对截止；scripts/tight_fresh_20261115_05含固定20机会、等待交接、完整运行、统一检查及精确退休脚本。
+
+输入不变：每60Hz真实RGB-D/本体/动作历史，A q[t+1]、B及rear专家绝对目标；输出原29D目标。采集诊断不成为策略输入；源模型A11/B09，当前14冻结进程未热改。6项短检查通过，历史12失败可更早触发，尚未证明新专家救回或自主改善。14已新增23条，池306/162family；仅16是fixed1补充示范。实际结果与限制见最新handoff和grasp_followup05小报告。
+
 ## 2026-11-15 第十四批真实启动
 
 冻结3d148de的独立session04于20:05:20建立，固定次日02:05:20截止，旧03不改；20:07已观察16环境第50控制步。新增只读report_startup绑定实际session/plan/进程回执，不轮询模型或重跑仿真。后续新数据量、8worker吞吐及自主结果待完成，不能把启动写成研究成功。

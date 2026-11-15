@@ -1335,6 +1335,14 @@ def residual_train(root, *, smoke=False, probe=False):
     population=sum(int(records[i].get('supervision_mask',torch.ones(len(records[i]['robot']),dtype=torch.bool)).sum()) for i in ids)
     native_population=sum(len(records[i]['robot']) for i in ids)
     if population<1:raise ValueError('No valid native training ticks')
+    from .rear_episode_sampling import plan as rear_plan, exposure as rear_exposure
+    from .latest_takeover_sampling import episode_deck
+    rear_sampling = v.get('episode_sampling') if not disposable else None
+    unique_population = population
+    multiplicities = None
+    if rear_sampling is not None:
+        if strata: raise ValueError('Explicit rear deck cannot be combined with legacy strata')
+        _, multiplicities, unique_population, population = rear_plan(data, records, rear_sampling)
     target_ticks=v['maximum_control_tick_epochs']*population
     generator=torch.Generator().manual_seed(v['initialization_seed'])
     updates=draws=ticks=contact_ticks=0;best=float('inf');history=[];began=time.time();stop='maximum_control_tick_exposure';request=[]
@@ -1396,7 +1404,13 @@ def residual_train(root, *, smoke=False, probe=False):
                 selection=configuration.get('selection','fixed validation4 all-tick normalized equal Arm/Hand MSE'),
                 selection_baseline=selection_baseline,checkpoint_sha256=sha256(out/'best.pt')))
         residual_curves(out)
-    order=resume_order or stratified_episode_order(ids,records,strata,v.get('sampling_weights'),generator)
+    def next_order():
+        return (episode_deck(ids,multiplicities,generator) if rear_sampling is not None else
+                stratified_episode_order(ids,records,strata,v.get('sampling_weights'),generator))
+    order=resume_order or next_order()
+    if rear_sampling is not None and updates == 0:
+        from .rear_episode_sampling import latest_fit
+        atomic_json(out/'latest_fit_initial.json', latest_fit(model,records,data,lease))
     next_group=resume_group
     def exposure_complete():
         if draws<target_ticks:return False
@@ -1407,7 +1421,7 @@ def residual_train(root, *, smoke=False, probe=False):
     if strata and updates==0 and selection_baseline is None:
         validate(0);save(out/'last.pt',snapshot(1,0))
     for epoch in range(resume_epoch,v['maximum_control_tick_epochs']+1):
-        if epoch!=resume_epoch:order=stratified_episode_order(ids,records,strata,v.get('sampling_weights'),generator)
+        if epoch!=resume_epoch:order=next_order()
         next_group=resume_group if epoch==resume_epoch else 0
         for offset in range(resume_group if epoch==resume_epoch else 0,len(order),v['microbatch']):
             if exposure_complete():break
@@ -1533,6 +1547,9 @@ def residual_train(root, *, smoke=False, probe=False):
         **(dict(fresh_recovery_weighting=fresh_weighting,
             fresh_recovery_exposure=fresh_recovery_exposure(records,fresh_masks,episode_counts,fresh_weighting))
             if fresh_weighting is not None else {}),
+        **(dict(episode_sampling=rear_sampling, unique_supervised_tick_population=unique_population,
+            repeated_supervised_tick_population=population,
+            episode_sampling_exposure=rear_exposure(records,multiplicities,episode_counts)) if rear_sampling is not None else {}),
         coverage=episode_exposure(records,episode_counts,strata,v.get('sampling_weights'),recovery_prefix=recovery),
         last=str(out/'last.pt'),best=str(out/'best.pt'),utc=time.time(),base_optimizer_updates=0))
 
@@ -1598,6 +1615,9 @@ def residual_offline(root, *, smoke=False):
         if prior.get('complete'):
             if prior.get('checkpoint_sha256')!=sha256(selected_checkpoint):raise ValueError('Completed residual offline model changed')
             return
+    if v.get('episode_sampling') is not None:
+        from .rear_episode_sampling import latest_fit
+        atomic_json(out/'latest_fit_selected.json', latest_fit(model,records,data,lease))
     rows=[];base_rows=[];sensitivity=[];contact_rows=[];completed=0
     ids={'train':data['splits']['train'][:8],'validation':data['splits']['validation']}
     if data['splits'].get('correction_dev'):ids['correction_dev']=data['splits']['correction_dev']

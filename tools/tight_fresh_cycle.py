@@ -163,8 +163,8 @@ def configure_frontend_sampling(output, repeat):
             or populations['A']['episode_multiplicities']!=populations['B']['episode_multiplicities']):
         raise ValueError('A/B sampling populations differ')
     for role,value in pending.items():atomic_json(output/role/'continuation.json',value)
-    receipt=dict(contract=spec,roles=populations,backend_latest_repeat=1,
-        scope='Frontend visits only; each replay recomputes complete actual history, retains legal expert masks; backend keeps one visit per episode per epoch; reuse is not new data')
+    receipt=dict(contract=spec,roles=populations,backend_latest_repeat=(read(output/'backend_episode_sampling.json')['latest_repeat'] if (output/'backend_episode_sampling.json').exists() else 1),
+        scope='Frontend visits only; each replay recomputes complete actual history, retains legal expert masks; backend repetition is registered separately by backend_latest_repeat; reuse is not new data')
     atomic_json(output/'frontend_sampling.json',receipt)
     return receipt
 
@@ -185,11 +185,13 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
-        frozen_visual_io=None):
+        frozen_visual_io=None, backend_latest_repeat=None):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
     training_sampling=validate_visit_profile(training_sampling)
+    if backend_latest_repeat is not None and (type(backend_latest_repeat) is not int or backend_latest_repeat not in (1,2,4)):
+        raise ValueError("Explicit rear latest repeat1/2/4 required")
     from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
     frozen_visual_io=validate_visual_io(frozen_visual_io)
     if frozen_visual_io is not None and trajectory_profile is None:
@@ -241,7 +243,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             sample_newer_than_admission=True,minimum_free_gpu_mib=22*1024,minimum_available_ram_bytes=24*1024**3)
             if parallel_frontends else None,
         paired_episode_io=paired_episode_io,
-        frontend_latest_repeat=latest_repeat,backend_latest_repeat=1,
+        frontend_latest_repeat=latest_repeat,backend_latest_repeat=backend_latest_repeat or 1,
         development_startup_seconds=300 if evaluation_lanes>1 else 180,
         evaluation_lanes=evaluation_lanes,execution_backend=execution_backend,episode_io=episode_io,vision_microbatch=vision_microbatch,
         started=time.time(),deadline=deadline,pid=os.getpid(),test_used=False)
@@ -301,6 +303,9 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     try:
         execute('aggregate',['tools.tight_fresh_dagger','aggregate','--root',root,'--collection',collection,'--output',output],output/'prepared.json')
         if training_sampling is not None:atomic_json(output/'training_sampling.json',training_sampling)
+        if backend_latest_repeat is not None:
+            from visuotactile.latest_takeover_sampling import SAMPLING_VERSION
+            atomic_json(output/'backend_episode_sampling.json',dict(version=SAMPLING_VERSION,latest_repeat=backend_latest_repeat))
         if frozen_visual_io is not None:atomic_json(output/'frozen_visual_io.json',frozen_visual_io)
         if episode_io is not None:
             atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
@@ -408,6 +413,7 @@ def main():
     p.add_argument('--paired-episode-io',action='store_true',
         help='Opt-in same-deck A/B I/O rendezvous; requires parallel frontends and shared frozen shards')
     p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
+    p.add_argument('--backend-latest-repeat',type=int,choices=[1,2,4])
     p.add_argument('--evaluation-lanes',type=int,default=1)
     p.add_argument('--backend-json',type=Path)
     p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
@@ -434,6 +440,7 @@ def main():
     run(a.root.resolve(),a.collection.resolve(),a.output.resolve(),a.epochs,a.rear_epochs,a.count,a.seed,
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
+        backend_latest_repeat=a.backend_latest_repeat,
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,

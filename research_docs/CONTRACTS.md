@@ -1,3 +1,11 @@
+## 2026-11-15 21:20 抓持纠偏与完整后端重复曝光
+
+新增early_contact_recovery_v1因果采集：已完成真实学生transition的接触/高度诊断决定下一action接管，无12tick边界限制，真值不进入策略。preregistered_training_revisit_v2重访原训练登记的失败family，保留原reset/family身份、使用新事件/真实轨迹，新增成功才入训练。新attempt结果不用于事前登记；历史训练失败可以决定重访，validation/test不可迁入。
+
+后端可显式episode_sampling=latest_takeover_repeat_v1，与前端同样重放整条真实历史，合法专家mask不改；目标监督tick预算按完整重复deck人口计算。unique与repeated人口、逐episode visits分别记录，selected checkpoint保留实际曝光。不是loss权重质量，也不永久缓存GRU状态；旧配置缺省路径保持原顺序/预算。DP始终固定后才训练rear。
+
+新hold60/hold120诊断允许旋转，以持续高于25–48步median2cm、≥90%双物理样本双指接触、连续缺口≤3步定义；不是原生lift或任务成功。额外开发集保持隔离，首次小样本90%也不自动推进后段。05使用04同一绝对截止，新root不延长资源窗口。
+
 ## 2026-11-15 第十四批早期专家入口与独立存储预算
 
 `fixed1`显式登记在完整学生完成第一控制步后接管，保留该真实学生前缀、原专家队列过渡和合法动作mask；原bridge/120/60/5Hz/29维绝对目标不改。它补充接近与抓起的大部分专家过程，统计为早期专家延续，不能写成自主成功或零学生前缀完整示范。`held0`和`held_root60`保持原触发与独立成功判据。

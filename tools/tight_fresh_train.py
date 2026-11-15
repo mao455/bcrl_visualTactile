@@ -126,14 +126,14 @@ def predict_on_native_clock(model, conditions, anchors):
 
 
 @torch.no_grad()
-def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None):
+def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False):
     from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
     frozen_visual_io=validate_visual_io(frozen_visual_io)
     if offline_planning is not None:
         from visuotactile.offline_planning import validate_profile,predict_contiguous
         offline_planning=validate_profile(offline_planning)
     started=time.perf_counter() if offline_planning is not None else None
-    model.eval();errors=[];normalized=[];rows=[]
+    model.eval();errors=[];normalized=[];rows=[];early_errors=[]
     for i in identities:
         rec=records[i]
         if offline_planning is not None:
@@ -158,6 +158,10 @@ def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_v
         pred=bounded_targets(pred.flatten(0,1),rec['joint_limits']).reshape_as(pred)
         truth,valid=labels(rec,a,24);mask=valid[:,:12];e=(pred[:,:12]-truth[:,:12])[mask]
         errors.append(e.cpu());normalized.append((e*model.action_scale).cpu())
+        if grasp_phase_report:
+            absolute_ticks=a[:,None]+torch.arange(12,device=a.device)[None]
+            early_mask=mask & (absolute_ticks<150)
+            early_errors.append((pred[:,:12]-truth[:,:12])[early_mask].cpu())
         rows.append(dict(identity=i,arm_rmse=float(e[:,:7].square().mean().sqrt()),hand_rmse=float(e[:,7:].square().mean().sqrt())))
         if visual_receipt is not None:rows[-1]['frozen_visual_io']=visual_receipt
         if offline_planning is not None:
@@ -168,6 +172,11 @@ def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_v
         selection=float(.5*n[:,:7].square().mean()+.5*n[:,7:].square().mean()),episodes=rows,
         noise_schedule='seed7091 advances at every native5Hz planning tick, including unsupervised prefixes',
         scope='teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim')
+    if grasp_phase_report:
+        early=torch.cat(early_errors)
+        result['legal_control_ticks_before150']=dict(ticks=len(early),
+            arm_rmse_rad=float(early[:,:7].square().mean().sqrt()) if len(early) else None,
+            hand_rmse_rad=float(early[:,7:].square().mean().sqrt()) if len(early) else None)
     if offline_planning is not None:
         result['offline_planning']=dict(profile=offline_planning,seconds=time.perf_counter()-started,
             timing_scope='Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains',

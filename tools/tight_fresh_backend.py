@@ -86,6 +86,11 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         if not continue_rear or not data.get('aggregation'):
             raise ValueError('Fresh onset comparison requires an explicit aggregate backend continuation')
         v['fresh_recovery_weighting']=fresh_recovery_weighting
+    sampling_path = root/'backend_episode_sampling.json'
+    if sampling_path.exists():
+        from visuotactile.latest_takeover_sampling import sampling_plan
+        contract, _ = sampling_plan(data, read(sampling_path))
+        v['episode_sampling'] = contract
     if data.get('aggregation'):
         v['dagger_round']=max(e.get('round_index',0) for e in data['entries'].values())
     if command_data['normalization_identity'] != v['residual_normalization_identity']:

@@ -25,7 +25,7 @@ from visuotactile.training_resources import atomic_json
 VERSION = 'finite_fresh_research_loop_v1'
 INPUTS = ('partition_manifest', 'frozen_families', 'collection_backend_json', 'evaluation_backend_json',
           'training_sampling_json', 'fallback_manifest')
-OPTIONAL_INPUTS = {'frozen_visual_io_json'}
+OPTIONAL_INPUTS = {'frozen_visual_io_json', 'grasp_review_json'}
 
 
 def require(value, message):
@@ -63,7 +63,8 @@ def validate_configuration(value):
     require(isinstance(value,dict) and set(value)==set(template), 'Explicit complete loop configuration required')
     for key in ('inputs','bounds','collection','cycle'):
         expected=set(template[key]);actual=set(value[key]) if isinstance(value[key],dict) else set()
-        require(isinstance(value[key],dict) and (expected<=actual<=expected|OPTIONAL_INPUTS if key=='inputs' else actual==expected),
+        allowed = expected | (OPTIONAL_INPUTS if key=='inputs' else {'backend_latest_repeat'} if key=='cycle' else set())
+        require(isinstance(value[key],dict) and expected <= actual <= allowed,
             'Unknown/missing '+key+' configuration')
     b,c,t=value['bounds'],value['collection'],value['cycle']
     for key,lo,hi in (('max_seconds',3600,43200),('collection_max_seconds',61,7200),
@@ -84,6 +85,8 @@ def validate_configuration(value):
                 'offline_anchor_batch','backend_offline_anchor_batch'):
         integer(t[key],1,key)
     integer(t['development_seed'],0,'development_seed')
+    if 'backend_latest_repeat' in t:
+        require(type(t['backend_latest_repeat']) is int and t['backend_latest_repeat'] in (1,2,4),'Explicit rear repeat1/2/4')
     require(t['latest_repeat'] in (1,2,4) and type(t['latest_repeat']) is int, 'Unknown latest repeat budget')
     for key in ('full_trajectory_batch','parallel_frontends','parallel_backends','payload_audit_memo',
                 'continue_rear','reuse_source_visual_index'):
@@ -91,12 +94,16 @@ def validate_configuration(value):
     require(t['full_trajectory_batch'], 'This loop identity requires the explicit B2 training contract')
     require(t['evaluation_lanes']>1,'This loop uses the registered batched development path')
     rounds=value['rounds'];require(isinstance(rounds,list) and 1<=len(rounds)<=3,'Finite maximum of three rounds required')
+    if 'grasp_review_json' in value['inputs']:
+        require(len(rounds)==1,'Grasp curriculum requires behavior review before another round')
     indices=[];registries=[];seeds=[]
     for row in rounds:
-        require(isinstance(row,dict) and set(row)=={'index','registry_id','seeds','event_seed'},'Explicit round specification required')
+        require(isinstance(row,dict) and {'index','registry_id','seeds','event_seed'}<=set(row)<={'index','registry_id','seeds','event_seed','revisit_families'},'Explicit round specification required')
         integer(row['index'],1,'round index');integer(row['event_seed'],0,'event seed')
         require(isinstance(row['registry_id'],str) and re.fullmatch(r'[A-Za-z0-9_-]+',row['registry_id']), 'Safe registry identity required')
-        require(isinstance(row['seeds'],list) and len(row['seeds'])*2>=b['minimum_accepted'],'Too few registered opportunities')
+        require(isinstance(row['seeds'],list) and (len(row['seeds'])+len(row.get('revisit_families',[])))*2>=b['minimum_accepted'],'Too few registered opportunities')
+        revisits=row.get('revisit_families',[])
+        require(isinstance(revisits,list) and len(set(revisits))==len(revisits) and all(isinstance(x,str) and x for x in revisits),'Unique explicit prior training families required')
         for seed in row['seeds']:integer(seed,0,'initial seed')
         indices.append(row['index']);registries.append(row['registry_id']);seeds.extend(row['seeds'])
     require(indices==sorted(set(indices)) and len(set(registries))==len(registries)
@@ -210,7 +217,8 @@ def commands(context, row, paths, source, previous):
         '--schedule-cycle',*c['schedules'],'--lanes',c['lanes'],'--event-seed',row['event_seed'],
         '--round',row['index'],'--backend-json',i['collection_backend_json'],'--writer-mib',c['writer_mib'],
         '--vision-microbatch',c['vision_microbatch'],'--verification-workers',c['verification_workers'],
-        '--verification-max-pending',c['verification_max_pending']]+(['--capture-audit-memo'] if c['capture_audit_memo'] else []))
+        '--verification-max-pending',c['verification_max_pending']]+(['--capture-audit-memo'] if c['capture_audit_memo'] else [])+
+        (['--revisit-families',*row['revisit_families']] if row.get('revisit_families') else []))
     collection=command('tools.tight_batch_owner',['--output',paths['collection'],'--worker-tree',context['tree'],
         '--startup-seconds',b['startup_seconds']])
     cycle=command('tools.tight_fresh_cycle',['--root',source,'--collection',paths['collection'],'--output',paths['output'],
@@ -221,7 +229,8 @@ def commands(context, row, paths, source, previous):
         '--backend-offline-anchor-batch',t['backend_offline_anchor_batch']]+
         ['--'+key.replace('_','-') for key in ('full_trajectory_batch','parallel_frontends','parallel_backends','payload_audit_memo','continue_rear') if t[key]]+
         (['--reuse-index',source/'A/cache_index.json'] if t['reuse_source_visual_index'] else [])+
-        (['--frozen-visual-io-json',i['frozen_visual_io_json']] if 'frozen_visual_io_json' in i else []))
+        (['--frozen-visual-io-json',i['frozen_visual_io_json']] if 'frozen_visual_io_json' in i else [])+
+        (['--backend-latest-repeat',t['backend_latest_repeat']] if 'backend_latest_repeat' in t else []))
     return dict(source_prepare=source_cmd,collection_prepare=expansion,collection=collection,cycle=cycle)
 
 
@@ -398,8 +407,13 @@ def run(registration):
             if not stage('summary',[str(context['tree']/'.venv_isaacsim/bin/python'),'-m','tools.tight_fresh_research_loop',
                     'summarize','--collection',str(paths['collection']),'--candidate',str(paths['output']),'--output',str(summary)]):
                 reason='summary_incomplete';break
+            if 'grasp_review_json' in cfg['inputs']:
+                if not stage('grasp_review',[str(context['tree']/'.venv_isaacsim/bin/python'),'-m','tools.tight_fresh_grasp_review',
+                        '--root',str(paths['output']),'--collection',str(paths['collection']),
+                        '--output',str(paths['output']/'grasp_review'),'--configuration',cfg['inputs']['grasp_review_json']]):
+                    reason='grasp_review_incomplete';break
             current.update(software_complete=True,summary=dict(path=str(summary),sha256=sha256(summary)),
-                use_as_next_dagger_source=True,policy_adopted=False)
+                use_as_next_dagger_source='grasp_review_json' not in cfg['inputs'],policy_adopted=False)
             atomic_json(paths['ledger']/'round_finished.json',current);atomic_json(ledger/'rounds.json',rounds)
             previous=paths['output']
         else:reason='registered_rounds_complete'

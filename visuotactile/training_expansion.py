@@ -16,6 +16,7 @@ import numpy as np
 from .compact import sha256
 
 VERSION = 'preregistered_training_families_v1'
+REVISIT_VERSION = 'preregistered_training_revisit_v2'
 COLLECTION_CONTRACT = 'registered_training_expansion_takeover_v1'
 NEVER_FALLBACK = 1_000_000_000
 
@@ -67,12 +68,12 @@ def _partitions(data):
 
 
 def make_registry(registry_id, domain, seeds, source_manifests, partition_manifest,
-                  frozen_families, *, created_utc):
+                  frozen_families, *, created_utc, revisit_families=()):
     """Build an immutable registration before any collection directory exists."""
     from .narrow_data import direct_configuration
     if not isinstance(registry_id, str) or not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]{0,79}', registry_id):
         raise ValueError('Explicit safe training expansion identity required')
-    if not seeds or any(type(seed) is not int or seed < 0 for seed in seeds) or len(set(seeds)) != len(seeds):
+    if (not seeds and not revisit_families) or any(type(seed) is not int or seed < 0 for seed in seeds) or len(set(seeds)) != len(seeds):
         raise ValueError('Unique nonnegative new initial seeds required')
     if set(source_manifests) != {'A', 'B'}:
         raise ValueError('Both complete-student source manifests required')
@@ -108,6 +109,7 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
     # Previous expansion registries remain exclusion evidence even if some of
     # their preregistered attempts were not successful training records.
     previous_bindings = source.get('training_expansion_registries', [])
+    prior_expanded = {}
     if previous_bindings != sources['B'].get('training_expansion_registries', []):
         raise ValueError('A/B previous training expansion registries differ')
     for binding in previous_bindings:
@@ -115,6 +117,7 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
             raise ValueError('Preserve the existing training expansion registry identity')
         old = read_registry(binding)
         for family, row in old['families'].items():
+            prior_expanded[family] = row
             existing_families.add(family)
             hashes.add(row['configuration_sha256'])
             used_seeds.add(row['seed'])
@@ -129,7 +132,14 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
             source_identity=f'preregistered_{registry_id}_s{seed}', configuration_sha256=digest)
         used_seeds.add(seed)
         hashes.add(digest)
-    return dict(version=VERSION, registry_id=registry_id, created_utc=float(created_utc),
+    if len(set(revisit_families)) != len(revisit_families):
+        raise ValueError('Duplicate revisited training family')
+    for family in revisit_families:
+        if family not in prior_expanded or family in protected or prior_expanded[family]['split'] != 'train':
+            raise ValueError('Revisit requires a prior registered training family, including failed attempts')
+        families[family] = copy.deepcopy(prior_expanded[family])
+    return dict(version=REVISIT_VERSION if revisit_families else VERSION, registry_id=registry_id, created_utc=float(created_utc),
+        **(dict(revisited_training_families=list(revisit_families),new_training_family_count=len(seeds),historical_training_outcomes_used_for_revisit=True,new_attempt_outcomes_used=False) if revisit_families else {}),
         domain=copy.deepcopy(domain), domain_sha256=canonical_digest(domain), families=families,
         source_manifests={role: dict(_file_binding(path), canonical_sha256=canonical_digest(sources[role]))
             for role, path in source_manifests.items()},
@@ -146,22 +156,35 @@ def make_registry(registry_id, domain, seeds, source_manifests, partition_manife
 def registry_binding(path):
     path = Path(path).resolve(strict=True)
     registry = _read(path)
-    if registry.get('version') != VERSION:
+    if registry.get('version') not in (VERSION, REVISIT_VERSION):
         raise ValueError('Unknown training expansion registry version')
-    return dict(version=VERSION, registry_id=registry['registry_id'], path=str(path), sha256=sha256(path))
+    return dict(version=registry['version'], registry_id=registry['registry_id'], path=str(path), sha256=sha256(path))
 
 
 def read_registry(binding, source=None):
-    if not isinstance(binding, dict) or binding.get('version') != VERSION:
+    if not isinstance(binding, dict) or binding.get('version') not in (VERSION, REVISIT_VERSION):
         raise ValueError('Explicit versioned training expansion binding required')
     path = Path(binding['path'])
     if sha256(path) != binding.get('sha256'):
         raise ValueError('Training expansion registry bytes changed')
     registry = _read(path)
-    if registry.get('version') != VERSION or registry.get('registry_id') != binding.get('registry_id'):
+    if registry.get('version') not in (VERSION, REVISIT_VERSION) or registry.get('registry_id') != binding.get('registry_id'):
         raise ValueError('Training expansion registry identity differs')
     if registry.get('outcomes_used') is not False or registry.get('test_trajectories_opened') != 0:
         raise ValueError('Expansion must be registered without outcomes or held-out trajectory reads')
+    if registry['version'] != binding['version']:
+        raise ValueError('Registry/binding version mismatch')
+    if registry['version'] == REVISIT_VERSION:
+        prior_rows = {}
+        for previous in registry['prior_training_registries']:
+            prior_rows.update(read_registry(previous)['families'])
+        revisits = registry['revisited_training_families']
+        if (len(set(revisits)) != len(revisits) or not revisits
+                or registry['new_training_family_count'] != len(registry['families'])-len(revisits)):
+            raise ValueError('Revisit counts differ')
+        for family in revisits:
+            if family not in prior_rows or registry['families'].get(family) != prior_rows[family]:
+                raise ValueError('Revisited reset is not the original registered training family')
     if canonical_digest(registry['domain']) != registry['domain_sha256']:
         raise ValueError('Registered narrow domain changed')
     references = [registry['original_partition_manifest'], registry['original_frozen_families'],
@@ -233,14 +256,17 @@ def validate_capture_binding(entry, metadata):
 
 
 def validate_schedule(schedule):
-    if schedule in ('fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'):
+    if schedule in ('grasp_early', 'fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'):
         return schedule
-    raise ValueError('Schedule must be fixed1, fixed40, fixed80, contact0, contact12, near60, held0, held60, held120 or held_root60')
+    raise ValueError('Schedule must be grasp_early, fixed1, fixed40, fixed80, contact0, contact12, near60, held0, held60, held120 or held_root60')
 
 
 def schedule_trigger(schedule):
     from .takeover_trigger import CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
     validate_schedule(schedule)
+    if schedule == "grasp_early":
+        from .grasp_curriculum import EARLY_GRASP
+        return dict(EARLY_GRASP)
     if schedule=='near60':
         return dict(version=HELD_NEAR_GOAL_VERSION,delay_ticks=0,max_keypoint_distance_m=.06)
     if schedule=='held_root60':

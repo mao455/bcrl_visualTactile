@@ -24,7 +24,12 @@ def audit_trigger_case(directory, result):
     actual=dagger['recovery_coverage']['switch_tick']
     if actual is not None and actual!=trigger.scheduled_tick:
         raise ValueError('Actual authority switch differs from causal schedule')
-    if config['trigger']['version'] == HELD_ROOT_GOAL_VERSION:
+    from visuotactile.grasp_curriculum import EARLY_GRASP_VERSION
+    if config['trigger']['version'] == EARLY_GRASP_VERSION:
+        category = 'ended_before_takeover' if actual is None else 'student_early_grasp_then_takeover'
+        if actual is not None and trigger.trigger_completed_tick != actual:
+            raise ValueError('Early contact switch lacks its causal trigger')
+    elif config['trigger']['version'] == HELD_ROOT_GOAL_VERSION:
         category='ended_before_takeover' if actual is None else 'student_held_root_near_goal_then_takeover'
         if actual is not None and trigger.reason!='completed_student_held_root_near_goal_window_plus_delay':
             raise ValueError('Root-proximity expert switch lacks a completed causal held window')

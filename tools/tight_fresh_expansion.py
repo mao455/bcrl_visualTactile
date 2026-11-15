@@ -22,7 +22,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
             frozen_families, schedules, lanes, event_seed, round_index,
             existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2,
             verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
-            capture_audit_memo=False):
+            capture_audit_memo=False, revisit_families=()):
     from visuotactile.execution_backend import normalize_backend
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
@@ -62,7 +62,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
     from tools.tight_fresh_collection_source import binding_for
     source_selection = binding_for(source)
     registry = make_registry(registry_id, session['domain'], list(seeds), manifests,
-        partition_manifest, frozen_families, created_utc=time.time())
+        partition_manifest, frozen_families, created_utc=time.time(), revisit_families=revisit_families)
     old_family_rows = {row['family']: row for row in read(frozen_families)}
     for prior in data['A'].get('training_expansion_registries', []):
         old_family_rows.update(read_registry(prior)['families'])
@@ -120,7 +120,8 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
             ordering='Role-grouped whole waves; no dynamic recycling; all opportunities retained'),
         execution_backend=backend, expert_sha256=session['expert_sha256'],
         inference_scheduler_index_mode='host', first_plan_forensics=False,
-        schedule_cycle=list(schedules), registered_new_training_families=len(registry['families']),
+        schedule_cycle=list(schedules), registered_new_training_families=len(registry['families'])-len(revisit_families),
+        revisited_training_families=list(revisit_families),
         registered_existing_training_families=len(existing_identities), registered_opportunities=len(cases),
         selection='Only native-successful real expert suffixes enter training; all opportunities and failures retained',
         interpretation='Mixed schedules target different failure states; no causal schedule comparison or broad physics generalization',
@@ -142,11 +143,12 @@ def main():
     parser.add_argument('--session-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--registry-id', required=True)
-    parser.add_argument('--initial-seeds', type=int, nargs='+', required=True)
+    parser.add_argument('--initial-seeds', type=int, nargs='*', required=True)
     parser.add_argument('--partition-manifest', type=Path, required=True)
     parser.add_argument('--frozen-families', type=Path, required=True)
-    parser.add_argument('--schedule-cycle', choices=['fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'], nargs='+', required=True)
+    parser.add_argument('--schedule-cycle', choices=['grasp_early','fixed1', 'fixed40', 'fixed80', 'contact0', 'contact12','near60','held0','held60','held120','held_root60'], nargs='+', required=True)
     parser.add_argument('--existing-identities', nargs='*', default=[])
+    parser.add_argument('--revisit-families',nargs='*',default=[])
     parser.add_argument('--lanes', type=int, required=True)
     parser.add_argument('--event-seed', type=int, required=True)
     parser.add_argument('--round', type=int, required=True)
@@ -167,7 +169,7 @@ def main():
     prepare(args.source, args.output, session_root=args.session_root, registry_id=args.registry_id,
         seeds=args.initial_seeds, partition_manifest=args.partition_manifest, frozen_families=args.frozen_families,
         schedules=args.schedule_cycle, lanes=args.lanes, event_seed=args.event_seed, round_index=args.round,
-        existing_identities=args.existing_identities,
+        existing_identities=args.existing_identities,revisit_families=args.revisit_families,
         execution_backend=read(args.backend_json) if args.backend_json else None, writer_bytes=args.writer_mib << 20,
         vision_microbatch=args.vision_microbatch,verification_workers=args.verification_workers,
         verification_max_pending=args.verification_max_pending,

@@ -393,7 +393,7 @@ def followup_storage(session, reserve_gib):
 
 
 def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None,allow_illegal_starts=False,
-            reserve_gib=None):
+            reserve_gib=None, absolute_deadline=None):
     source = Path(source).resolve(strict=True)
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -490,6 +490,11 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
     assert_quiescent(roots, receipts)
     started = time.time()
     deadline = started+float(hours)*3600
+    if absolute_deadline is not None:
+        if (type(absolute_deadline) not in (int,float) or not math.isfinite(absolute_deadline)
+                or absolute_deadline <= started or absolute_deadline > session["deadline"]):
+            raise ValueError("Same-window followup must end no later than its source deadline")
+        deadline = min(deadline, absolute_deadline)
     if not math.isfinite(deadline):
         raise ValueError('New deadline must be finite')
     fresh = {key:copy.deepcopy(value) for key, value in session.items()
@@ -502,7 +507,8 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
         trainable_initialization='Continuation from reviewed complete A/B pairs; fresh initial30 run is preserved',
         authorization='User-authorized continuing autonomous DAgger research; independent session, not an extension',
         followup=dict(source_root=str(source), source_session_sha256=source_session['sha256'],
-            previous_deadline=session['deadline'], selected_pairs=pairs, hours=float(hours)))
+            previous_deadline=session['deadline'], selected_pairs=pairs, hours=float(hours),
+            same_window_absolute_deadline=absolute_deadline))
     if data_binding is not None:
         fresh['session_kind'] = 'independent_followup_v2'
         fresh['followup'].update(data_pool_source_root=str(pool),
@@ -559,7 +565,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
             'shards bound to declared manifest SHA256 and current stat, not rehashed',
         mutation_scope='Destination only; artifact symlinks are read-only by convention, not filesystem enforcement',
         previous_deadline=session['deadline'], started_utc=started, deadline=deadline,
-        deadline_relation='New independent window; source deadline and evidence unchanged')
+        deadline_relation=('Same absolute resource window, no extension; new artifacts and preserved source evidence' if absolute_deadline is not None else 'New independent window; source deadline and evidence unchanged'))
     if data_binding is not None:
         binding.update(version='independent_followup_binding_v2', data_pool_source=data_binding,
             policy_source=dict(source_root=str(source), selected_pairs=pairs,
@@ -593,6 +599,7 @@ def main():
     parser.add_argument('--source-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--hours', type=float, required=True)
+    parser.add_argument('--absolute-deadline',type=float)
     parser.add_argument('--reserve-gib', type=int, help='Explicit new-session disk reserve; source session remains unchanged')
     parser.add_argument('--allow-illegal-starts',action='store_true',help='Retain independently verified zero-action initialization rejects in a fully resolved cohort')
     parser.add_argument('--evaluation', type=Path, help='Completed autonomous evaluation, default source/development')
@@ -609,7 +616,7 @@ def main():
         role_sources[role] = Path(path)
     binding = prepare(args.source_root, args.output, args.hours, evaluation=args.evaluation,
         data_source=args.data_source_root, role_sources=role_sources,allow_illegal_starts=args.allow_illegal_starts,
-        reserve_gib=args.reserve_gib)
+        reserve_gib=args.reserve_gib,absolute_deadline=args.absolute_deadline)
     print(json.dumps(dict(output=str(args.output.resolve()), deadline=binding['deadline'],
         selected_pairs=binding['selected_pairs'], workers_started=False)), flush=True)
 

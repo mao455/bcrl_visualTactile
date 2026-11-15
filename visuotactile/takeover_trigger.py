@@ -1,5 +1,6 @@
 """Diagnostic-only causal takeover scheduling; never a student input or success rule."""
 import numpy as np
+from .grasp_curriculum import EARLY_GRASP_VERSION, EarlyGraspTrigger, validate_early
 
 VERSION = 'stable_grasp_then_delay_v1'
 CONTACT_HEIGHT_VERSION = 'contact_height_then_delay_v1'
@@ -10,6 +11,8 @@ NEVER_FALLBACK = 1_000_000_000
 
 
 def validate_trigger(configuration, fallback_tick):
+    if isinstance(configuration, dict) and configuration.get("version") == EARLY_GRASP_VERSION:
+        return validate_early(configuration, fallback_tick)
     if isinstance(configuration,dict) and configuration.get('version')==HELD_ROOT_GOAL_VERSION:
         if (set(configuration)!={'version','delay_ticks','max_root_distance_m'}
                 or type(configuration['delay_ticks']) is not int or configuration['delay_ticks']!=0
@@ -409,7 +412,7 @@ def observe_transition(trigger,tick,transition,index=0):
 
 def make_trigger(configuration, fallback_tick):
     validated = validate_trigger(configuration, fallback_tick)
-    cls = {VERSION:StableGraspTrigger,CONTACT_HEIGHT_VERSION:ContactHeightTrigger,
+    cls = {EARLY_GRASP_VERSION:EarlyGraspTrigger,VERSION:StableGraspTrigger,CONTACT_HEIGHT_VERSION:ContactHeightTrigger,
         HELD_NEAR_GOAL_VERSION:HeldNearGoalTrigger,HELD_ROOT_GOAL_VERSION:HeldRootGoalTrigger,
         HELD_RECHECK_VERSION:HeldRecheckTrigger}[validated['version']]
     return cls(validated, fallback_tick)
