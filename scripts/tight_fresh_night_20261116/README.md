@@ -61,3 +61,5 @@ original SHA and archive SHA. A11/B09,05/06, B13,14 and current15 are excluded.
 Source captures, frozen visual payloads and all success/failure traces are retained.
 
 The first supervised cycle has one declared post-DP coordinator recovery exercise. Both actual DP completions precede it; ordinary `--resume` must skip their bound receipts and continue rear preparation. The attempt is explicitly distinguished from software/resource/data failure. It consumes the one allowed retry for that cycle. Actual cycle acceptance is required before claiming recovery reliability.
+
+CPU diagnostic after00: `python -m tools.tight_fresh_expert_counterfactual --root <00>/round_15 --validation-numeric <09>/new_family_15/r15_A_expanded_session20261115_09_early15_s29000120_grasp_early/numeric.h5 --output <00>/round_15/expert_counterfactual.json`. This first validates150 recorded real shadow ticks, then queries four saved autonomous histories without simulation. The suggestions are never admitted into the training pool. Original report paths are immutable; use a new explicit output for a deliberate new diagnostic.
