@@ -1,3 +1,14 @@
+## 11月15日已完成采集后的训练恢复
+
+new_family_11已完成64机会/45成功纠偏，但04:06采集→训练准入被旧185字段常数误拒绝；GPU原始186字段已完整校验。原round_11与round_11_stages尚不存在。`recover_cycle01.py`仅执行已登记的20遍B2前端→刷新后端输入→15遍后端→同16次自主评估，不重采、不自动启动12/13、不重置14:58:38.966截止。默认只预览；从新的干净冻结树运行：
+
+```bash
+.venv_isaacsim/bin/python scripts/tight_fresh_20261115_01/recover_cycle01.py \
+  --worker-tree /absolute/path/to/new/frozen/tree --expected-commit FULL_40_CHARACTER_SHA --launch
+```
+
+新身份recovery_cycle01、tight-fresh-cycle-20261115-01-recovery01.service；原失败owner/source/collection保持。只复用逐case完成回执，旧monitor先原字节归档并保留缺测。训练进度/完成/失败见round_11_stages；startup不是完成。`report_collection11.py --root <session>`仅从小JSON重建整批数据报告，0payload读取。
+
 # 2026-11-15 新研究时段启动包
 
 这是一份待启动的静态配置，不是已经创建的 session、验收或训练结果。只在完成第九轮完整训练与自主执行、旧 owner/所有旧 Kit 和 trainer 退出、旧 monitor 写出 `monitor_exit.json` 后使用。脚本不停止旧进程，不创建冻结工作树，不自动重试任何已有身份。

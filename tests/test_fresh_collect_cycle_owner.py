@@ -43,12 +43,13 @@ def registration(tmp_path,monkeypatch):
     return path
 
 
-def finish_collection(context,accepted=8):
+def finish_collection(context,accepted=8,fields=185):
     p=context['paths']['collection'];plan=context['plan'];entries={};rows=[]
     for i,case in enumerate(plan['cases']):
         result=dict(case['spec'],software_complete=True,legal=True,success=i<accepted,accepted_for_training=i<accepted,
-            dagger=dict(expert_valid_ticks=5),dataset_capture=dict(accepted_success=True,verified_source_fields=185,
+            dagger=dict(expert_valid_ticks=5),dataset_capture=dict(accepted_success=True,verified_source_fields=fields,
                 path=str(p/case['name']/'demonstration/data.h5'),sha256='capture'+str(i)))
+        write(p/case['name']/'capture_complete.json',dict(status='source_verified',dataset_capture=result['dataset_capture']))
         write(p/case['name']/'result.json',result);rows.append(dict(case=case['name'],role=case['role'],result=result))
         if i<accepted:entries[case['name']]=dict(episode=case['name'],split='train',family=case['spec']['family'],
             source_group=case['role'],path=result['dataset_capture']['path'],
@@ -106,6 +107,27 @@ def test_admission_keeps_minimum_count_and_work_time(registration):
     r=c['registration']
     assert owner.collection_admission(c,r['deadline']-owner.CLEANUP_SECONDS-3600)['admitted']
     assert owner.collection_admission(c,r['deadline']-owner.CLEANUP_SECONDS-3599)['reason']=='insufficient_cycle_time'
+
+
+@pytest.mark.parametrize('fields',[185,186])
+def test_admission_reuses_actual_completed_verifier_schema(registration,fields):
+    c=owner.validate(registration);finish_collection(c,fields=fields)
+    assert owner.collection_admission(c,time.time())['accepted']==8
+
+
+@pytest.mark.parametrize('fault',['unfinished','mismatched_binding','zero_fields','boolean_fields'])
+def test_admission_requires_completed_matching_verifier(registration,fault):
+    c=owner.validate(registration);finish_collection(c,fields=186);p=c['paths']['collection']
+    receipt=owner.read(p/'case0/capture_complete.json')
+    if fault=='unfinished':receipt['status']='reading_closed_capture'
+    elif fault=='mismatched_binding':receipt['dataset_capture']['sha256']='different'
+    else:
+        rows=owner.read(p/'results.json');capture=rows[0]['result']['dataset_capture']
+        capture['verified_source_fields']=0 if fault=='zero_fields' else True
+        receipt['dataset_capture']=capture
+        write(p/'results.json',rows);write(p/'case0/result.json',rows[0]['result'])
+    write(p/'case0/capture_complete.json',receipt)
+    with pytest.raises(ValueError,match='completed source verification'):owner.collection_admission(c,time.time())
 
 
 def test_durable_sequence_and_no_second_start(registration,monkeypatch):

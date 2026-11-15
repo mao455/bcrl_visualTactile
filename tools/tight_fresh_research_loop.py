@@ -387,7 +387,10 @@ def run(registration):
             if not stage('collect_cycle',command):
                 reason='collect_cycle_incomplete'
                 completed=inner.parent/'owner_finished.json'
-                if completed.exists():current['inner_outcome']=read(completed);reason=current['inner_outcome'].get('reason',reason)
+                if completed.exists():
+                    current['inner_outcome']=read(completed)
+                    reason=current['inner_outcome'].get('reason',reason)
+                    error=current['inner_outcome'].get('error')
                 break
             outcome=read(inner.parent/'owner_finished.json');require(outcome.get('software_complete') is True,'Inner owner did not complete collection plus cycle')
             current['completion']=bindings(dict(owner=inner.parent/'owner_finished.json',cycle=paths['output'].with_name(paths['output'].name+'_stages')/'finished.json'))

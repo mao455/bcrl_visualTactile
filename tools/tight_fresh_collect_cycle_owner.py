@@ -113,14 +113,23 @@ def collection_admission(context, now):
         if result.get('accepted_for_training') is not True:continue
         identity=case['spec']['identity'];entry=entries[identity];pair=plan['pairs'][case['role']]
         capture=result.get('dataset_capture',{})
+        # The closed-file verifier checks every source digest. Its completed
+        # receipt, rather than a CPU-specific field count, is authoritative:
+        # additional backend diagnostics may legitimately add source fields.
+        verification=read(p/case['name']/'capture_complete.json')
+        fields=capture.get('verified_source_fields')
+        require(verification.get('status')=='source_verified'
+            and verification.get('dataset_capture')==capture
+            and type(fields) is int and fields>0,
+            'Accepted capture lacks matching completed source verification: '+identity)
         require(result.get('legal') is True and result.get('success') is True
             and result.get('dagger',{}).get('expert_valid_ticks',0)>0
             and entry['episode']==identity and entry['split']=='train' and entry['family']==case['spec']['family']
             and entry['source_group']==case['role']
             and entry['frontend_sha256']==pair['frontend_sha256'] and entry['backend_sha256']==pair['backend_sha256']
-            and capture.get('accepted_success') is True and capture.get('verified_source_fields')==185
+            and capture.get('accepted_success') is True
             and capture.get('sha256')==entry['source_sha256'] and capture.get('path')==entry['path'],
-            'Accepted capture lost actual success, expert actions or source policy binding')
+            'Accepted capture lost actual success, expert actions or source policy binding: '+identity)
         accepted[identity]=entry
     require(set(entries)==set(accepted),'Admission manifest differs from verified successful cases')
     remaining=r['deadline']-CLEANUP_SECONDS-now

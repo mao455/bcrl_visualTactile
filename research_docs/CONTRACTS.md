@@ -1,3 +1,7 @@
+## 2026-11-15 已闭合采集回执的训练准入
+
+逐字段校验仍由原verify_stream_fields对完整source_field_digests_json的字段集合、dtype、shape、内容执行；字段数量不是固定schema判据。collect_cycle_owner仅复用同case的capture_complete.json：status=source_verified、dataset_capture与result完全相等、verified_source_fields为正整数；再核对实际成功、合法专家动作、train family、模型及文件SHA绑定。CPU185/GPU186额外诊断字段均可合法完成；未完成或不匹配回执仍拒绝，不弱化原逐字段验证或重读大payload。旧采集源码及失败记录不覆盖。
+
 ## 2026-11-15 GPU RGB 的精确字节表示
 
 sensor_uint8_canonical_float32_v1只在研究相机的CUDA uint8输出上使用256项float32查表；表由NumPy float32 uint8/255产生，设备内映射，不增加逐帧主机传输。原始传感像素、深度、时钟和每步图像均保留，CPU原除法路径保持。未改变compact严格逐值往返判据，旧失败数据不转换为成功。该入口登记到GPU采集metadata，后续冻结source/hash区分旧归一化。

@@ -116,6 +116,22 @@ def test_failure_preserves_previous_results_and_stops_without_retry(registration
     assert (registration.parent/'owner_finished.json').is_file()
 
 
+def test_inner_failure_explanation_reaches_top_level_status(registration,monkeypatch):
+    install_stages(monkeypatch)
+    original=loop.owner.run_stage
+    def stage(name,command,context,deadline,stops):
+        if name!='collect_cycle':return original(name,command,context,deadline,stops)
+        inner=Path(command[command.index('--registration')+1])
+        write(inner.parent/'owner_finished.json',dict(software_complete=False,
+            reason='owner_exception',error='capture verification binding differs'))
+        return dict(complete=False,returncode=1,stop_reason=None)
+    monkeypatch.setattr(loop.owner,'run_stage',stage)
+    result=loop.run(registration)
+    assert result['reason']=='owner_exception'
+    assert result['error']=='capture verification binding differs'
+    assert loop.read(registration.parent/'owner_status.json')['error']==result['error']
+
+
 @pytest.mark.parametrize('boundary',['space','time','stop','input_drift','duplicate_seed'])
 def test_admission_or_binding_stops_before_any_child(registration,monkeypatch,boundary):
     calls=install_stages(monkeypatch);r=loop.read(registration)
