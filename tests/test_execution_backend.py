@@ -37,7 +37,7 @@ def test_backend_identity_and_environment_count_have_no_four_lane_cap():
     assert a['configuration_sha256'] != b['configuration_sha256']
     assert b['num_envs'] == 200 and b['live_accepted'] is False
     assert '1x1' in b['camera_calibration']
-    assert startup_arguments(b['configuration'], num_envs=200).endswith('--/rtx/viewTile/limit=200')
+    assert startup_arguments(b['configuration'], num_envs=200).endswith('--/rtx/viewTile/limit=600')
     with pytest.raises(ValueError):
         backend_receipt(execution_backend(), num_envs=True)
 

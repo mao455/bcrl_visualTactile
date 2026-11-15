@@ -83,6 +83,8 @@ def configure_direct_reset_lanes(env, configurations):
     if len(configurations) != env.num_envs or hasattr(env, '_direct_lane_reset_original'):
         raise ValueError('One immutable configuration per lane, installed once')
     configurations = copy.deepcopy(configurations)
+    # The queue runner replaces only a completed lane's next reset contract.
+    env._direct_lane_reset_configurations = configurations
     expected = set(configurations[0])
     if not expected or any(set(c) != expected for c in configurations):
         raise ValueError('Each lane requires the same explicit native reset fields')

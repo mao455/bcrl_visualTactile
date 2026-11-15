@@ -58,7 +58,7 @@ def inactive_render_scope(env,profile,output,*,gate_limit_ticks=None):
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
             execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None,
             verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
-            capture_audit_memo=False):
+            capture_audit_memo=False,queued_gpu=False,grasp_evaluation_ticks=None):
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
@@ -67,6 +67,9 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
     validate_verification_parameters(verification_workers,verification_max_pending)
     if type(capture_audit_memo) is not bool:raise ValueError('Explicit boolean capture audit memo required')
     if capture_audit_memo and identities is None:raise ValueError('Capture audit memo requires a collection')
+    if grasp_evaluation_ticks is not None and (not queued_gpu or identities is not None
+            or type(grasp_evaluation_ticks) is not int or not 240<=grasp_evaluation_ticks<=600):
+        raise ValueError('Registered 240–600 tick grasp horizons require queued autonomous evaluation')
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
     if type(writer_bytes) is not int or writer_bytes<32<<20:
@@ -94,6 +97,17 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
     if capture_audit_memo:
         from visuotactile.state_benchmark import CAPTURE_AUDIT_MEMO_PROFILE
         plan['batch']['capture_audit_memo']=dict(CAPTURE_AUDIT_MEMO_PROFILE)
+    if queued_gpu:
+        from visuotactile.queued_rollout import PROFILE
+        from visuotactile.gpu_batch_controller import PROFILE as GPU_PROFILE
+        plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE)
+    if grasp_evaluation_ticks is not None:
+        counts={}
+        for case in plan['cases']:
+            role=case['role'];counts[role]=counts.get(role,0)+1
+            if counts[role]>2:case['grasp_evaluation_ticks']=grasp_evaluation_ticks
+        plan['evaluation_scope']=dict(grasp_horizon=grasp_evaluation_ticks,full_task_per_role=2,
+            censoring='Observation budget only; native physics/success/timeout unchanged')
     atomic_json(output/'plan.json',plan)
     return plan
 
@@ -251,12 +265,21 @@ def run(output):
         with lease.block():dino=NativeDinoSpatial().cuda().eval()
         saved={r:torch.load(pair['backend'],map_location='cpu',weights_only=False) for r,pair in plan['pairs'].items()}
         results=[];entries={};profiles=[]
-        for index,cases in enumerate(waves(plan['cases'],plan['batch']['lanes'])):
+        queued=plan['batch'].get('queue_profile')
+        if queued:
+            from visuotactile.queued_rollout import PROFILE,run_queue
+            if queued!=PROFILE or guard is not None:raise ValueError('Unknown or conflicting queue profile')
+        batches=[plan['cases']] if queued else waves(plan['cases'],plan['batch']['lanes'])
+        for index,cases in enumerate(batches):
             role=cases[0]['role'];pair=plan['pairs'][role]
-            finished,profile=run_wave(env,player,lease,output,cases,pair,saved[role],dino,plan,index,
-                **({} if guard is None else dict(render_guard=guard)))
+            if queued:
+                finished,profile=run_queue(env,player,lease,output,cases,plan['pairs'],saved,dino,plan)
+            else:
+                finished,profile=run_wave(env,player,lease,output,cases,pair,saved[role],dino,plan,index,
+                    **({} if guard is None else dict(render_guard=guard)))
             profile.update(admission_s=0.,admission_scope='Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds')
             for case,result in finished:
+                role=case['role'];pair=plan['pairs'][role]
                 if result.get('legal') and (result.get('residual_ticks')!=result['steps'] or not result.get('software_complete')):
                     raise ValueError('Incomplete full-student execution')
                 if plan['kind']=='takeover':
@@ -273,7 +296,7 @@ def run(output):
                     timing=dict(batch_wave=index,total_seconds=result.get('wall_profile',{}).get('through_result_s'),
                         interpretation='Lane lifetimes overlap; use batch wave total for throughput')))
                 atomic_json(output/'results.json',results)
-            profiles.append(dict(wave=index,role=role,**profile))
+            profiles.append(dict(wave=index,role='mixed' if queued else role,**profile))
             atomic_json(output/'wave_profiles.json',profiles)
             print(json.dumps(dict(wave=index,role=role,profile=profile,accepted=len(entries))),flush=True)
         if len(results)!=len(plan['cases']):raise ValueError('Incomplete registered wave population')
@@ -298,6 +321,8 @@ def main():
     p.add_argument('--verification-workers',type=int,default=0)
     p.add_argument('--verification-max-pending',type=int,default=4)
     p.add_argument('--capture-audit-memo',action='store_true',help='Explicit process-local immutable source and matched-checkpoint audit memo')
+    p.add_argument('--queued-gpu',action='store_true')
+    p.add_argument('--grasp-evaluation-ticks',type=int)
     a=p.parse_args()
     if a.stage=='run' and a.capture_audit_memo:p.error('run uses the registered capture-audit profile; flag requires prepare')
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
@@ -320,7 +345,7 @@ def main():
             vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None,
             verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending,
             vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,inactive_render_profile=inactive,
-            capture_audit_memo=a.capture_audit_memo)
+            capture_audit_memo=a.capture_audit_memo,queued_gpu=a.queued_gpu,grasp_evaluation_ticks=a.grasp_evaluation_ticks)
 
 
 if __name__=='__main__':

@@ -22,13 +22,14 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
             frozen_families, schedules, lanes, event_seed, round_index,
             existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2,
             verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
-            capture_audit_memo=False, revisit_families=()):
+            capture_audit_memo=False, revisit_families=(), queued_gpu=False):
     from visuotactile.execution_backend import normalize_backend
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     from visuotactile.position_control import ExpertPositionBridge
     from visuotactile.state_benchmark import dagger_configuration
     vision_microbatch = validate_vision_microbatch(vision_microbatch)
+    if type(queued_gpu) is not bool:raise ValueError('Explicit queue boolean required')
     tail = validate_vision_tail_profile(vision_tail_profile)
     from tools.tight_fresh_batch_run import validate_inactive_render_request
     inactive = validate_inactive_render_request(inactive_render_profile,execution_backend)
@@ -133,6 +134,11 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
         plan['batch']['capture_audit_memo']=dict(CAPTURE_AUDIT_MEMO_PROFILE)
     if source_selection is not None:plan['source_selection']=source_selection
     validate_collection_plan(plan)
+    if queued_gpu:
+        from visuotactile.queued_rollout import PROFILE
+        from visuotactile.gpu_batch_controller import PROFILE as GPU_PROFILE
+        plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE,
+            ordering='Persistent mixed-role queue; independently reset native lanes and bounded async close')
     atomic_json(output / 'plan.json', plan)
     return plan
 
@@ -160,6 +166,7 @@ def main():
     parser.add_argument('--verification-workers',type=int,default=0)
     parser.add_argument('--verification-max-pending',type=int,default=4)
     parser.add_argument('--capture-audit-memo',action='store_true')
+    parser.add_argument('--queued-gpu',action='store_true')
     args = parser.parse_args()
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     inactive=None
@@ -174,7 +181,7 @@ def main():
         vision_microbatch=args.vision_microbatch,verification_workers=args.verification_workers,
         verification_max_pending=args.verification_max_pending,
         vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None,inactive_render_profile=inactive,
-        capture_audit_memo=args.capture_audit_memo)
+        capture_audit_memo=args.capture_audit_memo,queued_gpu=args.queued_gpu)
 
 
 if __name__ == '__main__':

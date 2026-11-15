@@ -71,7 +71,8 @@ def lane_metadata(metadata, lane, count, case, pair, dagger, batch):
 
 
 def trace_row(controller, transition, actor, expert):
-    take = lambda value: value[0].detach().cpu().numpy().copy()
+    take = lambda value: (value[0].detach().cpu().numpy().copy() if torch.is_tensor(value)
+                          else np.array(value[0],copy=True))
     after = transition['diagnostics_after']
     diag = controller.residual_diagnostics
     row = dict(actor=take(actor), command=take(transition['position_requested_rad']),
@@ -205,6 +206,12 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
     from .models.native_vision import validate_vision_tail_profile
     n=env.num_envs; capture=plan['kind']=='takeover'; start=time.perf_counter()
     tail=validate_vision_tail_profile(plan['batch'].get('vision_tail_profile'))
+    pipeline=plan['batch'].get('gpu_pipeline')
+    controller_class=BatchedResidualController
+    if pipeline is not None:
+        from .gpu_batch_controller import PROFILE, GPUBatchedResidualController
+        if pipeline!=PROFILE:raise ValueError('Unknown GPU pipeline identity')
+        controller_class=GPUBatchedResidualController
     inactive_profile=plan['batch'].get('inactive_render_profile')
     if inactive_profile is not None or render_guard is not None:
         from tools.tight_fresh_batch_run import validate_inactive_render_request
@@ -244,7 +251,7 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
             expert_model_sha256=plan['expert_sha256'],inference_scheduler_index_mode='host')
         if saved['configuration'].get('execution_adapter'):
             metadata['execution_adapter']=saved['configuration']['execution_adapter']
-        controller=BatchedResidualController(saved,metadata,dino,n,neural_batch=True,scheduler_index_mode='host',
+        controller=controller_class(saved,metadata,dino,n,neural_batch=True,scheduler_index_mode='host',
             vision_microbatch=batch['vision_microbatch'],**vision_options)
         active=[clearance(env,lane=i)['legal'] if i<len(cases) else False for i in range(n)]
         if render_guard is not None:
@@ -321,24 +328,56 @@ def run_wave(env, player, lease, output, cases, pair, saved, dino, plan, wave_in
                 if capture:transition['expert_raw_policy_mean_before_clip']=raw['mean']
                 after_packet=post_observation(env.research_packet,terminated|truncated) if capture else None
                 retired=[]
+                # Complete GPU acknowledgements before taking one batch snapshot.
+                # The same immutable snapshot feeds both numeric and full capture.
+                lane_transitions={}
+                if pipeline is not None:
+                    for lane,running in enumerate(active):
+                        if not running:continue
+                        c=controller.lanes[lane];tr=lane_tree(transition,lane,n)
+                        if capture:
+                            previous[lane]=record_dagger_transition(c,tr,previous[lane])
+                            if triggers[lane] is not None and not bool(tr['dagger']['control_source'][0]):
+                                schedule=observe_transition(triggers[lane],tick,tr)
+                                if schedule is not None:bridge.schedule_takeover(lane,schedule)
+                        else:c.observe_execution(tr)
+                        lane_transitions[lane]=tr
+                    from .batch_recording import snapshot,lane_arrays
+                    # Newly attached label fields are lane-local; concatenate once.
+                    if capture:
+                        template=next(iter(lane_transitions.values()))['dagger']
+                        transition['dagger']={key:torch.cat([lane_transitions[i]['dagger'][key]
+                            if i in lane_transitions else torch.zeros_like(value) for i in range(n)])
+                            for key,value in template.items()}
+                    t=time.perf_counter()
+                    shared=snapshot(dict(obs={k:v for k,v in packet.items() if torch.is_tensor(v)},
+                        transition=dict(transition,**(dict(observation_after=after_packet) if capture else {})),
+                        terminated=terminated,truncated=truncated))
+                    profile['record_submit_s']+=time.perf_counter()-t
                 for lane,running in enumerate(active):
                     if not running:continue
                     c=controller.lanes[lane];tr=lane_tree(transition,lane,n);p=lane_tree(packet,lane,n)
-                    if capture:
+                    if capture and pipeline is None:
                         previous[lane]=record_dagger_transition(c,tr,previous[lane])
                         if triggers[lane] is not None and not bool(tr['dagger']['control_source'][0]):
                             schedule=observe_transition(triggers[lane],tick,tr)
                             if schedule is not None:bridge.schedule_takeover(lane,schedule)
-                    else:c.observe_execution(tr)
+                    elif pipeline is None:c.observe_execution(tr)
                     if tick%12==0:plans[lane].append(c.plan[0].cpu().numpy().copy())
                     rows[lane].append(trace_row(c,tr,actor[lane:lane+1],expert[lane:lane+1]))
                     numeric=dict(obs={k:v for k,v in p.items() if torch.is_tensor(v) and k not in ('image','depth_m','depth_valid')},transition=tr)
                     t=time.perf_counter()
                     if capture:
-                        full_tr=dict(tr,observation_after=lane_tree(after_packet,lane,n))
-                        compact=flatten(numpy_tree(dict(obs={k:v for k,v in p.items() if torch.is_tensor(v)},transition=full_tr,
-                            terminated=terminated[lane:lane+1],truncated=truncated[lane:lane+1])))
-                        recorders[lane].submit(numpy_tree(numeric),{k:v[0] for k,v in compact.items()},tick)
+                        if pipeline is None:
+                            full_tr=dict(tr,observation_after=lane_tree(after_packet,lane,n))
+                            compact=flatten(numpy_tree(dict(obs={k:v for k,v in p.items() if torch.is_tensor(v)},transition=full_tr,
+                                terminated=terminated[lane:lane+1],truncated=truncated[lane:lane+1])))
+                            numeric=numpy_tree(numeric)
+                        else:
+                            local=lane_arrays(shared,lane,n);compact=flatten(local)
+                            numeric=dict(obs={k:v for k,v in local['obs'].items() if k not in ('image','depth_m','depth_valid')},
+                                transition={k:v for k,v in local['transition'].items() if k!='observation_after'})
+                        recorders[lane].submit(numeric,{k:v[0] for k,v in compact.items()},tick)
                     else:writers[lane].append(numeric,tick)
                     profile['record_submit_s']+=time.perf_counter()-t
                     reasons={k:bool(v[lane]) for k,v in transition['termination_reasons'].items()}

@@ -185,7 +185,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         parallel_frontends=False,latest_repeat=None,evaluation_lanes=1,execution_backend=None,episode_io=None,vision_microbatch=2,
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
-        frozen_visual_io=None, backend_latest_repeat=None):
+        frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
@@ -378,6 +378,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             arguments=['tools.tight_fresh_batch_run','prepare','--root',output,'--output',development,
                 '--count',count,'--seed',seed,'--lanes',evaluation_lanes,'--vision-microbatch',vision_microbatch]
             if tail is not None:arguments+=['--vision-exact-tail']
+            if queued_gpu_evaluation:arguments+=['--queued-gpu']
+            if grasp_evaluation_ticks is not None:arguments+=['--grasp-evaluation-ticks',grasp_evaluation_ticks]
             if inactive is not None:arguments+=['--inactive-render-products']
             if execution_backend is not None:
                 backend_path=ledger/'execution_backend.json';atomic_json(backend_path,execution_backend)
@@ -415,6 +417,8 @@ def main():
     p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
     p.add_argument('--backend-latest-repeat',type=int,choices=[1,2,4])
     p.add_argument('--evaluation-lanes',type=int,default=1)
+    p.add_argument('--queued-gpu-evaluation',action='store_true')
+    p.add_argument('--grasp-evaluation-ticks',type=int)
     p.add_argument('--backend-json',type=Path)
     p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
     p.add_argument('--vision-microbatch',type=int,default=2)
@@ -441,6 +445,7 @@ def main():
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
         backend_latest_repeat=a.backend_latest_repeat,
+        queued_gpu_evaluation=a.queued_gpu_evaluation,grasp_evaluation_ticks=a.grasp_evaluation_ticks,
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,

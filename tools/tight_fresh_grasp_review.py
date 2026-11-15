@@ -16,7 +16,7 @@ def prepare_cohort(root, collection, output, config, kind):
     from tools.tight_fresh_batch_run import prepare
     plan = prepare(root, output, lanes=config['lanes'], count=config['development_count_per_role'],
                    seed=config['development_seed'], execution_backend=config['execution_backend'],
-                   vision_microbatch=config['vision_microbatch'])
+                   vision_microbatch=config['vision_microbatch'],queued_gpu=config.get('queued_gpu',False))
     data=read(root/'A/state_data/data.json')
     if kind == 'hard':
         source=read(collection/'plan.json')
@@ -43,6 +43,11 @@ def prepare_cohort(root, collection, output, config, kind):
             case['video']=False
         plan['cohort']='New independent development reset families; excluded from training; original test22 unopened'
     plan['grasp_review_kind']=kind
+    if config.get('grasp_evaluation_ticks'):
+        if not config.get('queued_gpu'):raise ValueError('Grasp horizon requires queue runner')
+        for case in plan['cases']:case['grasp_evaluation_ticks']=config['grasp_evaluation_ticks']
+        plan['evaluation_scope']=dict(grasp_horizon=config['grasp_evaluation_ticks'],full_task_per_role=0,
+            scope='Additional grasp-only diagnostics; fixed comparison retains full-task executions')
     atomic_json(output/'plan.json',plan)
     return plan
 

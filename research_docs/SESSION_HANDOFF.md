@@ -1,3 +1,9 @@
+## 2026-11-15 22:25 采集吞吐优先，旧训练保留
+
+用户最新要求已将正式采集吞吐列为工程优先级。04训练保持冻结；未启动的05边界launcher已停止并保留priority_superseded.json，不启动旧的大量完整评估安排。新增GPU观察/历史/控制合批、批量CPU快照、向量专家队列映射、独立lane补任务、空闲标准相机停更、固定外参缓存及抓持阶段评估入口。实际队列/相机验收与正式加速尚待；当前不是成功或提速结论。
+
+11项短检查通过，正式FP32下真实A11权重/记录输入配冻结patch fixture的最大目标差5.18e-7rad；初次CUDA检查遗漏正式precision设置的失败已说明，没有放宽最终2e-5rad检查。旧路径4机会真实早期纠偏对照已启动于04/throughput_baseline15_01，来源A11/B09；新队列将用同负载比较。全部保留04固定02:05:20截止。详情见scripts/tight_fresh_throughput_20261115/README.md与对应证据目录。
+
 ## 2026-11-15 21:30 抓持方案已推送，边界监督服务实际启动
 
 实现/脚本/检查/历史诊断ba8ee36已推origin/feature/tight-state-foundation，并冻结于bc+rl_RSS_fresh_grasp_20261115。21:24:47实际启动tight-fresh-grasp-boundary-20261115-05.service，状态waiting_current_cycle，固定截止仍为2026-11-16 02:05:20.389；新采集尚未开始。[启动回执](evidence/tight_fresh_20261114/grasp_followup05/boundary_startup.json)。

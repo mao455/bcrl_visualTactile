@@ -193,7 +193,8 @@ class NativeController:
 
     def observe_execution(self, transition):
         if self.position_mode:
-            self.position_previous=(self.command[0].clone(),transition['position_applied_rad'][0].cpu().clone(),self.last_packet['time_s'][0].cpu())
+            device=self.device if getattr(self,'gpu_pipeline',False) else torch.device('cpu')
+            self.position_previous=(self.command[0].to(device).clone(),transition['position_applied_rad'][0].to(device).clone(),self.last_packet['time_s'][0].to(device))
         else:
             self.execution.observe(transition, self.command, self.last_packet['episode_id'], self.last_packet['step_id'])
 

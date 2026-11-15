@@ -80,7 +80,8 @@ class BatchedResidualController:
         ids = active.nonzero().flatten().tolist()
         # Inactive lanes have already terminated; their next reset targets are
         # held solely to let still-active native lanes complete naturally.
-        commands = packet['actuator_target_rad'].detach().cpu().clone()
+        commands = packet['actuator_target_rad'].detach().clone()
+        if not getattr(self,'gpu_pipeline',False): commands = commands.cpu()
         if not ids:
             return commands
         rgb = packet['image'][ids,:,:3].to(self.device)

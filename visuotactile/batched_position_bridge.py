@@ -61,6 +61,8 @@ class BatchedExpertPositionBridge:
         if len(ticks) != env.num_envs:
             raise ValueError('One preregistered takeover tick per lane is required')
         self.env, self.num_envs = env, env.num_envs
+        self.speed, self.pipeline = speed, pipeline
+        self.dynamic = False
         self.lane_envs = [_LaneEnvironment(env, lane) for lane in range(self.num_envs)]
         self.bridges = [ExpertPositionBridge(lane_env, tick, speed, pipeline=pipeline)
             for lane_env, tick in zip(self.lane_envs, ticks)]
@@ -102,6 +104,13 @@ class BatchedExpertPositionBridge:
             raise ValueError('Takeover requires an active lane before the next submit')
         self.bridges[lane].schedule_takeover(tick)
 
+    def replace_lane(self,lane,takeover_tick):
+        """After actual terminal/indexed reset, initialize this lane alone."""
+        if not self.dynamic or self.pending is not None:
+            raise ValueError('Explicit queue profile and completed executor call required')
+        self.bridges[lane]=ExpertPositionBridge(self.lane_envs[lane],takeover_tick,self.speed,pipeline=self.pipeline)
+        self.active[lane]=True
+
     def submit(self, raw_action, clipped_action, tick, active):
         if (isinstance(tick, bool) or not isinstance(tick, int)
                 or tick != self.tick or self.pending is not None):
@@ -120,10 +129,11 @@ class BatchedExpertPositionBridge:
             bridge = self.bridges[lane]
             if not torch.isfinite(raw).all() or not torch.equal(raw.clamp(-1, 1), clipped):
                 raise ValueError('Expert raw/clipped action provenance mismatch')
-            if bridge.tick != tick or bridge.pending is not None:
+            if (not self.dynamic and bridge.tick != tick) or bridge.pending is not None:
                 raise ValueError('Active lane clock or pending expert shadow is inconsistent')
         for lane in lanes:
-            self.bridges[lane].submit(raw_action[lane:lane+1], clipped_action[lane:lane+1], tick)
+            local_tick=self.bridges[lane].tick if self.dynamic else tick
+            self.bridges[lane].submit(raw_action[lane:lane+1], clipped_action[lane:lane+1], local_tick)
         self.active = active.clone()
         self.pending = lanes
 

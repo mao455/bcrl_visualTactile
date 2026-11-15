@@ -1,3 +1,9 @@
+## 2026-11-15 吞吐候选合同
+
+`gpu_observation_history_control_v1`保持同一参数、输入和60Hz真实历史，按独立lane合批GRU、视觉读出、后端与控制组合；5Hz H24/commit12不变。`independent_lane_queue_v1`允许A/B共用环境批与DINO，结束lane经原生indexed reset再执行下一登记case，单lane历史/队列归零，不全局重设其他lane随机源。原始终止观察先保存，绝不借用重置画面。批量专家转换仍调用原生action pipeline，使用已有一次delay draw。
+
+固定两相机renderer外参在configure_camera_views后缓存；腕相机每帧真实renderer外参仍读取，缓存不进入策略。标准空闲产品暂停，重新分配后必须出现新的有效帧。新增grasp_evaluation_ticks是独立观察预算，未自然结束者标记grasp_stage_censored，不能计作完整任务失败/超时；原生成功规则不改。
+
 ## 2026-11-15 21:20 抓持纠偏与完整后端重复曝光
 
 新增early_contact_recovery_v1因果采集：已完成真实学生transition的接触/高度诊断决定下一action接管，无12tick边界限制，真值不进入策略。preregistered_training_revisit_v2重访原训练登记的失败family，保留原reset/family身份、使用新事件/真实轨迹，新增成功才入训练。新attempt结果不用于事前登记；历史训练失败可以决定重访，validation/test不可迁入。

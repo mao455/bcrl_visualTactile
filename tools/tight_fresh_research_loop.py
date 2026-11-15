@@ -63,7 +63,7 @@ def validate_configuration(value):
     require(isinstance(value,dict) and set(value)==set(template), 'Explicit complete loop configuration required')
     for key in ('inputs','bounds','collection','cycle'):
         expected=set(template[key]);actual=set(value[key]) if isinstance(value[key],dict) else set()
-        allowed = expected | (OPTIONAL_INPUTS if key=='inputs' else {'backend_latest_repeat'} if key=='cycle' else set())
+        allowed = expected | (OPTIONAL_INPUTS if key=='inputs' else {'backend_latest_repeat','queued_gpu_evaluation','grasp_evaluation_ticks'} if key=='cycle' else {'queued_gpu'} if key=='collection' else set())
         require(isinstance(value[key],dict) and expected <= actual <= allowed,
             'Unknown/missing '+key+' configuration')
     b,c,t=value['bounds'],value['collection'],value['cycle']
@@ -78,6 +78,7 @@ def validate_configuration(value):
         integer(c[key],lo,key)
     require(c['verification_max_pending']>=max(1,c['verification_workers']), 'Verification pending bound below workers')
     require(type(c['capture_audit_memo']) is bool, 'Explicit capture memo boolean required')
+    if 'queued_gpu' in c:require(type(c['queued_gpu']) is bool,'Explicit queued GPU switch')
     from visuotactile.training_expansion import validate_schedule
     require(isinstance(c['schedules'],list) and c['schedules'], 'Explicit nonempty schedule cycle required')
     for schedule in c['schedules']:validate_schedule(schedule)
@@ -218,7 +219,8 @@ def commands(context, row, paths, source, previous):
         '--round',row['index'],'--backend-json',i['collection_backend_json'],'--writer-mib',c['writer_mib'],
         '--vision-microbatch',c['vision_microbatch'],'--verification-workers',c['verification_workers'],
         '--verification-max-pending',c['verification_max_pending']]+(['--capture-audit-memo'] if c['capture_audit_memo'] else [])+
-        (['--revisit-families',*row['revisit_families']] if row.get('revisit_families') else []))
+        (['--revisit-families',*row['revisit_families']] if row.get('revisit_families') else [])+
+        (['--queued-gpu'] if c.get('queued_gpu') else []))
     collection=command('tools.tight_batch_owner',['--output',paths['collection'],'--worker-tree',context['tree'],
         '--startup-seconds',b['startup_seconds']])
     cycle=command('tools.tight_fresh_cycle',['--root',source,'--collection',paths['collection'],'--output',paths['output'],
@@ -230,7 +232,9 @@ def commands(context, row, paths, source, previous):
         ['--'+key.replace('_','-') for key in ('full_trajectory_batch','parallel_frontends','parallel_backends','payload_audit_memo','continue_rear') if t[key]]+
         (['--reuse-index',source/'A/cache_index.json'] if t['reuse_source_visual_index'] else [])+
         (['--frozen-visual-io-json',i['frozen_visual_io_json']] if 'frozen_visual_io_json' in i else [])+
-        (['--backend-latest-repeat',t['backend_latest_repeat']] if 'backend_latest_repeat' in t else []))
+        (['--backend-latest-repeat',t['backend_latest_repeat']] if 'backend_latest_repeat' in t else [])+
+        (['--queued-gpu-evaluation'] if t.get('queued_gpu_evaluation') else [])+
+        (['--grasp-evaluation-ticks',t['grasp_evaluation_ticks']] if t.get('grasp_evaluation_ticks') else []))
     return dict(source_prepare=source_cmd,collection_prepare=expansion,collection=collection,cycle=cycle)
 
 

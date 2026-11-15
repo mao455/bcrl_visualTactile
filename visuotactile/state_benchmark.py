@@ -437,9 +437,10 @@ def record_dagger_transition(controller, transition, previous_nominal):
             ('execution_projection_rad','execution_preprojection_target_rad','execution_previous_target_rad')})
     # During the expert suffix the student's proposal remains a diagnostic.
     # Its next history must contain the command the position executor received.
-    controller.base.command = requested.detach().cpu().clone()
+    device=target.device if getattr(controller,'gpu_pipeline',False) else torch.device('cpu')
+    controller.base.command = requested.detach().to(device).clone()
     controller.observe_execution(transition)
-    return nominal.detach().cpu().clone()
+    return nominal.detach().to(device).clone()
 
 
 def residual_episode_metrics(arrays, control_hz=60, *, output_contract=None):

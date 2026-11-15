@@ -238,6 +238,7 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
 
     def configure_camera_views(self, local_eye=(-.7, -.35, 1.15), local_target=(0., -.03, .68)):
         """Static calibrations relative to env origin; never follow a true object pose."""
+        self._fixed_renderer_pose_cache = None
         if self.execution_backend is not None and self.execution_backend.get('tiled_fixed_camera_usd_sync'):
             from visuotactile.tiled_camera_pose_sync import enable_fixed_camera_pose_sync
             enable_fixed_camera_pose_sync(self)
@@ -307,11 +308,18 @@ class InstrumentedAssemblyEnv(PreciseAssemblyEnv):
         if self.camera_rig['version']>=3:
             # Synchronized sensor calibration/diagnostic, deliberately not a nominal key.
             from visuotactile.camera_calibration import renderer_poses
-            result['camera_pose_w']=torch.tensor(np.stack([
-                renderer_poses(annotators, self.num_envs)
-                for annotators in self._camera_pose_annotators], axis=1), device=self.device)
+            poses=[]
+            cache=getattr(self,'_fixed_renderer_pose_cache',None)
+            use_cache=getattr(self,'batch_static_calibration_cache',False)
+            for index,annotators in enumerate(self._camera_pose_annotators):
+                poses.append(cache[index] if use_cache and cache is not None and index<2
+                    else renderer_poses(annotators,self.num_envs))
+            if use_cache and cache is None:self._fixed_renderer_pose_cache=poses[:2]
+            result['camera_pose_w']=torch.tensor(np.stack(poses,axis=1),device=self.device)
             if 'wrist' in self.camera_rig:
-                body=self.robot.find_bodies(self.camera_rig['wrist']['parent_body'])[0][0]
+                if not hasattr(self,'_camera_parent_body_index'):
+                    self._camera_parent_body_index=self.robot.find_bodies(self.camera_rig['wrist']['parent_body'])[0][0]
+                body=self._camera_parent_body_index
                 result['camera_parent_pose_w']=self.robot.data.body_link_pose_w[:,body].clone()
         return result
 
