@@ -58,6 +58,18 @@ def training(directory, identities, *, rear=False, records=None):
         selected_metrics={k:scalars(history[k]) for k in ('train','validation','correction') if isinstance(history.get(k),dict)})
     if rear:
         result['selected_supervised_ticks']=saved['supervised_ticks']
+        weighting=saved['configuration'].get('fresh_recovery_weighting')
+        if weighting is not None and records is not None:
+            from visuotactile.fresh_recovery import GRASP_STAGE_WEIGHTING_VERSION
+            assert weighting['version']==GRASP_STAGE_WEIGHTING_VERSION
+            ticks=weighting['ticks'];counts=saved['episode_counts']
+            early=sum(int((records[i]['supervision_mask'].cpu() & (torch.arange(len(records[i]['robot']))<ticks)).sum())*n
+                      for i,n in counts.items())
+            total=saved['supervised_ticks'];weight=weighting['backend_weight'];mass=total+(weight-1)*early
+            result['selected_early_weight_mass']=dict(contract=weighting,raw_early_ticks=early,
+                all_raw_ticks=total,all_loss_weight_mass=mass,early_loss_weight_mass=weight*early,
+                early_weight_fraction=weight*early/mass,weights_are_not_additional_observations=True)
+            result['completed_weighted_exposure']=done.get('fresh_recovery_exposure')
         result['completed_latest_exposure']={i:done['episode_sampling_exposure']['episodes'][i] for i in identities}
         result['latest_fit_initial']=read(directory/'latest_fit_initial.json')['summary']
         result['latest_fit_selected']=read(directory.parent/'offline/latest_fit_selected.json')['summary']

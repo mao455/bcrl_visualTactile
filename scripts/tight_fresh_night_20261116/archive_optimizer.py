@@ -19,7 +19,11 @@ PATHS=[BASE/n/r/'training/best.pt' for n in NAMES for r in 'AB']
 PATHS+=[BASE/'tight_fresh_20261115_03/round_13/A/training/best.pt']
 p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--apply',action='store_true')
 p.add_argument('--legacy-g11-endpoints',action='store_true',help='Only four nonselected checkpoints of the closed Nov11 G11 pool; keep its selected best intact')
+p.add_argument('--closed-initial-fresh',action='store_true',help='Only four obsolete initial/round1-v3 frontends; preserve raw model and EMA, retire Adam only')
 a=p.parse_args()
+assert not (a.closed_initial_fresh and a.legacy_g11_endpoints)
+if a.closed_initial_fresh:
+ PATHS=[BASE/'tight_fresh_20261114_01'/prefix/role/'training/best.pt' for prefix in ('','round_01_v3') for role in 'AB']
 LEGACY=BASE/'tight_dagger_pool_20261111_01'
 if a.legacy_g11_endpoints:
  directory=LEGACY/'round_01/G11/dp/training'
@@ -36,11 +40,12 @@ if not a.apply:
    done=json.loads(f.with_name('finished.json').read_text());assert done['complete']
    assert digest==done['checkpoint_sha256']
   s=f.stat();rows.append(dict(path=str(f),sha256=digest,bytes=s.st_size,inode=s.st_ino,mtime_ns=s.st_mtime_ns))
- atomic_json(a.output/'inventory.json',dict(utc=time.time(),rows=rows,scope=__doc__,legacy_g11_endpoints=a.legacy_g11_endpoints,
+ atomic_json(a.output/'inventory.json',dict(utc=time.time(),rows=rows,scope=__doc__,legacy_g11_endpoints=a.legacy_g11_endpoints,closed_initial_fresh=a.closed_initial_fresh,
   retained_selected_best=dict(path=str(directory/'best.pt'),sha256=sha256(directory/'best.pt')) if a.legacy_g11_endpoints else None))
 else:
  assert not (a.output/'applied.json').exists();inventory=json.loads((a.output/'inventory.json').read_text());rows=[]
  assert inventory.get('legacy_g11_endpoints',False)==a.legacy_g11_endpoints
+ assert inventory.get('closed_initial_fresh',False)==a.closed_initial_fresh
  assert {r['path'] for r in inventory['rows']}=={str(p) for p in PATHS}
  if inventory.get('retained_selected_best'):
   kept=inventory['retained_selected_best'];assert sha256(kept['path'])==kept['sha256']
