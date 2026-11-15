@@ -154,8 +154,11 @@ def main():
         help='Explicit offline residual-cache DDIM anchor batch; default retains serial plans')
     parser.add_argument('--frozen-visual-io-json',type=Path,
         help='Explicit current-episode frozen-feature read profile; default retains mmap')
+    parser.add_argument('--fresh-recovery-weighting-json',type=Path,
+        help='Explicit versioned train-only legal-action phase weighting; validation stays unweighted')
     args = parser.parse_args()
     prepare(args.root, args.role, args.epochs, continue_rear=args.continue_rear,offline_anchor_batch=args.offline_anchor_batch,
+        fresh_recovery_weighting=read(args.fresh_recovery_weighting_json) if args.fresh_recovery_weighting_json else None,
         frozen_visual_io=read(args.frozen_visual_io_json) if args.frozen_visual_io_json is not None else None)
 
 

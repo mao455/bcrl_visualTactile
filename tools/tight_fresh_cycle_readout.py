@@ -69,9 +69,15 @@ def training(directory, identities, *, rear=False, records=None):
     return result
 
 
-def run(candidate, collection):
+def run(candidate, collection, *, evaluation=None):
     ledger=candidate.with_name(candidate.name+'_stages')
-    assert read(ledger/'finished.json')['software_complete']
+    coordinator_complete=(ledger/'finished.json').exists() and read(ledger/'finished.json')['software_complete']
+    if not coordinator_complete:
+        assert evaluation is not None, 'Interrupted coordinator requires an explicit separately completed evaluation'
+        for stage in ['frontend_A','frontend_B']+[f'backend_{part}_{role}' for role in 'AB' for part in ('cache','train','offline')]:
+            assert read(ledger/(stage+'.json'))['returncode']==0
+    evaluation=candidate/'development' if evaluation is None else Path(evaluation)
+    assert read(evaluation/'result.json')['software_complete']
     collected=read(collection/'result.json');assert collected['software_complete']
     data=read(candidate/'A/state_data/data.json');identities=data['aggregation']['new_training_ids']
     records=torch.load(candidate/'A/state_data/numeric.pt',map_location='cpu',mmap=True,weights_only=False)['records']
@@ -93,19 +99,20 @@ def run(candidate, collection):
         receipt=read(p)
         if isinstance(receipt,dict) and receipt.get('returncode')==0 and 'seconds' in receipt:
             stages[receipt['stage']]=dict(seconds=receipt['seconds'],started=receipt['started'],ended=receipt['utc'])
-    autonomous=behavior(candidate/'development',horizon=300)
+    autonomous=behavior(evaluation,horizon=300)
     from tools.tight_fresh_cycle_throughput import union_seconds
     groups=dict(frontend=('frontend_A','frontend_B'),backend_inputs=('backend_cache_A','backend_cache_B'),
         backend_training=('backend_train_A','backend_train_B'),visual_cache=('visual_cache',),
         autonomous_evaluation=('development',))
     wall={name:union_seconds([(stages[k]['started'],stages[k]['started']+stages[k]['seconds'])
                               for k in keys if k in stages]) for name,keys in groups.items()}
-    evaluation=read(candidate/'development/result.json')
+    evaluation_result=read(evaluation/'result.json')
     wall['collection_worker']=collected['elapsed_seconds']
-    wall['collection_start_to_evaluation_end']=evaluation['utc']-(collected['utc']-collected['elapsed_seconds'])
+    wall['collection_start_to_evaluation_end']=evaluation_result['utc']-(collected['utc']-collected['elapsed_seconds'])
+    if not coordinator_complete:wall['autonomous_evaluation']=evaluation_result['elapsed_seconds']
     # Keep training-family and development counts separate; native task outcomes
     # come from the complete actual trace, while holding uses first300 controls.
-    return dict(complete=True,utc=time.time(),candidate=str(candidate),collection=str(collection),
+    return dict(complete=True,coordinator_complete=coordinator_complete,utc=time.time(),candidate=str(candidate),collection=str(collection),evaluation=str(evaluation),
         collection_result=collected,collection_cases=cases,new_training_ids=identities,
         new_trajectories=len(identities),corrected_family_ids=sorted({r['family'] for r in cases if r['accepted']}),
         train_trajectories=len(data['splits']['train']),
@@ -114,13 +121,15 @@ def run(candidate, collection):
         stages=stages,wall_seconds=wall,wall_semantics='Stage groups use unions of real intervals, not sums of concurrent worker times. End-to-end starts at collection worker and includes admission, cache, updates, recovery and evaluation; excludes earlier source-comparison preparation.',autonomy=autonomous,
         full_task_legal=sum(r['legal'] and not r['grasp_stage_censored'] for r in autonomous['rows']),
         full_task_insertions=sum(r['legal'] and not r['grasp_stage_censored'] and r.get('insertion',False) for r in autonomous['rows']),
-        evaluation_wall_seconds=evaluation.get('elapsed_seconds'),
+        evaluation_wall_seconds=evaluation_result.get('elapsed_seconds'),
         limitations='Four attempts are two existing training families, not four independent new starts. Expert rescue, offline fit and student autonomy are separate. This report does not release unattended work or certify grasp reliability.')
 
 
 if __name__=='__main__':
     p=argparse.ArgumentParser(__doc__);p.add_argument('--candidate',type=Path,required=True)
-    p.add_argument('--collection',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p.add_argument('--collection',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--evaluation',type=Path,help='Explicit separate completed evaluation after a preserved software failure')
+    a=p.parse_args()
     if a.output.exists():raise FileExistsError('Preserve original cycle readout')
     torch.set_num_threads(2)
-    atomic_json(a.output,run(a.candidate.resolve(),a.collection.resolve()))
+    atomic_json(a.output,run(a.candidate.resolve(),a.collection.resolve(),evaluation=a.evaluation))

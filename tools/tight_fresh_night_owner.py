@@ -29,14 +29,15 @@ def execution_identity(directory):
         queue=batch.get('queue_profile'),gpu_pipeline=batch.get('gpu_pipeline'),render=batch.get('render_profile'))
 
 
-def source_decision(candidate, sources, evaluations):
+def source_decision(candidate, sources, evaluations, *, candidate_evaluation=None):
     """Conservative operational choice on identical registered seed subsets.
 
     Small cohorts guide next collection only; never certify 90% grasp reliability.
     """
-    new=behavior(candidate/'development',horizon=300);decision={}
+    candidate_evaluation=candidate/'development' if candidate_evaluation is None else Path(candidate_evaluation)
+    new=behavior(candidate_evaluation,horizon=300);decision={}
     for role in 'AB':
-        if execution_identity(candidate/'development')!=execution_identity(evaluations[role]):
+        if execution_identity(candidate_evaluation)!=execution_identity(evaluations[role]):
             raise ValueError('Source/candidate execution backend or queue differs; measure the source under the current pipeline first')
         old=behavior(evaluations[role],role,horizon=300)
         a={r['seed']:r for r in old['rows'] if r['legal'] and r.get('diagnostic_cohort')!='training_family_recheck'}
@@ -180,6 +181,7 @@ def run(root,configuration):
                     '--grasp-evaluation-ticks',300,'--recheck-training-families','--backend-json',cfg['backend_json'],
                     '--training-sampling-json',cfg['training_sampling_json'],'--frozen-visual-io-json',cfg['frozen_visual_io_json'])
                 if spec.get('exercise_resume_after_frontends'):cycle+=['--exercise-resume-after-frontends']
+                if cfg.get('backend_phase_weighting_json'):cycle+=['--backend-phase-weighting-json',cfg['backend_phase_weighting_json']]
                 completed=candidate.with_name(candidate.name+'_stages')/'finished.json'
                 if not completed.exists():
                     previous=candidate.with_name(candidate.name+'_stages')/'registration.json'

@@ -41,6 +41,20 @@ def test_missing_opt_in_leaves_legacy_untouched():
     assert fresh_recovery_plan({}, {}, {}) == (None, {}, None)
 
 
+def test_grasp_phase_weights_original_approach_and_only_legal_correction_ticks():
+    from visuotactile.fresh_recovery import GRASP_STAGE_WEIGHTING_VERSION
+    data,configuration,records=cohort()
+    configuration['fresh_recovery_weighting']=dict(version=GRASP_STAGE_WEIGHTING_VERSION,ticks=40,backend_weight=3.)
+    spec,masks,population=fresh_recovery_plan(data,configuration,records)
+    assert all(masks[i].all() for i in data['normalization_train_ids'])
+    assert masks['correction'].nonzero().flatten().tolist()==list(range(34,40))
+    legal=records['correction']['supervision_mask'][None]
+    weights,_=residual_recovery_weights([masks['correction']],0,90,legal,3.)
+    assert not weights[:,:34].any() and (weights[:,34:40]==3).all() and (weights[:,40:]==1).all()
+    assert population['supervised_ticks']==86 and population['loss_weight_mass']==158
+    assert 'episode tick cutoff' in population['weighted_phase']
+
+
 @pytest.mark.parametrize('bad', [dict(version='unknown',ticks=12,backend_weight=3.),
     dict(ticks=12,backend_weight=3.), dict(contract(),extra=True),
     *[dict(contract(),ticks=x) for x in (True,0,-1,1.5)],

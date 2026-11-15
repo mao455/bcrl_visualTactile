@@ -107,7 +107,7 @@ def paired_frontends(execute, output, epochs, *, offline_anchor_batch=None,traje
 
 
 def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_status=True, stop_paths=(),
-        offline_anchor_batch=None,frozen_visual_io=None):
+        offline_anchor_batch=None,frozen_visual_io=None,backend_phase_weighting=None):
     """The same per-role commands and dependencies in serial and parallel modes."""
     rear=output/role/'backend'
     options=dict(update_status=update_status)
@@ -115,6 +115,7 @@ def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_
     execute('backend_prepare_'+role,['tools.tight_fresh_backend','--root',output,'--role',role,'--epochs',epochs]+
         (['--continue-rear'] if continue_rear else [])+
         (['--frozen-visual-io-json',output/'frozen_visual_io.json'] if frozen_visual_io is not None else [])+
+        (['--fresh-recovery-weighting-json',output/'backend_phase_weighting.json'] if backend_phase_weighting is not None else [])+
         (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else []),rear/'prepared.json',**options)
     execute('backend_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json',**options)
     execute('backend_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,
@@ -123,7 +124,7 @@ def backend_chain(execute, output, role, epochs, *, continue_rear=False, update_
         '--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json',**options)
 
 
-def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=(),offline_anchor_batch=None,frozen_visual_io=None):
+def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=(),offline_anchor_batch=None,frozen_visual_io=None,backend_phase_weighting=None):
     """Join independent complete backend chains; one failure does not cancel its peer."""
     from concurrent.futures import ThreadPoolExecutor
     errors={};outcomes={};began=time.time()
@@ -131,7 +132,7 @@ def paired_backends(execute, output, epochs, *, continue_rear=False, stop_paths=
         start=time.time()
         try:
             backend_chain(execute,output,role,epochs,continue_rear=continue_rear,
-                update_status=False,stop_paths=stop_paths,offline_anchor_batch=offline_anchor_batch,frozen_visual_io=frozen_visual_io)
+                update_status=False,stop_paths=stop_paths,offline_anchor_batch=offline_anchor_batch,frozen_visual_io=frozen_visual_io,backend_phase_weighting=backend_phase_weighting)
         except Exception as error:
             return dict(complete=False,error=repr(error),started=start,ended=time.time(),seconds=time.time()-start)
         return dict(complete=True,started=start,ended=time.time(),seconds=time.time()-start)
@@ -210,8 +211,10 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
         frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None,
         prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False,resume=False,recheck_training_families=False,
-        exercise_resume_after_frontends=False):
+        exercise_resume_after_frontends=False,backend_phase_weighting=None):
     from visuotactile.trajectory_training import validate_profile
+    from visuotactile.fresh_recovery import fresh_recovery_weighting_config
+    backend_phase_weighting=fresh_recovery_weighting_config(backend_phase_weighting)
     trajectory_profile=validate_profile(trajectory_batch_profile)
     if recheck_training_families and (not queued_gpu_evaluation or grasp_evaluation_ticks is None or evaluation_lanes<=1):
         raise ValueError('Training-family rechecks require queued short grasp evaluation')
@@ -294,6 +297,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if trajectory_profile is not None:registration['full_trajectory_batch']=trajectory_profile
     if training_sampling is not None:registration['training_sampling']=training_sampling
     if frozen_visual_io is not None:registration['frozen_visual_io']=frozen_visual_io
+    if backend_phase_weighting is not None:registration['backend_phase_weighting']=backend_phase_weighting
     if parallel_backends:
         registration['parallel_backends']=True
         registration['parallel_backend_contract']=dict(version='independent_backend_chains_v1',
@@ -378,6 +382,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             from visuotactile.latest_takeover_sampling import SAMPLING_VERSION
             atomic_json(output/'backend_episode_sampling.json',dict(version=SAMPLING_VERSION,latest_repeat=backend_latest_repeat))
         if frozen_visual_io is not None:atomic_json(output/'frozen_visual_io.json',frozen_visual_io)
+        if backend_phase_weighting is not None:atomic_json(output/'backend_phase_weighting.json',backend_phase_weighting)
         if episode_io is not None:
             atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
         if latest_repeat is not None:
@@ -442,13 +447,13 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         if backends_admitted:
             atomic_json(ledger/'status.json',dict(stage='parallel_backends',roles=['A','B'],started=time.time()))
             paired=paired_backends(execute,output,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths,
-                offline_anchor_batch=backend_offline_anchor_batch,frozen_visual_io=frozen_visual_io)
+                offline_anchor_batch=backend_offline_anchor_batch,frozen_visual_io=frozen_visual_io,backend_phase_weighting=backend_phase_weighting)
             atomic_json(ledger/'parallel_backends.json',paired)
             if not paired['complete']:raise RuntimeError('Backend stage failed: '+str(paired['errors']))
         else:
             for role in ['A','B']:
                 backend_chain(execute,output,role,rear_epochs,continue_rear=continue_rear,stop_paths=backend_stop_paths,
-                    offline_anchor_batch=backend_offline_anchor_batch,frozen_visual_io=frozen_visual_io)
+                    offline_anchor_batch=backend_offline_anchor_batch,frozen_visual_io=frozen_visual_io,backend_phase_weighting=backend_phase_weighting)
         if any(path.exists() for path in backend_stop_paths):raise InterruptedError('Fresh cycle STOP before development')
         development=output/'development'
         if evaluation_lanes>1:
@@ -498,6 +503,7 @@ def main():
         help='Opt-in same-deck A/B I/O rendezvous; requires parallel frontends and shared frozen shards')
     p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
     p.add_argument('--backend-latest-repeat',type=int,choices=[1,2,4])
+    p.add_argument('--backend-phase-weighting-json',type=Path)
     p.add_argument('--evaluation-lanes',type=int,default=1)
     p.add_argument('--queued-gpu-evaluation',action='store_true')
     p.add_argument('--grasp-evaluation-ticks',type=int)
@@ -533,6 +539,7 @@ def main():
         continue_rear=a.continue_rear,reuse_index=a.reuse_index.resolve() if a.reuse_index else None,
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
         backend_latest_repeat=a.backend_latest_repeat,
+        backend_phase_weighting=read(a.backend_phase_weighting_json) if a.backend_phase_weighting_json else None,
         queued_gpu_evaluation=a.queued_gpu_evaluation,grasp_evaluation_ticks=a.grasp_evaluation_ticks,
         recheck_training_families=a.recheck_training_families,
         exercise_resume_after_frontends=a.exercise_resume_after_frontends,

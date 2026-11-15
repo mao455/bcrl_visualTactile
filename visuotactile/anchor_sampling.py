@@ -4,6 +4,7 @@ import torch
 
 
 TRAINING_ANCHOR_VERSION = 'random_legal_action_anchors_v1'
+GRASP_ANCHOR_VERSION = 'grasp_balanced_legal_action_anchors_v2'
 
 
 def sampling_profile(seed=2026111501):
@@ -23,10 +24,17 @@ def validate_training_anchor_profile(value):
     if value is None:return None
     if not isinstance(value,dict):
         raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
-    expected=sampling_profile(value.get('seed'))
+    expected=(grasp_sampling_profile(value.get('seed')) if value.get('version')==GRASP_ANCHOR_VERSION
+              else sampling_profile(value.get('seed')))
     if value!=expected or any(type(value[k]) is not type(v) for k,v in expected.items()):
         raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
     return dict(value)
+
+
+def grasp_sampling_profile(seed=2026111501):
+    return dict(sampling_profile(seed),version=GRASP_ANCHOR_VERSION,
+        early_control_ticks=150,early_anchor_fraction=.5,
+        shortage='fill_from_remaining_legal_population_without_replacement')
 
 
 def validate_selected_anchors(anchors, *, start, stop, device):
@@ -48,11 +56,11 @@ def validate_training_anchors(record, anchors):
 
 
 def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
-    """Uniform without replacement on every visit, isolated from model/deck RNG.
+    """Uniform or early/late stratified sampling, isolated from model/deck RNG.
 
     Repeated visits draw anew; identical subsets remain possible, especially if
     the requested count exhausts a short population. This is not a forced-novelty
-    process. Sorting changes readout order, not the uniform subset distribution.
+    process. Sorting changes readout order, not the selected subset.
     """
     import hashlib,json
     profile=validate_training_anchor_profile(profile)
@@ -65,20 +73,33 @@ def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
     if not len(population):raise ValueError('No legal action ticks to sample')
     native_count=len(planning_anchors(record))
     count=min(len(population),max(1,native_count))
-    context=dict(version=TRAINING_ANCHOR_VERSION,seed=profile['seed'],
+    context=dict(version=profile['version'],seed=profile['seed'],
         identity=identity,epoch=epoch,visit_index=visit_index)
     digest=hashlib.sha256(json.dumps(context,sort_keys=True,separators=(',',':')).encode()).hexdigest()
     seed=int(digest[:16],16)%(2**63)
     generator=torch.Generator(device='cpu').manual_seed(seed)
-    anchors=population[torch.randperm(len(population),generator=generator)[:count]].sort().values
+    if profile['version']==GRASP_ANCHOR_VERSION:
+        early=population[population<profile['early_control_ticks']]
+        late=population[population>=profile['early_control_ticks']]
+        early_count=min(len(early),(count+1)//2)
+        late_count=min(len(late),count-early_count)
+        early_count=min(len(early),count-late_count)
+        anchors=torch.cat((early[torch.randperm(len(early),generator=generator)[:early_count]],
+            late[torch.randperm(len(late),generator=generator)[:late_count]])).sort().values
+    else:
+        anchors=population[torch.randperm(len(population),generator=generator)[:count]].sort().values
     validate_training_anchors(record,anchors)
     selected=anchors.tolist()
-    receipt=dict(version=TRAINING_ANCHOR_VERSION,identity=identity,epoch=epoch,visit_index=visit_index,
+    receipt=dict(version=profile['version'],identity=identity,epoch=epoch,visit_index=visit_index,
         seed_context_sha256=digest,derived_seed=seed,legal_tick_population=len(population),
         original_commit12_anchor_count=native_count,selected_count=count,selected_anchors=selected,
         non_native_grid_count=int((anchors%12!=0).sum()),
         selected_anchors_sha256=hashlib.sha256(json.dumps(selected,separators=(',',':')).encode()).hexdigest(),
         legal_tick_population_sha256=hashlib.sha256(json.dumps(population.tolist(),separators=(',',':')).encode()).hexdigest())
+    if profile['version']==GRASP_ANCHOR_VERSION:
+        receipt.update(early_control_ticks=150,early_selected=int((anchors<150).sum()),
+            early_population=len(early),late_population=len(late),
+            selection_scope='Training anchors only; all legal ticks remain eligible across visits; deployment/rear plans remain commit12')
     return anchors,receipt
 
 

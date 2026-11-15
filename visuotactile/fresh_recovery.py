@@ -13,6 +13,7 @@ from .residual_tick_window import TICK_WINDOW_CONTRACT
 
 
 FRESH_RECOVERY_WEIGHTING_VERSION = 'fresh_actual_takeover_onset_weighting_v1'
+GRASP_STAGE_WEIGHTING_VERSION = 'fresh_early_grasp_control_weighting_v1'
 
 
 def fresh_recovery_weighting_config(value):
@@ -20,7 +21,7 @@ def fresh_recovery_weighting_config(value):
         return None
     if (not isinstance(value, dict)
             or set(value) != {'version', 'ticks', 'backend_weight'}
-            or value['version'] != FRESH_RECOVERY_WEIGHTING_VERSION):
+            or value['version'] not in (FRESH_RECOVERY_WEIGHTING_VERSION,GRASP_STAGE_WEIGHTING_VERSION)):
         raise ValueError('Unknown fresh recovery weighting contract')
     ticks, weight = value['ticks'], value['backend_weight']
     if isinstance(ticks, bool) or not isinstance(ticks, int) or ticks < 1:
@@ -44,7 +45,9 @@ def fresh_recovery_exposure(records, masks, counts, contract):
     return dict(contract=contract, supervised_ticks=legal,
         initial_recovery_supervised_ticks=initial, remaining_supervised_ticks=legal-initial,
         loss_weight_mass=legal+(contract['backend_weight']-1)*initial,
-        loss_weight_mass_is_exposure=False, episode_draws=sum(counts.values()))
+        loss_weight_mass_is_exposure=False, episode_draws=sum(counts.values()),
+        **(dict(weighted_phase='all legal control ticks before the episode tick cutoff, including original demonstrations')
+            if contract['version']==GRASP_STAGE_WEIGHTING_VERSION else {}))
 
 
 def fresh_recovery_plan(data, configuration, records):
@@ -71,6 +74,15 @@ def fresh_recovery_plan(data, configuration, records):
         if identity not in records:
             raise ValueError('Fresh recovery training record is missing')
         record = records[identity]
+        if contract['version']==GRASP_STAGE_WEIGHTING_VERSION:
+            if identity not in originals and (data['entries'][identity].get('trajectory_kind')!='expert_takeover_v1'
+                    or not {'supervision_mask','control_segment','time'}<=set(record)):
+                raise ValueError('Grasp-stage corrections require actual expert control provenance')
+            legal,_=supervision_rows(record)
+            if len(legal)!=len(record['robot']) or not legal.any():
+                raise ValueError('Grasp-stage record has no aligned legal expert ticks')
+            masks[identity]=(legal.cpu() & (torch.arange(len(legal))<contract['ticks']))
+            continue
         if identity in originals:
             masks[identity] = torch.zeros(len(record['robot']), dtype=torch.bool)
             continue

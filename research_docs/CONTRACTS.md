@@ -563,3 +563,6 @@ imitation 将交互收集、轨迹保存与后续 BC 训练分离；其 Interact
 
 ### Night grasp rechecks (2026-11-16)
 Optional `recheck_training_families` appends at most8 actual collection cases to queued autonomous evaluation, removes all takeover metadata, and preserves train-family labeling. `counts_by_cohort` separates these from fixed development. This never changes native task success, control timing or training split. Old expert command paths become descriptive comparisons after states diverge, not valid labels for new student states.
+
+
+2026-11-16 grasp learning v2: `grasp_balanced_legal_action_anchors_v2` stratifies each visit's unchanged anchor count between legal episode ticks before150 and remaining legal ticks. It never promotes student-prefix/queue labels, changes causal readout time, or changes commit12 deployment/backend plans. `fresh_early_grasp_control_weighting_v1` weights legal rear targets before150 by3, including original approach demonstrations; all later legal targets retain1. Fixed128 physical-tick optimizer denominator and actual observations remain; weighted mass must be reported separately from action exposure. These are new explicit training identities, not reinterpretations of old weights.
