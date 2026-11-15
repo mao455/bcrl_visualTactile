@@ -141,7 +141,9 @@ def prepare(root, output, count, seed, *, neural_batch=False,max_control_ticks=N
     if tail is not None:plan['vision_tail_profile']=tail
     if gpu_pipeline:
         from visuotactile.gpu_batch_controller import PROFILE
+        from visuotactile.current_render import PROFILE as RENDER_PROFILE
         plan['gpu_pipeline']=PROFILE
+        plan['render_profile']=RENDER_PROFILE
     atomic_json(output/'plan.json',plan)
 
 
@@ -186,6 +188,11 @@ def run(output):
     if diagnostic:resource_snapshot(resource_root,resources)
     app,env,player,lease=environment(output,evaluation=True,lease=lease,num_envs=count,**backend_kwargs)
     env.batch_static_calibration_cache=bool(plan.get('gpu_pipeline'))
+    render_reuse=None
+    if plan.get('render_profile'):
+        from visuotactile.current_render import PROFILE as RENDER_PROFILE,CurrentRenderReuse
+        if plan['render_profile']!=RENDER_PROFILE:raise ValueError('Unknown render profile')
+        render_reuse=CurrentRenderReuse(env)
     startup_seconds=time.perf_counter()-startup_began
     atomic_json(output/'startup_timing.json',dict(seconds=startup_seconds,vision_microbatch=vision_microbatch,**vision_options))
     configure_direct_reset_lanes(env,[c['narrow_reset'] for c in plan['cases']])
@@ -265,6 +272,7 @@ def run(output):
         profile['aggregate_control_ticks_per_second']=profile['steps']/profile['total_s']
         profile['control_loop_and_numeric_flush_s']=profile['total_s']
         profile['vision_execution']=controller.vision_execution_report()
+        if render_reuse is not None:profile['render_reuse']=dict(render_reuse.stats)
         results=[]
         for lane in range(count):
             result=dict(lane=lane,identity=plan['cases'][lane]['identity'],legal=admissions[lane]['legal'],steps=len(rows[lane]),

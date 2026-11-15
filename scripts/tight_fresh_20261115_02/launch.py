@@ -81,6 +81,12 @@ def launch(tree,expected,config,loop):
             value=read(path)
             return value if time.time()-value['utc_epoch']<8 and (root/'monitor.json').exists() else None
         state['monitor_observed']=common.wait_started(observed_monitor,45,'Independent session monitor')
+        if config.get('throughput_preflight'):
+            preflight=(BUNDLE/config['throughput_preflight']).resolve(strict=True)
+            common.execute('throughput_preflight',[python,str(preflight),'--root',str(root),
+                '--loop',str(ledger/'loop_config.json')],tree,ledger,
+                timeout=min(2400,max(1,deadline-time.time()-loop['bounds']['minimum_round_remaining_seconds'])))
+            loop=read(ledger/'loop_config.json')
         common.execute('prepare_loop',[python,'-m','tools.tight_fresh_research_loop','prepare',
             '--session-root',str(root),'--output',str(root/'research_loop'),'--worker-tree',str(tree),
             '--configuration',str(ledger/'loop_config.json')],tree,ledger,timeout=600)
