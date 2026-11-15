@@ -39,6 +39,13 @@ def status(root):
   if row:rows.append(dict(path=str(directory.relative_to(root)),
    **{k:row[k] for k in ('software_complete','worker_error','accepted_training_trajectories','elapsed_seconds',
     'tick','active_count','remaining_tasks','closed_results','verifying','active_lane_steps') if k in row}))
+ fit_status=read(root/'fixed_fit_stages/owner_status.json')
+ if fit_status:result['independent_fixed_fit']=fit_status
+ for role in 'AB':
+  path=root/'fixed_fit'/role/'progress.json';row=read(path)
+  if row:rows.append(dict(path=str(path.relative_to(root)),**row))
+ fit_finished=read(root/'fixed_fit_stages/finished.json')
+ if fit_finished:result['fixed_fit_software_complete']=fit_finished.get('software_complete')
  result['progress']=rows;return result
 
 if __name__=='__main__':

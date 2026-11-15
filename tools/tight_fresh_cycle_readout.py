@@ -76,6 +76,10 @@ def training(directory, identities, *, rear=False, records=None):
         result['latest_fit_scope']='Same newly selected DP inputs; old versus selected rear on real saved expert suffixes. Teacher-forced, not autonomous.'
     else:
         result['completed_latest_visits']={i:done['sampling_exposure'][i] for i in identities}
+        result['completed_distinct_time_coverage']=done.get('visit_sampling_coverage')
+        if saved.get('visit_sampling_coverage') is not None:
+            from visuotactile.fresh_visit_sampling import Coverage
+            result['selected_distinct_time_coverage']=Coverage(saved['visit_sampling_coverage']).summary()
     if records is not None:
         result['selected_phase_exposure']=phase_exposure(directory,saved,records,identities,rear=rear)
     return result
