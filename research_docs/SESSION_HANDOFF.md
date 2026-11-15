@@ -1,3 +1,9 @@
+## 2026-11-15 20:07 第十四批已实际进入控制，按有界流程继续
+
+代码/脚本/第十三轮完整报告3d148de已推origin feature；新冻结树bc+rl_RSS_fresh_balanced_20261115未热改。session04实际20:05:20.389建立，独立固定截止2026-11-16 02:05:20.389；旧03的22:23:23.594截止与session SHA保持。旧owner/monitor已正常退出，新tight-fresh-balanced-20261115-04.service及monitor正常。
+
+20:07:28读取new_family_14已推进wave0/control tick50，16个lane活动。实际plan为A11/B13完整来源、283条/149family池、32机会（fixed1=16、held0=8、held_root60=8），8校验worker与新32GiB运行保留已落到session/plan。当前只证明真实采集已推进，新的成功数、校验吞吐和训练后自主结果仍待完成。[实际启动](evidence/tight_fresh_20261114/balanced_followup04/startup.json)。已观察13完整闭合及下一轮真实控制交接，按用户许可由单轮有限owner后台继续，异常/阶段/退出均留记录。
+
 ## 2026-11-15 20:03 第十三轮完整结束；补早期与近孔状态的新批准备
 
 session03于19:47:43正常完成全部阶段并退出。32新成功/8325合法专家步进入283条/149训练family池，24条为持物相关5609步；A/B各20前端遍3800更新，选18/14遍，新32条各72/56 visit。后端各15有效控制步遍、7720更新、1,140,390合法监督动作；不是只改善末遍离线拟合而没训练后端。完整16自主机会，A合法7/非法1，B合法8：插入0/7、0/8，原生near/对准/首子目标全0。[完整结果](evidence/tight_fresh_20261114/prefetch_followup03/completed.json)。

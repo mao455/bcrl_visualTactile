@@ -1,0 +1,131 @@
+{
+  "version": "round14_actual_startup_v1",
+  "observed_at": "2026-11-15T20:07:28.491376+08:00",
+  "source_commit": "3d148de3838a6a76e5a735b62ae2f53f73e9be20",
+  "worker_tree": "/home/CNS2025331827/docs/bc+rl_RSS_fresh_balanced_20261115",
+  "new_started": 1794744320.3887162,
+  "new_deadline": 1794765920.3887162,
+  "old_deadline": 1794752603.5936224,
+  "old_session_preserved": true,
+  "schedules": {
+    "fixed1": 16,
+    "held0": 8,
+    "held_root60": 8
+  },
+  "verification_workers": 8,
+  "source_pairs": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/training/best.pt",
+      "frontend_sha256": "c2b4ce5703e02b91f59872a6240f1b40ade62af730a5f4dbd56ecc5b653cd08d",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/best.pt",
+      "backend_sha256": "170b057b3b0156b8b7a3c24d1afcdbeedb8611fa7a24ccad0c4845d790d3cf16",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/B/training/best.pt",
+      "frontend_sha256": "d9669c1c2003394d99d1951a191dff6b79e5ec6e6bc2de3920352353d9fed190",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/B/backend/B/training/best.pt",
+      "backend_sha256": "bc03a3dc96c0a8e3d82e7e8ebce527c69d83cc322f3af68d5b0856e8f6977a9d",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "source_train_trajectories": 283,
+  "source_train_families": 149,
+  "actual_progress": {
+    "wave": 0,
+    "tick": 50,
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "utc": 1794744427.9530323
+  },
+  "owner": {
+    "stage": "collect_cycle",
+    "round": 14,
+    "completed_rounds": 0,
+    "work_deadline": 1794765860.3887162
+  },
+  "services": {
+    "tight-fresh-balanced-20261115-04.service": {
+      "MainPID": "290142",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "tight-fresh-monitor-20261115-04.service": {
+      "MainPID": "290100",
+      "ExecMainStatus": "0",
+      "ActiveState": "active",
+      "SubState": "running"
+    }
+  },
+  "interpretation": "Actual control advancement observed after round13 closed. No new recovery count, training result, throughput gain or autonomous benefit established yet.",
+  "input_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04_launch/status.json": "cd3b14352f5836d4e75ed7af726ed8d9e90c016b348dc0f59b8737f901146346",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/session.json": "fb9e28f690b9200775d62b1014a4778bb126adc7de6886249a2e1d798e4f0522",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/session.json": "cd8d50416565293366377d61bad8798fc142b22d8726b4ee3b7f09416ae51f34",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/new_family_14/plan.json": "3b4b7e899d7f304ce457458132ad27148e7b95c925ee199ead9bee83db6ea5bb",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/new_family_14/batch_progress.json": "fea2a8e8292e7cba875586663cfc3b9cd841bb7b7b054443e01eb6a1fe4b732e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/A/state_data/data.json": "097783cf7d67f866197b8e900f73160ba5ec34c2cca91345827c6a8a91cc4fa7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/research_loop/owner_status.json": "d45f0fddbf0e93a994054cb7f5ec4f088de709e2606dce99a82941e4a7d7d21b"
+  }
+}

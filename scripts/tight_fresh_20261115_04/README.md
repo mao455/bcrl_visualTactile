@@ -18,3 +18,5 @@
 ```
 
 retire.py只接受本次固定manifest SHA，已执行完毕，不重跑；结果及名单公开于research_docs/evidence/tight_fresh_20261114/balanced_followup04。原始大数据和权重留研究机。
+
+实际已使用冻结3d148de3838a6a76e5a735b62ae2f53f73e9be20运行：2026-11-15 20:05:20.389开始，固定2026-11-16 02:05:20.389截止。20:07:28实际wave0/tick50、16活动lane，owner/monitor正常。report_startup.py一次读取小回执生成startup.json，不启动任务或轮询；当前新成功数量和正式8worker吞吐尚未完成。此为13完整结束后的新独立session，旧03截止/模型/数据证据保持。
