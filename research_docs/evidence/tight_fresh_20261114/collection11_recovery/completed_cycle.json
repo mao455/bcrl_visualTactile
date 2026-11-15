@@ -1,0 +1,2372 @@
+{
+  "version": "cycle11_closed_review_v1",
+  "complete": true,
+  "observed_at": "2026-11-15T12:21:20.970952+08:00",
+  "source": {
+    "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09",
+    "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development",
+    "execution": {
+      "mode": "whole_wave",
+      "lanes": 8,
+      "vision_microbatch": 8,
+      "vision_tail_profile": null,
+      "inactive_render_profile": null,
+      "batch_seed": 28500000,
+      "inference_scheduler_index_mode": "host",
+      "execution_backend": {
+        "version": "tight_execution_backend_v2",
+        "physics_device": "cpu",
+        "camera_backend": "standard",
+        "kit_tasking_threads": 16,
+        "physics_threads": 2,
+        "renderer_descriptor_sets": 360000,
+        "renderer_reserved_descriptors": 900000
+      },
+      "observed_sha256": "1168ef3c66e651a80707f30abd875fed62456418d384ee19cf3317f0212dfac2"
+    },
+    "pairs": {
+      "A": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/A/training/best.pt",
+        "frontend_sha256": "3db1c72ae257364bb551fabd196468c3c7a246dfbc9025c49e560fd247551ebf",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/A/backend/A/training/best.pt",
+        "backend_sha256": "98e657760418936c26bc5d9a268b7e198e566bc0a988e86111eac524678117a8",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "q_reached",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      },
+      "B": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/B/training/best.pt",
+        "frontend_sha256": "4ac67a6e08326c72b6d57645a049dde21e13dccb23912e2a4859e441f2fb3a2c",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/B/backend/B/training/best.pt",
+        "backend_sha256": "856d55c143bdddcbe5db83d86fec7bf43ce5bd92f89751bf76aa4ba0e3329830",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "u_expert",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      }
+    },
+    "totals": {
+      "A": {
+        "opportunities": 8,
+        "successes": 0,
+        "native_lift_cases": 0,
+        "old_stable_window_cases": 2,
+        "contact_height12_cases": 2,
+        "native_alignment_cases": 0,
+        "native_near_goal_cases": 0,
+        "first_subgoal_cases": 0,
+        "termination_reasons": {
+          "timeout": 7
+        },
+        "total_control_ticks": 4207,
+        "overlapping_lane_lifetime_seconds": 1561.8911162093282,
+        "legal_initializations": 7,
+        "invalid_initializations": 1,
+        "autonomous_success_rate_among_legal": 0.0,
+        "raw_successes_per_registered_opportunity": {
+          "numerator": 0,
+          "denominator": 8,
+          "ratio": 0.0,
+          "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+        },
+        "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+      },
+      "B": {
+        "opportunities": 8,
+        "successes": 0,
+        "native_lift_cases": 1,
+        "old_stable_window_cases": 4,
+        "contact_height12_cases": 5,
+        "native_alignment_cases": 0,
+        "native_near_goal_cases": 0,
+        "first_subgoal_cases": 0,
+        "termination_reasons": {
+          "timeout": 6,
+          "fall": 2
+        },
+        "total_control_ticks": 4460,
+        "overlapping_lane_lifetime_seconds": 1713.5522936049383,
+        "legal_initializations": 8,
+        "invalid_initializations": 0,
+        "autonomous_success_rate_among_legal": 0.0,
+        "raw_successes_per_registered_opportunity": {
+          "numerator": 0,
+          "denominator": 8,
+          "ratio": 0.0,
+          "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+        },
+        "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+      }
+    }
+  },
+  "candidate": {
+    "development": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/development",
+    "execution": {
+      "mode": "whole_wave",
+      "lanes": 8,
+      "vision_microbatch": 8,
+      "vision_tail_profile": null,
+      "inactive_render_profile": null,
+      "batch_seed": 28500000,
+      "inference_scheduler_index_mode": "host",
+      "execution_backend": {
+        "version": "tight_execution_backend_v2",
+        "physics_device": "cpu",
+        "camera_backend": "standard",
+        "kit_tasking_threads": 16,
+        "physics_threads": 2,
+        "renderer_descriptor_sets": 360000,
+        "renderer_reserved_descriptors": 900000
+      }
+    },
+    "pairs": {
+      "A": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/training/best.pt",
+        "frontend_sha256": "c2b4ce5703e02b91f59872a6240f1b40ade62af730a5f4dbd56ecc5b653cd08d",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/best.pt",
+        "backend_sha256": "170b057b3b0156b8b7a3c24d1afcdbeedb8611fa7a24ccad0c4845d790d3cf16",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "q_reached",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      },
+      "B": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/B/training/best.pt",
+        "frontend_sha256": "c742ef1ad4b3d200928e4dc8d82a368c742805a82774a17c07eca3b4cb636d8a",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/B/backend/B/training/best.pt",
+        "backend_sha256": "1ed723527b2cb3d3cef53e0da32de15af1e908f6dbbadb4ab2b19e963d798d22",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "u_expert",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      }
+    },
+    "cases": [
+      {
+        "case": "A_development_28500000",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.11697772145271301,
+            "root_origin_distance_m": 0.11697772145271301,
+            "quaternion_angle_rad": 2.431135654449463,
+            "keypoint_gap_m": 0.19032491743564606,
+            "keypoint_distance_m": 0.2053249180316925,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11697772145271301,
+            "root_origin_distance_m": 0.11697772145271301,
+            "quaternion_angle_rad": 2.431135654449463,
+            "keypoint_gap_m": 0.19032491743564606,
+            "keypoint_distance_m": 0.2053249180316925,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "09bedea15f258ca51a742b14bb3b4e6a8f1931ebacba52166288a58de366eab3",
+        "first_contact_tick": 58,
+        "first_two_fingers_both_substeps_tick": 70,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": -0.00015670061111450195,
+        "later_rise_with_two_fingers_max_m": -0.02555638551712036,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.11697772145271301,
+        "first_goal_min_quaternion_angle_rad": 2.184069871902466,
+        "first_goal_min_keypoint_gap_m": 0.19032491743564606,
+        "post_contact_arm_tracking_rmse_rad": 0.00465760612860322,
+        "post_contact_hand_tracking_rmse_rad": 0.03879111260175705,
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": null,
+          "qualifying_window_ends": 0,
+          "contact_and_height_ticks_after_reference": 0,
+          "longest_contact_and_height_run_ticks": 0,
+          "elevated_without_two_finger_contact_ticks_after_reference": 0,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": null
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 0
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803689,
+          "bytes": 12706991,
+          "mtime_ns": 1794712834293819385
+        },
+        "wall_seconds": 213.92048684996553
+      },
+      {
+        "case": "A_development_28500001",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 115,
+            "center_distance_m": 0.11410769075155258,
+            "root_origin_distance_m": 0.11410769075155258,
+            "quaternion_angle_rad": 1.909742832183838,
+            "keypoint_gap_m": 0.27282074093818665,
+            "keypoint_distance_m": 0.2878207266330719,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11796753853559494,
+            "root_origin_distance_m": 0.11796753853559494,
+            "quaternion_angle_rad": 2.414478302001953,
+            "keypoint_gap_m": 0.19044604897499084,
+            "keypoint_distance_m": 0.2054460495710373,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "db26430580e4935d83551d7f7141c5fcc197cf30459777562959831819777561",
+        "first_contact_tick": 66,
+        "first_two_fingers_both_substeps_tick": 75,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.07323342561721802,
+        "later_rise_with_two_fingers_max_m": 0.07239234447479248,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.11410769075155258,
+        "first_goal_min_quaternion_angle_rad": 1.7593754529953003,
+        "first_goal_min_keypoint_gap_m": 0.19044604897499084,
+        "post_contact_arm_tracking_rmse_rad": 0.005417726933956146,
+        "post_contact_hand_tracking_rmse_rad": 0.044119562953710556,
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 102,
+          "qualifying_window_ends": 8,
+          "contact_and_height_ticks_after_reference": 21,
+          "longest_contact_and_height_run_ticks": 19,
+          "elevated_without_two_finger_contact_ticks_after_reference": 14,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 108,
+            "active_goal_index": 0,
+            "root_angle_rad": 1.7710525589703445,
+            "root_distance_m": 0.12944798171520233,
+            "native_keypoint_distance_m": 0.290020614862442,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 8,
+          "first": {
+            "completed_tick": 102,
+            "root_angle_rad": 1.87607741355896,
+            "root_distance_m": 0.1564987450838089,
+            "native_keypoint_distance_m": 0.3306165039539337,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 107,
+            "root_angle_rad": 1.7593755722045898,
+            "root_distance_m": 0.13507910072803497,
+            "native_keypoint_distance_m": 0.29745814204216003,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.11670184135437012,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803696,
+          "bytes": 12719850,
+          "mtime_ns": 1794712834533585639
+        },
+        "wall_seconds": 214.16013407497667
+      },
+      {
+        "case": "A_development_28500002",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": 205,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": 206,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 206,
+            "center_distance_m": 0.002624679123982787,
+            "root_origin_distance_m": 0.002624679123982787,
+            "quaternion_angle_rad": 0.13291233777999878,
+            "keypoint_gap_m": -0.0001826779916882515,
+            "keypoint_distance_m": 0.014817321673035622,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": true,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 215,
+            "center_distance_m": 0.005267551634460688,
+            "root_origin_distance_m": 0.005267551634460688,
+            "quaternion_angle_rad": 0.12388358265161514,
+            "keypoint_gap_m": -0.0010613622143864632,
+            "keypoint_distance_m": 0.01393863745033741,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": true,
+            "two_contact_fingers_both_substeps": true
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 58,
+          "first_tick": 205,
+          "last_tick": 298,
+          "longest_continuous_stable_ticks": 24,
+          "first_stable_goal_distance_m": 0.0027313074097037315,
+          "first_stable_goal_angle_rad": 0.13299129903316498,
+          "subsequent_first_goal_min_distance_m": 0.002624679123982787,
+          "subsequent_first_goal_min_angle_rad": 0.012352666817605495,
+          "first_goal_last_distance_m": 0.2094784379005432,
+          "first_goal_last_angle_rad": 2.841923952102661,
+          "stable_at_final_tick": false
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "dbfbb20c649626d76b4c401f484e594b264594b0d8346275295d41131d8812a7",
+        "first_contact_tick": 61,
+        "first_two_fingers_both_substeps_tick": 113,
+        "original_height_stable_grasp": true,
+        "settled_height_stable_grasp": true,
+        "first_settled_height_stable_window_end_tick": 205,
+        "max_later_rise_over_settled_m": 0.17617666721343994,
+        "later_rise_with_two_fingers_max_m": 0.17617666721343994,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": 206,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.002624679123982787,
+        "first_goal_min_quaternion_angle_rad": 0.012352666817605495,
+        "first_goal_min_keypoint_gap_m": -0.0010613622143864632,
+        "post_contact_arm_tracking_rmse_rad": 0.009624402038753033,
+        "post_contact_hand_tracking_rmse_rad": 0.11155123263597488,
+        "near_goal_retention": {
+          "near_ticks": 7,
+          "maximum_recorded_count": 7,
+          "required_count": 10,
+          "consecutive_required": false,
+          "goal_mode": "preInsertAndFinal"
+        },
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 134,
+          "qualifying_window_ends": 146,
+          "contact_and_height_ticks_after_reference": 175,
+          "longest_contact_and_height_run_ticks": 153,
+          "elevated_without_two_finger_contact_ticks_after_reference": 38,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 215,
+            "active_goal_index": 0,
+            "root_angle_rad": 0.12388166000156922,
+            "root_distance_m": 0.005267551634460688,
+            "native_keypoint_distance_m": 0.01393863745033741,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 146,
+          "first": {
+            "completed_tick": 134,
+            "root_angle_rad": 1.7081660032272339,
+            "root_distance_m": 0.15636995434761047,
+            "native_keypoint_distance_m": 0.3022524416446686,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 295,
+            "root_angle_rad": 0.012352666817605495,
+            "root_distance_m": 0.017230739817023277,
+            "native_keypoint_distance_m": 0.017923181876540184,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 1.6958132982254028,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803703,
+          "bytes": 12784757,
+          "mtime_ns": 1794712834778437637
+        },
+        "wall_seconds": 214.40505470405333
+      },
+      {
+        "role": "A",
+        "case": "A_development_28500003",
+        "legal": false
+      },
+      {
+        "case": "A_development_28500004",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": 213,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 223,
+            "center_distance_m": 0.012018931098282337,
+            "root_origin_distance_m": 0.012018931098282337,
+            "quaternion_angle_rad": 0.5924258232116699,
+            "keypoint_gap_m": 0.0441703200340271,
+            "keypoint_distance_m": 0.05917032063007355,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 222,
+            "center_distance_m": 0.01266203448176384,
+            "root_origin_distance_m": 0.01266203448176384,
+            "quaternion_angle_rad": 0.5586588978767395,
+            "keypoint_gap_m": 0.04327903315424919,
+            "keypoint_distance_m": 0.05827903375029564,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 4,
+          "first_tick": 213,
+          "last_tick": 216,
+          "longest_continuous_stable_ticks": 4,
+          "first_stable_goal_distance_m": 0.02020403742790222,
+          "first_stable_goal_angle_rad": 0.7001366019248962,
+          "subsequent_first_goal_min_distance_m": 0.012018931098282337,
+          "subsequent_first_goal_min_angle_rad": 0.5469862818717957,
+          "first_goal_last_distance_m": 0.19252051413059235,
+          "first_goal_last_angle_rad": 2.263913631439209,
+          "stable_at_final_tick": false
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "bb49d233cf86f0f47b6c6ab2c03ad00ff7af9d22782e2c69898481fbc8eb078c",
+        "first_contact_tick": 65,
+        "first_two_fingers_both_substeps_tick": 77,
+        "original_height_stable_grasp": true,
+        "settled_height_stable_grasp": true,
+        "first_settled_height_stable_window_end_tick": 213,
+        "max_later_rise_over_settled_m": 0.14436376094818115,
+        "later_rise_with_two_fingers_max_m": 0.14436376094818115,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.012018931098282337,
+        "first_goal_min_quaternion_angle_rad": 0.5469862818717957,
+        "first_goal_min_keypoint_gap_m": 0.04327903315424919,
+        "post_contact_arm_tracking_rmse_rad": 0.005170710384845734,
+        "post_contact_hand_tracking_rmse_rad": 0.05135597288608551,
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 97,
+          "qualifying_window_ends": 74,
+          "contact_and_height_ticks_after_reference": 119,
+          "longest_contact_and_height_run_ticks": 57,
+          "elevated_without_two_finger_contact_ticks_after_reference": 38,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 222,
+            "active_goal_index": 0,
+            "root_angle_rad": 0.5586585025216139,
+            "root_distance_m": 0.01266203448176384,
+            "native_keypoint_distance_m": 0.05827903375029564,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 74,
+          "first": {
+            "completed_tick": 97,
+            "root_angle_rad": 2.0133981704711914,
+            "root_distance_m": 0.1570166051387787,
+            "native_keypoint_distance_m": 0.33798423409461975,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 220,
+            "root_angle_rad": 0.5469858646392822,
+            "root_distance_m": 0.01547506544739008,
+            "native_keypoint_distance_m": 0.06390396505594254,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 1.4664123058319092,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803717,
+          "bytes": 12764001,
+          "mtime_ns": 1794712835019344788
+        },
+        "wall_seconds": 214.6458897141274
+      },
+      {
+        "case": "A_development_28500005",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": 521,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 580,
+            "center_distance_m": 0.046555258333683014,
+            "root_origin_distance_m": 0.046555258333683014,
+            "quaternion_angle_rad": 2.4276604652404785,
+            "keypoint_gap_m": 0.22066065669059753,
+            "keypoint_distance_m": 0.23566065728664398,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.1195719763636589,
+            "root_origin_distance_m": 0.1195719763636589,
+            "quaternion_angle_rad": 2.430638551712036,
+            "keypoint_gap_m": 0.19162951409816742,
+            "keypoint_distance_m": 0.20662951469421387,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 25,
+          "first_tick": 521,
+          "last_tick": 566,
+          "longest_continuous_stable_ticks": 17,
+          "first_stable_goal_distance_m": 0.14074021577835083,
+          "first_stable_goal_angle_rad": 2.3615663051605225,
+          "subsequent_first_goal_min_distance_m": 0.046555258333683014,
+          "subsequent_first_goal_min_angle_rad": 1.7601712942123413,
+          "first_goal_last_distance_m": 0.09896021336317062,
+          "first_goal_last_angle_rad": 2.014970064163208,
+          "stable_at_final_tick": false
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "3c6278d6d358f11d973654913be7bb6069b0f2dab576738d58d8b1664605665a",
+        "first_contact_tick": 61,
+        "first_two_fingers_both_substeps_tick": 73,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": true,
+        "first_settled_height_stable_window_end_tick": 521,
+        "max_later_rise_over_settled_m": 0.09926724433898926,
+        "later_rise_with_two_fingers_max_m": 0.09926724433898926,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.046555258333683014,
+        "first_goal_min_quaternion_angle_rad": 1.5829517841339111,
+        "first_goal_min_keypoint_gap_m": 0.19162951409816742,
+        "post_contact_arm_tracking_rmse_rad": 0.008385780267417431,
+        "post_contact_hand_tracking_rmse_rad": 0.10391063988208771,
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 517,
+          "qualifying_window_ends": 85,
+          "contact_and_height_ticks_after_reference": 96,
+          "longest_contact_and_height_run_ticks": 96,
+          "elevated_without_two_finger_contact_ticks_after_reference": 0,
+          "contact_and_height_at_final_tick": true,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 593,
+            "active_goal_index": 0,
+            "root_angle_rad": 1.7601711711768142,
+            "root_distance_m": 0.09577103704214096,
+            "native_keypoint_distance_m": 0.20859774947166443,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 85,
+          "first": {
+            "completed_tick": 517,
+            "root_angle_rad": 2.355858564376831,
+            "root_distance_m": 0.1419355720281601,
+            "native_keypoint_distance_m": 0.279460608959198,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 593,
+            "root_angle_rad": 1.7601711750030518,
+            "root_distance_m": 0.09577103704214096,
+            "native_keypoint_distance_m": 0.20859774947166443,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.5956873893737793,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803724,
+          "bytes": 12793059,
+          "mtime_ns": 1794712835261617756
+        },
+        "wall_seconds": 214.88828059798107
+      },
+      {
+        "case": "A_development_28500006",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": 309,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 275,
+            "center_distance_m": 0.003561925608664751,
+            "root_origin_distance_m": 0.003561925608664751,
+            "quaternion_angle_rad": 0.5489662885665894,
+            "keypoint_gap_m": 0.01076406892389059,
+            "keypoint_distance_m": 0.025764068588614464,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 273,
+            "center_distance_m": 0.004014846868813038,
+            "root_origin_distance_m": 0.004014846868813038,
+            "quaternion_angle_rad": 0.3425626754760742,
+            "keypoint_gap_m": 0.006443127058446407,
+            "keypoint_distance_m": 0.02144312672317028,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 5,
+          "first_tick": 309,
+          "last_tick": 313,
+          "longest_continuous_stable_ticks": 5,
+          "first_stable_goal_distance_m": 0.018945926800370216,
+          "first_stable_goal_angle_rad": 1.6682829856872559,
+          "subsequent_first_goal_min_distance_m": 0.018945926800370216,
+          "subsequent_first_goal_min_angle_rad": 0.8769609928131104,
+          "first_goal_last_distance_m": 0.20660588145256042,
+          "first_goal_last_angle_rad": 1.8260759115219116,
+          "stable_at_final_tick": false
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "e38c4d91b69c2d5279343fb120dbc5c17f466ad7d682168982cf482dbf4baad9",
+        "first_contact_tick": 68,
+        "first_two_fingers_both_substeps_tick": 82,
+        "original_height_stable_grasp": true,
+        "settled_height_stable_grasp": true,
+        "first_settled_height_stable_window_end_tick": 309,
+        "max_later_rise_over_settled_m": 0.18387150764465332,
+        "later_rise_with_two_fingers_max_m": 0.18387150764465332,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.003561925608664751,
+        "first_goal_min_quaternion_angle_rad": 0.3136579394340515,
+        "first_goal_min_keypoint_gap_m": 0.006443127058446407,
+        "post_contact_arm_tracking_rmse_rad": 0.0047904024831950665,
+        "post_contact_hand_tracking_rmse_rad": 0.058858033269643784,
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 281,
+          "qualifying_window_ends": 39,
+          "contact_and_height_ticks_after_reference": 114,
+          "longest_contact_and_height_run_ticks": 50,
+          "elevated_without_two_finger_contact_ticks_after_reference": 132,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 282,
+            "active_goal_index": 0,
+            "root_angle_rad": 1.0465673329787604,
+            "root_distance_m": 0.0056804572232067585,
+            "native_keypoint_distance_m": 0.030663250014185905,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 39,
+          "first": {
+            "completed_tick": 281,
+            "root_angle_rad": 1.0275613069534302,
+            "root_distance_m": 0.00752840843051672,
+            "native_keypoint_distance_m": 0.03851420804858208,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 281,
+            "root_angle_rad": 1.0275613069534302,
+            "root_distance_m": 0.00752840843051672,
+            "native_keypoint_distance_m": 0.03851420804858208,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.0,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803731,
+          "bytes": 12766521,
+          "mtime_ns": 1794712835503484488
+        },
+        "wall_seconds": 215.13017811300233
+      },
+      {
+        "case": "A_development_28500007",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.1193859800696373,
+            "root_origin_distance_m": 0.1193859800696373,
+            "quaternion_angle_rad": 2.391789197921753,
+            "keypoint_gap_m": 0.19196555018424988,
+            "keypoint_distance_m": 0.20696555078029633,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.1193859800696373,
+            "root_origin_distance_m": 0.1193859800696373,
+            "quaternion_angle_rad": 2.391789197921753,
+            "keypoint_gap_m": 0.19196555018424988,
+            "keypoint_distance_m": 0.20696555078029633,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "1c1f25b8adc7323874f89e74f9c774d5f18ff00e5334ee5332afb67d386e0a46",
+        "first_contact_tick": 63,
+        "first_two_fingers_both_substeps_tick": 66,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.006138801574707031,
+        "later_rise_with_two_fingers_max_m": 0.006138801574707031,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.1193859800696373,
+        "first_goal_min_quaternion_angle_rad": 1.9375234842300415,
+        "first_goal_min_keypoint_gap_m": 0.19196555018424988,
+        "post_contact_arm_tracking_rmse_rad": 0.036191705614328384,
+        "post_contact_hand_tracking_rmse_rad": 0.11881553381681442,
+        "role": "A",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": null,
+          "qualifying_window_ends": 0,
+          "contact_and_height_ticks_after_reference": 0,
+          "longest_contact_and_height_run_ticks": 0,
+          "elevated_without_two_finger_contact_ticks_after_reference": 0,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": null
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 0
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803738,
+          "bytes": 12726615,
+          "mtime_ns": 1794712835744697646
+        },
+        "wall_seconds": 215.37133937096223
+      },
+      {
+        "case": "B_development_28500000",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.11697772145271301,
+            "root_origin_distance_m": 0.11697772145271301,
+            "quaternion_angle_rad": 2.431135654449463,
+            "keypoint_gap_m": 0.19032491743564606,
+            "keypoint_distance_m": 0.2053249180316925,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11697772145271301,
+            "root_origin_distance_m": 0.11697772145271301,
+            "quaternion_angle_rad": 2.431135654449463,
+            "keypoint_gap_m": 0.19032491743564606,
+            "keypoint_distance_m": 0.2053249180316925,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "5d78fec4a3d48e603d1b9c62135dcde0c29f675b1c1e44dfd5e48d0cbbd18cc5",
+        "first_contact_tick": 59,
+        "first_two_fingers_both_substeps_tick": 62,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.007362961769104004,
+        "later_rise_with_two_fingers_max_m": 0.007362961769104004,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.11697772145271301,
+        "first_goal_min_quaternion_angle_rad": 2.431135654449463,
+        "first_goal_min_keypoint_gap_m": 0.19032491743564606,
+        "post_contact_arm_tracking_rmse_rad": 0.003974299877882004,
+        "post_contact_hand_tracking_rmse_rad": 0.03752165660262108,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": null,
+          "qualifying_window_ends": 0,
+          "contact_and_height_ticks_after_reference": 0,
+          "longest_contact_and_height_run_ticks": 0,
+          "elevated_without_two_finger_contact_ticks_after_reference": 0,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": null
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 0
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803776,
+          "bytes": 12718583,
+          "mtime_ns": 1794713057949381652
+        },
+        "wall_seconds": 222.18402853701264
+      },
+      {
+        "case": "B_development_28500001",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 158,
+            "center_distance_m": 0.09573477506637573,
+            "root_origin_distance_m": 0.09573477506637573,
+            "quaternion_angle_rad": 1.6651206016540527,
+            "keypoint_gap_m": 0.23009063303470612,
+            "keypoint_distance_m": 0.24509063363075256,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11796753853559494,
+            "root_origin_distance_m": 0.11796753853559494,
+            "quaternion_angle_rad": 2.414478302001953,
+            "keypoint_gap_m": 0.19044606387615204,
+            "keypoint_distance_m": 0.2054460644721985,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "186d3effe78649a1b691f52680a1c1bdc5f17688ece4b93f782c83c5c62f5c4c",
+        "first_contact_tick": 66,
+        "first_two_fingers_both_substeps_tick": 68,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.10925090312957764,
+        "later_rise_with_two_fingers_max_m": 0.06254804134368896,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.09573477506637573,
+        "first_goal_min_quaternion_angle_rad": 1.1708641052246094,
+        "first_goal_min_keypoint_gap_m": 0.19044606387615204,
+        "post_contact_arm_tracking_rmse_rad": 0.005607647821307182,
+        "post_contact_hand_tracking_rmse_rad": 0.04537545517086983,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": null,
+          "qualifying_window_ends": 0,
+          "contact_and_height_ticks_after_reference": 14,
+          "longest_contact_and_height_run_ticks": 7,
+          "elevated_without_two_finger_contact_ticks_after_reference": 42,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": null
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 0
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803783,
+          "bytes": 12724985,
+          "mtime_ns": 1794713058205582595
+        },
+        "wall_seconds": 222.44025056785904
+      },
+      {
+        "case": "B_development_28500002",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.11670183390378952,
+            "root_origin_distance_m": 0.11670183390378952,
+            "quaternion_angle_rad": 2.4250974655151367,
+            "keypoint_gap_m": 0.1895751655101776,
+            "keypoint_distance_m": 0.20457516610622406,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.11670183390378952,
+            "root_origin_distance_m": 0.11670183390378952,
+            "quaternion_angle_rad": 2.4250974655151367,
+            "keypoint_gap_m": 0.1895751655101776,
+            "keypoint_distance_m": 0.20457516610622406,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "4c14b4e3cb84afcb572faa93739a9ad44a50f2d2835f835c4d3f6cc8e7df66de",
+        "first_contact_tick": 63,
+        "first_two_fingers_both_substeps_tick": 67,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.0059272050857543945,
+        "later_rise_with_two_fingers_max_m": 0.004895448684692383,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.11670183390378952,
+        "first_goal_min_quaternion_angle_rad": 1.9512375593185425,
+        "first_goal_min_keypoint_gap_m": 0.1895751655101776,
+        "post_contact_arm_tracking_rmse_rad": 0.004254969302564859,
+        "post_contact_hand_tracking_rmse_rad": 0.03557395935058594,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": null,
+          "qualifying_window_ends": 0,
+          "contact_and_height_ticks_after_reference": 0,
+          "longest_contact_and_height_run_ticks": 0,
+          "elevated_without_two_finger_contact_ticks_after_reference": 0,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": null
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 0
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803790,
+          "bytes": 12712015,
+          "mtime_ns": 1794713058457194770
+        },
+        "wall_seconds": 222.69185118586756
+      },
+      {
+        "case": "B_development_28500003",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 205,
+            "center_distance_m": 0.053561609238386154,
+            "root_origin_distance_m": 0.053561609238386154,
+            "quaternion_angle_rad": 1.1919947862625122,
+            "keypoint_gap_m": 0.1162644475698471,
+            "keypoint_distance_m": 0.13126444816589355,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 205,
+            "center_distance_m": 0.053561609238386154,
+            "root_origin_distance_m": 0.053561609238386154,
+            "quaternion_angle_rad": 1.1919947862625122,
+            "keypoint_gap_m": 0.1162644475698471,
+            "keypoint_distance_m": 0.13126444816589355,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "cabce01cd3239bc4ccca19fb445a644a4633fe58452b51232d106c9f72aaef79",
+        "first_contact_tick": 67,
+        "first_two_fingers_both_substeps_tick": 100,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.15606015920639038,
+        "later_rise_with_two_fingers_max_m": 0.1523761749267578,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.053561609238386154,
+        "first_goal_min_quaternion_angle_rad": 1.111345648765564,
+        "first_goal_min_keypoint_gap_m": 0.1162644475698471,
+        "post_contact_arm_tracking_rmse_rad": 0.003917470574378967,
+        "post_contact_hand_tracking_rmse_rad": 0.05072525516152382,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 143,
+          "qualifying_window_ends": 2,
+          "contact_and_height_ticks_after_reference": 52,
+          "longest_contact_and_height_run_ticks": 13,
+          "elevated_without_two_finger_contact_ticks_after_reference": 439,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 144,
+            "active_goal_index": 0,
+            "root_angle_rad": 2.087245134000544,
+            "root_distance_m": 0.16123241186141968,
+            "native_keypoint_distance_m": 0.34065482020378113,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 2,
+          "first": {
+            "completed_tick": 143,
+            "root_angle_rad": 2.0815351009368896,
+            "root_distance_m": 0.16261862218379974,
+            "native_keypoint_distance_m": 0.34234803915023804,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 143,
+            "root_angle_rad": 2.0815351009368896,
+            "root_distance_m": 0.16261862218379974,
+            "native_keypoint_distance_m": 0.34234803915023804,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.0,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803797,
+          "bytes": 12737513,
+          "mtime_ns": 1794713058710506183
+        },
+        "wall_seconds": 222.94524950301275
+      },
+      {
+        "case": "B_development_28500004",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": 237,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 273,
+            "center_distance_m": 0.03552960976958275,
+            "root_origin_distance_m": 0.03552960976958275,
+            "quaternion_angle_rad": 2.9636268615722656,
+            "keypoint_gap_m": 0.10770882666110992,
+            "keypoint_distance_m": 0.12270882725715637,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": true,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 281,
+            "center_distance_m": 0.036378733813762665,
+            "root_origin_distance_m": 0.036378733813762665,
+            "quaternion_angle_rad": 2.848414659500122,
+            "keypoint_gap_m": 0.1073291003704071,
+            "keypoint_distance_m": 0.12232910096645355,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": true,
+            "two_contact_fingers_both_substeps": true
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 77,
+          "first_tick": 237,
+          "last_tick": 316,
+          "longest_continuous_stable_ticks": 54,
+          "first_stable_goal_distance_m": 0.04681045934557915,
+          "first_stable_goal_angle_rad": 3.0008227825164795,
+          "subsequent_first_goal_min_distance_m": 0.03552960976958275,
+          "subsequent_first_goal_min_angle_rad": 2.499992609024048,
+          "first_goal_last_distance_m": 0.15780961513519287,
+          "first_goal_last_angle_rad": 2.6688127517700195,
+          "stable_at_final_tick": false
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "b9d774c91ace640161ce628eace83a782a52c7a543939aa4707975c6b3ff193a",
+        "first_contact_tick": 58,
+        "first_two_fingers_both_substeps_tick": 62,
+        "original_height_stable_grasp": true,
+        "settled_height_stable_grasp": true,
+        "first_settled_height_stable_window_end_tick": 237,
+        "max_later_rise_over_settled_m": 0.11964958906173706,
+        "later_rise_with_two_fingers_max_m": 0.11964958906173706,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.03552960976958275,
+        "first_goal_min_quaternion_angle_rad": 1.45847749710083,
+        "first_goal_min_keypoint_gap_m": 0.1073291003704071,
+        "post_contact_arm_tracking_rmse_rad": 0.005001860670745373,
+        "post_contact_hand_tracking_rmse_rad": 0.09578411281108856,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 205,
+          "qualifying_window_ends": 115,
+          "contact_and_height_ticks_after_reference": 142,
+          "longest_contact_and_height_run_ticks": 126,
+          "elevated_without_two_finger_contact_ticks_after_reference": 292,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 281,
+            "active_goal_index": 0,
+            "root_angle_rad": 2.848414727854238,
+            "root_distance_m": 0.036378733813762665,
+            "native_keypoint_distance_m": 0.12232910096645355,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 115,
+          "first": {
+            "completed_tick": 205,
+            "root_angle_rad": 2.2327098846435547,
+            "root_distance_m": 0.05510040372610092,
+            "native_keypoint_distance_m": 0.17864127457141876,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 205,
+            "root_angle_rad": 2.2327098846435547,
+            "root_distance_m": 0.05510040372610092,
+            "native_keypoint_distance_m": 0.17864127457141876,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.0,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803804,
+          "bytes": 12780750,
+          "mtime_ns": 1794713058968494653
+        },
+        "wall_seconds": 223.20321171497926
+      },
+      {
+        "case": "B_development_28500005",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": 154,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 493,
+            "center_distance_m": 0.004605032037943602,
+            "root_origin_distance_m": 0.004605032037943602,
+            "quaternion_angle_rad": 3.06162428855896,
+            "keypoint_gap_m": 0.1388985514640808,
+            "keypoint_distance_m": 0.15389855206012726,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 471,
+            "center_distance_m": 0.043072205036878586,
+            "root_origin_distance_m": 0.043072205036878586,
+            "quaternion_angle_rad": 3.0618672370910645,
+            "keypoint_gap_m": 0.08762854337692261,
+            "keypoint_distance_m": 0.10262854397296906,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 17,
+          "first_tick": 154,
+          "last_tick": 170,
+          "longest_continuous_stable_ticks": 17,
+          "first_stable_goal_distance_m": 0.10616134107112885,
+          "first_stable_goal_angle_rad": 2.858145236968994,
+          "subsequent_first_goal_min_distance_m": 0.004605032037943602,
+          "subsequent_first_goal_min_angle_rad": 2.4305379390716553,
+          "first_goal_last_distance_m": 0.03015877492725849,
+          "first_goal_last_angle_rad": 2.7318737506866455,
+          "stable_at_final_tick": false
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "300b74e273ed88f345959ecd007d60212549def150c2e01a462b6f4e4b879c96",
+        "first_contact_tick": 58,
+        "first_two_fingers_both_substeps_tick": 64,
+        "original_height_stable_grasp": true,
+        "settled_height_stable_grasp": true,
+        "first_settled_height_stable_window_end_tick": 154,
+        "max_later_rise_over_settled_m": 0.21477144956588745,
+        "later_rise_with_two_fingers_max_m": 0.19192588329315186,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": true,
+        "first_goal_min_center_distance_m": 0.004605032037943602,
+        "first_goal_min_quaternion_angle_rad": 2.4305379390716553,
+        "first_goal_min_keypoint_gap_m": 0.08762854337692261,
+        "post_contact_arm_tracking_rmse_rad": 0.0036375189665704966,
+        "post_contact_hand_tracking_rmse_rad": 0.08614104241132736,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 153,
+          "qualifying_window_ends": 20,
+          "contact_and_height_ticks_after_reference": 59,
+          "longest_contact_and_height_run_ticks": 30,
+          "elevated_without_two_finger_contact_ticks_after_reference": 423,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 406,
+            "active_goal_index": 0,
+            "root_angle_rad": 2.7991142036684016,
+            "root_distance_m": 0.10357709974050522,
+            "native_keypoint_distance_m": 0.21390418708324432,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 20,
+          "first": {
+            "completed_tick": 153,
+            "root_angle_rad": 2.8483285903930664,
+            "root_distance_m": 0.10745413601398468,
+            "native_keypoint_distance_m": 0.24676844477653503,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 171,
+            "root_angle_rad": 2.6718320846557617,
+            "root_distance_m": 0.09496381133794785,
+            "native_keypoint_distance_m": 0.23048628866672516,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.1764965057373047,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803811,
+          "bytes": 12809125,
+          "mtime_ns": 1794713059223310450
+        },
+        "wall_seconds": 223.45814079488628
+      },
+      {
+        "case": "B_development_28500006",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 573,
+            "center_distance_m": 0.02003372833132744,
+            "root_origin_distance_m": 0.02003372833132744,
+            "quaternion_angle_rad": 1.8007138967514038,
+            "keypoint_gap_m": 0.10975818336009979,
+            "keypoint_distance_m": 0.12475818395614624,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": true
+          },
+          "smallest_keypoint_gap": {
+            "tick": 585,
+            "center_distance_m": 0.03238324075937271,
+            "root_origin_distance_m": 0.03238324075937271,
+            "quaternion_angle_rad": 1.575520396232605,
+            "keypoint_gap_m": 0.08564210683107376,
+            "keypoint_distance_m": 0.10064210742712021,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "cb77b50826764bc393562dc0eeb64e99971999623c5d0ab773c06addba65940d",
+        "first_contact_tick": 77,
+        "first_two_fingers_both_substeps_tick": 87,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.18033510446548462,
+        "later_rise_with_two_fingers_max_m": 0.18033510446548462,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.02003372833132744,
+        "first_goal_min_quaternion_angle_rad": 1.4342596530914307,
+        "first_goal_min_keypoint_gap_m": 0.08564210683107376,
+        "post_contact_arm_tracking_rmse_rad": 0.004594874102622271,
+        "post_contact_hand_tracking_rmse_rad": 0.05032113194465637,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": 436,
+          "qualifying_window_ends": 10,
+          "contact_and_height_ticks_after_reference": 84,
+          "longest_contact_and_height_run_ticks": 21,
+          "elevated_without_two_finger_contact_ticks_after_reference": 93,
+          "contact_and_height_at_final_tick": true,
+          "first_goal_best_keypoint_during_contact_height_window": {
+            "completed_tick": 445,
+            "active_goal_index": 0,
+            "root_angle_rad": 2.3611213096575114,
+            "root_distance_m": 0.1485901027917862,
+            "native_keypoint_distance_m": 0.3153212368488312,
+            "tolerance_m": 0.014999999664723873,
+            "both_substeps_two_finger_contact": true
+          }
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 10,
+          "first": {
+            "completed_tick": 436,
+            "root_angle_rad": 3.13029146194458,
+            "root_distance_m": 0.18811815977096558,
+            "native_keypoint_distance_m": 0.373089998960495,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "smallest_root_angle": {
+            "completed_tick": 445,
+            "root_angle_rad": 2.36112117767334,
+            "root_distance_m": 0.1485901027917862,
+            "native_keypoint_distance_m": 0.3153212368488312,
+            "native_tolerance_m": 0.014999999664723873
+          },
+          "angle_decrease_from_first_window_rad": 0.7691702842712402,
+          "interpretation": "Both snapshots have full causal 12-tick contact-height windows and the same first goal; quaternion angles ignore object symmetry."
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803818,
+          "bytes": 12758392,
+          "mtime_ns": 1794713059479552021
+        },
+        "wall_seconds": 223.7144271270372
+      },
+      {
+        "case": "B_development_28500007",
+        "legal": true,
+        "steps": 601,
+        "success": false,
+        "pose_reference_semantics": "Object and goal root_state_w reference origins, not collision-AABB centers. Legacy center_distance keys retain root-origin distances. Quaternion angles ignore shape symmetry.",
+        "keypoint_gap_semantics": "keypoint_gap_m = native maximum keypoint distance minus native insertion tolerance; positive values are excess beyond tolerance, not the full distance.",
+        "authority": {
+          "student_ticks": 601,
+          "expert_ticks": 0,
+          "student_first_stable_window_end_tick": null,
+          "student_stable_window_at_last_tick": false,
+          "student_near_goal_first_tick": null,
+          "student_alignment_first_tick": null,
+          "student_max_subgoals": 0,
+          "expert_first_stable_window_end_tick": null,
+          "scope": "Actual control authority. Expert completion and post-switch stable windows are not autonomous student outcomes."
+        },
+        "first_goal_simultaneous": {
+          "closest_center": {
+            "tick": 1,
+            "center_distance_m": 0.1193859800696373,
+            "root_origin_distance_m": 0.1193859800696373,
+            "quaternion_angle_rad": 2.391788959503174,
+            "keypoint_gap_m": 0.19196555018424988,
+            "keypoint_distance_m": 0.20696555078029633,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          },
+          "smallest_keypoint_gap": {
+            "tick": 1,
+            "center_distance_m": 0.1193859800696373,
+            "root_origin_distance_m": 0.1193859800696373,
+            "quaternion_angle_rad": 2.391788959503174,
+            "keypoint_gap_m": 0.19196555018424988,
+            "keypoint_distance_m": 0.20696555078029633,
+            "keypoint_tolerance_m": 0.014999999664723873,
+            "stable_window": false,
+            "two_contact_fingers_both_substeps": false
+          }
+        },
+        "grasp_progress": {
+          "stable_ticks": 0,
+          "first_tick": null,
+          "last_tick": null,
+          "longest_continuous_stable_ticks": 0
+        },
+        "reasons": {
+          "fall": false,
+          "max_successes": false,
+          "hand_far": false,
+          "dropped": false,
+          "timeout": true
+        },
+        "result_sha256": "4ee0d7efd6db3a837f858563867b86ce5a196395004e511a35f04c9705387f02",
+        "first_contact_tick": 61,
+        "first_two_fingers_both_substeps_tick": 66,
+        "original_height_stable_grasp": false,
+        "settled_height_stable_grasp": false,
+        "first_settled_height_stable_window_end_tick": null,
+        "max_later_rise_over_settled_m": 0.005509614944458008,
+        "later_rise_with_two_fingers_max_m": 0.005509614944458008,
+        "native_alignment_first_tick": null,
+        "native_near_goal_first_tick": null,
+        "native_first_subgoal_tick": null,
+        "native_subgoals": 0,
+        "native_lift": false,
+        "first_goal_min_center_distance_m": 0.1193859800696373,
+        "first_goal_min_quaternion_angle_rad": 2.0331461429595947,
+        "first_goal_min_keypoint_gap_m": 0.19196555018424988,
+        "post_contact_arm_tracking_rmse_rad": 0.01080033928155899,
+        "post_contact_hand_tracking_rmse_rad": 0.07099168002605438,
+        "role": "B",
+        "contact_motion": {
+          "first_contact_height_window_end_tick": null,
+          "qualifying_window_ends": 0,
+          "contact_and_height_ticks_after_reference": 0,
+          "longest_contact_and_height_run_ticks": 0,
+          "elevated_without_two_finger_contact_ticks_after_reference": 0,
+          "contact_and_height_at_final_tick": false,
+          "first_goal_best_keypoint_during_contact_height_window": null
+        },
+        "held_orientation": {
+          "eligible_contact_height_windows": 0
+        },
+        "numeric_stat": {
+          "device": 66306,
+          "inode": 73803825,
+          "bytes": 12743680,
+          "mtime_ns": 1794713059733850930
+        },
+        "wall_seconds": 223.96860880590975
+      }
+    ],
+    "totals": {
+      "A": {
+        "opportunities": 8,
+        "successes": 0,
+        "native_lift_cases": 0,
+        "old_stable_window_cases": 4,
+        "contact_height12_cases": 5,
+        "native_alignment_cases": 0,
+        "native_near_goal_cases": 1,
+        "first_subgoal_cases": 0,
+        "termination_reasons": {
+          "timeout": 7
+        },
+        "total_control_ticks": 4207,
+        "overlapping_lane_lifetime_seconds": 1502.5213634250686,
+        "legal_initializations": 7,
+        "invalid_initializations": 1,
+        "autonomous_success_rate_among_legal": 0.0,
+        "raw_successes_per_registered_opportunity": {
+          "numerator": 0,
+          "denominator": 8,
+          "ratio": 0.0,
+          "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+        },
+        "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+      },
+      "B": {
+        "opportunities": 8,
+        "successes": 0,
+        "native_lift_cases": 1,
+        "old_stable_window_cases": 2,
+        "contact_height12_cases": 4,
+        "native_alignment_cases": 0,
+        "native_near_goal_cases": 0,
+        "first_subgoal_cases": 0,
+        "termination_reasons": {
+          "timeout": 8
+        },
+        "total_control_ticks": 4808,
+        "overlapping_lane_lifetime_seconds": 1784.6057682365645,
+        "legal_initializations": 8,
+        "invalid_initializations": 0,
+        "autonomous_success_rate_among_legal": 0.0,
+        "raw_successes_per_registered_opportunity": {
+          "numerator": 0,
+          "denominator": 8,
+          "ratio": 0.0,
+          "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+        },
+        "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+      }
+    }
+  },
+  "population": {
+    "A": {
+      "role": "A",
+      "opportunities": 8,
+      "case_specs_identical": true,
+      "wave_lane_assignments_identical": true,
+      "execution_identity": {
+        "mode": "whole_wave",
+        "lanes": 8,
+        "vision_microbatch": 8,
+        "vision_tail_profile": null,
+        "inactive_render_profile": null,
+        "batch_seed": 28500000,
+        "inference_scheduler_index_mode": "host",
+        "execution_backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        }
+      },
+      "exact_hidden_state_pairing": false
+    },
+    "B": {
+      "role": "B",
+      "opportunities": 8,
+      "case_specs_identical": true,
+      "wave_lane_assignments_identical": true,
+      "execution_identity": {
+        "mode": "whole_wave",
+        "lanes": 8,
+        "vision_microbatch": 8,
+        "vision_tail_profile": null,
+        "inactive_render_profile": null,
+        "batch_seed": 28500000,
+        "inference_scheduler_index_mode": "host",
+        "execution_backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        }
+      },
+      "exact_hidden_state_pairing": false
+    }
+  },
+  "matched_legal": {
+    "by_role": {
+      "A": {
+        "registered_opportunities": 8,
+        "matched_legal_opportunities": 7,
+        "matched_legal_cases": [
+          "A_development_28500000",
+          "A_development_28500001",
+          "A_development_28500002",
+          "A_development_28500004",
+          "A_development_28500005",
+          "A_development_28500006",
+          "A_development_28500007"
+        ],
+        "source_only_legal_cases": [],
+        "candidate_only_legal_cases": [],
+        "both_invalid_cases": [
+          "A_development_28500003"
+        ],
+        "source": {
+          "opportunities": 7,
+          "successes": 0,
+          "native_lift_cases": 0,
+          "old_stable_window_cases": 2,
+          "contact_height12_cases": 2,
+          "native_alignment_cases": 0,
+          "native_near_goal_cases": 0,
+          "first_subgoal_cases": 0,
+          "termination_reasons": {
+            "timeout": 7
+          },
+          "total_control_ticks": 4207,
+          "overlapping_lane_lifetime_seconds": 1561.8911162093282,
+          "legal_initializations": 7,
+          "invalid_initializations": 0,
+          "autonomous_success_rate_among_legal": 0.0,
+          "raw_successes_per_registered_opportunity": {
+            "numerator": 0,
+            "denominator": 7,
+            "ratio": 0.0,
+            "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+          },
+          "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+        },
+        "candidate": {
+          "opportunities": 7,
+          "successes": 0,
+          "native_lift_cases": 0,
+          "old_stable_window_cases": 4,
+          "contact_height12_cases": 5,
+          "native_alignment_cases": 0,
+          "native_near_goal_cases": 1,
+          "first_subgoal_cases": 0,
+          "termination_reasons": {
+            "timeout": 7
+          },
+          "total_control_ticks": 4207,
+          "overlapping_lane_lifetime_seconds": 1502.5213634250686,
+          "legal_initializations": 7,
+          "invalid_initializations": 0,
+          "autonomous_success_rate_among_legal": 0.0,
+          "raw_successes_per_registered_opportunity": {
+            "numerator": 0,
+            "denominator": 7,
+            "ratio": 0.0,
+            "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+          },
+          "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+        }
+      },
+      "B": {
+        "registered_opportunities": 8,
+        "matched_legal_opportunities": 8,
+        "matched_legal_cases": [
+          "B_development_28500000",
+          "B_development_28500001",
+          "B_development_28500002",
+          "B_development_28500003",
+          "B_development_28500004",
+          "B_development_28500005",
+          "B_development_28500006",
+          "B_development_28500007"
+        ],
+        "source_only_legal_cases": [],
+        "candidate_only_legal_cases": [],
+        "both_invalid_cases": [],
+        "source": {
+          "opportunities": 8,
+          "successes": 0,
+          "native_lift_cases": 1,
+          "old_stable_window_cases": 4,
+          "contact_height12_cases": 5,
+          "native_alignment_cases": 0,
+          "native_near_goal_cases": 0,
+          "first_subgoal_cases": 0,
+          "termination_reasons": {
+            "timeout": 6,
+            "fall": 2
+          },
+          "total_control_ticks": 4460,
+          "overlapping_lane_lifetime_seconds": 1713.5522936049383,
+          "legal_initializations": 8,
+          "invalid_initializations": 0,
+          "autonomous_success_rate_among_legal": 0.0,
+          "raw_successes_per_registered_opportunity": {
+            "numerator": 0,
+            "denominator": 8,
+            "ratio": 0.0,
+            "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+          },
+          "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+        },
+        "candidate": {
+          "opportunities": 8,
+          "successes": 0,
+          "native_lift_cases": 1,
+          "old_stable_window_cases": 2,
+          "contact_height12_cases": 4,
+          "native_alignment_cases": 0,
+          "native_near_goal_cases": 0,
+          "first_subgoal_cases": 0,
+          "termination_reasons": {
+            "timeout": 8
+          },
+          "total_control_ticks": 4808,
+          "overlapping_lane_lifetime_seconds": 1784.6057682365645,
+          "legal_initializations": 8,
+          "invalid_initializations": 0,
+          "autonomous_success_rate_among_legal": 0.0,
+          "raw_successes_per_registered_opportunity": {
+            "numerator": 0,
+            "denominator": 8,
+            "ratio": 0.0,
+            "scope": "Raw outcome yield including rejected starts in the opportunity denominator; not legal-start task failure rate."
+          },
+          "task_outcome_denominator": "Legal completed autonomous executions only; invalid starts excluded."
+        }
+      }
+    },
+    "scope": "Intersection of actual legal initializations under the same registered case specs; admission differences remain in all-opportunity evidence. No hidden-state equality or new held-out generalization claim."
+  },
+  "backend_training": {
+    "A": {
+      "stop_reason": "maximum_control_tick_exposure",
+      "updates": 6040,
+      "control_tick_epochs": 15.0,
+      "formal_updates": 6040,
+      "disposable": false,
+      "run_kind": "formal",
+      "target_reached": true,
+      "required_supervised_ticks": 884805,
+      "new_optimizer_updates": 6040,
+      "schedule_maximum_control_tick_epochs": 15,
+      "required_control_tick_epochs": 15,
+      "train_episode_count": 215,
+      "effective_batch": 4,
+      "minimum_control_tick_epochs": 15,
+      "minimum_exposure_reached": true,
+      "sampled_contact_anchors": 727215,
+      "contact_anchor_population": 48481,
+      "control_tick_population": 84262,
+      "supervised_tick_population": 58987,
+      "supervised_ticks": 884805,
+      "control_ticks": 1263930,
+      "control_equivalent_epochs": 15.0,
+      "wall_s": 1350.4030203819275,
+      "supervised_ticks_per_wall_s": 655.2155069092696,
+      "setup_wall_s": 0.9790792465209961,
+      "training_wall_s": 1306.5971777439117,
+      "supervised_ticks_per_training_wall_s": 677.1826964510852,
+      "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+      "wait_s": 7.894707461819053,
+      "work_s": 1326.3074035819154,
+      "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+      "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+      "excess_supervised_ticks": 0,
+      "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/last.pt",
+      "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/best.pt",
+      "utc": 1794712569.237631,
+      "base_optimizer_updates": 0
+    },
+    "B": {
+      "stop_reason": "maximum_control_tick_exposure",
+      "updates": 6040,
+      "control_tick_epochs": 15.0,
+      "formal_updates": 6040,
+      "disposable": false,
+      "run_kind": "formal",
+      "target_reached": true,
+      "required_supervised_ticks": 884805,
+      "new_optimizer_updates": 6040,
+      "schedule_maximum_control_tick_epochs": 15,
+      "required_control_tick_epochs": 15,
+      "train_episode_count": 215,
+      "effective_batch": 4,
+      "minimum_control_tick_epochs": 15,
+      "minimum_exposure_reached": true,
+      "sampled_contact_anchors": 727215,
+      "contact_anchor_population": 48481,
+      "control_tick_population": 84262,
+      "supervised_tick_population": 58987,
+      "supervised_ticks": 884805,
+      "control_ticks": 1263930,
+      "control_equivalent_epochs": 15.0,
+      "wall_s": 1342.4289779663086,
+      "supervised_ticks_per_wall_s": 659.10749410828,
+      "setup_wall_s": 0.9758424758911133,
+      "training_wall_s": 1297.8144283294678,
+      "supervised_ticks_per_training_wall_s": 681.7654209153085,
+      "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+      "wait_s": 7.911621478851885,
+      "work_s": 1318.1088452418335,
+      "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+      "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+      "excess_supervised_ticks": 0,
+      "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/B/backend/B/training/last.pt",
+      "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/B/backend/B/training/best.pt",
+      "utc": 1794712561.2613566,
+      "base_optimizer_updates": 0
+    }
+  },
+  "stage_receipts": {
+    "aggregate": {
+      "start": 1794705268.1630354,
+      "seconds": 23.508779525756836
+    },
+    "backend_cache_A": {
+      "start": 1794710838.0669563,
+      "seconds": 378.24293971061707
+    },
+    "backend_cache_B": {
+      "start": 1794710838.064591,
+      "seconds": 378.245459318161
+    },
+    "backend_offline_A": {
+      "start": 1794712569.8228965,
+      "seconds": 8.005934238433838
+    },
+    "backend_offline_B": {
+      "start": 1794712561.8195436,
+      "seconds": 9.508224725723267
+    },
+    "backend_prepare_A": {
+      "start": 1794710833.0519326,
+      "seconds": 5.004703521728516
+    },
+    "backend_prepare_B": {
+      "start": 1794710833.0518064,
+      "seconds": 5.004454851150513
+    },
+    "backend_train_A": {
+      "start": 1794711216.3252192,
+      "seconds": 1353.4898853302002
+    },
+    "backend_train_B": {
+      "start": 1794711216.3252416,
+      "seconds": 1345.4864130020142
+    },
+    "development": {
+      "start": 1794712580.8475425,
+      "seconds": 480.18753027915955
+    },
+    "development_prepare": {
+      "start": 1794712577.8377566,
+      "seconds": 3.001919984817505
+    },
+    "frontend_A": {
+      "start": 1794705670.3156338,
+      "seconds": 2989.6031181812286
+    },
+    "frontend_B": {
+      "start": 1794708659.9389112,
+      "seconds": 2172.3346905708313
+    },
+    "visual_cache": {
+      "start": 1794705291.6831439,
+      "seconds": 378.61171102523804
+    }
+  },
+  "seconds": {
+    "collection": 3456.4907639820594,
+    "visual_cache": 378.61171102523804,
+    "frontends": 5161.957967996597,
+    "backend_inputs": 378.245459318161,
+    "backend_training": 1353.4898853302002,
+    "autonomous": 480.18753027915955,
+    "aggregate_to_evaluation": 7792.872037410736,
+    "collection_end_to_aggregate_gap": 18510.272145986557
+  },
+  "scope": {
+    "candidate_numeric_files": 15,
+    "old_numeric_files": 0,
+    "models_opened": 0,
+    "images_opened": 0,
+    "learning_jsonl_opened": 0,
+    "new_simulations": 0,
+    "new_updates": 0
+  },
+  "limits": [
+    "Repeated development cohort, not independent held-out performance or equal hidden-state replay.",
+    "Rotation-permitting holding, original stable window, native lift, alignment and task success remain separate.",
+    "Angles compare object/goal root quaternions and ignore object symmetry; proximity does not establish alignment.",
+    "Parallel-stage times are elapsed envelopes; collection interruption gap is reported separately."
+  ],
+  "input_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/finished.json": "1f8d977347260f4be72cdbd87d648f14468a5e4accbfea7b4c7cb40541740af6",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/development/result.json": "4fd577405ac30115908589f3a97105e68b06a5b8be19971634d9116d584d8b4e",
+    "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/research_docs/evidence/tight_fresh_20261114/round09_behavior/report.json": "d3ac78b413f28333245cf858ce654029a7a9163e6e75bd704a7a3c8689e93084",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/development/plan.json": "48c38663e00032c9976a20946e0779afe048fb62121a52ecda3e1e7a1cd71c2d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/metadata.json": "53b1d82d93abf69d76ef22374dccebf366c3a0342f2de17e06ee5354119ad7e6",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261114_06/round_09/development/plan.json": "51ad20604d9992151cb948606cf90b352f7f30115914d77ccac85ea9aad25ce0",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/development/results.json": "17a52d74b592f4f271a2504fd5d4d0e85743eb3b8364f498bb1ace0a0a30a5a1",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/aggregate.json": "959e442a2041e99a50271d4ab24cf049af3e68cee080fa9ff21e85a047a399a0",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/aggregate_worker.json": "c0c0d5fdea92c08480c443cca17efb1c9d4a67506ceb238199e106df893ee5ee",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_cache_A.json": "9a0031352eacbc30d92ee6f288df9286318ca7fb85677a837d49f83958426e1e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_cache_A_worker.json": "ed6b1495ea9ab4002d0a0f60e24d0fceeb62e626809f1eac29024495ea89b39e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_cache_B.json": "727f0f6b4716ba93f0fe196687ab39b03b1f261729a325857824497ebbb25157",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_cache_B_worker.json": "b0d533cbab819eaedcce13fb3d8fe44594ddb7e7d63230cbdb495edf8afc7a08",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_offline_A.json": "f53b37c2fa2f284a06d91c127663f81f52a6d2ecfc6e0e3c1ad35da70e741cb3",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_offline_A_worker.json": "08997d2e1057f9080dc620ed7609fd33337e7cddcb65bf9e8cf00a991510839f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_offline_B.json": "2daba1c93413c0563e0bc90c51c55c393e12bf1886781899f966daa5cb0ea327",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_offline_B_worker.json": "3576ffc9fb964dd3b3f52f6561b05706a73c3ad14d7bcbd4b7b8cedceb14fade",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_prepare_A.json": "a5365e668d7ea98de2a9631018f1a2d27966b27e5f00f937028cbd552e0a6821",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_prepare_A_worker.json": "86fcfd3ad892bda83694ee9ec84b7e42a87b7c56e4ac639c2fc9b24ffafdd4e5",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_prepare_B.json": "c135244906fbc25127716e98224fbcc4a9a968328b59e450d129d9ea89173d12",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_prepare_B_worker.json": "84f34424433c10c2eccf1f5579ab3da9176470d6874400361f0e75078734c024",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_train_A.json": "4ff3813ad87143391a1f8a45e84dd020301fc6cbb8aa2fa5944902798c759506",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_train_A_worker.json": "8181412e170bc4d23b85101bf0358081b240c4e0144e02106332b0de6da17f10",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_train_B.json": "5a6018085ff5760a6cbd7f9ed3824d67d0cba2548badf0002b8f1ccaf906566c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/backend_train_B_worker.json": "73a8083191ac8eb3f5db6e35c9efc5a5c0b517d6628abf688300d0d7973a088c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/development.json": "8944071ef1e523dd2aa7d5e8c3eff8fd0e4364213e3a72031af7f9e2da32cc89",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/development_prepare.json": "990ac77188638cf502ba02da91a9cfe59b22f75cfb0626173d93c17f9cd0815c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/development_prepare_worker.json": "1f05d6378a0919dc4ebdb899140968b1a3c4ca2312d730ccda98e33c892f866a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/development_worker.json": "0d9658278c9554c88224b1307abbcd86637c5bcdc2ff17025415c2fb088868f7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/execution_backend.json": "a86c627d1cd818fe02748966a751457b6d003ced48b10db96ff4eee688587bef",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/frontend_A.json": "12ffb7c2204edec851e5aedba6ea1136ce7fc8b0848689ef9475087fc3fc7cf7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/frontend_A_worker.json": "ffb25c6774ae7b144098b39edaf003c306e30d839b6f7da1d4f39a727f8fb68b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/frontend_B.json": "2c15f85f82862a3acd82beeddb9c164f00d7228860660ed32b9deee84ec6f824",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/frontend_B_worker.json": "7d48cc19d3724e25500e87a48ed57e4ff418a79bf45a1b7843c744c27b52b23a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/frontend_batch_budget.json": "505b49595c396dd6ebd5de7d01faef0f91201eb50568966543adaf9667d4f68d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/frontend_sampling.json": "86563cb8d19fb5b8da67158ea8e074d628054bd2848df169fbfc6b16115b819e",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/parallel_backend_admission.json": "ceb4a899f0f11ab01c6f3cdac41375e4c0e7f8729123c53a5886e7554e8a98e0",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/parallel_backends.json": "ffdc7e3ebb5a8a5d591e3da9a373ea6190d526239e0f5658fef0c4da5a5648b7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/registration.json": "bae78452c173cfcd01adb2c5d59ae075b9f513b12d16b0d74ed56a63984d4378",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/status.json": "121cd4c14a4d2f315adf9aa7513ad92935a3971a26d14d797c6b68dda9a28377",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/visual_cache.json": "b3e32d2d48f852edd398647f44c34802b2009bb4e11a4e40e35e9ca6ed65237a",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11_stages/visual_cache_worker.json": "6e53cde6c6cddaa1b43b89a7a69f51b85e1181bb234dde98b9b094b771a348ed",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/finished.json": "21353e9f0027ca2b59798d728183f92964c24e6ec2a2821fda2d7917e3968324",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/B/backend/B/training/finished.json": "72196d6c6764349ed0af6336a787e641eb7a49add8d560a72ef6ecdf5cdd135b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/new_family_11/result.json": "ea7a2921f7bdd9f386b0c5203b3181c9ba511c33e24d7b499c622662ad9cec5c",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/new_family_11/owner_finished.json": "725a98b1b3b3e3000e358d4719652d4a2c5719195af03a385fee4d72aae85f4d"
+  },
+  "helper_sha256": {
+    "scripts/tight_fresh_20261115_01/report_cycle11.py": "e26ca4cc8712d6fe28351a7e7d8d3279f95f05093958329a729c1d712124c63c",
+    "tools/tight_fresh_phases.py": "0cda7628593954cac85adf528a68085fe44fcc5e331e0469455cf3cd8f666eaf",
+    "tools/tight_fresh_visual_closeout.py": "4374e4f3e569aa54c211a1293d57799894750765e3a2ec7a89b2ad6a38ae7b1e",
+    "tools/tight_fresh_round_compare.py": "9d18392f9a600675f398c50119b1adfba1f7cb101bd309ff9f462cd96ce01f83",
+    "tools/tight_fresh_contact_height_coverage.py": "7aca3a1040acda8cf4efa66e7fd9e80f44bfc57405c66381d69387786869d1e6"
+  },
+  "private_report": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/cycle_recovery_review/completed_cycle11_retention.json",
+    "sha256": "7def8199feff0ac85a0bdae7658eacb9a7eecf040fead8a380594a31fe591be6",
+    "export": "Omit duplicated source cases only; original round09 public report retained"
+  }
+}
