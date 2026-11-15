@@ -132,10 +132,16 @@ def collection_admission(context, now):
             'Accepted capture lost actual success, expert actions or source policy binding: '+identity)
         accepted[identity]=entry
     require(set(entries)==set(accepted),'Admission manifest differs from verified successful cases')
+    recovered={}
+    if plan.get('recovered_capture_inputs'):
+        from visuotactile.recovered_captures import load
+        recovered,_=load(plan['recovered_capture_inputs'],plan['pairs'])
+        require(not set(recovered)&set(accepted),'Repeated current/recovered identities')
     remaining=r['deadline']-CLEANUP_SECONDS-now
-    reason=('too_few_accepted' if len(accepted)<r['minimum_accepted'] else
+    reason=('too_few_accepted' if len(accepted)+len(recovered)<r['minimum_accepted'] else
         'insufficient_cycle_time' if remaining<r['minimum_cycle_remaining_seconds'] else 'admitted')
     return dict(admitted=reason=='admitted',reason=reason,accepted=len(accepted),opportunities=len(rows),
+        recovered_previously_closed=len(recovered),total_new_training_examples=len(accepted)+len(recovered),
         remaining_work_seconds=remaining,minimum_accepted=r['minimum_accepted'],
         minimum_cycle_remaining_seconds=r['minimum_cycle_remaining_seconds'],
         collection_files={n:sha256(p/n) for n in ('owner_finished.json','result.json','results.json','correction_entries.json')})

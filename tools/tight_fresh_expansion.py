@@ -22,7 +22,7 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
             frozen_families, schedules, lanes, event_seed, round_index,
             existing_identities=(), execution_backend=None, writer_bytes=512 << 20, vision_microbatch=2,
             verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
-            capture_audit_memo=False, revisit_families=(), queued_gpu=False):
+            capture_audit_memo=False, revisit_families=(), queued_gpu=False,recovered_captures_json=None):
     from visuotactile.execution_backend import normalize_backend
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
@@ -140,6 +140,11 @@ def prepare(source, output, *, session_root, registry_id, seeds, partition_manif
         from visuotactile.gpu_batch_controller import PROFILE as GPU_PROFILE
         plan['batch'].update(queue_profile=PROFILE,gpu_pipeline=GPU_PROFILE,render_profile=RENDER_PROFILE,
             ordering='Persistent mixed-role queue; independently reset native lanes and bounded async close')
+    if recovered_captures_json is not None:
+        from visuotactile.recovered_captures import load
+        binding=dict(path=str(Path(recovered_captures_json).resolve()),sha256=sha256(recovered_captures_json))
+        load(binding,plan['pairs'])
+        plan['recovered_capture_inputs']=binding
     atomic_json(output / 'plan.json', plan)
     return plan
 
@@ -168,6 +173,7 @@ def main():
     parser.add_argument('--verification-max-pending',type=int,default=4)
     parser.add_argument('--capture-audit-memo',action='store_true')
     parser.add_argument('--queued-gpu',action='store_true')
+    parser.add_argument('--recovered-captures-json',type=Path)
     args = parser.parse_args()
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
     inactive=None
@@ -182,7 +188,7 @@ def main():
         vision_microbatch=args.vision_microbatch,verification_workers=args.verification_workers,
         verification_max_pending=args.verification_max_pending,
         vision_tail_profile=EXACT_TAIL_PROFILE if args.vision_exact_tail else None,inactive_render_profile=inactive,
-        capture_audit_memo=args.capture_audit_memo,queued_gpu=args.queued_gpu)
+        capture_audit_memo=args.capture_audit_memo,queued_gpu=args.queued_gpu,recovered_captures_json=args.recovered_captures_json)
 
 
 if __name__ == '__main__':

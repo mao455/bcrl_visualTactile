@@ -1,0 +1,583 @@
+{
+  "generated_utc": 1794757730.7382226,
+  "version": "receipt_only_collection_throughput_v1",
+  "runs": {
+    "old_matched4": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/throughput_baseline15_01",
+      "complete": true,
+      "owner": {
+        "software_complete": true,
+        "worker_pid": 362038,
+        "returncode": 0,
+        "stop_reason": "complete",
+        "error": null,
+        "seconds": 449.1812207698822,
+        "ended": 1794752821.2251625,
+        "plan_sha256": "6e5fb2017aa0be1cff28828907af53bf8ca3d2cef6f99c953a07fbee30c28860"
+      },
+      "reported_result": {
+        "software_complete": true,
+        "worker_error": null,
+        "cases": 4,
+        "utc": 1794752820.2314415,
+        "elapsed_seconds": 445.8934136352036,
+        "accepted_training_trajectories": 4,
+        "accepted_trajectories_per_hour": 32.294713399334924,
+        "attempts_per_hour": 32.294713399334924,
+        "lanes": 2
+      },
+      "frozen_commit": "ba8ee36d9d1aa2ce61db5bf8edef7e682343703c",
+      "lanes": 2,
+      "registered_opportunities": 4,
+      "accepted": 4,
+      "actual_control_steps": 1138,
+      "valid_expert_steps": 850,
+      "active_steps_per_second": 2.5521794339196626,
+      "accepted_per_hour": 32.294713399334924,
+      "observed_progress": {
+        "wave": 1,
+        "tick": 250,
+        "active": [
+          true,
+          false
+        ],
+        "utc": 1794752801.5336912
+      },
+      "profiles": [
+        {
+          "wave": 0,
+          "role": "A",
+          "controller_s": 49.396113944472745,
+          "environment_s": 159.67112326831557,
+          "expert_s": 1.3320958886761218,
+          "record_submit_s": 6.773882766254246,
+          "finish_audit_s": 6.512741920072585,
+          "capture_writer": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 51950238,
+            "peak_queued_or_copying": 1,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "verification_workers": 2,
+            "verification_max_pending": 4,
+            "verification_pending": 0,
+            "verification_peak_pending": 1,
+            "verification_submitted": 2,
+            "verification_completed": 2,
+            "verification_failed": 0,
+            "verification_slot_wait_s": 2.471962943673134e-06,
+            "verification_process_pids": [
+              364322
+            ],
+            "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget.",
+            "stage": "all_started_capture_lanes_verified_before_close",
+            "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+            "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+          },
+          "seconds": 239.9476286948193,
+          "control_ticks": 632,
+          "cases": 2,
+          "vision_execution": {
+            "version": "current_observation_lane_microbatch_v1",
+            "vision_microbatch": 2,
+            "images_per_kernel": 6,
+            "forward_features_calls": 359,
+            "real_lanes": 632,
+            "padding_lanes": 86,
+            "real_images": 1896,
+            "processed_images": 2154,
+            "controller_calls": 359,
+            "consumed_observations_per_lane": [
+              359,
+              273
+            ],
+            "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+          },
+          "aggregate_control_ticks_per_second": 2.633908088351304,
+          "admission_s": 4.521407441934571,
+          "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+        },
+        {
+          "wave": 1,
+          "role": "B",
+          "controller_s": 37.24722561822273,
+          "environment_s": 119.11572578013875,
+          "expert_s": 0.9597058859653771,
+          "record_submit_s": 5.61250665737316,
+          "finish_audit_s": 6.5855297558009624,
+          "capture_writer": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 51950238,
+            "peak_queued_or_copying": 1,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "verification_workers": 2,
+            "verification_max_pending": 4,
+            "verification_pending": 0,
+            "verification_peak_pending": 1,
+            "verification_submitted": 2,
+            "verification_completed": 2,
+            "verification_failed": 0,
+            "verification_slot_wait_s": 3.610970452427864e-06,
+            "verification_process_pids": [
+              366333
+            ],
+            "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget.",
+            "stage": "all_started_capture_lanes_verified_before_close",
+            "queue_scope": "Shared writer jobs, not trajectories or observations; excludes the currently executing job",
+            "memory_scope": "Owned payload and retained buffers, not process RAM; excludes source inputs and HDF5/compressor scratch"
+          },
+          "seconds": 182.53476051497273,
+          "control_ticks": 506,
+          "cases": 2,
+          "vision_execution": {
+            "version": "current_observation_lane_microbatch_v1",
+            "vision_microbatch": 2,
+            "images_per_kernel": 6,
+            "forward_features_calls": 265,
+            "real_lanes": 506,
+            "padding_lanes": 24,
+            "real_images": 1518,
+            "processed_images": 1590,
+            "controller_calls": 265,
+            "consumed_observations_per_lane": [
+              265,
+              241
+            ],
+            "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+          },
+          "aggregate_control_ticks_per_second": 2.772074746598714,
+          "admission_s": 3.702968253288418,
+          "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+        }
+      ],
+      "recovery": null,
+      "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
+    },
+    "queue_matched4": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_04/throughput_queue15_03",
+      "complete": true,
+      "owner": {
+        "software_complete": true,
+        "worker_pid": 375809,
+        "returncode": 0,
+        "stop_reason": "complete",
+        "error": null,
+        "seconds": 476.6847274303436,
+        "ended": 1794754225.0919006,
+        "plan_sha256": "740345fea28297f30c9629289fb9609613aea403abe1b9fecf1b6718330f5613"
+      },
+      "reported_result": {
+        "software_complete": true,
+        "worker_error": null,
+        "cases": 4,
+        "utc": 1794754223.9183605,
+        "elapsed_seconds": 473.166103447089,
+        "accepted_training_trajectories": 4,
+        "accepted_trajectories_per_hour": 30.43328737010904,
+        "attempts_per_hour": 30.43328737010904,
+        "lanes": 2
+      },
+      "frozen_commit": "b298d66b3d1b8c4380dc80c5a430712befd39f09",
+      "lanes": 2,
+      "registered_opportunities": 4,
+      "accepted": 4,
+      "actual_control_steps": 1457,
+      "valid_expert_steps": 1101,
+      "active_steps_per_second": 3.079256923489505,
+      "accepted_per_hour": 30.43328737010904,
+      "observed_progress": {
+        "tick": 825,
+        "active": [
+          true,
+          false
+        ],
+        "active_count": 1,
+        "remaining_tasks": 0,
+        "closed_results": 3,
+        "verifying": 0,
+        "active_lane_steps": 1448,
+        "utc": 1794754186.9505363
+      },
+      "profiles": [
+        {
+          "wave": 0,
+          "role": "mixed",
+          "controller_s": 114.75952652958222,
+          "environment_s": 258.34865748579614,
+          "expert_s": 5.466900448082015,
+          "record_submit_s": 7.7701951127965,
+          "finish_audit_s": 23.719201607163996,
+          "reset_refill_s": 0.8221256576944143,
+          "active_lane_steps": 1457,
+          "allocated_lane_steps": 1670,
+          "refills": 2,
+          "finished_before_queue_empty": 2,
+          "capture_writer": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 51950238,
+            "peak_queued_or_copying": 2,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "verification_workers": 2,
+            "verification_max_pending": 4,
+            "verification_pending": 0,
+            "verification_peak_pending": 1,
+            "verification_submitted": 4,
+            "verification_completed": 4,
+            "verification_failed": 0,
+            "verification_slot_wait_s": 6.639864295721054e-06,
+            "verification_process_pids": [
+              378430
+            ],
+            "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget."
+          },
+          "seconds": 449.4135397830978,
+          "cases": 4,
+          "control_ticks": 1457,
+          "vision_execution": {
+            "version": "gpu_observation_history_control_v1",
+            "roles": {
+              "A": {
+                "version": "current_observation_lane_microbatch_v1",
+                "vision_microbatch": 2,
+                "images_per_kernel": 6,
+                "forward_features_calls": 0,
+                "real_lanes": 835,
+                "padding_lanes": 0,
+                "real_images": 2505,
+                "processed_images": 0,
+                "controller_calls": 835,
+                "external_shared_vision": true,
+                "consumed_observations_per_lane": [
+                  835,
+                  0
+                ],
+                "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+              },
+              "B": {
+                "version": "current_observation_lane_microbatch_v1",
+                "vision_microbatch": 2,
+                "images_per_kernel": 6,
+                "forward_features_calls": 0,
+                "real_lanes": 622,
+                "padding_lanes": 0,
+                "real_images": 1866,
+                "processed_images": 0,
+                "controller_calls": 622,
+                "external_shared_vision": true,
+                "consumed_observations_per_lane": [
+                  0,
+                  622
+                ],
+                "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+              }
+            },
+            "calls": 835,
+            "real_lanes": 1457,
+            "processed_images": 5010,
+            "padding_lanes": 213
+          },
+          "render_transitions": [
+            {
+              "lane": 1,
+              "enabled": false,
+              "utc": 1794754140.3864448
+            },
+            {
+              "lane": 1,
+              "enabled": true,
+              "utc": 1794754212.2559395
+            }
+          ],
+          "aggregate_control_ticks_per_second": 3.242002901610836,
+          "active_lane_fraction": 0.8724550898203592,
+          "admission_s": 11.640086823143065,
+          "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+        }
+      ],
+      "recovery": null,
+      "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
+    },
+    "current_render_matched4": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_07/throughput_preflight/render_capture",
+      "complete": true,
+      "owner": {
+        "software_complete": true,
+        "worker_pid": 385471,
+        "returncode": 0,
+        "stop_reason": "complete",
+        "error": null,
+        "seconds": 210.58958864212036,
+        "ended": 1794755121.620016,
+        "plan_sha256": "6d9f765db2588605a6ad98efc9f3a2a3901bcc00b1647b26ec884d6940bc0fbe"
+      },
+      "reported_result": {
+        "software_complete": true,
+        "worker_error": null,
+        "cases": 4,
+        "utc": 1794755120.5136428,
+        "elapsed_seconds": 207.1546463018749,
+        "accepted_training_trajectories": 4,
+        "accepted_trajectories_per_hour": 69.51328515709797,
+        "attempts_per_hour": 69.51328515709797,
+        "lanes": 2
+      },
+      "frozen_commit": "9a2fce048a086cb767d1ed77c1f8ef3b95c01e53",
+      "lanes": 2,
+      "registered_opportunities": 4,
+      "accepted": 4,
+      "actual_control_steps": 1264,
+      "valid_expert_steps": 966,
+      "active_steps_per_second": 6.101721697123044,
+      "accepted_per_hour": 69.51328515709797,
+      "observed_progress": {
+        "tick": 725,
+        "active": [
+          false,
+          false
+        ],
+        "active_count": 0,
+        "remaining_tasks": 0,
+        "closed_results": 3,
+        "verifying": 1,
+        "active_lane_steps": 1264,
+        "utc": 1794755099.006906
+      },
+      "profiles": [
+        {
+          "wave": 0,
+          "role": "mixed",
+          "controller_s": 59.88661569962278,
+          "environment_s": 54.665754318237305,
+          "expert_s": 3.746466973097995,
+          "record_submit_s": 5.803162462078035,
+          "finish_audit_s": 12.397931455867365,
+          "reset_refill_s": 0.4001712847966701,
+          "active_lane_steps": 1264,
+          "allocated_lane_steps": 1452,
+          "refills": 2,
+          "finished_before_queue_empty": 2,
+          "capture_writer": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 51950238,
+            "peak_queued_or_copying": 2,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "verification_workers": 2,
+            "verification_max_pending": 4,
+            "verification_pending": 0,
+            "verification_peak_pending": 1,
+            "verification_submitted": 4,
+            "verification_completed": 4,
+            "verification_failed": 0,
+            "verification_slot_wait_s": 6.0442835092544556e-06,
+            "verification_process_pids": [
+              386773
+            ],
+            "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget."
+          },
+          "seconds": 144.20460107713006,
+          "cases": 4,
+          "control_ticks": 1264,
+          "vision_execution": {
+            "version": "gpu_observation_history_control_v1",
+            "roles": {
+              "A": {
+                "version": "current_observation_lane_microbatch_v1",
+                "vision_microbatch": 2,
+                "images_per_kernel": 6,
+                "forward_features_calls": 0,
+                "real_lanes": 620,
+                "padding_lanes": 0,
+                "real_images": 1860,
+                "processed_images": 0,
+                "controller_calls": 620,
+                "external_shared_vision": true,
+                "consumed_observations_per_lane": [
+                  288,
+                  332
+                ],
+                "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+              },
+              "B": {
+                "version": "current_observation_lane_microbatch_v1",
+                "vision_microbatch": 2,
+                "images_per_kernel": 6,
+                "forward_features_calls": 0,
+                "real_lanes": 644,
+                "padding_lanes": 0,
+                "real_images": 1932,
+                "processed_images": 0,
+                "controller_calls": 538,
+                "external_shared_vision": true,
+                "consumed_observations_per_lane": [
+                  250,
+                  394
+                ],
+                "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+              }
+            },
+            "calls": 726,
+            "real_lanes": 1264,
+            "processed_images": 4356,
+            "padding_lanes": 188
+          },
+          "render_transitions": [
+            {
+              "lane": 0,
+              "enabled": false,
+              "utc": 1794755071.9745035
+            },
+            {
+              "lane": 0,
+              "enabled": true,
+              "utc": 1794755111.1387398
+            }
+          ],
+          "aggregate_control_ticks_per_second": 8.765323648195732,
+          "active_lane_fraction": 0.8705234159779615,
+          "render_reuse": {
+            "render_calls": 738,
+            "render_seconds": 14.226708073401824,
+            "redundant_reader_renders_avoided": 725,
+            "reader_renders_required": 4,
+            "invalidations": 8
+          },
+          "admission_s": 9.353904001647606,
+          "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+        }
+      ],
+      "recovery": null,
+      "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
+    },
+    "formal24_interrupted": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_07/new_family_15",
+      "complete": false,
+      "owner": {
+        "software_complete": false,
+        "worker_pid": 394261,
+        "returncode": -9,
+        "stop_reason": "worker_failure",
+        "error": null,
+        "seconds": 1122.9432063102722,
+        "ended": 1794756846.6675184,
+        "plan_sha256": "d3b9ab59c4e67e3913178789edf6552a1ca42383472a2c1294b7e89650cb603d"
+      },
+      "reported_result": null,
+      "frozen_commit": "9a2fce048a086cb767d1ed77c1f8ef3b95c01e53",
+      "lanes": 24,
+      "registered_opportunities": 24,
+      "accepted": 5,
+      "actual_control_steps": 0,
+      "valid_expert_steps": 0,
+      "active_steps_per_second": null,
+      "accepted_per_hour": null,
+      "observed_progress": {
+        "tick": 275,
+        "active": [
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "active_count": 20,
+        "remaining_tasks": 0,
+        "closed_results": 2,
+        "verifying": 2,
+        "active_lane_steps": 6543,
+        "utc": 1794756144.3102586
+      },
+      "profiles": [],
+      "recovery": {
+        "accepted": 5,
+        "valid_expert_steps": 934
+      },
+      "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
+    },
+    "formal18_recovery": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_08/new_family_15",
+      "complete": false,
+      "owner": null,
+      "reported_result": null,
+      "frozen_commit": "e697bb1b8ce7b36ae736b9e859de3eeab43db286",
+      "lanes": 18,
+      "registered_opportunities": 18,
+      "accepted": 0,
+      "actual_control_steps": 0,
+      "valid_expert_steps": 0,
+      "active_steps_per_second": null,
+      "accepted_per_hour": null,
+      "observed_progress": {
+        "tick": 275,
+        "active": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          false,
+          false,
+          true,
+          true
+        ],
+        "active_count": 16,
+        "remaining_tasks": 0,
+        "closed_results": 1,
+        "verifying": 1,
+        "active_lane_steps": 4924,
+        "utc": 1794757726.7303233
+      },
+      "profiles": [],
+      "recovery": null,
+      "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
+    }
+  },
+  "caveats": [
+    "Matched4 keeps policies, initial families and early-grasp rule; actual physical lengths differ.",
+    "Old collector overlapped training; render acceptance ran serially. This is combined workflow improvement, not an isolated causal estimate.",
+    "Formal18 excludes five previously completed opportunities in three families; its success rate is not a paired baseline.",
+    "Expert recovery success is not autonomous student success. No mass/friction generalization."
+  ]
+}

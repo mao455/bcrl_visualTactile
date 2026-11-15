@@ -1522,3 +1522,9 @@ Source inspection confirms DirectRLEnv renders at every second120Hz physical tic
 - collection_source/round_compare: recognize dynamic GPU queue receipts and censored grasp execution; actual15 recovered round14 numeric/history/counter audits passed.
 - scripts tight_fresh_20261115_08: same04 deadline, A11/B09,14 DP epochs/latest4 then refresh/rear12/latest4;18 genuine early-grasp opportunities. No old training repeated.
 - throughput scripts: actual five closed-file salvage (934 valid expert steps), hash-bound derived-cache retirement; raw data/weights preserved. Formal24 stalled and is not a completed throughput experiment.8 focused eager/lazy real-HDF5 tests passed.
+
+
+## 2026-11-15 camera retirement/readback recovery09
+- queued_rollout.RenderLanes: retiring render products now also excludes their image buffer and CameraParams reads; re-enabled lanes acquire fresh observations.08 thread dump identified stalled Warp annotator copy after retirement; verifier prestart alone was insufficient.
+- recovered_captures/narrow_data/fresh aggregate/loop/owner: explicitly hash-bound admitted closed successes from interrupted attempts may join the next update under their original training registries. Eight real successes1477expertsteps registered; no partial prefix or unsuccessful trajectory admitted. New/current and recovered counts separate; all new identities receive front/rear latest4 sampling.
+- New09 frozen run bundle retains original deadline and18 real early-grasp opportunities.12 focused camera/control checks and63 existing aggregation/owner checks passed; actual8 recovered entries checked for both consumers.

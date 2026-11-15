@@ -1,0 +1,74 @@
+{
+  "inputs": {
+    "partition_manifest": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_state_20261107_01/composition_06/state_data/data.json",
+    "frozen_families": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_state_20261107_01/composition_06/frozen_families.json",
+    "collection_backend_json": "collection_backend.json",
+    "evaluation_backend_json": "evaluation_backend.json",
+    "training_sampling_json": "training_sampling.json",
+    "fallback_manifest": "fallback.json",
+    "frozen_visual_io_json": "frozen_visual_io.json",
+    "grasp_review_json": "grasp_review.json",
+    "recovered_captures_json": "recovered_captures.json"
+  },
+  "bounds": {
+    "max_seconds": 21600,
+    "collection_max_seconds": 1200,
+    "minimum_cycle_remaining_seconds": 5700,
+    "minimum_round_remaining_seconds": 6800,
+    "minimum_accepted": 8,
+    "minimum_free_bytes": 42949672960,
+    "startup_seconds": 300
+  },
+  "collection": {
+    "lanes": 18,
+    "vision_microbatch": 8,
+    "writer_mib": 512,
+    "verification_workers": 4,
+    "verification_max_pending": 8,
+    "capture_audit_memo": true,
+    "schedules": [
+      "grasp_early"
+    ],
+    "queued_gpu": true
+  },
+  "cycle": {
+    "epochs": 14,
+    "rear_epochs": 12,
+    "development_count_per_role": 8,
+    "development_seed": 28500000,
+    "latest_repeat": 4,
+    "evaluation_lanes": 16,
+    "vision_microbatch": 8,
+    "full_trajectory_batch": true,
+    "parallel_frontends": false,
+    "parallel_backends": true,
+    "payload_audit_memo": true,
+    "continue_rear": true,
+    "reuse_source_visual_index": true,
+    "offline_anchor_batch": 32,
+    "backend_offline_anchor_batch": 32,
+    "backend_latest_repeat": 4,
+    "queued_gpu_evaluation": true,
+    "grasp_evaluation_ticks": 300
+  },
+  "rounds": [
+    {
+      "index": 15,
+      "registry_id": "session20261115_09_early15",
+      "seeds": [
+        29000120,
+        29000121,
+        29000122,
+        29000123
+      ],
+      "event_seed": 29106000,
+      "revisit_families": [
+        "expanded_session20261115_03_prefetch13_s29000078",
+        "expanded_session20261115_03_prefetch13_s29000081",
+        "expanded_session20261115_03_prefetch13_s29000086",
+        "expanded_session20261115_03_prefetch13_s29000089",
+        "expanded_session20261115_03_prefetch13_s29000094"
+      ]
+    }
+  ]
+}

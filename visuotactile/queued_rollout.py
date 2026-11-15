@@ -88,7 +88,7 @@ def record_batch_transition(controller,transition,active,previous):
 class RenderLanes:
     """Disable only unassigned standard products, restore all on every exit."""
     def __init__(self,env):
-        self.handles=[];self.active=[True]*env.num_envs;self.changes=[]
+        self.handles=[];self.active=[True]*env.num_envs;self.changes=[];self.readers=[];self.pose_readers=[]
         if env.cfg.student_obs.camera_backend!='standard':return
         from omni.replicator.core.scripts.utils import viewport_manager
         from .inactive_render_products import existing_product
@@ -96,6 +96,27 @@ class RenderLanes:
         for camera in env.research_cameras:
             if len(camera.render_product_paths)!=env.num_envs:raise ValueError('Expected lane products')
             self.handles.append([existing_product(manager,p).hydra_texture for p in camera.render_product_paths])
+            # A disabled Hydra product has no new image to copy. The stock
+            # sensor still visits every outdated lane, and can block in Warp
+            # copying that disabled product (observed08 thread dump). Filter
+            # the read as well as the render. Inactive buffers are never used
+            # as observations or recordings; reactivation forces a fresh read.
+            if not camera._data.output:raise RuntimeError('Lane filtering requires initialized camera buffers')
+            original=camera._update_buffers_impl
+            def update(env_ids,original=original):
+                ids=env_ids.tolist() if torch.is_tensor(env_ids) else list(env_ids)
+                ids=[i for i in ids if self.active[i]]
+                if ids:original(ids)
+            camera._update_buffers_impl=update
+            self.readers.append((camera,original))
+        for annotators in env._camera_pose_annotators:
+            if len(annotators)!=env.num_envs:raise ValueError('Expected individual standard camera poses')
+            for lane,annotator in enumerate(annotators):
+                original=annotator.get_data;cached=[original()]
+                def pose(*args,lane=lane,original=original,cached=cached,**kwargs):
+                    if self.active[lane]:cached[0]=original(*args,**kwargs)
+                    return cached[0]
+                annotator.get_data=pose;self.pose_readers.append((annotator,original))
     def set(self,lane,enabled):
         if self.active[lane]==enabled:return
         for view in self.handles:
@@ -104,6 +125,8 @@ class RenderLanes:
         self.active[lane]=enabled;self.changes.append(dict(lane=lane,enabled=enabled,utc=time.time()))
     def close(self):
         for lane in range(len(self.active)):self.set(lane,True)
+        for camera,original in self.readers:camera._update_buffers_impl=original
+        for annotator,original in self.pose_readers:annotator.get_data=original
 
 
 @torch.no_grad()

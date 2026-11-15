@@ -63,6 +63,12 @@ def prepare_aggregate(root, collection, output):
     entries=read(collection/'correction_entries.json')
     if not entries:raise ValueError('No successful actual expert recovery; analyze before training')
     plan=read(collection/'plan.json')
+    extra_registries=[]
+    if plan.get('recovered_capture_inputs'):
+        from visuotactile.recovered_captures import load
+        recovered,extra_registries=load(plan['recovered_capture_inputs'],plan['pairs'])
+        if set(entries)&set(recovered):raise ValueError('Duplicate current/recovered capture')
+        entries.update(recovered)
     if plan.get('training_expansion_registry') is not None:
         from visuotactile.training_expansion import validate_collection_plan
         validate_collection_plan(plan)
@@ -80,6 +86,7 @@ def prepare_aggregate(root, collection, output):
         (destination/'shared_resources.json').symlink_to(root/'shared_resources.json')
         data=build_dagger_aggregate(root/role/'state_data',entries,destination/'state_data',
             'q_reached' if role=='A' else 'u_expert',include_geometry=role=='A',include_frontend_tactile=False,
+            additional_training_registries=extra_registries,
             **({'training_expansion_registry':plan['training_expansion_registry']}
                 if plan.get('training_expansion_registry') is not None else {}))
         residual_normalization(data,dict(fresh_data_contract=FRESH_AGGREGATE_CONTRACT))

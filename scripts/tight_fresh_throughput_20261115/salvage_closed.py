@@ -2,7 +2,7 @@
 
 Never repair or open incomplete streams, and never mark the old batch complete.
 """
-import json,time
+import argparse,json,time
 from pathlib import Path
 import h5py,numpy as np
 from visuotactile.async_recording import _verify_closed_capture
@@ -13,6 +13,7 @@ from tools.tight_fresh_batch_run import admit_capture
 ROOT=Path('/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_07/new_family_15')
 read=lambda p:json.loads(p.read_text())
 if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,default=ROOT);args=parser.parse_args();ROOT=args.root.resolve()
     owner=read(ROOT/'owner_finished.json')
     assert not owner['software_complete']
     plan=read(ROOT/'plan.json');entries={};rows=[];memo=DaggerCaptureAuditMemo(max_payloads=32,max_pairs=4)

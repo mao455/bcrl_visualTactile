@@ -25,7 +25,7 @@ from visuotactile.training_resources import atomic_json
 VERSION = 'finite_fresh_research_loop_v1'
 INPUTS = ('partition_manifest', 'frozen_families', 'collection_backend_json', 'evaluation_backend_json',
           'training_sampling_json', 'fallback_manifest')
-OPTIONAL_INPUTS = {'frozen_visual_io_json', 'grasp_review_json'}
+OPTIONAL_INPUTS = {'frozen_visual_io_json', 'grasp_review_json','recovered_captures_json'}
 
 
 def require(value, message):
@@ -220,7 +220,8 @@ def commands(context, row, paths, source, previous):
         '--vision-microbatch',c['vision_microbatch'],'--verification-workers',c['verification_workers'],
         '--verification-max-pending',c['verification_max_pending']]+(['--capture-audit-memo'] if c['capture_audit_memo'] else [])+
         (['--revisit-families',*row['revisit_families']] if row.get('revisit_families') else [])+
-        (['--queued-gpu'] if c.get('queued_gpu') else []))
+        (['--queued-gpu'] if c.get('queued_gpu') else [])+
+        (['--recovered-captures-json',i['recovered_captures_json']] if i.get('recovered_captures_json') else []))
     collection=command('tools.tight_batch_owner',['--output',paths['collection'],'--worker-tree',context['tree'],
         '--startup-seconds',b['startup_seconds']])
     cycle=command('tools.tight_fresh_cycle',['--root',source,'--collection',paths['collection'],'--output',paths['output'],
