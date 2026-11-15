@@ -1,0 +1,290 @@
+{
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_01",
+  "source_commit": "27baa3e9cd032297c7089d135eb4e6742940d9be",
+  "source_backend_bridge": {
+    "utc": 1794768534.979032,
+    "source_baseline": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_01/source_backend_baseline",
+    "candidate": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_00/round_15",
+    "decisions": {
+      "A": {
+        "common_legal_seeds": [
+          28500000,
+          28500001,
+          28500002,
+          28500004,
+          28500005,
+          28500006
+        ],
+        "source_hold60": 3,
+        "candidate_hold60": 0,
+        "use_candidate": false,
+        "selected_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11",
+        "execution_identity": {
+          "backend": {
+            "version": "tight_execution_backend_v2",
+            "physics_device": "cuda:0",
+            "camera_backend": "standard",
+            "kit_tasking_threads": 16,
+            "physics_threads": 2,
+            "renderer_descriptor_sets": 360000,
+            "renderer_reserved_descriptors": 900000
+          },
+          "queue": "independent_lane_queue_v1",
+          "gpu_pipeline": "gpu_observation_history_control_v1",
+          "render": "reuse_native_current_render_v1"
+        },
+        "explanation": "Two additional 1s holds on shared legal seeds under the same backend/queue contracts required; otherwise retain the previous complete pair. Lane populations can differ; no exact hidden-state replay, statistical proof or stage completion is claimed."
+      },
+      "B": {
+        "common_legal_seeds": [
+          28500000,
+          28500001,
+          28500002,
+          28500003,
+          28500004,
+          28500005,
+          28500006,
+          28500007
+        ],
+        "source_hold60": 0,
+        "candidate_hold60": 2,
+        "use_candidate": true,
+        "selected_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_00/round_15",
+        "execution_identity": {
+          "backend": {
+            "version": "tight_execution_backend_v2",
+            "physics_device": "cuda:0",
+            "camera_backend": "standard",
+            "kit_tasking_threads": 16,
+            "physics_threads": 2,
+            "renderer_descriptor_sets": 360000,
+            "renderer_reserved_descriptors": 900000
+          },
+          "queue": "independent_lane_queue_v1",
+          "gpu_pipeline": "gpu_observation_history_control_v1",
+          "render": "reuse_native_current_render_v1"
+        },
+        "explanation": "Two additional 1s holds on shared legal seeds under the same backend/queue contracts required; otherwise retain the previous complete pair. Lane populations can differ; no exact hidden-state replay, statistical proof or stage completion is claimed."
+      }
+    },
+    "previous_execution_identities": {
+      "A": {
+        "backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "queue": null,
+        "gpu_pipeline": null,
+        "render": null
+      },
+      "B": {
+        "backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cpu",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "queue": null,
+        "gpu_pipeline": null,
+        "render": null
+      }
+    },
+    "reason": "Historical A11/B09 evaluation used CPU physics; current candidate uses GPU physics. Old rates alone cannot isolate learning from this execution change."
+  },
+  "supervised_cycles_completed": 0,
+  "unattended_released": false,
+  "collections": {
+    "16": {
+      "result": {
+        "software_complete": true,
+        "worker_error": null,
+        "cases": 4,
+        "utc": 1794768716.8977919,
+        "elapsed_seconds": 163.78573076799512,
+        "accepted_training_trajectories": 4,
+        "accepted_trajectories_per_hour": 87.91974693081053,
+        "attempts_per_hour": 87.91974693081053,
+        "lanes": 4
+      },
+      "rows": [
+        {
+          "case": "r16_B_expanded_session20261115_03_prefetch13_s29000067_grasp_touch",
+          "role": "B",
+          "success": true,
+          "accepted": true,
+          "steps": 283,
+          "expert_valid_ticks": 214,
+          "trigger": {
+            "configuration": {
+              "version": "contact_formation_recovery_v2",
+              "minimum_tick": 48,
+              "weak_contact_ticks": 4,
+              "contact_deadline": 96,
+              "lift_deadline": 150,
+              "loss_ticks": 2,
+              "rising_height_m": 0.005,
+              "lift_height_m": 0.02,
+              "onset_contact_ticks": 2
+            },
+            "fallback_tick": 1000000000,
+            "actual_scheduled_takeover_tick": 67,
+            "reason": "first_persistent_contact_formation",
+            "trigger_completed_tick": 67,
+            "completed_student_transitions_observed": 67,
+            "settled_height_m": 0.5695685148239136,
+            "first_contact_completed_tick": 64,
+            "first_two_finger_completed_tick": 67,
+            "first_contact_lift_completed_tick": null,
+            "at_trigger": {
+              "elevation_m": -0.008570671081542969,
+              "fingers_both_substeps": 2,
+              "recent12_two_finger_ticks": 1,
+              "object_palm_root_distance_m": 0.25849202275276184
+            },
+            "rule": "Completed contact history only; next-action takeover, no12tick grid; expert recoverability must be measured",
+            "diagnostic_only": true,
+            "student_inputs_changed": false,
+            "native_success_changed": false,
+            "future_information_used": false,
+            "stable_grasp_claim": false
+          }
+        },
+        {
+          "case": "r16_A_expanded_session20261115_03_prefetch13_s29000078_grasp_touch",
+          "role": "A",
+          "success": true,
+          "accepted": true,
+          "steps": 297,
+          "expert_valid_ticks": 233,
+          "trigger": {
+            "configuration": {
+              "version": "contact_formation_recovery_v2",
+              "minimum_tick": 48,
+              "weak_contact_ticks": 4,
+              "contact_deadline": 96,
+              "lift_deadline": 150,
+              "loss_ticks": 2,
+              "rising_height_m": 0.005,
+              "lift_height_m": 0.02,
+              "onset_contact_ticks": 2
+            },
+            "fallback_tick": 1000000000,
+            "actual_scheduled_takeover_tick": 62,
+            "reason": "first_persistent_contact_formation",
+            "trigger_completed_tick": 62,
+            "completed_student_transitions_observed": 62,
+            "settled_height_m": 0.5706352591514587,
+            "first_contact_completed_tick": 61,
+            "first_two_finger_completed_tick": null,
+            "first_contact_lift_completed_tick": null,
+            "at_trigger": {
+              "elevation_m": 0.0001659989356994629,
+              "fingers_both_substeps": 1,
+              "recent12_two_finger_ticks": 0,
+              "object_palm_root_distance_m": 0.2390148639678955
+            },
+            "rule": "Completed contact history only; next-action takeover, no12tick grid; expert recoverability must be measured",
+            "diagnostic_only": true,
+            "student_inputs_changed": false,
+            "native_success_changed": false,
+            "future_information_used": false,
+            "stable_grasp_claim": false
+          }
+        },
+        {
+          "case": "r16_B_expanded_session20261115_03_prefetch13_s29000078_grasp_touch",
+          "role": "B",
+          "success": true,
+          "accepted": true,
+          "steps": 309,
+          "expert_valid_ticks": 248,
+          "trigger": {
+            "configuration": {
+              "version": "contact_formation_recovery_v2",
+              "minimum_tick": 48,
+              "weak_contact_ticks": 4,
+              "contact_deadline": 96,
+              "lift_deadline": 150,
+              "loss_ticks": 2,
+              "rising_height_m": 0.005,
+              "lift_height_m": 0.02,
+              "onset_contact_ticks": 2
+            },
+            "fallback_tick": 1000000000,
+            "actual_scheduled_takeover_tick": 59,
+            "reason": "first_persistent_contact_formation",
+            "trigger_completed_tick": 59,
+            "completed_student_transitions_observed": 59,
+            "settled_height_m": 0.5706353783607483,
+            "first_contact_completed_tick": 58,
+            "first_two_finger_completed_tick": null,
+            "first_contact_lift_completed_tick": null,
+            "at_trigger": {
+              "elevation_m": -0.001027226448059082,
+              "fingers_both_substeps": 1,
+              "recent12_two_finger_ticks": 0,
+              "object_palm_root_distance_m": 0.252695232629776
+            },
+            "rule": "Completed contact history only; next-action takeover, no12tick grid; expert recoverability must be measured",
+            "diagnostic_only": true,
+            "student_inputs_changed": false,
+            "native_success_changed": false,
+            "future_information_used": false,
+            "stable_grasp_claim": false
+          }
+        },
+        {
+          "case": "r16_A_expanded_session20261115_03_prefetch13_s29000067_grasp_touch",
+          "role": "A",
+          "success": true,
+          "accepted": true,
+          "steps": 385,
+          "expert_valid_ticks": 322,
+          "trigger": {
+            "configuration": {
+              "version": "contact_formation_recovery_v2",
+              "minimum_tick": 48,
+              "weak_contact_ticks": 4,
+              "contact_deadline": 96,
+              "lift_deadline": 150,
+              "loss_ticks": 2,
+              "rising_height_m": 0.005,
+              "lift_height_m": 0.02,
+              "onset_contact_ticks": 2
+            },
+            "fallback_tick": 1000000000,
+            "actual_scheduled_takeover_tick": 61,
+            "reason": "first_persistent_contact_formation",
+            "trigger_completed_tick": 61,
+            "completed_student_transitions_observed": 61,
+            "settled_height_m": 0.569566547870636,
+            "first_contact_completed_tick": 60,
+            "first_two_finger_completed_tick": 60,
+            "first_contact_lift_completed_tick": null,
+            "at_trigger": {
+              "elevation_m": -0.0016802549362182617,
+              "fingers_both_substeps": 2,
+              "recent12_two_finger_ticks": 2,
+              "object_palm_root_distance_m": 0.244045689702034
+            },
+            "rule": "Completed contact history only; next-action takeover, no12tick grid; expert recoverability must be measured",
+            "diagnostic_only": true,
+            "student_inputs_changed": false,
+            "native_success_changed": false,
+            "future_information_used": false,
+            "stable_grasp_claim": false
+          }
+        }
+      ]
+    }
+  },
+  "updated": 1794768945.2038238
+}
