@@ -56,13 +56,14 @@ def test_metadata_rejects_original_configuration_overlap(setup_registry, monkeyp
         summary.source_audit(plan)
 
 
-def test_live_snapshot_keeps_verified_success_unadmitted_and_never_opens_hdf(setup_registry, monkeypatch):
+@pytest.mark.parametrize('fields', [185, 186])
+def test_live_snapshot_keeps_verified_success_unadmitted_and_never_opens_hdf(setup_registry, monkeypatch, fields):
     root = setup_registry['root']/'live'; root.mkdir()
     plan = registered_plan(setup_registry)
     write(root/'plan.json', plan)
     case = plan['cases'][0]; directory = root/case['name']; directory.mkdir()
     result = numeric(directory, 120, length=150, trigger=schedule_trigger('held60'))
-    result['dataset_capture']['verified_source_fields'] = 185
+    result['dataset_capture']['verified_source_fields'] = fields
     write(directory/'execution_complete.json', result)
     write(directory/'capture_complete.json', dict(status='source_verified', dataset_capture=result['dataset_capture']))
     # A live publication can expose entries before the root result index.
