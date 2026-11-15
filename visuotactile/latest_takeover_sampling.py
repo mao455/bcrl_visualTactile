@@ -9,7 +9,7 @@ import torch
 
 
 SAMPLING_VERSION = 'latest_takeover_repeat_v1'
-REPEAT_FACTORS = (1, 2, 4)
+REPEAT_FACTORS = tuple(range(1, 33))
 
 
 def _identities(values, label):
@@ -30,7 +30,7 @@ def sampling_plan(data, spec):
             or spec['version'] != SAMPLING_VERSION
             or type(spec['latest_repeat']) is not int
             or spec['latest_repeat'] not in REPEAT_FACTORS):
-        raise ValueError('Sampling contract requires latest_takeover_repeat_v1 and integer repeat 1, 2 or 4')
+        raise ValueError('Sampling contract requires latest_takeover_repeat_v1 and integer repeat in [1, 32]')
     aggregation = data.get('aggregation', {})
     if (aggregation.get('version') != 'expert_takeover_aggregate_v1'
             or aggregation.get('student_prefix_supervised') is not False):
@@ -58,7 +58,7 @@ def episode_deck(ids, multiplicities, generator):
     if (set(multiplicities) != set(identities)
             or any(type(value) is not int or value not in REPEAT_FACTORS
                 for value in multiplicities.values())):
-        raise ValueError('Episode multiplicities require exact IDs and integer repeat 1, 2 or 4')
+        raise ValueError('Episode multiplicities require exact IDs and integer repeat in [1, 32]')
     deck = list(identities)
     for identity in identities:
         deck.extend([identity] * (multiplicities[identity] - 1))

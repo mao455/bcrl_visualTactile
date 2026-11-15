@@ -31,15 +31,15 @@ def test_started_sampling_resume_is_read_only_and_rejects_changed_receipt(tmp_pa
         d=tmp_path/role;(d/'state_data').mkdir(parents=True)
         (d/'state_data/data.json').write_text(json.dumps(cohort()))
         (d/'continuation.json').write_text('{}')
-    initial=configure_frontend_sampling(tmp_path,4)
+    initial=configure_frontend_sampling(tmp_path,12)
     before={p:p.stat().st_mtime_ns for p in tmp_path.rglob('*.json')}
     (tmp_path/'A/training').mkdir()
-    assert configure_frontend_sampling(tmp_path,4,reuse_registered=True)==initial
+    assert configure_frontend_sampling(tmp_path,12,reuse_registered=True)==initial
     assert all(p.stat().st_mtime_ns==t for p,t in before.items())
     with pytest.raises(ValueError):configure_frontend_sampling(tmp_path,2,reuse_registered=True)
     (tmp_path/'frontend_sampling.json').write_text('{}')
     with pytest.raises(ValueError,match='receipt changed'):
-        configure_frontend_sampling(tmp_path,4,reuse_registered=True)
+        configure_frontend_sampling(tmp_path,12,reuse_registered=True)
 
 
 @pytest.mark.parametrize('contract', [None, spec(1)])
@@ -57,7 +57,7 @@ def test_default_and_repeat_one_preserve_old_order_and_rng_bytes(contract):
     assert torch.equal(global_before, torch.get_rng_state())
 
 
-@pytest.mark.parametrize('repeat', [1, 2, 4])
+@pytest.mark.parametrize('repeat', [1, 2, 4, 12, 32])
 def test_only_latest_takeovers_repeat_without_mutating_inputs(repeat):
     data = cohort()
     requested = spec(repeat)
@@ -100,7 +100,7 @@ def test_checkpointed_schedule_restores_next_deck_and_visit_counts():
     assert torch.equal(continuation_generator.get_state(), expected_after)
 
 
-@pytest.mark.parametrize('contract', [spec(0), spec(3), spec(8), spec(True), spec(4.0),
+@pytest.mark.parametrize('contract', [spec(0), spec(-1), spec(33), spec(True), spec(4.0),
     dict(version='unknown', latest_repeat=4), dict(version=SAMPLING_VERSION),
     dict(spec(), latest_ids=['latest0']), [], 'latest_takeover_repeat_v1'])
 def test_invalid_contract_is_rejected(contract):
@@ -131,7 +131,7 @@ def test_invalid_population_or_provenance_is_rejected(mutation):
 
 
 @pytest.mark.parametrize('multiplicities', [dict(a=1), dict(a=1, b=1, extra=4),
-    dict(a=True, b=4), dict(a=1, b=3), dict(a=1, b=4.0)])
+    dict(a=True, b=4), dict(a=1, b=33), dict(a=1, b=4.0)])
 def test_deck_rejects_invalid_multiplicities_before_consuming_rng(multiplicities):
     generator = torch.Generator().manual_seed(7)
     before = generator.get_state().clone()

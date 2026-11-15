@@ -29,7 +29,7 @@ def distribution(values):
                 maximum=max(values)) if values else dict(count=0)
 
 
-def run(root, output):
+def run(root, output, *, latest_only=False):
     began = time.time()
     read = lambda p: json.loads(p.read_text())
     data = read(root/'A/state_data/data.json')
@@ -39,7 +39,7 @@ def run(root, output):
     originals = data['normalization_train_ids']
     assert len(originals) == 30 and set(latest + originals) <= set(data['splits']['train'])
     rows = []
-    for identity in originals + latest:
+    for identity in (latest if latest_only else originals + latest):
         entry = data['entries'][identity]
         with h5py.File(entry['path']) as stream:
             g = stream['episodes'][entry['episode']]
@@ -82,7 +82,7 @@ def run(root, output):
                                       np.repeat(target[:, None], 2, axis=1))
             first_label_index = int(np.flatnonzero(mask)[0])
             row = dict(identity=identity, family=entry['family'], source_group=entry.get('source_group'),
-                cohort='latest26' if identity in latest else 'original30', frames=n,
+                cohort='latest_corrections' if identity in latest else 'original30', frames=n,
                 simulation_duration_s=n/60, first_contact_completed_tick=first(touch),
                 first_postsettle_contact_completed_tick=first(touch & settled),
                 first_two_finger_completed_tick=first_two, first_two_finger_loss_completed_tick=loss,
@@ -111,7 +111,7 @@ def run(root, output):
             rows.append(row)
     # Count actual population, separately from stochastic optimizer exposure.
     population = {}
-    for label, ids in [('all', data['splits']['train']), ('latest26', latest), ('original30', originals)]:
+    for label, ids in [('all', data['splits']['train']), ('latest_corrections', latest), ('original30', originals)]:
         masks = [records['A'][i].get('supervision_mask', torch.ones(len(records['A'][i]['time']), dtype=torch.bool)) for i in ids]
         population[label] = dict(episodes=len(ids), legal_ticks=sum(int(m.sum()) for m in masks),
             legal_before_tick100=sum(int(m[:100].sum()) for m in masks),
@@ -142,11 +142,11 @@ def run(root, output):
               'first_postsettle_contact_completed_tick', 'first_contact_lift_completed_tick',
               'takeover_simulation_s', 'expert_to_success_s', 'contact_to_takeover_ticks',
               'postsettle_contact_to_takeover_ticks']
-    for cohort in ('original30', 'latest26'):
+    for cohort in ('original30', 'latest_corrections'):
         selected = [r for r in rows if r['cohort'] == cohort]
         summary[cohort] = {key: distribution([r.get(key) for r in selected]) for key in fields}
     atomic_json(output, dict(version='early_grasp_numeric_supervision_audit_v1', root=str(root),
-        created=time.time(), seconds=time.time()-began, units=dict(control_hz=60, planning_hz=5,
+        created=time.time(), seconds=time.time()-began, latest_only=latest_only, units=dict(control_hz=60, planning_hz=5,
         physics_hz=120, completed_tick='transition index + 1', action_index='zero-based preaction index'),
         rows=rows, summary=summary, population=population, observed_training=exposure,
         claims=dict(prefix_is_not_expert_supervision=True, latest_labels_match_actual_execution=True,
@@ -157,4 +157,5 @@ if __name__ == '__main__':
     parser=argparse.ArgumentParser(__doc__)
     parser.add_argument('--root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
-    args=parser.parse_args();run(args.root.resolve(), args.output.resolve())
+    parser.add_argument('--latest-only', action='store_true', help='Reuse prior original30 audit; inspect only new numeric suffixes')
+    args=parser.parse_args();run(args.root.resolve(), args.output.resolve(), latest_only=args.latest_only)

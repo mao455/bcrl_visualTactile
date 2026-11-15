@@ -6,6 +6,7 @@ the next DAgger source by the registered rule; fallback references remain protec
 All child stages use the existing process-identity-aware collect/cycle owner.
 """
 import argparse
+from visuotactile.latest_takeover_sampling import REPEAT_FACTORS
 import copy
 import json
 import math
@@ -87,8 +88,8 @@ def validate_configuration(value):
         integer(t[key],1,key)
     integer(t['development_seed'],0,'development_seed')
     if 'backend_latest_repeat' in t:
-        require(type(t['backend_latest_repeat']) is int and t['backend_latest_repeat'] in (1,2,4),'Explicit rear repeat1/2/4')
-    require(t['latest_repeat'] in (1,2,4) and type(t['latest_repeat']) is int, 'Unknown latest repeat budget')
+        require(type(t['backend_latest_repeat']) is int and t['backend_latest_repeat'] in REPEAT_FACTORS,'Explicit rear repeat in [1,32]')
+    require(t['latest_repeat'] in REPEAT_FACTORS and type(t['latest_repeat']) is int, 'Unknown latest repeat budget')
     for key in ('full_trajectory_batch','parallel_frontends','parallel_backends','payload_audit_memo',
                 'continue_rear','reuse_source_visual_index'):
         require(type(t[key]) is bool,'Explicit cycle boolean required: '+key)

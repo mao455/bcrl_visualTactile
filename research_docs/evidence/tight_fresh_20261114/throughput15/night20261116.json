@@ -12683,7 +12683,7 @@
     "optimizer_group_count": 8
   },
   "next_precontact19": {
-    "status": "source_preparation_running",
+    "status": "capture_complete_preoptimizer_cli_failure",
     "schedule": "grasp_approach",
     "opportunities": 4,
     "families": [
@@ -12704,6 +12704,219 @@
     "source_commit": "9772a5c9e281e5b694a083f94ca87a6d416f4673",
     "owner_pid": 623880,
     "service": "tight-fresh-night-20261116-04.service",
-    "unattended_release": false
+    "unattended_release": false,
+    "recovery_prepared": true
+  },
+  "round19_capture": {
+    "result": {
+      "software_complete": true,
+      "worker_error": null,
+      "cases": 4,
+      "utc": 1794781926.299051,
+      "elapsed_seconds": 146.53711967915297,
+      "accepted_training_trajectories": 4,
+      "accepted_trajectories_per_hour": 98.26861638559018,
+      "attempts_per_hour": 98.26861638559018,
+      "lanes": 4
+    },
+    "admission": {
+      "admitted": true,
+      "reason": "admitted",
+      "accepted": 4,
+      "opportunities": 4,
+      "recovered_previously_closed": 0,
+      "total_new_training_examples": 4,
+      "remaining_work_seconds": 8691.872169017792,
+      "minimum_accepted": 3,
+      "minimum_cycle_remaining_seconds": 1200,
+      "collection_files": {
+        "owner_finished.json": "cb0469632adfe886d634c44aa27669308e7ed01d602ec7e2a752a77a5a9db0d8",
+        "result.json": "eaa42033f065d3a621fff18e54eff548e91a53e8e88434d4f36fb454bc102d92",
+        "results.json": "05b056589de566b44ede937d94061154745b3e07692f63d2a7a305e80eb407c7",
+        "correction_entries.json": "b057bb1a186a919d203f929b3b1bba08a73fd2d85b75afd75f8310c156c71c43"
+      }
+    },
+    "cases": [
+      {
+        "case": "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+        "success": true,
+        "steps": 358,
+        "trigger": {
+          "configuration": {
+            "version": "approach_contact_recovery_v3",
+            "minimum_tick": 48,
+            "weak_contact_ticks": 4,
+            "contact_deadline": 96,
+            "lift_deadline": 150,
+            "loss_ticks": 2,
+            "rising_height_m": 0.005,
+            "lift_height_m": 0.02,
+            "onset_contact_ticks": 2,
+            "approach_minimum_tick": 36,
+            "approach_distance_m": 0.06,
+            "approach_confirm_ticks": 2,
+            "approach_history_ticks": 8,
+            "approach_distance_decrease_m": 0.003
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 67,
+          "reason": "first_persistent_contact_formation",
+          "trigger_completed_tick": 67,
+          "completed_student_transitions_observed": 67,
+          "settled_height_m": 0.5444220304489136,
+          "first_contact_completed_tick": 66,
+          "first_two_finger_completed_tick": null,
+          "first_contact_lift_completed_tick": null,
+          "at_trigger": {
+            "elevation_m": -0.0039733052253723145,
+            "fingers_both_substeps": 1,
+            "recent12_two_finger_ticks": 0,
+            "object_palm_root_distance_m": 0.2904084026813507
+          },
+          "rule": "Completed approaching finger/object proximity before any contact, or existing contact/recovery screens; next-action takeover, no12tick grid; no recoverability claim",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "future_information_used": false,
+          "stable_grasp_claim": false
+        },
+        "legal_expert_ticks": 289
+      },
+      {
+        "case": "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+        "success": true,
+        "steps": 243,
+        "trigger": {
+          "configuration": {
+            "version": "approach_contact_recovery_v3",
+            "minimum_tick": 48,
+            "weak_contact_ticks": 4,
+            "contact_deadline": 96,
+            "lift_deadline": 150,
+            "loss_ticks": 2,
+            "rising_height_m": 0.005,
+            "lift_height_m": 0.02,
+            "onset_contact_ticks": 2,
+            "approach_minimum_tick": 36,
+            "approach_distance_m": 0.06,
+            "approach_confirm_ticks": 2,
+            "approach_history_ticks": 8,
+            "approach_distance_decrease_m": 0.003
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 41,
+          "reason": "approaching_first_contact",
+          "trigger_completed_tick": 41,
+          "completed_student_transitions_observed": 41,
+          "settled_height_m": null,
+          "first_contact_completed_tick": null,
+          "first_two_finger_completed_tick": null,
+          "first_contact_lift_completed_tick": null,
+          "at_trigger": {
+            "nearest_finger_center_distance_m": 0.05641177296638489,
+            "distance_decrease_over8_ticks_m": 0.023631297051906586,
+            "fingers_both_substeps": 0,
+            "contact_seen": false
+          },
+          "rule": "Completed approaching finger/object proximity before any contact, or existing contact/recovery screens; next-action takeover, no12tick grid; no recoverability claim",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "future_information_used": false,
+          "stable_grasp_claim": false
+        },
+        "legal_expert_ticks": 200
+      },
+      {
+        "case": "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+        "success": true,
+        "steps": 364,
+        "trigger": {
+          "configuration": {
+            "version": "approach_contact_recovery_v3",
+            "minimum_tick": 48,
+            "weak_contact_ticks": 4,
+            "contact_deadline": 96,
+            "lift_deadline": 150,
+            "loss_ticks": 2,
+            "rising_height_m": 0.005,
+            "lift_height_m": 0.02,
+            "onset_contact_ticks": 2,
+            "approach_minimum_tick": 36,
+            "approach_distance_m": 0.06,
+            "approach_confirm_ticks": 2,
+            "approach_history_ticks": 8,
+            "approach_distance_decrease_m": 0.003
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 64,
+          "reason": "approaching_first_contact",
+          "trigger_completed_tick": 64,
+          "completed_student_transitions_observed": 64,
+          "settled_height_m": 0.5442788600921631,
+          "first_contact_completed_tick": null,
+          "first_two_finger_completed_tick": null,
+          "first_contact_lift_completed_tick": null,
+          "at_trigger": {
+            "nearest_finger_center_distance_m": 0.05734216049313545,
+            "distance_decrease_over8_ticks_m": 0.014588188380002975,
+            "fingers_both_substeps": 0,
+            "contact_seen": false
+          },
+          "rule": "Completed approaching finger/object proximity before any contact, or existing contact/recovery screens; next-action takeover, no12tick grid; no recoverability claim",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "future_information_used": false,
+          "stable_grasp_claim": false
+        },
+        "legal_expert_ticks": 298
+      },
+      {
+        "case": "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+        "success": true,
+        "steps": 282,
+        "trigger": {
+          "configuration": {
+            "version": "approach_contact_recovery_v3",
+            "minimum_tick": 48,
+            "weak_contact_ticks": 4,
+            "contact_deadline": 96,
+            "lift_deadline": 150,
+            "loss_ticks": 2,
+            "rising_height_m": 0.005,
+            "lift_height_m": 0.02,
+            "onset_contact_ticks": 2,
+            "approach_minimum_tick": 36,
+            "approach_distance_m": 0.06,
+            "approach_confirm_ticks": 2,
+            "approach_history_ticks": 8,
+            "approach_distance_decrease_m": 0.003
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 45,
+          "reason": "approaching_first_contact",
+          "trigger_completed_tick": 45,
+          "completed_student_transitions_observed": 45,
+          "settled_height_m": null,
+          "first_contact_completed_tick": null,
+          "first_two_finger_completed_tick": null,
+          "first_contact_lift_completed_tick": null,
+          "at_trigger": {
+            "nearest_finger_center_distance_m": 0.058124326169490814,
+            "distance_decrease_over8_ticks_m": 0.016170062124729156,
+            "fingers_both_substeps": 0,
+            "contact_seen": false
+          },
+          "rule": "Completed approaching finger/object proximity before any contact, or existing contact/recovery screens; next-action takeover, no12tick grid; no recoverability claim",
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "future_information_used": false,
+          "stable_grasp_claim": false
+        },
+        "legal_expert_ticks": 235
+      }
+    ]
   }
 }

@@ -17,6 +17,7 @@ import traceback
 from tools.tight_fresh_collect_cycle_owner import run_stage, collection_admission
 from tools.tight_fresh_grasp_evidence import behavior
 from visuotactile.compact import sha256
+from visuotactile.latest_takeover_sampling import REPEAT_FACTORS
 from visuotactile.training_resources import atomic_json
 
 read=lambda path:json.loads(Path(path).read_text())
@@ -78,7 +79,7 @@ def run(root,configuration):
     assert cfg['version']=='supervised_grasp_night_v1' and len(cfg['rounds'])<=4
     assert cfg['supervised_cycles']==2 and deadline>started and (root/'shared_resources.json').is_file()
     repeats={key:cfg.get(key,4) for key in ('latest_repeat','backend_latest_repeat')}
-    assert all(type(value) is int and 1<=value<=32 for value in repeats.values())
+    assert all(type(value) is int and value in REPEAT_FACTORS for value in repeats.values())
     binding=sha256(configuration);source_head=cfg['source_commit']
     import subprocess
     assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==source_head

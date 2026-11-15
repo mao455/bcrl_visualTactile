@@ -12,6 +12,7 @@ import time
 import traceback
 
 from visuotactile.compact import sha256
+from visuotactile.latest_takeover_sampling import REPEAT_FACTORS
 from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
 from tools.tight_fresh_eval_recovery import wait_owned, stop_owned
@@ -220,8 +221,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         raise ValueError('Training-family rechecks require queued short grasp evaluation')
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
     training_sampling=validate_visit_profile(training_sampling)
-    if backend_latest_repeat is not None and (type(backend_latest_repeat) is not int or backend_latest_repeat not in (1,2,4)):
-        raise ValueError("Explicit rear latest repeat1/2/4 required")
+    if backend_latest_repeat is not None and (type(backend_latest_repeat) is not int or backend_latest_repeat not in REPEAT_FACTORS):
+        raise ValueError("Explicit rear latest repeat in [1,32] required")
     from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
     frozen_visual_io=validate_visual_io(frozen_visual_io)
     if frozen_visual_io is not None and trajectory_profile is None:
@@ -501,8 +502,8 @@ def main():
         help='Opt-in independent A/B backend chains after both frontends finish and fresh joint admission; serial fallback')
     p.add_argument('--paired-episode-io',action='store_true',
         help='Opt-in same-deck A/B I/O rendezvous; requires parallel frontends and shared frozen shards')
-    p.add_argument('--latest-repeat',type=int,choices=[1,2,4])
-    p.add_argument('--backend-latest-repeat',type=int,choices=[1,2,4])
+    p.add_argument('--latest-repeat',type=int,choices=REPEAT_FACTORS)
+    p.add_argument('--backend-latest-repeat',type=int,choices=REPEAT_FACTORS)
     p.add_argument('--backend-phase-weighting-json',type=Path)
     p.add_argument('--evaluation-lanes',type=int,default=1)
     p.add_argument('--queued-gpu-evaluation',action='store_true')
