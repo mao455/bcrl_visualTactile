@@ -17,16 +17,33 @@ NAMES=['tight_fresh_20261114_01/round_02_v2','tight_fresh_20261114_01/round_03',
  'tight_fresh_20261115_02/round_12']
 PATHS=[BASE/n/r/'training/best.pt' for n in NAMES for r in 'AB']
 PATHS+=[BASE/'tight_fresh_20261115_03/round_13/A/training/best.pt']
-p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--apply',action='store_true');a=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);p.add_argument('--apply',action='store_true')
+p.add_argument('--legacy-g11-endpoints',action='store_true',help='Only four nonselected checkpoints of the closed Nov11 G11 pool; keep its selected best intact')
+a=p.parse_args()
+LEGACY=BASE/'tight_dagger_pool_20261111_01'
+if a.legacy_g11_endpoints:
+ directory=LEGACY/'round_01/G11/dp/training'
+ PATHS=[directory/name for name in ('comparison_201.pt','comparison_402.pt','comparison_603.pt','last.pt')]
+ closed=json.loads((LEGACY/'status.json').read_text())
+ assert closed['state']=='COMPLETE' and closed['owned_workers_exited'] and (LEGACY/'monitor_exit.json').exists()
+ assert (directory/'best.pt').is_file()
 if not a.apply:
  a.output.mkdir(parents=True,exist_ok=False);rows=[]
  for f in PATHS:
-  assert f.is_file() and not f.is_symlink();done=json.loads(f.with_name('finished.json').read_text());assert done['complete']
-  digest=sha256(f);assert digest==done['checkpoint_sha256']
+  assert f.is_file() and not f.is_symlink()
+  digest=sha256(f)
+  if not a.legacy_g11_endpoints:
+   done=json.loads(f.with_name('finished.json').read_text());assert done['complete']
+   assert digest==done['checkpoint_sha256']
   s=f.stat();rows.append(dict(path=str(f),sha256=digest,bytes=s.st_size,inode=s.st_ino,mtime_ns=s.st_mtime_ns))
- atomic_json(a.output/'inventory.json',dict(utc=time.time(),rows=rows,scope=__doc__))
+ atomic_json(a.output/'inventory.json',dict(utc=time.time(),rows=rows,scope=__doc__,legacy_g11_endpoints=a.legacy_g11_endpoints,
+  retained_selected_best=dict(path=str(directory/'best.pt'),sha256=sha256(directory/'best.pt')) if a.legacy_g11_endpoints else None))
 else:
  assert not (a.output/'applied.json').exists();inventory=json.loads((a.output/'inventory.json').read_text());rows=[]
+ assert inventory.get('legacy_g11_endpoints',False)==a.legacy_g11_endpoints
+ assert {r['path'] for r in inventory['rows']}=={str(p) for p in PATHS}
+ if inventory.get('retained_selected_best'):
+  kept=inventory['retained_selected_best'];assert sha256(kept['path'])==kept['sha256']
  for proc in Path('/proc').iterdir():
   if not proc.name.isdigit() or int(proc.name)==os.getpid():continue
   try:cmd=(proc/'cmdline').read_bytes().replace(b'\0',b' ').decode()
@@ -35,7 +52,7 @@ else:
  try:
   for row in inventory['rows']:
    f=Path(row['path']);s=f.stat();assert (s.st_ino,s.st_mtime_ns,s.st_size)==(row['inode'],row['mtime_ns'],row['bytes'])
-   archive=f.with_name('best.weights_only.pt');tmp=archive.with_suffix('.tmp');assert not archive.exists() and not tmp.exists()
+   archive=f.with_name(f.stem+'.weights_only.pt');tmp=archive.with_suffix('.tmp');assert not archive.exists() and not tmp.exists()
    saved=torch.load(f,map_location='cpu',mmap=True,weights_only=False);assert 'optimizer' in saved
    reduced={k:v for k,v in saved.items() if k!='optimizer'}
    reduced['archival']=dict(original_sha256=row['sha256'],original_bytes=row['bytes'],optimizer_resume_available=False,
@@ -49,10 +66,11 @@ else:
    os.replace(tmp,archive);digest=sha256(archive)
    proof=dict(**row,archive=str(archive),archive_sha256=digest,archive_bytes=archive.stat().st_size,
       preserved_model_and_ema_exact=True,removed_optimizer_only=True)
-   atomic_json(f.with_name('best_archival.json'),proof)
+   atomic_json(f.with_name(f.stem+'_archival.json'),proof)
    del restored,reduced,saved
    f.unlink();rows.append(proof);atomic_json(a.output/'progress.json',dict(rows=rows))
  finally:
   atomic_json(a.output/'applied.json',dict(utc=time.time(),complete=len(rows)==len(inventory['rows']),rows=rows,
     reduced_logical_bytes=sum(r['bytes']-r['archive_bytes'] for r in rows)))
+ if inventory.get('retained_selected_best'):assert sha256(kept['path'])==kept['sha256']
 print(json.dumps(dict(phase='apply' if a.apply else 'prepare',output=str(a.output))))

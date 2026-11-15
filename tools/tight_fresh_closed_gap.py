@@ -23,6 +23,15 @@ def first_run(mask, length=3):
     return None
 
 
+def object_position_in_base(object_pose, base_pose):
+    # Recorded Isaac poses use wxyz. Remove lane world translations/rotations
+    # before interpreting initial configuration or trajectory divergence.
+    q=base_pose[:,3:7];q=q/np.linalg.norm(q,axis=1,keepdims=True)
+    u=-q[:,1:];v=object_pose[:,:3]-base_pose[:,:3]
+    uv=np.cross(u,v)
+    return v+2*(q[:,:1]*uv+np.cross(u,uv))
+
+
 def report(root, output):
     if output.exists():raise FileExistsError('Preserve prior comparison')
     read=lambda p:json.loads(p.read_text())
@@ -47,13 +56,14 @@ def report(root, output):
             # observable differences disclose reset/lane effects explicitly.
             before='transition/diagnostics_before/'
             q=actual[before+'joint_position_rad'][:n]-original[before+'joint_position_rad'][:n]
-            obj=actual[before+'object_pose_w'][:n,:3]-original[before+'object_pose_w'][:n,:3]
+            obj=object_position_in_base(actual[before+'object_pose_w'][:n],actual[before+'base_pose_w'][:n])-object_position_in_base(
+                original[before+'object_pose_w'][:n],original[before+'base_pose_w'][:n])
             applied=actual['transition/actuator_substep_target_rad'][:n]
             mapping_error=float(np.max(np.abs(applied-issued[:,None,:])))
             if mapping_error>2e-5:raise ValueError('Submitted/applied target mapping differs')
             row.update(identity=identity,comparison_ticks=n,
                 initial_joint_max_abs_difference_rad=float(np.abs(q[0]).max()),
-                initial_object_position_difference_m=float(np.linalg.norm(obj[0])),
+                initial_object_position_difference_m=float(np.linalg.norm(obj[0])),object_comparison_frame='robot_base',
                 command_to_actuator_max_abs_difference_rad=mapping_error,
                 first_three_tick_arm_gap_above_002_rad=first_run(arm>.002),
                 first_three_tick_hand_gap_above_02_rad=first_run(hand>.02),
