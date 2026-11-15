@@ -1,0 +1,76 @@
+{
+  "inputs": {
+    "partition_manifest": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_state_20261107_01/composition_06/state_data/data.json",
+    "frozen_families": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_state_20261107_01/composition_06/frozen_families.json",
+    "collection_backend_json": "collection_backend.json",
+    "evaluation_backend_json": "evaluation_backend.json",
+    "training_sampling_json": "training_sampling.json",
+    "fallback_manifest": "fallback.json",
+    "frozen_visual_io_json": "frozen_visual_io.json"
+  },
+  "bounds": {
+    "max_seconds": 21600,
+    "collection_max_seconds": 7200,
+    "minimum_cycle_remaining_seconds": 7200,
+    "minimum_round_remaining_seconds": 10800,
+    "minimum_accepted": 8,
+    "minimum_free_bytes": 73014444032,
+    "startup_seconds": 300
+  },
+  "collection": {
+    "lanes": 16,
+    "vision_microbatch": 8,
+    "writer_mib": 512,
+    "verification_workers": 8,
+    "verification_max_pending": 16,
+    "capture_audit_memo": true,
+    "schedules": [
+      "fixed1",
+      "held0",
+      "fixed1",
+      "held_root60"
+    ]
+  },
+  "cycle": {
+    "epochs": 20,
+    "rear_epochs": 15,
+    "development_count_per_role": 8,
+    "development_seed": 28500000,
+    "latest_repeat": 2,
+    "evaluation_lanes": 8,
+    "vision_microbatch": 8,
+    "full_trajectory_batch": true,
+    "parallel_frontends": false,
+    "parallel_backends": true,
+    "payload_audit_memo": true,
+    "continue_rear": true,
+    "reuse_source_visual_index": true,
+    "offline_anchor_batch": 32,
+    "backend_offline_anchor_batch": 32
+  },
+  "rounds": [
+    {
+      "index": 14,
+      "registry_id": "session20261115_04_balanced14",
+      "seeds": [
+        29000096,
+        29000097,
+        29000098,
+        29000099,
+        29000100,
+        29000101,
+        29000102,
+        29000103,
+        29000104,
+        29000105,
+        29000106,
+        29000107,
+        29000108,
+        29000109,
+        29000110,
+        29000111
+      ],
+      "event_seed": 29103000
+    }
+  ]
+}

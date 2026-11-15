@@ -376,7 +376,24 @@ def audit_data_extension(source, data_source, role, session, *, allow_equal=Fals
         meaning='Collection/next-update pool only; selected weights retain their original data/cache identities')
 
 
-def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None,allow_illegal_starts=False):
+def followup_storage(session, reserve_gib):
+    """A new finite session may register a different disk budget; never edit its source."""
+    fresh = copy.deepcopy(session)
+    if reserve_gib is not None:
+        if type(reserve_gib) is not int or reserve_gib < 16:
+            raise ValueError('Explicit new-session disk reserve must be an integer of at least 16 GiB')
+        previous = dict(reserve_bytes=session.get('reserve_bytes'),
+                        min_disk_gib=session.get('resources', {}).get('min_disk_gib'))
+        fresh['reserve_bytes'] = reserve_gib * 1024**3
+        fresh.setdefault('resources', {})['min_disk_gib'] = reserve_gib
+        fresh.setdefault('followup', {})['storage_override'] = dict(
+            previous=previous, reserve_gib=reserve_gib,
+            scope='New session only; collection admission separately reserves planned growth.')
+    return fresh
+
+
+def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None,allow_illegal_starts=False,
+            reserve_gib=None):
     source = Path(source).resolve(strict=True)
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -386,6 +403,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
         raise ValueError('New session hours must be finite and positive')
     evaluation = Path(evaluation).resolve(strict=True) if evaluation else source/'development'
     session = read(source/'session.json')
+    followup_storage(session, reserve_gib)  # Reject malformed storage requests before opening model payloads.
     if (session.get('visual_stride') != 1 or session.get('control_hz') != 60
             or session.get('planning_hz') != 5 or session.get('resource_policy') != 'full_gpu_v1'):
         raise ValueError('Expected current every-frame full-GPU research contract')
@@ -493,6 +511,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
     if role_sources:
         fresh['session_kind'] = 'independent_followup_v3'
         fresh['followup']['role_policy_source_roots'] = {role:str(root) for role, root in policy_roots.items()}
+    fresh = followup_storage(fresh, reserve_gib)
     output.mkdir(parents=True, exist_ok=False)
     (output/'provenance').mkdir()
     atomic_json(output/'session.json', fresh)
@@ -574,6 +593,7 @@ def main():
     parser.add_argument('--source-root', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--hours', type=float, required=True)
+    parser.add_argument('--reserve-gib', type=int, help='Explicit new-session disk reserve; source session remains unchanged')
     parser.add_argument('--allow-illegal-starts',action='store_true',help='Retain independently verified zero-action initialization rejects in a fully resolved cohort')
     parser.add_argument('--evaluation', type=Path, help='Completed autonomous evaluation, default source/development')
     parser.add_argument('--data-source-root', type=Path,
@@ -588,7 +608,8 @@ def main():
             parser.error('--role-source requires one unique A=ROOT or B=ROOT binding per role')
         role_sources[role] = Path(path)
     binding = prepare(args.source_root, args.output, args.hours, evaluation=args.evaluation,
-        data_source=args.data_source_root, role_sources=role_sources,allow_illegal_starts=args.allow_illegal_starts)
+        data_source=args.data_source_root, role_sources=role_sources,allow_illegal_starts=args.allow_illegal_starts,
+        reserve_gib=args.reserve_gib)
     print(json.dumps(dict(output=str(args.output.resolve()), deadline=binding['deadline'],
         selected_pairs=binding['selected_pairs'], workers_started=False)), flush=True)
 

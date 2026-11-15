@@ -58,6 +58,8 @@ def launch(tree,expected,config,loop):
             '--data-source-root',config['data_source'],'--evaluation',str(source/'development'),
             '--output',str(root),'--hours',str(config['hours']),'--allow-illegal-starts']
         for role,path in config['role_sources'].items():followup+=['--role-source',role+'='+path]
+        if config.get('reserve_gib') is not None:
+            followup+=['--reserve-gib',str(config['reserve_gib'])]
         common.execute('followup',followup,tree,ledger,timeout=600)
         session=read(root/'session.json');deadline=session['deadline']
         require(deadline==session['started_utc']+21600 and sha(old/'session.json')==state['old_session_sha256'],

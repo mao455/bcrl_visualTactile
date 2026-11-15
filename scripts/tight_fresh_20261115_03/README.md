@@ -33,3 +33,5 @@ report_completed12.py汇总已保存的completed_review与原公开来源报告�
 脚本不重开权重/原始数据/大learning日志、不启动工作。正式训练冻结19736be保持；报告来源见research_docs/evidence/tight_fresh_20261114/prefetch_followup03/progress_1828.json。
 
 19:24更新：A/B前端均20遍3800更新完成，选18/14遍，新32条在selected分别各72/56 visit。前端合90.509分钟，上轮98.055分钟；数据/曝光不同。刷新后端输入总跨度10.075分钟完成，后端各约8/15遍继续，尚无新自主结果。相同report_progress13生成progress_1924.json，活动源码不改。
+
+19:47:43已完整退出：两后端各15遍7720更新、1,140,390合法监督动作；自主A0/7、B0/8，原生lift2/0、持物2/5、旧拿稳1/3，原生near/对准/子目标均0。B06在243步持物8.375°/关键点21.676mm，390步掉落。A13不作下一来源，B13仅采集新的后段偏差，原A11/B09回退保留。整轮204.279分钟，完整结果由report_completed13.py复用closed cycle与既有小回执生成，位于prefetch_followup03/completed.json。后续04是独立批次，不重启或延长03。
