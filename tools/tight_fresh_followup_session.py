@@ -393,7 +393,7 @@ def followup_storage(session, reserve_gib):
 
 
 def prepare(source, output, hours, *, evaluation=None, data_source=None, role_sources=None,allow_illegal_starts=False,
-            reserve_gib=None, absolute_deadline=None):
+            reserve_gib=None, absolute_deadline=None,resource_parent=None):
     source = Path(source).resolve(strict=True)
     output = Path(output).absolute()
     if output.exists() or output.is_symlink():
@@ -403,6 +403,20 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
         raise ValueError('New session hours must be finite and positive')
     evaluation = Path(evaluation).resolve(strict=True) if evaluation else source/'development'
     session = read(source/'session.json')
+    clock_parent=None;deadline_limit=session['deadline']
+    if resource_parent is not None:
+        parent=Path(resource_parent).resolve(strict=True);clock=read(parent/'session.json')
+        monitor=read(parent/'monitor.json');closed=read(parent/'monitor_exit.json')
+        if (absolute_deadline is None or absolute_deadline!=clock['deadline']
+                or not (parent/'STOP_MONITOR').exists() or closed['pid']!=monitor['pid']
+                or closed['ended']<monitor['started']
+                or any(clock.get(k)!=session.get(k) for k in
+                    ('domain','control_hz','planning_hz','visual_stride','expert_sha256','dino_sha256','resource_policy'))):
+            raise ValueError('Explicit resource parent must be closed and retain its exact deadline/task')
+        deadline_limit=clock['deadline']
+        clock_parent=dict(root=str(parent),session=file_binding(parent/'session.json'),
+            monitor_exit=file_binding(parent/'monitor_exit.json'),deadline=deadline_limit,
+            meaning='Resource clock belongs to the current closed session, independently of older selected policy age')
     followup_storage(session, reserve_gib)  # Reject malformed storage requests before opening model payloads.
     if (session.get('visual_stride') != 1 or session.get('control_hz') != 60
             or session.get('planning_hz') != 5 or session.get('resource_policy') != 'full_gpu_v1'):
@@ -492,7 +506,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
     deadline = started+float(hours)*3600
     if absolute_deadline is not None:
         if (type(absolute_deadline) not in (int,float) or not math.isfinite(absolute_deadline)
-                or absolute_deadline <= started or absolute_deadline > session["deadline"]):
+                or absolute_deadline <= started or absolute_deadline > deadline_limit):
             raise ValueError("Same-window followup must end no later than its source deadline")
         deadline = min(deadline, absolute_deadline)
     if not math.isfinite(deadline):
@@ -509,6 +523,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
         followup=dict(source_root=str(source), source_session_sha256=source_session['sha256'],
             previous_deadline=session['deadline'], selected_pairs=pairs, hours=float(hours),
             same_window_absolute_deadline=absolute_deadline))
+    if clock_parent is not None:fresh['resource_clock_parent']=clock_parent
     if data_binding is not None:
         fresh['session_kind'] = 'independent_followup_v2'
         fresh['followup'].update(data_pool_source_root=str(pool),
@@ -566,6 +581,7 @@ def prepare(source, output, hours, *, evaluation=None, data_source=None, role_so
         mutation_scope='Destination only; artifact symlinks are read-only by convention, not filesystem enforcement',
         previous_deadline=session['deadline'], started_utc=started, deadline=deadline,
         deadline_relation=('Same absolute resource window, no extension; new artifacts and preserved source evidence' if absolute_deadline is not None else 'New independent window; source deadline and evidence unchanged'))
+    if clock_parent is not None:binding['resource_clock_parent']=clock_parent
     if data_binding is not None:
         binding.update(version='independent_followup_binding_v2', data_pool_source=data_binding,
             policy_source=dict(source_root=str(source), selected_pairs=pairs,
@@ -600,6 +616,7 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--hours', type=float, required=True)
     parser.add_argument('--absolute-deadline',type=float)
+    parser.add_argument('--resource-parent',type=Path,help='Closed current resource session when selected policies come from an older session')
     parser.add_argument('--reserve-gib', type=int, help='Explicit new-session disk reserve; source session remains unchanged')
     parser.add_argument('--allow-illegal-starts',action='store_true',help='Retain independently verified zero-action initialization rejects in a fully resolved cohort')
     parser.add_argument('--evaluation', type=Path, help='Completed autonomous evaluation, default source/development')
@@ -616,7 +633,7 @@ def main():
         role_sources[role] = Path(path)
     binding = prepare(args.source_root, args.output, args.hours, evaluation=args.evaluation,
         data_source=args.data_source_root, role_sources=role_sources,allow_illegal_starts=args.allow_illegal_starts,
-        reserve_gib=args.reserve_gib,absolute_deadline=args.absolute_deadline)
+        reserve_gib=args.reserve_gib,absolute_deadline=args.absolute_deadline,resource_parent=args.resource_parent)
     print(json.dumps(dict(output=str(args.output.resolve()), deadline=binding['deadline'],
         selected_pairs=binding['selected_pairs'], workers_started=False)), flush=True)
 

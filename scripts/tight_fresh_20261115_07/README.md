@@ -1,0 +1,7 @@
+# Queued early-grasp follow-up07
+
+Prepared successor within original04 deadline02:05:20; no clock reset.04 training completed, but its development execution and the concurrent render01 trial hit RAM reserve. Original failed receipts remain.06 uses independently evaluatedA11/B09 full policies and the completed306-record pool; it does not retrain14.
+
+After the original owner/monitor exit, a new monitor supports serial preflight: same-four-case real render-reuse capture, bounded16-tiled/32-standard load probes, then15 unresolved14 evaluation opportunities using14's existing complete pairs. Original one illegal initialization stays resolved. Fresh recovery trajectories are not restored hidden states and use the new execution profile. Per-job28GiB containment; no overlapping Kit instances. Frozen startup/source receipts are mandatory. Failed capture/recovery stops rather than starting training.
+
+Formal24 early-grasp opportunities: ten hard prior training families and two new narrow families, A/B each. Default16 lanes; choose24 only if actual32-lane load retains extra RAM/VRAM headroom. DP16epochs/latest4, refresh selected-DP plans/features, rear12epochs/latest4. Fixed evaluation mostly300ticks with2full tasks/role; hard10 and independent newdev8/role use300ticks. At least30legal/role required for the90% target; the small cohort alone cannot establish reliability. Read machine-readable actual status before claiming any completion or improvement.

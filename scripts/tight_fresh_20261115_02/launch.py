@@ -59,7 +59,7 @@ def launch(tree,expected,config,loop):
             '--output',str(root),'--hours',str(config['hours']),'--allow-illegal-starts']
         for role,path in config['role_sources'].items():followup+=['--role-source',role+'='+path]
         if config.get('inherit_absolute_deadline'):
-            followup+=['--absolute-deadline',str(read(old/'session.json')['deadline'])]
+            followup+=['--absolute-deadline',str(read(old/'session.json')['deadline']),'--resource-parent',str(old)]
         if config.get('reserve_gib') is not None:
             followup+=['--reserve-gib',str(config['reserve_gib'])]
         common.execute('followup',followup,tree,ledger,timeout=600)
