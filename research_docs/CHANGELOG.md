@@ -1,3 +1,7 @@
+## 2026-11-15 21:30 实际边界服务与补充空间记录
+
+ba8ee36已推送并冻结，边界service实际waiting_current_cycle；A14已20遍3300更新，B14训练继续。保存精确启动命令/截止/源SHA，追加两份旧已结束非best端点退休清单与执行脚本，保留全部best/raw。未声称第十五批已经采集或自主改善。
+
 ## 2026-11-15 21:20 抓持优先候选实现与现场衔接
 
 新增grasp_curriculum、rear_episode_sampling；takeover_trigger/training_expansion/expansion/stage_takeover/report/batch_run接入每tick早期接管、失败训练family重访；backend/anchor_continue/cycle接入完整后端latest重复与真实曝光。train.metrics增加可选150步前误差，grasp_fit/evidence/review记录两网络及持续持物。research_loop/common launch/followup支持行为复核及继承绝对截止；scripts/tight_fresh_20261115_05含固定20机会、等待交接、完整运行、统一检查及精确退休脚本。

@@ -1,0 +1,32 @@
+{
+  "command": [
+    "systemd-run",
+    "--user",
+    "--service-type=exec",
+    "--unit=tight-fresh-grasp-boundary-20261115-05.service",
+    "--property=WorkingDirectory=/home/CNS2025331827/docs/bc+rl_RSS_fresh_grasp_20261115",
+    "--property=Restart=no",
+    "--property=KillMode=control-group",
+    "--property=TimeoutStopSec=30",
+    "--property=RuntimeMaxSec=16832",
+    "--setenv=OMP_NUM_THREADS=2",
+    "--setenv=MKL_NUM_THREADS=2",
+    "/home/CNS2025331827/docs/bc+rl_RSS_fresh_grasp_20261115/.venv_isaacsim/bin/python",
+    "/home/CNS2025331827/docs/bc+rl_RSS_fresh_grasp_20261115/scripts/tight_fresh_20261115_05/after_current.py",
+    "--worker-tree",
+    "/home/CNS2025331827/docs/bc+rl_RSS_fresh_grasp_20261115",
+    "--expected-commit",
+    "ba8ee36d9d1aa2ce61db5bf8edef7e682343703c",
+    "--ledger",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_grasp_pending_20261115_05"
+  ],
+  "observed": {
+    "stage": "waiting_current_cycle",
+    "started": 1794749087.942994,
+    "deadline": 1794765920.3887162,
+    "expected_commit": "ba8ee36d9d1aa2ce61db5bf8edef7e682343703c",
+    "source_session_sha256": "fb9e28f690b9200775d62b1014a4778bb126adc7de6886249a2e1d798e4f0522",
+    "signals_sent_to_current_job": 0,
+    "observed_utc": 1794749087.9450603
+  }
+}

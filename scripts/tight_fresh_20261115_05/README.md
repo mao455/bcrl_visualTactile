@@ -25,3 +25,5 @@ OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 .venv_isaacsim/bin/python scripts/tight_fres
 ```
 
 统一检查6项通过，4.165秒（pytest1.64秒）；更早冷启动检查79.07秒也保留说明。无新增GPU检查或仿真。`retire.py`已按固定SHA清单删除15个旧非best中间/末尾权重：分配17,462,333,440字节，实时空闲增加17,313,419,264字节（同时存在训练写盘）；所有原始数据、best及当前冻结特征保留。**不要重跑清理。** 中间优化器恢复点不可再用，旧小型结果与最终best保留。
+
+实际运行源码已冻结为ba8ee36，21:24:47边界service启动，当前等待第十四轮完整闭合。新05采集还未开始；启动回执见grasp_followup05/boundary_startup.json。补充retire_extra.py已退休旧2026-11-09两个非best last并释放2.330GB，以覆盖14尚待生成的后端缓存；best和raw保留，不可重跑。
