@@ -1,8 +1,9 @@
 """Bounded train2 capacity diagnosis with the actual DP frozen.
 
 The complete student still contains DP+Transformer. Only the latter is optimized
-on two original successful demonstrations. No held-out labels or new simulation
-are read by this command; resulting checkpoints are explicitly diagnostic.
+on two original successful demonstrations. Fitting reads no held-out labels;
+optional --compare-completed reads validation6 without updates. Neither mode
+starts simulation or reads final test labels. Fitted checkpoints are diagnostic.
 """
 import argparse,copy,json,time,subprocess
 from pathlib import Path
@@ -138,9 +139,36 @@ def train(source,role,resource_root,output,*,maximum_passes=80,wall_seconds=900)
   supervised_ticks=draws,seconds=time.time()-began,best=read(output/'selected.json'),
   scope='Real rear optimizer updates on original train2; frozen paired DP unchanged. This fit is not autonomous success or a formal candidate.'))
 
+def compare_completed(source,role,resource_root,output):
+ """Diagnose all-time versus early validation selection, without new updates."""
+ if output.exists():raise FileExistsError('Preserve previous phase comparison')
+ state_fp32();torch.set_num_threads(2)
+ lease=lease_for(resource_root,deadline=min(read(resource_root/'session.json')['deadline']-120,time.time()+120))
+ base=source/role;rear=base/'backend'/role;data=read(base/'state_data/data.json')
+ assert read(rear/'training/finished.json')['target_reached']
+ ids=data['splits']['validation'];assert ids and not set(ids)&set(data['splits'].get('test',[])+data['splits']['train'])
+ index=read(rear/'nominal/index.json');records={}
+ for identity in ids:
+  p=rear/'nominal'/(identity+'.pt');assert sha256(p)==index['episodes'][identity]['sha256']
+  records[identity]=torch.load(p,map_location='cpu',weights_only=False)
+ rows={}
+ for name in ('best','last'):
+  p=rear/'training'/(name+'.pt');saved=torch.load(p,map_location='cpu',mmap=True,weights_only=False)
+  assert saved['configuration']['base_sha256']==index['base_sha256']
+  with lease.block():model=load_residual(saved,'cuda:0')
+  result=metrics(model,records,ids,lease)
+  result['validation_early_score']=result.pop('train_early_selection_score')
+  result['selection']='Read-only validation6 early-versus-all diagnostic; no selection changed'
+  rows[name]=dict(checkpoint=str(p),checkpoint_sha256=sha256(p),epoch=saved['epoch'],updates=saved['updates'],
+   registered_all_time_score=saved['history'][-1]['validation']['all']['normalized_equal_mse'],**result)
+  del model,saved
+ atomic_json(output,dict(complete=True,source=str(source),role=role,rows=rows,optimizer_updates=0,simulator_starts=0,
+  scope='Existing validation histories and actual paired-DP inputs. Comparing early command fit is not autonomous holding or new model adoption.'))
+
 if __name__=='__main__':
  p=argparse.ArgumentParser(__doc__)
  for name in ('source','resource-root','output'):p.add_argument('--'+name,type=Path,required=True)
  p.add_argument('--role',choices=['A','B'],required=True);p.add_argument('--maximum-passes',type=int,default=80)
- p.add_argument('--wall-seconds',type=int,default=900);a=p.parse_args()
- train(a.source.resolve(),a.role,a.resource_root.resolve(),a.output.resolve(),maximum_passes=a.maximum_passes,wall_seconds=a.wall_seconds)
+ p.add_argument('--wall-seconds',type=int,default=900);p.add_argument('--compare-completed',action='store_true');a=p.parse_args()
+ if a.compare_completed:compare_completed(a.source.resolve(),a.role,a.resource_root.resolve(),a.output.resolve())
+ else:train(a.source.resolve(),a.role,a.resource_root.resolve(),a.output.resolve(),maximum_passes=a.maximum_passes,wall_seconds=a.wall_seconds)

@@ -78,3 +78,6 @@ One operational status command: `python -m tools.tight_fresh_night_status --root
 
 
 The bounded original-train2 fit completed in02/fixed_fit (A/B80passes,560updates). It is diagnostic only. `launch_fixed_fit_comparison.py --expected-commit <frozen SHA>` may be run after02 has safely ended with17/18 complete: it creates03, reuses fits, runs4source+4fitted full-policy300-control-tick evaluations serially, and keeps09:00 absolute deadline. No additional fitting is performed. Do not treat the prepared launcher as an executed comparison.
+
+
+`retire_closed_night_duplicates.py` is eligible only after02 safe shutdown and completed17/18. It compares six specific DP final/selected snapshots, preserves every distinct state, and may remove only complete-payload-equal last serializations with retained selected hashes and no open FD/mapping. The local inventory/finished receipts, not this prepared script, establish actual reclaimed bytes. Future night configurations can set latest_repeat and backend_latest_repeat independently; both default4, no active configuration is mutated.

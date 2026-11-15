@@ -1690,3 +1690,8 @@ Added `tools/tight_fresh_approach_timing.py` (numeric-only original30/latest8) a
 
 
 2026-11-16 05:29 +08 clarification: the proposed approach screen excludes ANY prior>0.1N object-contact sample in either120Hz substep, including a one-substep transient. It does not infer absence of touch merely from the stricter two-substep holding/contact count. Eight targeted grasp checks pass, including a transient-contact case; actual8prefix replay still yields the same6earlier/2unchanged times. Authoritative retrospective receipt:02/approach_timing_v3_any_contact.json. No simulator has yet used v3;18 remains unchanged.
+
+
+### 2026-11-16 05:48 +08 — bounded phase selection comparison and future exposure configuration
+
+`tools/tight_fresh_fixed_rear_fit.py --compare-completed` ran read-only B17 best3/final4 validation6 comparison: early and all-time errors both favor best3, no model/selection change. `tight_fresh_night_owner.py` forwards separately registered DP/rear repetition counts, defaults4 preserved, finite1..32. Prepared a closed-root exact-entire-payload duplicate retirement script; no data/checkpoint removal yet. Active frozen30aeb80 and fittedbe8a4da unchanged. Python compilation passes; actual B17 metric comparison completed without simulator or optimizer work.

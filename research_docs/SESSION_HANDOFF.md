@@ -1549,3 +1549,12 @@ Counterfactual tool now accepts multiple completed evaluation directories for on
 
 
 2026-11-16 05:29 +08 clarification: the proposed approach screen excludes ANY prior>0.1N object-contact sample in either120Hz substep, including a one-substep transient. It does not infer absence of touch merely from the stricter two-substep holding/contact count. Eight targeted grasp checks pass, including a transient-contact case; actual8prefix replay still yields the same6earlier/2unchanged times. Authoritative retrospective receipt:02/approach_timing_v3_any_contact.json. No simulator has yet used v3;18 remains unchanged.
+
+
+### 2026-11-16 05:48 +08 — metric-selection diagnosis does not support changing B17 selection
+
+A bounded read-only replay of existing validation6 with B17's actual paired-DP inputs compared selected epoch3 with final epoch4. Early-before150 equal normalized score .000154086 versus .000156493, respectively; registered all-time scores .000337205 versus .000339287. Thus the same selected epoch is preferable on this early metric; no support here for blaming all-time validation selection or swapping to the last checkpoint. Zero optimizer updates/simulator starts/test reads. `tight_fresh_fixed_rear_fit --compare-completed` exposes this narrow diagnostic. The separate original-train2 fitted-policy autonomy is still pending after18.
+
+18 rear input350/350 complete in825.3s per concurrent role; rear training has entered epoch2. Exact final stage times remain for the completed readout. Numeric disk classification found legacy pools dominated by preserved raw trajectories; initial36 A/B frozen-cache entries already point to identical files, so no duplicate feature saving is available there. No cache/raw file was removed. Prepared retire_closed_night_duplicates.py may examine only closed16/17/18 DP last versus selected best after02 monitor/owner stop, remove only ENTIRE-payload-equal copies (model/EMA/Adam/RNG/history), and preserve distinct final states. No retirement from this script has occurred yet.
+
+Night owner now accepts explicitly registered latest_repeat/backend_latest_repeat (bounded1..32); absent fields remain4 exactly. This allows the NEXT evidence-based configuration to alter both networks' new-data exposure together. No active17/18 config/source, training budget or selected model is changed.

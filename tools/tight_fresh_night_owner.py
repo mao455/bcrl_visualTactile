@@ -77,6 +77,8 @@ def run(root,configuration):
     deadline=min(session['deadline'],cfg['absolute_wall_deadline'])-120;started=time.time();tree=Path.cwd();python=str(tree/'.venv_isaacsim/bin/python')
     assert cfg['version']=='supervised_grasp_night_v1' and len(cfg['rounds'])<=4
     assert cfg['supervised_cycles']==2 and deadline>started and (root/'shared_resources.json').is_file()
+    repeats={key:cfg.get(key,4) for key in ('latest_repeat','backend_latest_repeat')}
+    assert all(type(value) is int and 1<=value<=32 for value in repeats.values())
     binding=sha256(configuration);source_head=cfg['source_commit']
     import subprocess
     assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()==source_head
@@ -174,7 +176,7 @@ def run(root,configuration):
                 if not audit['admitted']:raise RuntimeError('Collection admission: '+audit['reason'])
                 cycle=cmd('tools.tight_fresh_cycle','--root',source,'--collection',collection,'--output',candidate,
                     '--epochs',spec['epochs'],'--rear-epochs',spec['rear_epochs'],'--count',4,'--seed',28500000,
-                    '--latest-repeat',4,'--backend-latest-repeat',4,'--evaluation-lanes',8,'--vision-microbatch',4,
+                    '--latest-repeat',repeats['latest_repeat'],'--backend-latest-repeat',repeats['backend_latest_repeat'],'--evaluation-lanes',8,'--vision-microbatch',4,
                     '--parallel-frontends','--parallel-backends','--full-trajectory-batch','--continue-rear',
                     '--payload-audit-memo','--release-unused-cuda-cache','--reuse-index',source/'A/cache_index.json',
                     '--offline-anchor-batch',32,'--backend-offline-anchor-batch',32,'--queued-gpu-evaluation',
