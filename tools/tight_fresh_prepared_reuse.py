@@ -4,10 +4,11 @@ from pathlib import Path
 from visuotactile.compact import sha256
 from visuotactile.training_resources import atomic_json
 
-def reuse(source,root,collection,output):
+def reuse(source,root,collection,output,*,frozen_cache_from=None):
     read=lambda p:json.loads(p.read_text())
     if output.exists():raise FileExistsError('Never replace prepared or trained output')
     previous=read(source/'prepared.json');session=read(root/'session.json')
+    cache_source=source if frozen_cache_from is None else frozen_cache_from
     if previous['collection_plan_sha256']!=sha256(collection/'plan.json'):
         raise ValueError('Prepared data belongs to another collection')
     if not read(collection/'result.json')['software_complete']:raise ValueError('Collection incomplete')
@@ -32,8 +33,12 @@ def reuse(source,root,collection,output):
             if src.is_file():copy_file(src,dst/'state_data'/src.name)
         copy_file(source/role/'continuation.json',dst/'continuation.json')
         for name in ('cache_acceptance_index.json','cache_progress_index.json','cache_index.json'):
-            src=source/role/name
+            src=cache_source/role/name
             if src.exists():
+                index=read(src)
+                if (index['data_sha256']!=sha256(source/role/'state_data/data.json')
+                        or index.get('trainable_projection_cached') is not False):
+                    raise ValueError('Only matching immutable frozen feature indexes may be reused')
                 copy_file(src,dst/name)
                 for identity,entry in read(src)['entries'].items():
                     if Path(identity).name!=identity:raise ValueError('Invalid committed cache identity')
@@ -46,10 +51,13 @@ def reuse(source,root,collection,output):
         (dst/'shared_resources.json').symlink_to(root/'shared_resources.json')
     atomic_json(output/'prepared.json',dict(previous,reused_prepared=dict(source=str(source),
         source_prepared_sha256=sha256(source/'prepared.json'),copied_bindings=bindings,utc=time.time(),
+        frozen_cache_source=str(cache_source),
         optimizer_updates_repeated=0,frozen_cache_paths_preserved=True,
         original_reserve_bytes=read(source/'session.json')['reserve_bytes'],reserve_bytes=session['reserve_bytes'])))
 
 if __name__=='__main__':
     p=argparse.ArgumentParser()
     for key in ('source','root','collection','output'):p.add_argument('--'+key,type=Path,required=True)
-    a=p.parse_args();reuse(a.source.resolve(),a.root.resolve(),a.collection.resolve(),a.output.resolve())
+    p.add_argument('--frozen-cache-from',type=Path)
+    a=p.parse_args();reuse(a.source.resolve(),a.root.resolve(),a.collection.resolve(),a.output.resolve(),
+        frozen_cache_from=a.frozen_cache_from.resolve() if a.frozen_cache_from else None)

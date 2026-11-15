@@ -31,12 +31,13 @@ if __name__=='__main__':
         'queue_matched4':'tight_fresh_20261115_04/throughput_queue15_03',
         'current_render_matched4':'tight_fresh_20261115_07/throughput_preflight/render_capture',
         'formal24_interrupted':'tight_fresh_20261115_07/new_family_15',
-        'formal18_recovery':'tight_fresh_20261115_08/new_family_15'}
+        'formal18_interrupted':'tight_fresh_20261115_08/new_family_15',
+        'formal18_camera_fix':'tight_fresh_20261115_09/new_family_15'}
     report=dict(generated_utc=time.time(),version='receipt_only_collection_throughput_v1',
         runs={k:collect(BASE/v) for k,v in cases.items()},
         caveats=['Matched4 keeps policies, initial families and early-grasp rule; actual physical lengths differ.',
             'Old collector overlapped training; render acceptance ran serially. This is combined workflow improvement, not an isolated causal estimate.',
-            'Formal18 excludes five previously completed opportunities in three families; its success rate is not a paired baseline.',
+            'Formal09 includes five unresolved hard families and four narrow families; its success rate is not a paired baseline.',
             'Expert recovery success is not autonomous student success. No mass/friction generalization.'])
     a.output.parent.mkdir(parents=True,exist_ok=True)
     a.output.write_text(json.dumps(report,indent=2)+'\n')

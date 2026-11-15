@@ -1,5 +1,5 @@
 {
-  "generated_utc": 1794757730.7382226,
+  "generated_utc": 1794760109.705873,
   "version": "receipt_only_collection_throughput_v1",
   "runs": {
     "old_matched4": {
@@ -527,15 +527,24 @@
       },
       "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
     },
-    "formal18_recovery": {
+    "formal18_interrupted": {
       "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_08/new_family_15",
       "complete": false,
-      "owner": null,
+      "owner": {
+        "software_complete": false,
+        "worker_pid": 415510,
+        "returncode": -9,
+        "stop_reason": "control_progress_timeout",
+        "error": null,
+        "seconds": 507.72366213798523,
+        "ended": 1794757920.965623,
+        "plan_sha256": "b5e9d5689bf01a842fa73126aca5c6d1368e4d006b76c474901b9cb45ad554f4"
+      },
       "reported_result": null,
       "frozen_commit": "e697bb1b8ce7b36ae736b9e859de3eeab43db286",
       "lanes": 18,
       "registered_opportunities": 18,
-      "accepted": 0,
+      "accepted": 3,
       "actual_control_steps": 0,
       "valid_expert_steps": 0,
       "active_steps_per_second": null,
@@ -570,6 +579,376 @@
         "utc": 1794757726.7303233
       },
       "profiles": [],
+      "recovery": {
+        "accepted": 3,
+        "valid_expert_steps": 543
+      },
+      "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
+    },
+    "formal18_camera_fix": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_09/new_family_15",
+      "complete": true,
+      "owner": {
+        "software_complete": true,
+        "worker_pid": 429804,
+        "returncode": 0,
+        "stop_reason": "complete",
+        "error": null,
+        "seconds": 659.2463176250458,
+        "ended": 1794758827.8787735,
+        "plan_sha256": "bb4caf91e95d20399729071fa6c5a58171907627896653ac204af842c1c84499"
+      },
+      "reported_result": {
+        "software_complete": true,
+        "worker_error": null,
+        "cases": 18,
+        "utc": 1794758825.1619065,
+        "elapsed_seconds": 653.7518199298065,
+        "accepted_training_trajectories": 18,
+        "accepted_trajectories_per_hour": 99.12018295713133,
+        "attempts_per_hour": 99.12018295713133,
+        "lanes": 18
+      },
+      "frozen_commit": "fb2dada401fd0443ce5f7eb41290d1447b2b78ad",
+      "lanes": 18,
+      "registered_opportunities": 18,
+      "accepted": 18,
+      "actual_control_steps": 7500,
+      "valid_expert_steps": 6006,
+      "active_steps_per_second": 11.472243397816127,
+      "accepted_per_hour": 99.12018295713133,
+      "observed_progress": {
+        "tick": 650,
+        "active": [
+          false,
+          false,
+          false,
+          false,
+          true,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "active_count": 1,
+        "remaining_tasks": 0,
+        "closed_results": 14,
+        "verifying": 3,
+        "active_lane_steps": 7483,
+        "utc": 1794758719.7276864
+      },
+      "profiles": [
+        {
+          "wave": 0,
+          "role": "mixed",
+          "controller_s": 127.47357169841416,
+          "environment_s": 221.1314707295969,
+          "expert_s": 5.87242150423117,
+          "record_submit_s": 128.1984035843052,
+          "finish_audit_s": 46.51751831942238,
+          "reset_refill_s": 0.0,
+          "active_lane_steps": 7500,
+          "allocated_lane_steps": 12024,
+          "refills": 0,
+          "finished_before_queue_empty": 0,
+          "capture_writer": {
+            "max_pending_bytes": 536870912,
+            "max_queue": 64,
+            "reserved_bytes": 0,
+            "peak_reserved_bytes": 535549810,
+            "peak_queued_or_copying": 28,
+            "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+            "worker_alive": true,
+            "failed": false,
+            "verification_workers": 4,
+            "prestarted_verifiers": true,
+            "verification_max_pending": 8,
+            "verification_pending": 0,
+            "verification_peak_pending": 4,
+            "verification_submitted": 18,
+            "verification_completed": 18,
+            "verification_failed": 0,
+            "verification_slot_wait_s": 3.040255978703499e-05,
+            "verification_process_pids": [
+              429833,
+              429836,
+              429837,
+              429838
+            ],
+            "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget."
+          },
+          "seconds": 556.3547272810247,
+          "cases": 18,
+          "control_ticks": 7500,
+          "vision_execution": {
+            "version": "gpu_observation_history_control_v1",
+            "roles": {
+              "A": {
+                "version": "current_observation_lane_microbatch_v1",
+                "vision_microbatch": 8,
+                "images_per_kernel": 24,
+                "forward_features_calls": 0,
+                "real_lanes": 4215,
+                "padding_lanes": 0,
+                "real_images": 12645,
+                "processed_images": 0,
+                "controller_calls": 668,
+                "external_shared_vision": true,
+                "consumed_observations_per_lane": [
+                  396,
+                  0,
+                  0,
+                  330,
+                  668,
+                  0,
+                  0,
+                  400,
+                  537,
+                  0,
+                  0,
+                  576,
+                  348,
+                  0,
+                  0,
+                  560,
+                  400,
+                  0
+                ],
+                "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+              },
+              "B": {
+                "version": "current_observation_lane_microbatch_v1",
+                "vision_microbatch": 8,
+                "images_per_kernel": 24,
+                "forward_features_calls": 0,
+                "real_lanes": 3285,
+                "padding_lanes": 0,
+                "real_images": 9855,
+                "processed_images": 0,
+                "controller_calls": 487,
+                "external_shared_vision": true,
+                "consumed_observations_per_lane": [
+                  0,
+                  363,
+                  395,
+                  0,
+                  0,
+                  345,
+                  487,
+                  0,
+                  0,
+                  273,
+                  359,
+                  0,
+                  0,
+                  293,
+                  461,
+                  0,
+                  0,
+                  309
+                ],
+                "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+              }
+            },
+            "calls": 1357,
+            "real_lanes": 7500,
+            "processed_images": 32568,
+            "padding_lanes": 3356
+          },
+          "render_transitions": [
+            {
+              "lane": 9,
+              "enabled": false,
+              "utc": 1794758478.2982588
+            },
+            {
+              "lane": 13,
+              "enabled": false,
+              "utc": 1794758499.2817352
+            },
+            {
+              "lane": 17,
+              "enabled": false,
+              "utc": 1794758516.704341
+            },
+            {
+              "lane": 3,
+              "enabled": false,
+              "utc": 1794758538.44029
+            },
+            {
+              "lane": 5,
+              "enabled": false,
+              "utc": 1794758551.0354462
+            },
+            {
+              "lane": 12,
+              "enabled": false,
+              "utc": 1794758553.8170528
+            },
+            {
+              "lane": 10,
+              "enabled": false,
+              "utc": 1794758563.3105423
+            },
+            {
+              "lane": 1,
+              "enabled": false,
+              "utc": 1794758566.9112043
+            },
+            {
+              "lane": 2,
+              "enabled": false,
+              "utc": 1794758595.4754617
+            },
+            {
+              "lane": 0,
+              "enabled": false,
+              "utc": 1794758596.2951396
+            },
+            {
+              "lane": 7,
+              "enabled": false,
+              "utc": 1794758600.2651522
+            },
+            {
+              "lane": 16,
+              "enabled": false,
+              "utc": 1794758600.2707574
+            },
+            {
+              "lane": 14,
+              "enabled": false,
+              "utc": 1794758637.929361
+            },
+            {
+              "lane": 6,
+              "enabled": false,
+              "utc": 1794758649.1725657
+            },
+            {
+              "lane": 8,
+              "enabled": false,
+              "utc": 1794758673.2255147
+            },
+            {
+              "lane": 15,
+              "enabled": false,
+              "utc": 1794758684.9487793
+            },
+            {
+              "lane": 11,
+              "enabled": false,
+              "utc": 1794758692.3197107
+            },
+            {
+              "lane": 0,
+              "enabled": true,
+              "utc": 1794758770.1467323
+            },
+            {
+              "lane": 1,
+              "enabled": true,
+              "utc": 1794758770.1569955
+            },
+            {
+              "lane": 2,
+              "enabled": true,
+              "utc": 1794758770.1676667
+            },
+            {
+              "lane": 3,
+              "enabled": true,
+              "utc": 1794758770.1780486
+            },
+            {
+              "lane": 5,
+              "enabled": true,
+              "utc": 1794758770.1878226
+            },
+            {
+              "lane": 6,
+              "enabled": true,
+              "utc": 1794758770.1978443
+            },
+            {
+              "lane": 7,
+              "enabled": true,
+              "utc": 1794758770.2082384
+            },
+            {
+              "lane": 8,
+              "enabled": true,
+              "utc": 1794758770.2184172
+            },
+            {
+              "lane": 9,
+              "enabled": true,
+              "utc": 1794758770.228429
+            },
+            {
+              "lane": 10,
+              "enabled": true,
+              "utc": 1794758770.2407327
+            },
+            {
+              "lane": 11,
+              "enabled": true,
+              "utc": 1794758770.2496328
+            },
+            {
+              "lane": 12,
+              "enabled": true,
+              "utc": 1794758770.2599304
+            },
+            {
+              "lane": 13,
+              "enabled": true,
+              "utc": 1794758770.269793
+            },
+            {
+              "lane": 14,
+              "enabled": true,
+              "utc": 1794758770.2800496
+            },
+            {
+              "lane": 15,
+              "enabled": true,
+              "utc": 1794758770.289335
+            },
+            {
+              "lane": 16,
+              "enabled": true,
+              "utc": 1794758770.299343
+            },
+            {
+              "lane": 17,
+              "enabled": true,
+              "utc": 1794758770.3095136
+            }
+          ],
+          "aggregate_control_ticks_per_second": 13.48060802260716,
+          "active_lane_fraction": 0.6237524950099801,
+          "render_reuse": {
+            "render_calls": 691,
+            "render_seconds": 88.9329772037454,
+            "redundant_reader_renders_avoided": 652,
+            "reader_renders_required": 17,
+            "invalidations": 36
+          },
+          "admission_s": 54.74509148276411,
+          "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+        }
+      ],
       "recovery": null,
       "interpretation": "Only a completed owner plus admission receipt establishes throughput. Partial successes remain recoverable evidence; no task-failure or whole-batch completion inference."
     }
@@ -577,7 +956,7 @@
   "caveats": [
     "Matched4 keeps policies, initial families and early-grasp rule; actual physical lengths differ.",
     "Old collector overlapped training; render acceptance ran serially. This is combined workflow improvement, not an isolated causal estimate.",
-    "Formal18 excludes five previously completed opportunities in three families; its success rate is not a paired baseline.",
+    "Formal09 includes five unresolved hard families and four narrow families; its success rate is not a paired baseline.",
     "Expert recovery success is not autonomous student success. No mass/friction generalization."
   ]
 }

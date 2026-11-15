@@ -217,6 +217,22 @@ class FullLease(Lease):
         limits=json.loads((self.root/'session.json').read_text())['resources']
         if time.time()-row['utc_epoch']>8:raise RuntimeError('Stale resource telemetry')
         if row['ram_available_bytes']<limits['min_ram_gib']*1024**3:raise RuntimeError('RAM reserve')
+        allocator_policy=self.root/'cuda_allocator_policy.json'
+        if cuda and allocator_policy.exists():
+            import torch
+            if json.loads(allocator_policy.read_text())!={'version':'reclaim_unused_on_low_headroom_v1'}:
+                raise ValueError('Unknown CUDA allocator policy')
+            free,_=torch.cuda.mem_get_info();unused=torch.cuda.memory_reserved()-torch.cuda.memory_allocated()
+            reclaimed=free<(limits['min_gpu_free_mib']+2048)*1024**2 and unused>512*1024**2
+            before=free
+            if reclaimed:torch.cuda.empty_cache()
+            free,_=torch.cuda.mem_get_info()
+            with (self.root/f'allocator_{os.getpid()}.jsonl').open('a') as stream:
+                stream.write(json.dumps(dict(utc=time.time(),pid=os.getpid(),free_before=before,free_after=free,
+                    unused_before=unused,reclaimed=reclaimed,allocated=torch.cuda.memory_allocated(),
+                    reserved=torch.cuda.memory_reserved(),peak_allocated=torch.cuda.max_memory_allocated(),
+                    required_free_mib=limits['min_gpu_free_mib']))+'\n')
+            row=dict(row,gpu_free_mib=free/1024**2)
         if cuda and (row['gpu_free_mib'] is None or row['gpu_free_mib']<limits['min_gpu_free_mib']):
             raise RuntimeError('VRAM reserve; no OOM retry')
         started=time.monotonic()

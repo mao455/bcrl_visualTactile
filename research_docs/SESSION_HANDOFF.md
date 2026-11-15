@@ -1370,3 +1370,10 @@ New10 explicitly uses16GiB disk reserve (supported new-session policy), same ori
 Continuation10 stopped before GPU/optimizer startup because copied continuation already contained latest4 sampling and the generic configuration guard rejected a second registration. Fixed to permit only an identical registered sampling contract in explicit prepared-data reuse; normal duplicate/change guards remain. Attempt11 uses new output/service identities, same09 prepared data/cache and same original deadline. No data recapture or training repetition.
 
 Continuation11 failed in cache admission before GPU/optimizer updates: copied progress indexes require corresponding per-identity links in the new perception directory. Original committed payloads are intact.12 adds these validated links, keeps original hashes/paths and reuses09 committed work.12 remains under the same absolute deadline and16GiB disk reserve; no failed-source or learned-history cache is accepted.
+
+
+## 2026-11-16 00:36 +08 — completed cache, parallel front memory failure,13
+
+12 completed A/B frozen visual cache338entries, then both frontends passed startup admission but failed the6GiB VRAM reserve during first epoch. A71/B165 actual optimizer updates were logged; no first-epoch checkpoint existed, so236updates are not recoverable and must not be counted as retained training. Old A11/B09 and all data/cache remain intact.
+
+13 uses09 untrained aggregate plus12 complete immutable cache indexes/links, never12 learned hidden state. New opt-in allocator policy measures actual CUDA free bytes, releases only this process unused caching-allocator blocks near the same6GiB threshold, and logs allocated/reserved/free bytes. No memory threshold relaxed. Both DP budgets12epochs/2460updates, each new trajectory48 visits; reduced from14 to reserve time for rear12 and actual evaluation under original02:05:20deadline. Exceptional partial-epoch optimizer/model/RNG snapshots are retained under explicit diagnostic-only names; they are not last/best or auto-resume checkpoints. Actual13 outcome still pending.

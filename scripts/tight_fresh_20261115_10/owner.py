@@ -16,7 +16,8 @@ if __name__=='__main__':
     context=dict(ledger=ledger,paths=dict(worker_tree=TREE,collection=collection,output=out))
     stops=(ROOT/'STOP',ledger/'STOP',out/'STOP');rows=[];complete=False;error=None
     cmd=[python,'-m','tools.tight_fresh_cycle','--root',str(ROOT),'--collection',str(collection),'--output',str(out),
-        '--prepared-from',str(OLD/'round_15'),'--epochs','14','--rear-epochs','12','--count','8','--seed','28500000',
+        '--prepared-from',str(OLD/'round_15'),'--frozen-cache-from',str(BASE/'tight_fresh_20261115_12/round_15'),
+        '--release-unused-cuda-cache','--epochs','12','--rear-epochs','12','--count','8','--seed','28500000',
         '--latest-repeat','4','--backend-latest-repeat','4','--evaluation-lanes','16','--vision-microbatch','8',
         '--parallel-frontends','--parallel-backends','--full-trajectory-batch','--continue-rear','--payload-audit-memo',
         '--reuse-index',str(BASE/'tight_fresh_20261115_04/round_14/A/cache_index.json'),

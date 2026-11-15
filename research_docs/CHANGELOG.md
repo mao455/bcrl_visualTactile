@@ -1538,3 +1538,10 @@ Source inspection confirms DirectRLEnv renders at every second120Hz physical tic
 Prepared-data continuation follow-up: preserve an already identical sampling contract only in explicit reuse mode; no resampling/reweighting of started learners.10 failed before GPU/optimizers;11 is separately registered.
 
 Prepared reuse now materializes validated per-identity links required by committed-cache admission, with conflict rejection; original payload/index bytes remain untouched.11 failed before updates;12 uses a new identity.
+
+
+## 2026-11-16 bounded CUDA allocator reclamation
+- FullLease opt-in reclaim_unused_on_low_headroom_v1 releases only unused process-local CUDA allocations; checks same6GiB reserve using live free memory and records allocator telemetry. Global/driver settings untouched.
+- Front trainer preserves diagnostic-only partial-epoch state on Python exceptions; no partial checkpoint is treated as selected or complete.
+- Prepared-data reuse may import independently completed frozen cache indexes from12 while retaining untrained09 data; rejects learned projection cache/data hash mismatch.
+-13 budget12 front epochs/2460updates each, rear12/latest4, original deadline.12 A71/B165 uncheckpointed updates lost after VRAM guard; full cache338 retained.10 focused checks passed.

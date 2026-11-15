@@ -18,7 +18,8 @@ def setup(tmp_path):
         write(source/role/'state_data/data.json',{'entries':{'actual':'trajectory'}})
         write(source/role/'continuation.json',{'source':'existing checkpoint'})
         feature=source/role/'state_data/perception/actual.pt';write(feature,{'immutable':'feature'})
-        write(source/role/'cache_progress_index.json',{'entries':{'actual':{'path':str(feature)}}})
+        write(source/role/'cache_progress_index.json',{'data_sha256':sha256(source/role/'state_data/data.json'),
+            'trainable_projection_cached':False,'entries':{'actual':{'path':str(feature)}}})
     return source,root,collection,output
 
 def test_reuse_preserves_data_and_committed_cache_and_changes_only_new_resources(tmp_path):

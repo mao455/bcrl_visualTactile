@@ -381,6 +381,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     if continuation:config['continuation']=continuation
     if visual_io is not None:
         config.update(frozen_visual_io=visual_io,frozen_visual_io_sha256=sha256(root/'frozen_visual_io.json'))
+    if (root/'cuda_allocator_policy.json').exists():config['cuda_allocator_policy']=read(root/'cuda_allocator_policy.json')
     if offline_planning is not None:config['offline_planning']=offline_planning
     if io_config is not None:
         config['episode_io']=io_config
@@ -598,6 +599,20 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                     atomic_json(out/'progress.json',row)
                     with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
                     if pairing is not None:pairing.after_visit(updates)
+        except BaseException as error:
+            # Preserve a failure snapshot without disguising it as a completed
+            # epoch or an automatically resumable last/best checkpoint.
+            try:
+                save(out/('interrupted_partial_epoch_'+str(time.time_ns())+'.pt'),training_state(
+                    model,averaged,opt,ema,generator,noise,kind='dp',group='I-HistoryDP',
+                    updates=updates,epoch=epoch,configuration=config,best=best,history=history,
+                    anchors_seen=anchors_seen,target_ticks=target_ticks,train_ids=data['splits']['train'],
+                    validation_ids=data['splits']['validation'],sampling_exposure=sampling_exposure,
+                    visits_seen=visits_seen,partial_epoch=dict(order=order,error=repr(error),
+                        manual_review_required=True,eligible_as_selected_model=False)))
+            except BaseException as save_error:
+                atomic_json(out/'interrupted_snapshot_error.json',dict(error=repr(error),save_error=repr(save_error)))
+            raise
         finally:
             if prefetch is not None:prefetch.close()
             if batch_prefetch is not None:batch_prefetch.close()

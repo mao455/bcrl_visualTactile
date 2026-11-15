@@ -11,7 +11,7 @@ read=lambda p:json.loads(p.read_text())
 
 if __name__=='__main__':
     p=argparse.ArgumentParser();p.add_argument('--expected-commit',required=True)
-    p.add_argument('--attempt',type=int,choices=[10,11,12],default=10);a=p.parse_args()
+    p.add_argument('--attempt',type=int,choices=[10,11,12,13],default=10);a=p.parse_args()
     ROOT=BASE/f'tight_fresh_20261115_{a.attempt:02d}';OLD=BASE/f'tight_fresh_20261115_{a.attempt-1:02d}'
     SOURCE=BASE/'tight_fresh_20261115_09'
     assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=TREE,text=True).strip()==a.expected_commit
@@ -19,7 +19,7 @@ if __name__=='__main__':
     assert not ROOT.exists() and (OLD/'STOP_MONITOR').exists() and (OLD/'monitor_exit.json').exists()
     assert read(SOURCE/'new_family_15/owner_finished.json')['software_complete']
     assert 'visual_cache' in read(SOURCE/'round_15_stages/failure.json')['error']
-    deadline=read(OLD/'session.json')['deadline'];assert deadline-time.time()>5400
+    deadline=read(OLD/'session.json')['deadline'];assert deadline-time.time()>4200
     ledger=ROOT.with_name(ROOT.name+'_launch');ledger.mkdir();python=str(TREE/'.venv_isaacsim/bin/python')
     cmd=[python,'-m','tools.tight_fresh_followup_session','--source-root',str(BASE/'tight_fresh_20261115_01/round_11'),
         '--data-source-root',str(BASE/'tight_fresh_20261115_04/round_14'),
