@@ -1,6 +1,7 @@
 """Ordinary bounded owner for cache continuation, training and behavior review."""
-import json,time
+import json,time,sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from tools.tight_fresh_collect_cycle_owner import run_stage
 from visuotactile.training_resources import atomic_json
 

@@ -1,6 +1,7 @@
 """Same-deadline cache continuation: no new collection or repeated optimizer work."""
-import argparse,json,math,subprocess,time
+import argparse,json,math,subprocess,time,sys
 from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from visuotactile.training_resources import atomic_json
 
 TREE=Path(__file__).resolve().parents[2];BUNDLE=Path(__file__).resolve().parent
