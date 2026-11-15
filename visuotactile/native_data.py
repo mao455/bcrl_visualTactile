@@ -134,7 +134,8 @@ class Episode:
             import time
             started=time.perf_counter();path=root/'perception'/(identity+'.pt')
             # Pass the file directly: no BytesIO copy, mmap-page clone, dtype
-            # conversion, prefetch thread, or persistent episode cache.
+            # conversion or persistent episode cache. An explicit B2 loader may
+            # call this CPU-only construction from its single read-ahead worker.
             shard = torch.load(path,map_location='cpu',weights_only=False,mmap=visual_io is None)
             self.record = {k:shard[k] for k in ('camera_time','camera_valid')}
             self.perception = {k:shard[k] for k in ('patches','depth')}

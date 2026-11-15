@@ -476,10 +476,16 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         epoch_io_before=io_snapshot();epoch_began=time.perf_counter();epoch_started_utc=time.time()
         prefetch=(EpisodePrefetch(order,lambda identity:Episode(dr,identity,'I-HistoryDP'),io_config)
                   if io_config is not None else None)
+        batch_prefetch=None
         try:
             if batch_profile:
                 from visuotactile.trajectory_training import batches,execute_update
                 from visuotactile.training_receipts import BATCH_ROW_VERSION
+                from visuotactile.frozen_visual_io import prefetch_profile
+                if visual_io==prefetch_profile():
+                    from visuotactile.trajectory_prefetch import TrajectoryPrefetch
+                    batch_prefetch=TrajectoryPrefetch([[identity for _,identity in group] for group in batches(order)],
+                        lambda identity:Episode(dr,identity,'I-HistoryDP',frozen_visual_io=visual_io),dr,visual_io)
                 deck_receipt=dict(epoch=epoch+1,order=order,
                     sha256=hashlib.sha256(json.dumps(order,separators=(',',':')).encode()).hexdigest())
                 deck_path=out/('deck_%03d.json'%(epoch+1))
@@ -495,9 +501,11 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                         # partial loads or failed updates. B2 owns only these visits.
                         episodes=[]
                         try:
-                            for identity in identities:
-                                episodes.append(Episode(dr,identity,'I-HistoryDP',
-                                    **({} if visual_io is None else dict(frozen_visual_io=visual_io))))
+                            if batch_prefetch is not None:episodes=batch_prefetch.take(batch_index-1)
+                            else:
+                                for identity in identities:
+                                    episodes.append(Episode(dr,identity,'I-HistoryDP',
+                                        **({} if visual_io is None else dict(frozen_visual_io=visual_io))))
                             visit_options={}
                             if visit_profile:
                                 selections=[sample_visit(records[identity],visit_profile,identity=identity,epoch=epoch+1,visit_index=index)
@@ -512,6 +520,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                                     visit_row['frozen_visual_io']=episode.frozen_visual_io_receipt
                                 del episode
                         finally:
+                            if batch_prefetch is not None:batch_prefetch.finish()
                             episodes.clear();del episodes
                         updates+=1
                         for (index,identity),visit_row in zip(visits,result['visits']):
@@ -582,11 +591,13 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                     if pairing is not None:pairing.after_visit(updates)
         finally:
             if prefetch is not None:prefetch.close()
+            if batch_prefetch is not None:batch_prefetch.close()
         training_epoch_io=dict(process_io=io_delta(epoch_io_before,io_snapshot()),
             wall_seconds=time.perf_counter()-epoch_began,started_utc=epoch_started_utc,ended_utc=time.time(),
             prefetch=prefetch.summary() if prefetch is not None else None,
             scope='Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution')
         if pairing is not None:training_epoch_io['paired_episode_io']=pairing.summary(epoch=epoch+1)
+        if batch_prefetch is not None:training_epoch_io['batch_prefetch']=batch_prefetch.summary()
         with lease.block():
             val=evaluate(data['splits']['validation']);tr=evaluate(data['splits']['train'][:2])
             pose_metrics_report=(dict(validation=auxiliary_metrics(averaged,records,data['splits']['validation'],pose_contexts,auxiliary),

@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 
-def summarize(root):
+def summarize(root,*,round_index=11):
     bindings={}
     def read(path,lines=False):
         payload=path.read_bytes()
@@ -15,7 +15,7 @@ def summarize(root):
         return [json.loads(line) for line in payload.splitlines()] if lines else json.loads(payload)
     def metric(value):
         return {key:value[key] for key in ('arm_rmse_rad','hand_rmse_rad','selection')}
-    candidate=root/'round_11';stages=root/'round_11_stages';roles={}
+    candidate=root/f'round_{round_index:02d}';stages=root/f'round_{round_index:02d}_stages';roles={}
     for role in ('A','B'):
         directory=candidate/role;training=directory/'training'
         done=read(training/'finished.json');assert done['complete']
@@ -41,7 +41,7 @@ def summarize(root):
     status=read(stages/'status.json')
     evaluation=candidate/'development/result.json'
     autonomous_complete=read(evaluation).get('software_complete') is True if evaluation.exists() else False
-    return dict(version='frontend11_small_receipts_v1',observed_at=datetime.datetime.now().astimezone().isoformat(),
+    return dict(version='frontend_small_receipts_v1',round_index=round_index,observed_at=datetime.datetime.now().astimezone().isoformat(),
         active_stage=status['stage'],roles=roles,visual_cache_seconds=read(stages/'visual_cache.json')['seconds'],
         actual_frontend_stage_seconds=sum(value['stage_seconds'] for value in roles.values()),
         models_opened=0,raw_payloads_opened=0,learning_jsonl_opened=0,
@@ -52,4 +52,5 @@ def summarize(root):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--root',type=Path,required=True)
-    args=parser.parse_args();print(json.dumps(summarize(args.root),indent=2))
+    parser.add_argument('--round',type=int,default=11)
+    args=parser.parse_args();print(json.dumps(summarize(args.root,round_index=args.round),indent=2))

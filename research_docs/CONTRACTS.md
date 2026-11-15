@@ -1,3 +1,7 @@
+# 2026-11-15 冻结特征批量预取 I/O 身份
+
+`frozen_visual_eager_prefetch_v2`只改变B2前端的CPU读取调度：当前一批加至多下一批，下一批最多3GiB，准入保留12GiB可用RAM，不足时同步读取。真实冻结张量的值/dtype/layout、轨迹deck、随机起点、几何均值、优化器/EMA预算与因果历史不变；可学习视觉/记忆始终按当前权重重算。原v1读取路径保留，后端与离线评估仍按原逐轨读取，部署不使用此预取。实际短检查与完整周期结果分开报告。
+
 ## 2026-11-15 已闭合采集回执的训练准入
 
 逐字段校验仍由原verify_stream_fields对完整source_field_digests_json的字段集合、dtype、shape、内容执行；字段数量不是固定schema判据。collect_cycle_owner仅复用同case的capture_complete.json：status=source_verified、dataset_capture与result完全相等、verified_source_fields为正整数；再核对实际成功、合法专家动作、train family、模型及文件SHA绑定。CPU185/GPU186额外诊断字段均可合法完成；未完成或不匹配回执仍拒绝，不弱化原逐字段验证或重读大payload。旧采集源码及失败记录不覆盖。

@@ -15,7 +15,7 @@ from tools import tight_fresh_round_compare as compare
 from tools.tight_fresh_contact_height_coverage import causal_contact_height
 
 
-def summarize(root,baseline):
+def summarize(root,baseline,*,round_index=11):
     bindings={}
     def read(path):
         raw=path.read_bytes();bindings[str(path)]=hashlib.sha256(raw).hexdigest()
@@ -29,7 +29,7 @@ def summarize(root,baseline):
             assert path.name=='numeric.h5' and path.parent.parent==development
             return 'stat_only:'+json.dumps(stat(path),sort_keys=True)
         raw=path.read_bytes();return hashlib.sha256(raw).hexdigest()
-    candidate=root/'round_11';stages=root/'round_11_stages';development=candidate/'development'
+    candidate=root/f'round_{round_index:02d}';stages=root/f'round_{round_index:02d}_stages';development=candidate/'development'
     assert read(stages/'finished.json')['software_complete']
     assert read(development/'result.json')['software_complete']
     old=read(baseline)['candidate'];plan=read(development/'plan.json')
@@ -79,16 +79,16 @@ def summarize(root,baseline):
     for role in ('A','B'):
         path=candidate/role/'backend'/role/'training/finished.json'
         if path.exists():backend[role]={key:value for key,value in read(path).items() if not isinstance(value,(dict,list))}
-    return dict(version='cycle11_closed_review_v1',complete=True,observed_at=datetime.datetime.now().astimezone().isoformat(),
+    return dict(version='closed_cycle_review_v1',round_index=round_index,complete=True,observed_at=datetime.datetime.now().astimezone().isoformat(),
         source=old,candidate=new,population=population,
         matched_legal=compare.matched_legal_comparison(old,new),
         backend_training=backend,stage_receipts=receipts,
-        seconds=dict(collection=read(root/'new_family_11/result.json')['elapsed_seconds'],
+        seconds=dict(collection=read(root/f'new_family_{round_index:02d}/result.json')['elapsed_seconds'],
             visual_cache=receipts['visual_cache']['seconds'],frontends=span(['frontend_A','frontend_B']),
             backend_inputs=span(['backend_cache_A','backend_cache_B']),
             backend_training=span(['backend_train_A','backend_train_B']),autonomous=receipts['development']['seconds'],
             aggregate_to_evaluation=span(list(receipts)),
-            collection_end_to_aggregate_gap=receipts['aggregate']['start']-read(root/'new_family_11/owner_finished.json')['ended']),
+            collection_end_to_aggregate_gap=receipts['aggregate']['start']-read(root/f'new_family_{round_index:02d}/owner_finished.json')['ended']),
         scope=dict(candidate_numeric_files=sum(row['legal'] for row in rows),old_numeric_files=0,
             models_opened=0,images_opened=0,learning_jsonl_opened=0,new_simulations=0,new_updates=0),
         limits=['Repeated development cohort, not independent held-out performance or equal hidden-state replay.',
@@ -103,7 +103,8 @@ def summarize(root,baseline):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--root',type=Path,required=True)
     parser.add_argument('--baseline',type=Path,required=True);parser.add_argument('--output',type=Path,required=True)
+    parser.add_argument('--round',type=int,default=11)
     args=parser.parse_args();assert not args.output.exists(),'Preserve existing review'
-    value=summarize(args.root.resolve(),args.baseline.resolve())
+    value=summarize(args.root.resolve(),args.baseline.resolve(),round_index=args.round)
     with args.output.open('x') as stream:json.dump(value,stream,indent=2,allow_nan=False);stream.write('\n')
     print(json.dumps(dict(candidate=value['candidate']['totals'],seconds=value['seconds']),indent=2))
