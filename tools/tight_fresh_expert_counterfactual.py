@@ -34,7 +34,7 @@ def load_model(checkpoint, size, tree):
 
 
 @torch.no_grad()
-def query(model, path, tree, *, ticks=150):
+def query(model, path, tree, *, ticks=150, decompose_student=False):
     with h5py.File(path) as f:
         t=f['episode/transition'];m=json.loads(f.attrs['metadata_json'])
         actor=torch.from_numpy(t['expert_actor_input_diagnostic'][:ticks])
@@ -74,7 +74,30 @@ def query(model, path, tree, *, ticks=150):
             arm_expert_increment_rmse_rad=float(inc[:,:7].square().mean().sqrt()),
             hand_expert_increment_rmse_rad=float(inc[:,7:].square().mean().sqrt()),
             arm_bias_rad=e[:,:7].mean(0).tolist(),hand_bias_rad=e[:,7:].mean(0).tolist())
-    return dict(path=str(path),ticks=len(actor),
+    decomposition=None
+    if decompose_student:
+        with np.load(Path(path).with_name('trace.npz')) as trace:
+            stages={name:torch.from_numpy(trace[key][:len(actor)]).float() for name,key in (
+                ('nominal','nominal'),('rear_before_projection','execution_preprojection_target_rad'),
+                ('final','target'))}
+        assert torch.equal(stages['final'],actual), 'Trace/HDF5 command alignment differs'
+        from visuotactile.position_control import project_processed_position_targets, REACHABLE_POSITION_EXECUTION
+        reproduced=project_processed_position_targets(stages['rear_before_projection'],previous,limits,REACHABLE_POSITION_EXECUTION)
+        projection_reconstruction_error=float((reproduced-actual).abs().max())
+        assert projection_reconstruction_error<=2e-6, 'Recorded final execution projection did not reproduce'
+        stages['projected_nominal_diagnostic']=project_processed_position_targets(stages['nominal'],previous,limits,REACHABLE_POSITION_EXECUTION)
+        decomposition={}
+        for a,b in [(0,48),(48,100),(100,150)]:
+            b=min(b,len(actor))
+            if a>=b:continue
+            errors={name:value[a:b]-mapped[a:b] for name,value in stages.items()}
+            def rmse(value,sl):return float(value[:,sl].square().mean().sqrt())
+            row={name:dict(arm_rmse_rad=rmse(e,slice(0,7)),hand_rmse_rad=rmse(e,slice(7,None)))
+                 for name,e in errors.items()}
+            row['projection_change_max_abs_rad']=float((stages['final'][a:b]-stages['rear_before_projection'][a:b]).abs().max())
+            row['projection_reconstruction_max_abs_rad']=projection_reconstruction_error
+            decomposition[f'controls_{a}_{b}']=row
+    return dict(path=str(path),ticks=len(actor),command_decomposition=decomposition,
         recorded_raw_mean_max_abs_difference=None if recorded_mean is None else float((means-recorded_mean).abs().max()),
         recorded_mapped_target_max_abs_difference=None if recorded_mapped is None else float((mapped-recorded_mapped).abs().max()),
         metrics={f'controls_{a}_{b}':metrics(a,min(b,len(actor))) for a,b in [(0,48),(48,100),(100,150)] if len(actor)>a},
@@ -84,7 +107,9 @@ def query(model, path, tree, *, ticks=150):
 
 def main():
     p=argparse.ArgumentParser(__doc__);p.add_argument('--root',type=Path,required=True)
-    p.add_argument('--validation-numeric',type=Path,required=True);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+    p.add_argument('--validation-numeric',type=Path,required=True);p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--decompose-student',action='store_true',help='Compare saved nominal/rear/final commands against the same-state expert; A nominal has a different target domain')
+    a=p.parse_args()
     if a.output.exists():raise FileExistsError('Preserve prior diagnostic')
     torch.set_num_threads(2);tree=Path(__file__).resolve().parents[1]
     session=json.loads((a.root/'session.json').read_text());checkpoint=Path(session['expert_checkpoint'])
@@ -101,12 +126,12 @@ def main():
     for case in plan['cases']:
         result=json.loads((directory/case['name']/'result.json').read_text())
         if not result['legal']:continue
-        row=query(model,directory/case['name']/'numeric.h5',tree)
+        row=query(model,directory/case['name']/'numeric.h5',tree,decompose_student=a.decompose_student)
         assert row['expert_sha256']==session['expert_sha256']
         row.update(case=case['name'],role=case['role'],family=case['spec']['family']);rows.append(row)
     atomic_json(a.output,dict(complete=True,validation=validation,rows=rows,
         expert_sha256=session['expert_sha256'],source_sha256=sha256(Path(__file__)),simulator_starts=0,optimizer_updates=0,
-        scope='Diagnostic expert suggestions on the actual stored student states with its recorded observation stream, full zero-initialized recurrent history and actual delay draws. Original native mapper, current actual target, unchanged expert progression. No suggestions are executed or admitted as expert labels. First150 controls only; no terminal/reset history crossing.'))
+        scope='Diagnostic expert suggestions on the actual stored student states with its recorded observation stream, full zero-initialized recurrent history and actual delay draws. Original native mapper, current actual target, unchanged expert progression. No suggestions are executed or admitted as expert labels. First150 controls only; no terminal/reset history crossing. A nominal forecasts next reached q, so its difference from an expert command is not a nominal prediction error or evidence authorizing bare-A deployment. B nominal and rear share the expert command target domain.'))
 
 
 if __name__=='__main__':main()
