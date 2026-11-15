@@ -25,6 +25,32 @@ def require(value, message):
         raise ValueError(message)
 
 
+def evaluation_rechecks(plan):
+    """Bind optional train-family diagnostics without treating them as development."""
+    import copy
+    extra=[c for c in plan['cases'] if c['spec'].get('split')!='development']
+    if not extra:return set()
+    binding=plan.get('training_rechecks')
+    require(binding is not None, 'Unregistered non-development evaluation cases')
+    collection=Path(binding['collection']);source=read(collection/'plan.json')
+    require(sha256(collection/'plan.json')==binding['source_plan_sha256']
+        and read(collection/'result.json').get('software_complete') is True
+        and source.get('kind')=='takeover' and len(extra)==binding['cases']==len(source['cases']),
+        'Training recheck collection binding differs')
+    expected={}
+    for case in source['cases']:
+        spec=copy.deepcopy(case['spec']);name='grasp_recheck_'+case['name']
+        require(spec.get('split')=='train','Only registered training families may be rechecked')
+        for key in ('takeover_tick','training_expansion','initial_configuration_sha256'):spec.pop(key,None)
+        spec.update(identity=name,cohort='fresh',split='train')
+        expected[name]=(case['role'],spec)
+    require({c['name'] for c in extra}==set(expected) and all(
+        c.get('diagnostic_cohort')=='training_family_recheck'
+        and (c['role'],c['spec'])==expected[c['name']] and c.get('dagger') is None
+        for c in extra),'Training recheck reset, cohort or control differs')
+    return set(expected)
+
+
 def evaluated_role(evaluation, role, pair):
     """Keep every registered opportunity, allowing only evidenced zero-action rejects."""
     from tools.tight_fresh_round_compare import (invalid_initialization_evidence,
@@ -36,9 +62,10 @@ def evaluated_role(evaluation, role, pair):
     require(read(evaluation/'run_started.json')['plan_sha256'] == sha256(evaluation/'plan.json'),
         'Autonomous worker plan changed')
     cases = plan['cases']; names = [case['name'] for case in cases]
+    rechecks=evaluation_rechecks(plan)
     require(cases and len(names) == len(set(names)) and all(Path(n).name == n and n not in ('.', '..') for n in names)
         and {case['role'] for case in cases} == {'A', 'B'}
-        and all(case['spec'].get('split') == 'development' for case in cases)
+        and all(case['spec'].get('split') == 'development' or case['name'] in rechecks for case in cases)
         and final.get('software_complete') is True and not final.get('worker_error')
         and final.get('cases') == len(cases) == len(rows)
         and len({r['case'] for r in rows}) == len(rows) and {r['case'] for r in rows} == set(names),
@@ -108,8 +135,10 @@ def evaluated_role(evaluation, role, pair):
             counts[group]['legal'] += 1
         receipts[name] = dict(role=group, result=file_binding(path/'result.json'),
             started=file_binding(path/'started.json'), evidence=evidence)
-    require(counts[role]['legal'] > 0, 'Selected role has no complete legal autonomous execution')
+    development_counts={group:sum(c['role']==group and c['name'] not in rechecks and indexed[c['name']]['result']['legal'] for c in cases) for group in ('A','B')}
+    require(development_counts[role] > 0, 'Selected role has no complete legal autonomous development execution')
     return dict(root=str(evaluation), selected_role=role, selected_pair=pair, counts=counts,
+        legal_development_counts=development_counts,training_recheck_names=sorted(rechecks),
         cases=receipts, files={name:file_binding(evaluation/name) for name in
             ('plan.json', 'run_started.json', 'result.json', 'results.json')},
         execution=execution, source_commit=plan.get('source_commit'), source_sha256=plan['source_sha256'],

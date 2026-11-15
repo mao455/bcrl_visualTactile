@@ -26,6 +26,7 @@ atomic_json(ledger/'registration.json',dict(utc=time.time(),expected_commit=a.ex
 with (ledger/'prepare.log').open('x') as stream:subprocess.run(cmd,cwd=TREE,stdout=stream,stderr=subprocess.STDOUT,check=True,timeout=600)
 actual=read(ROOT/'session.json')['deadline'];assert abs(actual-DEADLINE)<600
 config=read(BUNDLE/'configuration.template.json');config.update(source_commit=a.expected_commit,absolute_wall_deadline=DEADLINE,sources=sources,
+ candidate_reference=str(OLD/'round_15'),
  source_evaluations={role:str(Path(path)/'development') for role,path in sources.items()},data_root=str(OLD/'round_15'))
 for key in ('backend_json','training_sampling_json','frozen_visual_io_json'):config[key]=str(BUNDLE/config[key])
 atomic_json(ROOT/'night_configuration.json',config)

@@ -1432,3 +1432,12 @@ Prepared a narrowly bounded CPU operation for the now CLOSED13 frontends: only r
 Closed13 A/B last and selected-best payloads match exactly, including Adam/RNG/history. Removed only those two redundant last serializations,2,330,423,296 allocated bytes; full selected-best snapshots remain. Actual free bytes35,662,209,024→37,992,615,936. Also preparing a narrow four-file optimizer-only archive for the CLOSED Nov11 G11 pool's comparison201/402/603 and last endpoints, retaining its original selected best.pt unchanged and preserving every model/EMA tensor plus all nonoptimizer fields in new explicit archives. This supplies headroom for the two requested real cycles without deleting observations or current caches. Its exact manifest/apply outcome is authoritative, not this preparation note.
 
 The original-family closed-gap analysis now compares object positions in the robot base frame, removing different environment-lane world origins; it still discloses hidden-state replay limitations. No new physical run or model inference is added.
+
+
+### 2026-11-16 02:32 +08 — compare learning under the same execution backend
+
+Confirmed historical A11/B09 source evaluations use CPU physics/whole waves; current15 uses GPU physics/queued execution. Their old rates cannot isolate learning from the backend change. New night01 first measures the retained A11/B09 complete pairs once on the same current GPU queue and fixed development seeds, then compares15 before choosing a collection source. Adoption rejects differing backend/queue/render contracts. Lane populations may still differ; no exact hidden-state replay or statistical reliability claim. Current frozen00 evaluation and its historical comparison remain preserved, with this later bridge explicitly authoritative for model selection.
+
+Found a prospective next-round handoff error: the source auditor accepted only development cases while the new evaluation also contains registered train-family rechecks. It now verifies each optional recheck against the exact completed collection plan/reset and reports it separately; adoption uses only shared development seeds.33 focused collection-source/night checks pass. No new physical cycle has completed yet.
+
+Four old Nov11 G11 comparison/last endpoint archives completed with every model/EMA tensor and nonoptimizer field preserved, original selected best unchanged. Removed only obsolete Adam state,2,330,959,228 logical bytes; actual free disk at02:30 was40,318,574,592 bytes. All current trajectories, caches and source pairs retained.

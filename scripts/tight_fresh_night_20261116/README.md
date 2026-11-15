@@ -28,7 +28,7 @@ on the feature branch.
 3. The agent reviews these results and selects each complete source pair by
    actual grasp behavior. `launch.py --expected-commit <HEAD> --role-source A=<root>
    --role-source B=<root>` then creates `tight_fresh_20261116_01`, bounded by09:00.
-   Each small real loop has4 genuine student-prefix opportunities on two hard
+   Before collection, the owner measures retained A11/B09 under the current GPU queue on the same fixed development seeds and compares the finished15 candidate. Historical CPU rates alone cannot select a GPU candidate. Each small real loop has4 genuine student-prefix opportunities on two hard
    registered training families, contact-formation triggers,4 DP epochs and4 rear
    epochs with latest4 for both. Eight fixed autonomous executions include the
    normal full-task subset; four short rechecks of the just-corrected training

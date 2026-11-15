@@ -12,9 +12,18 @@ def test_small_cohort_cannot_adopt_on_loss_or_equal_holds(tmp_path, monkeypatch)
                 rows.append(dict(role=group,seed=seed,legal=True,hold60=dict(sustained=held)))
         return dict(rows=rows)
     monkeypatch.setattr(night,'behavior',behavior)
+    monkeypatch.setattr(night,'execution_identity',lambda _:dict(backend='same_current_backend'))
     d=night.source_decision(tmp_path,dict(A='oldA',B='oldB'),dict(A='evalA',B='evalB'))
     assert not d['A']['use_candidate'] and d['B']['use_candidate']
     assert d['B']['source_hold60']==2 and d['B']['candidate_hold60']==4
+
+
+def test_model_adoption_rejects_cpu_source_vs_gpu_candidate(tmp_path,monkeypatch):
+    import pytest
+    monkeypatch.setattr(night,'behavior',lambda *a,**k:dict(rows=[]))
+    monkeypatch.setattr(night,'execution_identity',lambda p:dict(backend='gpu' if p==tmp_path/'development' else 'cpu'))
+    with pytest.raises(ValueError,match='backend or queue differs'):
+        night.source_decision(tmp_path,dict(A='oldA',B='oldB'),dict(A='cpuA',B='cpuB'))
 
 
 def test_only_transient_prephysical_stage_can_retry(tmp_path):

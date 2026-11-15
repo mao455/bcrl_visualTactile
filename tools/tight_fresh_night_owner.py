@@ -22,6 +22,13 @@ from visuotactile.training_resources import atomic_json
 read=lambda path:json.loads(Path(path).read_text())
 
 
+def execution_identity(directory):
+    from visuotactile.execution_backend import normalize_backend
+    plan=read(Path(directory)/'plan.json');batch=plan.get('batch',{})
+    return dict(backend=normalize_backend(plan.get('execution_backend')),
+        queue=batch.get('queue_profile'),gpu_pipeline=batch.get('gpu_pipeline'),render=batch.get('render_profile'))
+
+
 def source_decision(candidate, sources, evaluations):
     """Conservative operational choice on identical registered seed subsets.
 
@@ -29,16 +36,19 @@ def source_decision(candidate, sources, evaluations):
     """
     new=behavior(candidate/'development',horizon=300);decision={}
     for role in 'AB':
+        if execution_identity(candidate/'development')!=execution_identity(evaluations[role]):
+            raise ValueError('Source/candidate execution backend or queue differs; measure the source under the current pipeline first')
         old=behavior(evaluations[role],role,horizon=300)
-        a={r['seed']:r for r in old['rows'] if r['legal']}
-        b={r['seed']:r for r in new['rows'] if r['role']==role and r['legal']}
+        a={r['seed']:r for r in old['rows'] if r['legal'] and r.get('diagnostic_cohort')!='training_family_recheck'}
+        b={r['seed']:r for r in new['rows'] if r['role']==role and r['legal'] and r.get('diagnostic_cohort')!='training_family_recheck'}
         common=sorted(a.keys()&b.keys())
         old_held=sum(a[s]['hold60']['sustained'] for s in common)
         new_held=sum(b[s]['hold60']['sustained'] for s in common)
         adopt=len(common)>=3 and new_held>=old_held+2
         decision[role]=dict(common_legal_seeds=common,source_hold60=old_held,candidate_hold60=new_held,
             use_candidate=adopt,selected_root=str(candidate if adopt else sources[role]),
-            explanation='Two additional 1s holds on the shared small comparison subset required; otherwise retain the previous complete pair. This is not statistical proof or stage completion.')
+            execution_identity=execution_identity(evaluations[role]),
+            explanation='Two additional 1s holds on shared legal seeds under the same backend/queue contracts required; otherwise retain the previous complete pair. Lane populations can differ; no exact hidden-state replay, statistical proof or stage completion is claimed.')
     return decision
 
 
@@ -100,6 +110,29 @@ def run(root,configuration):
     with (root/'night_owner.lock').open('a') as lock:
         fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB)
         try:
+            if cfg.get('refresh_source_backend_comparison') and not state.get('source_backend_bridge_complete'):
+                reference=Path(cfg['candidate_reference']);pair=root/'source_backend_pair';baseline=root/'source_backend_baseline'
+                prepare_once(pair/'prepared.json','source_backend_pair',cmd('tools.tight_fresh_collection_source',
+                    '--session-root',root,'--data-source',cfg['data_root'],'--output',pair,
+                    '--role-source','A='+cfg['sources']['A'],'--role-source','B='+cfg['sources']['B'],
+                    '--role-evaluation','A='+cfg['source_evaluations']['A'],'--role-evaluation','B='+cfg['source_evaluations']['B']),baseline,reference)
+                prepare_once(baseline/'plan.json','source_backend_prepare',cmd('tools.tight_fresh_batch_run','prepare',
+                    '--root',pair,'--output',baseline,'--count',8,'--seed',28500000,'--lanes',16,'--vision-microbatch',8,
+                    '--queued-gpu','--grasp-evaluation-ticks',300,'--backend-json',cfg['backend_json']),baseline,reference)
+                result_path=baseline/'result.json'
+                if not result_path.exists():
+                    if (baseline/'run_started.json').exists():raise RuntimeError('Interrupted source baseline needs unresolved-case review')
+                    stage('source_backend_run',cmd('tools.tight_fresh_batch_run','run','--output',baseline),baseline,reference)
+                assert read(result_path)['software_complete']
+                decisions=source_decision(reference,cfg['sources'],dict(A=baseline,B=baseline))
+                proof=dict(utc=time.time(),source_baseline=str(baseline),candidate=str(reference),decisions=decisions,
+                    previous_execution_identities={r:execution_identity(cfg['source_evaluations'][r]) for r in 'AB'},
+                    reason='Historical A11/B09 evaluation used CPU physics; current candidate uses GPU physics. Old rates alone cannot isolate learning from this execution change.')
+                atomic_json(ledger/'source_backend_bridge.json',proof)
+                for role in 'AB':
+                    state['sources'][role]=decisions[role]['selected_root']
+                    state['evaluations'][role]=str(reference/'development' if decisions[role]['use_candidate'] else baseline)
+                save('source_backend_comparison_complete',source_backend_bridge_complete=True)
             for spec in cfg['rounds']:
                 check();index=spec['index']
                 if any(r['index']==index and r['complete'] for r in state['rounds']):continue

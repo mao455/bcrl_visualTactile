@@ -19,6 +19,21 @@ from test_fresh_followup_session import source, data_pool, alternate_policy, wri
 from test_training_expansion import setup_registry
 
 
+def test_training_rechecks_remain_bound_and_separate(tmp_path):
+    from tools.tight_fresh_batch_run import append_training_rechecks
+    collection=tmp_path/'collection';collection.mkdir()
+    write(collection/'plan.json',dict(kind='takeover',cases=[dict(name='early_A',role='A',
+        spec=dict(split='train',family='hard_train',seed=19,identity='early_A',takeover_tick=60))]))
+    write(collection/'result.json',dict(software_complete=True))
+    plan=dict(cases=[dict(name='dev_A',role='A',spec=dict(split='development'))])
+    data=dict(entries={'example':dict(family='hard_train')},splits=dict(train=['example'],validation=[]))
+    append_training_rechecks(plan,collection,data,300)
+    assert view.evaluation_rechecks(plan)=={'grasp_recheck_early_A'}
+    plan['cases'][-1]['spec']['seed']=20
+    with pytest.raises(ValueError,match='reset, cohort or control'):
+        view.evaluation_rechecks(plan)
+
+
 def complete_evaluation(directory, *, illegal=False, batch=False):
     plan = view.read(directory/'plan.json')
     for case in plan['cases']:case['spec']['split']='development'
