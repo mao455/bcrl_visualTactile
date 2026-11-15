@@ -59,3 +59,5 @@ other checkpoint fields remain. Their new `best.weights_only.pt` files are
 inference/diagnostic archives, not optimizer-resume checkpoints; sidecars retain
 original SHA and archive SHA. A11/B09,05/06, B13,14 and current15 are excluded.
 Source captures, frozen visual payloads and all success/failure traces are retained.
+
+The first supervised cycle has one declared post-DP coordinator recovery exercise. Both actual DP completions precede it; ordinary `--resume` must skip their bound receipts and continue rear preparation. The attempt is explicitly distinguished from software/resource/data failure. It consumes the one allowed retry for that cycle. Actual cycle acceptance is required before claiming recovery reliability.

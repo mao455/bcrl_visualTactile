@@ -195,7 +195,8 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
         frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None,
-        prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False,resume=False,recheck_training_families=False):
+        prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False,resume=False,recheck_training_families=False,
+        exercise_resume_after_frontends=False):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
     if recheck_training_families and (not queued_gpu_evaluation or grasp_evaluation_ticks is None or evaluation_lanes<=1):
@@ -272,6 +273,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if payload_audit_memo:registration['payload_audit_memo']=True
     registration['release_unused_cuda_cache']=release_unused_cuda_cache
     if recheck_training_families:registration['recheck_training_families']=True
+    if exercise_resume_after_frontends:registration['exercise_resume_after_frontends']=True
     if prepared_from is not None:registration['prepared_reuse']=dict(path=str(prepared_from),prepared_sha256=sha256(Path(prepared_from)/'prepared.json'))
     if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
@@ -408,6 +410,12 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
                 execute('frontend_'+role,['tools.tight_fresh_train','train','--root',output,'--role',role,'--epochs',epochs]+
                     (['--offline-anchor-batch',offline_anchor_batch] if offline_anchor_batch is not None else [])+
                     (['--full-trajectory-batch'] if trajectory_profile is not None else []),output/role/'training/finished.json')
+        if exercise_resume_after_frontends and not resume:
+            atomic_json(ledger/'controlled_resume_probe.json',dict(complete_frontends=True,utc=time.time(),
+                frontends={role:dict(finished_sha256=sha256(output/role/'training/finished.json'),
+                    updates=read(output/role/'training/finished.json')['updates']) for role in 'AB'},
+                scope='Declared coordinator stop after both completed real DP stages; one ordinary resume must skip them without additional updates. This is not a model, resource or data failure.'))
+            raise RuntimeError('controlled_completed_frontend_resume_probe')
         backends_admitted=False
         backend_stop_paths=(root/'STOP',output/'STOP',ledger/'STOP') if parallel_backends else ()
         if parallel_backends and not resume:
@@ -481,6 +489,7 @@ def main():
     p.add_argument('--grasp-evaluation-ticks',type=int)
     p.add_argument('--backend-json',type=Path)
     p.add_argument('--recheck-training-families',action='store_true')
+    p.add_argument('--exercise-resume-after-frontends',action='store_true')
     p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
     p.add_argument('--vision-microbatch',type=int,default=2)
     p.add_argument('--vision-exact-tail',action='store_true',help='Explicit evaluation-only DINO tail-shape candidate')
@@ -512,6 +521,7 @@ def main():
         backend_latest_repeat=a.backend_latest_repeat,
         queued_gpu_evaluation=a.queued_gpu_evaluation,grasp_evaluation_ticks=a.grasp_evaluation_ticks,
         recheck_training_families=a.recheck_training_families,
+        exercise_resume_after_frontends=a.exercise_resume_after_frontends,
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,

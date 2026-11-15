@@ -53,6 +53,11 @@ def recoverable_training_failure(candidate):
             stream.seek(max(0,log.stat().st_size-8192));text+=stream.read().decode(errors='replace')
     bad=('Nonfinite','nonfinite','SHA256 differs','source drift','configuration changed','corrupt','No space left')
     transient=('VRAM reserve','RAM reserve','Stale resource telemetry','stage_progress_timeout')
+    probe=ledger/'controlled_resume_probe.json'
+    if 'controlled_completed_frontend_resume_probe' in text and probe.exists() and not any(s in text for s in bad):
+        receipt=read(probe)
+        return receipt.get('complete_frontends') is True and all(
+            sha256(candidate/role/'training/finished.json')==receipt['frontends'][role]['finished_sha256'] for role in 'AB')
     return not any(s in text for s in bad) and any(s in text for s in transient)
 
 
@@ -141,6 +146,7 @@ def run(root,configuration):
                     '--offline-anchor-batch',32,'--backend-offline-anchor-batch',32,'--queued-gpu-evaluation',
                     '--grasp-evaluation-ticks',300,'--recheck-training-families','--backend-json',cfg['backend_json'],
                     '--training-sampling-json',cfg['training_sampling_json'],'--frozen-visual-io-json',cfg['frozen_visual_io_json'])
+                if spec.get('exercise_resume_after_frontends'):cycle+=['--exercise-resume-after-frontends']
                 completed=candidate.with_name(candidate.name+'_stages')/'finished.json'
                 if not completed.exists():
                     previous=candidate.with_name(candidate.name+'_stages')/'registration.json'
@@ -151,7 +157,9 @@ def run(root,configuration):
                     except RuntimeError:
                         retry=ledger/f'cycle_{index}_retry.json'
                         if retry.exists() or '--resume' in cycle or not recoverable_training_failure(candidate):raise
-                        atomic_json(retry,dict(utc=time.time(),limit=1,reason='Transient resource guard; serial durable-stage resume',command=cycle+['--resume']))
+                        atomic_json(retry,dict(utc=time.time(),limit=1,
+                            reason='Declared completed-DP coordinator recovery probe' if spec.get('exercise_resume_after_frontends') else 'Transient resource guard',
+                            recovery='Serial durable-stage resume; original completed stage hashes/commands must match',command=cycle+['--resume']))
                         stage(f'cycle_{index}_retry',cycle+['--resume'],collection,candidate)
                 assert read(completed)['software_complete']
                 decisions=source_decision(candidate,state['sources'],state['evaluations'])

@@ -108,3 +108,38 @@ def test_resume_skips_committed_aggregate_and_rejects_budget_change(tmp_path,mon
     assert calls.count('tools.tight_fresh_dagger')==3  # one aggregate, two cache attempts
     assert len(list(ledger.glob('resume_*/aggregate_reused.json')))==1
     assert len(list(ledger.glob('resume_*/failure.json')))==1
+
+
+def test_declared_post_DP_probe_resumes_without_repeating_either_trainer(tmp_path,monkeypatch):
+    root=tmp_path/'source';root.mkdir();collection=tmp_path/'collection';collection.mkdir()
+    output=tmp_path/'round';ledger=tmp_path/'round_stages';calls=[]
+    (root/'session.json').write_text(json.dumps(dict(deadline=time.time()+1000)))
+    (collection/'result.json').write_text('{"software_complete":true}')
+    (collection/'correction_entries.json').write_text('{"new":{}}')
+    monkeypatch.chdir(tmp_path);monkeypatch.setattr(cycle.subprocess,'check_output',lambda *a,**k:'frozen')
+    def emit(path,value):
+        path.parent.mkdir(parents=True,exist_ok=True);path.write_text(json.dumps(value))
+    def launch(command,**kwargs):
+        module=command[2];calls.append(module)
+        if module=='tools.tight_fresh_dagger' and command[3]=='aggregate':
+            emit(output/'prepared.json',dict(complete=True))
+            for role in 'AB':
+                emit(output/role/'state_data/data.json',dict(splits=dict(train=['demo','new'],validation=['val']),
+                    normalization_train_ids=['demo'],aggregation=dict(version='expert_takeover_aggregate_v1',
+                        student_prefix_supervised=False,new_training_ids=['new']),
+                    entries=dict(new=dict(trajectory_kind='expert_takeover_v1'))))
+                emit(output/role/'continuation.json',{})
+        elif module=='tools.tight_fresh_dagger':emit(output/'B/cache_index.json',dict(complete=True))
+        elif module=='tools.tight_fresh_train':
+            role=command[command.index('--role')+1];emit(output/role/'training/finished.json',dict(complete=True,updates=7))
+        else:raise RuntimeError('reached new backend stage')
+        return SimpleNamespace(pid=os.getpid(),returncode=0,poll=lambda:0)
+    monkeypatch.setattr(cycle.subprocess,'Popen',launch)
+    with pytest.raises(RuntimeError,match='controlled_completed_frontend_resume_probe'):
+        cycle.run(root,collection,output,2,1,4,1,latest_repeat=4,exercise_resume_after_frontends=True)
+    assert calls.count('tools.tight_fresh_train')==2
+    for path in ledger.glob('*_worker.json'):path.unlink()  # mock children have exited
+    with pytest.raises(RuntimeError,match='reached new backend stage'):
+        cycle.run(root,collection,output,2,1,4,1,latest_repeat=4,exercise_resume_after_frontends=True,resume=True)
+    assert calls.count('tools.tight_fresh_train')==2
+    assert len(list(ledger.glob('resume_*/frontend_*_reused.json')))==2
