@@ -2,6 +2,7 @@
 import sys
 from types import SimpleNamespace
 import torch
+import pytest
 from visuotactile.queued_rollout import RenderLanes
 
 def test_retire_read_and_refill(monkeypatch):
@@ -36,3 +37,22 @@ def test_retire_read_and_refill(monkeypatch):
     lanes.close()
     assert reads==[[0,1],[0],[1]] and camera._update_buffers_impl is update
     assert all(t.enabled for t in textures)
+
+
+@pytest.mark.parametrize('becomes_ready',[True,False])
+def test_empty_reactivated_buffer_gets_bounded_render_only_warmup(becomes_ready):
+    from visuotactile.queued_rollout import ready_reactivated_cameras
+    renders=[];sim=SimpleNamespace(current_time_step_index=77)
+    sim.render=lambda:renders.append(77)
+    def get():
+        return torch.ones(2,3,3) if becomes_ready and renders else torch.empty(0)
+    camera=SimpleNamespace(_rep_registry={'rgb':[SimpleNamespace(get_data=get)]},
+        _process_annotator_output=lambda name,value:(value,None),
+        _data=SimpleNamespace(output={'rgb':torch.zeros(1,2,3,3)}),_is_outdated=torch.zeros(1,dtype=torch.bool))
+    env=SimpleNamespace(sim=sim,research_cameras=[camera])
+    if becomes_ready:
+        result=ready_reactivated_cameras(env,[0]);assert result['extra_renders']==1
+        assert camera._is_outdated[0] and sim.current_time_step_index==77
+    else:
+        with pytest.raises(RuntimeError,match='remained unavailable'):ready_reactivated_cameras(env,[0])
+        assert len(renders)==4 and sim.current_time_step_index==77

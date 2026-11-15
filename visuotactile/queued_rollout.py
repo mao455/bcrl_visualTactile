@@ -24,6 +24,37 @@ from .recording import flatten,BufferedNumericWriter,post_observation
 PROFILE='independent_lane_queue_v1'
 
 
+def ready_reactivated_cameras(env, lanes, *, max_extra_renders=4):
+    """Bounded Hydra warmup at the SAME physical state after product enable.
+
+    Disabled products can return an empty annotator buffer on their first render
+    after reactivation. Do not feed it to Camera's fixed-size tensor assignment,
+    substitute a stale image, or advance physics to warm up the renderer.
+    """
+    lanes=list(lanes);stamp=int(env.sim.current_time_step_index)
+    for extra in range(max_extra_renders+1):
+        missing=[]
+        for view,camera in enumerate(env.research_cameras):
+            for name,annotators in camera._rep_registry.items():
+                for lane in lanes:
+                    output=annotators[lane].get_data()
+                    raw=output.get('data') if isinstance(output,dict) else output
+                    shape=getattr(raw,'shape',())
+                    if not shape or int(np.prod(shape))==0:
+                        missing.append((view,name,lane));continue
+                    data,_=camera._process_annotator_output(name,output)
+                    if tuple(data.shape)!=tuple(camera._data.output[name].shape[1:]):
+                        missing.append((view,name,lane))
+        if not missing:
+            for camera in env.research_cameras:camera._is_outdated[lanes]=True
+            return dict(lanes=lanes,extra_renders=extra,physics_step=stamp,physics_steps_added=0)
+        if extra==max_extra_renders:
+            raise RuntimeError('Reactivated camera buffers remained unavailable: '+str(missing))
+        env.sim.render()
+        if int(env.sim.current_time_step_index)!=stamp:
+            raise RuntimeError('Camera warmup unexpectedly advanced physics')
+
+
 def replace_reset_observations(previous,current,lanes,count):
     """Keep continuing lanes' already observed control-time sample exactly.
 
@@ -89,6 +120,7 @@ class RenderLanes:
     """Disable only unassigned standard products, restore all on every exit."""
     def __init__(self,env):
         self.handles=[];self.active=[True]*env.num_envs;self.changes=[];self.readers=[];self.pose_readers=[]
+        self.env=env;self.pending_reactivation=set();self.reactivation_receipts=[]
         if env.cfg.student_obs.camera_backend!='standard':return
         from omni.replicator.core.scripts.utils import viewport_manager
         from .inactive_render_products import existing_product
@@ -123,6 +155,13 @@ class RenderLanes:
             view[lane].set_updates_enabled(enabled)
             if view[lane].get_updates_enabled()!=enabled:raise RuntimeError('Lane renderer setting failed')
         self.active[lane]=enabled;self.changes.append(dict(lane=lane,enabled=enabled,utc=time.time()))
+        if enabled and self.handles:self.pending_reactivation.add(lane)
+        else:self.pending_reactivation.discard(lane)
+    def ready(self,lanes):
+        pending=sorted(set(lanes)&self.pending_reactivation)
+        if pending:
+            self.reactivation_receipts.append(ready_reactivated_cameras(self.env,pending))
+            self.pending_reactivation.difference_update(pending)
     def close(self):
         for lane in range(len(self.active)):self.set(lane,True)
         for camera,original in self.readers:camera._update_buffers_impl=original
@@ -230,6 +269,7 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
                     continuing_packet=copy.deepcopy(env.research_packet);continuing_teacher=copy.deepcopy(teacher)
                     isolated.reset_lanes(refill);env.scene.write_data_to_sim();env.sim.forward();env.sim.render()
                     env.scene.update(0.0)
+                    render.ready(refill)
                     with isolated.stream.scope():teacher=env._get_observations()
                     env.research_packet=replace_reset_observations(continuing_packet,env.research_packet,refill,n)
                     teacher=replace_reset_observations(continuing_teacher,teacher,refill,n)
@@ -237,7 +277,11 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
                 profile['reset_refill_s']+=time.perf_counter()-t;profile['refills']+=len(refill)
                 if not any(active) and queue:continue
             if not any(active):break
-            for lane,running in enumerate(active):render.set(lane,running)
+            # A rejected replacement can leave a lane vacant for just one tick.
+            # With queued work it will be refilled on the next loop: retiring
+            # its Hydra product here creates avoidable disable/enable churn.
+            # Once the finite task queue is empty, retire unused products.
+            for lane,running in enumerate(active):render.set(lane,running or bool(queue))
             packet=env.research_packet
             before_active=list(active);local_ticks=[len(row) for row in rows]
             with lease.block():
@@ -335,7 +379,8 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
             t=time.perf_counter();finished.append((case,result.finalize()));profile['finish_audit_s']+=time.perf_counter()-t
         if pool is not None:profile['capture_writer']=pool.statistics()
         profile.update(seconds=time.perf_counter()-started,cases=len(cases),control_ticks=profile['active_lane_steps'],
-            vision_execution=controller.vision_execution_report(),render_transitions=render.changes)
+            vision_execution=controller.vision_execution_report(),render_transitions=render.changes,
+            camera_reactivation=render.reactivation_receipts)
         profile['aggregate_control_ticks_per_second']=profile['control_ticks']/profile['seconds']
         profile['active_lane_fraction']=profile['active_lane_steps']/max(1,profile['allocated_lane_steps'])
         if render_reuse is not None:profile['render_reuse']=dict(render_reuse.stats)
