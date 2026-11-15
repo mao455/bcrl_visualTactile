@@ -15,6 +15,6 @@
   --worker-tree /absolute/frozen/tree --expected-commit FULL_COMMIT_SHA --launch
 ```
 
-独立6小时从新session创建起算，旧02的18:24:06.380截止不变。单轮完成即停，错误/阶段结果持久保存，Restart=no。实际是否启动须读取session03_launch/status、research_loop、new_family_13；配置登记不等于启动或成功。
+实际已用冻结提交19736be启动：2026-11-15 16:23:23.594建立session，固定22:23:23.594截止，旧02的18:24:06.380截止及字节保持。16:24:53已观察wave0/control tick25；当前只是实际采集推进，新成功数与预取完整训练/自主结果待结束。单轮完成即停，错误/阶段结果持久保存，Restart=no；后续读取session03_launch/status、research_loop、new_family_13。
 
 report_completed12.py汇总已保存的completed_review与原公开来源报告；report_cycle11.py/report_frontend11.py/report_collection11.py新增--round 12，复用现有算法。只读已完成结果，不重采、重训或改变旧指标。
