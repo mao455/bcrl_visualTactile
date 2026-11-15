@@ -1,5 +1,5 @@
 """Ordinary bounded owner for cache continuation, training and behavior review."""
-import json,time,sys
+import argparse,json,time,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[2]))
 from tools.tight_fresh_collect_cycle_owner import run_stage
@@ -10,6 +10,7 @@ BASE=Path('/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run')
 ROOT=BASE/'tight_fresh_20261115_10';OLD=BASE/'tight_fresh_20261115_09'
 read=lambda p:json.loads(p.read_text())
 if __name__=='__main__':
+    parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,required=True);args=parser.parse_args();ROOT=args.root.resolve()
     ledger=ROOT/'continuation';ledger.mkdir();out=ROOT/'round_15';collection=OLD/'new_family_15'
     deadline=read(ROOT/'session.json')['deadline']-60;python=str(TREE/'.venv_isaacsim/bin/python')
     context=dict(ledger=ledger,paths=dict(worker_tree=TREE,collection=collection,output=out))

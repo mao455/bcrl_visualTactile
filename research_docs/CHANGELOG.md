@@ -1534,3 +1534,5 @@ Source inspection confirms DirectRLEnv renders at every second120Hz physical tic
 - fresh_prepared_reuse and cycle --prepared-from: new output only, same task/collection/deadline, refuse any prior optimizer run; copy metadata/numeric/loss-context and committed frozen feature indexes, retain original files.
 -10 ordinary bounded launcher/owner: new16GiB disk reserve with original deadline, existing parallel A/B frontend headroom gate, selected-DP refresh then rear and behavior review. No recapture or repeated training.
 -09 actual18/18 successes653.75s99.12/h;26new aggregate. Cache interrupted by32GiB reservation before training. Camera retirement/readback fix passed real whole collection.
+
+Prepared-data continuation follow-up: preserve an already identical sampling contract only in explicit reuse mode; no resampling/reweighting of started learners.10 failed before GPU/optimizers;11 is separately registered.

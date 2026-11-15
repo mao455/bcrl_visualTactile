@@ -144,7 +144,7 @@ def wait_backend_owned(process, deadline, stop_paths):
     return None
 
 
-def configure_frontend_sampling(output, repeat):
+def configure_frontend_sampling(output, repeat, *, reuse_registered=False):
     """Bind optional latest-episode reuse before either learner starts."""
     from visuotactile.latest_takeover_sampling import SAMPLING_VERSION,sampling_plan
     spec=dict(version=SAMPLING_VERSION,latest_repeat=repeat)
@@ -155,7 +155,8 @@ def configure_frontend_sampling(output, repeat):
         data=read(directory/'state_data/data.json')
         validated,multiplicities=sampling_plan(data,spec)
         prior=read(directory/'continuation.json')
-        if 'sampling_contract' in prior:raise ValueError('Preserve the registered frontend sampling contract')
+        if 'sampling_contract' in prior and not (reuse_registered and prior['sampling_contract']==validated):
+            raise ValueError('Preserve the registered frontend sampling contract')
         pending[role]=dict(prior,sampling_contract=validated)
         populations[role]=dict(data_sha256=sha256(directory/'state_data/data.json'),
             latest_ids=data['aggregation']['new_training_ids'],episode_multiplicities=multiplicities)
@@ -316,7 +317,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         if episode_io is not None:
             atomic_json(ledger/'episode_io.json',configure_episode_io(output,episode_io))
         if latest_repeat is not None:
-            sampling=configure_frontend_sampling(output,latest_repeat)
+            sampling=configure_frontend_sampling(output,latest_repeat,reuse_registered=prepared_from is not None)
             atomic_json(ledger/'frontend_sampling.json',sampling)
         if trajectory_profile is not None:
             from visuotactile.trajectory_training import budget
