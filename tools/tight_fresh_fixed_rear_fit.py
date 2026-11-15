@@ -126,6 +126,7 @@ def train(source,role,resource_root,output,*,maximum_passes=80,wall_seconds=900)
     state=detach(state);prefix.append(inputs)
   passes=epoch
   atomic_json(output/'progress.json',dict(passes=passes,updates=updates,supervised_ticks=draws,utc=time.time()))
+  print(json.dumps(dict(passes=passes,updates=updates,utc=time.time())),flush=True)
   if epoch==1 or epoch%5==0:
    review();save(output/'last.pt',snapshot())
    if epoch>=20 and len(history)>=5:
