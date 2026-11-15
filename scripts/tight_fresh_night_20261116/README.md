@@ -14,18 +14,26 @@ on the feature branch.
 2. After both old owner and monitor have exited, from a clean frozen worktree:
    `python scripts/tight_fresh_night_20261116/finish26.py launch --expected-commit <HEAD>`.
    New root `tight_fresh_20261116_00` ends09:00 +08. It binds the completed DP
-   weights/data/cache read-only, performs **zero repeated DP updates**, refreshes
+   weights/data/cache read-only, performs **zero repeated completed DP updates**, refreshes
    plans/current trainable vision, trains rear12/latest4, and runs fixed grasp8
    per role with the existing full-task subset. Original train2 full-policy
    grasp probes, current-pair offline errors and hard/new-development2 each
    diagnose why grasp remains unreliable. Original session13 evidence is intact.
+   If the old temporary deadline expires first, `finish26.py` can instead resume
+   an incomplete DP from its last complete epoch in the **original frozen trainer**.
+   Model, AdamW, EMA, RNG, decks and total2460-update budget stay exact. Completed
+   B is reused; old uncommitted partial-epoch updates are disclosed and excluded.
+   Append-only logs are copied into the new identity, never linked back to old
+   evidence. This fallback is prepared, not evidence it has run successfully.
 3. The agent reviews these results and selects each complete source pair by
    actual grasp behavior. `launch.py --expected-commit <HEAD> --role-source A=<root>
    --role-source B=<root>` then creates `tight_fresh_20261116_01`, bounded by09:00.
    Each small real loop has4 genuine student-prefix opportunities on two hard
    registered training families, contact-formation triggers,4 DP epochs and4 rear
-   epochs with latest4 for both. Eight mostly short fixed autonomous executions
-   include the normal full-task subset. No stage-success claim follows from loss.
+   epochs with latest4 for both. Eight fixed autonomous executions include the
+   normal full-task subset; four short rechecks of the just-corrected training
+   cases share that same queue. Development and train-family recheck metrics stay
+   separate. No stage-success claim follows from loss.
 4. At least two consecutive real loops must be personally observed. The owner
    cannot write its own `night/supervised_release.json`; the agent may create it
    only after inspecting complete capture/admission/training/checkpoint/autonomy

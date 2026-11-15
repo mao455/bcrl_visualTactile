@@ -553,3 +553,7 @@ imitation 将交互收集、轨迹保存与后续 BC 训练分离；其 Interact
 
 #### Opt-in current native render reuse (2026-11-15)
 `reuse_native_current_render_v1` applies only to registered new queued GPU runs. Native120Hz physics/render_interval2 remains unchanged. A local wrapper witnesses completed native renders at `sim.current_time_step_index`; the extra render inside the existing image reader can be omitted only at the same physical step. Reset or camera calibration changes invalidate this witness. The original reader, real camera updates, preprocessing,60Hz observations and full recording remain. Startup/manual reset without a witnessed current render falls back to rendering. This changes rendered sampling, not a bitwise image replay claim. Legacy paths are unchanged.
+
+
+### Night grasp rechecks (2026-11-16)
+Optional `recheck_training_families` appends at most8 actual collection cases to queued autonomous evaluation, removes all takeover metadata, and preserves train-family labeling. `counts_by_cohort` separates these from fixed development. This never changes native task success, control timing or training split. Old expert command paths become descriptive comparisons after states diverge, not valid labels for new student states.

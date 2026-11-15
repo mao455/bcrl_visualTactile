@@ -55,10 +55,37 @@ def inactive_render_scope(env,profile,output,*,gate_limit_ticks=None):
         if cleanup is not None:raise cleanup
 
 
+def append_training_rechecks(plan, collection, data, horizon):
+    """Add a few actual training reset families to the same autonomous queue.
+
+    These executions are separately labeled and never counted as independent
+    development generalization. There is no expert in their control path.
+    """
+    if not 240<=horizon<=600:raise ValueError('Bounded grasp recheck required')
+    source=read(collection/'plan.json')
+    if source.get('kind')!='takeover' or not read(collection/'result.json').get('software_complete'):
+        raise ValueError('Completed real collection required for training rechecks')
+    families={data['entries'][i]['family'] for i in data['splits']['train']}
+    forbidden={data['entries'][i]['family'] for k,ids in data['splits'].items() if k!='train' for i in ids}
+    if families & forbidden:raise ValueError('Training/held-out family overlap')
+    if not 1<=len(source['cases'])<=8:raise ValueError('Recheck only a small actual correction batch')
+    for case in plan['cases']:case['diagnostic_cohort']='fixed_development'
+    for case in source['cases']:
+        spec=copy.deepcopy(case['spec'])
+        if spec.get('split')!='train' or spec['family'] not in families:
+            raise ValueError('Recheck family is not in the retained training pool')
+        for key in ('takeover_tick','training_expansion','initial_configuration_sha256'):spec.pop(key,None)
+        name='grasp_recheck_'+case['name'];spec.update(identity=name,cohort='fresh',split='train')
+        plan['cases'].append(dict(name=name,role=case['role'],spec=spec,video=False,
+            grasp_evaluation_ticks=horizon,diagnostic_cohort='training_family_recheck'))
+    plan['training_rechecks']=dict(collection=str(collection),source_plan_sha256=sha256(collection/'plan.json'),
+        cases=len(source['cases']),meaning='Autonomous full students on recently corrected train families; separate from fixed development, no expert or exact hidden-state replay claim')
+
+
 def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=None,round_index=7,
             execution_backend=None,writer_bytes=512<<20,vision_microbatch=2,session_root=None,
             verification_workers=0,verification_max_pending=4,vision_tail_profile=None,inactive_render_profile=None,
-            capture_audit_memo=False,queued_gpu=False,grasp_evaluation_ticks=None):
+            capture_audit_memo=False,queued_gpu=False,grasp_evaluation_ticks=None,grasp_recheck_collection=None):
     from visuotactile.models.native_vision import validate_vision_microbatch,validate_vision_tail_profile
     from visuotactile.async_recording import validate_verification_parameters
     vision_microbatch=validate_vision_microbatch(vision_microbatch)
@@ -70,6 +97,8 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
     if grasp_evaluation_ticks is not None and (not queued_gpu or identities is not None
             or type(grasp_evaluation_ticks) is not int or not 240<=grasp_evaluation_ticks<=600):
         raise ValueError('Registered 240–600 tick grasp horizons require queued autonomous evaluation')
+    if grasp_recheck_collection is not None and (not queued_gpu or identities is not None or grasp_evaluation_ticks is None):
+        raise ValueError('Training rechecks require a queued grasp evaluation')
     if type(lanes) is not int or lanes<1 or type(count) is not int or count<1:
         raise ValueError('Explicit positive lane and opportunity counts required')
     if type(writer_bytes) is not int or writer_bytes<32<<20:
@@ -109,6 +138,8 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
             if counts[role]>2:case['grasp_evaluation_ticks']=grasp_evaluation_ticks
         plan['evaluation_scope']=dict(grasp_horizon=grasp_evaluation_ticks,full_task_per_role=2,
             censoring='Observation budget only; native physics/success/timeout unchanged')
+    if grasp_recheck_collection is not None:
+        append_training_rechecks(plan,Path(grasp_recheck_collection),read(root/'A/state_data/data.json'),grasp_evaluation_ticks)
     atomic_json(output/'plan.json',plan)
     return plan
 
@@ -336,6 +367,7 @@ def main():
     p.add_argument('--capture-audit-memo',action='store_true',help='Explicit process-local immutable source and matched-checkpoint audit memo')
     p.add_argument('--queued-gpu',action='store_true')
     p.add_argument('--grasp-evaluation-ticks',type=int)
+    p.add_argument('--grasp-recheck-collection',type=Path)
     a=p.parse_args()
     if a.stage=='run' and a.capture_audit_memo:p.error('run uses the registered capture-audit profile; flag requires prepare')
     from visuotactile.models.native_vision import EXACT_TAIL_PROFILE
@@ -358,7 +390,8 @@ def main():
             vision_microbatch=a.vision_microbatch,session_root=a.session_root.resolve() if a.session_root else None,
             verification_workers=a.verification_workers,verification_max_pending=a.verification_max_pending,
             vision_tail_profile=EXACT_TAIL_PROFILE if a.vision_exact_tail else None,inactive_render_profile=inactive,
-            capture_audit_memo=a.capture_audit_memo,queued_gpu=a.queued_gpu,grasp_evaluation_ticks=a.grasp_evaluation_ticks)
+            capture_audit_memo=a.capture_audit_memo,queued_gpu=a.queued_gpu,grasp_evaluation_ticks=a.grasp_evaluation_ticks,
+            grasp_recheck_collection=a.grasp_recheck_collection)
 
 
 if __name__=='__main__':

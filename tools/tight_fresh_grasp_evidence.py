@@ -20,6 +20,7 @@ def behavior(directory, role=None, *, horizon=None):
         path = directory/case['name']; result = read(path/'result.json')
         row = dict(case=case['name'], role=case['role'], seed=case['spec']['seed'],
                    family=case['spec']['family'], legal=result['legal'],
+                   diagnostic_cohort=case.get('diagnostic_cohort','registered_original_cohort'),
                    grasp_stage_censored=result.get('grasp_stage_censored',False))
         if result['legal']:
             with h5py.File(path/'numeric.h5') as f:
@@ -42,10 +43,11 @@ def behavior(directory, role=None, *, horizon=None):
                     native_near=bool(t['native_success_diagnostic/near_goal'][:].any()),
                     native_subgoals=int(t['diagnostics_after/successes'][:].max()), insertion=result['success'])
         rows.append(row)
-    counts = {}
-    for key in sorted({r['role'] for r in rows}):
-        legal = [r for r in rows if r['role'] == key and r['legal']]
-        counts[key] = dict(legal=len(legal), illegal=sum(r['role']==key and not r['legal'] for r in rows),
+    def summarize(selected):
+      counts = {}
+      for key in sorted({r['role'] for r in selected}):
+        legal = [r for r in selected if r['role'] == key and r['legal']]
+        counts[key] = dict(legal=len(legal), illegal=sum(r['role']==key and not r['legal'] for r in selected),
             contact=sum(r['first_contact_completed_tick'] is not None for r in legal),
             contact_height_lift=sum(r['first_contact_height_completed_tick'] is not None for r in legal),
             brief_hold12=sum(r['brief_hold12']['sustained'] for r in legal),
@@ -53,7 +55,10 @@ def behavior(directory, role=None, *, horizon=None):
             hold60=sum(r['hold60']['sustained'] for r in legal), hold120=sum(r['hold120']['sustained'] for r in legal),
             **{name:sum(bool(r[name]) for r in legal) for name in
                ('native_lift','native_near','native_alignment','native_subgoals','insertion')})
-    return dict(directory=str(directory), rows=rows, counts=counts,holding_horizon=horizon,
+      return counts
+    return dict(directory=str(directory), rows=rows, counts=summarize(rows),holding_horizon=horizon,
+                counts_by_cohort={c:summarize([r for r in rows if r['diagnostic_cohort']==c])
+                    for c in sorted({r['diagnostic_cohort'] for r in rows})},
                 semantics='Real autonomous full students; holding diagnostic differs from native lift/success; no hidden-state exact replay')
 
 

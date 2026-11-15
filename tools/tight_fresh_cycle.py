@@ -187,9 +187,11 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
         paired_episode_io=False,vision_tail_profile=None,inactive_render_profile=None,payload_audit_memo=False,
         parallel_backends=False,offline_anchor_batch=None,backend_offline_anchor_batch=None,trajectory_batch_profile=None,training_sampling=None,
         frozen_visual_io=None, backend_latest_repeat=None,queued_gpu_evaluation=False,grasp_evaluation_ticks=None,
-        prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False,resume=False):
+        prepared_from=None,frozen_cache_from=None,release_unused_cuda_cache=False,resume=False,recheck_training_families=False):
     from visuotactile.trajectory_training import validate_profile
     trajectory_profile=validate_profile(trajectory_batch_profile)
+    if recheck_training_families and (not queued_gpu_evaluation or grasp_evaluation_ticks is None or evaluation_lanes<=1):
+        raise ValueError('Training-family rechecks require queued short grasp evaluation')
     from visuotactile.fresh_visit_sampling import validate_profile as validate_visit_profile
     training_sampling=validate_visit_profile(training_sampling)
     if backend_latest_repeat is not None and (type(backend_latest_repeat) is not int or backend_latest_repeat not in (1,2,4)):
@@ -261,6 +263,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
     if inactive is not None:registration['inactive_render_profile']=inactive
     if payload_audit_memo:registration['payload_audit_memo']=True
     registration['release_unused_cuda_cache']=release_unused_cuda_cache
+    if recheck_training_families:registration['recheck_training_families']=True
     if prepared_from is not None:registration['prepared_reuse']=dict(path=str(prepared_from),prepared_sha256=sha256(Path(prepared_from)/'prepared.json'))
     if offline_planning is not None:registration['frontend_offline_planning']=offline_planning
     if backend_offline_planning is not None:registration['backend_offline_planning']=backend_offline_planning
@@ -424,6 +427,7 @@ def run(root, collection, output, epochs, rear_epochs, count, seed, *, continue_
             if tail is not None:arguments+=['--vision-exact-tail']
             if queued_gpu_evaluation:arguments+=['--queued-gpu']
             if grasp_evaluation_ticks is not None:arguments+=['--grasp-evaluation-ticks',grasp_evaluation_ticks]
+            if recheck_training_families:arguments+=['--grasp-recheck-collection',collection]
             if inactive is not None:arguments+=['--inactive-render-products']
             if execution_backend is not None:
                 backend_path=ledger/'execution_backend.json';atomic_json(backend_path,execution_backend)
@@ -468,6 +472,7 @@ def main():
     p.add_argument('--queued-gpu-evaluation',action='store_true')
     p.add_argument('--grasp-evaluation-ticks',type=int)
     p.add_argument('--backend-json',type=Path)
+    p.add_argument('--recheck-training-families',action='store_true')
     p.add_argument('--prefetch-mib',type=int,help='Opt-in frozen CPU episode staging, at most 1024 MiB per trainer')
     p.add_argument('--vision-microbatch',type=int,default=2)
     p.add_argument('--vision-exact-tail',action='store_true',help='Explicit evaluation-only DINO tail-shape candidate')
@@ -498,6 +503,7 @@ def main():
         parallel_frontends=a.parallel_frontends,paired_episode_io=a.paired_episode_io,latest_repeat=a.latest_repeat,
         backend_latest_repeat=a.backend_latest_repeat,
         queued_gpu_evaluation=a.queued_gpu_evaluation,grasp_evaluation_ticks=a.grasp_evaluation_ticks,
+        recheck_training_families=a.recheck_training_families,
         evaluation_lanes=a.evaluation_lanes,execution_backend=read(a.backend_json) if a.backend_json else None,
         episode_io=dict(version='frozen_episode_prefetch_v1',max_bytes=a.prefetch_mib<<20,
             minimum_available_bytes=10<<30) if a.prefetch_mib is not None else None,vision_microbatch=a.vision_microbatch,

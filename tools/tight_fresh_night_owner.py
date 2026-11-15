@@ -139,7 +139,7 @@ def run(root,configuration):
                     '--parallel-frontends','--parallel-backends','--full-trajectory-batch','--continue-rear',
                     '--payload-audit-memo','--release-unused-cuda-cache','--reuse-index',source/'A/cache_index.json',
                     '--offline-anchor-batch',32,'--backend-offline-anchor-batch',32,'--queued-gpu-evaluation',
-                    '--grasp-evaluation-ticks',300,'--backend-json',cfg['backend_json'],
+                    '--grasp-evaluation-ticks',300,'--recheck-training-families','--backend-json',cfg['backend_json'],
                     '--training-sampling-json',cfg['training_sampling_json'],'--frozen-visual-io-json',cfg['frozen_visual_io_json'])
                 completed=candidate.with_name(candidate.name+'_stages')/'finished.json'
                 if not completed.exists():
@@ -156,7 +156,9 @@ def run(root,configuration):
                 assert read(completed)['software_complete']
                 decisions=source_decision(candidate,state['sources'],state['evaluations'])
                 row=dict(index=index,complete=True,collection=str(collection),candidate=str(candidate),
-                    accepted=audit['accepted'],decisions=decisions,ended=time.time())
+                    accepted=audit['accepted'],decisions=decisions,ended=time.time(),
+                    training_family_rechecks=[r for r in behavior(candidate/'development',horizon=300)['rows']
+                        if r['diagnostic_cohort']=='training_family_recheck'])
                 atomic_json(ledger/f'round_{index}_complete.json',row)
                 for role in 'AB':
                     if decisions[role]['use_candidate']:
