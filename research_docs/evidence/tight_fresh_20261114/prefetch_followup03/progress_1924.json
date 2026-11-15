@@ -1,0 +1,331 @@
+{
+  "version": "round13_progress_and_prefetch_actual_v1",
+  "observed_at": "2026-11-15T19:24:26.860661+08:00",
+  "collection": {
+    "version": "collection_closed_receipts_v1",
+    "round_index": 13,
+    "collection_source_commit": "19736beb4215fac63aa0e5070e4bedff962cec9d",
+    "total": {
+      "attempts": 64,
+      "legal": 62,
+      "triggered": 33,
+      "accepted": 32,
+      "accepted_expert_ticks": 8325
+    },
+    "schedules": {
+      "fixed80": {
+        "attempts": 8,
+        "legal": 8,
+        "triggered": 8,
+        "accepted": 8,
+        "accepted_expert_ticks": 2716
+      },
+      "held0": {
+        "attempts": 32,
+        "legal": 31,
+        "triggered": 19,
+        "accepted": 18,
+        "accepted_expert_ticks": 4750
+      },
+      "held_root60": {
+        "attempts": 24,
+        "legal": 23,
+        "triggered": 6,
+        "accepted": 6,
+        "accepted_expert_ticks": 859
+      }
+    },
+    "roles": {
+      "A": {
+        "attempts": 32,
+        "legal": 30,
+        "triggered": 15,
+        "accepted": 14,
+        "accepted_expert_ticks": 3908
+      },
+      "B": {
+        "attempts": 32,
+        "legal": 32,
+        "triggered": 18,
+        "accepted": 18,
+        "accepted_expert_ticks": 4417
+      }
+    },
+    "accepted_switch_diagnostic_phases": {
+      "noncontact_observed": 4,
+      "contact_observed": 25,
+      "native_lift_observed": 3
+    },
+    "accepted_families": 22,
+    "accepted_verified_field_counts": {
+      "186": 32
+    },
+    "collection_seconds": 3525.1291312170215,
+    "accepted_per_hour": 32.67965391106911,
+    "wave_wall_components_seconds": {
+      "controller_s": 641.5879967319779,
+      "environment_s": 1183.0064765398856,
+      "expert_s": 17.684947304427624,
+      "record_submit_s": 519.0159487584606,
+      "finish_audit_s": 779.2934210950043,
+      "admission_s": 120.16013145586476
+    },
+    "wall_component_fraction": {
+      "controller_s": 0.18200411186369078,
+      "environment_s": 0.33559238045031914,
+      "expert_s": 0.005016822546390532,
+      "record_submit_s": 0.14723317343534437,
+      "finish_audit_s": 0.22106804944928635,
+      "admission_s": 0.0340867318566513
+    },
+    "timing_semantics": "Sums of main-path timers across all four waves; environment includes sensors/rendering. Async verifier/writer internals overlap and are not added.",
+    "original_cycle_failure": null,
+    "training_status_at_collection_close": "not_started",
+    "student_autonomous_benefit": "not_yet_evaluated",
+    "phase_semantics": "Schedules and recorded switch diagnostics; held conditions are not native lift/alignment success.",
+    "raw_payloads_opened": 0,
+    "input_sha256": {
+      "new_family_13/plan.json": "651bf9ca6476977ad2d71bcad3701b246dc7b69366fadf4850554318aa3f28c6",
+      "new_family_13/results.json": "8d9f6ae33a2c7825393078c2162a283790790110920b51fcd46afed415dab6ee",
+      "new_family_13/result.json": "d8d19568b17564d1482daeb4bee2b874556d293cb12e6f691379d2ae6def41f4",
+      "new_family_13/owner_finished.json": "1b8f5eaa1ffa885bb14f905496cbb50ee5f46586ca4d59c72ab7ad965cc77afb",
+      "new_family_13/correction_entries.json": "0ce3ee2165b671feeb1c86ffb777c49461c864bf780b8edd717a2f72f4b30296",
+      "new_family_13/wave_profiles.json": "1e6d80a6f42d9c21e99fcdeef70e3c0936991abea9f6cfbf9aba6896b270d0d3"
+    },
+    "holding_related": {
+      "attempts": 56,
+      "legal": 54,
+      "triggered": 25,
+      "accepted": 24,
+      "accepted_expert_ticks": 5609,
+      "accepted_per_hour": 24.509740433301836
+    }
+  },
+  "train_trajectories": 283,
+  "training_families": 149,
+  "validation_trajectories": 6,
+  "roles": {
+    "A": {
+      "complete": true,
+      "epochs": 20,
+      "optimizer_updates": 3800,
+      "ema_updates": 3800,
+      "episode_visits": 7580,
+      "stage_seconds": 2851.08314371109,
+      "training_finished_wall_seconds": 2819.2906227430794,
+      "selected_epoch": 18,
+      "selected_checkpoint_sha256": "3344d9b59caeeaee815b16a7f541922384753ec5bbbf59b2998808a9ba7d6870",
+      "selection_source": "First minimum of completed validation receipts; checkpoint tensors not reopened.",
+      "selected_new_correction_visits_histogram": {
+        "72": 32
+      },
+      "last_new_correction_visits_histogram": {
+        "80": 32
+      },
+      "initial_validation": {
+        "arm_rmse_rad": 0.004806706216186285,
+        "hand_rmse_rad": 0.046940866857767105,
+        "selection": 0.005537889897823334
+      },
+      "selected_validation": {
+        "arm_rmse_rad": 0.004440881311893463,
+        "hand_rmse_rad": 0.044944681227207184,
+        "selection": 0.005303127225488424
+      },
+      "validation_selection_relative_reduction": 0.04239208013636797,
+      "initial_new_correction": {
+        "arm_rmse_rad": 0.008078590966761112,
+        "hand_rmse_rad": 0.06339605897665024,
+        "selection": 0.009389238432049751
+      },
+      "last_new_correction": {
+        "arm_rmse_rad": 0.002890843665227294,
+        "hand_rmse_rad": 0.024361038580536842,
+        "selection": 0.0013451703125610948
+      },
+      "selected_new_correction": null,
+      "selected_correction_scope": "Absent selected-epoch cohort metrics remain null; last is not selected.",
+      "sampling_coverage": {
+        "episodes": 283,
+        "visits": 7580,
+        "anchor_draws": 175680,
+        "unique_anchor_ticks": 64915,
+        "unique_non_native_grid_ticks": 59460,
+        "geometry_draws": 669496,
+        "unique_geometry_ticks": 75824,
+        "geometry_stage_unique_ticks": {
+          "contact_not_held": 33560,
+          "held_rotating": 4992,
+          "held_near_goal60": 6036,
+          "held_far": 680,
+          "after_first_native_subgoal": 20127,
+          "contact_lost": 7964,
+          "grasp_without_contact": 2465
+        }
+      },
+      "actual_epoch_io": {
+        "epochs": 20,
+        "training_epoch_wall_seconds": 2672.5766540293116,
+        "process_read_bytes": 3836409798656,
+        "batch_prefetch": {
+          "batches": 3800,
+          "prefetch_hits": 3780,
+          "admission_fallbacks": 0,
+          "consumer_wait_s": 511.8194214475807,
+          "load_s": 2433.758976580575
+        },
+        "maximum_next_batch_bytes": 2122462413,
+        "timing_semantics": "Epoch wall excludes validation. Background load overlaps computation; do not add load_s to wall. OS caching and workload differ across rounds."
+      }
+    },
+    "B": {
+      "complete": true,
+      "epochs": 20,
+      "optimizer_updates": 3800,
+      "ema_updates": 3800,
+      "episode_visits": 7580,
+      "stage_seconds": 2579.473363637924,
+      "training_finished_wall_seconds": 2573.4065176129807,
+      "selected_epoch": 14,
+      "selected_checkpoint_sha256": "d9669c1c2003394d99d1951a191dff6b79e5ec6e6bc2de3920352353d9fed190",
+      "selection_source": "First minimum of completed validation receipts; checkpoint tensors not reopened.",
+      "selected_new_correction_visits_histogram": {
+        "56": 32
+      },
+      "last_new_correction_visits_histogram": {
+        "80": 32
+      },
+      "initial_validation": {
+        "arm_rmse_rad": 0.006131455302238464,
+        "hand_rmse_rad": 0.06332219392061234,
+        "selection": 0.006603445392102003
+      },
+      "selected_validation": {
+        "arm_rmse_rad": 0.0052090901881456375,
+        "hand_rmse_rad": 0.05793669819831848,
+        "selection": 0.005483305547386408
+      },
+      "validation_selection_relative_reduction": 0.16962960669824412,
+      "initial_new_correction": {
+        "arm_rmse_rad": 0.010504941456019878,
+        "hand_rmse_rad": 0.0783846452832222,
+        "selection": 0.01067014504224062
+      },
+      "last_new_correction": {
+        "arm_rmse_rad": 0.003465533722192049,
+        "hand_rmse_rad": 0.033522963523864746,
+        "selection": 0.0017307151574641466
+      },
+      "selected_new_correction": null,
+      "selected_correction_scope": "Absent selected-epoch cohort metrics remain null; last is not selected.",
+      "sampling_coverage": {
+        "episodes": 283,
+        "visits": 7580,
+        "anchor_draws": 175680,
+        "unique_anchor_ticks": 64915,
+        "unique_non_native_grid_ticks": 59460,
+        "geometry_draws": 0,
+        "unique_geometry_ticks": 0,
+        "geometry_stage_unique_ticks": {}
+      },
+      "actual_epoch_io": {
+        "epochs": 20,
+        "training_epoch_wall_seconds": 2441.7416986953467,
+        "process_read_bytes": 3739268902912,
+        "batch_prefetch": {
+          "batches": 3800,
+          "prefetch_hits": 3780,
+          "admission_fallbacks": 0,
+          "consumer_wait_s": 1119.2135240570642,
+          "load_s": 2428.4102868456393
+        },
+        "maximum_next_batch_bytes": 2122462413,
+        "timing_semantics": "Epoch wall excludes validation. Background load overlaps computation; do not add load_s to wall. OS caching and workload differ across rounds."
+      }
+    }
+  },
+  "frontend_A_observed_comparison": {
+    "previous_round": 12,
+    "candidate_round": 13,
+    "role": "A",
+    "previous_stage_seconds": 3470.3239572048187,
+    "candidate_stage_seconds": 2851.08314371109,
+    "previous_updates": 2880,
+    "candidate_updates": 3800,
+    "stage_wall_relative_reduction": 0.17843890689458797,
+    "observed_updates_per_stage_second_ratio": 1.6060210926701595,
+    "previous_epoch_io": {
+      "epochs": 20,
+      "training_epoch_wall_seconds": 3299.084079838358,
+      "process_read_bytes": 2937424457728,
+      "batch_prefetch": {
+        "batches": 0,
+        "prefetch_hits": 0,
+        "admission_fallbacks": 0,
+        "consumer_wait_s": 0,
+        "load_s": 0
+      },
+      "maximum_next_batch_bytes": null,
+      "timing_semantics": "Epoch wall excludes validation. Background load overlaps computation; do not add load_s to wall. OS caching and workload differ across rounds."
+    },
+    "epoch_wall_relative_reduction": 0.1899034430913148,
+    "interpretation": "Actual formal frontend stage measurements. Data pool, new-suffix repeat count and update workload differ; not an isolated causal prefetch benchmark or completed-cycle speedup."
+  },
+  "visual_cache_seconds": 328.60921001434326,
+  "active_stage": {
+    "stage": "parallel_backends",
+    "roles": [
+      "A",
+      "B"
+    ],
+    "started": 1794740332.8171577
+  },
+  "owner_status": {
+    "stage": "collect_cycle",
+    "round": 13,
+    "completed_rounds": 0,
+    "work_deadline": 1794752543.5936224
+  },
+  "services": {
+    "tight-fresh-prefetch-20261115-03.service": {
+      "returncode": 0,
+      "properties": {
+        "MainPID": "181136",
+        "ExecMainStatus": "0",
+        "ActiveState": "active",
+        "SubState": "running"
+      }
+    },
+    "tight-fresh-monitor-20261115-03.service": {
+      "returncode": 0,
+      "properties": {
+        "MainPID": "181094",
+        "ExecMainStatus": "0",
+        "ActiveState": "active",
+        "SubState": "running"
+      }
+    }
+  },
+  "autonomous_complete": false,
+  "models_opened": 0,
+  "raw_payloads_opened": 0,
+  "learning_jsonl_opened": 0,
+  "interpretation": "Successful expert recovery is not student success. Held collection conditions are distinct from native lift/alignment. Complete DP plus refreshed backend and autonomous evaluation remain required.",
+  "input_sha256": {
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/A/state_data/data.json": "097783cf7d67f866197b8e900f73160ba5ec34c2cca91345827c6a8a91cc4fa7",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/A/training/finished.json": "bb64c46ae31287c3f41901b3e191fa96ede9a72e4efb88e08e3554dd794092db",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/A/training/validation.jsonl": "a9c3ebefb9aa4c66db468bdb0e17097af25c6f9b7a5d4434aa6414e75f7503c2",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/A/training/initial_metrics.json": "c89f0027cde023d2cf021fa82cee2769038820b483693250fd6edbd744b73c5b",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13_stages/frontend_A.json": "c2783e4cb560571278ced8c3e1bc8462b86bd60093048773da0c2d0e63ac008d",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/B/training/finished.json": "879a3af599085224c26bb19910db19029f47543faaa14323d44bf744c80deffe",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/B/training/validation.jsonl": "3fa98fb0b50328fa7d1b9c3e83b1a9ec3d667f79f5364a6b93ea7b2e41d72be5",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13/B/training/initial_metrics.json": "05409dc7adcff7c05354f8dec803c8956de192dc5b8c06ded39456fa7ac9a149",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13_stages/frontend_B.json": "c579e0f552814581e5c3c78c38ec05778002b440b474d0834aabb040b649c33f",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_02/round_12/A/training/finished.json": "3392b935d36c38579d35f72c4b85ba9be57311a918ae733d33c8f3fdc6af74a9",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_02/round_12/A/training/validation.jsonl": "57d008a85c3887dbca1acb99e72f684c5eaca3a55c1433051f39116a77a8d523",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_02/round_12_stages/frontend_A.json": "9aacd00c6a5e180381376077e4061a3b93a04340fff5f62235b13cb19120fd64",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13_stages/visual_cache.json": "93c2459af514b0292520c0a34d4e19f7748748a8ce2aeb07a7a60802d5183ffe",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/round_13_stages/status.json": "b7b64d259e4c449dca563d089629c3fcf89937fd36b0328d1e7465326b8cac50",
+    "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_03/research_loop/owner_status.json": "a9518fc270fcef1b84f28127eca61f2e055cefc083bb1574ad9bac81759d85e9"
+  }
+}
