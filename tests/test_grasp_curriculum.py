@@ -44,6 +44,11 @@ def test_approach_trigger_requires_real_near_moving_fingers_and_replays_hdf5(tmp
     stationary=np.tile(pose[:3]+[.05,0,0],(5,1))
     for tick in range(80):
         assert trigger.observe(tick,pose,pose,zero,finger_position_w=stationary) is None
+    trigger=make_trigger(APPROACH,10**9)
+    transient=zero.copy();transient[0,0,2]=.2
+    for tick in range(60):
+        tips=np.tile(pose[:3]+[.15-.002*tick,0,0],(5,1))
+        assert trigger.observe(tick,pose,pose,transient if tick==20 else zero,finger_position_w=tips) is None
 
 
 def test_contact_formation_trigger_uses_real_persistent_contact_not_clock():

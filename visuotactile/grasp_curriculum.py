@@ -77,6 +77,7 @@ class EarlyGraspTrigger:
         self.reason = 'no_early_recovery_condition'
         self.trigger_completed_tick = None; self.at_trigger = None
         self.finger_distances = []
+        self.any_object_contact = False
 
     def observe(self, tick, pose, palm, force, *, finger_position_w=None):
         pose, palm, force = (np.asarray(x) for x in (pose, palm, force))
@@ -88,12 +89,13 @@ class EarlyGraspTrigger:
         self.finger_counts.append(int((np.linalg.norm(force,axis=-1)>.1).sum(-1).min()))
         n = len(self.poses)
         if self.configuration['version'] == APPROACH_VERSION:
+            self.any_object_contact |= bool((np.linalg.norm(force,axis=-1)>.1).any())
             tips=np.asarray(finger_position_w)
             if tips.shape!=(5,3) or not np.isfinite(tips).all():
                 raise ValueError('Approach screen requires actual five-finger diagnostic positions')
             self.finger_distances.append(float(np.linalg.norm(tips-pose[:3],axis=-1).min()))
             cfg=self.configuration;confirmation=cfg['approach_confirm_ticks'];history=cfg['approach_history_ticks']
-            if (n>=cfg['approach_minimum_tick'] and not any(self.finger_counts)
+            if (n>=cfg['approach_minimum_tick'] and not self.any_object_contact
                     and max(self.finger_distances[-confirmation:])<=cfg['approach_distance_m']
                     and self.finger_distances[-history]-self.finger_distances[-1]>=cfg['approach_distance_decrease_m']):
                 self.reason='approaching_first_contact'
