@@ -1404,7 +1404,8 @@ def residual_train(root, *, smoke=False, probe=False):
         if score is None or not math.isfinite(score):raise FloatingPointError('Invalid validation score')
         row['selection_score']=score
         if extension:
-            row['cohort_diagnostics']=rear_diagnostics(model,records,data,lease)
+            if extension['version']=='fixed_distribution_extension_v1':
+                row['cohort_diagnostics']=rear_diagnostics(model,records,data,lease)
             row['learning_rates']=[g['lr'] for g in opt.param_groups]
             row['stopping']=plateau.observe(epoch,score,opt)
         history.append(row);atomic_json(out/'validation.json',history)

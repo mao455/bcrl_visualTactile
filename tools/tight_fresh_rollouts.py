@@ -24,8 +24,8 @@ def completed_pair(root, role):
     offline = read(base / 'offline/result.json')
     bounded_complete=False
     if finished.get('bounded_extension'):
-        from visuotactile.bounded_extension import profile
-        bounded_complete=(finished['bounded_extension']==profile()
+        from visuotactile.bounded_extension import profile,fresh_layout_profile
+        bounded_complete=(finished['bounded_extension'] in (profile(),fresh_layout_profile('backend'))
             and finished.get('bounded_training_complete') is True
             and finished.get('minimum_exposure_reached') is True
             and finished.get('stop_reason')=='validation_plateau_after_lr_reduction'

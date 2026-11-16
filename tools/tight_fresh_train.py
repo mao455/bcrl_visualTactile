@@ -315,6 +315,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     visual_io=load_visual_io(root)
     from visuotactile.bounded_extension import load as load_extension,Plateau,admit_dp_restore,dp_diagnostics
     extension=load_extension(root)
+    if extension and epochs!=extension['policy']['maximum_epochs']:raise ValueError('Registered maximum epoch budget differs')
     if visual_io is not None and batch_profile is None:
         raise ValueError('Formal eager visual I/O currently requires the explicit B2 frontend path')
     if offline_planning is not None:
@@ -643,7 +644,8 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
         if extension:
-            with lease.block():report['cohort_diagnostics']=dp_diagnostics(averaged,records,data,objective,visual_io,offline_planning,lease)
+            if extension['policy']['version']=='fixed_distribution_extension_v1':
+                with lease.block():report['cohort_diagnostics']=dp_diagnostics(averaged,records,data,objective,visual_io,offline_planning,lease)
             report['learning_rates']=[g['lr'] for g in opt.param_groups]
             report['stopping']=plateau.observe(epoch+1,val['selection'],opt)
         report['training_epoch_io']=training_epoch_io

@@ -11,17 +11,31 @@ def profile():
                 lr_factor=.5, maximum_reductions=1, activate_after_epoch=8)
 
 
+
+def fresh_layout_profile(kind='frontend'):
+    if kind not in ('frontend','backend'):raise ValueError('Unknown fresh layout budget')
+    return dict(version='fresh_layout_budget_v1',kind=kind,
+        maximum_epochs=80 if kind=='frontend' else 40,
+        minimum_epochs=40 if kind=='frontend' else 20,
+        patience=8 if kind=='frontend' else 6,relative_improvement=.005,
+        lr_factor=.5,maximum_reductions=1,activate_after_epoch=20 if kind=='frontend' else 8)
+
+
+def valid_policy(value):
+    return value in (profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'))
+
+
 def load(root):
     path=Path(root)/'bounded_extension.json'
     if not path.exists():return None
     value=json.loads(path.read_text())
-    if value['policy']!=profile():raise ValueError('Unknown bounded extension policy')
+    if not valid_policy(value['policy']):raise ValueError('Unknown bounded extension policy')
     return value
 
 
 class Plateau:
     def __init__(self, policy, state=None, baseline=None):
-        if policy!=profile():raise ValueError('Unknown bounded extension policy')
+        if not valid_policy(policy):raise ValueError('Unknown bounded extension policy')
         self.policy=policy
         self.state=copy.deepcopy(state or dict(best=baseline, bad=0, reductions=0, stop=False, events=[]))
 

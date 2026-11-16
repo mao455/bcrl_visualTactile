@@ -1,3 +1,9 @@
+## 2026-11-16 新布局采集退出门已通过，修复下一进程启动目录冲突
+
+10cm首两条独立验证示范均完成、完整capture关闭；采集子进程退出0、GPU PID消失且monitor仍活。第二阶段尚未启动Kit即因StartupDiagnostics独占创建已有startup_tracebacks.log而失败；没有新的物理机会。原root与两条有效源记录全部保留。恢复采用新root tight_layout10_20261116_01_recovery01、每worker独立startup目录，复用已通过gate与结果，跳过已完成identity，所有原session截止不变。未开始的其余34成功目标继续，未宣称完成。
+
+新增显式fresh_layout_budget_v1：DP40–80遍，后端20–40遍，独立验证停滞先减半LR再有界停止；模型/采样/动作保持最近已验证设置，A/B相同规则，从随机学生权重开始。统一CPU检查覆盖仅XY平移、碰撞盒距离、历史及新调度/恢复状态，无GPU/optimizer更新；真实训练尚未开始。此前pilot全部结果已落盘，但Kit关闭无进展420秒后owner终止，不能称SDK正常退出。
+
 ## peg_spacing_reset_v1（2026-11-16）
 
 显式布局pilot仅对原direct_configuration生成的fixed_start_pose XY施加远离孔基座的0/.05/.10m位移，其他reset字段逐值不变。surface距离用原URDF碰撞盒在真实reset位姿下的凸最小距离，不以中心距替代；不包含contact/rest offset。原live conservative collision gate仍运行；视频与原生专家成功另审。修改不进入原默认reset、学生输入、控制与成功定义。测试覆盖零偏移恒等、其他字段恒等及已知盒间距；尚无真实布局验收。

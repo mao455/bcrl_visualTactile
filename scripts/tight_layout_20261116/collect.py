@@ -4,7 +4,7 @@ from pathlib import Path
 from visuotactile.training_resources import atomic_json
 from visuotactile.compact import sha256
 from scripts.tight_layout_20261116.pilot import TREE,ROOT as PILOT,read,reset_configuration,geometry
-ROOT=TREE/'outputs/visuotactile/run/tight_layout10_20261116_01'
+ROOT=Path(os.environ.get('TIGHT_LAYOUT_ROOT',str(TREE/'outputs/visuotactile/run/tight_layout10_20261116_01')))
 
 def prepare():
  assert read(PILOT/'owner_exit.json')['children_reaped']
@@ -42,7 +42,10 @@ def worker():
  completed={r['identity'] for r in rows};gate='--gate' in sys.argv
  if not gate:assert read(ROOT/'collection_gate_exit.json')['exit_code']==0
  try:
-  app,env,player,lease=environment(ROOT,startup_diagnostics=True)
+  startup=ROOT/('startup_gate' if gate else 'startup_capture')
+  startup.mkdir(exist_ok=False)
+  atomic_json(startup/'session.json',s)
+  app,env,player,lease=environment(startup,startup_diagnostics=True)
   atomic_json(ROOT/'initialization.json',dict(utc=time.time(),pid=os.getpid()))
   for spec in plan['jobs']:
    if spec['identity'] in completed:continue

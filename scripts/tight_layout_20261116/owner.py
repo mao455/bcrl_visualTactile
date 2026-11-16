@@ -19,7 +19,11 @@ def run():
    until=time.time()+25
    while not (ROOT/'shared_resources.json').exists():
     assert monitor.poll() is None and time.time()<until;time.sleep(.25)
-   for name,extra,receipt in [('capture_gate',['--gate'],'collection_gate_complete.json'),('capture',[],'collection_complete.json'),('data',[],'prepared.json')]:
+   stages=[('capture_gate',['--gate'],'collection_gate_complete.json'),('capture',[],'collection_complete.json'),('data',[],'prepared.json')]
+   if (ROOT/'recovery.json').exists():
+    assert read(ROOT/'collection_gate_exit.json')['exit_code']==0
+    stages=stages[1:]
+   for name,extra,receipt in stages:
     command=[sys.executable,'-m','scripts.tight_layout_20261116.collect','data' if name=='data' else 'worker','--root',str(ROOT),*extra]
     start=time.time()
     with (ROOT/(name+'.log')).open('x') as log:
