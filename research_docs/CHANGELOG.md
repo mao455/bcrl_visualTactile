@@ -1796,3 +1796,6 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 - 公共逐epoch指标无损压成四份JSONL.gz（22/24/24/24个实测点），重读逐值相等，约2.81MB→.28MB；研究机原始日志不动，不重复保留派生JSON副本。report.py后续再生使用同格式。
 - 收尾代码：behavior_report.py增加共同合法交集、初态比较和全部四训练family物理曲线，标签修正重绘的数值SHA保持；performance_report.py增加整阶段实际活动环境/有效控制步，189.148分钟完整成本含失败恢复，不冒充提速。closed_command_gap.py实际仅CPU1.80秒查询8条B真实状态，复用同SHA验证；plot_closed_gap.py只读绘图。B接触前命令差翻倍、执行目标误差0，但初始DP计划小差异保留因果边界；0新仿真/更新/入库。
 - 运行退出：13:34:57收尾完成，owner/finish成功退出，监控已停、MainPID0。脚本README与SESSION_HANDOFF明确禁止重启已完成root，原6h截止未修改。当前约24GiB可用，未再删有效数据。训练源码冻结76352bd，闭环plan记录a7df427及逐文件SHA；只推代码/配置/小证据到原origin feature分支。
+## 2026-11-16 延长训练后持物诊断：实施入口
+
+新增`scripts/tight_stability_20261116`：读取全部7条A长训轨迹、相同真实专家历史下短/长后端分解、只读捕获完整后端输入与16环境有限新开发评估。未修改网络、损失、采样、控制或物理；没有优化器更新/新DAgger。A已有两条明确失去接触落下，一条变单指但仍抬高，一条仍持物并首子目标；不能把末窗口不满足一律写成掉落。实际新闭环结果尚待。公共精简证据集中于原诊断evidence/stability。

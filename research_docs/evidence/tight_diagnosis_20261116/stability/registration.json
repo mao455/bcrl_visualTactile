@@ -1,0 +1,150 @@
+{
+  "utc": 1794810262.5146952,
+  "deadline": 1794821062.5146952,
+  "groups": {
+    "candidates": {
+      "A": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_budget_20261116_01/A/training/best.pt",
+        "frontend_sha256": "3d0e8f617f28de22047c995a9169d4ab2cab3dfd6c59061d9b4e0bf87c8a9295",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_budget_20261116_01/A/backend/A/training/best.pt",
+        "backend_sha256": "f71e21fa58d02d3da77a125aa06c2070e777552085dea045681c21747e9e5dc9",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "q_reached",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      },
+      "B": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_budget_20261116_01/B/training/best.pt",
+        "frontend_sha256": "5063472615141c60b6a7e300c5cd21c67db1df6842cc7c08a697cd02b6c33bc8",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_budget_20261116_01/B/backend/B/training/best_through_epoch8.pt",
+        "backend_sha256": "7ec1c67f4e948e2a4c1156ae776d25862bc3cecc4a317f00bf77cbf6d933616c",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "u_expert",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      }
+    },
+    "fallbacks": {
+      "A": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/training/best.pt",
+        "frontend_sha256": "c2b4ce5703e02b91f59872a6240f1b40ade62af730a5f4dbd56ecc5b653cd08d",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11/A/backend/A/training/best.pt",
+        "backend_sha256": "170b057b3b0156b8b7a3c24d1afcdbeedb8611fa7a24ccad0c4845d790d3cf16",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "q_reached",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      },
+      "B": {
+        "version": "complete_student_policy_v1",
+        "controller": "ResidualController",
+        "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_13/round_15/B/training/best.pt",
+        "frontend_sha256": "516166b284d16d19e97e0e4a06b671bd555f09f7e9241b088775bb1e2ea571d5",
+        "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_00/round_15/B/backend/B/training/best.pt",
+        "backend_sha256": "d9b0563238228bc1d482776df0ecf962ecd654f8376d59614cc50ea4ff343550",
+        "residual_version": "target_residual_transformer60_v1",
+        "supervision": "u_expert",
+        "supervision_inference": null,
+        "modality": "G00",
+        "output": "absolute_joint_position_target_rad",
+        "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+        "execution_adapter": {
+          "version": "expert_reachable_postprocessed_v1",
+          "input_space": "postprocessed_absolute_joint_target_rad",
+          "reference": "actual_pre_action_actuator_target_rad",
+          "control_dt": 0.016666666666666666,
+          "dof_speed_scale": 1.5,
+          "arm_moving_average": 0.1,
+          "hand_moving_average": 0.1,
+          "arm_progress": 0.5,
+          "hand_progress": 1.0,
+          "hand_target_cap_rad_s": 2.0,
+          "roundoff_tolerance_rad": 1e-06,
+          "delay": "already_resolved_in_supervision_no_second_queue"
+        },
+        "zero_correction_is_valid": true
+      }
+    }
+  },
+  "seeds": [
+    28500100,
+    28500101,
+    28500102,
+    28500103,
+    28500104,
+    28500105,
+    28500106,
+    28500107
+  ],
+  "cohort": "New development families, no training/validation/test use",
+  "attempts": 32,
+  "lanes": 16,
+  "grasp_horizon": 480,
+  "full_task_seeds": [
+    28500100
+  ],
+  "primary": "Ever hold60/120/180 and final60 at common first480 controls; native lift separate",
+  "invalid_starts": "Retain and exclude from legal denominator; no replacement",
+  "full_execution": "First registered seed per role/group runs to native termination, not grasp cutoff",
+  "capture": "Read-only exact rear input stream for independent same-input checkpoint replay; no cached trainable hidden state",
+  "rationale": "Existing A evidence: two post-hold contact-loss/drop events at phases4 and10, one two-to-one finger event atphase0; B same-state expert error worsens before contact. Compare retained candidates to safe fallbacks before any more training.",
+  "source_commit": "3bcccc0faf515063aeb60815d9ee1ee1835cbc96",
+  "old_completed_run_untouched": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_budget_20261116_01"
+}
