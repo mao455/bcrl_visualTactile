@@ -78,4 +78,33 @@ for col,role in enumerate('AB'):
   ax.set_yticks(range(len(group)),[x['group'] for x in group],fontsize=8);ax.set_xticks(range(len(keys)),keys,rotation=45,ha='right',fontsize=8);ax.set_title(role+' '+cohort)
 fig.suptitle('Full DP+Transformer, 16 lanes, first300 control ticks = 5s. Distinct criteria; no full insertion failure denominator.')
 fig.tight_layout();fig.savefig(O/'behavior_stages.png',dpi=150);plt.close(fig)
+# All four preregistered training-family rechecks, not outcome-selected examples.
+# These are physical trajectories, NOT expert-action error or exact hidden-state replay.
+train_cases=sorted({r['case'] for r in rows if r['cohort']=='training_family_recheck'})
+fig,axes=plt.subplots(2,len(train_cases),figsize=(17,7),squeeze=False);trace=[]
+for col,case in enumerate(train_cases):
+ for gi,group in enumerate(groups):
+  r=next(x for x in rows if x['case']==case and x['group']==group)
+  if not r['legal']:continue
+  with h5py.File(Path(r['directory'])/'numeric.h5') as f:
+   t=f['episode/transition'];z=t['diagnostics_after/object_pose_w'][:300,2]
+   force=t['object_contact_force_w'][:300]
+  fingers=(np.linalg.norm(force,axis=-1)>.1).sum(-1).min(-1)
+  rise=z-np.median(z[24:48]);ticks=np.arange(1,len(z)+1);seconds=ticks/60
+  eligible=(ticks>48)&(rise>=.02)&(fingers>=2)
+  axes[0,col].plot(seconds,rise*100,label=group+f" hold60={int(r['hold60'])}",lw=1.2)
+  axes[1,col].step(seconds,gi+.7*eligible,where='post',lw=1.2)
+  for tick,s,zz,ff,ee in zip(ticks,seconds,rise,fingers,eligible):
+   trace.append(dict(group=group,case=case,tick=int(tick),simulation_seconds=float(s),
+    height_above_settled_m=float(zz),fingers_min_both_physics_samples=int(ff),two_finger_and_height=bool(ee)))
+ case_row=next(r for r in rows if r['case']==case)
+ axes[0,col].set_title(case_row['role']+' train '+case_row['family'].split('_')[-1]);axes[0,col].axhline(2,color='black',ls='--',lw=.8)
+ axes[0,col].set_ylabel('Height above settled median (cm)');axes[0,col].legend(fontsize=6)
+ axes[1,col].set_yticks(np.arange(len(groups))+.35,groups,fontsize=6);axes[1,col].set_ylabel('Two fingers + height: low=0, high=1')
+ for ax in axes[:,col]:ax.set_xlabel('Simulation seconds; control tick /60');ax.grid(alpha=.2)
+fig.suptitle('All four registered training-family rechecks; height/contact are distinct from native lift. No expert takeover.')
+fig.tight_layout();fig.savefig(O/'training_family_traces.png',dpi=150,bbox_inches='tight');plt.close(fig)
+if trace:
+ with (O/'training_family_trace_ticks.csv').open('w',newline='') as f:
+  w=csv.DictWriter(f,list(trace[0]),lineterminator='\n');w.writeheader();w.writerows(trace)
 print(json.dumps(counts,indent=2))

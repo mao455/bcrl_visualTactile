@@ -10,6 +10,9 @@ R=Path('outputs/visuotactile/run/tight_budget_20261116_01').resolve()
 O=Path('research_docs/evidence/tight_diagnosis_20261116/budget_extension');O.mkdir(parents=True,exist_ok=True)
 read=lambda p:json.loads(Path(p).read_text())
 def dump(p,v):(O/p).write_text(json.dumps(v,indent=2,allow_nan=False)+'\n')
+def dump_epochs(name,rows):
+ with gzip.open(O/(name+'_epochs.jsonl.gz'),'wt') as f:
+  for row in rows:f.write(json.dumps(row,separators=(',',':'),allow_nan=False)+'\n')
 def plot_end(fig,name):fig.tight_layout();fig.savefig(O/name,dpi=150,bbox_inches='tight',pad_inches=.15);plt.close(fig)
 def compact_update(value):
  value['visits']=[{k:v for k,v in visit.items() if k in ('episode','anchors','target_ticks','visual_frames','parts','loss','loss_weight','episode_index','episode_visit')} for visit in value.get('visits',[])]
@@ -95,10 +98,10 @@ for role in 'AB':
  initial=read(R/role/'baseline_epoch8_diagnostics.json')
  for row in dprows:
   if row['epoch']==8:row['cohort_diagnostics']=initial['diagnostics']
- dump(f'dp_{role}_epochs.json',dprows);all_fig(role,'dp',dprows);phase_table(role,'dp',dprows);convergence_row(role,'dp',dprows)
+ dump_epochs(f'dp_{role}',dprows);all_fig(role,'dp',dprows);phase_table(role,'dp',dprows);convergence_row(role,'dp',dprows)
  rearpath=R/role/'backend'/role/'training'
  if (rearpath/'finished.json').exists():
-  rearrows=read(rearpath/'validation.json');dump(f'rear_{role}_epochs.json',rearrows);all_fig(role,'rear',rearrows);phase_table(role,'rear',rearrows);convergence_row(role,'rear',rearrows)
+  rearrows=read(rearpath/'validation.json');dump_epochs(f'rear_{role}',rearrows);all_fig(role,'rear',rearrows);phase_table(role,'rear',rearrows);convergence_row(role,'rear',rearrows)
   summary[role]=dict(dp=read(R/role/'training/finished.json'),rear=read(rearpath/'finished.json'),rear_selected=read(rearpath/'selected.json'))
  for kind,path,name in [('dp',R/role/'training/learning.jsonl','learning'),('rear',rearpath/'loss.jsonl','loss')]:
   if path.exists():

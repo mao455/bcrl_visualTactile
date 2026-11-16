@@ -1,0 +1,1157 @@
+{
+  "stages": {
+    "dp": {
+      "seconds": 5880.165728569031,
+      "started": 1794796170.1285431,
+      "ended": 1794802050.2942717,
+      "scope": "Original parallel attempts, failed partial12, explicit serial recovery, validation and waits all included; baseline epochs1-8 predate this run."
+    },
+    "rear_cache": {
+      "seconds": 537.5741379261017,
+      "started": 1794802055.576334,
+      "ended": 1794802593.150472,
+      "workers": [
+        {
+          "name": "rear_cache_A",
+          "pid": 763847,
+          "seconds": 537.566997051239,
+          "attempt": 1
+        },
+        {
+          "name": "rear_cache_B",
+          "pid": 763846,
+          "seconds": 537.5741379261017,
+          "attempt": 1
+        }
+      ]
+    },
+    "rear_train": {
+      "seconds": 3879.8883204460144,
+      "started": 1794802593.1525733,
+      "ended": 1794806473.0408938,
+      "workers": [
+        {
+          "name": "rear_train_A",
+          "pid": 768622,
+          "seconds": 3879.8883204460144,
+          "attempt": 1
+        },
+        {
+          "name": "rear_train_B",
+          "pid": 768623,
+          "seconds": 3870.904686689377,
+          "attempt": 1
+        }
+      ]
+    },
+    "rear_offline": {
+      "seconds": 12.018918752670288,
+      "started": 1794806473.0429378,
+      "ended": 1794806485.0618565,
+      "workers": [
+        {
+          "name": "rear_offline_A",
+          "pid": 802516,
+          "seconds": 12.018740177154541,
+          "attempt": 1
+        },
+        {
+          "name": "rear_offline_B",
+          "pid": 802517,
+          "seconds": 12.018591403961182,
+          "attempt": 1
+        }
+      ]
+    },
+    "endpoints": {
+      "seconds": 225.22422170639038,
+      "started": 1794806488.6029708,
+      "ended": 1794806713.8271925,
+      "workers": [
+        {
+          "name": "finish_endpoints",
+          "pid": 802669,
+          "seconds": 225.22422170639038,
+          "attempt": 1
+        }
+      ]
+    },
+    "autonomy": {
+      "seconds": 565.4164366722107,
+      "started": 1794806719.608937,
+      "ended": 1794807285.0253737,
+      "workers": [
+        {
+          "name": "evaluation_baseline8",
+          "pid": 804688,
+          "seconds": 162.12283945083618,
+          "attempt": 1
+        },
+        {
+          "name": "evaluation_extended_dp_rear8",
+          "pid": 806459,
+          "seconds": 225.32165217399597,
+          "attempt": 1
+        },
+        {
+          "name": "evaluation_extended_best",
+          "pid": 808836,
+          "seconds": 177.2758994102478,
+          "attempt": 1
+        }
+      ]
+    }
+  },
+  "dp_epoch_times": [
+    {
+      "role": "A",
+      "epoch": 1,
+      "optimizer_updates": 196,
+      "new_experiment": false,
+      "seconds": 320.51097230496816,
+      "started": 1794782367.368249,
+      "ended": 1794782687.8792214,
+      "main_process_io": {
+        "minor_faults": 48024312,
+        "major_faults": 46,
+        "read_bytes": 180644478976,
+        "rchar": 197664679666,
+        "syscr": 11491
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 2,
+      "optimizer_updates": 392,
+      "new_experiment": false,
+      "seconds": 291.6207307940349,
+      "started": 1794782694.0929937,
+      "ended": 1794782985.7137246,
+      "main_process_io": {
+        "minor_faults": 47932960,
+        "major_faults": 102,
+        "read_bytes": 178408873984,
+        "rchar": 197664650813,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 3,
+      "optimizer_updates": 588,
+      "new_experiment": false,
+      "seconds": 481.508859195048,
+      "started": 1794782991.5184896,
+      "ended": 1794783473.027349,
+      "main_process_io": {
+        "minor_faults": 47931907,
+        "major_faults": 11,
+        "read_bytes": 177353490432,
+        "rchar": 197664650880,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 4,
+      "optimizer_updates": 784,
+      "new_experiment": false,
+      "seconds": 489.2367009050213,
+      "started": 1794783479.0717788,
+      "ended": 1794783968.3084795,
+      "main_process_io": {
+        "minor_faults": 47931268,
+        "major_faults": 7,
+        "read_bytes": 177339404288,
+        "rchar": 197664650854,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 5,
+      "optimizer_updates": 980,
+      "new_experiment": false,
+      "seconds": 721.0432202147786,
+      "started": 1794783974.3484056,
+      "ended": 1794784695.3916256,
+      "main_process_io": {
+        "minor_faults": 47931006,
+        "major_faults": 244,
+        "read_bytes": 178400026624,
+        "rchar": 197664650852,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 6,
+      "optimizer_updates": 1176,
+      "new_experiment": false,
+      "seconds": 277.8295096489601,
+      "started": 1794784701.2199066,
+      "ended": 1794784979.0494158,
+      "main_process_io": {
+        "minor_faults": 47929426,
+        "major_faults": 35,
+        "read_bytes": 177239666688,
+        "rchar": 197664651480,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 7,
+      "optimizer_updates": 1372,
+      "new_experiment": false,
+      "seconds": 143.55099287000485,
+      "started": 1794784984.9131756,
+      "ended": 1794785128.4641685,
+      "main_process_io": {
+        "minor_faults": 47929310,
+        "major_faults": 29,
+        "read_bytes": 177197514752,
+        "rchar": 197664643429,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 8,
+      "optimizer_updates": 1568,
+      "new_experiment": false,
+      "seconds": 126.18623208696954,
+      "started": 1794785133.6722093,
+      "ended": 1794785259.858441,
+      "main_process_io": {
+        "minor_faults": 47929293,
+        "major_faults": 4,
+        "read_bytes": 184497356800,
+        "rchar": 197664615520,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 9,
+      "optimizer_updates": 1764,
+      "new_experiment": true,
+      "seconds": 330.3469617799856,
+      "started": 1794796196.0329516,
+      "ended": 1794796526.3799136,
+      "main_process_io": {
+        "minor_faults": 3190629,
+        "major_faults": 3383,
+        "read_bytes": 186057142272,
+        "rchar": 338964489,
+        "syscr": 10008
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 10,
+      "optimizer_updates": 1960,
+      "new_experiment": true,
+      "seconds": 384.3268940199632,
+      "started": 1794796541.8000352,
+      "ended": 1794796926.126929,
+      "main_process_io": {
+        "minor_faults": 3056684,
+        "major_faults": 8116,
+        "read_bytes": 121238028288,
+        "rchar": 338942092,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 11,
+      "optimizer_updates": 2156,
+      "new_experiment": true,
+      "seconds": 300.55423916503787,
+      "started": 1794796939.671062,
+      "ended": 1794797240.2253013,
+      "main_process_io": {
+        "minor_faults": 3109955,
+        "major_faults": 11357,
+        "read_bytes": 45207797760,
+        "rchar": 338942007,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 12,
+      "optimizer_updates": 2352,
+      "new_experiment": true,
+      "seconds": 107.41831433190964,
+      "started": 1794797748.7959118,
+      "ended": 1794797856.214226,
+      "main_process_io": {
+        "minor_faults": 3167779,
+        "major_faults": 5826,
+        "read_bytes": 6346158080,
+        "rchar": 338962536,
+        "syscr": 10010
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 13,
+      "optimizer_updates": 2548,
+      "new_experiment": true,
+      "seconds": 105.79777327785268,
+      "started": 1794797867.261953,
+      "ended": 1794797973.0597262,
+      "main_process_io": {
+        "minor_faults": 3019722,
+        "major_faults": 4637,
+        "read_bytes": 1855852544,
+        "rchar": 338910563,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 14,
+      "optimizer_updates": 2744,
+      "new_experiment": true,
+      "seconds": 105.19638781389222,
+      "started": 1794797983.3537302,
+      "ended": 1794798088.5501184,
+      "main_process_io": {
+        "minor_faults": 3020063,
+        "major_faults": 3392,
+        "read_bytes": 1399652352,
+        "rchar": 338910559,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 15,
+      "optimizer_updates": 2940,
+      "new_experiment": true,
+      "seconds": 111.26782248495147,
+      "started": 1794798099.6167204,
+      "ended": 1794798210.884543,
+      "main_process_io": {
+        "minor_faults": 3019116,
+        "major_faults": 5264,
+        "read_bytes": 18842779648,
+        "rchar": 338910536,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 16,
+      "optimizer_updates": 3136,
+      "new_experiment": true,
+      "seconds": 115.72320660110563,
+      "started": 1794798221.2867947,
+      "ended": 1794798337.0100012,
+      "main_process_io": {
+        "minor_faults": 3023128,
+        "major_faults": 7303,
+        "read_bytes": 22955876352,
+        "rchar": 338910487,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 17,
+      "optimizer_updates": 3332,
+      "new_experiment": true,
+      "seconds": 253.44585791486315,
+      "started": 1794798348.1669066,
+      "ended": 1794798601.6127646,
+      "main_process_io": {
+        "minor_faults": 3029007,
+        "major_faults": 13054,
+        "read_bytes": 19309912064,
+        "rchar": 338910669,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 18,
+      "optimizer_updates": 3528,
+      "new_experiment": true,
+      "seconds": 104.39462348097004,
+      "started": 1794798613.0127587,
+      "ended": 1794798717.4073822,
+      "main_process_io": {
+        "minor_faults": 3017105,
+        "major_faults": 3585,
+        "read_bytes": 1861574656,
+        "rchar": 338910944,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 19,
+      "optimizer_updates": 3724,
+      "new_experiment": true,
+      "seconds": 492.05426540900953,
+      "started": 1794798727.8417134,
+      "ended": 1794799219.8959787,
+      "main_process_io": {
+        "minor_faults": 3021448,
+        "major_faults": 10810,
+        "read_bytes": 38520127488,
+        "rchar": 338910915,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 20,
+      "optimizer_updates": 3920,
+      "new_experiment": true,
+      "seconds": 105.33384733903222,
+      "started": 1794799231.3412273,
+      "ended": 1794799336.6750746,
+      "main_process_io": {
+        "minor_faults": 3026796,
+        "major_faults": 6078,
+        "read_bytes": 1673297920,
+        "rchar": 338911736,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 21,
+      "optimizer_updates": 4116,
+      "new_experiment": true,
+      "seconds": 113.82360587804578,
+      "started": 1794799347.4783714,
+      "ended": 1794799461.3019774,
+      "main_process_io": {
+        "minor_faults": 3018606,
+        "major_faults": 5725,
+        "read_bytes": 17224089600,
+        "rchar": 338911708,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "A",
+      "epoch": 22,
+      "optimizer_updates": 4312,
+      "new_experiment": true,
+      "seconds": 239.1886185258627,
+      "started": 1794799473.0567257,
+      "ended": 1794799712.2453442,
+      "main_process_io": {
+        "minor_faults": 3017762,
+        "major_faults": 5364,
+        "read_bytes": 45385895936,
+        "rchar": 338911863,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 1,
+      "optimizer_updates": 196,
+      "new_experiment": false,
+      "seconds": 119.06405546981841,
+      "started": 1794782312.892073,
+      "ended": 1794782431.9561288,
+      "main_process_io": {
+        "minor_faults": 48006856,
+        "major_faults": 305,
+        "read_bytes": 183674548224,
+        "rchar": 197664655480,
+        "syscr": 11487
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 2,
+      "optimizer_updates": 392,
+      "new_experiment": false,
+      "seconds": 411.1675638540182,
+      "started": 1794782438.4152062,
+      "ended": 1794782849.58277,
+      "main_process_io": {
+        "minor_faults": 47933356,
+        "major_faults": 2,
+        "read_bytes": 178608435200,
+        "rchar": 197664648523,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 3,
+      "optimizer_updates": 588,
+      "new_experiment": false,
+      "seconds": 128.65893062297255,
+      "started": 1794782894.0453012,
+      "ended": 1794783022.704232,
+      "main_process_io": {
+        "minor_faults": 47827878,
+        "major_faults": 17,
+        "read_bytes": 177991782400,
+        "rchar": 197664648920,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 4,
+      "optimizer_updates": 784,
+      "new_experiment": false,
+      "seconds": 466.8329034689814,
+      "started": 1794783028.7427197,
+      "ended": 1794783495.5756228,
+      "main_process_io": {
+        "minor_faults": 47931012,
+        "major_faults": 20,
+        "read_bytes": 177263218688,
+        "rchar": 197664648920,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 5,
+      "optimizer_updates": 980,
+      "new_experiment": false,
+      "seconds": 475.6366169890389,
+      "started": 1794783500.3902194,
+      "ended": 1794783976.0268364,
+      "main_process_io": {
+        "minor_faults": 47694863,
+        "major_faults": 15,
+        "read_bytes": 177899630592,
+        "rchar": 197664648955,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 6,
+      "optimizer_updates": 1176,
+      "new_experiment": false,
+      "seconds": 473.7645053330343,
+      "started": 1794783980.918838,
+      "ended": 1794784454.6833434,
+      "main_process_io": {
+        "minor_faults": 47930762,
+        "major_faults": 11,
+        "read_bytes": 179010826240,
+        "rchar": 197664649437,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 7,
+      "optimizer_updates": 1372,
+      "new_experiment": false,
+      "seconds": 469.81415159790777,
+      "started": 1794784481.3345966,
+      "ended": 1794784951.1487484,
+      "main_process_io": {
+        "minor_faults": 47929783,
+        "major_faults": 9,
+        "read_bytes": 177844027392,
+        "rchar": 197664649676,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 8,
+      "optimizer_updates": 1568,
+      "new_experiment": false,
+      "seconds": 133.75874520093203,
+      "started": 1794784956.1516006,
+      "ended": 1794785089.9103458,
+      "main_process_io": {
+        "minor_faults": 47696373,
+        "major_faults": 0,
+        "read_bytes": 177477160960,
+        "rchar": 197664650034,
+        "syscr": 11484
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 9,
+      "optimizer_updates": 1764,
+      "new_experiment": true,
+      "seconds": 278.27495598304085,
+      "started": 1794796175.9655323,
+      "ended": 1794796454.2404885,
+      "main_process_io": {
+        "minor_faults": 3288152,
+        "major_faults": 3082,
+        "read_bytes": 185858363392,
+        "rchar": 338945672,
+        "syscr": 10005
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 10,
+      "optimizer_updates": 1960,
+      "new_experiment": true,
+      "seconds": 459.7533464769367,
+      "started": 1794796466.0768716,
+      "ended": 1794796925.830218,
+      "main_process_io": {
+        "minor_faults": 3060306,
+        "major_faults": 7096,
+        "read_bytes": 162756059136,
+        "rchar": 338940505,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 11,
+      "optimizer_updates": 2156,
+      "new_experiment": true,
+      "seconds": 300.3651022950653,
+      "started": 1794796939.552549,
+      "ended": 1794797239.9176512,
+      "main_process_io": {
+        "minor_faults": 3116653,
+        "major_faults": 13961,
+        "read_bytes": 140159963136,
+        "rchar": 338940424,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 12,
+      "optimizer_updates": 2352,
+      "new_experiment": true,
+      "seconds": 91.55132305016741,
+      "started": 1794799732.6291647,
+      "ended": 1794799824.1804879,
+      "main_process_io": {
+        "minor_faults": 3327823,
+        "major_faults": 45398,
+        "read_bytes": 14336843776,
+        "rchar": 338949260,
+        "syscr": 10007
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 13,
+      "optimizer_updates": 2548,
+      "new_experiment": true,
+      "seconds": 549.3082117338199,
+      "started": 1794799839.5446932,
+      "ended": 1794800388.852905,
+      "main_process_io": {
+        "minor_faults": 3066142,
+        "major_faults": 33001,
+        "read_bytes": 29056262144,
+        "rchar": 338908850,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 14,
+      "optimizer_updates": 2744,
+      "new_experiment": true,
+      "seconds": 85.93516402086243,
+      "started": 1794800398.829652,
+      "ended": 1794800484.7648158,
+      "main_process_io": {
+        "minor_faults": 3059367,
+        "major_faults": 36363,
+        "read_bytes": 10648223744,
+        "rchar": 338908941,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 15,
+      "optimizer_updates": 2940,
+      "new_experiment": true,
+      "seconds": 80.10153448279016,
+      "started": 1794800495.6544878,
+      "ended": 1794800575.7560222,
+      "main_process_io": {
+        "minor_faults": 3044894,
+        "major_faults": 28827,
+        "read_bytes": 8886620160,
+        "rchar": 338908884,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 16,
+      "optimizer_updates": 3136,
+      "new_experiment": true,
+      "seconds": 85.65222501801327,
+      "started": 1794800585.1408548,
+      "ended": 1794800670.7930799,
+      "main_process_io": {
+        "minor_faults": 3054024,
+        "major_faults": 36223,
+        "read_bytes": 11823566848,
+        "rchar": 338909306,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 17,
+      "optimizer_updates": 3332,
+      "new_experiment": true,
+      "seconds": 306.76995270187035,
+      "started": 1794800682.0667806,
+      "ended": 1794800988.836733,
+      "main_process_io": {
+        "minor_faults": 3069118,
+        "major_faults": 44730,
+        "read_bytes": 25183387648,
+        "rchar": 338909687,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 18,
+      "optimizer_updates": 3528,
+      "new_experiment": true,
+      "seconds": 213.05768180498853,
+      "started": 1794800999.3787212,
+      "ended": 1794801212.436403,
+      "main_process_io": {
+        "minor_faults": 3056532,
+        "major_faults": 35103,
+        "read_bytes": 24484089856,
+        "rchar": 338909688,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 19,
+      "optimizer_updates": 3724,
+      "new_experiment": true,
+      "seconds": 87.33352344902232,
+      "started": 1794801223.3573594,
+      "ended": 1794801310.690883,
+      "main_process_io": {
+        "minor_faults": 3063471,
+        "major_faults": 39399,
+        "read_bytes": 13021741056,
+        "rchar": 338909723,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 20,
+      "optimizer_updates": 3920,
+      "new_experiment": true,
+      "seconds": 82.14952355297282,
+      "started": 1794801321.8754542,
+      "ended": 1794801404.0249777,
+      "main_process_io": {
+        "minor_faults": 3051595,
+        "major_faults": 34510,
+        "read_bytes": 11356917760,
+        "rchar": 338909678,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 21,
+      "optimizer_updates": 4116,
+      "new_experiment": true,
+      "seconds": 211.19979631411843,
+      "started": 1794801412.9826927,
+      "ended": 1794801624.1824892,
+      "main_process_io": {
+        "minor_faults": 3061244,
+        "major_faults": 40805,
+        "read_bytes": 29663744000,
+        "rchar": 338910466,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 22,
+      "optimizer_updates": 4312,
+      "new_experiment": true,
+      "seconds": 203.2563560300041,
+      "started": 1794801634.797612,
+      "ended": 1794801838.0539682,
+      "main_process_io": {
+        "minor_faults": 3064056,
+        "major_faults": 41386,
+        "read_bytes": 16902332416,
+        "rchar": 338910516,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 23,
+      "optimizer_updates": 4508,
+      "new_experiment": true,
+      "seconds": 85.6338167488575,
+      "started": 1794801849.5112703,
+      "ended": 1794801935.1450872,
+      "main_process_io": {
+        "minor_faults": 3058062,
+        "major_faults": 38232,
+        "read_bytes": 11682508800,
+        "rchar": 338910895,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    },
+    {
+      "role": "B",
+      "epoch": 24,
+      "optimizer_updates": 4704,
+      "new_experiment": true,
+      "seconds": 88.74117002496496,
+      "started": 1794801946.3194509,
+      "ended": 1794802035.0606208,
+      "main_process_io": {
+        "minor_faults": 3060803,
+        "major_faults": 39120,
+        "read_bytes": 16046575616,
+        "rchar": 338910841,
+        "syscr": 9998
+      },
+      "scope": "Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes."
+    }
+  ],
+  "evaluation_load": [
+    {
+      "group": "baseline8",
+      "registered_cases": 16,
+      "legal_cases": 14,
+      "configured_lanes": 16,
+      "stage_wall_seconds": 162.12283945083618,
+      "worker_wall_seconds": 157.6180741430726,
+      "effective_control_ticks": 4200,
+      "effective_control_ticks_per_stage_second": 25.906282015703603,
+      "completed_legal_short_evaluations_per_hour": 310.87538418844326,
+      "active_lane_fraction": 0.875,
+      "wave_profiles": [
+        {
+          "seconds": 120.28453347203322,
+          "controller_s": 33.567749317735434,
+          "environment_s": 62.46906179795042,
+          "record_submit_s": 15.473074225243181,
+          "finish_audit_s": 1.482005725381896,
+          "control_ticks": 4200,
+          "render_reuse": {
+            "render_calls": 306,
+            "render_seconds": 43.42004855768755,
+            "redundant_reader_renders_avoided": 301,
+            "reader_renders_required": 0,
+            "invalidations": 16
+          }
+        }
+      ],
+      "scope": "300 control ticks per legal case, full DP+Transformer; stages include startup/teardown. Not successful collected trajectories per hour."
+    },
+    {
+      "group": "extended_dp_rear8",
+      "registered_cases": 16,
+      "legal_cases": 14,
+      "configured_lanes": 16,
+      "stage_wall_seconds": 225.32165217399597,
+      "worker_wall_seconds": 177.01325533282943,
+      "effective_control_ticks": 4200,
+      "effective_control_ticks_per_stage_second": 18.64001954306953,
+      "completed_legal_short_evaluations_per_hour": 223.68023451683436,
+      "active_lane_fraction": 0.875,
+      "wave_profiles": [
+        {
+          "seconds": 120.21003409801051,
+          "controller_s": 33.38222670578398,
+          "environment_s": 63.04211840964854,
+          "record_submit_s": 15.751341701019555,
+          "finish_audit_s": 1.4412493598647416,
+          "control_ticks": 4200,
+          "render_reuse": {
+            "render_calls": 306,
+            "render_seconds": 43.50606207922101,
+            "redundant_reader_renders_avoided": 301,
+            "reader_renders_required": 0,
+            "invalidations": 16
+          }
+        }
+      ],
+      "scope": "300 control ticks per legal case, full DP+Transformer; stages include startup/teardown. Not successful collected trajectories per hour."
+    },
+    {
+      "group": "extended_best",
+      "registered_cases": 16,
+      "legal_cases": 14,
+      "configured_lanes": 16,
+      "stage_wall_seconds": 177.2758994102478,
+      "worker_wall_seconds": 169.29397542821243,
+      "effective_control_ticks": 4200,
+      "effective_control_ticks_per_stage_second": 23.69188374715537,
+      "completed_legal_short_evaluations_per_hour": 284.3026049658644,
+      "active_lane_fraction": 0.875,
+      "wave_profiles": [
+        {
+          "seconds": 121.10301833506674,
+          "controller_s": 33.539468502858654,
+          "environment_s": 63.43121515237726,
+          "record_submit_s": 15.657501194393262,
+          "finish_audit_s": 1.449398067779839,
+          "control_ticks": 4200,
+          "render_reuse": {
+            "render_calls": 306,
+            "render_seconds": 43.906570724444464,
+            "redundant_reader_renders_avoided": 301,
+            "reader_renders_required": 0,
+            "invalidations": 16
+          }
+        }
+      ],
+      "scope": "300 control ticks per legal case, full DP+Transformer; stages include startup/teardown. Not successful collected trajectories per hour."
+    }
+  ],
+  "whole_run_seconds": 11348.878611803055,
+  "original_round19_dp_seconds": 2965.026631593704,
+  "original_round19_stages": {
+    "frontend_A": {
+      "seconds": 2965.0253388881683,
+      "started": 1794782304.0351615,
+      "ended": 1794785269.0608149
+    },
+    "backend_train_B": {
+      "seconds": 1235.2243540287018,
+      "started": 1794785878.7396169,
+      "ended": 1794787113.964419
+    },
+    "backend_prepare_A": {
+      "seconds": 5.005479335784912,
+      "started": 1794785270.0997741,
+      "ended": 1794785275.1053858
+    },
+    "visual_cache": {
+      "seconds": 127.03832674026489,
+      "started": 1794782176.7268877,
+      "ended": 1794782303.7654035
+    },
+    "backend_offline_A": {
+      "seconds": 10.512130737304688,
+      "started": 1794787112.9749312,
+      "ended": 1794787123.4872966
+    },
+    "backend_prepare_B": {
+      "seconds": 5.0050365924835205,
+      "started": 1794785270.0998008,
+      "ended": 1794785275.1049917
+    },
+    "aggregate": {
+      "seconds": 25.00887179374695,
+      "started": 1794782151.6930673,
+      "ended": 1794782176.7023158
+    },
+    "backend_cache_A": {
+      "seconds": 603.607349395752,
+      "started": 1794785275.1178505,
+      "ended": 1794785878.725527
+    },
+    "frontend_B": {
+      "seconds": 2794.460979938507,
+      "started": 1794782304.0341833,
+      "ended": 1794785098.4956791
+    },
+    "backend_offline_B": {
+      "seconds": 10.009224891662598,
+      "started": 1794787113.9763825,
+      "ended": 1794787123.9861267
+    },
+    "backend_train_A": {
+      "seconds": 1234.2232656478882,
+      "started": 1794785878.7396314,
+      "ended": 1794787112.9632747
+    },
+    "backend_cache_B": {
+      "seconds": 603.606085062027,
+      "started": 1794785275.1191285,
+      "ended": 1794785878.7254183
+    },
+    "development": {
+      "seconds": 207.58581638336182,
+      "started": 1794787127.0539525,
+      "ended": 1794787334.639907
+    },
+    "development_prepare": {
+      "seconds": 3.001817226409912,
+      "started": 1794787124.039441,
+      "ended": 1794787127.0417116
+    }
+  },
+  "discarded_optimizer_updates": {
+    "A": 140,
+    "B": 140
+  },
+  "discarded_scope": "Actual partial epoch12 work, excluded from restored-model effective exposure; retained logs and checkpoints.",
+  "new_collected_trajectories": 0,
+  "new_disk_visual_feature_copies": 0,
+  "failure_receipt": {
+    "stage": "train",
+    "error": "RuntimeError('Stage failed: dp_A (preserve checkpoint/log; explicit recovery required)')",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_budget_20261116/scripts/tight_budget_20261116/run.py\", line 127, in main\n    if a.stage in ('dp','train'):dp()\n                                 ^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_budget_20261116/scripts/tight_budget_20261116/run.py\", line 89, in dp\n    for job in jobs:job.result()\n                    ^^^^^^^^^^^^\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/concurrent/futures/_base.py\", line 456, in result\n    return self.__get_result()\n           ^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/concurrent/futures/_base.py\", line 401, in __get_result\n    raise self._exception\n  File \"/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/concurrent/futures/thread.py\", line 58, in run\n    result = self.fn(*self.args, **self.kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_budget_20261116/scripts/tight_budget_20261116/run.py\", line 82, in execute\n    if child.returncode or not receipt.exists():raise RuntimeError('Stage failed: '+name+' (preserve checkpoint/log; explicit recovery required)')\n                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError: Stage failed: dp_A (preserve checkpoint/log; explicit recovery required)\n",
+    "utc": 1794797370.8674529
+  },
+  "recovery_receipt": {
+    "utc": 1794797696.9387481,
+    "frozen_source": "76352bd",
+    "source_failure": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_budget_20261116_01/failure.json",
+    "reason": "Synchronized long-trajectory B2 graphs exceeded VRAM; only one DP GPU worker at a time",
+    "durable_epochs": 11,
+    "durable_updates": 2156,
+    "partial12_preserved": true,
+    "maximum_additional_attempts_per_role": 1,
+    "maximum_effective_total_updates_per_role": 4704,
+    "maximum_discarded_attempt_updates_per_role": 140
+  },
+  "io_observations": {
+    "io_observation_1136.json": {
+      "utc": 1794800251.6135867,
+      "seconds": 5.013484716415405,
+      "process": [
+        {
+          "pid": 743594,
+          "name": "python",
+          "delta": {
+            "read_bytes": 250228736,
+            "write_bytes": 0,
+            "rchar": 0,
+            "wchar": 0
+          }
+        },
+        {
+          "pid": 725999,
+          "name": "python",
+          "delta": {
+            "read_bytes": 36990976,
+            "write_bytes": 0,
+            "rchar": 301610431,
+            "wchar": 0
+          }
+        },
+        {
+          "pid": 743463,
+          "name": "code",
+          "delta": {
+            "read_bytes": 2428928,
+            "write_bytes": 0,
+            "rchar": 8,
+            "wchar": 8
+          }
+        }
+      ],
+      "disk": {
+        "nvme0n1": {
+          "read_MB_s": 57.94875230171695,
+          "write_MB_s": 0.08006566743600307,
+          "read_await_ms": 9.29647630619684,
+          "io_busy_percent": 95.24313466769837,
+          "weighted_queue_ms_per_s": 3076.702308375387
+        }
+      },
+      "io_pressure": "some avg10=63.13 avg60=58.03 avg300=44.72 total=11731437979\nfull avg10=62.62 avg60=57.73 avg300=44.50 total=11435344927\n",
+      "memory_pressure": "some avg10=0.00 avg60=0.10 avg300=0.37 total=4487950844\nfull avg10=0.00 avg60=0.10 avg300=0.37 total=4471538099\n",
+      "scope": "One live five-second host observation, not causal attribution for historical19 or full-run throughput"
+    },
+    "sequential_warm_probe.json": {
+      "utc": 1794800375.9991152,
+      "pid": 743594,
+      "reader": 725999,
+      "epoch": 13,
+      "batch": 168,
+      "update": 2520,
+      "rows": [
+        {
+          "identity": "r13_A_expanded_session20261115_03_prefetch13_s29000086_held0",
+          "bytes": 461582399,
+          "seconds": 0.034447431564331055
+        },
+        {
+          "identity": "r12_B_expanded_session20261115_02_held12_s29000034_held_root60",
+          "bytes": 733727187,
+          "seconds": 0.1507704257965088
+        }
+      ],
+      "seconds": 0.1955118179321289,
+      "maximum_pause_seconds": 30,
+      "scope": "Single warm of actual current B2 while ONLY owned trainer/reader temporarily paused, no file or optimizer mutation; cached and cold bytes mixed.",
+      "source_sha256": "0bf96ff363affa3ab59111e18a2e368ca09b18f9fe29ecb4deab50f99895252a",
+      "limitation": "Both files substantially page-cached; this 0.20s warm does not isolate the cause of a preceding cold-read slowdown. No durable scheduling change made from this probe."
+    }
+  },
+  "resource_limit_violation": "Initial paired DP peak OOM; free GPU memory128.69MiB, below required4GiB. Do not claim whole-session compliance.",
+  "timing_limitations": "Different epoch budgets; total stage speedup is not inferred from parallel worker counts, a few fast batches, or timing excluding the failed attempt."
+}

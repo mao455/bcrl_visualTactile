@@ -23,6 +23,17 @@ for stage in ['cache','train','offline']:stages['rear_'+stage]=interval(['rear_'
 stages['endpoints']=interval(['finish_endpoints'])
 groups=read(ROOT/'evaluation_complete.json')['groups']
 stages['autonomy']=interval(['evaluation_'+g for g in groups])
+evaluation_load=[]
+for group in groups:
+ d=ROOT/('evaluation_'+group);plan=read(d/'plan.json');result=read(d/'result.json');waves=read(d/'wave_profiles.json')
+ legal=sum(read(d/c['name']/'result.json')['legal'] for c in plan['cases'])
+ seconds=interval(['evaluation_'+group])['seconds'];ticks=sum(w['active_lane_steps'] for w in waves)
+ evaluation_load.append(dict(group=group,registered_cases=len(plan['cases']),legal_cases=legal,configured_lanes=result['lanes'],
+  stage_wall_seconds=seconds,worker_wall_seconds=result['elapsed_seconds'],effective_control_ticks=ticks,
+  effective_control_ticks_per_stage_second=ticks/seconds,completed_legal_short_evaluations_per_hour=3600*legal/seconds,
+  active_lane_fraction=sum(w['active_lane_steps'] for w in waves)/sum(w['allocated_lane_steps'] for w in waves),
+  wave_profiles=[{k:w[k] for k in ['seconds','controller_s','environment_s','record_submit_s','finish_audit_s','control_ticks','render_reuse']} for w in waves],
+  scope='300 control ticks per legal case, full DP+Transformer; stages include startup/teardown. Not successful collected trajectories per hour.'))
 epochs=[]
 for r in 'AB':
  for line in (ROOT/r/'training/validation.jsonl').read_text().splitlines():
@@ -32,7 +43,7 @@ for r in 'AB':
    main_process_io=io.get('process_io'),scope='Training epoch only, excludes validation; CPU pre-reader I/O is separate, not counted as main-process physical bytes.'))
 old_stages=read(OLD/'cycle_readout.json')['stages']
 old_dp=[old_stages['frontend_'+r] for r in 'AB']
-summary=dict(stages=stages,dp_epoch_times=epochs,
+summary=dict(stages=stages,dp_epoch_times=epochs,evaluation_load=evaluation_load,
  whole_run_seconds=read(ROOT/'evaluation_complete.json')['utc']-read(ROOT/'prepared.json')['utc'],
  original_round19_dp_seconds=max(x['ended'] for x in old_dp)-min(x['started'] for x in old_dp),
  original_round19_stages=old_stages,
