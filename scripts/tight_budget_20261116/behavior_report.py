@@ -10,7 +10,7 @@ from tools.tight_fresh_closed_gap import object_position_in_base
 from scripts.tight_budget_20261116.run import ROOT,read
 O=Path('research_docs/evidence/tight_diagnosis_20261116/budget_extension');O.mkdir(parents=True,exist_ok=True)
 assert read(ROOT/'evaluation_complete.json')['complete']
-keys=['contact','two_finger','native_lift','contact_height','hold12','hold60','final_hold60','alignment','subgoal']
+keys=['contact','two_finger','native_lift','contact_height','hold12','hold60','final_hold60','alignment','subgoal','observed_insertion']
 rows=[];counts=[];initial=[]
 for label in read(ROOT/'evaluation_complete.json')['groups']:
  d=ROOT/('evaluation_'+label);plan=read(d/'plan.json')
@@ -26,7 +26,7 @@ for label in read(ROOT/'evaluation_complete.json')['groups']:
      native_lift=bool(t['diagnostics_after/lifted_object'][:300].any()),contact_height=bool(((fingers>=2)&height&settled).any()),
      hold12=h12['sustained'],hold60=h60['sustained'],final_hold60=h60['held_at_final_window'],alignment=bool(t['native_alignment_condition'][:300].any()),
      subgoal=bool(t['diagnostics_after/successes'][:300].max()>0),first_contact=first((fingers>0)&settled),first_two=first((fingers>=2)&settled),hold_details=h60,
-     insertion=None,full_task_eligible=False,censored=r.get('grasp_stage_censored'))
+     insertion=None,observed_insertion=bool(r.get('success')),full_task_eligible=False,censored=r.get('grasp_stage_censored'))
    baseline=ROOT/'evaluation_baseline8'/case['name']
    if label!='baseline8' and read(baseline/'result.json')['legal']:
     with h5py.File(baseline/'numeric.h5') as f,h5py.File(d/case['name']/'numeric.h5') as g:
