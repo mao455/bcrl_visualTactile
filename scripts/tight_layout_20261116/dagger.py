@@ -11,7 +11,7 @@ def source_hashes():
  return {str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116','scripts/tight_fulltask_20261116'] for p in (TREE/folder).rglob('*.py')}
 
 
-def prepare(source,output,round_index,offset,trigger,*,stages=None,session_root=None,lanes=8,collection_only=False):
+def prepare(source,output,round_index,offset,trigger,*,stages=None,session_root=None,lanes=8,collection_only=False,writer_bytes=512<<20):
  from tools.tight_fresh_batch_run import prepare as batch_prepare
  from tools.tight_fresh_stage_takeover import EARLY_CONTRACT,validate_plan
  from visuotactile.grasp_curriculum import APPROACH,CONTACT_ONSET
@@ -31,14 +31,16 @@ def prepare(source,output,round_index,offset,trigger,*,stages=None,session_root=
  plan=batch_prepare(source,output/'collection',lanes=lanes,identities=identities,delays=[0]*count,round_index=round_index,
   seed=28830000+100*round_index,session_root=output,
   execution_backend=read(source/'development/plan.json')['execution_backend'],queued_gpu=True,vision_microbatch=4,
-  writer_bytes=512<<20,verification_workers=2,verification_max_pending=4,capture_audit_memo=True)
+  writer_bytes=writer_bytes,verification_workers=2,verification_max_pending=4,capture_audit_memo=True)
  if stages is not None:
   from tools.tight_fresh_stage_takeover import PHASE_CONTRACT
   from visuotactile.phase_takeover import profile
   plan['stage_takeover_contract']=PHASE_CONTRACT
   for c in plan['cases']:
    stage=stages[identities.index(c['spec']['source_identity'])]
-   c['dagger']['trigger']=profile(stage)
+   c['dagger']['trigger']=copy.deepcopy(CONTACT_ONSET) if stage=='early' else profile(stage)
+   c['name']=c['name'].replace('_contact_height_only_d0','_phase_'+stage)
+   c['spec']['identity']=c['name']
  elif trigger!='contact':
   plan['stage_takeover_contract']=EARLY_CONTRACT
   for c in plan['cases']:c['dagger']['trigger']=copy.deepcopy(APPROACH if trigger=='approach' else CONTACT_ONSET)
