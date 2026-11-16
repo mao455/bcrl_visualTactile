@@ -94,6 +94,53 @@ def prepare_fixed():
   source_sha256={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116'] for p in (TREE/folder).rglob('*.py')},utc=time.time()))
 
 
+def prepare_matched_old():
+ """Old-data arm of a registered equal-update diagnostic, fresh common optimizer."""
+ from tools.tight_fresh_rollouts import completed_pair
+ from visuotactile.trajectory_training import profile,budget
+ from visuotactile.bounded_extension import matched_update_profile
+ source=Path(sys.argv[sys.argv.index('--source')+1]).resolve()
+ registration=Path(sys.argv[sys.argv.index('--registration')+1]).resolve()
+ experiment=read(registration);epochs=experiment['old_frontend_epochs']
+ policy=matched_update_profile('frontend',epochs)
+ assert not ROOT.exists() and read(source/'owner_exit.json')['children_reaped']
+ assert experiment['source']==str(source) and time.time()<experiment['training_deadline']
+ pairs={role:completed_pair(source,role) for role in 'AB'}
+ assert pairs==experiment['source_pairs']
+ ROOT.mkdir();(ROOT/'logs').mkdir()
+ session=copy.deepcopy(read(source/'session.json'))
+ session.update(fixed56_long=False,matched_update_diagnostic=True,
+  resource_root=str(ROOT),owned_worker_roots=[str(ROOT)],deadline=experiment['deadline'],
+  training_deadline=experiment['training_deadline'],cache_deadline=experiment['training_deadline'],offline_deadline=experiment['deadline'])
+ atomic_json(ROOT/'session.json',session)
+ for name in ['metadata.json','source_data.json','selection.json','training_sampling.json','cuda_allocator_policy.json','frozen_visual_io.json']:
+  if (source/name).exists():shutil.copyfile(source/name,ROOT/name)
+ reg=dict(profile=profile(),roles={});cache_hashes={}
+ for role in 'AB':
+  src=source/role;dest=ROOT/role;dest.mkdir()
+  (dest/'state_data').symlink_to(src/'state_data',target_is_directory=True)
+  shutil.copyfile(src/'cache_index.json',dest/'cache_index.json')
+  (dest/'shared_resources.json').symlink_to(ROOT/'shared_resources.json')
+  atomic_json(dest/'session.json',session)
+  pair=pairs[role]
+  atomic_json(dest/'continuation.json',dict(path=pair['frontend'],sha256=pair['frontend_sha256'],
+   statistics_sha256=sha256(dest/'state_data/statistics.pt'),source_root=str(src),reuse_index=str(src/'cache_index.json'),
+   target_window_contract='recovery_onset_commit12_v1',learning_rate=3e-5,
+   initialization='Matched diagnostic common selected EMA; fresh AdamW/EMA, same affine and sampling',
+   previous_backend=pair['backend'],previous_backend_sha256=pair['backend_sha256']))
+  ids=read(dest/'state_data/data.json')['splits']['train'];b=budget(len(ids),epochs)
+  assert b['planned_optimizer_updates']==experiment['frontend_updates']
+  reg['roles'][role]=dict(**b,data_sha256=sha256(dest/'state_data/data.json'),episode_multiplicities=dict.fromkeys(ids,1))
+  cache_hashes[role]=sha256(dest/'cache_index.json')
+ atomic_json(ROOT/'full_trajectory_batch.json',reg)
+ atomic_json(ROOT/'bounded_extension.json',dict(policy=policy,roles={}))
+ atomic_json(ROOT/'matched_updates.json',dict(rear=experiment['old_rear'],registration=str(registration),sha256=sha256(registration)))
+ atomic_json(ROOT/'gate.json',dict(passed=True,inherited_input_gate=str(source/'gate.json'),inherited_input_gate_sha256=sha256(source/'gate.json')))
+ atomic_json(ROOT/'prepared.json',dict(complete=True,continue_student_pair=True,reuse_frozen_cache=True,
+  cache_index_sha256=cache_hashes,source=str(source),registration=str(registration),
+  diagnostic_only=True,source_sha256={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116'] for p in (TREE/folder).rglob('*.py')},utc=time.time()))
+
+
 def cache():
  from visuotactile.precision import state_fp32
  from visuotactile.native_data import cache_visual_pair

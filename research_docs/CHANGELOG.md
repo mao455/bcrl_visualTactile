@@ -1,6 +1,6 @@
 ## 2026-11-17 — 后续等更新诊断入口，尚未运行
 
-固定56长训练继续使用冻结25bcc4a，未热改。现有bounded_extension、tight_fresh_train、anchor_continue与completed_pair增加显式matched_update_diagnostic_v1：恒定学习率、有限epoch上界、只选登记最终更新；后端以真实expert mask预计算既有32tick分块/128有效tick累计的完整episode-group边界，只有两数据池共有的实际更新数才可登记。前缀仍推进历史而不参与loss，不改变采样/损失/控制。后端准入要求训练回执、最终checkpoint更新数及边界一致；旧路径不启用。24项CPU测试通过，包含真实ResidualTickWindow更新计数对照、前缀mask改变会改变预算，以及提前checkpoint/错误边界拒绝。具体同源checkpoint、旧/新池和更新上限需等真实纠偏产生后登记；当前没有等预算收益结果。
+固定56长训练继续使用冻结25bcc4a，未热改。现有bounded_extension、tight_fresh_train、anchor_continue与completed_pair增加显式matched_update_diagnostic_v1：恒定学习率、有限epoch上界、只选登记最终更新；后端以真实expert mask预计算既有32tick分块/128有效tick累计的完整episode-group边界，只有两数据池共有的实际更新数才可登记。前缀仍推进历史而不参与loss，不改变采样/损失/控制。后端准入要求训练回执、最终checkpoint更新数及边界一致；旧路径不启用。24项CPU测试通过，包含真实ResidualTickWindow更新计数对照、前缀mask改变会改变预算，以及提前checkpoint/错误边界拒绝。现有learn入口同时支持旧数据同源EMA/fresh Adam对照准备；真实原56条CPU准备预检通过，预检root明确禁止运行、0物理/0优化。具体同源checkpoint、旧/新池和更新上限需等真实纠偏产生后登记；当前没有等预算收益结果。
 
 ## 2026-11-17 — 已核验实际监督曝光，固定数据训练进行中
 
