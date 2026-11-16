@@ -13,6 +13,7 @@ from visuotactile.compact import sha256
 from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
 from visuotactile.training_resources import atomic_json
 
+PHASE_CONTRACT='layout_multistage_only_v1'
 EARLY_CONTRACT = 'early_grasp_takeover_v1'
 CONTRACT = 'stable_only_takeover_v1'
 CONTACT_HEIGHT_CONTRACT = 'contact_height_only_takeover_v1'
@@ -20,6 +21,8 @@ NEVER_FALLBACK = 1_000_000_000
 
 
 def trigger_contract(version):
+    from visuotactile.phase_takeover import VERSION as PHASE_VERSION
+    if version==PHASE_VERSION:return PHASE_CONTRACT,"phase","phase","trigger_completed_tick"
     if version == VERSION:
         return CONTRACT, 'stable_only', 'stable', 'first_stable_window_end_completed_tick'
     if version == CONTACT_HEIGHT_VERSION:
@@ -126,7 +129,7 @@ def prepare(source, output, identities, delays, round_index, event_seed, *, sess
 
 
 def validate_plan(plan):
-    if plan.get('stage_takeover_contract') not in (CONTRACT, CONTACT_HEIGHT_CONTRACT, EARLY_CONTRACT) or plan.get('never_fallback') != NEVER_FALLBACK:
+    if plan.get('stage_takeover_contract') not in (CONTRACT, CONTACT_HEIGHT_CONTRACT, EARLY_CONTRACT, PHASE_CONTRACT) or plan.get('never_fallback') != NEVER_FALLBACK:
         raise ValueError('Explicit never-fallback contract required')
     cases = plan['cases']
     if not cases or len({c['name'] for c in cases}) != len(cases):
@@ -134,6 +137,10 @@ def validate_plan(plan):
     for case in cases:
         if case['spec']['takeover_tick'] != NEVER_FALLBACK:
             raise ValueError('Fixed-time fallback is forbidden')
+        if plan['stage_takeover_contract'] == PHASE_CONTRACT:
+            from visuotactile.takeover_trigger import validate_trigger
+            validate_trigger(case['dagger']['trigger'],NEVER_FALLBACK)
+            continue
         if plan['stage_takeover_contract'] == EARLY_CONTRACT:
             from visuotactile.grasp_curriculum import validate_early
             validate_early(case['dagger'].get('trigger'), NEVER_FALLBACK)
@@ -175,7 +182,7 @@ def classify(result, audit):
                     or receipt['earliest_allowed_completed_tick']!=original+receipt['configuration']['min_delay_ticks']
                     or expected<receipt['earliest_allowed_completed_tick']):
                 raise ValueError('Expert authority lacks a rechecked held window after its minimum delay')
-        elif receipt['configuration']['version'] in ('early_contact_recovery_v1','contact_formation_recovery_v2','approach_contact_recovery_v3'): expected = first
+        elif receipt['configuration']['version'] in ('early_contact_recovery_v1','contact_formation_recovery_v2','approach_contact_recovery_v3','layout_multistage_recovery_v1'): expected = first
         else:expected = None if first is None else first + receipt['configuration']['delay_ticks']
         if (audit['category'] != f'student_{event}_then_takeover'
                 or audit['actual_switch_tick'] != expected or expected >= NEVER_FALLBACK):

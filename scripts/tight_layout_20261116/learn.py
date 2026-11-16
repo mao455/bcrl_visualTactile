@@ -53,12 +53,13 @@ def cache():
 
 def backend_prepare(role):
  from tools.tight_fresh_backend import prepare as prep
- from visuotactile.bounded_extension import fresh_layout_profile
+ from visuotactile.bounded_extension import fresh_layout_profile,phase_dagger_profile
+ policy=phase_dagger_profile('backend') if read(ROOT/'session.json').get('phase_dagger') else fresh_layout_profile('backend')
  assert read(ROOT/role/'training/finished.json')['complete']
- prep(ROOT,role,40,continue_rear=(ROOT/role/'continuation.json').exists(),offline_anchor_batch=32,frozen_visual_io=read(ROOT/'frozen_visual_io.json'))
+ prep(ROOT,role,policy['maximum_epochs'],continue_rear=(ROOT/role/'continuation.json').exists(),offline_anchor_batch=32,frozen_visual_io=read(ROOT/'frozen_visual_io.json'))
  rear=ROOT/role/'backend'
  for p in [rear/'session.json',rear/'configuration.json',rear/role/'session.json',rear/role/'configuration.json']:
-  v=read(p);v['residual_pair'].update(bounded_extension=fresh_layout_profile('backend'),minimum_control_tick_epochs=20,comparison_control_tick_epochs=[]);atomic_json(p,v)
+  v=read(p);v['residual_pair'].update(bounded_extension=policy,minimum_control_tick_epochs=policy['minimum_epochs'],comparison_control_tick_epochs=[]);atomic_json(p,v)
  atomic_json(rear/'extension_prepared.json',dict(complete=True,utc=time.time()))
 
 def evaluation_prepare():
@@ -122,7 +123,7 @@ def run():
     g=read(ROOT/'gate.json');assert g['passed'] and sha256(g['inherited_input_gate'])==g['inherited_input_gate_sha256']
    else:execute('gate',['tools.tight_fresh_train','gate','--root',ROOT],ROOT/'gate.json')
    for role in 'AB':
-    execute('dp_'+role,['tools.tight_fresh_train','train','--root',ROOT,'--role',role,'--epochs',80,'--offline-anchor-batch',32,'--full-trajectory-batch'],ROOT/role/'training/finished.json')
+    execute('dp_'+role,['tools.tight_fresh_train','train','--root',ROOT,'--role',role,'--epochs',read(ROOT/'bounded_extension.json')['policy']['maximum_epochs'],'--offline-anchor-batch',32,'--full-trajectory-batch'],ROOT/role/'training/finished.json')
    for role in 'AB':
     rear=ROOT/role/'backend'
     execute('rear_prepare_'+role,[__spec__.name,'backend_prepare',role,'--root',ROOT],rear/'extension_prepared.json')

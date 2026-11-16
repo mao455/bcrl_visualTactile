@@ -11,7 +11,7 @@ def source_hashes():
  return {str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116','scripts/tight_fulltask_20261116'] for p in (TREE/folder).rglob('*.py')}
 
 
-def prepare(source,output,round_index,offset,trigger):
+def prepare(source,output,round_index,offset,trigger,*,stages=None,session_root=None,lanes=8,collection_only=False):
  from tools.tight_fresh_batch_run import prepare as batch_prepare
  from tools.tight_fresh_stage_takeover import EARLY_CONTRACT,validate_plan
  from visuotactile.grasp_curriculum import APPROACH,CONTACT_ONSET
@@ -20,18 +20,26 @@ def prepare(source,output,round_index,offset,trigger):
  assert not output.exists()
  data=read(source/'A/state_data/data.json');other=read(source/'B/state_data/data.json')
  assert data['splits']==other['splits']
- identities=data['normalization_train_ids'][offset:offset+4]
- assert len(identities)==4 and all(data['entries'][i]['layout']['distance_m']==.1 for i in identities)
- session=copy.deepcopy(read(source/'session.json'))
+ count=4 if stages is None else len(stages)
+ identities=data['normalization_train_ids'][offset:offset+count]
+ assert len(identities)==count and all(data['entries'][i]['layout']['distance_m']==.1 for i in identities)
+ session=copy.deepcopy(read((source if session_root is None else session_root)/'session.json'))
  assert session['deadline']-time.time()>7200,'Insufficient original window for collection and complete learning'
  output.mkdir();(output/'logs').mkdir()
  session.update(resource_root=str(output),owned_worker_roots=[str(output)],source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip())
  atomic_json(output/'session.json',session)
- plan=batch_prepare(source,output/'collection',lanes=8,identities=identities,delays=[0]*4,round_index=round_index,
+ plan=batch_prepare(source,output/'collection',lanes=lanes,identities=identities,delays=[0]*count,round_index=round_index,
   seed=28830000+100*round_index,session_root=output,
   execution_backend=read(source/'development/plan.json')['execution_backend'],queued_gpu=True,vision_microbatch=4,
   writer_bytes=512<<20,verification_workers=2,verification_max_pending=4,capture_audit_memo=True)
- if trigger!='contact':
+ if stages is not None:
+  from tools.tight_fresh_stage_takeover import PHASE_CONTRACT
+  from visuotactile.phase_takeover import profile
+  plan['stage_takeover_contract']=PHASE_CONTRACT
+  for c in plan['cases']:
+   stage=stages[identities.index(c['spec']['source_identity'])]
+   c['dagger']['trigger']=profile(stage)
+ elif trigger!='contact':
   plan['stage_takeover_contract']=EARLY_CONTRACT
   for c in plan['cases']:c['dagger']['trigger']=copy.deepcopy(APPROACH if trigger=='approach' else CONTACT_ONSET)
  for c in plan['cases']:
@@ -42,7 +50,7 @@ def prepare(source,output,round_index,offset,trigger):
   scope='Four original training families, both full students; all successful actual expert suffixes shared, no test access'))
  atomic_json(output/'collection/plan.json',plan)
  atomic_json(output/'prepared.json',dict(source=str(source),source_sha256=source_hashes(),round=round_index,
-  original_deadline=session['deadline'],training_identities=identities,trigger=trigger,utc=time.time()))
+  original_deadline=session['deadline'],training_identities=identities,trigger=trigger,stages=stages,collection_only=collection_only,utc=time.time()))
 
 
 def collection_worker(output):
@@ -54,7 +62,7 @@ def collection_worker(output):
 def prepare_learning(output):
  from tools.tight_fresh_dagger import prepare_aggregate
  from visuotactile.trajectory_training import profile,budget
- from visuotactile.bounded_extension import fresh_layout_profile
+ from visuotactile.bounded_extension import fresh_layout_profile,phase_dagger_profile
  source=Path(read(output/'prepared.json')['source']);collection=output/'collection';target=output/'learning'
  assert read(collection/'result.json')['software_complete'] and read(collection/'paired_initial_check.json')['passed']
  assert read(output/'collection_owner_exit.json')['children_reaped']
@@ -65,17 +73,18 @@ def prepare_learning(output):
  session=copy.deepcopy(read(output/'session.json'));session.update(resource_root=str(target),owned_worker_roots=[str(target)])
  atomic_json(target/'session.json',session)
  (target/'shared_resources.json').unlink()
+ policy=phase_dagger_profile() if session.get('phase_dagger') else fresh_layout_profile()
  registration=dict(profile=profile(),roles={})
  for role in 'AB':
   child=target/role;(child/'shared_resources.json').unlink();(child/'shared_resources.json').symlink_to(target/'shared_resources.json')
   atomic_json(child/'session.json',session)
   data=read(child/'state_data/data.json');ids=data['splits']['train']
-  registration['roles'][role]=dict(**budget(len(ids),80),data_sha256=sha256(child/'state_data/data.json'),episode_multiplicities=dict.fromkeys(ids,1))
+  registration['roles'][role]=dict(**budget(len(ids),policy['maximum_epochs']),data_sha256=sha256(child/'state_data/data.json'),episode_multiplicities=dict.fromkeys(ids,1))
   assert data['normalization_train_ids']==read(source/role/'state_data/data.json')['normalization_train_ids']
  assert read(target/'A/state_data/data.json')['splits']==read(target/'B/state_data/data.json')['splits']
  for name in ['training_sampling.json','cuda_allocator_policy.json','frozen_visual_io.json']:shutil.copyfile(source/name,target/name)
  atomic_json(target/'full_trajectory_batch.json',registration)
- atomic_json(target/'bounded_extension.json',dict(policy=fresh_layout_profile(),roles={}))
+ atomic_json(target/'bounded_extension.json',dict(policy=policy,roles={}))
  prepared=read(target/'prepared.json');prepared.update(continue_student_pair=True,source_sha256=source_hashes(),
   note='Common frozen aggregate; current pair EMA/Transformer continuation with fresh optimizers; refresh rear inputs after new DP; no new weighting')
  atomic_json(target/'prepared.json',prepared)
@@ -118,6 +127,8 @@ def run(output):
     try:monitor.wait(timeout=15)
     except subprocess.TimeoutExpired:stop(monitor)
    atomic_json(output/'collection_owner_exit.json',dict(children_reaped=True,monitor_returncode=None if monitor is None else monitor.poll(),utc=time.time()))
+  if read(output/'prepared.json').get('collection_only'):
+   atomic_json(output/'complete.json',dict(complete=True,collection_only=True,utc=time.time()));return
   target=prepare_learning(output)
   # A separate owner/monitor is started only after the capture process exits.
   atomic_json(output/'status.json',dict(stage='learning',root=str(target),utc=time.time()))

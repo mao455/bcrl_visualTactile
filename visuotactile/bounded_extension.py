@@ -21,8 +21,15 @@ def fresh_layout_profile(kind='frontend'):
         lr_factor=.5,maximum_reductions=1,activate_after_epoch=20 if kind=='frontend' else 8)
 
 
+def phase_dagger_profile(kind='frontend'):
+    if kind not in ('frontend','backend'):raise ValueError('Unknown continuation kind')
+    return dict(version='phase_dagger_budget_v1',kind=kind,maximum_epochs=40 if kind=='frontend' else 24,
+        minimum_epochs=16 if kind=='frontend' else 12,patience=5,relative_improvement=.005,
+        lr_factor=.5,maximum_reductions=1,activate_after_epoch=8)
+
+
 def valid_policy(value):
-    return value in (profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'))
+    return value in (profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'),phase_dagger_profile(),phase_dagger_profile('backend'))
 
 
 def load(root):

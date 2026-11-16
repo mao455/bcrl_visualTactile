@@ -25,7 +25,10 @@ def audit_trigger_case(directory, result):
     if actual is not None and actual!=trigger.scheduled_tick:
         raise ValueError('Actual authority switch differs from causal schedule')
     from visuotactile.grasp_curriculum import EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION, APPROACH_VERSION
-    if config['trigger']['version'] in (EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION, APPROACH_VERSION):
+    if config['trigger']['version']=='layout_multistage_recovery_v1':
+        category='ended_before_takeover' if actual is None else 'student_phase_then_takeover'
+        if actual is not None and trigger.trigger_completed_tick!=actual:raise ValueError('Phase switch differs from causal receipt')
+    elif config['trigger']['version'] in (EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION, APPROACH_VERSION):
         category = 'ended_before_takeover' if actual is None else 'student_early_grasp_then_takeover'
         if actual is not None and trigger.trigger_completed_tick != actual:
             raise ValueError('Early contact switch lacks its causal trigger')

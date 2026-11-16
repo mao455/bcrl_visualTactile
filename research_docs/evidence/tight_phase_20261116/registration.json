@@ -1,0 +1,39 @@
+{
+  "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout10_20261116_dagger01/learning",
+  "created_utc": 1794833321.3599367,
+  "maximum_hours": 6,
+  "maximum_learning_rounds": 2,
+  "pilot_opportunities": 8,
+  "maximum_additional_collection_opportunities": 32,
+  "minimum_retained_new_suffixes_to_train": 2,
+  "maximum_software_recovery_attempts_per_stage": 1,
+  "heldout_seeds": [
+    28821000,
+    28821001,
+    28821002,
+    28821003,
+    28821004,
+    28821005,
+    28821006,
+    28821007
+  ],
+  "development_seeds": [
+    28820000,
+    28820001,
+    28820002,
+    28820003
+  ],
+  "old_test_regression_only": [
+    28819000,
+    28819001,
+    28819002,
+    28819003,
+    28819004,
+    28819005,
+    28819006,
+    28819007
+  ],
+  "holdout_rule": "Open only after final source freeze; no training or selection afterward",
+  "stopping": "Review each full loop; at most two new rounds, 40DP/24rear max per round with independent validation plateau; no expansion of irrecoverable stages",
+  "resource_policy": "GPU work serial by stage; retain6GiB GPU/12GiB RAM admission and24GiB disk reserve"
+}
