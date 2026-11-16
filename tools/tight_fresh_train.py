@@ -313,6 +313,8 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     batch_profile=validate_registration(root,trajectory_batch_profile)
     from visuotactile.frozen_visual_io import load_profile as load_visual_io
     visual_io=load_visual_io(root)
+    from visuotactile.bounded_extension import load as load_extension,Plateau,admit_dp_restore,dp_diagnostics
+    extension=load_extension(root)
     if visual_io is not None and batch_profile is None:
         raise ValueError('Formal eager visual I/O currently requires the explicit B2 frontend path')
     if offline_planning is not None:
@@ -413,10 +415,15 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             registered=read(registration)
             if registered['profile']!=batch_profile or registered['roles'][role]!=expected:
                 raise ValueError('B2 planned visit/update budget differs from cycle registration')
-    begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[]
+    if extension:config['bounded_extension']=extension['policy']
+    begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[];old={}
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
-        if old['configuration']!=config:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
+        if old['configuration']!=config:
+            if extension is None:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
+            audit=admit_dp_restore(old['configuration'],config,extension['roles'][role],out/'last.pt')
+            atomic_json(out/'extension_restore.json',dict(audit,epoch=old['epoch'],updates=old['updates']))
+            atomic_json(out/'configuration.json',config)
         restore_training(old,model,averaged,opt,ema,generator,noise)
         if visit_profile:coverage=Coverage(old['visit_sampling_coverage'])
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
@@ -449,11 +456,13 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         counts=Counter(v['episode'] for v in iter_visits(rows))
         if any(counts[i]!=sampling_exposure[i] for i in sampling_exposure) or set(counts)-set(sampling_exposure):
             raise ValueError('B2 durable per-episode visits differ from checkpoint')
+    plateau=Plateau(extension['policy'],old.get('plateau_state'),baseline=best) if extension else None
     def checkpoint(epoch,name='last.pt'):
         if auxiliary:
             validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
                 completed_epochs=epoch,updates=updates)
         extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
+        if plateau:extras['plateau_state']=plateau.state
         if visit_profile:extras['visit_sampling_coverage']=coverage.state_dict()
         if batch_profile:
             validate_batch_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates,visits_seen=visits_seen)
@@ -633,6 +642,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                 train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary)) if auxiliary else None)
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
+        if extension:
+            with lease.block():report['cohort_diagnostics']=dp_diagnostics(averaged,records,data,objective,visual_io,offline_planning,lease)
+            report['learning_rates']=[g['lr'] for g in opt.param_groups]
+            report['stopping']=plateau.observe(epoch+1,val['selection'],opt)
         report['training_epoch_io']=training_epoch_io
         if visit_profile:
             report['visit_sampling_coverage']=coverage.summary()
@@ -654,8 +667,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         atomic_json(out/'validation.json',report)
         with (out/'validation.jsonl').open('a') as f:f.write(json.dumps(report)+'\n')
         print(json.dumps(dict(role=role,epoch=epoch+1,updates=updates,loss=report['loss'],train=tr['selection'],validation=val['selection'])),flush=True)
-    finished=dict(epochs=epochs,updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,
+        if plateau and plateau.state['stop']:break
+    finished=dict(epochs=epoch+1 if extension else epochs,updates=updates,anchors_seen=anchors_seen,target_ticks=target_ticks,
         checkpoint_sha256=sha256(out/'best.pt'),complete=True,wall_seconds=time.perf_counter()-started)
+    if extension:finished.update(maximum_epochs=epochs,plateau_state=plateau.state,stop_reason='validation_plateau' if plateau.state['stop'] else 'maximum_epochs')
     if visit_profile:finished.update(training_sampling=visit_profile,visit_sampling_coverage=coverage.summary())
     if auxiliary:finished['auxiliary_exposure']=pose_exposure
     if sampling:finished.update(sampling_contract=sampling,episode_multiplicities=multiplicities,

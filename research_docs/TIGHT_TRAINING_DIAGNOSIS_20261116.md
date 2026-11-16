@@ -215,3 +215,15 @@ B的同状态误差拆解（6例按相同步数汇总）进一步定位了执行
 入口为 [scripts/tight_diagnosis_20261116](../scripts/tight_diagnosis_20261116)。`extract.py`只读日志生成主曲线；`stages_and_traces.py`只读真实numeric记录；`summary_figures.py`只整理已有指标；`endpoint_metrics.py`是明确的有限推理；`io_probe.py`是显式请求才执行的可丢弃更新。`cleanup.py`已有执行回执，不可重跑删除计划。旧夜间owner没有重启，全部诊断worker结束后退出，不留下DAgger后台服务。
 
 原始日志SHA列表在[source_logs.json](evidence/tight_diagnosis_20261116/source_logs.json)，大权重/轨迹仍只在研究机。当前开发树为 `bc+rl_RSS_continuous_vision_20261114`，公开目标仍为 origin/feature/tight-state-foundation；原工作树原有两份未提交说明保留。
+
+
+## 2026-11-16 后续：固定分布延长预算对照（登记，结果待运行）
+
+用户调整优先级：先验证训练预算不足；前文提出的采样配比对照暂缓，**不采新数据，不改repeat12、早期后端3倍、模型或控制约束**。新根`outputs/visuotactile/run/tight_budget_20261116_01`。
+
+- DP从19的last（每组8epochs/1568更新）恢复model、AdamW、EMA步数、抽样/噪声/CPU/CUDA RNG、完整visit与几何覆盖；19来源本来就是A11/B15。原8轮与选中checkpoint完整保留。
+- 原DP恒定3e-5、后端恒定1e-4，无8轮末尾归零调度。本次改为明确的验证平台调度：0.5%相对改善阈值、4次耐心、一次LR×0.5、减后再4次停滞且至少16轮才停；最多24轮/每组4704总DP更新。它检验有合理降LR的延长预算，不声称只增加epoch而调度完全未变。最佳选择仍是6隔离验证family的等权归一化Arm/Hand误差。
+- 前端完成后重新计算对应DP的后端输入。后端与19匹配A11/B15参数初始化、seed与新AdamW，明确不是把19后端optimizer跨不同DP输入冒充严格续训；同一新输入训练序列保留前8轮best/epoch8和最终best，以区分后端预算收益。后端本来没有EMA，不新增EMA。
+- 每轮记录固定原始4、均匀索引抽取历史4、最新4、全部验证6的Arm/Hand/接触前/双指/抬升误差；训练样本只是拟合诊断。DP增加固定噪声完整objective与实际分量，诊断不消耗训练RNG。旧8轮缺少的逐epoch分段不补造。
+- B2与microbatch4保持，避免改变更新数；使用已测mapped冻结特征读取，不新增特征副本。两组独立模型并行，依赖阶段等待完成；仿真与训练不同时占GPU。闭环只采用同协议短诊断，环境数不等于训练batch。
+- 新窗口6小时，包括等待；保留12GiB磁盘、10GiB RAM及4GiB VRAM，阶段心跳、15分钟停滞停止、最多两次明确有记录的阶段尝试。正式来源仍A11/B15。

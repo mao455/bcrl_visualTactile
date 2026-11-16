@@ -1295,6 +1295,8 @@ def residual_train(root, *, smoke=False, probe=False):
             or configuration.get('fresh_recovery_population')!=fresh_population):
         raise ValueError('Fresh recovery setup/training contract or population differs')
     formal_epochs=v['maximum_control_tick_epochs']
+    from .bounded_extension import Plateau,rear_diagnostics
+    extension=v.get('bounded_extension')
     if smoke or probe:v=dict(v,maximum_control_tick_epochs=1)
     probe_ids=data['splits']['train'][:4]
     if probe:
@@ -1367,6 +1369,7 @@ def residual_train(root, *, smoke=False, probe=False):
         if finished['updates']!=updates:raise ValueError('Residual completed receipt/checkpoint update differs')
         return
     signal.signal(signal.SIGTERM,lambda *_:request.append('SIGTERM'))
+    plateau=Plateau(extension,saved.get('plateau_state') if (out/'last.pt').exists() else None) if extension else None
     def snapshot(epoch,next_group):
         return cpu_snapshot(dict(residual_version=model.version,group='I-HistoryDP',contract=s['base_contracts'][root.name],
             **({'residual_loss_version':model.loss_contract['version']} if getattr(model,'loss_contract',None) else {}),
@@ -1380,7 +1383,8 @@ def residual_train(root, *, smoke=False, probe=False):
             contact_anchors=contact_ticks,supervised_ticks=draws,control_ticks=ticks,epoch=epoch,next_episode_group=next_group,episode_order=order,
             schedule_rng=generator.get_state(),torch_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all() if device.type=='cuda' else [],
             best=best,history=history,train_ids=ids,validation_ids=vals,correction_dev_ids=devs,
-            selection_baseline=selection_baseline,episode_counts=episode_counts,ema=False))
+            selection_baseline=selection_baseline,episode_counts=episode_counts,ema=False,
+            **({'plateau_state':plateau.state} if plateau else {})))
     def validate(epoch):
         nonlocal best,selection_baseline
         validation,_=residual_metrics(model,records,vals,lease)
@@ -1399,6 +1403,10 @@ def residual_train(root, *, smoke=False, probe=False):
                     recovery_prefix=recovery))
         if score is None or not math.isfinite(score):raise FloatingPointError('Invalid validation score')
         row['selection_score']=score
+        if extension:
+            row['cohort_diagnostics']=rear_diagnostics(model,records,data,lease)
+            row['learning_rates']=[g['lr'] for g in opt.param_groups]
+            row['stopping']=plateau.observe(epoch,score,opt)
         history.append(row);atomic_json(out/'validation.json',history)
         if score<best:
             best=score;save(out/'best.pt',snapshot(max(epoch,1),next_group))
@@ -1517,11 +1525,16 @@ def residual_train(root, *, smoke=False, probe=False):
         if (epoch==1 or epoch%v['validation_epoch_interval']==0 or stop!='maximum_control_tick_exposure') and (not history or history[-1]['update']!=updates):validate(epoch)
         if not disposable and epoch in v.get('comparison_control_tick_epochs',[]):
             save(out/f'comparison_epoch_{epoch}.pt',snapshot(epoch,next_group))
+            if extension and epoch==8:
+                from .checkpointing import promote_snapshot
+                promote_snapshot(out/'best.pt',out/'best_through_epoch8.pt')
         save(out/'last.pt',snapshot(epoch,next_group))
         if stop!='maximum_control_tick_exposure':break
+        if plateau and plateau.state['stop']:
+            stop='validation_plateau_after_lr_reduction';break
         # Minimum exposure and a fixed validation trend define bounded stopping;
         # Whole causal episode groups are the exposure rounding unit.
-        if draws>=v['minimum_control_tick_epochs']*population and len(history)>=4:
+        if not extension and draws>=v['minimum_control_tick_epochs']*population and len(history)>=4:
             scores=[r['selection_score'] for r in history[-4:]]
             if (scores[0]-min(scores[1:]))/max(scores[0],1e-12)<.01:stop='validation_plateau_after_minimum_exposure';break
         if exposure_complete():break

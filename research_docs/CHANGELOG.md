@@ -1768,3 +1768,7 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 - Actual: retired14.873GiB with pre-deletion manifest, process-reference checks, exact preserved model/EMA and354 readable current records. Raw trajectories/current169.30GiB visual pool/recent16–19/currentA11/B15 protected.
 - Results: TIGHT_TRAINING_DIAGNOSIS_20261116.md centralizes actual7360DP/27062rear update curves,34historical role-cohort stage rows, common300tick source comparison, new/old endpoint fit, exact execution-chain reconstruction and inference-only expert diagnostics. New4 fit improves while original2 worsens; rearB19 selection4 vs8 is a0.93% normalized metric difference. No20thDAgger or simulator starts.
 - I/O: real disposable coldB2 same1.56GB inputs1.244→.905s; warm1.018→.445s. No full-cycle speed claim.27focused tests pass; source weights untouched. Scripts/configs/small data+figures under scripts/tight_diagnosis_20261116 and evidence/tight_diagnosis_20261116. Initial failed bitwise GPU probe and corrected diagnostic-window attempts explicitly retained locally/public receipt, not presented as passing results.
+
+
+### 2026-11-16 固定分布预算诊断登记
+新增bounded_extension与tight_budget_20261116脚本：严格DP末检查点续训，独立验证平台减LR/停止，固定cohort逐epoch物理阶段诊断，后端对应DP刷新与同序列8轮比较快照。旧路径未启用时不变；无新增数据/采样/架构改变。31项聚焦检查通过，实际训练/行为尚待。
