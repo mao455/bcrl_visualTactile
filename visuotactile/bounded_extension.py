@@ -141,7 +141,8 @@ def dp_diagnostics(model,records,data,objective,visual_io,offline,lease):
                 ticks=(a[:,None]+torch.arange(12,device=a.device)[None])[mask].cpu().numpy()
                 rows.append(error_bins(e,ticks,phase_masks(data['entries'][identity]),model.action_scale))
                 noise=torch.Generator(device=c.device).manual_seed(87103)
-                context=projection_batch(objective,[(identity,int(t)) for t in a],'cuda:0')
+                context=projection_batch(objective,[(identity,int(t)) for t in a],'cuda:0',
+                    geometry_generator=torch.Generator().manual_seed(87104))
                 loss,parts,_=objective.forward(model,c,truth,valid,noise,geometry_context=context)
                 losses.append(float(loss));parts_rows.append({k:float(v) for k,v in parts.items()})
                 del ep

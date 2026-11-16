@@ -22,7 +22,15 @@ def completed_pair(root, role):
     path = base / 'training/best.pt'
     finished = read(base / 'training/finished.json')
     offline = read(base / 'offline/result.json')
-    if not finished.get('target_reached') or finished.get('disposable'):
+    bounded_complete=False
+    if finished.get('bounded_extension'):
+        from visuotactile.bounded_extension import profile
+        bounded_complete=(finished['bounded_extension']==profile()
+            and finished.get('bounded_training_complete') is True
+            and finished.get('minimum_exposure_reached') is True
+            and finished.get('stop_reason')=='validation_plateau_after_lr_reduction'
+            and finished.get('plateau_state',{}).get('stop') is True)
+    if not (finished.get('target_reached') or bounded_complete) or finished.get('disposable'):
         raise ValueError('Backend training budget is incomplete')
     if (not offline.get('complete') or offline.get('test_used') is not False
             or offline.get('checkpoint_sha256') != sha256(path)):

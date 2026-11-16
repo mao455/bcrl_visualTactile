@@ -1542,6 +1542,9 @@ def residual_train(root, *, smoke=False, probe=False):
     save(out/'last.pt',snapshot(epoch,next_group))
     if stop=='requested_stop':raise InterruptedError('Residual saved at complete episode-group boundary; stage remains resumable')
     atomic_json(out/'finished.json',dict(stop_reason=stop,updates=updates,control_tick_epochs=draws/population,
+        **(dict(bounded_extension=extension,plateau_state=plateau.state,
+                bounded_training_complete=bool(draws>=target_ticks or
+                    (plateau.state['stop'] and draws>=v['minimum_control_tick_epochs']*population))) if extension else {}),
         formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
         target_reached=draws>=target_ticks,required_supervised_ticks=target_ticks,
         new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),
