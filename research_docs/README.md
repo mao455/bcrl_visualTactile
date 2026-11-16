@@ -49,3 +49,5 @@ DP和Transformer均已实际训练最新26条；选中后端各含36/44次新轨
 第十四批已于20:05:20实际建立，20:07推进到第50控制步。A11/B13互补来源（原回退保留），32机会中16首步后专家接手、8持物、8持物近目标；用新增早期数据补抓起，同时保留新后段。8校验worker应对实测结束队列，正式速度待测。精确退休30个已结束非best last释放4.901GB，当前必需特征/raw/best全部保留；32机会单独设68GiB启动/32GiB保留。新固定截止11月16日02:05:20，旧03截止保持。新完整数据/训练/自主结果尚待收取。[启动凭据](evidence/tight_fresh_20261114/balanced_followup04/startup.json) · [实际脚本](../scripts/tight_fresh_20261115_04/README.md)。
 
 实际进度集中于[交接](SESSION_HANDOFF.md)，证据见[evidence](evidence/tight_fresh_20261114/round05_anchor_study.json)；[合同](CONTRACTS.md)、[感知](PERCEPTION.md)、[方法](DAGGER_METHOD.md)、[性能](DAGGER_PERFORMANCE.md)、[变更](CHANGELOG.md)维护对应事实。源码和精简证据推origin/feature/tight-state-foundation，raw数据/权重留研究机。历史段落保留实验边界，不覆盖当前授权，不重启或延长旧run。
+
+最新2026-11-16下午有界任务：见[TIGHT_TRAINING_DIAGNOSIS_20261116](TIGHT_TRAINING_DIAGNOSIS_20261116.md)开头。15:29:46停止，2条成功专家纠偏/9完整视频；新A/B公平闭环未完成，禁止自动重启。
