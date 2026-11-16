@@ -19,7 +19,7 @@ def last_update(path):
  return None
 
 def main():
- out=dict(root=str(ROOT),deadline=datetime.fromtimestamp(read(ROOT/'session.json')['deadline']).astimezone().isoformat(),networks={},active_workers=[])
+ out=dict(root=str(ROOT),deadline=datetime.fromtimestamp(read(ROOT/'session.json')['deadline']).astimezone().isoformat(),networks={},caches={},active_workers=[])
  for role in 'AB':
   for kind,path in [('dp',ROOT/role/'training'),('rear',ROOT/role/'backend'/role/'training')]:
    p=path/('validation.jsonl' if kind=='dp' else 'validation.json')
@@ -39,6 +39,9 @@ def main():
   except FileNotFoundError:continue
   if str(ROOT).encode() not in cmd and not any(x in cmd for x in [b'scripts.tight_budget_20261116.endpoints',b'scripts.tight_budget_20261116.evaluate']):continue
   out['active_workers'].append(dict(name=s['name'],pid=s['pid'],heartbeat_age_s=round(time.time()-s['heartbeat'],1),elapsed_s=round(time.time()-s['started'],1)))
+ for role in 'AB':
+  rear=ROOT/role/'backend';cache=rear/role/'nominal'
+  if cache.exists():out['caches'][role]=dict(written_shards=sum(1 for p in cache.glob('*.pt') if not p.name.startswith('.')),complete=(rear/'cache_complete.json').exists())
  out['current_failure']={p.name:read(p) for p in [ROOT/'serial_recovery_failed.json',ROOT/'finish_failed.json'] if p.exists()}
  out['historical_parallel_failure_preserved']=(ROOT/'failure.json').exists()
  out['finish']=read(ROOT/'finish_state.json') if (ROOT/'finish_state.json').exists() else None

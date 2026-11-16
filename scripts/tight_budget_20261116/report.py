@@ -35,6 +35,7 @@ def all_fig(role,kind,rows):
  for row in rows:
   if row.get('stopping',{}).get('event')=='reduce_lr':
    for a in ax.flat:a.axvline(row['epoch'],color='red',ls=':',label='LR reduced after epoch')
+ for a in ax.flat:a.legend(fontsize=7)
  fig.suptitle(role+' '+kind+': fixed data/sampling; train cohorts are fitting diagnostics, not held-out validation')
  plot_end(fig,f'{kind}_{role}.png')
  # The selected score is on the same scale on both sides of the old boundary.
@@ -46,6 +47,9 @@ def all_fig(role,kind,rows):
   ax.plot(xs,train,'o-',ms=3,label='fixed train2 fit diagnostic')
   ax.plot(xs,val,'o-',ms=3,label='independent validation6')
   ax.scatter([xs[best]],[val[best]],marker='*',s=130,color='red',label=f'selected epoch {epochs[best]}')
+  for i,row in enumerate(rows):
+   if row['epoch']==8:ax.axvline(xs[i],color='gray',ls='--',label='original budget8 boundary')
+   if row.get('stopping',{}).get('event')=='reduce_lr':ax.axvline(xs[i],color='red',ls=':',label='LR reduced after this point')
   ax.set_xlabel(xlabel);ax.set_ylabel('equal Arm/Hand normalized MSE');ax.grid(alpha=.2);ax.legend(fontsize=8)
  fig.suptitle(role+' '+kind+': training examples are NOT independent validation')
  plot_end(fig,f'{kind}_{role}_selection.png')
