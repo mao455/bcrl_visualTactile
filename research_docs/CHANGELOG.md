@@ -1,3 +1,13 @@
+## 2026-11-16 当前：仅平移插销起点的布局假设验证
+
+当前授权覆盖此前禁止新采集/训练与已结束15:30截止：先实际清理，原位/远离基座5cm/10cm小规模专家全任务比较；可用后新版本约30独立成功示范，A/B共同划分、DP与Transformer随机初始化，再完整DAgger共同冻结池。原孔位/资产/物理/120-60-5Hz/任务成功不改，不大改模型/采样/控制。A=q[t+1]+原几何，B=u_expert，后端均最终专家命令；学生前缀只是真实历史。
+
+现场在continuous_vision_20261114，HEAD e6d48db与origin/feature/tight-state-foundation一致；narrow_followup同名本地分支落后且脏，保留。16:46无活动研究worker；旧可靠评估16次均合法、四组各0/4原生插入已结束。
+
+新root tight_layout_20261116_01。已先登记并执行256份闭合失败RGB-D退休，保留数值/控制/结果/已有视频和36份完整代表失败，所有成功及1363个manifest源保护；净释放135318011904bytes。不是损坏数据删除，不重算旧清理。清单/逐文件SHA在root/cleanup。
+
+新pilot登记3初态×3布局，共9机会、原有慢速专家/真实观察/原生完整成功；独立2h只界定pilot。位移只改native fixed_start_pose XY，孔位按原相同seed生成后冻结；超旧object采样框是明确新初始化，不裁剪。每初态保持z/旋转/关节/孔/事件seed，隐藏状态不称精确配对。真实碰撞盒表面距离与合法性、首组3视频后审查；偏移布局至少2/3原生全任务成功且合法、可见、支撑通过才进入重采，允许有依据的一次小调整。尚未启动/无新结果，不把准备写成有效。
+
 ## 2026-11-16 收尾 — 终态、零重跑续接及完整证据
 
 reliable_eval补明确complete/failed协调器终态；已完成root提前只读核对，不启动monitor/Kit、不重写原complete/result。实际再次调用：4个完整作业跳过、0worker，SHA均保持。四套backend内嵌DP身份与执行回执一致，真实配对评估四组0/4。reliable_report/review_videos生成九段视频的事件、动作分解、小图和完整评估分母；现有集中报告/README/AGENTS/handoff统一更新。所有owner/monitor/worker已退出、资源保留。实际仿真源码c8d4c01，后续终态修改只做零GPU续接验收；不伪称新训练或插入能力改善。

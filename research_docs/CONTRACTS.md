@@ -1,3 +1,7 @@
+## peg_spacing_reset_v1（2026-11-16）
+
+显式布局pilot仅对原direct_configuration生成的fixed_start_pose XY施加远离孔基座的0/.05/.10m位移，其他reset字段逐值不变。surface距离用原URDF碰撞盒在真实reset位姿下的凸最小距离，不以中心距替代；不包含contact/rest offset。原live conservative collision gate仍运行；视频与原生专家成功另审。修改不进入原默认reset、学生输入、控制与成功定义。测试覆盖零偏移恒等、其他字段恒等及已知盒间距；尚无真实布局验收。
+
 ## 2026-11-16 同执行后端的抓持采用与训练初态复测
 
 night采用判断必须匹配physics/camera/queue/GPU pipeline/render合同，CPU旧成绩不直接对比GPU新成绩；当前GPU来源基线单独登记，保留所有历史证据。小样本仅用于继续采集的操作选择，不代表达到90%抓持可靠性。不同lane人口不宣称隐藏物理状态严格相同。
