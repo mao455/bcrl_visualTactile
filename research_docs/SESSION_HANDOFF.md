@@ -1,3 +1,9 @@
+## 2026-11-16 运行前确认混合策略评估路由
+
+learn评价准备显式使用既有可靠评估的GPU队列、实际配对检查与真实视频hook，避免缺省role分波路径绕过这些hook。新增check_plan.py用真实准备代码、替换模型身份读取做CPU检查：8case/4family、同family A/B完全相同reset、旧GPU后端配置、首family两视频均通过，0仿真/0更新。首次两核检查显式拒绝旧Kit16线程配置；服务按已有执行配置保留16核affinity、torch/BLAS仍2线程。未改物理/控制或门槛。
+
+仅停止尚在等待且未准备学习root的旧wait01，保存superseded.json；新wait02使用新冻结源码，当前采集worker/monitor未动，所有截止保持。不是训练重启，也未重复任何物理机会。
+
 ## 2026-11-16 重采进行中与自动串行交接
 
 独立验证6/6原生成功；训练前三条均成功，仍在顺序采集，不将计划配额记为完成。首新训练源296tick通过原loader、178D真实历史、29D命令及q[t+1]逐值对齐；初次额外检查误用浮点精确相等，改用原loader既有1e-8精度后通过，控制dt未改。新增只读readout与learn.wait_and_run：等待当前采集owner/monitor退出且数据审计完成后才准备并运行新学习owner，失败或原截止即停止，不并发抢占Kit。

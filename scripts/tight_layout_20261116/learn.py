@@ -60,7 +60,9 @@ def evaluation_prepare():
  from tools.tight_fresh_rollouts import completed_pair
  from tools.tight_fresh_batch_run import prepare as batch_prepare
  directory=ROOT/'development'
- batch_prepare(ROOT,directory,lanes=8,count=4,seed=DEV_SEEDS[0])
+ accepted=read(RUNS/'tight_reliable_eval_20261116_01/28500100/plan.json')
+ batch_prepare(ROOT,directory,lanes=8,count=4,seed=DEV_SEEDS[0],
+  execution_backend=accepted['execution_backend'],queued_gpu=True,vision_microbatch=4)
  plan=read(directory/'plan.json')
  # No reuse across waves; native reset stream and actual state checks match the accepted evaluator.
  for c in plan['cases']:
@@ -136,7 +138,7 @@ def run():
 
 def wait_and_run():
  """Wait for the current capture owner to finish; never compete with its GPU."""
- waiting=RUNS/'tight_layout10_20261116_learning_wait01'
+ waiting=RUNS/'tight_layout10_20261116_learning_wait02'
  waiting.mkdir(exist_ok=False)
  atomic_json(waiting/'started.json',dict(pid=os.getpid(),source=str(SOURCE.resolve()),utc=time.time()))
  try:
