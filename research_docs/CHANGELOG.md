@@ -1,3 +1,7 @@
+## 2026-11-17 — 后续等更新诊断入口，尚未运行
+
+固定56长训练继续使用冻结25bcc4a，未热改。现有bounded_extension、tight_fresh_train、anchor_continue与completed_pair增加显式matched_update_diagnostic_v1：恒定学习率、有限epoch上界、只选登记最终更新；后端以真实expert mask预计算既有32tick分块/128有效tick累计的完整episode-group边界，只有两数据池共有的实际更新数才可登记。前缀仍推进历史而不参与loss，不改变采样/损失/控制。后端准入要求训练回执、最终checkpoint更新数及边界一致；旧路径不启用。24项CPU测试通过，包含真实ResidualTickWindow更新计数对照、前缀mask改变会改变预算，以及提前checkpoint/错误边界拒绝。具体同源checkpoint、旧/新池和更新上限需等真实纠偏产生后登记；当前没有等预算收益结果。
+
 ## 2026-11-17 — 已核验实际监督曝光，固定数据训练进行中
 
 learning_report.py新增只读--budget，从真实selected checkpoint追溯每组DP/Transformer祖先，逐更新日志的selected_anchors结合原mask/control_segment重算合法horizon24目标槽，和checkpoint anchors_seen/target_ticks逐项相等。不是重新判定数据准入，而是确认哪些既有监督实际进入训练。当前56条A选中模型618294目标槽：原始早期210605、原始后段222907、纠偏首24合法tick35410、纠偏后段149372；B322275槽：110224/115750/18526/77775。首24合法纠偏独立episode/tick覆盖A622/B619（最多624），大量合法早期/后段标签确实已进入loss；不能据此推断学会。原始早期是tick<150诊断分箱，不是成功门槛；重复窗口槽不当独立数据。

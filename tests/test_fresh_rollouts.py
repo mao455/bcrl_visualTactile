@@ -72,3 +72,22 @@ def test_registered_final_wave_has_exact_pair_and_never_uses_development(tmp_pat
     with pytest.raises(AssertionError):validate(plan)
     cases[-1]['role']='B';cases[-1]['spec']['split']='development'
     with pytest.raises(AssertionError):validate(plan)
+
+
+@pytest.mark.parametrize('fault',[None,'selected_earlier','wrong_boundary','incomplete'])
+def test_matched_budget_requires_exact_final_snapshot(tmp_path,monkeypatch,fault):
+    from visuotactile.bounded_extension import matched_update_profile
+    base=fixture(tmp_path,monkeypatch);cap=dict(updates=2000,boundary=dict(epoch=20,next_group=24))
+    receipt=dict(target_reached=False,disposable=False,bounded_extension=matched_update_profile('backend',64),
+        matched_update_stop=cap,matched_update_complete=True,updates=2000,matched_boundary=cap['boundary'],
+        stop_reason='registered_matched_update_boundary',required_control_tick_epochs=64)
+    saved=dict(contract=dict(visual_stride=1),updates=2000,configuration=dict(matched_update_stop=cap))
+    if fault=='selected_earlier':saved['updates']=1990
+    elif fault=='wrong_boundary':receipt['matched_boundary']=dict(epoch=20,next_group=20)
+    elif fault=='incomplete':receipt['matched_update_complete']=False
+    torch.save(saved,base/'training/best.pt')
+    (base/'training/finished.json').write_text(json.dumps(receipt))
+    (base/'offline/result.json').write_text(json.dumps(dict(complete=True,test_used=False,checkpoint_sha256=sha256(base/'training/best.pt'))))
+    if fault is None:assert completed_pair(tmp_path,'A')
+    else:
+        with pytest.raises(ValueError):completed_pair(tmp_path,'A')

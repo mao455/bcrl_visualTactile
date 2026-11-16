@@ -56,3 +56,38 @@ def test_long_budget_does_not_stop_at_historical_plateau():
         assert not p.state['stop']
     p.observe(192,1.001,opt)
     assert p.state['stop'] and opt.param_groups[0]['lr']==1.5e-5
+
+
+def test_matched_policy_keeps_lr_and_selects_fixed_end():
+    from visuotactile.bounded_extension import matched_update_profile,valid_policy
+    p=matched_update_profile('frontend',48);opt=Optimizer();schedule=Plateau(p)
+    for epoch in range(1,49):schedule.observe(epoch,1.+epoch,opt)
+    assert not schedule.state['stop'] and opt.param_groups[0]['lr']==3e-5
+    assert not valid_policy(dict(p,minimum_epochs=1))
+    with pytest.raises(ValueError):matched_update_profile('frontend',10000)
+
+
+def test_rear_group_budget_matches_real_window_and_preserves_mask():
+    import torch
+    from visuotactile.bounded_extension import rear_group_boundaries
+    from visuotactile.residual_tick_window import ResidualTickWindow,TICK_WINDOW_CONTRACT
+    masks={str(i):torch.arange(n)>=prefix for i,(n,prefix) in enumerate([(101,33),(98,17),(201,129),(67,3),(49,0)])}
+    expected=rear_group_boundaries(masks,maximum_epochs=2)
+    generator=torch.Generator().manual_seed(2026111404);ids=list(masks)
+    model=torch.nn.Linear(1,1);optimizer=torch.optim.SGD(model.parameters(),lr=.01)
+    window=ResidualTickWindow(TICK_WINDOW_CONTRACT);updates=0;actual={}
+    for epoch in range(1,3):
+        order=[ids[i] for i in torch.randperm(len(ids),generator=generator).tolist()]
+        for offset in range(0,len(order),4):
+            group=order[offset:offset+4];length=max(len(masks[i]) for i in group)
+            for start in range(0,length,32):
+                ticks=sum(int(masks[i][start:start+32].sum()) for i in group)
+                if ticks:
+                    loss=model(torch.ones(1,1)).square().mean()
+                    window.backward(loss,optimizer,weight_mass=ticks,supervised_ticks=ticks,contact_ticks=0,history_ticks=0,weight_report={})
+                if window.pending and (window.ready or start+32>=length):
+                    window.step(model,optimizer);updates+=1
+            actual[updates]=dict(epoch=epoch,next_group=offset+len(group))
+    assert actual==expected
+    # Incorrectly supervising student prefixes changes the exact budget.
+    assert rear_group_boundaries({i:torch.ones_like(m) for i,m in masks.items()},maximum_epochs=2)!=expected

@@ -1349,6 +1349,19 @@ def residual_train(root, *, smoke=False, probe=False):
         if strata: raise ValueError('Explicit rear deck cannot be combined with legacy strata')
         _, multiplicities, unique_population, population = rear_plan(data, records, rear_sampling)
     target_ticks=v['maximum_control_tick_epochs']*population
+    matched=v.get('matched_update_stop')
+    if matched is not None:
+        from .bounded_extension import rear_group_boundaries,matched_update_profile
+        if (disposable or strata or rear_sampling is not None or window is None
+                or extension!=matched_update_profile('backend',v['maximum_control_tick_epochs'])):
+            raise ValueError('Matched diagnostic requires the unchanged complete-episode tick-window path')
+        if type(matched.get('updates')) is not int or not 1<=matched['updates']<=20000:
+            raise ValueError('Invalid registered matched update count')
+        masks={i:records[i]['supervision_mask'].cpu().bool() for i in ids}
+        boundaries=rear_group_boundaries(masks,maximum_epochs=v['maximum_control_tick_epochs'],seed=v['initialization_seed'])
+        if boundaries.get(matched['updates'])!=matched.get('boundary'):
+            raise ValueError('Matched target is not the registered actual complete-group boundary')
+
     generator=torch.Generator().manual_seed(v['initialization_seed'])
     updates=draws=ticks=contact_ticks=0;best=float('inf');history=[];began=time.time();stop='maximum_control_tick_exposure';request=[]
     resume_epoch=1;resume_group=0;resume_order=None;selection_baseline=None;episode_counts={i:0 for i in ids}
@@ -1409,7 +1422,7 @@ def residual_train(root, *, smoke=False, probe=False):
             row['learning_rates']=[g['lr'] for g in opt.param_groups]
             row['stopping']=plateau.observe(epoch,score,opt)
         history.append(row);atomic_json(out/'validation.json',history)
-        if score<best:
+        if score<best and (matched is None or updates==matched['updates']):
             best=score;save(out/'best.pt',snapshot(max(epoch,1),next_group))
             atomic_json(out/'selected.json',dict(epoch=epoch,update=updates,validation_score=score,
                 initialization_candidate=updates==0,base_checkpoint_sha256=configuration.get('base_sha256'),
@@ -1425,6 +1438,7 @@ def residual_train(root, *, smoke=False, probe=False):
         atomic_json(out/'latest_fit_initial.json', latest_fit(model,records,data,lease))
     next_group=resume_group
     def exposure_complete():
+        if matched is not None:return updates>=matched['updates']
         if draws<target_ticks:return False
         if not strata:return True
         covered=episode_exposure(records,episode_counts,strata,v.get('sampling_weights'))['strata']
@@ -1432,6 +1446,7 @@ def residual_train(root, *, smoke=False, probe=False):
             row['supervised_ticks'] for name,row in covered.items() if name!='core')
     if strata and updates==0 and selection_baseline is None:
         validate(0);save(out/'last.pt',snapshot(1,0))
+    if matched is not None and updates==matched['updates']:stop='registered_matched_update_boundary'
     for epoch in range(resume_epoch,v['maximum_control_tick_epochs']+1):
         if epoch!=resume_epoch:order=next_order()
         next_group=resume_group if epoch==resume_epoch else 0
@@ -1518,6 +1533,8 @@ def residual_train(root, *, smoke=False, probe=False):
             training_wall_s+=time.time()-group_began
             for identity in order[offset:offset+len(selected)]:episode_counts[identity]+=1
             next_group=offset+len(selected)
+            if matched is not None and updates>matched['updates']:raise ValueError('Matched update budget overshot')
+            if matched is not None and updates==matched['updates']:stop='registered_matched_update_boundary'
             if resumable:save(out/'last.pt',snapshot(epoch,next_group))
             if request or time.time()>s['training_deadline']-180:
                 stop='requested_stop' if request else 'fixed_wall_budget';break
@@ -1548,6 +1565,8 @@ def residual_train(root, *, smoke=False, probe=False):
                     (plateau.state['stop'] and draws>=v['minimum_control_tick_epochs']*population))) if extension else {}),
         formal_updates=0 if disposable else updates,disposable=disposable,run_kind=run_kind,
         target_reached=draws>=target_ticks,required_supervised_ticks=target_ticks,
+        **(dict(matched_update_stop=matched,matched_update_complete=updates==matched['updates'],
+                matched_boundary=dict(epoch=epoch,next_group=next_group)) if matched is not None else {}),
         new_optimizer_updates=0 if disposable else updates,continuation_from=v.get('continuation_from'),
         tick_window_contract=v.get('tick_window_contract'),
         schedule_maximum_control_tick_epochs=formal_epochs,

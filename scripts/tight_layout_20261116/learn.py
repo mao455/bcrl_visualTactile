@@ -107,13 +107,18 @@ def cache():
 
 def backend_prepare(role):
  from tools.tight_fresh_backend import prepare as prep
- from visuotactile.bounded_extension import fresh_layout_profile,phase_dagger_profile,long_fixed_profile
+ from visuotactile.bounded_extension import fresh_layout_profile,phase_dagger_profile,long_fixed_profile,matched_update_profile
  policy=long_fixed_profile('backend',64) if read(ROOT/'session.json').get('fixed56_long') else phase_dagger_profile('backend') if read(ROOT/'session.json').get('phase_dagger') else fresh_layout_profile('backend')
+ if read(ROOT/'session.json').get('matched_update_diagnostic'):
+  policy=matched_update_profile('backend',64)
  assert read(ROOT/role/'training/finished.json')['complete']
  prep(ROOT,role,policy['maximum_epochs'],continue_rear=(ROOT/role/'continuation.json').exists(),offline_anchor_batch=32,frozen_visual_io=read(ROOT/'frozen_visual_io.json'))
  rear=ROOT/role/'backend'
  for p in [rear/'session.json',rear/'configuration.json',rear/role/'session.json',rear/role/'configuration.json']:
-  v=read(p);v['residual_pair'].update(bounded_extension=policy,minimum_control_tick_epochs=policy['minimum_epochs'],comparison_control_tick_epochs=[]);atomic_json(p,v)
+  v=read(p);v['residual_pair'].update(bounded_extension=policy,minimum_control_tick_epochs=policy['minimum_epochs'],comparison_control_tick_epochs=[])
+  if read(ROOT/'session.json').get('matched_update_diagnostic'):
+   v['residual_pair']['matched_update_stop']=read(ROOT/'matched_updates.json')['rear'][role]
+  atomic_json(p,v)
  atomic_json(rear/'extension_prepared.json',dict(complete=True,utc=time.time()))
 
 def evaluation_prepare():

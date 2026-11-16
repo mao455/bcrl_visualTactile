@@ -677,6 +677,8 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         history.append(report)
         selection_eligible=(not extension or extension['policy']['version']!='fixed56_long_budget_v1'
             or epoch+1>=extension['policy']['maximum_epochs']-96)
+        if extension and extension['policy']['version']=='matched_update_diagnostic_v1':
+            selection_eligible=epoch+1==epochs
         report['selection_eligible']=selection_eligible
         improved=selection_eligible and val['selection']<best
         if selection_eligible:best=min(best,val['selection'])

@@ -38,7 +38,37 @@ def long_fixed_profile(kind='frontend', maximum_epochs=192):
         activate_after_epoch=96 if kind=='frontend' else 24)
 
 
+def matched_update_profile(kind, maximum_epochs):
+    """Finite constant-LR, final-checkpoint diagnostic; no adaptive selection."""
+    if kind not in ('frontend','backend') or type(maximum_epochs) is not int or not 1<=maximum_epochs<=128:
+        raise ValueError('Invalid finite matched-update budget')
+    return dict(version='matched_update_diagnostic_v1',kind=kind,maximum_epochs=maximum_epochs,
+        minimum_epochs=maximum_epochs,patience=maximum_epochs+1,relative_improvement=.005,
+        lr_factor=.5,maximum_reductions=0,activate_after_epoch=maximum_epochs,
+        selection='registered_final_update_only')
+
+
+def rear_group_boundaries(masks, *, maximum_epochs=64, seed=2026111404):
+    """Predict exact existing 32-tick/128-valid-tick updates, whole-group stops."""
+    import torch
+    ids=list(masks);generator=torch.Generator().manual_seed(seed);updates=0;result={}
+    if not ids or any(not torch.as_tensor(m).bool().any() for m in masks.values()):
+        raise ValueError('Each episode requires legal expert supervision')
+    for epoch in range(1,maximum_epochs+1):
+        order=[ids[i] for i in torch.randperm(len(ids),generator=generator).tolist()]
+        for offset in range(0,len(order),4):
+            group=order[offset:offset+4];length=max(len(masks[i]) for i in group);pending=0
+            for start in range(0,length,32):
+                pending+=sum(int(torch.as_tensor(masks[i][start:start+32]).bool().sum()) for i in group)
+                if pending and (pending>=128 or start+32>=length):updates+=1;pending=0
+            result[updates]=dict(epoch=epoch,next_group=offset+len(group))
+    return result
+
+
 def valid_policy(value):
+    if isinstance(value,dict) and value.get('version')=='matched_update_diagnostic_v1':
+        try:return value==matched_update_profile(value['kind'],value['maximum_epochs'])
+        except (KeyError,ValueError):return False
     return value in (long_fixed_profile(),long_fixed_profile(maximum_epochs=360),long_fixed_profile('backend',64),profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'),phase_dagger_profile(),phase_dagger_profile('backend'))
 
 

@@ -30,12 +30,23 @@ def completed_pair(root, role):
             and finished.get('minimum_exposure_reached') is True
             and finished.get('stop_reason')=='validation_plateau_after_lr_reduction'
             and finished.get('plateau_state',{}).get('stop') is True)
-    if not (finished.get('target_reached') or bounded_complete) or finished.get('disposable'):
+    matched_complete=False
+    if finished.get('matched_update_stop'):
+        from visuotactile.bounded_extension import matched_update_profile
+        cap=finished['matched_update_stop']
+        matched_complete=(finished.get('matched_update_complete') is True
+            and finished.get('updates')==cap.get('updates')
+            and finished.get('matched_boundary')==cap.get('boundary')
+            and finished.get('stop_reason')=='registered_matched_update_boundary'
+            and finished.get('bounded_extension')==matched_update_profile('backend',finished['required_control_tick_epochs']))
+    if not (finished.get('target_reached') or bounded_complete or matched_complete) or finished.get('disposable'):
         raise ValueError('Backend training budget is incomplete')
     if (not offline.get('complete') or offline.get('test_used') is not False
             or offline.get('checkpoint_sha256') != sha256(path)):
         raise ValueError('Selected complete pair lacks matching non-test offline evidence')
     saved = torch.load(path, map_location='cpu', weights_only=False)
+    if matched_complete and (saved['updates']!=finished['updates'] or saved['configuration'].get('matched_update_stop')!=finished['matched_update_stop']):
+        raise ValueError('Matched diagnostic must deploy its registered final update')
     if saved['contract'].get('visual_stride') != 1:
         raise ValueError('Every control frame required')
     return dagger_policy_identity(saved, str(path))
