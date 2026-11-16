@@ -39,8 +39,8 @@ def all_fig(role,kind,rows):
  plot_end(fig,f'{kind}_{role}.png')
  # The selected score is on the same scale on both sides of the old boundary.
  fig,axes=plt.subplots(1,2,figsize=(13,4))
- train=[x['train'] if kind=='dp' else x['train']['all']['normalized_equal_mse'] for x in rows]
- val=[x['validation'] if kind=='dp' else x['validation']['all']['normalized_equal_mse'] for x in rows]
+ train=[x['train']['selection'] if kind=='dp' else x['train']['all']['normalized_equal_mse'] for x in rows]
+ val=[x['validation']['selection'] if kind=='dp' else x['validation']['all']['normalized_equal_mse'] for x in rows]
  best=int(np.argmin(val))
  for ax,xs,xlabel in [(axes[0],epochs,'epoch'),(axes[1],[x.get('updates',x.get('update')) for x in rows],'optimizer update')]:
   ax.plot(xs,train,'o-',ms=3,label='fixed train2 fit diagnostic')
