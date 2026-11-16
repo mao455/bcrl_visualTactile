@@ -11,6 +11,9 @@ O=Path('research_docs/evidence/tight_diagnosis_20261116/budget_extension');O.mkd
 read=lambda p:json.loads(Path(p).read_text())
 def dump(p,v):(O/p).write_text(json.dumps(v,indent=2,allow_nan=False)+'\n')
 def plot_end(fig,name):fig.tight_layout();fig.savefig(O/name,dpi=150,bbox_inches='tight',pad_inches=.15);plt.close(fig)
+def compact_update(value):
+ value['visits']=[{k:v for k,v in visit.items() if k in ('episode','anchors','target_ticks','visual_frames','parts','loss','loss_weight','episode_index','episode_visit')} for visit in value.get('visits',[])]
+ return value
 def all_fig(role,kind,rows):
  fig,ax=plt.subplots(2,3,figsize=(16,8))
  epochs=[x['epoch'] for x in rows]
@@ -102,9 +105,20 @@ for role in 'AB':
    with gzip.open(O/f'{kind}_{role}_{name}.jsonl.gz','wt') as f:
     for line in path.open():
      value=json.loads(line)
-     if kind=='dp':
-      value['visits']=[{k:v for k,v in visit.items() if k in ('episode','anchors','target_ticks','visual_frames','parts','loss','loss_weight','episode_index','episode_visit')} for visit in value.get('visits',[])]
+     if kind=='dp':value=compact_update(value)
      f.write(json.dumps(value,separators=(',',':'))+'\n')
+ # A failed partial epoch is a separate branch, never spliced into the resumed
+ # history. Preserve its small actual metrics and count the compute explicitly.
+ abandoned=[];durable=read(R/'serial_recovery_started.json')['durable_updates']
+ for path in sorted((R/role/'training').glob('learning.abandoned*.jsonl')):
+  for line in path.open():
+   value=json.loads(line)
+   if value['updates']>durable:
+    value=compact_update(value);value.update(branch='abandoned_attempt1',source_file=path.name)
+    abandoned.append(value)
+ assert len(abandoned)==140,(role,len(abandoned))
+ with gzip.open(O/f'dp_{role}_abandoned_updates.jsonl.gz','wt') as f:
+  for value in abandoned:f.write(json.dumps(value,separators=(',',':'))+'\n')
 dump('summary.json',summary)
 dump('convergence.json',convergence)
 dump('registration.json',read(R/'prepared.json'))
@@ -137,4 +151,8 @@ for j,kind in enumerate(['dp','rear']):
   with gzip.open(p,'rt') as f:vals=[json.loads(line) for line in f]
   xs=[v.get('updates',v.get('update')) for v in vals];ys=[v['loss'] for v in vals]
   axes[j,k].plot(xs,ys,'.',ms=1,alpha=.35);axes[j,k].set_title(role+' '+kind+' actual optimizer updates');axes[j,k].set_xlabel('optimizer update');axes[j,k].set_ylabel('actual training objective');axes[j,k].grid(alpha=.2)
+  if kind=='dp':
+   with gzip.open(O/f'dp_{role}_abandoned_updates.jsonl.gz','rt') as f:lost=[json.loads(line) for line in f]
+   axes[j,k].plot([v['updates'] for v in lost],[v['loss'] for v in lost],'.',ms=2,color='orange',label='failed partial12, excluded from resumed model')
+   axes[j,k].legend(fontsize=7)
 plot_end(fig,'optimizer_losses.png')
