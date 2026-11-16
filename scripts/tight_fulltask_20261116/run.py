@@ -1,5 +1,5 @@
 """Finite deadline-bound full task continuation. No automatic DAgger loop."""
-import copy,json,os,subprocess,sys,time,traceback
+import copy,json,os,subprocess,sys,time,traceback,threading
 from pathlib import Path
 from visuotactile.training_resources import atomic_json
 from tools.tight_fresh_rollouts import read
@@ -8,6 +8,7 @@ from scripts.tight_stability_20261116.analyze_existing import TREE,OLD
 from visuotactile.compact import sha256
 ROOT=TREE/'outputs/visuotactile/run/tight_fulltask_20261116_01'
 DEADLINE=1794814200.0 # 2026-11-16 15:30 UTC+8
+STATUS_LOCK=threading.Lock()
 
 def prepare():
     from tools.tight_fresh_batch_run import prepare as batch
@@ -38,7 +39,8 @@ def prepare():
 
 def execute(name,args):
     assert time.time()<DEADLINE
-    atomic_json(ROOT/'status.json',dict(stage=name,utc=time.time(),deadline=DEADLINE))
+    with STATUS_LOCK:
+        atomic_json(ROOT/'status.json',dict(stage=name,utc=time.time(),deadline=DEADLINE))
     with (ROOT/(name+'.log')).open('x') as f:
         p=subprocess.Popen([sys.executable,'-m']+list(map(str,args)),cwd=TREE,stdout=f,stderr=subprocess.STDOUT,
             env=dict(os.environ,OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2'),start_new_session=True)
