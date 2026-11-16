@@ -417,11 +417,12 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             if registered['profile']!=batch_profile or registered['roles'][role]!=expected:
                 raise ValueError('B2 planned visit/update budget differs from cycle registration')
     if extension:config['bounded_extension']=extension['policy']
-    begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[];old={}
+    begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[];old={};extension_crossing=False
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
         if old['configuration']!=config:
             if extension is None:raise ValueError('Attempt restore source/config changed; use explicit new continuation identity')
+            extension_crossing=True
             audit=admit_dp_restore(old['configuration'],config,extension['roles'][role],out/'last.pt')
             atomic_json(out/'extension_restore.json',dict(audit,epoch=old['epoch'],updates=old['updates']))
             atomic_json(out/'configuration.json',config)
@@ -457,7 +458,19 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         counts=Counter(v['episode'] for v in iter_visits(rows))
         if any(counts[i]!=sampling_exposure[i] for i in sampling_exposure) or set(counts)-set(sampling_exposure):
             raise ValueError('B2 durable per-episode visits differ from checkpoint')
-    plateau=Plateau(extension['policy'],old.get('plateau_state'),baseline=best) if extension else None
+    # Preserve raw model/Adam moments/EMA/RNG; only the explicitly registered
+    # new finite LR schedule replaces an exhausted historical plateau state.
+    reset_schedule=extension_crossing and extension['policy']['version']=='fixed56_long_budget_v1'
+    if reset_schedule:
+        registration=extension['roles'][role]
+        best=float('inf')  # New candidate selection is separate from preserved baseline.
+        previous_rates=[g['lr'] for g in opt.param_groups]
+        for group in opt.param_groups:group['lr']=registration['restart_learning_rate']
+        atomic_json(out/'schedule_restart.json',dict(old_rates=previous_rates,
+            new_rates=[g['lr'] for g in opt.param_groups],at_updates=updates,at_epoch=begin_epoch,
+            optimizer_moments_restored=True,ema_restored=True,rng_restored=True,
+            scope='Explicit new finite learning-rate/plateau schedule; not unchanged-schedule replay'))
+    plateau=Plateau(extension['policy'],None if reset_schedule else old.get('plateau_state'),baseline=best) if extension else None
     def checkpoint(epoch,name='last.pt'):
         if auxiliary:
             validate_exposure(pose_exposure,pose_reports,data['splits']['train'],data['normalization_train_ids'],
@@ -644,7 +657,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         report=dict(epoch=epoch+1,updates=updates,loss=sum(losses)/len(losses),train=tr,validation=val,
             seconds=time.perf_counter()-started,anchors_seen=anchors_seen,target_ticks=target_ticks,utc=time.time())
         if extension:
-            if extension['policy']['version']=='fixed_distribution_extension_v1':
+            if extension['policy']['version']=='fixed_distribution_extension_v1' or (extension['policy']['version']=='fixed56_long_budget_v1' and epoch+1==epochs):
                 with lease.block():report['cohort_diagnostics']=dp_diagnostics(averaged,records,data,objective,visual_io,offline_planning,lease)
             report['learning_rates']=[g['lr'] for g in opt.param_groups]
             report['stopping']=plateau.observe(epoch+1,val['selection'],opt)
@@ -661,7 +674,12 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         if sampling:report['sampling_exposure']=dict(sampling_exposure)
         if continuation and epoch+1==epochs:
             with lease.block():report['correction']=evaluate(data['aggregation']['new_training_ids'])
-        history.append(report);improved=val['selection']<best;best=min(best,val['selection'])
+        history.append(report)
+        selection_eligible=(not extension or extension['policy']['version']!='fixed56_long_budget_v1'
+            or epoch+1>=extension['policy']['maximum_epochs']-96)
+        report['selection_eligible']=selection_eligible
+        improved=selection_eligible and val['selection']<best
+        if selection_eligible:best=min(best,val['selection'])
         checkpoint(epoch+1)
         if improved:
             from visuotactile.checkpointing import promote_snapshot

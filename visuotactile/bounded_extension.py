@@ -28,8 +28,18 @@ def phase_dagger_profile(kind='frontend'):
         lr_factor=.5,maximum_reductions=1,activate_after_epoch=8)
 
 
+def long_fixed_profile(kind='frontend', maximum_epochs=192):
+    if kind not in ('frontend','backend'):raise ValueError('Unknown long-training component')
+    if maximum_epochs not in ((192,360) if kind=='frontend' else (64,)):
+        raise ValueError('Unregistered long-training budget')
+    return dict(version='fixed56_long_budget_v1',kind=kind,maximum_epochs=maximum_epochs,
+        minimum_epochs=maximum_epochs,patience=24 if kind=='frontend' else 12,
+        relative_improvement=.005,lr_factor=.5,maximum_reductions=1,
+        activate_after_epoch=96 if kind=='frontend' else 24)
+
+
 def valid_policy(value):
-    return value in (profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'),phase_dagger_profile(),phase_dagger_profile('backend'))
+    return value in (long_fixed_profile(),long_fixed_profile(maximum_epochs=360),long_fixed_profile('backend',64),profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'),phase_dagger_profile(),phase_dagger_profile('backend'))
 
 
 def load(root):
@@ -73,8 +83,17 @@ def admit_dp_restore(old,new,registration,checkpoint):
              'planned_episode_visits','planned_optimizer_updates','planned_ema_updates','bounded_extension'}
     differences={k for k in set(old)|set(new) if old.get(k)!=new.get(k)}
     if not differences<=allowed:raise ValueError('Extension changes training semantics: '+str(differences-allowed))
-    for key in ('planned_episode_visits','planned_optimizer_updates','planned_ema_updates'):
-        if new[key]!=old[key]*3:raise ValueError('Expected registered 8 to 24 maximum budget')
+    if new['bounded_extension']['version']=='fixed56_long_budget_v1':
+        if registration.get('version')!='fixed56_full_state_extension_v1':
+            raise ValueError('Missing explicit full-state budget registration')
+        if registration['old_policy']!=old['bounded_extension'] or registration['new_policy']!=new['bounded_extension']:
+            raise ValueError('Registered continuation policies differ')
+        for key in ('planned_episode_visits','planned_optimizer_updates','planned_ema_updates'):
+            if new[key]<=old[key] or new[key]!=registration['new_budget'][key]:
+                raise ValueError('Registered long budget mismatch')
+    else:
+        for key in ('planned_episode_visits','planned_optimizer_updates','planned_ema_updates'):
+            if new[key]!=old[key]*3:raise ValueError('Expected registered 8 to 24 maximum budget')
     return dict(changed_configuration_fields=sorted(differences),optimizer_restored=True,
                 ema_restored=True,all_rng_restored=True,old_scheduler='constant_lr_no_scheduler',
                 scope='Same tensors and training state, new finite budget/diagnostic/I-O identity; not bitwise GPU replay')

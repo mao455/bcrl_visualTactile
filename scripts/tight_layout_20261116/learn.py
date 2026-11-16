@@ -40,6 +40,60 @@ def prepare():
   old_student_loaded=False,development_seeds=DEV_SEEDS,final_test_seeds=read(SOURCE/'collection_plan.json')['test_seeds'],
   unchanged_sampling_sha256=sha256(ROOT/'training_sampling.json'),deadline=s['deadline'],source_sha256={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116'] for p in (TREE/folder).rglob('*.py')},utc=time.time()))
 
+def prepare_fixed():
+ """Fork immutable fixed-data evidence; resume full DP state in a new root."""
+ import torch
+ from visuotactile.trajectory_training import profile,budget
+ from visuotactile.bounded_extension import long_fixed_profile
+ source=Path(sys.argv[sys.argv.index('--source')+1]).resolve()
+ registration=Path(sys.argv[sys.argv.index('--registration')+1]).resolve()
+ epochs=int(sys.argv[sys.argv.index('--epochs')+1]);policy=long_fixed_profile(maximum_epochs=epochs)
+ assert not ROOT.exists() and read(source/'owner_exit.json')['children_reaped']
+ run=read(registration);assert time.time()<run['training_deadline']
+ ROOT.mkdir();(ROOT/'logs').mkdir()
+ session=copy.deepcopy(read(source/'session.json'))
+ session.update(version='fixed56_long_session_v1',fixed56_long=True,
+  started_utc=run['created_utc'],deadline=run['deadline'],training_deadline=run['training_deadline'],
+  collection_deadline=run['training_deadline'],cache_deadline=run['training_deadline'],offline_deadline=run['deadline'],
+  resource_root=str(ROOT),owned_worker_roots=[str(ROOT)],
+  authorization='Fixed56 substantial full-state DP continuation, regenerated backend, autonomous development')
+ atomic_json(ROOT/'session.json',session)
+ for name in ['metadata.json','source_data.json','selection.json','training_sampling.json','cuda_allocator_policy.json','frozen_visual_io.json']:
+  if (source/name).exists():shutil.copyfile(source/name,ROOT/name)
+ reg=dict(profile=profile(),roles={});extension=dict(policy=policy,roles={});cache_hashes={}
+ for role in 'AB':
+  src=source/role;dest=ROOT/role;dest.mkdir()
+  # These inputs remain immutable. New learned history and rear plans are rebuilt.
+  (dest/'state_data').symlink_to(src/'state_data',target_is_directory=True)
+  for name in ['cache_index.json','continuation.json']:shutil.copyfile(src/name,dest/name)
+  (dest/'shared_resources.json').symlink_to(ROOT/'shared_resources.json')
+  atomic_json(dest/'session.json',session)
+  def copy_state(a,b):
+   return os.link(a,b) if str(a).endswith('.pt') else shutil.copy2(a,b)
+  shutil.copytree(src/'training',dest/'training',copy_function=copy_state)
+  (dest/'training/finished.json').unlink()
+  old=torch.load(src/'training/last.pt',map_location='cpu',weights_only=False,mmap=True)
+  assert old['updates']==read(src/'training/finished.json')['updates']
+  data=read(dest/'state_data/data.json');ids=data['splits']['train']
+  assert len(ids)==56 and len(data['splits']['validation'])==6
+  b=budget(len(ids),epochs)
+  reg['roles'][role]=dict(**b,data_sha256=sha256(dest/'state_data/data.json'),episode_multiplicities=dict.fromkeys(ids,1))
+  extension['roles'][role]=dict(version='fixed56_full_state_extension_v1',
+   last_sha256=sha256(src/'training/last.pt'),old_policy=old['configuration']['bounded_extension'],
+   new_policy=policy,new_budget=b,restart_learning_rate=3e-5 if epochs==192 else 1.5e-5,
+   original_epoch=old['epoch'],original_updates=old['updates'],additional_updates=b['planned_optimizer_updates']-old['updates'])
+  front=src/'training/best.pt';rear=src/'backend'/role/'training/best.pt'
+  atomic_json(dest/'backend_continuation.json',dict(path=str(front),sha256=sha256(front),
+   previous_backend=str(rear),previous_backend_sha256=sha256(rear)))
+  cache_hashes[role]=sha256(dest/'cache_index.json')
+ atomic_json(ROOT/'full_trajectory_batch.json',reg);atomic_json(ROOT/'bounded_extension.json',extension)
+ atomic_json(ROOT/'gate.json',dict(passed=True,inherited_input_gate=str(source/'gate.json'),
+  inherited_input_gate_sha256=sha256(source/'gate.json'),meaning='Identical fixed56 numeric/visual/mask/stat inputs'))
+ atomic_json(ROOT/'prepared.json',dict(complete=True,continue_student_pair=True,reuse_frozen_cache=True,
+  cache_index_sha256=cache_hashes,source=str(source),registration=str(registration),registration_sha256=sha256(registration),
+  source_sha256={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116'] for p in (TREE/folder).rglob('*.py')},utc=time.time()))
+
+
 def cache():
  from visuotactile.precision import state_fp32
  from visuotactile.native_data import cache_visual_pair
@@ -53,8 +107,8 @@ def cache():
 
 def backend_prepare(role):
  from tools.tight_fresh_backend import prepare as prep
- from visuotactile.bounded_extension import fresh_layout_profile,phase_dagger_profile
- policy=phase_dagger_profile('backend') if read(ROOT/'session.json').get('phase_dagger') else fresh_layout_profile('backend')
+ from visuotactile.bounded_extension import fresh_layout_profile,phase_dagger_profile,long_fixed_profile
+ policy=long_fixed_profile('backend',64) if read(ROOT/'session.json').get('fixed56_long') else phase_dagger_profile('backend') if read(ROOT/'session.json').get('phase_dagger') else fresh_layout_profile('backend')
  assert read(ROOT/role/'training/finished.json')['complete']
  prep(ROOT,role,policy['maximum_epochs'],continue_rear=(ROOT/role/'continuation.json').exists(),offline_anchor_batch=32,frozen_visual_io=read(ROOT/'frozen_visual_io.json'))
  rear=ROOT/role/'backend'
@@ -119,7 +173,11 @@ def run():
    while not (ROOT/'shared_resources.json').exists():
     assert monitor.poll() is None and time.time()<until;time.sleep(.25)
    if not read(ROOT/'prepared.json').get('evaluation_only_recovery'):
-    execute('cache',[__spec__.name,'cache','--root',ROOT],ROOT/'cache_complete.json')
+    if read(ROOT/'prepared.json').get('reuse_frozen_cache'):
+     for role,digest in read(ROOT/'prepared.json')['cache_index_sha256'].items():
+      assert sha256(ROOT/role/'cache_index.json')==digest
+     atomic_json(ROOT/'cache_complete.json',dict(complete=True,reused_unchanged_inputs=True,utc=time.time()))
+    else:execute('cache',[__spec__.name,'cache','--root',ROOT],ROOT/'cache_complete.json')
     if read(ROOT/'prepared.json').get('continue_student_pair'):
      g=read(ROOT/'gate.json');assert g['passed'] and sha256(g['inherited_input_gate'])==g['inherited_input_gate_sha256']
     else:execute('gate',['tools.tight_fresh_train','gate','--root',ROOT],ROOT/'gate.json')

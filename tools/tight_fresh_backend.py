@@ -100,7 +100,7 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         from visuotactile.anchor_continue import continuation_source, load_residual_continuation
         if not data.get('aggregation'):
             raise ValueError('Backend continuation requires an actual fresh DAgger aggregate')
-        prior = read(source / 'continuation.json')
+        prior = read(source / ('backend_continuation.json' if (source/'backend_continuation.json').exists() else 'continuation.json'))
         previous_rear = Path(prior['previous_backend'])
         v['continuation_from'] = dict(path=str(previous_rear), sha256=prior['previous_backend_sha256'],
             teacher_supervision='u_expert', statistics_sha256=v['residual_statistics_sha256'],
