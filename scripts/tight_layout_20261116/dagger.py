@@ -21,6 +21,7 @@ def prepare(source,output,round_index,offset,trigger,*,stages=None,session_root=
  data=read(source/'A/state_data/data.json');other=read(source/'B/state_data/data.json')
  assert data['splits']==other['splits']
  count=4 if stages is None else len(stages)
+ assert count*2==lanes,'Strict paired capture requires one case per lane; split larger cohorts into serial waves'
  identities=data['normalization_train_ids'][offset:offset+count]
  assert len(identities)==count and all(data['entries'][i]['layout']['distance_m']==.1 for i in identities)
  session=copy.deepcopy(read((source if session_root is None else session_root)/'session.json'))
