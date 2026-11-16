@@ -22,8 +22,9 @@ def cat_tree(rows):
     return torch.cat(rows,dim=0)
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--output',required=True,type=Path);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('--output',required=True,type=Path);p.add_argument('--root',required=True,type=Path);a=p.parse_args()
     plan=read(a.output/'plan.json')
+    assert a.root.resolve()==Path(plan['resource_root']).resolve()
     assert len(plan['cases'])==plan['batch']['lanes']==16, 'This capture identity has one registered case per lane, no reuse'
     from visuotactile.gpu_batch_controller import GPUBatchedResidualController
     from tools.tight_fresh_batch_run import run

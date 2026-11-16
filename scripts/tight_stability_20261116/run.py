@@ -50,11 +50,11 @@ def prepare():
         atomic_json(d/'plan.json',plan);atomic_json(d/'session.json',session)
     atomic_json(ROOT/'registration.json',registration);OUT.mkdir(parents=True,exist_ok=True);atomic_json(OUT/'registration.json',registration)
 
-def execute():
+def evaluations():
     for group in ['candidates','fallbacks']:
         d=ROOT/group;assert not (d/'run_started.json').exists(),'No implicit restart of prior simulation'
         with (ROOT/(group+'.log')).open('x') as log:
-            child=subprocess.Popen([sys.executable,'-m','scripts.tight_stability_20261116.capture_eval','--output',str(d)],
+            child=subprocess.Popen([sys.executable,'-m','scripts.tight_stability_20261116.capture_eval','--output',str(d),'--root',str(ROOT)],
                 cwd=TREE,env=dict(os.environ,OMP_NUM_THREADS='2',MKL_NUM_THREADS='2',OPENBLAS_NUM_THREADS='2',PYTHONUNBUFFERED='1'),
                 stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
             state=dict(group=group,pid=child.pid,started=time.time());last=None;changed=time.time()
@@ -71,6 +71,23 @@ def execute():
             state.update(exit_code=child.returncode,ended=time.time());atomic_json(ROOT/(group+'_finished.json'),state)
             assert child.returncode==0 and read(d/'result.json')['software_complete'] and read(d/'input_capture_complete.json')['complete']
     atomic_json(ROOT/'complete.json',dict(complete=True,utc=time.time(),collection=0,optimizer_updates=0))
+
+def execute():
+    # FullLease requires fresh telemetry BEFORE even the simulator startup gate.
+    assert not (ROOT/'STOP_MONITOR').exists(), 'Completed monitor is not an automatic restart entry'
+    with (ROOT/'monitor.log').open('x') as log:
+        monitor=subprocess.Popen([sys.executable,'-m','visuotactile.state_resources','--root',str(ROOT)],
+            cwd=TREE,stdout=log,stderr=subprocess.STDOUT)
+        try:
+            until=time.time()+15
+            while not (ROOT/'shared_resources.json').exists():
+                if monitor.poll() is not None or time.time()>until:raise RuntimeError('Monitor startup failed')
+                time.sleep(.25)
+            evaluations()
+        finally:
+            (ROOT/'STOP_MONITOR').touch()
+            try:monitor.wait(timeout=15)
+            except subprocess.TimeoutExpired:monitor.terminate();monitor.wait(timeout=5)
 
 if __name__=='__main__':
     try:
