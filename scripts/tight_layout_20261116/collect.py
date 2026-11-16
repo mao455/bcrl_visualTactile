@@ -58,6 +58,7 @@ def worker():
     attempts+=1;consecutive=0 if result['success'] else consecutive+1
     if consecutive>=4 or (attempts>=10 and counts['train']/attempts<.7):raise RuntimeError('Expert reliability failed; bounded collection stopped')
    if gate and len(rows)==2:
+    assert all(r['legal'] and r['success'] for r in rows),'Capture gate needs two complete legal successful records'
     atomic_json(ROOT/'collection_gate_complete.json',dict(complete=True,cases=2,utc=time.time()));return
   if counts!={'train':30,'validation':6}:raise RuntimeError('Insufficient preregistered independent successes: '+str(counts))
   atomic_json(ROOT/'collection_complete.json',dict(complete=True,successes=counts,attempts=len(rows),rows=rows,utc=time.time()))
@@ -107,4 +108,8 @@ if __name__=='__main__':
   try:worker()
   except BaseException:
    code=1;atomic_json(ROOT/'collection_failure.json',dict(utc=time.time(),error=traceback.format_exc()));traceback.print_exc()
+  if code==0:
+   for path in ROOT.rglob('*'):
+    if path.is_file() and not path.is_symlink():
+     with path.open('rb') as stream:os.fsync(stream.fileno())
   sys.stdout.flush();sys.stderr.flush();os._exit(code)

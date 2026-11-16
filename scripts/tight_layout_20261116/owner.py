@@ -33,6 +33,9 @@ def run():
      if time.time()-latest>600:raise TimeoutError('No progress for600s')
      atomic_json(ROOT/'owner_status.json',dict(stage=name,worker_pid=child.pid,monitor_pid=monitor.pid,utc=time.time()));time.sleep(2)
     assert child.returncode==0 and read(ROOT/receipt).get('complete',name=='data'),'Stage failed; preserve original attempt'
+    assert not Path('/proc',str(child.pid)).exists(),'Reaped process still present'
+    gpu=subprocess.check_output(['nvidia-smi','--query-compute-apps=pid','--format=csv,noheader,nounits'],text=True).splitlines()
+    assert str(child.pid) not in [p.strip() for p in gpu],'Reaped worker retains GPU context'
     atomic_json(ROOT/('collection_gate_exit.json' if name=='capture_gate' else name+'_exit.json'),dict(exit_code=child.returncode,receipt=receipt,utc=time.time(),monitor_alive=monitor.poll() is None))
     child=None
    atomic_json(ROOT/'owner_status.json',dict(stage='data_ready_pending_training',utc=time.time()))
