@@ -39,6 +39,7 @@ summary=dict(stages=stages,dp_epoch_times=epochs,
  discarded_optimizer_updates=dict(A=140,B=140),discarded_scope='Actual partial epoch12 work, excluded from restored-model effective exposure; retained logs and checkpoints.',
  new_collected_trajectories=0,new_disk_visual_feature_copies=0,
  failure_receipt=read(ROOT/'failure.json'),recovery_receipt=read(ROOT/'serial_recovery_started.json'),
+ io_observations={p:read(ROOT/p) for p in ['io_observation_1136.json','sequential_warm_probe.json'] if (ROOT/p).exists()},
  resource_limit_violation='Initial paired DP peak OOM; free GPU memory128.69MiB, below required4GiB. Do not claim whole-session compliance.',
  timing_limitations='Different epoch budgets; total stage speedup is not inferred from parallel worker counts, a few fast batches, or timing excluding the failed attempt.')
 (O/'performance.json').write_text(json.dumps(summary,indent=2)+'\n')

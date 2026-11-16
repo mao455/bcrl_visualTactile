@@ -67,7 +67,17 @@ def all_fig(role,kind,rows):
   fig.suptitle(role+' rear actual optimizer-window component means; FY and executed MSE have DIFFERENT meanings')
   plot_end(fig,f'rear_{role}_components.png')
 summary={}
+convergence=[]
 phase_rows=[]
+def convergence_row(role,kind,rows):
+ score=lambda x:x['validation']['selection'] if kind=='dp' else x['validation']['all']['normalized_equal_mse']
+ first=min([x for x in rows if x['epoch']<=8],key=score);best=min(rows,key=score);last=rows[-1]
+ convergence.append(dict(role=role,network=kind,first8_best_epoch=first['epoch'],first8_best_score=score(first),
+  selected_epoch=best['epoch'],selected_score=score(best),last_epoch=last['epoch'],last_score=score(last),
+  improvement_over_first8_best_percent=100*(1-score(best)/score(first)),last_degradation_from_best_percent=100*(score(last)/score(best)-1),
+  selected_updates=best.get('updates',best.get('update')),last_updates=last.get('updates',last.get('update')),
+  lr_and_stop_events=[x['stopping'] for x in rows if x.get('stopping',{}).get('event') in ['reduce_lr','stop_validation_plateau']],
+  control='DP first8 from original19 strict continuation; rear first8 from this SAME new-DP input and SAME initialization sequence, separate from original19 rear.'))
 def phase_table(role,kind,rows):
  for row in rows:
   for cohort,metrics in row.get('cohort_diagnostics',{}).items():
@@ -78,10 +88,10 @@ for role in 'AB':
  initial=read(R/role/'baseline_epoch8_diagnostics.json')
  for row in dprows:
   if row['epoch']==8:row['cohort_diagnostics']=initial['diagnostics']
- dump(f'dp_{role}_epochs.json',dprows);all_fig(role,'dp',dprows);phase_table(role,'dp',dprows)
+ dump(f'dp_{role}_epochs.json',dprows);all_fig(role,'dp',dprows);phase_table(role,'dp',dprows);convergence_row(role,'dp',dprows)
  rearpath=R/role/'backend'/role/'training'
  if (rearpath/'finished.json').exists():
-  rearrows=read(rearpath/'validation.json');dump(f'rear_{role}_epochs.json',rearrows);all_fig(role,'rear',rearrows);phase_table(role,'rear',rearrows)
+  rearrows=read(rearpath/'validation.json');dump(f'rear_{role}_epochs.json',rearrows);all_fig(role,'rear',rearrows);phase_table(role,'rear',rearrows);convergence_row(role,'rear',rearrows)
   summary[role]=dict(dp=read(R/role/'training/finished.json'),rear=read(rearpath/'finished.json'),rear_selected=read(rearpath/'selected.json'))
  for kind,path,name in [('dp',R/role/'training/learning.jsonl','learning'),('rear',rearpath/'loss.jsonl','loss')]:
   if path.exists():
@@ -92,6 +102,7 @@ for role in 'AB':
       value['visits']=[{k:v for k,v in visit.items() if k in ('episode','anchors','target_ticks','visual_frames','parts','loss','loss_weight','episode_index','episode_visit')} for visit in value.get('visits',[])]
      f.write(json.dumps(value,separators=(',',':'))+'\n')
 dump('summary.json',summary)
+dump('convergence.json',convergence)
 dump('registration.json',read(R/'prepared.json'))
 dump('split_audit.json',read(R/'A/split_audit.json'))
 dump('split_identity_evidence.json',read(R/'split_identity_evidence.json'))
