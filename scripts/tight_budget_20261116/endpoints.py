@@ -29,15 +29,18 @@ def exposure(saved,data,network):
 with torch.no_grad():
  for role in 'AB':
   dr,data,records,stats=inputs(ROOT,role)
+  endpoint_ids=cohorts(data);endpoint_ids['original']=list(data['normalization_train_ids'])
+  assert len(endpoint_ids['original'])==30 and set(endpoint_ids['original'])<=set(data['splits']['train'])
+  assert not set(endpoint_ids['original'])&set(endpoint_ids['validation'])
   objective,_,_=fresh_objective(ROOT,role,data,records,geometry_sampling_profile=load_profile(ROOT)['geometry'] if role=='A' else None)
   for label,p in [('source',Path(read(ROOT/role/'continuation.json')['path'])),('baseline8_selected',OLD/role/'training/best.pt'),('extended_selected',ROOT/role/'training/best.pt')]:
    saved=torch.load(p,map_location='cpu',mmap=True,weights_only=False)
    with lease.block():
-    model=new_model(role,stats).eval();model.load_state_dict(saved['ema']);result=dp_diagnostics(model,records,data,objective,mapped_profile(),profile(32),lease)
+    model=new_model(role,stats).eval();model.load_state_dict(saved['ema']);result=dp_diagnostics(model,records,data,objective,mapped_profile(),profile(32),lease,cohort_ids=endpoint_ids)
    rows.append(dict(role=role,network='dp',label=label,checkpoint=str(p),sha256=sha256(p),epoch=saved['epoch'],updates=saved['updates'],exposure=exposure(saved,data,'dp'),diagnostics=result))
    del model,saved;torch.cuda.empty_cache()
   del records,objective
-  ids=[i for values in cohorts(data).values() for i in values]
+  ids=[i for values in endpoint_ids.values() for i in values]
   for label,root,p in [('baseline8_selected',OLD,OLD/role/'backend'/role/'training/best.pt'),('extended_dp_rear8',ROOT,ROOT/role/'backend'/role/'training/best_through_epoch8.pt'),('extended_selected',ROOT,ROOT/role/'backend'/role/'training/best.pt')]:
    saved=torch.load(p,map_location='cpu',mmap=True,weights_only=False);cfg=saved['configuration'];cache=root/role/'backend'/role/'nominal';index=read(cache/'index.json')
    assert index['base_sha256']==cfg['base_sha256']
@@ -45,8 +48,8 @@ with torch.no_grad():
    command_stats=torch.load(cfg['residual_statistics_path'],map_location='cpu',weights_only=False)
    with lease.block():
     model=TargetResidual(command_stats,cfg['fixed_residual_scales'],execution_adapter=cfg['execution_adapter'],loss_contract=cfg['loss_contract'],history_contract=cfg['history_contract'],output_contract=cfg['output_contract']).cuda().eval()
-    model.load_state_dict(saved['model']);result=rear_diagnostics(model,records,data,lease)
+    model.load_state_dict(saved['model']);result=rear_diagnostics(model,records,data,lease,cohort_ids=endpoint_ids)
    rows.append(dict(role=role,network='rear',label=label,checkpoint=str(p),sha256=sha256(p),epoch=saved['epoch'],updates=saved['updates'],base_sha256=cfg['base_sha256'],exposure=exposure(saved,data,'rear'),diagnostics=result))
    del records,model,saved;torch.cuda.empty_cache()
-atomic_json(output,dict(complete=True,seconds=time.time()-began,rows=rows,optimizer_updates=0,simulation_starts=0,scope='Fixed train4/historical4/latest4/validation6; each rear gets its OWN selected DP input, current-weight history; executed-command errors, no autonomous claim.'))
+atomic_json(output,dict(complete=True,seconds=time.time()-began,rows=rows,optimizer_updates=0,simulation_starts=0,scope='ALL original30/historical4/latest4/validation6. Epoch curves retain original4; do not merge populations. Each rear gets its OWN selected DP input, current-weight history; executed-command errors, no autonomous claim.'))
 print(output)

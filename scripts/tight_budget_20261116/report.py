@@ -111,6 +111,7 @@ with (O/'phase_errors.csv').open('w',newline='') as f:
 print('Wrote measured curves',str(O))
 if (R/'endpoint_comparison.json').exists():
  endpoint=read(R/'endpoint_comparison.json');dump('endpoint_comparison.json',endpoint)
+ dump('endpoint_scope.json',read(R/'endpoint_scope.json'))
  for phase in ['all','before150','pre_contact','grasp_contact']:
   fig,axes=plt.subplots(2,2,figsize=(14,8))
   for j,kind in enumerate(['dp','rear']):
@@ -120,7 +121,7 @@ if (R/'endpoint_comparison.json').exists():
     for n,row in enumerate(selected):
      vals=[row['diagnostics'][name]['phases'][phase]['hand_rmse_rad'] for name in names]
      ax.bar(np.arange(4)-.4+(n+.5)*width,vals,width,label=row['label']+f" ep{row['epoch']}")
-    ax.set_xticks(range(4),names);ax.set_title(role+' '+kind+' '+phase);ax.set_ylabel('hand RMSE (rad)');ax.legend(fontsize=7);ax.grid(axis='y',alpha=.2)
+    ax.set_xticks(range(4),[name+str(len(selected[0]['diagnostics'][name]['ids'])) for name in names]);ax.set_title(role+' '+kind+' '+phase);ax.set_ylabel('hand RMSE (rad)');ax.legend(fontsize=7);ax.grid(axis='y',alpha=.2)
   fig.suptitle('Identical recorded histories; A DP = reached q[t+1], B DP/rear = expert commands; each rear uses its own DP cache')
   plot_end(fig,f'endpoint_{phase}.png')
 # Every point below is one actual optimizer transaction. No smoothing/interpolation.

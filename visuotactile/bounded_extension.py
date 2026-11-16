@@ -116,7 +116,7 @@ def summarize(rows):
     return result
 
 
-def dp_diagnostics(model,records,data,objective,visual_io,offline,lease):
+def dp_diagnostics(model,records,data,objective,visual_io,offline,lease,*,cohort_ids=None):
     import torch
     from tools.tight_fresh_train import supervised_conditions
     from .native_data import Episode
@@ -132,7 +132,7 @@ def dp_diagnostics(model,records,data,objective,visual_io,offline,lease):
     # Fork global RNG and use separate objective/noise generators: no change to training stream.
     with torch.random.fork_rng(devices=[0]),torch.no_grad():
         torch.manual_seed(87102);model.eval()
-        for name,ids in cohorts(data).items():
+        for name,ids in (cohorts(data) if cohort_ids is None else cohort_ids).items():
             rows=[];losses=[];parts_rows=[]
             for identity in ids:
                 lease.check();rec=records[identity]
@@ -156,12 +156,12 @@ def dp_diagnostics(model,records,data,objective,visual_io,offline,lease):
     return result
 
 
-def rear_diagnostics(model,records,data,lease):
+def rear_diagnostics(model,records,data,lease,*,cohort_ids=None):
     import torch
     from .anchor_continue import residual_prediction
     result={}
     with torch.random.fork_rng(devices=[0]),torch.no_grad():
-        for name,ids in cohorts(data).items():
+        for name,ids in (cohorts(data) if cohort_ids is None else cohort_ids).items():
             rows=[]
             for identity in ids:
                 rec=records[identity];p=residual_prediction(model,rec,lease).cpu()
