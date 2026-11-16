@@ -5,8 +5,10 @@ TREE=Path(__file__).resolve().parents[2]
 read=lambda p:json.loads(Path(p).read_text())
 from visuotactile.training_resources import atomic_json
 
-def report():
- base=TREE/'outputs/visuotactile/run';capture=base/'tight_layout10_20261116_01_recovery02';learning=base/'tight_layout10_20261116_learning01'
+def report(learning=None):
+ base=TREE/'outputs/visuotactile/run';capture=base/'tight_layout10_20261116_01_recovery02'
+ if learning is None:learning=base/'tight_layout10_20261116_learning01'
+ else:learning=Path(learning).resolve();capture=learning.parent
  out=dict(utc=time.time(),capture_root=str(capture.resolve()),learning_root=str(learning.resolve()))
  if (capture/'collection_results.json').exists():
   rows=read(capture/'collection_results.json')
@@ -28,6 +30,7 @@ def report():
      out[role][label]={k:v[k] for k in ['epoch','updates','loss','selection_score','validation','stopping'] if k in v}
  return out
 if __name__=='__main__':
- r=report()
+ r=report(None if '--root' not in sys.argv else sys.argv[sys.argv.index('--root')+1])
+ if '--save' in sys.argv and '--root' in sys.argv:raise ValueError('Explicit root readout is read-only; do not overwrite original progress')
  if '--save' in sys.argv:atomic_json(TREE/'research_docs/evidence/tight_layout_20261116/progress.json',r)
  print(json.dumps(r,ensure_ascii=False,indent=2))
