@@ -1,3 +1,11 @@
+## 2026-11-16 新布局36条示范完成，随机初始化训练已接续
+
+10cm布局独立train30/validation6已全部闭合：36机会、36合法、36原生完整成功，0任务失败、0替换seed。此前两个启动前软件问题另存原root，不并入物理机会；原pilot关闭卡顿也保留。36份实际初始可观测状态哈希互异。新示范抓前24/36/48tick的碰撞盒基座表面净空14.87–24.05mm；这是实测物体—基座几何，不是手指—基座力归因。专家仍可完成抓取、搬运、对准与插入。
+
+采集owner与monitor已退出，退出码0；数据字段与训练标签审计通过。冻结8bb8e23、隔离树layout_pipeline02已自动接续共同train30/validation6，A优先，DP与Transformer从随机权重开始；尚无新学生自主结果。维持预登记40–80遍前端/20–40遍后端独立验证停滞规则、原总截止、相同A/B预算。没有重启旧15:30任务或混入旧布局数据。
+
+`scripts/tight_layout_20261116/collection_report.py`重算闭合numeric的实际几何并绑定已审计数据manifest。首次汇总误读capture内不存在的sha256字段，改为读取已审计manifest的source_sha256并核对真实路径；不改原始数据或运行worker。报告[collection_complete.json](evidence/tight_layout_20261116/collection_complete.json)记录全部36机会。
+
 ## 2026-11-16 运行前确认混合策略评估路由
 
 learn评价准备显式使用既有可靠评估的GPU队列、实际配对检查与真实视频hook，避免缺省role分波路径绕过这些hook。新增check_plan.py用真实准备代码、替换模型身份读取做CPU检查：8case/4family、同family A/B完全相同reset、旧GPU后端配置、首family两视频均通过，0仿真/0更新。首次两核检查显式拒绝旧Kit16线程配置；服务按已有执行配置保留16核affinity、torch/BLAS仍2线程。未改物理/控制或门槛。

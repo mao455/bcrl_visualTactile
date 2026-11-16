@@ -1,3 +1,11 @@
+## 2026-11-16 新布局36条示范完成，随机初始化训练已接续
+
+10cm布局独立train30/validation6已全部闭合：36机会、36合法、36原生完整成功，0任务失败、0替换seed。此前两个启动前软件问题另存原root，不并入物理机会；原pilot关闭卡顿也保留。36份实际初始可观测状态哈希互异。新示范抓前24/36/48tick的碰撞盒基座表面净空14.87–24.05mm；这是实测物体—基座几何，不是手指—基座力归因。专家仍可完成抓取、搬运、对准与插入。
+
+采集owner与monitor已退出，退出码0；数据字段与训练标签审计通过。冻结8bb8e23、隔离树layout_pipeline02已自动接续共同train30/validation6，A优先，DP与Transformer从随机权重开始；尚无新学生自主结果。维持预登记40–80遍前端/20–40遍后端独立验证停滞规则、原总截止、相同A/B预算。没有重启旧15:30任务或混入旧布局数据。
+
+`scripts/tight_layout_20261116/collection_report.py`重算闭合numeric的实际几何并绑定已审计数据manifest。首次汇总误读capture内不存在的sha256字段，改为读取已审计manifest的source_sha256并核对真实路径；不改原始数据或运行worker。报告[collection_complete.json](research_docs/evidence/tight_layout_20261116/collection_complete.json)记录全部36机会。
+
 ## 2026-11-16 当前：仅平移插销起点的布局假设验证
 
 当前授权覆盖此前禁止新采集/训练与已结束15:30截止：先实际清理，原位/远离基座5cm/10cm小规模专家全任务比较；可用后新版本约30独立成功示范，A/B共同划分、DP与Transformer随机初始化，再完整DAgger共同冻结池。原孔位/资产/物理/120-60-5Hz/任务成功不改，不大改模型/采样/控制。A=q[t+1]+原几何，B=u_expert，后端均最终专家命令；学生前缀只是真实历史。
