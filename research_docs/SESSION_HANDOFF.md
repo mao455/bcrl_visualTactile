@@ -1704,3 +1704,12 @@ DP从19 last8完整AdamW/EMA/RNG续训：A完成22/4312、选14/2744，验证比
 采用判断：A新配对保留为有行为收益的候选，B长后端不晋升；B中间rear6保留作诊断。正式安全回退A11/B15不变，未练稳，不启动后段扩张或采样修改。下一重点是共同真实观察/计划/历史下的B6/22早期后端对照，隔离输出与反馈状态偏移；需记录足够视觉输入，当前numeric/trace不足以重算完整学生视觉历史。此下一实验未启动。
 
 当前无后台工作：serial-recovery服务原PID725961、finish原740181已success/inactive，monitor原712548已停止、三个MainPID均0。finish_state最后阶段heartbeat为1794807296.233，finish_complete.utc1794807297.551；这是完成记录，不是挂住。训练/evaluation/finish各complete均true，当前failure空，旧OOM证据保留。统一只读入口：在实际开发树bc+rl_RSS_continuous_vision_20261114运行`.venv_isaacsim/bin/python -m scripts.tight_budget_20261116.status`。不要重启run.py train、recover_serial.py、finish.py或旧夜间服务。权重/轨迹留研究机，代码/真实图表/小指标推origin/feature/tight-state-foundation。
+
+
+### 2026-11-16 15:30硬截止 — 完整任务有界运行部分完成，已停，不自动重启
+
+实际DEV为bc+rl_RSS_continuous_vision_20261114，run=tight_fulltask_20261116_01。集中诊断报告开头是最终状态；350train/170family/6val。新增2成功专家后段（A155步/B103步接管，246/321合法动作），真实视频9段完成解码。参考自主A0/4、B0/3，1非法；原关节随机化未配对。严格配对源模型q/qdot/目标差0，但监控被后端owner结束而失效，约200步软件中断，无有效最终成功率分母。
+
+两DP各2epoch/372更新；A选2、B选1，最新每条选中曝光24/12。两新DP后端缓存均356/356。后端原2共同缩为1，A683更新完成，B183更新/0.26480遍历因固定截止预留保存，未达预算。不采用新候选；A11/B15及旧A长训/B短后端保留。共享status临时文件线程冲突已加锁并续B；监控生命周期仍有故障，不宣称后台可靠。清理2份旧OOM未选快照2.170GiB，manifest保留；无成功轨迹删除。
+
+STOP/STOP_MONITOR置位，禁止任何自动继续。实际结果/图在evidence/tight_diagnosis_20261116/fulltask；权重/视频在原outputs。B后端last包含续训状态，但下次先修唯一监控owner，再在新时间窗续完并严格配对评估；不重采2条，不重训已完成DP，不重新生成356后端缓存。此前B同输入重算仍有效，但混合队列初始q差.024–.041rad，不能把该组跨历史差异独立归因于后端反馈。

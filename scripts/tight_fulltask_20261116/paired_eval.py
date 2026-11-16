@@ -62,11 +62,12 @@ def upgrade_plan(output):
     pairs.update({r+'_updated':p for r,p in plan['pairs'].items()})
     templates={c['spec']['seed']:c for c in plan['cases']};seeds=list(templates)
     remaining=read(ROOT/'session.json')['deadline']-__import__('time').time()
-    count=4 if remaining>=420 else 2 if remaining>=270 else 1 if remaining>=180 else 0
+    count=4 if remaining>=420 else 2 if remaining>=270 else 1 if remaining>=150 else 0
+    if remaining<270:pairs={k:v for k,v in pairs.items() if k.endswith('_updated')}
     assert count,'Insufficient bounded time for a complete native task; do not launch another simulation'
     templates={seed:templates[seed] for seed in seeds[:count]};seeds=list(templates)
     plan['bounded_cohort_selection']=dict(remaining_seconds=remaining,selected_seeds=seeds,
-        rule='First4 if >=7min; first2 if >=4.5min; first1 if >=3min; otherwise stop. Registered before updated outcomes, no replacement.')
+        rule='All4 pairs: first4 seeds if >=420s, first2 if >=270s. With150..269s compare only updated A/B on first seed; otherwise stop. Registered before updated outcomes, no replacement.')
     plan['pairs']=pairs;plan['cases']=[]
     for seed,template in templates.items():
         for group in pairs:

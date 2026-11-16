@@ -40,7 +40,7 @@ def behavior(directory):
         paired_initial=read(directory/'paired_initial_check.json') if (directory/'paired_initial_check.json').exists() else None)
 
 def main():
-    OUT.mkdir(parents=True,exist_ok=True);result=dict(utc=time.time(),deadline=read(ROOT/'session.json')['deadline'],collection={},training={},evaluations={},timing={})
+    OUT.mkdir(parents=True,exist_ok=True);result=dict(utc=time.time(),session_complete=(ROOT/'complete.json').exists(),deadline=read(ROOT/'session.json')['deadline'],collection={},training={},evaluations={},timing={})
     entries=read(ROOT/'collection/correction_entries.json')
     result['collection']=dict(attempts=4,successes=len(entries),new_ids=list(entries),families=sorted({v['family'] for v in entries.values()}),
         result=read(ROOT/'collection/result.json'),videos=read(ROOT/'collection/videos.json'))
@@ -90,11 +90,11 @@ def main():
         if rear.get('epochs'):
             for key,label in [('train','Training'),('validation','Independent validation')]:
                 chosen=[r for r in rear['epochs'] if key in r]
-                ax[1,i].plot([r['epoch'] for r in chosen],[r[key]['all']['normalized_equal_mse'] for r in chosen],'o-',label=label)
-            ax[1,i].set_title(role+' rear executed-command normalized MSE');ax[1,i].set_xlabel('Incremental epoch');ax[1,i].legend()
+                ax[1,i].plot([r.get('control_epoch',r.get('control_tick_epochs',r['epoch'])) for r in chosen],[r[key]['all']['normalized_equal_mse'] for r in chosen],'o-',label=label)
+            ax[1,i].set_title(role+' rear executed-command normalized MSE');ax[1,i].set_xlabel('Actual control-tick epochs (partial shown as fraction)');ax[1,i].legend()
     fig.suptitle('Only actually measured checkpoints; sparse new-correction measurements shown as points')
     fig.tight_layout();fig.savefig(OUT/'validation_errors.png',dpi=140);plt.close(fig)
-    for group in ['baseline_evaluation','updated_evaluation']:
+    for group in ['baseline_evaluation','updated_evaluation','paired_sources']:
         if (ROOT/group/'videos.json').exists() and read(ROOT/group/'videos.json')['complete']:
             result['evaluations'][group]=behavior(ROOT/group)
     for p in ROOT.glob('*_worker.json'):
