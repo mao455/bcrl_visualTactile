@@ -18,6 +18,7 @@ def summarize(root,output):
  for case in plan['cases']:
   folder=root/case['name'];r=read(folder/'result.json')
   row=dict(case=case['name'],role=case['role'],seed=case['spec']['seed'],legal=r['legal'],
+   source_family=case['spec'].get('source_identity'),requested_stage=case.get('dagger',{}).get('trigger',{}).get('stage','early' if 'dagger' in case else 'autonomous'),
    success=r['success'],steps=r.get('steps'),reasons=r.get('reasons'),software_complete=r['software_complete'],
    native_subgoals=r.get('native_subgoals'),native_alignment=r.get('native_alignment'),native_lift=r.get('native_lift'))
   if r['legal']:
@@ -58,8 +59,18 @@ def summarize(root,output):
    expert_rescues=sum(r.get('expert_rescue',False) for r in legal),admitted=sum(r.get('admitted',False) for r in legal),
    admitted_expert_ticks=sum(r.get('valid_expert_ticks',0) for r in legal if r.get('admitted')),
    stage_reached={s:sum(r['student_stages'][s]['trigger_completed_tick'] is not None for r in legal) for s in STAGES})
+ stages={}
+ for stage in sorted({r['requested_stage'] for r in rows}):
+  group=[r for r in rows if r['requested_stage']==stage];legal=[r for r in group if r['legal']]
+  taken=[r for r in legal if r.get('takeover_tick') is not None];admitted=[r for r in taken if r.get('admitted')]
+  stages[stage]=dict(opportunities=len(group),legal=len(legal),takeovers=len(taken),
+   not_triggered=sum(r.get('takeover_tick') is None for r in legal),rescued=sum(r.get('expert_rescue',False) for r in taken),
+   admitted_expert_ticks=sum(r['valid_expert_ticks'] for r in admitted),
+   distinct_source_families=len({r['source_family'] for r in admitted}),
+   takeover_phases=sorted({r['takeover_phase'] for r in taken}),
+   interpretation='Rescue denominator is actual takeovers; untaken cases remain in opportunity denominator. Family count is not independent correction-state count.')
  waves=read(root/'wave_profiles.json') if (root/'wave_profiles.json').exists() else None
- result=dict(utc=time.time(),root=str(root),counts=counts,rows=rows,complete=complete,paired=paired,
+ result=dict(utc=time.time(),root=str(root),counts=counts,requested_stages=stages,rows=rows,complete=complete,paired=paired,
   wave_profiles=waves,plan_sha256=sha256(root/'plan.json'),software_interruptions=sum(not r['software_complete'] for r in rows),
   valid_expert_ticks_per_wall_hour=sum(v['admitted_expert_ticks'] for v in counts.values())/complete['elapsed_seconds']*3600,
   interpretation='Collection rescue success is not autonomous success; stage-reaching is censored by actual takeover, never inferred beyond student prefix.')
