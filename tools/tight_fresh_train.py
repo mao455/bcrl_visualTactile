@@ -511,11 +511,13 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                         # partial loads or failed updates. B2 owns only these visits.
                         episodes=[]
                         try:
+                            input_started=time.perf_counter()
                             if batch_prefetch is not None:episodes=batch_prefetch.take(batch_index-1)
                             else:
                                 for identity in identities:
                                     episodes.append(Episode(dr,identity,'I-HistoryDP',
                                         **({} if visual_io is None else dict(frozen_visual_io=visual_io))))
+                            frozen_input_wait_s=time.perf_counter()-input_started
                             visit_options={}
                             if visit_profile:
                                 selections=[sample_visit(records[identity],visit_profile,identity=identity,epoch=epoch+1,visit_index=index)
@@ -523,8 +525,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                                 visit_options=dict(selected_anchors=[v[0] for v in selections],
                                     anchor_receipts=[v[1] for v in selections],geometry_generators=[v[2] for v in selections],
                                     geometry_sampling_profile=visit_profile['geometry'])
+                            update_started=time.perf_counter()
                             result=execute_update(model,opt,ema,objective,identities,
                                 [records[identity] for identity in identities],episodes,noise,check=lease.check,**visit_options)
+                            update_host_s=time.perf_counter()-update_started
                             if visual_io is not None:
                                 for visit_row,episode in zip(result['visits'],episodes):
                                     visit_row['frozen_visual_io']=episode.frozen_visual_io_receipt
@@ -548,6 +552,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                         anchors_seen=anchors_seen,target_ticks=target_ticks,
                         visual_frames=sum(v['visual_frames'] for v in result['visits']),
                         deck_sha256=deck_receipt['sha256'],seconds=time.perf_counter()-began,utc=time.time(),
+                        frozen_input_wait_s=frozen_input_wait_s,update_host_s=update_host_s,
                         process_io=io_delta(io_before,io_snapshot()))
                     atomic_json(out/'progress.json',row)
                     with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')

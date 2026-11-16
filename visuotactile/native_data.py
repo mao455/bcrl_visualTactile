@@ -136,7 +136,8 @@ class Episode:
             # Pass the file directly: no BytesIO copy, mmap-page clone, dtype
             # conversion or persistent episode cache. An explicit B2 loader may
             # call this CPU-only construction from its single read-ahead worker.
-            shard = torch.load(path,map_location='cpu',weights_only=False,mmap=visual_io is None)
+            shard = torch.load(path,map_location='cpu',weights_only=False,
+                mmap=visual_io is None or visual_io['torch_load_mmap'])
             self.record = {k:shard[k] for k in ('camera_time','camera_valid')}
             self.perception = {k:shard[k] for k in ('patches','depth')}
             if visual_io is not None:
@@ -145,7 +146,9 @@ class Episode:
                 self.frozen_visual_io_receipt=dict(profile=visual_io,identity=identity,
                     tensor_load_s=time.perf_counter()-started,file_bytes=path.stat().st_size,
                     loaded_storage_bytes=sum(storages.values()),extra_clone_bytes=0,
-                    scope='Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation')
+                    scope=('Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption'
+                        if visual_io['torch_load_mmap'] else
+                        'Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation'))
             self.index = index
             return
         self.record = torch.load(root/'numeric'/(identity+'.pt'), map_location='cpu', weights_only=False)

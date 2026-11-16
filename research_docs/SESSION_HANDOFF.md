@@ -1623,3 +1623,20 @@ Latest early-before150 hand command RMSE improves A .010087→.007149rad, B .009
 Actual stage unions minutes: collection2.44, frozen cache2.12, DP49.42, new-DP inputs10.06, rear20.59, autonomy3.46; capture→evaluation92.56min including preserved pre-optimizer failure/recovery. Capture98.27valid/h, still below600/h. A/B median optimizer batch .673/.621s, but66/62 batches>5s consume1753/1683s; a largest batch loads two frozen tensors for29.30+23.04s (A),28.28+22.32s (B). These measured load stalls dominate the long tail, not evidence that more simultaneous learners alone improved total throughput.
 
 Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documented failed-CLI safe shutdown and explicit recovery; it is not an active-training freeze and not continuous whole-session telemetry. Runtime recorded peakused19171MiB (free>=4913MiB), minavailableRAM18.79GiB. At09:05 disk18.61GiB, insufficient for another same-sized cycle's admission; original data/current rollbacks remain. No new resource window, collection or optimizer run launched by this status review. Reviewed result/diagnostic summaries published to existing origin feature.
+
+
+### 2026-11-16 — 清理与训练/闭环根因诊断完成，未启动20轮
+
+集中报告：TIGHT_TRAINING_DIAGNOSIS_20261116.md，图/小指标在evidence/tight_diagnosis_20261116，复现脚本scripts/tight_diagnosis_20261116。正式来源仍完整A11/B15；19拒绝，所有夜间/诊断worker均已退出。本次0新采集、0新自主仿真、0正式模型更新；10个有界可丢弃B2 I/O探针更新不保存/采用模型。
+
+实际安全清理：18.600→33.473GiB空闲，释放14.873GiB；29个旧非选中状态、730个旧DP后端输入、91组旧optimizer退休。所有selected model/EMA等非optimizer字段保留并逐项相等，旧容器新身份映射显式记录。当前354条成功训练/验证轨迹均可读；A11/B15与16–19保留权重SHA不变。169.30GiB当前冻结视觉全部仍有训练依赖，未删除；所有raw H5/partial/NPZ未删。完整不可重跑删除清单在outputs/visuotactile/run/tight_diagnostic_20261116_01/cleanup。
+
+7360条DP与27062条rear更新及全部16–19实际epoch曲线已提取。19 DP新4条hand误差A .04499→.02388、B .05034→.02647；固定原始2条反而 .02982→.03413、.03890→.04383，前150步退化23.3%/32.2%。新数据确已学习，旧动作保持不足；不能仅用平均loss采纳。B19 rear选4而非8因等权归一化验证.000339695 vs .00034287，差0.93%，hand却略改善，不足以断言严重过拟合。
+
+相同开发family前300tick：保留A11/B15 hold60为1/3、1/4；19为0/3、0/4；final-window为来源A1/3 B0/4、候选均0。当前19 full-task插入0/2各，训练familyA1/2 B0/2但A76在完成273步窗口失效。28个来源/16–19候选开发初态q一致，物体base位置最大5.34e-7m差；仍非隐藏状态精确重放。原固定train2 source/fitted彼此observable初态一致，但与原示范q差.0104–.0373rad，不能称精确示范初态失败。
+
+新只读同状态专家诊断复用验证shadow后查19的11条合法自主前150步，分解DP/rear/投影；投影重算最大1.19e-7rad，实际控制目标一致。76/86复验3/4在首次接触前已有描述性命令差；A名义q与命令不同域，不能据差值指责裸A。B最终组合总体改善同状态命令误差，未证实后端统一破坏正确DP。专家建议未执行/未入池。
+
+19实际特征读取2.602TiB，最长两次batch主要耗在eager读取且major faults0；具体历史争用源仍未知。新增opt-in frozen_visual_mapped_current_v3到正式DP/后端输入入口，只映射当前B2，无新磁盘缓存/学习隐藏状态缓存；旧profile/配置不变。真实1.56GB冷读B2第二次eager1.244s→mapped.905s，热读1.018→.445s，非整轮提速承诺。参数小浮点差同方法重复也存在，loss/RNG一致，不称逐位GPU训练。轻量日志增加input wait/update host时间。27针对性检查通过，有限诊断脚本的初始边界/严格逐位检查失败均保留并纠正，未改原实验结论。
+
+下一步首选固定数据/起始/预算的旧动作回放配比对照，要求DP和rear旧/新早期误差都不退化再做短闭环；尚未启动。不要重启旧夜间服务或继续同样12倍新4条的DAgger扩张。

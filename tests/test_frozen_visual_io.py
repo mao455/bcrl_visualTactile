@@ -7,12 +7,14 @@ import weakref
 import pytest
 import torch
 
-from visuotactile.frozen_visual_io import profile,validate_profile,load_profile
+from visuotactile.frozen_visual_io import profile,mapped_profile,validate_profile,load_profile
 from visuotactile.native_data import Episode
 from visuotactile.training_resources import atomic_json
 
 
-def test_direct_file_load_preserves_tensor_storage_layout_rng_and_default(tmp_path,monkeypatch):
+@pytest.mark.parametrize('io_profile',[profile,mapped_profile])
+def test_direct_file_load_preserves_tensor_storage_layout_rng_and_default(tmp_path,monkeypatch,io_profile):
+    profile=io_profile
     atomic_json(tmp_path/'data.json',dict(visual_pair=True,visual_stride=1,entries={'x':{}}))
     (tmp_path/'perception').mkdir()
     shard=dict(patches=torch.arange(72,dtype=torch.float16).reshape(3,4,6).transpose(1,2),
@@ -24,7 +26,7 @@ def test_direct_file_load_preserves_tensor_storage_layout_rng_and_default(tmp_pa
         calls.append(kwargs);value=real_load(path,**kwargs);loaded.append(value);return value
     monkeypatch.setattr(torch,'load',read);before=torch.get_rng_state().clone()
     original=Episode(tmp_path,'x','I-HistoryDP');eager=Episode(tmp_path,'x','I-HistoryDP',frozen_visual_io=profile())
-    assert [c['mmap'] for c in calls]==[True,False] and torch.equal(before,torch.get_rng_state())
+    assert [c['mmap'] for c in calls]==[True,profile()['torch_load_mmap']] and torch.equal(before,torch.get_rng_state())
     for key in shard:
         old=(original.record|original.perception)[key];new=(eager.record|eager.perception)[key]
         assert torch.equal(old,new) and old.dtype==new.dtype and old.stride()==new.stride()
@@ -59,7 +61,9 @@ def test_metrics_loads_one_current_episode_without_changing_labels_or_rng(tmp_pa
     assert seen==[False,False,True,True] and all(r() is None for r in refs)
 
 
-def test_actual_b2_updates_release_prior_episodes_and_bind_io_identity(tmp_path,monkeypatch):
+@pytest.mark.parametrize('io_profile',[profile,mapped_profile])
+def test_actual_b2_updates_release_prior_episodes_and_bind_io_identity(tmp_path,monkeypatch,io_profile):
+    profile=io_profile
     from tools import tight_fresh_train as fresh
     from visuotactile import trajectory_training
     from test_full_trajectory_training import setup_trainer,make_records

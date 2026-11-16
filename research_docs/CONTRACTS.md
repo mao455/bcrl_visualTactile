@@ -580,3 +580,8 @@ Optional `recheck_training_families` appends at most8 actual collection cases to
 
 
 Episode repetition retains latest_takeover_repeat_v1 semantics, now explicitly bounded integers1..32 at every CLI/coordinator/deck entry; this only changes allowed registered exposure. Defaults and historical1/2/4 decks/RNG unchanged. No prefix labels added; full real history reprocessed each visit. Latest-only numeric audit reuses original30 proof and reports new cohort as latest_corrections.
+
+
+## 2026-11-16 显式冻结视觉映射读取v3（运行I/O身份）
+
+frozen_visual_mapped_current_v3仅改变当前episode/B2冻结CPU张量的读取方式；torch_load_mmap=true、无后台下一批复制、无新磁盘特征、无可训练history缓存。原eager_v1/prefetch_v2与缺省mmap路径保持。版本绑定到新运行配置，不能默改旧运行配置后声称精确续训。loaded_storage_bytes在映射模式表示虚拟storage范围，不是实际RSS/私有分配；scope明确区分。120/60/5Hz、DP标签、mask、随机起点、损失、EMA/optimizer次数和DP固定后刷新rear输入的次序不变。B2日志新增frozen_input_wait_s和update_host_s，不回填历史缺失项。真实短测与数值/生命周期验证见TIGHT_TRAINING_DIAGNOSIS_20261116.md；完整双模型周期收益尚未测量。
