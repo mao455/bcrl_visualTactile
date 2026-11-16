@@ -1,3 +1,9 @@
+## 2026-11-17 — 新9纠偏共同65条，等更新诊断已冻结并启动
+
+round04两个恢复波16合法机会、9真实接管全部原生成功、1722有效专家tick（A825/B897），7未触发，0实际rollout软件中断；初始16case/8lane错误是0仿真软件拒绝。接管early59–64、transport138、near149/167、weakening144/145；四alignment机会均未达条件，不继续追逐不可达晚状态，后续根据真实偏差调整。完整控制/mask/q_after/u_expert与准入由既有采集检查执行；manifest union保留所有学生历史与失败记录，共同train56→65、validation6不变。
+
+matched_round04_registration.json在任何对照优化前冻结：两臂同源midpoint完整A/B、相同选中DP EMA与后端权重，fresh AdamW/EMA，DP恒定3e-5/后端1e-4、原loss/采样/affine；旧56为66遍、新65为56遍，各1848DP更新。后端按原mask/32tick分块/128有效tick累计计算共同完整组边界，各2008更新，旧22遍第20条后、新19遍第40条后；上界64仅保险，不意味着训练64遍。两边只选择登记最终更新，随后匹配DP缓存刷新、后端学习、完整自主开发；不能把不同epoch数说成不同计算预算。该对照用于数据增量诊断，最终效果尚未产生。当前串行先新65再旧56，不与仿真争GPU；所有数据/模型保留，剩余约62GiB。
+
 ## 2026-11-17 — 16机会拆为两个严格配对采集波
 
 round04最初16case/8lane在paired_eval.install的既有one-case-per-lane断言拒绝，0仿真启动/0物理动作，owner/monitor正常回收，原失败保留。唯一恢复round04_recovery01_part0/1分别4family×A/B，串行8lane，初态16–23、模型与总截止不变；现有phase_pool只合并闭合成功后缀。dagger.prepare增加相同前置约束，避免直到worker阶段才拒绝，不放松实际配对检查。恢复正在执行，尚未宣称新增条数。

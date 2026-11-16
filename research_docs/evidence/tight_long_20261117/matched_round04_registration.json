@@ -1,0 +1,115 @@
+{
+  "source": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/midpoint",
+  "source_pairs": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/midpoint/A/training/best.pt",
+      "frontend_sha256": "0877abc19609cb11a001e3ff08c28abb7a9d31037ea81bd87fa9625b28832c14",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/midpoint/A/backend/A/training/best.pt",
+      "backend_sha256": "0766b8f2e505b159d42cbb98d7de4b21484caa631c5d0afba8523fe010ce1f2e",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/midpoint/B/training/best.pt",
+      "frontend_sha256": "fc73474dd10975023311080364e2409eda903882353ff179507c5bd5e137e87f",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/midpoint/B/backend/B/training/best.pt",
+      "backend_sha256": "7000223ac5327d73af523ee4e8a0ae66a5f4d6c19ffd3c980a88e5a4a3f2fc73",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "frontend_updates": 1848,
+  "old_frontend_epochs": 66,
+  "new_frontend_epochs": 56,
+  "old_rear": {
+    "A": {
+      "updates": 2008,
+      "boundary": {
+        "epoch": 22,
+        "next_group": 20
+      }
+    },
+    "B": {
+      "updates": 2008,
+      "boundary": {
+        "epoch": 22,
+        "next_group": 20
+      }
+    }
+  },
+  "new_rear": {
+    "A": {
+      "updates": 2008,
+      "boundary": {
+        "epoch": 19,
+        "next_group": 40
+      }
+    },
+    "B": {
+      "updates": 2008,
+      "boundary": {
+        "epoch": 19,
+        "next_group": 40
+      }
+    }
+  },
+  "deadline": 1794909052.4719074,
+  "training_deadline": 1794901852.4719074,
+  "created_utc": 1794871357.5841177,
+  "old_train": 56,
+  "new_train": 65,
+  "diagnostic": "Equal updates from identical selected full pair, fresh optimizers/EMA, constant rates; final checkpoints only, old56 vs new65; same masks/sampling/architecture/affines",
+  "new_ids": [
+    "r04_B_layout10_train_28817018_phase_near",
+    "r04_A_layout10_train_28817016_phase_early",
+    "r04_B_layout10_train_28817016_phase_early",
+    "r04_B_layout10_train_28817017_phase_transport",
+    "r04_B_layout10_train_28817020_phase_weakening",
+    "r04_A_layout10_train_28817023_phase_early",
+    "r04_B_layout10_train_28817023_phase_early",
+    "r04_A_layout10_train_28817020_phase_weakening",
+    "r04_A_layout10_train_28817021_phase_near"
+  ]
+}
