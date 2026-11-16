@@ -42,6 +42,20 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         raise ValueError('Common head reset requires explicit backend continuation')
     if output_contract==REACHABLE_PREVIOUS_TARGET_OUTPUT and (not continue_rear or continuation_head_reset is None):
         raise ValueError('Previous-target comparison requires explicit common head reset and continuation')
+    # A bounded coordinator may reduce BOTH still-unstarted rear budgets to
+    # reserve native evaluation time. Never mutate an already prepared stage.
+    budget_path = Path(root) / 'backend_training_budget.json'
+    budget_adjustment = None
+    if budget_path.exists():
+        budget_adjustment = read(budget_path)
+        if (budget_adjustment.get('version') != 'bounded_shared_rear_budget_v1'
+                or budget_adjustment.get('requested_epochs') != epochs
+                or type(budget_adjustment.get('effective_epochs')) is not int
+                or not 1 <= budget_adjustment['effective_epochs'] <= epochs
+                or budget_adjustment.get('roles') != ['A', 'B']
+                or not budget_adjustment.get('reason')):
+            raise ValueError('Invalid explicit shared bounded rear budget')
+        epochs = budget_adjustment['effective_epochs']
     if epochs < 1:
         raise ValueError('Positive shared training exposure required')
     root = root.resolve()
@@ -77,6 +91,8 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
+    if budget_adjustment is not None:
+        v['budget_adjustment'] = dict(budget_adjustment, registration_sha256=sha256(budget_path))
     v['residual_normalization_identity'] = residual_normalization(data, v)
     if cache_planning is not None:v['cache_offline_planning_profile']=cache_planning
     if frozen_visual_io is not None:v['frozen_visual_io']=frozen_visual_io
