@@ -41,10 +41,19 @@ def install(output):
                     q=float((diagnostics['joint_position_rad'][lane]-diagnostics['joint_position_rad'][base]).abs().max())
                     qd=float((diagnostics['joint_velocity_rad_s'][lane]-diagnostics['joint_velocity_rad_s'][base]).abs().max())
                     target=float((packet['actuator_target_rad'][lane]-packet['actuator_target_rad'][base]).abs().max())
+                    physical={}
+                    for key in ('object_pose_w','hole_pose_w','goal_pose_w','table_pose_w','palm_body_pose_w'):
+                        a=diagnostics[key][base].clone();b=diagnostics[key][lane].clone()
+                        a[:3]-=diagnostics['base_pose_w'][base,:3]
+                        b[:3]-=diagnostics['base_pose_w'][lane,:3]
+                        physical[key+'_position_m']=float((a[:3]-b[:3]).abs().max())
+                        physical[key+'_quaternion']=float(torch.minimum((a[3:]-b[3:]).abs().max(),(a[3:]+b[3:]).abs().max()))
+                    for key in ('object_velocity_w_m_s_rad_s','goal_velocity_w_m_s_rad_s'):
+                        physical[key]=float((diagnostics[key][lane]-diagnostics[key][base]).abs().max())
                     rows.append(dict(seed=seed,reference=base,lane=lane,q_max_rad=q,qd_max_rad_s=qd,target_max_rad=target,
-                        reference_active=active[base],active=active[lane]))
-            receipt=dict(rows=rows,passed=all(max(r['q_max_rad'],r['qd_max_rad_s'],r['target_max_rad'])<=1e-5 and r['active']==r['reference_active'] for r in rows),
-                scope='Pre-action q/qdot/actuator targets and legal masks; object/hole reset parameters identical. Hidden PhysX/sensor state not claimed exact.')
+                        physical=physical,reference_active=bool(active[base]),active=bool(active[lane])))
+            receipt=dict(rows=rows,passed=all(max(r['q_max_rad'],r['qd_max_rad_s'],r['target_max_rad'],*r['physical'].values())<=1e-5 and r['active']==r['reference_active'] for r in rows),
+                scope='Pre-action q/qdot/actuator targets, base-relative physical poses, object/goal velocities and legal masks; tolerance 1e-5 in each reported unit. Hidden PhysX/sensor state and future random draws not claimed exact.')
             atomic_json(output/'paired_initial_check.json',receipt)
             assert receipt['passed'],'Native paired reset failed; no action admitted'
             checked=True
