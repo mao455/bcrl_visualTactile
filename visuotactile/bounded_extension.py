@@ -125,6 +125,10 @@ def dp_diagnostics(model,records,data,objective,visual_io,offline,lease):
     from .position_control import bounded_targets
     from .anchor_continue import projection_batch
     result={}
+    # Validation has no train-only rotating phase sampler. Use the accepted
+    # fixed two-configuration estimator for this separately named diagnostic.
+    diagnostic_objective=copy.copy(objective)
+    diagnostic_objective.geometry_sampling_profile=None
     # Fork global RNG and use separate objective/noise generators: no change to training stream.
     with torch.random.fork_rng(devices=[0]),torch.no_grad():
         torch.manual_seed(87102);model.eval()
@@ -141,12 +145,13 @@ def dp_diagnostics(model,records,data,objective,visual_io,offline,lease):
                 ticks=(a[:,None]+torch.arange(12,device=a.device)[None])[mask].cpu().numpy()
                 rows.append(error_bins(e,ticks,phase_masks(data['entries'][identity]),model.action_scale))
                 noise=torch.Generator(device=c.device).manual_seed(87103)
-                context=projection_batch(objective,[(identity,int(t)) for t in a],'cuda:0',
+                context=projection_batch(diagnostic_objective,[(identity,int(t)) for t in a],'cuda:0',
                     geometry_generator=torch.Generator().manual_seed(87104))
                 loss,parts,_=objective.forward(model,c,truth,valid,noise,geometry_context=context)
                 losses.append(float(loss));parts_rows.append({k:float(v) for k,v in parts.items()})
                 del ep
             result[name]=dict(ids=ids,phases=summarize(rows),fixed_noise_objective=sum(losses)/len(losses),
+                geometry_diagnostic='fixed accepted two-configuration estimator; training rotating-half sampler unchanged',
                 loss_components={k:sum(r[k] for r in parts_rows)/len(parts_rows) for k in parts_rows[0]})
     return result
 
