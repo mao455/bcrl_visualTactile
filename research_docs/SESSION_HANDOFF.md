@@ -1640,3 +1640,14 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 19实际特征读取2.602TiB，最长两次batch主要耗在eager读取且major faults0；具体历史争用源仍未知。新增opt-in frozen_visual_mapped_current_v3到正式DP/后端输入入口，只映射当前B2，无新磁盘缓存/学习隐藏状态缓存；旧profile/配置不变。真实1.56GB冷读B2第二次eager1.244s→mapped.905s，热读1.018→.445s，非整轮提速承诺。参数小浮点差同方法重复也存在，loss/RNG一致，不称逐位GPU训练。轻量日志增加input wait/update host时间。27针对性检查通过，有限诊断脚本的初始边界/严格逐位检查失败均保留并纠正，未改原实验结论。
 
 下一步首选固定数据/起始/预算的旧动作回放配比对照，要求DP和rear旧/新早期误差都不退化再做短闭环；尚未启动。不要重启旧夜间服务或继续同样12倍新4条的DAgger扩张。
+
+
+### 2026-11-16 10:29 +08 — 固定分布延长预算已实际启动
+
+最新用户优先级覆盖前文采样配比建议：不新增DAgger，不改当前348train/6validation、latest_repeat12和早期后端权重。新有界root outputs/visuotactile/run/tight_budget_20261116_01，冻结树bc+rl_RSS_budget_20261116 @76352bd，截止16:25:36 +08（登记起6小时，未延长旧run）。owner tight-budget-train-20261116-01.service/PID712621；monitor tight-budget-monitor-20261116-01.service；DP A712650/B712649，实际是否活跃查systemd/命令。第19轮last完整AdamW/EMA/CPU-CUDA-两generator状态恢复通过，A/B第9轮均已真实更新并验证，源8轮未重训。后端等待两DP结束、绑定新DP刷新输入再从匹配A11/B15参数与相同seed/新AdamW训练；8轮best保存作同输入后端预算对照。
+
+最大24，最早16，验证无0.5%实质改善连续4次减LR半，再4次且至少16停。DP原3e-5/rear1e-4均恒定，无8轮衰减归零。诊断训练4original/4historical/4latest及全部val6分开，物理阶段来自真值标签，不进模型；固定噪声验证隔离RNG实测通过。31聚焦检查通过，真实preflight两次几何诊断边界失败已在零正式更新时修复。原有效数据与A11/B15/19完整权重保留。
+
+实测第9轮训练本体A330.35s/B278.27s；出现mapped消费阶段长读盘等待（不是load调用耗时全部消失）。相同采样顺序两进程曾错开91batch，加入独立只调度自有两个PID的align_frontends.py，控制最多约6batch差，以复用OS文件页；参数/数据/随机/优化顺序不变。服务tight-budget-align-20261116-01b，状态aligned_io_state.json；第一次尾部读取窗口过小退出且无signals，现场保留。服务MemoryHigh由26G改34G、Max32G改40G，实际仍10GiB RAM/4GiB VRAM/12GiB磁盘门槛。没有修改无关进程。
+
+完成入口为training_complete.json和随后evaluation_complete.json；运行中看logs/*/state.json、training/validation.jsonl，不用整读A的大learning日志。没有20轮采集或长期DAgger任务。下一步监督达到平台/预算边界，比较固定完整模型短闭环，所有结论回写集中报告。
