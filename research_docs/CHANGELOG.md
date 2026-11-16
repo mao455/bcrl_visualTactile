@@ -1,3 +1,9 @@
+## 2026-11-16 18:58 — 首轮新布局纠偏采集闭合，共同37条已开始更新
+
+8机会全部合法、0软件中断；A3/4专家救回，B4/4。A seed28817002未形成contact-height窗口，完整自主601步超时，未执行fixed fallback、未入池。七次真实接管在96–128tick，共1146有效专家动作；每条前缀mask0，2tick队列过渡mask0。实际numeric逐数组验证q_reached等于同transition真实q_after，u_expert等于实际执行target；没有把学生动作当专家标签。成功恢复不是自主插入。
+
+共同冻结train37/validation6/test0，仍原train30统计、每条权重1。采集monitor0退出后学习owner启动，A DP已完成首epoch19更新；B后续相同规则。原24h/22h截止、完整学生与原生成功不改。新只读correction_report.py与evidence/tight_layout_20261116/dagger01_collection.json保留全部分母、触发与标签审计；运行worker冻结99cfaf7未热改。
+
 ## 2026-11-16 18:51 — 新布局初训与完整自主完成，共享DAgger已接续
 
 共同train30/validation6，学生随机初始化；A/B前端各80epoch/1200更新，独立验证选A77/B80；后端各40遍/3080更新，选A40/B39。均达到登记预算上限，不声称完全收敛。前端监督空间不同，不能比较A/B loss大小判断优劣。真实曲线与逐初态行为见evidence/tight_layout_20261116/initial_learning。
