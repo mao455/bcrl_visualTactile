@@ -45,7 +45,9 @@ def worker():
   startup=ROOT/('startup_gate' if gate else 'startup_capture')
   startup.mkdir(exist_ok=False)
   atomic_json(startup/'session.json',s)
-  app,env,player,lease=environment(startup,startup_diagnostics=True)
+  from visuotactile.state_resources import lease_for
+  lease=lease_for(ROOT,deadline=s['collection_deadline'])
+  app,env,player,lease=environment(startup,lease=lease,startup_diagnostics=True)
   atomic_json(ROOT/'initialization.json',dict(utc=time.time(),pid=os.getpid()))
   for spec in plan['jobs']:
    if spec['identity'] in completed:continue

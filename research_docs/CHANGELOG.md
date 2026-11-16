@@ -1,3 +1,7 @@
+## 2026-11-16 采集监控根目录绑定修正
+
+recovery01在Kit启动前发现子目录默认lease读取错误的shared_resources路径，0新物理机会，现场保留。显式传入同一owner监控根的lease，独立recovery02接续原未执行任务和原截止。没有关闭资源检查。
+
 ## 2026-11-16 新布局采集退出门已通过，修复下一进程启动目录冲突
 
 10cm首两条独立验证示范均完成、完整capture关闭；采集子进程退出0、GPU PID消失且monitor仍活。第二阶段尚未启动Kit即因StartupDiagnostics独占创建已有startup_tracebacks.log而失败；没有新的物理机会。原root与两条有效源记录全部保留。恢复采用新root tight_layout10_20261116_01_recovery01、每worker独立startup目录，复用已通过gate与结果，跳过已完成identity，所有原session截止不变。未开始的其余34成功目标继续，未宣称完成。
