@@ -23,7 +23,11 @@ def main():
  for role in 'AB':
   for kind,path in [('dp',ROOT/role/'training'),('rear',ROOT/role/'backend'/role/'training')]:
    p=path/('validation.jsonl' if kind=='dp' else 'validation.json')
-   if not p.exists():continue
+   if not p.exists():
+    latest=last_update(path/('learning.jsonl' if kind=='dp' else 'loss.jsonl'))
+    if latest is not None:out['networks'][role+'_'+kind]=dict(epoch=0,updates=0,score=None,best_epoch=None,best_score=None,stopping=None,complete=False,
+     latest_logged_update=latest,latest_logged_scope='First epoch in progress; no completed independent validation yet.')
+    continue
    if kind=='dp':
     raw=p.read_text();lines=raw.splitlines();lines=lines if raw.endswith('\n') else lines[:-1]
     rows=[json.loads(x) for x in lines]

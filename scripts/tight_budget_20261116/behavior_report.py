@@ -15,7 +15,9 @@ rows=[];counts=[];initial=[]
 for label in read(ROOT/'evaluation_complete.json')['groups']:
  d=ROOT/('evaluation_'+label);plan=read(d/'plan.json')
  for case in plan['cases']:
-  r=read(d/case['name']/'result.json');v=dict(group=label,role=case['role'],case=case['name'],family=case['spec']['family'],cohort=case.get('diagnostic_cohort','fixed_development'),legal=r['legal'],directory=str(d/case['name']))
+  r=read(d/case['name']/'result.json');pair=plan['pairs'][case['role']]
+  v=dict(group=label,role=case['role'],case=case['name'],family=case['spec']['family'],cohort=case.get('diagnostic_cohort','fixed_development'),legal=r['legal'],directory=str(d/case['name']),
+   frontend_sha256=pair['frontend_sha256'],backend_sha256=pair['backend_sha256'])
   if r['legal']:
    with h5py.File(d/case['name']/'numeric.h5') as f:
     t=f['episode/transition'];pose=t['diagnostics_after/object_pose_w'][:300];force=t['object_contact_force_w'][:300]
@@ -39,6 +41,19 @@ for label in read(ROOT/'evaluation_complete.json')['groups']:
   for cohort in sorted({x['cohort'] for x in rows if x['group']==label and x['role']==role}):
    selected=[x for x in rows if x['group']==label and x['role']==role and x['cohort']==cohort];legal=[x for x in selected if x['legal']]
    counts.append(dict(group=label,role=role,cohort=cohort,attempts=len(selected),legal=len(legal),illegal=len(selected)-len(legal),**{k:sum(bool(x[k]) for x in legal) for k in keys}))
+groups=read(ROOT/'evaluation_complete.json')['groups'];paired=[];changes=[]
+for role in 'AB':
+ for cohort in sorted({r['cohort'] for r in rows if r['role']==role}):
+  maps={g:{r['case']:r for r in rows if r['group']==g and r['role']==role and r['cohort']==cohort} for g in groups}
+  common=set.intersection(*[{k for k,v in values.items() if v['legal']} for values in maps.values()])
+  paired.append(dict(role=role,cohort=cohort,common_legal_cases=sorted(common),
+   excluded_registered_cases=sorted(set.union(*[set(v) for v in maps.values()])-common),
+   groups={g:dict(n=len(common),**{k:sum(bool(values[i][k]) for i in common) for k in keys}) for g,values in maps.items()}))
+  for g in groups[1:]:
+   changes.append(dict(group=g,role=role,cohort=cohort,common_legal_n=len(common),
+    gained={k:sorted(i for i in common if not maps['baseline8'][i][k] and maps[g][i][k]) for k in ['native_lift','hold12','hold60','final_hold60']},
+    lost={k:sorted(i for i in common if maps['baseline8'][i][k] and not maps[g][i][k]) for k in ['native_lift','hold12','hold60','final_hold60']}))
+(O/'paired_behavior.json').write_text(json.dumps(dict(counts=paired,changes_from_baseline8=changes,scope='Intersection of legal registered cases across groups; observable initial-state differences reported separately; no hidden-state exact claim.'),indent=2)+'\n')
 (O/'behavior_cases.json').write_text(json.dumps(rows,indent=2)+'\n');(O/'initial_comparison.json').write_text(json.dumps(initial,indent=2)+'\n')
 with (O/'behavior_counts.csv').open('w',newline='') as f:
  w=csv.DictWriter(f,list(counts[0]),lineterminator='\n');w.writeheader();w.writerows(counts)
