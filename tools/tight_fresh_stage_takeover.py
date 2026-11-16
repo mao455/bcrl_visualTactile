@@ -13,6 +13,7 @@ from visuotactile.compact import sha256
 from visuotactile.takeover_trigger import VERSION, CONTACT_HEIGHT_VERSION,HELD_NEAR_GOAL_VERSION,HELD_RECHECK_VERSION,HELD_ROOT_GOAL_VERSION
 from visuotactile.training_resources import atomic_json
 
+EARLY_CONTRACT = 'early_grasp_takeover_v1'
 CONTRACT = 'stable_only_takeover_v1'
 CONTACT_HEIGHT_CONTRACT = 'contact_height_only_takeover_v1'
 NEVER_FALLBACK = 1_000_000_000
@@ -125,7 +126,7 @@ def prepare(source, output, identities, delays, round_index, event_seed, *, sess
 
 
 def validate_plan(plan):
-    if plan.get('stage_takeover_contract') not in (CONTRACT, CONTACT_HEIGHT_CONTRACT) or plan.get('never_fallback') != NEVER_FALLBACK:
+    if plan.get('stage_takeover_contract') not in (CONTRACT, CONTACT_HEIGHT_CONTRACT, EARLY_CONTRACT) or plan.get('never_fallback') != NEVER_FALLBACK:
         raise ValueError('Explicit never-fallback contract required')
     cases = plan['cases']
     if not cases or len({c['name'] for c in cases}) != len(cases):
@@ -133,6 +134,10 @@ def validate_plan(plan):
     for case in cases:
         if case['spec']['takeover_tick'] != NEVER_FALLBACK:
             raise ValueError('Fixed-time fallback is forbidden')
+        if plan['stage_takeover_contract'] == EARLY_CONTRACT:
+            from visuotactile.grasp_curriculum import validate_early
+            validate_early(case['dagger'].get('trigger'), NEVER_FALLBACK)
+            continue
         version = VERSION if plan['stage_takeover_contract'] == CONTRACT else CONTACT_HEIGHT_VERSION
         if case['dagger'].get('trigger') not in [dict(version=version, delay_ticks=x) for x in (0, 12)]:
             raise ValueError('Registered trigger version and delays0/12 are required')

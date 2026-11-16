@@ -157,10 +157,10 @@ def validate_takeover_plan(plan):
 def classify_capture(directory,case,result,plan):
     """Fixed schedules and causal stage schedules keep different evidence."""
     from visuotactile.training_expansion import COLLECTION_CONTRACT,classify_case
-    from tools.tight_fresh_stage_takeover import CONTRACT,CONTACT_HEIGHT_CONTRACT,classify
+    from tools.tight_fresh_stage_takeover import CONTRACT,CONTACT_HEIGHT_CONTRACT,EARLY_CONTRACT,classify
     from tools.tight_fresh_report import audit_trigger_case
     contract=plan.get('stage_takeover_contract')
-    if contract not in (CONTRACT,CONTACT_HEIGHT_CONTRACT,COLLECTION_CONTRACT):
+    if contract not in (CONTRACT,CONTACT_HEIGHT_CONTRACT,EARLY_CONTRACT,COLLECTION_CONTRACT):
         raise ValueError('Unknown registered collection contract')
     trigger=case.get('dagger',{}).get('trigger')
     audit=None

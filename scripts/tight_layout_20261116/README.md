@@ -9,3 +9,5 @@
 只读状态：`bash visuotactile/run_cpu.sh -m scripts.tight_layout_20261116.readout`。先核对真实服务/PID和`failure.json`，不要重启已有root。正式数目只读闭合collection_results/finished/result，独立测试不提前使用。首轮完整结果由主Agent审阅后继续共享池DAgger；后台脚本不作模型有效性宣称。
 
 `cleanup.py`对应已执行的单次清单，净释放135318011904bytes；不得重算或重跑删除。原400、所有有效成功源、依赖manifest源、完整最好与必要回退、专家/通用视觉权重保持。完整逐文件清单在原pilot root/cleanup，公开精简凭据在research_docs/evidence/tight_layout_20261116。
+
+共享纠偏入口`dagger.py`在完整初训评估审阅后才运行：4训练family×A/B、真实完整学生前缀、成功专家后缀共享、DP→刷新后端输入→Transformer→完整自主。`check_dagger.py`检查真实新布局reset注册与非法接管拒绝；准备不等于已完成DAgger。

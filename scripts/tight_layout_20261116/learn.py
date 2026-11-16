@@ -43,14 +43,19 @@ def prepare():
 def cache():
  from visuotactile.precision import state_fp32
  from visuotactile.native_data import cache_visual_pair
- state_fp32();cache_visual_pair(ROOT/'A');cache_visual_pair(ROOT/'B',reuse_index=ROOT/'A/cache_index.json')
+ state_fp32()
+ if (ROOT/'A/continuation.json').exists():
+  from tools.tight_fresh_dagger import cache as aggregate_cache
+  aggregate_cache(ROOT)
+ else:
+  cache_visual_pair(ROOT/'A');cache_visual_pair(ROOT/'B',reuse_index=ROOT/'A/cache_index.json')
  atomic_json(ROOT/'cache_complete.json',dict(complete=True,utc=time.time()))
 
 def backend_prepare(role):
  from tools.tight_fresh_backend import prepare as prep
  from visuotactile.bounded_extension import fresh_layout_profile
  assert read(ROOT/role/'training/finished.json')['complete']
- prep(ROOT,role,40,offline_anchor_batch=32,frozen_visual_io=read(ROOT/'frozen_visual_io.json'))
+ prep(ROOT,role,40,continue_rear=(ROOT/role/'continuation.json').exists(),offline_anchor_batch=32,frozen_visual_io=read(ROOT/'frozen_visual_io.json'))
  rear=ROOT/role/'backend'
  for p in [rear/'session.json',rear/'configuration.json',rear/role/'session.json',rear/role/'configuration.json']:
   v=read(p);v['residual_pair'].update(bounded_extension=fresh_layout_profile('backend'),minimum_control_tick_epochs=20,comparison_control_tick_epochs=[]);atomic_json(p,v)
@@ -113,7 +118,9 @@ def run():
    while not (ROOT/'shared_resources.json').exists():
     assert monitor.poll() is None and time.time()<until;time.sleep(.25)
    execute('cache',[__spec__.name,'cache','--root',ROOT],ROOT/'cache_complete.json')
-   execute('gate',['tools.tight_fresh_train','gate','--root',ROOT],ROOT/'gate.json')
+   if read(ROOT/'prepared.json').get('continue_student_pair'):
+    g=read(ROOT/'gate.json');assert g['passed'] and sha256(g['inherited_input_gate'])==g['inherited_input_gate_sha256']
+   else:execute('gate',['tools.tight_fresh_train','gate','--root',ROOT],ROOT/'gate.json')
    for role in 'AB':
     execute('dp_'+role,['tools.tight_fresh_train','train','--root',ROOT,'--role',role,'--epochs',80,'--offline-anchor-batch',32,'--full-trajectory-batch'],ROOT/role/'training/finished.json')
    for role in 'AB':
@@ -125,7 +132,7 @@ def run():
    execute('evaluation_prepare',[__spec__.name,'evaluation_prepare','--root',ROOT],ROOT/'evaluation_prepared.json')
    execute('evaluation',[__spec__.name,'evaluation_worker','--root',ROOT],ROOT/'development/result.json')
    assert read(ROOT/'development/paired_initial_check.json')['passed']
-   atomic_json(ROOT/'complete.json',dict(complete=True,utc=time.time(),dagger_complete=False))
+   atomic_json(ROOT/'complete.json',dict(complete=True,utc=time.time(),dagger_complete=False,dagger_round_trained=read(ROOT/'prepared.json').get('continue_student_pair',False)))
    atomic_json(ROOT/'status.json',dict(stage='complete_pending_scientific_review',utc=time.time()))
   except BaseException:
    atomic_json(ROOT/'failure.json',dict(utc=time.time(),error=traceback.format_exc()));raise
@@ -156,5 +163,6 @@ def wait_and_run():
   atomic_json(waiting/'failure.json',dict(utc=time.time(),error=traceback.format_exc()));raise
 
 if __name__=='__main__':
+ if '--root' in sys.argv:ROOT=Path(sys.argv[sys.argv.index('--root')+1]).resolve()
  if sys.argv[1]=='backend_prepare':backend_prepare(sys.argv[2])
  else:globals()[sys.argv[1]]()
