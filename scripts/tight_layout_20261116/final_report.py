@@ -10,7 +10,8 @@ def summarize(root,output):
  read=lambda p:json.loads(p.read_text())
  assert read(root/'complete.json')['complete'] and read(root/'owner_exit.json')['children_reaped']
  registration=read(root/'registration.json');rows=[];parts=[]
- for i in range(2):
+ assert len(registration['seeds']) in (8,20)
+ for i in range(len(registration['seeds'])//4):
   folder=root/f'part{i}';plan=read(folder/'plan.json')
   assert plan['test_used'] and plan['holdout_contract']=='layout_final_test_v1'
   assert plan['pairs']==registration['pairs']
@@ -26,7 +27,7 @@ def summarize(root,output):
   rows+=b['rows'];parts.append(dict(part=i,counts=b['counts'],
    paired_initial_check=read(folder/'paired_initial_check.json'),result=read(folder/'result.json'),
    result_sha256=sha256(folder/'result.json')))
- assert len(rows)==16 and sorted({r['seed'] for r in rows})==registration['seeds']
+ assert len(rows)==2*len(registration['seeds']) and sorted({r['seed'] for r in rows})==registration['seeds']
  assert sorted((r['role'],r['seed']) for r in rows)==sorted((role,seed) for role in 'AB' for seed in registration['seeds'])
  counts={}
  for role in 'AB':
@@ -45,7 +46,7 @@ def summarize(root,output):
   final_models=registration['pairs'],model_hashes_verified_after_test=True,
   registration_sha256=sha256(root/'registration.json'),resources=resources,
   owner_exit=read(root/'owner_exit.json'),software_interruptions=0,
-  scope='Eight preregistered untouched paired test families, once per model. No test tuning; no matched old-layout training-budget control. Development success is not a held-out improvement claim.')
+  scope='Registered untouched paired test families, once per model. No test tuning; no matched old-layout training-budget control. Development success is not a held-out improvement claim.')
  output.parent.mkdir(parents=True,exist_ok=True);atomic_json(output,report);print(json.dumps(counts))
 
 if __name__=='__main__':

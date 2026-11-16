@@ -1,4 +1,4 @@
-"""One untouched eight-family final test, same paired full-task execution."""
+"""One untouched registered final test, same paired full-task execution."""
 import argparse,copy,json,os,subprocess,sys,time,traceback
 from pathlib import Path
 from scripts.tight_layout_20261116 import learn
@@ -34,7 +34,7 @@ def prepare(source,output,holdout_registration=None):
   holdout=learn.read(holdout_registration);seeds=holdout['heldout_seeds']
   assert holdout['created_utc']<learn.read(source/'complete.json')['utc']
   assert not set(seeds)&set(holdout['old_test_regression_only']+holdout['development_seeds'])
- assert len(seeds)==8 and len(set(seeds))==8
+ assert len(seeds) in (8,20) and len(set(seeds))==len(seeds)
  assert not set(seeds)&set(learn.DEV_SEEDS)
  data=learn.read(source/'A/state_data/data.json')
  for i in data['splits']['train']+data['splits']['validation']:
@@ -46,13 +46,13 @@ def prepare(source,output,holdout_registration=None):
  atomic_json(output/'session.json',session)
  pairs={r:completed_pair(source,r) for r in 'AB'}
  registration=dict(source=str(source),seeds=seeds,pairs=pairs,utc=time.time(),test_used=True,
-  selection='All eight originally registered final test families, once each per role; no training/model selection after these results',
+  selection='All originally registered final test families, once each per role; no training/model selection after these results',
   source_sha256=source_hashes(),original_deadline=session['deadline'])
  if holdout_registration is not None:
   registration.update(holdout_registration=str(holdout_registration),holdout_registration_sha256=sha256(holdout_registration),
-   resource_roots=[str(source),str(output)],selection='All eight separately preregistered untouched phase-session test families, once each per role; no selection afterward')
+   resource_roots=[str(source),str(output)],selection='All separately preregistered untouched session test families, once each per role; no selection afterward')
  atomic_json(output/'registration.json',registration)
- for index in range(2):
+ for index in range(len(seeds)//4):
   part=output/f'part{index}';chosen=seeds[index*4:index*4+4]
   assert chosen==list(range(chosen[0],chosen[0]+4))
   batch_prepare(source,part,lanes=8,count=4,seed=chosen[0],queued_gpu=True,vision_microbatch=4,
@@ -87,7 +87,7 @@ def run(output):
   until=time.time()+30
   while not (output/'shared_resources.json').exists():
    assert monitor.poll() is None and time.time()<until;time.sleep(.25)
-  for index in range(2):
+  for index in range(len(learn.read(output/'registration.json')['seeds'])//4):
    part=output/f'part{index}';started=time.time()
    with (output/'logs'/f'part{index}.log').open('x') as log:
     child=subprocess.Popen([sys.executable,'-m',__spec__.name,'worker','--output',str(part)],stdout=log,stderr=subprocess.STDOUT,start_new_session=True)

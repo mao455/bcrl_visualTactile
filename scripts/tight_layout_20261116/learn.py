@@ -120,16 +120,31 @@ def evaluation_prepare():
  from tools.tight_fresh_rollouts import completed_pair
  from tools.tight_fresh_batch_run import prepare as batch_prepare
  directory=ROOT/'development'
+ prepared=read(ROOT/'prepared.json')
+ seeds=prepared.get('development_seeds',DEV_SEEDS)
+ comparison=prepared.get('comparison_baseline')
+ assert len(seeds)==(2 if comparison else 4) and seeds==list(range(seeds[0],seeds[0]+len(seeds)))
  accepted=read(RUNS/'tight_reliable_eval_20261116_01/28500100/plan.json')
- batch_prepare(ROOT,directory,lanes=8,count=4,seed=DEV_SEEDS[0],
+ batch_prepare(ROOT,directory,lanes=8,count=4,seed=seeds[0],
   execution_backend=accepted['execution_backend'],queued_gpu=True,vision_microbatch=4)
  plan=read(directory/'plan.json')
+ if comparison:
+  baseline=prepared['comparison_baseline_pairs']
+  for role in 'AB':assert completed_pair(Path(comparison),role)==baseline[role]
+  plan['pairs'].update({r+'_baseline':p for r,p in baseline.items()})
+  templates={c['spec']['seed']:c for c in plan['cases']};cases=[]
+  for seed in seeds:
+   for role in ('A','A_baseline','B','B_baseline'):
+    c=copy.deepcopy(templates[seed]);c.update(role=role,name=role+'_'+c['spec']['identity'])
+    cases.append(c)
+  plan['cases']=cases
+  plan['comparison']=dict(baseline=comparison,scope='Four complete frozen policies in the same actual paired reset wave; development only')
  # No reuse across waves; native reset stream and actual state checks match the accepted evaluator.
  for c in plan['cases']:
   c['spec']['narrow_reset']=reset_configuration(read(ROOT/'session.json')['domain'],c['spec']['seed'],.10)
   c['spec']['layout']=read(ROOT/'session.json')['layout']
-  c['video']=c['spec']['seed']==DEV_SEEDS[0]
- plan['evaluation_scope']=dict(protocol='Full native task, no grasp censor; paired private native reset and pre-action verification',development_seeds=DEV_SEEDS,test_used=False)
+  c['video']=c['spec']['seed']==seeds[0]
+ plan['evaluation_scope']=dict(protocol='Full native task, no grasp censor; paired private native reset and pre-action verification',development_seeds=seeds,test_used=False)
  plan['source_sha256']={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116','scripts/tight_fulltask_20261116'] for p in (TREE/folder).rglob('*.py')}
  atomic_json(directory/'plan.json',plan)
  atomic_json(ROOT/'evaluation_prepared.json',dict(complete=True,plan_sha256=sha256(directory/'plan.json'),utc=time.time()))
@@ -172,7 +187,7 @@ def run():
    until=time.time()+30
    while not (ROOT/'shared_resources.json').exists():
     assert monitor.poll() is None and time.time()<until;time.sleep(.25)
-   if not read(ROOT/'prepared.json').get('evaluation_only_recovery'):
+   if not (read(ROOT/'prepared.json').get('evaluation_only_recovery') or read(ROOT/'prepared.json').get('evaluation_only_snapshot')):
     if read(ROOT/'prepared.json').get('reuse_frozen_cache'):
      for role,digest in read(ROOT/'prepared.json')['cache_index_sha256'].items():
       assert sha256(ROOT/role/'cache_index.json')==digest
@@ -206,6 +221,30 @@ def run():
     try:monitor.wait(timeout=15)
     except subprocess.TimeoutExpired:stop(monitor)
    atomic_json(ROOT/'owner_exit.json',dict(utc=time.time(),children_reaped=True,monitor_returncode=None if monitor is None else monitor.poll()))
+
+def prepare_development():
+ """Evaluate a frozen complete pair on a registered additional four-family wave."""
+ from tools.tight_fresh_rollouts import completed_pair
+ source=Path(sys.argv[sys.argv.index('--source')+1]).resolve()
+ registration=Path(sys.argv[sys.argv.index('--registration')+1]).resolve()
+ baseline=Path(sys.argv[sys.argv.index('--baseline')+1]).resolve() if '--baseline' in sys.argv else None
+ start=int(sys.argv[sys.argv.index('--seed')+1]);seeds=list(range(start,start+(2 if baseline else 4)))
+ reg=read(registration);assert set(seeds)<=set(reg['development_seeds'])
+ assert not set(seeds)&set(reg['heldout_seeds'])
+ assert not ROOT.exists() and read(source/'owner_exit.json')['children_reaped']
+ pairs={role:completed_pair(source,role) for role in 'AB'}
+ session=copy.deepcopy(read(source/'session.json'))
+ session.update(resource_root=str(ROOT),owned_worker_roots=[str(ROOT)],deadline=reg['deadline'],training_deadline=reg['training_deadline'])
+ assert time.time()<session['deadline']-1800
+ ROOT.mkdir();(ROOT/'logs').mkdir()
+ for role in 'AB':(ROOT/role).symlink_to(source/role,target_is_directory=True)
+ atomic_json(ROOT/'session.json',session)
+ atomic_json(ROOT/'prepared.json',dict(complete=True,evaluation_only_snapshot=True,
+  source=str(source),pairs=pairs,development_seeds=seeds,registration=str(registration),
+  **(dict(comparison_baseline=str(baseline),comparison_baseline_pairs={r:completed_pair(baseline,r) for r in 'AB'}) if baseline else {}),
+  registration_sha256=sha256(registration),optimizer_updates_added=0,
+  source_sha256={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116'] for p in (TREE/folder).rglob('*.py')},utc=time.time()))
+
 
 def prepare_evaluation_recovery():
  """Resume an unstarted evaluation without changing or retraining either pair."""

@@ -57,3 +57,18 @@ def test_phase_plateau_requires_valid_complete_receipt(tmp_path,monkeypatch,faul
     if fault is None:assert completed_pair(tmp_path,'A')['backend']==str(base/'training/best.pt')
     else:
         with pytest.raises(ValueError):completed_pair(tmp_path,'A')
+
+
+@pytest.mark.parametrize('count',[8,20])
+def test_registered_final_wave_has_exact_pair_and_never_uses_development(tmp_path,count):
+    from scripts.tight_layout_20261116.final_test import validate
+    seeds=list(range(28823000,28823000+count));pairs={'A':{'hash':'a'},'B':{'hash':'b'}}
+    reg=tmp_path/'registration.json';reg.write_text(json.dumps(dict(seeds=seeds,pairs=pairs)))
+    cases=[dict(role=role,spec=dict(seed=seed,split='test',narrow_reset={'same':seed})) for seed in seeds[:4] for role in 'AB']
+    plan=dict(kind='autonomous',test_used=True,holdout_contract='layout_final_test_v1',
+      final_test_registration=str(reg),final_test_registration_sha256=sha256(reg),pairs=pairs,cases=cases)
+    validate(plan)
+    cases[-1]['role']='A'
+    with pytest.raises(AssertionError):validate(plan)
+    cases[-1]['role']='B';cases[-1]['spec']['split']='development'
+    with pytest.raises(AssertionError):validate(plan)

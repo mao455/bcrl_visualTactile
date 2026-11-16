@@ -53,7 +53,7 @@ def summarize(root,output):
    row['numeric_sha256']=sha256(folder/'numeric.h5')
   rows.append(row)
  counts={}
- for role in 'AB':
+ for role in sorted(plan['pairs']):
   selected=[r for r in rows if r['role']==role];legal=[r for r in selected if r['legal']]
   counts[role]=dict(opportunities=len(selected),legal=len(legal),successes=sum(r['success'] for r in legal),
    expert_rescues=sum(r.get('expert_rescue',False) for r in legal),admitted=sum(r.get('admitted',False) for r in legal),
