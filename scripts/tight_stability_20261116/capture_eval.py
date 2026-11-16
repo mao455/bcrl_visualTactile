@@ -28,6 +28,7 @@ def main():
     assert len(plan['cases'])==plan['batch']['lanes']==16, 'This capture identity has one registered case per lane, no reuse'
     from visuotactile.gpu_batch_controller import GPUBatchedResidualController
     from tools.tight_fresh_batch_run import run
+    from visuotactile import native_evaluation
     original=GPUBatchedResidualController._act_neural_batch
     captured={};started=time.time();capture_seconds=0.
     def observed(self,packet,diagnostics,ids,commands):
@@ -53,11 +54,10 @@ def main():
                 recorded_controls=sum(map(len,captured.values())),elapsed=time.time()-started))
         return result
     GPUBatchedResidualController._act_neural_batch=observed
-    completed=False
-    try:
-        run(a.output);completed=True
-    finally:
-        GPUBatchedResidualController._act_neural_batch=original
+    completed=False;flushed=False
+    def flush():
+        nonlocal flushed
+        if flushed:return
         receipt=[]
         for lane,rows in captured.items():
             directory=a.output/plan['cases'][lane]['name'];output=directory/'rear_inputs.pt'
@@ -74,5 +74,21 @@ def main():
         atomic_json(a.output/'input_capture_complete.json',dict(complete=completed,rows=receipt,
             capture_cpu_copy_seconds=capture_seconds,seconds=time.time()-started,
             scope='Read-only hook; all full-policy commands unchanged; independent current-weight memory must be recomputed during replay. Partial data never marked complete.'))
+        flushed=True
+    original_exit=native_evaluation.exit_completed_kit_worker
+    def completed_exit(output):
+        nonlocal completed
+        assert Path(output).resolve()==a.output.resolve()
+        completed=True;flush()
+        # Preserve the existing intentional isolated-worker os._exit. A Python
+        # finally/atexit handler alone cannot run after that native exit path.
+        original_exit(output)
+    native_evaluation.exit_completed_kit_worker=completed_exit
+    try:
+        run(a.output)
+    finally:
+        GPUBatchedResidualController._act_neural_batch=original
+        native_evaluation.exit_completed_kit_worker=original_exit
+        flush()
 
 if __name__=='__main__':main()
