@@ -113,6 +113,19 @@ def run():
     # Lock is held until all owned children exit. No worker writes coordinator state.
     with (ROOT/'owner.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        registration = read(ROOT/'registration.json')
+        for job in registration['jobs']:
+            assert sha256(Path(job['path'])/'plan.json') == job['plan_sha256']
+        if (ROOT/'complete.json').exists():
+            assert all(completed(Path(job['path'])) for job in registration['jobs'])
+            assert read(ROOT/'owner_exit.json')['children_reaped']
+            receipt = dict(utc=time.time(), stage='complete', launched_workers=0,
+                skipped_completed_jobs=[job['seed'] for job in registration['jobs']],
+                result_sha256={str(job['seed']):sha256(Path(job['path'])/'result.json') for job in registration['jobs']},
+                original_complete=read(ROOT/'complete.json'), original_owner_exit=read(ROOT/'owner_exit.json'))
+            atomic_json(ROOT/'resume_check.json', receipt)
+            atomic_json(ROOT/'coordinator_status.json', receipt)
+            return
         session = read(ROOT/'session.json')
         assert time.time() < session['deadline']
         assert not (ROOT/'STOP').exists(), 'STOP is retained; review before resuming'
@@ -128,7 +141,7 @@ def run():
                 if (ROOT/'shared_resources.json').exists() and time.time()-read(ROOT/'shared_resources.json')['utc_epoch'] < 3:
                     break
                 time.sleep(.25)
-            for registered in read(ROOT/'registration.json')['jobs']:
+            for registered in registration['jobs']:
                 directory = Path(registered['path'])
                 assert sha256(directory/'plan.json') == registered['plan_sha256']
                 if completed(directory):
@@ -167,8 +180,10 @@ def run():
                     result_sha256=sha256(directory/'result.json'), monitor_alive=monitor.poll() is None))
                 child = None
             atomic_json(ROOT/'complete.json', dict(complete=True, utc=time.time(), jobs=len(SEEDS)))
+            atomic_json(ROOT/'coordinator_status.json', dict(stage='complete', utc=time.time(), jobs=len(SEEDS)))
         except BaseException:
             atomic_json(ROOT/'failure.json', dict(utc=time.time(), error=traceback.format_exc()))
+            atomic_json(ROOT/'coordinator_status.json', dict(stage='failed', utc=time.time(), error=traceback.format_exc()))
             raise
         finally:
             # Monitor outlives every simulation; it cannot stop other sessions.

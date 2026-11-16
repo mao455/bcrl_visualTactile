@@ -1713,3 +1713,18 @@ DP从19 last8完整AdamW/EMA/RNG续训：A完成22/4312、选14/2744，验证比
 两DP各2epoch/372更新；A/B均选2，最新每条选中曝光均24。两新DP后端缓存均356/356。后端原2共同缩为1，A683更新完成，B183更新/0.26480遍历因固定截止预留保存，未达预算。不采用新候选；A11/B15及旧A长训/B短后端保留。共享status临时文件线程冲突已加锁并续B；监控生命周期仍有故障，不宣称后台可靠。清理2份旧OOM未选快照2.170GiB，manifest保留；无成功轨迹删除。
 
 STOP/STOP_MONITOR置位，禁止任何自动继续。实际结果/图在evidence/tight_diagnosis_20261116/fulltask；权重/视频在原outputs。B后端last包含续训状态，但下次先修唯一监控owner，再在新时间窗续完并严格配对评估；不重采2条，不重训已完成DP，不重新生成356后端缓存。此前B同输入重算仍有效，但混合队列初始q差.024–.041rad，不能把该组跨历史差异独立归因于后端反馈。
+
+
+### 2026-11-16 16:05 — 接续8b946ca的完整任务配对评估完成，无后台
+
+实际DEV仍为bc+rl_RSS_continuous_vision_20261114；run tight_reliable_eval_20261116_01。原15:30 run不重启，未新增采集/训练/模型组。四个既有开发seed28500100/101/105/106，各四套完整DP+Transformer，4lane逐初态串行Kit。全部16合法完整native执行、0软件中断，四组均0/4原生插入，0对准/首子目标；12timeout、4native fall全部入分母。hold60 A长0/4、A11 0/4、B短1/4、B15 2/4；hold120仅B短1/4。未晋升候选，安全回退A11/B15与原两候选保留。
+
+实载A候选DP14/2744+rear22/15764；B候选DP23/4508+rear6/4282（best_through_epoch8，非rear22）。A11 DP20/2600+rear10/4023；B15 DP12/2460+rear11/8439。后端内嵌base SHA与注册/执行身份全部相符，完整路径/hash在集中报告evidence/reliable_eval/model_identities.json。
+
+最小修复：family私有原生reset RNG，首动作前实际q/qdot/控制目标全部0差，位姿位置亚微米差，速度/方向配对通过；隐藏状态与后续随机事件不声称精确相等。每作业独立status，单owner锁和单写协调器；监控活到全部worker结束。四次交接实际通过，500.95s/8360有效控制步；最低空闲VRAM13.74GiB、RAM20.36GiB，最大遥测gap1.41s。owner953229、monitor953264、workers953269/958948/960550/962626均退出；owner_exit children_reaped=true。原始仿真源码c8d4c01及plan hashes保留，后补终态和已完成入口经真实调用：0worker、4作业全跳过、原result SHA不变。
+
+已实际浏览原9视频全过程时序画面并加密关键事件，未用新增视频替代分析。A早期抓空，B101虽抬起但关键点误差最小6.29cm无对准，444步全接触消失，发生在下次规划445之前；前12步DP食指PIP已伸展.229rad、最终目标伸展.379rad，非后端独自突然松手。真实学习修正与确定性重定位已分开，合成重算最大1.2e-7rad。专家A279对准后395撤手、403成功；专家B357对准、426成功；正常撤手不算掉落。逐条表、原动作图和关键帧见现有TIGHT_TRAINING_DIAGNOSIS_20261116.md开头。
+
+保留上轮2条成功纠偏/567合法步、350训练池及全部最新DP/后端断点、356缓存；本轮未删这些资产。前次两DP独立验证均退化，新纠偏拟合不足以支持续训/采用，因此没有为凑更新续B部分后端。磁盘收尾17.31GiB可用。
+
+只读续接入口：run/complete.json、owner_exit.json、coordinator_status.json、resume_check.json；`python -m scripts.tight_fulltask_20261116.reliable_eval run`已完成时只核对跳过、不开GPU。任何中断run不会覆盖或自动重跑整批。无后台、无长期DAgger、无自动新增实验；下一步先研究对准前手指伸展与接触支撑，不宣称4个开发初态等于泛化结论。
