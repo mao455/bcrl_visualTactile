@@ -23,12 +23,18 @@ def validate(plan):
  assert plan['pairs']==registration['pairs']
 
 
-def prepare(source,output):
+def prepare(source,output,holdout_registration=None):
  from tools.tight_fresh_rollouts import completed_pair
  from tools.tight_fresh_batch_run import prepare as batch_prepare
  assert not output.exists() and learn.read(source/'complete.json')['complete'] and learn.read(source/'owner_exit.json')['children_reaped']
  session=copy.deepcopy(learn.read(source/'session.json'));assert session['deadline']-time.time()>1800
- seeds=learn.read(learn.SOURCE/'collection_plan.json')['test_seeds'];assert len(seeds)==8
+ if holdout_registration is None:
+  seeds=learn.read(learn.SOURCE/'collection_plan.json')['test_seeds']
+ else:
+  holdout=learn.read(holdout_registration);seeds=holdout['heldout_seeds']
+  assert holdout['created_utc']<learn.read(source/'complete.json')['utc']
+  assert not set(seeds)&set(holdout['old_test_regression_only']+holdout['development_seeds'])
+ assert len(seeds)==8 and len(set(seeds))==8
  assert not set(seeds)&set(learn.DEV_SEEDS)
  data=learn.read(source/'A/state_data/data.json')
  for i in data['splits']['train']+data['splits']['validation']:
@@ -42,6 +48,9 @@ def prepare(source,output):
  registration=dict(source=str(source),seeds=seeds,pairs=pairs,utc=time.time(),test_used=True,
   selection='All eight originally registered final test families, once each per role; no training/model selection after these results',
   source_sha256=source_hashes(),original_deadline=session['deadline'])
+ if holdout_registration is not None:
+  registration.update(holdout_registration=str(holdout_registration),holdout_registration_sha256=sha256(holdout_registration),
+   resource_roots=[str(source),str(output)],selection='All eight separately preregistered untouched phase-session test families, once each per role; no selection afterward')
  atomic_json(output/'registration.json',registration)
  for index in range(2):
   part=output/f'part{index}';chosen=seeds[index*4:index*4+4]
@@ -100,8 +109,8 @@ def run(output):
 
 
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('mode',choices=['prepare','worker','run']);p.add_argument('--source',type=Path);p.add_argument('--output',type=Path,required=True)
+ p=argparse.ArgumentParser();p.add_argument('mode',choices=['prepare','worker','run']);p.add_argument('--source',type=Path);p.add_argument('--holdout-registration',type=Path);p.add_argument('--output',type=Path,required=True)
  a=p.parse_args();output=a.output.resolve()
- if a.mode=='prepare':prepare(a.source.resolve(),output)
+ if a.mode=='prepare':prepare(a.source.resolve(),output,None if a.holdout_registration is None else a.holdout_registration.resolve())
  elif a.mode=='worker':worker(output)
  else:run(output)

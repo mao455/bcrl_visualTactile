@@ -39,6 +39,7 @@ def summarize(root,output):
   for label in ['frontend','backend']:assert sha256(pair[label])==pair[label+'_sha256']
  sources=[root.parent/'tight_layout10_20261116_learning01',root.parent/'tight_layout10_20261116_dagger01',
   Path(registration['source']),root]
+ if registration.get('resource_roots'):sources=[Path(p) for p in registration['resource_roots']]
  resources={str(p):read(p/'resources/resources.json') for p in sources}
  report=dict(utc=time.time(),final_test=counts,rows=rows,parts=parts,
   final_models=registration['pairs'],model_hashes_verified_after_test=True,
