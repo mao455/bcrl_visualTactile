@@ -11,3 +11,5 @@
 当前恢复入口：`recover_serial.py`（一次性，先核对原owner退出与完整last11/2156）。正式训练仍76352bd，A/B顺序GPU；`read_ahead_serial.py`使用单个16MiB buffer预读当前/下一B2的冻结文件，仅暖OS页、不生成缓存副本。第12轮原并行OOM和各140丢弃更新保留；本次没有全程守住显存余量。源failure.json是历史失败，当前看serial_recovery_started/failed/complete、logs各attempt及实际systemd。不要重启原并行train入口。完整截止未改，第二次失败不自动重启。
 
 `finish.py`是一次性独立收尾owner：只等现有顺序恢复全部完成，再顺序执行`endpoints.py`、`evaluate.py`及两个CPU报告脚本；遇当前恢复失败或截止即保存现场退出，不重启训练。`finish_state.json`和各阶段实际PID/log供接续；`finish_complete.json`只表示计算完成，模型采用仍需科学审阅。`split_evidence.py`仅核对现有初态登记，不读最终测试轨迹。报告新增真实optimizer横轴、独立验证选择曲线、固定噪声分量及完整阶段误差CSV，历史缺失epoch诊断不插补。
+
+统一只读续接检查：`python -m scripts.tight_budget_20261116.status`。它报告完成epoch/选点、当前未提交更新、真正存活且命令绑定的worker，以及区分原并行故障和当前失败；不会启动或重试任何任务。`performance_report.py`在全部评估结束后读实际阶段时间，失败计算与等待包含在总DP阶段，不把重试的部分更新计入恢复模型有效曝光。

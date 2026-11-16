@@ -1660,3 +1660,10 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 有界单次恢复 tight-budget-serial-recovery-20261116-01.service/PID725961，训练代码继续冻结76352bd不热改；A/B GPU训练顺序执行，CPU顺序预读当前/下一B2文件（同一16MiB复用buffer、无新磁盘缓存）。新脚本recover_serial.py/read_ahead_serial.py及注册记录明确源失败、原截止16:25:36、每组仅一个额外attempt；上限仍24有效epochs/4704有效总更新，各140丢弃计算另计。后端仍在对应DP完成后刷新。批2及采样不变，没有通过降batch/删数据绕开内存。
 
 A第12轮已实际完成2352更新，验证0.00508926较原8内最佳0.00530026改善3.98%，当前13；B尚待顺序续接。此前A11改善1.16%；B11为0.00502705，仍差于原7最佳0.00495650（差1.42%），不是两组都已验证改善。尚无本对照新闭环证据。
+
+
+### 2026-11-16 11:26 +08 — 固定预算A至21epoch，有限收尾入口已托管
+
+顺序恢复owner725961仍在A（trainer726000），B待续11。A最佳14epoch/2744updates，独立验证0.00497331889，较原8内最佳改善6.17%；18末LR减半，21后bad3。不是第21轮DAgger，也尚无本对照自主收益。固定诊断已保存，图按真实点渲染，旧1–7缺失阶段指标不插补。
+
+新增收尾服务tight-budget-finish-20261116-01/PID740181，目前只等待serial_recovery_complete；随后endpoints→最多3×16个同初态短完整学生→报告，所有GPU诊断等现有训练退出，原16:25:36截止不变。finish_state/failed/complete和logs/finish_*为接续入口；源failure.json仍表示已保留的原并行OOM，不代表当前又失败。脚本提交18fc891已推origin feature，训练核心仍冻结76352bd。B2及采样不变，170train/6val家族、seed与reset身份隔离证据已保存。最终结果待监督收完后回写集中报告。

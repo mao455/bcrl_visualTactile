@@ -59,6 +59,13 @@ def all_fig(role,kind,rows):
    ax.set_title(name);ax.set_xlabel('epoch');ax.grid(alpha=.2);ax.legend(fontsize=7)
   fig.suptitle(role+' DP fixed-noise loss components; geometry diagnostic uses fixed2, actual training rotates half')
   plot_end(fig,f'dp_{role}_components.png')
+ else:
+  fig,axes=plt.subplots(1,3,figsize=(13,4))
+  for ax,name in zip(axes,['fy_fit','exec_fit','regularizer']):
+   ax.plot(epochs,[np.mean([v['loss_components'][name] for v in loss if v['epoch']==e]) for e in epochs],'o-',ms=3)
+   ax.set_title(name);ax.set_xlabel('epoch');ax.grid(alpha=.2)
+  fig.suptitle(role+' rear actual optimizer-window component means; FY and executed MSE have DIFFERENT meanings')
+  plot_end(fig,f'rear_{role}_components.png')
 summary={}
 phase_rows=[]
 def phase_table(role,kind,rows):
