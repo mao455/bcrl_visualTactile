@@ -134,6 +134,25 @@ def run():
     except subprocess.TimeoutExpired:stop(monitor)
    atomic_json(ROOT/'owner_exit.json',dict(utc=time.time(),children_reaped=True,monitor_returncode=None if monitor is None else monitor.poll()))
 
+def wait_and_run():
+ """Wait for the current capture owner to finish; never compete with its GPU."""
+ waiting=RUNS/'tight_layout10_20261116_learning_wait01'
+ waiting.mkdir(exist_ok=False)
+ atomic_json(waiting/'started.json',dict(pid=os.getpid(),source=str(SOURCE.resolve()),utc=time.time()))
+ try:
+  while not (SOURCE/'collection_owner_exit.json').exists():
+   assert time.time()<read(SOURCE/'session.json')['collection_deadline'],'Original collection deadline'
+   assert not (SOURCE/'STOP').exists(),'Capture STOP retained'
+   atomic_json(waiting/'status.json',dict(stage='waiting_capture_owner_exit',utc=time.time()))
+   time.sleep(3)
+  assert (SOURCE/'prepared.json').exists(),'Capture/data did not complete; preserve failure'
+  prepare()
+  atomic_json(waiting/'status.json',dict(stage='starting_learning_owner',utc=time.time()))
+  run()
+  atomic_json(waiting/'complete.json',dict(complete=True,utc=time.time()))
+ except BaseException:
+  atomic_json(waiting/'failure.json',dict(utc=time.time(),error=traceback.format_exc()));raise
+
 if __name__=='__main__':
  if sys.argv[1]=='backend_prepare':backend_prepare(sys.argv[2])
  else:globals()[sys.argv[1]]()
