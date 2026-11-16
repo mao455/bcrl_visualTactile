@@ -51,10 +51,10 @@ for role in 'AB':
  for kind,path,name in [('dp',R/role/'training/learning.jsonl','learning'),('rear',rearpath/'loss.jsonl','loss')]:
   if path.exists():
    with gzip.open(O/f'{kind}_{role}_{name}.jsonl.gz','wt') as f:
-    for line in path.read_text().splitlines():
+    for line in path.open():
      value=json.loads(line)
      if kind=='dp':
-      for visit in value.get('visits',[]):visit.pop('frozen_visual_io',None)
+      value['visits']=[{k:v for k,v in visit.items() if k in ('episode','anchors','target_ticks','visual_frames','parts','loss','loss_weight','episode_index','episode_visit')} for visit in value.get('visits',[])]
      f.write(json.dumps(value,separators=(',',':'))+'\n')
 dump('summary.json',summary)
 dump('registration.json',read(R/'prepared.json'))

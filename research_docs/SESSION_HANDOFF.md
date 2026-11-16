@@ -1651,3 +1651,12 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 实测第9轮训练本体A330.35s/B278.27s；出现mapped消费阶段长读盘等待（不是load调用耗时全部消失）。相同采样顺序两进程曾错开91batch，加入独立只调度自有两个PID的align_frontends.py，控制最多约6batch差，以复用OS文件页；参数/数据/随机/优化顺序不变。服务tight-budget-align-20261116-01b，状态aligned_io_state.json；第一次尾部读取窗口过小退出且无signals，现场保留。服务MemoryHigh由26G改34G、Max32G改40G，实际仍10GiB RAM/4GiB VRAM/12GiB磁盘门槛。没有修改无关进程。
 
 完成入口为training_complete.json和随后evaluation_complete.json；运行中看logs/*/state.json、training/validation.jsonl，不用整读A的大learning日志。没有20轮采集或长期DAgger任务。下一步监督达到平台/预算边界，比较固定完整模型短闭环，所有结论回写集中报告。
+
+
+### 2026-11-16 10:58 +08 — 第12轮显存峰值失败已保留，单次顺序恢复正在运行
+
+原budget并行DP在第12轮同一长轨迹B2同时达到约11.4GiB/进程，OOM时GPU实际仅余128.69MiB；批前余量检查不是峰值硬保证，**不能说本次全过程满足4GiB余量**。两DP/原owner均退出、GPU回到约574MiB占用。两组完整last均为11epochs/2156更新，部分12各140个已做更新的日志/partial checkpoint保存，不计恢复模型有效剂量。没有丢弃完整epoch或重训前11轮。原failure.json、attempt1、aligned_io/read_ahead故障日志原样保留。
+
+有界单次恢复 tight-budget-serial-recovery-20261116-01.service/PID725961，训练代码继续冻结76352bd不热改；A/B GPU训练顺序执行，CPU顺序预读当前/下一B2文件（同一16MiB复用buffer、无新磁盘缓存）。新脚本recover_serial.py/read_ahead_serial.py及注册记录明确源失败、原截止16:25:36、每组仅一个额外attempt；上限仍24有效epochs/4704有效总更新，各140丢弃计算另计。后端仍在对应DP完成后刷新。批2及采样不变，没有通过降batch/删数据绕开内存。
+
+A第12轮已实际完成2352更新，验证0.00508926较原8内最佳0.00530026改善3.98%，当前13；B尚待顺序续接。此前A11改善1.16%；B11为0.00502705，仍差于原7最佳0.00495650（差1.42%），不是两组都已验证改善。尚无本对照新闭环证据。
