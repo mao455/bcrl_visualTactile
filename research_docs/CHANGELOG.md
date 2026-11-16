@@ -1,3 +1,9 @@
+## 2026-11-16 22:47 — 第二轮模型训练闭合，修复评估准入漏项后恢复
+
+round03 DP A26遍728更新/B21遍588更新，后端A21遍1973更新平台停止、B24遍2254更新达到上限；没有新自主结果。新增7纠偏1172有效专家tick，两组numeric/后端完整time/robot/mask/segment及最终专家target一致，窗口mask排除prefix；旧12条已单独审计。总24合法机会、19真实接管全救回、2873有效tick；collection_summary.json给出分阶段分母和初态family覆盖。
+
+原学习owner于22:43:27回收，monitor0；evaluation_prepare在任何仿真前拒绝A，原因completed_pair仅认识旧预算而遗漏已注册phase_dagger_budget_v1的合法平台停止。tools/tight_fresh_rollouts.py补充严格该后端profile，不降低minimum/stop/hash门；tests/test_fresh_rollouts.py十项通过。learn.py增加唯一evaluation_only_recovery：原failure/owner与未创建development检查、原模型只读链接及hash核对、新监控root、原截止不变、0新增优化/0重复物理机会。原训练失败回执保留，不覆盖。将使用独立eval_recovery01完成原4对开发后再冻结新8对测试。
+
 ## 2026-11-16 21:52 — 第二批新增7条纠偏，共同56条继续训练
 
 formal02_recovery01八合法机会、七真实接管全专家救回、1172有效tick；A支撑变弱条件未到达，完整601timeout，未入池。对准接管A211/B286tick，专家分别再执行234/72tick完成原生任务；近孔139/155、支撑变弱B153、早期66/64。控制相位7/10/7/11/9/6/4，真实控制/标签与prefix mask审计通过。八lane循环/准入总335.45s，7成功纠偏约75.12/h，仅本批测量，不泛化为持续吞吐。

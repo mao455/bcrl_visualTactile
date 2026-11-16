@@ -39,3 +39,21 @@ def test_inadmissible_pair_rejected_before_simulator(tmp_path,monkeypatch,kind):
         path=base/'offline/result.json';value=json.loads(path.read_text())
         value['checkpoint_sha256']=sha256(base/'training/best.pt');path.write_text(json.dumps(value))
     with pytest.raises(ValueError):completed_pair(tmp_path,'A')
+
+
+@pytest.mark.parametrize('fault',[None,'profile','minimum','stopping','disposable'])
+def test_phase_plateau_requires_valid_complete_receipt(tmp_path,monkeypatch,fault):
+    from visuotactile.bounded_extension import phase_dagger_profile
+    base=fixture(tmp_path,monkeypatch)
+    receipt=dict(target_reached=False,disposable=False,
+        bounded_extension=phase_dagger_profile('backend'),bounded_training_complete=True,
+        minimum_exposure_reached=True,stop_reason='validation_plateau_after_lr_reduction',
+        plateau_state={'stop':True})
+    if fault=='profile':receipt['bounded_extension']['minimum_epochs']=1
+    elif fault=='minimum':receipt['minimum_exposure_reached']=False
+    elif fault=='stopping':receipt['plateau_state']['stop']=False
+    elif fault=='disposable':receipt['disposable']=True
+    (base/'training/finished.json').write_text(json.dumps(receipt))
+    if fault is None:assert completed_pair(tmp_path,'A')['backend']==str(base/'training/best.pt')
+    else:
+        with pytest.raises(ValueError):completed_pair(tmp_path,'A')

@@ -118,18 +118,23 @@ def run():
    until=time.time()+30
    while not (ROOT/'shared_resources.json').exists():
     assert monitor.poll() is None and time.time()<until;time.sleep(.25)
-   execute('cache',[__spec__.name,'cache','--root',ROOT],ROOT/'cache_complete.json')
-   if read(ROOT/'prepared.json').get('continue_student_pair'):
-    g=read(ROOT/'gate.json');assert g['passed'] and sha256(g['inherited_input_gate'])==g['inherited_input_gate_sha256']
-   else:execute('gate',['tools.tight_fresh_train','gate','--root',ROOT],ROOT/'gate.json')
-   for role in 'AB':
-    execute('dp_'+role,['tools.tight_fresh_train','train','--root',ROOT,'--role',role,'--epochs',read(ROOT/'bounded_extension.json')['policy']['maximum_epochs'],'--offline-anchor-batch',32,'--full-trajectory-batch'],ROOT/role/'training/finished.json')
-   for role in 'AB':
-    rear=ROOT/role/'backend'
-    execute('rear_prepare_'+role,[__spec__.name,'backend_prepare',role,'--root',ROOT],rear/'extension_prepared.json')
-    execute('rear_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json')
-    execute('rear_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,'--job','image','--output',rear/role/'training'],rear/role/'training/finished.json')
-    execute('rear_offline_'+role,['visuotactile.anchor_continue','residual-offline','--root',rear/role,'--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json')
+   if not read(ROOT/'prepared.json').get('evaluation_only_recovery'):
+    execute('cache',[__spec__.name,'cache','--root',ROOT],ROOT/'cache_complete.json')
+    if read(ROOT/'prepared.json').get('continue_student_pair'):
+     g=read(ROOT/'gate.json');assert g['passed'] and sha256(g['inherited_input_gate'])==g['inherited_input_gate_sha256']
+    else:execute('gate',['tools.tight_fresh_train','gate','--root',ROOT],ROOT/'gate.json')
+    for role in 'AB':
+     execute('dp_'+role,['tools.tight_fresh_train','train','--root',ROOT,'--role',role,'--epochs',read(ROOT/'bounded_extension.json')['policy']['maximum_epochs'],'--offline-anchor-batch',32,'--full-trajectory-batch'],ROOT/role/'training/finished.json')
+    for role in 'AB':
+     rear=ROOT/role/'backend'
+     execute('rear_prepare_'+role,[__spec__.name,'backend_prepare',role,'--root',ROOT],rear/'extension_prepared.json')
+     execute('rear_cache_'+role,['tools.tight_finish','residual_cache','--root',rear],rear/'cache_complete.json')
+     execute('rear_train_'+role,['visuotactile.anchor_continue','residual-train','--root',rear/role,'--job','image','--output',rear/role/'training'],rear/role/'training/finished.json')
+     execute('rear_offline_'+role,['visuotactile.anchor_continue','residual-offline','--root',rear/role,'--job','image','--output',rear/role/'offline'],rear/role/'offline/result.json')
+   else:
+    from tools.tight_fresh_rollouts import completed_pair
+    registered=read(ROOT/'prepared.json')['pairs']
+    for role in 'AB':assert completed_pair(Path(read(ROOT/'prepared.json')['source']),role)==registered[role]
    execute('evaluation_prepare',[__spec__.name,'evaluation_prepare','--root',ROOT],ROOT/'evaluation_prepared.json')
    execute('evaluation',[__spec__.name,'evaluation_worker','--root',ROOT],ROOT/'development/result.json')
    assert read(ROOT/'development/paired_initial_check.json')['passed']
@@ -143,6 +148,25 @@ def run():
     try:monitor.wait(timeout=15)
     except subprocess.TimeoutExpired:stop(monitor)
    atomic_json(ROOT/'owner_exit.json',dict(utc=time.time(),children_reaped=True,monitor_returncode=None if monitor is None else monitor.poll()))
+
+def prepare_evaluation_recovery():
+ """Resume an unstarted evaluation without changing or retraining either pair."""
+ from tools.tight_fresh_rollouts import completed_pair
+ source=Path(sys.argv[sys.argv.index('--source')+1]).resolve()
+ assert not ROOT.exists() and read(source/'owner_exit.json')['children_reaped']
+ assert 'Incomplete stage evaluation_prepare' in read(source/'failure.json')['error']
+ assert not (source/'development').exists() and not (source/'complete.json').exists()
+ assert not read(source/'prepared.json').get('evaluation_only_recovery')
+ pairs={role:completed_pair(source,role) for role in 'AB'}
+ session=read(source/'session.json');assert time.time()<session['deadline']-1800
+ ROOT.mkdir();(ROOT/'logs').mkdir()
+ for role in 'AB':(ROOT/role).symlink_to(source/role,target_is_directory=True)
+ session.update(resource_root=str(ROOT),owned_worker_roots=[str(ROOT)])
+ atomic_json(ROOT/'session.json',session)
+ atomic_json(ROOT/'prepared.json',dict(complete=True,evaluation_only_recovery=True,continue_student_pair=True,
+  source=str(source),pairs=pairs,physical_attempts_repeated=0,optimizer_updates_added=0,
+  source_failure_sha256=sha256(source/'failure.json'),original_deadline=session['deadline'],
+  source_sha256={str(p.relative_to(TREE)):sha256(p) for folder in ['tools','visuotactile','scripts/tight_layout_20261116'] for p in (TREE/folder).rglob('*.py')},utc=time.time()))
 
 def wait_and_run():
  """Wait for the current capture owner to finish; never compete with its GPU."""
