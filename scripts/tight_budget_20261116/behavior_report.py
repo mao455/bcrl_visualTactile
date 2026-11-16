@@ -12,6 +12,9 @@ O=Path('research_docs/evidence/tight_diagnosis_20261116/budget_extension');O.mkd
 assert read(ROOT/'evaluation_complete.json')['complete']
 keys=['contact','two_finger','native_lift','contact_height','hold12','hold60','final_hold60','alignment','subgoal','observed_insertion']
 rows=[];counts=[];initial=[]
+def rotation_gap(a,b):
+ a=np.asarray(a,dtype=np.float64);b=np.asarray(b,dtype=np.float64)
+ return float(2*np.arccos(np.clip(abs(np.dot(a,b))/(np.linalg.norm(a)*np.linalg.norm(b)),-1,1)))
 for label in read(ROOT/'evaluation_complete.json')['groups']:
  d=ROOT/('evaluation_'+label);plan=read(d/'plan.json')
  for case in plan['cases']:
@@ -35,7 +38,15 @@ for label in read(ROOT/'evaluation_complete.json')['groups']:
      x=f['episode/transition/diagnostics_before'];y=g['episode/transition/diagnostics_before']
      q=float(np.abs(x['joint_position_rad'][0]-y['joint_position_rad'][0]).max())
      ob=object_position_in_base(x['object_pose_w'][:1],x['base_pose_w'][:1])-object_position_in_base(y['object_pose_w'][:1],y['base_pose_w'][:1])
-     initial.append(dict(group=label,case=case['name'],joint_max_abs_rad=q,object_base_position_gap_m=float(np.linalg.norm(ob)),hidden_state_exact=False))
+     physical=dict(group=label,case=case['name'],joint_max_abs_rad=q,object_base_position_gap_m=float(np.linalg.norm(ob)),hidden_state_exact=False,
+      joint_velocity_max_abs_rad_s=float(np.abs(x['joint_velocity_rad_s'][0]-y['joint_velocity_rad_s'][0]).max()),
+      object_velocity_max_abs_components=np.abs(x['object_velocity_w_m_s_rad_s'][0]-y['object_velocity_w_m_s_rad_s'][0]).tolist(),
+      world_orientation_gaps_rad={k:rotation_gap(x[k][0,3:7],y[k][0,3:7]) for k in ['base_pose_w','object_pose_w','goal_pose_w','hole_pose_w']},
+      discrete_equal={k:bool(np.array_equal(x[k][0],y[k][0])) for k in ['native_stage_step','successes','retract_phase','max_goals']})
+     for key in ['goal_pose_w','hole_pose_w']:
+      gap=object_position_in_base(x[key][:1],x['base_pose_w'][:1])-object_position_in_base(y[key][:1],y['base_pose_w'][:1])
+      physical[key+'_base_position_gap_m']=float(np.linalg.norm(gap))
+     initial.append(physical)
   rows.append(v)
  for role in 'AB':
   for cohort in sorted({x['cohort'] for x in rows if x['group']==label and x['role']==role}):

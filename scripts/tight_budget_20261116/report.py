@@ -10,7 +10,7 @@ R=Path('outputs/visuotactile/run/tight_budget_20261116_01').resolve()
 O=Path('research_docs/evidence/tight_diagnosis_20261116/budget_extension');O.mkdir(parents=True,exist_ok=True)
 read=lambda p:json.loads(Path(p).read_text())
 def dump(p,v):(O/p).write_text(json.dumps(v,indent=2,allow_nan=False)+'\n')
-def plot_end(fig,name):fig.tight_layout();fig.savefig(O/name,dpi=150);plt.close(fig)
+def plot_end(fig,name):fig.tight_layout();fig.savefig(O/name,dpi=150,bbox_inches='tight',pad_inches=.15);plt.close(fig)
 def all_fig(role,kind,rows):
  fig,ax=plt.subplots(2,3,figsize=(16,8))
  epochs=[x['epoch'] for x in rows]
