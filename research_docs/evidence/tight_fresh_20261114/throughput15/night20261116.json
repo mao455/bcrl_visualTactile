@@ -286,7 +286,7 @@
       ]
     }
   },
-  "updated": 1794782508.7016203,
+  "updated": 1794791290.242805,
   "source_backend_initial_observable_comparison": {
     "rows": [
       {
@@ -12683,7 +12683,7 @@
     "optimizer_group_count": 8
   },
   "next_precontact19": {
-    "status": "bounded_background_frontend_training",
+    "status": "complete_candidates_rejected",
     "schedule": "grasp_approach",
     "opportunities": 4,
     "families": [
@@ -12710,7 +12710,8 @@
     "planned_dp_updates_each": 1568,
     "planned_latest_visits_each": 96,
     "completion_report": "outputs/visuotactile/run/tight_fresh_20261116_04/round_19/cycle_readout.json",
-    "latest_behavior_pending": true
+    "latest_behavior_pending": false,
+    "owner_active": false
   },
   "round19_capture": {
     "result": {
@@ -13391,5 +13392,2609 @@
     "absolute_deadline": 1794790800.0,
     "stopped_on": "unrecoverable/data/nonfinite faults, repeated resource retry, insufficient reserves, owner08:58 cutoff; no infinite restart",
     "full_local_receipt": "outputs/visuotactile/run/tight_fresh_20261116_04/night/supervised_release.json"
-  }
+  },
+  "round19_complete": {
+    "complete": true,
+    "coordinator_complete": true,
+    "utc": 1794787359.2676895,
+    "candidate": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19",
+    "collection": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/new_family_19",
+    "evaluation": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19/development",
+    "collection_result": {
+      "software_complete": true,
+      "worker_error": null,
+      "cases": 4,
+      "utc": 1794781926.299051,
+      "elapsed_seconds": 146.53711967915297,
+      "accepted_training_trajectories": 4,
+      "accepted_trajectories_per_hour": 98.26861638559018,
+      "attempts_per_hour": 98.26861638559018,
+      "lanes": 4
+    },
+    "collection_cases": [
+      {
+        "case": "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+        "role": "A",
+        "family": "expanded_session20261115_03_prefetch13_s29000076",
+        "legal": true,
+        "accepted": true,
+        "expert_success": true,
+        "takeover_tick": 67,
+        "takeover_sim_seconds": 1.1166666666666667,
+        "first_contact_completed_tick": 66,
+        "first_legal_expert_tick": 69,
+        "legal_expert_ticks": 289,
+        "duration_sim_seconds": 5.966666666666667,
+        "reason": "first_persistent_contact_formation"
+      },
+      {
+        "case": "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+        "role": "B",
+        "family": "expanded_session20261115_03_prefetch13_s29000076",
+        "legal": true,
+        "accepted": true,
+        "expert_success": true,
+        "takeover_tick": 64,
+        "takeover_sim_seconds": 1.0666666666666667,
+        "first_contact_completed_tick": null,
+        "first_legal_expert_tick": 66,
+        "legal_expert_ticks": 298,
+        "duration_sim_seconds": 6.066666666666666,
+        "reason": "approaching_first_contact"
+      },
+      {
+        "case": "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+        "role": "B",
+        "family": "expanded_session20261115_03_prefetch13_s29000086",
+        "legal": true,
+        "accepted": true,
+        "expert_success": true,
+        "takeover_tick": 45,
+        "takeover_sim_seconds": 0.75,
+        "first_contact_completed_tick": null,
+        "first_legal_expert_tick": 47,
+        "legal_expert_ticks": 235,
+        "duration_sim_seconds": 4.7,
+        "reason": "approaching_first_contact"
+      },
+      {
+        "case": "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+        "role": "A",
+        "family": "expanded_session20261115_03_prefetch13_s29000086",
+        "legal": true,
+        "accepted": true,
+        "expert_success": true,
+        "takeover_tick": 41,
+        "takeover_sim_seconds": 0.6833333333333333,
+        "first_contact_completed_tick": null,
+        "first_legal_expert_tick": 43,
+        "legal_expert_ticks": 200,
+        "duration_sim_seconds": 4.05,
+        "reason": "approaching_first_contact"
+      }
+    ],
+    "new_training_ids": [
+      "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+      "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+      "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+      "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach"
+    ],
+    "new_trajectories": 4,
+    "corrected_family_ids": [
+      "expanded_session20261115_03_prefetch13_s29000076",
+      "expanded_session20261115_03_prefetch13_s29000086"
+    ],
+    "train_trajectories": 348,
+    "networks": {
+      "A": {
+        "dp": {
+          "completed": {
+            "epochs": 8,
+            "updates": 1568,
+            "anchors_seen": 73392,
+            "target_ticks": 1702340,
+            "checkpoint_sha256": "3e2ffc5a3d39d45583a02e371bb96deadf515cc91b5a38792f32c0999e40be2e",
+            "complete": true,
+            "wall_seconds": 2906.3367688271683,
+            "episodes_per_epoch": 392,
+            "visits_seen": 3136,
+            "ema_updates": 1568,
+            "optimizer_updates_per_epoch": 196,
+            "planned_episode_visits": 3136,
+            "planned_optimizer_updates": 1568,
+            "planned_ema_updates": 1568,
+            "tail_singletons_per_epoch": 0
+          },
+          "selected_epoch": 6,
+          "selected_updates": 1176,
+          "selected_latest_visits": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 72,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 72,
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 72,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 72
+          },
+          "selected_metrics": {
+            "train": {
+              "arm_rmse_rad": 0.004334182478487492,
+              "hand_rmse_rad": 0.03413143381476402,
+              "selection": 0.0028554454911500216,
+              "episodes": [
+                {
+                  "identity": "formal_050_slow_3",
+                  "arm_rmse": 0.0035321328323334455,
+                  "hand_rmse": 0.027759702876210213,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_050_slow_3",
+                    "tensor_load_s": 0.2552517568692565,
+                    "file_bytes": 348187921,
+                    "loaded_storage_bytes": 348185223,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 22,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 22,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      22
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 252,
+                    "full_history_frames": 261,
+                    "encoding_seconds": 0.3141763631720096,
+                    "planning_seconds": 0.10929929907433689
+                  }
+                },
+                {
+                  "identity": "formal_029_slow_6",
+                  "arm_rmse": 0.004683985374867916,
+                  "hand_rmse": 0.03690706938505173,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_029_slow_6",
+                    "tensor_load_s": 0.4917543400079012,
+                    "file_bytes": 696373137,
+                    "loaded_storage_bytes": 696370446,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 44,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 44,
+                    "predict_calls": 2,
+                    "denoiser_calls": 32,
+                    "block_sizes": [
+                      32,
+                      12
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 516,
+                    "full_history_frames": 522,
+                    "encoding_seconds": 0.6075975839048624,
+                    "planning_seconds": 0.20286647300235927
+                  }
+                }
+              ],
+              "noise_schedule": "seed7091 advances at every native5Hz planning tick, including unsupervised prefixes",
+              "scope": "teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim",
+              "offline_planning": {
+                "profile": {
+                  "version": "offline_contiguous_anchor_batch_v1",
+                  "max_anchors": 32,
+                  "seed": 7091,
+                  "planning_interval_ticks": 12,
+                  "inference_steps": 16,
+                  "clip_sample": false,
+                  "scheduler_index_mode": "host",
+                  "noise_draw_shape": [
+                    1,
+                    24,
+                    29
+                  ],
+                  "same_generator_per_row": true,
+                  "split_at_missing_anchors": true,
+                  "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                },
+                "seconds": 1.236503338906914,
+                "timing_scope": "Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains",
+                "selection_scope": "Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs"
+              }
+            },
+            "validation": {
+              "arm_rmse_rad": 0.0047019608318805695,
+              "hand_rmse_rad": 0.04409586265683174,
+              "selection": 0.00530026201158762,
+              "episodes": [
+                {
+                  "identity": "formal_014_slow_1",
+                  "arm_rmse": 0.0044886101968586445,
+                  "hand_rmse": 0.05198611691594124,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_014_slow_1",
+                    "tensor_load_s": 0.3961500839795917,
+                    "file_bytes": 542958161,
+                    "loaded_storage_bytes": 542955501,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 34,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 34,
+                    "predict_calls": 2,
+                    "denoiser_calls": 32,
+                    "block_sizes": [
+                      32,
+                      2
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 396,
+                    "full_history_frames": 407,
+                    "encoding_seconds": 0.48674211418256164,
+                    "planning_seconds": 0.1754186269827187
+                  }
+                },
+                {
+                  "identity": "formal_019_slow_4",
+                  "arm_rmse": 0.003957233391702175,
+                  "hand_rmse": 0.03580918908119202,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_019_slow_4",
+                    "tensor_load_s": 0.2816502549685538,
+                    "file_bytes": 394879441,
+                    "loaded_storage_bytes": 394876728,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 25,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 25,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      25
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 288,
+                    "full_history_frames": 296,
+                    "encoding_seconds": 0.3667169320397079,
+                    "planning_seconds": 0.12949476903304458
+                  }
+                },
+                {
+                  "identity": "formal_011_slow_4",
+                  "arm_rmse": 0.006033363286405802,
+                  "hand_rmse": 0.048821549862623215,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_011_slow_4",
+                    "tensor_load_s": 0.27849481301382184,
+                    "file_bytes": 396213457,
+                    "loaded_storage_bytes": 396210771,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 25,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 25,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      25
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 288,
+                    "full_history_frames": 297,
+                    "encoding_seconds": 0.3648100618738681,
+                    "planning_seconds": 0.14034389005973935
+                  }
+                },
+                {
+                  "identity": "formal_038_slow_5",
+                  "arm_rmse": 0.003964473493397236,
+                  "hand_rmse": 0.03675270453095436,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_038_slow_5",
+                    "tensor_load_s": 0.37533459602855146,
+                    "file_bytes": 513609233,
+                    "loaded_storage_bytes": 513606555,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 33,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 33,
+                    "predict_calls": 2,
+                    "denoiser_calls": 32,
+                    "block_sizes": [
+                      32,
+                      1
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 384,
+                    "full_history_frames": 385,
+                    "encoding_seconds": 0.48241428891196847,
+                    "planning_seconds": 0.20672413310967386
+                  }
+                },
+                {
+                  "identity": "formal_002_slow_6",
+                  "arm_rmse": 0.004206771031022072,
+                  "hand_rmse": 0.039540648460388184,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_002_slow_6",
+                    "tensor_load_s": 0.31487428303807974,
+                    "file_bytes": 434900689,
+                    "loaded_storage_bytes": 434898018,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 28,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 28,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      28
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 324,
+                    "full_history_frames": 326,
+                    "encoding_seconds": 0.3912915219552815,
+                    "planning_seconds": 0.139429097995162
+                  }
+                },
+                {
+                  "identity": "formal_035_slow_0",
+                  "arm_rmse": 0.005369733087718487,
+                  "hand_rmse": 0.04751069098711014,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_035_slow_0",
+                    "tensor_load_s": 0.3412773050367832,
+                    "file_bytes": 468251729,
+                    "loaded_storage_bytes": 468249093,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 30,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 30,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      30
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 348,
+                    "full_history_frames": 351,
+                    "encoding_seconds": 0.42467355192638934,
+                    "planning_seconds": 0.13905642786994576
+                  }
+                }
+              ],
+              "noise_schedule": "seed7091 advances at every native5Hz planning tick, including unsupervised prefixes",
+              "scope": "teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim",
+              "offline_planning": {
+                "profile": {
+                  "version": "offline_contiguous_anchor_batch_v1",
+                  "max_anchors": 32,
+                  "seed": 7091,
+                  "planning_interval_ticks": 12,
+                  "inference_steps": 16,
+                  "clip_sample": false,
+                  "scheduler_index_mode": "host",
+                  "noise_draw_shape": [
+                    1,
+                    24,
+                    29
+                  ],
+                  "same_generator_per_row": true,
+                  "split_at_missing_anchors": true,
+                  "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                },
+                "seconds": 3.4608699770178646,
+                "timing_scope": "Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains",
+                "selection_scope": "Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs"
+              }
+            }
+          },
+          "completed_latest_visits": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 96,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 96,
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 96,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 96
+          },
+          "completed_distinct_time_coverage": {
+            "episodes": 348,
+            "visits": 3136,
+            "anchor_draws": 73392,
+            "unique_anchor_ticks": 45021,
+            "unique_non_native_grid_ticks": 41251,
+            "geometry_draws": 260765,
+            "unique_geometry_ticks": 87599,
+            "geometry_stage_unique_ticks": {
+              "grasp_without_contact": 3337,
+              "contact_not_held": 39030,
+              "contact_lost": 9604,
+              "held_rotating": 5853,
+              "held_near_goal60": 6839,
+              "after_first_native_subgoal": 22144,
+              "held_far": 792
+            }
+          },
+          "selected_distinct_time_coverage": {
+            "episodes": 348,
+            "visits": 2352,
+            "anchor_draws": 55044,
+            "unique_anchor_ticks": 37155,
+            "unique_non_native_grid_ticks": 34047,
+            "geometry_draws": 195411,
+            "unique_geometry_ticks": 82043,
+            "geometry_stage_unique_ticks": {
+              "grasp_without_contact": 3176,
+              "contact_not_held": 36613,
+              "contact_lost": 9103,
+              "held_rotating": 5502,
+              "held_near_goal60": 6327,
+              "after_first_native_subgoal": 20554,
+              "held_far": 768
+            }
+          },
+          "selected_phase_exposure": {
+            "all_legal": 1276805,
+            "before100": 129155,
+            "before150": 447773,
+            "latest_legal": 149348,
+            "latest_before100": 25618,
+            "latest_before150": 70047,
+            "scope": "Selected checkpoint training only; legal target exposures, not unique states. DP overlapping horizon slots count repeatedly; rear each visited legal control tick once. No loss-weight mass is called additional data."
+          }
+        },
+        "rear": {
+          "completed": {
+            "stop_reason": "maximum_control_tick_exposure",
+            "updates": 5720,
+            "control_tick_epochs": 8.0,
+            "formal_updates": 5720,
+            "disposable": false,
+            "run_kind": "formal",
+            "target_reached": true,
+            "required_supervised_ticks": 844680,
+            "new_optimizer_updates": 5720,
+            "schedule_maximum_control_tick_epochs": 8,
+            "required_control_tick_epochs": 8,
+            "train_episode_count": 348,
+            "effective_batch": 4,
+            "minimum_control_tick_epochs": 8,
+            "minimum_exposure_reached": true,
+            "sampled_contact_anchors": 696384,
+            "contact_anchor_population": 77995,
+            "control_tick_population": 134202,
+            "supervised_tick_population": 105585,
+            "supervised_ticks": 844680,
+            "control_ticks": 1183352,
+            "control_equivalent_epochs": 8.817692731851984,
+            "wall_s": 1230.2050359249115,
+            "supervised_ticks_per_wall_s": 686.6172507882275,
+            "setup_wall_s": 1.3068668842315674,
+            "training_wall_s": 1201.4876000881195,
+            "supervised_ticks_per_training_wall_s": 703.0284789772691,
+            "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+            "wait_s": 6.989374523283914,
+            "work_s": 1208.2015334228054,
+            "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+            "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+            "excess_supervised_ticks": 0,
+            "unique_supervised_tick_population": 94343,
+            "repeated_supervised_tick_population": 105585,
+            "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19/A/backend/A/training/last.pt",
+            "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19/A/backend/A/training/best.pt",
+            "utc": 1794787112.1261818,
+            "base_optimizer_updates": 0
+          },
+          "selected_epoch": 8,
+          "selected_updates": 5720,
+          "selected_latest_visits": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 96,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 96,
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 96,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 96
+          },
+          "selected_metrics": {
+            "train": {
+              "all": {
+                "ticks": 783,
+                "arm_rmse_rad": 0.0004904009401798248,
+                "hand_rmse_rad": 0.010254193097352982,
+                "normalized_equal_mse": 0.00020142189168836921
+              },
+              "contact": {
+                "ticks": 602,
+                "arm_rmse_rad": 0.0005069255130365491,
+                "hand_rmse_rad": 0.01090128906071186,
+                "normalized_equal_mse": 0.00023807835532352328
+              },
+              "noncontact": {
+                "ticks": 181,
+                "arm_rmse_rad": 0.00043090584222227335,
+                "hand_rmse_rad": 0.007721214089542627,
+                "normalized_equal_mse": 7.950369035825133e-05
+              },
+              "initial24": {
+                "ticks": 48,
+                "arm_rmse_rad": 0.0005064171273261309,
+                "hand_rmse_rad": 0.007857436314225197,
+                "normalized_equal_mse": 9.674554166849703e-05
+              }
+            },
+            "validation": {
+              "all": {
+                "ticks": 2062,
+                "arm_rmse_rad": 0.0005434717168100178,
+                "hand_rmse_rad": 0.0112092774361372,
+                "normalized_equal_mse": 0.0003088797675445676
+              },
+              "contact": {
+                "ticks": 1492,
+                "arm_rmse_rad": 0.0005407491698861122,
+                "hand_rmse_rad": 0.011709894053637981,
+                "normalized_equal_mse": 0.00037361032445915043
+              },
+              "noncontact": {
+                "ticks": 570,
+                "arm_rmse_rad": 0.0005505345179699361,
+                "hand_rmse_rad": 0.009778289124369621,
+                "normalized_equal_mse": 0.00013944470265414566
+              },
+              "initial24": {
+                "ticks": 144,
+                "arm_rmse_rad": 0.0005312379798851907,
+                "hand_rmse_rad": 0.007998357526957989,
+                "normalized_equal_mse": 9.142418275587261e-05
+              }
+            }
+          },
+          "selected_supervised_ticks": 844680,
+          "selected_early_weight_mass": {
+            "contract": {
+              "version": "fresh_early_grasp_control_weighting_v1",
+              "ticks": 150,
+              "backend_weight": 3.0
+            },
+            "raw_early_ticks": 193064,
+            "all_raw_ticks": 844680,
+            "all_loss_weight_mass": 1230808.0,
+            "early_loss_weight_mass": 579192.0,
+            "early_weight_fraction": 0.4705786767716817,
+            "weights_are_not_additional_observations": true
+          },
+          "completed_weighted_exposure": {
+            "contract": {
+              "version": "fresh_early_grasp_control_weighting_v1",
+              "ticks": 150,
+              "backend_weight": 3.0
+            },
+            "supervised_ticks": 844680,
+            "initial_recovery_supervised_ticks": 193064,
+            "remaining_supervised_ticks": 651616,
+            "loss_weight_mass": 1230808.0,
+            "loss_weight_mass_is_exposure": false,
+            "episode_draws": 3136,
+            "weighted_phase": "all legal control ticks before the episode tick cutoff, including original demonstrations"
+          },
+          "completed_latest_exposure": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 200,
+              "supervised_ticks": 19200
+            },
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 235,
+              "supervised_ticks": 22560
+            },
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 289,
+              "supervised_ticks": 27744
+            },
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 298,
+              "supervised_ticks": 28608
+            }
+          },
+          "latest_fit_initial": {
+            "all_legal": {
+              "ticks": 1022,
+              "arm_rmse_rad": 0.0005324496887624264,
+              "hand_rmse_rad": 0.010517546907067299
+            },
+            "first90_legal": {
+              "ticks": 360,
+              "arm_rmse_rad": 0.0006129432586021721,
+              "hand_rmse_rad": 0.00968590285629034
+            },
+            "control_ticks_before150": {
+              "ticks": 375,
+              "arm_rmse_rad": 0.000597206293605268,
+              "hand_rmse_rad": 0.010086665861308575
+            }
+          },
+          "latest_fit_selected": {
+            "all_legal": {
+              "ticks": 1022,
+              "arm_rmse_rad": 0.00034469348611310124,
+              "hand_rmse_rad": 0.008058962412178516
+            },
+            "first90_legal": {
+              "ticks": 360,
+              "arm_rmse_rad": 0.00033820109092630446,
+              "hand_rmse_rad": 0.0070664058439433575
+            },
+            "control_ticks_before150": {
+              "ticks": 375,
+              "arm_rmse_rad": 0.0003283815167378634,
+              "hand_rmse_rad": 0.007149252109229565
+            }
+          },
+          "latest_fit_scope": "Same newly selected DP inputs; old versus selected rear on real saved expert suffixes. Teacher-forced, not autonomous.",
+          "selected_phase_exposure": {
+            "all_legal": 844680,
+            "before100": 82920,
+            "before150": 193064,
+            "latest_legal": 98112,
+            "latest_before100": 16800,
+            "latest_before150": 36000,
+            "scope": "Selected checkpoint training only; legal target exposures, not unique states. DP overlapping horizon slots count repeatedly; rear each visited legal control tick once. No loss-weight mass is called additional data."
+          }
+        }
+      },
+      "B": {
+        "dp": {
+          "completed": {
+            "epochs": 8,
+            "updates": 1568,
+            "anchors_seen": 73392,
+            "target_ticks": 1702340,
+            "checkpoint_sha256": "e8d785187f0e4fda142a793586a351b4e6b8cc75fa7c26552b2eef594f066905",
+            "complete": true,
+            "wall_seconds": 2789.293834838085,
+            "episodes_per_epoch": 392,
+            "visits_seen": 3136,
+            "ema_updates": 1568,
+            "optimizer_updates_per_epoch": 196,
+            "planned_episode_visits": 3136,
+            "planned_optimizer_updates": 1568,
+            "planned_ema_updates": 1568,
+            "tail_singletons_per_epoch": 0
+          },
+          "selected_epoch": 7,
+          "selected_updates": 1372,
+          "selected_latest_visits": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 84,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 84,
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 84,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 84
+          },
+          "selected_metrics": {
+            "train": {
+              "arm_rmse_rad": 0.004986426793038845,
+              "hand_rmse_rad": 0.04382758587598801,
+              "selection": 0.0029229018837213516,
+              "episodes": [
+                {
+                  "identity": "formal_050_slow_3",
+                  "arm_rmse": 0.004273747093975544,
+                  "hand_rmse": 0.03860943764448166,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_050_slow_3",
+                    "tensor_load_s": 0.18219782994128764,
+                    "file_bytes": 348187921,
+                    "loaded_storage_bytes": 348185223,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 22,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 22,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      22
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 252,
+                    "full_history_frames": 261,
+                    "encoding_seconds": 0.23918486991897225,
+                    "planning_seconds": 0.1165720981080085
+                  }
+                },
+                {
+                  "identity": "formal_029_slow_6",
+                  "arm_rmse": 0.005306997336447239,
+                  "hand_rmse": 0.04621624946594238,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_029_slow_6",
+                    "tensor_load_s": 0.33284645597450435,
+                    "file_bytes": 696373137,
+                    "loaded_storage_bytes": 696370446,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 44,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 44,
+                    "predict_calls": 2,
+                    "denoiser_calls": 32,
+                    "block_sizes": [
+                      32,
+                      12
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 516,
+                    "full_history_frames": 522,
+                    "encoding_seconds": 0.45113875181414187,
+                    "planning_seconds": 0.2330366550013423
+                  }
+                }
+              ],
+              "noise_schedule": "seed7091 advances at every native5Hz planning tick, including unsupervised prefixes",
+              "scope": "teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim",
+              "offline_planning": {
+                "profile": {
+                  "version": "offline_contiguous_anchor_batch_v1",
+                  "max_anchors": 32,
+                  "seed": 7091,
+                  "planning_interval_ticks": 12,
+                  "inference_steps": 16,
+                  "clip_sample": false,
+                  "scheduler_index_mode": "host",
+                  "noise_draw_shape": [
+                    1,
+                    24,
+                    29
+                  ],
+                  "same_generator_per_row": true,
+                  "split_at_missing_anchors": true,
+                  "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                },
+                "seconds": 1.0451901038177311,
+                "timing_scope": "Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains",
+                "selection_scope": "Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs"
+              }
+            },
+            "validation": {
+              "arm_rmse_rad": 0.0050107622519135475,
+              "hand_rmse_rad": 0.054437797516584396,
+              "selection": 0.004956501070410013,
+              "episodes": [
+                {
+                  "identity": "formal_014_slow_1",
+                  "arm_rmse": 0.004790456499904394,
+                  "hand_rmse": 0.06416237354278564,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_014_slow_1",
+                    "tensor_load_s": 0.2609420500230044,
+                    "file_bytes": 542958161,
+                    "loaded_storage_bytes": 542955501,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 34,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 34,
+                    "predict_calls": 2,
+                    "denoiser_calls": 32,
+                    "block_sizes": [
+                      32,
+                      2
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 396,
+                    "full_history_frames": 407,
+                    "encoding_seconds": 0.336301248986274,
+                    "planning_seconds": 0.17915654904209077
+                  }
+                },
+                {
+                  "identity": "formal_019_slow_4",
+                  "arm_rmse": 0.004368078429251909,
+                  "hand_rmse": 0.041272133588790894,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_019_slow_4",
+                    "tensor_load_s": 0.21148216188885272,
+                    "file_bytes": 394879441,
+                    "loaded_storage_bytes": 394876728,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 25,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 25,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      25
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 288,
+                    "full_history_frames": 296,
+                    "encoding_seconds": 0.2650314657948911,
+                    "planning_seconds": 0.11677534994669259
+                  }
+                },
+                {
+                  "identity": "formal_011_slow_4",
+                  "arm_rmse": 0.005875554401427507,
+                  "hand_rmse": 0.05768480524420738,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_011_slow_4",
+                    "tensor_load_s": 0.17789223603904247,
+                    "file_bytes": 396213457,
+                    "loaded_storage_bytes": 396210771,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 25,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 25,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      25
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 288,
+                    "full_history_frames": 297,
+                    "encoding_seconds": 0.2567346510477364,
+                    "planning_seconds": 0.11659617908298969
+                  }
+                },
+                {
+                  "identity": "formal_038_slow_5",
+                  "arm_rmse": 0.004276898689568043,
+                  "hand_rmse": 0.05533425882458687,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_038_slow_5",
+                    "tensor_load_s": 0.25405145389959216,
+                    "file_bytes": 513609233,
+                    "loaded_storage_bytes": 513606555,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 33,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 33,
+                    "predict_calls": 2,
+                    "denoiser_calls": 32,
+                    "block_sizes": [
+                      32,
+                      1
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 384,
+                    "full_history_frames": 385,
+                    "encoding_seconds": 0.3361045790370554,
+                    "planning_seconds": 0.22427647397853434
+                  }
+                },
+                {
+                  "identity": "formal_002_slow_6",
+                  "arm_rmse": 0.004369972739368677,
+                  "hand_rmse": 0.04562970995903015,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_002_slow_6",
+                    "tensor_load_s": 0.22402944695204496,
+                    "file_bytes": 434900689,
+                    "loaded_storage_bytes": 434898018,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 28,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 28,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      28
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 324,
+                    "full_history_frames": 326,
+                    "encoding_seconds": 0.30631223297677934,
+                    "planning_seconds": 0.14325616299174726
+                  }
+                },
+                {
+                  "identity": "formal_035_slow_0",
+                  "arm_rmse": 0.006147165782749653,
+                  "hand_rmse": 0.05560033768415451,
+                  "frozen_visual_io": {
+                    "profile": {
+                      "version": "frozen_visual_eager_prefetch_v2",
+                      "torch_load_mmap": false,
+                      "lifetime": "current_B2_plus_at_most_one_next_B2",
+                      "learned_state_cache": false,
+                      "max_prefetch_bytes": 3221225472,
+                      "minimum_available_bytes": 12884901888
+                    },
+                    "identity": "formal_035_slow_0",
+                    "tensor_load_s": 0.22611998789943755,
+                    "file_bytes": 468251729,
+                    "loaded_storage_bytes": 468249093,
+                    "extra_clone_bytes": 0,
+                    "scope": "Current episode CPU storages; excludes OS page cache and model activations; not an atomic RAM reservation"
+                  },
+                  "offline_planning": {
+                    "profile": {
+                      "version": "offline_contiguous_anchor_batch_v1",
+                      "max_anchors": 32,
+                      "seed": 7091,
+                      "planning_interval_ticks": 12,
+                      "inference_steps": 16,
+                      "clip_sample": false,
+                      "scheduler_index_mode": "host",
+                      "noise_draw_shape": [
+                        1,
+                        24,
+                        29
+                      ],
+                      "same_generator_per_row": true,
+                      "split_at_missing_anchors": true,
+                      "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                    },
+                    "supervised_anchors": 30,
+                    "skipped_noise_draws": 0,
+                    "total_noise_draws": 30,
+                    "predict_calls": 1,
+                    "denoiser_calls": 16,
+                    "block_sizes": [
+                      30
+                    ],
+                    "first_anchor": 0,
+                    "last_anchor": 348,
+                    "full_history_frames": 351,
+                    "encoding_seconds": 0.30222130892798305,
+                    "planning_seconds": 0.2033487670123577
+                  }
+                }
+              ],
+              "noise_schedule": "seed7091 advances at every native5Hz planning tick, including unsupervised prefixes",
+              "scope": "teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim",
+              "offline_planning": {
+                "profile": {
+                  "version": "offline_contiguous_anchor_batch_v1",
+                  "max_anchors": 32,
+                  "seed": 7091,
+                  "planning_interval_ticks": 12,
+                  "inference_steps": 16,
+                  "clip_sample": false,
+                  "scheduler_index_mode": "host",
+                  "noise_draw_shape": [
+                    1,
+                    24,
+                    29
+                  ],
+                  "same_generator_per_row": true,
+                  "split_at_missing_anchors": true,
+                  "scope": "offline inference only; unchanged full causal history and optimizer budget"
+                },
+                "seconds": 2.795337366173044,
+                "timing_scope": "Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains",
+                "selection_scope": "Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs"
+              }
+            }
+          },
+          "completed_latest_visits": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 96,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 96,
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 96,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 96
+          },
+          "completed_distinct_time_coverage": {
+            "episodes": 348,
+            "visits": 3136,
+            "anchor_draws": 73392,
+            "unique_anchor_ticks": 45021,
+            "unique_non_native_grid_ticks": 41251,
+            "geometry_draws": 0,
+            "unique_geometry_ticks": 0,
+            "geometry_stage_unique_ticks": {}
+          },
+          "selected_distinct_time_coverage": {
+            "episodes": 348,
+            "visits": 2744,
+            "anchor_draws": 64218,
+            "unique_anchor_ticks": 41285,
+            "unique_non_native_grid_ticks": 37851,
+            "geometry_draws": 0,
+            "unique_geometry_ticks": 0,
+            "geometry_stage_unique_ticks": {}
+          },
+          "selected_phase_exposure": {
+            "all_legal": 1489543,
+            "before100": 150922,
+            "before150": 522889,
+            "latest_legal": 174319,
+            "latest_before100": 29903,
+            "latest_before150": 81673,
+            "scope": "Selected checkpoint training only; legal target exposures, not unique states. DP overlapping horizon slots count repeatedly; rear each visited legal control tick once. No loss-weight mass is called additional data."
+          }
+        },
+        "rear": {
+          "completed": {
+            "stop_reason": "validation_plateau_after_minimum_exposure",
+            "updates": 5720,
+            "control_tick_epochs": 8.0,
+            "formal_updates": 5720,
+            "disposable": false,
+            "run_kind": "formal",
+            "target_reached": true,
+            "required_supervised_ticks": 844680,
+            "new_optimizer_updates": 5720,
+            "schedule_maximum_control_tick_epochs": 8,
+            "required_control_tick_epochs": 8,
+            "train_episode_count": 348,
+            "effective_batch": 4,
+            "minimum_control_tick_epochs": 8,
+            "minimum_exposure_reached": true,
+            "sampled_contact_anchors": 696384,
+            "contact_anchor_population": 77995,
+            "control_tick_population": 134202,
+            "supervised_tick_population": 105585,
+            "supervised_ticks": 844680,
+            "control_ticks": 1183352,
+            "control_equivalent_epochs": 8.817692731851984,
+            "wall_s": 1231.050990819931,
+            "supervised_ticks_per_wall_s": 686.1454204348014,
+            "setup_wall_s": 1.2982423305511475,
+            "training_wall_s": 1202.896675825119,
+            "supervised_ticks_per_training_wall_s": 702.20494991442,
+            "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+            "wait_s": 7.175608169985935,
+            "work_s": 1208.6953614309896,
+            "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+            "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+            "excess_supervised_ticks": 0,
+            "unique_supervised_tick_population": 94343,
+            "repeated_supervised_tick_population": 105585,
+            "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19/B/backend/B/training/last.pt",
+            "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19/B/backend/B/training/best.pt",
+            "utc": 1794787112.9626153,
+            "base_optimizer_updates": 0
+          },
+          "selected_epoch": 4,
+          "selected_updates": 2864,
+          "selected_latest_visits": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 48,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": 48,
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 48,
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": 48
+          },
+          "selected_metrics": {
+            "train": {
+              "all": {
+                "ticks": 783,
+                "arm_rmse_rad": 0.0005068917525932193,
+                "hand_rmse_rad": 0.010554784908890724,
+                "normalized_equal_mse": 0.0001969484583241865
+              },
+              "contact": {
+                "ticks": 602,
+                "arm_rmse_rad": 0.000522167538292706,
+                "hand_rmse_rad": 0.011280159465968609,
+                "normalized_equal_mse": 0.00023232762760017067
+              },
+              "noncontact": {
+                "ticks": 181,
+                "arm_rmse_rad": 0.00045238935854285955,
+                "hand_rmse_rad": 0.007663228083401918,
+                "normalized_equal_mse": 7.927843398647383e-05
+              },
+              "initial24": {
+                "ticks": 48,
+                "arm_rmse_rad": 0.0005582078592851758,
+                "hand_rmse_rad": 0.00794340018182993,
+                "normalized_equal_mse": 9.87658859230578e-05
+              }
+            },
+            "validation": {
+              "all": {
+                "ticks": 2062,
+                "arm_rmse_rad": 0.0005870262975804508,
+                "hand_rmse_rad": 0.011694704182446003,
+                "normalized_equal_mse": 0.00033969528158195317
+              },
+              "contact": {
+                "ticks": 1492,
+                "arm_rmse_rad": 0.0005893795751035213,
+                "hand_rmse_rad": 0.012337608262896538,
+                "normalized_equal_mse": 0.00041629502084106207
+              },
+              "noncontact": {
+                "ticks": 570,
+                "arm_rmse_rad": 0.0005808212445117533,
+                "hand_rmse_rad": 0.009814470075070858,
+                "normalized_equal_mse": 0.00013919203775003552
+              },
+              "initial24": {
+                "ticks": 144,
+                "arm_rmse_rad": 0.0005431336467154324,
+                "hand_rmse_rad": 0.008081001229584217,
+                "normalized_equal_mse": 0.0001024383818730712
+              }
+            }
+          },
+          "selected_supervised_ticks": 422340,
+          "selected_early_weight_mass": {
+            "contract": {
+              "version": "fresh_early_grasp_control_weighting_v1",
+              "ticks": 150,
+              "backend_weight": 3.0
+            },
+            "raw_early_ticks": 96532,
+            "all_raw_ticks": 422340,
+            "all_loss_weight_mass": 615404.0,
+            "early_loss_weight_mass": 289596.0,
+            "early_weight_fraction": 0.4705786767716817,
+            "weights_are_not_additional_observations": true
+          },
+          "completed_weighted_exposure": {
+            "contract": {
+              "version": "fresh_early_grasp_control_weighting_v1",
+              "ticks": 150,
+              "backend_weight": 3.0
+            },
+            "supervised_ticks": 844680,
+            "initial_recovery_supervised_ticks": 193064,
+            "remaining_supervised_ticks": 651616,
+            "loss_weight_mass": 1230808.0,
+            "loss_weight_mass_is_exposure": false,
+            "episode_draws": 3136,
+            "weighted_phase": "all legal control ticks before the episode tick cutoff, including original demonstrations"
+          },
+          "completed_latest_exposure": {
+            "r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 200,
+              "supervised_ticks": 19200
+            },
+            "r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 235,
+              "supervised_ticks": 22560
+            },
+            "r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 289,
+              "supervised_ticks": 27744
+            },
+            "r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach": {
+              "multiplicity": 12,
+              "visits": 96,
+              "valid_ticks_per_visit": 298,
+              "supervised_ticks": 28608
+            }
+          },
+          "latest_fit_initial": {
+            "all_legal": {
+              "ticks": 1022,
+              "arm_rmse_rad": 0.0005339288618415594,
+              "hand_rmse_rad": 0.010079597122967243
+            },
+            "first90_legal": {
+              "ticks": 360,
+              "arm_rmse_rad": 0.0005694571300409734,
+              "hand_rmse_rad": 0.009202015586197376
+            },
+            "control_ticks_before150": {
+              "ticks": 375,
+              "arm_rmse_rad": 0.0005583015154115856,
+              "hand_rmse_rad": 0.009338163770735264
+            }
+          },
+          "latest_fit_selected": {
+            "all_legal": {
+              "ticks": 1022,
+              "arm_rmse_rad": 0.0003757051599677652,
+              "hand_rmse_rad": 0.008255278691649437
+            },
+            "first90_legal": {
+              "ticks": 360,
+              "arm_rmse_rad": 0.0003642116207629442,
+              "hand_rmse_rad": 0.0069636013358831406
+            },
+            "control_ticks_before150": {
+              "ticks": 375,
+              "arm_rmse_rad": 0.0003555655712261796,
+              "hand_rmse_rad": 0.0070440927520394325
+            }
+          },
+          "latest_fit_scope": "Same newly selected DP inputs; old versus selected rear on real saved expert suffixes. Teacher-forced, not autonomous.",
+          "selected_phase_exposure": {
+            "all_legal": 422340,
+            "before100": 41460,
+            "before150": 96532,
+            "latest_legal": 49056,
+            "latest_before100": 8400,
+            "latest_before150": 18000,
+            "scope": "Selected checkpoint training only; legal target exposures, not unique states. DP overlapping horizon slots count repeatedly; rear each visited legal control tick once. No loss-weight mass is called additional data."
+          }
+        }
+      }
+    },
+    "stages": {
+      "frontend_A": {
+        "seconds": 2965.0253388881683,
+        "started": 1794782304.0351615,
+        "ended": 1794785269.0608149
+      },
+      "backend_train_B": {
+        "seconds": 1235.2243540287018,
+        "started": 1794785878.7396169,
+        "ended": 1794787113.964419
+      },
+      "backend_prepare_A": {
+        "seconds": 5.005479335784912,
+        "started": 1794785270.0997741,
+        "ended": 1794785275.1053858
+      },
+      "visual_cache": {
+        "seconds": 127.03832674026489,
+        "started": 1794782176.7268877,
+        "ended": 1794782303.7654035
+      },
+      "backend_offline_A": {
+        "seconds": 10.512130737304688,
+        "started": 1794787112.9749312,
+        "ended": 1794787123.4872966
+      },
+      "backend_prepare_B": {
+        "seconds": 5.0050365924835205,
+        "started": 1794785270.0998008,
+        "ended": 1794785275.1049917
+      },
+      "aggregate": {
+        "seconds": 25.00887179374695,
+        "started": 1794782151.6930673,
+        "ended": 1794782176.7023158
+      },
+      "backend_cache_A": {
+        "seconds": 603.607349395752,
+        "started": 1794785275.1178505,
+        "ended": 1794785878.725527
+      },
+      "frontend_B": {
+        "seconds": 2794.460979938507,
+        "started": 1794782304.0341833,
+        "ended": 1794785098.4956791
+      },
+      "backend_offline_B": {
+        "seconds": 10.009224891662598,
+        "started": 1794787113.9763825,
+        "ended": 1794787123.9861267
+      },
+      "backend_train_A": {
+        "seconds": 1234.2232656478882,
+        "started": 1794785878.7396314,
+        "ended": 1794787112.9632747
+      },
+      "backend_cache_B": {
+        "seconds": 603.606085062027,
+        "started": 1794785275.1191285,
+        "ended": 1794785878.7254183
+      },
+      "development": {
+        "seconds": 207.58581638336182,
+        "started": 1794787127.0539525,
+        "ended": 1794787334.639907
+      },
+      "development_prepare": {
+        "seconds": 3.001817226409912,
+        "started": 1794787124.039441,
+        "ended": 1794787127.0417116
+      }
+    },
+    "wall_seconds": {
+      "frontend": 2965.0263171195984,
+      "backend_inputs": 603.607362985611,
+      "backend_training": 1235.2243540287018,
+      "visual_cache": 127.03832674026489,
+      "autonomous_evaluation": 207.58581638336182,
+      "collection_worker": 146.53711967915297,
+      "collection_start_to_evaluation_end": 5553.609097242355
+    },
+    "wall_semantics": "Stage groups use unions of real intervals, not sums of concurrent worker times. End-to-end starts at collection worker and includes admission, cache, updates, recovery and evaluation; excludes earlier source-comparison preparation.",
+    "autonomy": {
+      "directory": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_04/round_19/development",
+      "rows": [
+        {
+          "case": "A_development_28500000",
+          "role": "A",
+          "seed": 28500000,
+          "family": "fresh_development_28500000",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": false,
+          "first_contact_completed_tick": 68,
+          "first_two_finger_completed_tick": 72,
+          "first_contact_height_completed_tick": 94,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5692565441131592,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": true,
+            "first_completed_tick": 137,
+            "qualified_windows": 11,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 14,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5692565441131592,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 14,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5692565441131592,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 14,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "B_development_28500000",
+          "role": "B",
+          "seed": 28500000,
+          "family": "fresh_development_28500000",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": false,
+          "first_contact_completed_tick": 66,
+          "first_two_finger_completed_tick": 109,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5692495703697205,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5692495703697205,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5692495703697205,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "B_development_28500001",
+          "role": "B",
+          "seed": 28500001,
+          "family": "fresh_development_28500001",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": false,
+          "first_contact_completed_tick": 60,
+          "first_two_finger_completed_tick": 61,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5702711343765259,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5702711343765259,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5702711343765259,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "A_development_28500001",
+          "role": "A",
+          "seed": 28500001,
+          "family": "fresh_development_28500001",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": false,
+          "first_contact_completed_tick": 93,
+          "first_two_finger_completed_tick": 96,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5702710747718811,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5702710747718811,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5702710747718811,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "A_development_28500002",
+          "role": "A",
+          "seed": 28500002,
+          "family": "fresh_development_28500002",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 223,
+          "first_two_finger_completed_tick": 228,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5708056092262268,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5708056092262268,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5708056092262268,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "B_development_28500002",
+          "role": "B",
+          "seed": 28500002,
+          "family": "fresh_development_28500002",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 60,
+          "first_two_finger_completed_tick": 61,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5708050727844238,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5708050727844238,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5708050727844238,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "B_development_28500003",
+          "role": "B",
+          "seed": 28500003,
+          "family": "fresh_development_28500003",
+          "legal": true,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 63,
+          "first_two_finger_completed_tick": 213,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5403115749359131,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5403115749359131,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5403115749359131,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "A_development_28500003",
+          "role": "A",
+          "seed": 28500003,
+          "family": "fresh_development_28500003",
+          "legal": false,
+          "diagnostic_cohort": "fixed_development",
+          "grasp_stage_censored": false
+        },
+        {
+          "case": "grasp_recheck_r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+          "role": "A",
+          "seed": 29000076,
+          "family": "expanded_session20261115_03_prefetch13_s29000076",
+          "legal": true,
+          "diagnostic_cohort": "training_family_recheck",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 63,
+          "first_two_finger_completed_tick": 103,
+          "first_contact_height_completed_tick": 111,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5457592010498047,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": true,
+            "first_completed_tick": 122,
+            "qualified_windows": 74,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 60,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5457592010498047,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": true,
+            "first_completed_tick": 264,
+            "qualified_windows": 9,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 60,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5457592010498047,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 60,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "grasp_recheck_r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach",
+          "role": "B",
+          "seed": 29000076,
+          "family": "expanded_session20261115_03_prefetch13_s29000076",
+          "legal": true,
+          "diagnostic_cohort": "training_family_recheck",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 59,
+          "first_two_finger_completed_tick": 177,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.545779824256897,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.545779824256897,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.545779824256897,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "grasp_recheck_r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+          "role": "B",
+          "seed": 29000086,
+          "family": "expanded_session20261115_03_prefetch13_s29000086",
+          "legal": true,
+          "diagnostic_cohort": "training_family_recheck",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 64,
+          "first_two_finger_completed_tick": 67,
+          "first_contact_height_completed_tick": null,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5700026750564575,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5700026750564575,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5700026750564575,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 0,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": false,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        },
+        {
+          "case": "grasp_recheck_r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach",
+          "role": "A",
+          "seed": 29000086,
+          "family": "expanded_session20261115_03_prefetch13_s29000086",
+          "legal": true,
+          "diagnostic_cohort": "training_family_recheck",
+          "grasp_stage_censored": true,
+          "first_contact_completed_tick": 63,
+          "first_two_finger_completed_tick": 64,
+          "first_contact_height_completed_tick": 154,
+          "brief_hold12": {
+            "reference_available": true,
+            "height_reference_m": 0.5700126886367798,
+            "window_ticks": 12,
+            "duration_seconds": 0.2,
+            "sustained": true,
+            "first_completed_tick": 165,
+            "qualified_windows": 35,
+            "held_at_final_window": true,
+            "longest_contact_height_ticks": 25,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold60": {
+            "reference_available": true,
+            "height_reference_m": 0.5700126886367798,
+            "window_ticks": 60,
+            "duration_seconds": 1.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 25,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "hold120": {
+            "reference_available": true,
+            "height_reference_m": 0.5700126886367798,
+            "window_ticks": 120,
+            "duration_seconds": 2.0,
+            "sustained": false,
+            "first_completed_tick": null,
+            "qualified_windows": 0,
+            "held_at_final_window": false,
+            "longest_contact_height_ticks": 25,
+            "native_success_changed": false,
+            "rotation_allowed": true
+          },
+          "native_lift": true,
+          "native_alignment": false,
+          "native_near": false,
+          "native_subgoals": 0,
+          "insertion": false
+        }
+      ],
+      "counts": {
+        "A": {
+          "legal": 5,
+          "illegal": 1,
+          "contact": 5,
+          "contact_height_lift": 3,
+          "brief_hold12": 3,
+          "grasp_stage_censored": 3,
+          "hold60": 1,
+          "hold120": 0,
+          "native_lift": 1,
+          "native_near": 0,
+          "native_alignment": 0,
+          "native_subgoals": 0,
+          "insertion": 0
+        },
+        "B": {
+          "legal": 6,
+          "illegal": 0,
+          "contact": 6,
+          "contact_height_lift": 0,
+          "brief_hold12": 0,
+          "grasp_stage_censored": 4,
+          "hold60": 0,
+          "hold120": 0,
+          "native_lift": 0,
+          "native_near": 0,
+          "native_alignment": 0,
+          "native_subgoals": 0,
+          "insertion": 0
+        }
+      },
+      "holding_horizon": 300,
+      "counts_by_cohort": {
+        "fixed_development": {
+          "A": {
+            "legal": 3,
+            "illegal": 1,
+            "contact": 3,
+            "contact_height_lift": 1,
+            "brief_hold12": 1,
+            "grasp_stage_censored": 1,
+            "hold60": 0,
+            "hold120": 0,
+            "native_lift": 0,
+            "native_near": 0,
+            "native_alignment": 0,
+            "native_subgoals": 0,
+            "insertion": 0
+          },
+          "B": {
+            "legal": 4,
+            "illegal": 0,
+            "contact": 4,
+            "contact_height_lift": 0,
+            "brief_hold12": 0,
+            "grasp_stage_censored": 2,
+            "hold60": 0,
+            "hold120": 0,
+            "native_lift": 0,
+            "native_near": 0,
+            "native_alignment": 0,
+            "native_subgoals": 0,
+            "insertion": 0
+          }
+        },
+        "training_family_recheck": {
+          "A": {
+            "legal": 2,
+            "illegal": 0,
+            "contact": 2,
+            "contact_height_lift": 2,
+            "brief_hold12": 2,
+            "grasp_stage_censored": 2,
+            "hold60": 1,
+            "hold120": 0,
+            "native_lift": 1,
+            "native_near": 0,
+            "native_alignment": 0,
+            "native_subgoals": 0,
+            "insertion": 0
+          },
+          "B": {
+            "legal": 2,
+            "illegal": 0,
+            "contact": 2,
+            "contact_height_lift": 0,
+            "brief_hold12": 0,
+            "grasp_stage_censored": 2,
+            "hold60": 0,
+            "hold120": 0,
+            "native_lift": 0,
+            "native_near": 0,
+            "native_alignment": 0,
+            "native_subgoals": 0,
+            "insertion": 0
+          }
+        }
+      },
+      "semantics": "Real autonomous full students; holding diagnostic differs from native lift/success; no hidden-state exact replay"
+    },
+    "full_task_legal": 4,
+    "full_task_insertions": 0,
+    "evaluation_wall_seconds": 204.2827747631818,
+    "limitations": "Four attempts are two existing training families, not four independent new starts. Expert rescue, offline fit and student autonomy are separate. This report does not release unattended work or certify grasp reliability."
+  },
+  "round19_decision": {
+    "A": {
+      "common_legal_seeds": [
+        28500000,
+        28500001,
+        28500002
+      ],
+      "source_hold60": 1,
+      "candidate_hold60": 0,
+      "use_candidate": false,
+      "selected_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261115_01/round_11",
+      "execution_identity": {
+        "backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cuda:0",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "queue": "independent_lane_queue_v1",
+        "gpu_pipeline": "gpu_observation_history_control_v1",
+        "render": "reuse_native_current_render_v1"
+      },
+      "explanation": "Two additional 1s holds on shared legal seeds under the same backend/queue contracts required; otherwise retain the previous complete pair. Lane populations can differ; no exact hidden-state replay, statistical proof or stage completion is claimed."
+    },
+    "B": {
+      "common_legal_seeds": [
+        28500000,
+        28500001,
+        28500002,
+        28500003
+      ],
+      "source_hold60": 1,
+      "candidate_hold60": 0,
+      "use_candidate": false,
+      "selected_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_fresh_20261116_00/round_15",
+      "execution_identity": {
+        "backend": {
+          "version": "tight_execution_backend_v2",
+          "physics_device": "cuda:0",
+          "camera_backend": "standard",
+          "kit_tasking_threads": 16,
+          "physics_threads": 2,
+          "renderer_descriptor_sets": 360000,
+          "renderer_reserved_descriptors": 900000
+        },
+        "queue": "independent_lane_queue_v1",
+        "gpu_pipeline": "gpu_observation_history_control_v1",
+        "render": "reuse_native_current_render_v1"
+      },
+      "explanation": "Two additional 1s holds on shared legal seeds under the same backend/queue contracts required; otherwise retain the previous complete pair. Lane populations can differ; no exact hidden-state replay, statistical proof or stage completion is claimed."
+    }
+  },
+  "round19_training_family_initial_comparison": {
+    "rows": [
+      {
+        "role": "A",
+        "family": "expanded_session20261115_03_prefetch13_s29000076",
+        "initial_joint_max_abs_rad": 0.0,
+        "initial_object_position_gap_m": 0.0,
+        "before": "outputs/visuotactile/run/tight_fresh_20261116_02/round_17/development/grasp_recheck_r17_A_expanded_session20261115_03_prefetch13_s29000076_grasp_touch/numeric.h5",
+        "after": "outputs/visuotactile/run/tight_fresh_20261116_04/round_19/development/grasp_recheck_r19_A_expanded_session20261115_03_prefetch13_s29000076_grasp_approach/numeric.h5"
+      },
+      {
+        "role": "B",
+        "family": "expanded_session20261115_03_prefetch13_s29000076",
+        "initial_joint_max_abs_rad": 0.0,
+        "initial_object_position_gap_m": 0.0,
+        "before": "outputs/visuotactile/run/tight_fresh_20261116_02/round_17/development/grasp_recheck_r17_B_expanded_session20261115_03_prefetch13_s29000076_grasp_touch/numeric.h5",
+        "after": "outputs/visuotactile/run/tight_fresh_20261116_04/round_19/development/grasp_recheck_r19_B_expanded_session20261115_03_prefetch13_s29000076_grasp_approach/numeric.h5"
+      },
+      {
+        "role": "B",
+        "family": "expanded_session20261115_03_prefetch13_s29000086",
+        "initial_joint_max_abs_rad": 0.0,
+        "initial_object_position_gap_m": 0.0,
+        "before": "outputs/visuotactile/run/tight_fresh_20261116_02/round_17/development/grasp_recheck_r17_B_expanded_session20261115_03_prefetch13_s29000086_grasp_touch/numeric.h5",
+        "after": "outputs/visuotactile/run/tight_fresh_20261116_04/round_19/development/grasp_recheck_r19_B_expanded_session20261115_03_prefetch13_s29000086_grasp_approach/numeric.h5"
+      },
+      {
+        "role": "A",
+        "family": "expanded_session20261115_03_prefetch13_s29000086",
+        "initial_joint_max_abs_rad": 0.0,
+        "initial_object_position_gap_m": 0.0,
+        "before": "outputs/visuotactile/run/tight_fresh_20261116_02/round_17/development/grasp_recheck_r17_A_expanded_session20261115_03_prefetch13_s29000086_grasp_touch/numeric.h5",
+        "after": "outputs/visuotactile/run/tight_fresh_20261116_04/round_19/development/grasp_recheck_r19_A_expanded_session20261115_03_prefetch13_s29000086_grasp_approach/numeric.h5"
+      }
+    ],
+    "scope": "Real observable reset comparison only; different event seeds, not exact hidden-state replay or causal proof",
+    "supersedes_empty_selector_receipt": "round17_initial_comparison.json"
+  },
+  "round19_frontend_io": {
+    "A": {
+      "updates": 1568,
+      "median_update_s": 0.6731094559654593,
+      "update_seconds_sum": 2841.2564876771066,
+      "over5s_updates": 66,
+      "over5s_update_seconds": 1753.474250243511,
+      "largest_update": 827,
+      "largest_update_s": 52.68858861620538,
+      "largest_load_seconds": [
+        29.29592282604426,
+        23.044355897931382
+      ],
+      "scope": "Actual batch intervals and measured tensor loads; prefetch overlaps, so summed loads are not additive wall time."
+    },
+    "B": {
+      "updates": 1568,
+      "median_update_s": 0.6213544000638649,
+      "update_seconds_sum": 2677.2932237519417,
+      "over5s_updates": 62,
+      "over5s_update_seconds": 1682.8216241106857,
+      "largest_update": 814,
+      "largest_update_s": 50.80818257504143,
+      "largest_load_seconds": [
+        28.28134645195678,
+        22.3175515641924
+      ],
+      "scope": "Actual batch intervals and measured tensor loads; prefetch overlaps, so summed loads are not additive wall time."
+    }
+  },
+  "round19_monitor_exit": {
+    "pid": 627428,
+    "ended": 1794787335.7351718,
+    "summary": {
+      "pid": 627428,
+      "latest": {
+        "pid": 627428,
+        "utc_epoch": 1794787335.7341378,
+        "elapsed_s": 5599.984472569078,
+        "gpu_util_percent": 1.0,
+        "gpu_used_mib": 574.0,
+        "gpu_free_mib": 23510.0,
+        "ram_available_bytes": 33949523968,
+        "process_rss_bytes": 13963264,
+        "cuda_allocated_bytes": null,
+        "cuda_reserved_bytes": null,
+        "rolling_60s_percent": 53.74942088152748
+      },
+      "samples": 5379,
+      "gpu_time_weighted_mean_percent": 42.09407398534959,
+      "max_complete_60s_mean_percent": 95.69987967609583,
+      "missing_samples": 0,
+      "missing_seconds": 221.05458383029327,
+      "max_sample_gap_s": 221.05458383029327,
+      "wait_seconds": 0.0,
+      "peak_gpu_used_mib": 19171.0,
+      "peak_process_rss_bytes": 19927040,
+      "min_ram_available_bytes": 20172185600,
+      "thresholds": {
+        "gpu_free_mib": 6144,
+        "ram_available_bytes": 12884901888,
+        "max_gpu_mean_percent": null,
+        "gpu_admission_mean_percent": null
+      },
+      "scope": "whole card, time-weighted batch and complete 60-second means; current process lifetime; other jobs untouched"
+    }
+  },
+  "round19_monitor_gap_explanation": "222.09s shared-log gap06:32:07–06:35:49 is the preserved CLI-failure safe shutdown and supervised recovery interval, not an active-training hang. Original monitor rows are retained; no whole-session continuous-telemetry claim."
 }
