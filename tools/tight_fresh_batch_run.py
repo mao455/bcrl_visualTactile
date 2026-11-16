@@ -247,7 +247,7 @@ def validate_capture_audit_request(plan):
     return profile
 
 
-def run(output):
+def run(output, *, allow_heldout=False):
     import torch
     from tools.tight_state import environment
     from visuotactile.batched_rollout import waves,run_wave
@@ -266,7 +266,8 @@ def run(output):
     if audit_profile is not None:
         from visuotactile.state_benchmark import DaggerCaptureAuditMemo
         audit_memo=DaggerCaptureAuditMemo(max_payloads=audit_profile['max_payloads'],max_pairs=audit_profile['max_pairs'])
-    if plan.get('test_used') is not False or plan['batch']['version']!='whole_wave_complete_student_v1':
+    heldout=(allow_heldout is True and plan.get('test_used') is True and plan.get('holdout_contract')=='layout_final_test_v1' and plan.get('kind')=='autonomous')
+    if (plan.get('test_used') is not False and not heldout) or plan['batch']['version']!='whole_wave_complete_student_v1':
         raise ValueError('Explicit non-test batch registration required')
     if plan['kind']=='takeover':
         validate_takeover_plan(plan)

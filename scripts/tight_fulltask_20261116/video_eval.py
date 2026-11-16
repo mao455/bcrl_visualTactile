@@ -4,7 +4,7 @@ from pathlib import Path
 from tools.tight_fresh_rollouts import read
 from visuotactile.training_resources import atomic_json
 
-def main():
+def main(*,allow_heldout=False):
     p=argparse.ArgumentParser();p.add_argument('--output',type=Path,required=True);a=p.parse_args()
     if a.output.name=='updated_evaluation' and (a.output.parent/'paired_request.json').exists():
         from scripts.tight_fulltask_20261116.paired_eval import upgrade_plan,install
@@ -46,7 +46,7 @@ def main():
     def completed(output):
         flush(True);original_exit(output)
     MultiPolicyController.act=act;native_evaluation.exit_completed_kit_worker=completed
-    try:run(a.output)
+    try:run(a.output,allow_heldout=allow_heldout)
     finally:
         MultiPolicyController.act=original;native_evaluation.exit_completed_kit_worker=original_exit;flush(False)
 if __name__=='__main__':main()

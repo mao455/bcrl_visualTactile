@@ -1,3 +1,9 @@
+## 2026-11-16 原登记独立测试入口准备
+
+新增`final_test.py`：只在训练/开发完整结束后固定选中A/B，对原28819000–007八个测试初态各执行一次，两批各8lane，复用真实reset配对、完整原生任务及首例视频。测试plan明确test_used=true，普通开发runner默认仍拒绝测试plan；必须经此入口核对原登记、模型身份、非训练/验证/开发seed、标签及配对后才显式准入。不把最终测试结果用于追加训练或模型选择。
+
+真实新布局元数据的CPU准备检查覆盖16测试机会、8独立family、开发seed误入拒绝；学生身份在此准备检查中stub，无真实仿真/更新。`learning_report.py`汇总已有validation/finished与完整行为，生成各自标签空间曲线；不得跨A/B标签比较loss或将离线下降写成成功。当前A80遍/1200更新完成，B仍在同预算训练；最终测试和DAgger尚未执行。
+
 ## 2026-11-16 新布局采集退出门已通过，修复下一进程启动目录冲突
 
 10cm首两条独立验证示范均完成、完整capture关闭；采集子进程退出0、GPU PID消失且monitor仍活。第二阶段尚未启动Kit即因StartupDiagnostics独占创建已有startup_tracebacks.log而失败；没有新的物理机会。原root与两条有效源记录全部保留。恢复采用新root tight_layout10_20261116_01_recovery01、每worker独立startup目录，复用已通过gate与结果，跳过已完成identity，所有原session截止不变。未开始的其余34成功目标继续，未宣称完成。

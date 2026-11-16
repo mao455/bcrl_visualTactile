@@ -37,8 +37,20 @@ def main():
    except ValueError:pass
    else:raise AssertionError('Invalid collection plan admitted: '+mutate)
   assert learn.read(source/'session.json')['deadline']==learn.read(temp/'round/session.json')['deadline']
+  from scripts.tight_layout_20261116 import final_test
+  with patch('tools.tight_fresh_rollouts.completed_pair',side_effect=lambda root,role:dict(role=role)):
+   final_test.prepare(fixture,temp/'final')
+  test_seeds=[]
+  for index in range(2):
+   plan=learn.read(temp/'final'/f'part{index}'/'plan.json');final_test.validate(plan)
+   test_seeds.extend(c['spec']['seed'] for c in plan['cases'])
+   bad=copy.deepcopy(plan);bad['cases'][0]['spec']['seed']=28820000
+   try:final_test.validate(bad)
+   except AssertionError:pass
+   else:raise AssertionError('Development seed admitted as final test')
+  assert len(test_seeds)==16 and len(set(test_seeds))==8
  atomic_json(learn.TREE/'research_docs/evidence/tight_layout_20261116/dagger_plan_check.json',dict(passed=True,
   simulated_policy_identities=True,real_source_reset_metadata=True,cases=8,families=4,shared_AB_layout=True,
-  rejects_changed_trigger_and_fixed_fallback=True,original_deadline_preserved=True,simulation_starts=0,optimizer_updates=0))
+  rejects_changed_trigger_and_fixed_fallback=True,original_deadline_preserved=True,final_test_registration_8_paired_families=True,rejects_development_seed_in_test=True,simulation_starts=0,optimizer_updates=0))
  print('Actual new-layout train reset registration and negative takeover admission pass; no model or GPU work')
 if __name__=='__main__':main()
