@@ -6,12 +6,14 @@ from visuotactile.phase_takeover import profile,STAGES
 from visuotactile.native_data import residual_supervision_mask
 from visuotactile.target_windows import window_mask
 import argparse
-p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True);args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('--root',type=Path,required=True);p.add_argument('--output',type=Path,required=True);p.add_argument('--all-corrections',action='store_true');args=p.parse_args()
 root=args.root.resolve()
 data=json.loads((root/'A/state_data/data.json').read_text());report={'cache':{},'replay':[]}
+identities=([i for i in data['splits']['train'] if data['entries'][i].get('trajectory_kind')=='expert_takeover_v1'] if args.all_corrections else data['aggregation']['new_training_ids'])
+report['scope']='all_training_corrections' if args.all_corrections else 'new_corrections'
 for role in 'AB':
  raw=torch.load(root/role/'state_data/numeric.pt',weights_only=False,map_location='cpu',mmap=True)['records'];n=0
- for identity in data['aggregation']['new_training_ids']:
+ for identity in identities:
   p=root/role/'backend'/role/'nominal'/(identity+'.pt');r=torch.load(p,weights_only=False,map_location='cpu',mmap=True)
   a=raw[identity];mask=a['supervision_mask'];first=int(mask.nonzero()[0]);n+=int(mask.sum())
   for key in ['time','robot','supervision_mask','control_segment']:assert torch.equal(r[key],a[key]),key
@@ -21,7 +23,7 @@ for role in 'AB':
   valid=window_mask(mask,a['control_segment'],torch.arange(len(mask)),24)
   for start in range(len(mask)):
    ix=torch.arange(start,min(start+24,len(mask)));assert not (valid[start,:len(ix)]&~mask[ix]).any()
- report['cache'][role]={'corrections':len(data['aggregation']['new_training_ids']),'valid_expert_ticks':n,'factual_full_history_mask_and_rear_targets_equal':True}
+ report['cache'][role]={'corrections':len(identities),'valid_expert_ticks':n,'factual_full_history_mask_and_rear_targets_equal':True}
 for folder in sorted((root/'development').glob('*development*')):
  if not (folder/'numeric.h5').exists():continue
  row={'case':folder.name,'stages':{}}

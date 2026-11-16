@@ -1,0 +1,712 @@
+{
+  "utc": 1794841215.6899357,
+  "complete": true,
+  "training_episodes": 56,
+  "validation_episodes": 6,
+  "correction_episodes_total": 26,
+  "correction_valid_expert_ticks_total": 4019,
+  "new_collection": {
+    "sources": [
+      "round02_collection",
+      "formal02"
+    ],
+    "opportunities": 24,
+    "legal": 24,
+    "takeovers": 19,
+    "rescues": 19,
+    "valid_expert_ticks": 2873,
+    "stages": {
+      "alignment": {
+        "opportunities": 8,
+        "legal": 8,
+        "takeovers": 5,
+        "rescues": 5,
+        "valid_expert_ticks": 585,
+        "source_families": [
+          "layout10_train_28817004",
+          "layout10_train_28817009",
+          "layout10_train_28817012"
+        ],
+        "takeover_ticks": [
+          200,
+          195,
+          182,
+          211,
+          286
+        ],
+        "takeover_mod12": [
+          2,
+          3,
+          7,
+          8,
+          10
+        ]
+      },
+      "early": {
+        "opportunities": 4,
+        "legal": 4,
+        "takeovers": 4,
+        "rescues": 4,
+        "valid_expert_ticks": 971,
+        "source_families": [
+          "layout10_train_28817011",
+          "layout10_train_28817015"
+        ],
+        "takeover_ticks": [
+          59,
+          61,
+          64,
+          66
+        ],
+        "takeover_mod12": [
+          1,
+          4,
+          6,
+          11
+        ]
+      },
+      "near": {
+        "opportunities": 4,
+        "legal": 4,
+        "takeovers": 4,
+        "rescues": 4,
+        "valid_expert_ticks": 452,
+        "source_families": [
+          "layout10_train_28817007",
+          "layout10_train_28817013"
+        ],
+        "takeover_ticks": [
+          152,
+          159,
+          155,
+          139
+        ],
+        "takeover_mod12": [
+          3,
+          7,
+          8,
+          11
+        ]
+      },
+      "transport": {
+        "opportunities": 2,
+        "legal": 2,
+        "takeovers": 2,
+        "rescues": 2,
+        "valid_expert_ticks": 333,
+        "source_families": [
+          "layout10_train_28817006"
+        ],
+        "takeover_ticks": [
+          99,
+          98
+        ],
+        "takeover_mod12": [
+          2,
+          3
+        ]
+      },
+      "weakening": {
+        "opportunities": 6,
+        "legal": 6,
+        "takeovers": 4,
+        "rescues": 4,
+        "valid_expert_ticks": 532,
+        "source_families": [
+          "layout10_train_28817005",
+          "layout10_train_28817010",
+          "layout10_train_28817014"
+        ],
+        "takeover_ticks": [
+          133,
+          183,
+          132,
+          153
+        ],
+        "takeover_mod12": [
+          0,
+          1,
+          3,
+          9
+        ]
+      }
+    },
+    "interpretation": "Real student states; distinct source families do not imply independent corrections. Rescue denominator excludes untaken opportunities; collection success is not autonomous student success."
+  },
+  "learning_rounds": {
+    "round02": {
+      "training": {
+        "A": {
+          "DP": {
+            "epochs": 18,
+            "updates": 450,
+            "best_validation_epoch": 9,
+            "best_validation_score": 0.005742708221077919,
+            "stop_reason": "validation_plateau"
+          },
+          "Transformer": {
+            "epochs": 24,
+            "updates": 2129,
+            "best_validation_epoch": 24,
+            "best_validation_score": 0.00030140814487822354,
+            "stop_reason": "maximum_control_tick_exposure"
+          }
+        },
+        "B": {
+          "DP": {
+            "epochs": 20,
+            "updates": 500,
+            "best_validation_epoch": 10,
+            "best_validation_score": 0.005811083130538464,
+            "stop_reason": "validation_plateau"
+          },
+          "Transformer": {
+            "epochs": 24,
+            "updates": 2129,
+            "best_validation_epoch": 21,
+            "best_validation_score": 0.00040648950380273163,
+            "stop_reason": "maximum_control_tick_exposure"
+          }
+        }
+      },
+      "development": {
+        "A": {
+          "legal": 4,
+          "illegal": 0,
+          "contact": 4,
+          "contact_height_lift": 4,
+          "brief_hold12": 4,
+          "grasp_stage_censored": 0,
+          "hold60": 4,
+          "hold120": 4,
+          "native_lift": 2,
+          "native_near": 3,
+          "native_alignment": 1,
+          "native_subgoals": 1,
+          "insertion": 0
+        },
+        "B": {
+          "legal": 4,
+          "illegal": 0,
+          "contact": 4,
+          "contact_height_lift": 3,
+          "brief_hold12": 2,
+          "grasp_stage_censored": 0,
+          "hold60": 2,
+          "hold120": 2,
+          "native_lift": 0,
+          "native_near": 2,
+          "native_alignment": 1,
+          "native_subgoals": 1,
+          "insertion": 1
+        }
+      },
+      "paired_passed": true
+    },
+    "round03": {
+      "training": {
+        "A": {
+          "DP": {
+            "epochs": 26,
+            "updates": 728,
+            "best_validation_epoch": 23,
+            "best_validation_score": 0.005506759509444237,
+            "stop_reason": "validation_plateau"
+          },
+          "Transformer": {
+            "epochs": 21,
+            "updates": 1973,
+            "best_validation_epoch": 11,
+            "best_validation_score": 0.0002895781653933227,
+            "stop_reason": "validation_plateau_after_lr_reduction"
+          }
+        },
+        "B": {
+          "DP": {
+            "epochs": 21,
+            "updates": 588,
+            "best_validation_epoch": 12,
+            "best_validation_score": 0.005805064458400011,
+            "stop_reason": "validation_plateau"
+          },
+          "Transformer": {
+            "epochs": 24,
+            "updates": 2254,
+            "best_validation_epoch": 21,
+            "best_validation_score": 0.000365917308954522,
+            "stop_reason": "maximum_control_tick_exposure"
+          }
+        }
+      },
+      "development": {
+        "A": {
+          "legal": 4,
+          "illegal": 0,
+          "contact": 4,
+          "contact_height_lift": 2,
+          "brief_hold12": 2,
+          "grasp_stage_censored": 0,
+          "hold60": 2,
+          "hold120": 1,
+          "native_lift": 1,
+          "native_near": 1,
+          "native_alignment": 1,
+          "native_subgoals": 1,
+          "insertion": 1
+        },
+        "B": {
+          "legal": 4,
+          "illegal": 0,
+          "contact": 4,
+          "contact_height_lift": 3,
+          "brief_hold12": 2,
+          "grasp_stage_censored": 0,
+          "hold60": 2,
+          "hold120": 1,
+          "native_lift": 1,
+          "native_near": 1,
+          "native_alignment": 1,
+          "native_subgoals": 1,
+          "insertion": 0
+        }
+      },
+      "paired_passed": true
+    }
+  },
+  "final_test": {
+    "A": {
+      "registered": 8,
+      "legal": 8,
+      "illegal": 0,
+      "successes": 0,
+      "native_alignment": 0,
+      "native_subgoals": 0,
+      "native_lift": 2,
+      "fall": 1,
+      "timeout": 7
+    },
+    "B": {
+      "registered": 8,
+      "legal": 8,
+      "illegal": 0,
+      "successes": 0,
+      "native_alignment": 1,
+      "native_subgoals": 1,
+      "native_lift": 0,
+      "fall": 1,
+      "timeout": 7
+    }
+  },
+  "final_stage_diagnostics": {
+    "A": {
+      "legal": 8,
+      "stage_reached": {
+        "transport": 5,
+        "near": 5,
+        "alignment": 1,
+        "weakening": 5
+      },
+      "hold60": 5,
+      "hold120": 3,
+      "per_trial_geometry": [
+        {
+          "case": "A_development_28821000",
+          "student_near_goal": {
+            "min_root_distance_m": 0.004965272732079029,
+            "final_root_distance_m": 0.18991044163703918,
+            "minimum_keypoint_distance_m": 0.04147874563932419,
+            "final_orientation_error_rad": 1.8998808860778809,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            68,
+            74,
+            76,
+            78,
+            359
+          ]
+        },
+        {
+          "case": "A_development_28821001",
+          "student_near_goal": {
+            "min_root_distance_m": 0.19219763576984406,
+            "final_root_distance_m": 0.19219763576984406,
+            "minimum_keypoint_distance_m": 0.2994139492511749,
+            "final_orientation_error_rad": 2.1031618118286133,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            71,
+            77,
+            112,
+            121,
+            142,
+            166
+          ]
+        },
+        {
+          "case": "A_development_28821002",
+          "student_near_goal": {
+            "min_root_distance_m": 0.18341565132141113,
+            "final_root_distance_m": 0.20045845210552216,
+            "minimum_keypoint_distance_m": 0.30012303590774536,
+            "final_orientation_error_rad": 1.7190697193145752,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            68,
+            72,
+            84,
+            119
+          ]
+        },
+        {
+          "case": "A_development_28821003",
+          "student_near_goal": {
+            "min_root_distance_m": 0.010059842839837074,
+            "final_root_distance_m": 0.19862696528434753,
+            "minimum_keypoint_distance_m": 0.07163448631763458,
+            "final_orientation_error_rad": 2.796671152114868,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            70,
+            73,
+            76,
+            260
+          ]
+        },
+        {
+          "case": "A_development_28821004",
+          "student_near_goal": {
+            "min_root_distance_m": 0.1979324072599411,
+            "final_root_distance_m": 0.20265577733516693,
+            "minimum_keypoint_distance_m": 0.29718297719955444,
+            "final_orientation_error_rad": 2.1022348403930664,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            66,
+            73,
+            103,
+            127,
+            147,
+            154
+          ]
+        },
+        {
+          "case": "A_development_28821005",
+          "student_near_goal": {
+            "min_root_distance_m": 0.010106838308274746,
+            "final_root_distance_m": 0.22159546613693237,
+            "minimum_keypoint_distance_m": 0.04607482627034187,
+            "final_orientation_error_rad": 3.059537887573242,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            71,
+            74,
+            80,
+            280,
+            297,
+            301,
+            378,
+            394,
+            401,
+            404,
+            410,
+            421,
+            423,
+            454,
+            478
+          ]
+        },
+        {
+          "case": "A_development_28821006",
+          "student_near_goal": {
+            "min_root_distance_m": 0.0029360693879425526,
+            "final_root_distance_m": 0.1901656836271286,
+            "minimum_keypoint_distance_m": 0.02360796369612217,
+            "final_orientation_error_rad": 2.241647958755493,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            75,
+            81,
+            114,
+            283
+          ]
+        },
+        {
+          "case": "A_development_28821007",
+          "student_near_goal": {
+            "min_root_distance_m": 0.00977667048573494,
+            "final_root_distance_m": 0.6960369944572449,
+            "minimum_keypoint_distance_m": 0.061728011816740036,
+            "final_orientation_error_rad": 2.495523452758789,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            73,
+            75,
+            77,
+            81,
+            115,
+            220,
+            223
+          ]
+        }
+      ]
+    },
+    "B": {
+      "legal": 8,
+      "stage_reached": {
+        "transport": 5,
+        "near": 5,
+        "alignment": 3,
+        "weakening": 5
+      },
+      "hold60": 5,
+      "hold120": 5,
+      "per_trial_geometry": [
+        {
+          "case": "B_development_28821000",
+          "student_near_goal": {
+            "min_root_distance_m": 0.19730699062347412,
+            "final_root_distance_m": 0.203200101852417,
+            "minimum_keypoint_distance_m": 0.29759517312049866,
+            "final_orientation_error_rad": 2.4639439582824707,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            70,
+            92
+          ]
+        },
+        {
+          "case": "B_development_28821001",
+          "student_near_goal": {
+            "min_root_distance_m": 0.0027883979491889477,
+            "final_root_distance_m": 0.13873189687728882,
+            "minimum_keypoint_distance_m": 0.013106807135045528,
+            "final_orientation_error_rad": 1.9988360404968262,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            67,
+            69,
+            74,
+            102,
+            327,
+            851
+          ]
+        },
+        {
+          "case": "B_development_28821002",
+          "student_near_goal": {
+            "min_root_distance_m": 0.17036131024360657,
+            "final_root_distance_m": 0.20375607907772064,
+            "minimum_keypoint_distance_m": 0.2901150584220886,
+            "final_orientation_error_rad": 2.2012887001037598,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            68,
+            90
+          ]
+        },
+        {
+          "case": "B_development_28821003",
+          "student_near_goal": {
+            "min_root_distance_m": 0.0006628012633882463,
+            "final_root_distance_m": 0.11421319842338562,
+            "minimum_keypoint_distance_m": 0.013239583000540733,
+            "final_orientation_error_rad": 2.1514673233032227,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            68,
+            73,
+            100,
+            329
+          ]
+        },
+        {
+          "case": "B_development_28821004",
+          "student_near_goal": {
+            "min_root_distance_m": 0.023402711376547813,
+            "final_root_distance_m": 0.11441322416067123,
+            "minimum_keypoint_distance_m": 0.06569774448871613,
+            "final_orientation_error_rad": 1.5722862482070923,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            61,
+            65,
+            68,
+            96,
+            329
+          ]
+        },
+        {
+          "case": "B_development_28821005",
+          "student_near_goal": {
+            "min_root_distance_m": 0.2018115371465683,
+            "final_root_distance_m": 0.20646440982818604,
+            "minimum_keypoint_distance_m": 0.3003138601779938,
+            "final_orientation_error_rad": 2.443586587905884,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            69,
+            94
+          ]
+        },
+        {
+          "case": "B_development_28821006",
+          "student_near_goal": {
+            "min_root_distance_m": 0.0021186720114201307,
+            "final_root_distance_m": 0.7326675057411194,
+            "minimum_keypoint_distance_m": 0.010666782036423683,
+            "final_orientation_error_rad": 1.6771793365478516,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            73,
+            77,
+            108,
+            280,
+            282
+          ]
+        },
+        {
+          "case": "B_development_28821007",
+          "student_near_goal": {
+            "min_root_distance_m": 0.022402552887797356,
+            "final_root_distance_m": 0.20275069773197174,
+            "minimum_keypoint_distance_m": 0.0662832260131836,
+            "final_orientation_error_rad": 2.5902459621429443,
+            "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+          },
+          "student_no_contact_onsets": [
+            74,
+            78,
+            431
+          ]
+        }
+      ]
+    }
+  },
+  "elapsed_session_seconds": 7761.30489730835,
+  "final_models": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_phase_20261116_01/round03/learning/A/training/best.pt",
+      "frontend_sha256": "94384d469091939ef7393e9158eb3354a623d3761c7fa21b012ad66ca6abb988",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_phase_20261116_01/round03/learning/A/backend/A/training/best.pt",
+      "backend_sha256": "5a1ad7667b3f0c4b451f991f8efca51254f24f95dd05eefdabb5c1f0b154be84",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_phase_20261116_01/round03/learning/B/training/best.pt",
+      "frontend_sha256": "068b1745f9ef6e51b994dd8064dab6af2df08834d41e1d02bb8bc27f6833bf9e",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_phase_20261116_01/round03/learning/B/backend/B/training/best.pt",
+      "backend_sha256": "a27e09bd3a477a241f6ee57ffd9a89e9709ec009e6ff912a9bd1e40931d0fb22",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "videos": [
+    {
+      "scope": "round02",
+      "role": "A",
+      "path": "outputs/visuotactile/run/tight_phase_20261116_01/round02/learning/development/A_development_28820000/autonomous.mp4",
+      "sha256": "4f72aeed6918fe27474076e0b6ee1705e980c56507763d57088bb9fe00c82df3",
+      "fully_decoded_frames": 480,
+      "review": "Full decode and actual multi-view sampled frame inspection; narrative in research diagnosis."
+    },
+    {
+      "scope": "round02",
+      "role": "B",
+      "path": "outputs/visuotactile/run/tight_phase_20261116_01/round02/learning/development/B_development_28820000/autonomous.mp4",
+      "sha256": "1321dcdb72580ca20c6088b5ef596907d3a1deb27f803c3dcddb2027c39dd2d8",
+      "fully_decoded_frames": 601,
+      "review": "Full decode and actual multi-view sampled frame inspection; narrative in research diagnosis."
+    },
+    {
+      "scope": "round03",
+      "role": "A",
+      "path": "outputs/visuotactile/run/tight_phase_20261116_01/round03/eval_recovery01/development/A_development_28820000/autonomous.mp4",
+      "sha256": "227152233a2de02bc002eaa805c971b130578a483396be9b47514e9ae29013eb",
+      "fully_decoded_frames": 601,
+      "review": "Full decode and actual multi-view sampled frame inspection; narrative in research diagnosis."
+    },
+    {
+      "scope": "round03",
+      "role": "B",
+      "path": "outputs/visuotactile/run/tight_phase_20261116_01/round03/eval_recovery01/development/B_development_28820000/autonomous.mp4",
+      "sha256": "c071d9aab1e356c780e793fd4a0c5a5e048d5a465454d6f42a837864520e334a",
+      "fully_decoded_frames": 601,
+      "review": "Full decode and actual multi-view sampled frame inspection; narrative in research diagnosis."
+    },
+    {
+      "scope": "final",
+      "role": "A",
+      "path": "outputs/visuotactile/run/tight_phase_20261116_01/final_test/part0/A_development_28821000/autonomous.mp4",
+      "sha256": "6b257bc4ec06637c54286471667b4814c1be2d9933d4644a0210906bcd436555",
+      "fully_decoded_frames": 601,
+      "review": "Full decode and actual multi-view sampled frame inspection; narrative in research diagnosis."
+    },
+    {
+      "scope": "final",
+      "role": "B",
+      "path": "outputs/visuotactile/run/tight_phase_20261116_01/final_test/part0/B_development_28821000/autonomous.mp4",
+      "sha256": "c078965c59b72363fe2c6c0caeb6ad606d92ff9705d23d216152899e6b9ec5bb",
+      "fully_decoded_frames": 601,
+      "review": "Full decode and actual multi-view sampled frame inspection; narrative in research diagnosis."
+    }
+  ],
+  "conclusion": "Two new complete DAgger iterations, legal expert labels and real student history retained; no demonstrated autonomous full-task improvement. Development success alternates; fresh heldout A/B each0/8. No test-based retraining or selection."
+}
