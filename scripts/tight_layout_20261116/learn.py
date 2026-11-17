@@ -260,9 +260,10 @@ def run():
     from tools.tight_fresh_rollouts import completed_pair
     registered=read(ROOT/'prepared.json')['pairs']
     for role in 'AB':assert completed_pair(Path(read(ROOT/'prepared.json')['source']),role)==registered[role]
-   execute('evaluation_prepare',[__spec__.name,'evaluation_prepare','--root',ROOT],ROOT/'evaluation_prepared.json')
-   execute('evaluation',[__spec__.name,'evaluation_worker','--root',ROOT],ROOT/'development/result.json')
-   assert read(ROOT/'development/paired_initial_check.json')['passed']
+   if not read(ROOT/'prepared.json').get('defer_development',False):
+    execute('evaluation_prepare',[__spec__.name,'evaluation_prepare','--root',ROOT],ROOT/'evaluation_prepared.json')
+    execute('evaluation',[__spec__.name,'evaluation_worker','--root',ROOT],ROOT/'development/result.json')
+    assert read(ROOT/'development/paired_initial_check.json')['passed']
    atomic_json(ROOT/'complete.json',dict(complete=True,utc=time.time(),dagger_complete=False,dagger_round_trained=read(ROOT/'prepared.json').get('continue_student_pair',False)))
    atomic_json(ROOT/'status.json',dict(stage='complete_pending_scientific_review',utc=time.time()))
   except BaseException:

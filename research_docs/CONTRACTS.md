@@ -1,3 +1,21 @@
+## 2026-11-17 fixed76 bounded onset-exposure candidate — preparation
+
+Current authorization supersedes the completed profiling-only scope. Preserve selected72
+full A/B pairs, all valid76 and original400. Diagnose existing numeric evidence first;
+then one candidate with explicit4GiB frozen-feature hotset, unchanged native physics,
+control, architecture, targets and complete histories. Only correction planning-start
+allocation changes: half in first24 legal expert ticks, half remainder; original grasp
+anchors and geometry RNG preserved. Same episode weights, losses, optimizers and phase
+stopping policies. Each DP cap40 traversals/1520 updates; refresh corresponding backend
+inputs, then paired complete-policy development on28824000–007. Opened final20 are
+analysis-only, never new training/development. Conditional DAgger requires later evidence.
+
+Actual root tight_balance76_20261117_01_recovery01; initial preparation failed on optional
+source_data.json before any optimizer/Kit work. Original fixed six-hour deadline retained.
+New outputs budget6GiB,12GiB disk reserve, original data/features reused without copies.
+No claim of training or autonomous improvement yet. See concentrated report and
+research_docs/evidence/tight_long_20261117/balanced76.14 focused tests pass.
+
 ## 2026-11-16 新阶段DAgger：正在审计与小规模接管验证
 
 最新授权继续10cm布局完整A/B共享DAgger，覆盖旧停止条款；不改变网络、物理、控制或原生成功。新session tight_phase_20261116_01独立6小时总界/5小时训练界，最多两轮完整学习、8个先导及最多32个额外纠偏机会，软件故障每阶段最多一次新身份恢复。首批4lane实际并行验收，之后按吞吐与资源决定；不热改运行源码。旧8test仅回归，新28821000–007保留到最终模型冻结后一次使用。

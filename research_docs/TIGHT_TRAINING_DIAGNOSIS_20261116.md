@@ -1,3 +1,26 @@
+## 2026-11-17 固定76条：已完成覆盖诊断，准备单因素候选
+
+原30条9609合法tick；A来源21条3707tick；B来源25条3991tick，共17307。
+纠偏首24合法tick仅1104，后缀6594；46条纠偏全部没有接触前专家监督。
+现有独立family仍30，纠偏为46个不同实际接管状态，不是46个新family。
+物理阶段按既有geometry诊断划分，支撑转移无法仅由指尖力可靠区分，不能冒称严格漏斗。
+最后4条为B early198、A early204、B near158、A post_subgoal134合法tick。
+原round06两DP实际A1102/B836更新，选中A722/B684；后端实际各2170，选择A1207/B123。
+四条确实参与更新。72→76混合新增数据、额外更新、优化器重置与选模，不能归因为四条数据本身。
+
+本轮假设：已有恢复入口曝光不足；后段独立恢复状态也窄，暂不能分离覆盖与学习瓶颈。
+唯一学习修改为纠偏动作起点半数抽首24合法步，半数抽后缀；原示范早期抽样和几何RNG保持。
+各自从72完整父模型EMA warm-start，fresh AdamW/EMA，原LR/损失/阶段停止规则。
+前端最多40遍1520实际更新，后端用对应新DP刷新。4GiB视觉缓存显式启用且可回退mmap。
+历史76只作参照，非严格等更新对照。计划8个新的独立开发family，同波比较四完整策略。
+
+[覆盖及最后4条](evidence/tight_long_20261117/balanced76/coverage.json) ·
+[逐轨曝光](evidence/tight_long_20261117/balanced76/historical_exposure.csv) ·
+[已打开final40的数值诊断](evidence/tight_long_20261117/balanced76/final40_diagnosis.csv) ·
+[登记](evidence/tight_long_20261117/balanced76/registration.json)。
+仅首个final测试初态有A/B视频，其余38条没有录像，使用数值而不编造视频。
+训练与闭环收益尚未产生；没有新DAgger，72基准保留。
+
 ## 2026-11-17 DP读取定位与单一工程优化（已完成）
 
 本轮从97005f3接续，仅允许同状态短程DP profiling，不扩展DAgger、长训、后端训练或自主测试。原72条选定完整模型、76条合法数据、原400条及必要依赖不变。四个短程检查已全部闭合，自有训练进程已退出；优化仅保留为显式诊断选项，正式训练默认未改。[原始证据与复核入口](evidence/tight_long_20261117/dp_io_profile/README.md)。

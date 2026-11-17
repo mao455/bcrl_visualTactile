@@ -25,7 +25,11 @@ def visit(record,profile,*,identity,epoch,visit_index):
     from .anchor_sampling import sample_training_anchors
     profile=validate_profile(profile)
     anchors,receipt=sample_training_anchors(record,profile['anchors'],identity=identity,epoch=epoch,visit_index=visit_index)
-    payload=json.dumps(dict(kind='hand_geometry',profile=profile,identity=identity,epoch=epoch,visit_index=visit_index),
+    geometry_seed_profile=profile
+    from .anchor_sampling import ONSET_ANCHOR_VERSION,grasp_sampling_profile
+    if profile['anchors']['version']==ONSET_ANCHOR_VERSION:
+        geometry_seed_profile=dict(profile,anchors=grasp_sampling_profile(profile['anchors']['seed']))
+    payload=json.dumps(dict(kind='hand_geometry',profile=geometry_seed_profile,identity=identity,epoch=epoch,visit_index=visit_index),
         sort_keys=True,separators=(',',':'))
     seed=int(hashlib.sha256(payload.encode()).hexdigest()[:16],16)%(2**63)
     return anchors,receipt,torch.Generator(device='cpu').manual_seed(seed)

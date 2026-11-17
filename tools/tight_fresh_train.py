@@ -126,7 +126,7 @@ def predict_on_native_clock(model, conditions, anchors):
 
 
 @torch.no_grad()
-def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False):
+def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_visual_io=None,grasp_phase_report=False,episode_loader=None):
     from visuotactile.frozen_visual_io import validate_profile as validate_visual_io
     frozen_visual_io=validate_visual_io(frozen_visual_io)
     if offline_planning is not None:
@@ -143,7 +143,7 @@ def metrics(model,records,identities,*,offline_planning=None,check=None,frozen_v
         visual_receipt=None
         if frozen_visual_io is None:c,a=supervised_conditions(model,rec)
         else:
-            episode=Episode(rec['source_root'],i,model.group,frozen_visual_io=frozen_visual_io)
+            episode=episode_loader(i) if episode_loader else Episode(rec['source_root'],i,model.group,frozen_visual_io=frozen_visual_io)
             try:
                 c,a=supervised_conditions(model,rec,episode=episode)
                 visual_receipt=episode.frozen_visual_io_receipt
@@ -488,9 +488,22 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         save(out/name,training_state(model,averaged,opt,ema,generator,noise,kind='dp',group='I-HistoryDP',
             updates=updates,epoch=epoch,configuration=config,best=best,history=history,anchors_seen=anchors_seen,target_ticks=target_ticks,
             train_ids=data['splits']['train'],validation_ids=data['splits']['validation'],**extras))
+    hotset=None
+    hotset_path=root/'frozen_visual_hotset.json'
+    if hotset_path.exists():
+        from visuotactile.frozen_visual_io import FrozenVisualHotset
+        hotset_spec=read(hotset_path)
+        if hotset_spec!=dict(version='formal_immutable_hotset_v1',max_bytes=4*1024**3,minimum_free_bytes=8*1024**3):
+            raise ValueError('Unknown explicit formal hotset configuration')
+        hotset=FrozenVisualHotset(dr,data['splits']['validation']+data['splits']['train'],
+            max_bytes=hotset_spec['max_bytes'],minimum_free_bytes=hotset_spec['minimum_free_bytes'])
+        config['frozen_visual_hotset']=hotset_spec
+        atomic_json(out/'configuration.json',config)
     started=time.perf_counter()
+    stage_io_start=io_snapshot()
     def evaluate(identities):
         io_options={} if visual_io is None else dict(frozen_visual_io=visual_io)
+        if hotset is not None:io_options['episode_loader']=hotset
         if offline_planning is None:return metrics(averaged,records,identities,**io_options)
         return metrics(averaged,records,identities,offline_planning=offline_planning,check=lease.check,**io_options)
     if continuation and not (out/'initial_metrics.json').exists():
@@ -538,7 +551,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                             if batch_prefetch is not None:episodes=batch_prefetch.take(batch_index-1)
                             else:
                                 for identity in identities:
-                                    episodes.append(Episode(dr,identity,'I-HistoryDP',
+                                    episodes.append(hotset(identity) if hotset is not None else Episode(dr,identity,'I-HistoryDP',
                                         **({} if visual_io is None else dict(frozen_visual_io=visual_io))))
                             frozen_input_wait_s=time.perf_counter()-input_started
                             visit_options={}
@@ -662,6 +675,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             report['learning_rates']=[g['lr'] for g in opt.param_groups]
             report['stopping']=plateau.observe(epoch+1,val['selection'],opt)
         report['training_epoch_io']=training_epoch_io
+        if hotset is not None:report['frozen_visual_hotset']=hotset.summary()
         if visit_profile:
             report['visit_sampling_coverage']=coverage.summary()
             atomic_json(out/'sampling_coverage.json',dict(profile=visit_profile,summary=coverage.summary(),episodes=coverage.state_dict()))
@@ -702,6 +716,11 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         **budget(episodes_per_epoch,epochs))
     if pairing is not None:finished['paired_episode_io']=pairing.summary()
     if offline_planning is not None:finished['offline_planning']=offline_planning
+    if hotset is not None:
+        finished['frozen_visual_hotset']=hotset.summary()
+        finished['stage_process_io']=io_delta(stage_io_start,io_snapshot())
+        finished['peak_cuda_allocated_bytes']=torch.cuda.max_memory_allocated()
+        finished['peak_cuda_reserved_bytes']=torch.cuda.max_memory_reserved()
     atomic_json(out/'finished.json',finished)
 
 

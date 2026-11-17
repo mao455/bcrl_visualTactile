@@ -5,6 +5,7 @@ import torch
 
 TRAINING_ANCHOR_VERSION = 'random_legal_action_anchors_v1'
 GRASP_ANCHOR_VERSION = 'grasp_balanced_legal_action_anchors_v2'
+ONSET_ANCHOR_VERSION = 'preserve_grasp_recovery_onset_anchors_v3'
 
 
 def sampling_profile(seed=2026111501):
@@ -24,7 +25,8 @@ def validate_training_anchor_profile(value):
     if value is None:return None
     if not isinstance(value,dict):
         raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
-    expected=(grasp_sampling_profile(value.get('seed')) if value.get('version')==GRASP_ANCHOR_VERSION
+    expected=(onset_sampling_profile(value.get('seed')) if value.get('version')==ONSET_ANCHOR_VERSION else
+              grasp_sampling_profile(value.get('seed')) if value.get('version')==GRASP_ANCHOR_VERSION
               else sampling_profile(value.get('seed')))
     if value!=expected or any(type(value[k]) is not type(v) for k,v in expected.items()):
         raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
@@ -35,6 +37,13 @@ def grasp_sampling_profile(seed=2026111501):
     return dict(sampling_profile(seed),version=GRASP_ANCHOR_VERSION,
         early_control_ticks=150,early_anchor_fraction=.5,
         shortage='fill_from_remaining_legal_population_without_replacement')
+
+
+def onset_sampling_profile(seed=2026111501):
+    return dict(grasp_sampling_profile(seed), version=ONSET_ANCHOR_VERSION,
+        correction_onset_legal_ticks=24, correction_onset_fraction=.5,
+        original_sampling='unchanged_grasp_v2_including_rng',
+        correction_detection='nonzero_first_legal_tick')
 
 
 def validate_selected_anchors(anchors, *, start, stop, device):
@@ -73,14 +82,15 @@ def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
     if not len(population):raise ValueError('No legal action ticks to sample')
     native_count=len(planning_anchors(record))
     count=min(len(population),max(1,native_count))
-    context=dict(version=profile['version'],seed=profile['seed'],
+    context=dict(version=(GRASP_ANCHOR_VERSION if profile['version']==ONSET_ANCHOR_VERSION and int(population[0])==0 else profile['version']),seed=profile['seed'],
         identity=identity,epoch=epoch,visit_index=visit_index)
     digest=hashlib.sha256(json.dumps(context,sort_keys=True,separators=(',',':')).encode()).hexdigest()
     seed=int(digest[:16],16)%(2**63)
     generator=torch.Generator(device='cpu').manual_seed(seed)
-    if profile['version']==GRASP_ANCHOR_VERSION:
-        early=population[population<profile['early_control_ticks']]
-        late=population[population>=profile['early_control_ticks']]
+    if profile['version'] in (GRASP_ANCHOR_VERSION,ONSET_ANCHOR_VERSION):
+        correction_onset=profile['version']==ONSET_ANCHOR_VERSION and int(population[0])>0
+        early=population[:24] if correction_onset else population[population<profile['early_control_ticks']]
+        late=population[24:] if correction_onset else population[population>=profile['early_control_ticks']]
         early_count=min(len(early),(count+1)//2)
         late_count=min(len(late),count-early_count)
         early_count=min(len(early),count-late_count)
@@ -100,6 +110,9 @@ def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
         receipt.update(early_control_ticks=150,early_selected=int((anchors<150).sum()),
             early_population=len(early),late_population=len(late),
             selection_scope='Training anchors only; all legal ticks remain eligible across visits; deployment/rear plans remain commit12')
+    if profile['version']==ONSET_ANCHOR_VERSION:
+        receipt.update(correction_onset=correction_onset,priority_population=len(early),
+            priority_selected=int(torch.isin(anchors,early).sum()),priority_ticks=early.tolist())
     return anchors,receipt
 
 

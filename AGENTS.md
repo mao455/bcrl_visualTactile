@@ -1,3 +1,21 @@
+## 2026-11-17 fixed76 bounded onset-exposure candidate — preparation
+
+Current authorization supersedes the completed profiling-only scope. Preserve selected72
+full A/B pairs, all valid76 and original400. Diagnose existing numeric evidence first;
+then one candidate with explicit4GiB frozen-feature hotset, unchanged native physics,
+control, architecture, targets and complete histories. Only correction planning-start
+allocation changes: half in first24 legal expert ticks, half remainder; original grasp
+anchors and geometry RNG preserved. Same episode weights, losses, optimizers and phase
+stopping policies. Each DP cap40 traversals/1520 updates; refresh corresponding backend
+inputs, then paired complete-policy development on28824000–007. Opened final20 are
+analysis-only, never new training/development. Conditional DAgger requires later evidence.
+
+Actual root tight_balance76_20261117_01_recovery01; initial preparation failed on optional
+source_data.json before any optimizer/Kit work. Original fixed six-hour deadline retained.
+New outputs budget6GiB,12GiB disk reserve, original data/features reused without copies.
+No claim of training or autonomous improvement yet. See concentrated report and
+research_docs/evidence/tight_long_20261117/balanced76.14 focused tests pass.
+
 ## Current override — 2026-11-17 bounded DP I/O diagnosis
 
 Latest explicit instruction permits only same-state short DP profiling and one
