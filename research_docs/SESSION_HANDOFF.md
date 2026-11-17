@@ -1,3 +1,7 @@
+## 2026-11-17 DP短检远端核验完成
+
+实测与代码提交`b431b44d7c0ded496cf75a8a76bcb3b9795b578a`已推送`origin/feature/tight-state-foundation`。从GitHub固定提交下载本轮全部51个改动文件，共13,345,752字节，均与本地逐字节一致；[下载回执](evidence/tight_long_20261117/dp_io_profile/remote_readback.json)。实际本地分支名为`feature/tight-continuous-vision-20261114`，跟踪并显式推送上述授权远端分支，没有切换或覆盖其他工作树。短检完成，不自动续训。
+
 ## 2026-11-17 DP性能短检已闭合（接续97005f3）
 
 仅同状态A DP短检：baseline224→hotset224，再预登记反序hotset56→baseline56；首个70更新中断单独保留，另一次哈希故障0更新。全部自有worker已退出，不接续长训/DAgger/后端/自主测试。主比较完整阶段393.52→167.90秒、物理读191.59→85.02GB；反序171.34→57.72秒、44.21→38.10GB。磁盘慢读实测，不能把57–66%减少外推为保证收益。读取源头为每epoch完整冻结视觉shard遍历，非动作窗口重复整轨。
