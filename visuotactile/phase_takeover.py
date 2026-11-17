@@ -1,12 +1,14 @@
 """Causal, privileged collection screens. Never inputs, labels, or task criteria."""
 import numpy as np
 VERSION='layout_multistage_recovery_v1'
-STAGES=('transport','near','alignment','weakening')
+STAGES=('transport','near','alignment','weakening','post_subgoal')
 
 def profile(stage):
  if stage not in STAGES:raise ValueError('Unknown recovery stage')
- return dict(version=VERSION,stage=stage,transport_xy_m=.07,near_root_m=.07,
+ result=dict(version=VERSION,stage=stage,transport_xy_m=.07,near_root_m=.07,
   alignment_keypoint_m=.035,held_window=12,confirm_ticks=2,weak_relative_drift_m=.015,weak_root_m=.08)
+ if stage=='post_subgoal':result['minimum_completed_subgoals']=1
+ return result
 
 def validate(configuration,fallback):
  if configuration!=profile(configuration.get('stage')) or fallback!=10**9:
@@ -44,7 +46,10 @@ class PhaseTrigger:
   p=self.configuration
   criteria=dict(transport=held and travel>=p["transport_xy_m"],near=held and root<=p["near_root_m"],
    alignment=held and distance<=p["alignment_keypoint_m"],
-   weakening=recoverable and root<=p["weak_root_m"] and (fingers<2 or drift>=p["weak_relative_drift_m"]))
+   weakening=recoverable and root<=p["weak_root_m"] and (fingers<2 or drift>=p["weak_relative_drift_m"]),
+   post_subgoal=recoverable and root<=p["weak_root_m"]
+    and int(goal_index_before)>=p.get('minimum_completed_subgoals',1)
+    and int(goal_index_after)>=p.get('minimum_completed_subgoals',1))
   self.last=dict(completed_tick=n,held12=held,fingers=fingers,height_above_settled_m=float(pose[2]-self.height),
    travel_xy_m=travel,root_goal_distance_m=root,keypoint_max_distance_m=distance,orientation_error_rad=angle,
    palm_relative_drift_m=drift,goal_before=int(goal_index_before),goal_after=int(goal_index_after))
