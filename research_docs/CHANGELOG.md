@@ -1,3 +1,10 @@
+## 2026-11-17 首次分叉：原轨执行链、真实输入补录和完整历史交叉重放
+
+- 新增`scripts/tight_fork_20261117/{original,capture,replay,exposure,summarize,video,audit,test_replay}.py`及common路径配置；不修改生产网络、控制、训练器。原numeric缺视觉输入，补录一次8lane121tick，不冒充旧轨精确重放。
+- I/O：只读72/76完整checkpoint与合法76；本地保存真实DINO/depth/历史和shadow输出；发布fork_diagnosis小CSV/图像/身份与检查回执。真实历史acknowledge测试通过；四组自重放最大命令误差<1e-6rad，非逐位全网络一致。
+- 原六条执行链逐项匹配，72tick未见bug；同输入早期函数已变，反馈差放大；固定76原早期loss系数不变，不能把总slot占比当训练权重。A002早抬升并不保证最终成功。
+- 0 optimizer/DAgger、无新完整评估，不晋升。保留前物理CPU准入失败及离线cuDNN精度不匹配尝试；后续均同截止闭合。集中报告与handoff更新，后续学习对照仅建议。
+
 ## 2026-11-17 fixed76完整结果与收尾发布
 
 完成 `scripts/tight_balance_20261117/{exposure_review,execution_review,media_export}.py`，扩展coverage_distance按首次偏离前后统计；只读既有真实日志/状态/视频，无新训练或仿真。export_cycle导出完整配置、逐更新采样回执、曲线、计时/读取量与恢复未提交日志，省略公开DP日志逐点geometry数组，原本地日志不变。结果写入现有集中报告与balanced76目录，更新AGENTS/交接最新终态。
