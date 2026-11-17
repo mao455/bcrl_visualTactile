@@ -113,8 +113,17 @@ def role_inputs(root, role, plan, references):
     index_path = directory / 'backend' / role / 'nominal/index.json'
     finished_path = rear_path.parent / 'finished.json'
     finished = read(finished_path)
-    if not finished.get('target_reached') or finished.get('disposable'):
+    if finished.get('disposable'):
         raise ValueError('Current backend formal training is incomplete')
+    if not finished.get('target_reached'):
+        # Reuse the deployment gate for valid bounded-plateau/matched stops.
+        # A diagnostic must not reject an admitted complete pair merely because
+        # it did not exhaust the maximum-epoch insurance budget.
+        from tools.tight_fresh_rollouts import completed_pair
+        admitted = completed_pair(root, role)
+        if (admitted['frontend_sha256'] != sha256(front_path)
+                or admitted['backend_sha256'] != sha256(rear_path)):
+            raise ValueError('Completed-pair admission differs from diagnostic models')
     index = read(index_path)
     saved = torch.load(rear_path, map_location='cpu', weights_only=False)
     config = saved['configuration']

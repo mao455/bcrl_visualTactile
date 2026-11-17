@@ -1,3 +1,11 @@
+## 2026-11-17 — 补充既有误差与纠偏首段只读分析
+
+复用tight_fresh_increment_report与tight_fresh_onset_report读取已有numeric/sample ticks，新增offline_stage_comparison.json与round05_onset_before.json；0模型推理/优化/仿真，不改变活动dd82fc1运行树。固定56长训使原train8手部命令误差下降，但validation6整体及多数后段误差未下降；真实闭环解释仍以既有配对评估为准。round05共1263合法专家tick中首24段仅168，原始8机会/7接管/1未触发与mask分母保持，专家后的shadow不当自主执行。具体数值、阶段和局限见集中诊断报告。
+
+learning_report --budget增加后端分阶段实际曝光，从selected/last的episode_counts和原合法mask重算原始early<150/later、纠偏首24/later，并强制总和分别等于checkpoint.supervised_ticks/control_ticks。实际round04两组谱系共12个后端节点的selected/last核对通过；更新round04_budget.json只增加字段，删除新增字段后与原报告逐项相等，原数字不改。历史缺失episode_counts显式标记不可计算，不补造。24项budget/完整策略准入测试通过。活动训练源码仍冻结，未受报告入口修改影响。
+
+round05后端A合法平台停止18遍/2071更新，暴露只读onset_after仍只认target_reached旧门。该诊断在未达到最大预算时改为复用completed_pair的严格平台/等更新回执、最低曝光、offline与模型hash门，不接受随意提前停止；35项onset/准入检查通过。不是修改训练停止规则或放松部署门，原冻结运行树不改，实际新onset拟合结果待后端B及自主评估闭合后读取。
+
 ## 2026-11-17 — 第二次新DAgger迭代：共同72条训练进行中
 
 selected_for_round05额外4对自主验证A/B均0/4，持物120tick A3/4 B4/4、首子目标各2/4，保留波间变异；没有据一次0/4推翻前8对选模，但也不宣称稳定成功。round05从原训练family24–27采8合法机会，7真实接管7救回、1263有效专家tick，A弱支撑条件未触发。early A/B69tick；transport A158/B132；near A170/B157；weakening B147。控制相位0/1/2/3/9，非统一12步边界，prefix/过渡mask及合法q_reached/u_expert已通过既有实际准入。

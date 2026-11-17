@@ -62,6 +62,27 @@ def budget_audit(root,output):
   backend_exposure='Actual valid expert ticks, student prefixes retained only as history'))
  def load(p):return torch.load(p,map_location='cpu',weights_only=False,mmap=True)
  def rates(c):return [{k:v for k,v in g.items() if k!='params'} for g in c['optimizer']['param_groups']]
+ def rear_exposure(checkpoint):
+  """Count actual completed episode visits, excluding unlabeled prefix ticks."""
+  counts=checkpoint.get('episode_counts')
+  if counts is None:return dict(available=False,reason='Historical checkpoint lacks per-episode visit counts')
+  source=Path(checkpoint['configuration']['source_root'])/'state_data'
+  data=read(source/'data.json');records=load(source/'numeric.pt')['records']
+  original=set(data['normalization_train_ids']);totals=dict(original_early=0,original_later=0,correction_onset24=0,correction_later=0)
+  unique=dict.fromkeys(totals,0);history=0;supervised=0
+  for identity,visits in counts.items():
+   assert identity in checkpoint['train_ids'] and visits>=0
+   mask,_=supervision_rows(records[identity]);tick=mask.nonzero().reshape(-1).numpy()
+   history+=len(mask)*visits;supervised+=len(tick)*visits
+   if not len(tick):continue
+   if identity in original:bins=dict(original_early=tick<150,original_later=tick>=150)
+   else:bins=dict(correction_onset24=tick<tick[0]+24,correction_later=tick>=tick[0]+24)
+   for name,selected in bins.items():
+    n=int(selected.sum());totals[name]+=n*visits;unique[name]+=n if visits else 0
+  assert supervised==checkpoint['supervised_ticks'] and history==checkpoint['control_ticks']
+  assert sum(totals.values())==supervised
+  return dict(available=True,supervised_ticks=supervised,full_history_ticks=history,
+   masked_history_ticks=history-supervised,phase_ticks=totals,phase_unique_episode_ticks=unique)
  def exposure(folder,checkpoint):
   role_root=folder.parent;numeric=role_root.parent/'B/state_data/numeric.pt'
   data=read(role_root/'state_data/data.json');records=load(numeric)['records'];original=set(data['normalization_train_ids'])
@@ -104,7 +125,8 @@ def budget_audit(root,output):
     if component=='DP':row.update(selected_exposure=exposure(folder,c),actual_anchors=last['anchors_seen'],actual_target_slots=last['target_ticks'])
     else:row.update(selected_supervised_ticks=c['supervised_ticks'],selected_control_ticks=c['control_ticks'],
       actual_supervised_ticks=last['supervised_ticks'],frontend=cfg['bases'][role],microbatch=cfg['microbatch'],
-      gradient_window=cfg.get('tick_window_contract'),selected_episode_counts=c.get('episode_counts'))
+      gradient_window=cfg.get('tick_window_contract'),selected_episode_counts=c.get('episode_counts'),
+      selected_phase_exposure=rear_exposure(c),actual_phase_exposure=rear_exposure(last))
     rows.append(row);path=Path(prior['path']) if prior else None
    report['roles'][role][component]=rows
  output.parent.mkdir(parents=True,exist_ok=True);atomic_json(output,report)
