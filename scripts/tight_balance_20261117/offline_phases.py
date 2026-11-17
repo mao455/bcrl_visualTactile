@@ -12,7 +12,7 @@ from visuotactile.precision import state_fp32
 from visuotactile.state_resources import lease_for
 from scripts.tight_balance_20261117.diagnose import phases,BASE,OUT
 from scripts.tight_layout_20261116.publication import write,table
-ROOT=BASE.parent/'tight_balance76_20261117_01_recovery01'
+ROOT=BASE.parent/'tight_balance76_20261117_01_recovery02'
 
 def calculate(review):
  state_fp32();session=json.loads((ROOT/'session.json').read_text());lease=lease_for(review,deadline=session['deadline'])

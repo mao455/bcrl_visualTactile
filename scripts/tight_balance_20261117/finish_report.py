@@ -29,6 +29,8 @@ def main():
       counts['actual'].update(c)
       if row['updates']<=best['updates']:counts['selected'].update(c)
       visits[i]+=1;unique[i].update(ticks.tolist())
+    assert counts['selected']['windows']==best['anchors_seen'] and counts['selected']['target_slots']==best['target_ticks']
+    assert counts['actual']['windows']==finished['anchors_seen'] and counts['actual']['target_slots']==finished['target_ticks']
     exposures.append(dict(role=role,counts={k:dict(v) for k,v in counts.items()},visits=dict(visits),unique_supervised_ticks=sum(map(len,unique.values()))))
    del best
  for p in sorted((ROOT/'logs').glob('*_complete.json')):timing.append(dict(stage=p.stem,**read(p)))
@@ -42,7 +44,10 @@ def main():
   rr=[r for r in rows if r['role']==role];assert len(rr)==8 and len({r['seed'] for r in rr})==8
   counts[role]=dict(opportunities=8,legal=sum(r['legal'] for r in rr),success=sum(r['success'] for r in rr),hold120=sum(r.get('hold120',{}).get('sustained',False) for r in rr),subgoal=sum(bool(r.get('native_subgoals')) for r in rr),software_interruptions=sum(not r['software_complete'] for r in rr))
  telemetry=[]
- for p in ROOT.rglob('resources/resources.jsonl'):
+ old=Path(read(ROOT/'recovery.json')['checkpoint']).parents[4] if (ROOT/'recovery.json').exists() else None
+ monitors=list(ROOT.rglob('resources/resources.jsonl'))
+ if old is not None:monitors+=list(old.rglob('resources/resources.jsonl'))
+ for p in sorted(set(monitors)):
   samples=[json.loads(l) for l in p.open()];dt=np.diff([r['utc_epoch'] for r in samples]);telemetry.append(dict(path=str(p),samples=len(samples),maximum_interval_s=float(dt.max()) if len(dt) else None,min_ram_gib=min(r['ram_available_bytes'] for r in samples)/1024**3,min_gpu_free_mib=min(r['gpu_free_mib'] for r in samples if r.get('gpu_free_mib') is not None),peak_gpu_used_mib=max(r['gpu_used_mib'] for r in samples if r.get('gpu_used_mib') is not None)))
  table(OUT/'training_budget.csv',budgets);table(OUT/'actual_exposure.csv',exposures);table(OUT/'stage_timing.csv',timing);table(OUT/'paired32.csv',rows)
  write(OUT/'completed.json',dict(complete=True,models=models,counts=counts,budgets=budgets,exposures=exposures,timing=timing,telemetry=telemetry,paired_checks=pairs,wave_profiles=profiles,protected_hashes_pass=True,new_dagger=False,baseline_not_replaced=True,free_disk_bytes=shutil.disk_usage(ROOT).free,elapsed_since_registered_start_s=time.time()-read(ROOT/'session.json')['started_utc'],limitations='8 same-wave development pairs per role, not statistical proof or a new blind test. No automatic promotion.'))

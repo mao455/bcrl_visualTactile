@@ -1,3 +1,15 @@
+## 2026-11-17 fixed76：磁盘守卫停止与显式恢复
+
+两DP已完成A874/B722更新（分别选择494/342），A后端已完成2170更新。
+20:19原attempt因磁盘低于12GiB在B后端中止；原failure/日志/检查点保留。
+依赖检查后回收5个I/O profiler临时last权重，释放分配空间5,823,455,232字节；
+保留profiling日志、首步梯度、结果及SHA清单，不再能直接从这些已删权重复算最终参数差。
+清理不涉及72基准、76数据或任何科学候选。
+新attempt recovery02从B durable1170更新/epoch10/group52恢复model、Adam、采样和CPU/CUDA RNG，
+恢复校验通过；4条未提交更新日志另存，不算独立有效新更新。六小时总截止和四小时训练截止保持。
+后续离线及8初态四策略开发已排队；没有新闭环结果、DAgger或晋升。
+证据：balanced76/profile_weight_cleanup.json；本机recovery02/recovery.json与training/restore.json。
+
 ## 2026-11-17 覆盖诊断补充（训练进行中）
 
 同阶段、跨初态family的36维状态最近邻诊断，并不支持“长后缀必然比入口更重复”：

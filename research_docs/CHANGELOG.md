@@ -1,3 +1,15 @@
+## 2026-11-17 fixed76：磁盘守卫停止与显式恢复
+
+两DP已完成A874/B722更新（分别选择494/342），A后端已完成2170更新。
+20:19原attempt因磁盘低于12GiB在B后端中止；原failure/日志/检查点保留。
+依赖检查后回收5个I/O profiler临时last权重，释放分配空间5,823,455,232字节；
+保留profiling日志、首步梯度、结果及SHA清单，不再能直接从这些已删权重复算最终参数差。
+清理不涉及72基准、76数据或任何科学候选。
+新attempt recovery02从B durable1170更新/epoch10/group52恢复model、Adam、采样和CPU/CUDA RNG，
+恢复校验通过；4条未提交更新日志另存，不算独立有效新更新。六小时总截止和四小时训练截止保持。
+后续离线及8初态四策略开发已排队；没有新闭环结果、DAgger或晋升。
+证据：balanced76/profile_weight_cleanup.json；本机recovery02/recovery.json与training/restore.json。
+
 ## 2026-11-17 配对审阅与发布工具准备（运行尚未闭合）
 
 新增 `scripts/tight_balance_20261117/{backend_phases,finish_report,export_cycle,paired_review,plots}.py`：读取真实匹配缓存与逐轨结果，汇总阶段误差、实际更新/曝光、I/O及阶段计时、可观测初态配对和公共曲线。后端诊断共同比较限定72，新增4条单列；未改变活动训练模块、物理或标签。修正汇总持物字段为已有 `sustained`。全部语法检查通过；图中40遍曝光仅CPU预演，尚无新闭环结论。
