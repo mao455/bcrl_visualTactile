@@ -1,3 +1,7 @@
+## 2026-11-17 配对审阅与发布工具准备（运行尚未闭合）
+
+新增 `scripts/tight_balance_20261117/{backend_phases,finish_report,export_cycle,paired_review,plots}.py`：读取真实匹配缓存与逐轨结果，汇总阶段误差、实际更新/曝光、I/O及阶段计时、可观测初态配对和公共曲线。后端诊断共同比较限定72，新增4条单列；未改变活动训练模块、物理或标签。修正汇总持物字段为已有 `sustained`。全部语法检查通过；图中40遍曝光仅CPU预演，尚无新闭环结论。
+
 ## 2026-11-17 fixed76 bounded onset-exposure candidate — preparation
 
 Current authorization supersedes the completed profiling-only scope. Preserve selected72

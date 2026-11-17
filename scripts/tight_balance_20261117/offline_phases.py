@@ -45,6 +45,8 @@ def calculate(review):
    torch.cuda.empty_cache()
   del loader,records;torch.cuda.empty_cache()
  table(OUT/'offline_phase_errors.csv',allrows)
+ from scripts.tight_balance_20261117.backend_phases import calculate as backend_phases
+ backend_phases(ROOT,lease)
  write(OUT/'offline_complete.json',dict(complete=True,seconds=time.time()-started,scope='Teacher-forced legal76, identical fixed native planning and histories; no test used, no autonomy claim'))
 def main():
  review=ROOT/'phase_review';review.mkdir(exist_ok=False)
