@@ -1,3 +1,9 @@
+## 2026-11-17 DP性能短检已闭合（接续97005f3）
+
+仅同状态A DP短检：baseline224→hotset224，再预登记反序hotset56→baseline56；首个70更新中断单独保留，另一次哈希故障0更新。全部自有worker已退出，不接续长训/DAgger/后端/自主测试。主比较完整阶段393.52→167.90秒、物理读191.59→85.02GB；反序171.34→57.72秒、44.21→38.10GB。磁盘慢读实测，不能把57–66%减少外推为保证收益。读取源头为每epoch完整冻结视觉shard遍历，非动作窗口重复整轨。
+
+4GiB不可变GPU hotset只作显式诊断选项，正式默认未改。顺序/曝光、重建mask、最终RNG相同，缓存字节相同；权重最大差2.38e-7，**非逐位相同**。31测试通过，原72完整模型、76数据、原400及依赖均未改动。native_lift是reset前锁存事件，当前接管/采样/选模不以它为必要门槛，原阈值不变。建议下一轮仅一个目标、显式启用有界缓存并监控，不自动展开科研对照。细节与证据见[现有主报告](TIGHT_TRAINING_DIAGNOSIS_20261116.md)及[轻量回执](evidence/tight_long_20261117/dp_io_profile/README.md)。
+
 ## 2026-11-17 发布核验完成
 
 证据提交`bd7c0aef9a9e1bb3fd41d89d4eb161a7b916a5c3`已推送origin/feature/tight-state-foundation；从GitHub raw实际下载24个关键文件共6,932,135bytes，全部与本地相等，包括四manifest、配置、曲线、final40及三视频。[下载回执](evidence/tight_long_20261117/publication/remote_readback.json)已随本次文档补记发布。155个被通用runs/、MP4、log规则忽略的导出已显式跟踪。没有新实验、原始数据删除或算法修改；仍暂停新长训/DAgger。

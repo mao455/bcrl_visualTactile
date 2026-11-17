@@ -1,3 +1,10 @@
+## 2026-11-17 — Bounded same-state DP I/O profile and one opt-in optimization
+
+- Added `FrozenVisualHotset` in `visuotactile/frozen_visual_io.py`: immutable feature residency capped4GiB, data/cache binding, source mutation rejection, >=8GiB fill admission headroom, original mmap fallback. No trainable history, label, backend cache or formal default change.
+- Added `scripts/tight_layout_20261116/dp_io_profile.py`, invoking existing B2 Adam/EMA/geometry/validation paths. Actual224+224 main and56+56 reverse checks completed from same full state; failed0 and interrupted70 updates retained separately. No simulation/DAgger/backend or promoted student checkpoint.
+- Updated existing diagnosis/handoff/direction, exported original receipts, synchronized timing, reconstructed supervision and actual gradient/state residuals under `evidence/tight_long_20261117/dp_io_profile`. Main read reduction55.62%, stage reduction57.33%; storage variability and non-bitwise floating residuals explicit. native_lift audited only, unchanged.
+- Validation:31 focused CPU tests,40 cached-array bytewise round trips, paired sampling/exposure/labels/masks and final RNG equality; actual gradients/model residuals documented rather than called bitwise equal. GPU/CPU headroom held at sampled points; no protected artifacts removed.
+
 ## 2026-11-17 — Publish independently reviewable long-training/DAgger evidence
 
 - Updated root/research entrypoints, main diagnosis and handoff; marked historical running snapshots and paused further experiments.

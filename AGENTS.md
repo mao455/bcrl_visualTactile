@@ -1,3 +1,18 @@
+## Current override — 2026-11-17 bounded DP I/O diagnosis
+
+Latest explicit instruction permits only same-state short DP profiling and one
+bounded immutable-feature I/O optimization, with real validation and semantic
+parity checks. No full long training, DAgger, backend training or autonomous tests.
+Use an independent diagnostic root; preserve selected72 pairs, valid76, original400.
+Read the top of TIGHT_TRAINING_DIAGNOSIS_20261116.md and dp_io_profile evidence.
+Completed baseline224/hotset224 and preregistered reverse56 each; no own trainer
+remains. Earlier interrupted70 updates are separate evidence. Stage/read gains
+are measured but storage-service variability prevents guaranteed long-run scaling.
+Exact input/sampling/RNG parity; tiny floating residuals, NOT bitwise equivalence.
+Hotset stays explicit diagnostic opt-in; formal default and selected models unchanged.
+No automatic further training/DAgger/backend/evaluation from this completed check.
+Historical publication-only restrictions below are superseded only for this scope.
+
 ## Current override — 2026-11-17 publication audit only
 
 Pause expansion of training and DAgger. Completed experiment outputs are preserved.

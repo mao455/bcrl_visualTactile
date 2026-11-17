@@ -1,0 +1,22 @@
+/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.4.3)/charset_normalizer (3.3.2) doesn't match a supported version!
+  warnings.warn(
+{"epoch": 193, "train_seconds": 30.896009063115343, "train_io": {"minor_faults": 639499, "major_faults": 774, "read_bytes": 23075192832, "rchar": 8880854, "syscr": 4103}, "validation_seconds": 3.742253581993282, "validation_io": {"minor_faults": 69544, "major_faults": 200, "read_bytes": 3227127808, "rchar": 1190041, "syscr": 378}, "save_seconds": 1.6279751451220363}
+{"epoch": 194, "train_seconds": 26.768564879894257, "train_io": {"minor_faults": 443760, "major_faults": 1082, "read_bytes": 22669213696, "rchar": 8627849, "syscr": 3530}, "validation_seconds": 3.5372217081021518, "validation_io": {"minor_faults": 50783, "major_faults": 73, "read_bytes": 2933911552, "rchar": 1183656, "syscr": 376}, "save_seconds": 1.3895409819670022}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/scripts/tight_layout_20261116/dp_io_profile.py", line 141, in <module>
+    main(p.parse_args())
+  File "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/scripts/tight_layout_20261116/dp_io_profile.py", line 117, in main
+    result=execute_update(model,opt,ema,objective,ids,[records[i] for i in ids],episodes,noise,selected_anchors=[s[0] for s in selections],anchor_receipts=[s[1] for s in selections],geometry_generators=[s[2] for s in selections],geometry_sampling_profile=profile['geometry'])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/visuotactile/trajectory_training.py", line 112, in execute_update
+    values=supervised_trajectories(model,records,episodes,**(dict(selected_anchors=selected_anchors) if selected_anchors is not None else {}))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/visuotactile/trajectory_batch.py", line 100, in supervised_trajectories
+    for record, (conditions, anchors) in zip(records, encode_trajectories(model, records, episodes,
+                                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/visuotactile/trajectory_batch.py", line 56, in encode_trajectories
+    episode.perception['patches'][start:end].to(device),
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
