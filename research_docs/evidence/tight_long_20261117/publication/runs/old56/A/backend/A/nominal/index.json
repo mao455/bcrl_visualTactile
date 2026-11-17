@@ -1,0 +1,2894 @@
+{
+  "base_sha256": "89fe78bac524da900a53212ef804381ba347d1365e3a76e7d3f40f454f84a683",
+  "data_sha256": "26e22a207231f51fba6952fbca7236e84093c840c5f7ee4dd74b08494ff6014f",
+  "statistics_sha256": "b62c366d37bb554cf88cc970d40fd84ce79b304d6b306c2735925bba2a7e0c34",
+  "residual_version": "target_residual_transformer60_v1",
+  "residual_statistics_sha256": "779baae89d0b06cddc26d5b1e7b77239e9776c1f29cda31ab0bfaabd96124117",
+  "residual_normalization_identity": "u_expert_fresh_train_only_affine_v1",
+  "sampler": {
+    "steps": 16,
+    "seed": 7091,
+    "horizon": 24,
+    "commit": 12,
+    "prediction": "sample"
+  },
+  "inputs": "causal_actual_student_expert_prefix; separate_previous_nominal",
+  "cache_offline_planning_profile": {
+    "version": "offline_contiguous_anchor_batch_v1",
+    "max_anchors": 32,
+    "seed": 7091,
+    "planning_interval_ticks": 12,
+    "inference_steps": 16,
+    "clip_sample": false,
+    "scheduler_index_mode": "host",
+    "noise_draw_shape": [
+      1,
+      24,
+      29
+    ],
+    "same_generator_per_row": true,
+    "split_at_missing_anchors": true,
+    "scope": "offline inference only; unchanged full causal history and optimizer budget"
+  },
+  "frozen_visual_io": {
+    "version": "frozen_visual_mapped_current_v3",
+    "torch_load_mmap": true,
+    "lifetime": "current_episode_or_current_B2_visits_only",
+    "learned_state_cache": false
+  },
+  "supervision_mask_sha256": "589de3ebd622d7914ef98af1ba9f9ae691ca47c870ce0c07f1e0903c18b742cd",
+  "episodes": {
+    "layout10_train_28817000": {
+      "sha256": "21690ce915d0e71492e0d3cdae4f223fa1996f29499a16b641b55624b858667d",
+      "ticks": 296,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817000",
+          "tensor_load_s": 0.0005221960600465536,
+          "file_bytes": 394879501,
+          "loaded_storage_bytes": 394876728,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817001": {
+      "sha256": "3ef522a7bfe4b10d842a87bf3fd4731dbff8f1c2043649e8be2299c50b0a9984",
+      "ticks": 353,
+      "plans": 30,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817001",
+          "tensor_load_s": 0.0005717820022255182,
+          "file_bytes": 470919885,
+          "loaded_storage_bytes": 470917179,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817002": {
+      "sha256": "9bdf6c0ed96ab1256c434606ee78363f0ae7a087e47e1509d4d54ce6dc7804b8",
+      "ticks": 371,
+      "plans": 31,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817002",
+          "tensor_load_s": 0.0005054448265582323,
+          "file_bytes": 494932685,
+          "loaded_storage_bytes": 494929953,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817003": {
+      "sha256": "45bb597fb4c79fa1b3c2929d056ee961c37aca21e449582e380d39f0bafc6ad4",
+      "ticks": 335,
+      "plans": 28,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817003",
+          "tensor_load_s": 0.0005356110632419586,
+          "file_bytes": 446907149,
+          "loaded_storage_bytes": 446904405,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817004": {
+      "sha256": "20b892a92ddcc353f8441431700864c24a7a7b8d73879d0dc08017e2f4a6ce8a",
+      "ticks": 331,
+      "plans": 28,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817004",
+          "tensor_load_s": 0.0005062518175691366,
+          "file_bytes": 441570957,
+          "loaded_storage_bytes": 441568233,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817005": {
+      "sha256": "9bcdfaf76ec3978ee6a1a02fc28ed58671ca61269f95d802f7eefb6a297ee40a",
+      "ticks": 259,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817005",
+          "tensor_load_s": 0.0005265169311314821,
+          "file_bytes": 345519885,
+          "loaded_storage_bytes": 345517137,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817006": {
+      "sha256": "60a46cfb02860f8ee3b2b935b8b9cb62ae7bed7f1f216f7412b8810b020a9093",
+      "ticks": 262,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817006",
+          "tensor_load_s": 0.0005048001185059547,
+          "file_bytes": 349521997,
+          "loaded_storage_bytes": 349519266,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817007": {
+      "sha256": "f165971041db3ad76618b30838a6e4deabc0cdcbf1ec2104002fd007f1cc3db3",
+      "ticks": 570,
+      "plans": 48,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817007",
+          "tensor_load_s": 0.0005176530685275793,
+          "file_bytes": 760407309,
+          "loaded_storage_bytes": 760404510,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817008": {
+      "sha256": "f1f1a69b814a6a271a476f96df0fc0d90f558509a2dc6b2a315293ac6fde677b",
+      "ticks": 314,
+      "plans": 27,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817008",
+          "tensor_load_s": 0.0005036571528762579,
+          "file_bytes": 418892301,
+          "loaded_storage_bytes": 418889502,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817009": {
+      "sha256": "09a0d1a3e7101f687587ecf36f940a089e86847c587d9ba3c6f45ed85cf22b74",
+      "ticks": 308,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817009",
+          "tensor_load_s": 0.0004916561301797628,
+          "file_bytes": 410887949,
+          "loaded_storage_bytes": 410885244,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817010": {
+      "sha256": "ddb9fc6fc5753e1a09c8ecb11216eb8959e096d68acbc5af639daceca2913f96",
+      "ticks": 436,
+      "plans": 37,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817010",
+          "tensor_load_s": 0.0004976459313184023,
+          "file_bytes": 581645453,
+          "loaded_storage_bytes": 581642748,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817011": {
+      "sha256": "8d63fae236e321f6de7e6ecd041834c8abc43f508ceafb011c1bf08e519b79c0",
+      "ticks": 322,
+      "plans": 27,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817011",
+          "tensor_load_s": 0.0005242459010332823,
+          "file_bytes": 429564621,
+          "loaded_storage_bytes": 429561846,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817012": {
+      "sha256": "ea9b1650b0dad99d8ee21311c906c8e47dd9477842aa9d17e117aa5631d1a5f4",
+      "ticks": 288,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817012",
+          "tensor_load_s": 0.0005164430476725101,
+          "file_bytes": 384207117,
+          "loaded_storage_bytes": 384204384,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817013": {
+      "sha256": "108e32c5825a094ca4c8eafd57a70208fa1d3dfd0cda779aaa7b159f0488ed1c",
+      "ticks": 303,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817013",
+          "tensor_load_s": 0.000499760964885354,
+          "file_bytes": 404217741,
+          "loaded_storage_bytes": 404215029,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817014": {
+      "sha256": "81228ae746ed9159f0a175951df73b5c406ce8ee3d8a7d1f2f66a618e55619a0",
+      "ticks": 321,
+      "plans": 27,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817014",
+          "tensor_load_s": 0.0004958168137818575,
+          "file_bytes": 428230541,
+          "loaded_storage_bytes": 428227803,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817015": {
+      "sha256": "9ffcae6f1688656516896947eb5d92b3201d5e2243d9662fe425984f8b5f7d3c",
+      "ticks": 297,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817015",
+          "tensor_load_s": 0.0004892100114375353,
+          "file_bytes": 396213517,
+          "loaded_storage_bytes": 396210771,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817016": {
+      "sha256": "de344c9572aff8ea7a515ed5286e2e13572b4610e7518eaa0ea5b716fe5be183",
+      "ticks": 301,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817016",
+          "tensor_load_s": 0.0004886500537395477,
+          "file_bytes": 401549709,
+          "loaded_storage_bytes": 401546943,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817017": {
+      "sha256": "54521569c11c3a1757ae78c1e6559e82bbf56ef005138e31d026a7bb03c226ee",
+      "ticks": 291,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817017",
+          "tensor_load_s": 0.0004915969911962748,
+          "file_bytes": 388209293,
+          "loaded_storage_bytes": 388206513,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817018": {
+      "sha256": "baee2c0f03b574caf6c8f34802d4a5d0c208dd6a7cd76bcd894654bd1db25351",
+      "ticks": 297,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817018",
+          "tensor_load_s": 0.0005121680442243814,
+          "file_bytes": 396213517,
+          "loaded_storage_bytes": 396210771,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817019": {
+      "sha256": "e564ed73a5cc01c81c7095637efdd2a2f945f5fb71f874ace396fdf66a5f9334",
+      "ticks": 314,
+      "plans": 27,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817019",
+          "tensor_load_s": 0.0004904109518975019,
+          "file_bytes": 418892301,
+          "loaded_storage_bytes": 418889502,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817020": {
+      "sha256": "ad1190b9b528e01a88d3829dfe23b07ca306de2b1948edc48917bf64a31f1e36",
+      "ticks": 292,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817020",
+          "tensor_load_s": 0.00048452988266944885,
+          "file_bytes": 389543309,
+          "loaded_storage_bytes": 389540556,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817021": {
+      "sha256": "3e6f779ee4554beee18939b54d37aa35023468daebe43067cf0c99010556c8f1",
+      "ticks": 274,
+      "plans": 23,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817021",
+          "tensor_load_s": 0.0004874640144407749,
+          "file_bytes": 365530573,
+          "loaded_storage_bytes": 365527782,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817022": {
+      "sha256": "0b6d9a8942cdfdb4b585ce3a2453a071ec5aff279db4552bda6d1c2d64d784bf",
+      "ticks": 303,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817022",
+          "tensor_load_s": 0.00048691313713788986,
+          "file_bytes": 404217741,
+          "loaded_storage_bytes": 404215029,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817023": {
+      "sha256": "9f7334b965113096c3717abcc56e37e84125fea9d947bc990ba927866f546245",
+      "ticks": 303,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817023",
+          "tensor_load_s": 0.0004846169613301754,
+          "file_bytes": 404217741,
+          "loaded_storage_bytes": 404215029,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817024": {
+      "sha256": "c7809b9eaddb690eb2036c829fb6a72a7ca663b6803f5118cf659355d2e6a1bf",
+      "ticks": 284,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817024",
+          "tensor_load_s": 0.0005188528448343277,
+          "file_bytes": 378870925,
+          "loaded_storage_bytes": 378868212,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817025": {
+      "sha256": "f5e7ff68c759ce471ae24948a264d17d7969b33bef520293b9219f3efac9b6bb",
+      "ticks": 368,
+      "plans": 31,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817025",
+          "tensor_load_s": 0.0005236889701336622,
+          "file_bytes": 490930573,
+          "loaded_storage_bytes": 490927824,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817026": {
+      "sha256": "04ac6f209092be38266c7909aebbb4b00df586a006c66297980fc1b56cc6c1bb",
+      "ticks": 297,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817026",
+          "tensor_load_s": 0.0005431598983705044,
+          "file_bytes": 396213517,
+          "loaded_storage_bytes": 396210771,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817027": {
+      "sha256": "23af8854912733522c74b0b1b36967704fc66bf17860f3b71dd534206aecbee1",
+      "ticks": 354,
+      "plans": 30,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817027",
+          "tensor_load_s": 0.0004903841763734818,
+          "file_bytes": 472253965,
+          "loaded_storage_bytes": 472251222,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817028": {
+      "sha256": "1c933c2dcc8494ec459128567361867de3b01c144181a15ebf85b5d469fd6072",
+      "ticks": 283,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817028",
+          "tensor_load_s": 0.0004873939324170351,
+          "file_bytes": 377536909,
+          "loaded_storage_bytes": 377534169,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_train_28817029": {
+      "sha256": "6ed80cf4813de755f1815239bcd28d4496324820dbcfdf5da54475cbd8ff4afd",
+      "ticks": 282,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817029",
+          "tensor_load_s": 0.000500889029353857,
+          "file_bytes": 376202893,
+          "loaded_storage_bytes": 376200126,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_A_layout10_train_28817003_contact_height_only_d0": {
+      "sha256": "9838b2b3301218ee1358c18eab7145667969244f0a533b53185f1516ce7194a6",
+      "ticks": 252,
+      "plans": 21,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_A_layout10_train_28817003_contact_height_only_d0",
+          "tensor_load_s": 0.0004988629370927811,
+          "file_bytes": 336182127,
+          "loaded_storage_bytes": 336178836,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_A_layout10_train_28817001_contact_height_only_d0": {
+      "sha256": "d8c266f54a79262c75e8bc9284eb8567a6b92c0f99334a445d70a6578a45e4e6",
+      "ticks": 258,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_A_layout10_train_28817001_contact_height_only_d0",
+          "tensor_load_s": 0.0004855361767113209,
+          "file_bytes": 344186351,
+          "loaded_storage_bytes": 344183094,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_B_layout10_train_28817001_contact_height_only_d0": {
+      "sha256": "47adf78bd5cd1ea3d801c9a25cb7548b2188b65f5756cc3bff20d1ca14ed29e7",
+      "ticks": 271,
+      "plans": 23,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_B_layout10_train_28817001_contact_height_only_d0",
+          "tensor_load_s": 0.0004927688278257847,
+          "file_bytes": 361528943,
+          "loaded_storage_bytes": 361525653,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_B_layout10_train_28817002_contact_height_only_d0": {
+      "sha256": "723f9abc49799e907af676375211d2f8dffdb6d4cb459ae94cc83bc5136a463c",
+      "ticks": 277,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_B_layout10_train_28817002_contact_height_only_d0",
+          "tensor_load_s": 0.0005200330633670092,
+          "file_bytes": 369533167,
+          "loaded_storage_bytes": 369529911,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_B_layout10_train_28817003_contact_height_only_d0": {
+      "sha256": "2b140acec523067bf882039eaa0021bf50b31a20e3a200d575c7ad03ed9ff5e7",
+      "ticks": 300,
+      "plans": 25,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_B_layout10_train_28817003_contact_height_only_d0",
+          "tensor_load_s": 0.0005149298813194036,
+          "file_bytes": 400216175,
+          "loaded_storage_bytes": 400212900,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_B_layout10_train_28817000_contact_height_only_d0": {
+      "sha256": "a8a50f13d1ad48f78f3c106845270c22f237a4aa99fc59b60b08085b81079560",
+      "ticks": 312,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_B_layout10_train_28817000_contact_height_only_d0",
+          "tensor_load_s": 0.0004959800280630589,
+          "file_bytes": 416224687,
+          "loaded_storage_bytes": 416221416,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r01_A_layout10_train_28817000_contact_height_only_d0": {
+      "sha256": "0c3b42a506aef209a2786d7a6172c7faeaaa49fce910fbe80babb61a4476ebe8",
+      "ticks": 341,
+      "plans": 29,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r01_A_layout10_train_28817000_contact_height_only_d0",
+          "tensor_load_s": 0.0004922559019178152,
+          "file_bytes": 454911919,
+          "loaded_storage_bytes": 454908663,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_B_layout10_train_28817005_contact_height_only_d0": {
+      "sha256": "0f193b3443915a8eefa4aeb599b63876aa295657c5dab5178f39b71a474a0529",
+      "ticks": 239,
+      "plans": 20,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_B_layout10_train_28817005_contact_height_only_d0",
+          "tensor_load_s": 0.0005021539982408285,
+          "file_bytes": 318839599,
+          "loaded_storage_bytes": 318836277,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_A_layout10_train_28817005_contact_height_only_d0": {
+      "sha256": "8bb73ace1224190f29cd2a62a06ec33fd72633b74be8189ffc7dff2cd4b278e1",
+      "ticks": 264,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_A_layout10_train_28817005_contact_height_only_d0",
+          "tensor_load_s": 0.0005026229191571474,
+          "file_bytes": 352190639,
+          "loaded_storage_bytes": 352187352,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_B_layout10_train_28817004_contact_height_only_d0": {
+      "sha256": "d9a3694465107871ada24687f1847b19a53d58f83eee25684de2313b96ca1d21",
+      "ticks": 336,
+      "plans": 28,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_B_layout10_train_28817004_contact_height_only_d0",
+          "tensor_load_s": 0.0004962040111422539,
+          "file_bytes": 448241711,
+          "loaded_storage_bytes": 448238448,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_B_layout10_train_28817007_contact_height_only_d0": {
+      "sha256": "86b62ff7c96f32797390fba0de7433e082a96783757f3e1a95ff14bc4a9756fc",
+      "ticks": 251,
+      "plans": 21,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_B_layout10_train_28817007_contact_height_only_d0",
+          "tensor_load_s": 0.0004899648483842611,
+          "file_bytes": 334848047,
+          "loaded_storage_bytes": 334844793,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_A_layout10_train_28817006_contact_height_only_d0": {
+      "sha256": "f380b312dc1850a7a83b9a0786ac24b577e3eb4ba0de3a01632553180d07c483",
+      "ticks": 265,
+      "plans": 23,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_A_layout10_train_28817006_contact_height_only_d0",
+          "tensor_load_s": 0.0004930160939693451,
+          "file_bytes": 353524719,
+          "loaded_storage_bytes": 353521395,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_B_layout10_train_28817006_contact_height_only_d0": {
+      "sha256": "3bbb2ed7fed2f0926ac3529fdbd4b58f6db6217fa7f28977b7b0832b5940f12a",
+      "ticks": 269,
+      "plans": 23,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_B_layout10_train_28817006_contact_height_only_d0",
+          "tensor_load_s": 0.0004984810948371887,
+          "file_bytes": 358860847,
+          "loaded_storage_bytes": 358857567,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_A_layout10_train_28817007_contact_height_only_d0": {
+      "sha256": "97127a5dc8fdcd076a755ee2719026e24bc1bdd681a5cf20a71ca3d18ae71f4b",
+      "ticks": 288,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_A_layout10_train_28817007_contact_height_only_d0",
+          "tensor_load_s": 0.0004879941698163748,
+          "file_bytes": 384207663,
+          "loaded_storage_bytes": 384204384,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_B_layout10_train_28817011_phase_early": {
+      "sha256": "084faa26aabb29ba8b61fe169c812a4efa3a5c02b201af17e5c47672dd6c0d12",
+      "ticks": 252,
+      "plans": 21,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_B_layout10_train_28817011_phase_early",
+          "tensor_load_s": 0.0004917089827358723,
+          "file_bytes": 336181889,
+          "loaded_storage_bytes": 336178836,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_B_layout10_train_28817009_phase_alignment": {
+      "sha256": "27f87f2ea9a783363d2e85f4094cbec5303db6e48c80d86705dbbcc00c712f57",
+      "ticks": 251,
+      "plans": 21,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_B_layout10_train_28817009_phase_alignment",
+          "tensor_load_s": 0.000489808851853013,
+          "file_bytes": 334847849,
+          "loaded_storage_bytes": 334844793,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_A_layout10_train_28817009_phase_alignment": {
+      "sha256": "573a34a54cf421effaf9e8ffa6002cbae50004749c300838fb353e0b3818f322",
+      "ticks": 279,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_A_layout10_train_28817009_phase_alignment",
+          "tensor_load_s": 0.0005011288449168205,
+          "file_bytes": 372201065,
+          "loaded_storage_bytes": 372197997,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_A_layout10_train_28817011_phase_early": {
+      "sha256": "7d4e8ad5b1cb011f2b13a0869c5fc917d96f4926e9e122c1542da501458207a4",
+      "ticks": 311,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_A_layout10_train_28817011_phase_early",
+          "tensor_load_s": 0.0004924989771097898,
+          "file_bytes": 414890433,
+          "loaded_storage_bytes": 414887373,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r02_A_layout10_train_28817010_phase_weakening": {
+      "sha256": "e8cd45c2a64a1ab174a6cd18678c351d6f7af3a610ebf531a4924a0d60a39fc5",
+      "ticks": 373,
+      "plans": 32,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r02_A_layout10_train_28817010_phase_weakening",
+          "tensor_load_s": 0.0004955311305820942,
+          "file_bytes": 497601129,
+          "loaded_storage_bytes": 497598039,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_B_layout10_train_28817013_phase_near": {
+      "sha256": "c01a35a5d4e6e0111e9a215123e22e79b123fae762e6e6e596f161d2614018a3",
+      "ticks": 262,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_B_layout10_train_28817013_phase_near",
+          "tensor_load_s": 0.00047699781134724617,
+          "file_bytes": 349522231,
+          "loaded_storage_bytes": 349519266,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_A_layout10_train_28817013_phase_near": {
+      "sha256": "f4261252e128dd2af81392801702829a393f0b0e0681c37fec509436119ab675",
+      "ticks": 264,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_A_layout10_train_28817013_phase_near",
+          "tensor_load_s": 0.00047541502863168716,
+          "file_bytes": 352190391,
+          "loaded_storage_bytes": 352187352,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_B_layout10_train_28817014_phase_weakening": {
+      "sha256": "e0243ea5cd0de2f6698add64b4c4a940b276cff265caf4694fc05314d7fcbae2",
+      "ticks": 265,
+      "plans": 23,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_B_layout10_train_28817014_phase_weakening",
+          "tensor_load_s": 0.0004885329399257898,
+          "file_bytes": 353524521,
+          "loaded_storage_bytes": 353521395,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_A_layout10_train_28817015_phase_early": {
+      "sha256": "6cc461afe9e8c49b4fef4d1620044a7938c0f4d0a7e819c06a885df7a93c9eb5",
+      "ticks": 285,
+      "plans": 24,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_A_layout10_train_28817015_phase_early",
+          "tensor_load_s": 0.00048544490709900856,
+          "file_bytes": 380205313,
+          "loaded_storage_bytes": 380202255,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_B_layout10_train_28817012_phase_alignment": {
+      "sha256": "f485939e0fea1a5d769e865c89d76358e94d58b7c5106b3d780843322f08e002",
+      "ticks": 358,
+      "plans": 30,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_B_layout10_train_28817012_phase_alignment",
+          "tensor_load_s": 0.0004910498391836882,
+          "file_bytes": 477590441,
+          "loaded_storage_bytes": 477587394,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_B_layout10_train_28817015_phase_early": {
+      "sha256": "5cd9c5c071b45ec9ecf59115380b6587c522b3efe4766da7bf09c86ef778cb99",
+      "ticks": 381,
+      "plans": 32,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_B_layout10_train_28817015_phase_early",
+          "tensor_load_s": 0.000483532901853323,
+          "file_bytes": 508273409,
+          "loaded_storage_bytes": 508270383,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "r03_A_layout10_train_28817012_phase_alignment": {
+      "sha256": "a5990db4246a00f4268fe7be5613685b5983177324b397dade6f2ebb71ba44d9",
+      "ticks": 445,
+      "plans": 38,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "r03_A_layout10_train_28817012_phase_alignment",
+          "tensor_load_s": 0.00048278016038239,
+          "file_bytes": 593652201,
+          "loaded_storage_bytes": 593649135,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_validation_28818000": {
+      "sha256": "61073e4e3de6e67df7572237de6d18c4217e828af791016bf09da9280c92a3f8",
+      "ticks": 257,
+      "plans": 22,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818000",
+          "tensor_load_s": 0.0005327449180185795,
+          "file_bytes": 342851839,
+          "loaded_storage_bytes": 342849051,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_validation_28818001": {
+      "sha256": "d375a66b2b472fb3d67165057fd99de2751ba81caec5a5a7b156e970e021ab61",
+      "ticks": 307,
+      "plans": 26,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818001",
+          "tensor_load_s": 0.000490324106067419,
+          "file_bytes": 409553983,
+          "loaded_storage_bytes": 409551201,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_validation_28818002": {
+      "sha256": "8ca37940d31ad806b81f0ca54179462c7c05fcc5c08683e095d386314c1dba1a",
+      "ticks": 339,
+      "plans": 29,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818002",
+          "tensor_load_s": 0.00048785004764795303,
+          "file_bytes": 452243391,
+          "loaded_storage_bytes": 452240577,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_validation_28818003": {
+      "sha256": "b8f8f695b276e8e0a1e3ef41574d5daa08f28d2d6f55dd83f14068f32c7ca85b",
+      "ticks": 358,
+      "plans": 30,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818003",
+          "tensor_load_s": 0.0004836730659008026,
+          "file_bytes": 477590207,
+          "loaded_storage_bytes": 477587394,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_validation_28818004": {
+      "sha256": "7fb5189541b3b5ad482698393d7e6825147f47eb7869bdf64ea5e19ca19126c2",
+      "ticks": 343,
+      "plans": 29,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818004",
+          "tensor_load_s": 0.00048416992649435997,
+          "file_bytes": 457579583,
+          "loaded_storage_bytes": 457576749,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    },
+    "layout10_validation_28818005": {
+      "sha256": "e2c63fbd25173b12c35c7c1a1d8d4166e05fb5fafb459b12c51e7dcff8e17bd1",
+      "ticks": 239,
+      "plans": 20,
+      "implementation": {
+        "transfer_mode": "episode",
+        "scheduler_index_mode": "host",
+        "offline_planning_profile": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_io": {
+          "version": "frozen_visual_mapped_current_v3",
+          "torch_load_mmap": true,
+          "lifetime": "current_episode_or_current_B2_visits_only",
+          "learned_state_cache": false
+        },
+        "frozen_visual_io_receipt": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818005",
+          "tensor_load_s": 0.0005037439987063408,
+          "file_bytes": 318839103,
+          "loaded_storage_bytes": 318836277,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        }
+      }
+    }
+  }
+}

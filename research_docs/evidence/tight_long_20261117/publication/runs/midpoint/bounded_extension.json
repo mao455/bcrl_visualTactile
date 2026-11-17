@@ -1,0 +1,91 @@
+{
+  "policy": {
+    "version": "fixed56_long_budget_v1",
+    "kind": "frontend",
+    "maximum_epochs": 192,
+    "minimum_epochs": 192,
+    "patience": 24,
+    "relative_improvement": 0.005,
+    "lr_factor": 0.5,
+    "maximum_reductions": 1,
+    "activate_after_epoch": 96
+  },
+  "roles": {
+    "A": {
+      "version": "fixed56_full_state_extension_v1",
+      "last_sha256": "dce6d7552415dcf008c1e08182f62446a744faa82c0898060f40f7db8e5d4620",
+      "old_policy": {
+        "version": "phase_dagger_budget_v1",
+        "kind": "frontend",
+        "maximum_epochs": 40,
+        "minimum_epochs": 16,
+        "patience": 5,
+        "relative_improvement": 0.005,
+        "lr_factor": 0.5,
+        "maximum_reductions": 1,
+        "activate_after_epoch": 8
+      },
+      "new_policy": {
+        "version": "fixed56_long_budget_v1",
+        "kind": "frontend",
+        "maximum_epochs": 192,
+        "minimum_epochs": 192,
+        "patience": 24,
+        "relative_improvement": 0.005,
+        "lr_factor": 0.5,
+        "maximum_reductions": 1,
+        "activate_after_epoch": 96
+      },
+      "new_budget": {
+        "episodes_per_epoch": 56,
+        "optimizer_updates_per_epoch": 28,
+        "planned_episode_visits": 10752,
+        "planned_optimizer_updates": 5376,
+        "planned_ema_updates": 5376,
+        "tail_singletons_per_epoch": 0
+      },
+      "restart_learning_rate": 3e-05,
+      "original_epoch": 26,
+      "original_updates": 728,
+      "additional_updates": 4648
+    },
+    "B": {
+      "version": "fixed56_full_state_extension_v1",
+      "last_sha256": "5decaef67cd2ff4a967da94da72c7ad0732a9283d93b10aa396e07bc464fe9b5",
+      "old_policy": {
+        "version": "phase_dagger_budget_v1",
+        "kind": "frontend",
+        "maximum_epochs": 40,
+        "minimum_epochs": 16,
+        "patience": 5,
+        "relative_improvement": 0.005,
+        "lr_factor": 0.5,
+        "maximum_reductions": 1,
+        "activate_after_epoch": 8
+      },
+      "new_policy": {
+        "version": "fixed56_long_budget_v1",
+        "kind": "frontend",
+        "maximum_epochs": 192,
+        "minimum_epochs": 192,
+        "patience": 24,
+        "relative_improvement": 0.005,
+        "lr_factor": 0.5,
+        "maximum_reductions": 1,
+        "activate_after_epoch": 96
+      },
+      "new_budget": {
+        "episodes_per_epoch": 56,
+        "optimizer_updates_per_epoch": 28,
+        "planned_episode_visits": 10752,
+        "planned_optimizer_updates": 5376,
+        "planned_ema_updates": 5376,
+        "tail_singletons_per_epoch": 0
+      },
+      "restart_learning_rate": 3e-05,
+      "original_epoch": 21,
+      "original_updates": 588,
+      "additional_updates": 4788
+    }
+  }
+}

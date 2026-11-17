@@ -1,0 +1,38 @@
+[
+  {
+    "name": "rdp",
+    "commit": "824c5e8de1fd1811106907a04b5f0186e0138c0b",
+    "url": "https://raw.githubusercontent.com/xiaoxiaoxh/reactive_diffusion_policy/824c5e8de1fd1811106907a04b5f0186e0138c0b/reactive_diffusion_policy/config/train_latent_diffusion_unet_real_image_workspace.yaml",
+    "sha256": "494e57a7ef24a386b46e503c2567ab9157283e6e031dadcd921eef15a1b4e05d",
+    "settings_lines": [
+      "  batch_size: 64",
+      "  # batch_size: 32",
+      "  batch_size: 64",
+      "  # batch_size: 32",
+      "  resume: True",
+      "  lr_scheduler: cosine",
+      "  num_epochs: 401",
+      "  gradient_accumulate_every: 1",
+      "  use_ema: True",
+      "  resume: True",
+      "    monitor_key: train_loss"
+    ]
+  },
+  {
+    "name": "dp3",
+    "commit": "47385d9d6f5bde3f2ebdf2400ecb8261cc9e6b97",
+    "url": "https://raw.githubusercontent.com/YanjieZe/3D-Diffusion-Policy/47385d9d6f5bde3f2ebdf2400ecb8261cc9e6b97/3D-Diffusion-Policy/diffusion_policy_3d/config/dp3.yaml",
+    "sha256": "e2ce0baf1044d243281a891e438fc37b6717256d2fab13242d35386b0385fb2a",
+    "settings_lines": [
+      "  batch_size: 128",
+      "  batch_size: 128",
+      "  resume: True",
+      "  lr_scheduler: cosine",
+      "  num_epochs: 3000",
+      "  gradient_accumulate_every: 1",
+      "  use_ema: True",
+      "  resume: true",
+      "    monitor_key: test_mean_score"
+    ]
+  }
+]

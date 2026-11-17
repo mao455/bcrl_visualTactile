@@ -1,0 +1,108 @@
+[
+  {
+    "wave": 0,
+    "role": "mixed",
+    "controller_s": 62.14555769902654,
+    "environment_s": 104.47356395237148,
+    "expert_s": 0.0698837973177433,
+    "record_submit_s": 19.762700073653832,
+    "finish_audit_s": 1.998390869004652,
+    "reset_refill_s": 0.0,
+    "active_lane_steps": 4306,
+    "allocated_lane_steps": 4808,
+    "refills": 0,
+    "finished_before_queue_empty": 0,
+    "seconds": 196.36458285711706,
+    "cases": 8,
+    "control_ticks": 4306,
+    "vision_execution": {
+      "version": "gpu_observation_history_control_v1",
+      "roles": {
+        "A": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 4,
+          "images_per_kernel": 12,
+          "forward_features_calls": 0,
+          "real_lanes": 2174,
+          "padding_lanes": 0,
+          "real_images": 6522,
+          "processed_images": 0,
+          "controller_calls": 601,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            371,
+            0,
+            0,
+            601,
+            601,
+            0,
+            0,
+            601
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        },
+        "B": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 4,
+          "images_per_kernel": 12,
+          "forward_features_calls": 0,
+          "real_lanes": 2132,
+          "padding_lanes": 0,
+          "real_images": 6396,
+          "processed_images": 0,
+          "controller_calls": 601,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            0,
+            329,
+            601,
+            0,
+            0,
+            601,
+            601,
+            0
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        }
+      },
+      "calls": 1202,
+      "real_lanes": 4306,
+      "processed_images": 14424,
+      "padding_lanes": 502
+    },
+    "render_transitions": [
+      {
+        "lane": 1,
+        "enabled": false,
+        "utc": 1794897970.8850958
+      },
+      {
+        "lane": 0,
+        "enabled": false,
+        "utc": 1794897988.2363784
+      },
+      {
+        "lane": 0,
+        "enabled": true,
+        "utc": 1794898048.5015435
+      },
+      {
+        "lane": 1,
+        "enabled": true,
+        "utc": 1794898048.506144
+      }
+    ],
+    "camera_reactivation": [],
+    "aggregate_control_ticks_per_second": 21.928598005543712,
+    "active_lane_fraction": 0.8955906821963394,
+    "render_reuse": {
+      "render_calls": 610,
+      "render_seconds": 49.30443805758841,
+      "redundant_reader_renders_avoided": 599,
+      "reader_renders_required": 3,
+      "invalidations": 16
+    },
+    "admission_s": 0.0,
+    "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+  }
+]

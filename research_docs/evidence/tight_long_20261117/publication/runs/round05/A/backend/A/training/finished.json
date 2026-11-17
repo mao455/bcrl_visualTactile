@@ -1,0 +1,244 @@
+{
+  "stop_reason": "validation_plateau_after_lr_reduction",
+  "updates": 2071,
+  "control_tick_epochs": 18.0,
+  "bounded_extension": {
+    "version": "phase_dagger_budget_v1",
+    "kind": "backend",
+    "maximum_epochs": 24,
+    "minimum_epochs": 12,
+    "patience": 5,
+    "relative_improvement": 0.005,
+    "lr_factor": 0.5,
+    "maximum_reductions": 1,
+    "activate_after_epoch": 8
+  },
+  "plateau_state": {
+    "best": 0.00029712964897044003,
+    "bad": 5,
+    "reductions": 1,
+    "stop": true,
+    "events": [
+      {
+        "epoch": 1,
+        "score": 0.0003044969926122576,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 2,
+        "score": 0.00031281658448278904,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 3,
+        "score": 0.0003097203152719885,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 4,
+        "score": 0.0003077531582675874,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 5,
+        "score": 0.00029712964897044003,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 6,
+        "score": 0.000305342924548313,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 7,
+        "score": 0.00030050938948988914,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 8,
+        "score": 0.0003007184132002294,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 9,
+        "score": 0.0002977008989546448,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 10,
+        "score": 0.0003002886660397053,
+        "event": "observe",
+        "bad": 2,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 11,
+        "score": 0.00030204563518054783,
+        "event": "observe",
+        "bad": 3,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 12,
+        "score": 0.00030027679167687893,
+        "event": "observe",
+        "bad": 4,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 13,
+        "score": 0.0002973551454488188,
+        "event": "reduce_lr",
+        "bad": 0,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 14,
+        "score": 0.0002998944837599993,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 15,
+        "score": 0.0002964107261504978,
+        "event": "observe",
+        "bad": 2,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 16,
+        "score": 0.0002995867980644107,
+        "event": "observe",
+        "bad": 3,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 17,
+        "score": 0.0002974437375087291,
+        "event": "observe",
+        "bad": 4,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 18,
+        "score": 0.00029713110416196287,
+        "event": "stop_validation_plateau",
+        "bad": 5,
+        "next_learning_rates": [
+          5e-05
+        ]
+      }
+    ]
+  },
+  "bounded_training_complete": true,
+  "formal_updates": 2071,
+  "disposable": false,
+  "run_kind": "formal",
+  "target_reached": false,
+  "required_supervised_ticks": 398712,
+  "new_optimizer_updates": 2071,
+  "continuation_from": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/matched_old56/A/backend/A/training/best.pt",
+    "sha256": "04ee9ed5163f63ab68b8b6c6ce28216f65c6871e1c121bafd517d92823aca6ff",
+    "teacher_supervision": "u_expert",
+    "statistics_sha256": "779baae89d0b06cddc26d5b1e7b77239e9776c1f29cda31ab0bfaabd96124117",
+    "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+    "round_index": 5,
+    "source_group": "A"
+  },
+  "tick_window_contract": {
+    "version": "fixed_supervised_tick_window_v1",
+    "target_supervised_ticks": 128,
+    "denominator": "fixed_unweighted_target_ticks",
+    "flush": "complete_episode_group",
+    "chunk_boundary": "unsplit_32tick"
+  },
+  "schedule_maximum_control_tick_epochs": 24,
+  "required_control_tick_epochs": 24,
+  "train_episode_count": 72,
+  "effective_batch": 4,
+  "minimum_control_tick_epochs": 12,
+  "minimum_exposure_reached": true,
+  "sampled_contact_anchors": 233442,
+  "contact_anchor_population": 12969,
+  "control_tick_population": 22165,
+  "supervised_tick_population": 16613,
+  "supervised_ticks": 299034,
+  "control_ticks": 398970,
+  "control_equivalent_epochs": 18.0,
+  "wall_s": 516.6557319164276,
+  "supervised_ticks_per_wall_s": 578.7877317509528,
+  "setup_wall_s": 0.6851906776428223,
+  "training_wall_s": 475.6243875026703,
+  "supervised_ticks_per_training_wall_s": 628.718812275624,
+  "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+  "wait_s": 3.1194654940627515,
+  "work_s": 503.0120699321851,
+  "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+  "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+  "excess_supervised_ticks": 0,
+  "coverage": {
+    "supervised_ticks": 299034,
+    "unique_episodes": 72,
+    "repeated_samples": 1224,
+    "episode_draws": 1296,
+    "strata": {}
+  },
+  "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/A/backend/A/training/last.pt",
+  "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/A/backend/A/training/best.pt",
+  "utc": 1794890788.4071925,
+  "base_optimizer_updates": 0
+}

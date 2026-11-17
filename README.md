@@ -1,4 +1,4 @@
-> Tight-Insertion 当前研究：完整A/B学生使用每60Hz真实三视角RGB-D与持续历史，5Hz规划，持续进行真实状态DAgger。当前训练池170条、76个训练初态family；第九批52条新成功纠偏正在训练，专家救回不等于学生自主成功。随机合法起点、扩大几何抽样与有限批量循环已实现，实际运行及结果见[研究入口](research_docs/README.md)、[交接](research_docs/SESSION_HANDOFF.md)和[合同](research_docs/CONTRACTS.md)。
+> Tight-Insertion（2026-11-17）：10cm布局、共同76条有效训练数据；完成固定56长训、三轮共享DAgger和新20对自主测试，选中72条完整模型，A/B各3/20。当前暂停新实验，只完成证据整理。[实验与时间账](research_docs/TIGHT_TRAINING_DIAGNOSIS_20261116.md) · [远端可复核证据入口](research_docs/evidence/tight_long_20261117/publication/README.md) · [交接](research_docs/SESSION_HANDOFF.md)。
 
 # Play2Perfect
 

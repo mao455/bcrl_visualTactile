@@ -1,3 +1,13 @@
+## Current override — 2026-11-17 publication audit only
+
+Pause expansion of training and DAgger. Completed experiment outputs are preserved.
+This invocation exports lightweight evidence and reviews/pushes documentation only;
+no new optimizer updates, collection or simulation. Read the top of
+research_docs/TIGHT_TRAINING_DIAGNOSIS_20261116.md and the publication evidence index.
+The completed run spans 13h38m58s; shared76 data and selected72 full pairs remain.
+Original400, all valid76, experts, visual weights and necessary dependencies are protected.
+Historical running/authorization snapshots below do not authorize automatic new runs.
+
 ## 2026-11-17 完成：固定56长训、三次DAgger、等更新对照与新20对测试
 
 读SESSION_HANDOFF/集中诊断最新结论。01:50:52–15:29:50(+08)全部实际闭合，所有自有worker/25monitor退出。新test A3/20 B3/20，40合法、0软件中断、实际配对通过；前段持物120均12/20，首子目标均6/20，仍不稳定。最终按预登记八对开发选择共同72条完整A/B，76条候选退化但数据/模型保留。原400/当前76/专家/DINO/必要回退完整，源依赖1445存在；本session未删除，剩余28.49GiB。测试打开后无训练/选模，不自动重启。

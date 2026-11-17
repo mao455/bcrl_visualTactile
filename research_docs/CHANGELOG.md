@@ -1,3 +1,11 @@
+## 2026-11-17 — Publish independently reviewable long-training/DAgger evidence
+
+- Updated root/research entrypoints, main diagnosis and handoff; marked historical running snapshots and paused further experiments.
+- Added one read-only exporter, `scripts/tight_layout_20261116/publication.py`, and lightweight evidence under `evidence/tight_long_20261117/publication`: actual configurations, manifests/provenance, original update/epoch numbers, lineage, all autonomous/collection rows, timing receipts and three hash-identical short videos/keyframes. No training algorithm/control change, no source artifacts deleted.
+- Checked A/B actual ID sets, clean expert masks for all46 mixed records, ten DP/backend cache bindings, 40 unique final role/seed pairs and event intersections. 184 autonomous executions are distinct from64 historical/new collection opportunities. Timing95 intervals sum to49,137.618s without overlap; unknown26.53min remains explicit.
+- Corrected interpretation: shared data does not imply identical labels, equal updates do not imply equal exposure, selected05 has A-old56/B-new65 parents, all six final successes lack native_lift diagnostic. Literature512 is a query-loss batch in Diff-DAgger, not verified training batch.
+- Validation is read-only export assertions, JSON/CSV/gzip parsing, local link checks, source hashes and post-push remote checks; no expensive experiment rerun.
+
 ## 2026-11-17 — 完成固定数据长训、三次共享DAgger与40次新测试
 
 新增真实闭合报告final_comparison00–03/final_selection：同波72条A2/8 B0/8、76条均0/8，严格按预登记整套选择72并冻结四模型。final_test/final_part0–4/final_stages实际40合法0软件中断，A/B各3/20完整原生插入；持物120各12/20，首子目标各6/20。无test后参数更新/选模。final_audit逐模型/专家/DINO哈希、400manifest及文件大小、1445源依赖和全部owner/monitor退出核验通过；记录17.67秒监控间隔/最低RAM10.75GiB，未隐藏资源限制。报告汇总首次遇短monitor的null完整60秒均值，CPU报告过滤无定义值后正常完成，0物理重复。

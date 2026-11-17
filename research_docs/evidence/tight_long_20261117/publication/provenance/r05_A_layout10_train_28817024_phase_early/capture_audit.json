@@ -1,0 +1,84 @@
+{
+  "passed": true,
+  "finding": "No bare-DP collection problem found in actual numeric execution",
+  "identity": "r05_A_layout10_train_28817024_phase_early",
+  "frontend_sha256": "89fe78bac524da900a53212ef804381ba347d1365e3a76e7d3f40f454f84a683",
+  "backend_sha256": "04ee9ed5163f63ab68b8b6c6ce28216f65c6871e1c121bafd517d92823aca6ff",
+  "checkpoint_files_checked": true,
+  "embedded_pair_identity": true,
+  "student_ticks": 69,
+  "residual_forward_ticks": 313,
+  "valid_expert_ticks": 242,
+  "zero_correction_student_ticks": 0,
+  "correction_must_be_nonzero": false,
+  "maximum_absolute_errors_rad": {
+    "nominal_plus_residual_to_proposal": 2.9802322387695312e-08,
+    "recorded_nominal": 0.0,
+    "student_proposal_to_issued": 0.0,
+    "issued_to_applied": 0.0,
+    "applied_to_actuator_target": 0.0,
+    "trace_issued": 0.0,
+    "expert_command_to_applied": 0.0,
+    "new_shared_reachable_command_identity": 0.0,
+    "q_reached_to_observed_after": 0.0,
+    "physics_substep_targets": 0.0,
+    "compact_actual_issued": 0.0,
+    "compact_actual_applied": 0.0,
+    "compact_u_expert": 0.0,
+    "compact_q_reached": 0.0
+  },
+  "recovery_coverage": {
+    "takeover_starts": 1,
+    "population": {
+      "valid_expert_ticks": 242,
+      "dp_anchors": 21,
+      "first_valid_expert_tick": 71,
+      "initial_valid_segment_ticks": 242,
+      "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+      "first24": {
+        "valid_expert_ticks": 24,
+        "dp_anchors": 2,
+        "valid_h24_window_targets": 48
+      },
+      "first48": {
+        "valid_expert_ticks": 48,
+        "dp_anchors": 4,
+        "valid_h24_window_targets": 96
+      }
+    },
+    "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+    "diagnostic_only": true,
+    "exact_simulator_state_claim": false,
+    "switch_tick": 69,
+    "switch_observable_sha256": "0e1264b3c7f1e12481dd55120577272274668d351a3075492080921d252cbc07",
+    "switch_hash_fields": [
+      "transition/diagnostics_before/joint_position_rad",
+      "transition/diagnostics_before/joint_velocity_rad_s",
+      "transition/diagnostics_before/object_pose_w",
+      "transition/diagnostics_before/object_velocity_w_m_s_rad_s",
+      "obs/actuator_target_rad",
+      "obs/contact_substeps_w_N",
+      "obs/contact_valid"
+    ],
+    "switch_hash_missing_fields": [],
+    "switch_hash_scope": "Recorded pre-action observable subset only; hidden PhysX/RNG state excluded",
+    "phase": "contact_observed",
+    "native_stage_step": 69,
+    "native_lift": false,
+    "native_subgoals": 0.0,
+    "contact_valid": true,
+    "observed_contact": true,
+    "deviation": {
+      "contact_loss_before_switch": false,
+      "object_height_change_from_initial_m": -0.09183084964752197,
+      "arm_tracking_rmse_rad": 0.0045813387259840965,
+      "hand_tracking_rmse_rad": 0.06521020829677582,
+      "expert_trajectory_deviation": null,
+      "type": "unclassified",
+      "interpretation": "Contact loss and target tracking are observations, not a diagnosed failure cause"
+    }
+  },
+  "trace_sha256": "72fc9c45ecadd6b79048cb92a951977d004af54973e67b898d20c0782cc40a10",
+  "result_sha256": "d9356064d9d959685e496816bc86a00d376676b07e707ad9199b6220279b47d8",
+  "result_binding_path": "result_before_admission.json"
+}

@@ -1,3 +1,169 @@
+## 2026-11-17 证据补齐：从远端还原实际实验
+
+本次只核查、导出与发布；没有新增训练、DAgger、仿真或改变算法。以已收到的完整提交 `14815ae5ded77a590a5baf16307866baf5b1aef7` 为审计基点。**本轮可精确界定的实验是13小时38分58秒，而非20小时；A/B使用共享专家纠偏池，但第05轮以后父模型选择不同，不能解释成独立DAgger或严格单因素监督比较。** 下文旧“当前运行”条目均为历史快照。
+
+### 远端交付与缺口
+
+[轻量证据入口](evidence/tight_long_20261117/publication/README.md)按文件解释用途；[此前上传逐项清单](evidence/tight_long_20261117/publication/previous_upload_inventory.csv)绑定14815ae的64个实验目录文件及SHA256。此前已有主报告、预算/选模摘要、共享76条快照、采集报告、配对开发/最终逐例JSON、验证曲线PNG、视频**路径**索引；14815ae本身修改22个文件，其中实验目录18个，其余46个实验证据已在祖先提交中。不能说这些原来都没上传。
+
+本次补齐四个冻结manifest、82条逐轨迹来源记录（76train+6validation）、十套组件配置/续训/缓存绑定、逐update原始数值及逐epoch曲线、实际训练访问、所有六轮采集来源、184次自主执行总表、40条最终测试、95个计时区间回执、三段原视频和关键帧、论文依据。原始数值压缩为JSON.gz/JSONL.gz；DP只省略冗长逐点几何调试数组，保留标量loss、实际采样锚点、访问次数和时间/I/O计数。没有上传权重、RGB-D或私密认证。发布检查另外发现`runs/`、`*.mp4`、`*.log`会忽略155份本次导出，已逐项显式纳入Git，保持全局ignore规则；见[准入记录](evidence/tight_long_20261117/publication/git_admission.json)。
+
+[旧JSON中的178个绝对路径引用](evidence/tight_long_20261117/publication/previous_local_references.csv)现场均存在（152文件、26目录），**存在不等于远端可下载**。原outputs是共享工作树软链接，原树忽略outputs；权重、原RGB-D、其余视频仍只在研究机，没有公开下载服务。此次发布的是可独立核对实验设计和结果的轻量证据，不是可离线重训的完整数据集。[导出来源及摘要](evidence/tight_long_20261117/publication/export_inventory.json)区分原样副本与数值导出。原有视频索引已增加本次远端媒体入口。
+
+### 实际A/B数据流与来源
+
+```mermaid
+flowchart LR
+  A[完整A: DP加Transformer] --> HA[真实A学生历史]
+  B[完整B: DP加Transformer] --> HB[真实B学生历史]
+  HA --> E[专家实际接管并完成原生插入]
+  HB --> E
+  E --> G[合法起点/来源/相机/时序/成功准入]
+  G --> P[原30加历轮A/B成功纠偏: 冻结共同池]
+  P --> QA[A标签: 专家执行后的q_reached 加几何loss]
+  P --> UB[B标签: 实际专家u_expert]
+  QA --> DA[更新A DP]
+  UB --> DB[更新B DP]
+  DA --> CA[按新A DP重算A后端输入]
+  DB --> CB[按新B DP重算B后端输入]
+  CA --> TA[A Transformer: 最终专家命令监督]
+  CB --> TB[B Transformer: 最终专家命令监督]
+  TA --> EV[完整学生配对自主评估]
+  TB --> EV
+```
+
+学生前缀保存真实观测、实际issued/applied动作和历史，只提供输入；mask=0。接管两tick过渡同样mask=0，随后合法专家目标才进入loss。共享的是实际专家记录，不是相同标签，也不是学生自监督。
+
+| 冻结池 | 原始示范 | A来源纠偏 | B来源纠偏 | 实际用于A | 实际用于B | manifest |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 56 | 30 | 12 | 14 | 56 | 56 | [56](evidence/tight_long_20261117/publication/manifest_56.json) |
+| 65 | 30 | 16 | 19 | 65 | 65 | [65](evidence/tight_long_20261117/publication/manifest_65.json) |
+| 72 | 30 | 19 | 23 | 72 | 72 | [72](evidence/tight_long_20261117/publication/manifest_72.json) |
+| 76 | 30 | 21 | 25 | 76 | 76 | [76](evidence/tight_long_20261117/publication/manifest_76.json) |
+
+每份manifest含trajectory_id、source_group、原文件SHA、完整源DP/后端SHA、family、接管规则与实际tick、HDF5直接读取的有效mask半开区间、split；验证6条独立列出。原示范没有学生checkpoint，以original_expert和专家权重身份追溯。所有新增纠偏来自原train30的family，不与validation6或新test混合。多条纠偏并不等于多个独立初态family。
+
+| 轮次 | A机会/接管/成功/有效专家tick | B机会/接管/成功/有效专家tick | 实际学生来源 |
+| --- | --- | --- | --- |
+| 01 | 4 / 3 / 3 / 494 | 4 / 4 / 4 / 652 | 原30完整A/B |
+| 02（两个小批） | 8 / 6 / 6 / 952 | 8 / 6 / 6 / 749 | 37条完整A/B |
+| 03 | 4 / 3 / 3 / 572 | 4 / 4 / 4 / 600 | 49条完整A/B |
+| 04（两波） | 8 / 4 / 4 / 825 | 8 / 5 / 5 / 897 | 固定56长训midpoint完整A/B |
+| 05 | 4 / 3 / 3 / 526 | 4 / 4 / 4 / 737 | A:旧56等更新臂；B:新65等更新臂 |
+| 06 | 4 / 2 / 2 / 338 | 4 / 2 / 2 / 356 | 72条完整A/B |
+
+所有机会合法；未触发不是救回失败，也不入成功训练池。新增04–06共32机会、20实际接管全部成功、12未触发、3679合法tick，只有480属于每条最初24tick；不能用大量恢复后正常动作冒充新困难状态覆盖。具体未触发条件、模型身份与每轮原plan见[全部64次采集机会](evidence/tight_long_20261117/publication/collection_all_rounds.csv)、[完整源模型](evidence/tight_long_20261117/publication/collection_source_models.json)、[新32机会及原因](evidence/tight_long_20261117/publication/collection_opportunities.csv)。alignment四机会均未到达；post_subgoal四机会仅一个A触发并救回。
+
+实际实现证据：
+
+- [admit_capture](../tools/tight_fresh_batch_run.py#L181)：先来源/标签/相机审核；只有原生成功且专家接管成功才写correction_entries。源role、family、两checkpoint哈希、真实接管tick保存在entry。
+- [phase_pool](../scripts/tight_layout_20261116/phase_pool.py)：04两波合并前核对源完整pair相同，拒绝重复case/trajectory ID；[prepare_aggregate](../tools/tight_fresh_dagger.py#L58)把**同一个entries**传给A和B；[validate_aggregate_families](../visuotactile/narrow_data.py#L553)拒绝重复ID和跨划分family。**本轮采用ID去重/来源校验，没有启用另一个旧Core166 persistent-pool的内容哈希去重，不能混称。** 同family、不同学生实际状态的纠偏不会被“近似去重”。
+- [dagger_record](../visuotactile/narrow_data.py#L243)逐条要求mask对应真正专家控制和clean切换；A的q_reached与实际transition后的关节量相等，B的u_expert与实际命令相等；previous_issued严格等于前一实际mixed命令。保留完整原历史。此次读取全部46条mask并导出区间，未重复开展GPU大审计。
+- [build_dagger_aggregate](../visuotactile/narrow_data.py#L643)保留旧纠偏mask，固定原train30统计；[window_mask](../visuotactile/target_windows.py#L21)限制有效标签及控制segment，跨界动作块不产生无专家支持的目标。后端index记录`causal_actual_student_expert_prefix`及mask SHA。
+- [实际训练访问](evidence/tight_long_20261117/publication/training_visits.csv)验证A/B DP确实读取相同ID集合；每epoch每条一次，无角色筛选或新旧额外重复。相同集合不代表访问总数相同：长训继承起点、停止epoch和后端选模不同。十份[后端nominal/index与配置](evidence/tight_long_20261117/publication/runs)均绑定本组新DP哈希，已逐一与后端selected回执相等核验。
+
+### 全流程、模型继承与等更新对照
+
+[完整预算CSV](evidence/tight_long_20261117/publication/training_budget.csv)每行区分actual与selected，附父checkpoint、优化器/LR/EMA、合法监督曝光；[完整模型ID](evidence/tight_long_20261117/publication/models.json)以DP SHA+后端SHA定义。以下数字均为单节点“完成→选中update”，不是将并列分支相加。
+
+| 目的与数据 | 父模型 | A DP / 后端 | B DP / 后端 | 自主开发及去向 |
+| --- | --- | --- | --- | --- |
+| 基线56 | 49完整A/B | 728→644 / 1973→1036 | 588→336 / 2254→1973 | 历史独立8次各0；保留 |
+| 固定56长训midpoint | 基线DP **last**；基线选中后端 | 5376→2716 / 6011→1036 | 5376→2772 / 6011→93 | 初筛2/4、0/4；同波8对1/8、0/8；继续研究 |
+| 新65等更新臂/04 | 各自midpoint完整pair | 1848→1848 / 2008→2008 | 同A | 初筛0/4、1/4；同波8对0/8、2/8；B被继承 |
+| 旧56等更新臂 | 同一midpoint完整pair | 1848→1848 / 2008→2008 | 同A | 初筛0/4、0/4；同波8对2/8、0/8；A被继承 |
+| 组合源完整确认 | A旧56臂+B新65臂 | 无更新 | 无更新 | 单独4对完整执行；不是复制已有结果，见总表selected_for_round05 |
+| 72条/05 | 上行组合源 | 648→216 / 2071→1726 | 648→108 / 2760→2760 | 初筛各0/4；最终同波A2/8、B0/8；整套选中 |
+| 76条/06 | 72完整A/B | 1102→722 / 2170→1207 | 836→684 / 2170→123 | 初筛各0/4；最终同波各0/8；回退72，数据与模型保留 |
+| 最终新20对测试 | 冻结72完整pair | 无更新 | 无更新 | A3/20，B3/20；测试后无选模/训练 |
+
+长训实际新增A4648、B4788，5376是包含原阶段728/588的计数，不是新增数。恢复raw模型、Adam、EMA、RNG、deck/global_step，**显式重启非零LR**，因此是完整状态续训但不是原scheduler无缝延长。DP lr3e-5、有限一次减半；后端从对应旧权重warm-start、fresh Adam，无EMA。其余新数据阶段DP从EMA权重warm-start、fresh Adam/EMA，后端也fresh Adam；不得称精确resume。预算表和[选中谱系](evidence/tight_long_20261117/selected_lineage.json)分别保存actual消耗与selected祖先路径。最终A DP7680/后端14137、B6976/14901只指选中路径，不是单优化器总步数。
+
+实际运行源码见[冻结运行树提交](evidence/tight_long_20261117/publication/runtime_commits.json)：midpoint为25bcc4a，后续主要dd82fc1，新增post_subgoal/06为235943b；命令入口在[timeline.csv](evidence/tight_long_20261117/publication/timeline.csv)。部分继承的session.source_commit仍是99cfaf7，不能用这个旧字段替代runtime工作树及prepared.source_sha256。配置入口为现有`tools.tight_fresh_train`、`scripts.tight_layout_20261116.{learn,dagger,phase_pool}`与完整batch执行工具，无新训练框架。
+
+等更新诊断已核对：各角色旧/新臂来自同一DP及后端SHA，fresh优化器、固定原train30 normalizer、DP lr3e-5/rear1e-4恒定、1848/2008更新、均取登记末点。DP deck seed2026111402/noise2026111403、初始化2026111401，后端初始化2026111404，设置相同；数据长度不同导致随机数消耗和实际样本不同，不称逐update同随机张量。65为奇数，B2每epoch有一个singleton；56没有。两臂实际监督曝光分别为DP **1,775,329→1,698,964**目标槽、后端 **291,423→286,744**合法tick；相等update并不等于相同曝光。DP纠偏最初24段槽100,491→115,906，原始前150tick槽604,771→512,387，改变了内容覆盖及原始抓持复习量。
+
+| 开发初态末尾（288200xx） | A旧56 | A新65 | B旧56 | B新65 |
+| --- | --- | --- | --- | --- |
+| 00 | 成功 | 失败 | 失败 | 失败 |
+| 01 | 失败 | 失败 | 失败 | 失败 |
+| 02 | 失败 | 失败 | 失败 | 失败 |
+| 03 | 失败 | 失败 | 失败 | 成功 |
+| 04 | 失败 | 失败 | 失败 | 失败 |
+| 05 | 失败 | 失败 | 失败 | 失败 |
+| 06 | 成功 | 失败 | 失败 | 失败 |
+| 07 | 失败 | 失败 | 失败 | 成功 |
+
+原逐例和配对回执见[matched8](evidence/tight_long_20261117/publication/matched8.csv)与[evaluations](evidence/tight_long_20261117/publication/evaluations)。后者A_baseline/B_baseline在该对照表示旧56臂，不是最初56基线。结果方向不一致、样本8对、只有一个训练随机种子设置；不能宣布新数据有害或B监督优越。后续分别选择A旧/B新又引入了父路径差异，本轮没有擅自改成独立池。
+
+### 13小时39分钟的实测时间账
+
+所有时间为**UTC+08:00**，JSON也保留epoch UTC。正式注册01:50:52.472，最终owner退出15:29:50.089，总49,137.618秒。[95项起止/命令/返回值](evidence/tight_long_20261117/publication/timeline.csv)及[原回执](evidence/tight_long_20261117/publication/timing_receipts)可逐项检查；[独占区间合计](evidence/tight_long_20261117/publication/time_account.json)不把父owner和子worker重复相加。最终test没有通用`logs/*_complete.json`，使用它自己的owner回执补入17分25秒，而非算作等待。
+
+| 互不重叠的归类 | 秒 | 分钟 | 解释 |
+| --- | ---: | ---: | --- |
+| DP训练+验证 | 31,630.75 | 527.18 | 十个前端节点；含加载、验证、检查点和进程边界 |
+| Transformer训练+验证 | 7,283.13 | 121.39 | 十个后端节点 |
+| Transformer输入缓存 | 867.91 | 14.47 | 每个新DP分别刷新，不能拿旧后端输入配新DP |
+| 新增冻结视觉缓存阶段 | 243.17 | 4.05 | 新数据特征及索引/复用校验；不是全池重新编码 |
+| 学生开发/对照/源确认 | 4,680.71 | 78.01 | 144次完整自主执行，8lane一波 |
+| 最终测试 | 1,045.34 | 17.42 | 5波40次自主执行，8lane |
+| 专家采集worker起止 | 1,499.07 | 24.98 | 4物理波32机会；内部loop+准入1485.83秒 |
+| 显式准备/离线检查 | 291.37 | 4.86 | 有单独计时回执的准备与离线诊断 |
+| 首次04入口拒绝 | 4.07 | 0.07 | Kit前16case/8lane不满足严格配对；无物理机会 |
+| 无法细分的间隙 | 1,592.09 | 26.53 | 分析、导出/审核、交接、恢复准备或等待；不得全称idle/I/O |
+| **总墙钟** | **49,137.62** | **818.96** | **13:38:57.62** |
+
+五个学习阶段（均包括内部开发，下面不能再加到上表）为：midpoint 01:51:09–06:43:37（292.47min）；新65 07:22:58–09:09:50（106.87min）；旧56 09:09:51–11:20:12（130.36min）；72条11:51:46–13:04:39（72.88min）；76条13:19:14–14:47:32（88.30min）。A/B和新旧臂确实串行；没有靠并行GPU训练获得更短墙钟。8lane是每次仿真内并行，不是八个独立训练作业。
+
+**DP为最大成本，而且不是117分钟全在优化核计算。** A长训finished内墙钟7039.59秒，新增4648更新，约39.62updates/min；新epoch主体5973.25秒，剩余约1066.33秒是验证/保存/外围，不能进一步全部归为验证。B相应7142.87秒、4788更新。两者读取计数分别3.445/3.478 TB（十进制、反复读取），确有页故障与物理读，不是只看映射文件大小。但显式frozen_input_wait只有17.17/19.74秒，mmap消费时缺页会发生在update_host内部；**没有可恢复的全程磁盘阻塞秒数或特定外部争用归因**。[逐epoch I/O](evidence/tight_long_20261117/publication/epoch_io.json)、[update时间汇总](evidence/tight_long_20261117/publication/training_io_summary.csv)保留边界，不能说I/O只占17秒，也不能说117分钟全在等磁盘。
+
+Transformer finished另记录setup/training/work/wait；例如A长训1453.61秒，training_wall1314.57秒、wait8.78秒，这些是嵌套口径，不额外相加。所有原finished已发布。仿真内controller/environment/record_submit/finish_audit/reset_refill及实际control ticks/s见[23个自主波profile](evidence/tight_long_20261117/publication/simulation_profiles.csv)与原[performance](evidence/tight_long_20261117/performance.json)；controller含视觉，environment含物理/渲染，render秒数不能再相加。Kit启动/场景初始化/关闭只可由外层worker减内部wave得到**混合开销上界**，没有每个子阶段统一独立计时。CPU数据写入与异步写线程也没有完整独占时间；record_submit不是全部磁盘写耗时。
+
+04首批拒绝后有界拆成两个8lane波，每波重新启动Kit；四次新采集波含启动/准入每小时48.46条成功后缀，不是完整训练迭代吞吐。重复刷新DP相关后端输入是必要成本；冻结DINO源特征已跨角色/阶段复用。现有证据未证明误把全部视觉特征反复编码，也未证明持久Kit一定能无代价保持配对状态。可优化方向要与“已测得收益”分开。
+
+“约20小时”没有单一已登记的对应区间：[前置窗口](evidence/tight_long_20261117/publication/prior_windows.json)显示10cm试摆从11月16日16:51开始，包含它直到最终测试是22小时38分；分阶段前轮从20:48开始则约18小时41分。本报告不挑一个起点凑20小时，也不把旧session继承的started_utc误当本阶段launch。旧任务与本轮间的工作/停顿不足以完全细分，另列不并入13h39m。
+
+GPU不是未记录：本轮monitor有整卡利用率，不能由显存猜算。历史证据含最大完整60秒均值62.44%、17.67秒采样间隔、最低可用RAM10.75GiB；不作逐进程归因或全程旧50%合规声明。此前报告的25个monitor与performance内24个owner集合口径不同（包含单独离线诊断），不可无条件当同一分母。
+
+### 自主结果、事件和可远程查看的视频
+
+[全部184次自主执行](evidence/tight_long_20261117/publication/autonomous_all.csv)区分初筛、同波比较、组合源确认、最终测试；没有把专家成功算进去。[final40.csv](evidence/tight_long_20261117/publication/final40.csv)逐条提供role、完整policy ID、初态ID、合法性、步数、成功、hold120、首子目标、终止原因及视频状态，五波原plan与实际起点配对回执可从evaluations/final_test逐项追溯。配对保证可观测实际初态字段，不声称隐藏PhysX状态精确相同。
+
+A成功28823000/008/013，B成功002/011/015，**交集为空，各自独有3个**。40合法、0非法、0软件中断，各3/20；A2fall/15timeout，B3fall/14timeout。[事件交叉检查](evidence/tight_long_20261117/publication/final_events.json)：六个成功都有hold120和首子目标，但**六个都没有native_lift诊断标记**，所以不能把lift→hold→subgoal→success画成严格包含漏斗。native_lift不是最终判据。每组12/20达到hold120、6/20首子目标，仍存在早段抓持不足与后段失败。
+
+| 已上传原视频（无重新编码） | 性质与观察 | 关键帧 |
+| --- | --- | --- |
+| [A新test28823000](evidence/tight_long_20261117/publication/media/final_A_28823000.mp4) | 293tick，完整自主抓取、搬运、插入、撤手 | [图片](evidence/tight_long_20261117/publication/media/final_A_28823000.jpg) |
+| [B同初态](evidence/tight_long_20261117/publication/media/final_B_28823000.mp4) | 601tick，近孔持续偏斜/调整，超时；不是成功 | [图片](evidence/tight_long_20261117/publication/media/final_B_28823000.jpg) |
+| [A post_subgoal专家救回](evidence/tight_long_20261117/publication/media/expert_rescue_not_autonomous.mp4) | 学生到201，201–202交接mask0，203起专家标签；专家完成，不算自主 | [图片](evidence/tight_long_20261117/publication/media/expert_rescue_not_autonomous.jpg) |
+
+三段视频共约5.07MB，SHA与原视频相同；GitHub若不内嵌播放可下载raw。[完整媒体索引](evidence/tight_long_20261117/publication/media_index.json)明确其余视频仅本地，最终另外38次本来没有录视频，不能编造视频对应关系。每段都是实际60Hz观测帧，终止后reset画面未补入；关键帧不是完整逐帧人工审阅声明。
+
+### 文献依据与实际采用设置
+
+本次核查论文原文和官方配置，不复制聊天中未核实的换算。配置固定commit及SHA见[literature_sources](evidence/tight_long_20261117/publication/literature_sources.json)。
+
+| 参照 | 核实设置 | 不足以直接换算到本项目的部分 |
+| --- | --- | --- |
+| [Reactive Diffusion Policy v2](https://arxiv.org/html/2503.02881v2#A8) | Peeling60/Wiping80/Lifting50示范；表VI AT600、LDP400、普通DP600epoch；[官方LDP配置](https://github.com/xiaoxiaoxh/reactive_diffusion_policy/blob/824c5e8de1fd1811106907a04b5f0186e0138c0b/reactive_diffusion_policy/config/train_latent_diffusion_unet_real_image_workspace.yaml)batch64、accum1、EMA、cosine、num_epochs401、train_loss选checkpoint | 配置401与论文400保留原口径；AT预训练后载入LDP，不是本项目DP后再刷新后端。各任务实际optimizer次数、完整运行日志/最终选模checkpoint未核实；resume:true不证明实际恢复优化器 |
+| [Diff-DAgger v3](https://arxiv.org/html/2410.14868v3#S4) | Plugging20→100示范，每8次专家干预更新；单观测、H64/执行8、V目标；ManiSkill20Hz、RRT专家；每次策略更新包括训练和阈值重估 | 表IV N_b=512是**查询扩散损失估计batch**，不是已核实训练batch。训练epoch数/optimizer updates/训练batch/是否warm-start及checkpoint选模未披露或本次未核实；不能用8干预直接等同我们一轮 |
+| [DP3 v3](https://arxiv.org/html/2403.03954v3#S3.S3) | MetaWorld1000、其他3000epoch，batch128；多数仿真10示范、DexArt/HORA100、真实40；仿真3训练种子，每200epoch评估20次并平均最高5次成功率；[官方配置](https://github.com/YanjieZe/3D-Diffusion-Policy/blob/47385d9d6f5bde3f2ebdf2400ecb8261cc9e6b97/3D-Diffusion-Policy/diffusion_policy_3d/config/dp3.yaml)accum1、EMA、cosine、3000、test_mean_score监视（save_ckpt默认false） | 这些epoch遍历序列窗口DataLoader，不是我们的B2完整轨迹deck。精确任务窗口数/updates/作者每次实际恢复状态未核实；是BC非共享双学生DAgger |
+
+RDP强调低频视觉计划加快速触觉反馈；本项目借鉴分阶段学习和反馈原则，并未复现AT/LDP架构。DP3使用单视角稀疏无色点云；本项目三视角448×252 RGB-D、冻结DINO、每60Hz控制tick真实历史、29维关节绝对目标、H24/commit12/DDIM16；A另有训练时几何损失及投影计算，后端Transformer以专家最终命令监督。DP3任务动作维度4–52不等，RDP为末端/夹爪任务相关空间，不能用参数/epoch数直接比较。
+
+本项目DP一次update平均两条完整轨迹的masked窗口loss，后端microbatch4、32tick块、128有效专家tick累积并在完整组末flush；有效曝光受mask、长度和singleton影响。硬件/渲染栈也不等：本机24GB级GPU同时承担Isaac/RTX；Diff-DAgger时间实验为A10040GB。不能拿论文epoch或其0.54h策略更新声称本项目预算足够/实现低效。本次未扩展DRIFT综述，不引用其iteration作数值预算。
+
+### 已证实、仍未区分、下一步（未执行）
+
+已证实：共同专家数据确实进入A/B loss；学生前缀不作专家目标；对应新DP刷新了后端；长训有有限开发收益但不稳定；等更新新增纠偏的效果方向不一致；76条候选在同波开发退化，回退72；新test两组各15%，成功初态不重合。训练I/O反复读取量很大，DP训练/验证是最大耗时；论文预算口径不能直接搬用。
+
+尚未证实：新数据有害、某监督更优、优化已充分、覆盖不足是唯一原因、近孔姿态不可观测是主因、磁盘争用来自某个外部任务、缓存重算是主要瓶颈。小样本同波对照和不同测试集不能建立显著因果提升；前段未达到稳定保持，后段没有随轮次单调改善。
+
+下次优先只做三件可区分的事，均需另行实验登记：①复用冻结特征索引，针对现有DP读取/缺页做少量等语义的有界预取对照，以完整阶段秒数和内存峰值验收，不只看load API时间；②复用少数代表性完整模型和必要开发波，尝试在已验证配对/reset合同内减少重复Kit启动，保留最终独立test；③固定同一父pair与update预算，检验原始早期抓持曝光保持和**少量重复失败位置**纠偏的收益，单次只改变一种采样/覆盖因素。旧56等更新臂约130分钟和多模型配对比较属于本次必要研究对照成本，日常每轮不必重复；新DP后端输入刷新和真实自主评估则不能省略。
+
+---
+
 ## 2026-11-17 最终：长训、三轮DAgger和新20对测试已全部完成
 
 本session实际运行01:50:52–15:29:50(+08)，13小时38分58秒，原14小时训练/16小时总界内结束；最终五波40次完整自主测试耗时17分25秒。所有自有训练、采集、评估worker及25个monitor均已退出。没有停在后台启动，没有按新test再训练或选模型。最终采用开发阶段已冻结的round05共同72条完整A/B；76条完整模型与全部76条有效数据仍保留，不因负结果删除。
