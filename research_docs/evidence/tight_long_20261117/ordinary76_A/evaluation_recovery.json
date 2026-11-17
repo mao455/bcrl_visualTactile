@@ -1,0 +1,36 @@
+{
+  "registration": {
+    "original": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_sampling76_A_20261117_01",
+    "reason": "Launcher omitted vendored rl_games PYTHONPATH; site package lacks _load_checkpoint_weights. Import failed before policy creation/reset/actions; Kit teardown hung. Preserve failed root, no task result counted.",
+    "change": "Set PYTHONPATH to existing vendored rl_games before startup; no source/network/control/weights change.",
+    "original_deadline": 1794941208.4247248,
+    "training_repeated": false,
+    "utc": 1794933572.8605886
+  },
+  "original_failure": {
+    "error": "Traceback (most recent call last):\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/scripts/tight_sampling_20261117/control.py\", line 122, in run\n    execute(f'eval{part}',[__spec__.name,'evaluation_worker',part],ROOT/f'comparison{part:02d}/result.json')\n  File \"/home/CNS2025331827/docs/bc+rl_RSS_continuous_vision_20261114/scripts/tight_sampling_20261117/control.py\", line 105, in execute\n    if time.time()>deadline-30 or (ROOT/'STOP').exists():raise TimeoutError('Finite study deadline/stop')\n                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nTimeoutError: Finite study deadline/stop\n",
+    "utc": 1794933527.2865763
+  },
+  "original_owner_exit": {
+    "children_reaped": true,
+    "utc": 1794933544.0196233
+  },
+  "source_sha256": {
+    "scripts/tight_sampling_20261117/review.py": "331a7c5a977bb16f4bd261d502b949c4b925ac14a1a31198bcf528db74e7fd23",
+    "scripts/tight_sampling_20261117/control.py": "c49eb12fbb349ff6603f48c2c93ff229c167a9abb145572e5e8489b7216a2b05",
+    "scripts/tight_sampling_20261117/replay.py": "fab69ca35b6197873ebc42dea683e4bef44988a6ef9893326ecadddc13a70a35",
+    "scripts/tight_sampling_20261117/recovery.py": "41a95ee54d40a3198b947d4e03b3e11658ccf842ba869da34d8785a36a88bc80"
+  },
+  "initial_traceback": "ImportError before student actions; failed attempt excluded from task denominator; owned process stopped after teardown stall",
+  "original_failed_eval_started": {
+    "command": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "scripts.tight_sampling_20261117.control",
+      "evaluation_worker",
+      "0"
+    ],
+    "pid": 2683025,
+    "utc": 1794932224.8152184
+  }
+}

@@ -1,0 +1,125 @@
+[
+  {
+    "wave": 0,
+    "role": "mixed",
+    "controller_s": 58.64833864243701,
+    "environment_s": 61.770735712721944,
+    "expert_s": 0.0407573408447206,
+    "record_submit_s": 8.554499896476045,
+    "finish_audit_s": 1.0272054220549762,
+    "reset_refill_s": 0.0,
+    "active_lane_steps": 3043,
+    "allocated_lane_steps": 3606,
+    "refills": 0,
+    "finished_before_queue_empty": 0,
+    "seconds": 135.57844333304092,
+    "cases": 6,
+    "control_ticks": 3043,
+    "vision_execution": {
+      "version": "gpu_observation_history_control_v1",
+      "roles": {
+        "A_ordinary": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 4,
+          "images_per_kernel": 12,
+          "forward_features_calls": 0,
+          "real_lanes": 1202,
+          "padding_lanes": 0,
+          "real_images": 3606,
+          "processed_images": 0,
+          "controller_calls": 601,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            601,
+            0,
+            0,
+            601,
+            0,
+            0
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        },
+        "A_baseline": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 4,
+          "images_per_kernel": 12,
+          "forward_features_calls": 0,
+          "real_lanes": 639,
+          "padding_lanes": 0,
+          "real_images": 1917,
+          "processed_images": 0,
+          "controller_calls": 379,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            0,
+            260,
+            0,
+            0,
+            379,
+            0
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        },
+        "A_onset": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 4,
+          "images_per_kernel": 12,
+          "forward_features_calls": 0,
+          "real_lanes": 1202,
+          "padding_lanes": 0,
+          "real_images": 3606,
+          "processed_images": 0,
+          "controller_calls": 601,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            0,
+            0,
+            601,
+            0,
+            0,
+            601
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        }
+      },
+      "calls": 980,
+      "real_lanes": 3043,
+      "processed_images": 11760,
+      "padding_lanes": 877
+    },
+    "render_transitions": [
+      {
+        "lane": 1,
+        "enabled": false,
+        "utc": 1794933852.1398234
+      },
+      {
+        "lane": 4,
+        "enabled": false,
+        "utc": 1794933879.1160214
+      },
+      {
+        "lane": 1,
+        "enabled": true,
+        "utc": 1794933920.1061049
+      },
+      {
+        "lane": 4,
+        "enabled": true,
+        "utc": 1794933920.1103737
+      }
+    ],
+    "camera_reactivation": [],
+    "aggregate_control_ticks_per_second": 22.44457101874993,
+    "active_lane_fraction": 0.843871325568497,
+    "render_reuse": {
+      "render_calls": 610,
+      "render_seconds": 31.260729828383774,
+      "redundant_reader_renders_avoided": 599,
+      "reader_renders_required": 3,
+      "invalidations": 12
+    },
+    "admission_s": 0.0,
+    "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+  }
+]

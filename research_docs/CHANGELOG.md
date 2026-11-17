@@ -1,3 +1,11 @@
+## 2026-11-18 A普通采样条件预算对照闭合
+
+- 新增`scripts/tight_sampling_20261117/{control,recovery,review,replay}.py`，只编排现有训练/缓存/评估；A固定76同72父模型DP494/后端369，恢复普通起点，历史强化选模偏差披露。核心训练器、网络、专家标签、几何监督与控制不改。
+- I/O：读现有76及72完整pair，保存完整新A配对、新DP后端缓存、24条完整同波开发；公开ordinary76_A配置、继承hash、逐初态CSV、真实训练曲线和三段002完整视频，raw权重/HDF5保留本机。固定历史推理保留真实队列相位和DDIM RNG，不生成标签。
+- 实测基准1/8、强化0/8、普通0/8；hold120=3/5/3，首子目标初态2/0/0，指标非漏斗。取消强化未恢复002，历史006本次基准亦失败；不混合旧结果，不支持单归因采样或晋升。原示范早期曝光精确相同，纠偏首24tick系数17.36%→11.10%。
+- 18项bounded_extension/balance_onset/frozen_visual_hotset检查和新增脚本编译通过；实际初态、242tick同历史/RNG、279源码及保护hash/完整pair复核通过。4GiB hotset、494/369实训与缓存/评估耗时公开。第一次rl_games导入前动作失败及挂起证据保留，仅修正启动路径恢复，无重复训练。
+- 47分40秒owner窗口内闭合全部owned进程，0 DAgger、0 B更新、0蒸馏/新损失、0旧产物删除；继续使用72 A/B。下一轮降DP学习率只作设计，未执行。集中报告、AGENTS与handoff更新。
+
 ## 2026-11-17 首次分叉：原轨执行链、真实输入补录和完整历史交叉重放
 
 - 新增`scripts/tight_fork_20261117/{original,capture,replay,exposure,summarize,video,audit,test_replay}.py`及common路径配置；不修改生产网络、控制、训练器。原numeric缺视觉输入，补录一次8lane121tick，不冒充旧轨精确重放。

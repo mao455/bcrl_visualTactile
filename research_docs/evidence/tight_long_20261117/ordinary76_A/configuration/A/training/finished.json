@@ -1,0 +1,428 @@
+{
+  "epochs": 13,
+  "updates": 494,
+  "anchors_seen": 19409,
+  "target_ticks": 445321,
+  "checkpoint_sha256": "8492c4682c70768c8b28a71a63f94c91027b5b2db89f4a76b60945a24e906160",
+  "complete": true,
+  "wall_seconds": 569.6273962131236,
+  "maximum_epochs": 13,
+  "plateau_state": {
+    "best": 0.005133199039846659,
+    "bad": 0,
+    "reductions": 0,
+    "stop": false,
+    "events": [
+      {
+        "epoch": 1,
+        "score": 0.005624439567327499,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 2,
+        "score": 0.005663661751896143,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 3,
+        "score": 0.0054718488827347755,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 4,
+        "score": 0.005328881088644266,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 5,
+        "score": 0.005348671227693558,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 6,
+        "score": 0.005311653017997742,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 7,
+        "score": 0.005257798358798027,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 8,
+        "score": 0.005278999451547861,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 9,
+        "score": 0.0052361744455993176,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 10,
+        "score": 0.00526953162625432,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 11,
+        "score": 0.005133199039846659,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 12,
+        "score": 0.0051510147750377655,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      },
+      {
+        "epoch": 13,
+        "score": 0.0051818653009831905,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          3e-05
+        ]
+      }
+    ]
+  },
+  "stop_reason": "maximum_epochs",
+  "training_sampling": {
+    "version": "fresh_random_visit_training_v1",
+    "anchors": {
+      "version": "grasp_balanced_legal_action_anchors_v2",
+      "seed": 2026111501,
+      "population": "all_true_supervision_mask_ticks",
+      "replacement": false,
+      "count": "min_legal_ticks_max1_original_commit12_anchor_count",
+      "order": "ascending_selected_ticks",
+      "horizon": 24,
+      "rng": "independent_cpu_sha256_seed_identity_epoch_visit_index",
+      "history": "one_complete_real_history_encoding_per_visit",
+      "deployment": "unchanged_5Hz_commit12",
+      "early_control_ticks": 150,
+      "early_anchor_fraction": 0.5,
+      "shortage": "fill_from_remaining_legal_population_without_replacement"
+    },
+    "geometry": {
+      "version": "legal_tick_half_phase_v1",
+      "fraction": 0.5,
+      "max_samples": null,
+      "commit": 12,
+      "population": "unique legal identity/tick in this visit selected anchors commit12",
+      "allocation": "proportional stage population with one per nonempty stage when feasible",
+      "rounding": "ceil population/2; stage floor then largest remaining proportional deficit",
+      "reduction": "mean selected unique configurations; no additional stage weights",
+      "rng": "explicit independent CPU generator per visit; never model/diffusion RNG",
+      "labels": "recorded diagnostic phases for sampling only; never network inputs"
+    }
+  },
+  "visit_sampling_coverage": {
+    "episodes": 76,
+    "visits": 988,
+    "anchor_draws": 19409,
+    "unique_anchor_ticks": 11484,
+    "unique_non_native_grid_ticks": 10517,
+    "geometry_draws": 72651,
+    "unique_geometry_ticks": 17080,
+    "geometry_stage_unique_ticks": {
+      "held_rotating": 2470,
+      "held_near_goal60": 2437,
+      "held_far": 211,
+      "after_first_native_subgoal": 5721,
+      "contact_not_held": 3227,
+      "contact_lost": 1172,
+      "grasp_without_contact": 1842
+    }
+  },
+  "full_trajectory_batch": {
+    "version": "full_trajectory_batch_v1",
+    "batch_size": 2,
+    "grouping": "adjacent_registered_deck_visits",
+    "tail_policy": "keep_singleton",
+    "loss_reduction": "mean_per_trajectory_in_actual_batch",
+    "optimizer_steps": "one_per_batch",
+    "ema_steps": "one_per_optimizer_step",
+    "learning_rate": "unchanged_no_automatic_scaling",
+    "geometry": "original_selection_per_visit",
+    "noise": "original_randn_then_randint_per_visit",
+    "history": "independent_complete_real_prefix"
+  },
+  "visits_seen": 988,
+  "ema_updates": 494,
+  "sampling_exposure": {
+    "layout10_train_28817000": 13,
+    "layout10_train_28817001": 13,
+    "layout10_train_28817002": 13,
+    "layout10_train_28817003": 13,
+    "layout10_train_28817004": 13,
+    "layout10_train_28817005": 13,
+    "layout10_train_28817006": 13,
+    "layout10_train_28817007": 13,
+    "layout10_train_28817008": 13,
+    "layout10_train_28817009": 13,
+    "layout10_train_28817010": 13,
+    "layout10_train_28817011": 13,
+    "layout10_train_28817012": 13,
+    "layout10_train_28817013": 13,
+    "layout10_train_28817014": 13,
+    "layout10_train_28817015": 13,
+    "layout10_train_28817016": 13,
+    "layout10_train_28817017": 13,
+    "layout10_train_28817018": 13,
+    "layout10_train_28817019": 13,
+    "layout10_train_28817020": 13,
+    "layout10_train_28817021": 13,
+    "layout10_train_28817022": 13,
+    "layout10_train_28817023": 13,
+    "layout10_train_28817024": 13,
+    "layout10_train_28817025": 13,
+    "layout10_train_28817026": 13,
+    "layout10_train_28817027": 13,
+    "layout10_train_28817028": 13,
+    "layout10_train_28817029": 13,
+    "r01_A_layout10_train_28817003_contact_height_only_d0": 13,
+    "r01_A_layout10_train_28817001_contact_height_only_d0": 13,
+    "r01_B_layout10_train_28817001_contact_height_only_d0": 13,
+    "r01_B_layout10_train_28817002_contact_height_only_d0": 13,
+    "r01_B_layout10_train_28817003_contact_height_only_d0": 13,
+    "r01_B_layout10_train_28817000_contact_height_only_d0": 13,
+    "r01_A_layout10_train_28817000_contact_height_only_d0": 13,
+    "r02_B_layout10_train_28817005_contact_height_only_d0": 13,
+    "r02_A_layout10_train_28817005_contact_height_only_d0": 13,
+    "r02_B_layout10_train_28817004_contact_height_only_d0": 13,
+    "r02_B_layout10_train_28817007_contact_height_only_d0": 13,
+    "r02_A_layout10_train_28817006_contact_height_only_d0": 13,
+    "r02_B_layout10_train_28817006_contact_height_only_d0": 13,
+    "r02_A_layout10_train_28817007_contact_height_only_d0": 13,
+    "r02_B_layout10_train_28817011_phase_early": 13,
+    "r02_B_layout10_train_28817009_phase_alignment": 13,
+    "r02_A_layout10_train_28817009_phase_alignment": 13,
+    "r02_A_layout10_train_28817011_phase_early": 13,
+    "r02_A_layout10_train_28817010_phase_weakening": 13,
+    "r03_B_layout10_train_28817013_phase_near": 13,
+    "r03_A_layout10_train_28817013_phase_near": 13,
+    "r03_B_layout10_train_28817014_phase_weakening": 13,
+    "r03_A_layout10_train_28817015_phase_early": 13,
+    "r03_B_layout10_train_28817012_phase_alignment": 13,
+    "r03_B_layout10_train_28817015_phase_early": 13,
+    "r03_A_layout10_train_28817012_phase_alignment": 13,
+    "r04_B_layout10_train_28817018_phase_near": 13,
+    "r04_A_layout10_train_28817016_phase_early": 13,
+    "r04_B_layout10_train_28817016_phase_early": 13,
+    "r04_B_layout10_train_28817017_phase_transport": 13,
+    "r04_B_layout10_train_28817020_phase_weakening": 13,
+    "r04_A_layout10_train_28817023_phase_early": 13,
+    "r04_B_layout10_train_28817023_phase_early": 13,
+    "r04_A_layout10_train_28817020_phase_weakening": 13,
+    "r04_A_layout10_train_28817021_phase_near": 13,
+    "r05_A_layout10_train_28817026_phase_near": 13,
+    "r05_B_layout10_train_28817024_phase_early": 13,
+    "r05_B_layout10_train_28817025_phase_transport": 13,
+    "r05_A_layout10_train_28817024_phase_early": 13,
+    "r05_B_layout10_train_28817027_phase_weakening": 13,
+    "r05_B_layout10_train_28817026_phase_near": 13,
+    "r05_A_layout10_train_28817025_phase_transport": 13,
+    "r06_B_layout10_train_28817026_phase_early": 13,
+    "r06_A_layout10_train_28817026_phase_early": 13,
+    "r06_B_layout10_train_28817027_phase_near": 13,
+    "r06_A_layout10_train_28817029_phase_post_subgoal": 13
+  },
+  "episode_multiplicities": {
+    "layout10_train_28817000": 1,
+    "layout10_train_28817001": 1,
+    "layout10_train_28817002": 1,
+    "layout10_train_28817003": 1,
+    "layout10_train_28817004": 1,
+    "layout10_train_28817005": 1,
+    "layout10_train_28817006": 1,
+    "layout10_train_28817007": 1,
+    "layout10_train_28817008": 1,
+    "layout10_train_28817009": 1,
+    "layout10_train_28817010": 1,
+    "layout10_train_28817011": 1,
+    "layout10_train_28817012": 1,
+    "layout10_train_28817013": 1,
+    "layout10_train_28817014": 1,
+    "layout10_train_28817015": 1,
+    "layout10_train_28817016": 1,
+    "layout10_train_28817017": 1,
+    "layout10_train_28817018": 1,
+    "layout10_train_28817019": 1,
+    "layout10_train_28817020": 1,
+    "layout10_train_28817021": 1,
+    "layout10_train_28817022": 1,
+    "layout10_train_28817023": 1,
+    "layout10_train_28817024": 1,
+    "layout10_train_28817025": 1,
+    "layout10_train_28817026": 1,
+    "layout10_train_28817027": 1,
+    "layout10_train_28817028": 1,
+    "layout10_train_28817029": 1,
+    "r01_A_layout10_train_28817003_contact_height_only_d0": 1,
+    "r01_A_layout10_train_28817001_contact_height_only_d0": 1,
+    "r01_B_layout10_train_28817001_contact_height_only_d0": 1,
+    "r01_B_layout10_train_28817002_contact_height_only_d0": 1,
+    "r01_B_layout10_train_28817003_contact_height_only_d0": 1,
+    "r01_B_layout10_train_28817000_contact_height_only_d0": 1,
+    "r01_A_layout10_train_28817000_contact_height_only_d0": 1,
+    "r02_B_layout10_train_28817005_contact_height_only_d0": 1,
+    "r02_A_layout10_train_28817005_contact_height_only_d0": 1,
+    "r02_B_layout10_train_28817004_contact_height_only_d0": 1,
+    "r02_B_layout10_train_28817007_contact_height_only_d0": 1,
+    "r02_A_layout10_train_28817006_contact_height_only_d0": 1,
+    "r02_B_layout10_train_28817006_contact_height_only_d0": 1,
+    "r02_A_layout10_train_28817007_contact_height_only_d0": 1,
+    "r02_B_layout10_train_28817011_phase_early": 1,
+    "r02_B_layout10_train_28817009_phase_alignment": 1,
+    "r02_A_layout10_train_28817009_phase_alignment": 1,
+    "r02_A_layout10_train_28817011_phase_early": 1,
+    "r02_A_layout10_train_28817010_phase_weakening": 1,
+    "r03_B_layout10_train_28817013_phase_near": 1,
+    "r03_A_layout10_train_28817013_phase_near": 1,
+    "r03_B_layout10_train_28817014_phase_weakening": 1,
+    "r03_A_layout10_train_28817015_phase_early": 1,
+    "r03_B_layout10_train_28817012_phase_alignment": 1,
+    "r03_B_layout10_train_28817015_phase_early": 1,
+    "r03_A_layout10_train_28817012_phase_alignment": 1,
+    "r04_B_layout10_train_28817018_phase_near": 1,
+    "r04_A_layout10_train_28817016_phase_early": 1,
+    "r04_B_layout10_train_28817016_phase_early": 1,
+    "r04_B_layout10_train_28817017_phase_transport": 1,
+    "r04_B_layout10_train_28817020_phase_weakening": 1,
+    "r04_A_layout10_train_28817023_phase_early": 1,
+    "r04_B_layout10_train_28817023_phase_early": 1,
+    "r04_A_layout10_train_28817020_phase_weakening": 1,
+    "r04_A_layout10_train_28817021_phase_near": 1,
+    "r05_A_layout10_train_28817026_phase_near": 1,
+    "r05_B_layout10_train_28817024_phase_early": 1,
+    "r05_B_layout10_train_28817025_phase_transport": 1,
+    "r05_A_layout10_train_28817024_phase_early": 1,
+    "r05_B_layout10_train_28817027_phase_weakening": 1,
+    "r05_B_layout10_train_28817026_phase_near": 1,
+    "r05_A_layout10_train_28817025_phase_transport": 1,
+    "r06_B_layout10_train_28817026_phase_early": 1,
+    "r06_A_layout10_train_28817026_phase_early": 1,
+    "r06_B_layout10_train_28817027_phase_near": 1,
+    "r06_A_layout10_train_28817029_phase_post_subgoal": 1
+  },
+  "episodes_per_epoch": 76,
+  "optimizer_updates_per_epoch": 38,
+  "planned_episode_visits": 988,
+  "planned_optimizer_updates": 494,
+  "planned_ema_updates": 494,
+  "tail_singletons_per_epoch": 0,
+  "offline_planning": {
+    "version": "offline_contiguous_anchor_batch_v1",
+    "max_anchors": 32,
+    "seed": 7091,
+    "planning_interval_ticks": 12,
+    "inference_steps": 16,
+    "clip_sample": false,
+    "scheduler_index_mode": "host",
+    "noise_draw_shape": [
+      1,
+      24,
+      29
+    ],
+    "same_generator_per_row": true,
+    "split_at_missing_anchors": true,
+    "scope": "offline inference only; unchanged full causal history and optimizer budget"
+  },
+  "frozen_visual_hotset": {
+    "version": "frozen_visual_cuda_hotset_diagnostic_v1",
+    "max_bytes": 4294967296,
+    "resident_bytes": 4266269514,
+    "planned_file_bytes": 4266297326,
+    "priority_ids": [
+      "layout10_validation_28818000",
+      "layout10_validation_28818001",
+      "layout10_validation_28818002",
+      "layout10_validation_28818003",
+      "layout10_validation_28818004",
+      "layout10_validation_28818005",
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003"
+    ],
+    "cached_ids": [
+      "layout10_validation_28818000",
+      "layout10_validation_28818001",
+      "layout10_validation_28818002",
+      "layout10_validation_28818003",
+      "layout10_validation_28818004",
+      "layout10_validation_28818005",
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817003",
+      "layout10_train_28817002"
+    ],
+    "hits": 154,
+    "misses": 954,
+    "admission_fallbacks": 0,
+    "avoided_logical_payload_bytes": 65775417422,
+    "first_fill_seconds": 2.5000424480531365,
+    "minimum_free_bytes": 8589934592,
+    "binding": {
+      "data_sha256": "df3edc4194bebda547bc8525ceb8786ebc4a686ea83211701b43b02f4f68f3e9",
+      "cache_index_sha256": "0a5b0f7ceb0ac57926e81e8fe826ce961bc9ffe7c96bf0f0c7abff33f090493d"
+    },
+    "scope": "Immutable patches/depth/camera timestamps only; no learned features, labels, history or backend inputs"
+  },
+  "stage_process_io": {
+    "minor_faults": 6779469,
+    "major_faults": 16070,
+    "read_bytes": 349318328320,
+    "rchar": 1346991278,
+    "syscr": 29981
+  },
+  "peak_cuda_allocated_bytes": 11393792512,
+  "peak_cuda_reserved_bytes": 11658067968
+}

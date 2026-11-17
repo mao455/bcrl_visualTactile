@@ -1,0 +1,87 @@
+{
+  "source_root": {
+    "onset": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A",
+    "ordinary": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_sampling76_A_20261117_01/A"
+  },
+  "source_commit": {
+    "onset": "72ca073f30ef18ec9e9d3132c8438089175948f1",
+    "ordinary": "49b8bf1119f2361aa0af0881de03678acfe63539"
+  },
+  "base_checkpoint": {
+    "onset": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A/training/best.pt",
+    "ordinary": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_sampling76_A_20261117_01/A/training/best.pt"
+  },
+  "maximum_control_tick_epochs": {
+    "onset": 24,
+    "ordinary": 3
+  },
+  "residual_statistics_path": {
+    "onset": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/B/state_data/statistics.pt",
+    "ordinary": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_sampling76_A_20261117_01/B/state_data/statistics.pt"
+  },
+  "cache_index_sha256": {
+    "onset": "ff2388bd4bf69b7c232a84fb9aa376df7abb755fff5fccdc3efd6c7ba5bbbc03",
+    "ordinary": "554b5b94e490343d530aaf8a8dad39bebce39afac17e126a106633dae79ff180"
+  },
+  "matched_update_stop": {
+    "onset": null,
+    "ordinary": {
+      "updates": 369,
+      "boundary": {
+        "epoch": 3,
+        "next_group": 76
+      }
+    }
+  },
+  "base_sha256": {
+    "onset": "28532f9505069ec140a12112ac9891569d44a43ae09d371343cc5eba679cc399",
+    "ordinary": "8492c4682c70768c8b28a71a63f94c91027b5b2db89f4a76b60945a24e906160"
+  },
+  "bases": {
+    "onset": {
+      "A": {
+        "group": "G00",
+        "modality": "G00",
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A/training/best.pt",
+        "sha256": "28532f9505069ec140a12112ac9891569d44a43ae09d371343cc5eba679cc399"
+      }
+    },
+    "ordinary": {
+      "A": {
+        "group": "G00",
+        "modality": "G00",
+        "checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_sampling76_A_20261117_01/A/training/best.pt",
+        "sha256": "8492c4682c70768c8b28a71a63f94c91027b5b2db89f4a76b60945a24e906160"
+      }
+    }
+  },
+  "minimum_control_tick_epochs": {
+    "onset": 12,
+    "ordinary": 3
+  },
+  "bounded_extension": {
+    "onset": {
+      "version": "phase_dagger_budget_v1",
+      "kind": "backend",
+      "maximum_epochs": 24,
+      "minimum_epochs": 12,
+      "patience": 5,
+      "relative_improvement": 0.005,
+      "lr_factor": 0.5,
+      "maximum_reductions": 1,
+      "activate_after_epoch": 8
+    },
+    "ordinary": {
+      "version": "matched_update_diagnostic_v1",
+      "kind": "backend",
+      "maximum_epochs": 3,
+      "minimum_epochs": 3,
+      "patience": 4,
+      "relative_improvement": 0.005,
+      "lr_factor": 0.5,
+      "maximum_reductions": 0,
+      "activate_after_epoch": 3,
+      "selection": "registered_final_update_only"
+    }
+  }
+}
