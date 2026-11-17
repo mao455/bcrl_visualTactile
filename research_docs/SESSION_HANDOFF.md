@@ -1,3 +1,7 @@
+## 2026-11-17 发布核验完成
+
+证据提交`bd7c0aef9a9e1bb3fd41d89d4eb161a7b916a5c3`已推送origin/feature/tight-state-foundation；从GitHub raw实际下载24个关键文件共6,932,135bytes，全部与本地相等，包括四manifest、配置、曲线、final40及三视频。[下载回执](evidence/tight_long_20261117/publication/remote_readback.json)已随本次文档补记发布。155个被通用runs/、MP4、log规则忽略的导出已显式跟踪。没有新实验、原始数据删除或算法修改；仍暂停新长训/DAgger。
+
 ## 2026-11-17 最新：实验已结束，证据补齐，暂停新训练/DAgger
 
 当前只完成核查与轻量证据发布，没有新参数更新或仿真。共同池56→65→72→76，最终选中72完整A/B，新20对测试各3/20；不是独立DAgger。完整叙述以[集中主报告](TIGHT_TRAINING_DIAGNOSIS_20261116.md)为准，[证据入口](evidence/tight_long_20261117/publication/README.md)包含四版manifest、模型继承、184次自主执行、64次历轮采集机会、95项时间回执、原始曲线及实际视频。正式窗口13h38m58s；不拼成20h。以下旧“正在运行”条目均为历史。

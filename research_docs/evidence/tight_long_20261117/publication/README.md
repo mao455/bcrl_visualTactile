@@ -35,3 +35,5 @@ RESEARCH_CPUS=8-23 bash visuotactile/run_cpu.sh scripts/tight_layout_20261116/pu
 The literature/runtime identity receipts were additionally checked against official Git refs/frozen worktrees. No paper PDFs are bundled. The exporter does not perform literature fetching, model loading, training, or source cleanup.
 
 Publication check: [verification receipt](verification.json). The repository ignores generic `runs/`, `*.mp4`, and `*.log`;155 reviewed evidence files were explicitly added, without changing global ignore rules. All files in this evidence directory are tracked.
+
+[GitHub direct-download verification](remote_readback.json):24 representative files, including all four manifests and all three published videos, downloaded at fixed commit `bd7c0aef9a9e1bb3fd41d89d4eb161a7b916a5c3` and compared byte-for-byte. The remote feature branch matched that commit. This receipt does not claim every large local artifact is uploaded.
