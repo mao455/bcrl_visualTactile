@@ -1,0 +1,262 @@
+{
+  "stop_reason": "validation_plateau_after_lr_reduction",
+  "updates": 2411,
+  "control_tick_epochs": 20.0,
+  "bounded_extension": {
+    "version": "phase_dagger_budget_v1",
+    "kind": "backend",
+    "maximum_epochs": 24,
+    "minimum_epochs": 12,
+    "patience": 5,
+    "relative_improvement": 0.005,
+    "lr_factor": 0.5,
+    "maximum_reductions": 1,
+    "activate_after_epoch": 8
+  },
+  "plateau_state": {
+    "best": 0.0003863394376821816,
+    "bad": 5,
+    "reductions": 1,
+    "stop": true,
+    "events": [
+      {
+        "epoch": 1,
+        "score": 0.0003920563613064587,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 2,
+        "score": 0.00038859195774421096,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 3,
+        "score": 0.0003873599343933165,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 4,
+        "score": 0.00039086115430109203,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 5,
+        "score": 0.0003928108199033886,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 6,
+        "score": 0.0003900536394212395,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 7,
+        "score": 0.000394583388697356,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 8,
+        "score": 0.0003916741698049009,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 9,
+        "score": 0.00039473449578508735,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 10,
+        "score": 0.0003863394376821816,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 11,
+        "score": 0.00039212836418300867,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 12,
+        "score": 0.0003907218633685261,
+        "event": "observe",
+        "bad": 2,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 13,
+        "score": 0.0003915395063813776,
+        "event": "observe",
+        "bad": 3,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 14,
+        "score": 0.00039549299981445074,
+        "event": "observe",
+        "bad": 4,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 15,
+        "score": 0.0003897732822224498,
+        "event": "reduce_lr",
+        "bad": 0,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 16,
+        "score": 0.00038766348734498024,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 17,
+        "score": 0.000385452585760504,
+        "event": "observe",
+        "bad": 2,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 18,
+        "score": 0.0003877122944686562,
+        "event": "observe",
+        "bad": 3,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 19,
+        "score": 0.0003867238119710237,
+        "event": "observe",
+        "bad": 4,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 20,
+        "score": 0.000385891180485487,
+        "event": "stop_validation_plateau",
+        "bad": 5,
+        "next_learning_rates": [
+          5e-05
+        ]
+      }
+    ]
+  },
+  "bounded_training_complete": true,
+  "formal_updates": 2411,
+  "disposable": false,
+  "run_kind": "formal",
+  "target_reached": false,
+  "required_supervised_ticks": 415368,
+  "new_optimizer_updates": 2411,
+  "continuation_from": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/backend/B/training/best.pt",
+    "sha256": "3a1c2a08f88318e20a3a72a095051d7ef373f11e9f7232b9960b0e3c3719e7d7",
+    "teacher_supervision": "u_expert",
+    "statistics_sha256": "779baae89d0b06cddc26d5b1e7b77239e9776c1f29cda31ab0bfaabd96124117",
+    "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+    "round_index": 6,
+    "source_group": "B"
+  },
+  "tick_window_contract": {
+    "version": "fixed_supervised_tick_window_v1",
+    "target_supervised_ticks": 128,
+    "denominator": "fixed_unweighted_target_ticks",
+    "flush": "complete_episode_group",
+    "chunk_boundary": "unsplit_32tick"
+  },
+  "schedule_maximum_control_tick_epochs": 24,
+  "required_control_tick_epochs": 24,
+  "train_episode_count": 76,
+  "effective_batch": 4,
+  "minimum_control_tick_epochs": 12,
+  "minimum_exposure_reached": true,
+  "sampled_contact_anchors": 271720,
+  "contact_anchor_population": 13586,
+  "control_tick_population": 23351,
+  "supervised_tick_population": 17307,
+  "supervised_ticks": 346140,
+  "control_ticks": 467020,
+  "control_equivalent_epochs": 20.0,
+  "wall_s": 618.1805856227875,
+  "supervised_ticks_per_wall_s": 559.9334680662759,
+  "setup_wall_s": 1.0883605480194092,
+  "training_wall_s": 570.8765704631805,
+  "supervised_ticks_per_training_wall_s": 606.3307164964914,
+  "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+  "wait_s": 1.3963771765120327,
+  "work_s": 303.5444789144676,
+  "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+  "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+  "excess_supervised_ticks": 0,
+  "coverage": {
+    "supervised_ticks": 346140,
+    "unique_episodes": 76,
+    "repeated_samples": 1444,
+    "episode_draws": 1520,
+    "strata": {}
+  },
+  "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/B/backend/B/training/last.pt",
+  "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/B/backend/B/training/best.pt",
+  "utc": 1794918623.686972,
+  "base_optimizer_updates": 0
+}

@@ -1,0 +1,3428 @@
+{
+  "complete": true,
+  "models": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A/training/best.pt",
+      "frontend_sha256": "28532f9505069ec140a12112ac9891569d44a43ae09d371343cc5eba679cc399",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A/backend/A/training/best.pt",
+      "backend_sha256": "6dce72d1b7d13a4205fa20fb932f25d5fa0c36adc1eb358a443b8752697fc15a",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/B/training/best.pt",
+      "frontend_sha256": "35e7399f29a78ce7230aa66337b6b099f43245d90c2ad463ddbe2d507ae6d15c",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/B/backend/B/training/best.pt",
+      "backend_sha256": "61561f1a55269ba7fefaef150193e1eeb199e998cdcb75cd7f6acc16fff7fe7e",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "counts": {
+    "A": {
+      "opportunities": 8,
+      "legal": 8,
+      "success": 0,
+      "hold120": 4,
+      "subgoal": 0,
+      "software_interruptions": 0
+    },
+    "A_baseline": {
+      "opportunities": 8,
+      "legal": 8,
+      "success": 2,
+      "hold120": 4,
+      "subgoal": 3,
+      "software_interruptions": 0
+    },
+    "B": {
+      "opportunities": 8,
+      "legal": 8,
+      "success": 0,
+      "hold120": 6,
+      "subgoal": 2,
+      "software_interruptions": 0
+    },
+    "B_baseline": {
+      "opportunities": 8,
+      "legal": 8,
+      "success": 1,
+      "hold120": 6,
+      "subgoal": 3,
+      "software_interruptions": 0
+    }
+  },
+  "budgets": [
+    {
+      "role": "A",
+      "component": "DP",
+      "selected_epoch": 13,
+      "selected_updates": 494,
+      "actual_updates": 874,
+      "finished": {
+        "epochs": 23,
+        "updates": 874,
+        "anchors_seen": 34339,
+        "target_ticks": 794364,
+        "checkpoint_sha256": "28532f9505069ec140a12112ac9891569d44a43ae09d371343cc5eba679cc399",
+        "complete": true,
+        "wall_seconds": 1139.4394358759746,
+        "maximum_epochs": 40,
+        "plateau_state": {
+          "best": 0.005061195231974125,
+          "bad": 5,
+          "reductions": 1,
+          "stop": true,
+          "events": [
+            {
+              "epoch": 1,
+              "score": 0.005549205932766199,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 2,
+              "score": 0.00529280724003911,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 3,
+              "score": 0.0052261813543736935,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 4,
+              "score": 0.0052450429648160934,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 5,
+              "score": 0.0052671972662210464,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 6,
+              "score": 0.005232928786426783,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 7,
+              "score": 0.00521556381136179,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 8,
+              "score": 0.005154148675501347,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 9,
+              "score": 0.005102785304188728,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 10,
+              "score": 0.005135730840265751,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 11,
+              "score": 0.005099169909954071,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 12,
+              "score": 0.005085958167910576,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 13,
+              "score": 0.005061195231974125,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 14,
+              "score": 0.005126264411956072,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 15,
+              "score": 0.005125230178236961,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 16,
+              "score": 0.005109114106744528,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 17,
+              "score": 0.005105765536427498,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 18,
+              "score": 0.005193445831537247,
+              "event": "reduce_lr",
+              "bad": 0,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 19,
+              "score": 0.005170703399926424,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 20,
+              "score": 0.005161860957741737,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 21,
+              "score": 0.005144056398421526,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 22,
+              "score": 0.005141111556440592,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 23,
+              "score": 0.005130129866302013,
+              "event": "stop_validation_plateau",
+              "bad": 5,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            }
+          ]
+        },
+        "stop_reason": "validation_plateau",
+        "training_sampling": {
+          "version": "fresh_random_visit_training_v1",
+          "anchors": {
+            "version": "preserve_grasp_recovery_onset_anchors_v3",
+            "seed": 2026111501,
+            "population": "all_true_supervision_mask_ticks",
+            "replacement": false,
+            "count": "min_legal_ticks_max1_original_commit12_anchor_count",
+            "order": "ascending_selected_ticks",
+            "horizon": 24,
+            "rng": "independent_cpu_sha256_seed_identity_epoch_visit_index",
+            "history": "one_complete_real_history_encoding_per_visit",
+            "deployment": "unchanged_5Hz_commit12",
+            "early_control_ticks": 150,
+            "early_anchor_fraction": 0.5,
+            "shortage": "fill_from_remaining_legal_population_without_replacement",
+            "correction_onset_legal_ticks": 24,
+            "correction_onset_fraction": 0.5,
+            "original_sampling": "unchanged_grasp_v2_including_rng",
+            "correction_detection": "nonzero_first_legal_tick"
+          },
+          "geometry": {
+            "version": "legal_tick_half_phase_v1",
+            "fraction": 0.5,
+            "max_samples": null,
+            "commit": 12,
+            "population": "unique legal identity/tick in this visit selected anchors commit12",
+            "allocation": "proportional stage population with one per nonempty stage when feasible",
+            "rounding": "ceil population/2; stage floor then largest remaining proportional deficit",
+            "reduction": "mean selected unique configurations; no additional stage weights",
+            "rng": "explicit independent CPU generator per visit; never model/diffusion RNG",
+            "labels": "recorded diagnostic phases for sampling only; never network inputs"
+          }
+        },
+        "visit_sampling_coverage": {
+          "episodes": 76,
+          "visits": 1748,
+          "anchor_draws": 34339,
+          "unique_anchor_ticks": 13917,
+          "unique_non_native_grid_ticks": 12732,
+          "geometry_draws": 121893,
+          "unique_geometry_ticks": 17269,
+          "geometry_stage_unique_ticks": {
+            "held_rotating": 2504,
+            "held_near_goal60": 2462,
+            "after_first_native_subgoal": 5777,
+            "held_far": 213,
+            "contact_not_held": 3258,
+            "contact_lost": 1182,
+            "grasp_without_contact": 1873
+          }
+        },
+        "full_trajectory_batch": {
+          "version": "full_trajectory_batch_v1",
+          "batch_size": 2,
+          "grouping": "adjacent_registered_deck_visits",
+          "tail_policy": "keep_singleton",
+          "loss_reduction": "mean_per_trajectory_in_actual_batch",
+          "optimizer_steps": "one_per_batch",
+          "ema_steps": "one_per_optimizer_step",
+          "learning_rate": "unchanged_no_automatic_scaling",
+          "geometry": "original_selection_per_visit",
+          "noise": "original_randn_then_randint_per_visit",
+          "history": "independent_complete_real_prefix"
+        },
+        "visits_seen": 1748,
+        "ema_updates": 874,
+        "sampling_exposure": {
+          "layout10_train_28817000": 23,
+          "layout10_train_28817001": 23,
+          "layout10_train_28817002": 23,
+          "layout10_train_28817003": 23,
+          "layout10_train_28817004": 23,
+          "layout10_train_28817005": 23,
+          "layout10_train_28817006": 23,
+          "layout10_train_28817007": 23,
+          "layout10_train_28817008": 23,
+          "layout10_train_28817009": 23,
+          "layout10_train_28817010": 23,
+          "layout10_train_28817011": 23,
+          "layout10_train_28817012": 23,
+          "layout10_train_28817013": 23,
+          "layout10_train_28817014": 23,
+          "layout10_train_28817015": 23,
+          "layout10_train_28817016": 23,
+          "layout10_train_28817017": 23,
+          "layout10_train_28817018": 23,
+          "layout10_train_28817019": 23,
+          "layout10_train_28817020": 23,
+          "layout10_train_28817021": 23,
+          "layout10_train_28817022": 23,
+          "layout10_train_28817023": 23,
+          "layout10_train_28817024": 23,
+          "layout10_train_28817025": 23,
+          "layout10_train_28817026": 23,
+          "layout10_train_28817027": 23,
+          "layout10_train_28817028": 23,
+          "layout10_train_28817029": 23,
+          "r01_A_layout10_train_28817003_contact_height_only_d0": 23,
+          "r01_A_layout10_train_28817001_contact_height_only_d0": 23,
+          "r01_B_layout10_train_28817001_contact_height_only_d0": 23,
+          "r01_B_layout10_train_28817002_contact_height_only_d0": 23,
+          "r01_B_layout10_train_28817003_contact_height_only_d0": 23,
+          "r01_B_layout10_train_28817000_contact_height_only_d0": 23,
+          "r01_A_layout10_train_28817000_contact_height_only_d0": 23,
+          "r02_B_layout10_train_28817005_contact_height_only_d0": 23,
+          "r02_A_layout10_train_28817005_contact_height_only_d0": 23,
+          "r02_B_layout10_train_28817004_contact_height_only_d0": 23,
+          "r02_B_layout10_train_28817007_contact_height_only_d0": 23,
+          "r02_A_layout10_train_28817006_contact_height_only_d0": 23,
+          "r02_B_layout10_train_28817006_contact_height_only_d0": 23,
+          "r02_A_layout10_train_28817007_contact_height_only_d0": 23,
+          "r02_B_layout10_train_28817011_phase_early": 23,
+          "r02_B_layout10_train_28817009_phase_alignment": 23,
+          "r02_A_layout10_train_28817009_phase_alignment": 23,
+          "r02_A_layout10_train_28817011_phase_early": 23,
+          "r02_A_layout10_train_28817010_phase_weakening": 23,
+          "r03_B_layout10_train_28817013_phase_near": 23,
+          "r03_A_layout10_train_28817013_phase_near": 23,
+          "r03_B_layout10_train_28817014_phase_weakening": 23,
+          "r03_A_layout10_train_28817015_phase_early": 23,
+          "r03_B_layout10_train_28817012_phase_alignment": 23,
+          "r03_B_layout10_train_28817015_phase_early": 23,
+          "r03_A_layout10_train_28817012_phase_alignment": 23,
+          "r04_B_layout10_train_28817018_phase_near": 23,
+          "r04_A_layout10_train_28817016_phase_early": 23,
+          "r04_B_layout10_train_28817016_phase_early": 23,
+          "r04_B_layout10_train_28817017_phase_transport": 23,
+          "r04_B_layout10_train_28817020_phase_weakening": 23,
+          "r04_A_layout10_train_28817023_phase_early": 23,
+          "r04_B_layout10_train_28817023_phase_early": 23,
+          "r04_A_layout10_train_28817020_phase_weakening": 23,
+          "r04_A_layout10_train_28817021_phase_near": 23,
+          "r05_A_layout10_train_28817026_phase_near": 23,
+          "r05_B_layout10_train_28817024_phase_early": 23,
+          "r05_B_layout10_train_28817025_phase_transport": 23,
+          "r05_A_layout10_train_28817024_phase_early": 23,
+          "r05_B_layout10_train_28817027_phase_weakening": 23,
+          "r05_B_layout10_train_28817026_phase_near": 23,
+          "r05_A_layout10_train_28817025_phase_transport": 23,
+          "r06_B_layout10_train_28817026_phase_early": 23,
+          "r06_A_layout10_train_28817026_phase_early": 23,
+          "r06_B_layout10_train_28817027_phase_near": 23,
+          "r06_A_layout10_train_28817029_phase_post_subgoal": 23
+        },
+        "episode_multiplicities": {
+          "layout10_train_28817000": 1,
+          "layout10_train_28817001": 1,
+          "layout10_train_28817002": 1,
+          "layout10_train_28817003": 1,
+          "layout10_train_28817004": 1,
+          "layout10_train_28817005": 1,
+          "layout10_train_28817006": 1,
+          "layout10_train_28817007": 1,
+          "layout10_train_28817008": 1,
+          "layout10_train_28817009": 1,
+          "layout10_train_28817010": 1,
+          "layout10_train_28817011": 1,
+          "layout10_train_28817012": 1,
+          "layout10_train_28817013": 1,
+          "layout10_train_28817014": 1,
+          "layout10_train_28817015": 1,
+          "layout10_train_28817016": 1,
+          "layout10_train_28817017": 1,
+          "layout10_train_28817018": 1,
+          "layout10_train_28817019": 1,
+          "layout10_train_28817020": 1,
+          "layout10_train_28817021": 1,
+          "layout10_train_28817022": 1,
+          "layout10_train_28817023": 1,
+          "layout10_train_28817024": 1,
+          "layout10_train_28817025": 1,
+          "layout10_train_28817026": 1,
+          "layout10_train_28817027": 1,
+          "layout10_train_28817028": 1,
+          "layout10_train_28817029": 1,
+          "r01_A_layout10_train_28817003_contact_height_only_d0": 1,
+          "r01_A_layout10_train_28817001_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817001_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817002_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817003_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817000_contact_height_only_d0": 1,
+          "r01_A_layout10_train_28817000_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817005_contact_height_only_d0": 1,
+          "r02_A_layout10_train_28817005_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817004_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817007_contact_height_only_d0": 1,
+          "r02_A_layout10_train_28817006_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817006_contact_height_only_d0": 1,
+          "r02_A_layout10_train_28817007_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817011_phase_early": 1,
+          "r02_B_layout10_train_28817009_phase_alignment": 1,
+          "r02_A_layout10_train_28817009_phase_alignment": 1,
+          "r02_A_layout10_train_28817011_phase_early": 1,
+          "r02_A_layout10_train_28817010_phase_weakening": 1,
+          "r03_B_layout10_train_28817013_phase_near": 1,
+          "r03_A_layout10_train_28817013_phase_near": 1,
+          "r03_B_layout10_train_28817014_phase_weakening": 1,
+          "r03_A_layout10_train_28817015_phase_early": 1,
+          "r03_B_layout10_train_28817012_phase_alignment": 1,
+          "r03_B_layout10_train_28817015_phase_early": 1,
+          "r03_A_layout10_train_28817012_phase_alignment": 1,
+          "r04_B_layout10_train_28817018_phase_near": 1,
+          "r04_A_layout10_train_28817016_phase_early": 1,
+          "r04_B_layout10_train_28817016_phase_early": 1,
+          "r04_B_layout10_train_28817017_phase_transport": 1,
+          "r04_B_layout10_train_28817020_phase_weakening": 1,
+          "r04_A_layout10_train_28817023_phase_early": 1,
+          "r04_B_layout10_train_28817023_phase_early": 1,
+          "r04_A_layout10_train_28817020_phase_weakening": 1,
+          "r04_A_layout10_train_28817021_phase_near": 1,
+          "r05_A_layout10_train_28817026_phase_near": 1,
+          "r05_B_layout10_train_28817024_phase_early": 1,
+          "r05_B_layout10_train_28817025_phase_transport": 1,
+          "r05_A_layout10_train_28817024_phase_early": 1,
+          "r05_B_layout10_train_28817027_phase_weakening": 1,
+          "r05_B_layout10_train_28817026_phase_near": 1,
+          "r05_A_layout10_train_28817025_phase_transport": 1,
+          "r06_B_layout10_train_28817026_phase_early": 1,
+          "r06_A_layout10_train_28817026_phase_early": 1,
+          "r06_B_layout10_train_28817027_phase_near": 1,
+          "r06_A_layout10_train_28817029_phase_post_subgoal": 1
+        },
+        "episodes_per_epoch": 76,
+        "optimizer_updates_per_epoch": 38,
+        "planned_episode_visits": 3040,
+        "planned_optimizer_updates": 1520,
+        "planned_ema_updates": 1520,
+        "tail_singletons_per_epoch": 0,
+        "offline_planning": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_hotset": {
+          "version": "frozen_visual_cuda_hotset_diagnostic_v1",
+          "max_bytes": 4294967296,
+          "resident_bytes": 4266269514,
+          "planned_file_bytes": 4266297326,
+          "priority_ids": [
+            "layout10_validation_28818000",
+            "layout10_validation_28818001",
+            "layout10_validation_28818002",
+            "layout10_validation_28818003",
+            "layout10_validation_28818004",
+            "layout10_validation_28818005",
+            "layout10_train_28817000",
+            "layout10_train_28817001",
+            "layout10_train_28817002",
+            "layout10_train_28817003"
+          ],
+          "cached_ids": [
+            "layout10_validation_28818000",
+            "layout10_validation_28818001",
+            "layout10_validation_28818002",
+            "layout10_validation_28818003",
+            "layout10_validation_28818004",
+            "layout10_validation_28818005",
+            "layout10_train_28817000",
+            "layout10_train_28817001",
+            "layout10_train_28817003",
+            "layout10_train_28817002"
+          ],
+          "hits": 274,
+          "misses": 1670,
+          "admission_fallbacks": 0,
+          "avoided_logical_payload_bytes": 117096384542,
+          "first_fill_seconds": 1.5016423338092864,
+          "minimum_free_bytes": 8589934592,
+          "binding": {
+            "data_sha256": "df3edc4194bebda547bc8525ceb8786ebc4a686ea83211701b43b02f4f68f3e9",
+            "cache_index_sha256": "0a5b0f7ceb0ac57926e81e8fe826ce961bc9ffe7c96bf0f0c7abff33f090493d"
+          },
+          "scope": "Immutable patches/depth/camera timestamps only; no learned features, labels, history or backend inputs"
+        },
+        "stage_process_io": {
+          "minor_faults": 12800185,
+          "major_faults": 34137,
+          "read_bytes": 556022345728,
+          "rchar": 1483664302,
+          "syscr": 49051
+        },
+        "peak_cuda_allocated_bytes": 11443264512,
+        "peak_cuda_reserved_bytes": 11848908800
+      },
+      "checkpoint_sha256": "28532f9505069ec140a12112ac9891569d44a43ae09d371343cc5eba679cc399"
+    },
+    {
+      "role": "A",
+      "component": "Transformer",
+      "selected_epoch": 3,
+      "selected_updates": 369,
+      "actual_updates": 2170,
+      "finished": {
+        "stop_reason": "validation_plateau_after_lr_reduction",
+        "updates": 2170,
+        "control_tick_epochs": 18.0,
+        "bounded_extension": {
+          "version": "phase_dagger_budget_v1",
+          "kind": "backend",
+          "maximum_epochs": 24,
+          "minimum_epochs": 12,
+          "patience": 5,
+          "relative_improvement": 0.005,
+          "lr_factor": 0.5,
+          "maximum_reductions": 1,
+          "activate_after_epoch": 8
+        },
+        "plateau_state": {
+          "best": 0.00029754507704637945,
+          "bad": 5,
+          "reductions": 1,
+          "stop": true,
+          "events": [
+            {
+              "epoch": 1,
+              "score": 0.0003026839694939554,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 2,
+              "score": 0.0002995982358697802,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 3,
+              "score": 0.00029754507704637945,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 4,
+              "score": 0.00030582956969738007,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 5,
+              "score": 0.0003083149204030633,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 6,
+              "score": 0.0003000223368871957,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 7,
+              "score": 0.00030552721000276506,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 8,
+              "score": 0.0003002409066539258,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 9,
+              "score": 0.0003048237122129649,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 10,
+              "score": 0.00030123276519589126,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 11,
+              "score": 0.0003046845959033817,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 12,
+              "score": 0.000305009976727888,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 13,
+              "score": 0.00030527610215358436,
+              "event": "reduce_lr",
+              "bad": 0,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 14,
+              "score": 0.00030361569952219725,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 15,
+              "score": 0.00030455092201009393,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 16,
+              "score": 0.0003035680565517396,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 17,
+              "score": 0.00030460694688372314,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 18,
+              "score": 0.00030245445668697357,
+              "event": "stop_validation_plateau",
+              "bad": 5,
+              "next_learning_rates": [
+                5e-05
+              ]
+            }
+          ]
+        },
+        "bounded_training_complete": true,
+        "formal_updates": 2170,
+        "disposable": false,
+        "run_kind": "formal",
+        "target_reached": false,
+        "required_supervised_ticks": 415368,
+        "new_optimizer_updates": 2170,
+        "continuation_from": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/A/backend/A/training/best.pt",
+          "sha256": "a0ed63e2128f3f55a53aeb68b4c25211abae8d2e98d12260a5f8899a0287f36a",
+          "teacher_supervision": "u_expert",
+          "statistics_sha256": "779baae89d0b06cddc26d5b1e7b77239e9776c1f29cda31ab0bfaabd96124117",
+          "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+          "round_index": 6,
+          "source_group": "A"
+        },
+        "tick_window_contract": {
+          "version": "fixed_supervised_tick_window_v1",
+          "target_supervised_ticks": 128,
+          "denominator": "fixed_unweighted_target_ticks",
+          "flush": "complete_episode_group",
+          "chunk_boundary": "unsplit_32tick"
+        },
+        "schedule_maximum_control_tick_epochs": 24,
+        "required_control_tick_epochs": 24,
+        "train_episode_count": 76,
+        "effective_batch": 4,
+        "minimum_control_tick_epochs": 12,
+        "minimum_exposure_reached": true,
+        "sampled_contact_anchors": 244548,
+        "contact_anchor_population": 13586,
+        "control_tick_population": 23351,
+        "supervised_tick_population": 17307,
+        "supervised_ticks": 311526,
+        "control_ticks": 420318,
+        "control_equivalent_epochs": 18.0,
+        "wall_s": 565.8601021766663,
+        "supervised_ticks_per_wall_s": 550.5353677996325,
+        "setup_wall_s": 0.7208516597747803,
+        "training_wall_s": 520.6972205638885,
+        "supervised_ticks_per_training_wall_s": 598.2862740512293,
+        "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+        "wait_s": 3.5600929339416325,
+        "work_s": 550.0354640653823,
+        "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+        "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+        "excess_supervised_ticks": 0,
+        "coverage": {
+          "supervised_ticks": 311526,
+          "unique_episodes": 76,
+          "repeated_samples": 1292,
+          "episode_draws": 1368,
+          "strata": {}
+        },
+        "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A/backend/A/training/last.pt",
+        "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/A/backend/A/training/best.pt",
+        "utc": 1794917402.7750583,
+        "base_optimizer_updates": 0
+      },
+      "checkpoint_sha256": "6dce72d1b7d13a4205fa20fb932f25d5fa0c36adc1eb358a443b8752697fc15a"
+    },
+    {
+      "role": "B",
+      "component": "DP",
+      "selected_epoch": 9,
+      "selected_updates": 342,
+      "actual_updates": 722,
+      "finished": {
+        "epochs": 19,
+        "updates": 722,
+        "anchors_seen": 28367,
+        "target_ticks": 656295,
+        "checkpoint_sha256": "35e7399f29a78ce7230aa66337b6b099f43245d90c2ad463ddbe2d507ae6d15c",
+        "complete": true,
+        "wall_seconds": 1036.8435173309408,
+        "maximum_epochs": 40,
+        "plateau_state": {
+          "best": 0.005546024534851313,
+          "bad": 5,
+          "reductions": 1,
+          "stop": true,
+          "events": [
+            {
+              "epoch": 1,
+              "score": 0.005778329446911812,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 2,
+              "score": 0.005766351707279682,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 3,
+              "score": 0.005602612160146236,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 4,
+              "score": 0.0056863510981202126,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 5,
+              "score": 0.005812385119497776,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 6,
+              "score": 0.005611224565654993,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 7,
+              "score": 0.005590095184743404,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 8,
+              "score": 0.0056225610896945,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 9,
+              "score": 0.005546024534851313,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 10,
+              "score": 0.0055761756375432014,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 11,
+              "score": 0.005599407944828272,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 12,
+              "score": 0.005593050271272659,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 13,
+              "score": 0.005618519615381956,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                3e-05
+              ]
+            },
+            {
+              "epoch": 14,
+              "score": 0.0056478544138371944,
+              "event": "reduce_lr",
+              "bad": 0,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 15,
+              "score": 0.005656997207552195,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 16,
+              "score": 0.005635217297822237,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 17,
+              "score": 0.005592854227870703,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 18,
+              "score": 0.005568596068769693,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            },
+            {
+              "epoch": 19,
+              "score": 0.00555583368986845,
+              "event": "stop_validation_plateau",
+              "bad": 5,
+              "next_learning_rates": [
+                1.5e-05
+              ]
+            }
+          ]
+        },
+        "stop_reason": "validation_plateau",
+        "training_sampling": {
+          "version": "fresh_random_visit_training_v1",
+          "anchors": {
+            "version": "preserve_grasp_recovery_onset_anchors_v3",
+            "seed": 2026111501,
+            "population": "all_true_supervision_mask_ticks",
+            "replacement": false,
+            "count": "min_legal_ticks_max1_original_commit12_anchor_count",
+            "order": "ascending_selected_ticks",
+            "horizon": 24,
+            "rng": "independent_cpu_sha256_seed_identity_epoch_visit_index",
+            "history": "one_complete_real_history_encoding_per_visit",
+            "deployment": "unchanged_5Hz_commit12",
+            "early_control_ticks": 150,
+            "early_anchor_fraction": 0.5,
+            "shortage": "fill_from_remaining_legal_population_without_replacement",
+            "correction_onset_legal_ticks": 24,
+            "correction_onset_fraction": 0.5,
+            "original_sampling": "unchanged_grasp_v2_including_rng",
+            "correction_detection": "nonzero_first_legal_tick"
+          },
+          "geometry": {
+            "version": "legal_tick_half_phase_v1",
+            "fraction": 0.5,
+            "max_samples": null,
+            "commit": 12,
+            "population": "unique legal identity/tick in this visit selected anchors commit12",
+            "allocation": "proportional stage population with one per nonempty stage when feasible",
+            "rounding": "ceil population/2; stage floor then largest remaining proportional deficit",
+            "reduction": "mean selected unique configurations; no additional stage weights",
+            "rng": "explicit independent CPU generator per visit; never model/diffusion RNG",
+            "labels": "recorded diagnostic phases for sampling only; never network inputs"
+          }
+        },
+        "visit_sampling_coverage": {
+          "episodes": 76,
+          "visits": 1444,
+          "anchor_draws": 28367,
+          "unique_anchor_ticks": 12923,
+          "unique_non_native_grid_ticks": 11819,
+          "geometry_draws": 0,
+          "unique_geometry_ticks": 0,
+          "geometry_stage_unique_ticks": {}
+        },
+        "full_trajectory_batch": {
+          "version": "full_trajectory_batch_v1",
+          "batch_size": 2,
+          "grouping": "adjacent_registered_deck_visits",
+          "tail_policy": "keep_singleton",
+          "loss_reduction": "mean_per_trajectory_in_actual_batch",
+          "optimizer_steps": "one_per_batch",
+          "ema_steps": "one_per_optimizer_step",
+          "learning_rate": "unchanged_no_automatic_scaling",
+          "geometry": "original_selection_per_visit",
+          "noise": "original_randn_then_randint_per_visit",
+          "history": "independent_complete_real_prefix"
+        },
+        "visits_seen": 1444,
+        "ema_updates": 722,
+        "sampling_exposure": {
+          "layout10_train_28817000": 19,
+          "layout10_train_28817001": 19,
+          "layout10_train_28817002": 19,
+          "layout10_train_28817003": 19,
+          "layout10_train_28817004": 19,
+          "layout10_train_28817005": 19,
+          "layout10_train_28817006": 19,
+          "layout10_train_28817007": 19,
+          "layout10_train_28817008": 19,
+          "layout10_train_28817009": 19,
+          "layout10_train_28817010": 19,
+          "layout10_train_28817011": 19,
+          "layout10_train_28817012": 19,
+          "layout10_train_28817013": 19,
+          "layout10_train_28817014": 19,
+          "layout10_train_28817015": 19,
+          "layout10_train_28817016": 19,
+          "layout10_train_28817017": 19,
+          "layout10_train_28817018": 19,
+          "layout10_train_28817019": 19,
+          "layout10_train_28817020": 19,
+          "layout10_train_28817021": 19,
+          "layout10_train_28817022": 19,
+          "layout10_train_28817023": 19,
+          "layout10_train_28817024": 19,
+          "layout10_train_28817025": 19,
+          "layout10_train_28817026": 19,
+          "layout10_train_28817027": 19,
+          "layout10_train_28817028": 19,
+          "layout10_train_28817029": 19,
+          "r01_A_layout10_train_28817003_contact_height_only_d0": 19,
+          "r01_A_layout10_train_28817001_contact_height_only_d0": 19,
+          "r01_B_layout10_train_28817001_contact_height_only_d0": 19,
+          "r01_B_layout10_train_28817002_contact_height_only_d0": 19,
+          "r01_B_layout10_train_28817003_contact_height_only_d0": 19,
+          "r01_B_layout10_train_28817000_contact_height_only_d0": 19,
+          "r01_A_layout10_train_28817000_contact_height_only_d0": 19,
+          "r02_B_layout10_train_28817005_contact_height_only_d0": 19,
+          "r02_A_layout10_train_28817005_contact_height_only_d0": 19,
+          "r02_B_layout10_train_28817004_contact_height_only_d0": 19,
+          "r02_B_layout10_train_28817007_contact_height_only_d0": 19,
+          "r02_A_layout10_train_28817006_contact_height_only_d0": 19,
+          "r02_B_layout10_train_28817006_contact_height_only_d0": 19,
+          "r02_A_layout10_train_28817007_contact_height_only_d0": 19,
+          "r02_B_layout10_train_28817011_phase_early": 19,
+          "r02_B_layout10_train_28817009_phase_alignment": 19,
+          "r02_A_layout10_train_28817009_phase_alignment": 19,
+          "r02_A_layout10_train_28817011_phase_early": 19,
+          "r02_A_layout10_train_28817010_phase_weakening": 19,
+          "r03_B_layout10_train_28817013_phase_near": 19,
+          "r03_A_layout10_train_28817013_phase_near": 19,
+          "r03_B_layout10_train_28817014_phase_weakening": 19,
+          "r03_A_layout10_train_28817015_phase_early": 19,
+          "r03_B_layout10_train_28817012_phase_alignment": 19,
+          "r03_B_layout10_train_28817015_phase_early": 19,
+          "r03_A_layout10_train_28817012_phase_alignment": 19,
+          "r04_B_layout10_train_28817018_phase_near": 19,
+          "r04_A_layout10_train_28817016_phase_early": 19,
+          "r04_B_layout10_train_28817016_phase_early": 19,
+          "r04_B_layout10_train_28817017_phase_transport": 19,
+          "r04_B_layout10_train_28817020_phase_weakening": 19,
+          "r04_A_layout10_train_28817023_phase_early": 19,
+          "r04_B_layout10_train_28817023_phase_early": 19,
+          "r04_A_layout10_train_28817020_phase_weakening": 19,
+          "r04_A_layout10_train_28817021_phase_near": 19,
+          "r05_A_layout10_train_28817026_phase_near": 19,
+          "r05_B_layout10_train_28817024_phase_early": 19,
+          "r05_B_layout10_train_28817025_phase_transport": 19,
+          "r05_A_layout10_train_28817024_phase_early": 19,
+          "r05_B_layout10_train_28817027_phase_weakening": 19,
+          "r05_B_layout10_train_28817026_phase_near": 19,
+          "r05_A_layout10_train_28817025_phase_transport": 19,
+          "r06_B_layout10_train_28817026_phase_early": 19,
+          "r06_A_layout10_train_28817026_phase_early": 19,
+          "r06_B_layout10_train_28817027_phase_near": 19,
+          "r06_A_layout10_train_28817029_phase_post_subgoal": 19
+        },
+        "episode_multiplicities": {
+          "layout10_train_28817000": 1,
+          "layout10_train_28817001": 1,
+          "layout10_train_28817002": 1,
+          "layout10_train_28817003": 1,
+          "layout10_train_28817004": 1,
+          "layout10_train_28817005": 1,
+          "layout10_train_28817006": 1,
+          "layout10_train_28817007": 1,
+          "layout10_train_28817008": 1,
+          "layout10_train_28817009": 1,
+          "layout10_train_28817010": 1,
+          "layout10_train_28817011": 1,
+          "layout10_train_28817012": 1,
+          "layout10_train_28817013": 1,
+          "layout10_train_28817014": 1,
+          "layout10_train_28817015": 1,
+          "layout10_train_28817016": 1,
+          "layout10_train_28817017": 1,
+          "layout10_train_28817018": 1,
+          "layout10_train_28817019": 1,
+          "layout10_train_28817020": 1,
+          "layout10_train_28817021": 1,
+          "layout10_train_28817022": 1,
+          "layout10_train_28817023": 1,
+          "layout10_train_28817024": 1,
+          "layout10_train_28817025": 1,
+          "layout10_train_28817026": 1,
+          "layout10_train_28817027": 1,
+          "layout10_train_28817028": 1,
+          "layout10_train_28817029": 1,
+          "r01_A_layout10_train_28817003_contact_height_only_d0": 1,
+          "r01_A_layout10_train_28817001_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817001_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817002_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817003_contact_height_only_d0": 1,
+          "r01_B_layout10_train_28817000_contact_height_only_d0": 1,
+          "r01_A_layout10_train_28817000_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817005_contact_height_only_d0": 1,
+          "r02_A_layout10_train_28817005_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817004_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817007_contact_height_only_d0": 1,
+          "r02_A_layout10_train_28817006_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817006_contact_height_only_d0": 1,
+          "r02_A_layout10_train_28817007_contact_height_only_d0": 1,
+          "r02_B_layout10_train_28817011_phase_early": 1,
+          "r02_B_layout10_train_28817009_phase_alignment": 1,
+          "r02_A_layout10_train_28817009_phase_alignment": 1,
+          "r02_A_layout10_train_28817011_phase_early": 1,
+          "r02_A_layout10_train_28817010_phase_weakening": 1,
+          "r03_B_layout10_train_28817013_phase_near": 1,
+          "r03_A_layout10_train_28817013_phase_near": 1,
+          "r03_B_layout10_train_28817014_phase_weakening": 1,
+          "r03_A_layout10_train_28817015_phase_early": 1,
+          "r03_B_layout10_train_28817012_phase_alignment": 1,
+          "r03_B_layout10_train_28817015_phase_early": 1,
+          "r03_A_layout10_train_28817012_phase_alignment": 1,
+          "r04_B_layout10_train_28817018_phase_near": 1,
+          "r04_A_layout10_train_28817016_phase_early": 1,
+          "r04_B_layout10_train_28817016_phase_early": 1,
+          "r04_B_layout10_train_28817017_phase_transport": 1,
+          "r04_B_layout10_train_28817020_phase_weakening": 1,
+          "r04_A_layout10_train_28817023_phase_early": 1,
+          "r04_B_layout10_train_28817023_phase_early": 1,
+          "r04_A_layout10_train_28817020_phase_weakening": 1,
+          "r04_A_layout10_train_28817021_phase_near": 1,
+          "r05_A_layout10_train_28817026_phase_near": 1,
+          "r05_B_layout10_train_28817024_phase_early": 1,
+          "r05_B_layout10_train_28817025_phase_transport": 1,
+          "r05_A_layout10_train_28817024_phase_early": 1,
+          "r05_B_layout10_train_28817027_phase_weakening": 1,
+          "r05_B_layout10_train_28817026_phase_near": 1,
+          "r05_A_layout10_train_28817025_phase_transport": 1,
+          "r06_B_layout10_train_28817026_phase_early": 1,
+          "r06_A_layout10_train_28817026_phase_early": 1,
+          "r06_B_layout10_train_28817027_phase_near": 1,
+          "r06_A_layout10_train_28817029_phase_post_subgoal": 1
+        },
+        "episodes_per_epoch": 76,
+        "optimizer_updates_per_epoch": 38,
+        "planned_episode_visits": 3040,
+        "planned_optimizer_updates": 1520,
+        "planned_ema_updates": 1520,
+        "tail_singletons_per_epoch": 0,
+        "offline_planning": {
+          "version": "offline_contiguous_anchor_batch_v1",
+          "max_anchors": 32,
+          "seed": 7091,
+          "planning_interval_ticks": 12,
+          "inference_steps": 16,
+          "clip_sample": false,
+          "scheduler_index_mode": "host",
+          "noise_draw_shape": [
+            1,
+            24,
+            29
+          ],
+          "same_generator_per_row": true,
+          "split_at_missing_anchors": true,
+          "scope": "offline inference only; unchanged full causal history and optimizer budget"
+        },
+        "frozen_visual_hotset": {
+          "version": "frozen_visual_cuda_hotset_diagnostic_v1",
+          "max_bytes": 4294967296,
+          "resident_bytes": 4266269514,
+          "planned_file_bytes": 4266297326,
+          "priority_ids": [
+            "layout10_validation_28818000",
+            "layout10_validation_28818001",
+            "layout10_validation_28818002",
+            "layout10_validation_28818003",
+            "layout10_validation_28818004",
+            "layout10_validation_28818005",
+            "layout10_train_28817000",
+            "layout10_train_28817001",
+            "layout10_train_28817002",
+            "layout10_train_28817003"
+          ],
+          "cached_ids": [
+            "layout10_validation_28818000",
+            "layout10_validation_28818001",
+            "layout10_validation_28818002",
+            "layout10_validation_28818003",
+            "layout10_validation_28818004",
+            "layout10_validation_28818005",
+            "layout10_train_28817000",
+            "layout10_train_28817001",
+            "layout10_train_28817003",
+            "layout10_train_28817002"
+          ],
+          "hits": 226,
+          "misses": 1382,
+          "admission_fallbacks": 0,
+          "avoided_logical_payload_bytes": 96567997694,
+          "first_fill_seconds": 2.5827506652567536,
+          "minimum_free_bytes": 8589934592,
+          "binding": {
+            "data_sha256": "c62d60ada035756a209510e2963bbe22a47bf98e3d8f3bbbf21b6886b29a7fb4",
+            "cache_index_sha256": "1c5bd26dc84ae0aed1b2ad5f3f4915e3f1e4a96f082e81a08036311637626801"
+          },
+          "scope": "Immutable patches/depth/camera timestamps only; no learned features, labels, history or backend inputs"
+        },
+        "stage_process_io": {
+          "minor_faults": 10752076,
+          "major_faults": 21921,
+          "read_bytes": 487918477312,
+          "rchar": 1428585759,
+          "syscr": 41352
+        },
+        "peak_cuda_allocated_bytes": 11443185664,
+        "peak_cuda_reserved_bytes": 11846811648
+      },
+      "checkpoint_sha256": "35e7399f29a78ce7230aa66337b6b099f43245d90c2ad463ddbe2d507ae6d15c"
+    },
+    {
+      "role": "B",
+      "component": "Transformer",
+      "selected_epoch": 17,
+      "selected_updates": 2048,
+      "actual_updates": 2411,
+      "finished": {
+        "stop_reason": "validation_plateau_after_lr_reduction",
+        "updates": 2411,
+        "control_tick_epochs": 20.0,
+        "bounded_extension": {
+          "version": "phase_dagger_budget_v1",
+          "kind": "backend",
+          "maximum_epochs": 24,
+          "minimum_epochs": 12,
+          "patience": 5,
+          "relative_improvement": 0.005,
+          "lr_factor": 0.5,
+          "maximum_reductions": 1,
+          "activate_after_epoch": 8
+        },
+        "plateau_state": {
+          "best": 0.0003863394376821816,
+          "bad": 5,
+          "reductions": 1,
+          "stop": true,
+          "events": [
+            {
+              "epoch": 1,
+              "score": 0.0003920563613064587,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 2,
+              "score": 0.00038859195774421096,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 3,
+              "score": 0.0003873599343933165,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 4,
+              "score": 0.00039086115430109203,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 5,
+              "score": 0.0003928108199033886,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 6,
+              "score": 0.0003900536394212395,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 7,
+              "score": 0.000394583388697356,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 8,
+              "score": 0.0003916741698049009,
+              "event": "observe",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 9,
+              "score": 0.00039473449578508735,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 10,
+              "score": 0.0003863394376821816,
+              "event": "material_improvement",
+              "bad": 0,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 11,
+              "score": 0.00039212836418300867,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 12,
+              "score": 0.0003907218633685261,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 13,
+              "score": 0.0003915395063813776,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 14,
+              "score": 0.00039549299981445074,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                0.0001
+              ]
+            },
+            {
+              "epoch": 15,
+              "score": 0.0003897732822224498,
+              "event": "reduce_lr",
+              "bad": 0,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 16,
+              "score": 0.00038766348734498024,
+              "event": "observe",
+              "bad": 1,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 17,
+              "score": 0.000385452585760504,
+              "event": "observe",
+              "bad": 2,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 18,
+              "score": 0.0003877122944686562,
+              "event": "observe",
+              "bad": 3,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 19,
+              "score": 0.0003867238119710237,
+              "event": "observe",
+              "bad": 4,
+              "next_learning_rates": [
+                5e-05
+              ]
+            },
+            {
+              "epoch": 20,
+              "score": 0.000385891180485487,
+              "event": "stop_validation_plateau",
+              "bad": 5,
+              "next_learning_rates": [
+                5e-05
+              ]
+            }
+          ]
+        },
+        "bounded_training_complete": true,
+        "formal_updates": 2411,
+        "disposable": false,
+        "run_kind": "formal",
+        "target_reached": false,
+        "required_supervised_ticks": 415368,
+        "new_optimizer_updates": 2411,
+        "continuation_from": {
+          "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/backend/B/training/best.pt",
+          "sha256": "3a1c2a08f88318e20a3a72a095051d7ef373f11e9f7232b9960b0e3c3719e7d7",
+          "teacher_supervision": "u_expert",
+          "statistics_sha256": "779baae89d0b06cddc26d5b1e7b77239e9776c1f29cda31ab0bfaabd96124117",
+          "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+          "round_index": 6,
+          "source_group": "B"
+        },
+        "tick_window_contract": {
+          "version": "fixed_supervised_tick_window_v1",
+          "target_supervised_ticks": 128,
+          "denominator": "fixed_unweighted_target_ticks",
+          "flush": "complete_episode_group",
+          "chunk_boundary": "unsplit_32tick"
+        },
+        "schedule_maximum_control_tick_epochs": 24,
+        "required_control_tick_epochs": 24,
+        "train_episode_count": 76,
+        "effective_batch": 4,
+        "minimum_control_tick_epochs": 12,
+        "minimum_exposure_reached": true,
+        "sampled_contact_anchors": 271720,
+        "contact_anchor_population": 13586,
+        "control_tick_population": 23351,
+        "supervised_tick_population": 17307,
+        "supervised_ticks": 346140,
+        "control_ticks": 467020,
+        "control_equivalent_epochs": 20.0,
+        "wall_s": 618.1805856227875,
+        "supervised_ticks_per_wall_s": 559.9334680662759,
+        "setup_wall_s": 1.0883605480194092,
+        "training_wall_s": 570.8765704631805,
+        "supervised_ticks_per_training_wall_s": 606.3307164964914,
+        "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+        "wait_s": 1.3963771765120327,
+        "work_s": 303.5444789144676,
+        "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+        "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+        "excess_supervised_ticks": 0,
+        "coverage": {
+          "supervised_ticks": 346140,
+          "unique_episodes": 76,
+          "repeated_samples": 1444,
+          "episode_draws": 1520,
+          "strata": {}
+        },
+        "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/B/backend/B/training/last.pt",
+        "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/B/backend/B/training/best.pt",
+        "utc": 1794918623.686972,
+        "base_optimizer_updates": 0
+      },
+      "checkpoint_sha256": "61561f1a55269ba7fefaef150193e1eeb199e998cdcb75cd7f6acc16fff7fe7e"
+    }
+  ],
+  "exposures": [
+    {
+      "role": "A",
+      "counts": {
+        "actual": {
+          "windows": 34339,
+          "target_slots": 794364,
+          "original_early_slots": 210836,
+          "correction_onset_slots": 102099
+        },
+        "selected": {
+          "windows": 19409,
+          "target_slots": 448905,
+          "original_early_slots": 119189,
+          "correction_onset_slots": 57565
+        }
+      },
+      "visits": {
+        "r05_A_layout10_train_28817025_phase_transport": 23,
+        "r04_B_layout10_train_28817018_phase_near": 23,
+        "r02_A_layout10_train_28817011_phase_early": 23,
+        "r06_B_layout10_train_28817027_phase_near": 23,
+        "layout10_train_28817010": 23,
+        "layout10_train_28817013": 23,
+        "layout10_train_28817003": 23,
+        "r01_B_layout10_train_28817002_contact_height_only_d0": 23,
+        "r02_A_layout10_train_28817005_contact_height_only_d0": 23,
+        "r04_B_layout10_train_28817023_phase_early": 23,
+        "layout10_train_28817004": 23,
+        "r06_A_layout10_train_28817029_phase_post_subgoal": 23,
+        "r04_A_layout10_train_28817021_phase_near": 23,
+        "layout10_train_28817024": 23,
+        "layout10_train_28817018": 23,
+        "r04_B_layout10_train_28817016_phase_early": 23,
+        "r02_B_layout10_train_28817007_contact_height_only_d0": 23,
+        "layout10_train_28817016": 23,
+        "layout10_train_28817008": 23,
+        "r02_B_layout10_train_28817005_contact_height_only_d0": 23,
+        "r06_A_layout10_train_28817026_phase_early": 23,
+        "layout10_train_28817005": 23,
+        "r01_B_layout10_train_28817000_contact_height_only_d0": 23,
+        "layout10_train_28817000": 23,
+        "layout10_train_28817012": 23,
+        "r04_B_layout10_train_28817020_phase_weakening": 23,
+        "layout10_train_28817028": 23,
+        "r05_B_layout10_train_28817026_phase_near": 23,
+        "layout10_train_28817011": 23,
+        "r02_B_layout10_train_28817011_phase_early": 23,
+        "layout10_train_28817021": 23,
+        "r03_B_layout10_train_28817012_phase_alignment": 23,
+        "layout10_train_28817022": 23,
+        "layout10_train_28817023": 23,
+        "layout10_train_28817015": 23,
+        "r02_A_layout10_train_28817010_phase_weakening": 23,
+        "r01_A_layout10_train_28817000_contact_height_only_d0": 23,
+        "r04_B_layout10_train_28817017_phase_transport": 23,
+        "layout10_train_28817029": 23,
+        "r04_A_layout10_train_28817023_phase_early": 23,
+        "r03_A_layout10_train_28817012_phase_alignment": 23,
+        "r05_A_layout10_train_28817024_phase_early": 23,
+        "r03_B_layout10_train_28817013_phase_near": 23,
+        "r02_A_layout10_train_28817006_contact_height_only_d0": 23,
+        "r02_B_layout10_train_28817006_contact_height_only_d0": 23,
+        "layout10_train_28817001": 23,
+        "layout10_train_28817017": 23,
+        "r03_B_layout10_train_28817014_phase_weakening": 23,
+        "layout10_train_28817007": 23,
+        "r04_A_layout10_train_28817020_phase_weakening": 23,
+        "r01_B_layout10_train_28817001_contact_height_only_d0": 23,
+        "r06_B_layout10_train_28817026_phase_early": 23,
+        "layout10_train_28817009": 23,
+        "r02_A_layout10_train_28817007_contact_height_only_d0": 23,
+        "layout10_train_28817006": 23,
+        "r05_B_layout10_train_28817024_phase_early": 23,
+        "r03_B_layout10_train_28817015_phase_early": 23,
+        "r01_B_layout10_train_28817003_contact_height_only_d0": 23,
+        "layout10_train_28817025": 23,
+        "r03_A_layout10_train_28817015_phase_early": 23,
+        "r05_A_layout10_train_28817026_phase_near": 23,
+        "r02_B_layout10_train_28817009_phase_alignment": 23,
+        "layout10_train_28817020": 23,
+        "r05_B_layout10_train_28817025_phase_transport": 23,
+        "r02_B_layout10_train_28817004_contact_height_only_d0": 23,
+        "r04_A_layout10_train_28817016_phase_early": 23,
+        "layout10_train_28817002": 23,
+        "r02_A_layout10_train_28817009_phase_alignment": 23,
+        "layout10_train_28817026": 23,
+        "r01_A_layout10_train_28817001_contact_height_only_d0": 23,
+        "r05_B_layout10_train_28817027_phase_weakening": 23,
+        "layout10_train_28817019": 23,
+        "r01_A_layout10_train_28817003_contact_height_only_d0": 23,
+        "layout10_train_28817014": 23,
+        "r03_A_layout10_train_28817013_phase_near": 23,
+        "layout10_train_28817027": 23
+      },
+      "unique_supervised_ticks": 17304
+    },
+    {
+      "role": "B",
+      "counts": {
+        "actual": {
+          "windows": 28367,
+          "target_slots": 656295,
+          "original_early_slots": 174308,
+          "correction_onset_slots": 84026
+        },
+        "selected": {
+          "windows": 13437,
+          "target_slots": 311121,
+          "original_early_slots": 82360,
+          "correction_onset_slots": 39915
+        }
+      },
+      "visits": {
+        "r05_A_layout10_train_28817025_phase_transport": 19,
+        "r04_B_layout10_train_28817018_phase_near": 19,
+        "r02_A_layout10_train_28817011_phase_early": 19,
+        "r06_B_layout10_train_28817027_phase_near": 19,
+        "layout10_train_28817010": 19,
+        "layout10_train_28817013": 19,
+        "layout10_train_28817003": 19,
+        "r01_B_layout10_train_28817002_contact_height_only_d0": 19,
+        "r02_A_layout10_train_28817005_contact_height_only_d0": 19,
+        "r04_B_layout10_train_28817023_phase_early": 19,
+        "layout10_train_28817004": 19,
+        "r06_A_layout10_train_28817029_phase_post_subgoal": 19,
+        "r04_A_layout10_train_28817021_phase_near": 19,
+        "layout10_train_28817024": 19,
+        "layout10_train_28817018": 19,
+        "r04_B_layout10_train_28817016_phase_early": 19,
+        "r02_B_layout10_train_28817007_contact_height_only_d0": 19,
+        "layout10_train_28817016": 19,
+        "layout10_train_28817008": 19,
+        "r02_B_layout10_train_28817005_contact_height_only_d0": 19,
+        "r06_A_layout10_train_28817026_phase_early": 19,
+        "layout10_train_28817005": 19,
+        "r01_B_layout10_train_28817000_contact_height_only_d0": 19,
+        "layout10_train_28817000": 19,
+        "layout10_train_28817012": 19,
+        "r04_B_layout10_train_28817020_phase_weakening": 19,
+        "layout10_train_28817028": 19,
+        "r05_B_layout10_train_28817026_phase_near": 19,
+        "layout10_train_28817011": 19,
+        "r02_B_layout10_train_28817011_phase_early": 19,
+        "layout10_train_28817021": 19,
+        "r03_B_layout10_train_28817012_phase_alignment": 19,
+        "layout10_train_28817022": 19,
+        "layout10_train_28817023": 19,
+        "layout10_train_28817015": 19,
+        "r02_A_layout10_train_28817010_phase_weakening": 19,
+        "r01_A_layout10_train_28817000_contact_height_only_d0": 19,
+        "r04_B_layout10_train_28817017_phase_transport": 19,
+        "layout10_train_28817029": 19,
+        "r04_A_layout10_train_28817023_phase_early": 19,
+        "r03_A_layout10_train_28817012_phase_alignment": 19,
+        "r05_A_layout10_train_28817024_phase_early": 19,
+        "r03_B_layout10_train_28817013_phase_near": 19,
+        "r02_A_layout10_train_28817006_contact_height_only_d0": 19,
+        "r02_B_layout10_train_28817006_contact_height_only_d0": 19,
+        "layout10_train_28817001": 19,
+        "layout10_train_28817017": 19,
+        "r03_B_layout10_train_28817014_phase_weakening": 19,
+        "layout10_train_28817007": 19,
+        "r04_A_layout10_train_28817020_phase_weakening": 19,
+        "r01_B_layout10_train_28817001_contact_height_only_d0": 19,
+        "r06_B_layout10_train_28817026_phase_early": 19,
+        "layout10_train_28817009": 19,
+        "r02_A_layout10_train_28817007_contact_height_only_d0": 19,
+        "layout10_train_28817006": 19,
+        "r05_B_layout10_train_28817024_phase_early": 19,
+        "r03_B_layout10_train_28817015_phase_early": 19,
+        "r01_B_layout10_train_28817003_contact_height_only_d0": 19,
+        "layout10_train_28817025": 19,
+        "r03_A_layout10_train_28817015_phase_early": 19,
+        "r05_A_layout10_train_28817026_phase_near": 19,
+        "r02_B_layout10_train_28817009_phase_alignment": 19,
+        "layout10_train_28817020": 19,
+        "r05_B_layout10_train_28817025_phase_transport": 19,
+        "r02_B_layout10_train_28817004_contact_height_only_d0": 19,
+        "r04_A_layout10_train_28817016_phase_early": 19,
+        "layout10_train_28817002": 19,
+        "r02_A_layout10_train_28817009_phase_alignment": 19,
+        "layout10_train_28817026": 19,
+        "r01_A_layout10_train_28817001_contact_height_only_d0": 19,
+        "r05_B_layout10_train_28817027_phase_weakening": 19,
+        "layout10_train_28817019": 19,
+        "r01_A_layout10_train_28817003_contact_height_only_d0": 19,
+        "layout10_train_28817014": 19,
+        "r03_A_layout10_train_28817013_phase_near": 19,
+        "layout10_train_28817027": 19
+      },
+      "unique_supervised_ticks": 17302
+    }
+  ],
+  "timing": [
+    {
+      "stage": "dp_A_complete",
+      "exit_code": 0,
+      "receipt_sha256": "25e0783e88f6a0fa316583b3454e98dc537aacdbc9fc609b9394c45ebfba0470",
+      "utc": 1794915684.1752853,
+      "seconds": 1149.6257333755493,
+      "monitor_alive": true
+    },
+    {
+      "stage": "dp_B_complete",
+      "exit_code": 0,
+      "receipt_sha256": "61acd7d218b18da174b5ea1d8381a4bd3f28ca2bff139168a1301d43282a653f",
+      "utc": 1794916729.0193126,
+      "seconds": 1044.8435044288635,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_cache_A_complete",
+      "exit_code": 0,
+      "receipt_sha256": "644b988fbcf8dc460f1d8121342c15b1bd2934bbc44fb51817fee727cb58e0d5",
+      "utc": 1794916834.0971131,
+      "seconds": 99.07209372520447,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_cache_B_complete",
+      "exit_code": 0,
+      "receipt_sha256": "91cd1f32a351ebe0de73de5e6a979b6ecba7364bdcda3893375197add6842a99",
+      "utc": 1794917677.746398,
+      "seconds": 255.24770283699036,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_offline_A_complete",
+      "exit_code": 0,
+      "receipt_sha256": "fea6c2a3cc673a3adbee4779d5aa623c3839063391ec5e8c8b4fef74937ff97a",
+      "utc": 1794917416.493096,
+      "seconds": 12.009068012237549,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_offline_B_complete",
+      "seconds": 12.004462242126465,
+      "exit_code": 0,
+      "receipt_sha256": "d09e6dde535ae3d6e3547966a9f579ade939c19586d220ee11d7ff65bb4726eb",
+      "utc": 1794918637.2571573
+    },
+    {
+      "stage": "rear_prepare_A_complete",
+      "exit_code": 0,
+      "receipt_sha256": "32f0bf46d1beffd18ff17fb5c78de1065ee4c9ecc44e7fb627bec759883fb7c3",
+      "utc": 1794916735.0246682,
+      "seconds": 6.004902601242065,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_prepare_B_complete",
+      "exit_code": 0,
+      "receipt_sha256": "a8cdcfc270e875914d86a822f0577e88763aadc03aa13cde3a137417d8cd5a9b",
+      "utc": 1794917422.498288,
+      "seconds": 6.004877090454102,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_train_A_complete",
+      "exit_code": 0,
+      "receipt_sha256": "801f1e58e384816dc10d345faab538b7292d7ffbfa5e77ec94f1c48e4e7f9068",
+      "utc": 1794917404.483628,
+      "seconds": 570.3862082958221,
+      "monitor_alive": true
+    },
+    {
+      "stage": "rear_train_B_recovery_complete",
+      "seconds": 318.0709071159363,
+      "exit_code": 0,
+      "receipt_sha256": "64a3f2563128f8588cde8e40651345ecb8e501adc902aa05209323874c81e306",
+      "utc": 1794918625.251681
+    },
+    {
+      "stage": "offline_phases_exit",
+      "code": 0,
+      "seconds": 447.0427339076996,
+      "utc": 1794919092.5073495
+    },
+    {
+      "stage": "owner_exit",
+      "children_reaped": true,
+      "utc": 1794920289.6294036
+    },
+    {
+      "stage": "prepare0_exit",
+      "code": 0,
+      "seconds": 6.0028369426727295,
+      "utc": 1794919098.511528
+    },
+    {
+      "stage": "prepare1_exit",
+      "code": 0,
+      "seconds": 6.001688480377197,
+      "utc": 1794919416.5423763
+    },
+    {
+      "stage": "prepare2_exit",
+      "code": 0,
+      "seconds": 6.001324653625488,
+      "utc": 1794919716.5693443
+    },
+    {
+      "stage": "prepare3_exit",
+      "code": 0,
+      "seconds": 6.001375913619995,
+      "utc": 1794920028.6043887
+    },
+    {
+      "stage": "report0_exit",
+      "code": 0,
+      "seconds": 12.002517700195312,
+      "utc": 1794919410.5403225
+    },
+    {
+      "stage": "report1_exit",
+      "code": 0,
+      "seconds": 9.001562356948853,
+      "utc": 1794919710.5676963
+    },
+    {
+      "stage": "report2_exit",
+      "code": 0,
+      "seconds": 12.006307125091553,
+      "utc": 1794920022.6026304
+    },
+    {
+      "stage": "report3_exit",
+      "code": 0,
+      "seconds": 9.001551389694214,
+      "utc": 1794920289.6287422
+    },
+    {
+      "stage": "run0_exit",
+      "code": 0,
+      "seconds": 300.0251326560974,
+      "utc": 1794919398.5374396
+    },
+    {
+      "stage": "run1_exit",
+      "code": 0,
+      "seconds": 285.02308106422424,
+      "utc": 1794919701.5658207
+    },
+    {
+      "stage": "run2_exit",
+      "code": 0,
+      "seconds": 294.0253667831421,
+      "utc": 1794920010.5949917
+    },
+    {
+      "stage": "run3_exit",
+      "code": 0,
+      "seconds": 252.022043466568,
+      "utc": 1794920280.626899
+    }
+  ],
+  "telemetry": [
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery01/resources/resources.jsonl",
+      "samples": 3456,
+      "maximum_interval_s": 1.8214442729949951,
+      "min_ram_gib": 23.44375991821289,
+      "min_gpu_free_mib": 9142.0,
+      "peak_gpu_used_mib": 14941.0
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/comparison00/resources/resources.jsonl",
+      "samples": 298,
+      "maximum_interval_s": 1.1598572731018066,
+      "min_ram_gib": 18.702102661132812,
+      "min_gpu_free_mib": 13273.0,
+      "peak_gpu_used_mib": 10811.0
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/comparison01/resources/resources.jsonl",
+      "samples": 283,
+      "maximum_interval_s": 1.0688562393188477,
+      "min_ram_gib": 18.37291717529297,
+      "min_gpu_free_mib": 13253.0,
+      "peak_gpu_used_mib": 10830.0
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/comparison02/resources/resources.jsonl",
+      "samples": 292,
+      "maximum_interval_s": 1.2208664417266846,
+      "min_ram_gib": 18.587337493896484,
+      "min_gpu_free_mib": 11474.0,
+      "peak_gpu_used_mib": 12610.0
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/comparison03/resources/resources.jsonl",
+      "samples": 250,
+      "maximum_interval_s": 1.1995935440063477,
+      "min_ram_gib": 18.654308319091797,
+      "min_gpu_free_mib": 13309.0,
+      "peak_gpu_used_mib": 10775.0
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/phase_review/resources/resources.jsonl",
+      "samples": 443,
+      "maximum_interval_s": 1.0086421966552734,
+      "min_ram_gib": 27.95006561279297,
+      "min_gpu_free_mib": 20762.0,
+      "peak_gpu_used_mib": 3322.0
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_balance76_20261117_01_recovery02/resources/resources.jsonl",
+      "samples": 335,
+      "maximum_interval_s": 1.0061109066009521,
+      "min_ram_gib": 27.274703979492188,
+      "min_gpu_free_mib": 22932.0,
+      "peak_gpu_used_mib": 1152.0
+    }
+  ],
+  "paired_checks": [
+    {
+      "rows": [
+        {
+          "seed": 28824000,
+          "reference": 0,
+          "lane": 1,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 2.384185791015625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824000,
+          "reference": 0,
+          "lane": 2,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.1920928955078125e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824000,
+          "reference": 0,
+          "lane": 3,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.1920928955078125e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824001,
+          "reference": 4,
+          "lane": 5,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 0.0,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824001,
+          "reference": 4,
+          "lane": 6,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 2.384185791015625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824001,
+          "reference": 4,
+          "lane": 7,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 2.384185791015625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        }
+      ],
+      "passed": true,
+      "scope": "Pre-action q/qdot/actuator targets, base-relative physical poses, object/goal velocities and legal masks; tolerance 1e-5 in each reported unit. Hidden PhysX/sensor state and future random draws not claimed exact."
+    },
+    {
+      "rows": [
+        {
+          "seed": 28824002,
+          "reference": 0,
+          "lane": 1,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 4.76837158203125e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 4.76837158203125e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 0.0,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824002,
+          "reference": 0,
+          "lane": 2,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 4.76837158203125e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 4.76837158203125e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.9073486328125e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824002,
+          "reference": 0,
+          "lane": 3,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 4.76837158203125e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 4.76837158203125e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.9073486328125e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824003,
+          "reference": 4,
+          "lane": 5,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 7.152557373046875e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824003,
+          "reference": 4,
+          "lane": 6,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 0.0,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824003,
+          "reference": 4,
+          "lane": 7,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 7.152557373046875e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        }
+      ],
+      "passed": true,
+      "scope": "Pre-action q/qdot/actuator targets, base-relative physical poses, object/goal velocities and legal masks; tolerance 1e-5 in each reported unit. Hidden PhysX/sensor state and future random draws not claimed exact."
+    },
+    {
+      "rows": [
+        {
+          "seed": 28824004,
+          "reference": 0,
+          "lane": 1,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 2.384185791015625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824004,
+          "reference": 0,
+          "lane": 2,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 4.76837158203125e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824004,
+          "reference": 0,
+          "lane": 3,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 4.76837158203125e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 4.76837158203125e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824005,
+          "reference": 4,
+          "lane": 5,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 7.152557373046875e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824005,
+          "reference": 4,
+          "lane": 6,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 9.5367431640625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824005,
+          "reference": 4,
+          "lane": 7,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 9.5367431640625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        }
+      ],
+      "passed": true,
+      "scope": "Pre-action q/qdot/actuator targets, base-relative physical poses, object/goal velocities and legal masks; tolerance 1e-5 in each reported unit. Hidden PhysX/sensor state and future random draws not claimed exact."
+    },
+    {
+      "rows": [
+        {
+          "seed": 28824006,
+          "reference": 0,
+          "lane": 1,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 2.384185791015625e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824006,
+          "reference": 0,
+          "lane": 2,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.430511474609375e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824006,
+          "reference": 0,
+          "lane": 3,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 0.0,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 0.0,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.430511474609375e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824007,
+          "reference": 4,
+          "lane": 5,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 4.76837158203125e-07,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824007,
+          "reference": 4,
+          "lane": 6,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 0.0,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 0.0,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.9073486328125e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        },
+        {
+          "seed": 28824007,
+          "reference": 4,
+          "lane": 7,
+          "q_max_rad": 0.0,
+          "qd_max_rad_s": 0.0,
+          "target_max_rad": 0.0,
+          "physical": {
+            "object_pose_w_position_m": 2.384185791015625e-07,
+            "object_pose_w_quaternion": 0.0,
+            "hole_pose_w_position_m": 2.384185791015625e-07,
+            "hole_pose_w_quaternion": 0.0,
+            "goal_pose_w_position_m": 2.384185791015625e-07,
+            "goal_pose_w_quaternion": 0.0,
+            "table_pose_w_position_m": 2.384185791015625e-07,
+            "table_pose_w_quaternion": 0.0,
+            "palm_body_pose_w_position_m": 1.9073486328125e-06,
+            "palm_body_pose_w_quaternion": 0.0,
+            "object_velocity_w_m_s_rad_s": 0.0,
+            "goal_velocity_w_m_s_rad_s": 0.0
+          },
+          "reference_active": true,
+          "active": true
+        }
+      ],
+      "passed": true,
+      "scope": "Pre-action q/qdot/actuator targets, base-relative physical poses, object/goal velocities and legal masks; tolerance 1e-5 in each reported unit. Hidden PhysX/sensor state and future random draws not claimed exact."
+    }
+  ],
+  "wave_profiles": [
+    [
+      {
+        "wave": 0,
+        "role": "mixed",
+        "controller_s": 106.52041162410751,
+        "environment_s": 114.72116264211945,
+        "expert_s": 0.07924912986345589,
+        "record_submit_s": 23.451490082312375,
+        "finish_audit_s": 2.148890688084066,
+        "reset_refill_s": 0.0,
+        "active_lane_steps": 4879,
+        "allocated_lane_steps": 6672,
+        "refills": 0,
+        "finished_before_queue_empty": 0,
+        "seconds": 256.68957779486664,
+        "cases": 8,
+        "control_ticks": 4879,
+        "vision_execution": {
+          "version": "gpu_observation_history_control_v1",
+          "roles": {
+            "A": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1202,
+              "padding_lanes": 0,
+              "real_images": 3606,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                601,
+                0,
+                0,
+                0,
+                601,
+                0,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1202,
+              "padding_lanes": 0,
+              "real_images": 3606,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                601,
+                0,
+                0,
+                0,
+                601,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "A_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1435,
+              "padding_lanes": 0,
+              "real_images": 4305,
+              "processed_images": 0,
+              "controller_calls": 834,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                834,
+                0,
+                0,
+                0,
+                601,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1040,
+              "padding_lanes": 0,
+              "real_images": 3120,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                0,
+                439,
+                0,
+                0,
+                0,
+                601
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            }
+          },
+          "calls": 1435,
+          "real_lanes": 4879,
+          "processed_images": 17220,
+          "padding_lanes": 861
+        },
+        "render_transitions": [
+          {
+            "lane": 3,
+            "enabled": false,
+            "utc": 1794919296.2846
+          },
+          {
+            "lane": 0,
+            "enabled": false,
+            "utc": 1794919352.2621508
+          },
+          {
+            "lane": 2,
+            "enabled": false,
+            "utc": 1794919352.2669456
+          },
+          {
+            "lane": 4,
+            "enabled": false,
+            "utc": 1794919352.2724538
+          },
+          {
+            "lane": 5,
+            "enabled": false,
+            "utc": 1794919352.2772512
+          },
+          {
+            "lane": 6,
+            "enabled": false,
+            "utc": 1794919352.2813833
+          },
+          {
+            "lane": 7,
+            "enabled": false,
+            "utc": 1794919352.2855067
+          },
+          {
+            "lane": 0,
+            "enabled": true,
+            "utc": 1794919390.0220485
+          },
+          {
+            "lane": 2,
+            "enabled": true,
+            "utc": 1794919390.0279357
+          },
+          {
+            "lane": 3,
+            "enabled": true,
+            "utc": 1794919390.033493
+          },
+          {
+            "lane": 4,
+            "enabled": true,
+            "utc": 1794919390.0383651
+          },
+          {
+            "lane": 5,
+            "enabled": true,
+            "utc": 1794919390.0427618
+          },
+          {
+            "lane": 6,
+            "enabled": true,
+            "utc": 1794919390.047046
+          },
+          {
+            "lane": 7,
+            "enabled": true,
+            "utc": 1794919390.051243
+          }
+        ],
+        "camera_reactivation": [],
+        "aggregate_control_ticks_per_second": 19.00739423047028,
+        "active_lane_fraction": 0.7312649880095923,
+        "render_reuse": {
+          "render_calls": 843,
+          "render_seconds": 53.47988290595822,
+          "redundant_reader_renders_avoided": 832,
+          "reader_renders_required": 3,
+          "invalidations": 16
+        },
+        "admission_s": 0.0,
+        "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+      }
+    ],
+    [
+      {
+        "wave": 0,
+        "role": "mixed",
+        "controller_s": 99.61419826117344,
+        "environment_s": 110.85279219900258,
+        "expert_s": 0.08106926339678466,
+        "record_submit_s": 22.480513556394726,
+        "finish_audit_s": 2.121151690138504,
+        "reset_refill_s": 0.0,
+        "active_lane_steps": 4640,
+        "allocated_lane_steps": 6488,
+        "refills": 0,
+        "finished_before_queue_empty": 0,
+        "seconds": 244.57366475486197,
+        "cases": 8,
+        "control_ticks": 4640,
+        "vision_execution": {
+          "version": "gpu_observation_history_control_v1",
+          "roles": {
+            "A": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1202,
+              "padding_lanes": 0,
+              "real_images": 3606,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                601,
+                0,
+                0,
+                0,
+                601,
+                0,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1412,
+              "padding_lanes": 0,
+              "real_images": 4236,
+              "processed_images": 0,
+              "controller_calls": 811,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                601,
+                0,
+                0,
+                0,
+                811,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "A_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 906,
+              "padding_lanes": 0,
+              "real_images": 2718,
+              "processed_images": 0,
+              "controller_calls": 595,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                311,
+                0,
+                0,
+                0,
+                595,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1120,
+              "padding_lanes": 0,
+              "real_images": 3360,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                0,
+                519,
+                0,
+                0,
+                0,
+                601
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            }
+          },
+          "calls": 1412,
+          "real_lanes": 4640,
+          "processed_images": 16944,
+          "padding_lanes": 1008
+        },
+        "render_transitions": [
+          {
+            "lane": 1,
+            "enabled": false,
+            "utc": 1794919563.847804
+          },
+          {
+            "lane": 3,
+            "enabled": false,
+            "utc": 1794919633.58438
+          },
+          {
+            "lane": 5,
+            "enabled": false,
+            "utc": 1794919657.2456534
+          },
+          {
+            "lane": 0,
+            "enabled": false,
+            "utc": 1794919660.311004
+          },
+          {
+            "lane": 2,
+            "enabled": false,
+            "utc": 1794919660.3156307
+          },
+          {
+            "lane": 4,
+            "enabled": false,
+            "utc": 1794919660.3199053
+          },
+          {
+            "lane": 7,
+            "enabled": false,
+            "utc": 1794919660.3245595
+          },
+          {
+            "lane": 0,
+            "enabled": true,
+            "utc": 1794919691.5873668
+          },
+          {
+            "lane": 1,
+            "enabled": true,
+            "utc": 1794919691.592274
+          },
+          {
+            "lane": 2,
+            "enabled": true,
+            "utc": 1794919691.5992272
+          },
+          {
+            "lane": 3,
+            "enabled": true,
+            "utc": 1794919691.6045668
+          },
+          {
+            "lane": 4,
+            "enabled": true,
+            "utc": 1794919691.6096272
+          },
+          {
+            "lane": 5,
+            "enabled": true,
+            "utc": 1794919691.614113
+          },
+          {
+            "lane": 7,
+            "enabled": true,
+            "utc": 1794919691.6197371
+          }
+        ],
+        "camera_reactivation": [],
+        "aggregate_control_ticks_per_second": 18.97178915256762,
+        "active_lane_fraction": 0.7151664611590629,
+        "render_reuse": {
+          "render_calls": 822,
+          "render_seconds": 50.93638418614864,
+          "redundant_reader_renders_avoided": 807,
+          "reader_renders_required": 5,
+          "invalidations": 16
+        },
+        "admission_s": 0.0,
+        "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+      }
+    ],
+    [
+      {
+        "wave": 0,
+        "role": "mixed",
+        "controller_s": 103.52541786711663,
+        "environment_s": 115.40371652785689,
+        "expert_s": 0.09228269080631435,
+        "record_submit_s": 23.992217485327274,
+        "finish_audit_s": 2.058136863866821,
+        "reset_refill_s": 0.0,
+        "active_lane_steps": 4625,
+        "allocated_lane_steps": 7032,
+        "refills": 0,
+        "finished_before_queue_empty": 0,
+        "seconds": 254.6952824459877,
+        "cases": 8,
+        "control_ticks": 4625,
+        "vision_execution": {
+          "version": "gpu_observation_history_control_v1",
+          "roles": {
+            "A": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1202,
+              "padding_lanes": 0,
+              "real_images": 3606,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                601,
+                0,
+                0,
+                0,
+                601,
+                0,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1480,
+              "padding_lanes": 0,
+              "real_images": 4440,
+              "processed_images": 0,
+              "controller_calls": 879,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                601,
+                0,
+                0,
+                0,
+                879,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "A_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 987,
+              "padding_lanes": 0,
+              "real_images": 2961,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                601,
+                0,
+                0,
+                0,
+                386,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 956,
+              "padding_lanes": 0,
+              "real_images": 2868,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                0,
+                355,
+                0,
+                0,
+                0,
+                601
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            }
+          },
+          "calls": 1480,
+          "real_lanes": 4625,
+          "processed_images": 17760,
+          "padding_lanes": 1295
+        },
+        "render_transitions": [
+          {
+            "lane": 3,
+            "enabled": false,
+            "utc": 1794919880.2395122
+          },
+          {
+            "lane": 5,
+            "enabled": false,
+            "utc": 1794919891.1875215
+          },
+          {
+            "lane": 0,
+            "enabled": false,
+            "utc": 1794919960.6632636
+          },
+          {
+            "lane": 1,
+            "enabled": false,
+            "utc": 1794919960.6675415
+          },
+          {
+            "lane": 2,
+            "enabled": false,
+            "utc": 1794919960.671902
+          },
+          {
+            "lane": 4,
+            "enabled": false,
+            "utc": 1794919960.6760366
+          },
+          {
+            "lane": 7,
+            "enabled": false,
+            "utc": 1794919960.680104
+          },
+          {
+            "lane": 0,
+            "enabled": true,
+            "utc": 1794920002.2534301
+          },
+          {
+            "lane": 1,
+            "enabled": true,
+            "utc": 1794920002.258791
+          },
+          {
+            "lane": 2,
+            "enabled": true,
+            "utc": 1794920002.2643895
+          },
+          {
+            "lane": 3,
+            "enabled": true,
+            "utc": 1794920002.2697423
+          },
+          {
+            "lane": 4,
+            "enabled": true,
+            "utc": 1794920002.2753448
+          },
+          {
+            "lane": 5,
+            "enabled": true,
+            "utc": 1794920002.2798378
+          },
+          {
+            "lane": 7,
+            "enabled": true,
+            "utc": 1794920002.2841308
+          }
+        ],
+        "camera_reactivation": [],
+        "aggregate_control_ticks_per_second": 18.158954322135145,
+        "active_lane_fraction": 0.657707622298066,
+        "render_reuse": {
+          "render_calls": 889,
+          "render_seconds": 51.09852674067952,
+          "redundant_reader_renders_avoided": 876,
+          "reader_renders_required": 4,
+          "invalidations": 16
+        },
+        "admission_s": 0.0,
+        "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+      }
+    ],
+    [
+      {
+        "wave": 0,
+        "role": "mixed",
+        "controller_s": 88.89886667462997,
+        "environment_s": 92.96738886809908,
+        "expert_s": 0.06646645907312632,
+        "record_submit_s": 18.413447422441095,
+        "finish_audit_s": 2.0143375992774963,
+        "reset_refill_s": 0.0,
+        "active_lane_steps": 4360,
+        "allocated_lane_steps": 4808,
+        "refills": 0,
+        "finished_before_queue_empty": 0,
+        "seconds": 211.3102105120197,
+        "cases": 8,
+        "control_ticks": 4360,
+        "vision_execution": {
+          "version": "gpu_observation_history_control_v1",
+          "roles": {
+            "A": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1202,
+              "padding_lanes": 0,
+              "real_images": 3606,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                601,
+                0,
+                0,
+                0,
+                601,
+                0,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1202,
+              "padding_lanes": 0,
+              "real_images": 3606,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                601,
+                0,
+                0,
+                0,
+                601,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "A_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 899,
+              "padding_lanes": 0,
+              "real_images": 2697,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                298,
+                0,
+                0,
+                0,
+                601,
+                0,
+                0
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            },
+            "B_baseline": {
+              "version": "current_observation_lane_microbatch_v1",
+              "vision_microbatch": 4,
+              "images_per_kernel": 12,
+              "forward_features_calls": 0,
+              "real_lanes": 1057,
+              "padding_lanes": 0,
+              "real_images": 3171,
+              "processed_images": 0,
+              "controller_calls": 601,
+              "external_shared_vision": true,
+              "consumed_observations_per_lane": [
+                0,
+                0,
+                0,
+                456,
+                0,
+                0,
+                0,
+                601
+              ],
+              "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+            }
+          },
+          "calls": 1202,
+          "real_lanes": 4360,
+          "processed_images": 14424,
+          "padding_lanes": 448
+        },
+        "render_transitions": [
+          {
+            "lane": 1,
+            "enabled": false,
+            "utc": 1794920171.448627
+          },
+          {
+            "lane": 3,
+            "enabled": false,
+            "utc": 1794920224.3928258
+          },
+          {
+            "lane": 1,
+            "enabled": true,
+            "utc": 1794920270.7858572
+          },
+          {
+            "lane": 3,
+            "enabled": true,
+            "utc": 1794920270.7908363
+          }
+        ],
+        "camera_reactivation": [],
+        "aggregate_control_ticks_per_second": 20.633172384029194,
+        "active_lane_fraction": 0.9068219633943427,
+        "render_reuse": {
+          "render_calls": 610,
+          "render_seconds": 47.053460754454136,
+          "redundant_reader_renders_avoided": 599,
+          "reader_renders_required": 3,
+          "invalidations": 16
+        },
+        "admission_s": 0.0,
+        "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+      }
+    ]
+  ],
+  "protected_hashes_pass": true,
+  "new_dagger": false,
+  "baseline_not_replaced": true,
+  "free_disk_bytes": 18645098496,
+  "elapsed_since_registered_start_s": 5840.617023944855,
+  "limitations": "8 same-wave development pairs per role, not statistical proof or a new blind test. No automatic promotion."
+}

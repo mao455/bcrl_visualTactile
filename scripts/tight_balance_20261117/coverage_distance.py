@@ -27,7 +27,8 @@ def main():
    train=(family!=f)&(phase==p);query=(family==f)&(phase==p)
    if train.any() and query.any():reference[query]=cKDTree(x[train]).query(x[query],k=1)[0]/np.sqrt(dim)
  trees={p:cKDTree(x[phase==p]) for p in set(phase)};threshold={int(p):float(np.percentile(reference[phase==p],95)) for p in set(phase)}
- rows=[]
+ rows=[];temporal=[]
+ divergence={(r['role'],r['seed']):r['first_sustained_object_divergence'] for r in json.loads((OUT/'paired_development_review.json').read_text())['rows']}
  for part in range(4):
   folder=ROOT/f'comparison{part:02d}'/'development';plan=json.loads((folder/'plan.json').read_text())
   for c in plan['cases']:
@@ -36,10 +37,16 @@ def main():
    for stage,tree in trees.items():
     mask=p==stage
     if mask.any():distance[mask]=tree.query(q[mask]/std,k=1)[0]/np.sqrt(dim)
+   far=np.array([distance[t]>threshold[int(stage)] for t,stage in enumerate(p)])
+   boundary=divergence[c['role'].replace('_baseline',''),c['spec']['seed']]
+   if boundary is None:boundary=len(q)
+   for region,mask in [('first150',np.arange(len(q))<150),('before_pair_divergence',np.arange(len(q))<boundary),('after_pair_divergence',np.arange(len(q))>=boundary)]:
+    temporal.append(dict(role=c['role'],seed=c['spec']['seed'],region=region,ticks=int(mask.sum()),far_ticks=int(far[mask].sum()),median=float(np.median(distance[mask])) if mask.any() else None))
    for stage in set(p):
     mask=p==stage;far=distance[mask]>threshold[int(stage)]
     rows.append(dict(role=c['role'],seed=c['spec']['seed'],phase=int(stage),ticks=int(mask.sum()),median=float(np.median(distance[mask])),p95=float(np.percentile(distance[mask],95)),above_train_leave_family_out_p95=int(far.sum()),reference_p95=threshold[int(stage)]))
  table(OUT/'development_support_distance.csv',rows)
- write(OUT/'development_support_distance.json',dict(rows=rows,training_phase_p95=threshold,scope='36D object/palm/goal relative translations, goal angle,29 joints; original30 axis standard deviation floor0.001. Train reference nearest legal expert state of another family, phase-stratified. Development uses all76 legal expert states. Descriptive geometric distance only: omits velocity, sensory history and hidden simulator state; crossing p95 does not prove an unlearnable or expert-recoverable gap and is not a collection trigger. Post-action states, never fed as policy inputs.'))
+ table(OUT/'development_support_temporal.csv',temporal)
+ write(OUT/'development_support_distance.json',dict(rows=rows,temporal=temporal,training_phase_p95=threshold,scope='36D object/palm/goal relative translations, goal angle,29 joints; original30 axis standard deviation floor0.001. Train reference nearest legal expert state of another family, phase-stratified. Development uses all76 legal expert states. Descriptive geometric distance only: omits velocity, sensory history and hidden simulator state; crossing p95 does not prove an unlearnable or expert-recoverable gap and is not a collection trigger. Post-action states, never fed as policy inputs.'))
  print(json.dumps({r:sum(v['above_train_leave_family_out_p95'] for v in rows if v['role']==r)/sum(v['ticks'] for v in rows if v['role']==r) for r in ['A','A_baseline','B','B_baseline']}))
 if __name__=='__main__':main()

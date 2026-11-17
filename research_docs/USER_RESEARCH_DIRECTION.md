@@ -1,3 +1,9 @@
+## 2026-11-17 fixed76已闭合：不晋升，无新DAgger
+
+实际19:21:13–20:58:09(+08)，96分56秒，训练/离线/四波32次完整开发均结束；全部自有worker/monitor退出。A72成功2/8→候选0/8，B72 1/8→0/8；hold120各保持4/8、6/8，首子目标A3→0/B3→2，实际可观测初态配对通过。不是统计显著结论。DP实际A874/B722、选494/342；匹配后端实际2170/2411、选369/2048。4GiB hotset正式显式启用；磁盘中止和一次完整状态恢复证据保留，原截止未变。
+
+入口监督曝光增加与训练池拟合改善尚未转成完整自主收益。三个丢失成功配对约70–80tick开始几何偏离，命令/关节更早偏离；不能归为单纯缺数据，未证明新的可恢复覆盖缺口。本轮不加epoch、不采新DAgger、不替换72完整A/B。原76合法数据、所有科学候选及72归一化/配置/来源保留。最新结论见TIGHT_TRAINING_DIAGNOSIS_20261116.md首节与balanced76/completed.json、closure_audit.json；下方准备/运行状态均为历史，禁止自动重启旧服务。
+
 ## 2026-11-17 fixed76 bounded onset-exposure candidate — preparation
 
 Current authorization supersedes the completed profiling-only scope. Preserve selected72
