@@ -1,3 +1,11 @@
+## 2026-11-17 首子目标后接管：采集专用、先实测可恢复性
+
+`layout_multistage_recovery_v1`增加独立stage=`post_subgoal`，原transport/near/alignment/weakening四个profile逐项不变。新profile显式`minimum_completed_subgoals=1`：已完成transition的before/after原生successes均>=1，过去至少出现一次原12tick双指/抬升条件，当前两物理子步至少一指object-contact>0.1N、物体高于settled参考1cm、距当前原生目标root<=8cm。连续两次确认后在下一动作切换控制权，不按12取整、不读取未来、不设固定tick补救。
+
+这是选择专家接管时机的特权诊断，绝不加入学生条件或替代任务成功。仍需专家真实执行完整成功、合法起点、队列冲洗和authority/mask准入，才将对应后缀加入共享池；A标签来自该专家执行的q[t+1]，B/rear是实际专家目标。学生与过渡动作不监督，完整学生前缀保留为因果历史。未触发、专家失败分别保留，不能把成功后缀长度当独立困难状态数。
+
+依据是round05完整自主A/B0/4，但首子目标A3/B2、两组持物120均4/4；真实数值中新的post_subgoal条件A3/B2可达，不代表专家已证明能救。第三轮先用原train family26–29×A/B的early/near/post_subgoal/post_subgoal八机会实测，先审核再学习。模型、布局、采样、normalizer、120/60/5Hz执行和原生成功均不变。实际结案只看最新SESSION_HANDOFF与集中诊断报告。
+
 ## 2026-11-16 新阶段DAgger：正在审计与小规模接管验证
 
 最新授权继续10cm布局完整A/B共享DAgger，覆盖旧停止条款；不改变网络、物理、控制或原生成功。新session tight_phase_20261116_01独立6小时总界/5小时训练界，最多两轮完整学习、8个先导及最多32个额外纠偏机会，软件故障每阶段最多一次新身份恢复。首批4lane实际并行验收，之后按吞吐与资源决定；不热改运行源码。旧8test仅回归，新28821000–007保留到最终模型冻结后一次使用。

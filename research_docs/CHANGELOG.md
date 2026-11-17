@@ -2,6 +2,10 @@
 
 记录共同72数据的真实DP/后端预算、验证选择、4对完整自主、两视频与失败阶段；A/B0/4完整成功，持物120均4/4、首子目标A3/B2，详见集中诊断与新证据。新增phase_takeover.post_subgoal仅用于采集筛选：已完成原生首子目标且仍有接触/高度/近目标条件，连续2tick确认，无固定fallback。原四profile与冻结源码完全一致；check_phase增加实际首子目标必要性与无支撑拒绝，55项相关测试通过。已在真实round05完整numeric验证A3/B2可达，不伪称专家救回。新运行将在新冻结源码身份下执行，旧dd82fc1所有闭合结果保留，不热改历史或活动worker。
 
+round05的实际完整策略纠偏拟合已完成：A自有3后缀526tick、B4后缀737tick；first12手命令RMSE A .014992→.013340rad、B .012800→.009104，next12 .011148→.008544/.009936→.007050，after24 .014199→.011247/.015006→.011224。每组arm误差也下降。旧值为当时真实历史上的完整学生shadow，新值为新DP同源缓存+新Transformer重算；均为已用于训练的同一专家后缀，不是独立泛化、状态恢复自主评估或成功证据。0优化/Kit，单独资源monitor正常退出；没有遗漏合法纠偏初段，但拟合改善仍未转化为本轮完整自主成功。小报告round05_onset_after.json绑定原mask/history与模型。
+
+第三轮collection_only已从冻结235943b实际启动，源为round05匹配完整模型，原family26–29×两组8机会，early/near/post_subgoal/post_subgoal；原截止不变。新post_subgoal可恢复性尚需此次实际专家完成，不能提前假定。
+
 ## 2026-11-17 — 补充既有误差与纠偏首段只读分析
 
 复用tight_fresh_increment_report与tight_fresh_onset_report读取已有numeric/sample ticks，新增offline_stage_comparison.json与round05_onset_before.json；0模型推理/优化/仿真，不改变活动dd82fc1运行树。固定56长训使原train8手部命令误差下降，但validation6整体及多数后段误差未下降；真实闭环解释仍以既有配对评估为准。round05共1263合法专家tick中首24段仅168，原始8机会/7接管/1未触发与mask分母保持，专家后的shadow不当自主执行。具体数值、阶段和局限见集中诊断报告。

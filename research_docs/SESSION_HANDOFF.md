@@ -8,6 +8,10 @@ A/B DP实际各18遍648更新，验证选A6/216、B3/108；后端A18遍2071更�
 
 下一批只用原训练family26–29×两组8机会：early、near、post_subgoal、post_subgoal。前两批搬运/弱支撑纠偏全部保留；本批将首子目标后的两对作为小规模真实专家救回检验，先采后审核，只有合法成功后缀加入共同池，再做完整A/B更新与自主评估。原训练15:50:52/总17:50:52截止不变，新20test仍未打开。round05所有owner/monitor已正常退出。
 
+round05的实际完整策略纠偏拟合已完成：A自有3后缀526tick、B4后缀737tick；first12手命令RMSE A .014992→.013340rad、B .012800→.009104，next12 .011148→.008544/.009936→.007050，after24 .014199→.011247/.015006→.011224。每组arm误差也下降。旧值为当时真实历史上的完整学生shadow，新值为新DP同源缓存+新Transformer重算；均为已用于训练的同一专家后缀，不是独立泛化、状态恢复自主评估或成功证据。0优化/Kit，单独资源monitor正常退出；没有遗漏合法纠偏初段，但拟合改善仍未转化为本轮完整自主成功。小报告round05_onset_after.json绑定原mask/history与模型。
+
+第三轮collection_only已从冻结235943b实际启动，源为round05匹配完整模型，原family26–29×两组8机会，early/near/post_subgoal/post_subgoal；原截止不变。新post_subgoal可恢复性尚需此次实际专家完成，不能提前假定。
+
 ## 2026-11-17 — 第二次新DAgger迭代：共同72条训练进行中
 
 selected_for_round05额外4对自主验证A/B均0/4，持物120tick A3/4 B4/4、首子目标各2/4，保留波间变异；没有据一次0/4推翻前8对选模，但也不宣称稳定成功。round05从原训练family24–27采8合法机会，7真实接管7救回、1263有效专家tick，A弱支撑条件未触发。early A/B69tick；transport A158/B132；near A170/B157；weakening B147。控制相位0/1/2/3/9，非统一12步边界，prefix/过渡mask及合法q_reached/u_expert已通过既有实际准入。
