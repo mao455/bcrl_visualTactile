@@ -1,0 +1,89 @@
+{
+  "utc": 1794901047.1984048,
+  "fixed56": {
+    "additional_dp_updates": {
+      "A": 4648,
+      "B": 4788
+    },
+    "stage_dp_updates_each": 5376,
+    "rear_updates_each": 6011,
+    "paired_development": {
+      "A": {
+        "baseline": 0,
+        "long": 1,
+        "n": 8
+      },
+      "B": {
+        "baseline": 0,
+        "long": 0,
+        "n": 8
+      }
+    },
+    "conclusion": "Limited stage and oneA task gain; not robust success improvement."
+  },
+  "matched_data": {
+    "dp_updates_each": 1848,
+    "rear_updates_each": 2008,
+    "A": {
+      "old56": 2,
+      "new65": 0,
+      "n": 8
+    },
+    "B": {
+      "old56": 0,
+      "new65": 2,
+      "n": 8
+    },
+    "conclusion": "Inconsistent incremental data effect, small paired sample."
+  },
+  "dagger": {
+    "iterations": [
+      4,
+      5,
+      6
+    ],
+    "pool_sizes": [
+      56,
+      65,
+      72,
+      76
+    ],
+    "opportunities": 32,
+    "rescues": 20,
+    "expert_valid_ticks": 3679,
+    "onset24_ticks": 480,
+    "student_prefix_supervision": false
+  },
+  "final_selection": "whole shared72 snapshot for both roles, selected beforetest by preregistered development rule",
+  "final_test": {
+    "A": {
+      "registered": 20,
+      "legal": 20,
+      "illegal": 0,
+      "successes": 3,
+      "native_alignment": 6,
+      "native_subgoals": 6,
+      "native_lift": 1,
+      "fall": 2,
+      "timeout": 15
+    },
+    "B": {
+      "registered": 20,
+      "legal": 20,
+      "illegal": 0,
+      "successes": 3,
+      "native_alignment": 6,
+      "native_subgoals": 6,
+      "native_lift": 4,
+      "fall": 3,
+      "timeout": 14
+    }
+  },
+  "unresolved": [
+    "Magnitude and statistical reliability of autonomous gain versus old0/8 on different test states",
+    "Whether remaining error primarily reflects optimization, expert-label observability or closed-loop state coverage",
+    "Generalizability beyond narrow legal initial distribution",
+    "Causal contribution of layout change, not independently budget-matched thissession"
+  ],
+  "scope": "Native full DP+Transformer autonomous results; expert rescues and offline fitting are never counted as student success."
+}

@@ -1,3 +1,9 @@
+## 2026-11-17 — 完成固定数据长训、三次共享DAgger与40次新测试
+
+新增真实闭合报告final_comparison00–03/final_selection：同波72条A2/8 B0/8、76条均0/8，严格按预登记整套选择72并冻结四模型。final_test/final_part0–4/final_stages实际40合法0软件中断，A/B各3/20完整原生插入；持物120各12/20，首子目标各6/20。无test后参数更新/选模。final_audit逐模型/专家/DINO哈希、400manifest及文件大小、1445源依赖和全部owner/monitor退出核验通过；记录17.67秒监控间隔/最低RAM10.75GiB，未隐藏资源限制。报告汇总首次遇短monitor的null完整60秒均值，CPU报告过滤无定义值后正常完成，0物理重复。
+
+数据清单、实际预算/selected_lineage、采集分母/有效监督tick、真实video_index和performance更新；新增标准matplotlib闭环结果图并实际查看。AGENTS/SESSION_HANDOFF/集中诊断记录最终证据与不能归因之处；当前数据76全保留，最终部署快照72。源代码相关24预算/准入、35纠偏诊断/准入、55接管检查此前分别通过，存在重叠不相加；本收尾无算法修改。实际report断言、40rollout/hash/配对及git diff检查通过。原任务/控制/物理/架构未改，大载荷不入仓库，只推原origin feature目标。
+
 ## 2026-11-17 — 第三轮完整训练与自主负结果闭合
 
 76条A/B DP分别1102/836实际更新，匹配后端各2170；round06_budget.json记录逐谱系实际/选中更新及合法监督曝光。round06_learning曲线和round06_development保存4对完整自主结果：A/B0/4、持物120各2/4、0首子目标，全部合法、0软件中断。video_index追加已全解码并实际查看的A371/B329帧，两者近孔调整后支撑丢失。data_snapshot固定共同76/6/0、30原始+46纠偏与原train30归一化，无学生动作监督。更新AGENTS/SESSION_HANDOFF/集中诊断预算表；原生控制/网络/执行约束无改动。
