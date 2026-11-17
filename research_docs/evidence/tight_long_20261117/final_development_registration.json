@@ -1,0 +1,34 @@
+{
+  "created_utc": 1794894143.9461105,
+  "session_registration_sha256": "b66674acc7ee2a0f54f952727d663516f30515dc341f201510ef48ab4304c44b",
+  "candidate": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round06/learning",
+  "reference": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning",
+  "development_seeds": [
+    28820004,
+    28820005,
+    28820006,
+    28820007,
+    28820008,
+    28820009,
+    28820010,
+    28820011
+  ],
+  "waves": 4,
+  "policies_per_wave": [
+    "A",
+    "B",
+    "A_baseline",
+    "B_baseline"
+  ],
+  "comparison": "Two actual paired initial families times four complete policies per eight-lane wave. Each DP always paired with its own refreshed trained Transformer.",
+  "selection": "Select one complete shared-data snapshot (76 or72) for BOTH roles. Primary: summed native full-task successes over the16 role-trials in the8 paired families. Ties: summed hold120 diagnostic, then number of native-subgoal-reaching role-trials; still tied retain source72. Report individual A/B outcomes and any front-stage loss; no pooled count substitutes for per-role reporting. Holding is a tie-break, never task success.",
+  "checkpoint_freeze": "Normal validation-selected complete pair after each registered training budget closes. Pair hashes frozen by existing prepare_development before any comparison rollout.",
+  "remaining_scope": "No further collection iterations or parameter updates after round06. No changes based on held-out test. Twenty preregistered new test families stay unopened until final pair freeze.",
+  "deadline": 1794909052.4719074,
+  "selection_amendment_before_training_completion": {
+    "utc": 1794894196.520139,
+    "prior_registration_sha256": "b643267e82f3745640f4051063c27b071df0d705242083175cf70bb423fdea70",
+    "prior_selection": "Per role: higher native full-task successes first; if tied prefer higher hold120 diagnostic, then more native subgoal-reaching trials; if still tied retain source72. Holding is only a tie-break diagnostic, not a task-success definition. Report any front-stage loss even when insertion count increases.",
+    "reason": "Keep final A/B on one common training-data snapshot instead of selecting different data counts per role."
+  }
+}
