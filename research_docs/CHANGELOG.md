@@ -1,5 +1,7 @@
 ## 2026-11-18 状态退步接管＋130学习周期闭合
 
+- 发布核验：实验与6段视频已推送至origin/feature/tight-state-foundation（结果f19c95d、视频1f1d7c9）；固定提交1f1d7c9的404个改动文件/34,265,869字节从GitHub实际回读，全部SHA一致。逐文件回执见`evidence/tight_recovery_20261118/remote_readback.json`。
+
 - 新增diagnostic-only `deviation_takeover.py`及trigger/report准入路由，读已完成真实状态输出可重放receipt；不改学生输入、控制、成功或合法监督边界。初版误触30/30专家被弃用，v2仍4/30歧义公开。
 - `original_demonstration_replay_v1`复用DP/后端deck，原30有限重复3次，纠偏各1次；无学生伪标签、蒸馏、新网络或损失。98聚焦检查通过；运行源码279项SHA不漂移。
 - 实际pilot8＋正式32完整机会、25纠偏/4255tick，105→130；32lane RAM中断保留后两波16lane完成。两组72父pair完整训练，4GiB缓存、对应DP刷新后端；实际及选中更新/曝光/耗时/曲线分别发布。
