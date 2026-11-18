@@ -1,3 +1,12 @@
+## 2026-11-18 工程入口合同
+
+当前代码唯一入口为bc+rl_RSS；`tools.tight_project`接收tight_project_job_v1的显式operation/stages/resource_root。
+不从旧日期owner推断预算或自动复活历史run。stage参数以literal argv传递，禁止任意模块与跨operation隐式工作。
+registry只登记路径/模型阶段/接口；真实模型和数据仍以现有配置、manifest、SHA为准，不静默重写历史绝对路径。
+A实际到达构型与几何项、B专家命令、完整DP+Transformer、真实视觉触觉历史、mask/交接、120/60/5Hz和29维最终目标均保持。
+后端恢复的重复采样deck按已验证episode multiplicities核对，保存的顺序/cursor不能重抽；普通与stratified旧合同仍保持。
+源身份冻结检查不绕过：真实CPU状态恢复已验证，不等于授权原地重启已截止历史session或宣称GPU后续优化逐位相同。
+
 ## 2026-11-18 状态退步接管与原始示范replay（新身份）
 
 `task_regression_takeover_v2`只读已完成控制步真值，用于采集调度，绝不进入学生输入/专家标签/成功判据。逐lane独立12步接触/高度/相对位移窗口、72步近孔进展窗口；连续2步确认后下一动作切换，无固定时刻或12步取整。排除首子目标完成及keypoint≤15mm的正常支撑释放。原来生效的2tick交接与合法标签规则不变。该屏幕不是因果失败真值：原30成功专家4条会触发，独立保留歧义回执。

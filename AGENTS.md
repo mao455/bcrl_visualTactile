@@ -1,3 +1,17 @@
+## 2026-11-18 工程统一：唯一当前入口为原 bc+rl_RSS
+
+当前权威代码目录 `/home/CNS2025331827/docs/bc+rl_RSS`，分支 `feature/tight-state-foundation`。
+已从最新研究主线451f591接续，不能再从continuous_vision或其他平行目录开发。
+**新实验只增加配置和outputs中的独立run，不在docs下复制完整项目或创建平行工作树。**
+130旧工作树已通过Git move移入 `outputs/project_archive/20261118/worktrees`，锁定并保留旧路径兼容软链接。
+归档内受跟踪文件为只读，其中内容相同的大文件共享硬链接；不得原地chmod/编辑归档文件。
+独有提交、脏内容、未知文件和失败证据保留；需要取用时复制到当前工作区并审阅，不能批量合并旧方法。
+
+统一入口 `python -m tools.tight_project {status,prepare,train,dagger,evaluate}`，执行必须提供显式job及有效有限session。
+本轮0训练更新、0DAgger；原400/当前130数据、72阶段完整A/B和候选均保护。两次61tick真实Kit验收不是成功率评估。
+完整目录清单、恢复检查、推理一致性、未解决的历史缺失链接及命令见
+[工程统一报告](research_docs/PROJECT_UNIFICATION_20261118.md)。以下均为历史阶段，不授权自动重启。
+
 ## 2026-11-18 状态退步接管＋130共同池周期已完成：保留72完整A/B
 
 root `tight_recovery_20261118_01`，09:03:00–13:58:52(+08)，4h55m52s；CPU收尾13:59:22。8机会pilot＋32完整正式机会，共25专家救回/4255合法tick，共同池130仍30family。实际pilot8、正式两波16lane；32lane RAM中断保留。新入口23近孔/2抓持，首24共600tick、屏幕到合法动作4tick；旧29均在当前退步屏幕命中前已接管。不是首次因果错误真值。

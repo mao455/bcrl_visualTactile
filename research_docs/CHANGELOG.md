@@ -1,3 +1,14 @@
+## 2026-11-18 工程统一与断点恢复修复
+
+- 唯一当前工作区回到原bc+rl_RSS，旧3e11d62及本地文档分别保存在私有归档分支，再通过Git快进接到451f591；未覆盖脏研究成果。
+- 131路径逐项盘点，130 Git worktree move/lock归档，旧路径兼容；只对归档内SHA256一致的受跟踪大文件做只读硬链接去重。没有删除模型、数据、未知文件或失败证据。
+- 新 `tools/tight_project.py` / `configs/tight_project.json`：显式配置队列、单owner锁、监控与截止/STOP约束；训练/采集/评估不再需要复制日期owner。旧脚本作为历史复现保留。
+- 抽出 `visuotactile/paired_execution.py` 与 `tools/tight_evaluate.py`，旧paired_eval/video_eval转发。已对照配对函数AST；保留原生reset RNG、可观测状态检查与视频钩子行为，不改变控制数学。
+- 修复 `anchor_continue.restore_residual_training` 对重复访问deck的错误长度校验：调用已验证逐轨迹次数，对Counter逐项检查，保留断点顺序、cursor、optimizer及RNG。未增加训练更新。
+- 160项交付回归检查通过；原400及当前136(train130/val6)HDF5校验，16保护文件SHA不变，八份真实DP/Transformer恢复状态通过。迁移前后A/B同真实记录25tick×2lane输出最大差0。
+- 新统一入口已运行一次两lane Kit验收：A/B各61控制tick，三相机/完整模型/控制/退出通过；截断不计成功率。全目录链接不存在新断裂，迁移前18494历史失效链接保留并明确不宣称修复。
+- 完整路径、磁盘计量、独有代码处置及验收范围见 `PROJECT_UNIFICATION_20261118.md` 和 `evidence/project_unification_20261118/`；完整原始清单/迁移日志在本机归档audit。
+
 ## 2026-11-18 状态退步接管＋130学习周期闭合
 
 - 发布核验：实验与6段视频已推送至origin/feature/tight-state-foundation（结果f19c95d、视频1f1d7c9）；固定提交1f1d7c9的404个改动文件/34,265,869字节从GitHub实际回读，全部SHA一致。逐文件回执见`evidence/tight_recovery_20261118/remote_readback.json`。

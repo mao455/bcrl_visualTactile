@@ -372,7 +372,7 @@ def load_residual_continuation(model, saved, statistics_sha256, *, scale_adaptat
     return audit
 
 
-def restore_residual_training(saved,model,optimizer,generator,configuration,train_ids):
+def restore_residual_training(saved,model,optimizer,generator,configuration,train_ids,*,episode_multiplicities=None):
     """Restore one round at a complete episode-group boundary, including RNG."""
     from .checkpointing import cpu_snapshot
     required=('model','optimizer','schedule_rng','torch_rng','cuda_rng','updates','epoch',
@@ -386,6 +386,19 @@ def restore_residual_training(saved,model,optimizer,generator,configuration,trai
     order=saved['episode_order'];next_group=saved['next_episode_group']
     stratified=bool(configuration.get('sampling_strata'))
     valid_order=bool(order) and set(order)<=set(train_ids) if stratified else len(order)==len(train_ids) and set(order)==set(train_ids)
+    if configuration.get('episode_sampling') is not None:
+        # The caller already validates this deck against the hash-bound dataset.
+        # A repeated visit is not a new trajectory; restore its exact saved order.
+        from collections import Counter
+        from .latest_takeover_sampling import REPEAT_FACTORS
+        if (stratified or not isinstance(episode_multiplicities,dict)
+                or set(episode_multiplicities)!=set(train_ids)
+                or any(type(n) is not int or n not in REPEAT_FACTORS
+                       for n in episode_multiplicities.values())):
+            raise ValueError('Residual restore requires validated episode multiplicities')
+        valid_order=Counter(order)==Counter(episode_multiplicities)
+    elif episode_multiplicities is not None:
+        raise ValueError('Residual restore multiplicities require an explicit sampling contract')
     if saved.get('train_ids')!=train_ids or not valid_order:
         raise ValueError('Residual restore episode population/order differs')
     if not 0<=next_group<=len(order) or saved['epoch']<1 or saved['updates']<0:
@@ -1367,7 +1380,8 @@ def residual_train(root, *, smoke=False, probe=False):
     resume_epoch=1;resume_group=0;resume_order=None;selection_baseline=None;episode_counts={i:0 for i in ids}
     if (out/'last.pt').exists():
         saved=torch.load(out/'last.pt',map_location='cpu',weights_only=False)
-        restored=restore_residual_training(saved,model,opt,generator,configuration,ids)
+        restored=restore_residual_training(saved,model,opt,generator,configuration,ids,
+            episode_multiplicities=multiplicities)
         updates=saved['updates'];draws=saved['supervised_ticks'];ticks=saved['control_ticks'];contact_ticks=saved['contact_anchors']
         best=saved['best'];history=saved['history'];resume_epoch=saved['epoch'];resume_group=saved['next_episode_group'];resume_order=saved['episode_order']
         selection_baseline=saved.get('selection_baseline');episode_counts=saved.get('episode_counts',episode_counts)

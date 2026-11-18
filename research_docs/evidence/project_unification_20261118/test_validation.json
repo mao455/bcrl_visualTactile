@@ -1,0 +1,20 @@
+{
+  "files": [
+    "tests/test_tight_project.py",
+    "tests/test_fresh_contracts.py",
+    "tests/test_fresh_command_chain.py",
+    "tests/test_fresh_geometry_supervision.py",
+    "tests/test_fresh_backend.py",
+    "tests/test_fresh_dagger.py",
+    "tests/test_latest_takeover_sampling.py",
+    "tests/test_execution_output.py",
+    "tests/test_dagger_takeover.py",
+    "tests/test_fresh_recovery.py"
+  ],
+  "command": "OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 PYTHONPATH=.:rl_games .venv_isaacsim/bin/python -m pytest -q tests/test_tight_project.py tests/test_fresh_contracts.py tests/test_fresh_command_chain.py tests/test_fresh_geometry_supervision.py tests/test_fresh_backend.py tests/test_fresh_dagger.py tests/test_latest_takeover_sampling.py tests/test_execution_output.py tests/test_dagger_takeover.py tests/test_fresh_recovery.py",
+  "passed": 160,
+  "failed": 0,
+  "warning": "Existing requests dependency-version warning",
+  "stdout": "........................................................................ [ 45%]\n........................................................................ [ 90%]\n................                                                         [100%]\n=============================== warnings summary ===============================\n../../miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113\n  /home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.4.3)/charset_normalizer (3.3.2) doesn't match a supported version!\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n160 passed, 1 warning in 2.88s\n",
+  "scope": "CPU regressions; no optimizer steps or collection; owner signal unwind verified"
+}
