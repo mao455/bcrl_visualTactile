@@ -1,3 +1,11 @@
+## 2026-11-19 真实曝光与表征科学审计
+
+- 新增tools/tight_representation_{audit,probe,diagnostics,summary,verify}.py及聚焦测试；只读选中祖先、真实采样/optimizer日志、实际缓存与HDF5，未改生产训练器/模型/执行链。
+- 输出30节点/8条继承链、每轨/每tick slot与不同访问、基础loss权重、76当前FY梯度片段；历史逐阶段参数梯度无充分日志，明确不伪造。
+- 四完整策略全记录推理、实际DP/后端输入干预、纯q/qdot与controller_feedback分离的9类表示、216family隔离probe回执；真值仅诊断，触觉滑移仅代理，未宣称oracle闭环上界。
+- 46项聚焦检查、16保护文件SHA、136数据路径、相同角色72→130统计与DP合同核验；完整指标/采样回执/曲线在evidence/tight_representation_audit_20261119。
+- 0策略optimizer更新、0DAgger、0新Kit。继续保留72完整A/B、130合法池和候选；建议的组合学习/表示迁移没有自动执行。
+
 ## 2026-11-18 工程统一与断点恢复修复
 
 - 唯一当前工作区回到原bc+rl_RSS，旧3e11d62及本地文档分别保存在私有归档分支，再通过Git快进接到451f591；未覆盖脏研究成果。

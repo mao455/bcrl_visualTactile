@@ -1,0 +1,10 @@
+{
+  "seconds": 7.977780818939209,
+  "ridge": 0.01,
+  "family_folds": 5,
+  "heldout_validation_families": 6,
+  "hyperparameter_search": false,
+  "policy_updates": 0,
+  "labels": "Current object-root pose relative palm and hole; rotation6. Future12tick relative palm displacement/.2s. Object-filtered previous completed fingertip force/contact. Future loss means currently>=2 object-contact fingertips then zero within12ticks, not true support/slip ground truth.",
+  "limitations": "Validation6 already selected policy checkpoints historically, not untouched final test. Probe folds exclude families but encoders trained on the30 train families. Native timestep autocorrelation persists; no random-tick split. Readout failure does not prove information absence; contact readout from force is largely a sensor sanity check. Hole/object root relative pose is not a calibrated peg-tip/insertion clearance estimate."
+}

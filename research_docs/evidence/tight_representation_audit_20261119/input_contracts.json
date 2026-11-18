@@ -1,0 +1,2578 @@
+[
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/A/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "q_reached",
+      "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+      "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": null,
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "geometry_mean": [
+        85
+      ],
+      "geometry_std": [
+        85
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "robot_encoder.0.weight": [
+        256,
+        2340
+      ],
+      "robot_encoder.0.bias": [
+        256
+      ],
+      "robot_encoder.1.weight": [
+        256
+      ],
+      "robot_encoder.1.bias": [
+        256
+      ],
+      "vision.queries": [
+        4,
+        128
+      ],
+      "vision.coordinates": [
+        48,
+        2
+      ],
+      "vision.rgb.0.weight": [
+        112,
+        384,
+        1,
+        1
+      ],
+      "vision.rgb.0.bias": [
+        112
+      ],
+      "vision.rgb.1.weight": [
+        112
+      ],
+      "vision.rgb.1.bias": [
+        112
+      ],
+      "vision.depth.0.weight": [
+        16,
+        2,
+        3,
+        3
+      ],
+      "vision.depth.0.bias": [
+        16
+      ],
+      "vision.depth.1.weight": [
+        16
+      ],
+      "vision.depth.1.bias": [
+        16
+      ],
+      "vision.position.weight": [
+        128,
+        2
+      ],
+      "vision.position.bias": [
+        128
+      ],
+      "vision.camera.weight": [
+        3,
+        128
+      ],
+      "vision.age.0.weight": [
+        128,
+        1
+      ],
+      "vision.age.0.bias": [
+        128
+      ],
+      "vision.age.1.weight": [
+        128
+      ],
+      "vision.age.1.bias": [
+        128
+      ],
+      "vision.attention.in_proj_weight": [
+        384,
+        128
+      ],
+      "vision.attention.in_proj_bias": [
+        384
+      ],
+      "vision.attention.out_proj.weight": [
+        128,
+        128
+      ],
+      "vision.attention.out_proj.bias": [
+        128
+      ],
+      "native_input.0.weight": [
+        256,
+        178
+      ],
+      "native_input.0.bias": [
+        256
+      ],
+      "native_input.1.weight": [
+        256
+      ],
+      "native_input.1.bias": [
+        256
+      ],
+      "native_gru.weight_ih": [
+        768,
+        256
+      ],
+      "native_gru.weight_hh": [
+        768,
+        256
+      ],
+      "native_gru.bias_ih": [
+        768
+      ],
+      "native_gru.bias_hh": [
+        768
+      ],
+      "visual_gru.weight_ih": [
+        768,
+        512
+      ],
+      "visual_gru.weight_hh": [
+        768,
+        256
+      ],
+      "visual_gru.bias_ih": [
+        768
+      ],
+      "visual_gru.bias_hh": [
+        768
+      ],
+      "condition_projection.0.weight": [
+        512,
+        1280
+      ],
+      "condition_projection.0.bias": [
+        512
+      ],
+      "condition_projection.1.weight": [
+        512
+      ],
+      "condition_projection.1.bias": [
+        512
+      ]
+    },
+    "execution_adapter": null,
+    "history_contract": null,
+    "output_contract": null,
+    "loss_contract": null,
+    "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/A/backend/A/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "q_reached",
+      "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+      "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": "target_residual_transformer60_v1",
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "scales": [
+        29
+      ],
+      "visual.weight_ih": [
+        192,
+        512
+      ],
+      "visual.weight_hh": [
+        192,
+        64
+      ],
+      "visual.bias_ih": [
+        192
+      ],
+      "visual.bias_hh": [
+        192
+      ],
+      "tactile.finger_id.weight": [
+        5,
+        8
+      ],
+      "tactile.spatial.0.weight": [
+        64,
+        35
+      ],
+      "tactile.spatial.0.bias": [
+        64
+      ],
+      "tactile.spatial.1.weight": [
+        64
+      ],
+      "tactile.spatial.1.bias": [
+        64
+      ],
+      "tactile.spatial.3.weight": [
+        32,
+        64
+      ],
+      "tactile.spatial.3.bias": [
+        32
+      ],
+      "tactile.per_finger.weight_ih": [
+        96,
+        32
+      ],
+      "tactile.per_finger.weight_hh": [
+        96,
+        32
+      ],
+      "tactile.per_finger.bias_ih": [
+        96
+      ],
+      "tactile.per_finger.bias_hh": [
+        96
+      ],
+      "tactile.fusion.0.weight": [
+        128,
+        160
+      ],
+      "tactile.fusion.0.bias": [
+        128
+      ],
+      "tactile.fusion.2.weight": [
+        64,
+        128
+      ],
+      "tactile.fusion.2.bias": [
+        64
+      ],
+      "tactile.fusion.3.weight": [
+        64
+      ],
+      "tactile.fusion.3.bias": [
+        64
+      ],
+      "motion.weight_ih": [
+        192,
+        178
+      ],
+      "motion.weight_hh": [
+        192,
+        64
+      ],
+      "motion.bias_ih": [
+        192
+      ],
+      "motion.bias_hh": [
+        192
+      ],
+      "feedback.0.weight": [
+        128,
+        222
+      ],
+      "feedback.0.bias": [
+        128
+      ],
+      "feedback.1.weight": [
+        128
+      ],
+      "feedback.1.bias": [
+        128
+      ],
+      "memory.weight_ih": [
+        384,
+        128
+      ],
+      "memory.weight_hh": [
+        384,
+        128
+      ],
+      "memory.bias_ih": [
+        384
+      ],
+      "memory.bias_hh": [
+        384
+      ],
+      "intent.weight": [
+        128,
+        29
+      ],
+      "intent.bias": [
+        128
+      ],
+      "plan_position.weight": [
+        24,
+        128
+      ],
+      "plan_cursor.weight": [
+        12,
+        128
+      ],
+      "history_position.weight": [
+        32,
+        128
+      ],
+      "token_type.weight": [
+        3,
+        128
+      ],
+      "transformer.norm.weight": [
+        128
+      ],
+      "transformer.norm.bias": [
+        128
+      ],
+      "policy.0.weight": [
+        128,
+        128
+      ],
+      "policy.0.bias": [
+        128
+      ],
+      "policy.2.weight": [
+        29,
+        128
+      ],
+      "policy.2.bias": [
+        29
+      ]
+    },
+    "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "history_contract": {
+      "version": "current_weight_prefix_v1"
+    },
+    "output_contract": {
+      "version": "reachable_nominal_centered_linear_v1",
+      "span_gain": 1.0
+    },
+    "loss_contract": {
+      "version": "ideal_box_span_fy_roundoff_v1",
+      "idealization_tolerance_rad": 1e-06,
+      "multiplier": 2.0,
+      "regularizer_weight": 0.0,
+      "minimum_span_rad": 1e-06
+    },
+    "normalization_identity": null,
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "u_expert",
+      "clean_sample_field": "transition/target_after_rad",
+      "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": null,
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "geometry_mean": [
+        85
+      ],
+      "geometry_std": [
+        85
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "robot_encoder.0.weight": [
+        256,
+        2340
+      ],
+      "robot_encoder.0.bias": [
+        256
+      ],
+      "robot_encoder.1.weight": [
+        256
+      ],
+      "robot_encoder.1.bias": [
+        256
+      ],
+      "vision.queries": [
+        4,
+        128
+      ],
+      "vision.coordinates": [
+        48,
+        2
+      ],
+      "vision.rgb.0.weight": [
+        112,
+        384,
+        1,
+        1
+      ],
+      "vision.rgb.0.bias": [
+        112
+      ],
+      "vision.rgb.1.weight": [
+        112
+      ],
+      "vision.rgb.1.bias": [
+        112
+      ],
+      "vision.depth.0.weight": [
+        16,
+        2,
+        3,
+        3
+      ],
+      "vision.depth.0.bias": [
+        16
+      ],
+      "vision.depth.1.weight": [
+        16
+      ],
+      "vision.depth.1.bias": [
+        16
+      ],
+      "vision.position.weight": [
+        128,
+        2
+      ],
+      "vision.position.bias": [
+        128
+      ],
+      "vision.camera.weight": [
+        3,
+        128
+      ],
+      "vision.age.0.weight": [
+        128,
+        1
+      ],
+      "vision.age.0.bias": [
+        128
+      ],
+      "vision.age.1.weight": [
+        128
+      ],
+      "vision.age.1.bias": [
+        128
+      ],
+      "vision.attention.in_proj_weight": [
+        384,
+        128
+      ],
+      "vision.attention.in_proj_bias": [
+        384
+      ],
+      "vision.attention.out_proj.weight": [
+        128,
+        128
+      ],
+      "vision.attention.out_proj.bias": [
+        128
+      ],
+      "native_input.0.weight": [
+        256,
+        178
+      ],
+      "native_input.0.bias": [
+        256
+      ],
+      "native_input.1.weight": [
+        256
+      ],
+      "native_input.1.bias": [
+        256
+      ],
+      "native_gru.weight_ih": [
+        768,
+        256
+      ],
+      "native_gru.weight_hh": [
+        768,
+        256
+      ],
+      "native_gru.bias_ih": [
+        768
+      ],
+      "native_gru.bias_hh": [
+        768
+      ],
+      "visual_gru.weight_ih": [
+        768,
+        512
+      ],
+      "visual_gru.weight_hh": [
+        768,
+        256
+      ],
+      "visual_gru.bias_ih": [
+        768
+      ],
+      "visual_gru.bias_hh": [
+        768
+      ],
+      "condition_projection.0.weight": [
+        512,
+        1280
+      ],
+      "condition_projection.0.bias": [
+        512
+      ],
+      "condition_projection.1.weight": [
+        512
+      ],
+      "condition_projection.1.bias": [
+        512
+      ]
+    },
+    "execution_adapter": null,
+    "history_contract": null,
+    "output_contract": null,
+    "loss_contract": null,
+    "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/backend/B/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "u_expert",
+      "clean_sample_field": "transition/target_after_rad",
+      "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": "target_residual_transformer60_v1",
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "scales": [
+        29
+      ],
+      "visual.weight_ih": [
+        192,
+        512
+      ],
+      "visual.weight_hh": [
+        192,
+        64
+      ],
+      "visual.bias_ih": [
+        192
+      ],
+      "visual.bias_hh": [
+        192
+      ],
+      "tactile.finger_id.weight": [
+        5,
+        8
+      ],
+      "tactile.spatial.0.weight": [
+        64,
+        35
+      ],
+      "tactile.spatial.0.bias": [
+        64
+      ],
+      "tactile.spatial.1.weight": [
+        64
+      ],
+      "tactile.spatial.1.bias": [
+        64
+      ],
+      "tactile.spatial.3.weight": [
+        32,
+        64
+      ],
+      "tactile.spatial.3.bias": [
+        32
+      ],
+      "tactile.per_finger.weight_ih": [
+        96,
+        32
+      ],
+      "tactile.per_finger.weight_hh": [
+        96,
+        32
+      ],
+      "tactile.per_finger.bias_ih": [
+        96
+      ],
+      "tactile.per_finger.bias_hh": [
+        96
+      ],
+      "tactile.fusion.0.weight": [
+        128,
+        160
+      ],
+      "tactile.fusion.0.bias": [
+        128
+      ],
+      "tactile.fusion.2.weight": [
+        64,
+        128
+      ],
+      "tactile.fusion.2.bias": [
+        64
+      ],
+      "tactile.fusion.3.weight": [
+        64
+      ],
+      "tactile.fusion.3.bias": [
+        64
+      ],
+      "motion.weight_ih": [
+        192,
+        178
+      ],
+      "motion.weight_hh": [
+        192,
+        64
+      ],
+      "motion.bias_ih": [
+        192
+      ],
+      "motion.bias_hh": [
+        192
+      ],
+      "feedback.0.weight": [
+        128,
+        222
+      ],
+      "feedback.0.bias": [
+        128
+      ],
+      "feedback.1.weight": [
+        128
+      ],
+      "feedback.1.bias": [
+        128
+      ],
+      "memory.weight_ih": [
+        384,
+        128
+      ],
+      "memory.weight_hh": [
+        384,
+        128
+      ],
+      "memory.bias_ih": [
+        384
+      ],
+      "memory.bias_hh": [
+        384
+      ],
+      "intent.weight": [
+        128,
+        29
+      ],
+      "intent.bias": [
+        128
+      ],
+      "plan_position.weight": [
+        24,
+        128
+      ],
+      "plan_cursor.weight": [
+        12,
+        128
+      ],
+      "history_position.weight": [
+        32,
+        128
+      ],
+      "token_type.weight": [
+        3,
+        128
+      ],
+      "transformer.norm.weight": [
+        128
+      ],
+      "transformer.norm.bias": [
+        128
+      ],
+      "policy.0.weight": [
+        128,
+        128
+      ],
+      "policy.0.bias": [
+        128
+      ],
+      "policy.2.weight": [
+        29,
+        128
+      ],
+      "policy.2.bias": [
+        29
+      ]
+    },
+    "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "history_contract": {
+      "version": "current_weight_prefix_v1"
+    },
+    "output_contract": {
+      "version": "reachable_nominal_centered_linear_v1",
+      "span_gain": 1.0
+    },
+    "loss_contract": {
+      "version": "ideal_box_span_fy_roundoff_v1",
+      "idealization_tolerance_rad": 1e-06,
+      "multiplier": 2.0,
+      "regularizer_weight": 0.0,
+      "minimum_span_rad": 1e-06
+    },
+    "normalization_identity": null,
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/A/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "q_reached",
+      "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+      "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": null,
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "geometry_mean": [
+        85
+      ],
+      "geometry_std": [
+        85
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "robot_encoder.0.weight": [
+        256,
+        2340
+      ],
+      "robot_encoder.0.bias": [
+        256
+      ],
+      "robot_encoder.1.weight": [
+        256
+      ],
+      "robot_encoder.1.bias": [
+        256
+      ],
+      "vision.queries": [
+        4,
+        128
+      ],
+      "vision.coordinates": [
+        48,
+        2
+      ],
+      "vision.rgb.0.weight": [
+        112,
+        384,
+        1,
+        1
+      ],
+      "vision.rgb.0.bias": [
+        112
+      ],
+      "vision.rgb.1.weight": [
+        112
+      ],
+      "vision.rgb.1.bias": [
+        112
+      ],
+      "vision.depth.0.weight": [
+        16,
+        2,
+        3,
+        3
+      ],
+      "vision.depth.0.bias": [
+        16
+      ],
+      "vision.depth.1.weight": [
+        16
+      ],
+      "vision.depth.1.bias": [
+        16
+      ],
+      "vision.position.weight": [
+        128,
+        2
+      ],
+      "vision.position.bias": [
+        128
+      ],
+      "vision.camera.weight": [
+        3,
+        128
+      ],
+      "vision.age.0.weight": [
+        128,
+        1
+      ],
+      "vision.age.0.bias": [
+        128
+      ],
+      "vision.age.1.weight": [
+        128
+      ],
+      "vision.age.1.bias": [
+        128
+      ],
+      "vision.attention.in_proj_weight": [
+        384,
+        128
+      ],
+      "vision.attention.in_proj_bias": [
+        384
+      ],
+      "vision.attention.out_proj.weight": [
+        128,
+        128
+      ],
+      "vision.attention.out_proj.bias": [
+        128
+      ],
+      "native_input.0.weight": [
+        256,
+        178
+      ],
+      "native_input.0.bias": [
+        256
+      ],
+      "native_input.1.weight": [
+        256
+      ],
+      "native_input.1.bias": [
+        256
+      ],
+      "native_gru.weight_ih": [
+        768,
+        256
+      ],
+      "native_gru.weight_hh": [
+        768,
+        256
+      ],
+      "native_gru.bias_ih": [
+        768
+      ],
+      "native_gru.bias_hh": [
+        768
+      ],
+      "visual_gru.weight_ih": [
+        768,
+        512
+      ],
+      "visual_gru.weight_hh": [
+        768,
+        256
+      ],
+      "visual_gru.bias_ih": [
+        768
+      ],
+      "visual_gru.bias_hh": [
+        768
+      ],
+      "condition_projection.0.weight": [
+        512,
+        1280
+      ],
+      "condition_projection.0.bias": [
+        512
+      ],
+      "condition_projection.1.weight": [
+        512
+      ],
+      "condition_projection.1.bias": [
+        512
+      ]
+    },
+    "execution_adapter": null,
+    "history_contract": null,
+    "output_contract": null,
+    "loss_contract": null,
+    "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport",
+      "r06_B_layout10_train_28817026_phase_early",
+      "r06_A_layout10_train_28817026_phase_early",
+      "r06_B_layout10_train_28817027_phase_near",
+      "r06_A_layout10_train_28817029_phase_post_subgoal",
+      "r07_A_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817001_cycle_approach",
+      "r07_A_layout10_train_28817000_cycle_transport",
+      "r07_B_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817013_cycle_weakening",
+      "r07_A_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817012_cycle_transport",
+      "r07_A_layout10_train_28817012_cycle_transport",
+      "r07_B_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817029_cycle_weakening",
+      "r07_B_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817025_cycle_approach",
+      "r07_A_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817017_cycle_approach",
+      "r07_A_layout10_train_28817021_cycle_near",
+      "r07_A_layout10_train_28817013_cycle_weakening",
+      "r07_B_layout10_train_28817029_cycle_weakening",
+      "r07_A_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817001_cycle_approach",
+      "r07_B_layout10_train_28817017_cycle_approach",
+      "r07_B_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817025_cycle_approach",
+      "r07_B_layout10_train_28817005_cycle_near",
+      "r07_A_layout10_train_28817005_cycle_near",
+      "r07_B_layout10_train_28817021_cycle_near",
+      "r08_A_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817008_regression",
+      "r08_A_layout10_train_28817008_regression",
+      "r08_B_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817000_regression",
+      "r11_B_layout10_train_28817008_regression",
+      "r11_B_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817006_regression",
+      "r11_A_layout10_train_28817000_regression",
+      "r11_A_layout10_train_28817002_regression",
+      "r11_A_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817008_regression",
+      "r11_A_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817012_regression",
+      "r12_A_layout10_train_28817029_regression",
+      "r12_A_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817024_regression",
+      "r12_A_layout10_train_28817026_regression",
+      "r12_B_layout10_train_28817020_regression",
+      "r12_B_layout10_train_28817028_regression",
+      "r12_B_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817029_regression"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/A/backend/A/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "q_reached",
+      "clean_sample_field": "transition/diagnostics_after/joint_position_rad",
+      "normalization_identity": "q_reached_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": "target_residual_transformer60_v1",
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "scales": [
+        29
+      ],
+      "visual.weight_ih": [
+        192,
+        512
+      ],
+      "visual.weight_hh": [
+        192,
+        64
+      ],
+      "visual.bias_ih": [
+        192
+      ],
+      "visual.bias_hh": [
+        192
+      ],
+      "tactile.finger_id.weight": [
+        5,
+        8
+      ],
+      "tactile.spatial.0.weight": [
+        64,
+        35
+      ],
+      "tactile.spatial.0.bias": [
+        64
+      ],
+      "tactile.spatial.1.weight": [
+        64
+      ],
+      "tactile.spatial.1.bias": [
+        64
+      ],
+      "tactile.spatial.3.weight": [
+        32,
+        64
+      ],
+      "tactile.spatial.3.bias": [
+        32
+      ],
+      "tactile.per_finger.weight_ih": [
+        96,
+        32
+      ],
+      "tactile.per_finger.weight_hh": [
+        96,
+        32
+      ],
+      "tactile.per_finger.bias_ih": [
+        96
+      ],
+      "tactile.per_finger.bias_hh": [
+        96
+      ],
+      "tactile.fusion.0.weight": [
+        128,
+        160
+      ],
+      "tactile.fusion.0.bias": [
+        128
+      ],
+      "tactile.fusion.2.weight": [
+        64,
+        128
+      ],
+      "tactile.fusion.2.bias": [
+        64
+      ],
+      "tactile.fusion.3.weight": [
+        64
+      ],
+      "tactile.fusion.3.bias": [
+        64
+      ],
+      "motion.weight_ih": [
+        192,
+        178
+      ],
+      "motion.weight_hh": [
+        192,
+        64
+      ],
+      "motion.bias_ih": [
+        192
+      ],
+      "motion.bias_hh": [
+        192
+      ],
+      "feedback.0.weight": [
+        128,
+        222
+      ],
+      "feedback.0.bias": [
+        128
+      ],
+      "feedback.1.weight": [
+        128
+      ],
+      "feedback.1.bias": [
+        128
+      ],
+      "memory.weight_ih": [
+        384,
+        128
+      ],
+      "memory.weight_hh": [
+        384,
+        128
+      ],
+      "memory.bias_ih": [
+        384
+      ],
+      "memory.bias_hh": [
+        384
+      ],
+      "intent.weight": [
+        128,
+        29
+      ],
+      "intent.bias": [
+        128
+      ],
+      "plan_position.weight": [
+        24,
+        128
+      ],
+      "plan_cursor.weight": [
+        12,
+        128
+      ],
+      "history_position.weight": [
+        32,
+        128
+      ],
+      "token_type.weight": [
+        3,
+        128
+      ],
+      "transformer.norm.weight": [
+        128
+      ],
+      "transformer.norm.bias": [
+        128
+      ],
+      "policy.0.weight": [
+        128,
+        128
+      ],
+      "policy.0.bias": [
+        128
+      ],
+      "policy.2.weight": [
+        29,
+        128
+      ],
+      "policy.2.bias": [
+        29
+      ]
+    },
+    "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "history_contract": {
+      "version": "current_weight_prefix_v1"
+    },
+    "output_contract": {
+      "version": "reachable_nominal_centered_linear_v1",
+      "span_gain": 1.0
+    },
+    "loss_contract": {
+      "version": "ideal_box_span_fy_roundoff_v1",
+      "idealization_tolerance_rad": 1e-06,
+      "multiplier": 2.0,
+      "regularizer_weight": 0.0,
+      "minimum_span_rad": 1e-06
+    },
+    "normalization_identity": null,
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport",
+      "r06_B_layout10_train_28817026_phase_early",
+      "r06_A_layout10_train_28817026_phase_early",
+      "r06_B_layout10_train_28817027_phase_near",
+      "r06_A_layout10_train_28817029_phase_post_subgoal",
+      "r07_A_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817001_cycle_approach",
+      "r07_A_layout10_train_28817000_cycle_transport",
+      "r07_B_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817013_cycle_weakening",
+      "r07_A_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817012_cycle_transport",
+      "r07_A_layout10_train_28817012_cycle_transport",
+      "r07_B_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817029_cycle_weakening",
+      "r07_B_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817025_cycle_approach",
+      "r07_A_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817017_cycle_approach",
+      "r07_A_layout10_train_28817021_cycle_near",
+      "r07_A_layout10_train_28817013_cycle_weakening",
+      "r07_B_layout10_train_28817029_cycle_weakening",
+      "r07_A_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817001_cycle_approach",
+      "r07_B_layout10_train_28817017_cycle_approach",
+      "r07_B_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817025_cycle_approach",
+      "r07_B_layout10_train_28817005_cycle_near",
+      "r07_A_layout10_train_28817005_cycle_near",
+      "r07_B_layout10_train_28817021_cycle_near",
+      "r08_A_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817008_regression",
+      "r08_A_layout10_train_28817008_regression",
+      "r08_B_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817000_regression",
+      "r11_B_layout10_train_28817008_regression",
+      "r11_B_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817006_regression",
+      "r11_A_layout10_train_28817000_regression",
+      "r11_A_layout10_train_28817002_regression",
+      "r11_A_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817008_regression",
+      "r11_A_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817012_regression",
+      "r12_A_layout10_train_28817029_regression",
+      "r12_A_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817024_regression",
+      "r12_A_layout10_train_28817026_regression",
+      "r12_B_layout10_train_28817020_regression",
+      "r12_B_layout10_train_28817028_regression",
+      "r12_B_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817029_regression"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/B/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "u_expert",
+      "clean_sample_field": "transition/target_after_rad",
+      "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": null,
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "geometry_mean": [
+        85
+      ],
+      "geometry_std": [
+        85
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "robot_encoder.0.weight": [
+        256,
+        2340
+      ],
+      "robot_encoder.0.bias": [
+        256
+      ],
+      "robot_encoder.1.weight": [
+        256
+      ],
+      "robot_encoder.1.bias": [
+        256
+      ],
+      "vision.queries": [
+        4,
+        128
+      ],
+      "vision.coordinates": [
+        48,
+        2
+      ],
+      "vision.rgb.0.weight": [
+        112,
+        384,
+        1,
+        1
+      ],
+      "vision.rgb.0.bias": [
+        112
+      ],
+      "vision.rgb.1.weight": [
+        112
+      ],
+      "vision.rgb.1.bias": [
+        112
+      ],
+      "vision.depth.0.weight": [
+        16,
+        2,
+        3,
+        3
+      ],
+      "vision.depth.0.bias": [
+        16
+      ],
+      "vision.depth.1.weight": [
+        16
+      ],
+      "vision.depth.1.bias": [
+        16
+      ],
+      "vision.position.weight": [
+        128,
+        2
+      ],
+      "vision.position.bias": [
+        128
+      ],
+      "vision.camera.weight": [
+        3,
+        128
+      ],
+      "vision.age.0.weight": [
+        128,
+        1
+      ],
+      "vision.age.0.bias": [
+        128
+      ],
+      "vision.age.1.weight": [
+        128
+      ],
+      "vision.age.1.bias": [
+        128
+      ],
+      "vision.attention.in_proj_weight": [
+        384,
+        128
+      ],
+      "vision.attention.in_proj_bias": [
+        384
+      ],
+      "vision.attention.out_proj.weight": [
+        128,
+        128
+      ],
+      "vision.attention.out_proj.bias": [
+        128
+      ],
+      "native_input.0.weight": [
+        256,
+        178
+      ],
+      "native_input.0.bias": [
+        256
+      ],
+      "native_input.1.weight": [
+        256
+      ],
+      "native_input.1.bias": [
+        256
+      ],
+      "native_gru.weight_ih": [
+        768,
+        256
+      ],
+      "native_gru.weight_hh": [
+        768,
+        256
+      ],
+      "native_gru.bias_ih": [
+        768
+      ],
+      "native_gru.bias_hh": [
+        768
+      ],
+      "visual_gru.weight_ih": [
+        768,
+        512
+      ],
+      "visual_gru.weight_hh": [
+        768,
+        256
+      ],
+      "visual_gru.bias_ih": [
+        768
+      ],
+      "visual_gru.bias_hh": [
+        768
+      ],
+      "condition_projection.0.weight": [
+        512,
+        1280
+      ],
+      "condition_projection.0.bias": [
+        512
+      ],
+      "condition_projection.1.weight": [
+        512
+      ],
+      "condition_projection.1.bias": [
+        512
+      ]
+    },
+    "execution_adapter": null,
+    "history_contract": null,
+    "output_contract": null,
+    "loss_contract": null,
+    "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport",
+      "r06_B_layout10_train_28817026_phase_early",
+      "r06_A_layout10_train_28817026_phase_early",
+      "r06_B_layout10_train_28817027_phase_near",
+      "r06_A_layout10_train_28817029_phase_post_subgoal",
+      "r07_A_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817001_cycle_approach",
+      "r07_A_layout10_train_28817000_cycle_transport",
+      "r07_B_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817013_cycle_weakening",
+      "r07_A_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817012_cycle_transport",
+      "r07_A_layout10_train_28817012_cycle_transport",
+      "r07_B_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817029_cycle_weakening",
+      "r07_B_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817025_cycle_approach",
+      "r07_A_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817017_cycle_approach",
+      "r07_A_layout10_train_28817021_cycle_near",
+      "r07_A_layout10_train_28817013_cycle_weakening",
+      "r07_B_layout10_train_28817029_cycle_weakening",
+      "r07_A_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817001_cycle_approach",
+      "r07_B_layout10_train_28817017_cycle_approach",
+      "r07_B_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817025_cycle_approach",
+      "r07_B_layout10_train_28817005_cycle_near",
+      "r07_A_layout10_train_28817005_cycle_near",
+      "r07_B_layout10_train_28817021_cycle_near",
+      "r08_A_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817008_regression",
+      "r08_A_layout10_train_28817008_regression",
+      "r08_B_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817000_regression",
+      "r11_B_layout10_train_28817008_regression",
+      "r11_B_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817006_regression",
+      "r11_A_layout10_train_28817000_regression",
+      "r11_A_layout10_train_28817002_regression",
+      "r11_A_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817008_regression",
+      "r11_A_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817012_regression",
+      "r12_A_layout10_train_28817029_regression",
+      "r12_A_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817024_regression",
+      "r12_A_layout10_train_28817026_regression",
+      "r12_B_layout10_train_28817020_regression",
+      "r12_B_layout10_train_28817028_regression",
+      "r12_B_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817029_regression"
+    ]
+  },
+  {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/B/backend/B/training/best.pt",
+    "contract": {
+      "version": 6,
+      "action": "absolute_joint_position_target_rad",
+      "horizon": 24,
+      "commit": 12,
+      "native_history": 13,
+      "visual_history": 3,
+      "native_hz": 60,
+      "physics_hz": 120,
+      "observation": "robot178_dino_rgb_depth_every_native_tick_v1",
+      "prediction_type": "sample",
+      "loss": "B",
+      "train_noise_steps": 100,
+      "inference_steps": 16,
+      "history_training": "current_weight_causal_prefix_no_grad_then_96_ticks",
+      "history_source": "past_requested_and_applied_position_rad; teacher_forced_in_training",
+      "action_contract": "position_rad_v1",
+      "modality": "G00",
+      "input_builder": "canonical_joint_state_v1",
+      "tactile_history": 0,
+      "sampler_seed": 7091,
+      "task_condition": "constant externally selected tight_insertion; goal pose absent",
+      "supervision": "u_expert",
+      "clean_sample_field": "transition/target_after_rad",
+      "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+      "label_time": "same transition: issued target before integration / reached configuration after integration",
+      "deployment_output": "absolute_joint_position_target_rad",
+      "visual_stride": 1,
+      "visual_history_hz": 60
+    },
+    "residual_version": "target_residual_transformer60_v1",
+    "parameter_shapes": {
+      "robot_mean": [
+        178
+      ],
+      "robot_std": [
+        178
+      ],
+      "action_scale": [
+        29
+      ],
+      "action_offset": [
+        29
+      ],
+      "scales": [
+        29
+      ],
+      "visual.weight_ih": [
+        192,
+        512
+      ],
+      "visual.weight_hh": [
+        192,
+        64
+      ],
+      "visual.bias_ih": [
+        192
+      ],
+      "visual.bias_hh": [
+        192
+      ],
+      "tactile.finger_id.weight": [
+        5,
+        8
+      ],
+      "tactile.spatial.0.weight": [
+        64,
+        35
+      ],
+      "tactile.spatial.0.bias": [
+        64
+      ],
+      "tactile.spatial.1.weight": [
+        64
+      ],
+      "tactile.spatial.1.bias": [
+        64
+      ],
+      "tactile.spatial.3.weight": [
+        32,
+        64
+      ],
+      "tactile.spatial.3.bias": [
+        32
+      ],
+      "tactile.per_finger.weight_ih": [
+        96,
+        32
+      ],
+      "tactile.per_finger.weight_hh": [
+        96,
+        32
+      ],
+      "tactile.per_finger.bias_ih": [
+        96
+      ],
+      "tactile.per_finger.bias_hh": [
+        96
+      ],
+      "tactile.fusion.0.weight": [
+        128,
+        160
+      ],
+      "tactile.fusion.0.bias": [
+        128
+      ],
+      "tactile.fusion.2.weight": [
+        64,
+        128
+      ],
+      "tactile.fusion.2.bias": [
+        64
+      ],
+      "tactile.fusion.3.weight": [
+        64
+      ],
+      "tactile.fusion.3.bias": [
+        64
+      ],
+      "motion.weight_ih": [
+        192,
+        178
+      ],
+      "motion.weight_hh": [
+        192,
+        64
+      ],
+      "motion.bias_ih": [
+        192
+      ],
+      "motion.bias_hh": [
+        192
+      ],
+      "feedback.0.weight": [
+        128,
+        222
+      ],
+      "feedback.0.bias": [
+        128
+      ],
+      "feedback.1.weight": [
+        128
+      ],
+      "feedback.1.bias": [
+        128
+      ],
+      "memory.weight_ih": [
+        384,
+        128
+      ],
+      "memory.weight_hh": [
+        384,
+        128
+      ],
+      "memory.bias_ih": [
+        384
+      ],
+      "memory.bias_hh": [
+        384
+      ],
+      "intent.weight": [
+        128,
+        29
+      ],
+      "intent.bias": [
+        128
+      ],
+      "plan_position.weight": [
+        24,
+        128
+      ],
+      "plan_cursor.weight": [
+        12,
+        128
+      ],
+      "history_position.weight": [
+        32,
+        128
+      ],
+      "token_type.weight": [
+        3,
+        128
+      ],
+      "transformer.norm.weight": [
+        128
+      ],
+      "transformer.norm.bias": [
+        128
+      ],
+      "policy.0.weight": [
+        128,
+        128
+      ],
+      "policy.0.bias": [
+        128
+      ],
+      "policy.2.weight": [
+        29,
+        128
+      ],
+      "policy.2.bias": [
+        29
+      ]
+    },
+    "execution_adapter": {
+      "version": "expert_reachable_postprocessed_v1",
+      "input_space": "postprocessed_absolute_joint_target_rad",
+      "reference": "actual_pre_action_actuator_target_rad",
+      "control_dt": 0.016666666666666666,
+      "dof_speed_scale": 1.5,
+      "arm_moving_average": 0.1,
+      "hand_moving_average": 0.1,
+      "arm_progress": 0.5,
+      "hand_progress": 1.0,
+      "hand_target_cap_rad_s": 2.0,
+      "roundoff_tolerance_rad": 1e-06,
+      "delay": "already_resolved_in_supervision_no_second_queue"
+    },
+    "history_contract": {
+      "version": "current_weight_prefix_v1"
+    },
+    "output_contract": {
+      "version": "reachable_nominal_centered_linear_v1",
+      "span_gain": 1.0
+    },
+    "loss_contract": {
+      "version": "ideal_box_span_fy_roundoff_v1",
+      "idealization_tolerance_rad": 1e-06,
+      "multiplier": 2.0,
+      "regularizer_weight": 0.0,
+      "minimum_span_rad": 1e-06
+    },
+    "normalization_identity": null,
+    "train_ids": [
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003",
+      "layout10_train_28817004",
+      "layout10_train_28817005",
+      "layout10_train_28817006",
+      "layout10_train_28817007",
+      "layout10_train_28817008",
+      "layout10_train_28817009",
+      "layout10_train_28817010",
+      "layout10_train_28817011",
+      "layout10_train_28817012",
+      "layout10_train_28817013",
+      "layout10_train_28817014",
+      "layout10_train_28817015",
+      "layout10_train_28817016",
+      "layout10_train_28817017",
+      "layout10_train_28817018",
+      "layout10_train_28817019",
+      "layout10_train_28817020",
+      "layout10_train_28817021",
+      "layout10_train_28817022",
+      "layout10_train_28817023",
+      "layout10_train_28817024",
+      "layout10_train_28817025",
+      "layout10_train_28817026",
+      "layout10_train_28817027",
+      "layout10_train_28817028",
+      "layout10_train_28817029",
+      "r01_A_layout10_train_28817003_contact_height_only_d0",
+      "r01_A_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817001_contact_height_only_d0",
+      "r01_B_layout10_train_28817002_contact_height_only_d0",
+      "r01_B_layout10_train_28817003_contact_height_only_d0",
+      "r01_B_layout10_train_28817000_contact_height_only_d0",
+      "r01_A_layout10_train_28817000_contact_height_only_d0",
+      "r02_B_layout10_train_28817005_contact_height_only_d0",
+      "r02_A_layout10_train_28817005_contact_height_only_d0",
+      "r02_B_layout10_train_28817004_contact_height_only_d0",
+      "r02_B_layout10_train_28817007_contact_height_only_d0",
+      "r02_A_layout10_train_28817006_contact_height_only_d0",
+      "r02_B_layout10_train_28817006_contact_height_only_d0",
+      "r02_A_layout10_train_28817007_contact_height_only_d0",
+      "r02_B_layout10_train_28817011_phase_early",
+      "r02_B_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817009_phase_alignment",
+      "r02_A_layout10_train_28817011_phase_early",
+      "r02_A_layout10_train_28817010_phase_weakening",
+      "r03_B_layout10_train_28817013_phase_near",
+      "r03_A_layout10_train_28817013_phase_near",
+      "r03_B_layout10_train_28817014_phase_weakening",
+      "r03_A_layout10_train_28817015_phase_early",
+      "r03_B_layout10_train_28817012_phase_alignment",
+      "r03_B_layout10_train_28817015_phase_early",
+      "r03_A_layout10_train_28817012_phase_alignment",
+      "r04_B_layout10_train_28817018_phase_near",
+      "r04_A_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817016_phase_early",
+      "r04_B_layout10_train_28817017_phase_transport",
+      "r04_B_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817023_phase_early",
+      "r04_B_layout10_train_28817023_phase_early",
+      "r04_A_layout10_train_28817020_phase_weakening",
+      "r04_A_layout10_train_28817021_phase_near",
+      "r05_A_layout10_train_28817026_phase_near",
+      "r05_B_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817025_phase_transport",
+      "r05_A_layout10_train_28817024_phase_early",
+      "r05_B_layout10_train_28817027_phase_weakening",
+      "r05_B_layout10_train_28817026_phase_near",
+      "r05_A_layout10_train_28817025_phase_transport",
+      "r06_B_layout10_train_28817026_phase_early",
+      "r06_A_layout10_train_28817026_phase_early",
+      "r06_B_layout10_train_28817027_phase_near",
+      "r06_A_layout10_train_28817029_phase_post_subgoal",
+      "r07_A_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817028_cycle_transport",
+      "r07_A_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817001_cycle_approach",
+      "r07_A_layout10_train_28817000_cycle_transport",
+      "r07_B_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817013_cycle_weakening",
+      "r07_A_layout10_train_28817020_cycle_transport",
+      "r07_B_layout10_train_28817004_cycle_transport",
+      "r07_B_layout10_train_28817012_cycle_transport",
+      "r07_A_layout10_train_28817012_cycle_transport",
+      "r07_B_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817029_cycle_weakening",
+      "r07_B_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817025_cycle_approach",
+      "r07_A_layout10_train_28817008_cycle_near",
+      "r07_A_layout10_train_28817017_cycle_approach",
+      "r07_A_layout10_train_28817021_cycle_near",
+      "r07_A_layout10_train_28817013_cycle_weakening",
+      "r07_B_layout10_train_28817029_cycle_weakening",
+      "r07_A_layout10_train_28817009_cycle_approach",
+      "r07_A_layout10_train_28817001_cycle_approach",
+      "r07_B_layout10_train_28817017_cycle_approach",
+      "r07_B_layout10_train_28817016_cycle_near",
+      "r07_B_layout10_train_28817025_cycle_approach",
+      "r07_B_layout10_train_28817005_cycle_near",
+      "r07_A_layout10_train_28817005_cycle_near",
+      "r07_B_layout10_train_28817021_cycle_near",
+      "r08_A_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817000_regression",
+      "r08_B_layout10_train_28817008_regression",
+      "r08_A_layout10_train_28817008_regression",
+      "r08_B_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817000_regression",
+      "r11_B_layout10_train_28817008_regression",
+      "r11_B_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817006_regression",
+      "r11_A_layout10_train_28817000_regression",
+      "r11_A_layout10_train_28817002_regression",
+      "r11_A_layout10_train_28817012_regression",
+      "r11_B_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817010_regression",
+      "r11_A_layout10_train_28817008_regression",
+      "r11_A_layout10_train_28817004_regression",
+      "r11_B_layout10_train_28817012_regression",
+      "r12_A_layout10_train_28817029_regression",
+      "r12_A_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817024_regression",
+      "r12_A_layout10_train_28817026_regression",
+      "r12_B_layout10_train_28817020_regression",
+      "r12_B_layout10_train_28817028_regression",
+      "r12_B_layout10_train_28817018_regression",
+      "r12_B_layout10_train_28817029_regression"
+    ]
+  }
+]
