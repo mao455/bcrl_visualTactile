@@ -1,3 +1,9 @@
+## 2026-11-18 状态退步接管与原始示范replay（新身份）
+
+`task_regression_takeover_v2`只读已完成控制步真值，用于采集调度，绝不进入学生输入/专家标签/成功判据。逐lane独立12步接触/高度/相对位移窗口、72步近孔进展窗口；连续2步确认后下一动作切换，无固定时刻或12步取整。排除首子目标完成及keypoint≤15mm的正常支撑释放。原来生效的2tick交接与合法标签规则不变。该屏幕不是因果失败真值：原30成功专家4条会触发，独立保留歧义回执。
+
+`original_demonstration_replay_v1`只允许受保护normalization_train_ids的30条完整专家示范重复2/3次，其余训练轨迹一次；不得包含验证ID或冒充原始示范的纠偏。使用现有完整历史deck，原始mask/标签/H24/commit12/归一化不变；DP和后端显式登记同一合同。本次3倍旧专家replay，非旧策略蒸馏，无学生伪专家标签。原无合同/旧latest合同保持原行为。各自72完整父pair续训，当前DP刷新后端输入。最终采用需实际旧路径保留与新恢复证据，验证均值选点不自动晋升。
+
 ## 2026-11-17 fixed76 bounded onset-exposure candidate — preparation
 
 Current authorization supersedes the completed profiling-only scope. Preserve selected72

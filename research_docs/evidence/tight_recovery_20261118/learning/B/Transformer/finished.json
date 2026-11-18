@@ -1,0 +1,1036 @@
+{
+  "stop_reason": "validation_plateau_after_lr_reduction",
+  "updates": 5811,
+  "control_tick_epochs": 18.0,
+  "bounded_extension": {
+    "version": "phase_dagger_budget_v1",
+    "kind": "backend",
+    "maximum_epochs": 24,
+    "minimum_epochs": 12,
+    "patience": 5,
+    "relative_improvement": 0.005,
+    "lr_factor": 0.5,
+    "maximum_reductions": 1,
+    "activate_after_epoch": 8
+  },
+  "plateau_state": {
+    "best": 0.00035561606637202203,
+    "bad": 5,
+    "reductions": 1,
+    "stop": true,
+    "events": [
+      {
+        "epoch": 1,
+        "score": 0.0003908736980520189,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 2,
+        "score": 0.0003779813414439559,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 3,
+        "score": 0.00037310930201783776,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 4,
+        "score": 0.0003740708052646369,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 5,
+        "score": 0.0003747267182916403,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 6,
+        "score": 0.00037190766306594014,
+        "event": "observe",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 7,
+        "score": 0.0003667532582767308,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 8,
+        "score": 0.00035561606637202203,
+        "event": "material_improvement",
+        "bad": 0,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 9,
+        "score": 0.00036685686791315675,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 10,
+        "score": 0.0003610227140597999,
+        "event": "observe",
+        "bad": 2,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 11,
+        "score": 0.00036164114135317504,
+        "event": "observe",
+        "bad": 3,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 12,
+        "score": 0.00036245150840841234,
+        "event": "observe",
+        "bad": 4,
+        "next_learning_rates": [
+          0.0001
+        ]
+      },
+      {
+        "epoch": 13,
+        "score": 0.0003567734966054559,
+        "event": "reduce_lr",
+        "bad": 0,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 14,
+        "score": 0.0003562071069609374,
+        "event": "observe",
+        "bad": 1,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 15,
+        "score": 0.00035386395757086575,
+        "event": "observe",
+        "bad": 2,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 16,
+        "score": 0.0003561463381629437,
+        "event": "observe",
+        "bad": 3,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 17,
+        "score": 0.00035778924939222634,
+        "event": "observe",
+        "bad": 4,
+        "next_learning_rates": [
+          5e-05
+        ]
+      },
+      {
+        "epoch": 18,
+        "score": 0.00035417595063336194,
+        "event": "stop_validation_plateau",
+        "bad": 5,
+        "next_learning_rates": [
+          5e-05
+        ]
+      }
+    ]
+  },
+  "bounded_training_complete": true,
+  "formal_updates": 5811,
+  "disposable": false,
+  "run_kind": "formal",
+  "target_reached": false,
+  "required_supervised_ticks": 1121424,
+  "new_optimizer_updates": 5811,
+  "continuation_from": {
+    "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/backend/B/training/best.pt",
+    "sha256": "3a1c2a08f88318e20a3a72a095051d7ef373f11e9f7232b9960b0e3c3719e7d7",
+    "teacher_supervision": "u_expert",
+    "statistics_sha256": "779baae89d0b06cddc26d5b1e7b77239e9776c1f29cda31ab0bfaabd96124117",
+    "normalization_identity": "u_expert_fresh_train_only_affine_v1",
+    "round_index": 12,
+    "source_group": "B"
+  },
+  "tick_window_contract": {
+    "version": "fixed_supervised_tick_window_v1",
+    "target_supervised_ticks": 128,
+    "denominator": "fixed_unweighted_target_ticks",
+    "flush": "complete_episode_group",
+    "chunk_boundary": "unsplit_32tick"
+  },
+  "schedule_maximum_control_tick_epochs": 24,
+  "required_control_tick_epochs": 24,
+  "train_episode_count": 130,
+  "effective_batch": 4,
+  "minimum_control_tick_epochs": 12,
+  "minimum_exposure_reached": true,
+  "sampled_contact_anchors": 639324,
+  "contact_anchor_population": 22260,
+  "control_tick_population": 42798,
+  "supervised_tick_population": 46726,
+  "supervised_ticks": 841068,
+  "control_ticks": 1116288,
+  "control_equivalent_epochs": 26.082714145520818,
+  "wall_s": 894.0732710361481,
+  "supervised_ticks_per_wall_s": 940.7148455832312,
+  "setup_wall_s": 0.7038266658782959,
+  "training_wall_s": 856.4161167144775,
+  "supervised_ticks_per_training_wall_s": 982.0786689847005,
+  "timing_scope": "wall_s includes training, resource waits, validation, plots and checkpoints after setup; training_wall_s includes training and its resource waits only; setup_wall_s includes model/cache setup",
+  "wait_s": 6.012618141481653,
+  "work_s": 870.806145993527,
+  "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE",
+  "exposure_budget_rounding": "complete causal episode groups; requested correction share enforced at exposure-budget stop, wall-stop actual shares reported",
+  "excess_supervised_ticks": 0,
+  "episode_sampling": {
+    "version": "original_demonstration_replay_v1",
+    "original_repeat": 3
+  },
+  "unique_supervised_tick_population": 27508,
+  "repeated_supervised_tick_population": 46726,
+  "episode_sampling_exposure": {
+    "episodes": {
+      "layout10_train_28817000": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 296,
+        "supervised_ticks": 15984
+      },
+      "layout10_train_28817001": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 353,
+        "supervised_ticks": 19062
+      },
+      "layout10_train_28817002": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 371,
+        "supervised_ticks": 20034
+      },
+      "layout10_train_28817003": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 335,
+        "supervised_ticks": 18090
+      },
+      "layout10_train_28817004": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 331,
+        "supervised_ticks": 17874
+      },
+      "layout10_train_28817005": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 259,
+        "supervised_ticks": 13986
+      },
+      "layout10_train_28817006": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 262,
+        "supervised_ticks": 14148
+      },
+      "layout10_train_28817007": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 570,
+        "supervised_ticks": 30780
+      },
+      "layout10_train_28817008": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 314,
+        "supervised_ticks": 16956
+      },
+      "layout10_train_28817009": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 308,
+        "supervised_ticks": 16632
+      },
+      "layout10_train_28817010": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 436,
+        "supervised_ticks": 23544
+      },
+      "layout10_train_28817011": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 322,
+        "supervised_ticks": 17388
+      },
+      "layout10_train_28817012": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 288,
+        "supervised_ticks": 15552
+      },
+      "layout10_train_28817013": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 303,
+        "supervised_ticks": 16362
+      },
+      "layout10_train_28817014": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 321,
+        "supervised_ticks": 17334
+      },
+      "layout10_train_28817015": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 297,
+        "supervised_ticks": 16038
+      },
+      "layout10_train_28817016": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 301,
+        "supervised_ticks": 16254
+      },
+      "layout10_train_28817017": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 291,
+        "supervised_ticks": 15714
+      },
+      "layout10_train_28817018": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 297,
+        "supervised_ticks": 16038
+      },
+      "layout10_train_28817019": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 314,
+        "supervised_ticks": 16956
+      },
+      "layout10_train_28817020": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 292,
+        "supervised_ticks": 15768
+      },
+      "layout10_train_28817021": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 274,
+        "supervised_ticks": 14796
+      },
+      "layout10_train_28817022": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 303,
+        "supervised_ticks": 16362
+      },
+      "layout10_train_28817023": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 303,
+        "supervised_ticks": 16362
+      },
+      "layout10_train_28817024": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 284,
+        "supervised_ticks": 15336
+      },
+      "layout10_train_28817025": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 368,
+        "supervised_ticks": 19872
+      },
+      "layout10_train_28817026": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 297,
+        "supervised_ticks": 16038
+      },
+      "layout10_train_28817027": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 354,
+        "supervised_ticks": 19116
+      },
+      "layout10_train_28817028": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 283,
+        "supervised_ticks": 15282
+      },
+      "layout10_train_28817029": {
+        "multiplicity": 3,
+        "visits": 54,
+        "valid_ticks_per_visit": 282,
+        "supervised_ticks": 15228
+      },
+      "r01_A_layout10_train_28817003_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 123,
+        "supervised_ticks": 2214
+      },
+      "r01_A_layout10_train_28817001_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 128,
+        "supervised_ticks": 2304
+      },
+      "r01_B_layout10_train_28817001_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 144,
+        "supervised_ticks": 2592
+      },
+      "r01_B_layout10_train_28817002_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 150,
+        "supervised_ticks": 2700
+      },
+      "r01_B_layout10_train_28817003_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 173,
+        "supervised_ticks": 3114
+      },
+      "r01_B_layout10_train_28817000_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 185,
+        "supervised_ticks": 3330
+      },
+      "r01_A_layout10_train_28817000_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 243,
+        "supervised_ticks": 4374
+      },
+      "r02_B_layout10_train_28817005_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 104,
+        "supervised_ticks": 1872
+      },
+      "r02_A_layout10_train_28817005_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 79,
+        "supervised_ticks": 1422
+      },
+      "r02_B_layout10_train_28817004_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 134,
+        "supervised_ticks": 2412
+      },
+      "r02_B_layout10_train_28817007_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 97,
+        "supervised_ticks": 1746
+      },
+      "r02_A_layout10_train_28817006_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 164,
+        "supervised_ticks": 2952
+      },
+      "r02_B_layout10_train_28817006_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 169,
+        "supervised_ticks": 3042
+      },
+      "r02_A_layout10_train_28817007_contact_height_only_d0": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 127,
+        "supervised_ticks": 2286
+      },
+      "r02_B_layout10_train_28817011_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 191,
+        "supervised_ticks": 3438
+      },
+      "r02_B_layout10_train_28817009_phase_alignment": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 54,
+        "supervised_ticks": 972
+      },
+      "r02_A_layout10_train_28817009_phase_alignment": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 95,
+        "supervised_ticks": 1710
+      },
+      "r02_A_layout10_train_28817011_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 248,
+        "supervised_ticks": 4464
+      },
+      "r02_A_layout10_train_28817010_phase_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 239,
+        "supervised_ticks": 4302
+      },
+      "r03_B_layout10_train_28817013_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 105,
+        "supervised_ticks": 1890
+      },
+      "r03_A_layout10_train_28817013_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 123,
+        "supervised_ticks": 2214
+      },
+      "r03_B_layout10_train_28817014_phase_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 110,
+        "supervised_ticks": 1980
+      },
+      "r03_A_layout10_train_28817015_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 217,
+        "supervised_ticks": 3906
+      },
+      "r03_B_layout10_train_28817012_phase_alignment": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 70,
+        "supervised_ticks": 1260
+      },
+      "r03_B_layout10_train_28817015_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 315,
+        "supervised_ticks": 5670
+      },
+      "r03_A_layout10_train_28817012_phase_alignment": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 232,
+        "supervised_ticks": 4176
+      },
+      "r04_B_layout10_train_28817018_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 105,
+        "supervised_ticks": 1890
+      },
+      "r04_A_layout10_train_28817016_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 224,
+        "supervised_ticks": 4032
+      },
+      "r04_B_layout10_train_28817016_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 235,
+        "supervised_ticks": 4230
+      },
+      "r04_B_layout10_train_28817017_phase_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 179,
+        "supervised_ticks": 3222
+      },
+      "r04_B_layout10_train_28817020_phase_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 112,
+        "supervised_ticks": 2016
+      },
+      "r04_A_layout10_train_28817023_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 202,
+        "supervised_ticks": 3636
+      },
+      "r04_B_layout10_train_28817023_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 266,
+        "supervised_ticks": 4788
+      },
+      "r04_A_layout10_train_28817020_phase_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 185,
+        "supervised_ticks": 3330
+      },
+      "r04_A_layout10_train_28817021_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 214,
+        "supervised_ticks": 3852
+      },
+      "r05_A_layout10_train_28817026_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 90,
+        "supervised_ticks": 1620
+      },
+      "r05_B_layout10_train_28817024_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 211,
+        "supervised_ticks": 3798
+      },
+      "r05_B_layout10_train_28817025_phase_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 164,
+        "supervised_ticks": 2952
+      },
+      "r05_A_layout10_train_28817024_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 242,
+        "supervised_ticks": 4356
+      },
+      "r05_B_layout10_train_28817027_phase_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 185,
+        "supervised_ticks": 3330
+      },
+      "r05_B_layout10_train_28817026_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 177,
+        "supervised_ticks": 3186
+      },
+      "r05_A_layout10_train_28817025_phase_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 194,
+        "supervised_ticks": 3492
+      },
+      "r06_B_layout10_train_28817026_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 198,
+        "supervised_ticks": 3564
+      },
+      "r06_A_layout10_train_28817026_phase_early": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 204,
+        "supervised_ticks": 3672
+      },
+      "r06_B_layout10_train_28817027_phase_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 158,
+        "supervised_ticks": 2844
+      },
+      "r06_A_layout10_train_28817029_phase_post_subgoal": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 134,
+        "supervised_ticks": 2412
+      },
+      "r07_A_layout10_train_28817028_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 111,
+        "supervised_ticks": 1998
+      },
+      "r07_A_layout10_train_28817004_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 126,
+        "supervised_ticks": 2268
+      },
+      "r07_B_layout10_train_28817028_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 160,
+        "supervised_ticks": 2880
+      },
+      "r07_A_layout10_train_28817016_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 118,
+        "supervised_ticks": 2124
+      },
+      "r07_B_layout10_train_28817001_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 209,
+        "supervised_ticks": 3762
+      },
+      "r07_A_layout10_train_28817000_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 136,
+        "supervised_ticks": 2448
+      },
+      "r07_B_layout10_train_28817020_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 137,
+        "supervised_ticks": 2466
+      },
+      "r07_B_layout10_train_28817013_cycle_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 109,
+        "supervised_ticks": 1962
+      },
+      "r07_A_layout10_train_28817020_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 132,
+        "supervised_ticks": 2376
+      },
+      "r07_B_layout10_train_28817004_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 146,
+        "supervised_ticks": 2628
+      },
+      "r07_B_layout10_train_28817012_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 147,
+        "supervised_ticks": 2646
+      },
+      "r07_A_layout10_train_28817012_cycle_transport": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 191,
+        "supervised_ticks": 3438
+      },
+      "r07_B_layout10_train_28817008_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 126,
+        "supervised_ticks": 2268
+      },
+      "r07_A_layout10_train_28817029_cycle_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 161,
+        "supervised_ticks": 2898
+      },
+      "r07_B_layout10_train_28817009_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 239,
+        "supervised_ticks": 4302
+      },
+      "r07_A_layout10_train_28817025_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 237,
+        "supervised_ticks": 4266
+      },
+      "r07_A_layout10_train_28817008_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 167,
+        "supervised_ticks": 3006
+      },
+      "r07_A_layout10_train_28817017_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 247,
+        "supervised_ticks": 4446
+      },
+      "r07_A_layout10_train_28817021_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 183,
+        "supervised_ticks": 3294
+      },
+      "r07_A_layout10_train_28817013_cycle_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 168,
+        "supervised_ticks": 3024
+      },
+      "r07_B_layout10_train_28817029_cycle_weakening": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 186,
+        "supervised_ticks": 3348
+      },
+      "r07_A_layout10_train_28817009_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 269,
+        "supervised_ticks": 4842
+      },
+      "r07_A_layout10_train_28817001_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 275,
+        "supervised_ticks": 4950
+      },
+      "r07_B_layout10_train_28817017_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 316,
+        "supervised_ticks": 5688
+      },
+      "r07_B_layout10_train_28817016_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 230,
+        "supervised_ticks": 4140
+      },
+      "r07_B_layout10_train_28817025_cycle_approach": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 321,
+        "supervised_ticks": 5778
+      },
+      "r07_B_layout10_train_28817005_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 239,
+        "supervised_ticks": 4302
+      },
+      "r07_A_layout10_train_28817005_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 313,
+        "supervised_ticks": 5634
+      },
+      "r07_B_layout10_train_28817021_cycle_near": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 547,
+        "supervised_ticks": 9846
+      },
+      "r08_A_layout10_train_28817000_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 405,
+        "supervised_ticks": 7290
+      },
+      "r08_B_layout10_train_28817000_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 212,
+        "supervised_ticks": 3816
+      },
+      "r08_B_layout10_train_28817008_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 73,
+        "supervised_ticks": 1314
+      },
+      "r08_A_layout10_train_28817008_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 160,
+        "supervised_ticks": 2880
+      },
+      "r08_B_layout10_train_28817012_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 62,
+        "supervised_ticks": 1116
+      },
+      "r11_B_layout10_train_28817000_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 176,
+        "supervised_ticks": 3168
+      },
+      "r11_B_layout10_train_28817008_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 65,
+        "supervised_ticks": 1170
+      },
+      "r11_B_layout10_train_28817004_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 57,
+        "supervised_ticks": 1026
+      },
+      "r11_B_layout10_train_28817006_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 85,
+        "supervised_ticks": 1530
+      },
+      "r11_A_layout10_train_28817000_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 113,
+        "supervised_ticks": 2034
+      },
+      "r11_A_layout10_train_28817002_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 215,
+        "supervised_ticks": 3870
+      },
+      "r11_A_layout10_train_28817012_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 178,
+        "supervised_ticks": 3204
+      },
+      "r11_B_layout10_train_28817010_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 108,
+        "supervised_ticks": 1944
+      },
+      "r11_A_layout10_train_28817010_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 244,
+        "supervised_ticks": 4392
+      },
+      "r11_A_layout10_train_28817008_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 350,
+        "supervised_ticks": 6300
+      },
+      "r11_A_layout10_train_28817004_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 341,
+        "supervised_ticks": 6138
+      },
+      "r11_B_layout10_train_28817012_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 387,
+        "supervised_ticks": 6966
+      },
+      "r12_A_layout10_train_28817029_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 81,
+        "supervised_ticks": 1458
+      },
+      "r12_A_layout10_train_28817018_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 57,
+        "supervised_ticks": 1026
+      },
+      "r12_B_layout10_train_28817024_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 92,
+        "supervised_ticks": 1656
+      },
+      "r12_A_layout10_train_28817026_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 107,
+        "supervised_ticks": 1926
+      },
+      "r12_B_layout10_train_28817020_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 71,
+        "supervised_ticks": 1278
+      },
+      "r12_B_layout10_train_28817028_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 184,
+        "supervised_ticks": 3312
+      },
+      "r12_B_layout10_train_28817018_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 218,
+        "supervised_ticks": 3924
+      },
+      "r12_B_layout10_train_28817029_regression": {
+        "multiplicity": 1,
+        "visits": 18,
+        "valid_ticks_per_visit": 214,
+        "supervised_ticks": 3852
+      }
+    },
+    "selected_epoch": null,
+    "scope": "Actual complete causal history visits; only clean executed expert actions supervised"
+  },
+  "coverage": {
+    "supervised_ticks": 841068,
+    "unique_episodes": 130,
+    "repeated_samples": 3290,
+    "episode_draws": 3420,
+    "strata": {}
+  },
+  "last": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/B/backend/B/training/last.pt",
+  "best": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/B/backend/B/training/best.pt",
+  "utc": 1794977999.4513896,
+  "base_optimizer_updates": 0
+}

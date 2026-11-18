@@ -26,6 +26,15 @@ def sampling_plan(data, spec):
     multiplicities = dict.fromkeys(identities, 1)
     if spec is None:
         return None, multiplicities
+    if isinstance(spec,dict) and spec.get('version')=='original_demonstration_replay_v1':
+        if set(spec)!={'version','original_repeat'} or type(spec['original_repeat']) is not int or spec['original_repeat'] not in (2,3):
+            raise ValueError('Original demonstration replay requires bounded repeat2/3')
+        original=_identities(data.get('normalization_train_ids'),'Original affine population')
+        if len(original)!=30 or not set(original)<=set(identities):raise ValueError('Protected original30 required')
+        if any(set(identities)&set(v) for k,v in data['splits'].items() if k!='train'):raise ValueError('Held-out overlap')
+        if any(data['entries'][i].get('trajectory_kind')=='expert_takeover_v1' for i in original):raise ValueError('Only original expert demonstrations repeated')
+        for i in original:multiplicities[i]=spec['original_repeat']
+        return dict(spec),multiplicities
     if (not isinstance(spec, dict) or set(spec) != {'version', 'latest_repeat'}
             or spec['version'] != SAMPLING_VERSION
             or type(spec['latest_repeat']) is not int

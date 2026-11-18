@@ -1,0 +1,991 @@
+{
+  "epoch": 22,
+  "updates": 2090,
+  "loss": 0.0016542078835252477,
+  "train": {
+    "arm_rmse_rad": 0.0022372251842170954,
+    "hand_rmse_rad": 0.018464472144842148,
+    "selection": 0.0005685683572664857,
+    "episodes": [
+      {
+        "identity": "layout10_train_28817000",
+        "arm_rmse": 0.002307484159246087,
+        "hand_rmse": 0.017520597204566002,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817000",
+          "tensor_load_s": 0.0011755069717764854,
+          "file_bytes": 394879501,
+          "loaded_storage_bytes": 394876728,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 25,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 25,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            25
+          ],
+          "first_anchor": 0,
+          "last_anchor": 288,
+          "full_history_frames": 296,
+          "encoding_seconds": 0.020350767066702247,
+          "planning_seconds": 0.11471711099147797
+        }
+      },
+      {
+        "identity": "layout10_train_28817001",
+        "arm_rmse": 0.002176563488319516,
+        "hand_rmse": 0.019220242276787758,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_train_28817001",
+          "tensor_load_s": 0.0011089269537478685,
+          "file_bytes": 470919885,
+          "loaded_storage_bytes": 470917179,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 30,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 30,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            30
+          ],
+          "first_anchor": 0,
+          "last_anchor": 348,
+          "full_history_frames": 353,
+          "encoding_seconds": 0.023773312103003263,
+          "planning_seconds": 0.11595183913595974
+        }
+      }
+    ],
+    "noise_schedule": "seed7091 advances at every native5Hz planning tick, including unsupervised prefixes",
+    "scope": "teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim",
+    "offline_planning": {
+      "profile": {
+        "version": "offline_contiguous_anchor_batch_v1",
+        "max_anchors": 32,
+        "seed": 7091,
+        "planning_interval_ticks": 12,
+        "inference_steps": 16,
+        "clip_sample": false,
+        "scheduler_index_mode": "host",
+        "noise_draw_shape": [
+          1,
+          24,
+          29
+        ],
+        "same_generator_per_row": true,
+        "split_at_missing_anchors": true,
+        "scope": "offline inference only; unchanged full causal history and optimizer budget"
+      },
+      "seconds": 0.2775799159426242,
+      "timing_scope": "Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains",
+      "selection_scope": "Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs"
+    }
+  },
+  "validation": {
+    "arm_rmse_rad": 0.005487989634275436,
+    "hand_rmse_rad": 0.051656220108270645,
+    "selection": 0.005112125538289547,
+    "episodes": [
+      {
+        "identity": "layout10_validation_28818000",
+        "arm_rmse": 0.004258091561496258,
+        "hand_rmse": 0.042352061718702316,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818000",
+          "tensor_load_s": 0.0011974370572715998,
+          "file_bytes": 342851839,
+          "loaded_storage_bytes": 342849051,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 22,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 22,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            22
+          ],
+          "first_anchor": 0,
+          "last_anchor": 252,
+          "full_history_frames": 257,
+          "encoding_seconds": 0.026760780019685626,
+          "planning_seconds": 0.1187880109064281
+        }
+      },
+      {
+        "identity": "layout10_validation_28818001",
+        "arm_rmse": 0.004802098963409662,
+        "hand_rmse": 0.04098708555102348,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818001",
+          "tensor_load_s": 0.0011124119628220797,
+          "file_bytes": 409553983,
+          "loaded_storage_bytes": 409551201,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 26,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 26,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            26
+          ],
+          "first_anchor": 0,
+          "last_anchor": 300,
+          "full_history_frames": 307,
+          "encoding_seconds": 0.020048470934852958,
+          "planning_seconds": 0.1152274499181658
+        }
+      },
+      {
+        "identity": "layout10_validation_28818002",
+        "arm_rmse": 0.004982674960047007,
+        "hand_rmse": 0.0584508553147316,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818002",
+          "tensor_load_s": 0.0009128379169851542,
+          "file_bytes": 452243391,
+          "loaded_storage_bytes": 452240577,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 29,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 29,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            29
+          ],
+          "first_anchor": 0,
+          "last_anchor": 336,
+          "full_history_frames": 339,
+          "encoding_seconds": 0.022348072845488787,
+          "planning_seconds": 0.11698658694513142
+        }
+      },
+      {
+        "identity": "layout10_validation_28818003",
+        "arm_rmse": 0.005826534703373909,
+        "hand_rmse": 0.047293346375226974,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818003",
+          "tensor_load_s": 0.0010437490418553352,
+          "file_bytes": 477590207,
+          "loaded_storage_bytes": 477587394,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 30,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 30,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            30
+          ],
+          "first_anchor": 0,
+          "last_anchor": 348,
+          "full_history_frames": 358,
+          "encoding_seconds": 0.02326573198661208,
+          "planning_seconds": 0.11609073798172176
+        }
+      },
+      {
+        "identity": "layout10_validation_28818004",
+        "arm_rmse": 0.006406782194972038,
+        "hand_rmse": 0.05237927660346031,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818004",
+          "tensor_load_s": 0.0003849018830806017,
+          "file_bytes": 457579583,
+          "loaded_storage_bytes": 457576749,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 29,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 29,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            29
+          ],
+          "first_anchor": 0,
+          "last_anchor": 336,
+          "full_history_frames": 343,
+          "encoding_seconds": 0.022247813176363707,
+          "planning_seconds": 0.1169979760888964
+        }
+      },
+      {
+        "identity": "layout10_validation_28818005",
+        "arm_rmse": 0.006177061703056097,
+        "hand_rmse": 0.06600067764520645,
+        "frozen_visual_io": {
+          "profile": {
+            "version": "frozen_visual_mapped_current_v3",
+            "torch_load_mmap": true,
+            "lifetime": "current_episode_or_current_B2_visits_only",
+            "learned_state_cache": false
+          },
+          "identity": "layout10_validation_28818005",
+          "tensor_load_s": 0.0010235558729618788,
+          "file_bytes": 318839103,
+          "loaded_storage_bytes": 318836277,
+          "extra_clone_bytes": 0,
+          "scope": "Mapped storage extent, NOT resident/private allocated RAM; pages fault during consumption"
+        },
+        "offline_planning": {
+          "profile": {
+            "version": "offline_contiguous_anchor_batch_v1",
+            "max_anchors": 32,
+            "seed": 7091,
+            "planning_interval_ticks": 12,
+            "inference_steps": 16,
+            "clip_sample": false,
+            "scheduler_index_mode": "host",
+            "noise_draw_shape": [
+              1,
+              24,
+              29
+            ],
+            "same_generator_per_row": true,
+            "split_at_missing_anchors": true,
+            "scope": "offline inference only; unchanged full causal history and optimizer budget"
+          },
+          "supervised_anchors": 20,
+          "skipped_noise_draws": 0,
+          "total_noise_draws": 20,
+          "predict_calls": 1,
+          "denoiser_calls": 16,
+          "block_sizes": [
+            20
+          ],
+          "first_anchor": 0,
+          "last_anchor": 228,
+          "full_history_frames": 239,
+          "encoding_seconds": 0.016714985948055983,
+          "planning_seconds": 0.11595102888531983
+        }
+      }
+    ],
+    "noise_schedule": "seed7091 advances at every native5Hz planning tick, including unsupervised prefixes",
+    "scope": "teacher-forced full causal prefix; DDIM16 commit12; no autonomy claim",
+    "offline_planning": {
+      "profile": {
+        "version": "offline_contiguous_anchor_batch_v1",
+        "max_anchors": 32,
+        "seed": 7091,
+        "planning_interval_ticks": 12,
+        "inference_steps": 16,
+        "clip_sample": false,
+        "scheduler_index_mode": "host",
+        "noise_draw_shape": [
+          1,
+          24,
+          29
+        ],
+        "same_generator_per_row": true,
+        "split_at_missing_anchors": true,
+        "scope": "offline inference only; unchanged full causal history and optimizer budget"
+      },
+      "seconds": 0.8443924051243812,
+      "timing_scope": "Complete metrics wall; per-episode encoding and DDIM timings synchronize CUDA; concurrent-worker contention remains",
+      "selection_scope": "Same labels and metric reduction; batch kernel rounding can change near-tied selected epochs"
+    }
+  },
+  "seconds": 3352.133035387844,
+  "anchors_seen": 88506,
+  "target_ticks": 2034624,
+  "utc": 1794975882.92474,
+  "cohort_diagnostics": {
+    "original": {
+      "ids": [
+        "layout10_train_28817000",
+        "layout10_train_28817001",
+        "layout10_train_28817002",
+        "layout10_train_28817003"
+      ],
+      "phases": {
+        "all": {
+          "ticks": 1355,
+          "arm_rmse_rad": 0.0023013104080719378,
+          "hand_rmse_rad": 0.01987052125020753,
+          "normalized_equal_mse": 0.00063258602607517
+        },
+        "before150": {
+          "ticks": 600,
+          "arm_rmse_rad": 0.002192652567702425,
+          "hand_rmse_rad": 0.01619706662439895,
+          "normalized_equal_mse": 0.0004233485834423082
+        },
+        "pre_contact": {
+          "ticks": 253,
+          "arm_rmse_rad": 0.002719316467065144,
+          "hand_rmse_rad": 0.01625239018230639,
+          "normalized_equal_mse": 0.0004741938971260307
+        },
+        "first_contact12": {
+          "ticks": 48,
+          "arm_rmse_rad": 0.0018553731929095811,
+          "hand_rmse_rad": 0.016267223172753503,
+          "normalized_equal_mse": 0.0005254479956932092
+        },
+        "grasp_contact": {
+          "ticks": 854,
+          "arm_rmse_rad": 0.002178795170515863,
+          "hand_rmse_rad": 0.020593310097200845,
+          "normalized_equal_mse": 0.0006852661030288668
+        },
+        "native_lift": {
+          "ticks": 149,
+          "arm_rmse_rad": 0.002992592733968878,
+          "hand_rmse_rad": 0.025669445615492493,
+          "normalized_equal_mse": 0.0010799548972570457
+        },
+        "contact_height": {
+          "ticks": 798,
+          "arm_rmse_rad": 0.002195094817448745,
+          "hand_rmse_rad": 0.0208300562732411,
+          "normalized_equal_mse": 0.0007009732553674324
+        },
+        "later": {
+          "ticks": 755,
+          "arm_rmse_rad": 0.0023841319610957297,
+          "hand_rmse_rad": 0.022363582790063355,
+          "normalized_equal_mse": 0.0007988674073214378
+        }
+      },
+      "fixed_noise_objective": 0.0007500947831431404,
+      "geometry_diagnostic": "fixed accepted two-configuration estimator; training rotating-half sampler unchanged",
+      "loss_components": {
+        "base": 0.0007475788443116471,
+        "position": 4.311063662498782e-06,
+        "rotation": 3.589773814383079e-05
+      }
+    },
+    "historical": {
+      "ids": [
+        "r01_A_layout10_train_28817003_contact_height_only_d0",
+        "r03_B_layout10_train_28817015_phase_early",
+        "r07_A_layout10_train_28817016_cycle_near",
+        "r07_B_layout10_train_28817021_cycle_near"
+      ],
+      "phases": {
+        "all": {
+          "ticks": 1103,
+          "arm_rmse_rad": 0.005319677037230668,
+          "hand_rmse_rad": 0.04340055269900896,
+          "normalized_equal_mse": 0.0030757709128786956
+        },
+        "before150": {
+          "ticks": 110,
+          "arm_rmse_rad": 0.0019769847380651504,
+          "hand_rmse_rad": 0.018417485141015714,
+          "normalized_equal_mse": 0.0004719216542575759
+        },
+        "pre_contact": {
+          "ticks": 0,
+          "arm_rmse_rad": null,
+          "hand_rmse_rad": null,
+          "normalized_equal_mse": null
+        },
+        "first_contact12": {
+          "ticks": 6,
+          "arm_rmse_rad": 0.0033547821829815845,
+          "hand_rmse_rad": 0.02067773708927194,
+          "normalized_equal_mse": 0.0012839372406887029
+        },
+        "grasp_contact": {
+          "ticks": 778,
+          "arm_rmse_rad": 0.005115375411023767,
+          "hand_rmse_rad": 0.04331651630237838,
+          "normalized_equal_mse": 0.002997957985884629
+        },
+        "native_lift": {
+          "ticks": 0,
+          "arm_rmse_rad": null,
+          "hand_rmse_rad": null,
+          "normalized_equal_mse": null
+        },
+        "contact_height": {
+          "ticks": 754,
+          "arm_rmse_rad": 0.005080761602061114,
+          "hand_rmse_rad": 0.043451645733703956,
+          "normalized_equal_mse": 0.0030077359429577445
+        },
+        "later": {
+          "ticks": 993,
+          "arm_rmse_rad": 0.005567839039927841,
+          "hand_rmse_rad": 0.04532868890455218,
+          "normalized_equal_mse": 0.003364213450900635
+        }
+      },
+      "fixed_noise_objective": 0.002862213848857209,
+      "geometry_diagnostic": "fixed accepted two-configuration estimator; training rotating-half sampler unchanged",
+      "loss_components": {
+        "base": 0.0028542338695842773,
+        "position": 1.2534787856566254e-05,
+        "rotation": 0.00012657193747145357
+      }
+    },
+    "latest": {
+      "ids": [
+        "r08_A_layout10_train_28817000_regression",
+        "r08_B_layout10_train_28817000_regression",
+        "r08_B_layout10_train_28817008_regression",
+        "r08_A_layout10_train_28817008_regression",
+        "r08_B_layout10_train_28817012_regression",
+        "r11_B_layout10_train_28817000_regression",
+        "r11_B_layout10_train_28817008_regression",
+        "r11_B_layout10_train_28817004_regression",
+        "r11_B_layout10_train_28817006_regression",
+        "r11_A_layout10_train_28817000_regression",
+        "r11_A_layout10_train_28817002_regression",
+        "r11_A_layout10_train_28817012_regression",
+        "r11_B_layout10_train_28817010_regression",
+        "r11_A_layout10_train_28817010_regression",
+        "r11_A_layout10_train_28817008_regression",
+        "r11_A_layout10_train_28817004_regression",
+        "r11_B_layout10_train_28817012_regression",
+        "r12_A_layout10_train_28817029_regression",
+        "r12_A_layout10_train_28817018_regression",
+        "r12_B_layout10_train_28817024_regression",
+        "r12_A_layout10_train_28817026_regression",
+        "r12_B_layout10_train_28817020_regression",
+        "r12_B_layout10_train_28817028_regression",
+        "r12_B_layout10_train_28817018_regression",
+        "r12_B_layout10_train_28817029_regression"
+      ],
+      "phases": {
+        "all": {
+          "ticks": 4255,
+          "arm_rmse_rad": 0.0056914341673070775,
+          "hand_rmse_rad": 0.05014336192042671,
+          "normalized_equal_mse": 0.004022724288873838
+        },
+        "before150": {
+          "ticks": 51,
+          "arm_rmse_rad": 0.004250229770519471,
+          "hand_rmse_rad": 0.08230193605614607,
+          "normalized_equal_mse": 0.005895753189264923
+        },
+        "pre_contact": {
+          "ticks": 0,
+          "arm_rmse_rad": null,
+          "hand_rmse_rad": null,
+          "normalized_equal_mse": null
+        },
+        "first_contact12": {
+          "ticks": 0,
+          "arm_rmse_rad": null,
+          "hand_rmse_rad": null,
+          "normalized_equal_mse": null
+        },
+        "grasp_contact": {
+          "ticks": 2560,
+          "arm_rmse_rad": 0.005321938130171137,
+          "hand_rmse_rad": 0.04827233757684458,
+          "normalized_equal_mse": 0.004098435202212823
+        },
+        "native_lift": {
+          "ticks": 793,
+          "arm_rmse_rad": 0.006619495003876597,
+          "hand_rmse_rad": 0.0525251010405668,
+          "normalized_equal_mse": 0.005329670818272038
+        },
+        "contact_height": {
+          "ticks": 2483,
+          "arm_rmse_rad": 0.005246586080057038,
+          "hand_rmse_rad": 0.04799771594291862,
+          "normalized_equal_mse": 0.004066895368400168
+        },
+        "later": {
+          "ticks": 4204,
+          "arm_rmse_rad": 0.005706683784404262,
+          "hand_rmse_rad": 0.049625461775093346,
+          "normalized_equal_mse": 0.004000001996975637
+        }
+      },
+      "fixed_noise_objective": 0.005332573484629392,
+      "geometry_diagnostic": "fixed accepted two-configuration estimator; training rotating-half sampler unchanged",
+      "loss_components": {
+        "base": 0.005320636183023452,
+        "position": 2.0460479790926912e-05,
+        "rotation": 0.00017025766195729374
+      }
+    },
+    "validation": {
+      "ids": [
+        "layout10_validation_28818000",
+        "layout10_validation_28818001",
+        "layout10_validation_28818002",
+        "layout10_validation_28818003",
+        "layout10_validation_28818004",
+        "layout10_validation_28818005"
+      ],
+      "phases": {
+        "all": {
+          "ticks": 1843,
+          "arm_rmse_rad": 0.005487989862181348,
+          "hand_rmse_rad": 0.05165622212415211,
+          "normalized_equal_mse": 0.005112125586007105
+        },
+        "before150": {
+          "ticks": 900,
+          "arm_rmse_rad": 0.004256794377117982,
+          "hand_rmse_rad": 0.043496238574438746,
+          "normalized_equal_mse": 0.002874993478064929
+        },
+        "pre_contact": {
+          "ticks": 374,
+          "arm_rmse_rad": 0.004062139648195874,
+          "hand_rmse_rad": 0.027578893443270733,
+          "normalized_equal_mse": 0.001354636233143446
+        },
+        "first_contact12": {
+          "ticks": 72,
+          "arm_rmse_rad": 0.003454089920214126,
+          "hand_rmse_rad": 0.04019595056372579,
+          "normalized_equal_mse": 0.002995145635331294
+        },
+        "grasp_contact": {
+          "ticks": 1196,
+          "arm_rmse_rad": 0.005903694814144356,
+          "hand_rmse_rad": 0.05703268286438408,
+          "normalized_equal_mse": 0.006531019490780955
+        },
+        "native_lift": {
+          "ticks": 0,
+          "arm_rmse_rad": null,
+          "hand_rmse_rad": null,
+          "normalized_equal_mse": null
+        },
+        "contact_height": {
+          "ticks": 1104,
+          "arm_rmse_rad": 0.005972784993593986,
+          "hand_rmse_rad": 0.05626371677414092,
+          "normalized_equal_mse": 0.006487104851726576
+        },
+        "later": {
+          "ticks": 943,
+          "arm_rmse_rad": 0.00644737785008083,
+          "hand_rmse_rad": 0.05839009087758473,
+          "normalized_equal_mse": 0.007247246092718717
+        }
+      },
+      "fixed_noise_objective": 0.005973765936990579,
+      "geometry_diagnostic": "fixed accepted two-configuration estimator; training rotating-half sampler unchanged",
+      "loss_components": {
+        "base": 0.005960538828124602,
+        "position": 2.4036232389335055e-05,
+        "rotation": 0.00017341839460035166
+      }
+    }
+  },
+  "learning_rates": [
+    1.5e-05
+  ],
+  "stopping": {
+    "epoch": 22,
+    "score": 0.005112125538289547,
+    "event": "stop_validation_plateau",
+    "bad": 4,
+    "next_learning_rates": [
+      1.5e-05
+    ]
+  },
+  "training_epoch_io": {
+    "process_io": {
+      "minor_faults": 1182049,
+      "major_faults": 1106,
+      "read_bytes": 68901470208,
+      "rchar": 61302143,
+      "syscr": 4655
+    },
+    "wall_seconds": 60.98777853511274,
+    "started_utc": 1794975820.8140342,
+    "ended_utc": 1794975881.8018126,
+    "prefetch": null,
+    "scope": "Whole training epoch before validation; process I/O includes overlapping preload and OS cache sharing; no per-worker disk attribution"
+  },
+  "frozen_visual_hotset": {
+    "version": "frozen_visual_cuda_hotset_diagnostic_v1",
+    "max_bytes": 4294967296,
+    "resident_bytes": 4266269514,
+    "planned_file_bytes": 4266297326,
+    "priority_ids": [
+      "layout10_validation_28818000",
+      "layout10_validation_28818001",
+      "layout10_validation_28818002",
+      "layout10_validation_28818003",
+      "layout10_validation_28818004",
+      "layout10_validation_28818005",
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003"
+    ],
+    "cached_ids": [
+      "layout10_validation_28818000",
+      "layout10_validation_28818001",
+      "layout10_validation_28818002",
+      "layout10_validation_28818003",
+      "layout10_validation_28818004",
+      "layout10_validation_28818005",
+      "layout10_train_28817000",
+      "layout10_train_28817001",
+      "layout10_train_28817002",
+      "layout10_train_28817003"
+    ],
+    "hits": 438,
+    "misses": 3951,
+    "admission_fallbacks": 0,
+    "avoided_logical_payload_bytes": 191500413510,
+    "first_fill_seconds": 2.754719075979665,
+    "minimum_free_bytes": 8589934592,
+    "binding": {
+      "data_sha256": "1d8b5f87458fad1e6fc80e4d6b456e5c0f7be71aecdc231f37847e8aab84f39c",
+      "cache_index_sha256": "046c65b61fc3869b5b539e4167c22ccb491242e47db1b0729b0c73b67d64e178"
+    },
+    "scope": "Immutable patches/depth/camera timestamps only; no learned features, labels, history or backend inputs"
+  },
+  "visit_sampling_coverage": {
+    "episodes": 130,
+    "visits": 4180,
+    "anchor_draws": 88506,
+    "unique_anchor_ticks": 24285,
+    "unique_non_native_grid_ticks": 22235,
+    "geometry_draws": 0,
+    "unique_geometry_ticks": 0,
+    "geometry_stage_unique_ticks": {}
+  },
+  "visits_seen": 4180,
+  "sampling_exposure": {
+    "layout10_train_28817000": 66,
+    "layout10_train_28817001": 66,
+    "layout10_train_28817002": 66,
+    "layout10_train_28817003": 66,
+    "layout10_train_28817004": 66,
+    "layout10_train_28817005": 66,
+    "layout10_train_28817006": 66,
+    "layout10_train_28817007": 66,
+    "layout10_train_28817008": 66,
+    "layout10_train_28817009": 66,
+    "layout10_train_28817010": 66,
+    "layout10_train_28817011": 66,
+    "layout10_train_28817012": 66,
+    "layout10_train_28817013": 66,
+    "layout10_train_28817014": 66,
+    "layout10_train_28817015": 66,
+    "layout10_train_28817016": 66,
+    "layout10_train_28817017": 66,
+    "layout10_train_28817018": 66,
+    "layout10_train_28817019": 66,
+    "layout10_train_28817020": 66,
+    "layout10_train_28817021": 66,
+    "layout10_train_28817022": 66,
+    "layout10_train_28817023": 66,
+    "layout10_train_28817024": 66,
+    "layout10_train_28817025": 66,
+    "layout10_train_28817026": 66,
+    "layout10_train_28817027": 66,
+    "layout10_train_28817028": 66,
+    "layout10_train_28817029": 66,
+    "r01_A_layout10_train_28817003_contact_height_only_d0": 22,
+    "r01_A_layout10_train_28817001_contact_height_only_d0": 22,
+    "r01_B_layout10_train_28817001_contact_height_only_d0": 22,
+    "r01_B_layout10_train_28817002_contact_height_only_d0": 22,
+    "r01_B_layout10_train_28817003_contact_height_only_d0": 22,
+    "r01_B_layout10_train_28817000_contact_height_only_d0": 22,
+    "r01_A_layout10_train_28817000_contact_height_only_d0": 22,
+    "r02_B_layout10_train_28817005_contact_height_only_d0": 22,
+    "r02_A_layout10_train_28817005_contact_height_only_d0": 22,
+    "r02_B_layout10_train_28817004_contact_height_only_d0": 22,
+    "r02_B_layout10_train_28817007_contact_height_only_d0": 22,
+    "r02_A_layout10_train_28817006_contact_height_only_d0": 22,
+    "r02_B_layout10_train_28817006_contact_height_only_d0": 22,
+    "r02_A_layout10_train_28817007_contact_height_only_d0": 22,
+    "r02_B_layout10_train_28817011_phase_early": 22,
+    "r02_B_layout10_train_28817009_phase_alignment": 22,
+    "r02_A_layout10_train_28817009_phase_alignment": 22,
+    "r02_A_layout10_train_28817011_phase_early": 22,
+    "r02_A_layout10_train_28817010_phase_weakening": 22,
+    "r03_B_layout10_train_28817013_phase_near": 22,
+    "r03_A_layout10_train_28817013_phase_near": 22,
+    "r03_B_layout10_train_28817014_phase_weakening": 22,
+    "r03_A_layout10_train_28817015_phase_early": 22,
+    "r03_B_layout10_train_28817012_phase_alignment": 22,
+    "r03_B_layout10_train_28817015_phase_early": 22,
+    "r03_A_layout10_train_28817012_phase_alignment": 22,
+    "r04_B_layout10_train_28817018_phase_near": 22,
+    "r04_A_layout10_train_28817016_phase_early": 22,
+    "r04_B_layout10_train_28817016_phase_early": 22,
+    "r04_B_layout10_train_28817017_phase_transport": 22,
+    "r04_B_layout10_train_28817020_phase_weakening": 22,
+    "r04_A_layout10_train_28817023_phase_early": 22,
+    "r04_B_layout10_train_28817023_phase_early": 22,
+    "r04_A_layout10_train_28817020_phase_weakening": 22,
+    "r04_A_layout10_train_28817021_phase_near": 22,
+    "r05_A_layout10_train_28817026_phase_near": 22,
+    "r05_B_layout10_train_28817024_phase_early": 22,
+    "r05_B_layout10_train_28817025_phase_transport": 22,
+    "r05_A_layout10_train_28817024_phase_early": 22,
+    "r05_B_layout10_train_28817027_phase_weakening": 22,
+    "r05_B_layout10_train_28817026_phase_near": 22,
+    "r05_A_layout10_train_28817025_phase_transport": 22,
+    "r06_B_layout10_train_28817026_phase_early": 22,
+    "r06_A_layout10_train_28817026_phase_early": 22,
+    "r06_B_layout10_train_28817027_phase_near": 22,
+    "r06_A_layout10_train_28817029_phase_post_subgoal": 22,
+    "r07_A_layout10_train_28817028_cycle_transport": 22,
+    "r07_A_layout10_train_28817004_cycle_transport": 22,
+    "r07_B_layout10_train_28817028_cycle_transport": 22,
+    "r07_A_layout10_train_28817016_cycle_near": 22,
+    "r07_B_layout10_train_28817001_cycle_approach": 22,
+    "r07_A_layout10_train_28817000_cycle_transport": 22,
+    "r07_B_layout10_train_28817020_cycle_transport": 22,
+    "r07_B_layout10_train_28817013_cycle_weakening": 22,
+    "r07_A_layout10_train_28817020_cycle_transport": 22,
+    "r07_B_layout10_train_28817004_cycle_transport": 22,
+    "r07_B_layout10_train_28817012_cycle_transport": 22,
+    "r07_A_layout10_train_28817012_cycle_transport": 22,
+    "r07_B_layout10_train_28817008_cycle_near": 22,
+    "r07_A_layout10_train_28817029_cycle_weakening": 22,
+    "r07_B_layout10_train_28817009_cycle_approach": 22,
+    "r07_A_layout10_train_28817025_cycle_approach": 22,
+    "r07_A_layout10_train_28817008_cycle_near": 22,
+    "r07_A_layout10_train_28817017_cycle_approach": 22,
+    "r07_A_layout10_train_28817021_cycle_near": 22,
+    "r07_A_layout10_train_28817013_cycle_weakening": 22,
+    "r07_B_layout10_train_28817029_cycle_weakening": 22,
+    "r07_A_layout10_train_28817009_cycle_approach": 22,
+    "r07_A_layout10_train_28817001_cycle_approach": 22,
+    "r07_B_layout10_train_28817017_cycle_approach": 22,
+    "r07_B_layout10_train_28817016_cycle_near": 22,
+    "r07_B_layout10_train_28817025_cycle_approach": 22,
+    "r07_B_layout10_train_28817005_cycle_near": 22,
+    "r07_A_layout10_train_28817005_cycle_near": 22,
+    "r07_B_layout10_train_28817021_cycle_near": 22,
+    "r08_A_layout10_train_28817000_regression": 22,
+    "r08_B_layout10_train_28817000_regression": 22,
+    "r08_B_layout10_train_28817008_regression": 22,
+    "r08_A_layout10_train_28817008_regression": 22,
+    "r08_B_layout10_train_28817012_regression": 22,
+    "r11_B_layout10_train_28817000_regression": 22,
+    "r11_B_layout10_train_28817008_regression": 22,
+    "r11_B_layout10_train_28817004_regression": 22,
+    "r11_B_layout10_train_28817006_regression": 22,
+    "r11_A_layout10_train_28817000_regression": 22,
+    "r11_A_layout10_train_28817002_regression": 22,
+    "r11_A_layout10_train_28817012_regression": 22,
+    "r11_B_layout10_train_28817010_regression": 22,
+    "r11_A_layout10_train_28817010_regression": 22,
+    "r11_A_layout10_train_28817008_regression": 22,
+    "r11_A_layout10_train_28817004_regression": 22,
+    "r11_B_layout10_train_28817012_regression": 22,
+    "r12_A_layout10_train_28817029_regression": 22,
+    "r12_A_layout10_train_28817018_regression": 22,
+    "r12_B_layout10_train_28817024_regression": 22,
+    "r12_A_layout10_train_28817026_regression": 22,
+    "r12_B_layout10_train_28817020_regression": 22,
+    "r12_B_layout10_train_28817028_regression": 22,
+    "r12_B_layout10_train_28817018_regression": 22,
+    "r12_B_layout10_train_28817029_regression": 22
+  },
+  "full_trajectory_batch": {
+    "version": "full_trajectory_batch_v1",
+    "batch_size": 2,
+    "grouping": "adjacent_registered_deck_visits",
+    "tail_policy": "keep_singleton",
+    "loss_reduction": "mean_per_trajectory_in_actual_batch",
+    "optimizer_steps": "one_per_batch",
+    "ema_steps": "one_per_optimizer_step",
+    "learning_rate": "unchanged_no_automatic_scaling",
+    "geometry": "original_selection_per_visit",
+    "noise": "original_randn_then_randint_per_visit",
+    "history": "independent_complete_real_prefix"
+  },
+  "loss_per_optimizer_batch_mean": 0.0016542078835252477,
+  "loss_per_episode_visit_mean": 0.0016542078841926492,
+  "loss_scope": "Batch loss is the mean of actual one/two visit losses; visit mean is a separate descriptive statistic.",
+  "selection_eligible": true
+}

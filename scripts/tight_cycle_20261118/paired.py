@@ -6,9 +6,9 @@ from scripts.tight_balance_20261117.diagnose import phases
 from visuotactile.geometry_sampling import STAGES
 
 def first_run(mask,window=12):return next((i-window+1 for i in range(window-1,len(mask)) if mask[i-window+1:i+1].all()),None)
-def main():
+def main(parts=2):
  rows=[];curves=[]
- for part in range(2):
+ for part in range(parts):
   d=ROOT/f'comparison{part:02d}';plan=read(d/'plan.json');signals={}
   for c in plan['cases']:
    p=d/c['name'];z=dict(np.load(p/'trace.npz'))

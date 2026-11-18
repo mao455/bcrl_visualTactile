@@ -86,10 +86,10 @@ def learning():
  fig.tight_layout();fig.savefig(out/'validation_curves.png',dpi=140);plt.close(fig)
  print(json.dumps(models))
 
-def evaluation():
+def evaluation(parts=2):
  from scripts.tight_layout_20261116.phase_report import summarize
  out=OUT/'evaluation';out.mkdir(exist_ok=True);rows=[]
- for part in range(2):
+ for part in range(parts):
   d=ROOT/f'comparison{part:02d}';summarize(d,out/f'part{part}.json');s=read(out/f'part{part}.json');cases={c['name']:c for c in read(d/'plan.json')['cases']}
   for r in s['rows']:r['cohort']=cases[r['case']]['diagnostic_cohort'];rows.append(r)
   dst=out/f'part{part}';dst.mkdir(exist_ok=True)
