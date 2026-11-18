@@ -25,7 +25,7 @@ def table(p,rows):
     import gzip
     opener=gzip.open if str(p).endswith('.gz') else open
     with opener(p,'xt',newline='') as f:
-        w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+        w=csv.DictWriter(f,fieldnames=list(rows[0]),lineterminator='\n');w.writeheader();w.writerows(rows)
 def quant(x):
     x=np.asarray(x);return dict(n=x.size,minimum=float(x.min()) if x.size else None,
         **{f'p{q}':float(np.percentile(x,q)) if x.size else None for q in (5,25,50,75,95)},
@@ -145,7 +145,7 @@ def exposure():
     np.savez_compressed(RUN/'exposure_arrays.npz',**npz)
     import gzip
     with gzip.open(PUBLIC/'tick_exposure.csv.gz','wt') as f:
-        w=csv.DictWriter(f,fieldnames=list(tick_rows[0]));w.writeheader();w.writerows(tick_rows)
+        w=csv.DictWriter(f,fieldnames=list(tick_rows[0]),lineterminator='\n');w.writeheader();w.writerows(tick_rows)
     table(PUBLIC/'episode_exposure.csv',episode_rows);table(PUBLIC/'training_curves.csv.gz',learning_curves)
     write(PUBLIC/'exposure.json',dict(chains=L['chains'],stages=node_reports,summary=summaries,seconds=time.time()-began,policy_updates=0,
         scope='Exact selected checkpoint ancestry only; actual logged starts/masks. DP slots can repeat a tick within a visit; distinct visits reported separately. EMA causal support is not an equal additive influence estimate. Historical whole-update norms cannot identify per-phase parameter-gradient contribution.'))
