@@ -1,0 +1,70 @@
+{
+  "repositories": [
+    {
+      "repo": "RoboVerseOrg/ViTacFormer",
+      "commit": "d94788272b5f5e18a80bf62e3e5d51e7d2581d77",
+      "code_license": "Apache-2.0",
+      "observations": "Official deployment four RGB views resized224x320; tactile history18x120 from total_force; robot action split7+21+7+21+2. SharpaWave hardware. Not our3RGB-D/5fingertip force interface.",
+      "candidate_module": "detr/models/transformer.py:TransformerEncoderLayer.forward_post cross_attn_1 and cross_attn_2",
+      "limitations": "A bidirectional attention mechanism can consume our projected RGB-D patch tokens and measured force/FK temporal tokens; hardcoded special-token slicing and18x120 input must be adapted. No compatible released checkpoint verified. Do not transplant future-ground-truth teacher forcing into student deployment.",
+      "files": [
+        {
+          "path": "detr/models/transformer.py",
+          "sha256": "b3c46cd02186e433d35b9893d5cf9de609afc198f87d5ccc3af5ca02f51f47a5",
+          "url": "https://github.com/RoboVerseOrg/ViTacFormer/blob/d94788272b5f5e18a80bf62e3e5d51e7d2581d77/detr/models/transformer.py"
+        },
+        {
+          "path": "detr/models/detr_vae.py",
+          "sha256": "1f49e6e565564e2bd6a538c4d3481847e4a0161f5e5638117512b3bf5d7d0857",
+          "url": "https://github.com/RoboVerseOrg/ViTacFormer/blob/d94788272b5f5e18a80bf62e3e5d51e7d2581d77/detr/models/detr_vae.py"
+        },
+        {
+          "path": "inference.py",
+          "sha256": "1ef58990bc5d6e7aaa1309bed41f41ba6e5e16fb0a2a7ccd2c63eb92ae235895",
+          "url": "https://github.com/RoboVerseOrg/ViTacFormer/blob/d94788272b5f5e18a80bf62e3e5d51e7d2581d77/inference.py"
+        },
+        {
+          "path": "dataset/data_tactile.py",
+          "sha256": "3a7e2ad071785544e15e116f982c541ea7f653f3892459a96ef9d45c45e32273",
+          "url": "https://github.com/RoboVerseOrg/ViTacFormer/blob/d94788272b5f5e18a80bf62e3e5d51e7d2581d77/dataset/data_tactile.py"
+        }
+      ]
+    },
+    {
+      "repo": "LQTS/VTDexManip",
+      "commit": "8663e473b101cf326a984331b730beb22bae3248",
+      "code_license": "MIT",
+      "observations": "ShadowHand20 body contact sites; net3D contact force norm threshold0.01 produces20binary tactile values. RGB224x224. Official model registry refers to local downloaded configs/checkpoints.",
+      "candidate_module": "model/vitac/tac_model/tactile_encoder.py:TacConNet",
+      "limitations": "Grouping and modality-position ideas are reusable, but20-site topology/binary contacts and pretrained weights are not plug compatible with our5fingertip vector forces/FK. External weight URL exists; availability/license of exact downloaded weights not verified.",
+      "files": [
+        {
+          "path": "model/vitac/tac_model/tactile_encoder.py",
+          "sha256": "24a7272cb248cb1b1f8bd68e78dc207378bcc9cb6c0995b5d65015069c28f041",
+          "url": "https://github.com/LQTS/VTDexManip/blob/8663e473b101cf326a984331b730beb22bae3248/model/vitac/tac_model/tactile_encoder.py"
+        },
+        {
+          "path": "model/vitac/vtt_reall.py",
+          "sha256": "55139aeb0cee568a151fd22aed4ebf59159c2e7eb5e1aa05ed113a717e947985",
+          "url": "https://github.com/LQTS/VTDexManip/blob/8663e473b101cf326a984331b730beb22bae3248/model/vitac/vtt_reall.py"
+        },
+        {
+          "path": "model/backbones/pre_model.py",
+          "sha256": "f8250399860b3e2f682ab485282b0a194fd2bd18639c618983c674b4a38b59a8",
+          "url": "https://github.com/LQTS/VTDexManip/blob/8663e473b101cf326a984331b730beb22bae3248/model/backbones/pre_model.py"
+        },
+        {
+          "path": "tv_tasks/tasks/base/shadow_hand.py",
+          "sha256": "e385d7152050f4ce9f898b5abbb4d5029bdc38df1f4a1314829af2e235a60293",
+          "url": "https://github.com/LQTS/VTDexManip/blob/8663e473b101cf326a984331b730beb22bae3248/tv_tasks/tasks/base/shadow_hand.py"
+        }
+      ]
+    }
+  ],
+  "choice_pending_closed_loop": false,
+  "code_imported_into_policy": false,
+  "weights_downloaded": false,
+  "latency": "Not measured on our robot/policy; official code/config does not establish adapted120/60/5Hz feasibility.",
+  "lookup": "GitHub API rate limited; verified pinned HEAD via git ls-remote and downloaded pinned codeload source archives.",
+  "closed_loop_decision": "No encoder promotion or full training; next probe candidate is adapted ViTacFormer bidirectional attention, after backend retention/feedback investigation."
+}

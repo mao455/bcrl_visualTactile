@@ -1,0 +1,60 @@
+{
+  "job": {
+    "version": "tight_project_job_v1",
+    "operation": "train",
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/training_attempt02",
+    "stages": [
+      {
+        "entry": "backend_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B/training"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B/offline"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B/training"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-offline",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B/offline"
+    ]
+  ],
+  "pid": 4054967,
+  "utc": 1795021947.31868,
+  "source_commit": "29225490e68117dc2339e8bc2b0b7a8f5064485d"
+}

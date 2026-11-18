@@ -1,0 +1,244 @@
+{
+  "pairs": {
+    "B72": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/training/best.pt",
+      "frontend_sha256": "ecd2c4d97f2929ba67af7e2cd14e6aca6d3b2b238720ff775debe1e6d6788134",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/backend/B/training/best.pt",
+      "backend_sha256": "3a1c2a08f88318e20a3a72a095051d7ef373f11e9f7232b9960b0e3c3719e7d7",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B130_joint": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/B/training/best.pt",
+      "frontend_sha256": "46ee448f9aba6f7715791c16f08e6fc7702c488b7c7294e86682db934ee9a2f3",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_recovery_20261118_01/learning/B/backend/B/training/best.pt",
+      "backend_sha256": "0e2d048de2c313b268b9a702b6ca27f5bd17c73d11824f72abeeb607935b6822",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B130_frozen": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_long_20261117_01/round05/learning/B/training/best.pt",
+      "frontend_sha256": "ecd2c4d97f2929ba67af7e2cd14e6aca6d3b2b238720ff775debe1e6d6788134",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B/training/best.pt",
+      "backend_sha256": "cb159144cf211dab6bd6a084372c924c7aef6d99b1399a30a61551134a6f7469",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "config": {
+    "version": "frozen_frontend_rear_isolation_v1",
+    "root": "outputs/visuotactile/run/tight_frozen_dp_b_20261119_01",
+    "parent": "outputs/visuotactile/run/tight_long_20261117_01/round05/learning",
+    "history": "outputs/visuotactile/run/tight_recovery_20261118_01/learning",
+    "job_directory": "configs/experiments/frozen_dp_b",
+    "historical_selected_updates": 4839,
+    "epochs": 15,
+    "hours": 6,
+    "training_seeds": [
+      28817000,
+      28817004,
+      28817008,
+      28817012,
+      28817016,
+      28817020,
+      28817024,
+      28817028
+    ],
+    "development_seeds": [
+      28826000,
+      28826001,
+      28826002,
+      28826003,
+      28826004,
+      28826005,
+      28826006,
+      28826007
+    ],
+    "evaluation_lanes": 3,
+    "promotion": "No automatic promotion; full native insertion and grasp retention required",
+    "new_dagger": false,
+    "new_encoder": false,
+    "evaluation_directory": "evaluation_attempt03",
+    "evaluation_job": "evaluate_storage_recovery.json",
+    "evaluation_start_wave": 1,
+    "included_prior_waves": [
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt02/wave00"
+    ]
+  },
+  "job": {
+    "version": "tight_project_job_v1",
+    "operation": "evaluate",
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03",
+    "stages": [
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave01"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave02"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave03"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave04"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave05"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave06"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave07"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave08"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave09"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave10"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave11"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave12"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave13"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave14"
+        ]
+      },
+      {
+        "entry": "evaluate",
+        "args": [
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03/wave15"
+        ]
+      }
+    ]
+  },
+  "historical_specs_sha256": "49333d43640ff7f550b7f1e32e6f124baaab045adcc6b8abf4b57d0b7f4e7b21"
+}

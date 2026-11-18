@@ -1,0 +1,36 @@
+{
+  "reason": "First native control tick exceeded 4GiB VRAM reserve with six lanes; zero complete cases. Not a task failure or OOM.",
+  "preserved": "outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation",
+  "old_exit": {
+    "children_reaped": true,
+    "utc": 1795023180.392852
+  },
+  "replacement": "outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt02",
+  "same_deadline": 1795043300.139719,
+  "cases": 48,
+  "old_lanes": 6,
+  "new_lanes": 3,
+  "source_change": "Telemetry recognizes exact canonical tools.tight_evaluate --output CLI; no model/control changes. 55 focused tests passed.",
+  "offline_correction": "Label equality tested only on legal supervision mask; masked student prefix has no expert label.",
+  "utc": 1795023314.6388307,
+  "disk_recovery": {
+    "reason": "Configured12GiB disk reserve reached at wave01 tick575; all owned workers reaped. Entire triad rerun because one case incomplete; two finished interrupted-wave cases preserved but excluded from final paired table.",
+    "failed_root": "outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt02",
+    "completed_prior_wave_reused": "outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt02/wave00",
+    "replacement": "outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/evaluation_attempt03",
+    "same_deadline": 1795043300.139719,
+    "final_cases": 48,
+    "new_queue_cases": 45,
+    "old_wave01_extra_completed": 2,
+    "extra_incomplete": 1,
+    "guard_relaxed": false
+  },
+  "allocator_recovery": {
+    "failed": "evaluation_attempt03/wave03",
+    "complete_prior_triads": 3,
+    "remaining_cases": 39,
+    "policy": "Existing reclaim_unused_on_low_headroom_v1 frees unused CUDA caching-allocator blocks, no numerical/kernel changes, min4096MiB unchanged",
+    "new_root": "evaluation_attempt04",
+    "deadline_reset": false
+  }
+}

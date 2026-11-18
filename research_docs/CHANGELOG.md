@@ -1,3 +1,11 @@
+## 2026-11-19 冻结DP后端隔离与48例完整评估
+
+- 新增`tools/tight_frozen_frontend.py`、`tight_frozen_comparison.py`和`configs/experiments/frozen_dp_b/`：复用统一train/evaluate入口，72DP冻结、匹配130名义缓存、只训练72初始化后端，原采样/loss/控制保持。4839实际更新，选中4200；首次CLI零更新失败保留并修正parser测试。
+- 完成48例原生自主三方评估、16组真实初态配对、6预选视频。冻结候选未保持旧成功，开发hold60为4/8 vs72的7/8；不晋升、不启动新encoder/DAgger。离线136条真实历史及阶段分解支持部分新纠偏学习，不能替代闭环收益。
+- 资源中断全部保留，3lane替代6lane，启用已有unused CUDA allocator回收；`state_resources.py`仅补统一evaluate入口精确归属，不改数值方法。57项parser/归属/归档测试通过，前87合同回归通过1跳过；19项关键SHA保持。
+- `tight_cache_archive.py`以全量解压SHA核验无损归档165个已索引旧视觉缓存，释放6.3303GiB；原数据/模型/未知文件不删除。新增归档恢复清单，历史相关缓存须恢复后复现，当前136依赖排除。磁盘/显存中断与实际资源最低值公开，不宣称全程合规。
+- 完整报告、模型身份、采样回执、逐例结果、曲线、视频与复现命令：[TIGHT_FROZEN_DP_B_20261119.md](TIGHT_FROZEN_DP_B_20261119.md)。
+
 ## 2026-11-19 真实曝光与表征科学审计
 
 - 新增tools/tight_representation_{audit,probe,diagnostics,summary,verify}.py及聚焦测试；只读选中祖先、真实采样/optimizer日志、实际缓存与HDF5，未改生产训练器/模型/执行链。

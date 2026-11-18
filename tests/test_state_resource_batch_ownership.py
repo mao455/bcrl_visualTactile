@@ -69,3 +69,14 @@ def test_real_symlink_output_escapes_and_relative_worker_cwd(tmp_path):
                               [root],cwd=tmp_path)
     assert not owned_command_root(command('tight_fresh_batch_run','--output','session/probe'),
                                   [root],cwd=outside)
+
+
+def test_canonical_evaluator_ownership(tmp_path):
+    from visuotactile.state_resources import owned_command_root
+    root=tmp_path/'registered'
+    argv=['python','-m','tools.tight_evaluate','--output',str(root/'wave00')]
+    assert owned_command_root(argv,[root],cwd=tmp_path)
+    assert not owned_command_root(argv,[tmp_path/'elsewhere'],cwd=tmp_path)
+    assert not owned_command_root(argv+['--root',str(root)],[root],cwd=tmp_path)
+    assert not owned_command_root(argv+['--output',str(root/'wave01')],[root],cwd=tmp_path)
+    assert not owned_command_root(['python','-m','other.module',*argv[3:]],[root],cwd=tmp_path)

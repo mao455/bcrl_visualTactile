@@ -1,0 +1,59 @@
+{
+  "job": {
+    "version": "tight_project_job_v1",
+    "operation": "train",
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01",
+    "stages": [
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend"
+        ]
+      },
+      {
+        "entry": "backend_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_finish",
+      "residual_cache",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-offline",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_frozen_dp_b_20261119_01/B/backend/B"
+    ]
+  ],
+  "pid": 4049746,
+  "utc": 1795021712.5952737,
+  "source_commit": "29225490e68117dc2339e8bc2b0b7a8f5064485d"
+}

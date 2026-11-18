@@ -303,7 +303,8 @@ def owned_command_root(command, roots, *, cwd):
     registered = module in modules
     if registered and (len(command) < 4 or command[3] != 'run'):
         return False
-    options = ('--root', '--output') if registered else ('--root',)
+    canonical_evaluator = module == 'tools.tight_evaluate'
+    options = ('--root', '--output') if registered or canonical_evaluator else ('--root',)
     arguments = {option: [] for option in options}
     for index, argument in enumerate(command):
         if argument in options:
@@ -320,7 +321,7 @@ def owned_command_root(command, roots, *, cwd):
         if any(len(arguments[option]) != 1 for option in options):
             return False
         selected = arguments['--root'][0]
-    elif module == 'tools.tight_fresh_batch_run':
+    elif module == 'tools.tight_fresh_batch_run' or canonical_evaluator:
         if arguments['--root'] or len(arguments['--output']) != 1:
             return False
         selected = arguments['--output'][0]
