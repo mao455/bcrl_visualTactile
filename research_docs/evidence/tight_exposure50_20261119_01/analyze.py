@@ -150,7 +150,9 @@ def report():
   for seed in c['training_seeds']+c['development_seeds']:
    a=next(r for r in rows if r['role']==role+'72' and r['seed']==seed);b=next(r for r in rows if r['role']==role+'130_50' and r['seed']==seed)
    changes.append(dict(role=role,seed=seed,cohort=a['cohort'],old_success=a['success'],new_success=b['success'],retained=a['success'] and b['success'],
-    lost=a['success'] and not b['success'],gained=not a['success'] and b['success']))
+    lost=a['success'] and not b['success'],gained=not a['success'] and b['success'],
+    old_lift=a['native_lift'],new_lift=b['native_lift'],old_grasp=a['stable_grasp'],new_grasp=b['stable_grasp'],
+    **{f'{when}_hold{w}':x[f'hold{w}']['sustained'] for when,x in [('old',a),('new',b)] for w in (30,60,120)}))
  table(public/'per_case.csv',rows);table(public/'counts.csv',counts);table(public/'paired_changes.csv',changes)
  write(public/'results.json',dict(counts=counts,changes=changes,pairing=pairing,hold60_is_success_requirement=False))
  print(json.dumps(counts),flush=True)
