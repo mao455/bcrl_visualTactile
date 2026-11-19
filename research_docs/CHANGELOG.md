@@ -2238,3 +2238,12 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 - 新增scripts/tight_fulltask_20261116：真实观察视频、共同训练池更新、有限阶段恢复、成对native reset RNG及动作前q/qdot/目标核对、实际曲线/结果。继承120/60/5Hz与完整DP+Transformer。
 - 2完整成功专家纠偏/4机会，9完整视频；DP两组372更新，rear A683完成/B183部分，截止停止，未获得新模型公平完整闭环。监控生命周期故障和status临时文件冲突均保留；后者加锁，前者尚未完成统一owner验证。
 - stability补充真实同输入重算与新开发结果；明确initial q混杂与确定性recenter残差语义。详见集中报告。未修改原生资产、物理、动作映射或最终成功判据。
+
+
+### 2026-11-19 16:00 +08 — 磁盘保护中断，尚未完成四组件
+
+原训练服务13:37在A-DP第52轮后因`Configured disk reserve reached`退出，finisher随之退出。CPU实际加载last52/4940与best51/4845：130轨、27,508合法tick，最低新增轨迹访问/tick不同优化步分别52/52与51/51，祖先不计；完整Adam、EMA、随机数、LR和曝光状态字段存在，EMA计数等于optimizer计数。尚未执行恢复，不能把字段检查当恢复成功。B-DP与两个后端未开始，闭环0例；A仍未完成预登记60轮。回执`evidence/tight_exposure50_20261119_01/interruption_checkpoint_audit.json`。
+
+当前磁盘约3.6GiB，低于12GiB保护线；新run仅占4.1GiB，不能把其他磁盘增长归因于本训练。剩余136视觉缓存均供当前训练使用，未删除数据/模型，也不干预其他任务。已登记`train_recovery.json`和独立`training_attempt02`：普通CPU监督脚本等待至少32GiB空闲（12GiB原保护线＋20GiB后续产物余量），随后只尝试一次续训，沿用原11月20日11:24截止。未满足容量条件时不加载GPU模型。原失败、部分epoch断点和旧遥测均保留；续训从完整52轮起，未提交尾更新不计。后端仍等待各自新DP并刷新缓存。收尾日志改用独立attempt路径，避免覆盖原失败。
+
+恢复入口：`python research_docs/evidence/tight_exposure50_20261119_01/recover.py`，只运行一次；状态位于`outputs/visuotactile/run/tight_exposure50_20261119_01/training_attempt02/recovery_status.json`。编译与统一入口dry-run通过；实际恢复与闭环尚未验收。

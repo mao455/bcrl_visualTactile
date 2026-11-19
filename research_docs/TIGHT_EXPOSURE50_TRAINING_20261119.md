@@ -25,3 +25,12 @@ python -m tools.tight_cache_archive restore --manifest research_docs/evidence/ti
 实际启动：tight-exposure50-20261119-01.service执行统一训练队列，finish服务在四组件训练全部完成并通过曝光重放门槛后才登记/执行64例评估；失败则保留并退出，不自动放宽门槛。136原始HDF5全SHA和A/B标签逐值检查通过。A-DP epoch3/update285实际断点计数与成功更新日志独立重放逐项相等，最低tick曝光3，尚不达标。全部状态仍以现场文件为准。
 
 独立验收进一步从实际selected_anchors及原始segment/mask重新计算每次DP监督集合，并重算轨迹访问。实际epoch5/update475完全相等（最低5，未达标）；72A/B各一个真实验证记录的完整后端离线接口通过，CUDA未初始化。证据见analysis_preflight.json。此核验不计入训练或新闭环试次。
+
+
+### 2026-11-19 16:00 +08 — 磁盘保护中断，尚未完成四组件
+
+原训练服务13:37在A-DP第52轮后因`Configured disk reserve reached`退出，finisher随之退出。CPU实际加载last52/4940与best51/4845：130轨、27,508合法tick，最低新增轨迹访问/tick不同优化步分别52/52与51/51，祖先不计；完整Adam、EMA、随机数、LR和曝光状态字段存在，EMA计数等于optimizer计数。尚未执行恢复，不能把字段检查当恢复成功。B-DP与两个后端未开始，闭环0例；A仍未完成预登记60轮。回执`evidence/tight_exposure50_20261119_01/interruption_checkpoint_audit.json`。
+
+当前磁盘约3.6GiB，低于12GiB保护线；新run仅占4.1GiB，不能把其他磁盘增长归因于本训练。剩余136视觉缓存均供当前训练使用，未删除数据/模型，也不干预其他任务。已登记`train_recovery.json`和独立`training_attempt02`：普通CPU监督脚本等待至少32GiB空闲（12GiB原保护线＋20GiB后续产物余量），随后只尝试一次续训，沿用原11月20日11:24截止。未满足容量条件时不加载GPU模型。原失败、部分epoch断点和旧遥测均保留；续训从完整52轮起，未提交尾更新不计。后端仍等待各自新DP并刷新缓存。收尾日志改用独立attempt路径，避免覆盖原失败。
+
+恢复入口：`python research_docs/evidence/tight_exposure50_20261119_01/recover.py`，只运行一次；状态位于`outputs/visuotactile/run/tight_exposure50_20261119_01/training_attempt02/recovery_status.json`。编译与统一入口dry-run通过；实际恢复与闭环尚未验收。

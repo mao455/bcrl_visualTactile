@@ -1,3 +1,13 @@
+
+
+### 2026-11-19 16:00 +08 — 磁盘保护中断，尚未完成四组件
+
+原训练服务13:37在A-DP第52轮后因`Configured disk reserve reached`退出，finisher随之退出。CPU实际加载last52/4940与best51/4845：130轨、27,508合法tick，最低新增轨迹访问/tick不同优化步分别52/52与51/51，祖先不计；完整Adam、EMA、随机数、LR和曝光状态字段存在，EMA计数等于optimizer计数。尚未执行恢复，不能把字段检查当恢复成功。B-DP与两个后端未开始，闭环0例；A仍未完成预登记60轮。回执`evidence/tight_exposure50_20261119_01/interruption_checkpoint_audit.json`。
+
+当前磁盘约3.6GiB，低于12GiB保护线；新run仅占4.1GiB，不能把其他磁盘增长归因于本训练。剩余136视觉缓存均供当前训练使用，未删除数据/模型，也不干预其他任务。已登记`train_recovery.json`和独立`training_attempt02`：普通CPU监督脚本等待至少32GiB空闲（12GiB原保护线＋20GiB后续产物余量），随后只尝试一次续训，沿用原11月20日11:24截止。未满足容量条件时不加载GPU模型。原失败、部分epoch断点和旧遥测均保留；续训从完整52轮起，未提交尾更新不计。后端仍等待各自新DP并刷新缓存。收尾日志改用独立attempt路径，避免覆盖原失败。
+
+恢复入口：`python research_docs/evidence/tight_exposure50_20261119_01/recover.py`，只运行一次；状态位于`outputs/visuotactile/run/tight_exposure50_20261119_01/training_attempt02/recovery_status.json`。编译与统一入口dry-run通过；实际恢复与闭环尚未验收。
+
 ## 2026-11-19 A/B新增逐tick至少50曝光：当前授权与准备
 
 最新任务授权四组件从各自72父权重继续训练，同130池，每轨≥50有效访问、每合法expert tick≥50不同optimizer step新增曝光；祖先/重叠slot不计。新显式覆盖采样、正权mask逐步去重ledger和选模门槛已实现，67项聚焦测试通过；A/B各27508合法ticks预检覆盖，尚未完成训练。预登记60完整deck、仅达标checkpoint可选，DP先完成后刷新各自后端缓存，无encoder/DAgger/RL。详见TIGHT_EXPOSURE50_TRAINING_20261119.md和configs/experiments/exposure50。旧轮“停止/不再训练”不限制本次明确授权；原实验身份/截止不得重启。
