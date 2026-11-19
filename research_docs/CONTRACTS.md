@@ -1,3 +1,7 @@
+# 显式新增有效监督50次合同
+
+`new_optimizer_step_legal_tick_exposure_v1`从本轮0开始，以真实正权loss mask和成功optimizer提交为计数单位，identity/tick在同一步并集去重；祖先曝光不计。保存/恢复实际合法人口、逐tick计数与optimizer序号。最终检查点需每轨访问和每合法tick不同step次数均≥50，验证仅在满足门槛者中选。DP `grasp_random_plus_legal_cover_v1`保留旧grasp随机起点并以合法H24窗口补齐未覆盖标签，真实完整历史和原segment/交接mask保持；部署仍5Hz。后端原32tick截断、128量级优化窗口及原损失保持。计数是非零监督权重，非保证误差/梯度非零或学会任务。
+
 ## 2026-11-18 工程入口合同
 
 当前代码唯一入口为bc+rl_RSS；`tools.tight_project`接收tight_project_job_v1的显式operation/stages/resource_root。

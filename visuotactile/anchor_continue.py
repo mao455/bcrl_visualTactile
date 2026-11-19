@@ -1361,6 +1361,10 @@ def residual_train(root, *, smoke=False, probe=False):
     if rear_sampling is not None:
         if strata: raise ValueError('Explicit rear deck cannot be combined with legacy strata')
         _, multiplicities, unique_population, population = rear_plan(data, records, rear_sampling)
+    from .effective_exposure import validate as validate_exposure_policy, Ledger
+    exposure_policy=validate_exposure_policy(v.get('effective_exposure'))
+    ledger=Ledger({i:records[i]['supervision_mask'] for i in ids}) if exposure_policy else None
+    if exposure_policy and (disposable or window is None):raise ValueError('Effective exposure requires formal tick-window training')
     target_ticks=v['maximum_control_tick_epochs']*population
     matched=v.get('matched_update_stop')
     if matched is not None:
@@ -1383,6 +1387,9 @@ def residual_train(root, *, smoke=False, probe=False):
         restored=restore_residual_training(saved,model,opt,generator,configuration,ids,
             episode_multiplicities=multiplicities)
         updates=saved['updates'];draws=saved['supervised_ticks'];ticks=saved['control_ticks'];contact_ticks=saved['contact_anchors']
+        if exposure_policy:
+            ledger=Ledger(ledger.legal,saved['effective_exposure_state'])
+            if ledger.updates!=updates:raise ValueError('Rear exposure/update restore mismatch')
         best=saved['best'];history=saved['history'];resume_epoch=saved['epoch'];resume_group=saved['next_episode_group'];resume_order=saved['episode_order']
         selection_baseline=saved.get('selection_baseline');episode_counts=saved.get('episode_counts',episode_counts)
         restored['uncommitted_log_rows_preserved']=reconcile_update_log(out/'loss.jsonl',updates)
@@ -1411,6 +1418,7 @@ def residual_train(root, *, smoke=False, probe=False):
             schedule_rng=generator.get_state(),torch_rng=torch.get_rng_state(),cuda_rng=torch.cuda.get_rng_state_all() if device.type=='cuda' else [],
             best=best,history=history,train_ids=ids,validation_ids=vals,correction_dev_ids=devs,
             selection_baseline=selection_baseline,episode_counts=episode_counts,ema=False,
+            **({'effective_exposure_state':ledger.state_dict()} if exposure_policy else {}),
             **({'plateau_state':plateau.state} if plateau else {})))
     def validate(epoch):
         nonlocal best,selection_baseline
@@ -1435,8 +1443,10 @@ def residual_train(root, *, smoke=False, probe=False):
                 row['cohort_diagnostics']=rear_diagnostics(model,records,data,lease)
             row['learning_rates']=[g['lr'] for g in opt.param_groups]
             row['stopping']=plateau.observe(epoch,score,opt)
+        if exposure_policy:row['effective_exposure']=ledger.summary(episode_counts)
+        row['selection_eligible']=not exposure_policy or row['effective_exposure']['eligible']
         history.append(row);atomic_json(out/'validation.json',history)
-        if score<best and (matched is None or updates==matched['updates']):
+        if row['selection_eligible'] and score<best and (matched is None or updates==matched['updates']):
             best=score;save(out/'best.pt',snapshot(max(epoch,1),next_group))
             atomic_json(out/'selected.json',dict(epoch=epoch,update=updates,validation_score=score,
                 initialization_candidate=updates==0,base_checkpoint_sha256=configuration.get('base_sha256'),
@@ -1471,6 +1481,7 @@ def residual_train(root, *, smoke=False, probe=False):
             group_began=time.time()
             selected=[records[i] for i in order[offset:offset+v['microbatch']]];state=None;prefix_inputs=[]
             history_dirty=False
+            exposure_pending=[]
             for start in range(0,max(len(r['robot']) for r in selected),32):
                 end=min(start+32,max(len(r['robot']) for r in selected))
                 with lease.block():
@@ -1513,6 +1524,9 @@ def residual_train(root, *, smoke=False, probe=False):
                         loss=model.objective(action,residual_aux(selected,start,end,'target',device),delta,loss_mask)
                     if not torch.isfinite(loss):raise FloatingPointError('Nonfinite residual loss')
                     if supervised.any():
+                        if exposure_policy:
+                            for identity,mask in zip(order[offset:offset+len(selected)],loss_mask):
+                                exposure_pending.append((identity,(mask.gt(0).nonzero().flatten()+start).cpu().tolist()))
                         if window is None:
                             opt.zero_grad(set_to_none=True);loss.backward()
                             norm=torch.nn.utils.clip_grad_norm_(model.parameters(),1.)
@@ -1528,6 +1542,9 @@ def residual_train(root, *, smoke=False, probe=False):
                         draws+=int(supervised.sum());contact_ticks+=int((gate&supervised).sum())
                     if window is not None and window.pending and (window.ready or end==max(len(r['robot']) for r in selected)):
                         report=window.step(model,opt);updates+=1;history_dirty=True
+                        if exposure_policy:
+                            report['effective_tick_contributions']=ledger.step(updates,exposure_pending)
+                            exposure_pending=[]
                         if fresh_weighting is not None:report['fresh_recovery_weighting']=fresh_weighting
                         with (out/'loss.jsonl').open('a') as f:f.write(json.dumps(dict(update=updates,epoch=epoch,**report))+'\n')
                     ticks+=int(inputs['valid'].sum())
@@ -1573,7 +1590,12 @@ def residual_train(root, *, smoke=False, probe=False):
     if not history or history[-1]['update']!=updates:validate(epoch)
     save(out/'last.pt',snapshot(epoch,next_group))
     if stop=='requested_stop':raise InterruptedError('Residual saved at complete episode-group boundary; stage remains resumable')
+    if exposure_policy:
+        selected_saved=torch.load(out/'best.pt',map_location='cpu',weights_only=False)
+        selected_exposure=Ledger(ledger.legal,selected_saved['effective_exposure_state']).summary(selected_saved['episode_counts'])
+        if not selected_exposure['eligible']:raise ValueError('Selected rear fails actual exposure minimum')
     atomic_json(out/'finished.json',dict(stop_reason=stop,updates=updates,control_tick_epochs=draws/population,
+        **({'selected_effective_exposure':selected_exposure} if exposure_policy else {}),
         **(dict(bounded_extension=extension,plateau_state=plateau.state,
                 bounded_training_complete=bool(draws>=target_ticks or
                     (plateau.state['stop'] and draws>=v['minimum_control_tick_epochs']*population))) if extension else {}),

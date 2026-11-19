@@ -5,6 +5,15 @@ import torch
 
 TRAINING_ANCHOR_VERSION = 'random_legal_action_anchors_v1'
 GRASP_ANCHOR_VERSION = 'grasp_balanced_legal_action_anchors_v2'
+COVERAGE_ANCHOR_VERSION = 'grasp_random_plus_legal_cover_v1'
+
+
+def coverage_sampling_profile(seed=2026111501):
+    return dict(grasp_sampling_profile(seed), version=COVERAGE_ANCHOR_VERSION,
+        coverage='retain_grasp_v2_draw_then_greedy_first_uncovered_legal_tick_H24',
+        count='original_random_budget_plus_necessary_cover_anchors')
+
+
 ONSET_ANCHOR_VERSION = 'preserve_grasp_recovery_onset_anchors_v3'
 
 
@@ -25,7 +34,8 @@ def validate_training_anchor_profile(value):
     if value is None:return None
     if not isinstance(value,dict):
         raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
-    expected=(onset_sampling_profile(value.get('seed')) if value.get('version')==ONSET_ANCHOR_VERSION else
+    expected=(coverage_sampling_profile(value.get('seed')) if value.get('version')==COVERAGE_ANCHOR_VERSION else
+              onset_sampling_profile(value.get('seed')) if value.get('version')==ONSET_ANCHOR_VERSION else
               grasp_sampling_profile(value.get('seed')) if value.get('version')==GRASP_ANCHOR_VERSION
               else sampling_profile(value.get('seed')))
     if value!=expected or any(type(value[k]) is not type(v) for k,v in expected.items()):
@@ -77,6 +87,18 @@ def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
     if (not isinstance(identity,str) or not identity or
             any(type(n) is not int or n<1 for n in (epoch,visit_index))):
         raise ValueError('Episode identity and positive epoch/visit index required')
+    if profile['version']==COVERAGE_ANCHOR_VERSION:
+        from .effective_exposure import cover_anchors
+        anchors,receipt=sample_training_anchors(record,grasp_sampling_profile(profile['seed']),
+            identity=identity,epoch=epoch,visit_index=visit_index)
+        original=anchors.tolist()
+        anchors=cover_anchors(record,anchors)
+        receipt.update(version=COVERAGE_ANCHOR_VERSION,original_random_anchors=original,
+            selected_anchors=anchors.tolist(),selected_count=len(anchors),
+            added_coverage_anchors=sorted(set(anchors.tolist())-set(original)),
+            non_native_grid_count=int((anchors%12!=0).sum()),
+            selected_anchors_sha256=hashlib.sha256(json.dumps(anchors.tolist(),separators=(',',':')).encode()).hexdigest())
+        return anchors,receipt
     mask,_=supervision_rows(record)
     population=mask.detach().cpu().nonzero().flatten()
     if not len(population):raise ValueError('No legal action ticks to sample')

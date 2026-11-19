@@ -1,3 +1,10 @@
+## 2026-11-19 充分曝光训练准备
+
+- 新增effective_exposure ledger和cover sampling显式配置：逐optimizer step对正权合法标签去重，checkpoint同步保存，低于50最低值不能选模；原模型、控制、监督数学保持。
+- 新增统一作业注册器和60遍/验证门槛配置，130全池27508 ticks覆盖预检通过；67项相关回归通过。尚无本轮训练完成或自主效果声明。
+- 修复DP hotset恢复配置比对；历史训练日志显式无损归档/恢复支持，所有模型和原数据保留。两份归档清单与异常去重恢复证据公开。
+- 报告：TIGHT_EXPOSURE50_TRAINING_20261119.md。
+
 ## 2026-11-19 冻结DP后端隔离与48例完整评估
 
 - 新增`tools/tight_frozen_frontend.py`、`tight_frozen_comparison.py`和`configs/experiments/frozen_dp_b/`：复用统一train/evaluate入口，72DP冻结、匹配130名义缓存、只训练72初始化后端，原采样/loss/控制保持。4839实际更新，选中4200；首次CLI零更新失败保留并修正parser测试。

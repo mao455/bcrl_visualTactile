@@ -77,6 +77,13 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
         source_commit=subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         source_sha256={str(p): sha256(p) for folder in ['visuotactile', 'tools']
             for p in sorted(Path(folder).rglob('*.py'))})
+    from visuotactile.effective_exposure import load as load_exposure
+    exposure_policy=load_exposure(root)
+    if exposure_policy:
+        from visuotactile.bounded_extension import exposure50_profile
+        if epochs!=60:raise ValueError('Registered effective50 rear maximum is60')
+        v.update(effective_exposure=exposure_policy,bounded_extension=exposure50_profile('backend'),
+            comparison_control_tick_epochs=[],minimum_control_tick_epochs=50)
     v['residual_normalization_identity'] = residual_normalization(data, v)
     if cache_planning is not None:v['cache_offline_planning_profile']=cache_planning
     if frozen_visual_io is not None:v['frozen_visual_io']=frozen_visual_io

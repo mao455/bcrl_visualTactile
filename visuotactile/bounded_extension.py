@@ -65,11 +65,18 @@ def rear_group_boundaries(masks, *, maximum_epochs=64, seed=2026111404):
     return result
 
 
+def exposure50_profile(kind='frontend'):
+    if kind not in ('frontend','backend'):raise ValueError('Unknown component')
+    return dict(version='effective50_budget_v1',kind=kind,maximum_epochs=60,
+        minimum_epochs=60,patience=8,relative_improvement=.005,lr_factor=.5,
+        maximum_reductions=1,activate_after_epoch=40)
+
+
 def valid_policy(value):
     if isinstance(value,dict) and value.get('version')=='matched_update_diagnostic_v1':
         try:return value==matched_update_profile(value['kind'],value['maximum_epochs'])
         except (KeyError,ValueError):return False
-    return value in (long_fixed_profile(),long_fixed_profile(maximum_epochs=360),long_fixed_profile('backend',64),profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'),phase_dagger_profile(),phase_dagger_profile('backend'))
+    return value in (exposure50_profile(),exposure50_profile('backend'),long_fixed_profile(),long_fixed_profile(maximum_epochs=360),long_fixed_profile('backend',64),profile(),fresh_layout_profile('frontend'),fresh_layout_profile('backend'),phase_dagger_profile(),phase_dagger_profile('backend'))
 
 
 def load(root):

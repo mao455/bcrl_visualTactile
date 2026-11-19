@@ -315,6 +315,8 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
     visual_io=load_visual_io(root)
     from visuotactile.bounded_extension import load as load_extension,Plateau,admit_dp_restore,dp_diagnostics
     extension=load_extension(root)
+    from visuotactile.effective_exposure import load as load_exposure, Ledger, dp_ticks
+    exposure_policy=load_exposure(root)
     if extension and epochs!=extension['policy']['maximum_epochs']:raise ValueError('Registered maximum epoch budget differs')
     if visual_io is not None and batch_profile is None:
         raise ValueError('Formal eager visual I/O currently requires the explicit B2 frontend path')
@@ -417,6 +419,13 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             if registered['profile']!=batch_profile or registered['roles'][role]!=expected:
                 raise ValueError('B2 planned visit/update budget differs from cycle registration')
     if extension:config['bounded_extension']=extension['policy']
+    if exposure_policy:
+        from visuotactile.anchor_sampling import supervision_rows
+        if not batch_profile or not visit_profile:raise ValueError('Effective exposure requires explicit B2 and legal cover sampling')
+        config['effective_exposure']=exposure_policy
+        ledger=Ledger({i:supervision_rows(records[i])[0] for i in data['splits']['train']})
+    if (root/'frozen_visual_hotset.json').exists():
+        config['frozen_visual_hotset']=read(root/'frozen_visual_hotset.json')
     begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[];old={};extension_crossing=False
     if (out/'last.pt').exists():
         old=torch.load(out/'last.pt',weights_only=False,map_location='cpu')
@@ -427,6 +436,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             atomic_json(out/'extension_restore.json',dict(audit,epoch=old['epoch'],updates=old['updates']))
             atomic_json(out/'configuration.json',config)
         restore_training(old,model,averaged,opt,ema,generator,noise)
+        if exposure_policy:
+            ledger=Ledger(ledger.legal,old['effective_exposure_state'])
+            if ledger.updates!=old['updates']:raise ValueError('Exposure/update restore mismatch')
         if visit_profile:coverage=Coverage(old['visit_sampling_coverage'])
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
         if batch_profile:
@@ -477,6 +489,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                 completed_epochs=epoch,updates=updates)
         extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
         if plateau:extras['plateau_state']=plateau.state
+        if exposure_policy:extras['effective_exposure_state']=ledger.state_dict()
         if visit_profile:extras['visit_sampling_coverage']=coverage.state_dict()
         if batch_profile:
             validate_batch_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates,visits_seen=visits_seen)
@@ -573,6 +586,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                             if batch_prefetch is not None:batch_prefetch.finish()
                             episodes.clear();del episodes
                         updates+=1
+                        if exposure_policy:
+                            contribution=[(i,dp_ticks(records[i],v['anchor_sampling']['selected_anchors'])) for i,v in zip(identities,result['visits'])]
+                            step_receipt=ledger.step(updates,contribution)
                         for (index,identity),visit_row in zip(visits,result['visits']):
                             if visit_profile:coverage.add(identity,visit_row['anchor_sampling'],visit_row.get('geometry_sampling'))
                             sampling_exposure[identity]+=1;visits_seen+=1
@@ -590,6 +606,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                         deck_sha256=deck_receipt['sha256'],seconds=time.perf_counter()-began,utc=time.time(),
                         frozen_input_wait_s=frozen_input_wait_s,update_host_s=update_host_s,
                         process_io=io_delta(io_before,io_snapshot()))
+                    if exposure_policy:row['effective_tick_contributions']=step_receipt
                     atomic_json(out/'progress.json',row)
                     with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
             else:
@@ -693,6 +710,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
             or epoch+1>=extension['policy']['maximum_epochs']-96)
         if extension and extension['policy']['version']=='matched_update_diagnostic_v1':
             selection_eligible=epoch+1==epochs
+        if exposure_policy:
+            report['effective_exposure']=ledger.summary(sampling_exposure)
+            selection_eligible=selection_eligible and report['effective_exposure']['eligible']
         report['selection_eligible']=selection_eligible
         improved=selection_eligible and val['selection']<best
         if selection_eligible:best=min(best,val['selection'])
@@ -721,6 +741,11 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         finished['stage_process_io']=io_delta(stage_io_start,io_snapshot())
         finished['peak_cuda_allocated_bytes']=torch.cuda.max_memory_allocated()
         finished['peak_cuda_reserved_bytes']=torch.cuda.max_memory_reserved()
+    if exposure_policy:
+        selected=torch.load(out/'best.pt',map_location='cpu',weights_only=False)
+        check=Ledger(ledger.legal,selected['effective_exposure_state']).summary(selected['sampling_exposure'])
+        if not check['eligible']:raise ValueError('Selected DP does not satisfy minimum actual exposure')
+        finished['selected_effective_exposure']=check
     atomic_json(out/'finished.json',finished)
 
 

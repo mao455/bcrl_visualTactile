@@ -39,11 +39,17 @@ def assert_closed(path):
         except (PermissionError,FileNotFoundError):continue
 
 
-def archive_file(path,expected):
+def archive_file(path,expected,*,kind="derived_visual_cache"):
     path=Path(path)
     assert path.is_file() and not path.is_symlink() and path.stat().st_nlink==1
-    assert 'perception' in path.parts and path.suffix=='.pt'
-    target=path.with_suffix('.pt.zst');receipt=path.with_suffix('.pt.archive.json')
+    if kind=='derived_visual_cache':
+        assert 'perception' in path.parts and path.suffix=='.pt'
+    elif kind=='completed_training_log':
+        assert path.name=='learning.jsonl' and path.parent.name=='training'
+        assert (path.parent/'finished.json').is_file()
+        assert json.loads((path.parent/'finished.json').read_text()).get('complete') is True
+    else:raise ValueError('Unknown archive asset kind')
+    target=path.with_suffix(path.suffix+'.zst');receipt=path.with_suffix(path.suffix+'.archive.json')
     assert not target.exists() and not receipt.exists()
     assert_closed(path);before=path.stat();assert sha(path)==expected
     with path.open('rb') as src,target.open('xb') as out:
@@ -54,7 +60,7 @@ def archive_file(path,expected):
     after=path.stat()
     assert (before.st_ino,before.st_mtime_ns,before.st_size)==(after.st_ino,after.st_mtime_ns,after.st_size)
     assert_closed(path)
-    row=dict(path=str(path),archive=str(target),sha256=expected,archive_sha256=sha(target),
+    row=dict(kind=kind,path=str(path),archive=str(target),sha256=expected,archive_sha256=sha(target),
         original_bytes=before.st_size,compressed_bytes=target.stat().st_size,
         mode=stat.S_IMODE(before.st_mode),mtime_ns=before.st_mtime_ns,utc=time.time(),
         archive_verified=True,original_removed=False)
@@ -85,12 +91,17 @@ def main():
     p.add_argument('mode',choices=['archive','restore']);p.add_argument('--manifest',type=Path,required=True)
     a=p.parse_args();manifest=json.loads(a.manifest.read_text())
     if a.mode=='restore':
-        for r in manifest['files']:restore_file(Path(r['path']).with_suffix('.pt.archive.json'))
+        seen=set()
+        for r in manifest['files']:
+            path=Path(r['path']).resolve()
+            if path in seen:continue
+            seen.add(path)
+            restore_file(path.with_suffix(path.suffix+'.archive.json'))
     else:
         protected={Path(x).resolve() for x in manifest['protected_cache_paths']}
         for r in manifest['files']:
             assert Path(r['path']).resolve() not in protected
-            row=archive_file(r['path'],r['sha256']);print(json.dumps(row),flush=True)
+            row=archive_file(r['path'],r['sha256'],kind=r.get('kind','derived_visual_cache'));print(json.dumps(row),flush=True)
 
 
 if __name__=='__main__':main()
