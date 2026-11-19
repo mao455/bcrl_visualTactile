@@ -54,6 +54,39 @@ def videos():
         total+=source.stat().st_size
         selected.append(dict(category=category,role=case['role'],seed=case['spec']['seed'],
             success=result['success'],frames=frames,sha256=sha256(source),source=str(source),published=str(target)))
+    spec=importlib.util.spec_from_file_location('adaptive_capture_media',PUBLIC/'capture_media.py')
+    capture_media=importlib.util.module_from_spec(spec);spec.loader.exec_module(capture_media)
+    for round_index in (1,2):
+        records=read(PUBLIC/f'round{round_index:02d}/combined_analysis/records.json')
+        for role in 'AB':
+            # R1 choices were already inspected during collection. R2 chooses
+            # the first accepted own-role record, before any semantic viewing.
+            known={'A':'r10_A_layout10_train_28817000_transport',
+                   'B':'r10_B_layout10_train_28817004_contact'} if round_index==1 else {}
+            row=next(r for r in records if r['role']==role and r['accepted'] and
+                     (role not in known or r['case']==known[role]))
+            directory=Path(row['root'])/row['case']
+            folder=ROOT/'media'/(f'round01_{role}_'+('transport' if role=='A' else 'contact')
+                                if round_index==1 else f'round02_{role}_recovery')
+            if not (folder/'media.json').exists():capture_media.export(directory,folder)
+            receipt=read(folder/'media.json');result=read(directory/'result.json')
+            assert receipt['source_sha256']==result['dataset_capture']['sha256']
+            source=folder/'capture.mp4'
+            assert sha256(source)==receipt['video_sha256']
+            with av.open(str(source)) as movie:frames=sum(1 for _ in movie.decode(video=0))
+            assert frames==result['steps']
+            target=destination/(f'r{round_index}_expert_recovery_'+row['case']+'.mp4')
+            if target.exists():assert sha256(target)==sha256(source)
+            elif total+source.stat().st_size<45*2**20:shutil.copyfile(source,target)
+            else:target=source
+            total+=source.stat().st_size
+            sheet=destination/(f'r{round_index}_expert_recovery_'+row['case']+'.jpg')
+            shutil.copyfile(folder/'contact_sheet.jpg',sheet)
+            selected.append(dict(category=f'r{round_index}_expert_recovery',role=role,seed=row['seed'],
+                success=result['success'],expert_rescue=True,autonomous_success=False,
+                frames=frames,takeover_tick=row['takeover_tick'],sha256=sha256(source),
+                source=str(source),published=str(target),contact_sheet=str(sheet),
+                scope='Actual complete student prefix and real-state expert suffix; pre-action three-camera viewing derivative'))
     write(PUBLIC/'representative_videos.json',dict(rows=selected,selection='Chosen by recorded lost/gained/failed outcome; actual original videos, no repeated rollouts',
         all_selected_fully_decoded=True,semantic_manual_review_required=True))
     return selected
@@ -140,6 +173,15 @@ def generate():
     with table_path.open('w',newline='') as stream:
         writer=csv.DictWriter(stream,fieldnames=list(counts[0]));writer.writeheader();writer.writerows(counts)
     selected=videos()
+    links=[]
+    for row in selected:
+        video=Path(row['published'])
+        target=str(video.relative_to(PROJECT/'research_docs')) if video.is_relative_to(PROJECT/'research_docs') else str(video)
+        links.append([row['category'],row['role'],row['seed'],row['frames'],
+            '专家纠偏完成' if row.get('expert_rescue') else '自主成功' if row['success'] else '自主失败',
+            f"[实际视频]({target})"])
+    with (PROJECT/'research_docs/TIGHT_ADAPTIVE_DAGGER_20261119.md').open('a') as stream:
+        stream.write('\n'+mdtable(['类别','策略','seed','完整帧数','控制来源与结果','视频'],links)+'\n')
     write(PUBLIC/'final_report_receipt.json',dict(complete=True,rounds=2,training_components=8,
         all_selected_exposure_passed=True,final_test_opened_after_freeze=True,video_rows=len(selected),
         report_sha256=sha256(PROJECT/'research_docs/TIGHT_ADAPTIVE_DAGGER_20261119.md'),
