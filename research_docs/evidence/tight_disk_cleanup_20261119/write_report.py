@@ -6,7 +6,7 @@ read=lambda p:json.loads(p.read_text())
 def table(headers,rows):return '\n'.join(['| '+' | '.join(headers)+' |','|'+'|'.join(['---']*len(headers))+'|']+['| '+' | '.join(map(str,r))+' |' for r in rows])
 def csvout(path,rows):
  with path.open('w',newline='') as f:
-  w=csv.DictWriter(f,fieldnames=list(rows[0]));w.writeheader();w.writerows(rows)
+  w=csv.DictWriter(f,fieldnames=list(rows[0]),lineterminator="\n");w.writeheader();w.writerows(rows)
 def du(path):
  return [(name,int(n)) for line in path.read_text().splitlines() if '\t' in line for n,name in [line.split('\t',1)]]
 cleanup=read(E/'cleanup_result.json');manifest=read(E/'cleanup_manifest.json');before=read(E/'protected_and_rebuild_hashes.json');summary=read(E/'project_inventory_summary.json');fs=read(E/'filesystem_accounting.json');probe=read(E/'cache_rebuild_result.json')
