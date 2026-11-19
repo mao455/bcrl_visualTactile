@@ -21,3 +21,5 @@ python -m tools.tight_cache_archive restore --manifest research_docs/evidence/ti
 训练作业是一次性已登记身份，不能重复启动。故障后保留原job回执，以新owner attempt、相同根/截止/模型状态恢复。24小时总资源session为执行边界，不把deadline当曝光完成条件；未达标必须报告实际缺口和恢复入口。保留12GiB磁盘、10GiB RAM、4GiB VRAM余量，整卡full_gpu_v1，保护其他任务。
 
 完整四组件达到门槛之后，登记原训练8＋开发8、每family四完整策略（72A/B、新130A/B）共64自主机会；保持原生成功，hold30/60/120仅诊断。未开始闭环，不从历史分母拼接结果。预登记视频初态28817004、28826004；失败样本不删除。正式状态以后续真实checkpoint、逐步计数、结果回执为准。
+
+实际启动：tight-exposure50-20261119-01.service执行统一训练队列，finish服务在四组件训练全部完成并通过曝光重放门槛后才登记/执行64例评估；失败则保留并退出，不自动放宽门槛。136原始HDF5全SHA和A/B标签逐值检查通过。A-DP epoch3/update285实际断点计数与成功更新日志独立重放逐项相等，最低tick曝光3，尚不达标。全部状态仍以现场文件为准。
