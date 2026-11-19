@@ -67,8 +67,20 @@ def run():
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--existing-waiter',type=int,required=True)
+    p=argparse.ArgumentParser();p.add_argument('--existing-waiter',type=int)
+    p.add_argument('--continue-existing',action='store_true')
     a=p.parse_args();receipt=ROOT/'verified_boundary_handover.json'
+    if a.continue_existing:
+        assert a.existing_waiter is None and receipt.exists()
+        assert read(ROOT/'progress.json')['stage']=='train'
+        assert not (ROOT/'round01/evaluation').exists()
+        os.environ.setdefault('RESEARCH_CPUS','8-23')
+        try:run()
+        except BaseException as error:
+            write(ROOT/'round1_boundary_failure.json',dict(error=repr(error),utc=time.time(),coordinator='verified_boundary'))
+            raise
+        raise SystemExit(0)
+    assert a.existing_waiter is not None
     if receipt.exists():raise FileExistsError('Do not repeat a coordinator handover')
     process=psutil.Process(a.existing_waiter)
     assert process.cwd()==str(experiment.PROJECT)
