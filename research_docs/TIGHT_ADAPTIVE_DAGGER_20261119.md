@@ -13,3 +13,7 @@
 142项相关CPU检查通过（110项接管/历史/评估/统一入口与32项曝光/覆盖/B2）；真实4例计划准入验证完整父pair、训练family、原生10cm布局和无固定tick兜底。尚未证明本轮新纠偏或自主收益。
 
 [登记配置](../configs/experiments/adaptive_dagger/experiment.json)、[保护SHA](evidence/tight_adaptive_dagger_20261119_01/protected.json)、[历史逐例诊断](evidence/tight_adaptive_dagger_20261119_01/baseline_diagnosis.json)。后续仅以真实run的逐轮采集、训练曝光与自主结果更新本报告。
+
+## 首批中断与资源恢复（2026-11-20 00:10）
+
+初次Kit FileThread在环境构造前退出；recovery01完成环境初始化后，首4lane各仅40个学生tick时触发原10GiB RAM保护，无专家接管、无合法纠偏，均保留原始失败和不完整前缀。不得把这些前缀计入训练或成功率。恢复02改为2个同时采集lane、128MiB writer和视觉microbatch1；要求28GiB可用RAM才启动，四lane配对自主评估要求34GiB。原48小时截止和10GiB运行保护线不变，不干预其他任务。51项接管、队列、写入、曝光回归通过。

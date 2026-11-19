@@ -11,7 +11,7 @@
   ],
   "maximum_opportunities_per_round": 56,
   "minimum_per_student": 10,
-  "lanes": 4,
+  "lanes": 2,
   "training_seeds": [
     28817000,
     28817004,
@@ -47,7 +47,7 @@
   "backend_lr": 0.0001,
   "optimizer": "Fresh AdamW/DP EMA from each own parent; per-run restores full optimizer/RNG/exposure",
   "storage_policy": "No historical deletion; old raw and frozen caches linked; new round data cumulative",
-  "resources": "12GiB disk,10GiB RAM,4GiB VRAM reserve; simulation admission28GiB RAM/16GiB VRAM free",
+  "resources": "12GiB disk,10GiB RAM,4GiB VRAM reserve; capture requires28GiB available RAM, paired4lane evaluation34GiB",
   "session": {
     "resource_policy": "full_gpu_v1",
     "resources": {
@@ -150,5 +150,6 @@
       28838507
     ]
   },
-  "pre_execution_amendment_utc": 1795104183.9622452
+  "pre_execution_amendment_utc": 1795104183.9622452,
+  "resource_amendment_utc": 1795104723.7623942
 }

@@ -29,14 +29,14 @@ def session_at(path, session):
     return s
 
 
-def resource_wait(path, *, simulation=False):
+def resource_wait(path, *, simulation=False, lanes=4):
     import psutil
     s=read(ROOT/'session.json')
     while True:
         free=shutil.disk_usage(ROOT).free/2**30;ram=psutil.virtual_memory().available/2**30
         gpu=subprocess.check_output(['nvidia-smi','--query-gpu=memory.free','--format=csv,noheader,nounits'],text=True)
         vram=int(gpu.strip().splitlines()[0])
-        ready=free>=s['resources']['min_disk_gib']+4 and ram >= (24 if simulation else 16) and vram >= (16000 if simulation else 11000)
+        ready=free>=s['resources']['min_disk_gib']+4 and ram >= ((28 if lanes<=2 else 34) if simulation else 18) and vram >= (16000 if simulation else 11000)
         write(path/'resource_admission.json',dict(ready=ready,disk_gib=free,ram_gib=ram,vram_free_mib=vram,simulation=simulation,utc=time.time()))
         if ready:return
         if time.time()>=s['deadline']:raise TimeoutError('New experiment resource deadline')
@@ -53,7 +53,8 @@ def job(operation, name, stages):
 
 def execute(operation, name, stages, *, simulation=False):
     path,owner=job(operation,name,stages)
-    resource_wait(owner,simulation=simulation)
+    lanes = max((read(Path(stage['args'][stage['args'].index('--output')+1])/'plan.json')['batch']['lanes'] for stage in stages), default=4) if simulation else 0
+    resource_wait(owner,simulation=simulation,lanes=lanes)
     telemetry=ROOT/'shared_resources.json'
     if telemetry.is_symlink():telemetry.unlink()
     elif telemetry.exists():raise ValueError('Unexpected root telemetry file')
@@ -142,10 +143,10 @@ def prepare_collection(source, output, families, stages, round_index):
     from visuotactile.state_benchmark import dagger_configuration
     template=read(BASE/'evaluation/wave00/plan.json')
     ids=['layout10_train_'+str(seed) for seed in families]
-    prepare(source,output,lanes=min(4,len(ids)*2),identities=ids,delays=[0]*len(ids),
+    prepare(source,output,lanes=min(2,len(ids)*2),identities=ids,delays=[0]*len(ids),
             round_index=round_index,seed=28840000+round_index*100+families[0]%100,
             session_root=ROOT,execution_backend=template['execution_backend'],
-            writer_bytes=256<<20,vision_microbatch=2,verification_workers=0,capture_audit_memo=True,queued_gpu=True)
+            writer_bytes=128<<20,vision_microbatch=1,verification_workers=0,capture_audit_memo=True,queued_gpu=True)
     plan=read(output/'plan.json');plan['stage_takeover_contract']='layout_multistage_only_v1'
     for c in plan['cases']:
         index=ids.index(c['spec']['source_identity']);stage=stages[index]
@@ -167,9 +168,16 @@ def collect(source, round_index, schedule):
         output=destination/f'collection{index:02d}'
         suffix=''
         if output.exists():
-            assert round_index==1 and index==0 and not (output/'initialization.json').exists() and not list(output.rglob('numeric.h5'))
-            suffix='_recovery01';failed=output;output=destination/(output.name+suffix)
-            write(PUBLIC/'prephysics_recovery.json',dict(failed=str(failed),recovery=str(output),reason='Kit FileThread std::system_error Invalid argument before environment construction',original_deadline=read(ROOT/'session.json')['deadline'],physical_actions=0))
+            attempted=[output]+sorted(destination.glob(output.name+'_recovery*'))
+            assert round_index==1 and index==0
+            assert all(not (p/'result.json').exists() for p in attempted), 'Completed capture needs explicit resume, never retry'
+            assert all(not list(p.glob('*/result.json')) for p in attempted), 'Retain completed cases before resuming'
+            failed=attempted[-1];suffix=f'_recovery{len(attempted):02d}'
+            output=destination/(output.name+suffix)
+            write(PUBLIC/(output.name+'_recovery.json'),dict(failed=[str(p) for p in attempted],recovery=str(output),
+                reason='Prior attempts retained; reduce simultaneous capture lanes to2 and require28GiB available RAM',
+                original_deadline=read(ROOT/'session.json')['deadline'],prior_physical_prefixes_preserved=True,
+                previous_partial_prefixes_counted_as_training=False))
         plan=prepare_collection(source,output,families,stages,round_index*10+index)
         execute('dagger',f'r{round_index}_collection{index:02d}{suffix}',[dict(entry='dagger',args=['--output',str(output)])],simulation=True)
         result=read(output/'result.json');assert result['software_complete']
@@ -405,13 +413,17 @@ def schedule(round_index,previous=None):
     return result
 
 
-def run_cycle(*,recover_prephysics=False):
+def run_cycle(*,recover_prephysics=False,recover_resource=False):
     attempt='cycle'
     if (ROOT/'cycle_started.json').exists():
-        if not recover_prephysics:raise FileExistsError('Preserve attempted cycle; explicit recovery required')
-        assert (ROOT/'cycle_failure.json').exists() and not list((ROOT/'round01').rglob('numeric.h5'))
+        if not (recover_prephysics or recover_resource):raise FileExistsError('Preserve attempted cycle; explicit recovery required')
+        assert (ROOT/'cycle_failure.json').exists()
+        if not recover_resource:assert not list((ROOT/'round01').rglob('numeric.h5'))
+        else:
+            assert (ROOT/'cycle_recovery01_failure.json').exists()
+            assert not list((ROOT/'round01').glob('collection*/*/result.json'))
         assert read(ROOT/'progress.json')==read(ROOT/'progress.json') and read(ROOT/'progress.json')['stage']=='collect'
-        attempt='cycle_recovery01'
+        attempt='cycle_recovery02' if recover_resource else 'cycle_recovery01'
         assert not (ROOT/(attempt+'_started.json')).exists()
     write(ROOT/(attempt+'_started.json'),dict(pid=os.getpid(),utc=time.time(),source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),source_sha256=sources()))
     source=BASE;previous=None
@@ -442,12 +454,13 @@ def close_report():
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['initialize','diagnose','run','recover-prephysics','test-worker','audit'])
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['initialize','diagnose','run','recover-prephysics','recover-resource','test-worker','audit'])
     p.add_argument('--output',type=Path);p.add_argument('--round',type=int);a=p.parse_args()
     if a.mode=='initialize':initialize()
     elif a.mode=='diagnose':diagnose()
     elif a.mode=='run':run_cycle()
     elif a.mode=='recover-prephysics':run_cycle(recover_prephysics=True)
+    elif a.mode=='recover-resource':run_cycle(recover_resource=True)
     elif a.mode=='audit':audit_training(ROOT/f'round{a.round:02d}'/'learning',a.round)
     else:heldout_worker(a.output)
 
