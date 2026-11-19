@@ -33,3 +33,14 @@ def test_missing_parent_and_mask_changes_are_not_improvement():
     assert result == [] and missing[0]['missing_parent_trajectories'] == 1
     with pytest.raises(AssertionError, match='Mask population changed'):
         MODULE.compare([point('same', 3, 0)], [point('same', 2, 7)])
+
+
+def test_failed_expert_suffix_is_excluded_from_training_ticks():
+    records = [dict(role='A', stage='alignment', takeover_tick=120, takeover_phase=0,
+                    expert_rescue=True, accepted=True, legal_expert_ticks=50),
+               dict(role='B', stage='alignment', takeover_tick=241, takeover_phase=1,
+                    expert_rescue=False, accepted=False, legal_expert_ticks=80)]
+    row = MODULE.collection_stages(records)[0]
+    assert row['role'] == 'all' and row['takeovers'] == 2
+    assert row['expert_rescues'] == 1 and row['accepted_legal_ticks'] == 50
+    assert row['excluded_expert_ticks'] == 80 and row['planning_phases'] == '0,1'

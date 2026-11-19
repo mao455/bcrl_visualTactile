@@ -69,13 +69,14 @@ def generate():
         f"本轮从9417461接续，实验分支`feature/tight-adaptive-dagger-20261119`；run为`{ROOT}`。有限session截止保持原登记，最终模型于{time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(freeze['utc']))}冻结后才打开{len(freeze['seeds'])}个新终测初态。开发8曾反复使用；每轮新增开发8仍属于诊断人口，不能称为最终未见测试。",'']
     spec=importlib.util.spec_from_file_location('adaptive_quantitative',PUBLIC/'quantitative_report.py')
     quantitative=importlib.util.module_from_spec(spec);spec.loader.exec_module(quantitative)
-    collection=[];training=[];counts=[];changes=[];fit=[];offline=[];failures=[]
+    collection=[];training=[];counts=[];changes=[];fit=[];offline=[];failures=[];stages=[]
     for round_index in (1,2):
         public=PUBLIC/f'round{round_index:02d}'
         quantitative.export(round_index)
         summary=read(public/'quantitative_summary.json')
         fit.extend([dict(round=round_index,**r) for r in summary['training']])
         failures.extend([dict(round=round_index,**r) for r in summary['failure_stages']])
+        stages.extend([dict(round=round_index,**r) for r in summary['collection_stages']])
         offline.extend([dict(round=round_index,comparison='same-record offline',**r) for r in summary['shared_parent_comparisons']])
         offline.extend([dict(round=round_index,comparison='captured parent / different noise',**r) for r in summary['captured_parent_comparisons']])
         for row in read(public/'collection_summary.json')['table']:
@@ -98,6 +99,9 @@ def generate():
     report += ['## 实际采集','',mdtable(['轮次','学生','完整机会','真实接管','合法纠偏','专家救回','新增合法tick','验收阶段'],collection),'',
         '专家救回不计学生自主成功。未触发、非法或软件未闭合机会分别保留原回执，不混作专家救回失败；完整有效机会的分母包含其所有失败。原资源中断和CPU准入恢复各有独立记录，未把重复日志、未提交优化或失败前缀算作新增训练曝光。阶段之间没有随机化对照。','',
         'Round 1以接触停滞、搬运、对准停滞和支撑不稳分层；Round 2使用第一轮新完整学生，按其真实训练family失败、旧成功丢失和实际可达阶段分别给A/B分配事件屏幕，额外关注原生子目标之后。无固定时刻回退、reset或理想中间状态瞬移；两条R1较晚专家未救回记录支持更早屏幕候选，不证明更早必能救回。','',
+        mdtable(['轮次','接管屏幕','完整机会','接管','专家救回','合法纠偏','训练合法tick','排除专家tick','接管tick 最小/中位/最大'],
+            [[r['round'],r['stage'],r['opportunities'],r['takeovers'],r['expert_rescues'],r['accepted'],r['accepted_legal_ticks'],r['excluded_expert_ticks'],
+              f"{r['takeover_min']}/{r['takeover_median']}/{r['takeover_max']}"] for r in stages if r['role']=='all']),'',
         '## 四组件训练验收','',mdtable(['轮次','组件','完成epoch','选中epoch','实际更新','选中更新','最低访问','最低tick不同步','达标'],training),'',
         '各轮每条轨迹与合法expert tick只计算该轮新提交的optimizer事务，祖先不计，同一步重叠窗口取并集。DP从实际anchor与原mask独立重算；两个后端从原始合法mask、seeded重复deck及32tick/128合法tick窗口独立重建，逐条与提交日志核对。未达50次的早期验证最优无选模资格。曝光是正权loss参与，不保证非零梯度或技能保持。','',
         'A保留q_reached及原几何项，B保留u_expert；各自DP先完成，再按实际选中DP重新生成对应nominal缓存。完整学生前缀继续作为因果历史，只有洁净专家后缀参与监督。原30归一化不变，原示范每deck三访，其他合法轨迹一访。每轮fresh AdamW，DP重建EMA；同轮中断恢复应完整保留optimizer/RNG/曝光，原失败回执不覆盖。','',

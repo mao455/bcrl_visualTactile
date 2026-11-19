@@ -9,6 +9,7 @@ import collections
 import csv
 import math
 from pathlib import Path
+import statistics
 
 from tools.tight_adaptive_dagger import PUBLIC, read, write
 from visuotactile.compact import sha256
@@ -73,6 +74,29 @@ def save(path, values):
         writer.writerows(values)
 
 
+def collection_stages(records):
+    result = []
+    for role in ('all', 'A', 'B'):
+        for stage in sorted({r['stage'] for r in records}):
+            subset = [r for r in records if r['stage'] == stage and
+                      (role == 'all' or r['role'] == role)]
+            if not subset:
+                continue
+            taken = [r for r in subset if r['takeover_tick'] is not None]
+            ticks = [r['takeover_tick'] for r in taken]
+            phases = ','.join(map(str, sorted({r['takeover_phase'] for r in taken})))
+            result.append(dict(role=role, stage=stage, opportunities=len(subset),
+                takeovers=len(taken), expert_rescues=sum(r['expert_rescue'] for r in taken),
+                accepted=sum(r['accepted'] for r in subset),
+                accepted_legal_ticks=sum(r['legal_expert_ticks'] for r in subset if r['accepted']),
+                excluded_expert_ticks=sum(r['legal_expert_ticks'] for r in subset if not r['accepted']),
+                takeover_min=min(ticks) if ticks else None,
+                takeover_median=statistics.median(ticks) if ticks else None,
+                takeover_max=max(ticks) if ticks else None,
+                planning_phases=phases))
+    return result
+
+
 def export(round_index):
     public = PUBLIC / f'round{round_index:02d}'
     assert read(public / 'offline/scope.json')['complete']
@@ -120,9 +144,12 @@ def export(round_index):
             **{stage: stages[stage] for stage in
                ('success', 'before_lift', 'after_lift', 'after_first_subgoal')}))
     save(public / 'evaluation/failure_stages.csv', failed)
+    stages = collection_stages(read(public / 'combined_analysis/records.json'))
+    save(public / 'collection_stage_comparison.csv', stages)
     write(public / 'quantitative_summary.json', dict(round=round_index,
         shared_parent_comparisons=compared, missing_parent_populations=missing,
         captured_parent_comparisons=captured, training=training, failure_stages=failed,
+        collection_stages=stages,
         source_sha256={str(p): sha256(p) for p in (current_path, parent_path, captured_path)},
         scope='Read-only evidence aggregation; exact identity/tick count joins; tick-weighted RMSE; no updates or rollouts',
         captured_parent_limitation='Own-role captured parent only; online noise7093 versus offline7091; descriptive, not exact matched-noise effect',

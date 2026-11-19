@@ -58,7 +58,8 @@ A-DP随后实际完成60轮/6,600次本轮新更新，墙钟14,220秒；最终�
 - `round01/learning_registration.json`：159共同池、原统计不变及四组件曝光门。
 - `round01/partial_A_dp_audit.json`：早期durable checkpoint独立逐tick核验，明确未达标。
 - `round01/selected_A_dp_audit.json`：A-DP实际选中52轮检查点的独立逐tick与逐访问重建，最低52/52。
-- `quantitative_report.py`：完成后按相同identity、阶段及合法tick人口汇总父/新离线误差，分开保留噪声不同的采集父预测；额外输出达标后验证变化和失败阶段计数。对应人口变化、tick加权回归及R2策略隔离共4项检查通过。
+- `quantitative_report.py`：完成后按相同identity、阶段及合法tick人口汇总父/新离线误差，分开保留噪声不同的采集父预测；额外输出达标后验证变化和失败阶段计数。对应人口变化、tick加权回归、失败专家tick排除及R2策略隔离共5项检查通过。
+- `round01/collection_stage_comparison.csv`：按学生和事件屏幕分组的接管时刻、规划相位与合法监督；对准/支撑不稳验收tick分别979/958，另有358/434失败专家tick排除，未与训练4855混算。
 - `round01/shadow_diagnosis/`：完整学生前缀与实际shadow专家mapper命令的原始/可达跨度归一化差异、阶段统计及解释限制。
 - `audit_backend_masks.py`、`backend_mask_replay_smoke.json`：从原始mask与seeded完整deck重建后端每次窗口提交，历史父A实际验收通过；不增加本轮训练曝光。
 - `baseline_offline/{summary,per_episode}.csv`：父完整模型的全量真实历史离线误差，0CUDA，A/B各自目标空间解释。
