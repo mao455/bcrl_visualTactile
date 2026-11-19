@@ -1,6 +1,7 @@
 """Render only completed, audited results; never launches training or physics."""
 import collections
 import csv
+import importlib.util
 import json
 from pathlib import Path
 import shutil
@@ -66,9 +67,17 @@ def generate():
     report=['# Tight-Insertion：两轮自适应DAgger、充分曝光与完整闭环结果','',
         '两轮实际采集、四组件训练、独立曝光验收、闭环诊断与最终新初态测试均已完成。所有失败、旧合法数据与必要checkpoint保留；没有自动晋升，也没有改变encoder、网络、控制器、任务初态分布或原生成功判据。','',
         f"本轮从9417461接续，实验分支`feature/tight-adaptive-dagger-20261119`；run为`{ROOT}`。有限session截止保持原登记，最终模型于{time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(freeze['utc']))}冻结后才打开{len(freeze['seeds'])}个新终测初态。开发8曾反复使用；每轮新增开发8仍属于诊断人口，不能称为最终未见测试。",'']
-    collection=[];training=[];counts=[];changes=[]
+    spec=importlib.util.spec_from_file_location('adaptive_quantitative',PUBLIC/'quantitative_report.py')
+    quantitative=importlib.util.module_from_spec(spec);spec.loader.exec_module(quantitative)
+    collection=[];training=[];counts=[];changes=[];fit=[];offline=[];failures=[]
     for round_index in (1,2):
         public=PUBLIC/f'round{round_index:02d}'
+        quantitative.export(round_index)
+        summary=read(public/'quantitative_summary.json')
+        fit.extend([dict(round=round_index,**r) for r in summary['training']])
+        failures.extend([dict(round=round_index,**r) for r in summary['failure_stages']])
+        offline.extend([dict(round=round_index,comparison='same-record offline',**r) for r in summary['shared_parent_comparisons']])
+        offline.extend([dict(round=round_index,comparison='captured parent / different noise',**r) for r in summary['captured_parent_comparisons']])
         for row in read(public/'collection_summary.json')['table']:
             collection.append([round_index,row['role'],row['attempts'],row['expert_takeovers'],row['accepted'],row['expert_success'],row['legal_ticks'],json.dumps(row['stage_accepted'],ensure_ascii=False)])
         for component in read(public/'training_completion.json')['components']:
@@ -103,8 +112,18 @@ def generate():
                 retaining.append([round_index,role,cohort,sum(r['retained'] for r in rr),sum(r['lost'] for r in rr),sum(r['gained'] for r in rr)])
     report += [mdtable(['轮次','角色','初态组','保留旧成功','丢失旧成功','新增成功'],retaining),'',
         '逐初态完整变化见每轮`evaluation/paired_changes.csv`，命令与物体几何首次分叉见`evaluation/forks.csv`；分叉先后不能单独识别首次有害错误或反事实专家因果。小样本计数不作为显著性证明。','',
+        mdtable(['轮次','初态组','完整策略','例数','成功','抬升前失败','抬升后/首子目标前失败','首子目标后失败'],
+            [[r['round'],r['cohort'],r['model'],r['opportunities'],r['success'],r['before_lift'],r['after_lift'],r['after_first_subgoal']] for r in failures]),'',
         '## 离线拟合、控制反馈与解释边界','',
         '每轮`offline/per_episode.csv`给出完整记录历史上DP自身目标、DP对专家命令、anchor、correction和最终命令误差，分原30、历史纠偏、本轮纠偏及validation6，并列first24和物理阶段。训练曲线中的train2是固定诊断子集，不是全池均值；A/B的DP目标不同，不直接横比DP数值。在线父策略完整shadow预测与离线采样噪声不完全相同，不能将其差直接当精确匹配训练收益。','',
+        mdtable(['轮次','组件','首轮验证','首个达标验证','选中验证','最后验证','达标→末轮验证变化'],
+            [[r['round'],r['model'],f"{r['first_validation']:.6g}",f"{r['first_eligible_validation']:.6g}",f"{r['selected_validation']:.6g}",f"{r['last_validation']:.6g}",f"{r['eligible_to_last_validation_change_percent']:+.2f}%"] for r in fit]),'',
+        '下面离线比较只连接相同角色、轨迹identity、物理阶段和组件，要求合法tick数相等，按全部tick及关节数汇总平方误差；负百分比表示误差下降。当前轮新增纠偏的父预测来自真实采集记录，父在线7093与新模型离线7091噪声不同，仅作描述性拟合比较；表中与共享旧池离线比较分别标明。完整阶段、first24和缺失父测量人口见`quantitative_summary.json`及`offline/*parent_comparison.csv`。','',
+        mdtable(['轮次','角色','人口','组件','父预测来源','轨迹/tick','arm RMSE 父→新(rad)','hand RMSE 父→新(rad)','arm/hand变化'],
+            [[r['round'],r['role'],r['cohort'],r['component'],r['comparison'],f"{r['trajectories']}/{r['ticks']}",
+              f"{r['parent_arm_rmse_rad']:.6g}→{r['new_arm_rmse_rad']:.6g}",f"{r['parent_hand_rmse_rad']:.6g}→{r['new_hand_rmse_rad']:.6g}",
+              '/'.join('n/a' if r[p+'_relative_change_percent'] is None else f"{r[p+'_relative_change_percent']:+.2f}%" for p in ('arm','hand'))]
+             for r in offline if r['stage']=='legal' and r['component'] in ('dp_own_target','final')]),'',
         '执行审计分开统计策略提议关节裁剪、可达投影、物理执行器裁剪、关节跟踪及历史衔接；实际命令须满足原1e-6 rad数值容差。相机/触觉时钟检查严格不读未来，命令和反馈连续性检查通过也不能排除所有潜变量或感知限制。成功与失败中的频繁投影不是控制故障的充分证据，跟踪误差亦不是专家命令监督误差。','',
         '至少50次监督已满足，可排除该轮所核验的最低曝光缺口；不能仅由epoch数排除欠拟合。训练/验证曲线、全池误差与自主成功应共同解释。专家在某些晚期状态不能救回、纠偏分布覆盖、组合策略拟合/反馈与感知读出都可能限制恢复；本实验没有隔离encoder单因果作用，任何encoder改造只能作为后续受门槛对照建议，未自动执行。','',
         '## 证据、视频与复现','',

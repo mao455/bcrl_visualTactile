@@ -2,7 +2,7 @@
 
 本轮接续用户指定的 `9417461`，独立实验分支 `feature/tight-adaptive-dagger-20261119`，源码工作树位于主目录 `outputs/experiments/tight_adaptive_dagger_20261119/source/bc+rl_RSS`。主工作区和另一会话的文档整理保持隔离。实际run为 `outputs/visuotactile/run/tight_adaptive_dagger_20261119_01`，原有限session截止不变。本文只记录本轮，未改README或历史研究报告。
 
-**尚未完成训练与闭环验证，当前没有新的学生自主收益结论。** Round 1采集已经闭合，A-DP正在运行；四组件的最终选中checkpoint必须各自通过本轮新增逐轨≥50访问、逐合法tick≥50不同已提交optimizer step的独立重建。父模型曝光不补本轮计数，未达标的早期验证最优不能入选。
+**尚未完成四组件训练与闭环验证，当前没有新的学生自主收益结论。** Round 1采集已经闭合，A-DP完成，B-DP训练中；四组件的最终选中checkpoint必须各自通过本轮新增逐轨≥50访问、逐合法tick≥50不同已提交optimizer step的独立重建。父模型曝光不补本轮计数，未达标的早期验证最优不能入选。
 
 ## Round 1：采集与数据准入
 
@@ -27,6 +27,8 @@ A在family28817010的对准接管241 tick后未完成；B在family28817023的第
 对A-DP durable epoch2/update220已独立从实际selected anchors与原始mask重算全部逐步贡献，ledger和轨迹访问完全一致：159条/32,363个合法tick，本轮最低轨迹访问2、tick不同更新2，**未达50、不可选中**。该核验只有CPU、0额外策略更新。
 
 11月20日05:10附近，A-DP durable epoch50/update5500已完成同样的完整独立重建：159条轨迹和32,363个合法tick，最低访问50、tick不同已提交步50，零tick/轨迹低于50，日志逐项相等，祖先不计，完整optimizer存在。它是首个通过门槛的中间断点，尚不是最终四组件验收；A仍继续预登记60轮。回执`round01/threshold50_A_dp_audit.json`保留原早期2轮未达标结果。
+
+A-DP随后实际完成60轮/6,600次本轮新更新，墙钟14,220秒；最终验证选中52轮/5,720次更新，SHA `5df541a70b9eab75800fe3ae9cae4700290fbc557605f4f5497523e9d98fa446`。该实际选中完整checkpoint已重新从原始mask和实际anchors独立重建：159轨/32,363合法tick，最低本轮访问52、tick不同已提交步52，零低于50，日志和ledger完全一致，optimizer存在（`round01/selected_A_dp_audit.json`）。停止标记出现在完整60轮后，不能解释为提前平台停止；B-DP及两后端仍须各自验收。
 
 另补后端独立验收器，从原始HDF5合法mask、seeded重复deck、microbatch4及32tick/128合法tick窗口重建每次真实optimizer提交，不仅重放训练自己报告的贡献集合。已在父A后端实际选中50/16174上核验：130轨/27,508合法tick，全部日志逐项一致，最低访问/tick步骤50/50；这只是验收程序的真实历史检查，不能算本轮新曝光。正式本轮组件仍须分别通过。
 
@@ -55,6 +57,8 @@ A在family28817010的对准接管241 tick后未完成；B在family28817023的第
 - `round01/combined_analysis/{records,summary}.json`：逐机会控制相位、mask、真实反馈、持物诊断及失败；路径相对同一证据根。
 - `round01/learning_registration.json`：159共同池、原统计不变及四组件曝光门。
 - `round01/partial_A_dp_audit.json`：早期durable checkpoint独立逐tick核验，明确未达标。
+- `round01/selected_A_dp_audit.json`：A-DP实际选中52轮检查点的独立逐tick与逐访问重建，最低52/52。
+- `quantitative_report.py`：完成后按相同identity、阶段及合法tick人口汇总父/新离线误差，分开保留噪声不同的采集父预测；额外输出达标后验证变化和失败阶段计数。对应人口变化、tick加权回归及R2策略隔离共4项检查通过。
 - `round01/shadow_diagnosis/`：完整学生前缀与实际shadow专家mapper命令的原始/可达跨度归一化差异、阶段统计及解释限制。
 - `audit_backend_masks.py`、`backend_mask_replay_smoke.json`：从原始mask与seeded完整deck重建后端每次窗口提交，历史父A实际验收通过；不增加本轮训练曝光。
 - `baseline_offline/{summary,per_episode}.csv`：父完整模型的全量真实历史离线误差，0CUDA，A/B各自目标空间解释。
