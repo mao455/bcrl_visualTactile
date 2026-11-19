@@ -75,3 +75,35 @@ def test_no_stage_no_fallback_and_malformed_profiles_rejected():
     with pytest.raises(ValueError):validate_trigger(profile('contact'),240)
     bad=profile('contact');bad['earliest_contact_tick']=60
     with pytest.raises(ValueError):validate_trigger(bad,10**9)
+
+
+@pytest.mark.parametrize('stage', ['contact','transport','alignment','instability','post_subgoal'])
+def test_actual_trigger_audit_category_matches_admission_classifier(stage):
+    from tools.tight_fresh_stage_takeover import classify
+    receipt=dict(configuration=profile(stage),trigger_completed_tick=109)
+    audit=dict(receipt=receipt,actual_switch_tick=109,category='student_adaptive_then_takeover')
+    result=dict(legal=True,software_complete=True,dagger=dict(expert_takeover_success=True))
+    assert classify(result,audit)=='expert_rescue_after_adaptive'
+    audit['category']='student_observable_regression_then_takeover'
+    with pytest.raises(ValueError,match='registered causal'):classify(result,audit)
+
+
+def test_saved_record_audit_and_classifier_share_adaptive_category(tmp_path,monkeypatch):
+    import h5py
+    from types import SimpleNamespace
+    from tools.tight_fresh_report import audit_trigger_case
+    from tools.tight_fresh_stage_takeover import classify
+    import visuotactile.takeover_trigger as trigger_module
+    receipt=dict(configuration=profile('contact'),trigger_completed_tick=109)
+    trigger=SimpleNamespace(scheduled_tick=109,receipt=lambda:receipt)
+    monkeypatch.setattr(trigger_module,'make_trigger',lambda *args:trigger)
+    monkeypatch.setattr(trigger_module,'observe_transition',lambda *args,**kwargs:None)
+    with h5py.File(tmp_path/'numeric.h5','x') as stream:
+        stream.create_dataset('episode/transition/dagger/control_source',data=[0]*109+[1]*4)
+    result=dict(legal=True,software_complete=True,dagger=dict(expert_takeover_success=True,
+        configuration=dict(trigger=profile('contact'),takeover_tick=10**9),
+        trigger_receipt=receipt,recovery_coverage=dict(switch_tick=109)))
+    audit=audit_trigger_case(tmp_path,result)
+    assert classify(result,audit)=='expert_rescue_after_adaptive'
+    audit['category']='student_adaptive_then_takeover';audit['actual_switch_tick']=108
+    with pytest.raises(ValueError,match='registered causal'):classify(result,audit)

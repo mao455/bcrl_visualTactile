@@ -167,7 +167,16 @@ def collect(source, round_index, schedule):
     for index,(families,stages) in enumerate(schedule):
         output=destination/f'collection{index:02d}'
         suffix=''
-        if output.exists():
+        resume=read(ROOT/'collection_resume.json') if (ROOT/'collection_resume.json').exists() else {}
+        recovered=resume.get(f'r{round_index}_collection{index:02d}')
+        if recovered:
+            output=Path(recovered['root'])
+            assert sha256(output/'result.json')==recovered['result_sha256']
+            plan=read(output/'plan.json')
+            for role in 'AB':
+                parent=completed_pair(source,role)
+                assert all(plan['pairs'][role][key]==parent[key] for key in ('frontend_sha256','backend_sha256'))
+        elif output.exists():
             attempted=[output]+sorted(destination.glob(output.name+'_recovery*'))
             assert round_index==1 and index==0
             assert all(not (p/'result.json').exists() for p in attempted), 'Completed capture needs explicit resume, never retry'
@@ -178,8 +187,9 @@ def collect(source, round_index, schedule):
                 reason='Prior attempts retained; reduce simultaneous capture lanes to2 and require28GiB available RAM',
                 original_deadline=read(ROOT/'session.json')['deadline'],prior_physical_prefixes_preserved=True,
                 previous_partial_prefixes_counted_as_training=False))
-        plan=prepare_collection(source,output,families,stages,round_index*10+index)
-        execute('dagger',f'r{round_index}_collection{index:02d}{suffix}',[dict(entry='dagger',args=['--output',str(output)])],simulation=True)
+        if not recovered:
+            plan=prepare_collection(source,output,families,stages,round_index*10+index)
+            execute('dagger',f'r{round_index}_collection{index:02d}{suffix}',[dict(entry='dagger',args=['--output',str(output)])],simulation=True)
         result=read(output/'result.json');assert result['software_complete']
         new=read(output/'correction_entries.json');assert not set(new)&set(entries)
         entries.update(new);allrows.extend(read(output/'results.json'));allcases.extend(plan['cases']);batches.append(str(output))
@@ -413,17 +423,65 @@ def schedule(round_index,previous=None):
     return result
 
 
-def run_cycle(*,recover_prephysics=False,recover_resource=False):
+def recover_closed_admission():
+    """Re-admit all eight closed records in a new namespace, with no physics."""
+    from tools.tight_fresh_batch_run import admit_capture
+    from visuotactile.state_benchmark import DaggerCaptureAuditMemo
+    old=ROOT/'round01/collection00_recovery02';output=ROOT/'round01/collection00_recovery03'
+    assert (ROOT/'cycle_recovery02_failure.json').exists()
+    assert not output.exists() and time.time()<read(ROOT/'session.json')['deadline']
+    plan=read(old/'plan.json');assert len(plan['cases'])==8
+    for case in plan['cases']:
+        result=read(old/case['name']/'result.json')
+        assert result['software_complete'] and result['legal'] and (old/case['name']/'capture_complete.json').exists()
+    output.mkdir();started=time.time();bindings={}
+    for name in ('plan.json','session.json'):bindings[name]=sha256(old/name)
+    for case in plan['cases']:
+        original=old/case['name'];directory=output/case['name'];directory.mkdir()
+        for path in original.iterdir():
+            if path.name in ('result_before_admission.json','capture_audit.json'):continue
+            if path.is_file() and path.suffix=='.json':shutil.copy2(path,directory/path.name)
+            else:(directory/path.name).symlink_to(path,target_is_directory=path.is_dir())
+        for name in ('result.json','numeric.h5','trace.npz','capture_complete.json'):
+            bindings[case['name']+'/'+name]=sha256(original/name)
+    write(output/'session.json',read(ROOT/'session.json'))
+    plan.update(source_sha256=sources(),source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+        closed_execution_source=dict(root=str(old),files=bindings),
+        recovery_scope='CPU admission only; all eight original closed physical opportunities retained; zero repeated rollouts')
+    write(output/'plan.json',plan)
+    entries={};rows=[];memo=DaggerCaptureAuditMemo()
+    for case in plan['cases']:
+        result=read(output/case['name']/'result.json')
+        admit_capture(output,case,result,plan['pairs'][case['role']],plan,entries,audit_memo=memo)
+        rows.append(dict(role=case['role'],case=case['name'],result=result,
+            timing=dict(interpretation='Original physical execution; CPU admission recovered without repeating rollout')))
+        write(output/'results.json',rows);write(output/'capture_audit_memo.json',memo.statistics())
+    assert all(sha256(old/name)==digest for name,digest in bindings.items())
+    elapsed=read(ROOT/'cycle_recovery02_failure.json')['utc']-read(old/'run_started.json')['utc']+time.time()-started
+    write(output/'result.json',dict(software_complete=True,worker_error=None,cases=len(rows),
+        accepted_training_trajectories=len(entries),elapsed_seconds=elapsed,utc=time.time(),
+        recovered_closed_execution=True,new_physical_opportunities=0,cpu_admission_seconds=time.time()-started))
+    pointer=dict(root=str(output),result_sha256=sha256(output/'result.json'),original_execution=str(old))
+    write(ROOT/'collection_resume.json',dict(r1_collection00=pointer))
+    write(PUBLIC/'closed_admission_recovery.json',dict(**pointer,original_files=bindings,passed=True,
+        failure='Adaptive audit category was incorrectly reported as observable_regression rather than adaptive',
+        masks_controls_success_unchanged=True,original_deadline=read(ROOT/'session.json')['deadline']))
+
+
+def run_cycle(*,recover_prephysics=False,recover_resource=False,recover_admission=False):
     attempt='cycle'
     if (ROOT/'cycle_started.json').exists():
-        if not (recover_prephysics or recover_resource):raise FileExistsError('Preserve attempted cycle; explicit recovery required')
+        if not (recover_prephysics or recover_resource or recover_admission):raise FileExistsError('Preserve attempted cycle; explicit recovery required')
         assert (ROOT/'cycle_failure.json').exists()
-        if not recover_resource:assert not list((ROOT/'round01').rglob('numeric.h5'))
+        if recover_admission:
+            assert read(ROOT/'collection_resume.json')['r1_collection00']['root']
+            assert (ROOT/'cycle_recovery02_failure.json').exists()
+        elif not recover_resource:assert not list((ROOT/'round01').rglob('numeric.h5'))
         else:
             assert (ROOT/'cycle_recovery01_failure.json').exists()
             assert not list((ROOT/'round01').glob('collection*/*/result.json'))
         assert read(ROOT/'progress.json')==read(ROOT/'progress.json') and read(ROOT/'progress.json')['stage']=='collect'
-        attempt='cycle_recovery02' if recover_resource else 'cycle_recovery01'
+        attempt='cycle_recovery03' if recover_admission else 'cycle_recovery02' if recover_resource else 'cycle_recovery01'
         assert not (ROOT/(attempt+'_started.json')).exists()
     write(ROOT/(attempt+'_started.json'),dict(pid=os.getpid(),utc=time.time(),source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),source_sha256=sources()))
     source=BASE;previous=None
@@ -454,13 +512,15 @@ def close_report():
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['initialize','diagnose','run','recover-prephysics','recover-resource','test-worker','audit'])
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['initialize','diagnose','run','recover-prephysics','recover-resource','recover-admission','test-worker','audit'])
     p.add_argument('--output',type=Path);p.add_argument('--round',type=int);a=p.parse_args()
     if a.mode=='initialize':initialize()
     elif a.mode=='diagnose':diagnose()
     elif a.mode=='run':run_cycle()
     elif a.mode=='recover-prephysics':run_cycle(recover_prephysics=True)
     elif a.mode=='recover-resource':run_cycle(recover_resource=True)
+    elif a.mode=='recover-admission':
+        recover_closed_admission();run_cycle(recover_admission=True)
     elif a.mode=='audit':audit_training(ROOT/f'round{a.round:02d}'/'learning',a.round)
     else:heldout_worker(a.output)
 
