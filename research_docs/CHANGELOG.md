@@ -2256,3 +2256,8 @@ Monitor retained a222.09s shared-log gap06:32:07–06:35:49 across the documente
 归因释放85.988GiB；删除紧前2.468GiB→结束88.316GiB，净增85.848GiB，与归因差异来自并发写入/元数据。后续训练和64例评估保守20GiB，加原12GiB保护线，当前余量足够；外部写入仍可能消耗空间。历史checkpoint约99.8GiB属于待确认，未删；其他主要项目grasp_small_obj约454GiB、DexAssemble-sharpa约137GiB，只读统计。
 
 原恢复监督PID316280在清理期间仅SIGSTOP防止过32GiB提前启动；验收完成17:34已SIGCONT同一进程，统一A-DP worker356879真实启动，原60轮计划和11月20日11:24截止不变。没有新建第二训练任务。收尾核验已观察到A-DP正在执行第54轮（batch18/95）、累计5053次更新；第54轮尚未完成，原服务active/running且当前attempt无失败回执；证明恢复后已实际推进，仍不代表四组件完成。回执见evidence/tight_disk_cleanup_20261119/recovery_final_check.json。本轮范围只解决磁盘，无训练方案/架构/配置修改。详情TIGHT_DISK_CLEANUP_20261119.md及evidence/tight_disk_cleanup_20261119。当前无需批准额外删除。
+
+
+## 2026-11-19 23:38 — 四组件训练及64例闭环完成，发布审阅
+
+A/B DP各60轮5700更新，后端各60轮19422更新。选中A-DP51/4845、B-DP58/5510、A后端50/16174、B后端51/16504，最低新增访问/tick步51、58、50、51，130轨/27508合法tick全达标，祖先不计。64例全完成：训练/开发A72=2/8、0/8，新A=2/8、3/8；B72=0/8、2/8，新B=2/8、2/8。A/B各保留1、丢失1旧成功，新增4/3；不自动晋升。48可观测初态配对通过，不主张隐藏物理状态完全一致。8视频完整解码，13保护SHA通过，28 CPU回归通过。22:35监督链正常结束、评测子进程回收，不自动新训/重跑。完整报告TIGHT_EXPOSURE50_TRAINING_20261119.md及evidence/tight_exposure50_20261119_01。原始数据/大checkpoint留本机，配置、曲线、逐例结果和小视频发布。
