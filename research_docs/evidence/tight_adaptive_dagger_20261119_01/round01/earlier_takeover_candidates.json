@@ -1,0 +1,28 @@
+{
+  "candidates": [
+    {
+      "case": "r10_A_layout10_train_28817004_contact",
+      "actual_takeover": null,
+      "screens": {
+        "contact": null,
+        "transport": 110,
+        "alignment": null,
+        "instability": 141,
+        "post_subgoal": 223
+      }
+    },
+    {
+      "case": "r12_A_layout10_train_28817010_alignment",
+      "actual_takeover": 241,
+      "screens": {
+        "contact": 103,
+        "transport": 127,
+        "alignment": 241,
+        "instability": 136,
+        "post_subgoal": null
+      }
+    }
+  ],
+  "interpretation": "Lost training success A28817004 has no contact-stall trigger, but instability141/post-subgoal223; failed alignment A28817010 could trigger transport127/instability136 instead of actual241. All are replay screens on observed student prefixes, not executed expert recoveries.",
+  "future_action": "After Round1 closed-loop diagnosis, assign distinct role-specific stages to these training families; do not use lost development B28826000 for collection."
+}
