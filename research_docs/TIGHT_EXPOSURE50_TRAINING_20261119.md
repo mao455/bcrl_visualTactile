@@ -23,3 +23,5 @@ python -m tools.tight_cache_archive restore --manifest research_docs/evidence/ti
 完整四组件达到门槛之后，登记原训练8＋开发8、每family四完整策略（72A/B、新130A/B）共64自主机会；保持原生成功，hold30/60/120仅诊断。未开始闭环，不从历史分母拼接结果。预登记视频初态28817004、28826004；失败样本不删除。正式状态以后续真实checkpoint、逐步计数、结果回执为准。
 
 实际启动：tight-exposure50-20261119-01.service执行统一训练队列，finish服务在四组件训练全部完成并通过曝光重放门槛后才登记/执行64例评估；失败则保留并退出，不自动放宽门槛。136原始HDF5全SHA和A/B标签逐值检查通过。A-DP epoch3/update285实际断点计数与成功更新日志独立重放逐项相等，最低tick曝光3，尚不达标。全部状态仍以现场文件为准。
+
+独立验收进一步从实际selected_anchors及原始segment/mask重新计算每次DP监督集合，并重算轨迹访问。实际epoch5/update475完全相等（最低5，未达标）；72A/B各一个真实验证记录的完整后端离线接口通过，CUDA未初始化。证据见analysis_preflight.json。此核验不计入训练或新闭环试次。

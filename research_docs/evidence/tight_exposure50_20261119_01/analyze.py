@@ -36,17 +36,31 @@ def training():
     assert selected['updates']==state['updates']
     # Independent reconstruction from successful optimizer transaction receipts.
     replay=Ledger(state['legal']);log=folder/('learning.jsonl' if component=='DP' else 'loss.jsonl')
+    visit_replay=collections.Counter()
+    if component=='DP':
+     from visuotactile.native_data import visual_records
+     from visuotactile.effective_exposure import dp_ticks
+     contract=read(root/role/'continuation.json').get('target_window_contract')
+     records=visual_records(root/role/'state_data',list(state['legal']),'G00',target_window_contract=contract)
     with log.open() as f:
      for line in f:
       r=json.loads(line);update=r['updates' if component=='DP' else 'update']
       if update>selected['updates']:break
+      if component=='DP':
+       actual=collections.defaultdict(set)
+       for visit in r['visits']:
+        identity=visit['episode'];visit_replay[identity]+=1
+        actual[identity].update(dp_ticks(records[identity],visit['anchor_sampling']['selected_anchors']))
+       assert {i:sorted(t) for i,t in actual.items()}==r['effective_tick_contributions']
       replay.step(update,list(r['effective_tick_contributions'].items()))
     for i in ledger.legal:assert torch.equal(ledger.counts[i],replay.counts[i])
+    if component=='DP':assert dict(visit_replay)==counts
     name=role+'-'+component
     summary.append(dict(model=name,actual_epochs=last['epoch'],actual_updates=last['updates'],selected_epoch=selected['epoch'],
      selected_updates=selected['updates'],minimum_visits=receipt['minimum_visits'],minimum_tick_steps=receipt['minimum_tick_steps'],
      legal_ticks=receipt['legal_ticks'],eligible=True,selected_sha256=sha256(folder/'best.pt'),
-     learning_rates=[g['lr'] for g in selected['optimizer']['param_groups']],receipt_replay_exact=True))
+     learning_rates=[g['lr'] for g in selected['optimizer']['param_groups']],receipt_replay_exact=True,
+     actual_anchor_mask_recomputed=component=='DP',sha_scope='Selected complete resumable checkpoint'))
     histograms[name]=torch.cat([ledger.counts[i][m] for i,m in ledger.legal.items()]).numpy()
     for i,m in ledger.legal.items():
      x=ledger.counts[i];visits.append(dict(model=name,identity=i,new_visits=counts[i],legal_ticks=int(m.sum()),
@@ -56,7 +70,8 @@ def training():
      curves.append(dict(model=name,epoch=r['epoch'],update=r['updates' if component=='DP' else 'update'],
       train=r['train']['selection'] if component=='DP' else r['train']['all']['normalized_equal_mse'],
       validation=r['validation']['selection'] if component=='DP' else r['selection_score'],
-      eligible=r['selection_eligible'],minimum_tick_steps=r['effective_exposure']['minimum_tick_steps']))
+      eligible=r['selection_eligible'],minimum_tick_steps=r['effective_exposure']['minimum_tick_steps'],
+      learning_rates=r.get('learning_rates'),training_objective=r.get('loss')))
     del selected,last,ledger,replay
  table(public/'training_completion.csv',summary);table(public/'selected_episode_exposure.csv',visits);table(public/'training_curves.csv',curves)
  write(public/'training_completion.json',dict(components=summary,scope='Only newly committed optimizer updates of each selected checkpoint; ancestors excluded, same-step duplicates removed',histograms={k:dict(zip(*[x.tolist() for x in np.unique(v,return_counts=True)])) for k,v in histograms.items()}))
@@ -109,6 +124,15 @@ def report():
    assert r['legal'] and r['software_complete']
    with h5py.File(folder/'numeric.h5') as f:
     t=f['episode/transition'];r['hold30']=holding_metrics(t['diagnostics_after/object_pose_w'][:],t['object_contact_force_w'][:],window=30)
+    command=t['target_after_rad'][:];position=t['diagnostics_after/joint_position_rad'][:]
+    assert np.isfinite(command).all() and np.isfinite(position).all()
+    delta=np.diff(command,axis=0);tracking=command-position
+    r['execution_diagnostics']=dict(command_step_arm_max_rad=float(np.abs(delta[:,:7]).max()) if len(delta) else 0.,
+     command_step_hand_max_rad=float(np.abs(delta[:,7:]).max()) if len(delta) else 0.,
+     tracking_arm_rmse_rad=float(np.sqrt(np.mean(tracking[:,:7]**2))),
+     tracking_hand_rmse_rad=float(np.sqrt(np.mean(tracking[:,7:]**2))),
+     clipped_ticks=int(t['position_clip_mask'][:].reshape(len(command),-1).any(-1).sum()),
+     scope='Observed command increments, clipping and actual tracking; not counterfactual expert error')
    r['stable_grasp']=result.get('contact',{}).get('stable_grasp_diagnostic')
    r['failure_stage']='success' if r['success'] else 'after_first_subgoal' if r['native_subgoals'] else 'after_lift' if r['native_lift'] else 'before_lift'
    rows.append(r)
@@ -130,6 +154,28 @@ def report():
  table(public/'per_case.csv',rows);table(public/'counts.csv',counts);table(public/'paired_changes.csv',changes)
  write(public/'results.json',dict(counts=counts,changes=changes,pairing=pairing,hold60_is_success_requirement=False))
  print(json.dumps(counts),flush=True)
+
+
+def videos():
+ import av
+ c,root,parent,history,public=paths();dest=public/'videos';dest.mkdir(exist_ok=True)
+ rows=[];index=['# 预登记闭环视频','',
+  '训练28817004、开发28826004在结果产生前登记；四个完整策略各两例。真实三视角逐控制tick录制，完整自然结束，不增加评测分母。','']
+ for wave in sorted((root/'evaluation').glob('wave*')):
+  for row in read(wave/'videos.json')['rows']:
+   source=wave/row['case']/row['file'];target=dest/(row['case']+'.mp4')
+   with av.open(str(source)) as movie:
+    frames=sum(1 for _ in movie.decode(video=0))
+   assert frames==row['frames']==row['decode']['decoded_frames']
+   digest=sha256(source)
+   if target.exists():assert sha256(target)==digest
+   else:shutil.copyfile(source,target)
+   assert sha256(target)==digest
+   rows.append(dict(case=row['case'],success=row['success'],frames=frames,sha256=digest,source=str(source),file=str(target.relative_to(public))))
+   index.append(f"- [{target.name}]({target.name})：成功={row['success']}，{frames}帧，完整解码通过。")
+ assert len(rows)==8
+ write(public/'video_receipts.json',dict(rows=rows,selection='Two preregistered seeds; not selected after viewing outcomes'))
+ (dest/'README.md').write_text('\n'.join(index)+'\n')
 
 
 @torch.no_grad()
@@ -175,4 +221,4 @@ def offline():
 
 
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('mode',choices=['training','evaluation','report','offline']);a=p.parse_args();globals()[a.mode]()
+ p=argparse.ArgumentParser();p.add_argument('mode',choices=['training','evaluation','report','offline','videos']);a=p.parse_args();globals()[a.mode]()
