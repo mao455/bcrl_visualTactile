@@ -1,5 +1,6 @@
 """Diagnostic-only causal takeover scheduling; never a student input or success rule."""
 import numpy as np
+from .adaptive_takeover import VERSION as ADAPTIVE_VERSION, AdaptiveTrigger, validate as validate_adaptive
 from .deviation_takeover import VERSION as DEVIATION_VERSION, DeviationTrigger, validate as validate_deviation
 from .phase_takeover import VERSION as PHASE_VERSION, PhaseTrigger, validate as validate_phase
 from .grasp_curriculum import EARLY_GRASP_VERSION, CONTACT_ONSET_VERSION, APPROACH_VERSION, EarlyGraspTrigger, validate_early
@@ -13,6 +14,8 @@ NEVER_FALLBACK = 1_000_000_000
 
 
 def validate_trigger(configuration, fallback_tick):
+    if isinstance(configuration,dict) and configuration.get("version")==ADAPTIVE_VERSION:
+        return validate_adaptive(configuration,fallback_tick)
     if isinstance(configuration,dict) and configuration.get("version")==DEVIATION_VERSION:
         return validate_deviation(configuration,fallback_tick)
     if isinstance(configuration,dict) and configuration.get("version")==PHASE_VERSION:
@@ -407,7 +410,7 @@ def observe_transition(trigger,tick,transition,index=0):
     extra={}
     if getattr(trigger,'configuration',{}).get('version')==APPROACH_VERSION:
         extra=dict(finger_position_w=value('diagnostics_after/finger_position_w'))
-    if getattr(trigger,'configuration',{}).get('version') in (HELD_NEAR_GOAL_VERSION,HELD_ROOT_GOAL_VERSION,PHASE_VERSION,DEVIATION_VERSION):
+    if getattr(trigger,'configuration',{}).get('version') in (HELD_NEAR_GOAL_VERSION,HELD_ROOT_GOAL_VERSION,PHASE_VERSION,DEVIATION_VERSION,ADAPTIVE_VERSION):
         extra=dict(keypoint_max_distance_m=value('native_keypoints_max_dist'),
             goal_index_before=value('diagnostics_before/successes'),goal_index_after=value('diagnostics_after/successes'),
             goal_pose_before=value('diagnostics_before/goal_pose_w'),goal_pose_after=value('diagnostics_after/goal_pose_w'))
@@ -420,7 +423,7 @@ def observe_transition(trigger,tick,transition,index=0):
 
 def make_trigger(configuration, fallback_tick):
     validated = validate_trigger(configuration, fallback_tick)
-    cls = {DEVIATION_VERSION:DeviationTrigger,PHASE_VERSION:PhaseTrigger,EARLY_GRASP_VERSION:EarlyGraspTrigger,CONTACT_ONSET_VERSION:EarlyGraspTrigger,APPROACH_VERSION:EarlyGraspTrigger,VERSION:StableGraspTrigger,CONTACT_HEIGHT_VERSION:ContactHeightTrigger,
+    cls = {ADAPTIVE_VERSION:AdaptiveTrigger,DEVIATION_VERSION:DeviationTrigger,PHASE_VERSION:PhaseTrigger,EARLY_GRASP_VERSION:EarlyGraspTrigger,CONTACT_ONSET_VERSION:EarlyGraspTrigger,APPROACH_VERSION:EarlyGraspTrigger,VERSION:StableGraspTrigger,CONTACT_HEIGHT_VERSION:ContactHeightTrigger,
         HELD_NEAR_GOAL_VERSION:HeldNearGoalTrigger,HELD_ROOT_GOAL_VERSION:HeldRootGoalTrigger,
         HELD_RECHECK_VERSION:HeldRecheckTrigger}[validated['version']]
     return cls(validated, fallback_tick)

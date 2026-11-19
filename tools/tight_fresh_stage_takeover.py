@@ -22,6 +22,7 @@ NEVER_FALLBACK = 1_000_000_000
 
 def trigger_contract(version):
     from visuotactile.phase_takeover import VERSION as PHASE_VERSION
+    if version=="adaptive_stage_recovery_v1":return PHASE_CONTRACT,"adaptive","adaptive","trigger_completed_tick"
     if version=="task_regression_takeover_v2":return PHASE_CONTRACT,"regression","observable_regression","trigger_completed_tick"
     if version==PHASE_VERSION:return PHASE_CONTRACT,"phase","phase","trigger_completed_tick"
     if version == VERSION:
@@ -183,7 +184,7 @@ def classify(result, audit):
                     or receipt['earliest_allowed_completed_tick']!=original+receipt['configuration']['min_delay_ticks']
                     or expected<receipt['earliest_allowed_completed_tick']):
                 raise ValueError('Expert authority lacks a rechecked held window after its minimum delay')
-        elif receipt['configuration']['version'] in ('early_contact_recovery_v1','contact_formation_recovery_v2','approach_contact_recovery_v3','layout_multistage_recovery_v1','task_regression_takeover_v2'): expected = first
+        elif receipt['configuration']['version'] in ('early_contact_recovery_v1','contact_formation_recovery_v2','approach_contact_recovery_v3','layout_multistage_recovery_v1','task_regression_takeover_v2','adaptive_stage_recovery_v1'): expected = first
         else:expected = None if first is None else first + receipt['configuration']['delay_ticks']
         if (audit['category'] != f'student_{event}_then_takeover'
                 or audit['actual_switch_tick'] != expected or expected >= NEVER_FALLBACK):

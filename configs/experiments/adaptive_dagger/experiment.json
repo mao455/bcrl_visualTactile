@@ -1,0 +1,154 @@
+{
+  "version": "adaptive_dagger_two_rounds_v1",
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01",
+  "base": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_exposure50_20261119_01",
+  "source_worktree": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/experiments/tight_adaptive_dagger_20261119/source/bc+rl_RSS",
+  "epochs": 60,
+  "rounds": 2,
+  "target_new_trajectories_per_round": [
+    24,
+    40
+  ],
+  "maximum_opportunities_per_round": 56,
+  "minimum_per_student": 10,
+  "lanes": 4,
+  "training_seeds": [
+    28817000,
+    28817004,
+    28817008,
+    28817012,
+    28817016,
+    28817020,
+    28817024,
+    28817028
+  ],
+  "development_seeds": [
+    28826000,
+    28826001,
+    28826002,
+    28826003,
+    28826004,
+    28826005,
+    28826006,
+    28826007
+  ],
+  "final_test_seeds": [
+    28839000,
+    28839001,
+    28839002,
+    28839003,
+    28839004,
+    28839005,
+    28839006,
+    28839007
+  ],
+  "final_test_policy": "Unopened until both rounds and final validation selection freeze; no learning/selection after opening",
+  "dp_lr": 1.5e-05,
+  "backend_lr": 0.0001,
+  "optimizer": "Fresh AdamW/DP EMA from each own parent; per-run restores full optimizer/RNG/exposure",
+  "storage_policy": "No historical deletion; old raw and frozen caches linked; new round data cumulative",
+  "resources": "12GiB disk,10GiB RAM,4GiB VRAM reserve; simulation admission28GiB RAM/16GiB VRAM free",
+  "session": {
+    "resource_policy": "full_gpu_v1",
+    "resources": {
+      "min_gpu_free_mib": 4096,
+      "min_ram_gib": 10,
+      "min_disk_gib": 12
+    },
+    "expert_checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/pretrained_assembly/tight_insertion/model.pth",
+    "expert_sha256": "7e61015dad660430ab07bab4f715c90c6f76b84cc358da6be81319a6aee09990",
+    "dino_checkpoint": "/home/CNS2025331827/.cache/torch/hub/checkpoints/dinov2_vits14_pretrain.pth",
+    "dino_sha256": "b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9",
+    "precision_policy": "unified_fp32",
+    "camera_content_validation": true,
+    "domain": {
+      "center": {
+        "object_xyz": [
+          -0.03232575998365054,
+          -0.01103706849990168,
+          0.63250910599455
+        ],
+        "relative_xyz": [
+          0.07399514386507924,
+          -0.02830284561436696,
+          -0.08228570222854614
+        ],
+        "quaternion": [
+          0.12416211631086395,
+          0.8920265731875647,
+          -0.38029772696726616,
+          0.2103475944481774
+        ]
+      },
+      "object_xy_halfwidth": [
+        0.002,
+        0.002
+      ],
+      "relative_xy_halfwidth": [
+        0.003,
+        0.003
+      ],
+      "rotation_radius_degrees": 1.5723102967361697,
+      "native_joint_lerp": 0.0075,
+      "table_z_m": [
+        0.379,
+        0.381
+      ],
+      "object_height_above_table_origin_m": [
+        0.248,
+        0.252
+      ],
+      "joint_velocity_halfwidth": 0.03
+    },
+    "version": "adaptive_dagger_two_rounds_v1",
+    "started_utc": 1795104016.876542,
+    "deadline": 1795276816.876542,
+    "collection_deadline": 1795276816.876542,
+    "training_deadline": 1795276816.876542,
+    "reserve_bytes": 12884901888,
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01",
+    "owned_worker_roots": [
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01"
+    ],
+    "authorization": "Two adaptive complete-student DAgger rounds; all four selected components >=50 newly committed exposures per legal tick/trajectory; native task unchanged",
+    "cache_deadline": 1795276816.876542,
+    "offline_deadline": 1795276816.876542,
+    "source_commit": "9417461696368d68dbe0e4c11b74ed5e8fa7bc20",
+    "layout": {
+      "version": "peg_spacing_reset_v1",
+      "distance_m": 0.1,
+      "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+    },
+    "visual_stride": 1,
+    "control_hz": 60,
+    "planning_hz": 5,
+    "trainable_initialization": "Continue registered complete dagger01 pair, fresh optimizers per round",
+    "phase_dagger": true,
+    "source_session_deadline": 1794906153.0320916,
+    "fixed56_long": false,
+    "matched_update_diagnostic": false
+  },
+  "new_development_seeds": {
+    "round1": [
+      28838000,
+      28838001,
+      28838002,
+      28838003,
+      28838004,
+      28838005,
+      28838006,
+      28838007
+    ],
+    "round2": [
+      28838500,
+      28838501,
+      28838502,
+      28838503,
+      28838504,
+      28838505,
+      28838506,
+      28838507
+    ]
+  },
+  "pre_execution_amendment_utc": 1795104183.9622452
+}
