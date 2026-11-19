@@ -1,5 +1,15 @@
 
 
+## 2026-11-19 磁盘安全清理完成，原监督服务已恢复
+
+仅退休201份非当前冻结视觉缓存归档（85.705GiB）及1份重建验证副本（0.283GiB），精确逐文件manifest、SHA、inode和活动句柄检查；无raw/checkpoint/当前136缓存/其他项目删除。旧归档不再能通过原Zstd restore恢复，保留原始HDF5、DINO和配置，改用本次明确重建工具；228帧完整缓存实际重建SHA完全相同。888文件约228.367GiB清理前后各全SHA核验全部通过，包含原400、当前130＋6、父72和A51/52。
+
+归因释放85.988GiB；删除紧前2.468GiB→结束88.316GiB，净增85.848GiB，与归因差异来自并发写入/元数据。后续训练和64例评估保守20GiB，加原12GiB保护线，当前余量足够；外部写入仍可能消耗空间。历史checkpoint约99.8GiB属于待确认，未删；其他主要项目grasp_small_obj约454GiB、DexAssemble-sharpa约137GiB，只读统计。
+
+原恢复监督PID316280在清理期间仅SIGSTOP防止过32GiB提前启动；验收完成17:34已SIGCONT同一进程，统一A-DP worker356879真实启动，原60轮计划和11月20日11:24截止不变。没有新建第二训练任务。收尾核验已观察到A-DP正在执行第54轮（batch18/95）、累计5053次更新；第54轮尚未完成，原服务active/running且当前attempt无失败回执；证明恢复后已实际推进，仍不代表四组件完成。回执见evidence/tight_disk_cleanup_20261119/recovery_final_check.json。本轮范围只解决磁盘，无训练方案/架构/配置修改。详情TIGHT_DISK_CLEANUP_20261119.md及evidence/tight_disk_cleanup_20261119。当前无需批准额外删除。
+
+
+
 ### 2026-11-19 16:00 +08 — 磁盘保护中断，尚未完成四组件
 
 原训练服务13:37在A-DP第52轮后因`Configured disk reserve reached`退出，finisher随之退出。CPU实际加载last52/4940与best51/4845：130轨、27,508合法tick，最低新增轨迹访问/tick不同优化步分别52/52与51/51，祖先不计；完整Adam、EMA、随机数、LR和曝光状态字段存在，EMA计数等于optimizer计数。尚未执行恢复，不能把字段检查当恢复成功。B-DP与两个后端未开始，闭环0例；A仍未完成预登记60轮。回执`evidence/tight_exposure50_20261119_01/interruption_checkpoint_audit.json`。
