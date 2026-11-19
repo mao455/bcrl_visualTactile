@@ -64,6 +64,8 @@ def audit(waves, output):
                 tracking=actual-position
                 row=dict(wave=str(wave),case=case['name'],role=case['role'],seed=case['spec']['seed'],
                     success=result['success'],ticks=n,proposal_joint_clip_ticks=int(proposal_clip.any(-1).sum()),
+                    stable_grasp=bool(result.get('contact',{}).get('stable_grasp_diagnostic')),
+                    native_lift=bool(result.get('native_lift')),native_subgoals=int(result.get('native_subgoals',0)),
                     proposal_joint_clip_components=int(proposal_clip.sum()),
                     reachable_projection_ticks=int(projected.any(-1).sum()),
                     reachable_projection_components=int(projected.sum()),
@@ -96,6 +98,7 @@ def audit(waves, output):
     for role,rr in total.items():
         ticks=sum(r['ticks'] for r in rr)
         summary.append(dict(role=role,cases=len(rr),ticks=ticks,
+            success=sum(r['success'] for r in rr),stable_grasp=sum(r['stable_grasp'] for r in rr),
             proposal_joint_clip_tick_fraction=sum(r['proposal_joint_clip_ticks'] for r in rr)/ticks,
             reachable_projection_tick_fraction=sum(r['reachable_projection_ticks'] for r in rr)/ticks,
             reachable_projection_component_fraction=sum(r['reachable_projection_components'] for r in rr)/(29*ticks),

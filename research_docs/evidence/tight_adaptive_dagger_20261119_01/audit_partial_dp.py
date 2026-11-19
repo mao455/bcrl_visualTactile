@@ -11,9 +11,10 @@ from visuotactile.effective_exposure import Ledger,dp_ticks
 from visuotactile.native_data import visual_records
 
 
-def audit(root, role, output):
+def audit(root, role, output, checkpoint_name='last.pt'):
     torch.set_num_threads(2)
-    directory=root/role/'training';path=directory/'last.pt'
+    assert checkpoint_name in ('last.pt','best.pt')
+    directory=root/role/'training';path=directory/checkpoint_name
     # Open one durable inode; an atomic future replacement cannot change this read.
     with path.open('rb') as stream:
         digest=hashlib.file_digest(stream,'sha256').hexdigest();stream.seek(0)
@@ -40,10 +41,12 @@ def audit(root, role, output):
     result=dict(role=role,checkpoint_sha256=digest,epoch=checkpoint['epoch'],updates=checkpoint['updates'],
         independently_recomputed_mask_and_anchors=True,replay_exact=True,optimizer_present=True,
         eligible_for_selection=receipt['eligible'],effective_exposure=receipt,
-        scope='Durable partial checkpoint only; no ancestor exposure; no extra training; no CUDA',
+        scope='Actual durable checkpoint; no ancestor exposure; no extra training; no CUDA',
+        checkpoint_name=checkpoint_name,selected_checkpoint=checkpoint_name=='best.pt',
         cuda_initialized=torch.cuda.is_initialized(),utc=time.time())
     write(output,result);print(json.dumps(result),flush=True)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--root',type=Path,required=True);parser.add_argument('--role',choices=['A','B'],required=True);parser.add_argument('--output',type=Path,required=True)
-    args=parser.parse_args();audit(args.root,args.role,args.output)
+    parser.add_argument('--checkpoint',choices=['last.pt','best.pt'],default='last.pt')
+    args=parser.parse_args();audit(args.root,args.role,args.output,args.checkpoint)

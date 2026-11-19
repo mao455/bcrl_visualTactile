@@ -78,14 +78,22 @@ def generate():
         rows=read(public/'evaluation/counts.json');counts.extend([dict(round=round_index,**r) for r in rows])
         changes.extend([dict(round=round_index,**r) for r in read(public/'evaluation/paired_changes.json')])
     counts.extend([dict(round='终测',**r) for r in read(PUBLIC/'final_test/counts.json')])
+    for row in counts:
+        directory=PUBLIC/('final_test' if row['round']=='终测' else f"round{row['round']:02d}/evaluation")
+        audit=read(directory/'execution_audit/receipt.json')['rows']
+        evaluated=read(directory/'per_case.json')
+        seeds={r['seed'] for r in evaluated if r['role']==row['model'] and r['cohort']==row['cohort']}
+        subset=[r for r in audit if r['role']==row['model'] and r['seed'] in seeds]
+        assert len(subset)==row['n']
+        row['grasp']=sum(r['stable_grasp'] for r in subset)
     report += ['## 实际采集','',mdtable(['轮次','学生','完整机会','真实接管','合法纠偏','专家救回','新增合法tick','验收阶段'],collection),'',
         '专家救回不计学生自主成功。未触发、非法或软件未闭合机会分别保留原回执，不混作专家救回失败；完整有效机会的分母包含其所有失败。原资源中断和CPU准入恢复各有独立记录，未把重复日志、未提交优化或失败前缀算作新增训练曝光。阶段之间没有随机化对照。','',
         'Round 1以接触停滞、搬运、对准停滞和支撑不稳分层；Round 2使用第一轮新完整学生，按其真实训练family失败、旧成功丢失和实际可达阶段分别给A/B分配事件屏幕，额外关注原生子目标之后。无固定时刻回退、reset或理想中间状态瞬移；两条R1较晚专家未救回记录支持更早屏幕候选，不证明更早必能救回。','',
         '## 四组件训练验收','',mdtable(['轮次','组件','完成epoch','选中epoch','实际更新','选中更新','最低访问','最低tick不同步','达标'],training),'',
         '各轮每条轨迹与合法expert tick只计算该轮新提交的optimizer事务，祖先不计，同一步重叠窗口取并集。DP从实际anchor与原mask独立重算；两个后端从原始合法mask、seeded重复deck及32tick/128合法tick窗口独立重建，逐条与提交日志核对。未达50次的早期验证最优无选模资格。曝光是正权loss参与，不保证非零梯度或技能保持。','',
         'A保留q_reached及原几何项，B保留u_expert；各自DP先完成，再按实际选中DP重新生成对应nominal缓存。完整学生前缀继续作为因果历史，只有洁净专家后缀参与监督。原30归一化不变，原示范每deck三访，其他合法轨迹一访。每轮fresh AdamW，DP重建EMA；同轮中断恢复应完整保留optimizer/RNG/曝光，原失败回执不覆盖。','',
-        '## 完整自主闭环与保持','',mdtable(['轮次','初态组','完整策略','例数','原生插入','首子目标','后续子目标','抬升诊断','hold30/60/120'],
-        [[r['round'],r['cohort'],r['model'],r['n'],r['success'],r['first_subgoal'],r['later_subgoal'],r['native_lift'],f"{r['hold30']}/{r['hold60']}/{r['hold120']}"] for r in counts]),'',
+        '## 完整自主闭环与保持','',mdtable(['轮次','初态组','完整策略','例数','原生插入','首子目标','后续子目标','抓持诊断','抬升诊断','hold30/60/120'],
+        [[r['round'],r['cohort'],r['model'],r['n'],r['success'],r['first_subgoal'],r['later_subgoal'],r['grasp'],r['native_lift'],f"{r['hold30']}/{r['hold60']}/{r['hold120']}"] for r in counts]),'',
         '父/新完整A/B在同波比较并核验可观测初态。72历史完整策略在独立物理波检查，不称同波因果对照；隐藏PhysX状态与后续随机流没有精确重放保证。Hold60仅一秒持物诊断，非原生插入必要条件；抬升与接触代理也不构成严格包含的成功漏斗。','']
     retaining=[]
     for round_index in (1,2):
