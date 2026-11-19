@@ -1,5 +1,6 @@
 """Continue only after the completed first-round review evidence exists."""
 import collections
+import argparse
 import copy
 import importlib.util
 import os
@@ -50,6 +51,22 @@ def collect(strategy):
     entries={};rows=[];cases=[];batches=[]
     attempted=collections.Counter();rescued=collections.Counter()
     for index,item in enumerate(strategy['schedule']):
+        # Reserve future frozen inputs and model/log/evaluation storage before
+        # spending another physical batch; the twelve-GiB hard guard remains.
+        required_gib=21+.5*len(entries)+3
+        free_gib=shutil.disk_usage(ROOT).free/2**30
+        if free_gib<required_gib:
+            population=collections.Counter(e['source_group'] for e in entries.values())
+            if len(entries)>=20 and min(population.get(r,0) for r in 'AB')>=8:
+                write(destination/'collection_budget_stop.json',dict(accepted=len(entries),population=dict(population),
+                    free_gib=free_gib,required_for_next_batch_gib=required_gib,utc=time.time(),
+                    reason='End collection at verified two-student coverage; retain headroom for full exposure training'))
+                break
+            while shutil.disk_usage(ROOT).free/2**30<required_gib:
+                write(destination/'storage_wait.json',dict(accepted=len(entries),required_gib=required_gib,
+                    free_gib=shutil.disk_usage(ROOT).free/2**30,utc=time.time()))
+                if time.time()>=read(ROOT/'session.json')['deadline']:raise TimeoutError('Round2 capture storage admission')
+                time.sleep(30)
         output=destination/f'collection{index:02d}'
         assert not output.exists(),'Preserve prior attempted collection identity'
         families=item['families'];chosen=copy.deepcopy(item['stages'])
@@ -111,12 +128,17 @@ def evaluate(parent,current,round_index,heldout=False):
     return report
 
 
-def run():
+def run(*,continue_existing=False):
     receipt=ROOT/'round2_continuation_started.json'
-    if receipt.exists():raise FileExistsError('Retain prior continuation attempt')
-    write(receipt,dict(pid=os.getpid(),utc=time.time(),original_deadline=read(ROOT/'session.json')['deadline'],
-        purpose='Await actual R1 diagnosis; adapt two-student training-only collection; train/audit/evaluate R2; freeze then open new test',
-        model_promotion=False,source_changes=False))
+    if continue_existing:
+        assert receipt.exists() and not (ROOT/'round1_review_ready.json').exists()
+        assert not (ROOT/'round02').exists()
+        assert read(receipt)['original_deadline']==read(ROOT/'session.json')['deadline']
+    else:
+        if receipt.exists():raise FileExistsError('Retain prior continuation attempt')
+        write(receipt,dict(pid=os.getpid(),utc=time.time(),original_deadline=read(ROOT/'session.json')['deadline'],
+            purpose='Await actual R1 diagnosis; adapt two-student training-only collection; train/audit/evaluate R2; freeze then open new test',
+            model_promotion=False,source_changes=False))
     wait_review()
     strategy=load('round2_strategy').derive()
     write(ROOT/'progress.json',dict(round=2,stage='storage_admission',utc=time.time()))
@@ -147,7 +169,8 @@ def run():
 
 
 if __name__=='__main__':
-    try:run()
+    parser=argparse.ArgumentParser();parser.add_argument('--continue-existing',action='store_true');args=parser.parse_args()
+    try:run(continue_existing=args.continue_existing)
     except BaseException as error:
         write(ROOT/'round2_continuation_failure.json',dict(error=repr(error),utc=time.time()))
         raise
