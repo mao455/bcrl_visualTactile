@@ -165,8 +165,13 @@ def collect(source, round_index, schedule):
     destination.mkdir(exist_ok=True);batches=[];entries={};allrows=[];allcases=[]
     for index,(families,stages) in enumerate(schedule):
         output=destination/f'collection{index:02d}'
+        suffix=''
+        if output.exists():
+            assert round_index==1 and index==0 and not (output/'initialization.json').exists() and not list(output.rglob('numeric.h5'))
+            suffix='_recovery01';failed=output;output=destination/(output.name+suffix)
+            write(PUBLIC/'prephysics_recovery.json',dict(failed=str(failed),recovery=str(output),reason='Kit FileThread std::system_error Invalid argument before environment construction',original_deadline=read(ROOT/'session.json')['deadline'],physical_actions=0))
         plan=prepare_collection(source,output,families,stages,round_index*10+index)
-        execute('dagger',f'r{round_index}_collection{index:02d}',[dict(entry='dagger',args=['--output',str(output)])],simulation=True)
+        execute('dagger',f'r{round_index}_collection{index:02d}{suffix}',[dict(entry='dagger',args=['--output',str(output)])],simulation=True)
         result=read(output/'result.json');assert result['software_complete']
         new=read(output/'correction_entries.json');assert not set(new)&set(entries)
         entries.update(new);allrows.extend(read(output/'results.json'));allcases.extend(plan['cases']);batches.append(str(output))
@@ -400,9 +405,15 @@ def schedule(round_index,previous=None):
     return result
 
 
-def run_cycle():
-    if (ROOT/'cycle_started.json').exists():raise FileExistsError('Preserve attempted cycle; explicit recovery required')
-    write(ROOT/'cycle_started.json',dict(pid=os.getpid(),utc=time.time(),source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),source_sha256=sources()))
+def run_cycle(*,recover_prephysics=False):
+    attempt='cycle'
+    if (ROOT/'cycle_started.json').exists():
+        if not recover_prephysics:raise FileExistsError('Preserve attempted cycle; explicit recovery required')
+        assert (ROOT/'cycle_failure.json').exists() and not list((ROOT/'round01').rglob('numeric.h5'))
+        assert read(ROOT/'progress.json')==read(ROOT/'progress.json') and read(ROOT/'progress.json')['stage']=='collect'
+        attempt='cycle_recovery01'
+        assert not (ROOT/(attempt+'_started.json')).exists()
+    write(ROOT/(attempt+'_started.json'),dict(pid=os.getpid(),utc=time.time(),source_commit=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),source_sha256=sources()))
     source=BASE;previous=None
     try:
         for round_index in (1,2):
@@ -421,7 +432,7 @@ def run_cycle():
         write(ROOT/'cycle_complete.json',dict(rounds=2,final_test_complete=True,utc=time.time(),automatic_promotion=False))
         close_report()
     except BaseException as error:
-        write(ROOT/'cycle_failure.json',dict(error=repr(error),utc=time.time()));raise
+        write(ROOT/(attempt+'_failure.json'),dict(error=repr(error),utc=time.time()));raise
 
 
 def close_report():
@@ -431,11 +442,12 @@ def close_report():
 
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('mode',choices=['initialize','diagnose','run','test-worker','audit'])
+    p=argparse.ArgumentParser();p.add_argument('mode',choices=['initialize','diagnose','run','recover-prephysics','test-worker','audit'])
     p.add_argument('--output',type=Path);p.add_argument('--round',type=int);a=p.parse_args()
     if a.mode=='initialize':initialize()
     elif a.mode=='diagnose':diagnose()
     elif a.mode=='run':run_cycle()
+    elif a.mode=='recover-prephysics':run_cycle(recover_prephysics=True)
     elif a.mode=='audit':audit_training(ROOT/f'round{a.round:02d}'/'learning',a.round)
     else:heldout_worker(a.output)
 
