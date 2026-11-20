@@ -1,0 +1,167 @@
+{
+  "local_time": "2026-11-21T01:17:53.000971+08:00",
+  "A_completed": {
+    "epochs": 60,
+    "updates": 7200,
+    "selected": {
+      "version": "new_optimizer_step_legal_tick_exposure_v1",
+      "updates": 6360,
+      "trajectories": 180,
+      "legal_ticks": 35863,
+      "minimum_visits": 53,
+      "minimum_tick_steps": 53,
+      "maximum_tick_steps": 159,
+      "below50_ticks": 0,
+      "below50_trajectories": 0,
+      "quantiles": {
+        "0.0": 53.0,
+        "0.05": 53.0,
+        "0.25": 53.0,
+        "0.5": 53.0,
+        "0.75": 157.0,
+        "0.95": 159.0,
+        "1.0": 159.0
+      },
+      "eligible": true,
+      "ancestors_counted": false
+    },
+    "selected_sha256": "f41711ee9f5d54cc56e3d547c2c903e9881cec3ecfdd31866737587acd255171"
+  },
+  "B_durable_at_recovery": {
+    "epoch": 1,
+    "updates": 120,
+    "visits_seen": 240,
+    "required_state_keys": [
+      "model",
+      "optimizer",
+      "ema",
+      "ema_optimization_step",
+      "torch_rng",
+      "cuda_rng",
+      "noise_rng",
+      "schedule_rng",
+      "effective_exposure_state",
+      "visit_sampling_coverage",
+      "sampling_exposure",
+      "visits_seen",
+      "configuration"
+    ],
+    "preserved_checkpoint": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/disk_recovery04/B_interrupted_last.pt",
+    "checkpoint_sha256": "e9c34db9091b840cbda02fa353b1053ae9ceebe87c85accb86ea980d0d617e6c",
+    "optimizer_state_entries": 188
+  },
+  "B_live_learning": {
+    "epoch": 2,
+    "updates": 211,
+    "visits_seen": 422,
+    "loss": 0.027152519673109055
+  },
+  "supervision": {
+    "utc": 1795195051.854754,
+    "local_time": "2026-11-21T01:17:31.879954+08:00",
+    "state": "owned_workers_active",
+    "progress": {
+      "round": 2,
+      "stage": "B_DP_full_state_restore",
+      "utc": 1795194933.0604496
+    },
+    "coordinator_alive": true,
+    "children": [
+      {
+        "pid": 2985945,
+        "create_time": 1795194992.41,
+        "name": "python",
+        "rss_gib": 0.011157989501953125
+      },
+      {
+        "pid": 2985948,
+        "create_time": 1795194992.45,
+        "name": "python",
+        "rss_gib": 0.01126861572265625
+      },
+      {
+        "pid": 2985953,
+        "create_time": 1795194992.65,
+        "name": "python",
+        "rss_gib": 4.1743316650390625
+      }
+    ],
+    "disk_free_gib": 27.300792694091797,
+    "ram_available_gib": 22.919185638427734,
+    "latest_admission_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/owners/r2_train_disk_recovery04/resource_admission.json",
+    "latest_admission": {
+      "ready": true,
+      "instantaneous_ready": true,
+      "disk_gib": 27.45026397705078,
+      "required_disk_gib": 16,
+      "ram_gib": 31.325641632080078,
+      "vram_free_mib": 22973,
+      "required_ram_gib": 24,
+      "required_vram_mib": 11000,
+      "stable_seconds_required": 60,
+      "stable_seconds_observed": 60.229613981209695,
+      "simulation": false,
+      "lanes": 0,
+      "utc": 1795194993.3083715,
+      "deadline": 1795276816.876542,
+      "gpu_query_error": null,
+      "other_project_mutations": 0
+    },
+    "closed_recovery_batches": [
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/ram_recovery03_micro00",
+        "result": {
+          "software_complete": true,
+          "worker_error": null,
+          "cases": 2,
+          "utc": 1795179705.1178508,
+          "elapsed_seconds": 114.4497084831819,
+          "accepted_training_trajectories": 2,
+          "accepted_trajectories_per_hour": 62.90972773476328,
+          "attempts_per_hour": 62.90972773476328,
+          "lanes": 1
+        }
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/ram_recovery03_micro01",
+        "result": {
+          "software_complete": true,
+          "worker_error": null,
+          "cases": 2,
+          "utc": 1795179921.9987023,
+          "elapsed_seconds": 151.1054443870671,
+          "accepted_training_trajectories": 2,
+          "accepted_trajectories_per_hour": 47.64884567333457,
+          "attempts_per_hour": 47.64884567333457,
+          "lanes": 1
+        }
+      }
+    ],
+    "failures": [],
+    "final_test_opened": false,
+    "deadline": 1795276816.876542,
+    "other_project_mutations": 0,
+    "limitation": "Worker existence is not a completed physical case; native worker monitors enforce runtime guards. This supervisor reads state and does not kill or alter any process.",
+    "final_test_frozen": false
+  },
+  "disk_free_gib": 27.249347686767578,
+  "final_test_opened": false,
+  "backend_started": false,
+  "interpretation": "B restored from update120 and independently verified a new complete epoch checkpoint. Four-component exposure acceptance and autonomous evaluation remain pending.",
+  "post_restore_durable": {
+    "local_time": "2026-11-21T01:18:36.713395+08:00",
+    "epoch": 2,
+    "updates": 240,
+    "visits_seen": 480,
+    "exposure_ledger_updates": 240,
+    "ema_updates": 240,
+    "optimizer_state_entries": 188,
+    "checkpoint_sha256": "4e3f71a8754d5b48da72323923a964b8e24adb571e35abb8cd59b269748fb766",
+    "old_interrupted_checkpoint_preserved": true,
+    "old_and_new_inode_different": true,
+    "disk_free_gib": 26.073612213134766,
+    "full_state_keys_present": true,
+    "final_test_opened": false,
+    "selected_exposure_acceptance_pending": true
+  }
+}
