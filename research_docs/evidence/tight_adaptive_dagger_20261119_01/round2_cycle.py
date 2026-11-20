@@ -46,10 +46,20 @@ def storage_admission():
         time.sleep(30)
 
 
-def collect(strategy):
+def collect(strategy, *, resume_batches=(), output_prefix='collection', round_offset=20):
     destination=ROOT/'round02';destination.mkdir(exist_ok=True)
     entries={};rows=[];cases=[];batches=[]
     attempted=collections.Counter();rescued=collections.Counter()
+    for folder in resume_batches:
+        output=Path(folder);plan=read(output/'plan.json')
+        assert read(output/'result.json')['software_complete']
+        prior=read(output/'results.json');new=read(output/'correction_entries.json')
+        assert len(prior)==len(plan['cases']) and not set(new)&set(entries)
+        for case in plan['cases']:
+            attempted[case['role'],case['adaptive_stage']]+=1
+            if case['name'] in new:rescued[case['role'],case['adaptive_stage']]+=1
+        entries.update(new);rows.extend(prior);cases.extend(plan['cases']);batches.append(str(output))
+    if resume_batches:experiment.collection_report(destination,rows,entries,cases,batches)
     for index,item in enumerate(strategy['schedule']):
         # Reserve future frozen inputs and model/log/evaluation storage before
         # spending another physical batch; the twelve-GiB hard guard remains.
@@ -67,7 +77,7 @@ def collect(strategy):
                     free_gib=shutil.disk_usage(ROOT).free/2**30,utc=time.time()))
                 if time.time()>=read(ROOT/'session.json')['deadline']:raise TimeoutError('Round2 capture storage admission')
                 time.sleep(30)
-        output=destination/f'collection{index:02d}'
+        output=destination/f'{output_prefix}{index:02d}'
         assert not output.exists(),'Preserve prior attempted collection identity'
         families=item['families'];chosen=copy.deepcopy(item['stages'])
         for per_role in chosen:
@@ -75,11 +85,11 @@ def collect(strategy):
                 if attempted[role,stage]>=4 and rescued[role,stage]==0:
                     alternatives=('transport','contact','instability')
                     per_role[role]=max(alternatives,key=lambda s:(rescued[role,s],-attempted[role,s]))
-        plan=experiment.prepare_collection(SOURCE,output,families,[v['A'] for v in chosen],20+index)
+        plan=experiment.prepare_collection(SOURCE,output,families,[v['A'] for v in chosen],round_offset+index)
         from visuotactile.state_benchmark import dagger_configuration
         for case in plan['cases']:
             seed=case['spec']['seed'];stage=chosen[families.index(seed)][case['role']]
-            case['name']=f"r{20+index:02d}_{case['role']}_{case['spec']['source_identity']}_{stage}"
+            case['name']=f"r{round_offset+index:02d}_{case['role']}_{case['spec']['source_identity']}_{stage}"
             case['spec']['identity']=case['name'];case['dagger']['trigger']=profile(stage)
             case['adaptive_stage']=stage
             dagger_configuration(case['dagger'],case['spec'],read(Path(case['source_data'])))
@@ -87,7 +97,7 @@ def collect(strategy):
         plan.update(reason='Round1 new complete-student failure diagnosis; role-specific stage assignment',
             round2_strategy_sha256=sha256(PUBLIC/'round02/strategy.json'),source_sha256=sources())
         write(output/'plan.json',plan)
-        experiment.execute('dagger',f'r2_collection{index:02d}',[
+        experiment.execute('dagger',f'r2_{output_prefix}{index:02d}',[
             dict(entry='dagger',args=['--output',str(output)])],simulation=True)
         assert read(output/'result.json')['software_complete']
         new=read(output/'correction_entries.json');assert not set(new)&set(entries)
@@ -116,11 +126,16 @@ def collect(strategy):
 
 def evaluate(parent,current,round_index,heldout=False):
     root,waves=experiment.evaluation_plans(parent,current,round_index,heldout=heldout)
+    original=read(root/'registration.json');paired=[]
     for wave in waves:
         plan=read(wave/'plan.json')
-        for case in plan['cases']:case['video']=True
-        plan['video_policy']='All actual lanes retained; select representative records without repeating outcomes'
-        write(wave/'plan.json',plan)
+        for label,part in paired_plans(plan):
+            output=root/f'paired2_{wave.name}_{label}';output.mkdir()
+            write(output/'session.json',read(wave/'session.json'))
+            write(output/'plan.json',part);paired.append(output)
+    write(root/'registration_4lane_unexecuted.json',original)
+    original.update(waves=[str(p) for p in paired],scheduling_revision='paired_two_lane_ram_recovery_v2')
+    write(root/'registration.json',original);waves=paired
     experiment.execute('evaluate','final_test' if heldout else f'r{round_index}_evaluate',[
         dict(entry='adaptive_heldout' if heldout else 'evaluate',args=['--output',str(w)]) for w in waves],simulation=True)
     report=experiment.evaluation_report(root,round_index,heldout=heldout)
@@ -128,9 +143,39 @@ def evaluate(parent,current,round_index,heldout=False):
     return report
 
 
-def run(*,continue_existing=False):
+def paired_plans(plan):
+    """Keep exact cases/frozen pairs and test admission while limiting active lanes."""
+    cases=plan['cases']
+    if all(c['role'].endswith(('_parent','_new')) for c in cases):
+        groups=[(r,[c for c in cases if c['role'].startswith(r+'_')]) for r in 'AB']
+    else:
+        groups=[(str(s),[c for c in cases if c['spec']['seed']==s]) for s in sorted({c['spec']['seed'] for c in cases})]
+    answer=[]
+    for label,selected in groups:
+        assert len(selected)==2 and selected[0]['spec']==selected[1]['spec']
+        child=copy.deepcopy(plan);child['cases']=copy.deepcopy(selected);child['batch']['lanes']=2
+        # Heldout worker requires the complete frozen pair dictionary verbatim.
+        if not plan['test_used']:child['pairs']={c['role']:copy.deepcopy(plan['pairs'][c['role']]) for c in selected}
+        for case in child['cases']:case['video']=True
+        child['video_policy']='All actual lanes retained without repeating outcomes'
+        child['evaluation_scope']=dict(protocol='Within-role same-wave parent/new; historical A/B separate waves',
+            test_used=plan['test_used'],hidden_state_replay_claim=False)
+        answer.append((label,child))
+    assert sorted(c['name'] for _,p in answer for c in p['cases'])==sorted(c['name'] for c in cases)
+    return answer
+
+
+def run(*,continue_existing=False,resume_ram=False):
     receipt=ROOT/'round2_continuation_started.json'
-    if continue_existing:
+    if resume_ram:
+        recovery=read(ROOT/'round02/ram_recovery01.json')
+        assert (ROOT/'round2_continuation_failure.json').exists()
+        assert not (ROOT/'round02/learning').exists()
+        assert recovery['original_deadline']==read(ROOT/'session.json')['deadline']
+        with (ROOT/'round02/ram_recovery01_started.json').open('x') as stream:
+            import json
+            json.dump(dict(pid=os.getpid(),utc=time.time()),stream)
+    elif continue_existing:
         assert receipt.exists() and not (ROOT/'round1_review_ready.json').exists()
         assert not (ROOT/'round02').exists()
         assert read(receipt)['original_deadline']==read(ROOT/'session.json')['deadline']
@@ -140,11 +185,16 @@ def run(*,continue_existing=False):
             purpose='Await actual R1 diagnosis; adapt two-student training-only collection; train/audit/evaluate R2; freeze then open new test',
             model_promotion=False,source_changes=False))
     wait_review()
-    strategy=load('round2_strategy').derive()
-    write(ROOT/'progress.json',dict(round=2,stage='storage_admission',utc=time.time()))
-    storage_admission()
+    strategy=read(PUBLIC/'round02/strategy.json') if resume_ram else load('round2_strategy').derive()
+    if not resume_ram:
+        write(ROOT/'progress.json',dict(round=2,stage='storage_admission',utc=time.time()))
+        storage_admission()
     write(ROOT/'progress.json',dict(round=2,stage='collect',utc=time.time()))
-    combined=collect(strategy)
+    if resume_ram:
+        strategy=copy.deepcopy(strategy);strategy['schedule']=recovery['remaining_schedule']
+        combined=collect(strategy,resume_batches=recovery['verified_batches'],
+            output_prefix='ram_recovery01_micro',round_offset=40)
+    else:combined=collect(strategy)
     write(ROOT/'progress.json',dict(round=2,stage='train',utc=time.time()))
     target=experiment.prepare_learning(SOURCE,combined,2)
     experiment.train(target,2)
@@ -169,8 +219,10 @@ def run(*,continue_existing=False):
 
 
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--continue-existing',action='store_true');args=parser.parse_args()
-    try:run(continue_existing=args.continue_existing)
+    parser=argparse.ArgumentParser();parser.add_argument('--continue-existing',action='store_true')
+    parser.add_argument('--resume-ram',action='store_true');args=parser.parse_args()
+    try:run(continue_existing=args.continue_existing,resume_ram=args.resume_ram)
     except BaseException as error:
-        write(ROOT/'round2_continuation_failure.json',dict(error=repr(error),utc=time.time()))
+        name='round2_ram_recovery01_failure.json' if args.resume_ram else 'round2_continuation_failure.json'
+        write(ROOT/name,dict(error=repr(error),utc=time.time()))
         raise

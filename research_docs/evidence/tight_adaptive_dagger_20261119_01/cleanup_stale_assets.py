@@ -45,6 +45,10 @@ def protection():
         for suffix in ('training/best.pt', 'training/last.pt',
                        f'backend/{role}/training/best.pt', f'backend/{role}/training/last.pt'):
             paths.add(ROOT / 'round01/learning' / role / suffix)
+    for path in (ROOT/'round02').rglob('*'):
+        if path.is_file() and path.name in ('data.h5','numeric.h5','trace.npz','plans.npz',
+                'result.json','capture_complete.json','plan.json','session.json'):
+            paths.add(path)
     return {str(p): identity(p) for p in sorted(paths)}
 
 
@@ -101,7 +105,9 @@ def tree(path):
     return sorted(rows, key=lambda r:r['path'])
 
 
-def plan():
+def plan(minimum_age_hours=24):
+    if minimum_age_hours < .5:
+        raise ValueError('Generated scratch must be idle for at least thirty minutes')
     LEDGER.mkdir(parents=True, exist_ok=False)
     before = protection(); active, opened, references = process_references()
     protected_inodes = {(s['dev'],s['ino']) for s in before.values()}
@@ -113,14 +119,15 @@ def plan():
                 raise ValueError('Unknown root contents')
             rows = tree(path)
             age = now - max(max(r['mtime_ns'],r['ctime_ns'])/1e9 for r in rows)
-            if age < 24*3600: raise ValueError('Younger than 24 hours')
+            if age < minimum_age_hours*3600: raise ValueError(f'Younger than {minimum_age_hours} hours')
             if str(path) in active: raise ValueError('Active path reference')
             if any((r['dev'],r['ino']) in opened | protected_inodes for r in rows):
                 raise ValueError('Active/protected inode reference')
             candidates.append(dict(root=str(path), age_seconds=age, rows=rows))
         except ValueError as error: skipped.append(dict(path=str(path), reason=str(error)))
     document = dict(version='generated_stale_usd_cleanup_v1', authorization='User: 你自己清理资源',
-        scope='Only exact owned /tmp/precise_assembly_assets_* older than 24h with generated USD/YAML/hash files',
+        scope=f'Only exact owned /tmp/precise_assembly_assets_* older than {minimum_age_hours}h with generated USD/YAML/hash files',
+        minimum_age_hours=minimum_age_hours,
         utc=now, free_bytes=shutil.disk_usage(ROOT).free, references=references,
         generator=str(PROJECT/'isaacsimenvs/tasks/precise_assembly/scene_utils.py'),
         generator_sha256=digest(PROJECT/'isaacsimenvs/tasks/precise_assembly/scene_utils.py'),
@@ -187,6 +194,11 @@ def apply(expected):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(); parser.add_argument('--apply-sha256')
+    parser.add_argument('--minimum-age-hours',type=float,default=24)
+    parser.add_argument('--ledger',type=Path,default=LEDGER)
     args=parser.parse_args()
+    LEDGER=args.ledger.resolve()
+    if not LEDGER.is_relative_to(ROOT/'resource_cleanup_20261120'):
+        raise ValueError('Cleanup ledger must stay in this experiment cleanup root')
     if args.apply_sha256: apply(args.apply_sha256)
-    else: plan()
+    else: plan(args.minimum_age_hours)
