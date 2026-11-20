@@ -1,0 +1,171 @@
+{
+  "snapshot_local": "2026-11-20T20:42:58+08:00",
+  "utc": 1795178578.6110384,
+  "complete_opportunities": 21,
+  "accepted_corrections": 17,
+  "legal_expert_ticks": 2834,
+  "collection_table": [
+    {
+      "role": "A",
+      "attempts": 11,
+      "accepted": 7,
+      "expert_takeovers": 8,
+      "expert_success": 7,
+      "legal_ticks": 1407,
+      "stage_attempts": {
+        "contact": 3,
+        "post_subgoal": 3,
+        "instability": 3,
+        "transport": 2
+      },
+      "stage_accepted": {
+        "contact": 1,
+        "instability": 3,
+        "post_subgoal": 1,
+        "transport": 2
+      }
+    },
+    {
+      "role": "B",
+      "attempts": 10,
+      "accepted": 10,
+      "expert_takeovers": 10,
+      "expert_success": 10,
+      "legal_ticks": 1427,
+      "stage_attempts": {
+        "instability": 6,
+        "transport": 1,
+        "post_subgoal": 2,
+        "contact": 1
+      },
+      "stage_accepted": {
+        "instability": 6,
+        "transport": 1,
+        "post_subgoal": 2,
+        "contact": 1
+      }
+    }
+  ],
+  "interrupted_microbatch": {
+    "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/ram_recovery01_micro00",
+    "cases": [
+      "r40_A_layout10_train_28817003_contact",
+      "r40_B_layout10_train_28817003_contact"
+    ],
+    "submitted_rows": [
+      517,
+      517
+    ],
+    "counted_as_training": false
+  },
+  "interrupted_capture_errors": {
+    "r40_A_layout10_train_28817003_contact": {
+      "error": "writer closed before lane.finish",
+      "accepted_rows": 517,
+      "submitted_rows": 517,
+      "verified": false,
+      "cleanup_errors": []
+    },
+    "r40_B_layout10_train_28817003_contact": {
+      "error": "writer closed before lane.finish",
+      "accepted_rows": 517,
+      "submitted_rows": 517,
+      "verified": false,
+      "cleanup_errors": []
+    }
+  },
+  "previous_failure": {
+    "error": "CalledProcessError(1, ['/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python', '-m', 'tools.tight_project', 'dagger', '--job', '/home/CNS2025331827/docs/bc+rl_RSS/outputs/experiments/tight_adaptive_dagger_20261119/source/bc+rl_RSS/configs/experiments/adaptive_dagger/r2_ram_recovery01_micro00.json'])",
+    "utc": 1795172462.788048
+  },
+  "controller": {
+    "pid": 2754311,
+    "create_time": 1795173156.33,
+    "utc": 1795173157.2251136,
+    "command": [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-u",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/experiments/tight_adaptive_dagger_20261119/source/bc+rl_RSS/research_docs/evidence/tight_adaptive_dagger_20261119_01/round2_stable_recovery.py"
+    ],
+    "original_deadline": 1795276816.876542,
+    "recovery_registration_sha256": "fbecbea59e96cdb0525b82e32925c7c78eaa6c19b5914d11d58a752302548113",
+    "controller_sha256": "63f430f2cb838c67f3c205217b6b7dc54c2dd97be0d98f98762e90e5243bd341",
+    "waiting_only_until_stable_resources": true
+  },
+  "controller_rss_mib": 604.04296875,
+  "controller_children": [],
+  "resource_admission": {
+    "ready": false,
+    "instantaneous_ready": false,
+    "disk_gib": 28.679946899414062,
+    "ram_gib": 33.920650482177734,
+    "vram_free_mib": 20087,
+    "required_ram_gib": 34,
+    "required_vram_mib": 16000,
+    "stable_seconds_required": 120,
+    "stable_seconds_observed": 0,
+    "simulation": true,
+    "lanes": 2,
+    "utc": 1795178566.4961443,
+    "deadline": 1795276816.876542,
+    "gpu_query_error": null,
+    "other_project_mutations": 0
+  },
+  "free_disk_gib": 28.69424819946289,
+  "available_ram_gib": 35.019004821777344,
+  "progress": {
+    "round": 2,
+    "stage": "collect",
+    "utc": 1795175155.2444503
+  },
+  "training_started": false,
+  "final_test_opened": false,
+  "original_deadline": 1795276816.876542,
+  "complete": false,
+  "tests": {
+    "passed": 11,
+    "command": "python -m unittest discover -s research_docs/evidence/tight_adaptive_dagger_20261119_01 -p test_*recovery.py -v"
+  },
+  "mutations_outside_project": 0,
+  "interrupted_histories_counted_as_training": false,
+  "stage_detail": "First new two-case plan prepared; waiting on stable per-job resource admission; no new closed captures",
+  "latest_cleanup": {
+    "complete": true,
+    "directories_deleted": 1,
+    "attributed_allocated_bytes": 40173568,
+    "free_bytes_before": 30770049024,
+    "free_bytes_after": 30810218496,
+    "protected_identities_unchanged": true,
+    "protected_paths": 944,
+    "verification": "All protected file stat identities compared before/after; no new complete-byte SHA audit",
+    "original_deadline_unchanged": true,
+    "utc": 1795178578.5738692,
+    "references_before_apply": {
+      "scanned_same_user_processes": 240,
+      "active_asset_roots": [],
+      "matching_processes": [],
+      "permission_limitations": [
+        {
+          "pid": "2184",
+          "command": "/usr/lib/systemd/systemd --user",
+          "error": "[Errno 13] Permission denied: '/proc/2184/cwd'",
+          "classification": "Separately inspected ordinary systemd/session authentication service; not a simulation or asset consumer"
+        },
+        {
+          "pid": "2194",
+          "command": "(sd-pam)",
+          "error": "[Errno 13] Permission denied: '/proc/2194/cwd'",
+          "classification": "Separately inspected ordinary systemd/session authentication service; not a simulation or asset consumer"
+        },
+        {
+          "pid": "430847",
+          "command": "/usr/bin/ssh-agent -D -a /run/user/1001/keyring/.ssh",
+          "error": "[Errno 13] Permission denied: '/proc/430847/cwd'",
+          "classification": "Separately inspected ordinary systemd/session authentication service; not a simulation or asset consumer"
+        }
+      ],
+      "scope": "Accessible same-user cmdline/cwd/maps and all open fd paths/inodes; established session services have recorded permission limitations; other users are not inspected",
+      "utc": 1795178578.5460339
+    }
+  }
+}
