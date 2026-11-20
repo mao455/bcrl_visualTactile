@@ -1,0 +1,103 @@
+{
+  "local_time": "2026-11-21T00:48:34.569730+08:00",
+  "round": 2,
+  "A_DP": {
+    "epoch": 56,
+    "updates": 6614,
+    "batch_index": 14,
+    "utc": 1795193313.2001941
+  },
+  "B_DP_started": false,
+  "free_disk_gib": 12.837448120117188,
+  "available_RAM_gib": 31.48542022705078,
+  "cleanup_freed_gib": 0.32112884521484375,
+  "latest_supervision": {
+    "utc": 1795193301.161516,
+    "local_time": "2026-11-21T00:48:21.176343+08:00",
+    "state": "owned_workers_active",
+    "progress": {
+      "round": 2,
+      "stage": "train",
+      "utc": 1795179925.803005
+    },
+    "coordinator_alive": true,
+    "children": [
+      {
+        "pid": 2830324,
+        "create_time": 1795180241.87,
+        "name": "python",
+        "rss_gib": 0.010234832763671875
+      },
+      {
+        "pid": 2830326,
+        "create_time": 1795180241.91,
+        "name": "python",
+        "rss_gib": 0.012054443359375
+      },
+      {
+        "pid": 2830331,
+        "create_time": 1795180242.11,
+        "name": "python",
+        "rss_gib": 5.821540832519531
+      }
+    ],
+    "disk_free_gib": 12.837833404541016,
+    "ram_available_gib": 31.585159301757812,
+    "latest_admission_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/owners/r2_train/resource_admission.json",
+    "latest_admission": {
+      "ready": true,
+      "instantaneous_ready": true,
+      "disk_gib": 25.533893585205078,
+      "required_disk_gib": 16,
+      "ram_gib": 39.77943420410156,
+      "vram_free_mib": 23473,
+      "required_ram_gib": 24,
+      "required_vram_mib": 11000,
+      "stable_seconds_required": 60,
+      "stable_seconds_observed": 60.2403372740373,
+      "simulation": false,
+      "lanes": 0,
+      "utc": 1795180242.772577,
+      "deadline": 1795276816.876542,
+      "gpu_query_error": null,
+      "other_project_mutations": 0
+    },
+    "closed_recovery_batches": [
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/ram_recovery03_micro00",
+        "result": {
+          "software_complete": true,
+          "worker_error": null,
+          "cases": 2,
+          "utc": 1795179705.1178508,
+          "elapsed_seconds": 114.4497084831819,
+          "accepted_training_trajectories": 2,
+          "accepted_trajectories_per_hour": 62.90972773476328,
+          "attempts_per_hour": 62.90972773476328,
+          "lanes": 1
+        }
+      },
+      {
+        "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/ram_recovery03_micro01",
+        "result": {
+          "software_complete": true,
+          "worker_error": null,
+          "cases": 2,
+          "utc": 1795179921.9987023,
+          "elapsed_seconds": 151.1054443870671,
+          "accepted_training_trajectories": 2,
+          "accepted_trajectories_per_hour": 47.64884567333457,
+          "attempts_per_hour": 47.64884567333457,
+          "lanes": 1
+        }
+      }
+    ],
+    "failures": [],
+    "final_test_opened": false,
+    "deadline": 1795276816.876542,
+    "other_project_mutations": 0,
+    "limitation": "Worker existence is not a completed physical case; native worker monitors enforce runtime guards. This supervisor reads state and does not kill or alter any process."
+  },
+  "final_test_opened": false,
+  "limitation": "Disk headroom remains narrow; 12 GiB runtime guard remains unchanged. No claim that later stages have sufficient space."
+}

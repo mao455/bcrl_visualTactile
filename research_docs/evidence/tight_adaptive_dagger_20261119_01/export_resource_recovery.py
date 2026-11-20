@@ -22,7 +22,8 @@ def dump(path,value):
 
 
 def export():
-    for name in ('attempt06_records','attempt07_records','attempt08_failure_archive','attempt09_nominal'):
+    for name in ('attempt06_records','attempt07_records','attempt08_failure_archive','attempt09_nominal',
+                 'attempt10_records','attempt11_nominal'):
         source=ROOT/'resource_cleanup_20261120'/name
         dest=PUBLIC/'resource_cleanup'/name
         dest.mkdir(parents=True,exist_ok=True)
