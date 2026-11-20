@@ -30,7 +30,7 @@ def export():
             if (source/filename).exists():
                 shutil.copy2(source/filename,dest/filename)
         files={str(p):dict(sha256=digest(p),bytes=p.stat().st_size) for p in source.iterdir() if p.is_file()}
-        dump(dest/'ledger.json',dict(source=str(source),files=files,utc=time.time()))
+        dump(dest/'ledger.json',dict(source=str(source),files=files,utc=(source/'result.json').stat().st_mtime if (source/'result.json').exists() else (source/'manifest.json').stat().st_mtime))
         journal=source/'archive.jsonl'
         if journal.exists():
             rows=[json.loads(line) for line in journal.read_text().splitlines()]
