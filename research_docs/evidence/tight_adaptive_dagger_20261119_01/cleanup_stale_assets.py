@@ -75,6 +75,13 @@ def process_references():
             if hits: processes.append(dict(pid=int(process.name), roots=sorted(hits), command=command[:500]))
         except (FileNotFoundError, ProcessLookupError): pass
         except PermissionError as error:
+            # A process can exit between cmdline and fd traversal; zombies own no files.
+            try:
+                status = (process/'status').read_text()
+                if not command.strip() and any(line.startswith('State:') and '\tZ' in line for line in status.splitlines()):
+                    continue
+            except (FileNotFoundError, ProcessLookupError):
+                continue
             if command.strip() not in known_services:
                 raise RuntimeError('Unknown same-user process cannot be inspected: '+command) from error
             errors.append(dict(pid=process.name, command=command.strip(), error=str(error),

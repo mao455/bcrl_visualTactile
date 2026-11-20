@@ -46,7 +46,7 @@ def storage_admission():
         time.sleep(30)
 
 
-def collect(strategy, *, resume_batches=(), output_prefix='collection', round_offset=20):
+def collect(strategy, *, resume_batches=(), output_prefix='collection', round_offset=20, lanes=None):
     destination=ROOT/'round02';destination.mkdir(exist_ok=True)
     entries={};rows=[];cases=[];batches=[]
     attempted=collections.Counter();rescued=collections.Counter()
@@ -94,6 +94,10 @@ def collect(strategy, *, resume_batches=(), output_prefix='collection', round_of
             case['adaptive_stage']=stage
             dagger_configuration(case['dagger'],case['spec'],read(Path(case['source_data'])))
             attempted[case['role'],stage]+=1
+        if lanes is not None:
+            assert lanes in (1,2) and lanes <= len(plan['cases'])
+            plan['batch']['lanes'] = lanes
+        plan['minimum_start_disk_gib'] = required_gib
         plan.update(reason='Round1 new complete-student failure diagnosis; role-specific stage assignment',
             round2_strategy_sha256=sha256(PUBLIC/'round02/strategy.json'),source_sha256=sources())
         write(output/'plan.json',plan)
@@ -168,7 +172,7 @@ def paired_plans(plan):
 def run(*,continue_existing=False,resume_ram=False,ram_attempt=1):
     receipt=ROOT/'round2_continuation_started.json'
     if resume_ram:
-        assert ram_attempt in (1,2)
+        assert ram_attempt in (1,2,3)
         recovery_id=f'ram_recovery{ram_attempt:02d}'
         recovery=read(ROOT/f'round02/{recovery_id}.json')
         previous=Path(recovery.get('previous_failure',str(ROOT/'round2_continuation_failure.json')))
@@ -200,7 +204,7 @@ def run(*,continue_existing=False,resume_ram=False,ram_attempt=1):
     if resume_ram:
         strategy=copy.deepcopy(strategy);strategy['schedule']=recovery['remaining_schedule']
         combined=collect(strategy,resume_batches=recovery['verified_batches'],
-            output_prefix=f'{recovery_id}_micro',round_offset=20+20*ram_attempt)
+            output_prefix=f'{recovery_id}_micro',round_offset=20+20*ram_attempt,lanes=recovery.get('collection_lanes'))
     else:combined=collect(strategy)
     write(ROOT/'progress.json',dict(round=2,stage='train',utc=time.time()))
     target=experiment.prepare_learning(SOURCE,combined,2)
