@@ -165,14 +165,21 @@ def paired_plans(plan):
     return answer
 
 
-def run(*,continue_existing=False,resume_ram=False):
+def run(*,continue_existing=False,resume_ram=False,ram_attempt=1):
     receipt=ROOT/'round2_continuation_started.json'
     if resume_ram:
-        recovery=read(ROOT/'round02/ram_recovery01.json')
-        assert (ROOT/'round2_continuation_failure.json').exists()
+        assert ram_attempt in (1,2)
+        recovery_id=f'ram_recovery{ram_attempt:02d}'
+        recovery=read(ROOT/f'round02/{recovery_id}.json')
+        previous=Path(recovery.get('previous_failure',str(ROOT/'round2_continuation_failure.json')))
+        assert previous.is_relative_to(ROOT) and previous.is_file()
+        if 'previous_failure_sha256' in recovery:assert sha256(previous)==recovery['previous_failure_sha256']
+        for folder,digest in recovery['verified_batch_result_sha256'].items():
+            assert sha256(Path(folder)/'result.json')==digest
+        assert sha256(PUBLIC/'round02/strategy.json')==recovery['source_strategy_sha256']
         assert not (ROOT/'round02/learning').exists()
         assert recovery['original_deadline']==read(ROOT/'session.json')['deadline']
-        with (ROOT/'round02/ram_recovery01_started.json').open('x') as stream:
+        with (ROOT/f'round02/{recovery_id}_started.json').open('x') as stream:
             import json
             json.dump(dict(pid=os.getpid(),utc=time.time()),stream)
     elif continue_existing:
@@ -193,7 +200,7 @@ def run(*,continue_existing=False,resume_ram=False):
     if resume_ram:
         strategy=copy.deepcopy(strategy);strategy['schedule']=recovery['remaining_schedule']
         combined=collect(strategy,resume_batches=recovery['verified_batches'],
-            output_prefix='ram_recovery01_micro',round_offset=40)
+            output_prefix=f'{recovery_id}_micro',round_offset=20+20*ram_attempt)
     else:combined=collect(strategy)
     write(ROOT/'progress.json',dict(round=2,stage='train',utc=time.time()))
     target=experiment.prepare_learning(SOURCE,combined,2)
@@ -220,9 +227,9 @@ def run(*,continue_existing=False,resume_ram=False):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser();parser.add_argument('--continue-existing',action='store_true')
-    parser.add_argument('--resume-ram',action='store_true');args=parser.parse_args()
-    try:run(continue_existing=args.continue_existing,resume_ram=args.resume_ram)
+    parser.add_argument('--resume-ram',action='store_true');parser.add_argument('--ram-attempt',type=int,default=1);args=parser.parse_args()
+    try:run(continue_existing=args.continue_existing,resume_ram=args.resume_ram,ram_attempt=args.ram_attempt)
     except BaseException as error:
-        name='round2_ram_recovery01_failure.json' if args.resume_ram else 'round2_continuation_failure.json'
+        name=f'round2_ram_recovery{args.ram_attempt:02d}_failure.json' if args.resume_ram else 'round2_continuation_failure.json'
         write(ROOT/name,dict(error=repr(error),utc=time.time()))
         raise
