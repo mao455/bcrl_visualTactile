@@ -2,6 +2,8 @@
 
 本轮接续用户指定的 `9417461`，独立实验分支 `feature/tight-adaptive-dagger-20261119`，源码工作树位于主目录 `outputs/experiments/tight_adaptive_dagger_20261119/source/bc+rl_RSS`。主工作区和另一会话的文档整理保持隔离。实际run为 `outputs/visuotactile/run/tight_adaptive_dagger_20261119_01`，原有限session截止不变。本文只记录本轮，未改README或历史研究报告。
 
+截至2026-11-20 21:07（+08），恢复后的两个单lane批次已各自完整闭合2例，新增4条合法纠偏/666个expert tick，第二轮累计 **25次完整机会、21条有效纠偏、3500合法expert tick**（A13机会/9准入/1723tick，B12/12/1777）。原4条中断前缀和1条未启动案例继续单独保留，不计上述完整分母。当前34.42GiB低于下一批34.5GiB的预留要求，已执行预登记的“两组各至少8条、总至少20条”容量停止规则，停止追加采集并转入完整四组件学习。共同train由159增至180、validation6、test0；原全部159和原归一化保留。视觉缓存worker已实际启动，A/B DP各预登记60完整deck/7200新optimizer更新，再刷新各自选中DP后端输入；此刻没有宣称已经完成任何R2更新或50曝光验收。原生新终测仍未打开。最新清理恢复提交`80fcdc8`已推送，后续以实际owner/训练回执为准。
+
 截至2026-11-20T21:02:59+08:00，本次按用户“删除无用文件、压缩记录并主动监督”的新授权，已经回收 **8.531GiB**：383份关闭记录无损归档释放3.559GiB、51份历史中断capture无损归档释放1.581GiB、1661份可重建旧nominal派生缓存删除释放3.392GiB。两类归档均逐文件完整解压并核对原字节SHA后才移除未压缩副本，失败证据没有丢弃；944条保护路径的stat身份保持，nominal清理另保持126条来源模型和metadata身份。原始合法数据、候选模型、当前视觉缓存和整棵72选中learning子树保留，未修改其他项目。当前磁盘约35.17GiB、可用RAM约31.54GiB，文件系统余量受并发写入影响。归档恢复先执行各ledger提供的`tools.tight_cache_archive restore --manifest .../restore_manifest.json`；退休nominal的历史离线复现须用保留的DP、数据及配置重新生成，不保证字节相同。完整逐文件路径/SHA和恢复清单见`resource_cleanup/attempt07_records`、`attempt08_failure_archive`、`attempt09_nominal`；首次归档在/proc退出进程竞态处失败的attempt06原证据亦保留。
 
 反复阻塞的实际原因分开记录：先有两次10GiB运行RAM守卫中止，再有34GiB启动RAM持续窗口与磁盘32.5GiB准入等待。仅等待的recovery02协调器经PID/create_time/无子进程核验后退休，未启动Kit、未增加物理机会。新recovery03保持原待执行案例和原截止，将每批两个完整A/B案例在一个lane排队，启动要求28GiB RAM/16000MiB VRAM稳定60秒，并在等待RAM时持续重验当前批磁盘预算；运行12GiB磁盘/10GiB RAM/4GiB显存保护线不变。完整自主评测仍按父/新两lane同波配对。新采集于20:59实际启动，首批已完整闭合2例、2条专家纠偏通过常规准入；第二轮累计23次完整机会、19条纠偏，A8/B11，尚未开始第二轮训练，终测仍未打开。专家救回不计自主成功。

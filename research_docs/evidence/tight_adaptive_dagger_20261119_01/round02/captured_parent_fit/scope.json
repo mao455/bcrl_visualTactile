@@ -1,0 +1,69 @@
+{
+  "accepted": 21,
+  "rows": 396,
+  "parents": {
+    "A": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/A/training/best.pt",
+      "frontend_sha256": "5df541a70b9eab75800fe3ae9cae4700290fbc557605f4f5497523e9d98fa446",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/A/backend/A/training/best.pt",
+      "backend_sha256": "48ce7d8d4b3b8a429d807ebf9e8f796fa2ef5c97178b3ba695e3262b21d2750a",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "q_reached",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    },
+    "B": {
+      "version": "complete_student_policy_v1",
+      "controller": "ResidualController",
+      "frontend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/B/training/best.pt",
+      "frontend_sha256": "624dae38c80c45ab07f808e8c916b8c2683ac598db4892f04366da408e68755a",
+      "backend": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/B/backend/B/training/best.pt",
+      "backend_sha256": "b68f21258216c9db069874fd5c69dd5331e259e10401f107f12717c77879b67b",
+      "residual_version": "target_residual_transformer60_v1",
+      "supervision": "u_expert",
+      "supervision_inference": null,
+      "modality": "G00",
+      "output": "absolute_joint_position_target_rad",
+      "composition": "bounded nominal plus Transformer correction; actual issued/applied feedback",
+      "execution_adapter": {
+        "version": "expert_reachable_postprocessed_v1",
+        "input_space": "postprocessed_absolute_joint_target_rad",
+        "reference": "actual_pre_action_actuator_target_rad",
+        "control_dt": 0.016666666666666666,
+        "dof_speed_scale": 1.5,
+        "arm_moving_average": 0.1,
+        "hand_moving_average": 0.1,
+        "arm_progress": 0.5,
+        "hand_progress": 1.0,
+        "hand_target_cap_rad_s": 2.0,
+        "roundoff_tolerance_rad": 1e-06,
+        "delay": "already_resolved_in_supervision_no_second_queue"
+      },
+      "zero_correction_is_valid": true
+    }
+  },
+  "scope": "Parent source student predictions recorded online with complete actual sensor and executed-action histories, including expert suffix. Only clean executed expert labels used as truth. Each role is evaluated on its own contributed trajectories.",
+  "limitation": "Suffix student proposals were not executed. Capture used live sampler7093; separately exported learned-model offline caches use7091, so do not interpret differences as exact matched-noise changes.",
+  "training_effect": "None; no prefix masks, labels, models or sources changed",
+  "optimizer_updates": 0,
+  "physics_updates": 0
+}
