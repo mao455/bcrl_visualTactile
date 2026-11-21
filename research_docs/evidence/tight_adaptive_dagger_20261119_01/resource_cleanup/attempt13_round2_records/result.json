@@ -1,0 +1,40 @@
+{
+  "complete": true,
+  "files_archived": 2,
+  "saved_allocated_bytes": 1095905280,
+  "free_before": 17437306880,
+  "free_after": 18533031936,
+  "protected_paths": 1866,
+  "protected_stat_unchanged": true,
+  "byte_roundtrip_verified": true,
+  "evidence_discarded": false,
+  "other_project_mutations": 0,
+  "utc": 1795228981.6675093,
+  "census": {
+    "scanned_same_user_processes": 230,
+    "active_asset_roots": [],
+    "matching_processes": [],
+    "permission_limitations": [
+      {
+        "pid": "2184",
+        "command": "/usr/lib/systemd/systemd --user",
+        "error": "[Errno 13] Permission denied: '/proc/2184/cwd'",
+        "classification": "Separately inspected ordinary systemd/session authentication service; not a simulation or asset consumer"
+      },
+      {
+        "pid": "2194",
+        "command": "(sd-pam)",
+        "error": "[Errno 13] Permission denied: '/proc/2194/cwd'",
+        "classification": "Separately inspected ordinary systemd/session authentication service; not a simulation or asset consumer"
+      },
+      {
+        "pid": "430847",
+        "command": "/usr/bin/ssh-agent -D -a /run/user/1001/keyring/.ssh",
+        "error": "[Errno 13] Permission denied: '/proc/430847/cwd'",
+        "classification": "Separately inspected ordinary systemd/session authentication service; not a simulation or asset consumer"
+      }
+    ],
+    "scope": "Accessible same-user cmdline/cwd/maps and all open fd paths/inodes; established session services have recorded permission limitations; other users are not inspected",
+    "utc": 1795228978.303554
+  }
+}

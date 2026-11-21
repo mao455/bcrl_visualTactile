@@ -1,0 +1,769 @@
+{
+  "utc": 1795225059.2197707,
+  "root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/evaluation/paired2_wave19_A",
+  "counts": {
+    "A_new": {
+      "opportunities": 1,
+      "legal": 1,
+      "successes": 1,
+      "expert_rescues": 0,
+      "admitted": 0,
+      "admitted_expert_ticks": 0,
+      "stage_reached": {
+        "transport": 1,
+        "near": 1,
+        "alignment": 1,
+        "weakening": 1,
+        "post_subgoal": 1
+      }
+    },
+    "A_parent": {
+      "opportunities": 1,
+      "legal": 1,
+      "successes": 0,
+      "expert_rescues": 0,
+      "admitted": 0,
+      "admitted_expert_ticks": 0,
+      "stage_reached": {
+        "transport": 1,
+        "near": 0,
+        "alignment": 0,
+        "weakening": 0,
+        "post_subgoal": 0
+      }
+    }
+  },
+  "requested_stages": {
+    "autonomous": {
+      "opportunities": 2,
+      "legal": 2,
+      "takeovers": 0,
+      "not_triggered": 2,
+      "rescued": 0,
+      "admitted_expert_ticks": 0,
+      "distinct_source_families": 0,
+      "takeover_phases": [],
+      "interpretation": "Rescue denominator is actual takeovers; untaken cases remain in opportunity denominator. Family count is not independent correction-state count."
+    }
+  },
+  "rows": [
+    {
+      "case": "A_parent_adaptive_final_28838503",
+      "role": "A_parent",
+      "seed": 28838503,
+      "legal": true,
+      "source_family": null,
+      "requested_stage": "autonomous",
+      "success": false,
+      "steps": 601,
+      "reasons": {
+        "fall": false,
+        "max_successes": false,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": true
+      },
+      "software_complete": true,
+      "native_subgoals": 0,
+      "native_alignment": false,
+      "native_lift": false,
+      "student_stages": {
+        "transport": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "transport",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 102,
+          "reason": "completed_student_transport",
+          "completed_student_transitions_observed": 102,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 101,
+          "trigger_completed_tick": 102,
+          "at_trigger": {
+            "completed_tick": 102,
+            "held12": true,
+            "fingers": 2,
+            "height_above_settled_m": 0.06496572494506836,
+            "travel_xy_m": 0.07997315376996994,
+            "root_goal_distance_m": 0.14240995049476624,
+            "keypoint_max_distance_m": 0.2866828441619873,
+            "orientation_error_rad": 1.9249162188507196,
+            "palm_relative_drift_m": 0.0023431964218616486,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "last": {
+            "completed_tick": 102,
+            "held12": true,
+            "fingers": 2,
+            "height_above_settled_m": 0.06496572494506836,
+            "travel_xy_m": 0.07997315376996994,
+            "root_goal_distance_m": 0.14240995049476624,
+            "keypoint_max_distance_m": 0.2866828441619873,
+            "orientation_error_rad": 1.9249162188507196,
+            "palm_relative_drift_m": 0.0023431964218616486,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "near": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "near",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "stage_not_reached",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 101,
+          "trigger_completed_tick": null,
+          "at_trigger": null,
+          "last": {
+            "completed_tick": 601,
+            "held12": false,
+            "fingers": 0,
+            "height_above_settled_m": -1.7881393432617188e-07,
+            "travel_xy_m": 0.08101095259189606,
+            "root_goal_distance_m": 0.20568443834781647,
+            "keypoint_max_distance_m": 0.33927595615386963,
+            "orientation_error_rad": 1.6820461224175693,
+            "palm_relative_drift_m": 0.15231472253799438,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "alignment": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "alignment",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "stage_not_reached",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 101,
+          "trigger_completed_tick": null,
+          "at_trigger": null,
+          "last": {
+            "completed_tick": 601,
+            "held12": false,
+            "fingers": 0,
+            "height_above_settled_m": -1.7881393432617188e-07,
+            "travel_xy_m": 0.08101095259189606,
+            "root_goal_distance_m": 0.20568443834781647,
+            "keypoint_max_distance_m": 0.33927595615386963,
+            "orientation_error_rad": 1.6820461224175693,
+            "palm_relative_drift_m": 0.15231472253799438,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "weakening": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "weakening",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "stage_not_reached",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 101,
+          "trigger_completed_tick": null,
+          "at_trigger": null,
+          "last": {
+            "completed_tick": 601,
+            "held12": false,
+            "fingers": 0,
+            "height_above_settled_m": -1.7881393432617188e-07,
+            "travel_xy_m": 0.08101095259189606,
+            "root_goal_distance_m": 0.20568443834781647,
+            "keypoint_max_distance_m": 0.33927595615386963,
+            "orientation_error_rad": 1.6820461224175693,
+            "palm_relative_drift_m": 0.15231472253799438,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "post_subgoal": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "post_subgoal",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08,
+            "minimum_completed_subgoals": 1
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 1000000000,
+          "reason": "stage_not_reached",
+          "completed_student_transitions_observed": 601,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 101,
+          "trigger_completed_tick": null,
+          "at_trigger": null,
+          "last": {
+            "completed_tick": 601,
+            "held12": false,
+            "fingers": 0,
+            "height_above_settled_m": -1.7881393432617188e-07,
+            "travel_xy_m": 0.08101095259189606,
+            "root_goal_distance_m": 0.20568443834781647,
+            "keypoint_max_distance_m": 0.33927595615386963,
+            "orientation_error_rad": 1.6820461224175693,
+            "palm_relative_drift_m": 0.15231472253799438,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        }
+      },
+      "hold60": {
+        "reference_available": true,
+        "height_reference_m": 0.5404219627380371,
+        "window_ticks": 60,
+        "duration_seconds": 1.0,
+        "sustained": false,
+        "first_completed_tick": null,
+        "qualified_windows": 0,
+        "held_at_final_window": false,
+        "longest_contact_height_ticks": 18,
+        "native_success_changed": false,
+        "rotation_allowed": true
+      },
+      "hold120": {
+        "reference_available": true,
+        "height_reference_m": 0.5404219627380371,
+        "window_ticks": 120,
+        "duration_seconds": 2.0,
+        "sustained": false,
+        "first_completed_tick": null,
+        "qualified_windows": 0,
+        "held_at_final_window": false,
+        "longest_contact_height_ticks": 18,
+        "native_success_changed": false,
+        "rotation_allowed": true
+      },
+      "student_no_contact_onsets": [
+        116,
+        119
+      ],
+      "student_near_goal": {
+        "min_root_distance_m": 0.10770776122808456,
+        "final_root_distance_m": 0.20568443834781647,
+        "minimum_keypoint_distance_m": 0.2579023241996765,
+        "final_orientation_error_rad": 1.6820461750030518,
+        "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+      },
+      "numeric_sha256": "6d8bb25d12cd2bbb5f14f81dd759f82fb9eddcb5f8cfd4a70177a4182ef45ef2"
+    },
+    {
+      "case": "A_new_adaptive_final_28838503",
+      "role": "A_new",
+      "seed": 28838503,
+      "legal": true,
+      "source_family": null,
+      "requested_stage": "autonomous",
+      "success": true,
+      "steps": 285,
+      "reasons": {
+        "fall": false,
+        "max_successes": true,
+        "hand_far": false,
+        "dropped": false,
+        "timeout": false
+      },
+      "software_complete": true,
+      "native_subgoals": 2,
+      "native_alignment": true,
+      "native_lift": false,
+      "student_stages": {
+        "transport": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "transport",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 105,
+          "reason": "completed_student_transport",
+          "completed_student_transitions_observed": 105,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 104,
+          "trigger_completed_tick": 105,
+          "at_trigger": {
+            "completed_tick": 105,
+            "held12": true,
+            "fingers": 2,
+            "height_above_settled_m": 0.05492204427719116,
+            "travel_xy_m": 0.08139251917600632,
+            "root_goal_distance_m": 0.15054064989089966,
+            "keypoint_max_distance_m": 0.32348933815956116,
+            "orientation_error_rad": 2.2256567639452625,
+            "palm_relative_drift_m": 0.002198937349021435,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "last": {
+            "completed_tick": 105,
+            "held12": true,
+            "fingers": 2,
+            "height_above_settled_m": 0.05492204427719116,
+            "travel_xy_m": 0.08139251917600632,
+            "root_goal_distance_m": 0.15054064989089966,
+            "keypoint_max_distance_m": 0.32348933815956116,
+            "orientation_error_rad": 2.2256567639452625,
+            "palm_relative_drift_m": 0.002198937349021435,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "near": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "near",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 142,
+          "reason": "completed_student_near",
+          "completed_student_transitions_observed": 142,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 104,
+          "trigger_completed_tick": 142,
+          "at_trigger": {
+            "completed_tick": 142,
+            "held12": true,
+            "fingers": 2,
+            "height_above_settled_m": 0.13009554147720337,
+            "travel_xy_m": 0.11726261675357819,
+            "root_goal_distance_m": 0.06627468019723892,
+            "keypoint_max_distance_m": 0.19320493936538696,
+            "orientation_error_rad": 1.8263685507604344,
+            "palm_relative_drift_m": 0.023902464658021927,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "last": {
+            "completed_tick": 142,
+            "held12": true,
+            "fingers": 2,
+            "height_above_settled_m": 0.13009554147720337,
+            "travel_xy_m": 0.11726261675357819,
+            "root_goal_distance_m": 0.06627468019723892,
+            "keypoint_max_distance_m": 0.19320493936538696,
+            "orientation_error_rad": 1.8263685507604344,
+            "palm_relative_drift_m": 0.023902464658021927,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "alignment": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "alignment",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 181,
+          "reason": "completed_student_alignment",
+          "completed_student_transitions_observed": 181,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 104,
+          "trigger_completed_tick": 181,
+          "at_trigger": {
+            "completed_tick": 181,
+            "held12": true,
+            "fingers": 3,
+            "height_above_settled_m": 0.17834430932998657,
+            "travel_xy_m": 0.1605905145406723,
+            "root_goal_distance_m": 0.008733874186873436,
+            "keypoint_max_distance_m": 0.03012717515230179,
+            "orientation_error_rad": 0.2823036890759851,
+            "palm_relative_drift_m": 0.03453722596168518,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "last": {
+            "completed_tick": 181,
+            "held12": true,
+            "fingers": 3,
+            "height_above_settled_m": 0.17834430932998657,
+            "travel_xy_m": 0.1605905145406723,
+            "root_goal_distance_m": 0.008733874186873436,
+            "keypoint_max_distance_m": 0.03012717515230179,
+            "orientation_error_rad": 0.2823036890759851,
+            "palm_relative_drift_m": 0.03453722596168518,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "weakening": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "weakening",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 138,
+          "reason": "completed_student_weakening",
+          "completed_student_transitions_observed": 138,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 104,
+          "trigger_completed_tick": 138,
+          "at_trigger": {
+            "completed_tick": 138,
+            "held12": true,
+            "fingers": 3,
+            "height_above_settled_m": 0.12262028455734253,
+            "travel_xy_m": 0.11077314615249634,
+            "root_goal_distance_m": 0.07615075260400772,
+            "keypoint_max_distance_m": 0.21352113783359528,
+            "orientation_error_rad": 1.9926894942190718,
+            "palm_relative_drift_m": 0.02372111566364765,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "last": {
+            "completed_tick": 138,
+            "held12": true,
+            "fingers": 3,
+            "height_above_settled_m": 0.12262028455734253,
+            "travel_xy_m": 0.11077314615249634,
+            "root_goal_distance_m": 0.07615075260400772,
+            "keypoint_max_distance_m": 0.21352113783359528,
+            "orientation_error_rad": 1.9926894942190718,
+            "palm_relative_drift_m": 0.02372111566364765,
+            "goal_before": 0,
+            "goal_after": 0
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        },
+        "post_subgoal": {
+          "configuration": {
+            "version": "layout_multistage_recovery_v1",
+            "stage": "post_subgoal",
+            "transport_xy_m": 0.07,
+            "near_root_m": 0.07,
+            "alignment_keypoint_m": 0.035,
+            "held_window": 12,
+            "confirm_ticks": 2,
+            "weak_relative_drift_m": 0.015,
+            "weak_root_m": 0.08,
+            "minimum_completed_subgoals": 1
+          },
+          "fallback_tick": 1000000000,
+          "actual_scheduled_takeover_tick": 247,
+          "reason": "completed_student_post_subgoal",
+          "completed_student_transitions_observed": 247,
+          "settled_height_m": 0.5404219627380371,
+          "first_held_completed_tick": 104,
+          "trigger_completed_tick": 247,
+          "at_trigger": {
+            "completed_tick": 247,
+            "held12": true,
+            "fingers": 3,
+            "height_above_settled_m": 0.1751728057861328,
+            "travel_xy_m": 0.16413262486457825,
+            "root_goal_distance_m": 0.04924767091870308,
+            "keypoint_max_distance_m": 0.051402751356363297,
+            "orientation_error_rad": 0.0642261309573763,
+            "palm_relative_drift_m": 0.036857496947050095,
+            "goal_before": 1,
+            "goal_after": 1
+          },
+          "last": {
+            "completed_tick": 247,
+            "held12": true,
+            "fingers": 3,
+            "height_above_settled_m": 0.1751728057861328,
+            "travel_xy_m": 0.16413262486457825,
+            "root_goal_distance_m": 0.04924767091870308,
+            "keypoint_max_distance_m": 0.051402751356363297,
+            "orientation_error_rad": 0.0642261309573763,
+            "palm_relative_drift_m": 0.036857496947050095,
+            "goal_before": 1,
+            "goal_after": 1
+          },
+          "diagnostic_only": true,
+          "student_inputs_changed": false,
+          "native_success_changed": false,
+          "no_expert_fallback": true,
+          "phase_alignment": "next action after causal confirmation; no modulo12 rounding"
+        }
+      },
+      "hold60": {
+        "reference_available": true,
+        "height_reference_m": 0.5404219627380371,
+        "window_ticks": 60,
+        "duration_seconds": 1.0,
+        "sustained": true,
+        "first_completed_tick": 152,
+        "qualified_windows": 123,
+        "held_at_final_window": false,
+        "longest_contact_height_ticks": 161,
+        "native_success_changed": false,
+        "rotation_allowed": true
+      },
+      "hold120": {
+        "reference_available": true,
+        "height_reference_m": 0.5404219627380371,
+        "window_ticks": 120,
+        "duration_seconds": 2.0,
+        "sustained": true,
+        "first_completed_tick": 212,
+        "qualified_windows": 63,
+        "held_at_final_window": false,
+        "longest_contact_height_ticks": 161,
+        "native_success_changed": false,
+        "rotation_allowed": true
+      },
+      "student_no_contact_onsets": [
+        77,
+        80,
+        273
+      ],
+      "student_near_goal": {
+        "min_root_distance_m": 0.0010116150369867682,
+        "final_root_distance_m": 0.0011261862237006426,
+        "minimum_keypoint_distance_m": 0.0014578616246581078,
+        "final_orientation_error_rad": 0.0045804851688444614,
+        "interpretation": "Active native goal; root proximity alone does not imply alignment. All values restricted to actual student prefix."
+      },
+      "numeric_sha256": "b606e6f864d6636181b1453e100feba16e362f8bbcb29a1a74c8eb2532ac851a"
+    }
+  ],
+  "complete": {
+    "software_complete": true,
+    "worker_error": null,
+    "cases": 2,
+    "utc": 1795221526.137765,
+    "elapsed_seconds": 85.83788482798263,
+    "accepted_training_trajectories": 0,
+    "accepted_trajectories_per_hour": 0.0,
+    "attempts_per_hour": 83.87904728114692,
+    "lanes": 2
+  },
+  "paired": {
+    "rows": [
+      {
+        "seed": 28838503,
+        "reference": 0,
+        "lane": 1,
+        "q_max_rad": 0.0,
+        "qd_max_rad_s": 0.0,
+        "target_max_rad": 0.0,
+        "physical": {
+          "object_pose_w_position_m": 2.384185791015625e-07,
+          "object_pose_w_quaternion": 0.0,
+          "hole_pose_w_position_m": 0.0,
+          "hole_pose_w_quaternion": 0.0,
+          "goal_pose_w_position_m": 0.0,
+          "goal_pose_w_quaternion": 0.0,
+          "table_pose_w_position_m": 0.0,
+          "table_pose_w_quaternion": 0.0,
+          "palm_body_pose_w_position_m": 7.152557373046875e-07,
+          "palm_body_pose_w_quaternion": 0.0,
+          "object_velocity_w_m_s_rad_s": 0.0,
+          "goal_velocity_w_m_s_rad_s": 0.0
+        },
+        "reference_active": true,
+        "active": true
+      }
+    ],
+    "passed": true,
+    "scope": "Pre-action q/qdot/actuator targets, base-relative physical poses, object/goal velocities and legal masks; tolerance 1e-5 in each reported unit. Hidden PhysX/sensor state and future random draws not claimed exact."
+  },
+  "wave_profiles": [
+    {
+      "wave": 0,
+      "role": "mixed",
+      "controller_s": 31.18044468620792,
+      "environment_s": 36.49897023010999,
+      "expert_s": 0.030187734868377447,
+      "record_submit_s": 2.6628135764040053,
+      "finish_audit_s": 0.24001264991238713,
+      "reset_refill_s": 0.0,
+      "active_lane_steps": 886,
+      "allocated_lane_steps": 1202,
+      "refills": 0,
+      "finished_before_queue_empty": 0,
+      "seconds": 74.13034418597817,
+      "cases": 2,
+      "control_ticks": 886,
+      "vision_execution": {
+        "version": "gpu_observation_history_control_v1",
+        "roles": {
+          "A_parent": {
+            "version": "current_observation_lane_microbatch_v1",
+            "vision_microbatch": 2,
+            "images_per_kernel": 6,
+            "forward_features_calls": 0,
+            "real_lanes": 601,
+            "padding_lanes": 0,
+            "real_images": 1803,
+            "processed_images": 0,
+            "controller_calls": 601,
+            "external_shared_vision": true,
+            "consumed_observations_per_lane": [
+              601,
+              0
+            ],
+            "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+          },
+          "A_new": {
+            "version": "current_observation_lane_microbatch_v1",
+            "vision_microbatch": 2,
+            "images_per_kernel": 6,
+            "forward_features_calls": 0,
+            "real_lanes": 285,
+            "padding_lanes": 0,
+            "real_images": 855,
+            "processed_images": 0,
+            "controller_calls": 285,
+            "external_shared_vision": true,
+            "consumed_observations_per_lane": [
+              0,
+              285
+            ],
+            "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+          }
+        },
+        "calls": 601,
+        "real_lanes": 886,
+        "processed_images": 3606,
+        "padding_lanes": 316
+      },
+      "render_transitions": [
+        {
+          "lane": 1,
+          "enabled": false,
+          "utc": 1795221494.40216
+        },
+        {
+          "lane": 1,
+          "enabled": true,
+          "utc": 1795221526.1303258
+        }
+      ],
+      "camera_reactivation": [],
+      "aggregate_control_ticks_per_second": 11.951920765094568,
+      "active_lane_fraction": 0.7371048252911814,
+      "render_reuse": {
+        "render_calls": 609,
+        "render_seconds": 10.130288827233016,
+        "redundant_reader_renders_avoided": 600,
+        "reader_renders_required": 2,
+        "invalidations": 4
+      },
+      "admission_s": 0.0,
+      "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+    }
+  ],
+  "plan_sha256": "15ad2a234ce214dc77561c51cd6b1d3c76f6d7a67c5ff2e7f145043610a2a95c",
+  "software_interruptions": 0,
+  "valid_expert_ticks_per_wall_hour": 0.0,
+  "interpretation": "Collection rescue success is not autonomous success; stage-reaching is censored by actual takeover, never inferred beyond student prefix."
+}
