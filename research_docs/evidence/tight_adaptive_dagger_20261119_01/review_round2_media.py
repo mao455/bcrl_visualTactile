@@ -1,4 +1,5 @@
-"""Decode existing Round 2 videos; save bounded three-view contact sheets."""
+"""Decode existing Round 2 or final-test videos; save three-view contact sheets."""
+import argparse
 import json
 from pathlib import Path
 
@@ -17,12 +18,22 @@ CASES = {
 }
 
 
-def export():
-    output = ROOT / 'media/autonomous_round02'
+def export(scope='round02'):
+    assert scope in ('round02', 'final_test')
+    cases = CASES if scope == 'round02' else {
+        'A_lost_parent': ('paired2_wave04_A', 'A_parent'),
+        'A_lost_new': ('paired2_wave04_A', 'A_new'),
+        'B_lost_parent': ('paired2_wave05_B', 'B_parent'),
+        'B_lost_new': ('paired2_wave05_B', 'B_new'),
+        'B_gained_parent': ('paired2_wave02_B', 'B_parent'),
+        'B_gained_new': ('paired2_wave02_B', 'B_new'),
+    }
+    source_folder = PUBLIC / ('round02/evaluation' if scope == 'round02' else 'final_test')
+    output = ROOT / 'media' / ('autonomous_' + scope)
     output.mkdir(parents=True, exist_ok=True)
     receipts = {}
-    for label, (wave, role) in CASES.items():
-        videos = json.loads((PUBLIC / 'round02/evaluation' / wave / 'videos.json').read_text())
+    for label, (wave, role) in cases.items():
+        videos = json.loads((source_folder / wave / 'videos.json').read_text())
         metadata, = [r for r in videos['rows'] if r['case'].startswith(role + '_')]
         source = Path(metadata['result']).parent / 'autonomous.mp4'
         ticks = sorted({0, metadata['frames'] - 1} | {
@@ -51,9 +62,11 @@ def export():
             view_ticks=ticks, success=metadata['success'], case=metadata['case'],
             scope='Existing actual pre-action RGB; representative outcome-selected viewing; zero physics reruns')
     (output / 'decoded.json').write_text(json.dumps(receipts, indent=2) + '\n')
-    (PUBLIC / 'round02/autonomous_media_decode.json').write_text(json.dumps(receipts, indent=2) + '\n')
+    (PUBLIC / scope / 'autonomous_media_decode.json').write_text(json.dumps(receipts, indent=2) + '\n')
     print(json.dumps(dict(videos=len(receipts), decoded_frames=sum(r['frames'] for r in receipts.values()))))
 
 
 if __name__ == '__main__':
-    export()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--scope', choices=('round02', 'final_test'), default='round02')
+    export(parser.parse_args().scope)

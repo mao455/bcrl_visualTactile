@@ -1,0 +1,128 @@
+{
+  "complete": true,
+  "automatic_promotion": false,
+  "promote": false,
+  "reason": "No autonomous insertion improvement on the preregistered final test; old successes lost despite sufficient per-round exposure and better supervised training fit",
+  "test_population": 8,
+  "test_parent": "Initial complete130-50 A/B pairs",
+  "candidate": "Round2 complete A/B pairs",
+  "final_test_counts": [
+    {
+      "cohort": "test",
+      "model": "A_new",
+      "n": 8,
+      "success": 0,
+      "first_subgoal": 3,
+      "later_subgoal": 0,
+      "native_lift": 1,
+      "hold30": 6,
+      "hold60": 6,
+      "hold120": 4,
+      "failure_stages": {
+        "before_lift": 4,
+        "after_subgoal": 3,
+        "after_lift": 1
+      }
+    },
+    {
+      "cohort": "test",
+      "model": "A_parent",
+      "n": 8,
+      "success": 1,
+      "first_subgoal": 5,
+      "later_subgoal": 1,
+      "native_lift": 1,
+      "hold30": 6,
+      "hold60": 6,
+      "hold120": 6,
+      "failure_stages": {
+        "after_subgoal": 4,
+        "before_lift": 3,
+        "success": 1
+      }
+    },
+    {
+      "cohort": "test",
+      "model": "B_new",
+      "n": 8,
+      "success": 1,
+      "first_subgoal": 3,
+      "later_subgoal": 1,
+      "native_lift": 0,
+      "hold30": 8,
+      "hold60": 8,
+      "hold120": 8,
+      "failure_stages": {
+        "after_subgoal": 2,
+        "success": 1,
+        "before_lift": 5
+      }
+    },
+    {
+      "cohort": "test",
+      "model": "B_parent",
+      "n": 8,
+      "success": 2,
+      "first_subgoal": 4,
+      "later_subgoal": 2,
+      "native_lift": 2,
+      "hold30": 8,
+      "hold60": 8,
+      "hold120": 8,
+      "failure_stages": {
+        "after_subgoal": 2,
+        "after_lift": 2,
+        "before_lift": 2,
+        "success": 2
+      }
+    }
+  ],
+  "paired_changes": {
+    "A": {
+      "retained": 0,
+      "lost": 1,
+      "gained": 0
+    },
+    "B": {
+      "retained": 0,
+      "lost": 2,
+      "gained": 1
+    }
+  },
+  "final_test_opening_does_not_authorize_more_training": true,
+  "original_deadline": 1795276816.876542,
+  "cycle_finished_utc": 1795230817.1830444,
+  "elapsed_seconds": 126800.30650234222,
+  "populations": [
+    {
+      "round": 1,
+      "role": "A",
+      "train": 159,
+      "validation": 6,
+      "test": 0
+    },
+    {
+      "round": 1,
+      "role": "B",
+      "train": 159,
+      "validation": 6,
+      "test": 0
+    },
+    {
+      "round": 2,
+      "role": "A",
+      "train": 180,
+      "validation": 6,
+      "test": 0
+    },
+    {
+      "round": 2,
+      "role": "B",
+      "train": 180,
+      "validation": 6,
+      "test": 0
+    }
+  ],
+  "optimizer_updates_this_audit": 0,
+  "physics_updates_this_audit": 0
+}

@@ -1,5 +1,4 @@
-"""Publish actual completed evidence; an unfinished final test stays explicit."""
-import csv
+"""Publish actual evidence, including the completed independent final test."""
 import json
 from datetime import datetime
 from pathlib import Path
@@ -20,8 +19,21 @@ def table(headers, rows):
 
 
 def export():
+    final = PUBLIC / 'final_test/counts.json'
+    closure_path = PUBLIC / 'final_closure.json'
+    closure = read(closure_path) if closure_path.exists() else None
+    outcome = []
+    if closure:
+        decision = read(PUBLIC / 'final_decision.json')
+        assert closure['complete'] and not decision['promote']
+        finished = datetime.fromtimestamp(decision['cycle_finished_utc']).astimezone().isoformat()
+        seconds = round(decision['elapsed_seconds'])
+        duration = f'{seconds // 3600}小时{seconds % 3600 // 60}分{seconds % 60}秒'
+        counts = {r['model']: r for r in read(final)}
+        outcome = [f'**本轮已完成，不晋升候选。** 实际结束于{finished}，全周期{duration}。最终32例全部合法完整、0软件未完成：完整插入A {counts["A_parent"]["success"]}/8→{counts["A_new"]["success"]}/8，B {counts["B_parent"]["success"]}/8→{counts["B_new"]["success"]}/8（最初130-50父策略→Round 2完整候选）。本轮没有显示自主插入改善；全部旧成功均丢失，B另新增1例。小样本不作统计显著结论。训练、仿真及本轮协调/监控均已退出，测试打开后未再训练或选模。']
     blocks = ['# 两轮自适应DAgger：结果与限制',
-        f'更新时刻：{datetime.now().astimezone().isoformat()}。实验分支`feature/tight-adaptive-dagger-20261119`；原48小时截止未延长。两轮实际采集、四组件训练、独立曝光验收和各144例自主开发均已完成。最终结果以以下终测状态为准。',
+        *outcome,
+        f'更新时刻：{datetime.now().astimezone().isoformat()}。实验分支`feature/tight-adaptive-dagger-20261119`；原48小时截止未延长。两轮实际采集、八次组件训练、独立曝光验收和各144例自主开发均已完成。',
         'A始终使用原q_reached目标，B使用原u_expert绝对命令目标；各自完整DP+Transformer先后训练，按各自选中DP刷新nominal。原生物理、控制、合法观测、历史及成功判据保持。所有旧合法轨迹进入共同池，原归一化冻结。',
         '## 采集与真实专家恢复',
         '两轮分别使用130-50与Round 1选中的完整学生，保存全部真实学生前缀和专家后缀。学生前缀与交接过渡不作为专家监督。表中完整机会不包含另外保存的资源中断前缀；专家救回不计学生自主成功。']
@@ -69,14 +81,29 @@ def export():
         '接管改动取得了真实后段可救状态，其中搬运和支撑不稳提供较多有效纠偏，子目标后覆盖仍很少；无法从非随机采集确定哪种接管最有效。B的部分训练插入和多数持物诊断改善，A/原开发及旧成功并不稳定，不能声称失败整体后移。专家也有无法救回实例，晚期坠落前缀不能一概视为可恢复。',
         '这些结果更支持同时调查数据分布覆盖、组合策略保持与闭环动作反馈，而不是只增加同类数据或训练时长。本轮没有新encoder因果对照，不能将失败归为感知表征唯一瓶颈；下一轮若研究encoder，应先以隔离family的几何/接触读出与有界匹配闭环对照立门槛。本轮不自动扩展第三轮、不做RL或网络改造。',
         '## 最终独立测试']
-    final = PUBLIC / 'final_test/counts.json'
     if final.exists():
         rows = read(final)
-        assert len(read(PUBLIC / 'final_test/per_case.json')) == 32
+        cases = read(PUBLIC / 'final_test/per_case.json')
+        assert len(cases) == 32 and all(r['legal'] and r['software_complete'] for r in cases)
+        changes = read(PUBLIC / 'final_test/paired_changes.json')
+        execution = read(PUBLIC / 'final_test/execution_audit/receipt.json')
+        assert execution['passed'] and execution['cases'] == 32
         blocks += ['预登记28839000–007八初态，冻结全部四套完整pair后一次打开。终测父为最初130-50，候选为R2；每角色父/新两lane同波，A/B分波。此后无训练、选模或重复物理机会。',
             table(['模型', 'n', '完整插入', '首子目标', '后续子目标', 'hold30', 'hold60', 'hold120'], [
                 [r['model'], r['n'], r['success'], r['first_subgoal'], r['later_subgoal'], r['hold30'], r['hold60'], r['hold120']] for r in rows]),
-            '完整逐例结果、实际初态配对和执行审计见final_test。样本量每模型8，不据此宣称统计显著改善；最终研究判断须同时保留开发集的旧成功丢失证据。']
+            table(['角色', '旧成功保留', '丢失', '新增', '丢失seed', '新增seed'], [
+                [role, *[sum(r[key] for r in changes if r['role'] == role) for key in ('retained', 'lost', 'gained')],
+                 ', '.join(str(r['seed']) for r in changes if r['role'] == role and r['lost']) or '无',
+                 ', '.join(str(r['seed']) for r in changes if r['role'] == role and r['gained']) or '无'] for role in 'AB']),
+            table(['模型', '原生lift', '未lift且未首子目标', 'lift后未首子目标', '首子目标后未完成'], [
+                [r['model'], r['native_lift'], *[r['failure_stages'].get(key, 0) for key in ('before_lift', 'after_lift', 'after_subgoal')]] for r in rows]),
+            '上表失败阶段是原生诊断标签，不代替视频中的几何抬升判断。B候选hold30/60/120均8/8，但完整插入只有1/8，不能用持物诊断代替成功。A首子目标5→3、hold120为6→4，B首子目标4→3，最终新初态也没有一致的阶段改善或旧能力保持。',
+            table(['模型', 'arm跟踪RMSE(rad)', 'hand跟踪RMSE(rad)', '提议投影维度比例', '反馈连续性最大差'], [
+                [r['role'], f"{r['tracking_arm_rmse_rad']:.6f}", f"{r['tracking_hand_rmse_rad']:.6f}",
+                 f"{100*r['reachable_projection_component_fraction']:.2f}%", r['continuity_max']] for r in execution['summary']]),
+            '32例执行链全部通过，16份实际可观测初态配对检查通过；实际命令相对原可达区间超差小于1.1e-6rad。各模型均持续存在提议投影与实际关节跟踪误差，A候选arm跟踪误差更大，但轨迹分布不同，不能将此表视为单因素控制因果证据。',
+            '终测六段代表视频全解码2537帧并查看三视角关键帧：A28839004父成功254帧，新策略搬近孔并转正后失去支撑，421帧跌落；B28839005父成功286帧，新策略持续竖直持物靠近孔口直至601帧超时，没有完成原生插入，不能将此例归为跌落。B28839002父在孔口反复调整后失败超时601帧，新策略完成插入及释放374帧。选例来自结果，未重跑物理，未人工逐帧审阅全部视频；见final_test/autonomous_media_{decode,review}.json。',
+            '完整逐例结果、实际初态配对和执行审计见final_test。最终A旧成功保留0/1、B保留0/2；B新增1例不能抵消旧能力损失。当前证据不支持晋升Round 2候选。样本量每模型8，不据此宣称统计显著退化或彻底否定所有自适应DAgger方法。']
     else:
         done = sum(len(read(q)) for q in (ROOT / 'final_test').glob('paired*/results.json'))
         blocks += [f'终测实际已开始，当前完整批次提交{done}/32例，尚未完成。预登记八初态28839000–007；冻结后原130-50与R2的完整A/B各8例。不能据部分结果报告最终成功率。冻结后禁止新增训练与选模。']
@@ -84,6 +111,10 @@ def export():
         '原始模型、全部合法数据、必要best/last与恢复断点继续保留。保护SHA、模型SHA、选中checkpoint路径、训练曲线、逐阶段曝光和逐例结果均在本目录evidence/tight_adaptive_dagger_20261119_01。大模型/原轨/视频只保存在本地，不入Git。统一执行入口为python -m tools.tight_project，必须传显式job及有效有限session；旧已结束session不可直接重启。',
         '本轮多次RAM/磁盘守卫中断与恢复均保留原failure/前缀/断点；不能称全程无中断。用户后续明确授权本会话清理本项目无用派生产物、无损压缩关闭记录，并另授权TinyObjGrasp在2026-11-06 00:00(+08)前的脚本生成数据（cleandataset除外）。清理ledger记录逐文件身份及恢复限制：旧生成数据已删除需重建，记录归档可按清单恢复。未清理其他项目、未终止其他会话进程。运行底线为12GiB磁盘/10GiB RAM/4GiB显存；精确采样限制和所有准入等待如实保留。',
         '轻量结果生成命令：PYTHONPATH=. python research_docs/evidence/tight_adaptive_dagger_20261119_01/quantitative_report.py --round 1（或2）；本报告由同目录publish_results.py只读汇总实际证据。完整本地run为outputs/visuotactile/run/tight_adaptive_dagger_20261119_01，状态及历史恢复记录见原实验报告TIGHT_ADAPTIVE_DAGGER_20261119.md。']
+    if closure:
+        totals = {kind: sum(r['bytes'] for r in closure['evidence_files'] if r['kind'] == kind)
+                  for kind in ('protected_or_selected', 'raw', 'frozen_visual')}
+        blocks += [f'最终CPU收尾核验finalize_evidence.py已通过：原保护与选中模型共{closure["protected_and_selected_sha_files"]}份/{totals["protected_or_selected"]:,}字节、当前原始轨迹{closure["raw_sha_files"]}份/{totals["raw"]:,}字节、冻结视觉缓存{closure["frozen_visual_sha_files"]}份/{totals["frozen_visual"]:,}字节逐文件全内容SHA一致；两轮A/B共同人口、冻结归一化、八个选中曝光门与终测冻结模型身份通过。原400条另核验manifest SHA、文件存在与大小，**没有新做400条全部内容SHA**。收尾时余盘{closure["remaining_disk_gib"]:.2f}GiB，活动依赖清单持续保护、无本轮自有worker。正式决定见final_decision.json，逐文件SHA与核验范围见final_closure.json。此次收尾0策略更新、0物理步，不自动开始第三轮或encoder实验。']
     target = PROJECT / 'research_docs/TIGHT_ADAPTIVE_DAGGER_20261119_RESULTS.md'
     target.write_text('\n\n'.join(blocks) + '\n')
     return target
