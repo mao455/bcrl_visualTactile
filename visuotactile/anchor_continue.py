@@ -1108,6 +1108,8 @@ def residual_setup(root, *, selected=False, smoke=False):
     if smoke:data=dict(data,splits={k:values[:1] for k,values in data['splits'].items()})
     base=v['bases'][root.name]
     if sha256(base['checkpoint'])!=base['sha256']:raise ValueError('Frozen base changed')
+    if v.get('visual_arithmetic') is not None and (index.get('visual_arithmetic')!=v['visual_arithmetic'] or index.get('visual_arithmetic_sha256')!=v['visual_arithmetic_sha256']):
+        raise ValueError('Nominal visual arithmetic identity differs')
     if index['base_sha256']!=base['sha256'] or index['data_sha256']!=sha256(root/'state_data/data.json'):
         raise ValueError('Nominal cache identity mismatch')
     residual_statistics_path=Path(v['residual_statistics_path'])
@@ -1191,6 +1193,7 @@ def residual_setup(root, *, selected=False, smoke=False):
             raise ValueError('Fresh aggregated nominal cache mask identity differs')
         binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=sha256(root/'state_data/statistics.pt'),
             data_sha256=sha256(root/'state_data/data.json'),residual_statistics_sha256=residual_statistics_sha256)
+        if v.get('visual_arithmetic_sha256') is not None:binding['visual_arithmetic_sha256']=v['visual_arithmetic_sha256']
         if any(record.get('cache_identity')!=binding for record in records.values()):
             raise ValueError('Fresh aggregated nominal cache binding differs')
         configuration.update(supervision_mask_sha256=index['supervision_mask_sha256'],
@@ -1209,6 +1212,7 @@ def residual_setup(root, *, selected=False, smoke=False):
             raise ValueError('Aggregated nominal cache supervision mask identity differs')
         binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=sha256(root/'state_data/statistics.pt'),
             data_sha256=sha256(root/'state_data/data.json'),residual_statistics_sha256=residual_statistics_sha256)
+        if v.get('visual_arithmetic_sha256') is not None:binding['visual_arithmetic_sha256']=v['visual_arithmetic_sha256']
         if any(record.get('cache_identity')!=binding for record in records.values()):
             raise ValueError('DAgger nominal episode cache source identity differs')
         configuration['supervision_mask_sha256']=index['supervision_mask_sha256']
@@ -1325,6 +1329,8 @@ def residual_train(root, *, smoke=False, probe=False):
     disposable=smoke or probe
     run_kind='throughput_probe' if probe else 'smoke' if smoke else 'formal'
     out=root/('training_probe' if probe else 'training_smoke' if smoke else 'training');out.mkdir(exist_ok=True)
+    if v.get('matched_learning_rates') is not None:configuration['matched_learning_rates']=v['matched_learning_rates']
+    if v.get('visual_arithmetic') is not None:configuration['visual_arithmetic']=v['visual_arithmetic']
     resumable=bool(v.get('continuation_from')) and not disposable
     if (out/'last.pt').exists() and not resumable:raise ValueError('No implicit second residual training run')
     if (out/'configuration.json').exists():
@@ -1443,6 +1449,10 @@ def residual_train(root, *, smoke=False, probe=False):
                 row['cohort_diagnostics']=rear_diagnostics(model,records,data,lease)
             row['learning_rates']=[g['lr'] for g in opt.param_groups]
             row['stopping']=plateau.observe(epoch,score,opt)
+            if v.get('matched_learning_rates') is not None:
+                rate=v['matched_learning_rates'][min(epoch,len(v['matched_learning_rates'])-1)]
+                for group in opt.param_groups:group['lr']=rate
+                row['matched_next_learning_rate']=rate
         if exposure_policy:row['effective_exposure']=ledger.summary(episode_counts)
         row['selection_eligible']=not exposure_policy or row['effective_exposure']['eligible']
         history.append(row);atomic_json(out/'validation.json',history)
@@ -1472,6 +1482,8 @@ def residual_train(root, *, smoke=False, probe=False):
         validate(0);save(out/'last.pt',snapshot(1,0))
     if matched is not None and updates==matched['updates']:stop='registered_matched_update_boundary'
     for epoch in range(resume_epoch,v['maximum_control_tick_epochs']+1):
+        if v.get('matched_learning_rates') is not None:
+            for group in opt.param_groups:group['lr']=v['matched_learning_rates'][epoch-1]
         if epoch!=resume_epoch:order=next_order()
         next_group=resume_group if epoch==resume_epoch else 0
         for offset in range(resume_group if epoch==resume_epoch else 0,len(order),v['microbatch']):

@@ -146,7 +146,7 @@ def prepare_collection(source, output, families, stages, round_index):
     prepare(source,output,lanes=min(2,len(ids)*2),identities=ids,delays=[0]*len(ids),
             round_index=round_index,seed=28840000+round_index*100+families[0]%100,
             session_root=ROOT,execution_backend=template['execution_backend'],
-            writer_bytes=128<<20,vision_microbatch=1,verification_workers=0,capture_audit_memo=True,queued_gpu=True)
+            writer_bytes=128<<20,vision_microbatch=2,verification_workers=0,capture_audit_memo=True,queued_gpu=True)
     plan=read(output/'plan.json');plan['stage_takeover_contract']='layout_multistage_only_v1'
     for c in plan['cases']:
         index=ids.index(c['spec']['source_identity']);stage=stages[index]

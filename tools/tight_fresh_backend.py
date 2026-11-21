@@ -123,6 +123,15 @@ def prepare(root, role, epochs, *, continue_rear=False, fresh_recovery_weighting
             head_reset=continuation_head_reset)
         del candidate, prior_saved
     session = copy.deepcopy(read(root / 'session.json'))
+    if (root/'visual_arithmetic.json').exists():
+        from visuotactile.visual_arithmetic import validate as validate_arithmetic,digest as arithmetic_digest
+        v['visual_arithmetic']=validate_arithmetic(read(root/'visual_arithmetic.json'))
+        v['visual_arithmetic_sha256']=arithmetic_digest(v['visual_arithmetic'])
+    if (root/'matched_backend_learning_rates.json').exists():
+        rates=read(root/'matched_backend_learning_rates.json')[role]
+        if len(rates)!=epochs or any(type(x) is not float or x<=0 for x in rates):
+            raise ValueError('Explicit matched backend rate for each epoch required')
+        v['matched_learning_rates']=rates
     session.update(residual_pair=v, base_contracts={role: saved['contract']}, source_root=str(source),
         cache_deadline=session['deadline'], training_deadline=session['deadline'],
         offline_deadline=session['deadline'], source_head=v['source_commit'])

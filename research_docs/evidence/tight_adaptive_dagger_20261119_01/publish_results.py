@@ -19,6 +19,9 @@ def table(headers, rows):
 
 
 def export():
+    from visuotactile.run_facts import sampler_facts
+    sampler_rows=[sampler_facts(ROOT/f'round{n:02d}/learning',r) for n in (1,2) for r in 'AB']
+    actual_sampler_seeds=sorted({r['checkpoint_sampler_seed'] for r in sampler_rows},key=str)
     final = PUBLIC / 'final_test/counts.json'
     closure_path = PUBLIC / 'final_closure.json'
     closure = read(closure_path) if closure_path.exists() else None
@@ -76,7 +79,7 @@ def export():
         'R2六段代表自主视频全解码2269帧并查看三视角关键帧：A28817016父成功305帧，新策略搬到孔口并竖直后失去支撑、461帧跌落；B28826003父成功313帧，新策略搬近孔后转正不稳、约240–360帧失去支撑并超时601帧。A28826000与B28817000新增成功分别287/302帧，完成抓取、搬运、转正与插入。此为结果选取的代表例，不能外推全部失败机制。见round02/autonomous_media_{decode,review}.json与本地media/autonomous_round02。',
         '## 拟合、阶段覆盖与瓶颈判断',
         '同轨、同合法mask、同噪声的共享旧池离线比较：R1原30条完整最终命令arm/hand RMSE相对父模型A下降40.24%/27.39%，B下降42.74%/30.10%；R2进一步下降A37.33%/20.89%、B21.96%/24.39%。但固定validation6最终命令R1反增A3.83%/1.33%、B2.49%/2.44%，R2反增A1.81%/1.39%、B0.40%/0.66%。训练拟合改善没有转成同样的泛化收益。DP自身目标误差及各阶段误差完整列在offline/shared_parent_comparison.csv；两DP目标不同，不跨标签空间比较绝对值。',
-        '新纠偏自身的最终动作arm/hand误差相对当时在线父预测R1约下降A66.56%/46.01%、B79.26%/51.86%，R2约下降A72.45%/55.90%、B83.79%/61.73%。这些新数据对比使用在线噪声7093与离线7091，仅是描述性拟合证据；每组只比较来源学生自己的新轨迹，不能冒称完全同噪声对照。',
+        f'新纠偏自身的最终动作arm/hand误差相对当时在线父预测R1约下降A66.56%/46.01%、B79.26%/51.86%，R2约下降A72.45%/55.90%、B83.79%/61.73%。从实际加载checkpoint读取的在线sampler_seed集合为{actual_sampler_seeds}；队列跨episode持续推进RNG，历史未保存每episode状态。这些新数据对比仅是描述性拟合证据；每组只比较来源学生自己的新轨迹，不能冒称完全同噪声对照。',
         '各组件都达到曝光50，但不能据此宣称收敛。R1从首个达标epoch50到60的固定验证损失变化A-DP+1.09%、A后端+1.45%、B-DP+1.11%、B后端+0.57%；R2分别+0.30%、+1.23%、+0.80%、−0.56%。固定train2诊断误差还在下降（不是全训练池损失），全池拟合也改善，而验证未持续改善；当前没有“只是没训练够、继续加epoch就会解决”的证据，也不能证明已达到最优或不存在局部欠拟合。',
         '接管改动取得了真实后段可救状态，其中搬运和支撑不稳提供较多有效纠偏，子目标后覆盖仍很少；无法从非随机采集确定哪种接管最有效。B的部分训练插入和多数持物诊断改善，A/原开发及旧成功并不稳定，不能声称失败整体后移。专家也有无法救回实例，晚期坠落前缀不能一概视为可恢复。',
         '这些结果更支持同时调查数据分布覆盖、组合策略保持与闭环动作反馈，而不是只增加同类数据或训练时长。本轮没有新encoder因果对照，不能将失败归为感知表征唯一瓶颈；下一轮若研究encoder，应先以隔离family的几何/接触读出与有界匹配闭环对照立门槛。本轮不自动扩展第三轮、不做RL或网络改造。',

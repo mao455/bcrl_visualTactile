@@ -1615,6 +1615,8 @@ def residual_cache(root, *, acceptance=False):
             sampler=dict(steps=16,seed=7091,horizon=24,commit=12,prediction='sample'),
             inputs='causal_actual_student_expert_prefix; separate_previous_nominal' if v.get('dagger_round') else 'causal_full_expert_prefix; separate_previous_nominal')
         if planning is not None:identity_fields['cache_offline_planning_profile']=planning
+        if v.get('visual_arithmetic') is not None:
+            identity_fields.update(visual_arithmetic=v['visual_arithmetic'],visual_arithmetic_sha256=v['visual_arithmetic_sha256'])
         # Execution provenance only; frozen-feature and nominal tensor schemas
         # do not change when the same bytes are read eagerly instead of mmap.
         if visual_io is not None:identity_fields['frozen_visual_io']=visual_io
@@ -1628,6 +1630,7 @@ def residual_cache(root, *, acceptance=False):
         model=None
         binding=dict(base_checkpoint_sha256=base['sha256'],statistics_sha256=identity_fields['statistics_sha256'],
             data_sha256=identity_fields['data_sha256'],residual_statistics_sha256=v['residual_statistics_sha256'])
+        if v.get('visual_arithmetic_sha256') is not None:binding['visual_arithmetic_sha256']=v['visual_arithmetic_sha256']
         for identity in ids:
             path=dest/(identity+'.pt')
             if path.exists() and identity not in index['episodes']:

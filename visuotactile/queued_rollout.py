@@ -243,6 +243,10 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
             daggers[lane]=dagger;triggers[lane]=make_trigger(dagger['trigger'],dagger['takeover_tick']) if dagger and dagger.get('trigger') else None
             localmeta=lane_metadata(metadata,lane,n,case,pairs[case['role']],dagger,localbatch)
             atomic_json(directory/'metadata.json',localmeta)
+            if plan.get('record_sampler_rng'):
+                from .sampler_audit import record as record_sampler_rng
+                record_sampler_rng(directory,controller.lanes[lane].base,'start',identity=case['name'],
+                    vision_arithmetic=plan.get('visual_arithmetic'))
             if not admission['legal']:
                 result=dict(**case['spec'],software_complete=True,legal=False,success=False,not_started=True,
                     reason='pre-action collision rejection; no outcome replacement',batch_execution=localbatch)
@@ -348,6 +352,10 @@ def run_queue(env,player,lease,output,cases,pairs,saved,dino,plan,*,capture_pool
                     cutoff=case.get('grasp_evaluation_ticks')
                     censored=not done[lane] and cutoff is not None and tick+1>=cutoff
                     if done[lane] or censored:
+                        if plan.get('record_sampler_rng'):
+                            from .sampler_audit import record as record_sampler_rng
+                            record_sampler_rng(directories[lane],c.base,'end',identity=case['name'],
+                                vision_arithmetic=plan.get('visual_arithmetic'))
                         active[lane]=False
                         if controller.visual_frames[lane]!=len(rows[lane]):raise ValueError('Lost real camera frame')
                         if reasons['max_successes'] and not bool(terminated[lane]):raise ValueError('Native success mismatch')

@@ -384,6 +384,16 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         config.update(training_sampling=visit_profile,training_sampling_sha256=sha256(root/'training_sampling.json'),
             exposure='Full real history once per visit; random legal starts with original anchor-count budget; actual visits, optimizer/EMA updates and distinct times recorded separately.')
     if continuation:config['continuation']=continuation
+    if (root/'visual_arithmetic.json').exists():
+        from visuotactile.visual_arithmetic import validate as validate_visual_arithmetic,digest as visual_digest
+        config['visual_arithmetic']=validate_visual_arithmetic(read(root/'visual_arithmetic.json'))
+        config['visual_arithmetic_sha256']=visual_digest(config['visual_arithmetic'])
+        visual_index=read(root/role/'cache_index.json')
+        if (visual_index.get('visual_arithmetic')!=config['visual_arithmetic'] or
+                visual_index.get('visual_arithmetic_sha256')!=config['visual_arithmetic_sha256']):
+            raise ValueError('Frozen visual cache arithmetic identity differs from training contract')
+    config['rng_seeds']=dict(initialization=2026111401,schedule=2026111402,training_noise=2026111403,
+        inference_sampler=int(model.contract.get('sampler_seed',7093)))
     if visual_io is not None:
         config.update(frozen_visual_io=visual_io,frozen_visual_io_sha256=sha256(root/'frozen_visual_io.json'))
     if (root/'cuda_allocator_policy.json').exists():config['cuda_allocator_policy']=read(root/'cuda_allocator_policy.json')
@@ -424,6 +434,19 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         if not batch_profile or not visit_profile:raise ValueError('Effective exposure requires explicit B2 and legal cover sampling')
         config['effective_exposure']=exposure_policy
         ledger=Ledger({i:supervision_rows(records[i])[0] for i in data['splits']['train']})
+    entry_ledger=None
+    if (root/'entry_exposure.json').exists():
+        from visuotactile.entry_exposure import EntryLedger,VERSION as ENTRY_VERSION
+        entry_policy=read(root/'entry_exposure.json')
+        if entry_policy!=dict(version=ENTRY_VERSION,minimum_steps=50):raise ValueError('Exact entry exposure registration required')
+        if not exposure_policy or not batch_profile or not visit_profile:raise ValueError('Entry exposure requires registered B2 loss receipts')
+        entry_ledger=EntryLedger({i:records[i] for i in data['splits']['train']})
+        config['entry_exposure']=entry_policy
+    matched_rates=read(root/'matched_learning_rates.json') if (root/'matched_learning_rates.json').exists() else None
+    if matched_rates is not None:
+        rates=matched_rates[role]
+        if len(rates)!=epochs or any(type(x) is not float or x<=0 for x in rates):raise ValueError('Explicit positive rate for every epoch required')
+        config['matched_learning_rates']=matched_rates
     if (root/'frozen_visual_hotset.json').exists():
         config['frozen_visual_hotset']=read(root/'frozen_visual_hotset.json')
     begin_epoch=updates=anchors_seen=target_ticks=visits_seen=0;best=float('inf');history=[];old={};extension_crossing=False
@@ -439,6 +462,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         if exposure_policy:
             ledger=Ledger(ledger.legal,old['effective_exposure_state'])
             if ledger.updates!=old['updates']:raise ValueError('Exposure/update restore mismatch')
+        if entry_ledger is not None:
+            entry_ledger=EntryLedger({i:records[i] for i in data['splits']['train']},old['entry_exposure_state'])
+            if entry_ledger.updates!=old['updates']:raise ValueError('Entry exposure/update restore mismatch')
         if visit_profile:coverage=Coverage(old['visit_sampling_coverage'])
         begin_epoch=old['epoch'];updates=old['updates'];best=old['best'];history=old['history'];anchors_seen=old['anchors_seen'];target_ticks=old['target_ticks']
         if batch_profile:
@@ -490,6 +516,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         extras=dict(auxiliary_exposure=pose_exposure) if auxiliary else {}
         if plateau:extras['plateau_state']=plateau.state
         if exposure_policy:extras['effective_exposure_state']=ledger.state_dict()
+        if entry_ledger is not None:extras['entry_exposure_state']=entry_ledger.state_dict()
         if visit_profile:extras['visit_sampling_coverage']=coverage.state_dict()
         if batch_profile:
             validate_batch_exposure(sampling_exposure,multiplicities,completed_epochs=epoch,updates=updates,visits_seen=visits_seen)
@@ -530,6 +557,8 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                     train=auxiliary_metrics(averaged,records,data['splits']['train'][:2],pose_contexts,auxiliary))
         atomic_json(out/'initial_metrics.json',initial)
     for epoch in range(begin_epoch,epochs):
+        if matched_rates is not None:
+            for group in opt.param_groups:group['lr']=matched_rates[role][epoch]
         order=episode_deck(data['splits']['train'],multiplicities,generator);losses=[]
         if pairing is not None:pairing.begin_epoch(epoch+1,order)
         epoch_io_before=io_snapshot();epoch_began=time.perf_counter();epoch_started_utc=time.time()
@@ -589,6 +618,9 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                         if exposure_policy:
                             contribution=[(i,dp_ticks(records[i],v['anchor_sampling']['selected_anchors'])) for i,v in zip(identities,result['visits'])]
                             step_receipt=ledger.step(updates,contribution)
+                        if entry_ledger is not None:
+                            entries=entry_ledger.contributions(records,[(i,v['anchor_sampling']['selected_anchors']) for i,v in zip(identities,result['visits'])])
+                            entry_receipt=entry_ledger.step(updates,entries)
                         for (index,identity),visit_row in zip(visits,result['visits']):
                             if visit_profile:coverage.add(identity,visit_row['anchor_sampling'],visit_row.get('geometry_sampling'))
                             sampling_exposure[identity]+=1;visits_seen+=1
@@ -607,6 +639,7 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                         frozen_input_wait_s=frozen_input_wait_s,update_host_s=update_host_s,
                         process_io=io_delta(io_before,io_snapshot()))
                     if exposure_policy:row['effective_tick_contributions']=step_receipt
+                    if entry_ledger is not None:row['entry_tick_contributions']=entry_receipt
                     atomic_json(out/'progress.json',row)
                     with (out/'learning.jsonl').open('a') as f:f.write(json.dumps(row)+'\n')
             else:
@@ -691,6 +724,10 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
                 with lease.block():report['cohort_diagnostics']=dp_diagnostics(averaged,records,data,objective,visual_io,offline_planning,lease)
             report['learning_rates']=[g['lr'] for g in opt.param_groups]
             report['stopping']=plateau.observe(epoch+1,val['selection'],opt)
+            if matched_rates is not None:
+                next_rate=matched_rates[role][min(epoch+1,epochs-1)]
+                for group in opt.param_groups:group['lr']=next_rate
+                report['matched_next_learning_rate']=next_rate
         report['training_epoch_io']=training_epoch_io
         if hotset is not None:report['frozen_visual_hotset']=hotset.summary()
         if visit_profile:
@@ -713,6 +750,12 @@ def _train(root,role,epochs,*,pairing=None,offline_planning=None,trajectory_batc
         if exposure_policy:
             report['effective_exposure']=ledger.summary(sampling_exposure)
             selection_eligible=selection_eligible and report['effective_exposure']['eligible']
+        if entry_ledger is not None:
+            report['entry_exposure']=entry_ledger.summary()
+            from visuotactile.anchor_sampling import NATIVE_ENTRY_ANCHOR_VERSION
+            if visit_profile['anchors']['version']==NATIVE_ENTRY_ANCHOR_VERSION:
+                selection_eligible=selection_eligible and report['entry_exposure']['eligible']
+            atomic_json(out/'entry_exposure.json',dict(summary=report['entry_exposure'],rows=entry_ledger.rows()))
         report['selection_eligible']=selection_eligible
         improved=selection_eligible and val['selection']<best
         if selection_eligible:best=min(best,val['selection'])

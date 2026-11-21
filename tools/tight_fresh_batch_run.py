@@ -116,6 +116,9 @@ def prepare(root,output,*,lanes,count=8,seed=28142000,identities=None,delays=Non
         stage_prepare(root,output,identities,delays,round_index,seed+100000,
             trigger_version=CONTACT_HEIGHT_VERSION,session_root=session_root)
     plan=read(output/'plan.json');session=read(output/'session.json')
+    from visuotactile.visual_arithmetic import profile as arithmetic_profile
+    plan['visual_arithmetic']=arithmetic_profile(vision_microbatch,tail)
+    plan['record_sampler_rng']=True
     plan.update(batch=dict(version='whole_wave_complete_student_v1',lanes=lanes,seed=seed,
         neural_batch=True,writer_bytes=writer_bytes,vision_microbatch=vision_microbatch,
         verification_workers=verification_workers,verification_max_pending=verification_max_pending,

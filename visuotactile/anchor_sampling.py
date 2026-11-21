@@ -6,6 +6,15 @@ import torch
 TRAINING_ANCHOR_VERSION = 'random_legal_action_anchors_v1'
 GRASP_ANCHOR_VERSION = 'grasp_balanced_legal_action_anchors_v2'
 COVERAGE_ANCHOR_VERSION = 'grasp_random_plus_legal_cover_v1'
+NATIVE_ENTRY_ANCHOR_VERSION = 'grasp_random_legal_cover_native_entry_v2'
+
+
+def native_entry_sampling_profile(seed=2026111501):
+    return dict(coverage_sampling_profile(seed), version=NATIVE_ENTRY_ANCHOR_VERSION,
+        population='original_legal_population_plus_exact_native_entry',
+        entry='include_first_legal_tick_native_commit12_anchor_each_visit',
+        original_sampling='unchanged_coverage_v1_including_rng',
+        count='original_random_and_legal_cover_plus_native_entry_if_missing')
 
 
 def coverage_sampling_profile(seed=2026111501):
@@ -34,7 +43,8 @@ def validate_training_anchor_profile(value):
     if value is None:return None
     if not isinstance(value,dict):
         raise ValueError('Exact explicit random_legal_action_anchors_v1 profile required')
-    expected=(coverage_sampling_profile(value.get('seed')) if value.get('version')==COVERAGE_ANCHOR_VERSION else
+    expected=(native_entry_sampling_profile(value.get('seed')) if value.get('version')==NATIVE_ENTRY_ANCHOR_VERSION else
+              coverage_sampling_profile(value.get('seed')) if value.get('version')==COVERAGE_ANCHOR_VERSION else
               onset_sampling_profile(value.get('seed')) if value.get('version')==ONSET_ANCHOR_VERSION else
               grasp_sampling_profile(value.get('seed')) if value.get('version')==GRASP_ANCHOR_VERSION
               else sampling_profile(value.get('seed')))
@@ -67,11 +77,27 @@ def validate_selected_anchors(anchors, *, start, stop, device):
 
 
 def validate_training_anchors(record, anchors):
-    """Explicit random starts must themselves be legal, never masked prefix rows."""
+    """Legal starts plus the exact masked native entry supported by target_windows."""
     mask,_=supervision_rows(record)
     result=validate_selected_anchors(anchors,start=0,stop=len(mask),device=mask.device)
-    if not mask[result].all():raise ValueError('Selected training starts must have true action supervision')
+    allowed=mask[result].clone()
+    entry=native_entry_anchor(record)
+    if entry is not None:allowed |= result==entry
+    if not allowed.all():raise ValueError('Selected training starts require legal supervision or the exact native recovery entry')
     return result
+
+
+def native_entry_anchor(record):
+    """Return only the first legal suffix's real 12-tick deployment anchor."""
+    from .target_windows import RECOVERY_ONSET_WINDOW
+    if record.get('target_window_contract')!=RECOVERY_ONSET_WINDOW:return None
+    mask,_=supervision_rows(record)
+    legal=mask.nonzero().flatten()
+    if not len(legal) or int(legal[0])==0:return None
+    anchor=int(legal[0])//12*12
+    _,valid=labels(record,torch.tensor([anchor],device=mask.device),24)
+    if not valid[0,:12].any():raise ValueError('Native entry lacks a legal committed label')
+    return anchor
 
 
 def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
@@ -87,6 +113,19 @@ def sample_training_anchors(record, profile, *, identity, epoch, visit_index):
     if (not isinstance(identity,str) or not identity or
             any(type(n) is not int or n<1 for n in (epoch,visit_index))):
         raise ValueError('Episode identity and positive epoch/visit index required')
+    if profile['version']==NATIVE_ENTRY_ANCHOR_VERSION:
+        anchors,receipt=sample_training_anchors(record,coverage_sampling_profile(profile['seed']),
+            identity=identity,epoch=epoch,visit_index=visit_index)
+        original=anchors.tolist();entry=native_entry_anchor(record)
+        if entry is not None:
+            anchors=torch.tensor(sorted(set(original)|{entry}),dtype=torch.long,device=anchors.device)
+        validate_training_anchors(record,anchors)
+        receipt.update(version=NATIVE_ENTRY_ANCHOR_VERSION,original_coverage_anchors=original,
+            native_entry_anchor=entry,added_native_entry_anchors=sorted(set(anchors.tolist())-set(original)),
+            selected_anchors=anchors.tolist(),selected_count=len(anchors),
+            non_native_grid_count=int((anchors%12!=0).sum()),
+            selected_anchors_sha256=hashlib.sha256(json.dumps(anchors.tolist(),separators=(',',':')).encode()).hexdigest())
+        return anchors,receipt
     if profile['version']==COVERAGE_ANCHOR_VERSION:
         from .effective_exposure import cover_anchors
         anchors,receipt=sample_training_anchors(record,grasp_sampling_profile(profile['seed']),

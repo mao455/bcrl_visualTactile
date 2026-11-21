@@ -340,6 +340,7 @@ def cache_residual_episode(base,record,entry,lease,*,progress=lambda **kw:None,c
             raise ValueError('Offline cache planning requires explicit episode/host H24 G00 every-tick history')
     if base.training or any(p.requires_grad for p in base.parameters()):raise ValueError('Base must be completely frozen')
     binding={'base_checkpoint_sha256','statistics_sha256','data_sha256','residual_statistics_sha256'}
+    if cache_identity is not None and 'visual_arithmetic_sha256' in cache_identity:binding.add('visual_arithmetic_sha256')
     if entry.get('trajectory_kind')=='expert_takeover_v1' and cache_identity is None:
         raise ValueError('DAgger nominal caches require current DP, base/residual statistics and dataset SHA bindings')
     if cache_identity is not None:
@@ -465,6 +466,11 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None, payload_audit=
     cache_contract=dict(dino_revision=DINO_REVISION,dino_sha256=plan['dino_sha256'],data_sha256=sha256(out/'data.json'),
         cameras=CAMERAS,resolution=[448,252],patches=[384,18,32],depth=[2,18,32],stride=stride,
         random_augmentation=False,trainable_projection_cached=False)
+    visual_arithmetic=None
+    if (root/'visual_arithmetic.json').exists():
+        from .visual_arithmetic import validate as validate_arithmetic,digest as arithmetic_digest
+        visual_arithmetic=validate_arithmetic(json.loads((root/'visual_arithmetic.json').read_text()))
+        cache_contract.update(visual_arithmetic=visual_arithmetic,visual_arithmetic_sha256=arithmetic_digest(visual_arithmetic))
     # Only a committed per-episode index proves a reusable payload. A worker
     # can die after any episode; the next worker must retain its measured work.
     prior={'entries':{}};orphans=[]
@@ -484,6 +490,8 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None, payload_audit=
         atomic_json(root/'cache_progress_index.json',dict(cache_contract,entries=committed,
             complete=False,requested_ids=ids,preserved_orphans=orphans,utc=time.time()))
     reusable=json.loads(Path(reuse_index).read_text()) if reuse_index is not None else None
+    if visual_arithmetic is not None and reusable and reusable.get('visual_arithmetic')!=visual_arithmetic:
+        raise ValueError('Reused visual cache requires an independently verified matching arithmetic identity')
     if reusable and (reusable['dino_sha256']!=plan['dino_sha256'] or reusable.get('dino_revision')!=DINO_REVISION
             or reusable.get('stride')!=stride or reusable.get('cameras')!=CAMERAS
             or reusable.get('resolution')!=[448,252] or reusable.get('patches')!=[384,18,32]
@@ -538,7 +546,9 @@ def cache_visual_pair(root, identities=None, *, reuse_index=None, payload_audit=
                     if any(p.requires_grad for p in dino.parameters()):raise ValueError('DINO must be frozen')
                 with lease.block():
                     rgb=torch.from_numpy(g['frames/rgb_u8'][int(tick)]).cuda()
-                    patches.append(dino(rgb).cpu())
+                    patches.append((dino(rgb) if visual_arithmetic is None else
+                        dino.forward_lanes(rgb[None],vision_microbatch=visual_arithmetic['vision_microbatch'],
+                            vision_tail_profile=visual_arithmetic['vision_tail_profile'])[0]).cpu())
                     depth.append(depth_grid(torch.from_numpy(g['frames/depth_m'][int(tick)]),torch.from_numpy(g['frames/depth_valid'][int(tick)])))
                 frames_done+=1
                 elapsed=time.time()-started

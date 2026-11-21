@@ -11,7 +11,7 @@ import math
 from pathlib import Path
 import statistics
 
-from tools.tight_adaptive_dagger import PUBLIC, read, write
+from tools.tight_adaptive_dagger import PUBLIC, ROOT, read, write
 from visuotactile.compact import sha256
 
 
@@ -98,6 +98,8 @@ def collection_stages(records):
 
 
 def export(round_index):
+    from visuotactile.run_facts import sampler_facts
+    facts=[sampler_facts(ROOT/f'round{round_index:02d}/learning',role) for role in 'AB']
     public = PUBLIC / f'round{round_index:02d}'
     assert read(public / 'offline/scope.json')['complete']
     current_path = public / 'offline/per_episode.csv'
@@ -107,7 +109,7 @@ def export(round_index):
     compared, missing = compare(current, parent)
     save(public / 'offline/shared_parent_comparison.csv', compared)
     # A current student's own-role captured parent predictions on new expert
-    # histories used online noise7093. Offline noise7091 is different; keep
+    # checkpoint and offline configuration are read below; queue generators persist. Keep
     # these descriptive comparisons separate from matched-noise measurements.
     captured_path = public / 'captured_parent_fit/per_episode.csv'
     captured, _ = compare(current, rows(captured_path))
@@ -150,9 +152,10 @@ def export(round_index):
         shared_parent_comparisons=compared, missing_parent_populations=missing,
         captured_parent_comparisons=captured, training=training, failure_stages=failed,
         collection_stages=stages,
+        sampler_facts=facts,
         source_sha256={str(p): sha256(p) for p in (current_path, parent_path, captured_path)},
         scope='Read-only evidence aggregation; exact identity/tick count joins; tick-weighted RMSE; no updates or rollouts',
-        captured_parent_limitation='Own-role captured parent only; online noise7093 versus offline7091; descriptive, not exact matched-noise effect',
+        captured_parent_limitation='Own-role captured parent only; see loaded sampler_facts; online queue generator position unrecorded, so not an exact matched-noise effect',
         training_limitation='train is fixed train2 diagnosis, not all-pool fitting; eligible tail change is descriptive, not convergence proof'))
     return training
 
