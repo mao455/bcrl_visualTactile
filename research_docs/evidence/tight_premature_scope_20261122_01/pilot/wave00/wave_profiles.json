@@ -1,0 +1,131 @@
+[
+  {
+    "wave": 0,
+    "role": "mixed",
+    "controller_s": 74.00873123621568,
+    "environment_s": 90.73050251416862,
+    "expert_s": 4.428885070141405,
+    "record_submit_s": 29.49961589835584,
+    "finish_audit_s": 83.37272908026353,
+    "reset_refill_s": 0.0,
+    "active_lane_steps": 1435,
+    "allocated_lane_steps": 2404,
+    "refills": 0,
+    "finished_before_queue_empty": 0,
+    "capture_writer": {
+      "max_pending_bytes": 134217728,
+      "max_queue": 64,
+      "reserved_bytes": 0,
+      "peak_reserved_bytes": 129390604,
+      "peak_queued_or_copying": 8,
+      "byte_scope": "owned payload arrays, including retained buffers; excludes bounded flush/compressor scratch",
+      "worker_alive": true,
+      "failed": false,
+      "verification_workers": 0,
+      "prestarted_verifiers": false,
+      "verification_max_pending": 4,
+      "verification_pending": 0,
+      "verification_peak_pending": 0,
+      "verification_submitted": 0,
+      "verification_completed": 0,
+      "verification_failed": 0,
+      "verification_slot_wait_s": 0.0,
+      "verification_process_pids": [],
+      "verification_scope": "Bound includes queued and running closed-file tasks; only paths/metadata sent. Spawned verifier decode buffers/RSS are separate from payload byte budget."
+    },
+    "seconds": 294.2851332779974,
+    "cases": 4,
+    "control_ticks": 1435,
+    "vision_execution": {
+      "version": "gpu_observation_history_control_v1",
+      "roles": {
+        "A": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 2,
+          "images_per_kernel": 6,
+          "forward_features_calls": 0,
+          "real_lanes": 522,
+          "padding_lanes": 0,
+          "real_images": 1566,
+          "processed_images": 0,
+          "controller_calls": 280,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            242,
+            280,
+            0,
+            0
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        },
+        "B": {
+          "version": "current_observation_lane_microbatch_v1",
+          "vision_microbatch": 2,
+          "images_per_kernel": 6,
+          "forward_features_calls": 0,
+          "real_lanes": 913,
+          "padding_lanes": 0,
+          "real_images": 2739,
+          "processed_images": 0,
+          "controller_calls": 601,
+          "external_shared_vision": true,
+          "consumed_observations_per_lane": [
+            0,
+            0,
+            601,
+            312
+          ],
+          "scope": "Batch aggregate; padding duplicates current views only, is discarded, and is not an observation or training exposure"
+        }
+      },
+      "calls": 881,
+      "real_lanes": 1435,
+      "processed_images": 5286,
+      "padding_lanes": 327
+    },
+    "render_transitions": [
+      {
+        "lane": 0,
+        "enabled": false,
+        "utc": 1795334473.2339818
+      },
+      {
+        "lane": 1,
+        "enabled": false,
+        "utc": 1795334490.4543285
+      },
+      {
+        "lane": 3,
+        "enabled": false,
+        "utc": 1795334504.456484
+      },
+      {
+        "lane": 0,
+        "enabled": true,
+        "utc": 1795334656.4511902
+      },
+      {
+        "lane": 1,
+        "enabled": true,
+        "utc": 1795334656.4560235
+      },
+      {
+        "lane": 3,
+        "enabled": true,
+        "utc": 1795334656.4607456
+      }
+    ],
+    "camera_reactivation": [],
+    "aggregate_control_ticks_per_second": 4.876223219351087,
+    "active_lane_fraction": 0.5969217970049917,
+    "render_reuse": {
+      "render_calls": 611,
+      "render_seconds": 18.612143632490188,
+      "redundant_reader_renders_avoided": 598,
+      "reader_renders_required": 4,
+      "invalidations": 8
+    },
+    "admission_s": 0.9667571797035635,
+    "admission_scope": "Sum of sequential admit_capture calls after wave execution; includes provenance, source-label/camera checks and admission receipt writes; excluded from wave seconds"
+  }
+]

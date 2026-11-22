@@ -27,6 +27,7 @@ ENTRIES = {
     'dagger': ('dagger', 'tools.tight_fresh_batch_run', ['run']),
     'evaluate': ('evaluate', 'tools.tight_evaluate', []),
     'adaptive_heldout': ('evaluate', 'tools.tight_adaptive_dagger', ['test-worker']),
+    'heldout_evaluate': ('evaluate', 'tools.tight_heldout_evaluate', []),
 }
 
 def read(path):

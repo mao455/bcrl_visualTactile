@@ -1,0 +1,32 @@
+{
+  "registered_at": "2026-11-22T08:02:30.358366+00:00",
+  "sources": "frozen train180/development96 only",
+  "terminal_reads": 0,
+  "pilot_seeds_unchanged": true,
+  "not_for_reselecting_current_pilot": true,
+  "existing_profile": {
+    "version": "adaptive_stage_recovery_v1",
+    "stage": "alignment",
+    "earliest_contact_tick": 96,
+    "contact_stall_window": 36,
+    "held_window": 12,
+    "confirm_ticks": 2,
+    "transport_travel_m": 0.035,
+    "near_root_m": 0.09,
+    "alignment_window": 36,
+    "alignment_progress_m": 0.0015,
+    "keypoint_floor_m": 0.015,
+    "height_loss_m": 0.004,
+    "relative_slip_m": 0.008,
+    "minimum_elevation_m": 0.005
+  },
+  "existing_profile_code_sha256": "7f5ec2dc69ffd651efe1bbf0fa98e949ed48763b4a9d49469acd56fb5ee2bd8e",
+  "held": ">=2 contact fingers in both physics substeps for12ticks, object worldZ>=median(z[24:48])+20mm throughout12ticks; same as existing adaptive profile",
+  "near": "current object-root to active goal-root<=90mm while held12; no new threshold",
+  "strata": [
+    "no_stable_held12",
+    "stable_held12_without_near90",
+    "stable_held12_and_near90"
+  ],
+  "ambiguity": "never15mm alone does not identify grasp, transport, or alignment cause; adaptive alignment is a screen, not proven recoverability"
+}

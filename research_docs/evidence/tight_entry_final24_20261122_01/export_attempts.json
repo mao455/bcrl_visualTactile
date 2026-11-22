@@ -1,0 +1,15 @@
+{
+  "stage": "CPU-only evidence export after evaluation and diagnosis completed",
+  "attempts": [
+    {
+      "command": "python -m scripts.tight_entry_final24_20261122.close",
+      "result": "failed before export mutation",
+      "error": "ModuleNotFoundError: No module named 'scipy'",
+      "cause": "Default Python imports summarize.py helpers, which require scipy; the established isaaclab Python includes scientific dependencies."
+    }
+  ],
+  "recovery": "Use the existing isaaclab Python for export; standalone published verifier remains standard-library only.",
+  "extra_optimizer_updates": 0,
+  "extra_inferences": 0,
+  "extra_physics_steps": 0
+}

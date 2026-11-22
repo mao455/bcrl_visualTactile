@@ -1,0 +1,42 @@
+{
+  "version": "lossless_numerical_audit_inputs_v1",
+  "registered_at": "2026-11-22T08:11:40.992341+00:00",
+  "purpose": "Mechanical export only; no analysis, new threshold, terminal selection, inference, simulation, optimizer, or collection",
+  "frozen_analyze_sha256": "72787cec47b3c2a233da6b7e13bdddea987b50ac69bfdbd05b6eee910c72f237",
+  "dataset_fields": [
+    "dagger/control_source",
+    "dagger/expert_label_valid",
+    "dagger/segment_id",
+    "diagnostics_after/base_pose_w",
+    "diagnostics_after/finger_position_w",
+    "diagnostics_after/hole_pose_w",
+    "diagnostics_after/joint_position_rad",
+    "diagnostics_after/object_pose_w",
+    "diagnostics_after/palm_body_pose_w",
+    "diagnostics_after/successes",
+    "diagnostics_before/successes",
+    "native_keypoints_max_dist",
+    "native_success_diagnostic/near_goal",
+    "native_success_diagnostic/near_goal_steps_after_goal_reset",
+    "object_contact_force_w",
+    "step_id",
+    "target_after_rad"
+  ],
+  "field_discovery": "literal arr() calls inside frozen analyze AST plus step_id and three directly consumed dagger fields",
+  "metadata_fields": [
+    "config",
+    "joint_order",
+    "fk_urdf_sha256",
+    "fk_root",
+    "trajectory_kind"
+  ],
+  "encoding": "one UTF-8 JSON object per trajectory per line; each present array stores exact C-order bytes as base64, original dtype.str/shape, byte count and raw SHA256",
+  "missing": "null means field absent; never substitute zeros or false",
+  "source_hashes": "reference previously verified source manifests; do not rehash original large HDF5",
+  "max_estimated_compressed_shard_bytes": 41943040,
+  "expected_trajectories": {
+    "train": 180,
+    "development": 96,
+    "terminal": 96
+  }
+}

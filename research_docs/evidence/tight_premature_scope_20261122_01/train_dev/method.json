@@ -1,0 +1,22 @@
+{
+  "classification_priority": [
+    "premature_withdrawn_fixed_final10",
+    "never15mm",
+    "entered_left_before10",
+    "other"
+  ],
+  "overlap_flags_retained": true,
+  "ticks": "zero-based completed control transitions, all event confirmation ticks explicit",
+  "firstphase": "strictly before recorded after.successes first reaches1; native confirmation transition excluded",
+  "gate": "recorded native_keypoints_max_dist<=0.015m; recorded cumulative near counter retained; native force_consecutive=false unchanged",
+  "premature_geometry": "while firstphase and recorded cumulative counter<10, fixed final-pose keypoint<=7.5mm AND mean fingertip-object-root distance>100mm for10 consecutive transitions; diagnostic only; strict native success unchanged",
+  "stable_reference": "last frame with>=2 force-contact fingers in BOTH physics substeps before first gate; if nevergate use closest firstphase approach and label it separately",
+  "relative_motion": ">=5mm translation OR>=5deg relative object-palm angle from reference for3ticks; not automatically accidental slip",
+  "descent": "10mm net world-Z decrease between t-12 and t, reported separately for object,palm,and FK of final target_after_rad; firstphase afterstable and aftergate scopes separate",
+  "contactloss": "all5 object force resultant magnitudes<0.1N in BOTH physics substeps for3ticks; afterstable and aftergate scopes separate",
+  "commands": "actual final actuator target_after_rad; FK link iiwa14_link_7 in world via recorded base pose; recorded URDF SHA/root must match; measured FK error exported",
+  "native_open_command": "UNKNOWN for all: no explicit task-native open-hand joint target identified; default/reset zero pose not assumed open; final command and actual hand joint vectors exported for inspection",
+  "train_scope": "all180 raw episodes, physical student prefix and expert suffix both retained; dagger control_source/expert_label_valid/segment_id exported where available; absent mask remains blank",
+  "missing": "unknown; blank absent optional column; rolling-window first12 rows NaN means unavailable history, not false movement",
+  "terminal_physical_reads": 0
+}

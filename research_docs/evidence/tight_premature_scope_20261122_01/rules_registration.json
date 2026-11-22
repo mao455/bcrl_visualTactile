@@ -1,0 +1,53 @@
+{
+  "version": "premature_scope_retrospective_v1",
+  "registered_at": "2026-11-22T07:43:53.354581+00:00",
+  "selection_sources": [
+    "all train180 raw physical trajectories, deduplicated between A/B",
+    "all development16 initial states x 6 complete policies =96 trajectories"
+  ],
+  "terminal_role": "96 completed heldout rollouts; descriptive application of frozen rules only; never used to choose triggers or pilot seeds",
+  "native_gate_mm": 15.0,
+  "native_required_near_steps": 10,
+  "near_steps_mode": "use recorded native count, preserve force_consecutive=false",
+  "first_phase_only": true,
+  "outcome_order": [
+    "no_first_subgoal",
+    "first_subgoal_without_completion",
+    "complete_success"
+  ],
+  "descent_observation": {
+    "window_ticks": 12,
+    "object_down_mm": 10.0,
+    "palm_down_mm": 10.0,
+    "stable_min_contact_fingers_both_substeps": 2,
+    "object_force_threshold_N": 0.1
+  },
+  "opening_command": {
+    "reference": "relative to most recent stable held grasp command; signed hand joint distance toward task open pose",
+    "minimum_projected_fraction_change": 0.05,
+    "sustain_ticks": 3
+  },
+  "slip": {
+    "reference": "object pose relative to palm; stable grasp reference before near-goal gate",
+    "translation_mm": 5.0,
+    "angle_deg": 5.0,
+    "sustain_ticks": 3,
+    "interpretation": "relative motion only, may be commanded reorientation or release, not automatically accidental slip"
+  },
+  "contact_loss": {
+    "all_object_force_below_N": 0.1,
+    "sustain_ticks": 3,
+    "check_both_physics_substeps": true
+  },
+  "withdrawn_final_geometry": {
+    "keypoint_tolerance_mm": 7.5,
+    "mean_fingertip_distance_mm": 100.0,
+    "sustain_ticks": 10,
+    "stage_counter_still_below": 10,
+    "native_success_unchanged": true
+  },
+  "gate_event": "record first entry, first exit before native first-subgoal confirmation, repeated entries and native cumulative counter; do not infer consecutive requirement",
+  "missing_data": "unknown, never count absent fields as false",
+  "pilot_selection": "choose only after all training/development retrospective counts; no optimizer updates or full retraining",
+  "tunable_using_terminal": false
+}

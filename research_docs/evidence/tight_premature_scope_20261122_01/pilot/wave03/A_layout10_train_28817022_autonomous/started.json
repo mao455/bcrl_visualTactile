@@ -1,0 +1,56 @@
+{
+  "spec": {
+    "identity": "A_layout10_train_28817022_autonomous",
+    "family": "layout10_train_28817022",
+    "split": "train",
+    "cohort": "dagger_train",
+    "source_identity": "layout10_train_28817022",
+    "seed": 28817022,
+    "event_seed": 28917022,
+    "narrow_reset": {
+      "fixed_start_pose": [
+        -0.1262782742502193,
+        0.025676447355272122,
+        0.6292200418586442,
+        0.12326448752217162,
+        0.8929943368018884,
+        -0.3817255189583979,
+        0.204089977112401
+      ],
+      "table_reset_z": 0.37996785443111514,
+      "table_reset_z_range": 0.0,
+      "reset_dof_pos_random_interval_arm": 0.0075,
+      "reset_dof_pos_random_interval_fingers": 0.0075,
+      "reset_dof_vel_random_interval": 0.03,
+      "hole_x_range": [
+        0.0421404438416996,
+        0.0421404438416996
+      ],
+      "hole_y_range": [
+        -0.03677564279335155,
+        -0.03677564279335155
+      ]
+    },
+    "collision_gate": "live_collision_mesh_bounds_v1",
+    "takeover_tick": 1000000000,
+    "layout": {
+      "version": "peg_spacing_reset_v1",
+      "distance_m": 0.1,
+      "source_pilot": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_layout_20261116_01"
+    },
+    "diagnostic_only": true
+  },
+  "batch_execution": {
+    "version": "independent_lane_queue_v1",
+    "lanes": 4,
+    "vision_microbatch": 2,
+    "physics_seed": 28817022,
+    "event_seed": 28917022,
+    "native_rng": "Persistent batch event stream; native indexed reset without reseeding other lanes; no hidden-state parity claim",
+    "gpu_pipeline": "gpu_observation_history_control_v1",
+    "lane": 1,
+    "queue_ordinal": 1,
+    "global_start_tick": 0
+  },
+  "utc": 1795335486.544907
+}

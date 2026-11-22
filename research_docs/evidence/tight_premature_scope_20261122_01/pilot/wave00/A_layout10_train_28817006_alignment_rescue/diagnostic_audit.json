@@ -1,0 +1,118 @@
+{
+  "provenance": {
+    "passed": true,
+    "finding": "No bare-DP collection problem found in actual numeric execution",
+    "identity": "A_layout10_train_28817006_alignment_rescue",
+    "frontend_sha256": "a3a35e465723318dbb352e96b696af91c58440d99923205590888e85f97e3351",
+    "backend_sha256": "a332df55c9f9f7ea623da02512946944e3a103aa9e0989cd24ca12ad25940585",
+    "checkpoint_files_checked": true,
+    "embedded_pair_identity": true,
+    "student_ticks": 280,
+    "residual_forward_ticks": 280,
+    "valid_expert_ticks": 0,
+    "zero_correction_student_ticks": 0,
+    "correction_must_be_nonzero": false,
+    "maximum_absolute_errors_rad": {
+      "nominal_plus_residual_to_proposal": 1.4901161193847656e-08,
+      "recorded_nominal": 0.0,
+      "student_proposal_to_issued": 0.0,
+      "issued_to_applied": 0.0,
+      "applied_to_actuator_target": 0.0,
+      "trace_issued": 0.0,
+      "expert_command_to_applied": 0.0,
+      "new_shared_reachable_command_identity": 0.0,
+      "q_reached_to_observed_after": 0.0,
+      "physics_substep_targets": 0.0,
+      "compact_actual_issued": 0.0,
+      "compact_actual_applied": 0.0,
+      "compact_u_expert": 0.0,
+      "compact_q_reached": 0.0
+    },
+    "recovery_coverage": {
+      "takeover_starts": 0,
+      "population": {
+        "valid_expert_ticks": 0,
+        "dp_anchors": 0,
+        "first_valid_expert_tick": null,
+        "initial_valid_segment_ticks": 0,
+        "early_window_scope": "First valid tick onward, stopping at the first invalid tick or control-segment change",
+        "first24": {
+          "valid_expert_ticks": 0,
+          "dp_anchors": 0,
+          "valid_h24_window_targets": 0
+        },
+        "first48": {
+          "valid_expert_ticks": 0,
+          "dp_anchors": 0,
+          "valid_h24_window_targets": 0
+        }
+      },
+      "tick_index": "zero-based pre-action switch; supervision starts only after the real queue flush",
+      "diagnostic_only": true,
+      "exact_simulator_state_claim": false,
+      "switch_tick": null,
+      "switch_observable_sha256": null,
+      "phase": "no_takeover",
+      "deviation": null
+    },
+    "trace_sha256": "c4671de6f5855d6b61d2ce7c873dde8e8c70a05ff72711e201bc59dd64ce4b84",
+    "result_sha256": "e601a15d35b3a15b2099e7a87b8ab1701e8b3b0c2c4a0693f0289a5dff5661fb"
+  },
+  "trigger": {
+    "passed": true,
+    "category": "ended_before_takeover",
+    "receipt": {
+      "configuration": {
+        "version": "adaptive_stage_recovery_v1",
+        "stage": "alignment",
+        "earliest_contact_tick": 96,
+        "contact_stall_window": 36,
+        "held_window": 12,
+        "confirm_ticks": 2,
+        "transport_travel_m": 0.035,
+        "near_root_m": 0.09,
+        "alignment_window": 36,
+        "alignment_progress_m": 0.0015,
+        "keypoint_floor_m": 0.015,
+        "height_loss_m": 0.004,
+        "relative_slip_m": 0.008,
+        "minimum_elevation_m": 0.005
+      },
+      "fallback_tick": 1000000000,
+      "actual_scheduled_takeover_tick": 1000000000,
+      "trigger_completed_tick": null,
+      "first_held_completed_tick": 98,
+      "completed_student_transitions_observed": 280,
+      "settled_height_m": 0.5399844646453857,
+      "reason": "requested_stage_not_reached",
+      "at_trigger": null,
+      "last": {
+        "completed_tick": 280,
+        "stage": "alignment",
+        "held12": false,
+        "fingers": 0,
+        "elevation_m": 0.1250525712966919,
+        "root_m": 0.001347868936136365,
+        "keypoint_m": 0.0016788954380899668,
+        "height_loss12_m": 0.02605205774307251,
+        "palm_slip12_m": 0.02267027273774147,
+        "travel_xy_m": 0.16624605655670166,
+        "goal_index": 1,
+        "qualifies": false
+      },
+      "diagnostic_only": true,
+      "student_inputs_changed": false,
+      "native_success_changed": false,
+      "no_expert_fallback": true,
+      "phase_alignment": "next action after causal confirmation; original planner phase retained",
+      "limitation": "A collection screen, not a proven harmful error or guaranteed expert recoverability"
+    },
+    "actual_switch_tick": null,
+    "numeric_sha256": "9894582f69a0ebea1f1197a7a654592e16ee72f166317fb7ea4047719633bc1a",
+    "student_input": false
+  },
+  "training_pool_admission": "blocked",
+  "actual_expert_success_is_autonomous": false,
+  "source_plan_sha256": "b33dc4718412719e2a189a22a72e5052c6dc165996d6c7f8efcc945376651049",
+  "utc": 1795334656.907044
+}
