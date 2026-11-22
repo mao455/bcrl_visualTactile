@@ -1,0 +1,78 @@
+{
+  "time": "2026-11-21T11:13:56.551780+00:00",
+  "scope": "End-to-end forensic audit only",
+  "optimizer_updates": 0,
+  "EMA_updates": 0,
+  "new_physics_steps": 0,
+  "new_collection_episodes": 0,
+  "policy_edits": 0,
+  "protected_model_hashes_rechecked": [
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_exposure50_20261119_01/A/training/best.pt",
+      "sha256": "df4782e5f1640ef10da89ce95d174e90da0703a969fc29e2a80841bbcd4c78fa"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_exposure50_20261119_01/A/backend/A/training/best.pt",
+      "sha256": "36e6b6e7bcd06aef7577320a3eb6309b4c4153ce09c173374f2d3bc9587554e9"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_exposure50_20261119_01/B/training/best.pt",
+      "sha256": "1e18b358b98badc5dc02f42adc428ffbf05cecd67ef90f315b66de9d48024318"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_exposure50_20261119_01/B/backend/B/training/best.pt",
+      "sha256": "5663dbb226fa00630e29ad23da5d80d43f28e5c192b15e1d1eaf7abfff4db727"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/A/training/best.pt",
+      "sha256": "5df541a70b9eab75800fe3ae9cae4700290fbc557605f4f5497523e9d98fa446"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/A/backend/A/training/best.pt",
+      "sha256": "48ce7d8d4b3b8a429d807ebf9e8f796fa2ef5c97178b3ba695e3262b21d2750a"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/B/training/best.pt",
+      "sha256": "624dae38c80c45ab07f808e8c916b8c2683ac598db4892f04366da408e68755a"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/B/backend/B/training/best.pt",
+      "sha256": "b68f21258216c9db069874fd5c69dd5331e259e10401f107f12717c77879b67b"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/training/best.pt",
+      "sha256": "f41711ee9f5d54cc56e3d547c2c903e9881cec3ecfdd31866737587acd255171"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/backend/A/training/best.pt",
+      "sha256": "3b1caa8d4456738c6a492aafe8b0900c833f87de6e6b89815433f16a91112039"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/training/best.pt",
+      "sha256": "ceba9c4bffcee2ef05e41880a92a441a9a4f7393752d972a6dafdf5738caf6bd"
+    },
+    {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/backend/B/training/best.pt",
+      "sha256": "d38550deda7e4c7bf715d15a45b5d213d4f2c494a742ad2a54bd122fbbd21d74"
+    }
+  ],
+  "canonical_git_status": "",
+  "experiment_source_git_status": "?? pretrained_policy\n",
+  "preexisting_untracked": "pretrained_policy symlink",
+  "broken_report_links": [],
+  "own_diagnostic_workers_remaining": [],
+  "free_disk_gib": 13.504383087158203,
+  "diagnostic_bytes": 6127745,
+  "report": "REPORT.md",
+  "limitations": [
+    "No lossless RGB-D or DINO patches in final-test records",
+    "Original ephemeral per-update gradients not retained",
+    "Original first post-resume epoch2 numerical checkpoint replaced; receipt only"
+  ],
+  "findings": [
+    "P1 native onset anchor excluded on48/50 new corrections despite absolute-tick exposure>=50",
+    "P2 capture DINO microbatch1 differs numerically from cached microbatch2; final-test uses2",
+    "P3 generated report says online noise7093 but checkpoints specify7091"
+  ],
+  "causal_status": "No finding alone proves causation of lost final-test successes"
+}

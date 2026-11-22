@@ -1,4 +1,4 @@
-> Tight-Insertion（2026-11-17）：10cm布局、共同76条有效训练数据；完成固定56长训、三轮共享DAgger和新20对自主测试，选中72条完整模型，A/B各3/20。当前暂停新实验，只完成证据整理。[实验与时间账](research_docs/TIGHT_TRAINING_DIAGNOSIS_20261116.md) · [远端可复核证据入口](research_docs/evidence/tight_long_20261117/publication/README.md) · [交接](research_docs/SESSION_HANDOFF.md)。
+> Tight-Insertion（2026-11-22）：原生接管入口采样修复及 train180 匹配重训完成；选中 A/B 的新增50条、334入口提交槽全部达到50个有效 optimizer step。96次完整自主开发已结束，成功总数增加但旧成功仍丢失；入口同历史误差、补录短诊断及独立终测尚未完成。[实验流程与结果](research_docs/TIGHT_ENTRY_PHASE_20261122.md) · [数据、逐例结果与复核命令](research_docs/evidence/tight_entry_phase_20261121_01/README.md) · [交接](research_docs/SESSION_HANDOFF.md)。
 
 # Play2Perfect
 

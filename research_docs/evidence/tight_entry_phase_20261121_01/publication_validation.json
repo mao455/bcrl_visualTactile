@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-11-22T11:55:53.084951+08:00",
+  "scope": "Publication only; no optimizer updates, no new physical episodes",
+  "production_regression": {
+    "command": "env OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 OPENBLAS_NUM_THREADS=2 /home/CNS2025331827/miniconda3/envs/isaaclab/bin/python -m pytest -q tests/test_native_entry_sampling.py tests/test_visual_arithmetic_contract.py tests/test_run_facts.py tests/test_effective_exposure.py",
+    "passed": 12,
+    "warnings": 1,
+    "wall_s_reported_by_pytest": 1.54
+  },
+  "published_evidence_verification": {
+    "command": "python research_docs/evidence/tight_entry_phase_20261121_01/verify_published.py",
+    "passed": true,
+    "exported_payload_files_verified": 1576,
+    "dp_updates_each": 7200,
+    "selected_dp_updates_each": 6000,
+    "new_entries_each": 50,
+    "new_entry_slots_each": 334,
+    "entry_steps_each_slot": 50,
+    "rear_updates_each": 22763,
+    "development_episodes": 96,
+    "paired_initial_checks": 16,
+    "test_used": false
+  },
+  "git_diff_check": true,
+  "new_report_relative_links_exist": true,
+  "raw_receipt_preservation": "Scoped .gitattributes retains CSV CRLF and captured original failed-log spacing without changing source SHA"
+}

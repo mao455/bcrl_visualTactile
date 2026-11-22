@@ -1,0 +1,97 @@
+.....F........................................................           [100%]
+=================================== FAILURES ===================================
+__ test_production_b2_update_reads_108_history_and_masks_its_first_two_slots ___
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x782d005784d0>
+
+    def test_production_b2_update_reads_108_history_and_masks_its_first_two_slots(monkeypatch):
+        import copy
+        from types import SimpleNamespace
+        from test_full_trajectory_training import TinyNative,install_small_vision
+        from visuotactile.trajectory_training import execute_update
+        from visuotactile.models.vendor.ema_model import EMAModel
+        install_small_vision(monkeypatch)
+        from visuotactile import anchor_continue
+        monkeypatch.setattr(anchor_continue,'projection_batch',lambda *args,**kwargs:{})
+        r=record();n=len(r['time']);r['robot']=torch.zeros(n,178)
+        ep=SimpleNamespace(visual_stride=1,record=dict(camera_time=r['time'][:,None].expand(-1,3),
+            camera_valid=torch.ones(n,3,dtype=torch.bool)),perception=dict(patches=torch.zeros(n,3),depth=torch.zeros(n,1)))
+        a,receipt=sample_training_anchors(r,native_entry_sampling_profile(),identity='x',epoch=1,visit_index=1)
+        model=TinyNative();opt=torch.optim.AdamW(model.parameters(),lr=1e-4);ema=EMAModel(copy.deepcopy(model),power=.75)
+        class Objective:
+            gain=1.;weights={};last_geometry_metrics=None
+            def components(self,prediction,truth,valid,scale,offset,context):
+                self.prediction=prediction;prediction.retain_grad();self.valid=valid;self.truth=truth
+                return dict(base=(prediction-truth)[valid].square().mean())
+        obj=Objective()
+>       result=execute_update(model,opt,ema,obj,['x'],[r],[ep],torch.Generator().manual_seed(3),
+            selected_anchors=[a],anchor_receipts=[receipt])
+
+tests/test_native_entry_sampling.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+model = TinyNative(
+  (vision): Linear(in_features=3, out_features=4, bias=True)
+  (native_input): Linear(in_features=178, out...ut_features=4, bias=True)
+  (denoiser): Denoiser(
+    (linear): Linear(in_features=4, out_features=29, bias=True)
+  )
+)
+optimizer = AdamW (
+Parameter Group 0
+    amsgrad: False
+    betas: (0.9, 0.999)
+    capturable: False
+    decoupled_weight_decay:...ble: False
+    eps: 1e-08
+    foreach: None
+    fused: None
+    lr: 0.0001
+    maximize: False
+    weight_decay: 0.01
+)
+ema = <visuotactile.models.vendor.ema_model.EMAModel object at 0x782be8805c50>
+objective = <test_native_entry_sampling.test_production_b2_update_reads_108_history_and_masks_its_first_two_slots.<locals>.Objective object at 0x782bea559d90>
+identities = ['x']
+records = [{'clean_sample': tensor([[0.0000e+00, 1.0000e+00, 2.0000e+00,  ..., 2.6000e+01, 2.7000e+01,
+         2.8000e+01],
+   ...[0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.],
+        [0., 0., 0.,  ..., 0., 0., 0.]]), ...}]
+episodes = [namespace(visual_stride=1, record={'camera_time': tensor([[0.0000, 0.0000, 0.0000],
+        [0.0167, 0.0167, 0.0167],....],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.],
+        [0.]])})]
+noise = <torch._C.Generator object at 0x782be8956a90>
+
+    def execute_update(model,optimizer,ema,objective,identities,records,episodes,noise,*,check=lambda:None,
+            selected_anchors=None,anchor_receipts=None,geometry_generators=None,geometry_sampling_profile=None,diagnostic_gradients=False):
+        """Exactly one clipped AdamW/EMA transaction for one/two independent visits."""
+        import torch
+        from .trajectory_batch import supervised_trajectories,trajectory_objective
+        from .anchor_continue import projection_batch
+        if len(identities) not in (1,2) or len(records)!=len(identities) or len(episodes)!=len(identities):
+            raise ValueError('B2 requires one/two aligned complete visits')
+        if (selected_anchors is None)!=(anchor_receipts is None):raise ValueError('Actual sampled starts and receipts must be supplied together')
+        check();model.train();optimizer.zero_grad(set_to_none=True)
+        if selected_anchors is not None and (anchor_receipts is None or geometry_generators is None or
+                len(anchor_receipts)!=len(identities) or len(geometry_generators)!=len(identities)):
+>           raise ValueError('Explicit per-visit selections, receipts and geometry generators must align')
+E           ValueError: Explicit per-visit selections, receipts and geometry generators must align
+
+visuotactile/trajectory_training.py:111: ValueError
+=============================== warnings summary ===============================
+../../miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113
+  /home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.4.3)/charset_normalizer (3.3.2) doesn't match a supported version!
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_native_entry_sampling.py::test_production_b2_update_reads_108_history_and_masks_its_first_two_slots
+1 failed, 61 passed, 1 warning in 2.97s

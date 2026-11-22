@@ -1,0 +1,41 @@
+{
+  "version": "fresh_batch_epoch_log_recovery_v1",
+  "durable_updates": 120,
+  "completed_epochs": 1,
+  "episodes_per_epoch": 240,
+  "checkpoint_sha256": "b7b6982c536474d8bbe5bfd5c997e46e6535508d7e68811b7a02998c13ebb601",
+  "original_log_sha256": "94cb2485b392191d5c0a06b1bc7894ec13826ffc14ca16190201b12aaaa4347b",
+  "retained_log_sha256": "f3a886cd04c601e1290bdf5a288e54668a20d1cd0e8cc5390217a6d144cc5a7a",
+  "abandoned_path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/training/learning.abandoned.5767db1d12944c16931cbd6aa66972ab.jsonl",
+  "abandoned_sha256": "1251c3f22c2e3267a078b22f07329258c3a27622eed52c08ab3b3616bd6c3246",
+  "abandoned_rows": 9,
+  "known_discarded_update_ids": [
+    121,
+    122,
+    123,
+    124,
+    125,
+    126,
+    127,
+    128,
+    129
+  ],
+  "discarded_updates_in_restored_model": 0,
+  "utc": 1795270371.3960714,
+  "scope": "Abandoned rows preserve real work whose optimizer/RNG state was not checkpointed; excluded from the restored model learning dose.",
+  "full_trajectory_batch": {
+    "version": "full_trajectory_batch_v1",
+    "batch_size": 2,
+    "grouping": "adjacent_registered_deck_visits",
+    "tail_policy": "keep_singleton",
+    "loss_reduction": "mean_per_trajectory_in_actual_batch",
+    "optimizer_steps": "one_per_batch",
+    "ema_steps": "one_per_optimizer_step",
+    "learning_rate": "unchanged_no_automatic_scaling",
+    "geometry": "original_selection_per_visit",
+    "noise": "original_randn_then_randint_per_visit",
+    "history": "independent_complete_real_prefix"
+  },
+  "durable_episode_visits": 240,
+  "optimizer_updates_per_epoch": 120
+}

@@ -1,3 +1,11 @@
+# 原生接管入口与视觉算术合同（2026-11-22）
+
+`grasp_random_legal_cover_native_entry_v2` 保留原随机anchor与合法tick覆盖补齐，并为纠偏追加首合法标签所属的原生12-tick anchor；只允许这个精确入口处于无标签前缀。H24/commit12、60Hz控制/5Hz规划及真实完整历史保持，prefix/过渡/padding的loss mask保持0。`native_entry_commit_optimizer_exposure_v1` 仅在真实optimizer成功提交后，对原生入口前12槽内的合法identity/tick按step去重计数，随checkpoint保存/恢复，选模需最低50次；不得用较晚anchor的绝对tick曝光替代。
+
+`native_dino_arithmetic_v1` 在运行合同及缓存身份中显式绑定microbatch2、尾lane复制、相机顺序、RGB/metric-depth处理与精度设置。报告从实际checkpoint和epoch日志读取sampler_seed=7091与LR；队列episode reset不等于重置generator。本轮96例自主开发记录实际RNG状态，旧四轨重放按历史microbatch1路径；视觉抽帧验证不能冒充全帧重编码。入口误差与短诊断仍须另行验证。
+
+数据和模型以本轮 [manifest及逐例证据](evidence/tight_entry_phase_20261121_01/README.md) 追溯；预留终测未打开。当前训练及开发结果见 [阶段报告](TIGHT_ENTRY_PHASE_20261122.md)，新旧成功、专家救回、短诊断及独立终测必须分别记账。
+
 # 显式新增有效监督50次合同
 
 `new_optimizer_step_legal_tick_exposure_v1`从本轮0开始，以真实正权loss mask和成功optimizer提交为计数单位，identity/tick在同一步并集去重；祖先曝光不计。保存/恢复实际合法人口、逐tick计数与optimizer序号。最终检查点需每轨访问和每合法tick不同step次数均≥50，验证仅在满足门槛者中选。DP `grasp_random_plus_legal_cover_v1`保留旧grasp随机起点并以合法H24窗口补齐未覆盖标签，真实完整历史和原segment/交接mask保持；部署仍5Hz。后端原32tick截断、128量级优化窗口及原损失保持。计数是非零监督权重，非保证误差/梯度非零或学会任务。

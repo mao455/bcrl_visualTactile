@@ -1,0 +1,258 @@
+{
+  "job": {
+    "version": "tight_project_job_v1",
+    "operation": "train",
+    "resource_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01_recovery01",
+    "stages": [
+      {
+        "entry": "frontend",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+          "--role",
+          "A",
+          "--epochs",
+          "60",
+          "--full-trajectory-batch",
+          "--offline-anchor-batch",
+          "64"
+        ]
+      },
+      {
+        "entry": "frontend",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+          "--role",
+          "B",
+          "--epochs",
+          "60",
+          "--full-trajectory-batch",
+          "--offline-anchor-batch",
+          "64"
+        ]
+      },
+      {
+        "entry": "backend_prepare",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+          "--role",
+          "A",
+          "--epochs",
+          "60",
+          "--continue-rear",
+          "--offline-anchor-batch",
+          "64",
+          "--frozen-visual-io-json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/frozen_visual_io.json"
+        ]
+      },
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend"
+        ]
+      },
+      {
+        "entry": "backend_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/training"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/offline"
+        ]
+      },
+      {
+        "entry": "backend_prepare",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+          "--role",
+          "B",
+          "--epochs",
+          "60",
+          "--continue-rear",
+          "--offline-anchor-batch",
+          "64",
+          "--frozen-visual-io-json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/frozen_visual_io.json"
+        ]
+      },
+      {
+        "entry": "backend_cache",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend"
+        ]
+      },
+      {
+        "entry": "backend_train",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/training"
+        ]
+      },
+      {
+        "entry": "backend_offline",
+        "args": [
+          "--root",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B",
+          "--job",
+          "image",
+          "--output",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/offline"
+        ]
+      }
+    ]
+  },
+  "commands": [
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_fresh_train",
+      "train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+      "--role",
+      "A",
+      "--epochs",
+      "60",
+      "--full-trajectory-batch",
+      "--offline-anchor-batch",
+      "64"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_fresh_train",
+      "train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+      "--role",
+      "B",
+      "--epochs",
+      "60",
+      "--full-trajectory-batch",
+      "--offline-anchor-batch",
+      "64"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_fresh_backend",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+      "--role",
+      "A",
+      "--epochs",
+      "60",
+      "--continue-rear",
+      "--offline-anchor-batch",
+      "64",
+      "--frozen-visual-io-json",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/frozen_visual_io.json"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_finish",
+      "residual_cache",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/training"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-offline",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/offline"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_fresh_backend",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+      "--role",
+      "B",
+      "--epochs",
+      "60",
+      "--continue-rear",
+      "--offline-anchor-batch",
+      "64",
+      "--frozen-visual-io-json",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/frozen_visual_io.json"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "tools.tight_finish",
+      "residual_cache",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-train",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/training"
+    ],
+    [
+      "/home/CNS2025331827/miniconda3/envs/isaaclab/bin/python",
+      "-m",
+      "visuotactile.anchor_continue",
+      "residual-offline",
+      "--root",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B",
+      "--job",
+      "image",
+      "--output",
+      "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/offline"
+    ]
+  ],
+  "pid": 870923,
+  "utc": 1795270347.179614,
+  "source_commit": "90b0a7ccebd350de06d2f7c9c83bf2a652c80f21"
+}

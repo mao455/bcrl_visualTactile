@@ -1,0 +1,17 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_entry_control_audit.py", line 80, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_entry_control_audit.py", line 77, in main
+    run(p.parse_args().config)
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_entry_control_audit.py", line 36, in run
+    with gzip.open(out/f'{role}_planned_sampling.jsonl.gz','rt') as planned, learning_rows(directory) as actual:
+  File "/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_entry_control_audit.py", line 24, in learning_rows
+    assert receipt['archive_verified'] and receipt['original_removed']
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+KeyError: 'archive_verified'

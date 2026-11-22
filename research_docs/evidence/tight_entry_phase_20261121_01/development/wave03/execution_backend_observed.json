@@ -1,0 +1,39 @@
+{
+  "requested": {
+    "configuration": {
+      "version": "tight_execution_backend_v2",
+      "physics_device": "cuda:0",
+      "camera_backend": "standard",
+      "kit_tasking_threads": 16,
+      "physics_threads": 2,
+      "renderer_descriptor_sets": 360000,
+      "renderer_reserved_descriptors": 900000
+    },
+    "configuration_sha256": "b5085610cacb78a15a55ce37e86d8255658be41ec0101c5f4852cfffb2f86bca",
+    "num_envs": 6,
+    "camera_calibration": "same_rgbd_render_product_camera_params_v1",
+    "rng_contract": "registered_device_batch_stream_v2",
+    "live_accepted": false,
+    "limitation": "Execution candidate only; requires measured contact/control/sensor/task acceptance. Native random draws are batch-owned, not independent lane streams or backend-exact replay."
+  },
+  "physics_device": "cuda:0",
+  "camera_backend": "standard",
+  "physics_dt": 0.00833333333,
+  "control_dt": 0.01666666666,
+  "num_envs": 6,
+  "note": "Constructed configuration, not live task acceptance",
+  "utc": 1795312667.1230788,
+  "renderer_resources": {
+    "requested": {
+      "/rtx/descriptorSets": 360000,
+      "/rtx/reservedDescriptors": 900000
+    },
+    "observed": {
+      "/rtx/descriptorSets": 360000,
+      "/rtx/reservedDescriptors": 900000
+    },
+    "matched": true,
+    "view_tile_limit_observed": 1000000,
+    "scope": "Process-local renderer capacity; no image quality, camera calibration or physics change"
+  }
+}

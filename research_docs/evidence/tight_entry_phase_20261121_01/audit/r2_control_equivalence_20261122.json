@@ -1,0 +1,668 @@
+{
+  "version": "frozen_r2_matched_control_reuse_audit_v1",
+  "utc": 1795311960.8535209,
+  "old_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning",
+  "native_entry_root": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01",
+  "roles": {
+    "A": {
+      "evidence_paths": {
+        "dp_configuration": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/training/configuration.json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/training/configuration.json"
+        ],
+        "backend_configuration": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/backend/A/training/configuration.json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/training/configuration.json"
+        ],
+        "dp_validation": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/training/validation.jsonl",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/training/validation.jsonl"
+        ],
+        "backend_validation": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/backend/A/training/validation.json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/training/validation.json"
+        ]
+      },
+      "checks": {
+        "unchanged_core_source_hashes": {
+          "passed": true,
+          "sha256": {
+            "visuotactile/models/native_dp.py": "f41029d3de6468cf2f2474e84c517d169d6d70d2933ff94ce40e2a1389027923",
+            "visuotactile/models/native_vision.py": "686174d14612364bc74a9319c6741cd5816bafbcf2893b0356b727688280ae7e",
+            "visuotactile/dp_objectives.py": "7dcf7f2ba9147cd2d400a2ecaa9426805761e5eecf860c93282d50dfb43becc6",
+            "visuotactile/trajectory_batch.py": "8e0031d929c3976b222101b788f99f5c3c86d3d51569ea9334bff6bdbe1d2d14",
+            "visuotactile/trajectory_training.py": "e64be1fc35d24011f4dbe08b66d3c8a94ec6fc80cf60a1201bb554b447d3f5f8",
+            "visuotactile/precision.py": "0416b5b20923d59ceccb638e2c02d2dc110d920bf08c0ab57f35b59a030e1b45",
+            "visuotactile/target_windows.py": "77f5ebf2174d6dec9d17e0dfbd99f932309d193fbd1397511aa0dc4a0d010374",
+            "visuotactile/offline_planning.py": "09733406b9ab65e00350093084312ccd9fe518a89a5723a06fd0ece371c2fb33",
+            "visuotactile/position_control.py": "f38d5661b2e6ec79e4992795a7786ea13c1880ff5a72dcd02e681f67e97b098e",
+            "visuotactile/execution_learning.py": "23d1379e5db3e203dd8de37357b48dcebcbe1fa5a270c278e304cafa1bfc2f59",
+            "visuotactile/execution_backend.py": "1f700710df163d58843dcd24dc5f63eaf230b1be65c045215bde5a6519029201",
+            "visuotactile/residual_output.py": "e58bde415cd9495ae0a858e3a36d02737281911baa6e57a880182895602b9dfd",
+            "visuotactile/residual_tick_window.py": "7529d91e593975852f522179e9b4d91d13c4a4779682e6ccfa28b9e6789eea77"
+          },
+          "changed_helpers_review": "git diff 0e914563..90b0a7c -- tools/tight_fresh_train.py tools/tight_fresh_backend.py tools/tight_finish.py visuotactile/anchor_continue.py visuotactile/native_data.py visuotactile/fresh_visit_sampling.py: changes add native entry sampling, observational exposure ledger, explicit actual LR replay and visual identity checks; no model/loss/projection changes."
+        },
+        "dataset_split_and_visual_payloads": {
+          "passed": true,
+          "train": 180,
+          "validation": 6,
+          "test": 0,
+          "equal_visual_payload_references": 186,
+          "visual_arithmetic": {
+            "version": "native_dino_arithmetic_v1",
+            "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+            "vision_microbatch": 2,
+            "vision_tail_profile": null,
+            "tail_policy": "duplicate_last_real_lane",
+            "cameras": [
+              "fixed_high",
+              "fixed_side",
+              "wrist_rgbd"
+            ],
+            "rgb": "lossless_uint8_3x252x448",
+            "normalize_mean": [
+              0.485,
+              0.456,
+              0.406
+            ],
+            "normalize_std": [
+              0.229,
+              0.224,
+              0.225
+            ],
+            "patches": "float16_384x18x32",
+            "depth": "metric_m_2x18x32",
+            "matmul_allow_tf32": false,
+            "cudnn_enabled": true,
+            "cudnn_benchmark": false,
+            "cudnn_deterministic": false,
+            "cudnn_allow_tf32": true,
+            "autocast": false,
+            "frozen": true,
+            "training": false,
+            "temporal_stride": 1
+          },
+          "arithmetic_verification_scope": "Selected real frames per episode, not all-frame encoder recomputation",
+          "note": "Old and new use exactly the same full cache entry paths, SHA declarations, frame counts and timestamp hashes. Sampled arithmetic verification is 672 frames across all 186 episodes; not an all-frame encoder recomputation."
+        },
+        "dp_parents_and_math": {
+          "passed": true,
+          "parent": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/A/training/best.pt",
+          "parent_sha256": "5df541a70b9eab75800fe3ae9cae4700290fbc557605f4f5497523e9d98fa446",
+          "actual_new_updates": [
+            7200,
+            7200
+          ],
+          "actual_epochs": [
+            60,
+            60
+          ],
+          "optimizer": "fresh AdamW/EMA from same selected DP EMA parent; no optimizer resume from R1"
+        },
+        "dp_decks_lr_and_selection": {
+          "passed": true,
+          "identical_actual_decks": 60,
+          "rates_by_epoch": [
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06
+          ],
+          "eligible_epochs": [
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60
+          ],
+          "selection": "minimum fixed validation6 DDIM16 commit12 normalized equal Arm/Hand error among eligible epochs",
+          "extra_entry_gate": "Native gate passes at exactly epoch50; it does not change the eligible epoch set compared with old absolute tick gate."
+        },
+        "backend_parent_math_budget_lr_selection": {
+          "passed": true,
+          "parent": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/A/backend/A/training/best.pt",
+          "parent_sha256": "48ce7d8d4b3b8a429d807ebf9e8f796fa2ef5c97178b3ba695e3262b21d2750a",
+          "actual_new_updates": [
+            22763,
+            22763
+          ],
+          "control_tick_epochs": [
+            60.0,
+            60.0
+          ],
+          "supervised_ticks": [
+            3304860,
+            3304860
+          ],
+          "rates_by_epoch": [
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05
+          ],
+          "eligible_epochs": [
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60
+          ],
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE"
+        }
+      },
+      "models": {
+        "original": {
+          "dp": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/training/best.pt",
+            "sha256": "f41711ee9f5d54cc56e3d547c2c903e9881cec3ecfdd31866737587acd255171",
+            "epoch": 53,
+            "updates": 6360
+          },
+          "backend": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/backend/A/training/best.pt",
+            "sha256": "3b1caa8d4456738c6a492aafe8b0900c833f87de6e6b89815433f16a91112039",
+            "epoch": 50,
+            "updates": 18960
+          },
+          "nominal_index": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/A/backend/A/nominal/index.json",
+            "sha256": "e69f091fc4365d61c46a976c36c58c594481fde63972e29347a564f7e6d02d9e",
+            "base_sha256": "f41711ee9f5d54cc56e3d547c2c903e9881cec3ecfdd31866737587acd255171",
+            "actual_payload_bindings_verified": 186
+          },
+          "selected_minimum_validation_confirmed": true
+        },
+        "native_entry": {
+          "dp": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/training/best.pt",
+            "sha256": "a3a35e465723318dbb352e96b696af91c58440d99923205590888e85f97e3351",
+            "epoch": 50,
+            "updates": 6000
+          },
+          "backend": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/training/best.pt",
+            "sha256": "a332df55c9f9f7ea623da02512946944e3a103aa9e0989cd24ca12ad25940585",
+            "epoch": 53,
+            "updates": 20108
+          },
+          "nominal_index": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/A/backend/A/nominal/index.json",
+            "sha256": "82a37b6cbbbd44427c76cd67d0121d277685b138f1995d9980a19197281ee6af",
+            "base_sha256": "a3a35e465723318dbb352e96b696af91c58440d99923205590888e85f97e3351",
+            "actual_payload_bindings_verified": 186
+          },
+          "selected_minimum_validation_confirmed": true
+        }
+      },
+      "reusable_as_original_sampler_control": true
+    },
+    "B": {
+      "evidence_paths": {
+        "dp_configuration": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/training/configuration.json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/training/configuration.json"
+        ],
+        "backend_configuration": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/backend/B/training/configuration.json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/training/configuration.json"
+        ],
+        "dp_validation": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/training/validation.jsonl",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/training/validation.jsonl"
+        ],
+        "backend_validation": [
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/backend/B/training/validation.json",
+          "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/training/validation.json"
+        ]
+      },
+      "checks": {
+        "unchanged_core_source_hashes": {
+          "passed": true,
+          "sha256": {
+            "visuotactile/models/native_dp.py": "f41029d3de6468cf2f2474e84c517d169d6d70d2933ff94ce40e2a1389027923",
+            "visuotactile/models/native_vision.py": "686174d14612364bc74a9319c6741cd5816bafbcf2893b0356b727688280ae7e",
+            "visuotactile/dp_objectives.py": "7dcf7f2ba9147cd2d400a2ecaa9426805761e5eecf860c93282d50dfb43becc6",
+            "visuotactile/trajectory_batch.py": "8e0031d929c3976b222101b788f99f5c3c86d3d51569ea9334bff6bdbe1d2d14",
+            "visuotactile/trajectory_training.py": "e64be1fc35d24011f4dbe08b66d3c8a94ec6fc80cf60a1201bb554b447d3f5f8",
+            "visuotactile/precision.py": "0416b5b20923d59ceccb638e2c02d2dc110d920bf08c0ab57f35b59a030e1b45",
+            "visuotactile/target_windows.py": "77f5ebf2174d6dec9d17e0dfbd99f932309d193fbd1397511aa0dc4a0d010374",
+            "visuotactile/offline_planning.py": "09733406b9ab65e00350093084312ccd9fe518a89a5723a06fd0ece371c2fb33",
+            "visuotactile/position_control.py": "f38d5661b2e6ec79e4992795a7786ea13c1880ff5a72dcd02e681f67e97b098e",
+            "visuotactile/execution_learning.py": "23d1379e5db3e203dd8de37357b48dcebcbe1fa5a270c278e304cafa1bfc2f59",
+            "visuotactile/execution_backend.py": "1f700710df163d58843dcd24dc5f63eaf230b1be65c045215bde5a6519029201",
+            "visuotactile/residual_output.py": "e58bde415cd9495ae0a858e3a36d02737281911baa6e57a880182895602b9dfd",
+            "visuotactile/residual_tick_window.py": "7529d91e593975852f522179e9b4d91d13c4a4779682e6ccfa28b9e6789eea77"
+          },
+          "changed_helpers_review": "git diff 0e914563..90b0a7c -- tools/tight_fresh_train.py tools/tight_fresh_backend.py tools/tight_finish.py visuotactile/anchor_continue.py visuotactile/native_data.py visuotactile/fresh_visit_sampling.py: changes add native entry sampling, observational exposure ledger, explicit actual LR replay and visual identity checks; no model/loss/projection changes."
+        },
+        "dataset_split_and_visual_payloads": {
+          "passed": true,
+          "train": 180,
+          "validation": 6,
+          "test": 0,
+          "equal_visual_payload_references": 186,
+          "visual_arithmetic": {
+            "version": "native_dino_arithmetic_v1",
+            "dino_revision": "7764ea0f912e53c92e82eb78a2a1631e92725fc8",
+            "vision_microbatch": 2,
+            "vision_tail_profile": null,
+            "tail_policy": "duplicate_last_real_lane",
+            "cameras": [
+              "fixed_high",
+              "fixed_side",
+              "wrist_rgbd"
+            ],
+            "rgb": "lossless_uint8_3x252x448",
+            "normalize_mean": [
+              0.485,
+              0.456,
+              0.406
+            ],
+            "normalize_std": [
+              0.229,
+              0.224,
+              0.225
+            ],
+            "patches": "float16_384x18x32",
+            "depth": "metric_m_2x18x32",
+            "matmul_allow_tf32": false,
+            "cudnn_enabled": true,
+            "cudnn_benchmark": false,
+            "cudnn_deterministic": false,
+            "cudnn_allow_tf32": true,
+            "autocast": false,
+            "frozen": true,
+            "training": false,
+            "temporal_stride": 1
+          },
+          "arithmetic_verification_scope": "Selected real frames per episode, not all-frame encoder recomputation",
+          "note": "Old and new use exactly the same full cache entry paths, SHA declarations, frame counts and timestamp hashes. Sampled arithmetic verification is 672 frames across all 186 episodes; not an all-frame encoder recomputation."
+        },
+        "dp_parents_and_math": {
+          "passed": true,
+          "parent": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/B/training/best.pt",
+          "parent_sha256": "624dae38c80c45ab07f808e8c916b8c2683ac598db4892f04366da408e68755a",
+          "actual_new_updates": [
+            7200,
+            7200
+          ],
+          "actual_epochs": [
+            60,
+            60
+          ],
+          "optimizer": "fresh AdamW/EMA from same selected DP EMA parent; no optimizer resume from R1"
+        },
+        "dp_decks_lr_and_selection": {
+          "passed": true,
+          "identical_actual_decks": 60,
+          "rates_by_epoch": [
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            1.5e-05,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06,
+            7.5e-06
+          ],
+          "eligible_epochs": [
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60
+          ],
+          "selection": "minimum fixed validation6 DDIM16 commit12 normalized equal Arm/Hand error among eligible epochs",
+          "extra_entry_gate": "Native gate passes at exactly epoch50; it does not change the eligible epoch set compared with old absolute tick gate."
+        },
+        "backend_parent_math_budget_lr_selection": {
+          "passed": true,
+          "parent": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round01/learning/B/backend/B/training/best.pt",
+          "parent_sha256": "b68f21258216c9db069874fd5c69dd5331e259e10401f107f12717c77879b67b",
+          "actual_new_updates": [
+            22763,
+            22763
+          ],
+          "control_tick_epochs": [
+            60.0,
+            60.0
+          ],
+          "supervised_ticks": [
+            3304860,
+            3304860
+          ],
+          "rates_by_epoch": [
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05,
+            5e-05
+          ],
+          "eligible_epochs": [
+            50,
+            51,
+            52,
+            53,
+            54,
+            55,
+            56,
+            57,
+            58,
+            59,
+            60
+          ],
+          "selection": "fixed validation6 all-tick normalized equal Arm/Hand MSE"
+        }
+      },
+      "models": {
+        "original": {
+          "dp": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/training/best.pt",
+            "sha256": "ceba9c4bffcee2ef05e41880a92a441a9a4f7393752d972a6dafdf5738caf6bd",
+            "epoch": 53,
+            "updates": 6360
+          },
+          "backend": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/backend/B/training/best.pt",
+            "sha256": "d38550deda7e4c7bf715d15a45b5d213d4f2c494a742ad2a54bd122fbbd21d74",
+            "epoch": 54,
+            "updates": 20490
+          },
+          "nominal_index": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_adaptive_dagger_20261119_01/round02/learning/B/backend/B/nominal/index.json",
+            "sha256": "72a594f377f4a8c591b9287107760329d079e93484d341e3e4374e67b9ecc470",
+            "base_sha256": "ceba9c4bffcee2ef05e41880a92a441a9a4f7393752d972a6dafdf5738caf6bd",
+            "actual_payload_bindings_verified": 186
+          },
+          "selected_minimum_validation_confirmed": true
+        },
+        "native_entry": {
+          "dp": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/training/best.pt",
+            "sha256": "91a649ebb652635b212be11eadd96a18c38a0a716acaae2ba8cc7276edbbc42d",
+            "epoch": 50,
+            "updates": 6000
+          },
+          "backend": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/training/best.pt",
+            "sha256": "21ef1a01a0734ca6890430d1a182d595aff4d47adb884d503946737fcb24380f",
+            "epoch": 54,
+            "updates": 20490
+          },
+          "nominal_index": {
+            "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/visuotactile/run/tight_entry_phase_20261121_01/B/backend/B/nominal/index.json",
+            "sha256": "98b350d9a7fd1773091882c5612bf386038753581d10548239732067568c0baf",
+            "base_sha256": "91a649ebb652635b212be11eadd96a18c38a0a716acaae2ba8cc7276edbbc42d",
+            "actual_payload_bindings_verified": 186
+          },
+          "selected_minimum_validation_confirmed": true
+        }
+      },
+      "reusable_as_original_sampler_control": true
+    }
+  },
+  "evidence": {
+    "original_control_audit.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_entryfix_20261121_01/original_control_audit.json",
+      "sha256": "54c403dfd028e2e1a72c15ce22e8ebf3351e2512987da6e4c810fbb1ea0d8720"
+    },
+    "visual_cache_verification.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_entryfix_20261121_01/visual_cache_verification.json",
+      "sha256": "3f49128a1a5ec73cafce07806c209026375b64d41ad1c6cd86c3acae0a5747e2"
+    },
+    "matched_learning_rates.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_entryfix_20261121_01/matched_learning_rates.json",
+      "sha256": "1f45f3e712c0d6285bd775a012cb8e8b875f5a851b4efeec2699f37efd6f97b4"
+    },
+    "matched_backend_learning_rates.json": {
+      "path": "/home/CNS2025331827/docs/bc+rl_RSS/outputs/diagnostics/tight_entryfix_20261121_01/matched_backend_learning_rates.json",
+      "sha256": "dfa052425323390f41dc58845c43444f17140fe78f08e7a18a7e46d210b6f533"
+    }
+  },
+  "passed": true,
+  "requires_original_sampler_retraining": false,
+  "conclusion": "Frozen R2 complete A/B pairs can be reused as the original-sampler arm. Actual inputs, parents, budgets, epoch learning rates, eligible epoch sets, selection metrics, backend math and matching DP cache bindings agree; native entry sampler is the intended intervention.",
+  "limitations": [
+    "Historical visual configuration lacks explicit arithmetic identity; this is closed for between-arm training parity by identical full cached payload references and independent sampled microbatch2 verification, not by all-frame encoder regeneration.",
+    "The seed alone does not establish identical per-visit diffusion noise after the number of sampled anchors changes. The changed training noise consumption is an unavoidable consequence of this sampler intervention, not an independently controlled identical-noise claim.",
+    "This audit establishes training/control comparability; it contains zero new optimizer updates or simulator steps and does not establish entry error or closed-loop improvement."
+  ]
+}

@@ -1,0 +1,23 @@
+/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/site-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.6.3) or chardet (7.4.3)/charset_normalizer (3.3.2) doesn't match a supported version!
+  warnings.warn(
+{"role": "A", "epoch": 1, "updates": 120, "loss": 0.0028667487861336366, "train": 0.00044076808262616396, "validation": 0.004421502351760864}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_train.py", line 811, in <module>
+    if __name__=='__main__':main()
+                            ^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_train.py", line 807, in main
+    train(root,a.role,a.epochs,offline_anchor_batch=a.offline_anchor_batch,trajectory_batch_profile=profile())
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_train.py", line 302, in train
+    return _train(root,role,epochs,**options)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/tools/tight_fresh_train.py", line 587, in _train
+    with lease.block():
+  File "/home/CNS2025331827/miniconda3/envs/isaaclab/lib/python3.11/contextlib.py", line 137, in __enter__
+    return next(self.gen)
+           ^^^^^^^^^^^^^^
+  File "/home/CNS2025331827/docs/bc+rl_RSS/visuotactile/state_resources.py", line 219, in block
+    if row['ram_available_bytes']<limits['min_ram_gib']*1024**3:raise RuntimeError('RAM reserve')
+                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: RAM reserve
